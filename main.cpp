@@ -1,7 +1,7 @@
 #include <iostream>
 #include <string>
-#include "Reactor.h"
-#include "ReactorController.h"
+#include "NUClear/Reactor.h"
+#include "NUClear/ReactorController.h"
 
 struct CameraData {
     int camData;
@@ -11,10 +11,22 @@ struct MotorData {
     float motorData;
 };
 
+void free(const CameraData& cameraData, const MotorData& mData) {
+    std::cout << "No way" << std::endl;
+    std::cout << "CameraData:" << cameraData.camData << std::endl;
+    std::cout << "MotorData:" << mData.motorData << std::endl;
+}
+
 class Vision : public NUClear::Reactor {
     public:
         Vision() {
-            reactOn<Vision, CameraData, MotorData>();
+            //reactOn<Vision, CameraData, MotorData>();
+            //on<CameraData, MotorData>()
+            //.reactWith(std::bind(&Vision::react, this));
+            on<CameraData, MotorData>().reactWith(std::bind(&Vision::react, this));
+            /*.reactWith([](const CameraData& cameraData, const MotorData& mData) {
+                std::cout << "woo" << std::endl;
+            });*/
         }
 
         void react(const CameraData& cameraData, const MotorData& mData) {
@@ -23,6 +35,8 @@ class Vision : public NUClear::Reactor {
             std::cout << "MotorData:" << mData.motorData << std::endl;
         }
 };
+
+
 
 int main(int argc, char** argv) {
     Vision vision;

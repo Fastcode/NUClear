@@ -17,6 +17,26 @@ namespace NUClear {
      * @date 19-Mar-2013
      */
     class Reactor {
+        private:
+            template <typename TTrigger, typename... TWith>
+            class OnCallBinder {
+                public:
+                    OnCallBinder(Reactor* parent, 
+                            ReactorController& reactorControl, 
+                            std::vector<std::function<void ()>>& callbackList) :
+                        m_parent(parent),
+                        m_reactorControl(reactorControl),
+                        m_callbackList(callbackList) {
+                    }
+
+                    template <typename TFunc>
+                    void reactWith(TFunc callback);
+                private:
+                    Reactor* m_parent;
+                    ReactorController& m_reactorControl;
+                    std::vector<std::function<void ()>>& m_callbackList;
+            };
+
         public:
             Reactor();
 
@@ -52,6 +72,9 @@ namespace NUClear {
             template <typename ChildType, typename TTrigger, typename... TWith>
             void reactOn(); 
 
+            template <typename TTrigger, typename... TWith>
+            OnCallBinder<TTrigger, TWith...> on();
+
         private:
             ReactorController& reactorControl;
 
@@ -82,6 +105,7 @@ void NUClear::Reactor::trigger() {
     auto& callbacks = getCallbackList<TTrigger>();
     for(auto callback = std::begin(callbacks); callback != std::end(callbacks); ++callback) {
         //TODO INVOKE THE THREAD POOL HERE
+        std::cout << "Invoking callback" << std::endl;
         (*callback)();
     }
 }
@@ -94,6 +118,32 @@ void NUClear::Reactor::reactOn(void callback(const TTrigger&, const TWith&...)) 
         callback( *(this->reactorControl.get<TTrigger>()), *(this->reactorControl.get<TWith>())... );
     });
     reactorControl.addReactor<TTrigger>(*this);
+}
+
+template <typename TTrigger, typename... TWith>
+typename NUClear::Reactor::OnCallBinder<TTrigger, TWith...> NUClear::Reactor::on() {
+    return NUClear::Reactor::OnCallBinder<TTrigger, TWith...>(this, this->reactorControl, getCallbackList<TTrigger>());
+}
+
+template <typename TTrigger, typename... TWith>
+template <typename TFunc>
+void NUClear::Reactor::OnCallBinder<TTrigger, TWith...>::reactWith(TFunc callback) {
+    m_callbackList.push_back([this, callback]() {
+        callback( 
+            // Because get<...> is dependant on reactorControl which is 
+            // dependant on m_parent which is dependant on OnCallBinder
+            // which is dependant on TTrigger and TWith we have what's known
+            // in hell as a "type-dependant expression". This means the compiler
+            // doesn't know if get<...> is an expression using operator <, > and ().
+            // so we need to tell it by prefixing the call with template. Don't you
+            // just love C++! 
+            // see: http://stackoverflow.com/a/613132/203133
+            // and: http://stackoverflow.com/a/1090850/203133
+            *(m_reactorControl.template get<TTrigger>()), 
+            *(m_reactorControl.template get<TWith>())... 
+        );
+    });
+    m_reactorControl.addReactor<TTrigger>(*m_parent);
 }
 
 template <typename ChildType, typename TTrigger, typename... TWith>

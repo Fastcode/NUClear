@@ -6,7 +6,6 @@
 #include <vector>
 #include <iostream>
 #include <iterator>
-#include "ReactorCore.h"
 namespace NUClear {
     class Reactor;
 
@@ -32,7 +31,7 @@ namespace NUClear {
 
             std::map<std::type_index, std::shared_ptr<void> > m_cache;
             std::map<std::type_index, std::vector<Reactor*> > m_reactors;
-            ReactorCore core;
+            //ReactorCore core;
     };
 
     // Forgive me
@@ -68,13 +67,11 @@ void NUClear::ReactorController::addReactor(Reactor& reactor) {
 // == Private Methods ==
 template <typename TTrigger>
 void NUClear::ReactorController::cache(TTrigger* data) {
-    std::cout << "Caching" << std::endl;
     m_cache[typeid(TTrigger)] = std::shared_ptr<void>(data);
 }
 
 template <typename TTrigger>
 void NUClear::ReactorController::triggerReactors() {
-    std::cout << "Triggering" << std::endl;
     std::vector<NUClear::Reactor*>& reactors = getReactors<TTrigger>();
     for(auto reactor = std::begin(reactors); reactor != std::end(reactors); ++reactor) {
         (*reactor)->trigger<TTrigger>();
@@ -84,7 +81,6 @@ void NUClear::ReactorController::triggerReactors() {
 template <typename TTrigger>
 std::vector<NUClear::Reactor*>& NUClear::ReactorController::getReactors() {
     if(m_reactors.find(typeid(TTrigger)) == m_reactors.end()) {
-        std::cout << "Adding new reactor" << std::endl;
         m_reactors[typeid(TTrigger)] = std::vector<NUClear::Reactor*>();
     }
     return m_reactors[typeid(TTrigger)];
