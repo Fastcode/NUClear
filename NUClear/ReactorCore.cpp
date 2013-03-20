@@ -3,7 +3,7 @@
 
 namespace NUClear {
     
-    ReactorCore::ReactorCore() : cores(10) {
+    ReactorCore::ReactorCore() : cores(10, ReactorCore(queue)) {
     }
     
     ReactorCore::~ReactorCore() {
@@ -12,7 +12,8 @@ namespace NUClear {
         }
     }
     
-    void ReactorCore::submit(std::function<void ()> action) {
-        // Add the action to the queue
+    void ReactorCore::submit(Reaction task) {
+        // Add the task to the queue
+        queue.submit(task);
     }
 }

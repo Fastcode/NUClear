@@ -5,6 +5,8 @@
 #include <vector>
 #include <map>
 #include <iostream>
+#include <ctime>
+#include "ReactorTask.h"
 namespace NUClear {
 
     class ReactorController;
@@ -45,7 +47,7 @@ namespace NUClear {
              * @tparam TTrigger the type of event to trigger.
              */
             template <typename TTrigger>
-            void trigger();
+            void trigger(taskId_t parentId);
         protected:
             /**
              * @brief Registers a callback for a given event.
@@ -101,12 +103,21 @@ namespace NUClear {
 
 // == Public Methods ==
 template <typename TTrigger>
-void NUClear::Reactor::trigger() {
+void NUClear::Reactor::trigger(taskId_t parentId) {
     auto& callbacks = getCallbackList<TTrigger>();
     for(auto callback = std::begin(callbacks); callback != std::end(callbacks); ++callback) {
-        //TODO INVOKE THE THREAD POOL HERE
-        std::cout << "Invoking callback" << std::endl;
-        (*callback)();
+        
+        // Build up our task object
+        ReactorTask task(typeid(TTrigger));
+        task.callback = *callback;
+        task.emitTime = std::time(nullptr);
+        task.parentId = parentId;
+        
+        //TODO SUBMIT THE TASK THROUGH TH REACTOR CONTROLLERS CORE OBJECT AND THEN FROM THERE TO THE QUEUE
+        
+        // Submit it to Reactor Control
+        //this->reactorControl.submit(task);
+       // (*callback)();
     }
 }
 

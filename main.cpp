@@ -20,10 +20,10 @@ void free(const CameraData& cameraData, const MotorData& mData) {
 class Vision : public NUClear::Reactor {
     public:
         Vision() {
-            //reactOn<Vision, CameraData, MotorData>();
+            reactOn<Vision, CameraData, MotorData>();
             //on<CameraData, MotorData>()
             //.reactWith(std::bind(&Vision::react, this));
-            on<CameraData, MotorData>().reactWith(std::bind(&Vision::react, this));
+            //on<CameraData, MotorData>().reactWith(std::bind(&Vision::react, this));
             /*.reactWith([](const CameraData& cameraData, const MotorData& mData) {
                 std::cout << "woo" << std::endl;
             });*/

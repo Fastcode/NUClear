@@ -2,7 +2,7 @@
 
 namespace NUClear {
     
-    ExecutionCore::ExecutionCore() : execute(true), thread(std::bind(&ExecutionCore::core, this)) {
+    ExecutionCore::ExecutionCore(ReactorTaskQueue<Reaction>& queue) : execute(true), queue(queue), thread(std::bind(&ExecutionCore::core, this)) {
     }
     
     ExecutionCore::~ExecutionCore() {
@@ -18,20 +18,18 @@ namespace NUClear {
         while(execute) {
             
             // Read the blocking queue for a task
-            
-            // Store what the initiator was for this execution
+            Reaction* t = nullptr;
             
             // Get our start time
-            std::time_t x = std::time(nullptr);
+            t->startTime = std::time(nullptr);
             
             // Execute the callback from the blocking queue
+            t->callback();
             
             // Get our end time
-            std::time_t y = std::time(nullptr);
+            t->endTime = std::time(nullptr);
             
-            // If at any point the emit function is called, then store that events initiator as our intitiator
-            
-            //End our timer
+            // Our task is finished, here is where any details surounding the statistics of the task can be processed
         }
     }
 }

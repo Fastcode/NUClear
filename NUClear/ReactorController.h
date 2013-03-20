@@ -6,6 +6,7 @@
 #include <vector>
 #include <iostream>
 #include <iterator>
+#include "ReactorCore.h"
 namespace NUClear {
     class Reactor;
 
@@ -24,14 +25,14 @@ namespace NUClear {
             void cache(TTrigger* data);
 
             template <typename TTrigger>
-            void triggerReactors();
+            void triggerReactors(taskId_t parentId);
 
             template <typename TTrigger>
             std::vector<Reactor*>& getReactors();
 
             std::map<std::type_index, std::shared_ptr<void> > m_cache;
             std::map<std::type_index, std::vector<Reactor*> > m_reactors;
-            //ReactorCore core;
+            ReactorCore core;
     };
 
     // Forgive me
@@ -49,8 +50,13 @@ namespace NUClear {
 // == Public Methods ==
 template <typename TTrigger>
 void NUClear::ReactorController::emit(TTrigger* data) {
+    
+    //TODO get the current thread, get the id of the cause event and pass it down to trigger reactors (then to trigger then to set in the Task itself)
+    
+    taskId_t parentId = 1;
+    
     cache<TTrigger>(data);
-    triggerReactors<TTrigger>();
+    triggerReactors<TTrigger>(parentId);
 }
 
 template <typename TTrigger>
@@ -71,10 +77,10 @@ void NUClear::ReactorController::cache(TTrigger* data) {
 }
 
 template <typename TTrigger>
-void NUClear::ReactorController::triggerReactors() {
+void NUClear::ReactorController::triggerReactors(taskId_t parentId) {
     std::vector<NUClear::Reactor*>& reactors = getReactors<TTrigger>();
     for(auto reactor = std::begin(reactors); reactor != std::end(reactors); ++reactor) {
-        (*reactor)->trigger<TTrigger>();
+        (*reactor)->trigger<TTrigger>(parentId);
     }
 }
 

@@ -4,6 +4,9 @@
 #include <functional>
 #include <vector>
 #include <queue>
+#include <typeindex>
+#include "Reaction.h"
+#include "ReactorTaskQueue.h"
 #include "ExecutionCore.h"
 
 namespace NUClear {
@@ -11,11 +14,11 @@ namespace NUClear {
         public:
             ReactorCore();
             ~ReactorCore();
-            void submit(std::function<void ()>);
+            void submit(Reaction task);
             int getCause();
         private:
             std::vector<ExecutionCore> cores;
-            std::queue<std::function<void ()>> tasks;
+            ReactorTaskQueue<Reaction> queue;
     };
 }
 
