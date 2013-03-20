@@ -128,7 +128,7 @@ typename NUClear::Reactor::OnCallBinder<TTrigger, TWith...> NUClear::Reactor::on
 template <typename TTrigger, typename... TWith>
 template <typename TFunc>
 void NUClear::Reactor::OnCallBinder<TTrigger, TWith...>::reactWith(TFunc callback) {
-    m_callbackList.push_back([this, callback]() {
+    m_callbackList.push_back([this, &callback]() {
         callback( 
             // Because get<...> is dependant on reactorControl which is 
             // dependant on m_parent which is dependant on OnCallBinder
