@@ -7,8 +7,8 @@ namespace NUClear {
     }
     
     ReactorCore::~ReactorCore() {
-        for(int i = 0; i < cores.size(); ++i) {
-            cores[i].kill();
+        for(auto core = std::begin(cores); core != std::end(cores); ++core) {
+            core->kill();
         }
     }
     

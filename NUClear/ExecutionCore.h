@@ -2,6 +2,7 @@
 #define NUCLEAR_EXECUTIONCORE_H
 
 #include <thread>
+#include <ctime>
 
 namespace NUClear {
     class ExecutionCore {

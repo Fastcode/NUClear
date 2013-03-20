@@ -16,13 +16,18 @@ namespace NUClear {
     
     void ExecutionCore::core() {
         while(execute) {
+            
             // Read the blocking queue for a task
             
             // Store what the initiator was for this execution
             
-            // Start our timer
+            // Get our start time
+            std::time_t x = std::time(nullptr);
             
             // Execute the callback from the blocking queue
+            
+            // Get our end time
+            std::time_t y = std::time(nullptr);
             
             // If at any point the emit function is called, then store that events initiator as our intitiator
             
