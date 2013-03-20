@@ -81,11 +81,12 @@ template <typename TTrigger>
 void NUClear::Reactor::trigger() {
     auto& callbacks = getCallbackList<TTrigger>();
     for(auto callback = std::begin(callbacks); callback != std::end(callbacks); ++callback) {
+        //TODO INVOKE THE THREAD POOL HERE
         (*callback)();
     }
 }
 
-// == Protected Methods == 
+// == Protected Methods ==
 template <typename TTrigger, typename... TWith>
 void NUClear::Reactor::reactOn(void callback(const TTrigger&, const TWith&...)) {
     auto& reactors = getCallbackList<TTrigger>();
