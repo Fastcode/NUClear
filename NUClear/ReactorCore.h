@@ -15,7 +15,7 @@ namespace NUClear {
             ReactorCore();
             ~ReactorCore();
             void submit(Reaction task);
-            eventId_t getCurrentEventId(std::thread::id threadId);
+            reactionId_t getCurrentEventId(std::thread::id threadId);
         private:
             std::map<std::thread::id, ExecutionCore> cores;
             ReactorTaskQueue<Reaction> queue;

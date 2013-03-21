@@ -16,7 +16,7 @@ namespace NUClear {
     private:
         void core();
         bool execute;
-        eventId_t currentEventId;
+        reactionId_t currentEventId;
         std::thread thread;
         ReactorTaskQueue<Reaction>& queue;
     };

@@ -26,7 +26,7 @@ namespace NUClear {
             void cache(TTrigger* data);
 
             template <typename TTrigger>
-            void triggerReactors(eventId_t parentId);
+            void triggerReactors(reactionId_t parentId);
 
             template <typename TTrigger>
             std::vector<Reactor*>& getReactors();
@@ -52,7 +52,7 @@ namespace NUClear {
 template <typename TTrigger>
 void NUClear::ReactorController::emit(TTrigger* data) {
     
-    taskId_t = core.getCurrentEventId(std::this_thread::get_id());
+    reactionId_t = core.getCurrentEventId(std::this_thread::get_id());
     
     cache<TTrigger>(data);
     triggerReactors<TTrigger>(parentId);
@@ -76,7 +76,7 @@ void NUClear::ReactorController::cache(TTrigger* data) {
 }
 
 template <typename TTrigger>
-void NUClear::ReactorController::triggerReactors(taskId_t parentId) {
+void NUClear::ReactorController::triggerReactors(reactionId_t parentId) {
     std::vector<NUClear::Reactor*>& reactors = getReactors<TTrigger>();
     for(auto reactor = std::begin(reactors); reactor != std::end(reactors); ++reactor) {
         (*reactor)->trigger<TTrigger>(parentId);
