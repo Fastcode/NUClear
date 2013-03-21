@@ -10,6 +10,7 @@ namespace NUClear {
     class ExecutionCore {
     public:
         ExecutionCore(ReactorTaskQueue<Reaction>& queue);
+        std::thread::id getThreadId();
         ~ExecutionCore();
         void kill();
     private:

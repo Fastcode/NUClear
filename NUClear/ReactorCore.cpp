@@ -3,12 +3,17 @@
 
 namespace NUClear {
     
-    ReactorCore::ReactorCore() : cores(10, ExecutionCore(queue)) {
+    ReactorCore::ReactorCore() {
+        int numCores = 10;
+        for(int i = 0; i < numCores; ++i) {
+            ExecutionCore core(queue);
+            cores[core.getThreadId()] = std::move(core);
+        }
     }
     
     ReactorCore::~ReactorCore() {
-        for(auto core = std::begin(cores); core != std::end(cores); ++core) {
-            cores[core]->kill();
+        for(auto it = std::begin(cores); it != std::end(cores); ++it) {
+            it->second.kill();
         }
     }
     

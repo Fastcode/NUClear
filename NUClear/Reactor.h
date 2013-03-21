@@ -6,7 +6,7 @@
 #include <map>
 #include <iostream>
 #include <ctime>
-#include "ReactorTask.h"
+#include "Reaction.h"
 namespace NUClear {
 
     class ReactorController;

@@ -14,6 +14,10 @@ namespace NUClear {
         execute = false;
     }
     
+    std::thread::id ExecutionCore::getThreadId() {
+        return thread.get_id();
+    }
+    
     void ExecutionCore::core() {
         while(execute) {
             
