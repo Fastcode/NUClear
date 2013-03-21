@@ -1,8 +1,32 @@
 #include "ExecutionCore.h"
 
 namespace NUClear {
+
+    void swap(ExecutionCore& first, ExecutionCore& second) 
+    {
+        // If this looks weird to you check out the copy-and-swap idiom:
+        // http://stackoverflow.com/a/3279550/203133
+        using std::swap; 
+
+        swap(first.execute, second.execute);
+        swap(first.currentEventId, second.currentEventId);
+        swap(first.thread, second.thread);
+    }
     
-    ExecutionCore::ExecutionCore(ReactorTaskQueue<Reaction>& queue) : execute(true), queue(queue), thread(std::bind(&ExecutionCore::core, this)) {
+    ExecutionCore::ExecutionCore(ReactorTaskQueue<Reaction>& queue) : 
+        execute(true), 
+        queue(queue), 
+        thread(std::bind(&ExecutionCore::core, this)) {
+    }
+
+    ExecutionCore::ExecutionCore(ExecutionCore&& other) : 
+        ExecutionCore(other.queue) {
+        swap(*this, other);
+    }
+
+    ExecutionCore& ExecutionCore::operator=(ExecutionCore&& other) {
+        swap(*this, other);
+        return *this;
     }
     
     ExecutionCore::~ExecutionCore() {
