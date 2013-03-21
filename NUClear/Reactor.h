@@ -108,7 +108,7 @@ void NUClear::Reactor::trigger(reactionId_t parentId) {
     for(auto callback = std::begin(callbacks); callback != std::end(callbacks); ++callback) {
         
         // Build up our task object
-        ReactorTask task(typeid(TTrigger));
+        Reaction task(typeid(TTrigger));
         task.callback = *callback;
         task.emitTime = std::time(nullptr);
         task.parentId = parentId;

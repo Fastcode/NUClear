@@ -5,6 +5,7 @@
 #include <typeindex>
 #include <ctime>
 #include <atomic>
+#include <cstdint>
 
 namespace NUClear {
     typedef std::int64_t reactionId_t;
