@@ -13,8 +13,8 @@ namespace NUClear {
             std::condition_variable condition;
             std::deque<T> queue;
         public:
-            ReactorTaskQueue();
-            ~ReactorTaskQueue();
+            ReactorTaskQueue() = default;
+            ~ReactorTaskQueue() = default;
             void submit(T const& value) {
                 // This scope is here such that when notify is called, the lock has been released
                 {
