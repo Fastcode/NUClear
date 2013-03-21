@@ -20,6 +20,8 @@ namespace NUClear {
             // Read the blocking queue for a task
             Reaction* t = nullptr;
             
+            currentEventId = t->eventId;
+            
             // Get our start time
             t->startTime = std::time(nullptr);
             

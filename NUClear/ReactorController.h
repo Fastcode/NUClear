@@ -6,6 +6,7 @@
 #include <vector>
 #include <iostream>
 #include <iterator>
+#include <thread>
 #include "ReactorCore.h"
 namespace NUClear {
     class Reactor;
@@ -25,7 +26,7 @@ namespace NUClear {
             void cache(TTrigger* data);
 
             template <typename TTrigger>
-            void triggerReactors(taskId_t parentId);
+            void triggerReactors(eventId_t parentId);
 
             template <typename TTrigger>
             std::vector<Reactor*>& getReactors();
@@ -51,9 +52,7 @@ namespace NUClear {
 template <typename TTrigger>
 void NUClear::ReactorController::emit(TTrigger* data) {
     
-    //TODO get the current thread, get the id of the cause event and pass it down to trigger reactors (then to trigger then to set in the Task itself)
-    
-    taskId_t parentId = 1;
+    taskId_t = core.getCurrentEventId(std::this_thread::get_id());
     
     cache<TTrigger>(data);
     triggerReactors<TTrigger>(parentId);

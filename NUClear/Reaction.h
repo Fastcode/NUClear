@@ -6,7 +6,7 @@
 #include <ctime>
 
 namespace NUClear {
-    typedef std::int64_t taskId_t;
+    typedef std::int64_t eventId_t;
     
     class Reaction {
     public:
@@ -16,9 +16,11 @@ namespace NUClear {
         std::time_t emitTime;
         std::time_t startTime;
         std::time_t endTime;
-        taskId_t eventId;
-        taskId_t parentId;
+        eventId_t eventId;
+        eventId_t parentId;
         std::type_index type;
+    private:
+        static std::atomic<int64_t> idSource;
     };
 }
 
