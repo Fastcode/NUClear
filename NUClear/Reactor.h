@@ -108,16 +108,9 @@ void NUClear::Reactor::trigger(reactionId_t parentId) {
     for(auto callback = std::begin(callbacks); callback != std::end(callbacks); ++callback) {
         
         // Build up our task object
-        Reaction task(typeid(TTrigger));
-        task.callback = *callback;
-        task.emitTime = std::time(nullptr);
-        task.parentId = parentId;
+        Reaction task(*callback, typeid(TTrigger), parentId);
         
-        //TODO SUBMIT THE TASK THROUGH TH REACTOR CONTROLLERS CORE OBJECT AND THEN FROM THERE TO THE QUEUE
-        
-        // Submit it to Reactor Control
-        //this->reactorControl.submit(task);
-       // (*callback)();
+        this->reactorControl.submit(task);
     }
 }
 

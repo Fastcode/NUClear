@@ -21,6 +21,8 @@ namespace NUClear {
 
             template <typename TTrigger>
             void addReactor(Reactor& reactor);
+        
+            void submit(Reaction r);
         private:
             template <typename TTrigger>
             void cache(TTrigger* data);
@@ -52,7 +54,7 @@ namespace NUClear {
 template <typename TTrigger>
 void NUClear::ReactorController::emit(TTrigger* data) {
     
-    reactionId_t parentId = core.getCurrentEventId(std::this_thread::get_id());
+    reactionId_t parentId = core.getCurrentReactionId(std::this_thread::get_id());
     
     cache<TTrigger>(data);
     triggerReactors<TTrigger>(parentId);

@@ -9,11 +9,11 @@ namespace NUClear {
         using std::swap; 
 
         swap(first.execute, second.execute);
-        swap(first.currentEventId, second.currentEventId);
+        swap(first.currentReactionId, second.currentReactionId);
         swap(first.thread, second.thread);
     }
     
-    ExecutionCore::ExecutionCore(ReactorTaskQueue<Reaction>& queue) : 
+    ExecutionCore::ExecutionCore(ReactionQueue& queue) :
         execute(true), 
         queue(queue), 
         thread(std::bind(&ExecutionCore::core, this)) {
@@ -42,22 +42,27 @@ namespace NUClear {
         return thread.get_id();
     }
     
+    reactionId_t ExecutionCore::getCurrentReactionId() {
+        return currentReactionId;
+    }
+    
     void ExecutionCore::core() {
         while(execute) {
             
-            // Read the blocking queue for a task
-            Reaction* t = nullptr;
+            // Read the blocking queue for a task         
+            Reaction r = queue.dequeue();
             
-            currentEventId = t->eventId;
+            //Set our current event id we are processing
+            currentReactionId = r.reactionId;
             
             // Get our start time
-            t->startTime = std::time(nullptr);
+            r.startTime = std::time(nullptr);
             
             // Execute the callback from the blocking queue
-            t->callback();
+            r.callback();
             
             // Get our end time
-            t->endTime = std::time(nullptr);
+            r.endTime = std::time(nullptr);
             
             // Our task is finished, here is where any details surounding the statistics of the task can be processed
         }

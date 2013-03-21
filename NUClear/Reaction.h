@@ -12,13 +12,13 @@ namespace NUClear {
     
     class Reaction {
     public:
-        Reaction(std::type_index type);
+        Reaction(std::function<void ()> callback, std::type_index type, reactionId_t parentId);
         ~Reaction();
         std::function<void ()> callback;
         std::time_t emitTime;
         std::time_t startTime;
         std::time_t endTime;
-        reactionId_t eventId;
+        reactionId_t reactionId;
         reactionId_t parentId;
         std::type_index type;
     private:

@@ -19,10 +19,10 @@ namespace NUClear {
     
     void ReactorCore::submit(Reaction task) {
         // Add the task to the queue
-        queue.submit(task);
+        queue.enqueue(task);
     }
     
-    reactionId_t ReactorCore::getCurrentEventId(std::thread::id threadId) {
-        return -1;
+    reactionId_t ReactorCore::getCurrentReactionId(std::thread::id threadId) {
+        return cores.count(threadId) ? cores[threadId]->getCurrentReactionId() : -1;
     }
 }
