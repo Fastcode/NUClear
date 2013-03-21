@@ -22,7 +22,7 @@ namespace NUClear {
         queue.submit(task);
     }
     
-    eventId_t ReactorCore::getCurrentEventId(std::thread::id threadId) {
+    reactionId_t ReactorCore::getCurrentEventId(std::thread::id threadId) {
         return -1;
     }
 }
