@@ -52,7 +52,7 @@ namespace NUClear {
             // Read the blocking queue for a task         
             Reaction r = queue.dequeue();
             
-            //Set our current event id we are processing
+            // Set our current event id we are processing
             currentReactionId = r.reactionId;
             
             // Get our start time

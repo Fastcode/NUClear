@@ -21,6 +21,7 @@ class Vision : public NUClear::Reactor {
     public:
         Vision() {
             reactOn<Vision, CameraData, MotorData>();
+            reactOn<Vision, MotorData>();
             //on<CameraData, MotorData>()
             //.reactWith(std::bind(&Vision::react, this));
             //on<CameraData, MotorData>().reactWith(std::bind(&Vision::react, this));
@@ -33,6 +34,10 @@ class Vision : public NUClear::Reactor {
             std::cout << "No way" << std::endl;
             std::cout << "CameraData:" << cameraData.camData << std::endl;
             std::cout << "MotorData:" << mData.motorData << std::endl;
+        }
+    
+        void react(const MotorData& motorData) {
+            std::cout << "DAT MOTOR" << std::endl;
         }
 };
 
