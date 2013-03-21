@@ -47,7 +47,7 @@ namespace NUClear {
              * @tparam TTrigger the type of event to trigger.
              */
             template <typename TTrigger>
-            void trigger(taskId_t parentId);
+            void trigger(reactionId_t parentId);
         protected:
             /**
              * @brief Registers a callback for a given event.
@@ -103,7 +103,7 @@ namespace NUClear {
 
 // == Public Methods ==
 template <typename TTrigger>
-void NUClear::Reactor::trigger(taskId_t parentId) {
+void NUClear::Reactor::trigger(reactionId_t parentId) {
     auto& callbacks = getCallbackList<TTrigger>();
     for(auto callback = std::begin(callbacks); callback != std::end(callbacks); ++callback) {
         
