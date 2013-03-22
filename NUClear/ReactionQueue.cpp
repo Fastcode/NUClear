@@ -2,6 +2,14 @@
 
 namespace NUClear {
 
+    ReactionQueue::ReactionQueue() {
+        // Intentionally left blank
+    }
+
+    ReactionQueue::~ReactionQueue() {
+        // Intentionally left blank
+    }
+
     void ReactionQueue::enqueue(Reaction const& value) {
         {
             std::unique_lock<std::mutex> lock(this->mutex);
