@@ -107,8 +107,7 @@ void NUClear::Reactor::trigger(reactionId_t parentId) {
     for(auto callback = std::begin(callbacks); callback != std::end(callbacks); ++callback) {
         
         // Build up our task object
-        Reaction task(*callback, typeid(TTrigger), parentId);
-        this->reactorControl.submit(std::move(task));
+        this->reactorControl.submit(std::unique_ptr<Reaction>(new Reaction(*callback, typeid(TTrigger), parentId)));
     }
 }
 

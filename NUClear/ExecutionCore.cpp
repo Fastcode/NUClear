@@ -51,19 +51,19 @@ namespace NUClear {
         while(execute) {
             
             // Read the blocking queue for a task         
-            Reaction r = queue.dequeue();
+            std::unique_ptr<Reaction> r = queue.dequeue();
             
             // Set our current event id we are processing
-            currentReactionId = r.reactionId;
+            currentReactionId = r->reactionId;
             
             // Get our start time
-            r.startTime = std::chrono::steady_clock::now();
+            r->startTime = std::chrono::steady_clock::now();
             
             // Execute the callback from the blocking queue
-            r.callback();
+            r->callback();
             
             // Get our end time
-            r.endTime = std::chrono::steady_clock::now();
+            r->endTime = std::chrono::steady_clock::now();
             
             // Our task is finished, here is where any details surounding the statistics of the task can be processed
         }

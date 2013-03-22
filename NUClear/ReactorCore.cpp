@@ -20,9 +20,9 @@ namespace NUClear {
         }
     }
     
-    void ReactorCore::submit(Reaction task) {
+    void ReactorCore::submit(std::unique_ptr<Reaction>&& reaction) {
         // Add the task to the queue
-        queue.enqueue(task);
+        queue.enqueue(std::move(reaction));
     }
     
     reactionId_t ReactorCore::getCurrentReactionId(std::thread::id threadId) {

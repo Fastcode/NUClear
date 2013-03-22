@@ -15,7 +15,7 @@ namespace NUClear {
         public:
             ReactorCore();
             ~ReactorCore();
-            void submit(Reaction task);
+            void submit(std::unique_ptr<Reaction>&& reaction);
             reactionId_t getCurrentReactionId(std::thread::id threadId);
         private:
             std::map<std::thread::id, std::unique_ptr<ExecutionCore>> cores;

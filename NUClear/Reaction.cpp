@@ -17,14 +17,13 @@ namespace NUClear {
         swap(*this, other);
     }    
     
-    Reaction& Reaction::operator=(Reaction&& other) {
+    Reaction& Reaction::operator=(Reaction other) {
         swap(*this, other);
         swap(this->type, other.type);
         return *this;
     }
 
     void swap(Reaction& first, Reaction& second) {
-    {
         // If this looks weird to you check out the copy-and-swap idiom:
         // http://stackoverflow.com/a/3279550/203133
         using std::swap; 

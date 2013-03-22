@@ -22,7 +22,7 @@ namespace NUClear {
             template <typename TTrigger>
             void addReactor(Reactor& reactor);
         
-            void submit(Reaction r);
+            void submit(std::unique_ptr<Reaction>&& reaction);
         private:
             template <typename TTrigger>
             void cache(TTrigger* data);

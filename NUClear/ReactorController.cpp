@@ -4,7 +4,7 @@
 namespace NUClear {
     ReactorController ReactorControl;
     
-    void NUClear::ReactorController::submit(Reaction r) {
-        core.submit(r);
+    void NUClear::ReactorController::submit(std::unique_ptr<Reaction>&& reaction) {
+        core.submit(std::move(reaction));
     }
 }

@@ -4,6 +4,7 @@
 #include <deque>
 #include <condition_variable>
 #include <mutex>
+#include <memory>
 #include "Reaction.h"
 
 namespace NUClear {
@@ -13,7 +14,7 @@ namespace NUClear {
         private:
             std::mutex mutex;
             std::condition_variable condition;
-            std::deque<Reaction> queue;
+            std::deque<std::unique_ptr<Reaction>> queue;
         public:
 
             ReactionQueue();
@@ -24,8 +25,8 @@ namespace NUClear {
             ReactionQueue(const ReactionQueue& other) = delete;
             ReactionQueue& operator=(const ReactionQueue& other) = delete;
 
-            void enqueue(Reaction const& value);
-            Reaction dequeue();
+            void enqueue(std::unique_ptr<Reaction>&& reaction);
+            std::unique_ptr<Reaction> dequeue();
     };
 }
 

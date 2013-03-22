@@ -10,23 +10,23 @@ namespace NUClear {
         // Intentionally left blank
     }
 
-    void ReactionQueue::enqueue(Reaction const& value) {
+    void ReactionQueue::enqueue(std::unique_ptr<Reaction>&& reaction) {
         {
             std::unique_lock<std::mutex> lock(this->mutex);
-            queue.push_front(value);
-            std::cout << value.reactionId << std::endl;
+            std::cout << reaction->reactionId << std::endl;
+            queue.push_front(std::move(reaction));
         }
         this->condition.notify_one();
     }
     
-    Reaction ReactionQueue::dequeue() {
+    std::unique_ptr<Reaction> ReactionQueue::dequeue() {
         std::unique_lock<std::mutex> lock(this->mutex);
         this->condition.wait(lock, [this]() {
             std::cerr << "Queue empty: " << !this->queue.empty() << std::endl;
             return !this->queue.empty();
         });
-        Reaction r = queue.back();
-        std::cerr << "Reaction type name: " << r.type.name() << std::endl;
+        std::unique_ptr<Reaction> r = std::move(queue.back());
+        std::cerr << "Reaction type name: " << r->type.name() << std::endl;
         queue.pop_back();
         return r;
     }
