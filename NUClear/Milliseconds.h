@@ -20,7 +20,7 @@ namespace NUClear {
             class TimeSubscriber {
                 TimeSubscriber() {
                     e.add(milliseconds, [this]() {
-                        this.reactorControl.emit(Milliseconds<milliseconds>());
+                        this.reactorControl.emit(new Milliseconds<milliseconds>());
                     });
                 }
             };
