@@ -5,6 +5,7 @@
 #include <typeindex>
 #include <chrono>
 #include <atomic>
+#include <iostream>
 #include <cstdint>
 
 namespace NUClear {
