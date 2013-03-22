@@ -30,6 +30,7 @@ namespace NUClear {
     }
     
     ExecutionCore::~ExecutionCore() {
+        std::cerr << "~ExecutionCore()" << std::endl;
         execute = false;
         thread.detach();
     }

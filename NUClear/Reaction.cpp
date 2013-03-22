@@ -9,5 +9,6 @@ namespace NUClear {
     }
     
     Reaction::~Reaction() {
+        std::cerr << "~Reaction()" << std::endl;
     }
 }

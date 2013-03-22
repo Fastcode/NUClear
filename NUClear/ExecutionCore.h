@@ -2,6 +2,7 @@
 #define NUCLEAR_EXECUTIONCORE_H
 
 #include <thread>
+#include <iostream>
 #include <ctime>
 #include "Reaction.h"
 #include "ReactionQueue.h"
