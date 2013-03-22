@@ -15,6 +15,10 @@ namespace NUClear {
             std::condition_variable condition;
             std::deque<Reaction> queue;
         public:
+            // Deleted Constructors
+            ReactionQueue(const ReactionQueue& other) = delete;
+            operator=(const ReactionQueue& other) = delete;
+
             void enqueue(Reaction const& value);
             Reaction dequeue();
     };
