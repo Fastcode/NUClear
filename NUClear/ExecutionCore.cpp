@@ -30,7 +30,6 @@ namespace NUClear {
     }
     
     ExecutionCore::~ExecutionCore() {
-        std::cerr << "~ExecutionCore()" << std::endl;
         execute = false;
         thread.detach();
     }
@@ -57,13 +56,13 @@ namespace NUClear {
             currentReactionId = r.reactionId;
             
             // Get our start time
-            r.startTime = std::time(nullptr);
+            r.startTime = std::chrono::steady_clock::now();
             
             // Execute the callback from the blocking queue
             r.callback();
             
             // Get our end time
-            r.endTime = std::time(nullptr);
+            r.endTime = std::chrono::steady_clock::now();
             
             // Our task is finished, here is where any details surounding the statistics of the task can be processed
         }

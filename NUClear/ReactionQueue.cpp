@@ -15,11 +15,11 @@ namespace NUClear {
     Reaction ReactionQueue::dequeue() {
         std::unique_lock<std::mutex> lock(this->mutex);
         this->condition.wait(lock, [this]() {
-            std::cerr << "Queue empty: " << !this->queue.empty() << std::endl;
+            std::cout << !this->queue.empty() << std::endl;
             return !this->queue.empty();
         });
         Reaction r = queue.back();
-        std::cerr << "Reaction type name: " << r.type.name() << std::endl;
+        std::cout << r.type.name() << std::endl;
         queue.pop_back();
         return r;
     }

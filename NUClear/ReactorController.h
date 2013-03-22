@@ -54,7 +54,6 @@ namespace NUClear {
 template <typename TTrigger>
 void NUClear::ReactorController::emit(TTrigger* data) {
     
-    std::cerr << "Emitting" << std::endl;
     reactionId_t parentId = core.getCurrentReactionId(std::this_thread::get_id());
     
     cache<TTrigger>(data);

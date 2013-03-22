@@ -5,7 +5,6 @@
 #include <vector>
 #include <map>
 #include <iostream>
-#include <ctime>
 #include "Reaction.h"
 namespace NUClear {
 

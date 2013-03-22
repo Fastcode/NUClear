@@ -3,9 +3,8 @@
 
 #include <functional>
 #include <typeindex>
-#include <ctime>
+#include <chrono>
 #include <atomic>
-#include <iostream>
 #include <cstdint>
 
 namespace NUClear {
@@ -16,9 +15,9 @@ namespace NUClear {
         Reaction(std::function<void ()> callback, std::type_index type, reactionId_t parentId);
         ~Reaction();
         std::function<void ()> callback;
-        std::time_t emitTime;
-        std::time_t startTime;
-        std::time_t endTime;
+        std::chrono::time_point<std::chrono::steady_clock> emitTime;
+        std::chrono::time_point<std::chrono::steady_clock> startTime;
+        std::chrono::time_point<std::chrono::steady_clock> endTime;
         reactionId_t reactionId;
         reactionId_t parentId;
         std::type_index type;
