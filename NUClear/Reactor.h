@@ -108,8 +108,7 @@ void NUClear::Reactor::trigger(reactionId_t parentId) {
         
         // Build up our task object
         Reaction task(*callback, typeid(TTrigger), parentId);
-        
-        this->reactorControl.submit(task);
+        this->reactorControl.submit(std::move(task));
     }
 }
 

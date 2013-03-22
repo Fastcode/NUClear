@@ -5,21 +5,34 @@
 #include "ReactorController.h"
 
 namespace NUClear {
-    template <int millis>
+    template <int milliseconds>
     class Milliseconds {
         private:
-            Milliseconds();
+            Milliseconds() : 
+                reactorControl(ReactorControl) {
+
+            }
+
             ReactorController& reactorControl;
+
             static TimeEmitter e;
+
             class TimeSubscriber {
                 TimeSubscriber() {
-                    e.add(millis, [](){
-                        reactorControl.emit(Milliseconds<millis>());
+                    e.add(milliseconds, [this]() {
+                        this.reactorControl.emit(Milliseconds<milliseconds>());
                     });
                 }
             };
             static TimeSubscriber subscribe;
     };
+
+    // Let there be statics!
+    template <int milliseconds> 
+    TimeEmitter Milliseconds<milliseconds>::e;
+
+    template <int milliseconds>
+    typename Milliseconds<milliseconds>::TimeSubscriber Milliseconds<milliseconds>::subscribe;
 }
 
 #endif

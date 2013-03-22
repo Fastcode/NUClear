@@ -13,8 +13,17 @@ namespace NUClear {
     
     class Reaction {
     public:
+        friend void swap(Reaction& first, Reaction& second);
         Reaction(std::function<void ()> callback, std::type_index type, reactionId_t parentId);
+        Reaction(Reaction&& other);
         ~Reaction();
+
+        Reaction(const Reaction&) = delete;
+
+        Reaction& operator=(Reaction other);
+
+
+
         std::function<void ()> callback;
         std::chrono::time_point<std::chrono::steady_clock> emitTime;
         std::chrono::time_point<std::chrono::steady_clock> startTime;
