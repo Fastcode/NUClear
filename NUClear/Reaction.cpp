@@ -11,7 +11,7 @@ namespace NUClear {
         reactionId(++Reaction::idSource),
         emitTime(std::chrono::steady_clock::now()) {
 
-        std::cerr << "Reaction(callback, " << type.name() << ", " << parentId << ")" << std::endl;
+        std::cerr << "Reaction(callback, " << type.name() << ", " << parentId << ") -> " << this << std::endl;
     }
     
     Reaction::~Reaction() {

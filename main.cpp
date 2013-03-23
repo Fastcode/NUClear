@@ -63,7 +63,7 @@ int main(int argc, char** argv) {
     NUClear::ReactorControl.emit<MotorData>(mData);
     NUClear::ReactorControl.emit<CameraData>(cData);
 
-    std::this_thread::sleep_for(std::chrono::seconds(2));
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
 
     NUClear::ReactorControl.shutdown();
 
