@@ -37,6 +37,10 @@ namespace NUClear {
         }
         std::cerr << "Joining done" << std::endl;
     }
+
+    void ReactorCore::waitForThreadCompletion() {
+
+    }
     
     reactionId_t ReactorCore::getCurrentReactionId(std::thread::id threadId) {
         return cores.count(threadId) ? cores[threadId]->getCurrentReactionId() : -1;

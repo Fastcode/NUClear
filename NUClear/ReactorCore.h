@@ -18,9 +18,12 @@ namespace NUClear {
             void submit(std::unique_ptr<Reaction>&& reaction);
             void stop();
             reactionId_t getCurrentReactionId(std::thread::id threadId);
+            void waitForThreadCompletion();
         private:
             std::map<std::thread::id, std::unique_ptr<ExecutionCore>> cores;
             BlockingQueue<std::unique_ptr<Reaction>> queue;
+
+            
     };
 }
 

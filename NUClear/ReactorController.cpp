@@ -16,10 +16,14 @@ namespace NUClear {
         core.submit(std::move(reaction));
     }
 
-    void NUClear::ReactorController::stop() {
+    /*void NUClear::ReactorController::stop() {
         std::cerr << "Before reactorcontroller::stop" << std::endl;
-        core.stop();
+        //core.stop();
         std::cerr << "After reactorcontroller::stop" << std::endl;
+    }*/
+
+    void NUClear::ReactorController::waitForThreadCompletion() {
+        core.waitForThreadCompletion();
     }
 
 }
