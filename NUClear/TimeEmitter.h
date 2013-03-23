@@ -4,6 +4,7 @@
 #include <functional>
 #include <thread>
 #include <chrono>
+#include <vector>
 
 namespace NUClear {
     class TimeEmitter {
@@ -12,8 +13,16 @@ namespace NUClear {
             ~TimeEmitter();
             void add(std::chrono::nanoseconds nanos, std::function<void ()> emit);
         private:
+            struct Step {
+                std::chrono::nanoseconds step;
+                std::chrono::nanoseconds next;
+                std::vector<std::function<void ()>> callbacks;
+            };
+        
+            std::chrono::nanoseconds start;
             bool execute;
             std::thread thread;
+            std::vector<Step> steps;
             void run();
     };
 }

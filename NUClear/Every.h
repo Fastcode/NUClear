@@ -9,17 +9,16 @@ namespace NUClear {
     template <int ticks, class period = std::chrono::milliseconds>
     class Every {
         private:
-            Every() : reactorControl(ReactorControl) {
+            Every() {
             }
-
-            ReactorController& reactorControl;
 
             static TimeEmitter e;
 
             class TimeSubscriber {
-                TimeSubscriber() {
+                ReactorController& reactorController;
+                TimeSubscriber() : reactorController(ReactorControl) {
                     e.add(std::chrono::duration_cast<std::chrono::nanoseconds>(period(ticks)), [this]() {
-                        this->reactorControl.emit(new period(ticks));
+                        this->reactorControl.emit(new Every<ticks, period>());
                     });
                 }
             };
