@@ -27,6 +27,7 @@ namespace NUClear {
         
             void submit(std::unique_ptr<Reaction>&& reaction);
 
+            void shutdown();
             void waitForThreadCompletion();
         private:
             template <typename TTrigger>

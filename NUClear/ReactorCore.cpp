@@ -15,7 +15,7 @@ namespace NUClear {
     
     ReactorCore::~ReactorCore() {
         std::cerr << "~ReactorCore()" << std::endl;
-        stop();
+        shutdown();
     }
     
     void ReactorCore::submit(std::unique_ptr<Reaction>&& reaction) {
@@ -23,19 +23,13 @@ namespace NUClear {
         queue.push(std::move(reaction));
     }
 
-    void ReactorCore::stop() {
+    void ReactorCore::shutdown() {
         std::cerr << "Killing core start" << std::endl;
         for(auto it = std::begin(cores); it != std::end(cores); ++it) {
             it->second->kill();
         }
         std::cerr << "Killing done" << std::endl;
         queue.stop();
-        std::cerr << "Joining core start " << std::endl;
-        for(auto it = std::begin(cores); it != std::end(cores); ++it) {
-            std::cerr << "Joining" << std::endl;
-            it->second->join();
-        }
-        std::cerr << "Joining done" << std::endl;
     }
 
     void ReactorCore::waitForThreadCompletion() {
