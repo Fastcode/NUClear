@@ -24,13 +24,17 @@ namespace NUClear {
     }
 
     void ReactorCore::stop() {
+        std::cerr << "Killing core start" << std::endl;
         for(auto it = std::begin(cores); it != std::end(cores); ++it) {
             it->second->kill();
         }
+        std::cerr << "Killing done" << std::endl;
         queue.stop(true);
+        std::cerr << "Joining core start " << std::endl;
         for(auto it = std::begin(cores); it != std::end(cores); ++it) {
             it->second->join();
         }
+        std::cerr << "Joining done" << std::endl;
     }
     
     reactionId_t ReactorCore::getCurrentReactionId(std::thread::id threadId) {
