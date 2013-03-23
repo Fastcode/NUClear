@@ -16,7 +16,7 @@ namespace NUClear {
             ReactorCore();
             ~ReactorCore();
             void submit(std::unique_ptr<Reaction>&& reaction);
-            void kill();
+            void stop();
             void join();
             reactionId_t getCurrentReactionId(std::thread::id threadId);
         private:

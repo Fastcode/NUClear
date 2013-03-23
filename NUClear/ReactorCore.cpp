@@ -15,7 +15,7 @@ namespace NUClear {
     
     ReactorCore::~ReactorCore() {
         std::cerr << "~ReactorCore()" << std::endl;
-        kill();
+        stop();
     }
     
     void ReactorCore::submit(std::unique_ptr<Reaction>&& reaction) {
@@ -23,10 +23,11 @@ namespace NUClear {
         queue.push(std::move(reaction));
     }
 
-    void ReactorCore::kill() {
+    void ReactorCore::stop() {
         for(auto it = std::begin(cores); it != std::end(cores); ++it) {
             it->second->kill();
         }
+        queue.stop();
     }
 
     void ReactorCore::join() {
