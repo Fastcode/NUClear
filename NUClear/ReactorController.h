@@ -26,6 +26,8 @@ namespace NUClear {
             void addReactor(Reactor& reactor);
         
             void submit(std::unique_ptr<Reaction>&& reaction);
+
+            void killjoin();
         private:
             template <typename TTrigger>
             void cache(TTrigger* data);
