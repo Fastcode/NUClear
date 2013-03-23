@@ -63,6 +63,8 @@ namespace NUClear {
                 
                 // Read the blocking queue for a task         
                 std::unique_ptr<Reaction> r = queue.pop();
+
+                std::cerr << "Execution core got r: " << r.get() << std::endl;
                 
                 // Set our current event id we are processing
                 currentReactionId = r->reactionId;

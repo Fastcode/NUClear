@@ -34,6 +34,10 @@ namespace NUClear {
                 m_stop = true;
             }
 
+            std::size_t size() {
+                return m_queue.size();
+            }
+
             void push(T&& data) {
                 // We're placing the unique_lock in an anonymous
                 // block so that once the data is enqueue'd the lock
@@ -48,19 +52,28 @@ namespace NUClear {
             }            
             
             T pop() {
+                std::cerr << "BlockingQueue<T>::pop" << std::endl;
                 std::unique_lock<std::mutex> lock(this->m_mutex);
+                std::cerr << "Acquired lock" << std::endl;
 
                 while(!m_stop && m_queue.empty()) {
+                    std::cerr << "Waiting" << std::endl;
                     m_condition.wait(lock);
+                    std::cerr << "Waiting done" << std::endl;
                 }
 
                 if(m_stop) {
+                    std::cerr << "m_stop true, notfying and throwing" << std::endl;
                     m_condition.notify_all();
                     throw BlockingQueueTerminate();
                 }
 
-                T front = std::move(m_queue.front());
+                std::cerr << "getting front (q size:" << m_queue.size() << ")" << std::endl;
+                T front = std::move(m_queue.back());
                 m_queue.pop_back();
+                std::cerr << "got front (q size:" << m_queue.size() << ")" << std::endl;
+
+                std::cerr << "BlockingQueue<T>::pop done" << std::endl;
                 return std::move(front);
             }
 
