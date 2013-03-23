@@ -39,7 +39,9 @@ namespace NUClear {
     }
 
     void ExecutionCore::join() {
-        thread.join();
+        if(thread.joinable()) {
+            thread.join();
+        }
     }
     
     std::thread::id ExecutionCore::getThreadId() {
