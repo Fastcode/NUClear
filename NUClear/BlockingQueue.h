@@ -26,9 +26,7 @@ namespace NUClear {
             bool m_stop;
         public:
             BlockingQueue() : 
-                m_blocked(0),
                 m_stop(false) {
-
             }
 
             ~BlockingQueue() {
@@ -65,7 +63,7 @@ namespace NUClear {
                 return std::move(front);
             }
 
-            void stop(bool wait) {
+            void stop() {
                 std::cerr << "BlockingQueue::stop" << std::endl;
                 std::unique_lock<std::mutex> lock(m_mutex);    
                 std::cerr << "Acquired lock" << std::endl;
