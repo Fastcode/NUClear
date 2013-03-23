@@ -16,11 +16,10 @@ namespace NUClear {
         core.submit(std::move(reaction));
     }
 
-    void NUClear::ReactorController::stopjoin() {
-        std::cerr << "Before Killjoin" << std::endl;
+    void NUClear::ReactorController::stop() {
+        std::cerr << "Before reactorcontroller::stop" << std::endl;
         core.stop();
-        core.join();
-        std::cerr << "After Killjoin" << std::endl;
+        std::cerr << "After reactorcontroller::stop" << std::endl;
     }
 
 }
