@@ -51,24 +51,27 @@ namespace NUClear {
     }
     
     void ExecutionCore::core() {
-        while(execute) {
-            
-            // Read the blocking queue for a task         
-            std::unique_ptr<Reaction> r = queue.pop();
-            
-            // Set our current event id we are processing
-            currentReactionId = r->reactionId;
-            
-            // Get our start time
-            r->startTime = std::chrono::steady_clock::now();
-            
-            // Execute the callback from the blocking queue
-            r->callback();
-            
-            // Get our end time
-            r->endTime = std::chrono::steady_clock::now();
-            
-            // Our task is finished, here is where any details surounding the statistics of the task can be processed
+        try {
+            while(execute) {
+                
+                // Read the blocking queue for a task         
+                std::unique_ptr<Reaction> r = queue.pop();
+                
+                // Set our current event id we are processing
+                currentReactionId = r->reactionId;
+                
+                // Get our start time
+                r->startTime = std::chrono::steady_clock::now();
+                
+                // Execute the callback from the blocking queue
+                r->callback();
+                
+                // Get our end time
+                r->endTime = std::chrono::steady_clock::now();
+                
+                // Our task is finished, here is where any details surounding the statistics of the task can be processed
+            }
+        } catch(BlockingQueueTerminate ex) {
         }
     }
 }
