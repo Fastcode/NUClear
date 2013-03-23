@@ -29,8 +29,8 @@ namespace NUClear {
 
         bool execute;
         reactionId_t currentReactionId;
-        std::thread thread;
         BlockingQueue<std::unique_ptr<Reaction>>& queue;
+        std::thread thread;
     };
 }
 

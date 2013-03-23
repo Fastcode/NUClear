@@ -30,6 +30,7 @@ namespace NUClear {
             }
 
             ~BlockingQueue() {
+                std::cerr << "~BlockingQueue" << std::endl;
                 m_stop = true;
             }
 

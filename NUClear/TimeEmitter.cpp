@@ -11,7 +11,7 @@ namespace NUClear {
     }
     
     void TimeEmitter::add(std::chrono::nanoseconds nanos, std::function<void ()> emit) {
-        
+     
     }
     
     void TimeEmitter::run() {

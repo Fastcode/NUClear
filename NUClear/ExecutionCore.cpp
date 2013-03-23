@@ -15,6 +15,7 @@ namespace NUClear {
     
     ExecutionCore::ExecutionCore(BlockingQueue<std::unique_ptr<Reaction>>& queue) :
         execute(true), 
+        currentReactionId(0),
         queue(queue), 
         thread(std::bind(&ExecutionCore::core, this)) {
     }
@@ -42,6 +43,7 @@ namespace NUClear {
         std::cerr << "ExecutionCore::join()!" << std::endl;
         if(thread.joinable()) {
             std::cerr << "\tJoinable!" << std::endl;
+            std::cerr << "Joining: " << thread.get_id() << std::endl;
             thread.join();
             std::cerr << "\tJoined!" << std::endl;
         }

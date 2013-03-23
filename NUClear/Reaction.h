@@ -22,15 +22,13 @@ namespace NUClear {
 
         Reaction& operator=(Reaction other);
 
-
-
         std::function<void ()> callback;
+        std::type_index type;
+        reactionId_t parentId;
+        reactionId_t reactionId;
         std::chrono::time_point<std::chrono::steady_clock> emitTime;
         std::chrono::time_point<std::chrono::steady_clock> startTime;
         std::chrono::time_point<std::chrono::steady_clock> endTime;
-        reactionId_t reactionId;
-        reactionId_t parentId;
-        std::type_index type;
     private:
         static std::atomic<int64_t> idSource;
     };

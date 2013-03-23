@@ -40,6 +40,7 @@ namespace NUClear {
 
         public:
             Reactor();
+            ~Reactor();
 
             /**
              * @brief Triggers the callbacks for a given event.
