@@ -23,7 +23,6 @@ namespace NUClear {
             std::condition_variable m_condition;
             std::deque<std::unique_ptr<Reaction>> m_queue;
 
-            unsigned int m_blocked;
             bool m_stop;
         public:
             BlockingQueue() : 
@@ -52,11 +51,9 @@ namespace NUClear {
             T pop() {
                 std::unique_lock<std::mutex> lock(this->m_mutex);
 
-                ++m_blocked;
                 while(!m_stop && m_queue.empty()) {
                     m_condition.wait(lock);
                 }
-                --m_blocked;
 
                 if(m_stop) {
                     m_condition.notify_all();
@@ -76,14 +73,6 @@ namespace NUClear {
                 std::cerr << "Notifying" << std::endl;
                 m_condition.notify_all();
                 std::cerr << "Notified" << std::endl;
-
-                if(wait) {
-                    while(m_blocked > 0) {
-                        std::cerr << "Waiting" << std::endl;
-                        m_condition.wait(lock);
-                        std::cerr << "Waited" << std::endl;
-                    }
-                }
                 std::cerr << "BlockingQueue::stop done" << std::endl;
             }
     };
