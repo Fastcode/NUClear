@@ -25,10 +25,9 @@ namespace NUClear {
             std::cerr << "Queue empty: " << !this->queue.empty() << std::endl;
             return !this->queue.empty();
         });
-        std::cerr << "Reaction pop" << std::endl;
         std::unique_ptr<Reaction> r = std::move(queue.back());
         std::cerr << "Reaction type name: " << r->type.name() << std::endl;
         queue.pop_back();
-        return std::move(r);
+        return r;
     }
 }

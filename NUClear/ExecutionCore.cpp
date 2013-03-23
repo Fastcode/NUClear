@@ -32,14 +32,11 @@ namespace NUClear {
     ExecutionCore::~ExecutionCore() {
         std::cerr << "~ExecutionCore()" << std::endl;
         execute = false;
+        thread.detach();
     }
     
     void ExecutionCore::kill() {
         execute = false;
-    }
-
-    void ExecutionCore::join() {
-        thread.join();
     }
     
     std::thread::id ExecutionCore::getThreadId() {

@@ -3,14 +3,16 @@
 
 #include <functional>
 #include <thread>
+#include <chrono>
 
 namespace NUClear {
     class TimeEmitter {
         public:
             TimeEmitter();
             ~TimeEmitter();
-            void add(int millis, std::function<void ()> emit);
+            void add(std::chrono::nanoseconds nanos, std::function<void ()> emit);
         private:
+            bool execute;
             std::thread thread;
             void run();
     };

@@ -2,7 +2,7 @@
 #include <string>
 #include "NUClear/Reactor.h"
 #include "NUClear/ReactorController.h"
-#include "NUClear/Milliseconds.h"
+#include "NUClear/Every.h"
 
 struct CameraData {
     int camData;
@@ -23,7 +23,7 @@ class Vision : public NUClear::Reactor {
         Vision() {
             reactOn<Vision, CameraData, MotorData>();
             reactOn<Vision, MotorData>();
-            reactOn<Vision, NUClear::Milliseconds<1000>>();
+            reactOn<Vision, NUClear::Every<1, std::chrono::seconds>>();
             //on<CameraData, MotorData>()
             //.reactWith(std::bind(&Vision::react, this));
             //on<CameraData, MotorData>().reactWith(std::bind(&Vision::react, this));
@@ -42,7 +42,7 @@ class Vision : public NUClear::Reactor {
             std::cout << "DAT MOTOR" << std::endl;
         }
     
-    void react(const NUClear::Milliseconds<1000>& t) {
+        void react(const NUClear::Every<1, std::chrono::seconds>& t) {
             std::cout << "ONE PER SECOND" << std::endl;
         }
 };
@@ -60,6 +60,4 @@ int main(int argc, char** argv) {
 
     NUClear::ReactorControl.emit<MotorData>(mData);
     NUClear::ReactorControl.emit<CameraData>(cData);
-
-    std::cerr << "End of main" << std::endl;
 }

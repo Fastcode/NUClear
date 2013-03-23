@@ -14,12 +14,10 @@ namespace NUClear {
 
     Reaction::Reaction(Reaction&& other) : 
         type(std::move(other.type)) {
-        std::cerr << "Reaction Moved" << std::endl;
         swap(*this, other);
     }    
     
     Reaction& Reaction::operator=(Reaction other) {
-        std::cerr << "Reaction Moved operator=" << std::endl;
         swap(*this, other);
         swap(this->type, other.type);
         return *this;
