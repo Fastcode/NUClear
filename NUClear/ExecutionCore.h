@@ -5,12 +5,12 @@
 #include <iostream>
 #include <chrono>
 #include "Reaction.h"
-#include "ReactionQueue.h"
+#include "BlockingQueue.h"
 
 namespace NUClear {
     class ExecutionCore {
     public:
-        ExecutionCore(ReactionQueue& queue);
+        ExecutionCore(BlockingQueue<std::unique_ptr<Reaction>>& queue);
         ExecutionCore(const ExecutionCore& other) = delete;
         ExecutionCore& operator=(const ExecutionCore& other) = delete;
         ExecutionCore(ExecutionCore&& other);
@@ -30,7 +30,7 @@ namespace NUClear {
         bool execute;
         reactionId_t currentReactionId;
         std::thread thread;
-        ReactionQueue& queue;
+        BlockingQueue<std::unique_ptr<Reaction>>& queue;
     };
 }
 

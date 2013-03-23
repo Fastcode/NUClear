@@ -32,7 +32,7 @@ namespace NUClear {
             }
 
             ~BlockingQueue() {
-                m_stop(true);
+                m_stop = true;
             }
 
             void push(T&& data) {
@@ -49,7 +49,7 @@ namespace NUClear {
             }            
             
             T pop() {
-                std::unique_lock<std::mutex> lock(this->mutex);
+                std::unique_lock<std::mutex> lock(this->m_mutex);
 
                 ++m_blocked;
                 while(!m_stop && m_queue.empty()) {
@@ -78,8 +78,7 @@ namespace NUClear {
                     }
                 }
             }
-        }
-    }
+    };
 }
 
 #endif

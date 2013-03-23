@@ -13,7 +13,7 @@ namespace NUClear {
         swap(first.thread, second.thread);
     }
     
-    ExecutionCore::ExecutionCore(ReactionQueue& queue) :
+    ExecutionCore::ExecutionCore(BlockingQueue<std::unique_ptr<Reaction>>& queue) :
         execute(true), 
         queue(queue), 
         thread(std::bind(&ExecutionCore::core, this)) {
@@ -54,7 +54,7 @@ namespace NUClear {
         while(execute) {
             
             // Read the blocking queue for a task         
-            std::unique_ptr<Reaction> r = queue.dequeue();
+            std::unique_ptr<Reaction> r = queue.pop();
             
             // Set our current event id we are processing
             currentReactionId = r->reactionId;

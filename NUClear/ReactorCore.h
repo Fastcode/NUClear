@@ -7,7 +7,7 @@
 #include <typeindex>
 #include <memory>
 #include "Reaction.h"
-#include "ReactionQueue.h"
+#include "BlockingQueue.h"
 #include "ExecutionCore.h"
 
 namespace NUClear {
@@ -21,7 +21,7 @@ namespace NUClear {
             reactionId_t getCurrentReactionId(std::thread::id threadId);
         private:
             std::map<std::thread::id, std::unique_ptr<ExecutionCore>> cores;
-            ReactionQueue queue;
+            BlockingQueue<std::unique_ptr<Reaction>> queue;
     };
 }
 
