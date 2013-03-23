@@ -39,8 +39,11 @@ namespace NUClear {
     }
 
     void ExecutionCore::join() {
+        std::cerr << "ExecutionCore::join()!" << std::endl;
         if(thread.joinable()) {
+            std::cerr << "\tJoinable!" << std::endl;
             thread.join();
+            std::cerr << "\tJoined!" << std::endl;
         }
     }
     

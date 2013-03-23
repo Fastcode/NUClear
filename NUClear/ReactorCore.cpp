@@ -32,6 +32,7 @@ namespace NUClear {
         queue.stop();
         std::cerr << "Joining core start " << std::endl;
         for(auto it = std::begin(cores); it != std::end(cores); ++it) {
+            std::cerr << "Joining" << std::endl;
             it->second->join();
         }
         std::cerr << "Joining done" << std::endl;

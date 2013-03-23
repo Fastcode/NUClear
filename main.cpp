@@ -61,6 +61,6 @@ int main(int argc, char** argv) {
     NUClear::ReactorControl.emit<MotorData>(mData);
     NUClear::ReactorControl.emit<CameraData>(cData);
 
-    NUClear::ReactorControl.stop();
+    NUClear::ReactorControl.waitForThreadCompletion();
     std::cerr << "End of main" << std::endl;
 }
