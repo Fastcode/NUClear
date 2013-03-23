@@ -6,6 +6,7 @@
 #include <mutex>
 #include <memory>
 #include <exception>
+#include <iostream>
 
 namespace NUClear {
 
@@ -68,15 +69,22 @@ namespace NUClear {
             }
 
             void stop(bool wait) {
+                std::cerr << "BlockingQueue::stop" << std::endl;
                 std::unique_lock<std::mutex> lock(m_mutex);    
+                std::cerr << "Acquired lock" << std::endl;
                 m_stop = true;
+                std::cerr << "Notifying" << std::endl;
                 m_condition.notify_all();
+                std::cerr << "Notified" << std::endl;
 
                 if(wait) {
                     while(m_blocked > 0) {
+                        std::cerr << "Waiting" << std::endl;
                         m_condition.wait(lock);
+                        std::cerr << "Waited" << std::endl;
                     }
                 }
+                std::cerr << "BlockingQueue::stop done" << std::endl;
             }
     };
 }
