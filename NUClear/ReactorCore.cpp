@@ -28,6 +28,9 @@ namespace NUClear {
             it->second->kill();
         }
         queue.stop(true);
+        for(auto it = std::begin(cores); it != std::end(cores); ++it) {
+            it->second->join();
+        }
     }
     
     reactionId_t ReactorCore::getCurrentReactionId(std::thread::id threadId) {
