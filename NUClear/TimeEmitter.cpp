@@ -27,7 +27,6 @@ namespace NUClear {
         while(execute) {
             std::chrono::nanoseconds now = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now().time_since_epoch());
             for(auto it = std::begin(steps); it != std::end(steps); ++it) {
-                now = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now().time_since_epoch());
                 if((it->next - now).count() <= 0) {
                     for(auto callback = std::begin(it->callbacks); callback != std::end(it->callbacks); ++callback) {
                         (*callback)();
