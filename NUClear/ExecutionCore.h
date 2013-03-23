@@ -22,6 +22,7 @@ namespace NUClear {
         std::thread::id getThreadId();
 
         void kill();
+        void join();
         reactionId_t getCurrentReactionId();
     private:
         void core();

@@ -22,12 +22,13 @@ namespace NUClear {
     std::unique_ptr<Reaction> ReactionQueue::dequeue() {
         std::unique_lock<std::mutex> lock(this->mutex);
         this->condition.wait(lock, [this]() {
-            std::cerr << "Queue empty: " << !this->queue.empty() << std::endl;
+            std::cerr << "Queue empty: " << this->queue.empty() << std::endl;
             return !this->queue.empty();
         });
+        std::cerr << "Reaction pop" << std::endl;
         std::unique_ptr<Reaction> r = std::move(queue.back());
         std::cerr << "Reaction type name: " << r->type.name() << std::endl;
         queue.pop_back();
-        return r;
+        return std::move(r);
     }
 }

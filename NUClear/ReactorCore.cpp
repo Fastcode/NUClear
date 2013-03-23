@@ -15,14 +15,24 @@ namespace NUClear {
     
     ReactorCore::~ReactorCore() {
         std::cerr << "~ReactorCore()" << std::endl;
-        for(auto it = std::begin(cores); it != std::end(cores); ++it) {
-            it->second->kill();
-        }
+        kill();
     }
     
     void ReactorCore::submit(std::unique_ptr<Reaction>&& reaction) {
         // Add the task to the queue
         queue.enqueue(std::move(reaction));
+    }
+
+    void ReactorCore::kill() {
+        for(auto it = std::begin(cores); it != std::end(cores); ++it) {
+            it->second->kill();
+        }
+    }
+
+    void ReactorCore::join() {
+        for(auto it = std::begin(cores); it != std::end(cores); ++it) {
+            it->second->join();
+        }
     }
     
     reactionId_t ReactorCore::getCurrentReactionId(std::thread::id threadId) {

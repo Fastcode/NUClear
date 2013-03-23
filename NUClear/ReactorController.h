@@ -13,6 +13,9 @@ namespace NUClear {
 
     class ReactorController {
         public:
+            ReactorController();
+            ~ReactorController(); 
+
             template <typename TTrigger>
             void emit(TTrigger* data);
 
@@ -35,6 +38,7 @@ namespace NUClear {
 
             std::map<std::type_index, std::shared_ptr<void> > m_cache;
             std::map<std::type_index, std::vector<Reactor*> > m_reactors;
+
             ReactorCore core;
     };
 
@@ -63,6 +67,10 @@ void NUClear::ReactorController::emit(TTrigger* data) {
 
 template <typename TTrigger>
 std::shared_ptr<TTrigger> NUClear::ReactorController::get() {
+    if(m_cache.find(typeid(TTrigger)) == m_cache.end()) {
+        std::cerr << "Trying to get missing TTrigger" << std::endl;
+    }
+
     return std::static_pointer_cast<TTrigger>(m_cache[typeid(TTrigger)]);
 }
 
