@@ -39,7 +39,12 @@ namespace NUClear {
     }
 
     void ReactorCore::waitForThreadCompletion() {
-
+        std::cerr << "Joining waitFor" << std::endl;
+        for(auto it = std::begin(cores); it != std::end(cores); ++it) {
+            std::cerr << "Joining" << std::endl;
+            it->second->join();
+        }
+        std::cerr << "Joining waitFor done" << std::endl;
     }
     
     reactionId_t ReactorCore::getCurrentReactionId(std::thread::id threadId) {
