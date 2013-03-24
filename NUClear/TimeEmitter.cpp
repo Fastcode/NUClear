@@ -15,11 +15,20 @@ namespace NUClear {
     
     void TimeEmitter::add(std::chrono::nanoseconds step, std::function<void ()> emit) {
         
-        // TODO combine the callbacks for each step object somehow (probably a unique ptr along with a time in a map)
-        Step s;
-        s.step = step;
-        s.next = start;
-        s.callbacks.push_back(emit);
+        auto item = std::find_if(std::begin(steps), std::end(steps), [step](Step& find) {
+            return find.step == step;
+        });
+        
+        if(item == std::end(steps)) {
+            Step s;
+            s.step = step;
+            s.next = start;
+            s.callbacks.push_back(emit);
+            steps.push_back(s);
+        }
+        else {
+            item->callbacks.push_back(emit);
+        }
     }
     
     void TimeEmitter::run() {
