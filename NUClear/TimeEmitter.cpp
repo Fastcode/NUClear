@@ -1,5 +1,6 @@
 #include "TimeEmitter.h"
 #include <iostream>
+#include <algorithm>
 
 namespace NUClear {
     
@@ -44,7 +45,7 @@ namespace NUClear {
                 }
             }
             
-            std::sort(std::begin(steps), std::end(steps), [](std::unique_ptr<Step>& a, std::unique_ptr<Step>& b) {
+            std::sort(std::begin(steps), std::end(steps), [](const std::unique_ptr<Step>& a, const std::unique_ptr<Step>& b) {
                 return a->next < b->next;
             });
             
