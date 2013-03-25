@@ -22,7 +22,7 @@ namespace NUClear {
             std::chrono::nanoseconds start;
             bool execute;
             std::thread thread;
-            std::vector<Step> steps;
+            std::vector<std::unique_ptr<Step>> steps;
             void run();
     };
 }

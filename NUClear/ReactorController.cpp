@@ -12,17 +12,21 @@ namespace NUClear {
         std::cerr << "~ReactorController()" << std::endl;
     }
     
-    void NUClear::ReactorController::submit(std::unique_ptr<Reaction>&& reaction) {
+    void ReactorController::submit(std::unique_ptr<Reaction>&& reaction) {
         core.submit(std::move(reaction));
     }
+    
+    void ReactorController::addEvery(std::chrono::nanoseconds time, std::function<void ()> callback) {
+        timeEmitter.add(time, callback);
+    }
 
-    void NUClear::ReactorController::shutdown() {
+    void ReactorController::shutdown() {
         std::cerr << "Before reactorcontroller::stop" << std::endl;
         core.shutdown();
         std::cerr << "After reactorcontroller::stop" << std::endl;
     }
 
-    void NUClear::ReactorController::waitForThreadCompletion() {
+    void ReactorController::waitForThreadCompletion() {
         core.waitForThreadCompletion();
     }
 

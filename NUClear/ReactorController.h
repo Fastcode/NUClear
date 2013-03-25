@@ -8,6 +8,7 @@
 #include <iterator>
 #include <thread>
 #include "ReactorCore.h"
+#include "TimeEmitter.h"
 namespace NUClear {
     class Reactor;
 
@@ -26,6 +27,8 @@ namespace NUClear {
             void addReactor(Reactor& reactor);
         
             void submit(std::unique_ptr<Reaction>&& reaction);
+        
+            void addEvery(std::chrono::nanoseconds time, std::function<void ()> callback);
 
             void shutdown();
             void waitForThreadCompletion();
@@ -43,6 +46,7 @@ namespace NUClear {
             std::map<std::type_index, std::vector<Reactor*> > m_reactors;
 
             ReactorCore core;
+            TimeEmitter timeEmitter;
     };
 
     // Forgive me
