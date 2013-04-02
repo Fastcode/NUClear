@@ -104,45 +104,4 @@ void NUClear::ReactorController::notifyReactors() {
     }
 }
 
-
-// == Public Methods ==
-/*template <typename TTrigger>
-void NUClear::ReactorController::emit(TTrigger* data) {
-    
-    std::cerr << "Emitting" << std::endl;
-    reactionId_t parentId = core.getCurrentReactionId(std::this_thread::get_id());
-    
-    cache<TTrigger>(data);
-    triggerReactors<TTrigger>(parentId);
-}
-
-template <typename TTrigger>
-std::shared_ptr<TTrigger> NUClear::ReactorController::get() {
-    if(m_cache.find(typeid(TTrigger)) == m_cache.end()) {
-        std::cerr << "Trying to get missing TTrigger" << std::endl;
-    }
-
-    return std::static_pointer_cast<TTrigger>(m_cache[typeid(TTrigger)]);
-}
-
-template <typename TTrigger>
-void NUClear::ReactorController::addReactor(Reactor& reactor) {
-    auto& reactors = getReactors<TTrigger>();
-    reactors.push_back(&reactor);
-}
-
-// == Private Methods ==
-template <typename TTrigger>
-void NUClear::ReactorController::cache(TTrigger* data) {
-    m_cache[typeid(TTrigger)] = std::shared_ptr<void>(data);
-}
-
-template <typename TTrigger>
-void NUClear::ReactorController::triggerReactors(reactionId_t parentId) {
-    std::vector<NUClear::Reactor*>& reactors = getReactors<TTrigger>();
-    for(auto reactor = std::begin(reactors); reactor != std::end(reactors); ++reactor) {
-        (*reactor)->trigger<TTrigger>(parentId);
-    }
-}*/
-
 #endif

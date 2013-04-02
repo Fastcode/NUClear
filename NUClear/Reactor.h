@@ -6,6 +6,8 @@
 #include <map>
 #include <vector>
 #include <typeindex>
+#include <chrono>
+
 namespace NUClear {
     class ReactorController;
 
@@ -15,6 +17,7 @@ namespace NUClear {
      *  Provides functionality for binding callbacks to incoming data events. Callbacks are executed
      *  in a transparent, multithreaded manner.
      * @author Jake Woods
+     * @author Trent Houliston
      * @version 1.1
      * @date 2-Apr-2013
      */
@@ -24,27 +27,27 @@ namespace NUClear {
 
             Reactor(ReactorController& reactorController);
             ~Reactor();
-
+        protected:
             /**
              * @brief Notifies this reactor that an event has occured
              * @tparam TTrigger the type of the event that occured.
              */
             template <typename TTrigger>
             void notify();
-        protected:
+        
             /**
              * @brief Empty wrapper class that represents a collection of triggering elements
              * @tparam TTriggers The list of triggers.
              */
             template <typename... TTriggers>
-            class Trigger {};
+            class Trigger { Trigger() = delete; ~Trigger() = delete; };
 
             /**
              * @brief Empty wrapper class that represents a collection of required but non-triggering data/events
              * @tparam TWith The list of required data/events.
              */
             template <typename... TWith>
-            class With {};
+            class With { With() = delete; ~With() = delete; };
         
             /**
              * @brief Empty class which specifies a period at which to have an event fired.
