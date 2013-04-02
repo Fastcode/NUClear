@@ -1,72 +1,46 @@
 #include <iostream>
-#include <thread>
-#include <chrono>
 #include <string>
-#include "NUClear/Reactor.h"
-#include "NUClear/ReactorController.h"
-#include "NUClear/Every.h"
+#include <functional>
+#include <map>
+#include <vector>
+#include <typeindex>
+#include <tuple>
+#include "ReactorController.h"
+#include "Reactor.h"
 
-struct CameraData {
-    int camData;
+class CameraData {
+    public: 
+        CameraData() : data("Class::CameraData") {}
+        std::string data;
 };
 
-struct MotorData {
-    float motorData;
+class MotorData {
+    public: 
+        MotorData() : data("Class::MotorData") {}
+        std::string data;
 };
-
-void free(const CameraData& cameraData, const MotorData& mData) {
-    std::cout << "No way" << std::endl;
-    std::cout << "CameraData:" << cameraData.camData << std::endl;
-    std::cout << "MotorData:" << mData.motorData << std::endl;
-}
 
 class Vision : public NUClear::Reactor {
     public:
-        Vision() {
-            reactOn<Vision, CameraData, MotorData>();
-            reactOn<Vision, MotorData>();
-            reactOn<Vision, NUClear::Every<1, std::chrono::seconds>>();
-            //on<CameraData, MotorData>()
-            //.reactWith(std::bind(&Vision::react, this));
-            //on<CameraData, MotorData>().reactWith(std::bind(&Vision::react, this));
-            /*.reactWith([](const CameraData& cameraData, const MotorData& mData) {
-                std::cout << "woo" << std::endl;
-            });*/
-        }
+        Vision(NUClear::ReactorController& control) : Reactor(control) {
+            //on<Trigger<MotorData>>();
+            on<Trigger<CameraData>, With<MotorData>>([](const CameraData& cameraData, const MotorData& motorData) {
+                std::cout << "Double trigger!" << std::endl;
+            });
 
-        void react(const CameraData& cameraData, const MotorData& mData) {
-            std::cout << "No way" << std::endl;
-            std::cout << "CameraData:" << cameraData.camData << std::endl;
-            std::cout << "MotorData:" << mData.motorData << std::endl;
+            on<Trigger<CameraData>, With<MotorData>>(std::bind(&Vision::reactInner, this, std::placeholders::_1, std::placeholders::_2));
         }
-    
-        void react(const MotorData& motorData) {
-            std::cout << "DAT MOTOR" << std::endl;
-        }
-    
-        void react(const NUClear::Every<1, std::chrono::seconds>& t) {
-            std::cout << "ONE PER SECOND" << std::endl;
+    private:
+        void reactInner(const CameraData& cameraData, const MotorData& motorData) {
+            std::cout << "ReactInner on cameraData, got: [" << cameraData.data << "], [" << motorData.data << "]" << std::endl;
         }
 };
 
-
-
 int main(int argc, char** argv) {
-    Vision vision;
+    NUClear::ReactorController controller;
+    
+    controller.install<Vision>();
 
-    CameraData* cData = new CameraData();
-    cData->camData = 5;
-
-    MotorData* mData = new MotorData();
-    mData->motorData = 10;
-
-    NUClear::ReactorControl.emit<MotorData>(mData);
-    NUClear::ReactorControl.emit<CameraData>(cData);
-
-    std::this_thread::sleep_for(std::chrono::milliseconds(50));
-
-    NUClear::ReactorControl.shutdown();
-
-    NUClear::ReactorControl.waitForThreadCompletion();
-    std::cerr << "End of main" << std::endl;
+    controller.emit(new MotorData());
+    controller.emit(new CameraData());
 }

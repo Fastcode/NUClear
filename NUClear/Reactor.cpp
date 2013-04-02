@@ -1,10 +1,9 @@
 #include "Reactor.h"
 
 namespace NUClear {
-    Reactor::Reactor() : reactorControl(ReactorControl) {
+    Reactor::Reactor(ReactorController& reactorController) :
+        reactorController(reactorController) {
     }
 
-    Reactor::~Reactor() {
-        std::cerr << "~Reactor()" << std::endl;
-    }
+    Reactor::~Reactor() {}
 }
