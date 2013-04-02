@@ -5,8 +5,9 @@
 #include <vector>
 #include <typeindex>
 #include <tuple>
-#include "ReactorController.h"
-#include "Reactor.h"
+#include <chrono>
+#include "NUClear/ReactorController.h"
+#include "NUClear/Reactor.h"
 
 class CameraData {
     public: 
@@ -24,11 +25,15 @@ class Vision : public NUClear::Reactor {
     public:
         Vision(NUClear::ReactorController& control) : Reactor(control) {
             //on<Trigger<MotorData>>();
-            on<Trigger<CameraData>, With<MotorData>>([](const CameraData& cameraData, const MotorData& motorData) {
+            on<Trigger<MotorData>, With<CameraData>>([](const MotorData& cameraData, const CameraData& motorData) {
                 std::cout << "Double trigger!" << std::endl;
             });
 
             on<Trigger<CameraData>, With<MotorData>>(std::bind(&Vision::reactInner, this, std::placeholders::_1, std::placeholders::_2));
+            
+            on<Trigger<Every<5, std::chrono::seconds>>>([](const Every<5, std::chrono::seconds>& time) {
+                std::cout << "Every 5 called" << std::endl;
+            });
         }
     private:
         void reactInner(const CameraData& cameraData, const MotorData& motorData) {

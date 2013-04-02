@@ -45,6 +45,14 @@ namespace NUClear {
              */
             template <typename... TWith>
             class With {};
+        
+            /**
+             * @brief Empty class which specifies a period at which to have an event fired.
+             * @tparam ticks the number of ticks between events
+             * @tparam period the timescale which ticks is measured in, defaults to milliseconds
+             */
+            template <int ticks, class period = std::chrono::milliseconds>
+            class Every {};
 
             template <typename TTrigger, typename TFunc>
             void on(TFunc callback); 
@@ -122,7 +130,17 @@ namespace NUClear {
              * @param placeholder used for partial template specialization
              */
             template <typename TTrigger>
-            void bindTriggersImpl(std::function<void ()> callback, TTrigger* /*placeholder*/); 
+            void bindTriggersImpl(std::function<void ()> callback, TTrigger* /*placeholder*/);
+        
+            /**
+             * @brief The implementation method for bindTriggers, provides partial template specialization for specific-trigger type logic.
+             * @tparam TTrigger the trigger to bind to
+             * @param callback the callback to bind
+             * @param placeholder used for partial template specialization
+             */
+            template <int ticks, class period = std::chrono::milliseconds>
+            void bindTriggersImpl(std::function<void ()> callback, Every<ticks, period>* /*placeholder*/);
+        
             /**
              * @brief Gets the callback list for a given type
              * @tparam TTrigger the type to get the callback list for
@@ -199,7 +217,8 @@ std::function<void ()> NUClear::Reactor::buildCallback(TFunc callback) {
  */
 template <typename TTrigger>
 void NUClear::Reactor::bindTriggers(std::function<void ()> callback) {
-    bindTriggersImpl<TTrigger>(callback, reinterpret_cast<TTrigger*>(0));
+    // This 0 is a nullptr however, it can't be nullptr as the cast would be invalid
+    bindTriggersImpl(callback, reinterpret_cast<TTrigger*>(0));
 }
 
 /**
@@ -223,11 +242,18 @@ void NUClear::Reactor::bindTriggers(std::function<void ()> callback) {
  */
 template <typename TTrigger>
 void NUClear::Reactor::bindTriggersImpl(std::function<void ()> callback, TTrigger* /*placeholder*/) {
-    std::cout << "BindTriggerImpl" << std::endl;
+    std::cout << "BindTriggerImpl for " << typeid(TTrigger).name() << std::endl;
     auto& callbacks = getCallbackList<TTrigger>();
     callbacks.push_back(callback);
 
     reactorController.subscribe<TTrigger>(this);
+}
+
+template <int ticks, class period>
+void NUClear::Reactor::bindTriggersImpl(std::function<void ()> callback, Every<ticks, period>* placeholder) {
+    std::cerr << "Passed number of ticks " << ticks << std::endl;
+    
+    bindTriggersImpl<Every<ticks, period>>(callback, placeholder);
 }
 
 /**
