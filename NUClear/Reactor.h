@@ -256,8 +256,13 @@ void NUClear::Reactor::bindTriggersImpl(Reaction callback, TTrigger* /*placehold
 
 template <int ticks, class period>
 void NUClear::Reactor::bindTriggersImpl(Reaction callback, Every<ticks, period>* placeholder) {
-    std::cerr << "Passed number of ticks " << ticks << std::endl;
     
+    // Add this interval to the chronometer
+    reactorController.chronometer.add<ticks, period>([this](){
+        this->reactorController.emit(new Every<ticks, period>());
+    });
+    
+    // Register as normal
     bindTriggersImpl<Every<ticks, period>>(callback, placeholder);
 }
 

@@ -31,8 +31,16 @@ class Vision : public NUClear::Reactor {
 
             on<Trigger<CameraData>, With<MotorData>>(std::bind(&Vision::reactInner, this, std::placeholders::_1, std::placeholders::_2));
             
-            on<Trigger<Every<5, std::chrono::seconds>>>([](const Every<5, std::chrono::seconds>& time) {
-                std::cout << "Every 5 called" << std::endl;
+            on<Trigger<Every<1, std::chrono::seconds>>>([](const Every<1, std::chrono::seconds>& time) {
+                std::cout << "Every 1 seconds called" << std::endl;
+            });
+            
+            on<Trigger<Every<10, std::chrono::milliseconds>>>([](const Every<10, std::chrono::milliseconds>& time) {
+                std::cout << "Every 100 milliseconds called" << std::endl;
+            });
+            
+            on<Trigger<Every<1000>>>([](const Every<1000>& time) {
+                std::cout << "Every 1000 milliseconds called" << std::endl;
             });
         }
     private:

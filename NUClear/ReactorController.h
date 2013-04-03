@@ -8,6 +8,7 @@
 #include <iterator>
 #include <thread>
 #include <set>
+#include "Chronometer.h"
 
 namespace NUClear {
     class Reactor;
@@ -26,6 +27,8 @@ namespace NUClear {
             void install();
         
         private:
+            Chronometer chronometer;
+        
             template <typename TTrigger>
             void subscribe(Reactor* reactor);
 
