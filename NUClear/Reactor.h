@@ -7,6 +7,7 @@
 #include <vector>
 #include <typeindex>
 #include <chrono>
+#include <atomic>
 #include "Reaction.h"
 
 namespace NUClear {
