@@ -2,6 +2,7 @@
 #define NUCLEAR_REACTION_H
 #include <functional>
 #include <chrono>
+#include <atomic>
 namespace NUClear {
     typedef std::uint64_t reactionId_t;
     class Reaction {
