@@ -26,7 +26,6 @@ namespace NUClear {
      * @version 1.0
      * @date 3-Apr-2013
      */
-    template <typename TReactorController>
     class Chronometer {
         public:
             Chronometer();
@@ -40,7 +39,7 @@ namespace NUClear {
              * @param emit     a function which will emit the object of the correct type into the reactor controller
              */
             template <int ticks, class period>
-            void add() {
+            void add(std::function<void ()> emit) {
                 
                 // Check if we have not already loaded this type in
                 if(loaded.find(typeid(Every<ticks, period>)) == std::end(loaded)) {
@@ -48,8 +47,8 @@ namespace NUClear {
                     // Flag this type as loaded
                     loaded.insert(typeid(Every<ticks, period>));
                     
-                    std::function<void ()>& emit = [this](){
-                        static_cast<TReactorController*>(this)->reactorController.emit(new Every<ticks, period>());
+                    std::function<void ()>& callback = [this](){
+                        this->reactorController.emit(new Every<ticks, period>());
                     };
                     
                     // Get the number of nanoseconds this tick is
