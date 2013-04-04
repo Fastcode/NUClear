@@ -8,8 +8,8 @@
 #include <typeindex>
 #include <chrono>
 #include <atomic>
-#include "Reaction.h"
-#include "Chronometer.h"
+#include "Internal/Reaction.h"
+#include "Internal/Chronometer.h"
 
 namespace NUClear {
     class ReactorController;
@@ -54,7 +54,7 @@ namespace NUClear {
 
             // Provide access to NUCLear::Every directly.
             template <int ticks, class period = std::chrono::milliseconds>
-            using Every = NUClear::Every<ticks, period>;
+            using Every = NUClear::Internal::Every<ticks, period>;
 
             template <typename TTrigger, typename TFunc>
             void on(TFunc callback); 
@@ -63,7 +63,7 @@ namespace NUClear {
             void on(TFunc callback); 
         private:
             ReactorController& reactorController;
-            std::map<std::type_index, std::vector<Reaction>> m_callbacks;
+            std::map<std::type_index, std::vector<Internal::Reaction>> m_callbacks;
             
             /**
              * @brief Base template instantitation that gets specialized. 
@@ -105,7 +105,7 @@ namespace NUClear {
              * @returns The wrapped callback
              */
             template <typename TFunc, typename... TTriggersAndWiths>
-            Reaction buildReaction(TFunc callback); 
+            Internal::Reaction buildReaction(TFunc callback); 
 
             
             /**
@@ -114,7 +114,7 @@ namespace NUClear {
              * @param callback the callback to add
              */
             template <typename TTrigger>
-            void bindTriggers(Reaction callback);
+            void bindTriggers(Internal::Reaction callback);
 
             /**
              * @brief Recursively calls the single-param bindTriggers method for every trigger in the list.
@@ -124,7 +124,7 @@ namespace NUClear {
              * @param callback the callback to bind to all of these triggers.
              */
             template <typename TTriggerFirst, typename TTriggerSecond, typename... TTriggers>
-            void bindTriggers(Reaction callback);
+            void bindTriggers(Internal::Reaction callback);
             /**
              * @brief The implementation method for bindTriggers, provides partial template specialization for specific-trigger type logic.
              * @tparam TTrigger the trigger to bind to
@@ -132,7 +132,7 @@ namespace NUClear {
              * @param placeholder used for partial template specialization
              */
             template <typename TTrigger>
-            void bindTriggersImpl(Reaction callback, TTrigger* /*placeholder*/);
+            void bindTriggersImpl(Internal::Reaction callback, TTrigger* /*placeholder*/);
         
             /**
              * @brief The implementation method for bindTriggers, provides partial template specialization for specific-trigger type logic.
@@ -141,7 +141,7 @@ namespace NUClear {
              * @param placeholder used for partial template specialization
              */
             template <int ticks, class period = std::chrono::milliseconds>
-            void bindTriggersImpl(Reaction callback, Every<ticks, period>* /*placeholder*/);
+            void bindTriggersImpl(Internal::Reaction callback, Every<ticks, period>* /*placeholder*/);
         
             /**
              * @brief Gets the callback list for a given type
@@ -149,7 +149,7 @@ namespace NUClear {
              * @returns The callback list
              */
             template <typename TTrigger>
-            std::vector<Reaction>& getCallbackList();     
+            std::vector<Internal::Reaction>& getCallbackList();     
     };
 }
 
@@ -203,12 +203,12 @@ void NUClear::Reactor::OnImpl<
 }
 
 template <typename TFunc, typename... TTriggersAndWiths>
-NUClear::Reaction NUClear::Reactor::buildReaction(TFunc callback) {
-    Reaction callbackWrapper([this, callback]() -> void {
+NUClear::Internal::Reaction NUClear::Reactor::buildReaction(TFunc callback) {
+    Internal::Reaction callbackWrapper([this, callback]() -> void {
         callback((*reactorController.get<TTriggersAndWiths>())...);
     });
 
-    return NUClear::Reaction(callbackWrapper);
+    return NUClear::Internal::Reaction(callbackWrapper);
 }
 
 
@@ -218,7 +218,7 @@ NUClear::Reaction NUClear::Reactor::buildReaction(TFunc callback) {
  * @param callback the callback to add
  */
 template <typename TTrigger>
-void NUClear::Reactor::bindTriggers(Reaction callback) {
+void NUClear::Reactor::bindTriggers(Internal::Reaction callback) {
     // This 0 is a nullptr however, it can't be nullptr as the cast would be invalid
     bindTriggersImpl(callback, reinterpret_cast<TTrigger*>(0));
 }
@@ -231,7 +231,7 @@ void NUClear::Reactor::bindTriggers(Reaction callback) {
  * @param callback the callback to bind to all of these triggers.
  */
 template <typename TTriggerFirst, typename TTriggerSecond, typename... TTriggers>
-void NUClear::Reactor::bindTriggers(Reaction callback) {
+void NUClear::Reactor::bindTriggers(Internal::Reaction callback) {
     bindTriggers<TTriggerFirst>(callback);
     bindTriggers<TTriggerSecond, TTriggers...>(callback);
 }
@@ -243,7 +243,7 @@ void NUClear::Reactor::bindTriggers(Reaction callback) {
  * @param placeholder used for partial template specialization
  */
 template <typename TTrigger>
-void NUClear::Reactor::bindTriggersImpl(Reaction callback, TTrigger* /*placeholder*/) {
+void NUClear::Reactor::bindTriggersImpl(Internal::Reaction callback, TTrigger* /*placeholder*/) {
     std::cout << "BindTriggerImpl for " << typeid(TTrigger).name() << std::endl;
     auto& callbacks = getCallbackList<TTrigger>();
     callbacks.push_back(callback);
@@ -252,7 +252,7 @@ void NUClear::Reactor::bindTriggersImpl(Reaction callback, TTrigger* /*placehold
 }
 
 template <int ticks, class period>
-void NUClear::Reactor::bindTriggersImpl(Reaction callback, Every<ticks, period>* placeholder) {
+void NUClear::Reactor::bindTriggersImpl(Internal::Reaction callback, Every<ticks, period>* placeholder) {
     
     // Add this interval to the chronometer
     reactorController.chronometer.add<ticks, period>();
@@ -267,9 +267,9 @@ void NUClear::Reactor::bindTriggersImpl(Reaction callback, Every<ticks, period>*
  * @returns The callback list
  */
 template <typename TTrigger>
-std::vector<NUClear::Reaction>& NUClear::Reactor::getCallbackList() {
+std::vector<NUClear::Internal::Reaction>& NUClear::Reactor::getCallbackList() {
     if(m_callbacks.find(typeid(TTrigger)) == m_callbacks.end()) {
-        m_callbacks[typeid(TTrigger)] = std::vector<NUClear::Reaction>();
+        m_callbacks[typeid(TTrigger)] = std::vector<NUClear::Internal::Reaction>();
     }
 
     return m_callbacks[typeid(TTrigger)];
