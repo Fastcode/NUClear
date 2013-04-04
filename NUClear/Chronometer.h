@@ -9,6 +9,14 @@
 
 namespace NUClear {
     /**
+     * @brief Empty class which specifies a period at which to have an event fired.
+     * @tparam ticks the number of ticks between events
+     * @tparam period the timescale which ticks is measured in, defaults to milliseconds
+     */
+    template <int ticks, class period = std::chrono::milliseconds>
+    class Every {};
+    
+    /**
      * @brief Class which is responsible for emitting the Every events to the system at the proper interval
      * @details
      *  This class will emit an every event of the correct type at regular intervals. Due to the way that thread
@@ -33,11 +41,15 @@ namespace NUClear {
             template <int ticks, class period>
             void add(std::function<void ()> emit) {
                 
-                // Check if we have already loaded this type in
-                if(loaded.find(typeid(Type<ticks, period>)) == std::end(loaded)) {
+                // Check if we have not already loaded this type in
+                if(loaded.find(typeid(Every<ticks, period>)) == std::end(loaded)) {
                     
                     // Flag this type as loaded
-                    loaded.insert(typeid(Type<ticks, period>));
+                    loaded.insert(typeid(Every<ticks, period>));
+                    
+                    std::function<void ()>& callback = [this](){
+                        this->reactorController.emit(new Every<ticks, period>());
+                    };
                     
                     // Get the number of nanoseconds this tick is
                     std::chrono::nanoseconds step(std::chrono::duration_cast<std::chrono::nanoseconds>(period(ticks)));
@@ -68,12 +80,6 @@ namespace NUClear {
              */
             void run();
         private:
-        
-            // This struct is here to act as an identifier for the type as importing the actual Every class causes more
-            // circular dependencies.
-            template<int ticks, class period>
-            struct Type { Type() = delete; ~Type() = delete; };
-        
             /// @brief this class holds the callbacks to emit events, as well as when to emit these events.
             struct Step {
                 std::chrono::nanoseconds step;
