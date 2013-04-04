@@ -27,8 +27,6 @@ namespace NUClear {
             void install();
         
         private:
-            Chronometer chronometer;
-        
             template <typename TTrigger>
             void subscribe(Reactor* reactor);
 
