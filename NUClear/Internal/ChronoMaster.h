@@ -1,5 +1,5 @@
-#ifndef NUCLEAR_ChronoMaster_H
-#define NUCLEAR_ChronoMaster_H
+#ifndef NUCLEAR_CHRONOMASTER_H
+#define NUCLEAR_CHRONOMASTER_H
 #include <set>
 #include <typeindex>
 #include <functional>

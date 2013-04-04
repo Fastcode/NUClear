@@ -13,6 +13,9 @@
 
 namespace NUClear {
     class ReactorController;
+    namespace Internal {
+        class ReactorMaster;
+    }
 
     /**
      * @brief Base class for any system that wants to react to events/data from the rest of the system.
@@ -26,7 +29,7 @@ namespace NUClear {
      */
     class Reactor {
         public:
-            friend class ReactorController;
+            friend class Internal::ReactorMaster;
 
             Reactor(ReactorController& reactorController);
             ~Reactor();
@@ -52,7 +55,7 @@ namespace NUClear {
             template <typename... TWith>
             class With { With() = delete; ~With() = delete; };
 
-            // Provide access to NUCLear::Every directly.
+            // Provide access to NUClear::Every directly.
             template <int ticks, class period = std::chrono::milliseconds>
             using Every = NUClear::Internal::Every<ticks, period>;
 
@@ -160,6 +163,7 @@ namespace NUClear {
 // to be down here, it can't be moved into the class or namespace since that'll break the forward declaration resolution.
 // Welcome to the unfortunate reality of the C++ include system (what I wouldn't give for modules...)
 
+#include "Internal/ReactorMaster.h"
 #include "ReactorController.h"
 
 // == Public Methods ==
