@@ -70,7 +70,7 @@ namespace Internal {
 // What this means is: This code needs to be down here, it can't be moved into the class or namespace since that'll break the 
 // forward declaration resolution. See the similar comment in Reactor.h for more information.
 
-#include "Reactor.h"
+#include "../Reactor.h"
 
 template <typename TReactor>
 void NUClear::Internal::ReactorMaster::Implementation::install() {
