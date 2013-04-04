@@ -48,8 +48,8 @@ namespace NUClear {
                     // Flag this type as loaded
                     loaded.insert(typeid(Every<ticks, period>));
                     
-                    std::function<void ()>& emit = [this](){
-                        static_cast<TReactorController*>(this)->reactorController.emit(new Every<ticks, period>());
+                    std::function<void ()> emit = [this](){
+                        static_cast<TReactorController*>(this)->emit(new Every<ticks, period>());
                     };
                     
                     // Get the number of nanoseconds this tick is

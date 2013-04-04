@@ -52,6 +52,10 @@ namespace NUClear {
             template <typename... TWith>
             class With { With() = delete; ~With() = delete; };
 
+            // Provide access to NUCLear::Every directly.
+            template <int ticks, class period = std::chrono::milliseconds>
+            using Every = NUClear::Every<ticks, period>;
+
             template <typename TTrigger, typename TFunc>
             void on(TFunc callback); 
 
