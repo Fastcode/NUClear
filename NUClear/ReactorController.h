@@ -8,12 +8,12 @@
 #include <iterator>
 #include <thread>
 #include <set>
-#include "Internal/Chronometer.h"
+#include "Internal/ChronoMaster.h"
 
 namespace NUClear {
     class Reactor;
 
-    class ReactorController : public Internal::Chronometer<ReactorController> {
+    class ReactorController : public Internal::ChronoMaster<ReactorController> {
         public:
             friend class Reactor;
 

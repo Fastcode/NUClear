@@ -1,5 +1,5 @@
-#ifndef NUCLEAR_CHRONOMETER_H
-#define NUCLEAR_CHRONOMETER_H
+#ifndef NUCLEAR_ChronoMaster_H
+#define NUCLEAR_ChronoMaster_H
 #include <set>
 #include <typeindex>
 #include <functional>
@@ -28,11 +28,11 @@ namespace Internal {
      * @version 1.0
      * @date 3-Apr-2013
      */
-    template <typename TChild>
-    class Chronometer {
+    template <typename TParent>
+    class ChronoMaster {
         class Implementation {
             public:
-                Implementation(Chronometer* parent);
+                Implementation(ChronoMaster* parent);
                 ~Implementation();
             
                 /**
@@ -50,7 +50,7 @@ namespace Internal {
                  */
                 void run();
             private:
-                Chronometer* parent;
+                ChronoMaster* parent;
 
                 /// @brief this class holds the callbacks to emit events, as well as when to emit these events.
                 struct Step {
@@ -70,31 +70,31 @@ namespace Internal {
         };
 
         public:
-            Chronometer();
+            ChronoMaster();
 
-            Implementation chronometer;
+            Implementation chronomaster;
     };
 }
 
-template <typename TChild>
-NUClear::Internal::Chronometer<TChild>::Chronometer() : 
-    chronometer(this) {
+template <typename TParent>
+NUClear::Internal::ChronoMaster<TParent>::ChronoMaster() : 
+    chronomaster(this) {
 }
 
-template <typename TChild>
-NUClear::Internal::Chronometer<TChild>::Implementation::Implementation(Chronometer* parent) :
+template <typename TParent>
+NUClear::Internal::ChronoMaster<TParent>::Implementation::Implementation(ChronoMaster* parent) :
     parent(parent),
     execute(true) {
 }
 
-template <typename TChild>
-NUClear::Internal::Chronometer<TChild>::Implementation::~Implementation() {
+template <typename TParent>
+NUClear::Internal::ChronoMaster<TParent>::Implementation::~Implementation() {
     execute = false;
 }
 
-template <typename TChild>
+template <typename TParent>
 template <int ticks, class period>
-void NUClear::Internal::Chronometer<TChild>::Implementation::add() {
+void NUClear::Internal::ChronoMaster<TParent>::Implementation::add() {
     
     // Check if we have not already loaded this type in
     if(loaded.find(typeid(NUClear::Internal::Every<ticks, period>)) == std::end(loaded)) {
@@ -103,7 +103,7 @@ void NUClear::Internal::Chronometer<TChild>::Implementation::add() {
         loaded.insert(typeid(NUClear::Internal::Every<ticks, period>));
         
         std::function<void ()> emit = [this](){
-            static_cast<TChild*>(parent)->emit(new NUClear::Internal::Every<ticks, period>());
+            static_cast<TParent*>(parent)->emit(new NUClear::Internal::Every<ticks, period>());
         };
         
         // Get the number of nanoseconds this tick is
@@ -129,8 +129,8 @@ void NUClear::Internal::Chronometer<TChild>::Implementation::add() {
     }
 }
 
-template <typename TChild>
-void NUClear::Internal::Chronometer<TChild>::Implementation::run() {
+template <typename TParent>
+void NUClear::Internal::ChronoMaster<TParent>::Implementation::run() {
     // Initialize all of the steps with our start time
     std::chrono::nanoseconds start(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now().time_since_epoch()));
     for(auto it = std::begin(steps); it != std::end(steps); ++it) {

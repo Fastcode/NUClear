@@ -9,7 +9,7 @@
 #include <chrono>
 #include <atomic>
 #include "Internal/Reaction.h"
-#include "Internal/Chronometer.h"
+#include "Internal/ChronoMaster.h"
 
 namespace NUClear {
     class ReactorController;
@@ -255,7 +255,7 @@ template <int ticks, class period>
 void NUClear::Reactor::bindTriggersImpl(Internal::Reaction callback, Every<ticks, period>* placeholder) {
     
     // Add this interval to the chronometer
-    reactorController.chronometer.add<ticks, period>();
+    reactorController.chronomaster.add<ticks, period>();
     
     // Register as normal
     bindTriggersImpl<Every<ticks, period>>(callback, placeholder);
