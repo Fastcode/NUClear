@@ -13,7 +13,7 @@
 namespace NUClear {
     class Reactor;
 
-    class ReactorController {
+    class ReactorController : public Chronometer<ReactorController> {
         public:
             friend class Reactor;
 
