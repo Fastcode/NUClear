@@ -13,6 +13,7 @@
 
 namespace NUClear {
     class ReactorController;
+
     namespace Internal {
         class ReactorMaster;
     }
@@ -163,8 +164,8 @@ namespace NUClear {
 // to be down here, it can't be moved into the class or namespace since that'll break the forward declaration resolution.
 // Welcome to the unfortunate reality of the C++ include system (what I wouldn't give for modules...)
 
-#include "Internal/ReactorMaster.h"
 #include "ReactorController.h"
+#include "Internal/ReactorMaster.h"
 
 // == Public Methods ==
 template <typename TTrigger, typename TFunc>

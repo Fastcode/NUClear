@@ -6,8 +6,7 @@
 #include <typeindex>
 #include <tuple>
 #include <chrono>
-#include "NUClear/ReactorController.h"
-#include "NUClear/Reactor.h"
+#include "NUClear/NUClear.h"
 
 class CameraData {
     public: 
