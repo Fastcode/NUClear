@@ -32,8 +32,14 @@ namespace Internal {
     class ChronoMaster {
         class Implementation {
             public:
-                Implementation(ChronoMaster* parent);
-                ~Implementation();
+                Implementation(ChronoMaster* parent) :
+                parent(parent),
+                execute(true) {
+                }
+            
+                ~Implementation() {
+                    execute = false;
+                }
             
                 /**
                  * @brief Adds a new interval and callback to wait in the system
@@ -43,12 +49,82 @@ namespace Internal {
                  * @param emit     a function which will emit the object of the correct type into the reactor controller
                  */
                 template <int ticks, class period>
-                void add();
+                void add() {
+                    
+                    // Check if we have not already loaded this type in
+                    if(loaded.find(typeid(NUClear::Internal::Every<ticks, period>)) == std::end(loaded)) {
+                        
+                        // Flag this type as loaded
+                        loaded.insert(typeid(NUClear::Internal::Every<ticks, period>));
+                        
+                        std::function<void ()> emit = [this](){
+                            static_cast<TParent*>(parent)->emit(new NUClear::Internal::Every<ticks, period>());
+                        };
+                        
+                        // Get the number of nanoseconds this tick is
+                        std::chrono::nanoseconds step(std::chrono::duration_cast<std::chrono::nanoseconds>(period(ticks)));
+                        
+                        // See if we already have one with this period
+                        auto item = std::find_if(std::begin(steps), std::end(steps), [step](std::unique_ptr<Step>& find) {
+                            return find->step == step;
+                        });
+                        
+                        // If we don't then create a new one with our initial data
+                        if(item == std::end(steps)) {
+                            std::unique_ptr<Step> s(new Step());
+                            s->step = step;
+                            s->callbacks.push_back(emit);
+                            steps.push_back(std::move(s));
+                        }
+                        
+                        // Otherwise just add the callback to the existing element
+                        else {
+                            (*item)->callbacks.push_back(emit);
+                        }
+                    }
+                }
+            
                 /**
                  * @brief Runs the emission system. Sleeps the thread until the next emission and then emits all events
                  *        required before sleeping again. Should be run in a seperate thread.
                  */
-                void run();
+                void run() {
+                    // Initialize all of the steps with our start time
+                    std::chrono::nanoseconds start(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now().time_since_epoch()));
+                    for(auto it = std::begin(steps); it != std::end(steps); ++it) {
+                        (*it)->next = start;
+                    }
+                    
+                    // Loop until it is time for us to finish
+                    while(execute) {
+                        
+                        // Get the current time
+                        std::chrono::nanoseconds now(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now().time_since_epoch()));
+                        
+                        // Check if any intervals are before now and if so execute their callbacks and add their step.
+                        for(auto it = std::begin(steps); it != std::end(steps); ++it) {
+                            if(((*it)->next - now).count() <= 0) {
+                                for(auto callback = std::begin((*it)->callbacks); callback != std::end((*it)->callbacks); ++callback) {
+                                    (*callback)();
+                                }
+                                (*it)->next += (*it)->step;
+                            }
+                            // Since we are sorted, we can ignore any after this time
+                            else {
+                                break;
+                            }
+                        }
+                        
+                        // Sort the list so the next soonest interval is on top
+                        std::sort(std::begin(steps), std::end(steps), [](const std::unique_ptr<Step>& a, const std::unique_ptr<Step>& b) {
+                            return a->next < b->next;
+                        });
+                        
+                        // Sleep until it's time to emit this event
+                        std::this_thread::sleep_for(steps.front()->next - now);
+                    }
+                }
+
             private:
                 ChronoMaster* parent;
 
@@ -70,102 +146,14 @@ namespace Internal {
         };
 
         public:
-            ChronoMaster();
+            ChronoMaster() :
+                chronomaster(this) {
+            }
+
 
             Implementation chronomaster;
     };
 }
-
-template <typename TParent>
-NUClear::Internal::ChronoMaster<TParent>::ChronoMaster() : 
-    chronomaster(this) {
 }
 
-template <typename TParent>
-NUClear::Internal::ChronoMaster<TParent>::Implementation::Implementation(ChronoMaster* parent) :
-    parent(parent),
-    execute(true) {
-}
-
-template <typename TParent>
-NUClear::Internal::ChronoMaster<TParent>::Implementation::~Implementation() {
-    execute = false;
-}
-
-template <typename TParent>
-template <int ticks, class period>
-void NUClear::Internal::ChronoMaster<TParent>::Implementation::add() {
-    
-    // Check if we have not already loaded this type in
-    if(loaded.find(typeid(NUClear::Internal::Every<ticks, period>)) == std::end(loaded)) {
-        
-        // Flag this type as loaded
-        loaded.insert(typeid(NUClear::Internal::Every<ticks, period>));
-        
-        std::function<void ()> emit = [this](){
-            static_cast<TParent*>(parent)->emit(new NUClear::Internal::Every<ticks, period>());
-        };
-        
-        // Get the number of nanoseconds this tick is
-        std::chrono::nanoseconds step(std::chrono::duration_cast<std::chrono::nanoseconds>(period(ticks)));
-        
-        // See if we already have one with this period
-        auto item = std::find_if(std::begin(steps), std::end(steps), [step](std::unique_ptr<Step>& find) {
-            return find->step == step;
-        });
-        
-        // If we don't then create a new one with our initial data
-        if(item == std::end(steps)) {
-            std::unique_ptr<Step> s(new Step());
-            s->step = step;
-            s->callbacks.push_back(emit);
-            steps.push_back(std::move(s));
-        }
-        
-        // Otherwise just add the callback to the existing element
-        else {
-            (*item)->callbacks.push_back(emit);
-        }
-    }
-}
-
-template <typename TParent>
-void NUClear::Internal::ChronoMaster<TParent>::Implementation::run() {
-    // Initialize all of the steps with our start time
-    std::chrono::nanoseconds start(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now().time_since_epoch()));
-    for(auto it = std::begin(steps); it != std::end(steps); ++it) {
-        (*it)->next = start;
-    }
-    
-    // Loop until it is time for us to finish
-    while(execute) {
-        
-        // Get the current time
-        std::chrono::nanoseconds now(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now().time_since_epoch()));
-        
-        // Check if any intervals are before now and if so execute their callbacks and add their step.
-        for(auto it = std::begin(steps); it != std::end(steps); ++it) {
-            if(((*it)->next - now).count() <= 0) {
-                for(auto callback = std::begin((*it)->callbacks); callback != std::end((*it)->callbacks); ++callback) {
-                    (*callback)();
-                }
-                (*it)->next += (*it)->step;
-            }
-            // Since we are sorted, we can ignore any after this time
-            else {
-                break;
-            }
-        }
-        
-        // Sort the list so the next soonest interval is on top
-        std::sort(std::begin(steps), std::end(steps), [](const std::unique_ptr<Step>& a, const std::unique_ptr<Step>& b) {
-            return a->next < b->next;
-        });
-        
-        // Sleep until it's time to emit this event
-        std::this_thread::sleep_for(steps.front()->next - now);
-    }
-
-}
-}
 #endif
