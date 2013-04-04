@@ -6,7 +6,9 @@
 
 namespace NUClear {
         
-    class ReactorController : public Internal::ChronoMaster<ReactorController>, public Internal::ReactorMaster {
+    class ReactorController : 
+            public Internal::ChronoMaster<ReactorController>, 
+            public Internal::ReactorMaster<ReactorController> {
         public:
             template <typename TData>
             std::shared_ptr<TData> get();

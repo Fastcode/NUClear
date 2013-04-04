@@ -15,6 +15,7 @@ namespace NUClear {
     class ReactorController;
 
     namespace Internal {
+        template <typename TParent>
         class ReactorMaster;
     }
 
@@ -30,6 +31,7 @@ namespace NUClear {
      */
     class Reactor {
         public:
+            template <typename TParent>
             friend class Internal::ReactorMaster;
 
             Reactor(ReactorController& reactorController);
