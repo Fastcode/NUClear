@@ -252,7 +252,7 @@ void NUClear::Reactor::bindTriggersImpl(Internal::Reaction callback, TTrigger* /
     auto& callbacks = getCallbackList<TTrigger>();
     callbacks.push_back(callback);
 
-    reactorController.subscribe<TTrigger>(this);
+    reactorController.reactormaster.subscribe<TTrigger>(this);
 }
 
 template <int ticks, class period>

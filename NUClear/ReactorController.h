@@ -8,9 +8,6 @@ namespace NUClear {
         
     class ReactorController : public Internal::ChronoMaster<ReactorController>, public Internal::ReactorMaster {
         public:
-            template <typename TTrigger>
-            void subscribe(NUClear::Reactor* reactor);
-        
             template <typename TData>
             std::shared_ptr<TData> get();
         
@@ -20,11 +17,6 @@ namespace NUClear {
             template <typename TTrigger>
             void emit(TTrigger* data);
     };
-}
-
-template <typename TTrigger>
-void NUClear::ReactorController::subscribe(NUClear::Reactor* reactor) {
-    reactormaster.subscribe<TTrigger>(reactor);
 }
 
 template <typename TData>
