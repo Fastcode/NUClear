@@ -9,7 +9,6 @@
 #include <chrono>
 #include <atomic>
 #include "Reaction.h"
-#include "Chronometer.h"
 
 namespace NUClear {
     class ReactorController;
@@ -51,6 +50,14 @@ namespace NUClear {
              */
             template <typename... TWith>
             class With { With() = delete; ~With() = delete; };
+        
+            /**
+             * @brief Empty class which specifies a period at which to have an event fired.
+             * @tparam ticks the number of ticks between events
+             * @tparam period the timescale which ticks is measured in, defaults to milliseconds
+             */
+            template <int ticks, class period = std::chrono::milliseconds>
+            class Every {};
 
             template <typename TTrigger, typename TFunc>
             void on(TFunc callback); 
@@ -251,7 +258,9 @@ template <int ticks, class period>
 void NUClear::Reactor::bindTriggersImpl(Reaction callback, Every<ticks, period>* placeholder) {
     
     // Add this interval to the chronometer
-    reactorController.chronometer.add<ticks, period>();
+    reactorController.chronometer.add<ticks, period>([this](){
+        this->reactorController.emit(new Every<ticks, period>());
+    });
     
     // Register as normal
     bindTriggersImpl<Every<ticks, period>>(callback, placeholder);
