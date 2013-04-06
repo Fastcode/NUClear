@@ -8,6 +8,7 @@
 #include <iterator>
 #include <thread>
 #include "TaskScheduler.h"
+#include "ThreadWorker.h"
 
 namespace NUClear {
 namespace Internal {
@@ -26,13 +27,13 @@ namespace Internal {
             protected:
                 void start() {
                     for(int i = 0; i < numThreads; ++i) {
-                        //std::thread thread(std::bind(&ThreadMaster::Implementation::doWork, this));
-                        //m_threads.insert(std::pair<std::thread::id, std::thread>(thread.get_id(), std::move(thread)));
+                        ThreadWorker thread();
+                        m_threads.insert(std::pair<std::thread::id, std::thread>(thread.getThreadId(), std::move(thread)));
                     }
                 }
             private:
                 ThreadMaster* parent;
-                std::map<std::thread::id, std::thread> m_threads;
+                std::map<std::thread::id, ThreadWorker> m_threads;
 
                 TaskScheduler scheduler;
                 int numThreads = 4;
