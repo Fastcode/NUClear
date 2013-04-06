@@ -9,6 +9,10 @@ namespace Internal {
     thread(std::bind(&ThreadWorker::core, this)) {
     }
     
+    ThreadWorker::~ThreadWorker() {
+        execute = false;
+    }
+    
     void ThreadWorker::kill() {
         execute = false;
     }
