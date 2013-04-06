@@ -3,7 +3,9 @@
 // three class circular dependency between [ReactorController -> ReactorMaster -> Reactor]. By forcing Reactor.h
 // here we can ensure that the defintion of Reactor will exist for ReactorMaster avoiding compile time errors
 // and making the whole mess work. If C++ had a module system this would be a non-issue but we're looking at
-// sometime between 2014-2017 to get one of those!
+// sometime between 2014-2017 to get one of those! It needs to be outside of the macro guards because 
+// NUCLEAR_REACTORCONTROLLER_H needs to not be defined yet so it is included within the appropriate context
+// in ReactorMaster.h
 #include "Reactor.h"
 
 #ifndef NUCLEAR_REACTORCONTROLLER_H
