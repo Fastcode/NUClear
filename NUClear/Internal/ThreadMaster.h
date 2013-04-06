@@ -26,14 +26,8 @@ namespace Internal {
             protected:
                 void start() {
                     for(int i = 0; i < numThreads; ++i) {
-                        std::thread thread(std::bind(&ThreadMaster::Implementation::doWork, this));
-                        m_threads.insert(std::pair<std::thread::id, std::thread>(thread.get_id(), std::move(thread)));
-                    }
-                }
-
-                void doWork() {
-                    while(execute) {
-                        Reaction& task = scheduler.getTask()();
+                        //std::thread thread(std::bind(&ThreadMaster::Implementation::doWork, this));
+                        //m_threads.insert(std::pair<std::thread::id, std::thread>(thread.get_id(), std::move(thread)));
                     }
                 }
             private:

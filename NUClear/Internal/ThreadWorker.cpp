@@ -5,6 +5,7 @@ namespace Internal {
     
     ThreadWorker::ThreadWorker() :
     execute(true),
+    currentReaction(nullptr),
     thread(std::bind(&ThreadWorker::core, this)) {
     }
     
@@ -23,7 +24,7 @@ namespace Internal {
     }
     
     Reaction& ThreadWorker::getCurrentReaction() {
-        return currentReaction;
+        return *currentReaction;
     }
     
     void ThreadWorker::core() {

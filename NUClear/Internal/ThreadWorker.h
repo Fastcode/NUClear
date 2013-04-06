@@ -19,7 +19,7 @@ namespace Internal {
         void core();
         
         bool execute;
-        Reaction& currentReaction;
+        Reaction* currentReaction;
         std::thread thread;
     };
 }
