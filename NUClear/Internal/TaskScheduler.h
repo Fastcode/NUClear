@@ -2,11 +2,17 @@
 #define NUCLEAR_TASKSCHEDULER_H
 #include "Reaction.h"
 
-class TaskScheduler {
-    public:
-    template<typename... options>
-    void submit(Reaction& r);
-    Reaction& getTask();
+namespace NUClear {
+namespace Internal {
+
+    class TaskScheduler {
+        public:
+        template<typename... options>
+        void submit(Reaction& r);
+        Reaction& getTask();
+    }
+
+}
 }
 
 /**
