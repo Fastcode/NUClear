@@ -27,25 +27,25 @@ namespace Internal {
                 void start() {
                     for(int i = 0; i < numThreads; ++i) {
                         std::thread thread(std::bind(&ThreadMaster::Implementation::doWork, this));
-                        m_threads.insert(std::pair<std::thread::thread_id, std::thread>(thread.get_id(), std::move(thread)));
+                        m_threads.insert(std::pair<std::thread::id, std::thread>(thread.get_id(), std::move(thread)));
                     }
                 }
 
                 void doWork() {
-
+                    while(execute) {
+                        Reaction& task = scheduler.getTask()();
+                    }
                 }
             private:
                 ThreadMaster* parent;
-                std::map<std::thread::thread_id, std::thread> m_threads;
+                std::map<std::thread::id, std::thread> m_threads;
 
                 TaskScheduler scheduler;
                 int numThreads = 4;
-                
-                
         };
     public:
         ThreadMaster() :
-            threadMaster(this) {
+            threadmaster(this) {
         }
         
         

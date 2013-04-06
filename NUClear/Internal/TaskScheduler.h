@@ -10,7 +10,7 @@ namespace Internal {
         template<typename... options>
         void submit(Reaction& r);
         Reaction& getTask();
-    }
+    };
 
 }
 }

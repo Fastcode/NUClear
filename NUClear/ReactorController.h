@@ -13,11 +13,13 @@
 
 #include "Internal/ChronoMaster.h"
 #include "Internal/ReactorMaster.h"
+#include "Internal/ThreadMaster.h"
 
 namespace NUClear {
     class ReactorController : 
             public Internal::ChronoMaster<ReactorController>, 
-            public Internal::ReactorMaster<ReactorController> {
+            public Internal::ReactorMaster<ReactorController>,
+            public Internal::ThreadMaster<ReactorController> {
         public:
             template <typename TData>
             std::shared_ptr<TData> get();
