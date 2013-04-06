@@ -1,5 +1,5 @@
-#ifndef NUCLEAR_REACTORMASTER_H
-#define NUCLEAR_REACTORMASTER_H
+#ifndef NUCLEAR_THREADWORKER_H
+#define NUCLEAR_THREADWORKER_H
 #include <thread>
 #include "Reaction.h"
 

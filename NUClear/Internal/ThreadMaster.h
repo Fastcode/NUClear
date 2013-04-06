@@ -27,13 +27,13 @@ namespace Internal {
             protected:
                 void start() {
                     for(int i = 0; i < numThreads; ++i) {
-                        ThreadWorker thread();
-                        m_threads.insert(std::pair<std::thread::id, std::thread>(thread.getThreadId(), std::move(thread)));
+                        std::unique_ptr<ThreadWorker> thread;
+                        m_threads.insert(std::pair<std::thread::id, std::unique_ptr<ThreadWorker>>(thread->getThreadId(), std::move(thread)));
                     }
                 }
             private:
                 ThreadMaster* parent;
-                std::map<std::thread::id, ThreadWorker> m_threads;
+                std::map<std::thread::id, std::unique_ptr<ThreadWorker>> m_threads;
 
                 TaskScheduler scheduler;
                 int numThreads = 4;
