@@ -14,11 +14,6 @@
 namespace NUClear {
     class ReactorController;
 
-    namespace Internal {
-        template <typename TParent>
-        class ReactorMaster;
-    }
-
     /**
      * @brief Base class for any system that wants to react to events/data from the rest of the system.
      * @details 
@@ -31,18 +26,18 @@ namespace NUClear {
      */
     class Reactor {
         public:
-            template <typename TParent>
-            friend class Internal::ReactorMaster;
+            friend class ReactorController;
 
             Reactor(ReactorController& reactorController);
             ~Reactor();
-        protected:
+
             /**
              * @brief Notifies this reactor that an event has occured
              * @tparam TTrigger the type of the event that occured.
              */
             template <typename TTrigger>
             void notify();
+        protected:
         
             /**
              * @brief Empty wrapper class that represents a collection of triggering elements
@@ -167,7 +162,6 @@ namespace NUClear {
 // Welcome to the unfortunate reality of the C++ include system (what I wouldn't give for modules...)
 
 #include "ReactorController.h"
-#include "Internal/ReactorMaster.h"
 
 // == Public Methods ==
 template <typename TTrigger, typename TFunc>

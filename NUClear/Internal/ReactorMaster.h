@@ -71,6 +71,7 @@ namespace Internal {
 // Unfortunately it's neccecary to have these here and outside the NUClear namespace due to our circular dependency on Reactor.
 // What this means is: This code needs to be down here, it can't be moved into the class or namespace since that'll break the 
 // forward declaration resolution. See the similar comment in Reactor.h for more information.
+#include "../Reactor.h"
 
 template <typename TParent>
 template <typename TReactor>
@@ -121,7 +122,6 @@ void NUClear::Internal::ReactorMaster<TParent>::Implementation::cache(TTrigger* 
     m_cache[typeid(TTrigger)] = std::shared_ptr<void>(data);
 }
 
-#include "../Reactor.h"
 
 template <typename TParent>
 template <typename TTrigger>
@@ -132,5 +132,4 @@ void NUClear::Internal::ReactorMaster<TParent>::Implementation::notifyReactors()
         (*reactor)->notify<TTrigger>();
     }
 }
-
 #endif

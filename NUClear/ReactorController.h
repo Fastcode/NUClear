@@ -1,3 +1,5 @@
+#include "Reactor.h"
+
 #ifndef NUCLEAR_REACTORCONTROLLER_H
 #define NUCLEAR_REACTORCONTROLLER_H
 
@@ -5,7 +7,6 @@
 #include "Internal/ReactorMaster.h"
 
 namespace NUClear {
-        
     class ReactorController : 
             public Internal::ChronoMaster<ReactorController>, 
             public Internal::ReactorMaster<ReactorController> {
