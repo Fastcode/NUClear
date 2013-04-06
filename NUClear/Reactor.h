@@ -36,9 +36,8 @@ namespace NUClear {
              * @tparam TTrigger the type of the event that occured.
              */
             template <typename TTrigger>
-            void notify();
+            void notify();   
         protected:
-        
             /**
              * @brief Empty wrapper class that represents a collection of triggering elements
              * @tparam TTriggers The list of triggers.
