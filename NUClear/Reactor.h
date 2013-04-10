@@ -105,7 +105,7 @@ namespace NUClear {
              * @returns The wrapped callback
              */
             template <typename TFunc, typename... TTriggersAndWiths>
-            Internal::Reaction buildReaction(TFunc callback); 
+            Internal::Reaction buildReaction(TFunc callback, Internal::ReactionOptions& options);
 
             
             /**
@@ -199,14 +199,18 @@ void NUClear::Reactor::OnImpl<
     NUClear::Reactor::Trigger<TTriggers...>,
     NUClear::Reactor::With<TWiths...>,
     TFunc>::operator()(TFunc callback) {
-        context->bindTriggers<TTriggers...>(context->buildReaction<TFunc, TTriggers..., TWiths...>(callback));
+        
+        //TODO have the options processed here and return an options object
+        Internal::ReactionOptions options(typeid(nullptr));
+        
+        context->bindTriggers<TTriggers...>(context->buildReaction<TFunc, TTriggers..., TWiths...>(callback, options));
 }
 
 template <typename TFunc, typename... TTriggersAndWiths>
-NUClear::Internal::Reaction NUClear::Reactor::buildReaction(TFunc callback) {
+NUClear::Internal::Reaction NUClear::Reactor::buildReaction(TFunc callback, Internal::ReactionOptions& options) {
     Internal::Reaction callbackWrapper([this, callback]() -> void {
         callback((*reactorController.get<TTriggersAndWiths>())...);
-    });
+    }, options);
 
     return NUClear::Internal::Reaction(callbackWrapper);
 }

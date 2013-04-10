@@ -3,13 +3,22 @@
 #include <functional>
 #include <chrono>
 #include <atomic>
+#include <typeindex>
 namespace NUClear {
 namespace Internal {
     typedef std::uint64_t reactionId_t;
+    
+    struct ReactionOptions {
+        ReactionOptions(std::type_index type) : m_syncType(type) {}
+        std::type_index m_syncType;
+        bool m_single;
+    };
+    
     class Reaction {
         public:
-            Reaction(std::function<void ()> callback);
+            Reaction(std::function<void ()> callback, ReactionOptions& options);
             ~Reaction();
+            ReactionOptions m_options;
 
             void operator()();
         private:

@@ -1,15 +1,42 @@
 #ifndef NUCLEAR_TASKSCHEDULER_H
 #define NUCLEAR_TASKSCHEDULER_H
+
+#include <map>
+#include <vector>
+#include <queue>
+#include <algorithm>
+#include <typeindex>
 #include "Reaction.h"
 
 namespace NUClear {
 namespace Internal {
+    
+    class TaskQueue {
+        public:
+            std::priority_queue<Reaction> m_queue;
+            std::type_index m_syncType;
+    };
 
     class TaskScheduler {
         public:
-        template<typename... options>
-        void submit(Reaction& r);
-        Reaction& getTask();
+        
+            template<typename... options>
+            void submit(Reaction& r) {
+                
+                // Check if it's a single and it is running ( TODO: Running check )
+                if(r.m_options.m_single) {
+                    
+                    // Put it in a queue according to it's sync type (typeid(nullptr) is treated as no sync type)
+                    m_queues[r.m_options.m_syncType].m_queue.push(std::move(r));
+                }
+            }
+        
+            Reaction& getTask();
+        private:
+            std::map<std::type_index, TaskQueue> m_queues;
+            std::mutex m_mutex;
+            std::condition_variable m_condition;
+        
     };
 
 }
