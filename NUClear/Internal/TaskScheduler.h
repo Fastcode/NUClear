@@ -6,6 +6,9 @@
 #include <queue>
 #include <algorithm>
 #include <typeindex>
+#include <thread>
+#include <mutex>
+#include <condition_variable>
 #include "Reaction.h"
 
 namespace NUClear {

@@ -21,6 +21,9 @@ namespace NUClear {
             public Internal::ReactorMaster<ReactorController>,
             public Internal::ThreadMaster<ReactorController> {
         public:
+            void start();
+
+            // Reactor functions
             template <typename TData>
             std::shared_ptr<TData> get();
         
@@ -29,6 +32,11 @@ namespace NUClear {
             
             template <typename TTrigger>
             void emit(TTrigger* data);
+
+            // Chrono functions
+
+            // Threading Functions
+
     };
 }
 
