@@ -1,10 +1,3 @@
-// === Template Implementations ===
-// This section contains all the implementations for the Reactor functions. Unfortunately it's neccecary to have these
-// outside of the NUClear namespace and as a seperate implementation as we need to resolve the forward
-// declaration of ReactorController so we can actually use the reference. What this means is: This code needs
-// to be down here, it can't be moved into the class or namespace since that'll break the forward declaration resolution.
-// Welcome to the unfortunate reality of the C++ include system (what I wouldn't give for modules...)
-// == Public Methods ==
 namespace NUClear {
     template <typename TTrigger, typename TFunc>
     void Reactor::on(TFunc callback) {
