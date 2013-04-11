@@ -48,7 +48,7 @@ namespace NUClear {
         , Reactor::Options<TOptions...>
         , TFunc>::operator()(TFunc callback) {
             Internal::ReactionOptions options;
-            context->buildOptions(options);
+            context->buildOptions<TOptions...>(options);
             context->bindTriggers<TTriggers...>(context->buildReaction<TFunc, TTriggers..., TWiths...>(callback, options));
     }
     
