@@ -39,6 +39,8 @@ namespace NUClear {
             template <typename TTrigger>
             void notify();   
         protected:
+            ReactorController& reactorController;
+
             /**
              * @brief Empty wrapper class that represents a collection of triggering elements
              * @tparam TTriggers The list of triggers.
@@ -81,7 +83,6 @@ namespace NUClear {
             template <typename TTrigger, typename TWith, typename TOption, typename TFunc>
             void on(TFunc callback);
         private:
-            ReactorController& reactorController;
             std::map<std::type_index, std::vector<Internal::Reaction>> m_callbacks;
             
             /**
@@ -113,21 +114,21 @@ namespace NUClear {
                 void operator()(TFunc callback);            
             };
         
-        template <typename... TOption>
-        void buildOptions(Internal::ReactionOptions& options);
-        
-        template <typename TOptionFirst, typename TOptionSecond, typename... TOptions>
-        void buildOptions(Internal::ReactionOptions& options);
-        
-        void buildOptionsImpl(Internal::ReactionOptions& options);
-        
-        void buildOptionsImpl(Internal::ReactionOptions& options, Single* /*placeholder*/);
-        
-        template <typename TSync>
-        void buildOptionsImpl(Internal::ReactionOptions& options, Sync<TSync>* /*placeholder*/);
-        
-        template <enum EPriority P>
-        void buildOptionsImpl(Internal::ReactionOptions& options, Priority<P>* /*placeholder*/);
+            template <typename... TOption>
+            void buildOptions(Internal::ReactionOptions& options);
+            
+            template <typename TOptionFirst, typename TOptionSecond, typename... TOptions>
+            void buildOptions(Internal::ReactionOptions& options);
+            
+            void buildOptionsImpl(Internal::ReactionOptions& options);
+            
+            void buildOptionsImpl(Internal::ReactionOptions& options, Single* /*placeholder*/);
+            
+            template <typename TSync>
+            void buildOptionsImpl(Internal::ReactionOptions& options, Sync<TSync>* /*placeholder*/);
+            
+            template <enum EPriority P>
+            void buildOptionsImpl(Internal::ReactionOptions& options, Priority<P>* /*placeholder*/);
         
             /**
              * @brief Builds a callback wrapper function for a given callback. 
@@ -141,7 +142,6 @@ namespace NUClear {
              */
             template <typename TFunc, typename... TTriggersAndWiths>
             Internal::Reaction buildReaction(TFunc callback, Internal::ReactionOptions options);
-
         
             /**
              * @brief Adds a single data -> callback mapping for a single type.
