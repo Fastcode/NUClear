@@ -112,24 +112,27 @@ namespace NUClear {
                 OnImpl(Reactor* context); 
                 void operator()(TFunc callback);            
             };
-            
-            template <typename TOption>
-            void buildOptions(Internal::ReactionOptions& options);
-            
+        
             /**
-             * @brief Recursive case for building the options object when there are 2 or more options to be parsed
-             * @details
-             *  this case will expand the variardic pack by extracting the first two paramters, and using the first one in
-             *  the single case version of this function to apply the change, and then recursivly calling this function to
-             *  extract the next values for this pack
-             * @tparam TOptionFirst the first parameter in the variardic pack
-             * @tparam TOptionSecond the second paramter in the variardic pack
-             * @tparam TOptions the remainder of the variardic pack
-             * @param options a reference to the options object we are building
+             * @brief This function populates the passed ReactionOptions object will all of the data held in the options
+             * @tparam the options which to apply to this options object
+             * @param the options to populate
              */
-            template <typename TOptionFirst, typename TOptionSecond, typename... TOptions>
+            template <typename... TOption>
             void buildOptions(Internal::ReactionOptions& options);
-            
+        
+            /**
+             * @brief This is a magical function which is used in order to perform execution on variadic packs
+             * @details
+             *  this function does nothing and has no implementation, however it can be used as a bed in which to
+             *  execute each of the template parameters in a seperate function. This saves having to recurse the
+             *  objects using recursive template objects. It also means that it can handle the case when there are no
+             *  template parameters. Note that if you are using void functions wrap them in this (func(), 0).
+             * @tparam TParams the parameters
+             */
+            template <typename... TParams>
+            void consumePack(TParams...);
+        
             /**
              * @brief This case of build options is used when the Single option is specified
              * @param options the options object we are building

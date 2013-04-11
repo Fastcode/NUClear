@@ -54,16 +54,14 @@ namespace NUClear {
             context->bindTriggers<TTriggers...>(context->buildReaction<TFunc, TTriggers..., TWiths...>(callback, options));
     }
     
-    template <typename TOption>
+    template <typename... TOption>
     void Reactor::buildOptions(Internal::ReactionOptions& options) {
-        buildOptionsImpl(options, reinterpret_cast<TOption*>(0));
+        consumePack((buildOptionsImpl(options, reinterpret_cast<TOption*>(0)), 0)...);
     }
     
-    template <typename TOptionFirst, typename TOptionSecond, typename... TOptions>
-    void Reactor::buildOptions(Internal::ReactionOptions& options) {
-        buildOptions<TOptionFirst>(options);
-        buildOptions<TOptionSecond, TOptions...>(options);
-    }
+    template <typename... TParams>
+    void Reactor::consumePack(TParams...) {
+    };
     
     template <typename TSync>
     void Reactor::buildOptionsImpl(Internal::ReactionOptions& options, Sync<TSync>* /*placeholder*/) {

@@ -24,7 +24,7 @@ class Vision : public NUClear::Reactor {
     public:
         Vision(NUClear::ReactorController& control) : Reactor(control) {
             //on<Trigger<MotorData>>();
-           /* on<Trigger<MotorData>, With<CameraData>>([](const MotorData& cameraData, const CameraData& motorData) {
+            on<Trigger<MotorData>, With<CameraData>>([](const MotorData& cameraData, const CameraData& motorData) {
                 std::cout << "Double trigger!" << std::endl;
             });
 
@@ -41,7 +41,7 @@ class Vision : public NUClear::Reactor {
             on<Trigger<Every<1000>>>([](const Every<1000>& time) {
                 std::cout << "Every 1000 milliseconds called" << std::endl;
             });
-            */
+            
             on<Trigger<CameraData>, With<>, Options<Sync<Vision>, Single, Priority<NUClear::REALTIME>>>([](const CameraData& cameraData){
                 std::cout << "With Options" << std::endl;
             });
