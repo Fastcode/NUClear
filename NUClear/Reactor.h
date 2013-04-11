@@ -9,7 +9,7 @@
 #include <chrono>
 #include <atomic>
 #include "Internal/Reaction.h"
-#include "Internal/ChronoMaster.h"
+#include "Internal/Every.h"
 
 namespace NUClear {
     class ReactorController;
@@ -153,126 +153,7 @@ namespace NUClear {
     };
 }
 
-// === Template Implementations ===
-// This section contains all the implementations for the Reactor functions. Unfortunately it's neccecary to have these
-// outside of the NUClear namespace and as a seperate implementation as we need to resolve the forward
-// declaration of ReactorController so we can actually use the reference. What this means is: This code needs
-// to be down here, it can't be moved into the class or namespace since that'll break the forward declaration resolution.
-// Welcome to the unfortunate reality of the C++ include system (what I wouldn't give for modules...)
-
 #include "ReactorController.h"
-
-// == Public Methods ==
-template <typename TTrigger, typename TFunc>
-void NUClear::Reactor::on(TFunc callback) {
-    OnImpl<TTrigger, With<>, TFunc>(this)(callback);
-}
-
-template <typename TTrigger, typename TWith, typename TFunc>
-void NUClear::Reactor::on(TFunc callback) {
-    OnImpl<TTrigger, TWith, TFunc>(this)(callback);
-}
-
-template <typename TTrigger>
-void NUClear::Reactor::notify() {
-    auto& callbacks = getCallbackList<TTrigger>();
-    std::cout << "Notify start" << std::endl;
-    for(auto callback = std::begin(callbacks); callback != std::end(callbacks); ++callback) {
-        std::cout << "Notifying" << std::endl;
-        
-        // TODO threading code goes here
-        (*callback)();
-    }
-}
-
-// == Private Method == 
-template <typename... TTriggers, typename... TWiths, typename TFunc>
-NUClear::Reactor::OnImpl<
-    NUClear::Reactor::Trigger<TTriggers...>, 
-    NUClear::Reactor::With<TWiths...>, 
-    TFunc>::OnImpl(NUClear::Reactor* context) {
-        this->context = context;
-}
-
-template <typename... TTriggers, typename... TWiths, typename TFunc>
-void NUClear::Reactor::OnImpl<
-    NUClear::Reactor::Trigger<TTriggers...>,
-    NUClear::Reactor::With<TWiths...>,
-    TFunc>::operator()(TFunc callback) {
-        context->bindTriggers<TTriggers...>(context->buildReaction<TFunc, TTriggers..., TWiths...>(callback));
-}
-
-template <typename TFunc, typename... TTriggersAndWiths>
-NUClear::Internal::Reaction NUClear::Reactor::buildReaction(TFunc callback) {
-    Internal::Reaction callbackWrapper([this, callback]() -> void {
-        callback((*reactorController.get<TTriggersAndWiths>())...);
-    });
-
-    return NUClear::Internal::Reaction(callbackWrapper);
-}
-
-
-/**
- * @brief Adds a single data -> callback mapping for a single type.
- * @tparam TTrigger the event/data type to add the callback for
- * @param callback the callback to add
- */
-template <typename TTrigger>
-void NUClear::Reactor::bindTriggers(Internal::Reaction callback) {
-    // This 0 is a nullptr however, it can't be nullptr as the cast would be invalid
-    bindTriggersImpl(callback, reinterpret_cast<TTrigger*>(0));
-}
-
-/**
- * @brief Recursively calls the single-param bindTriggers method for every trigger in the list.
- * @tparam TTriggerFirst the next trigger to call bindTriggers on
- * @tparam TTriggerSecond the following trigger to call bindTriggers on
- * @tparam TTriggers the remaining triggers to evaluate
- * @param callback the callback to bind to all of these triggers.
- */
-template <typename TTriggerFirst, typename TTriggerSecond, typename... TTriggers>
-void NUClear::Reactor::bindTriggers(Internal::Reaction callback) {
-    bindTriggers<TTriggerFirst>(callback);
-    bindTriggers<TTriggerSecond, TTriggers...>(callback);
-}
-
-/**
- * @brief The implementation method for bindTriggers, provides partial template specialization for specific-trigger type logic.
- * @tparam TTrigger the trigger to bind to
- * @param callback the callback to bind
- * @param placeholder used for partial template specialization
- */
-template <typename TTrigger>
-void NUClear::Reactor::bindTriggersImpl(Internal::Reaction callback, TTrigger* /*placeholder*/) {
-    std::cout << "BindTriggerImpl for " << typeid(TTrigger).name() << std::endl;
-    auto& callbacks = getCallbackList<TTrigger>();
-    callbacks.push_back(callback);
-
-    reactorController.reactormaster.subscribe<TTrigger>(this);
-}
-
-template <int ticks, class period>
-void NUClear::Reactor::bindTriggersImpl(Internal::Reaction callback, Every<ticks, period>* placeholder) {
-    
-    // Add this interval to the chronometer
-    reactorController.chronomaster.add<ticks, period>();
-    
-    // Register as normal
-    bindTriggersImpl<Every<ticks, period>>(callback, placeholder);
-}
-
-/**
- * @brief Gets the callback list for a given type
- * @tparam TTrigger the type to get the callback list for
- * @returns The callback list
- */
-template <typename TTrigger>
-std::vector<NUClear::Internal::Reaction>& NUClear::Reactor::getCallbackList() {
-    if(m_callbacks.find(typeid(TTrigger)) == m_callbacks.end()) {
-        m_callbacks[typeid(TTrigger)] = std::vector<NUClear::Internal::Reaction>();
-    }
-
-    return m_callbacks[typeid(TTrigger)];
-}
-
+#include "Reactor.ipp"
 #endif
+

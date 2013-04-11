@@ -6,18 +6,27 @@
 // sometime between 2014-2017 to get one of those! It needs to be outside of the macro guards because 
 // NUCLEAR_REACTORCONTROLLER_H needs to not be defined yet so it is included within the appropriate context
 // in ReactorMaster.h
-#include "Reactor.h"
+//#include "Reactor.h"
 
 #ifndef NUCLEAR_REACTORCONTROLLER_H
 #define NUCLEAR_REACTORCONTROLLER_H
-
-#include "Internal/ChronoMaster.h"
-#include "Internal/ReactorMaster.h"
-#include "Internal/ThreadMaster.h"
+#include <memory>
+#include <set>
+#include <thread>
+#include <vector>
+#include <typeindex>
+#include <map>
+#include <iostream>
+#include "Internal/Every.h"
+#include "Internal/ThreadWorker.h"
+#include "Internal/TaskScheduler.h"
 
 namespace NUClear {
-    class ReactorController
+    class Reactor;
+    class ReactorController {
         private:
+            friend class Reactor;
+
             class BaseMaster {
                 public:
                     BaseMaster(ReactorController* parent); 
@@ -64,10 +73,10 @@ namespace NUClear {
 
                     template <typename TReactor>
                     void install();
-                private:
+
                     template <typename TTrigger>
                     void subscribe(NUClear::Reactor* reactor);
-
+                private:
                     template <typename TTrigger>
                     void cache(TTrigger* data);
 
@@ -88,9 +97,9 @@ namespace NUClear {
 
                     void start();
                 private:
-                    std::map<std::thread::id, std::unique_ptr<ThreadWorker>> m_threads;
+                    std::map<std::thread::id, std::unique_ptr<Internal::ThreadWorker>> m_threads;
 
-                    TaskScheduler scheduler;
+                    Internal::TaskScheduler scheduler;
                     int numThreads = 4;
             };
         protected:
@@ -113,19 +122,9 @@ namespace NUClear {
     };
 }
 
-template <typename TData>
-std::shared_ptr<TData> NUClear::ReactorController::get() {
-    return reactormaster.get<TData>();
-}
-
-template <typename TReactor>
-void NUClear::ReactorController::install() {
-    reactormaster.install<TReactor>();
-}
-
-template <typename TTrigger>
-void NUClear::ReactorController::emit(TTrigger* data) {
-    reactormaster.emit(data);
-}
-
+#include "Reactor.h"
+#include "ChronoMaster.ipp"
+#include "ReactorMaster.ipp"
+#include "ReactorController.ipp"
 #endif
+
