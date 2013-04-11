@@ -9,7 +9,7 @@ namespace Internal {
     typedef std::uint64_t reactionId_t;
     
     struct ReactionOptions {
-        ReactionOptions(std::type_index type) : m_syncType(type) {}
+        ReactionOptions() : m_syncType(typeid(nullptr)) {}
         std::type_index m_syncType;
         bool m_single;
     };
