@@ -16,11 +16,92 @@
 #include "Internal/ThreadMaster.h"
 
 namespace NUClear {
-    class ReactorController : 
-            public Internal::ChronoMaster<ReactorController>, 
-            public Internal::ReactorMaster<ReactorController>,
-            public Internal::ThreadMaster<ReactorController> {
+    class ReactorController
+        private:
+            class BaseMaster {
+                public:
+                    BaseMaster(ReactorController* parent); 
+                protected:
+                    ReactorController* m_parent;
+            };
+
+            class ChronoMaster : public BaseMaster {
+                public:
+                    ChronoMaster(ReactorController* parent);
+                    ~ChronoMaster();
+
+                    void run();
+
+                    template <int ticks, class period>
+                    void add();
+                private:
+                    /// @brief this class holds the callbacks to emit events, as well as when to emit these events.
+                    struct Step {
+                        std::chrono::nanoseconds step;
+                        std::chrono::nanoseconds next;
+                        std::vector<std::function<void ()>> callbacks;
+                    };
+                
+                    /// @brief If the system should continue to execute or if it should stop
+                    bool m_execute;
+                
+                    /// @brief A vector of steps containing the callbacks to execute, is sorted regularly to maintain the order
+                    std::vector<std::unique_ptr<Step>> m_steps;
+                
+                    /// @brief A list of types which have already been loaded (to avoid duplication)
+                    std::set<std::type_index> m_loaded;
+            };
+
+            class ReactorMaster : public BaseMaster {
+                public:
+                    ReactorMaster(ReactorController* parent);
+
+                    template <typename TTrigger>
+                    void emit(TTrigger* data);
+
+                    template <typename TData>
+                    std::shared_ptr<TData> get();
+
+                    template <typename TReactor>
+                    void install();
+                private:
+                    template <typename TTrigger>
+                    void subscribe(NUClear::Reactor* reactor);
+
+                    template <typename TTrigger>
+                    void cache(TTrigger* data);
+
+                    template <typename TTrigger>
+                    void notifyReactors();
+
+                    template <typename TTrigger>
+                    std::set<NUClear::Reactor*>& getReactorBindings();
+
+                    std::vector<std::unique_ptr<NUClear::Reactor>> m_reactors;
+                    std::map<std::type_index, std::shared_ptr<void> > m_cache;
+                    std::map<std::type_index, std::set<NUClear::Reactor*> > m_reactorBindings;
+            };
+
+            class ThreadMaster : public BaseMaster {
+                public:
+                    ThreadMaster(ReactorController* parent);
+
+                    void start();
+                private:
+                    std::map<std::thread::id, std::unique_ptr<ThreadWorker>> m_threads;
+
+                    TaskScheduler scheduler;
+                    int numThreads = 4;
+            };
+        protected:
+            ChronoMaster chronomaster;
+            ReactorMaster reactormaster;
+            ThreadMaster threadmaster;
         public:
+            ReactorController();
+
+            void start();
+
             template <typename TData>
             std::shared_ptr<TData> get();
         
