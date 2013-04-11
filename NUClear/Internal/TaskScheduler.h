@@ -3,9 +3,12 @@
 
 #include <map>
 #include <vector>
+#include <atomic>
 #include <queue>
 #include <algorithm>
 #include <typeindex>
+#include <condition_variable>
+#include <mutex>
 #include "Reaction.h"
 
 namespace NUClear {
@@ -13,24 +16,16 @@ namespace Internal {
     
     class TaskQueue {
         public:
+            TaskQueue();
             std::priority_queue<Reaction> m_queue;
             std::type_index m_syncType;
+            std::atomic<bool> active;
+        //TODO overload the < operator so it can be heaped
     };
 
     class TaskScheduler {
         public:
-        
-            template<typename... options>
-            void submit(Reaction& r) {
-                
-                // Check if it's a single and it is running ( TODO: Running check )
-                if(r.m_options.m_single) {
-                    
-                    // Put it in a queue according to it's sync type (typeid(nullptr) is treated as no sync type)
-                    m_queues[r.m_options.m_syncType].m_queue.push(std::move(r));
-                }
-            }
-        
+            void submit(Reaction& r);
             Reaction& getTask();
         private:
             std::map<std::type_index, TaskQueue> m_queues;
