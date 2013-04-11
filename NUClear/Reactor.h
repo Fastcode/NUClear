@@ -114,10 +114,12 @@ namespace NUClear {
             };
         
         template <typename... TOption>
-        Internal::ReactionOptions buildOptions(Internal::ReactionOptions& options);
+        void buildOptions(Internal::ReactionOptions& options);
         
         template <typename TOptionFirst, typename TOptionSecond, typename... TOptions>
         void buildOptions(Internal::ReactionOptions& options);
+        
+        void buildOptionsImpl(Internal::ReactionOptions& options);
         
         void buildOptionsImpl(Internal::ReactionOptions& options, Single* /*placeholder*/);
         

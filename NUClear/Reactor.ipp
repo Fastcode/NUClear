@@ -48,8 +48,8 @@ namespace NUClear {
     }
     
     template <typename... TOption>
-    Internal::ReactionOptions Reactor::buildOptions(Internal::ReactionOptions& options) {
-        
+    void Reactor::buildOptions(Internal::ReactionOptions& options) {
+        buildOptionsImpl(options, reinterpret_cast<TOption*>(0)...);
     }
     
     template <typename TOptionFirst, typename TOptionSecond, typename... TOptions>
@@ -58,18 +58,14 @@ namespace NUClear {
         buildOptions<TOptionSecond, TOptions...>(options);
     }
     
-    void Reactor::buildOptionsImpl(Internal::ReactionOptions& options, Single* /*placeholder*/) {
-        
-    }
-    
     template <typename TSync>
     void Reactor::buildOptionsImpl(Internal::ReactionOptions& options, Sync<TSync>* /*placeholder*/) {
-        
+        options.m_syncType = typeid(TSync);
     }
     
     template <enum EPriority P>
     void Reactor::buildOptionsImpl(Internal::ReactionOptions& options, Priority<P>* /*placeholder*/) {
-        
+        options.m_priority = P;
     }
 
     template <typename TFunc, typename... TTriggersAndWiths>

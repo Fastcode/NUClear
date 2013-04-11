@@ -4,6 +4,7 @@
 #include <chrono>
 #include <atomic>
 #include <typeindex>
+#include "Options.h"
 namespace NUClear {
 namespace Internal {
     typedef std::uint64_t reactionId_t;
@@ -12,6 +13,7 @@ namespace Internal {
         ReactionOptions() : m_syncType(typeid(nullptr)) {}
         std::type_index m_syncType;
         bool m_single;
+        EPriority m_priority;
     };
     
     class Reaction {
