@@ -21,6 +21,11 @@ namespace NUClear {
         for(auto callback = std::begin(callbacks); callback != std::end(callbacks); ++callback) {
             std::cout << "Notifying" << std::endl;
             
+            std::cout <<
+            "Sync type: " << callback->m_options.m_syncType.name() <<
+            ", Priority: " << callback->m_options.m_priority <<
+            ", Single: " << callback->m_options.m_single << std::endl;
+            
             // TODO threading code goes here
             (*callback)();
         }
@@ -69,10 +74,11 @@ namespace NUClear {
     }
 
     template <typename TFunc, typename... TTriggersAndWiths>
-    Internal::Reaction Reactor::buildReaction(TFunc callback, Internal::ReactionOptions options) {
+    Internal::Reaction Reactor::buildReaction(TFunc callback, Internal::ReactionOptions& options) {
+        
         Internal::Reaction callbackWrapper([this, callback]() -> void {
             callback((*reactorController.get<TTriggersAndWiths>())...);
-        });
+        }, options);
 
         return Internal::Reaction(callbackWrapper);
     }

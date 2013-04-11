@@ -39,8 +39,6 @@ namespace NUClear {
             template <typename TTrigger>
             void notify();   
         protected:
-            ReactorController& reactorController;
-
             /**
              * @brief Empty wrapper class that represents a collection of triggering elements
              * @tparam TTriggers The list of triggers.
@@ -83,6 +81,7 @@ namespace NUClear {
             template <typename TTrigger, typename TWith, typename TOption, typename TFunc>
             void on(TFunc callback);
         private:
+            ReactorController& reactorController;
             std::map<std::type_index, std::vector<Internal::Reaction>> m_callbacks;
             
             /**
@@ -113,20 +112,63 @@ namespace NUClear {
                 OnImpl(Reactor* context); 
                 void operator()(TFunc callback);            
             };
-        
+            
+            /**
+             * @brief Case for building options where there is 1 or 0 parameters, it will execute the appropriate function to set the variable
+             * @details
+             *  This function will accept either a single or an empty paramter pack. Despite it being variardic as the recursive
+             *  option for this funciton is more specific it will always be chosen except in these two cases where there are
+             *  1 option or 0 options. The 1 option case will have the correct method selected, while the 0 case will use
+             *  an empty method
+             * @tparam TOption the pack containing either a single parameter, or no paramters
+             * @param options a reference to the options object we are building
+             */
             template <typename... TOption>
             void buildOptions(Internal::ReactionOptions& options);
             
+            /**
+             * @brief Recursive case for building the options object when there are 2 or more options to be parsed
+             * @details
+             *  this case will expand the variardic pack by extracting the first two paramters, and using the first one in
+             *  the single case version of this function to apply the change, and then recursivly calling this function to
+             *  extract the next values for this pack
+             * @tparam TOptionFirst the first parameter in the variardic pack
+             * @tparam TOptionSecond the second paramter in the variardic pack
+             * @tparam TOptions the remainder of the variardic pack
+             * @param options a reference to the options object we are building
+             */
             template <typename TOptionFirst, typename TOptionSecond, typename... TOptions>
             void buildOptions(Internal::ReactionOptions& options);
             
+            /**
+             * @brief This case of build options is for when there are no options.
+             * @details 
+             *  as the empty variardic pack will expand to this
+             *  this method does nothing and should therefore be optimized away
+             * @param options the options object we are building
+             */
             void buildOptionsImpl(Internal::ReactionOptions& options);
             
+            /**
+             * @brief This case of build options is used when the Single option is specified
+             * @param options the options object we are building
+             * @param placeholder which is used to specialize this method
+             */
             void buildOptionsImpl(Internal::ReactionOptions& options, Single* /*placeholder*/);
             
+            /**
+             * @brief This case of build options is used to add the Sync option
+             * @tparam TSync the sync type we are synchronizing on
+             * @param placeholder which is used to specialize this method
+             */
             template <typename TSync>
             void buildOptionsImpl(Internal::ReactionOptions& options, Sync<TSync>* /*placeholder*/);
             
+            /**
+             * @brief This case of build options is used to add the Priority option
+             * @tparam TSync the sync type we are synchronizing on
+             * @param placeholder which is used to specialize this method
+             */
             template <enum EPriority P>
             void buildOptionsImpl(Internal::ReactionOptions& options, Priority<P>* /*placeholder*/);
         
@@ -141,7 +183,7 @@ namespace NUClear {
              * @returns The wrapped callback
              */
             template <typename TFunc, typename... TTriggersAndWiths>
-            Internal::Reaction buildReaction(TFunc callback, Internal::ReactionOptions options);
+            Internal::Reaction buildReaction(TFunc callback, Internal::ReactionOptions& options);
         
             /**
              * @brief Adds a single data -> callback mapping for a single type.

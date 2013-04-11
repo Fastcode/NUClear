@@ -10,7 +10,7 @@ namespace Internal {
     typedef std::uint64_t reactionId_t;
     
     struct ReactionOptions {
-        ReactionOptions() : m_syncType(typeid(nullptr)) {}
+        ReactionOptions() : m_syncType(typeid(nullptr)), m_single(false), m_priority(DEFAULT) {}
         std::type_index m_syncType;
         bool m_single;
         EPriority m_priority;
@@ -18,9 +18,9 @@ namespace Internal {
     
     class Reaction {
         public:
-            Reaction(std::function<void ()> callback);
+            Reaction(std::function<void ()> callback, ReactionOptions options);
             ~Reaction();
-
+            ReactionOptions m_options;
             void operator()();
         private:
             static std::atomic<std::uint64_t> reactionIdSource;
