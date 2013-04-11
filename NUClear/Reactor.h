@@ -113,11 +113,11 @@ namespace NUClear {
                 void operator()(TFunc callback);            
             };
         
-        template <typename TOption>
-        void buildOptions();
+        template <typename... TOption>
+        Internal::ReactionOptions buildOptions(Internal::ReactionOptions options);
         
         template <typename TOptionFirst, typename TOptionSecond, typename... TOptions>
-        void buildOptions();
+        Internal::ReactionOptions buildOptions(Internal::ReactionOptions options);
         
         void buildOptionsImpl(Internal::ReactionOptions& options, Single* /*placeholder*/);
         
@@ -138,9 +138,9 @@ namespace NUClear {
              * @returns The wrapped callback
              */
             template <typename TFunc, typename... TTriggersAndWiths>
-            Internal::Reaction buildReaction(TFunc callback);
+            Internal::Reaction buildReaction(TFunc callback, Internal::ReactionOptions options);
 
-            
+        
             /**
              * @brief Adds a single data -> callback mapping for a single type.
              * @tparam TTrigger the event/data type to add the callback for
