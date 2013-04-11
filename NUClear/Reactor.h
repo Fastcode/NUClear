@@ -10,6 +10,7 @@
 #include <atomic>
 #include "Internal/Reaction.h"
 #include "Internal/Every.h"
+#include "Internal/Options.h"
 
 namespace NUClear {
     class ReactorController;
@@ -52,12 +53,24 @@ namespace NUClear {
             template <typename... TWith>
             class With { With() = delete; ~With() = delete; };
 
+            /**
+             * @brief Empty wrapper class that represents a collection of options which modify how the event is processed.
+             * @tparam TOptions The list of options that are specified
+             */
             template <typename... TOption>
             class Options { Options() = delete; ~Options() = delete; };
 
             // Provide access to NUClear::Every directly.
             template <int ticks, class period = std::chrono::milliseconds>
-            using Every = NUClear::Internal::Every<ticks, period>;
+            using Every = Internal::Every<ticks, period>;
+        
+            template <enum EPriority P>
+            using Priority = Internal::Priority<P>;
+        
+            template <typename TSync>
+            using Sync = Internal::Sync<TSync>;
+        
+            using Single = Internal::Single;
 
             template <typename TTrigger, typename TFunc>
             void on(TFunc callback); 
@@ -99,7 +112,21 @@ namespace NUClear {
                 OnImpl(Reactor* context); 
                 void operator()(TFunc callback);            
             };
-            
+        
+        template <typename TOption>
+        void buildOptions();
+        
+        template <typename TOptionFirst, typename TOptionSecond, typename... TOptions>
+        void buildOptions();
+        
+        void buildOptionsImpl(Internal::ReactionOptions& options, Single* /*placeholder*/);
+        
+        template <typename TSync>
+        void buildOptionsImpl(Internal::ReactionOptions& options, Sync<TSync>* /*placeholder*/);
+        
+        template <enum EPriority P>
+        void buildOptionsImpl(Internal::ReactionOptions& options, Priority<P>* /*placeholder*/);
+        
             /**
              * @brief Builds a callback wrapper function for a given callback. 
              * @details 

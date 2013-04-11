@@ -1,13 +1,3 @@
-// Here lies yet another artifact of the terrible C++ "module" system, and I use that term sparingly. 
-// Reactor.h needs to be included before ReactorController in all contexts, this is neccecary because of the
-// three class circular dependency between [ReactorController -> ReactorMaster -> Reactor]. By forcing Reactor.h
-// here we can ensure that the defintion of Reactor will exist for ReactorMaster avoiding compile time errors
-// and making the whole mess work. If C++ had a module system this would be a non-issue but we're looking at
-// sometime between 2014-2017 to get one of those! It needs to be outside of the macro guards because 
-// NUCLEAR_REACTORCONTROLLER_H needs to not be defined yet so it is included within the appropriate context
-// in ReactorMaster.h
-//#include "Reactor.h"
-
 #ifndef NUCLEAR_REACTORCONTROLLER_H
 #define NUCLEAR_REACTORCONTROLLER_H
 #include <memory>

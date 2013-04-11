@@ -42,7 +42,31 @@ namespace NUClear {
         , Reactor::With<TWiths...>
         , Reactor::Options<TOptions...>
         , TFunc>::operator()(TFunc callback) {
-            context->bindTriggers<TTriggers...>(context->buildReaction<TFunc, TTriggers..., TWiths...>(callback));
+            context->bindTriggers<TTriggers...>(context->buildReaction<TFunc, TTriggers..., TWiths...>(callback, context->buildOptions<TOptions...>()));
+    }
+    
+    template <typename TOption>
+    void Reactor::buildOptions() {
+        
+    }
+    
+    template <typename TOptionFirst, typename TOptionSecond, typename... TOptions>
+    void Reactor::buildOptions() {
+        
+    }
+    
+    void Reactor::buildOptionsImpl(Internal::ReactionOptions& options, Single* /*placeholder*/) {
+        
+    }
+    
+    template <typename TSync>
+    void Reactor::buildOptionsImpl(Internal::ReactionOptions& options, Sync<TSync>* /*placeholder*/) {
+        
+    }
+    
+    template <enum EPriority P>
+    void Reactor::buildOptionsImpl(Internal::ReactionOptions& options, Priority<P>* /*placeholder*/) {
+        
     }
 
     template <typename TFunc, typename... TTriggersAndWiths>
