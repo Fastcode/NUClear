@@ -16,9 +16,8 @@ namespace Internal {
     
     class Reaction {
         public:
-            Reaction(std::function<void ()> callback, ReactionOptions& options);
+            Reaction(std::function<void ()> callback);
             ~Reaction();
-            ReactionOptions m_options;
 
             void operator()();
         private:

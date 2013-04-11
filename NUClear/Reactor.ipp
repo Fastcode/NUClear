@@ -8,12 +8,17 @@
 namespace NUClear {
     template <typename TTrigger, typename TFunc>
     void Reactor::on(TFunc callback) {
-        OnImpl<TTrigger, With<>, TFunc>(this)(callback);
+        OnImpl<TTrigger, With<>, Options<>, TFunc>(this)(callback);
     }
 
     template <typename TTrigger, typename TWith, typename TFunc>
     void Reactor::on(TFunc callback) {
-        OnImpl<TTrigger, TWith, TFunc>(this)(callback);
+        OnImpl<TTrigger, TWith, Options<>, TFunc>(this)(callback);
+    }
+
+    template <typename TTrigger, typename TWith, typename TOptions, typename TFunc>
+    void Reactor::on(TFunc callback) {
+        OnImpl<TTrigger, TWith, TOptions, TFunc>(this)(callback);
     }
 
     template <typename TTrigger>
@@ -29,29 +34,31 @@ namespace NUClear {
     }
 
     // == Private Method == 
-    template <typename... TTriggers, typename... TWiths, typename TFunc>
+    template <typename... TTriggers, typename... TWiths, typename... TOptions, typename TFunc>
     Reactor::OnImpl<
-        Reactor::Trigger<TTriggers...>, 
-        Reactor::With<TWiths...>, 
-        TFunc>::OnImpl(Reactor* context) {
+        Reactor::Trigger<TTriggers...>
+        , Reactor::With<TWiths...>
+        , Reactor::Options<TOptions...>
+        , TFunc>::OnImpl(Reactor* context) {
             this->context = context;
     }
 
-    template <typename... TTriggers, typename... TWiths, typename TFunc>
+    template <typename... TTriggers, typename... TWiths, typename... TOptions, typename TFunc>
     void Reactor::OnImpl<
-        Reactor::Trigger<TTriggers...>,
-        Reactor::With<TWiths...>,
-        TFunc>::operator()(TFunc callback) {
+        Reactor::Trigger<TTriggers...>
+        , Reactor::With<TWiths...>
+        , Reactor::Options<TOptions...>
+        , TFunc>::operator()(TFunc callback) {
             context->bindTriggers<TTriggers...>(context->buildReaction<TFunc, TTriggers..., TWiths...>(callback));
     }
 
     template <typename TFunc, typename... TTriggersAndWiths>
-    NUClear::Internal::Reaction Reactor::buildReaction(TFunc callback) {
+    Internal::Reaction Reactor::buildReaction(TFunc callback) {
         Internal::Reaction callbackWrapper([this, callback]() -> void {
             callback((*reactorController.get<TTriggersAndWiths>())...);
         });
 
-        return NUClear::Internal::Reaction(callbackWrapper);
+        return Internal::Reaction(callbackWrapper);
     }
 
 

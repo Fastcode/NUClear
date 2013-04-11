@@ -2,14 +2,14 @@
 namespace NUClear {
 namespace Internal {
     
-    TaskQueue::TaskQueue() : m_syncType(typeid(nullptr)) {
+    /*TaskQueue::TaskQueue() { //: m_syncType(typeid(nullptr)) {
         
     }
     
     void TaskScheduler::submit(Reaction& r) {
         
         // Check if it's a single and it is running ( TODO: Running check )
-        if(r.m_options.m_single) {
+        /*if(r.m_options.m_single) {
             
             std::unique_lock<std::mutex> lock(m_mutex);
             
@@ -18,9 +18,9 @@ namespace Internal {
             
             // Check if this queue is active and if so then notify a thread
         }
-    }
+    }*/
     
-    Reaction& TaskScheduler::getTask() {
+    /*Reaction& TaskScheduler::getTask() {
         
         // Get the lock
         // while we don't have a task
@@ -30,6 +30,6 @@ namespace Internal {
         // Return the task
         // endwhile
         
-    }
+    }*/
     
 }}

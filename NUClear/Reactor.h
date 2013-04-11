@@ -52,6 +52,9 @@ namespace NUClear {
             template <typename... TWith>
             class With { With() = delete; ~With() = delete; };
 
+            template <typename... TOption>
+            class Options { Options() = delete; ~Options() = delete; };
+
             // Provide access to NUClear::Every directly.
             template <int ticks, class period = std::chrono::milliseconds>
             using Every = NUClear::Internal::Every<ticks, period>;
@@ -59,8 +62,11 @@ namespace NUClear {
             template <typename TTrigger, typename TFunc>
             void on(TFunc callback); 
 
-            template <typename TTrigger, typename TWith, typename TFunc>
+            template <typename TTrigger, typename TWithOrOption, typename TFunc>
             void on(TFunc callback); 
+
+            template <typename TTrigger, typename TWith, typename TOption, typename TFunc>
+            void on(TFunc callback);
         private:
             ReactorController& reactorController;
             std::map<std::type_index, std::vector<Internal::Reaction>> m_callbacks;
@@ -71,7 +77,7 @@ namespace NUClear {
              *  This should never be instantiated and will throw a giant compile error if it somehow is. 
              *  The template parameters are left unnamed to reflect the fact that they are simply placeholders.
              */
-            template <typename, typename, typename>
+            template <typename, typename, typename, typename>
             struct OnImpl {};
 
             /**
@@ -87,8 +93,8 @@ namespace NUClear {
              * @tparam TWiths the list of events/data that is required for this reaction but does not trigger the reaction.
              * @tparam TFunc the callback type, should be automatically deduced
              */
-            template <typename... TTriggers, typename... TWiths, typename TFunc>
-            struct OnImpl<Trigger<TTriggers...>, With<TWiths...>, TFunc> {
+            template <typename... TTriggers, typename... TWiths, typename... TOptions, typename TFunc>
+            struct OnImpl<Trigger<TTriggers...>, With<TWiths...>, Options<TOptions...>, TFunc> {
                 Reactor* context;
                 OnImpl(Reactor* context); 
                 void operator()(TFunc callback);            
@@ -105,7 +111,7 @@ namespace NUClear {
              * @returns The wrapped callback
              */
             template <typename TFunc, typename... TTriggersAndWiths>
-            Internal::Reaction buildReaction(TFunc callback, Internal::ReactionOptions& options);
+            Internal::Reaction buildReaction(TFunc callback);
 
             
             /**

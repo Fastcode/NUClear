@@ -14,23 +14,23 @@
 namespace NUClear {
 namespace Internal {
     
-    class TaskQueue {
+    /*class TaskQueue {
         public:
             TaskQueue();
             std::priority_queue<Reaction> m_queue;
             std::type_index m_syncType;
             std::atomic<bool> active;
         //TODO overload the < operator so it can be heaped
-    };
+    };*/
 
     class TaskScheduler {
         public:
             void submit(Reaction& r);
-            Reaction& getTask();
+            //Reaction& getTask();
         private:
-            std::map<std::type_index, TaskQueue> m_queues;
-            std::mutex m_mutex;
-            std::condition_variable m_condition;
+            //std::map<std::type_index, TaskQueue> m_queues;
+            //std::mutex m_mutex;
+            //std::condition_variable m_condition;
         
     };
 
