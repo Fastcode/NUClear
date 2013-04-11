@@ -113,17 +113,7 @@ namespace NUClear {
                 void operator()(TFunc callback);            
             };
             
-            /**
-             * @brief Case for building options where there is 1 or 0 parameters, it will execute the appropriate function to set the variable
-             * @details
-             *  This function will accept either a single or an empty paramter pack. Despite it being variardic as the recursive
-             *  option for this funciton is more specific it will always be chosen except in these two cases where there are
-             *  1 option or 0 options. The 1 option case will have the correct method selected, while the 0 case will use
-             *  an empty method
-             * @tparam TOption the pack containing either a single parameter, or no paramters
-             * @param options a reference to the options object we are building
-             */
-            template <typename... TOption>
+            template <typename TOption>
             void buildOptions(Internal::ReactionOptions& options);
             
             /**
@@ -139,15 +129,6 @@ namespace NUClear {
              */
             template <typename TOptionFirst, typename TOptionSecond, typename... TOptions>
             void buildOptions(Internal::ReactionOptions& options);
-            
-            /**
-             * @brief This case of build options is for when there are no options.
-             * @details 
-             *  as the empty variardic pack will expand to this
-             *  this method does nothing and should therefore be optimized away
-             * @param options the options object we are building
-             */
-            void buildOptionsImpl(Internal::ReactionOptions& options);
             
             /**
              * @brief This case of build options is used when the Single option is specified

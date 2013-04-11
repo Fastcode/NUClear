@@ -4,10 +4,6 @@ namespace NUClear {
         reactorController(reactorController) {
     }
     
-    void Reactor::buildOptionsImpl(Internal::ReactionOptions& options) {
-        // Do nothing
-    }
-    
     void Reactor::buildOptionsImpl(Internal::ReactionOptions& options, Single* /*placeholder*/) {
         options.m_single = true;
     }

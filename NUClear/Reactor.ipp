@@ -48,13 +48,15 @@ namespace NUClear {
         , Reactor::Options<TOptions...>
         , TFunc>::operator()(TFunc callback) {
             Internal::ReactionOptions options;
-            context->buildOptions<TOptions...>(options);
+            if(sizeof...(TOptions) > 0) {
+                context->buildOptions<TOptions...>(options);
+            }
             context->bindTriggers<TTriggers...>(context->buildReaction<TFunc, TTriggers..., TWiths...>(callback, options));
     }
     
-    template <typename... TOption>
+    template <typename TOption>
     void Reactor::buildOptions(Internal::ReactionOptions& options) {
-        buildOptionsImpl(options, reinterpret_cast<TOption*>(0)...);
+        buildOptionsImpl(options, reinterpret_cast<TOption*>(0));
     }
     
     template <typename TOptionFirst, typename TOptionSecond, typename... TOptions>
