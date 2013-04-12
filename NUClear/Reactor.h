@@ -11,6 +11,7 @@
 #include "Internal/Reaction.h"
 #include "Internal/Every.h"
 #include "Internal/Options.h"
+#include "Internal/Magic/unpack.h"
 
 namespace NUClear {
     class ReactorController;

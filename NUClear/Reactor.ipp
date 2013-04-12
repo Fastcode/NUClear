@@ -56,7 +56,8 @@ namespace NUClear {
     
     template <typename... TOption>
     void Reactor::buildOptions(Internal::ReactionOptions& options) {
-        consumePack((buildOptionsImpl(options, reinterpret_cast<TOption*>(0)), 0)...);
+        // See unpack.h for explanation
+        Internal::Magic::unpack((buildOptionsImpl(options, reinterpret_cast<TOption*>(0)), 0)...);
     }
     
     template <typename... TParams>
