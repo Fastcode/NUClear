@@ -60,10 +60,6 @@ namespace NUClear {
         Internal::Magic::unpack((buildOptionsImpl(options, reinterpret_cast<TOption*>(0)), 0)...);
     }
     
-    template <typename... TParams>
-    void Reactor::consumePack(TParams...) {
-    };
-    
     template <typename TSync>
     void Reactor::buildOptionsImpl(Internal::ReactionOptions& options, Sync<TSync>* /*placeholder*/) {
         options.m_syncType = typeid(TSync);
