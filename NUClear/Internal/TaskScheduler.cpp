@@ -17,34 +17,80 @@
 namespace NUClear {
 namespace Internal {
     
-    TaskQueue::TaskQueue() : m_syncType(typeid(nullptr)), m_active(false) {
-        
+    namespace {
+        bool compareQueues(const std::pair<const std::type_index, TaskQueue>& a, const std::pair<const std::type_index, TaskQueue>& b) {
+            // If we are not active and not the default queue then we are smaller
+            if(!a.second.m_active && a.first != typeid(nullptr)) {
+                return false;
+            }
+            
+            // If our queue is empty then return false
+            else if(a.second.m_queue.empty()) {
+                return false;
+            }
+            
+            // If the other queue is empty then return true
+            else if(b.second.m_queue.empty())
+            {
+                return true;
+            }
+            
+            // If we have a higher priority then return true
+            else if(a.second.m_queue.top()->m_options.m_priority > b.second.m_queue.top()->m_options.m_priority) {
+                return true;
+            }
+            
+            // If our event is older then return true
+            else if(a.second.m_queue.top()->m_emitTime < b.second.m_queue.top()->m_emitTime) {
+                return true;
+            }
+            
+            //Otherwise assume that we are greater
+            //(arbitrary pick should never happen unless two events are emitted at the exact same nanosecond?)
+            else {
+                return false;
+            }
+        }
+    }
+    
+    TaskQueue::TaskQueue() : m_active(false) {
     }
     
     void TaskScheduler::submit(std::unique_ptr<ReactionTask>&& task) {
-        
-        // Check if it's a single and it is running ( TODO: Running check )
-        if(task->m_options.m_single) {
-            
-            std::unique_lock<std::mutex> lock(m_mutex);
-            
-            // Put it in a queue according to it's sync type (typeid(nullptr) is treated as no sync type)
-            m_queues[task->m_options.m_syncType].m_queue.push(std::move(task));
-            
-            // Check if this queue is active and if so then notify a thread
-        }
+        bool active = false;
+        //if(task->m_options.m_single && !task->m_options.m_running) {
+            {
+                std::unique_lock<std::mutex> lock(m_mutex);
+                
+                // Put it in a queue according to it's sync type (typeid(nullptr) is treated as no sync type)
+                active = m_queues[task->m_options.m_syncType].m_active;
+                m_queues[task->m_options.m_syncType].m_queue.push(std::move(task));
+            }
+            if(active) {
+                m_condition.notify_one();
+            }
+        //}
     }
     
     std::unique_ptr<ReactionTask> TaskScheduler::getTask() {
         
-        // Get the lock
-        // while we don't have a task
-        // std::max_element(begin, end, comparator) this puts the queue to use at the top
-        // perform make_heap on the queues
-        // conditinally get from the top queue (or wait if empty)
-        // Return the task
-        // endwhile
+        //Obtain the lock
+        std::unique_lock<std::mutex> lock(m_mutex);
         
+        while(true) {
+            // Get the queue we will be using (the active queue with the oldest element)
+            const auto& queue = std::max_element(std::begin(m_queues), std::end(m_queues), compareQueues);
+            
+            if(queue->second.m_queue.empty()) {
+                m_condition.wait(lock);
+            }
+            else {
+                std::unique_ptr<ReactionTask> x = std::move(queue->second.m_queue.top());
+                queue->second.m_queue.pop();
+                return std::move(x);
+                // Return the value from the top of the queue
+            }
+        }
     }
-    
-}}
+}
+}

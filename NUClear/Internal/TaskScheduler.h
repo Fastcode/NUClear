@@ -33,8 +33,8 @@ namespace Internal {
         public:
             TaskQueue();
             std::priority_queue<std::unique_ptr<ReactionTask>> m_queue;
-            std::type_index m_syncType;
             std::atomic<bool> m_active;
+            bool operator<(TaskQueue& other);
         //TODO overload the < operator so it can be heaped
     };
 

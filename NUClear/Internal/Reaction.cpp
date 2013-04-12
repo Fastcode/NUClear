@@ -33,9 +33,9 @@ namespace Internal {
     
     ReactionTask::ReactionTask(Reaction& parent, std::function<void ()> callback) :
     m_parent(parent),
-
     m_callback(callback),
-    m_options(parent.m_options) {
+    m_options(parent.m_options),
+    m_emitTime(std::chrono::steady_clock::now().time_since_epoch()){
         
     }
     

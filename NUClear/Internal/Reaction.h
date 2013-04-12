@@ -37,6 +37,7 @@ namespace Internal {
             ReactionTask(Reaction& parent, std::function<void ()> task);
             void operator()();
             ReactionOptions& m_options;
+            std::chrono::nanoseconds m_emitTime;
         private:
             std::function<void ()> m_callback;
             Reaction& m_parent;
