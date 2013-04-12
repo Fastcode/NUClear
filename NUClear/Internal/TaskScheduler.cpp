@@ -9,7 +9,7 @@ namespace Internal {
     void TaskScheduler::submit(Reaction& r) {
         
         // Check if it's a single and it is running ( TODO: Running check )
-        /*if(r.m_options.m_single) {
+        if(r.m_options.m_single) {
             
             std::unique_lock<std::mutex> lock(m_mutex);
             

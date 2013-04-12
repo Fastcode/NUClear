@@ -4,7 +4,8 @@ namespace NUClear {
 namespace Internal {
 
     Reaction::Reaction(std::function<void ()> callback, ReactionOptions options) :
-        m_callback(callback), m_options(options)
+        m_options(options),
+        m_callback(callback) 
     {
 
     }
