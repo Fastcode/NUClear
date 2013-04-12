@@ -29,8 +29,7 @@ namespace NUClear {
             // Get our task (our data bound callback)
             std::unique_ptr<Internal::ReactionTask> task(callback->getTask());
             
-            // TODO submit this task to the thread pool
-            (*task)();
+            reactorController.threadmaster.submit(std::move(task));
         }
     }
 
@@ -85,7 +84,7 @@ namespace NUClear {
                 return [this, params..., callback] {
                     callback((*params)...);
                 };
-            }((reactorController.get<TTriggersAndWiths>())...);
+            }(reactorController.get<TTriggersAndWiths>()...);
         }, options);
 
         return Internal::Reaction(callbackWrapper);

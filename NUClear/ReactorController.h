@@ -86,10 +86,11 @@ namespace NUClear {
                     ThreadMaster(ReactorController* parent);
 
                     void start();
+                    void submit(std::unique_ptr<Internal::ReactionTask>&& task);
                 private:
                     std::map<std::thread::id, std::unique_ptr<Internal::ThreadWorker>> m_threads;
 
-                    Internal::TaskScheduler scheduler;
+                    Internal::TaskScheduler m_scheduler;
                     int numThreads = 4;
             };
         protected:

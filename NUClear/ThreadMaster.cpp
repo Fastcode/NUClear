@@ -10,4 +10,8 @@ namespace NUClear {
             m_threads.insert(std::pair<std::thread::id, std::unique_ptr<Internal::ThreadWorker>>(thread->getThreadId(), std::move(thread)));
         }
     }
+    
+    void ReactorController::ThreadMaster::submit(std::unique_ptr<Internal::ReactionTask>&& task) {
+        m_scheduler.submit(std::move(task));
+    }
 }
