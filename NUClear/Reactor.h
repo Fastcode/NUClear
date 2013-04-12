@@ -123,18 +123,6 @@ namespace NUClear {
             void buildOptions(Internal::ReactionOptions& options);
         
             /**
-             * @brief This is a magical function which is used in order to perform execution on variadic packs
-             * @details
-             *  this function does nothing and has no implementation, however it can be used as a bed in which to
-             *  execute each of the template parameters in a seperate function. This saves having to recurse the
-             *  objects using recursive template objects. It also means that it can handle the case when there are no
-             *  template parameters. Note that if you are using void functions wrap them in this (func(), 0).
-             * @tparam TParams the parameters
-             */
-            template <typename... TParams>
-            void consumePack(TParams...);
-        
-            /**
              * @brief This case of build options is used when the Single option is specified
              * @param options the options object we are building
              * @param placeholder which is used to specialize this method
@@ -175,18 +163,9 @@ namespace NUClear {
              * @tparam TTrigger the event/data type to add the callback for
              * @param callback the callback to add
              */
-            template <typename TTrigger>
+            template <typename TTrigger, typename... TTriggers>
             void bindTriggers(Internal::Reaction callback);
 
-            /**
-             * @brief Recursively calls the single-param bindTriggers method for every trigger in the list.
-             * @tparam TTriggerFirst the next trigger to call bindTriggers on
-             * @tparam TTriggerSecond the following trigger to call bindTriggers on
-             * @tparam TTriggers the remaining triggers to evaluate
-             * @param callback the callback to bind to all of these triggers.
-             */
-            template <typename TTriggerFirst, typename TTriggerSecond, typename... TTriggers>
-            void bindTriggers(Internal::Reaction callback);
             /**
              * @brief The implementation method for bindTriggers, provides partial template specialization for specific-trigger type logic.
              * @tparam TTrigger the trigger to bind to

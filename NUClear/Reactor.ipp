@@ -80,29 +80,18 @@ namespace NUClear {
         return Internal::Reaction(callbackWrapper);
     }
 
-
     /**
-     * @brief Adds a single data -> callback mapping for a single type.
-     * @tparam TTrigger the event/data type to add the callback for
-     * @param callback the callback to add
+     * @brief calls bindTriggersImpl on every trigger in the list. Minimum list size is 1
+     * @tparam TTrigger the required first trigger
+     * @tparam TTriggers the rest of the triggers
+     * @param callback the callback to bind to these triggers
      */
-    template <typename TTrigger>
+    template <typename TTrigger, typename... TTriggers>
     void Reactor::bindTriggers(Internal::Reaction callback) {
-        // This 0 is a nullptr however, it can't be nullptr as the cast would be invalid
         bindTriggersImpl(callback, reinterpret_cast<TTrigger*>(0));
-    }
 
-    /**
-     * @brief Recursively calls the single-param bindTriggers method for every trigger in the list.
-     * @tparam TTriggerFirst the next trigger to call bindTriggers on
-     * @tparam TTriggerSecond the following trigger to call bindTriggers on
-     * @tparam TTriggers the remaining triggers to evaluate
-     * @param callback the callback to bind to all of these triggers.
-     */
-    template <typename TTriggerFirst, typename TTriggerSecond, typename... TTriggers>
-    void Reactor::bindTriggers(Internal::Reaction callback) {
-        bindTriggers<TTriggerFirst>(callback);
-        bindTriggers<TTriggerSecond, TTriggers...>(callback);
+        // See unpack.h for explanation
+        Internal::Magic::unpack((bindTriggersImpl(callback, reinterpret_cast<TTriggers*>(0)), 0)...);
     }
 
     /**
