@@ -14,7 +14,7 @@ namespace Magic {
      *      unpack(function(TType)...);
      *
      *  In the case where the return type of the functions is void, then using the comma operator will allow the functions
-     *  to be run e.g.
+     *  to be run because it changes the return type of the expansion (function(TType), 0) to int rather then void e.g.
      *      unpack((function(TType), 0)...);
      *  
      */
