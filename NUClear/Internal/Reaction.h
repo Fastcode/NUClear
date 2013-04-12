@@ -8,6 +8,7 @@
 namespace NUClear {
 namespace Internal {
     typedef std::uint64_t reactionId_t;
+    class Reaction;
     
     struct ReactionOptions {
         ReactionOptions() : m_syncType(typeid(nullptr)), m_single(false), m_priority(DEFAULT) {}
@@ -16,18 +17,28 @@ namespace Internal {
         EPriority m_priority;
     };
     
+    class ReactionTask {
+        public:
+            ReactionTask(Reaction& parent, std::function<void ()> task);
+            void operator()();
+            ReactionOptions& m_options;
+        private:
+            std::function<void ()> m_callback;
+            Reaction& m_parent;
+            std::chrono::nanoseconds m_runtime;
+    };
+    
     class Reaction {
         public:
-            Reaction(std::function<void ()> callback, ReactionOptions options);
+            Reaction(std::function<std::function<void ()> ()> callback, ReactionOptions options);
             ~Reaction();
             ReactionOptions m_options;
-            void operator()();
+            std::unique_ptr<ReactionTask> getTask();
         private:
             static std::atomic<std::uint64_t> reactionIdSource;
             reactionId_t m_reactionId;
-            std::uint64_t m_invocations;
             std::chrono::nanoseconds m_averageRuntime;
-            std::function<void ()> m_callback;
+            std::function<std::function<void ()> ()> m_callback;
     };
 }
 }

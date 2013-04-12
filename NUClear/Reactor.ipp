@@ -26,8 +26,11 @@ namespace NUClear {
             ", Priority: " << callback->m_options.m_priority <<
             ", Single: " << callback->m_options.m_single << std::endl;
             
-            // TODO threading code goes here
-            (*callback)();
+            // Get our task (our data bound callback)
+            std::unique_ptr<Internal::ReactionTask> task(callback->getTask());
+            
+            // TODO submit this task to the thread pool
+            (*task)();
         }
     }
 
@@ -73,8 +76,16 @@ namespace NUClear {
     template <typename TFunc, typename... TTriggersAndWiths>
     Internal::Reaction Reactor::buildReaction(TFunc callback, Internal::ReactionOptions& options) {
         
-        Internal::Reaction callbackWrapper([this, callback]() -> void {
-            callback((*reactorController.get<TTriggersAndWiths>())...);
+        // Make a reaction which has a self executing lambda within it which returns the bound function, this way
+        // the parameters are bound at emit time and not when the callback is eventually run
+        Internal::Reaction callbackWrapper([this, callback]() -> std::function<void ()> {
+            
+            // Self executing lambda which return our void callback function to execute
+            return [this, callback](std::shared_ptr<TTriggersAndWiths>... params) -> std::function<void ()> {
+                return [this, params..., callback] {
+                    callback((*params)...);
+                };
+            }((reactorController.get<TTriggersAndWiths>())...);
         }, options);
 
         return Internal::Reaction(callbackWrapper);
