@@ -78,17 +78,18 @@ namespace Internal {
         std::unique_lock<std::mutex> lock(m_mutex);
         
         while(true) {
-            // Get the queue we will be using (the active queue with the oldest element)
+            // Get the queue we will be using (the active queue with the highest priority oldest element)
             const auto& queue = std::max_element(std::begin(m_queues), std::end(m_queues), compareQueues);
             
+            // If the queue is empty wait for notificiation
             if(queue->second.m_queue.empty()) {
                 m_condition.wait(lock);
             }
             else {
-                std::unique_ptr<ReactionTask> x = std::move(queue->second.m_queue.top());
+                // Const cast is required here as for some reason the std::priority_queue only returns const references
+                std::unique_ptr<ReactionTask> x(std::move(const_cast<std::unique_ptr<ReactionTask>&>(queue->second.m_queue.top())));
                 queue->second.m_queue.pop();
                 return std::move(x);
-                // Return the value from the top of the queue
             }
         }
     }
