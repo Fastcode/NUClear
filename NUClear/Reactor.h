@@ -14,8 +14,10 @@
  * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+
 #ifndef NUCLEAR_REACTOR_H
 #define NUCLEAR_REACTOR_H
+
 #include <iostream>
 #include <string>
 #include <functional>
@@ -28,9 +30,10 @@
 #include "Internal/Every.h"
 #include "Internal/Options.h"
 #include "Internal/Magic/unpack.h"
-#include "Internal/Magic/DereferencedBind.h"
+#include "Internal/Magic/BoundCallback.h"
 
 namespace NUClear {
+    
     class ReactorController;
 
     /**

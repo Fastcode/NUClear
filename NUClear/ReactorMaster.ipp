@@ -14,7 +14,9 @@
  * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+
 namespace NUClear {
+    
     // === Template Implementations ===
     // As with Reactor.h this section contains all template function implementations for ReactorMaster. 
     // Unfortunately it's neccecary to have these here and outside the NUClear namespace due to our circular dependency on Reactor.

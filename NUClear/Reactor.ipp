@@ -14,7 +14,9 @@
  * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+
 namespace NUClear {
+    
     template <typename TTrigger, typename TFunc>
     void Reactor::on(TFunc callback) {
         OnImpl<TTrigger, With<>, Options<>, TFunc>(this)(callback);
@@ -94,7 +96,7 @@ namespace NUClear {
         // Make a reaction which has a self executing lambda within it which returns the bound function, this way
         // the parameters are bound at emit time and not when the callback is eventually run
         Internal::Reaction callbackWrapper([this, callback]() -> std::function<void ()> {
-            return Internal::Magic::apply(callback, reactorController.get<TTriggersAndWiths>()...);
+            return Internal::Magic::bindCallback(callback, reactorController.get<TTriggersAndWiths>()...);
         }, options);
 
         return Internal::Reaction(callbackWrapper);

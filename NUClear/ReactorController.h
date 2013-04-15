@@ -14,8 +14,10 @@
  * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+
 #ifndef NUCLEAR_REACTORCONTROLLER_H
 #define NUCLEAR_REACTORCONTROLLER_H
+
 #include <memory>
 #include <set>
 #include <thread>
@@ -28,6 +30,7 @@
 #include "Internal/TaskScheduler.h"
 
 namespace NUClear {
+    
     class Reactor;
     class ReactorController {
         private:

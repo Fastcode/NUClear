@@ -14,9 +14,11 @@
  * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+
 #include <algorithm>
 
 namespace NUClear {
+    
     template <int ticks, class period>
     void ReactorController::ChronoMaster::add() {
         // Check if we have not already loaded this type in
