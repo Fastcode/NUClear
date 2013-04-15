@@ -43,7 +43,7 @@ namespace Internal {
             void submit(std::unique_ptr<ReactionTask>&& task);
             std::unique_ptr<ReactionTask> getTask();
         private:
-            std::map<std::type_index, TaskQueue> m_queues;
+            std::map<std::type_index, std::unique_ptr<TaskQueue>> m_queues;
             std::mutex m_mutex;
             std::condition_variable m_condition;
         

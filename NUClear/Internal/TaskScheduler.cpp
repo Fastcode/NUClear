@@ -19,30 +19,30 @@ namespace NUClear {
 namespace Internal {
     
     namespace {
-        bool compareQueues(const std::pair<const std::type_index&, TaskQueue&> a, const std::pair<const std::type_index&, TaskQueue&> b) {
+        bool compareQueues(std::pair<const std::type_index&, std::unique_ptr<TaskQueue>&> a, std::pair<const std::type_index&, std::unique_ptr<TaskQueue>&> b) {
             // If we are not active and not the default queue then we are smaller
-            if(!a.second.m_active && a.first != typeid(nullptr)) {
+            if(!a.second->m_active && a.first != typeid(nullptr)) {
                 return false;
             }
             
             // If our queue is empty then return false
-            else if(a.second.m_queue.empty()) {
+            else if(a.second->m_queue.empty()) {
                 return false;
             }
             
             // If the other queue is empty then return true
-            else if(b.second.m_queue.empty())
+            else if(b.second->m_queue.empty())
             {
                 return true;
             }
             
             // If we have a higher priority then return true
-            else if(a.second.m_queue.top()->m_options.m_priority > b.second.m_queue.top()->m_options.m_priority) {
+            else if(a.second->m_queue.top()->m_options.m_priority > b.second->m_queue.top()->m_options.m_priority) {
                 return true;
             }
             
             // If our event is older then return true
-            else if(a.second.m_queue.top()->m_emitTime < b.second.m_queue.top()->m_emitTime) {
+            else if(a.second->m_queue.top()->m_emitTime < b.second->m_queue.top()->m_emitTime) {
                 return true;
             }
             
@@ -66,9 +66,16 @@ namespace Internal {
             {
                 std::unique_lock<std::mutex> lock(m_mutex);
                 
-                // Put it in a queue according to it's sync type (typeid(nullptr) is treated as no sync type)
-                active = m_queues[task->m_options.m_syncType].m_active;
-                m_queues[task->m_options.m_syncType].m_queue.push(std::move(task));
+                auto it = m_queues.find(task->m_options.m_syncType);
+                if(it == std::end(m_queues)) {
+                    auto newQueue = m_queues.insert(std::make_pair(task->m_options.m_syncType, std::unique_ptr<TaskQueue>(new TaskQueue())));
+                    active = newQueue.first->second->m_active;
+                }
+                else {
+                    
+                    it->second->m_queue.push(std::move(task));
+                }
+                
             }
             if(active) {
                 m_condition.notify_one();
@@ -86,19 +93,20 @@ namespace Internal {
             auto queue = m_queues.begin();
             for(auto it = std::begin(m_queues); it != std::end(m_queues); ++it)
             {
-                if(compareQueues(std::pair<const std::type_index&, TaskQueue&>(it->first, it->second), std::pair<const std::type_index&, TaskQueue&>(queue->first, queue->second))) {
+                if(compareQueues(std::pair<const std::type_index&, std::unique_ptr<TaskQueue>&>(it->first, it->second),
+                                 std::pair<const std::type_index&, std::unique_ptr<TaskQueue>&>(queue->first, queue->second))) {
                     queue = it;
                 }
             }
             
             // If the queue is empty wait for notificiation
-            if(queue->second.m_queue.empty()) {
+            if(queue->second->m_queue.empty()) {
                 m_condition.wait(lock);
             }
             else {
                 // Const cast is required here as for some reason the std::priority_queue only returns const references
-                std::unique_ptr<ReactionTask> x(std::move(const_cast<std::unique_ptr<ReactionTask>&>(queue->second.m_queue.top())));
-                queue->second.m_queue.pop();
+                std::unique_ptr<ReactionTask> x(std::move(const_cast<std::unique_ptr<ReactionTask>&>(queue->second->m_queue.top())));
+                queue->second->m_queue.pop();
                 return std::move(x);
             }
         }
