@@ -73,7 +73,7 @@ class Vision : public NUClear::Reactor {
                     std::cout << "Average API time: " << avg << " ns" << std::endl;
                 }
                 else {
-                    reactorController.emit(new long(static_cast<long>(((avg * i) + (now.time_since_epoch() - point.time_since_epoch()).count())/(i+1))));
+                    reactorController.emit(new long(static_cast<long>(((avg * i) + std::chrono::duration_cast<std::chrono::nanoseconds>((now.time_since_epoch() - point.time_since_epoch())).count())/(i+1))));
                     reactorController.emit(new int(i + 1));
                     reactorController.emit(new std::chrono::time_point<std::chrono::steady_clock>(std::chrono::steady_clock::now()));
                 }
