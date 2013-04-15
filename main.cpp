@@ -73,6 +73,29 @@ int main(int argc, char** argv) {
     
     controller.install<Vision>();
 
+    std::chrono::nanoseconds a(std::chrono::steady_clock::now().time_since_epoch());
     controller.emit(new MotorData());
+    std::chrono::nanoseconds b(std::chrono::steady_clock::now().time_since_epoch());
     controller.emit(new CameraData());
+    std::chrono::nanoseconds c(std::chrono::steady_clock::now().time_since_epoch());
+    controller.emit(new MotorData());
+    std::chrono::nanoseconds d(std::chrono::steady_clock::now().time_since_epoch());
+    controller.emit(new CameraData());
+    std::chrono::nanoseconds e(std::chrono::steady_clock::now().time_since_epoch());
+    controller.emit(new MotorData());
+    std::chrono::nanoseconds f(std::chrono::steady_clock::now().time_since_epoch());
+    controller.emit(new CameraData());
+    std::chrono::nanoseconds g(std::chrono::steady_clock::now().time_since_epoch());
+    
+    std::cout << "Emit MotorData 1 Elapsed: " << (b - a).count() << std::endl;
+    
+    std::cout << "Emit CameraData 1 Elapsed: " << (c - b).count() << std::endl;
+    
+    std::cout << "Emit MotorData 2 Elapsed: " << (d - c).count() << std::endl;
+    
+    std::cout << "Emit CameraData 2 Elapsed: " << (e - d).count() << std::endl;
+    
+    std::cout << "Emit MotorData 3 Elapsed: " << (f - e).count() << std::endl;
+    
+    std::cout << "Emit CameraData 3 Elapsed: " << (g - f).count() << std::endl;
 }
