@@ -57,6 +57,9 @@ namespace Internal {
     }
     
     void TaskScheduler::submit(std::unique_ptr<ReactionTask>&& task) {
+        
+        (*task)();
+        
         bool active = false;
         //if(task->m_options.m_single && !task->m_options.m_running) {
             {

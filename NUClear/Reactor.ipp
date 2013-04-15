@@ -93,13 +93,7 @@ namespace NUClear {
         // Make a reaction which has a self executing lambda within it which returns the bound function, this way
         // the parameters are bound at emit time and not when the callback is eventually run
         Internal::Reaction callbackWrapper([this, callback]() -> std::function<void ()> {
-            
-            // Self executing lambda which return our void callback function to execute
-            return [this, callback](std::shared_ptr<TTriggersAndWiths>... params) -> std::function<void ()> {
-                return [this, params..., callback] {
-                    callback((*params)...);
-                };
-            }(reactorController.get<TTriggersAndWiths>()...);
+            return Internal::Magic::apply(callback, reactorController.get<TTriggersAndWiths>()...);
         }, options);
 
         return Internal::Reaction(callbackWrapper);
