@@ -19,6 +19,7 @@
 #include <chrono>
 #include <atomic>
 #include <typeindex>
+#include <memory>
 #include "Options.h"
 namespace NUClear {
 namespace Internal {

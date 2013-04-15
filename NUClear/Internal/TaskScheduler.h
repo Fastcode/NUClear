@@ -24,6 +24,7 @@
 #include <typeindex>
 #include <condition_variable>
 #include <mutex>
+#include <memory>
 #include "Reaction.h"
 
 namespace NUClear {
