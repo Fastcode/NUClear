@@ -19,7 +19,7 @@ namespace NUClear {
 namespace Internal {
     
     namespace {
-        bool compareQueues(const std::pair<const std::type_index, const TaskQueue&> a, const std::pair<const std::type_index, const TaskQueue&> b) {
+        bool compareQueues(const std::pair<const std::type_index&, TaskQueue&> a, const std::pair<const std::type_index&, TaskQueue&> b) {
             // If we are not active and not the default queue then we are smaller
             if(!a.second.m_active && a.first != typeid(nullptr)) {
                 return false;
@@ -83,7 +83,13 @@ namespace Internal {
         
         while(true) {
             // Get the queue we will be using (the active queue with the highest priority oldest element)
-            const auto& queue = std::max_element(std::begin(m_queues), std::end(m_queues), compareQueues);
+            auto queue = m_queues.begin();
+            for(auto it = std::begin(m_queues); it != std::end(m_queues); ++it)
+            {
+                if(compareQueues(std::pair<const std::type_index&, TaskQueue&>(it->first, it->second), std::pair<const std::type_index&, TaskQueue&>(queue->first, queue->second))) {
+                    queue = it;
+                }
+            }
             
             // If the queue is empty wait for notificiation
             if(queue->second.m_queue.empty()) {
