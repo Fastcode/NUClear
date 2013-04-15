@@ -48,8 +48,6 @@ namespace Internal {
         m_callback();
         const auto& end = std::chrono::steady_clock::now();
         m_runtime = end.time_since_epoch() - start.time_since_epoch();
-        
-        std::cout << m_runtime.count() << std::endl;
     }
 }
 }

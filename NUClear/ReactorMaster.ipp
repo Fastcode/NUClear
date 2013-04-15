@@ -68,7 +68,6 @@ namespace NUClear {
 
     template <typename TTrigger>
     void ReactorController::ReactorMaster::notifyReactors() {
-        std::cout << "Notify Reactors" << std::endl;
         std::set<NUClear::Reactor*>& reactors = getReactorBindings<TTrigger>();
         for(std::set<NUClear::Reactor*>::iterator reactor = std::begin(reactors); reactor != std::end(reactors); ++reactor) {
             (*reactor)->notify<TTrigger>();

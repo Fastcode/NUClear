@@ -35,14 +35,7 @@ namespace NUClear {
     template <typename TTrigger>
     void Reactor::notify() {
         auto& callbacks = getCallbackList<TTrigger>();
-        std::cout << "Notify start" << std::endl;
         for(auto callback = std::begin(callbacks); callback != std::end(callbacks); ++callback) {
-            std::cout << "Notifying" << std::endl;
-            
-            std::cout <<
-            "Sync type: " << callback->m_options.m_syncType.name() <<
-            ", Priority: " << callback->m_options.m_priority <<
-            ", Single: " << callback->m_options.m_single << std::endl;
             
             // Get our task (our data bound callback)
             std::unique_ptr<Internal::ReactionTask> task(callback->getTask());
@@ -124,7 +117,6 @@ namespace NUClear {
      */
     template <typename TTrigger>
     void Reactor::bindTriggersImpl(Internal::Reaction callback, TTrigger* /*placeholder*/) {
-        std::cout << "BindTriggerImpl for " << typeid(TTrigger).name() << std::endl;
         auto& callbacks = getCallbackList<TTrigger>();
         callbacks.push_back(callback);
 

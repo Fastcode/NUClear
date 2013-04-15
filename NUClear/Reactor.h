@@ -101,8 +101,8 @@ namespace NUClear {
 
             template <typename TTrigger, typename TWith, typename TOption, typename TFunc>
             void on(TFunc callback);
-        private:
             ReactorController& reactorController;
+        private:
             std::map<std::type_index, std::vector<Internal::Reaction>> m_callbacks;
             
             /**
