@@ -127,7 +127,9 @@ namespace NUClear {
             void start();
 
             template <typename TData>
-            std::shared_ptr<TData> get();
+            auto get() -> decltype(reactormaster.get<TData>()) {
+                return reactormaster.get<TData>();
+            }
         
             template <typename TReactor>
             void install();

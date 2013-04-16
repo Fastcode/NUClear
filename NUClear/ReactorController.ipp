@@ -16,11 +16,6 @@
  */
 
 namespace NUClear {
-    
-    template <typename TData>
-    std::shared_ptr<TData> ReactorController::get() {
-        return reactormaster.get<TData>();
-    }
 
     template <typename TReactor>
     void ReactorController::install() {
