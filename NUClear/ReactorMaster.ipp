@@ -43,9 +43,9 @@ namespace NUClear {
         }
         return m_reactorBindings[typeid(TTrigger)];
     }
-
+    
     template <typename TData>
-    std::shared_ptr<TData> ReactorController::ReactorMaster::get() {
+    std::shared_ptr<TData> ReactorController::ReactorMaster::getData(TData*) {
         if(m_cache.find(typeid(TData)) == m_cache.end()) {
             // TODO: Better error stuff
             std::cerr << "Trying to get missing TData:" << std::endl;
