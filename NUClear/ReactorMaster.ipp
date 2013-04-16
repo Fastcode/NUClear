@@ -43,11 +43,6 @@ namespace NUClear {
         }
         return m_reactorBindings[typeid(TTrigger)];
     }
-
-    template <typename TData>
-    auto ReactorController::ReactorMaster::get() -> decltype(std::declval<ReactorMaster>().getData(reinterpret_cast<TData*>(0))) {
-        return getData(reinterpret_cast<TData*>(0));
-    }
     
     template <typename TData>
     std::shared_ptr<TData> ReactorController::ReactorMaster::getData(TData*) {
@@ -57,6 +52,11 @@ namespace NUClear {
         }
 
         return std::static_pointer_cast<TData>(m_cache[typeid(TData)]);
+    }
+    
+    template <typename TData>
+    auto ReactorController::ReactorMaster::get() -> decltype(std::declval<ReactorMaster>().getData(std::declval<TData*>())) {
+        return getData(reinterpret_cast<TData*>(0));
     }
 
     template <typename TTrigger>

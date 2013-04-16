@@ -81,7 +81,7 @@ namespace NUClear {
                     std::shared_ptr<TData> getData(TData*);
                     
                     template <typename TData>
-                    auto get() -> decltype(std::declval<ReactorMaster>().getData(reinterpret_cast<TData*>(0)));
+                    auto get() -> decltype(std::declval<ReactorMaster>().getData(std::declval<TData*>()));
 
                     template <typename TReactor>
                     void install();
