@@ -27,8 +27,7 @@
 #include <chrono>
 #include <atomic>
 #include "Internal/Reaction.h"
-#include "Internal/Every.h"
-#include "Internal/Options.h"
+#include "Internal/CommandTypes.h"
 #include "Internal/Magic/unpack.h"
 #include "Internal/Magic/BoundCallback.h"
 
@@ -60,30 +59,21 @@ namespace NUClear {
             template <typename TTrigger>
             void notify();   
         protected:
-            /**
-             * @brief Empty wrapper class that represents a collection of triggering elements
-             * @tparam TTriggers The list of triggers.
-             */
+                
             template <typename... TTriggers>
-            class Trigger { Trigger() = delete; ~Trigger() = delete; };
-
-            /**
-             * @brief Empty wrapper class that represents a collection of required but non-triggering data/events
-             * @tparam TWith The list of required data/events.
-             */
+            using Trigger = Internal::Trigger<TTriggers...>;
+            
             template <typename... TWith>
-            class With { With() = delete; ~With() = delete; };
-
-            /**
-             * @brief Empty wrapper class that represents a collection of options which modify how the event is processed.
-             * @tparam TOptions The list of options that are specified
-             */
+            using With = Internal::With<TWith...>;
+            
             template <typename... TOption>
-            class Options { Options() = delete; ~Options() = delete; };
-
-            // Provide access to NUClear::Every directly.
+            using Options = Internal::Options<TOption...>;
+        
             template <int ticks, class period = std::chrono::milliseconds>
             using Every = Internal::Every<ticks, period>;
+        
+            template <int num, class TData>
+            using Last = Internal::Last<num, TData>;
         
             template <enum EPriority P>
             using Priority = Internal::Priority<P>;

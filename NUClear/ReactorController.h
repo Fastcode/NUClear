@@ -25,7 +25,7 @@
 #include <typeindex>
 #include <map>
 #include <iostream>
-#include "Internal/Every.h"
+#include "Internal/CommandTypes.h"
 #include "Internal/ThreadWorker.h"
 #include "Internal/TaskScheduler.h"
 
