@@ -53,11 +53,6 @@ namespace NUClear {
 
         return std::static_pointer_cast<TData>(m_cache[typeid(TData)]);
     }
-    
-    template <typename TData>
-    auto ReactorController::ReactorMaster::get() -> decltype(std::declval<ReactorMaster>().getData(std::declval<TData*>())) {
-        return getData(reinterpret_cast<TData*>(0));
-    }
 
     template <typename TTrigger>
     void ReactorController::ReactorMaster::emit(TTrigger* data) {
