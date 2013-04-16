@@ -76,9 +76,12 @@ namespace NUClear {
 
                     template <typename TTrigger>
                     void emit(TTrigger* data);
-
+                
                     template <typename TData>
-                    std::shared_ptr<TData> get();
+                    std::shared_ptr<TData> getData(TData*);
+                    
+                    template <typename TData>
+                    auto get() -> decltype(std::declval<ReactorMaster>().getData(reinterpret_cast<TData*>(0)));
 
                     template <typename TReactor>
                     void install();

@@ -45,7 +45,12 @@ namespace NUClear {
     }
 
     template <typename TData>
-    std::shared_ptr<TData> ReactorController::ReactorMaster::get() {
+    auto ReactorController::ReactorMaster::get() -> decltype(std::declval<ReactorMaster>().getData(reinterpret_cast<TData*>(0))) {
+        return getData(reinterpret_cast<TData*>(0));
+    }
+    
+    template <typename TData>
+    std::shared_ptr<TData> ReactorController::ReactorMaster::getData(TData*) {
         if(m_cache.find(typeid(TData)) == m_cache.end()) {
             // TODO: Better error stuff
             std::cerr << "Trying to get missing TData:" << std::endl;
