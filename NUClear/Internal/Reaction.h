@@ -133,10 +133,10 @@ namespace Internal {
             /// @brief the unique identifier for this Reaction object
             const reactionId_t m_reactionId;
         private:
-            /// @brief the callback generator function (creates databound callbacks)
-            std::function<std::function<void ()> ()> m_callback;
             /// @brief a source for reactionIds, atomically creates longs
             static std::atomic<std::uint64_t> reactionIdSource;
+            /// @brief the callback generator function (creates databound callbacks)
+            std::function<std::function<void ()> ()> m_callback;
     };
 }
 }

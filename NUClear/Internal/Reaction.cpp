@@ -25,8 +25,8 @@ namespace Internal {
     
     Reaction::Reaction(std::function<std::function<void ()> ()> callback, Reaction::Options options) :
     m_options(options),
-    m_callback(callback),
-    m_reactionId(++reactionIdSource) {
+    m_reactionId(++reactionIdSource),
+    m_callback(callback) {
     }
     
     std::unique_ptr<Reaction::Task> Reaction::getTask() {
@@ -35,9 +35,9 @@ namespace Internal {
     }
     
     Reaction::Task::Task(Reaction* parent, std::function<void ()> callback) :
-    m_emitTime(std::chrono::steady_clock::now().time_since_epoch()),
     m_callback(callback),
-    m_parent(parent) {
+    m_parent(parent),
+    m_emitTime(std::chrono::steady_clock::now()) {
     }
     
     void Reaction::Task::operator()() {
