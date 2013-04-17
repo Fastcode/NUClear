@@ -143,7 +143,7 @@ namespace NUClear {
                     ThreadMaster(ReactorController* parent);
 
                     void start();
-                    void submit(std::unique_ptr<Internal::ReactionTask>&& task);
+                    void submit(std::unique_ptr<Internal::Reaction::Task>&& task);
                 private:
                     std::map<std::thread::id, std::unique_ptr<Internal::ThreadWorker>> m_threads;
 

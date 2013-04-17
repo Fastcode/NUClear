@@ -29,7 +29,8 @@ namespace Internal {
     
     ThreadWorker::~ThreadWorker() {
         // This should never happen, but if we are destructed, stop running
-        m_execute = false;
+        kill();
+        join();
     }
     
     void ThreadWorker::kill() {
@@ -50,7 +51,7 @@ namespace Internal {
         return m_thread.get_id();
     }
     
-    ReactionTask& ThreadWorker::getCurrentReaction() {
+    Reaction::Task& ThreadWorker::getCurrentReaction() {
         // we can safely dereference here, because this thread should only be called from our own thread while we are
         // executing a reaction. Therefore if this method was called by us, then it is not null
         return *m_currentReaction;
@@ -60,7 +61,7 @@ namespace Internal {
         // So long as we are executing
         while(m_execute) {
             // Get a task
-            std::unique_ptr<ReactionTask> task(m_scheduler.getTask());
+            std::unique_ptr<Reaction::Task> task(m_scheduler.getTask());
             
             // Try to execute the task (catching any exceptions so it doesn't kill the pool thread)
             try {

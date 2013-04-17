@@ -30,7 +30,7 @@ namespace NUClear {
         }
     }
     
-    void ReactorController::ThreadMaster::submit(std::unique_ptr<Internal::ReactionTask>&& task) {
+    void ReactorController::ThreadMaster::submit(std::unique_ptr<Internal::Reaction::Task>&& task) {
         m_scheduler.submit(std::move(task));
     }
 }

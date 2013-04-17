@@ -42,8 +42,9 @@ namespace Magic {
         template <typename TFunc, typename... TTypes>
         class BoundCallback {
             private:
-                // The tuple which holds the callbacks
+                /// @brief the tuple which holds the arguments for the execution
                 std::tuple<TTypes...> params;
+                /// @brief the function which we are running with the passed arguments
                 TFunc callback;
             
                 /**

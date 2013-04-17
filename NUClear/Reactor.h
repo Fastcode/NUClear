@@ -130,30 +130,30 @@ namespace NUClear {
              * @param the options to populate
              */
             template <typename... TOption>
-            void buildOptions(Internal::ReactionOptions& options);
+            void buildOptions(Internal::Reaction::Options& options);
         
             /**
              * @brief This case of build options is used when the Single option is specified
              * @param options the options object we are building
              * @param placeholder which is used to specialize this method
              */
-            void buildOptionsImpl(Internal::ReactionOptions& options, Single* /*placeholder*/);
-            
+            void buildOptionsImpl(Internal::Reaction::Options& options, Single* /*placeholder*/);
+        
             /**
              * @brief This case of build options is used to add the Sync option
              * @tparam TSync the sync type we are synchronizing on
              * @param placeholder which is used to specialize this method
              */
             template <typename TSync>
-            void buildOptionsImpl(Internal::ReactionOptions& options, Sync<TSync>* /*placeholder*/);
-            
+            void buildOptionsImpl(Internal::Reaction::Options& options, Sync<TSync>* /*placeholder*/);
+        
             /**
              * @brief This case of build options is used to add the Priority option
              * @tparam TSync the sync type we are synchronizing on
              * @param placeholder which is used to specialize this method
              */
             template <enum EPriority P>
-            void buildOptionsImpl(Internal::ReactionOptions& options, Priority<P>* /*placeholder*/);
+            void buildOptionsImpl(Internal::Reaction::Options& options, Priority<P>* /*placeholder*/);
         
             /**
              * @brief Builds a callback wrapper function for a given callback. 
@@ -166,7 +166,7 @@ namespace NUClear {
              * @returns The wrapped callback
              */
             template <typename TFunc, typename... TTriggersAndWiths>
-            Internal::Reaction buildReaction(TFunc callback, Internal::ReactionOptions& options);
+            Internal::Reaction buildReaction(TFunc callback, Internal::Reaction::Options& options);
         
             /**
              * @brief Adds a single data -> callback mapping for a single type.

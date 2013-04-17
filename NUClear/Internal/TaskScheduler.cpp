@@ -39,7 +39,7 @@ namespace Internal {
             }
             
             // If we have a higher priority then return true
-            else if(a.second->m_queue.top()->m_options.m_priority > b.second->m_queue.top()->m_options.m_priority) {
+            else if(a.second->m_queue.top()->m_parent->m_options.m_priority > b.second->m_queue.top()->m_parent->m_options.m_priority) {
                 return true;
             }
             
@@ -59,7 +59,7 @@ namespace Internal {
     TaskQueue::TaskQueue() : m_active(false) {
     }
     
-    void TaskScheduler::submit(std::unique_ptr<ReactionTask>&& task) {
+    void TaskScheduler::submit(std::unique_ptr<Reaction::Task>&& task) {
         
         (*task)();
         
@@ -68,9 +68,9 @@ namespace Internal {
             {
                 std::unique_lock<std::mutex> lock(m_mutex);
                 
-                auto it = m_queues.find(task->m_options.m_syncType);
+                auto it = m_queues.find(task->m_parent->m_options.m_syncType);
                 if(it == std::end(m_queues)) {
-                    auto newQueue = m_queues.insert(std::make_pair(task->m_options.m_syncType, std::unique_ptr<TaskQueue>(new TaskQueue())));
+                    auto newQueue = m_queues.insert(std::make_pair(task->m_parent->m_options.m_syncType, std::unique_ptr<TaskQueue>(new TaskQueue())));
                     active = newQueue.first->second->m_active;
                 }
                 else {
@@ -85,7 +85,7 @@ namespace Internal {
         //}
     }
     
-    std::unique_ptr<ReactionTask> TaskScheduler::getTask() {
+    std::unique_ptr<Reaction::Task> TaskScheduler::getTask() {
         
         //Obtain the lock
         std::unique_lock<std::mutex> lock(m_mutex);
@@ -107,7 +107,7 @@ namespace Internal {
             }
             else {
                 // Const cast is required here as for some reason the std::priority_queue only returns const references
-                std::unique_ptr<ReactionTask> x(std::move(const_cast<std::unique_ptr<ReactionTask>&>(queue->second->m_queue.top())));
+                std::unique_ptr<Reaction::Task> x(std::move(const_cast<std::unique_ptr<Reaction::Task>&>(queue->second->m_queue.top())));
                 queue->second->m_queue.pop();
                 return std::move(x);
             }

@@ -39,7 +39,7 @@ namespace NUClear {
             
             try {
                 // Get our task (our data bound callback)
-                std::unique_ptr<Internal::ReactionTask> task(callback->getTask());
+                std::unique_ptr<Internal::Reaction::Task> task(callback->getTask());
                 
                 reactorController.threadmaster.submit(std::move(task));
             }
@@ -64,7 +64,7 @@ namespace NUClear {
         , Reactor::With<TWiths...>
         , Reactor::Options<TOptions...>
         , TFunc>::operator()(TFunc callback) {
-            Internal::ReactionOptions options;
+            Internal::Reaction::Options options;
             if(sizeof...(TOptions) > 0) {
                 context->buildOptions<TOptions...>(options);
             }
@@ -72,23 +72,23 @@ namespace NUClear {
     }
     
     template <typename... TOption>
-    void Reactor::buildOptions(Internal::ReactionOptions& options) {
+    void Reactor::buildOptions(Internal::Reaction::Options& options) {
         // See unpack.h for explanation
         Internal::Magic::unpack((buildOptionsImpl(options, reinterpret_cast<TOption*>(0)), 0)...);
     }
     
     template <typename TSync>
-    void Reactor::buildOptionsImpl(Internal::ReactionOptions& options, Sync<TSync>* /*placeholder*/) {
+    void Reactor::buildOptionsImpl(Internal::Reaction::Options& options, Sync<TSync>* /*placeholder*/) {
         options.m_syncType = typeid(TSync);
     }
     
     template <enum EPriority P>
-    void Reactor::buildOptionsImpl(Internal::ReactionOptions& options, Priority<P>* /*placeholder*/) {
+    void Reactor::buildOptionsImpl(Internal::Reaction::Options& options, Priority<P>* /*placeholder*/) {
         options.m_priority = P;
     }
 
     template <typename TFunc, typename... TTriggersAndWiths>
-    Internal::Reaction Reactor::buildReaction(TFunc callback, Internal::ReactionOptions& options) {
+    Internal::Reaction Reactor::buildReaction(TFunc callback, Internal::Reaction::Options& options) {
         
         // Make a reaction which has a self executing lambda within it which returns the bound function, this way
         // the parameters are bound at emit time and not when the callback is eventually run

@@ -40,6 +40,11 @@ namespace Internal {
              * @param scheduler the scheduler to get tasks to process from while this thread is running
              */
             ThreadWorker(TaskScheduler& scheduler);
+        
+            /**
+             * @brief destructs this ThreadWorker instance, it will kill the thread if it is not already dead (should
+             *  always be already dead)
+             */
             ~ThreadWorker();
         
             /**
@@ -82,7 +87,7 @@ namespace Internal {
              *
              * @return the ReactionTask object that this thread is currently processing
              */
-            ReactionTask& getCurrentReaction();
+            Reaction::Task& getCurrentReaction();
         
         private:
             /**
@@ -99,7 +104,7 @@ namespace Internal {
             /// @brief a variable used to check if we should still run
             volatile bool m_execute;
             /// @brief a pointer to the current reaction we are working on
-            ReactionTask* m_currentReaction;
+            Reaction::Task* m_currentReaction;
             /// @brief our internal thread object
             std::thread m_thread;
     };

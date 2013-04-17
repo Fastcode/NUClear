@@ -35,14 +35,14 @@ namespace Internal {
     class TaskQueue {
         public:
             TaskQueue();
-            std::priority_queue<std::unique_ptr<ReactionTask>> m_queue;
-            std::atomic<bool> m_active;
+        std::priority_queue<std::unique_ptr<Reaction::Task>> m_queue;
+                std::atomic<bool> m_active;
     };
 
     class TaskScheduler {
         public:
-            void submit(std::unique_ptr<ReactionTask>&& task);
-            std::unique_ptr<ReactionTask> getTask();
+            void submit(std::unique_ptr<Reaction::Task>&& task);
+            std::unique_ptr<Reaction::Task> getTask();
         private:
             std::map<std::type_index, std::unique_ptr<TaskQueue>> m_queues;
             std::mutex m_mutex;

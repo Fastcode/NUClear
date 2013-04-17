@@ -23,7 +23,7 @@ namespace NUClear {
         reactorController(reactorController) {
     }
     
-    void Reactor::buildOptionsImpl(Internal::ReactionOptions& options, Single* /*placeholder*/) {
+    void Reactor::buildOptionsImpl(Internal::Reaction::Options& options, Single* /*placeholder*/) {
         options.m_single = true;
     }
 
