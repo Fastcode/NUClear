@@ -43,7 +43,7 @@ namespace Magic {
      *
      * @details
      *  This struct recursivly generates the variardic pack based on the provided parameters. It builds these until
-     *  there is one consistent type
+     *  there is one consistent type.
      *
      * @tparam N the number to start from
      * @tparam S the numbers we have generated (starts as only our last number)

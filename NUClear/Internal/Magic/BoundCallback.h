@@ -47,12 +47,12 @@ namespace Magic {
                 TFunc callback;
             
                 /**
-                 * @brief Dereferences and uses the values from the tuple as the arguments for the function call
+                 * @brief Dereferences and uses the values from the tuple as the arguments for the function call.
                  *
                  * @details
                  *  This function uses the values which are stored in the tuple and dereferences them as parameters in
                  *  the callback function. It does this using the generated sequence of integers for this tuple. These
-                 *  values are then used to extract the function parameters in order
+                 *  values are then used to extract the function parameters in order.
                  *  
                  * @param s the Sequence object which is passed in holding the int template pack
                  *
@@ -66,7 +66,7 @@ namespace Magic {
                 }
             public:
                 /**
-                 * @brief Constructs a new BoundCallback using the passed function and arguments
+                 * @brief Constructs a new BoundCallback using the passed function and arguments.
                  *
                  * @param func the callback to execute with the values
                  * @param args the arguments to call the function with
@@ -74,7 +74,7 @@ namespace Magic {
                 BoundCallback(TFunc func, TTypes... args) : params(args...), callback(func) { }
             
                 /**
-                 * @brief Applies all of the values in the tuple to the function and executes it
+                 * @brief Applies all of the values in the tuple to the function and executes it.
                  */
                 void operator()() {
                     apply(typename GenerateSequence<sizeof...(TTypes)>::get());
@@ -84,7 +84,7 @@ namespace Magic {
     }
     
     /**
-     * @brief Creates an object which can be executed later having the arguments bound to the passed arguments
+     * @brief Creates an object which can be executed later having the arguments bound to the passed arguments.
      *
      * @detail
      *  This function will create a new object which can be executed later. However, it has its function call arguments

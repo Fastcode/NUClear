@@ -20,26 +20,88 @@
 
 #include <thread>
 #include "Reaction.h"
+#include "TaskScheduler.h"
 
 namespace NUClear {
 namespace Internal {
     
+    /**
+     * @brief This class implements a wrapper around an std::thread to act as a member of a thread pool.
+     * 
+     * @details
+     *  The thread worker class is responsible for executing Reactions which come in to be executed. It gets these
+     *  tasks from the TaskSchedulers TaskScheduler, and then executes these tasks.
+     */
     class ThreadWorker {
-    public:
-        ThreadWorker();
-        ~ThreadWorker();
+        public:
+            /**
+             * @brief Constructs a new ThreadWorker using the passed TaskScheduler to get tasks.
+             *
+             * @param scheduler the scheduler to get tasks to process from while this thread is running
+             */
+            ThreadWorker(TaskScheduler& scheduler);
+            ~ThreadWorker();
         
-        std::thread::id getThreadId();
+            /**
+             * @brief Gets the thread id of the thread that this object holds.
+             *
+             * @return the thread id of the thread this object contains
+             */
+            std::thread::id getThreadId();
         
-        void kill();
-        void join();
-        Reaction& getCurrentReaction();
-    private:
-        void core();
+            /**
+             * @brief Tells this thread to stop executing as soon as it has finished executing it's current task.
+             *
+             * @details
+             *  This method will tell the pool thread that after it has finished executing it's current task, it should
+             *  not take any more tasks and end it's execution. This method is run when the system shuts down.
+             */
+            void kill();
         
-        bool execute;
-        Reaction* currentReaction;
-        std::thread thread;
+            /**
+             * @brief Waits until this thread has finished executing and then returns.
+             *
+             * @details
+             *  This method will wait until the thread object which is executing internally finishes its execution and
+             *  terminates. It is called when the system is shutting down by the main thread. This ensures that the main
+             *  thread does not terminate until all of the pool threads (which may be using static resources) are finished.
+             *
+             *  This is important as once the main thread finishes execution it will start deleting all static objects,
+             *  and then terminate execution. So to prevent this, we wait until everything else is finished before ending
+             *  the main thread.
+             */
+            void join();
+        
+            /**
+             * @brief Gets the reaction that is currently executing in this thread object.
+             *
+             * @details
+             *  This method gets the ReactionTask object that this thread is executing. It should only ever be called
+             *  by this thread itself from within an emit function. This allows the system to build a call tree of events
+             *  as the created event will know the Reaction which it was created from.
+             *
+             * @return the ReactionTask object that this thread is currently processing
+             */
+            ReactionTask& getCurrentReaction();
+        
+        private:
+            /**
+             * @brief Method which is executed by the thread when it starts up.
+             * 
+             * @details
+             *  This method is the method that the thread will execute when it starts up. This method is simply a loop
+             *  which gets a task from the TaskScheduler and executes it until the execute variable is false.
+             */
+            void core();
+        
+            /// @brief the task scheduler that tasks are collected from
+            TaskScheduler& m_scheduler;
+            /// @brief a variable used to check if we should still run
+            volatile bool m_execute;
+            /// @brief a pointer to the current reaction we are working on
+            ReactionTask* m_currentReaction;
+            /// @brief our internal thread object
+            std::thread m_thread;
     };
 }
 }

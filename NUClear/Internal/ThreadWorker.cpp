@@ -20,37 +20,54 @@
 namespace NUClear {
 namespace Internal {
     
-    ThreadWorker::ThreadWorker() :
-    execute(true),
-    currentReaction(nullptr),
-    thread(std::bind(&ThreadWorker::core, this)) {
+    ThreadWorker::ThreadWorker(TaskScheduler& scheduler) :
+    m_scheduler(scheduler),
+    m_execute(true),
+    m_currentReaction(nullptr),
+    m_thread(std::bind(&ThreadWorker::core, this)) {
     }
     
     ThreadWorker::~ThreadWorker() {
-        execute = false;
+        // This should never happen, but if we are destructed, stop running
+        m_execute = false;
     }
     
     void ThreadWorker::kill() {
-        execute = false;
+        // Set our running status to false
+        m_execute = false;
     }
     
     void ThreadWorker::join() {
-        if(thread.joinable()) {
-            thread.join();
+        
+        // only join the thread if it's joinable (or errors!)
+        if(m_thread.joinable()) {
+            m_thread.join();
         }
     }
     
     std::thread::id ThreadWorker::getThreadId() {
-        return thread.get_id();
+        // get the thread id from our internal thread
+        return m_thread.get_id();
     }
     
-    Reaction& ThreadWorker::getCurrentReaction() {
-        return *currentReaction;
+    ReactionTask& ThreadWorker::getCurrentReaction() {
+        // we can safely dereference here, because this thread should only be called from our own thread while we are
+        // executing a reaction. Therefore if this method was called by us, then it is not null
+        return *m_currentReaction;
     }
     
     void ThreadWorker::core() {
-        while(execute) {
+        // So long as we are executing
+        while(m_execute) {
+            // Get a task
+            std::unique_ptr<ReactionTask> task(m_scheduler.getTask());
             
+            // Try to execute the task (catching any exceptions so it doesn't kill the pool thread)
+            try {
+                (*task)();
+            }
+            // Catch everything
+            catch(...) {}
         }
     }
 }
