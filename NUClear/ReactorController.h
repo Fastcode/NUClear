@@ -22,6 +22,7 @@
 #include <set>
 #include <thread>
 #include <vector>
+#include <deque>
 #include <typeindex>
 #include <map>
 #include <iostream>
@@ -81,13 +82,13 @@ namespace NUClear {
                             Cache() = delete;
                             ~Cache() = delete;
                             static int m_capacity;
-                            static std::vector<std::shared_ptr<TData>> m_cache;
+                            static std::deque<std::shared_ptr<TData>> m_cache;
                         
                         public:
                             static void capacity(int num);
                             static void cache(TData* data);
                             static std::shared_ptr<TData> get();
-                            static std::vector<std::shared_ptr<TData>> get(int length);
+                            static std::shared_ptr<std::vector<std::shared_ptr<const TData>>> get(int length);
                     };
                 
                     template <typename TData>
@@ -134,7 +135,6 @@ namespace NUClear {
                     std::set<NUClear::Reactor*>& getReactorBindings();
 
                     std::vector<std::unique_ptr<NUClear::Reactor>> m_reactors;
-                    std::map<std::type_index, std::shared_ptr<void> > m_cache;
                     std::map<std::type_index, std::set<NUClear::Reactor*> > m_reactorBindings;
             };
 

@@ -22,23 +22,25 @@ namespace NUClear {
     int ReactorController::CacheMaster::Cache<TData>::m_capacity = 1;
     
     template <typename TData>
-    std::vector<std::shared_ptr<TData>> ReactorController::CacheMaster::Cache<TData>::m_cache = std::vector<std::shared_ptr<TData>>();
+    std::deque<std::shared_ptr<TData>> ReactorController::CacheMaster::Cache<TData>::m_cache = std::deque<std::shared_ptr<TData>>(1);
     
     template <typename TData>
     void ReactorController::CacheMaster::Cache<TData>::capacity(int num) {
-        m_capacity = std::max(m_capacity, num);
+            for(;m_capacity < num; ++m_capacity) {
+                m_cache.emplace_back(nullptr);
+            }
     }
     
     template <typename TData>
     void ReactorController::CacheMaster::Cache<TData>::cache(TData *data) {
-        m_cache.clear();
-        m_cache.push_back(std::shared_ptr<TData>(data));
+        m_cache.pop_back();
+        m_cache.push_front(std::shared_ptr<TData>(data));
     }
     
     template <typename TData>
     std::shared_ptr<TData> ReactorController::CacheMaster::Cache<TData>::get() {
         if(!m_cache.empty()) {
-            return m_cache[0];
+            return m_cache.front();
         }
         else {
             throw NoDataException();
@@ -46,8 +48,8 @@ namespace NUClear {
     }
     
     template <typename TData>
-    std::vector<std::shared_ptr<TData>> ReactorController::CacheMaster::Cache<TData>::get(int length) {
-        
+    std::shared_ptr<std::vector<std::shared_ptr<const TData>>> ReactorController::CacheMaster::Cache<TData>::get(int length) {
+        return std::shared_ptr<std::vector<std::shared_ptr<const TData>>>(new std::vector<std::shared_ptr<const TData>>(std::begin(m_cache), std::begin(m_cache) + length));
     }
     
     
@@ -64,10 +66,7 @@ namespace NUClear {
     template <int num, typename TData>
     std::shared_ptr<std::vector<std::shared_ptr<const TData>>> ReactorController::CacheMaster::getData(Internal::Last<num, TData>*) {
         
-        // TODO get the last n data items somehow
-        
-        auto d = new std::vector<std::shared_ptr<const TData>>();
-        return std::shared_ptr<std::vector<std::shared_ptr<const TData>>>(d);
+        return Cache<TData>::get(num);
     }
     
     // == Private Methods ==
