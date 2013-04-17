@@ -43,41 +43,12 @@ namespace NUClear {
         }
         return m_reactorBindings[typeid(TTrigger)];
     }
-    
-    template <int num, typename TData>
-    void ReactorController::ReactorMaster::ensureCache() {
-        // TODO ensure that at least the passed number of paramters are cached
-    };
-    
-    template <typename TData>
-    std::shared_ptr<TData> ReactorController::ReactorMaster::getData(TData*) {
-        if(m_cache.find(typeid(TData)) == m_cache.end()) {
-            // TODO: Better error stuff
-            std::cerr << "Trying to get missing TData:" << std::endl;
-        }
-        
-        return std::static_pointer_cast<TData>(m_cache[typeid(TData)]);
-    }
-    
-    template <int num, typename TData>
-    std::shared_ptr<std::vector<std::shared_ptr<const TData>>> ReactorController::ReactorMaster::getData(Internal::Last<num, TData>*) {
-        
-        // TODO get the last n data items somehow
-        
-        auto d = new std::vector<std::shared_ptr<const TData>>();
-        return std::shared_ptr<std::vector<std::shared_ptr<const TData>>>(d);
-    }
 
     template <typename TTrigger>
     void ReactorController::ReactorMaster::emit(TTrigger* data) {
-        cache<TTrigger>(data);
-        notifyReactors<TTrigger>(); 
-    }
-
-    // == Private Methods ==
-    template <typename TTrigger>
-    void ReactorController::ReactorMaster::cache(TTrigger* data) {
-        m_cache[typeid(TTrigger)] = std::shared_ptr<void>(data);
+        
+        m_parent->cachemaster.cache<TTrigger>(data);
+        notifyReactors<TTrigger>();
     }
 
     template <typename TTrigger>

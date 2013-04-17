@@ -137,7 +137,7 @@ namespace NUClear {
     void Reactor::bindTriggersImpl(Internal::Reaction callback, Last<num, TData>* placeholder) {
         
         // Let the ReactorMaster know to cache at least this many of this type
-        reactorController.reactormaster.ensureCache<num, TData>();
+        reactorController.cachemaster.ensureCache<num, TData>();
         
         // Register our callback on the inner type
         bindTriggersImpl<TData>(callback, reinterpret_cast<TData*>(0));

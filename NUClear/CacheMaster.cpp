@@ -19,12 +19,10 @@
 
 namespace NUClear {
     
-    ReactorController::ReactorController() :
-        chronomaster(this)
-        , cachemaster(this)
-        , reactormaster(this)
-        , threadmaster(this) {}
-
-    void ReactorController::start() {
+    ReactorController::CacheMaster::CacheMaster(ReactorController* parent) :
+    ReactorController::BaseMaster(parent)
+    {}
+    
+    ReactorController::CacheMaster::~CacheMaster() {
     }
 }
