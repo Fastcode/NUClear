@@ -31,44 +31,93 @@
 
 namespace NUClear {
 namespace Internal {
-    
-    class TaskQueue {
-        public:
-            TaskQueue();
-        std::priority_queue<std::unique_ptr<Reaction::Task>> m_queue;
-                std::atomic<bool> m_active;
-    };
 
+    /**
+     * @brief This class is responsible for scheduling and handling multiple threads at once.
+     * 
+     * @details
+     *  This task scheduler uses the options from each of the tasks to decide when to execute them in a thread. The rules
+     *  are applied to the tasks in the following order.
+     *
+     *  @em Priority
+     *  @code Priority<P> @endcode
+     *  When a priority is encountered, the task will be scheduled to execute based on this. If one of the three normal
+     *  options are specified (HIGH, DEFAULT and LOW), then within the specified Sync group, it will run before, normally
+     *  or after other reactions.
+     *  @attention Note that if Priority<REALTIME> is specified, the Sync type is ignored (Single is not).
+     *
+     *  @em Sync
+     *  @code Sync<TSync> @endcode
+     *  When a Sync type is encounterd, the system uses this as a compile time mutex flag. It will not allow two callbacks
+     *  with the same Sync type to execute at the same time. It will effectivly ensure that all of the callbacks with
+     *  this type run in sequence with eachother, rather then in parallell. It is also important to note again, that if
+     *  the priority of a task is realtime, it will ignore Sync groups.
+     *
+     *  @em Single
+     *  @code Single @endcode
+     *  If single is encountered while processing the function, and a Task object for this Reaction is already running
+     *  in a thread, or waiting in the Queue, then this task is ignored and dropped from the system.
+     *
+     * @author Trent Houliston
+     */
     class TaskScheduler {
         public:
+            /**
+             * @brief This class is a single Sync queue, it holds events to be executed.
+             *
+             * @details
+             *  This class is a queue which holds Reaction::Task objects of a single Sync type. This way, if a task from
+             *  this queue is currently being executed, this task has it's status set to active. This means that until
+             *  that task finishes, no other tasks from this sync group will run.
+             *
+             * @author Trent Houliston
+             */
+            class TaskQueue {
+                public:
+                    /**
+                     * @brief Constructs a new task queue
+                     */
+                    TaskQueue();
+                
+                    /// @brief the queue which holds the reactions (in priority sorted order)
+                    std::priority_queue<std::unique_ptr<Reaction::Task>> m_queue;
+                    /// @brief if this queue is currently active
+                    std::atomic<bool> m_active;
+            };
+        
+            /**
+             * @brief Submit a new task to be executed to the Scheduler.
+             *
+             * @details
+             *  This method submits a new task to the scheduler. This task will then be sorted into the appropriate
+             *  queue based on it's sync type and priority. It will then wait there until it is removed by a thread to
+             *  be processed.
+             *
+             * @param task  the task to be executed
+             */
             void submit(std::unique_ptr<Reaction::Task>&& task);
+        
+            /**
+             * @brief Get a task object to be executed by a thread.
+             *
+             * @details
+             *  This method will get a task object to be executed from the queue. It will block until such a time as a
+             *  task is available to be executed. For example, if a task with a paticular sync type was out, then this
+             *  thread would block until that sync type was no longer out, and then it would take a task.
+             *
+             * @return the task which has been given to be executed
+             */
             std::unique_ptr<Reaction::Task> getTask();
         private:
+            /// @brief our map of sync types to queues
             std::map<std::type_index, std::unique_ptr<TaskQueue>> m_queues;
+            /// @brief the mutex which our threads synchronize their access to this object
             std::mutex m_mutex;
+            /// @brief the condition object that threads wait on if they can't get a task
             std::condition_variable m_condition;
         
     };
 }
 }
-
-/**
- * Options that the scheduler should be able to take
- *
- * Sync<typename type>      this will allow only one reaction from a paticular sync group
- *                          to be given to the pool at any one time
- *
- * Priority<int priority>   this will schedule reactions according to priority, a priority of 0
- *                          means realtime, it must be run now whatever the cost (perhaps declare
- *                          some constants for levels or use an enum)
- *
- * Single                   this will only allow a single reaction of this type to exist at any one time
- *                          if a reaction with this is triggered while another one is either executing, or enqueued this
- *                          trigger will be ignored
- * 
- * Filter<typename type>    This option should not be exposed directly to the user, but it should be used for filter
- *                          reactions. Each filter reaction should be run on an event in sequence (non parallel) and when
- *                          all of the filter reactions are finished then start running the real reactions on the event
- */
 
 #endif

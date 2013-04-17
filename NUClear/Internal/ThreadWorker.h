@@ -31,6 +31,8 @@ namespace Internal {
      * @details
      *  The thread worker class is responsible for executing Reactions which come in to be executed. It gets these
      *  tasks from the TaskSchedulers TaskScheduler, and then executes these tasks.
+     *
+     * @author Trent Houliston
      */
     class ThreadWorker {
         public:

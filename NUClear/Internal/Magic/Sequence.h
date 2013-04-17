@@ -34,6 +34,8 @@ namespace Magic {
      *  pack containing the first number up to (but not including) the last number.
      *
      * @tparam S the variardic pack containing the sequence
+     *
+     * @author Trent Houliston
      */
     template<int... S>
     struct Sequence { };
@@ -47,6 +49,8 @@ namespace Magic {
      *
      * @tparam N the number to start from
      * @tparam S the numbers we have generated (starts as only our last number)
+     *
+     * @author Trent Houliston
      */
     template<int N, int... S>
     struct GenerateSequence : GenerateSequence<N-1, N-1, S...> { };
@@ -59,6 +63,8 @@ namespace Magic {
      *  can be accessed by using GeneratedSequence<Value>::get();
      *
      * @tparam S the variardic pack of integers
+     *
+     * @author Trent Houliston
      */
     template<int... S>
     struct GenerateSequence<0, S...> {

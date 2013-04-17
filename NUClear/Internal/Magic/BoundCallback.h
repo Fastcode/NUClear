@@ -38,6 +38,8 @@ namespace Magic {
          * 
          * @tparam TFunc    the type of function which is to be executed
          * @tparam TTypes   the object types which this callback executes with
+         *
+         * @author Trent Houliston
          */
         template <typename TFunc, typename... TTypes>
         class BoundCallback {

@@ -40,6 +40,8 @@ namespace Magic {
      * @param t The resulting objects from executing the functions, these are ignored
      *
      * @tparam Ts the types of the resulting objects from executing the functions, these are ignored
+     *
+     * @author Trent Houliston
      */
     template <typename... Ts>
     void unpack(Ts... t) {}

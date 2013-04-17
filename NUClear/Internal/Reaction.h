@@ -40,6 +40,8 @@ namespace Internal {
      *  A reaction holds the information about a callback. It holds the options as to how to process it in the scheduler,
      *  it also holds a function which is used to generate databound Task objects (callback with the function arguments
      *  already loaded and ready to run)
+     *
+     * @author Trent Houliston
      */
     class Reaction {
         public:
@@ -50,6 +52,8 @@ namespace Internal {
              * @details
              *  This struct is populated with the information which is specified in the Options section of a callback specifier.
              *  the options stored here influence how the scheduler handles this object (when it is scheduled in the thread pool)
+             *
+             * @author Trent Houliston
              */
             struct Options {
                 /**
@@ -75,36 +79,38 @@ namespace Internal {
              * @details
              *  This class holds a reaction that is ready to be executed. It is a Reaction object which has had it's callback
              *  parameters bound with data. This can then be executed as a function to run the call inside it.
+             *
+             * @author Trent Houliston
              */
             class Task {
-            public:
-                /**
-                 * @brief Creates a new ReactionTask object bound with the parent Reaction object (that created it) and task.
-                 *
-                 * @param parent    the Reaction object that spawned this ReactionTask
-                 * @param task      the data bound callback to be executed in the threadpool
-                 */
-                Task(Reaction* parent, std::function<void ()> task);
-                
-                /**
-                 * @brief Runs the internal data bound task and times it.
-                 *
-                 * @details
-                 *  This runs the internal data bound task and times how long the execution takes. These figures can then be
-                 *  used in a debugging context to calculate how long callbacks are taking to run.
-                 */
-                void operator()();
-                
-                /// @brief the data bound callback to be executed
-                std::function<void ()> m_callback;
-                /// @brief the parent Reaction object which spawned this
-                Reaction* m_parent;
-                /// @brief the time that this event was created and sent to the queue
-                std::chrono::time_point<std::chrono::steady_clock> m_emitTime;
-                /// @brief the time that execution started on this call
-                std::chrono::time_point<std::chrono::steady_clock> m_startTime;
-                /// @brief the total amount of time that execution took to run
-                std::chrono::nanoseconds m_runtime;
+                public:
+                    /**
+                     * @brief Creates a new ReactionTask object bound with the parent Reaction object (that created it) and task.
+                     *
+                     * @param parent    the Reaction object that spawned this ReactionTask
+                     * @param task      the data bound callback to be executed in the threadpool
+                     */
+                    Task(Reaction* parent, std::function<void ()> task);
+                    
+                    /**
+                     * @brief Runs the internal data bound task and times it.
+                     *
+                     * @details
+                     *  This runs the internal data bound task and times how long the execution takes. These figures can then be
+                     *  used in a debugging context to calculate how long callbacks are taking to run.
+                     */
+                    void operator()();
+                    
+                    /// @brief the data bound callback to be executed
+                    std::function<void ()> m_callback;
+                    /// @brief the parent Reaction object which spawned this
+                    Reaction* m_parent;
+                    /// @brief the time that this event was created and sent to the queue
+                    std::chrono::time_point<std::chrono::steady_clock> m_emitTime;
+                    /// @brief the time that execution started on this call
+                    std::chrono::time_point<std::chrono::steady_clock> m_startTime;
+                    /// @brief the total amount of time that execution took to run
+                    std::chrono::nanoseconds m_runtime;
             };
         
             /**

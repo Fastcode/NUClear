@@ -21,7 +21,7 @@ namespace NUClear {
 namespace Internal {
     
     namespace {
-        bool compareQueues(std::pair<const std::type_index&, std::unique_ptr<TaskQueue>&> a, std::pair<const std::type_index&, std::unique_ptr<TaskQueue>&> b) {
+        bool compareQueues(std::pair<const std::type_index&, std::unique_ptr<TaskScheduler::TaskQueue>&> a, std::pair<const std::type_index&, std::unique_ptr<TaskScheduler::TaskQueue>&> b) {
             // If we are not active and not the default queue then we are smaller
             if(!a.second->m_active && a.first != typeid(nullptr)) {
                 return false;
@@ -48,15 +48,15 @@ namespace Internal {
                 return true;
             }
             
-            //Otherwise assume that we are greater
-            //(arbitrary pick should never happen unless two events are emitted at the exact same nanosecond?)
+            // Otherwise assume that we are greater
+            // (arbitrary pick should never happen unless two events are emitted at the exact same nanosecond?)
             else {
                 return false;
             }
         }
     }
     
-    TaskQueue::TaskQueue() : m_active(false) {
+    TaskScheduler::TaskQueue::TaskQueue() : m_active(false) {
     }
     
     void TaskScheduler::submit(std::unique_ptr<Reaction::Task>&& task) {
