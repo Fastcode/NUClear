@@ -37,10 +37,14 @@ namespace NUClear {
         auto& callbacks = getCallbackList<TTrigger>();
         for(auto callback = std::begin(callbacks); callback != std::end(callbacks); ++callback) {
             
-            // Get our task (our data bound callback)
-            std::unique_ptr<Internal::ReactionTask> task(callback->getTask());
-            
-            reactorController.threadmaster.submit(std::move(task));
+            try {
+                // Get our task (our data bound callback)
+                std::unique_ptr<Internal::ReactionTask> task(callback->getTask());
+                
+                reactorController.threadmaster.submit(std::move(task));
+            }
+            // At least one of the data elements that was requested is not cached, cancel callback
+            catch (ReactorController::CacheMaster::NoDataException) {}
         }
     }
 

@@ -73,6 +73,8 @@ namespace NUClear {
             class CacheMaster : public BaseMaster {
                 
                 public:
+                    struct NoDataException {};
+                
                     template <typename TData>
                     class Cache {
                         private:

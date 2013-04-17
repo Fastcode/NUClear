@@ -31,12 +31,18 @@ namespace NUClear {
     
     template <typename TData>
     void ReactorController::CacheMaster::Cache<TData>::cache(TData *data) {
+        m_cache.clear();
         m_cache.push_back(std::shared_ptr<TData>(data));
     }
     
     template <typename TData>
     std::shared_ptr<TData> ReactorController::CacheMaster::Cache<TData>::get() {
-        return m_cache[0];
+        if(!m_cache.empty()) {
+            return m_cache[0];
+        }
+        else {
+            throw NoDataException();
+        }
     }
     
     template <typename TData>
