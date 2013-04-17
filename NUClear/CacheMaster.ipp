@@ -17,12 +17,12 @@
 
 
 namespace NUClear {
+
+    template <typename TData>
+    int ReactorController::CacheMaster::Cache<TData>::m_capacity = 1;
     
     template <typename TData>
-    ReactorController::CacheMaster::Cache<TData>::m_cache = std::vector<std::shared_ptr<TData>>();
-    
-    template <typename TData>
-    ReactorController::CacheMaster::Cache<TData>::m_capacity = 1;
+    std::vector<std::shared_ptr<TData>> ReactorController::CacheMaster::Cache<TData>::m_cache = std::vector<std::shared_ptr<TData>>();
     
     template <typename TData>
     void ReactorController::CacheMaster::Cache<TData>::capacity(int num) {
@@ -31,7 +31,7 @@ namespace NUClear {
     
     template <typename TData>
     void ReactorController::CacheMaster::Cache<TData>::cache(TData *data) {
-        m_cache.insert(std::shared_ptr<TData>(data));
+        m_cache.push_back(std::shared_ptr<TData>(data));
     }
     
     template <typename TData>
@@ -67,5 +67,6 @@ namespace NUClear {
     // == Private Methods ==
     template <typename TData>
     void ReactorController::CacheMaster::cache(TData* data) {
+        Cache<TData>::cache(data);
     }
 }

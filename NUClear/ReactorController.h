@@ -78,8 +78,8 @@ namespace NUClear {
                         private:
                             Cache() = delete;
                             ~Cache() = delete;
-                            static std::vector<std::shared_ptr<TData>> m_cache;
                             static int m_capacity;
+                            static std::vector<std::shared_ptr<TData>> m_cache;
                         
                         public:
                             static void capacity(int num);
