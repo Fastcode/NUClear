@@ -21,4 +21,26 @@
 #include "ReactorController.h"
 #include "Reactor.h"
 
+/**
+ * @namespace NUClear
+ *
+ * @brief This namespace holds all of the Classes which are available in the public NUClear API.
+ *
+ * @details
+ *  This namespace holds all of the classes which a user which is writing a program
+ */
+
+/**
+ * @namespace NUClear::Internal
+ *
+ * @brief This namespace holds all of the internal functionality of NUClear, if you are using this API and you are
+ *        using something from this namespace, you are probably doing it wrong.
+ */
+
+/**
+ * @namespace NUClear::Internal::Magic
+ *
+ * @brief This namespace holds template tricks and other c++ exploitation used throughout the system
+ */
+
 #endif
