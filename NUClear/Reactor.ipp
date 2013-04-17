@@ -37,10 +37,14 @@ namespace NUClear {
         auto& callbacks = getCallbackList<TTrigger>();
         for(auto callback = std::begin(callbacks); callback != std::end(callbacks); ++callback) {
             
-            // Get our task (our data bound callback)
-            std::unique_ptr<Internal::ReactionTask> task(callback->getTask());
-            
-            reactorController.threadmaster.submit(std::move(task));
+            try {
+                // Get our task (our data bound callback)
+                std::unique_ptr<Internal::ReactionTask> task(callback->getTask());
+                
+                reactorController.threadmaster.submit(std::move(task));
+            }
+            // At least one of the data elements that was requested is not cached, cancel callback
+            catch (ReactorController::CacheMaster::NoDataException) {}
         }
     }
 
@@ -131,6 +135,16 @@ namespace NUClear {
         
         // Register as normal
         bindTriggersImpl<Every<ticks, period>>(callback, placeholder);
+    }
+    
+    template <int num, typename TData>
+    void Reactor::bindTriggersImpl(Internal::Reaction callback, Last<num, TData>* placeholder) {
+        
+        // Let the ReactorMaster know to cache at least this many of this type
+        reactorController.cachemaster.ensureCache<num, TData>();
+        
+        // Register our callback on the inner type
+        bindTriggersImpl<TData>(callback, reinterpret_cast<TData*>(0));
     }
 
     /**

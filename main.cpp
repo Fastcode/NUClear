@@ -38,10 +38,16 @@ class MotorData {
         std::string data;
 };
 
+class RandomData {
+    public:
+        RandomData(std::string data) : data(data) {};
+        std::string data;
+};
+
 class Vision : public NUClear::Reactor {
     public:
         Vision(NUClear::ReactorController& control) : Reactor(control) {
-            //on<Trigger<MotorData>>();
+            
             on<Trigger<MotorData>, With<CameraData>>([](const MotorData& cameraData, const CameraData& motorData) {
                 std::cout << "Double trigger!" << std::endl;
             });
@@ -62,6 +68,32 @@ class Vision : public NUClear::Reactor {
             
             on<Trigger<CameraData>, With<>, Options<Sync<Vision>, Single, Priority<NUClear::REALTIME>>>([](const CameraData& cameraData){
                 std::cout << "With Options" << std::endl;
+            });
+            
+            on<Trigger<Last<3, RandomData>>>([](std::vector<std::shared_ptr<const RandomData>> data) {
+                std::cout << "I'm getting the last 3 CameraDatas!: " << data.size() << std::endl;
+                
+                for(auto it = std::begin(data); it != std::end(data); ++it) {
+                    if(*it) {
+                        std::cout << (*it)->data << std::endl;
+                    }
+                    else {
+                        std::cout << "nullptr" << std::endl;
+                    }
+                }
+            });
+            
+            on<Trigger<Last<5, RandomData>>>([](std::vector<std::shared_ptr<const RandomData>> data) {
+                std::cout << "I'm getting the last 5 CameraDatas!: " << data.size() << std::endl;
+                
+                for(auto it = std::begin(data); it != std::end(data); ++it) {
+                    if(*it) {
+                        std::cout << (*it)->data << std::endl;
+                    }
+                    else {
+                        std::cout << "nullptr" << std::endl;
+                    }
+                }
             });
             
             
@@ -89,6 +121,14 @@ int main(int argc, char** argv) {
     NUClear::ReactorController controller;
     
     controller.install<Vision>();
+    
+    
+    controller.emit(new RandomData("Data 1"));
+    controller.emit(new RandomData("Data 2"));
+    controller.emit(new RandomData("Data 3"));
+    controller.emit(new RandomData("Data 4"));
+    controller.emit(new RandomData("Data 5"));
+    controller.emit(new RandomData("Data 6"));
 
     std::chrono::nanoseconds a(std::chrono::steady_clock::now().time_since_epoch());
     controller.emit(new MotorData());

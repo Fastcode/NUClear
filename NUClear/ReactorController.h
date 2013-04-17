@@ -22,6 +22,7 @@
 #include <set>
 #include <thread>
 #include <vector>
+#include <deque>
 #include <typeindex>
 #include <map>
 #include <iostream>
@@ -69,31 +70,64 @@ namespace NUClear {
                     /// @brief A list of types which have already been loaded (to avoid duplication)
                     std::set<std::type_index> m_loaded;
             };
+        
+            class CacheMaster : public BaseMaster {
+                
+                public:
+                    struct NoDataException {};
+                
+                    template <typename TData>
+                    class Cache {
+                        private:
+                            Cache() = delete;
+                            ~Cache() = delete;
+                            static int m_capacity;
+                            static std::deque<std::shared_ptr<TData>> m_cache;
+                        
+                        public:
+                            static void capacity(int num);
+                            static void cache(TData* data);
+                            static std::shared_ptr<TData> get();
+                            static std::shared_ptr<std::vector<std::shared_ptr<const TData>>> get(int length);
+                    };
+                
+                    template <typename TData>
+                    std::shared_ptr<TData> getData(TData*);
+                    
+                    template <int num, typename TData>
+                    std::shared_ptr<std::vector<std::shared_ptr<const TData>>> getData(Internal::Last<num, TData>*);
+                
+                public:
+                    CacheMaster(ReactorController* parent);
+                    ~CacheMaster();
+                
+                    template <typename TData>
+                    void cache(TData* cache);
+                
+                    template <typename TData>
+                    auto get() -> decltype(std::declval<CacheMaster>().getData(std::declval<TData*>())) {
+                        return getData(reinterpret_cast<TData*>(0));
+                    }
+                
+                    template <int num, typename TData>
+                    void ensureCache();
+            };
 
             class ReactorMaster : public BaseMaster {
+
                 public:
                     ReactorMaster(ReactorController* parent);
 
                     template <typename TTrigger>
                     void emit(TTrigger* data);
-                
-                    template <typename TData>
-                    std::shared_ptr<TData> getData(TData*);
-                    
-                    template <typename TData>
-                    auto get() -> decltype(std::declval<ReactorMaster>().getData(std::declval<TData*>())) {
-                        return getData(reinterpret_cast<TData*>(0));
-                    }
                     
                     template <typename TReactor>
                     void install();
 
                     template <typename TTrigger>
                     void subscribe(NUClear::Reactor* reactor);
-                private:
-                    template <typename TTrigger>
-                    void cache(TTrigger* data);
 
+                private:
                     template <typename TTrigger>
                     void notifyReactors();
 
@@ -101,7 +135,6 @@ namespace NUClear {
                     std::set<NUClear::Reactor*>& getReactorBindings();
 
                     std::vector<std::unique_ptr<NUClear::Reactor>> m_reactors;
-                    std::map<std::type_index, std::shared_ptr<void> > m_cache;
                     std::map<std::type_index, std::set<NUClear::Reactor*> > m_reactorBindings;
             };
 
@@ -119,6 +152,7 @@ namespace NUClear {
             };
         protected:
             ChronoMaster chronomaster;
+            CacheMaster cachemaster;
             ReactorMaster reactormaster;
             ThreadMaster threadmaster;
         public:
@@ -127,8 +161,8 @@ namespace NUClear {
             void start();
 
             template <typename TData>
-            auto get() -> decltype(reactormaster.get<TData>()) {
-                return reactormaster.get<TData>();
+            auto get() -> decltype(cachemaster.get<TData>()) {
+                return cachemaster.get<TData>();
             }
         
             template <typename TReactor>
@@ -146,6 +180,7 @@ namespace NUClear {
 
 #include "Reactor.h"
 #include "ChronoMaster.ipp"
+#include "CacheMaster.ipp"
 #include "ReactorMaster.ipp"
 #include "ReactorController.ipp"
 #endif

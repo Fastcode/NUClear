@@ -43,27 +43,12 @@ namespace NUClear {
         }
         return m_reactorBindings[typeid(TTrigger)];
     }
-    
-    template <typename TData>
-    std::shared_ptr<TData> ReactorController::ReactorMaster::getData(TData*) {
-        if(m_cache.find(typeid(TData)) == m_cache.end()) {
-            // TODO: Better error stuff
-            std::cerr << "Trying to get missing TData:" << std::endl;
-        }
-
-        return std::static_pointer_cast<TData>(m_cache[typeid(TData)]);
-    }
 
     template <typename TTrigger>
     void ReactorController::ReactorMaster::emit(TTrigger* data) {
-        cache<TTrigger>(data);
-        notifyReactors<TTrigger>(); 
-    }
-
-    // == Private Methods ==
-    template <typename TTrigger>
-    void ReactorController::ReactorMaster::cache(TTrigger* data) {
-        m_cache[typeid(TTrigger)] = std::shared_ptr<void>(data);
+        
+        m_parent->cachemaster.cache<TTrigger>(data);
+        notifyReactors<TTrigger>();
     }
 
     template <typename TTrigger>

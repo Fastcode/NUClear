@@ -195,6 +195,15 @@ namespace NUClear {
             void bindTriggersImpl(Internal::Reaction callback, Every<ticks, period>* /*placeholder*/);
         
             /**
+             * @brief The implementation method for bindTriggers, provides partial template specialization for specific-trigger type logic.
+             * @tparam TTrigger the trigger to bind to
+             * @param callback the callback to bind
+             * @param placeholder used for partial template specialization
+             */
+            template <int num, typename TData>
+            void bindTriggersImpl(Internal::Reaction callback, Last<num, TData>* /*placeholder*/);
+        
+            /**
              * @brief Gets the callback list for a given type
              * @tparam TTrigger the type to get the callback list for
              * @returns The callback list
