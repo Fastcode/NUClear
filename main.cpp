@@ -41,7 +41,7 @@ class MotorData {
 class Vision : public NUClear::Reactor {
     public:
         Vision(NUClear::ReactorController& control) : Reactor(control) {
-            //on<Trigger<MotorData>>();
+            
             on<Trigger<MotorData>, With<CameraData>>([](const MotorData& cameraData, const CameraData& motorData) {
                 std::cout << "Double trigger!" << std::endl;
             });
@@ -62,6 +62,10 @@ class Vision : public NUClear::Reactor {
             
             on<Trigger<CameraData>, With<>, Options<Sync<Vision>, Single, Priority<NUClear::REALTIME>>>([](const CameraData& cameraData){
                 std::cout << "With Options" << std::endl;
+            });
+            
+            on<Trigger<Last<3, CameraData>>>([](std::vector<std::shared_ptr<const CameraData>> data) {
+                std::cout << "I'm getting the last 3 CameraDatas!: " << data.size() << std::endl;
             });
             
             

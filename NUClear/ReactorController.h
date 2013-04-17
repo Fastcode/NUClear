@@ -71,14 +71,17 @@ namespace NUClear {
             };
 
             class ReactorMaster : public BaseMaster {
+                private:
+                    template <typename TData>
+                    std::shared_ptr<TData> getData(TData*);
+                
+                    template <int num, typename TData>
+                    std::shared_ptr<std::vector<std::shared_ptr<const TData>>> getData(Internal::Last<num, TData>*);
                 public:
                     ReactorMaster(ReactorController* parent);
 
                     template <typename TTrigger>
                     void emit(TTrigger* data);
-                
-                    template <typename TData>
-                    std::shared_ptr<TData> getData(TData*);
                     
                     template <typename TData>
                     auto get() -> decltype(std::declval<ReactorMaster>().getData(std::declval<TData*>())) {
@@ -90,6 +93,9 @@ namespace NUClear {
 
                     template <typename TTrigger>
                     void subscribe(NUClear::Reactor* reactor);
+                
+                    template <int num, typename TData>
+                    void ensureCache();
                 private:
                     template <typename TTrigger>
                     void cache(TTrigger* data);

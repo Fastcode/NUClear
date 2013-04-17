@@ -132,6 +132,16 @@ namespace NUClear {
         // Register as normal
         bindTriggersImpl<Every<ticks, period>>(callback, placeholder);
     }
+    
+    template <int num, typename TData>
+    void Reactor::bindTriggersImpl(Internal::Reaction callback, Last<num, TData>* placeholder) {
+        
+        // Let the ReactorMaster know to cache at least this many of this type
+        reactorController.reactormaster.ensureCache<num, TData>();
+        
+        // Register our callback on the inner type
+        bindTriggersImpl<TData>(callback, reinterpret_cast<TData*>(0));
+    }
 
     /**
      * @brief Gets the callback list for a given type

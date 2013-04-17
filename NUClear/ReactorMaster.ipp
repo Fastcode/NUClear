@@ -44,14 +44,28 @@ namespace NUClear {
         return m_reactorBindings[typeid(TTrigger)];
     }
     
+    template <int num, typename TData>
+    void ReactorController::ReactorMaster::ensureCache() {
+        // TODO ensure that at least the passed number of paramters are cached
+    };
+    
     template <typename TData>
     std::shared_ptr<TData> ReactorController::ReactorMaster::getData(TData*) {
         if(m_cache.find(typeid(TData)) == m_cache.end()) {
             // TODO: Better error stuff
             std::cerr << "Trying to get missing TData:" << std::endl;
         }
-
+        
         return std::static_pointer_cast<TData>(m_cache[typeid(TData)]);
+    }
+    
+    template <int num, typename TData>
+    std::shared_ptr<std::vector<std::shared_ptr<const TData>>> ReactorController::ReactorMaster::getData(Internal::Last<num, TData>*) {
+        
+        // TODO get the last n data items somehow
+        
+        auto d = new std::vector<std::shared_ptr<const TData>>();
+        return std::shared_ptr<std::vector<std::shared_ptr<const TData>>>(d);
     }
 
     template <typename TTrigger>
