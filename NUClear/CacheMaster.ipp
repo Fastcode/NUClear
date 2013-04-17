@@ -64,7 +64,7 @@ namespace NUClear {
     }
     
     template <int num, typename TData>
-    std::shared_ptr<std::vector<std::shared_ptr<const TData>>> ReactorController::CacheMaster::getData(Internal::Last<num, TData>*) {
+    std::shared_ptr<std::vector<std::shared_ptr<const TData>>> ReactorController::CacheMaster::getData(Internal::CommandTypes::Last<num, TData>*) {
         
         return Cache<TData>::get(num);
     }

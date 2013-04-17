@@ -61,27 +61,27 @@ namespace NUClear {
         protected:
                 
             template <typename... TTriggers>
-            using Trigger = Internal::Trigger<TTriggers...>;
+            using Trigger = Internal::CommandTypes::Trigger<TTriggers...>;
+        
+            template <typename... TWiths>
+            using With = Internal::CommandTypes::With<TWiths...>;
             
-            template <typename... TWith>
-            using With = Internal::With<TWith...>;
-            
-            template <typename... TOption>
-            using Options = Internal::Options<TOption...>;
+            template <typename... TOptions>
+            using Options = Internal::CommandTypes::Options<TOptions...>;
         
             template <int ticks, class period = std::chrono::milliseconds>
-            using Every = Internal::Every<ticks, period>;
+            using Every = Internal::CommandTypes::Every<ticks, period>;
         
             template <int num, class TData>
-            using Last = Internal::Last<num, TData>;
+            using Last = Internal::CommandTypes::Last<num, TData>;
         
             template <enum EPriority P>
-            using Priority = Internal::Priority<P>;
+            using Priority = Internal::CommandTypes::Priority<P>;
         
             template <typename TSync>
-            using Sync = Internal::Sync<TSync>;
+            using Sync = Internal::CommandTypes::Sync<TSync>;
         
-            using Single = Internal::Single;
+            using Single = Internal::CommandTypes::Single;
 
             template <typename TTrigger, typename TFunc>
             void on(TFunc callback); 

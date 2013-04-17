@@ -95,7 +95,7 @@ namespace NUClear {
                     std::shared_ptr<TData> getData(TData*);
                     
                     template <int num, typename TData>
-                    std::shared_ptr<std::vector<std::shared_ptr<const TData>>> getData(Internal::Last<num, TData>*);
+                    std::shared_ptr<std::vector<std::shared_ptr<const TData>>> getData(Internal::CommandTypes::Last<num, TData>*);
                 
                 public:
                     CacheMaster(ReactorController* parent);

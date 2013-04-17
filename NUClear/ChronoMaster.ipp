@@ -22,13 +22,13 @@ namespace NUClear {
     template <int ticks, class period>
     void ReactorController::ChronoMaster::add() {
         // Check if we have not already loaded this type in
-        if(m_loaded.find(typeid(NUClear::Internal::Every<ticks, period>)) == std::end(m_loaded)) {
+        if(m_loaded.find(typeid(NUClear::Internal::CommandTypes::Every<ticks, period>)) == std::end(m_loaded)) {
             
             // Flag this type as loaded
-            m_loaded.insert(typeid(NUClear::Internal::Every<ticks, period>));
+            m_loaded.insert(typeid(NUClear::Internal::CommandTypes::Every<ticks, period>));
             
             std::function<void ()> emit = [this](){
-                m_parent->emit(new NUClear::Internal::Every<ticks, period>());
+                m_parent->emit(new NUClear::Internal::CommandTypes::Every<ticks, period>());
             };
             
             // Get the number of nanoseconds this tick is
