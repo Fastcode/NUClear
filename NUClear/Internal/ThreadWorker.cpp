@@ -20,8 +20,16 @@
 namespace NUClear {
 namespace Internal {
     
-    ThreadWorker::ThreadWorker(TaskScheduler& scheduler) :
+    ThreadWorker::ThreadWorker(TaskScheduler* scheduler) :
     m_scheduler(scheduler),
+    m_execute(true),
+    m_currentReaction(nullptr),
+    m_thread(std::bind(&ThreadWorker::core, this)) {
+    }
+    
+    ThreadWorker::ThreadWorker(std::function<void ()> task) :
+    m_scheduler(nullptr),
+    m_task(task),
     m_execute(true),
     m_currentReaction(nullptr),
     m_thread(std::bind(&ThreadWorker::core, this)) {
@@ -58,17 +66,24 @@ namespace Internal {
     }
     
     void ThreadWorker::core() {
-        // So long as we are executing
-        while(m_execute) {
-            // Get a task
-            std::unique_ptr<Reaction::Task> task(m_scheduler.getTask());
-            
-            // Try to execute the task (catching any exceptions so it doesn't kill the pool thread)
-            try {
-                (*task)();
+        if(m_scheduler != nullptr) {
+            // So long as we are executing
+            while(m_execute) {
+                // Get a task
+                std::unique_ptr<Reaction::Task> task(m_scheduler->getTask());
+                
+                // Try to execute the task (catching any exceptions so it doesn't kill the pool thread)
+                try {
+                    (*task)();
+                }
+                // Catch everything
+                catch(...) {}
             }
-            // Catch everything
-            catch(...) {}
+        }
+        else {
+            while(m_execute) {
+                m_task();
+            }
         }
     }
 }

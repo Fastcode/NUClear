@@ -17,6 +17,8 @@
 
 #include "TaskScheduler.h"
 
+#include <iostream>
+
 namespace NUClear {
 namespace Internal {
     
@@ -61,7 +63,7 @@ namespace Internal {
     
     void TaskScheduler::submit(std::unique_ptr<Reaction::Task>&& task) {
         
-        (*task)();
+        //(*task)();
         
         bool active = false;
         //if(task->m_options.m_single && !task->m_options.m_running) {
@@ -74,7 +76,6 @@ namespace Internal {
                     active = newQueue.first->second->m_active;
                 }
                 else {
-                    
                     it->second->m_queue.push(std::move(task));
                 }
                 
@@ -100,6 +101,8 @@ namespace Internal {
                     queue = it;
                 }
             }
+            
+            std::cout << queue->first.name() << std::endl;
             
             // If the queue is empty wait for notificiation
             if(queue->second->m_queue.empty()) {

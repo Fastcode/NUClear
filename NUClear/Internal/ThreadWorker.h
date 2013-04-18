@@ -41,7 +41,14 @@ namespace Internal {
              *
              * @param scheduler the scheduler to get tasks to process from while this thread is running
              */
-            ThreadWorker(TaskScheduler& scheduler);
+            ThreadWorker(TaskScheduler* scheduler);
+        
+            /**
+             * @brief Constructs a new ThreadWorker which executes the passed task until it's execute is false
+             *
+             * @param task the task to execute repeatedly until execute is false
+             */
+            ThreadWorker(std::function<void ()> task);
         
             /**
              * @brief destructs this ThreadWorker instance, it will kill the thread if it is not already dead (should
@@ -102,7 +109,9 @@ namespace Internal {
             void core();
         
             /// @brief the task scheduler that tasks are collected from
-            TaskScheduler& m_scheduler;
+            TaskScheduler* m_scheduler;
+            /// @brief the internal task that will be executed without a scheduler
+            std::function<void ()> m_task;
             /// @brief a variable used to check if we should still run
             volatile bool m_execute;
             /// @brief a pointer to the current reaction we are working on

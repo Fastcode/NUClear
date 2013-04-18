@@ -58,12 +58,8 @@ class Vision : public NUClear::Reactor {
                 std::cout << "Every 1 seconds called" << std::endl;
             });
             
-            on<Trigger<Every<10, std::chrono::milliseconds>>>([](const std::chrono::time_point<std::chrono::steady_clock>& time) {
-                std::cout << "Every 100 milliseconds called" << std::endl;
-            });
-            
-            on<Trigger<Every<1000>>>([](const std::chrono::time_point<std::chrono::steady_clock>& time) {
-                std::cout << "Every 1000 milliseconds called" << std::endl;
+            on<Trigger<Every<2, std::chrono::seconds>>>([](const std::chrono::time_point<std::chrono::steady_clock>& time) {
+                std::cout << "Every 2 seconds called" << std::endl;
             });
             
             on<Trigger<CameraData>, With<>, Options<Sync<Vision>, Single, Priority<NUClear::REALTIME>>>([](const CameraData& cameraData){
@@ -122,6 +118,16 @@ int main(int argc, char** argv) {
     
     controller.install<Vision>();
     
+    controller.start();
+    
+    std::this_thread::sleep_for(std::chrono::hours(10));
+}
+
+int main2(int argc, char** argv) {
+    NUClear::ReactorController controller;
+    
+    controller.install<Vision>();
+    
     
     controller.emit(new RandomData("Data 1"));
     controller.emit(new RandomData("Data 2"));
@@ -161,4 +167,6 @@ int main(int argc, char** argv) {
     controller.emit(new int(0));
     controller.emit(new long(0));
     controller.emit(new std::chrono::time_point<std::chrono::steady_clock>(std::chrono::steady_clock::now()));
+    
+    return 0;
 }

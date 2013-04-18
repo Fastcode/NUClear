@@ -43,13 +43,25 @@ namespace NUClear {
                 protected:
                     ReactorController* m_parent;
             };
+        
+            class ThreadMaster : public BaseMaster {
+            public:
+                ThreadMaster(ReactorController* parent);
+                
+                void start();
+                void submit(std::unique_ptr<Internal::Reaction::Task>&& task);
+                void internalTask(std::function<void ()> init, std::function<void ()> task);
+            private:
+                std::map<std::thread::id, std::unique_ptr<Internal::ThreadWorker>> m_threads;
+                std::vector<std::pair<std::function<void ()>, std::function<void ()>>> m_internalTasks;
+                Internal::TaskScheduler m_scheduler;
+                int numThreads = 4;
+            };
 
             class ChronoMaster : public BaseMaster {
                 public:
                     ChronoMaster(ReactorController* parent);
                     ~ChronoMaster();
-
-                    void run();
 
                     template <int ticks, class period>
                     void add();
@@ -60,6 +72,9 @@ namespace NUClear {
                         std::chrono::time_point<std::chrono::steady_clock> next;
                         std::vector<std::function<void (std::chrono::time_point<std::chrono::steady_clock>)>> callbacks;
                     };
+                    
+                    void run();
+                    void init();
                 
                     /// @brief If the system should continue to execute or if it should stop
                     bool m_execute;
@@ -121,23 +136,11 @@ namespace NUClear {
                     std::vector<std::unique_ptr<NUClear::Reactor>> m_reactors;
             };
 
-            class ThreadMaster : public BaseMaster {
-                public:
-                    ThreadMaster(ReactorController* parent);
-
-                    void start();
-                    void submit(std::unique_ptr<Internal::Reaction::Task>&& task);
-                private:
-                    std::map<std::thread::id, std::unique_ptr<Internal::ThreadWorker>> m_threads;
-
-                    Internal::TaskScheduler m_scheduler;
-                    int numThreads = 4;
-            };
         protected:
+            ThreadMaster threadmaster;
             ChronoMaster chronomaster;
             CacheMaster cachemaster;
             ReactorMaster reactormaster;
-            ThreadMaster threadmaster;
         public:
             ReactorController();
 
