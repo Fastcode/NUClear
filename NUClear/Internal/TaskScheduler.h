@@ -15,8 +15,8 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_TASKSCHEDULER_H
-#define NUCLEAR_TASKSCHEDULER_H
+#ifndef NUCLEAR_INTERNAL_TASKSCHEDULER_H
+#define NUCLEAR_INTERNAL_TASKSCHEDULER_H
 
 #include <map>
 #include <vector>
@@ -86,6 +86,28 @@ namespace Internal {
             };
         
             /**
+             * @brief This exception is thrown when the task_scheduler has been shut down
+             */
+            class SchedulerShutdownException {};
+    
+            /**
+             * @brief Constructs a new TaskScheduler instance, and builds the nullptr sync queue.
+             */
+            TaskScheduler();
+        
+            /**
+             * @brief destructs the TaskScheduler
+             */
+            ~TaskScheduler();
+        
+            /**
+             * @brief 
+             *  Shuts down the scheduler, all waiting threads are woken, and any attempt to get a task results in an
+             *  exception
+             */
+            void shutdown();
+        
+            /**
              * @brief Submit a new task to be executed to the Scheduler.
              *
              * @details
@@ -109,6 +131,8 @@ namespace Internal {
              */
             std::unique_ptr<Reaction::Task> getTask();
         private:
+            /// @brief if the scheduler is running or is shut down
+            bool m_shutdown;
             /// @brief our map of sync types to queues
             std::map<std::type_index, std::unique_ptr<TaskQueue>> m_queues;
             /// @brief the mutex which our threads synchronize their access to this object

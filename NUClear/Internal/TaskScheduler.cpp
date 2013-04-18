@@ -59,30 +59,39 @@ namespace Internal {
     TaskScheduler::TaskQueue::TaskQueue() : m_active(false) {
     }
     
+    TaskScheduler::TaskScheduler() : m_shutdown(false) {
+        std::type_index a(typeid(nullptr));
+        m_queues.insert(std::make_pair(a, std::unique_ptr<TaskQueue>(new TaskQueue())));
+    }
+    
+    TaskScheduler::~TaskScheduler() {
+    }
+    
+    void TaskScheduler::shutdown() {
+        {
+            std::unique_lock<std::mutex> lock(m_mutex);
+            m_shutdown = true;
+        }
+        m_condition.notify_all();
+    }
+    
     void TaskScheduler::submit(std::unique_ptr<Reaction::Task>&& task) {
-        
-        (*task)();
-        
-        bool active = false;
-        //if(task->m_options.m_single && !task->m_options.m_running) {
-            {
-                std::unique_lock<std::mutex> lock(m_mutex);
+        {
+            std::unique_lock<std::mutex> lock(m_mutex);
+            
+            if(!m_shutdown && (!task->m_parent->m_options.m_single || !task->m_parent->m_running)) {
                 
                 auto it = m_queues.find(task->m_parent->m_options.m_syncType);
                 if(it == std::end(m_queues)) {
-                    auto newQueue = m_queues.insert(std::make_pair(task->m_parent->m_options.m_syncType, std::unique_ptr<TaskQueue>(new TaskQueue())));
-                    active = newQueue.first->second->m_active;
+                    m_queues.insert(std::make_pair(task->m_parent->m_options.m_syncType, std::unique_ptr<TaskQueue>(new TaskQueue())));
                 }
                 else {
-                    
                     it->second->m_queue.push(std::move(task));
                 }
-                
             }
-            if(active) {
-                m_condition.notify_one();
-            }
-        //}
+            
+        }
+        m_condition.notify_one();
     }
     
     std::unique_ptr<Reaction::Task> TaskScheduler::getTask() {
@@ -102,8 +111,11 @@ namespace Internal {
             }
             
             // If the queue is empty wait for notificiation
-            if(queue->second->m_queue.empty()) {
+            if(!m_shutdown && queue->second->m_queue.empty()) {
                 m_condition.wait(lock);
+            }
+            else if(m_shutdown) {
+                throw TaskScheduler::SchedulerShutdownException();
             }
             else {
                 // Const cast is required here as for some reason the std::priority_queue only returns const references

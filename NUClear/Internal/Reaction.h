@@ -15,8 +15,8 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_REACTION_H
-#define NUCLEAR_REACTION_H
+#ifndef NUCLEAR_INTERNAL_REACTION_H
+#define NUCLEAR_INTERNAL_REACTION_H
 
 #include <functional>
 #include <chrono>
@@ -132,6 +132,8 @@ namespace Internal {
             Reaction::Options m_options;
             /// @brief the unique identifier for this Reaction object
             const reactionId_t m_reactionId;
+            /// @brief if this reaction is currently enqueued or running
+            bool m_running;
         private:
             /// @brief a source for reactionIds, atomically creates longs
             static std::atomic<std::uint64_t> reactionIdSource;

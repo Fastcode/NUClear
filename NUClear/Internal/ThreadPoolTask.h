@@ -15,22 +15,25 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include "ReactorController.h"
+#ifndef NUCLEAR_INTERNAL_THREADPOOLTASK_H
+#define NUCLEAR_INTERNAL_THREADPOOLTASK_H
+
+#include "ThreadWorker.h"
+#include "TaskScheduler.h"
 
 namespace NUClear {
-    
-    ReactorController::ReactorController() :
-        threadmaster(this)
-        , chronomaster(this)
-        , cachemaster(this)
-        , reactormaster(this)
-         {}
-
-    void ReactorController::start() {
-        threadmaster.start();
-    }
-    
-    void ReactorController::shutdown() {
-        threadmaster.shutdown();
-    }
+namespace Internal {
+    class ThreadPoolTask : public ThreadWorker::InternalTask {
+        public:
+            ThreadPoolTask(TaskScheduler& scheduler);
+            ~ThreadPoolTask();
+            void run();
+            void kill();
+        private:
+            TaskScheduler& m_scheduler;
+            volatile bool m_execute;
+    };
 }
+}
+
+#endif

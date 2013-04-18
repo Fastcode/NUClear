@@ -20,22 +20,28 @@
 namespace NUClear {
     
     ReactorController::ChronoMaster::ChronoMaster(ReactorController* parent) :
-        ReactorController::BaseMaster(parent),
-        m_execute(true) {}
+    ReactorController::BaseMaster(parent),
+    m_lock(m_execute) {
+        
+        // Build a task
+        Internal::ThreadWorker::InternalTask task(std::bind(&ChronoMaster::run, this),
+                                                  std::bind(&ChronoMaster::kill, this));
+        
+        m_parent->threadmaster.internalTask(task);
+    }
 
     ReactorController::ChronoMaster::~ChronoMaster() {
-        m_execute = false;
     }
 
     void ReactorController::ChronoMaster::run() {
+        
         // Initialize all of the m_steps with our start time
         std::chrono::time_point<std::chrono::steady_clock> start(std::chrono::steady_clock::now());
         for(auto it = std::begin(m_steps); it != std::end(m_steps); ++it) {
             (*it)->next = start;
         }
         
-        // Loop until it is time for us to finish
-        while(m_execute) {
+        do {
             // Get the current time
             std::chrono::time_point<std::chrono::steady_clock> now(std::chrono::steady_clock::now());
             
@@ -57,9 +63,13 @@ namespace NUClear {
             std::sort(std::begin(m_steps), std::end(m_steps), [](const std::unique_ptr<Step>& a, const std::unique_ptr<Step>& b) {
                 return a->next < b->next;
             });
-            
-            // Sleep until it's time to emit this event
-            std::this_thread::sleep_until(m_steps.front()->next);
         }
+        // Sleep until it's time to emit this event, or the lock is released and we should finish
+        while(!m_execute.try_lock_until(m_steps.front()->next));
+    }
+    
+    void ReactorController::ChronoMaster::kill() {
+        //If we unlock the lock, then the lock will return true, ending the chronomasters run method
+        m_lock.unlock();
     }
 }

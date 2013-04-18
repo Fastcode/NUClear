@@ -16,7 +16,6 @@
  */
 
 #include "Reaction.h"
-#include <iostream>
 
 namespace NUClear {
 namespace Internal {
@@ -26,6 +25,7 @@ namespace Internal {
     Reaction::Reaction(std::function<std::function<void ()> ()> callback, Reaction::Options options) :
     m_options(options),
     m_reactionId(++reactionIdSource),
+    m_running(false),
     m_callback(callback) {
     }
     

@@ -47,7 +47,7 @@ class RandomData {
 class Vision : public NUClear::Reactor {
     public:
         Vision(NUClear::ReactorController& control) : Reactor(control) {
-            
+            /*
             on<Trigger<MotorData>, With<CameraData>>([](const MotorData& cameraData, const CameraData& motorData) {
                 std::cout << "Double trigger!" << std::endl;
             });
@@ -58,12 +58,8 @@ class Vision : public NUClear::Reactor {
                 std::cout << "Every 1 seconds called" << std::endl;
             });
             
-            on<Trigger<Every<10, std::chrono::milliseconds>>>([](const std::chrono::time_point<std::chrono::steady_clock>& time) {
-                std::cout << "Every 100 milliseconds called" << std::endl;
-            });
-            
-            on<Trigger<Every<1000>>>([](const std::chrono::time_point<std::chrono::steady_clock>& time) {
-                std::cout << "Every 1000 milliseconds called" << std::endl;
+            on<Trigger<Every<2, std::chrono::seconds>>>([](const std::chrono::time_point<std::chrono::steady_clock>& time) {
+                std::cout << "Every 2 seconds called" << std::endl;
             });
             
             on<Trigger<CameraData>, With<>, Options<Sync<Vision>, Single, Priority<NUClear::REALTIME>>>([](const CameraData& cameraData){
@@ -95,17 +91,25 @@ class Vision : public NUClear::Reactor {
                     }
                 }
             });
+            */
             
+            on<Trigger<Every<1, std::chrono::hours>>>([](const std::chrono::time_point<std::chrono::steady_clock>& time){});
             
             // This section of code here is for timing how long our API system is taking
-            on<Trigger<std::chrono::time_point<std::chrono::steady_clock>>, With<int, long>>([this](const std::chrono::time_point<std::chrono::steady_clock>& point, const int& i, const long& avg) {
+            on<Trigger<std::chrono::time_point<std::chrono::steady_clock>>, With<int, double>>([this](const std::chrono::time_point<std::chrono::steady_clock>& point, const int& i, const double& avg) {
                 auto now = std::chrono::steady_clock::now();
                 
-                if(i > 1000) {
+                if(i > 1000000) {
                     std::cout << "Average API time: " << avg << " ns" << std::endl;
+                    reactorController.shutdown();
                 }
                 else {
-                    reactorController.emit(new long(static_cast<long>(((avg * i) + std::chrono::duration_cast<std::chrono::nanoseconds>((now.time_since_epoch() - point.time_since_epoch())).count())/(i+1))));
+                    double soFar = (avg*i);
+                    double timeTaken = std::chrono::duration_cast<std::chrono::nanoseconds>(now.time_since_epoch() - point.time_since_epoch()).count();
+                    
+                    double total = (soFar + timeTaken)/(i+1);
+                    
+                    reactorController.emit(new double(total));
                     reactorController.emit(new int(i + 1));
                     reactorController.emit(new std::chrono::time_point<std::chrono::steady_clock>(std::chrono::steady_clock::now()));
                 }
@@ -159,6 +163,10 @@ int main(int argc, char** argv) {
     std::cout << "Starting API Speed Test" << std::endl;
     
     controller.emit(new int(0));
-    controller.emit(new long(0));
+    controller.emit(new double(0));
     controller.emit(new std::chrono::time_point<std::chrono::steady_clock>(std::chrono::steady_clock::now()));
+    
+    controller.start();
+    
+    return 0;
 }

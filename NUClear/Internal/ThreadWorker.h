@@ -15,8 +15,8 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_THREADWORKER_H
-#define NUCLEAR_THREADWORKER_H
+#ifndef NUCLEAR_INTERNAL_THREADWORKER_H
+#define NUCLEAR_INTERNAL_THREADWORKER_H
 
 #include <thread>
 #include "Reaction.h"
@@ -35,13 +35,29 @@ namespace Internal {
      * @author Trent Houliston
      */
     class ThreadWorker {
+        
         public:
             /**
-             * @brief Constructs a new ThreadWorker using the passed TaskScheduler to get tasks.
+             * @brief This struct defines an internal task to be managed by a ThreadWorker.
              *
-             * @param scheduler the scheduler to get tasks to process from while this thread is running
+             * @details
+             *  This struct holds the details of what the ThreadWorker will execute, as well as how to eventually
+             *  shut down the system.
              */
-            ThreadWorker(TaskScheduler& scheduler);
+            struct InternalTask {
+                InternalTask(std::function<void ()> run, std::function<void ()> kill) : run(run), kill(kill) {}
+                /// @brief the function that will be run as the main body of the system
+                std::function<void ()> run;
+                /// @brief the function that is executed in order to kill the system
+                std::function<void ()> kill;
+            };
+        
+            /**
+             * @brief Constructs a new ThreadWorker using the passed InternalTask to execute
+             *
+             * @param task the task that the ThreadWorker will work on
+             */
+            ThreadWorker(InternalTask task);
         
             /**
              * @brief destructs this ThreadWorker instance, it will kill the thread if it is not already dead (should
@@ -60,8 +76,7 @@ namespace Internal {
              * @brief Tells this thread to stop executing as soon as it has finished executing it's current task.
              *
              * @details
-             *  This method will tell the pool thread that after it has finished executing it's current task, it should
-             *  not take any more tasks and end it's execution. This method is run when the system shuts down.
+             *  This method will tell the internal task that it should immediantly finish executing and end the thread.
              */
             void kill();
         
@@ -79,34 +94,18 @@ namespace Internal {
              */
             void join();
         
-            /**
-             * @brief Gets the reaction that is currently executing in this thread object.
-             *
-             * @details
-             *  This method gets the ReactionTask object that this thread is executing. It should only ever be called
-             *  by this thread itself from within an emit function. This allows the system to build a call tree of events
-             *  as the created event will know the Reaction which it was created from.
-             *
-             * @return the ReactionTask object that this thread is currently processing
-             */
-            Reaction::Task& getCurrentReaction();
-        
         private:
             /**
-             * @brief Method which is executed by the thread when it starts up.
+             * @brief Method which is executed by the thread when it starts up, executes run.
              * 
              * @details
-             *  This method is the method that the thread will execute when it starts up. This method is simply a loop
-             *  which gets a task from the TaskScheduler and executes it until the execute variable is false.
+             *  This method is the method that the thread will execute when it starts up. It will simply hand off control
+             *  to the Run function provided in the task
              */
             void core();
         
-            /// @brief the task scheduler that tasks are collected from
-            TaskScheduler& m_scheduler;
-            /// @brief a variable used to check if we should still run
-            volatile bool m_execute;
-            /// @brief a pointer to the current reaction we are working on
-            Reaction::Task* m_currentReaction;
+            /// @brief the internal task that will be executed without a scheduler
+            InternalTask m_task;
             /// @brief our internal thread object
             std::thread m_thread;
     };
