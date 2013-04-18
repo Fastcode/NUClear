@@ -35,7 +35,7 @@ namespace NUClear {
         
         m_parent->cachemaster.cache<TTrigger>(data);
         
-        for(auto& reaction : CallbackCache<TTrigger>::cache::get()) {
+        for(auto& reaction : CallbackCache<TTrigger>::get()) {
             try {
                 m_parent->threadmaster.submit(reaction->getTask());
             }

@@ -25,7 +25,7 @@ namespace NUClear {
     
     template <typename TData>
     std::shared_ptr<TData> ReactorController::CacheMaster::getData(TData*) {
-        return ValueCache<TData>::cache::get();
+        return ValueCache<TData>::get();
     }
     
     template <int num, typename TData>
@@ -36,11 +36,11 @@ namespace NUClear {
     template <int ticks, class period>
     std::shared_ptr<std::chrono::time_point<std::chrono::steady_clock>> ReactorController::CacheMaster::getData(Internal::CommandTypes::Every<ticks, period>*) {
         
-        return std::shared_ptr<std::chrono::time_point<std::chrono::steady_clock>>(new std::chrono::time_point<std::chrono::steady_clock>(ValueCache<Internal::CommandTypes::Every<ticks, period>>::cache::get()->m_time));
+        return std::shared_ptr<std::chrono::time_point<std::chrono::steady_clock>>(new std::chrono::time_point<std::chrono::steady_clock>(ValueCache<Internal::CommandTypes::Every<ticks, period>>::get()->m_time));
     }
     
     template <typename TData>
     void ReactorController::CacheMaster::cache(TData* data) {
-        ValueCache<TData>::cache::set(data);
+        ValueCache<TData>::set(data);
     }
 }

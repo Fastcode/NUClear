@@ -101,7 +101,7 @@ namespace NUClear {
     void Reactor::bindTriggersImpl(Internal::Reaction* callback, TTrigger* /*placeholder*/) {
         
         // Store our data in the cache
-        CallbackCache<TTrigger>::cache::set(callback);
+        CallbackCache<TTrigger>::set(callback);
     }
 
     template <int ticks, class period>

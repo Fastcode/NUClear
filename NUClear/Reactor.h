@@ -89,10 +89,8 @@ namespace NUClear {
         private:
         
             template <typename TKey>
-            struct CallbackCache {
-                typedef Internal::Magic::CompiledMap<Reactor, TKey, Internal::Reaction, Internal::Magic::LIST> cache;
-            };
-                
+            using CallbackCache = Internal::Magic::CompiledMap<Reactor, TKey, Internal::Reaction, Internal::Magic::LIST>;
+        
             /**
              * @brief Base template instantitation that gets specialized. 
              * @details 

@@ -91,9 +91,8 @@ namespace NUClear {
             class CacheMaster : public BaseMaster {
                 private:
                     template <typename TData>
-                    struct ValueCache {
-                        typedef Internal::Magic::CompiledMap<CacheMaster, TData, TData, Internal::Magic::QUEUE> cache;
-                    };
+                    using ValueCache = Internal::Magic::CompiledMap<CacheMaster, TData, TData, Internal::Magic::QUEUE>;
+                
                 public:
                     CacheMaster(ReactorController* parent);
                     ~CacheMaster();
@@ -131,9 +130,8 @@ namespace NUClear {
 
                 private:
                     template <typename TKey>
-                    struct CallbackCache {
-                        typedef Internal::Magic::CompiledMap<Reactor, TKey, Internal::Reaction, Internal::Magic::LIST> cache;
-                    };
+                    using CallbackCache = Internal::Magic::CompiledMap<Reactor, TKey, Internal::Reaction, Internal::Magic::LIST>;
+
                     std::vector<std::unique_ptr<NUClear::Reactor>> m_reactors;
             };
 
