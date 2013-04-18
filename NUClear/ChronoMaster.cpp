@@ -69,7 +69,7 @@ namespace NUClear {
     }
     
     void ReactorController::ChronoMaster::kill() {
-        //Releasing the lock will kill the system immediantly
-        m_lock.release();
+        //If we unlock the lock, then the lock will return true, ending the chronomasters run method
+        m_lock.unlock();
     }
 }

@@ -26,9 +26,7 @@ namespace Internal {
     }
 
     ThreadWorker::~ThreadWorker() {
-        // This should never happen, but if we are destructed, stop running
-        kill();
-        join();
+        // If you put code in here, all sorts of madness happens (don't do it)
     }
     
     void ThreadWorker::kill() {
@@ -38,9 +36,13 @@ namespace Internal {
     void ThreadWorker::join() {
         
         // only join the thread if it's joinable (or errors!)
-        if(m_thread.joinable()) {
-            m_thread.join();
+        try {
+            if(m_thread.joinable()) {
+                m_thread.join();
+            }
         }
+        // Why this is thrown if you try to join an unjoinable thread, i'll never know
+        catch (const std::system_error e) { }
     }
     
     std::thread::id ThreadWorker::getThreadId() {

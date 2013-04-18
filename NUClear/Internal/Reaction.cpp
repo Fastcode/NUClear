@@ -16,7 +16,6 @@
  */
 
 #include "Reaction.h"
-#include <iostream>
 
 namespace NUClear {
 namespace Internal {

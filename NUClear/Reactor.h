@@ -18,7 +18,6 @@
 #ifndef NUCLEAR_REACTOR_H
 #define NUCLEAR_REACTOR_H
 
-#include <iostream>
 #include <string>
 #include <functional>
 #include <map>

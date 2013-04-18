@@ -23,8 +23,8 @@
 #include <thread>
 #include <vector>
 #include <typeindex>
+#include <mutex>
 #include <map>
-#include <iostream>
 #include "Internal/ThreadWorker.h"
 #include "Internal/TaskScheduler.h"
 #include "Internal/CommandTypes/CommandTypes.h"

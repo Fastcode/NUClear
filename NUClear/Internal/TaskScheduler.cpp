@@ -17,8 +17,6 @@
 
 #include "TaskScheduler.h"
 
-#include <iostream>
-
 namespace NUClear {
 namespace Internal {
     
@@ -81,7 +79,7 @@ namespace Internal {
         {
             std::unique_lock<std::mutex> lock(m_mutex);
             
-            if(!task->m_parent->m_options.m_single || !task->m_parent->m_running) {
+            if(!m_shutdown && (!task->m_parent->m_options.m_single || !task->m_parent->m_running)) {
                 
                 auto it = m_queues.find(task->m_parent->m_options.m_syncType);
                 if(it == std::end(m_queues)) {
@@ -113,7 +111,7 @@ namespace Internal {
             }
             
             // If the queue is empty wait for notificiation
-            if(queue->second->m_queue.empty()) {
+            if(!m_shutdown && queue->second->m_queue.empty()) {
                 m_condition.wait(lock);
             }
             else if(m_shutdown) {
