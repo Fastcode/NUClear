@@ -30,7 +30,7 @@
 #include "Internal/CommandTypes/CommandTypes.h"
 #include "Internal/Magic/unpack.h"
 #include "Internal/Magic/BoundCallback.h"
-#include "Internal/Magic/CompiledCache.h"
+#include "Internal/Magic/CompiledMap.h"
 
 namespace NUClear {
     
@@ -52,13 +52,7 @@ namespace NUClear {
 
             Reactor(ReactorController& reactorController);
             ~Reactor();
-
-            /**
-             * @brief Notifies this reactor that an event has occured
-             * @tparam TTrigger the type of the event that occured.
-             */
-            template <typename TTrigger>
-            void notify();   
+ 
         protected:
                 
             template <typename... TTriggers>
@@ -94,8 +88,12 @@ namespace NUClear {
             void on(TFunc callback);
             ReactorController& reactorController;
         private:
-            std::map<std::type_index, std::vector<Internal::Reaction>> m_callbacks;
-            
+        
+            template <typename TKey>
+            struct CallbackCache {
+                typedef Internal::Magic::CompiledMap<Reactor, TKey, Internal::Reaction, Internal::Magic::LIST> cache;
+            };
+                
             /**
              * @brief Base template instantitation that gets specialized. 
              * @details 
@@ -167,7 +165,7 @@ namespace NUClear {
              * @returns The wrapped callback
              */
             template <typename TFunc, typename... TTriggersAndWiths>
-            Internal::Reaction buildReaction(TFunc callback, Internal::Reaction::Options& options);
+            Internal::Reaction* buildReaction(TFunc callback, Internal::Reaction::Options& options);
         
             /**
              * @brief Adds a single data -> callback mapping for a single type.
@@ -175,7 +173,7 @@ namespace NUClear {
              * @param callback the callback to add
              */
             template <typename TTrigger, typename... TTriggers>
-            void bindTriggers(Internal::Reaction callback);
+            void bindTriggers(Internal::Reaction* callback);
 
             /**
              * @brief The implementation method for bindTriggers, provides partial template specialization for specific-trigger type logic.
@@ -184,7 +182,7 @@ namespace NUClear {
              * @param placeholder used for partial template specialization
              */
             template <typename TTrigger>
-            void bindTriggersImpl(Internal::Reaction callback, TTrigger* /*placeholder*/);
+            void bindTriggersImpl(Internal::Reaction* callback, TTrigger* /*placeholder*/);
         
             /**
              * @brief The implementation method for bindTriggers, provides partial template specialization for specific-trigger type logic.
@@ -193,7 +191,7 @@ namespace NUClear {
              * @param placeholder used for partial template specialization
              */
             template <int ticks, class period = std::chrono::milliseconds>
-            void bindTriggersImpl(Internal::Reaction callback, Every<ticks, period>* /*placeholder*/);
+            void bindTriggersImpl(Internal::Reaction* callback, Every<ticks, period>* /*placeholder*/);
         
             /**
              * @brief The implementation method for bindTriggers, provides partial template specialization for specific-trigger type logic.
@@ -202,15 +200,7 @@ namespace NUClear {
              * @param placeholder used for partial template specialization
              */
             template <int num, typename TData>
-            void bindTriggersImpl(Internal::Reaction callback, Last<num, TData>* /*placeholder*/);
-        
-            /**
-             * @brief Gets the callback list for a given type
-             * @tparam TTrigger the type to get the callback list for
-             * @returns The callback list
-             */
-            template <typename TTrigger>
-            std::vector<Internal::Reaction>& getCallbackList();     
+            void bindTriggersImpl(Internal::Reaction* callback, Last<num, TData>* /*placeholder*/);
     };
 }
 

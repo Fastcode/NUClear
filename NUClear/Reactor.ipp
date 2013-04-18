@@ -32,22 +32,6 @@ namespace NUClear {
         OnImpl<TTrigger, TWith, TOptions, TFunc>(this)(callback);
     }
 
-    template <typename TTrigger>
-    void Reactor::notify() {
-        auto& callbacks = getCallbackList<TTrigger>();
-        for(auto callback = std::begin(callbacks); callback != std::end(callbacks); ++callback) {
-            
-            try {
-                // Get our task (our data bound callback)
-                std::unique_ptr<Internal::Reaction::Task> task(callback->getTask());
-                
-                reactorController.threadmaster.submit(std::move(task));
-            }
-            // At least one of the data elements that was requested is not cached, cancel callback
-            catch (Internal::Magic::NoDataException) {}
-        }
-    }
-
     // == Private Method == 
     template <typename... TTriggers, typename... TWiths, typename... TOptions, typename TFunc>
     Reactor::OnImpl<
@@ -85,15 +69,12 @@ namespace NUClear {
     }
 
     template <typename TFunc, typename... TTriggersAndWiths>
-    Internal::Reaction Reactor::buildReaction(TFunc callback, Internal::Reaction::Options& options) {
+    Internal::Reaction* Reactor::buildReaction(TFunc callback, Internal::Reaction::Options& options) {
         
-        // Make a reaction which has a self executing lambda within it which returns the bound function, this way
-        // the parameters are bound at emit time and not when the callback is eventually run
-        Internal::Reaction callbackWrapper([this, callback]() -> std::function<void ()> {
+        // Return a reaction object that gets and runs with the correct paramters
+        return new Internal::Reaction([this, callback]() -> std::function<void ()> {
             return Internal::Magic::bindCallback(callback, reactorController.get<TTriggersAndWiths>()...);
         }, options);
-
-        return Internal::Reaction(callbackWrapper);
     }
 
     /**
@@ -103,7 +84,7 @@ namespace NUClear {
      * @param callback the callback to bind to these triggers
      */
     template <typename TTrigger, typename... TTriggers>
-    void Reactor::bindTriggers(Internal::Reaction callback) {
+    void Reactor::bindTriggers(Internal::Reaction* callback) {
         bindTriggersImpl(callback, reinterpret_cast<TTrigger*>(0));
 
         // See unpack.h for explanation
@@ -117,15 +98,14 @@ namespace NUClear {
      * @param placeholder used for partial template specialization
      */
     template <typename TTrigger>
-    void Reactor::bindTriggersImpl(Internal::Reaction callback, TTrigger* /*placeholder*/) {
-        auto& callbacks = getCallbackList<TTrigger>();
-        callbacks.push_back(callback);
-
-        reactorController.reactormaster.subscribe<TTrigger>(this);
+    void Reactor::bindTriggersImpl(Internal::Reaction* callback, TTrigger* /*placeholder*/) {
+        
+        // Store our data in the cache
+        CallbackCache<TTrigger>::cache::set(callback);
     }
 
     template <int ticks, class period>
-    void Reactor::bindTriggersImpl(Internal::Reaction callback, Every<ticks, period>* placeholder) {
+    void Reactor::bindTriggersImpl(Internal::Reaction* callback, Every<ticks, period>* placeholder) {
         
         // Add this interval to the chronometer
         reactorController.chronomaster.add<ticks, period>();
@@ -135,26 +115,12 @@ namespace NUClear {
     }
     
     template <int num, typename TData>
-    void Reactor::bindTriggersImpl(Internal::Reaction callback, Last<num, TData>* placeholder) {
+    void Reactor::bindTriggersImpl(Internal::Reaction* callback, Last<num, TData>* placeholder) {
         
         // Let the ReactorMaster know to cache at least this many of this type
         reactorController.cachemaster.ensureCache<num, TData>();
         
         // Register our callback on the inner type
         bindTriggersImpl<TData>(callback, reinterpret_cast<TData*>(0));
-    }
-
-    /**
-     * @brief Gets the callback list for a given type
-     * @tparam TTrigger the type to get the callback list for
-     * @returns The callback list
-     */
-    template <typename TTrigger>
-    std::vector<NUClear::Internal::Reaction>& Reactor::getCallbackList() {
-        if(m_callbacks.find(typeid(TTrigger)) == m_callbacks.end()) {
-            m_callbacks[typeid(TTrigger)] = std::vector<NUClear::Internal::Reaction>();
-        }
-
-        return m_callbacks[typeid(TTrigger)];
     }
 }

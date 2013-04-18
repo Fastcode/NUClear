@@ -28,7 +28,7 @@
 #include "Internal/ThreadWorker.h"
 #include "Internal/TaskScheduler.h"
 #include "Internal/CommandTypes/CommandTypes.h"
-#include "Internal/Magic/CompiledCache.h"
+#include "Internal/Magic/CompiledMap.h"
 
 namespace NUClear {
     
@@ -74,8 +74,8 @@ namespace NUClear {
             class CacheMaster : public BaseMaster {
                 private:
                     template <typename TData>
-                    struct Cache {
-                        typedef Internal::Magic::CompiledCache<CacheMaster, TData, Internal::Magic::QUEUE> cache;
+                    struct ValueCache {
+                        typedef Internal::Magic::CompiledMap<CacheMaster, TData, TData, Internal::Magic::QUEUE> cache;
                     };
                 public:
                     CacheMaster(ReactorController* parent);
@@ -113,18 +113,12 @@ namespace NUClear {
                     template <typename TReactor>
                     void install();
 
-                    template <typename TTrigger>
-                    void subscribe(NUClear::Reactor* reactor);
-
                 private:
-                    template <typename TTrigger>
-                    void notifyReactors();
-
-                    template <typename TTrigger>
-                    std::set<NUClear::Reactor*>& getReactorBindings();
-
+                    template <typename TKey>
+                    struct CallbackCache {
+                        typedef Internal::Magic::CompiledMap<Reactor, TKey, Internal::Reaction, Internal::Magic::LIST> cache;
+                    };
                     std::vector<std::unique_ptr<NUClear::Reactor>> m_reactors;
-                    std::map<std::type_index, std::set<NUClear::Reactor*> > m_reactorBindings;
             };
 
             class ThreadMaster : public BaseMaster {

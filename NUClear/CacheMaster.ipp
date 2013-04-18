@@ -20,28 +20,27 @@ namespace NUClear {
     
     template <int num, typename TData>
     void ReactorController::CacheMaster::ensureCache() {
-        Cache<TData>::cache::minCapacity(num);
+        ValueCache<TData>::cache::minCapacity(num);
     }
     
     template <typename TData>
     std::shared_ptr<TData> ReactorController::CacheMaster::getData(TData*) {
-        return Cache<TData>::cache::get();
+        return ValueCache<TData>::cache::get();
     }
     
     template <int num, typename TData>
     std::shared_ptr<std::vector<std::shared_ptr<const TData>>> ReactorController::CacheMaster::getData(Internal::CommandTypes::Last<num, TData>*) {
-        
-        return Cache<TData>::cache::get(num);
+        return ValueCache<TData>::cache::get(num);
     }
     
     template <int ticks, class period>
     std::shared_ptr<std::chrono::time_point<std::chrono::steady_clock>> ReactorController::CacheMaster::getData(Internal::CommandTypes::Every<ticks, period>*) {
         
-        return std::shared_ptr<std::chrono::time_point<std::chrono::steady_clock>>(new std::chrono::time_point<std::chrono::steady_clock>(Cache<Internal::CommandTypes::Every<ticks, period>>::cache::get()->m_time));
+        return std::shared_ptr<std::chrono::time_point<std::chrono::steady_clock>>(new std::chrono::time_point<std::chrono::steady_clock>(ValueCache<Internal::CommandTypes::Every<ticks, period>>::cache::get()->m_time));
     }
     
     template <typename TData>
     void ReactorController::CacheMaster::cache(TData* data) {
-        Cache<TData>::cache::cache(data);
+        ValueCache<TData>::cache::set(data);
     }
 }

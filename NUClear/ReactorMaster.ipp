@@ -31,31 +31,17 @@ namespace NUClear {
     }
 
     template <typename TTrigger>
-    void ReactorController::ReactorMaster::subscribe(NUClear::Reactor* reactor) {
-        std::set<NUClear::Reactor*>& bindings = getReactorBindings<TTrigger>();
-        bindings.insert(reactor);
-    }
-
-    template <typename TTrigger>
-    std::set<NUClear::Reactor*>& ReactorController::ReactorMaster::getReactorBindings() {
-        if(m_reactorBindings.find(typeid(TTrigger)) == m_reactorBindings.end()) {
-            m_reactorBindings[typeid(TTrigger)] = std::set<NUClear::Reactor*>();
-        }
-        return m_reactorBindings[typeid(TTrigger)];
-    }
-
-    template <typename TTrigger>
     void ReactorController::ReactorMaster::emit(TTrigger* data) {
         
         m_parent->cachemaster.cache<TTrigger>(data);
-        notifyReactors<TTrigger>();
-    }
-
-    template <typename TTrigger>
-    void ReactorController::ReactorMaster::notifyReactors() {
-        std::set<NUClear::Reactor*>& reactors = getReactorBindings<TTrigger>();
-        for(std::set<NUClear::Reactor*>::iterator reactor = std::begin(reactors); reactor != std::end(reactors); ++reactor) {
-            (*reactor)->notify<TTrigger>();
+        auto& reactions = CallbackCache<TTrigger>::cache::get();
+        
+        for(auto it = std::begin(reactions); it != std::end(reactions); ++it) {
+            try {
+                m_parent->threadmaster.submit(std::move((*it)->getTask()));
+            }
+            // If there is no data, then ignore the task
+            catch (Internal::Magic::NoDataException) {}
         }
     }
 }
