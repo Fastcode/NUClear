@@ -85,6 +85,9 @@ namespace Internal {
                     std::atomic<bool> m_active;
             };
         
+            TaskScheduler();
+            ~TaskScheduler();
+        
             /**
              * @brief Submit a new task to be executed to the Scheduler.
              *

@@ -47,7 +47,7 @@ class RandomData {
 class Vision : public NUClear::Reactor {
     public:
         Vision(NUClear::ReactorController& control) : Reactor(control) {
-            
+            /*
             on<Trigger<MotorData>, With<CameraData>>([](const MotorData& cameraData, const CameraData& motorData) {
                 std::cout << "Double trigger!" << std::endl;
             });
@@ -91,13 +91,15 @@ class Vision : public NUClear::Reactor {
                     }
                 }
             });
+            */
             
+            on<Trigger<Every<1, std::chrono::hours>>>([](const std::chrono::time_point<std::chrono::steady_clock>& time){});
             
             // This section of code here is for timing how long our API system is taking
             on<Trigger<std::chrono::time_point<std::chrono::steady_clock>>, With<int, long>>([this](const std::chrono::time_point<std::chrono::steady_clock>& point, const int& i, const long& avg) {
                 auto now = std::chrono::steady_clock::now();
                 
-                if(i > 1000) {
+                if(i > 100000) {
                     std::cout << "Average API time: " << avg << " ns" << std::endl;
                 }
                 else {
@@ -114,14 +116,6 @@ class Vision : public NUClear::Reactor {
 };
 
 int main(int argc, char** argv) {
-    NUClear::ReactorController controller;
-    
-    controller.install<Vision>();
-    
-    controller.start();
-}
-
-int main2(int argc, char** argv) {
     NUClear::ReactorController controller;
     
     controller.install<Vision>();
@@ -165,6 +159,8 @@ int main2(int argc, char** argv) {
     controller.emit(new int(0));
     controller.emit(new long(0));
     controller.emit(new std::chrono::time_point<std::chrono::steady_clock>(std::chrono::steady_clock::now()));
+    
+    controller.start();
     
     return 0;
 }

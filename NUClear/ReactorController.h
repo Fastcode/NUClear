@@ -55,7 +55,7 @@ namespace NUClear {
                 std::map<std::thread::id, std::unique_ptr<Internal::ThreadWorker>> m_threads;
                 std::vector<std::pair<std::function<void ()>, std::function<void ()>>> m_internalTasks;
                 Internal::TaskScheduler m_scheduler;
-                int numThreads = 1;
+                int numThreads = 4;
             };
 
             class ChronoMaster : public BaseMaster {

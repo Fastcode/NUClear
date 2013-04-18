@@ -61,29 +61,31 @@ namespace Internal {
     TaskScheduler::TaskQueue::TaskQueue() : m_active(false) {
     }
     
+    TaskScheduler::TaskScheduler() {
+        std::type_index a(typeid(nullptr));
+        m_queues.insert(std::make_pair(a, std::unique_ptr<TaskQueue>(new TaskQueue())));
+    }
+    
+    TaskScheduler::~TaskScheduler() {
+    }
+    
     void TaskScheduler::submit(std::unique_ptr<Reaction::Task>&& task) {
-        
-        bool active = false;
-        
-        std::unique_lock<std::mutex> lock(m_mutex);
-        
-        if(task->m_parent->m_options.m_single && !task->m_parent->m_running) {
+        {
+            std::unique_lock<std::mutex> lock(m_mutex);
             
-            auto it = m_queues.find(task->m_parent->m_options.m_syncType);
-            if(it == std::end(m_queues)) {
-                auto newQueue = m_queues.insert(std::make_pair(task->m_parent->m_options.m_syncType, std::unique_ptr<TaskQueue>(new TaskQueue())));
-                active = newQueue.first->second->m_active;
-            }
-            else {
-                it->second->m_queue.push(std::move(task));
+            if(!task->m_parent->m_options.m_single || !task->m_parent->m_running) {
+                
+                auto it = m_queues.find(task->m_parent->m_options.m_syncType);
+                if(it == std::end(m_queues)) {
+                    m_queues.insert(std::make_pair(task->m_parent->m_options.m_syncType, std::unique_ptr<TaskQueue>(new TaskQueue())));
+                }
+                else {
+                    it->second->m_queue.push(std::move(task));
+                }
             }
             
-            
-            if(active) {
-                lock.release();
-                m_condition.notify_one();
-            }
         }
+        m_condition.notify_one();
     }
     
     std::unique_ptr<Reaction::Task> TaskScheduler::getTask() {
