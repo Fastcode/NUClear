@@ -26,9 +26,9 @@ namespace NUClear {
 
     void ReactorController::ThreadMaster::start() {
         // Start our internal service threads
-        for(auto it = std::begin(m_internalTasks); it != std::end(m_internalTasks); ++it) {
+        for(auto& task : m_internalTasks) {
             // Start a thread worker with our task
-            std::unique_ptr<Internal::ThreadWorker> thread = std::unique_ptr<Internal::ThreadWorker>(new Internal::ThreadWorker(*it));
+            std::unique_ptr<Internal::ThreadWorker> thread = std::unique_ptr<Internal::ThreadWorker>(new Internal::ThreadWorker(task));
             m_threads.insert(std::pair<std::thread::id, std::unique_ptr<Internal::ThreadWorker>>(thread->getThreadId(), std::move(thread)));
         }
         
@@ -39,15 +39,15 @@ namespace NUClear {
         }
         
         // Now wait for all the threads to finish executing
-        for(auto it = std::begin(m_threads); it != std::end(m_threads); ++it) {
-            it->second->join();
+        for(auto& thread : m_threads) {
+            thread.second->join();
         }
     }
     
     void ReactorController::ThreadMaster::shutdown() {
         // Kill everything
-        for(auto it = std::begin(m_threads); it != std::end(m_threads); ++it) {
-            it->second->kill();
+        for(auto& thread : m_threads) {
+            thread.second->kill();
         }
         // Kill the task scheduler
         m_scheduler.shutdown();

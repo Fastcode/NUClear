@@ -34,11 +34,10 @@ namespace NUClear {
     void ReactorController::ReactorMaster::emit(TTrigger* data) {
         
         m_parent->cachemaster.cache<TTrigger>(data);
-        auto& reactions = CallbackCache<TTrigger>::cache::get();
         
-        for(auto it = std::begin(reactions); it != std::end(reactions); ++it) {
+        for(auto& reaction : CallbackCache<TTrigger>::cache::get()) {
             try {
-                m_parent->threadmaster.submit(std::move((*it)->getTask()));
+                m_parent->threadmaster.submit(reaction->getTask());
             }
             // If there is no data, then ignore the task
             catch (Internal::Magic::NoDataException) {}

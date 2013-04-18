@@ -37,8 +37,8 @@ namespace NUClear {
         
         // Initialize all of the m_steps with our start time
         std::chrono::time_point<std::chrono::steady_clock> start(std::chrono::steady_clock::now());
-        for(auto it = std::begin(m_steps); it != std::end(m_steps); ++it) {
-            (*it)->next = start;
+        for(auto& step : m_steps) {
+            step->next = start;
         }
         
         do {
@@ -46,12 +46,12 @@ namespace NUClear {
             std::chrono::time_point<std::chrono::steady_clock> now(std::chrono::steady_clock::now());
             
             // Check if any intervals are before now and if so execute their callbacks and add their step.
-            for(auto it = std::begin(m_steps); it != std::end(m_steps); ++it) {
-                if(((*it)->next - now).count() <= 0) {
-                    for(auto callback = std::begin((*it)->callbacks); callback != std::end((*it)->callbacks); ++callback) {
-                        (*callback)(now);
+            for(auto& step : m_steps) {
+                if((step->next - now).count() <= 0) {
+                    for(auto& callback : step->callbacks) {
+                        callback(now);
                     }
-                    (*it)->next += (*it)->step;
+                    step->next += step->step;
                 }
                 // Since we are sorted, we can ignore any after this time
                 else {
