@@ -27,7 +27,7 @@
 #include <chrono>
 #include <atomic>
 #include "Internal/Reaction.h"
-#include "Internal/CommandTypes.h"
+#include "Internal/CommandTypes/CommandTypes.h"
 #include "Internal/Magic/unpack.h"
 #include "Internal/Magic/BoundCallback.h"
 

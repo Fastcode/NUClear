@@ -52,7 +52,6 @@ namespace NUClear {
         return std::shared_ptr<std::vector<std::shared_ptr<const TData>>>(new std::vector<std::shared_ptr<const TData>>(std::begin(m_cache), std::begin(m_cache) + length));
     }
     
-    
     template <int num, typename TData>
     void ReactorController::CacheMaster::ensureCache() {
         Cache<TData>::capacity(num);
@@ -69,7 +68,12 @@ namespace NUClear {
         return Cache<TData>::get(num);
     }
     
-    // == Private Methods ==
+    template <int ticks, class period>
+    std::shared_ptr<std::chrono::time_point<std::chrono::steady_clock>> ReactorController::CacheMaster::getData(Internal::CommandTypes::Every<ticks, period>*) {
+        
+        return std::shared_ptr<std::chrono::time_point<std::chrono::steady_clock>>(new std::chrono::time_point<std::chrono::steady_clock>(Cache<Internal::CommandTypes::Every<ticks, period>>::get()->m_time));
+    }
+    
     template <typename TData>
     void ReactorController::CacheMaster::cache(TData* data) {
         Cache<TData>::cache(data);

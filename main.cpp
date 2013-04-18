@@ -54,15 +54,15 @@ class Vision : public NUClear::Reactor {
 
             on<Trigger<CameraData>, With<MotorData>>(std::bind(&Vision::reactInner, this, std::placeholders::_1, std::placeholders::_2));
             
-            on<Trigger<Every<1, std::chrono::seconds>>>([](const Every<1, std::chrono::seconds>& time) {
+            on<Trigger<Every<1, std::chrono::seconds>>>([](const std::chrono::time_point<std::chrono::steady_clock>& time) {
                 std::cout << "Every 1 seconds called" << std::endl;
             });
             
-            on<Trigger<Every<10, std::chrono::milliseconds>>>([](const Every<10, std::chrono::milliseconds>& time) {
+            on<Trigger<Every<10, std::chrono::milliseconds>>>([](const std::chrono::time_point<std::chrono::steady_clock>& time) {
                 std::cout << "Every 100 milliseconds called" << std::endl;
             });
             
-            on<Trigger<Every<1000>>>([](const Every<1000>& time) {
+            on<Trigger<Every<1000>>>([](const std::chrono::time_point<std::chrono::steady_clock>& time) {
                 std::cout << "Every 1000 milliseconds called" << std::endl;
             });
             
@@ -70,7 +70,7 @@ class Vision : public NUClear::Reactor {
                 std::cout << "With Options" << std::endl;
             });
             
-            on<Trigger<Last<3, RandomData>>>([](std::vector<std::shared_ptr<const RandomData>> data) {
+            on<Trigger<Last<3, RandomData>>>([](const std::vector<std::shared_ptr<const RandomData>>& data) {
                 std::cout << "I'm getting the last 3 CameraDatas!: " << data.size() << std::endl;
                 
                 for(auto it = std::begin(data); it != std::end(data); ++it) {
@@ -83,7 +83,7 @@ class Vision : public NUClear::Reactor {
                 }
             });
             
-            on<Trigger<Last<5, RandomData>>>([](std::vector<std::shared_ptr<const RandomData>> data) {
+            on<Trigger<Last<5, RandomData>>>([](std::vector<std::shared_ptr<const RandomData>>& data) {
                 std::cout << "I'm getting the last 5 CameraDatas!: " << data.size() << std::endl;
                 
                 for(auto it = std::begin(data); it != std::end(data); ++it) {
@@ -130,31 +130,31 @@ int main(int argc, char** argv) {
     controller.emit(new RandomData("Data 5"));
     controller.emit(new RandomData("Data 6"));
 
-    std::chrono::nanoseconds a(std::chrono::steady_clock::now().time_since_epoch());
+    std::chrono::time_point<std::chrono::steady_clock> a(std::chrono::steady_clock::now());
     controller.emit(new MotorData());
-    std::chrono::nanoseconds b(std::chrono::steady_clock::now().time_since_epoch());
+    std::chrono::time_point<std::chrono::steady_clock> b(std::chrono::steady_clock::now());
     controller.emit(new CameraData());
-    std::chrono::nanoseconds c(std::chrono::steady_clock::now().time_since_epoch());
+    std::chrono::time_point<std::chrono::steady_clock> c(std::chrono::steady_clock::now());
     controller.emit(new MotorData());
-    std::chrono::nanoseconds d(std::chrono::steady_clock::now().time_since_epoch());
+    std::chrono::time_point<std::chrono::steady_clock> d(std::chrono::steady_clock::now());
     controller.emit(new CameraData());
-    std::chrono::nanoseconds e(std::chrono::steady_clock::now().time_since_epoch());
+    std::chrono::time_point<std::chrono::steady_clock> e(std::chrono::steady_clock::now());
     controller.emit(new MotorData());
-    std::chrono::nanoseconds f(std::chrono::steady_clock::now().time_since_epoch());
+    std::chrono::time_point<std::chrono::steady_clock> f(std::chrono::steady_clock::now());
     controller.emit(new CameraData());
-    std::chrono::nanoseconds g(std::chrono::steady_clock::now().time_since_epoch());
+    std::chrono::time_point<std::chrono::steady_clock> g(std::chrono::steady_clock::now());
     
-    std::cout << "Emit MotorData 1 Elapsed: " << (b - a).count() << std::endl;
+    std::cout << "Emit MotorData 1 Elapsed: " << std::chrono::duration_cast<std::chrono::nanoseconds>(b - a).count() << std::endl;
     
-    std::cout << "Emit CameraData 1 Elapsed: " << (c - b).count() << std::endl;
+    std::cout << "Emit CameraData 1 Elapsed: " << std::chrono::duration_cast<std::chrono::nanoseconds>(c - b).count() << std::endl;
     
-    std::cout << "Emit MotorData 2 Elapsed: " << (d - c).count() << std::endl;
+    std::cout << "Emit MotorData 2 Elapsed: " << std::chrono::duration_cast<std::chrono::nanoseconds>(d - c).count() << std::endl;
     
-    std::cout << "Emit CameraData 2 Elapsed: " << (e - d).count() << std::endl;
+    std::cout << "Emit CameraData 2 Elapsed: " << std::chrono::duration_cast<std::chrono::nanoseconds>(e - d).count() << std::endl;
     
-    std::cout << "Emit MotorData 3 Elapsed: " << (f - e).count() << std::endl;
+    std::cout << "Emit MotorData 3 Elapsed: " << std::chrono::duration_cast<std::chrono::nanoseconds>(f - e).count() << std::endl;
     
-    std::cout << "Emit CameraData 3 Elapsed: " << (g - f).count() << std::endl;
+    std::cout << "Emit CameraData 3 Elapsed: " << std::chrono::duration_cast<std::chrono::nanoseconds>(g - f).count() << std::endl;
     
     std::cout << "Starting API Speed Test" << std::endl;
     

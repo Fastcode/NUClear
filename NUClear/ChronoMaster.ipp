@@ -27,16 +27,16 @@ namespace NUClear {
             // Flag this type as loaded
             m_loaded.insert(typeid(NUClear::Internal::CommandTypes::Every<ticks, period>));
             
-            std::function<void ()> emit = [this](){
-                m_parent->emit(new NUClear::Internal::CommandTypes::Every<ticks, period>());
+            std::function<void (std::chrono::time_point<std::chrono::steady_clock>)> emit = [this](std::chrono::time_point<std::chrono::steady_clock> time){
+                m_parent->emit(new NUClear::Internal::CommandTypes::Every<ticks, period>(time));
             };
             
-            // Get the number of nanoseconds this tick is
-            std::chrono::nanoseconds step(std::chrono::duration_cast<std::chrono::nanoseconds>(period(ticks)));
+            // Get our period in whatever time our clock measures
+            std::chrono::steady_clock::duration step((period(ticks)));
             
             // See if we already have one with this period
             auto item = std::find_if(std::begin(m_steps), std::end(m_steps), [step](std::unique_ptr<Step>& find) {
-                return find->step == step;
+                return find->step.count() == step.count();
             });
             
             // If we don't then create a new one with our initial data

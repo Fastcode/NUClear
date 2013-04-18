@@ -65,9 +65,6 @@ namespace NUClear {
         , Reactor::Options<TOptions...>
         , TFunc>::operator()(TFunc callback) {
             Internal::Reaction::Options options;
-            if(sizeof...(TOptions) > 0) {
-                context->buildOptions<TOptions...>(options);
-            }
             context->bindTriggers<TTriggers...>(context->buildReaction<TFunc, TTriggers..., TWiths...>(callback, options));
     }
     

@@ -26,9 +26,9 @@
 #include <typeindex>
 #include <map>
 #include <iostream>
-#include "Internal/CommandTypes.h"
 #include "Internal/ThreadWorker.h"
 #include "Internal/TaskScheduler.h"
+#include "Internal/CommandTypes/CommandTypes.h"
 
 namespace NUClear {
     
@@ -56,9 +56,9 @@ namespace NUClear {
                 private:
                     /// @brief this class holds the callbacks to emit events, as well as when to emit these events.
                     struct Step {
-                        std::chrono::nanoseconds step;
-                        std::chrono::nanoseconds next;
-                        std::vector<std::function<void ()>> callbacks;
+                        std::chrono::steady_clock::duration step;
+                        std::chrono::time_point<std::chrono::steady_clock> next;
+                        std::vector<std::function<void (std::chrono::time_point<std::chrono::steady_clock>)>> callbacks;
                     };
                 
                     /// @brief If the system should continue to execute or if it should stop
@@ -96,6 +96,9 @@ namespace NUClear {
                     
                     template <int num, typename TData>
                     std::shared_ptr<std::vector<std::shared_ptr<const TData>>> getData(Internal::CommandTypes::Last<num, TData>*);
+                
+                    template <int ticks, class period>
+                    std::shared_ptr<std::chrono::time_point<std::chrono::steady_clock>> getData(Internal::CommandTypes::Every<ticks, period>*);
                 
                 public:
                     CacheMaster(ReactorController* parent);

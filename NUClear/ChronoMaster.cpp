@@ -29,7 +29,7 @@ namespace NUClear {
 
     void ReactorController::ChronoMaster::run() {
         // Initialize all of the m_steps with our start time
-        std::chrono::nanoseconds start(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now().time_since_epoch()));
+        std::chrono::time_point<std::chrono::steady_clock> start(std::chrono::steady_clock::now());
         for(auto it = std::begin(m_steps); it != std::end(m_steps); ++it) {
             (*it)->next = start;
         }
@@ -37,13 +37,13 @@ namespace NUClear {
         // Loop until it is time for us to finish
         while(m_execute) {
             // Get the current time
-            std::chrono::nanoseconds now(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now().time_since_epoch()));
+            std::chrono::time_point<std::chrono::steady_clock> now(std::chrono::steady_clock::now());
             
             // Check if any intervals are before now and if so execute their callbacks and add their step.
             for(auto it = std::begin(m_steps); it != std::end(m_steps); ++it) {
                 if(((*it)->next - now).count() <= 0) {
                     for(auto callback = std::begin((*it)->callbacks); callback != std::end((*it)->callbacks); ++callback) {
-                        (*callback)();
+                        (*callback)(now);
                     }
                     (*it)->next += (*it)->step;
                 }
@@ -59,7 +59,7 @@ namespace NUClear {
             });
             
             // Sleep until it's time to emit this event
-            std::this_thread::sleep_for(m_steps.front()->next - now);
+            std::this_thread::sleep_until(m_steps.front()->next);
         }
     }
 }
