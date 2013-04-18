@@ -119,8 +119,6 @@ int main(int argc, char** argv) {
     controller.install<Vision>();
     
     controller.start();
-    
-    std::this_thread::sleep_for(std::chrono::hours(10));
 }
 
 int main2(int argc, char** argv) {

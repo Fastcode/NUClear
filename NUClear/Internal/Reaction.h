@@ -132,6 +132,8 @@ namespace Internal {
             Reaction::Options m_options;
             /// @brief the unique identifier for this Reaction object
             const reactionId_t m_reactionId;
+            /// @brief if this reaction is currently enqueued or running
+            bool m_running;
         private:
             /// @brief a source for reactionIds, atomically creates longs
             static std::atomic<std::uint64_t> reactionIdSource;
