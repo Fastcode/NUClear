@@ -15,42 +15,48 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include "ThreadWorker.h"
+#include "ThreadPoolTask.h"
 
 namespace NUClear {
 namespace Internal {
     
-    ThreadWorker::ThreadWorker(InternalTask task) :
-    m_task(task),
-    m_thread(std::bind(&ThreadWorker::core, this)) {
-    }
-
-    ThreadWorker::~ThreadWorker() {
-        // This should never happen, but if we are destructed, stop running
-        kill();
-        join();
+    ThreadPoolTask::ThreadPoolTask(TaskScheduler& scheduler) :
+    ThreadWorker::InternalTask(std::bind(&ThreadPoolTask::run, this), std::bind(&ThreadPoolTask::kill, this)),
+    m_scheduler(scheduler),
+    m_execute(true) {
     }
     
-    void ThreadWorker::kill() {
-        m_task.kill();
+    ThreadPoolTask::~ThreadPoolTask() {
     }
     
-    void ThreadWorker::join() {
-        
-        // only join the thread if it's joinable (or errors!)
-        if(m_thread.joinable()) {
-            m_thread.join();
+    void ThreadPoolTask::run() {
+        try {
+            // So long as we are executing
+            while(m_execute) {
+                // Get a task
+                
+                std::unique_ptr<Reaction::Task> task(m_scheduler.getTask());
+                
+                
+                // Try to execute the task (catching any exceptions so it doesn't kill the pool thread)
+                try {
+                    (*task)();
+                }
+                // Catch everything
+                catch(...) {
+                    //TODO update the task item with the exception details
+                }
+                
+                //TODO pass off the completed task to another class for processing of details
+            }
         }
+        // If this is thrown, it means that we should finish execution
+        catch (TaskScheduler::SchedulerShutdownException) {}
     }
     
-    std::thread::id ThreadWorker::getThreadId() {
-        // get the thread id from our internal thread
-        return m_thread.get_id();
+    void ThreadPoolTask::kill() {
+        m_execute = false;
     }
     
-    void ThreadWorker::core() {
-        
-        m_task.run();
-    }
 }
 }

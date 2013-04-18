@@ -61,12 +61,20 @@ namespace Internal {
     TaskScheduler::TaskQueue::TaskQueue() : m_active(false) {
     }
     
-    TaskScheduler::TaskScheduler() {
+    TaskScheduler::TaskScheduler() : m_shutdown(false) {
         std::type_index a(typeid(nullptr));
         m_queues.insert(std::make_pair(a, std::unique_ptr<TaskQueue>(new TaskQueue())));
     }
     
     TaskScheduler::~TaskScheduler() {
+    }
+    
+    void TaskScheduler::shutdown() {
+        {
+            std::unique_lock<std::mutex> lock(m_mutex);
+            m_shutdown = true;
+        }
+        m_condition.notify_all();
     }
     
     void TaskScheduler::submit(std::unique_ptr<Reaction::Task>&& task) {
@@ -107,6 +115,9 @@ namespace Internal {
             // If the queue is empty wait for notificiation
             if(queue->second->m_queue.empty()) {
                 m_condition.wait(lock);
+            }
+            else if(m_shutdown) {
+                throw TaskScheduler::SchedulerShutdownException();
             }
             else {
                 // Const cast is required here as for some reason the std::priority_queue only returns const references

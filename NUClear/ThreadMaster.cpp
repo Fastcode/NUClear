@@ -16,6 +16,7 @@
  */
 
 #include "ReactorController.h"
+#include "Internal/ThreadPoolTask.h"
 
 namespace NUClear {
     
@@ -26,17 +27,14 @@ namespace NUClear {
     void ReactorController::ThreadMaster::start() {
         // Start our internal service threads
         for(auto it = std::begin(m_internalTasks); it != std::end(m_internalTasks); ++it) {
-            // Execute our init function
-            it->first();
-            
             // Start a thread worker with our task
-            std::unique_ptr<Internal::ThreadWorker> thread = std::unique_ptr<Internal::ThreadWorker>(new Internal::ThreadWorker(it->second));
+            std::unique_ptr<Internal::ThreadWorker> thread = std::unique_ptr<Internal::ThreadWorker>(new Internal::ThreadWorker(*it));
             m_threads.insert(std::pair<std::thread::id, std::unique_ptr<Internal::ThreadWorker>>(thread->getThreadId(), std::move(thread)));
         }
         
         // Start our pool threads
         for(int i = 0; i < numThreads; ++i) {
-            std::unique_ptr<Internal::ThreadWorker> thread = std::unique_ptr<Internal::ThreadWorker>(new Internal::ThreadWorker(&m_scheduler));
+            std::unique_ptr<Internal::ThreadWorker> thread = std::unique_ptr<Internal::ThreadWorker>(new Internal::ThreadWorker(Internal::ThreadPoolTask(m_scheduler)));
             m_threads.insert(std::pair<std::thread::id, std::unique_ptr<Internal::ThreadWorker>>(thread->getThreadId(), std::move(thread)));
         }
         
@@ -46,8 +44,17 @@ namespace NUClear {
         }
     }
     
-    void ReactorController::ThreadMaster::internalTask(std::function<void ()> init, std::function<void ()> task) {
-        m_internalTasks.push_back(std::move(std::make_pair(init, task)));
+    void ReactorController::ThreadMaster::shutdown() {
+        // Kill everything
+        for(auto it = std::begin(m_threads); it != std::end(m_threads); ++it) {
+            it->second->kill();
+        }
+        // Kill the task scheduler
+        m_scheduler.shutdown();
+    }
+    
+    void ReactorController::ThreadMaster::internalTask(Internal::ThreadWorker::InternalTask task) {
+        m_internalTasks.push_back(task);
     }
     
     void ReactorController::ThreadMaster::submit(std::unique_ptr<Internal::Reaction::Task>&& task) {

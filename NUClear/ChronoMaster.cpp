@@ -20,46 +20,56 @@
 namespace NUClear {
     
     ReactorController::ChronoMaster::ChronoMaster(ReactorController* parent) :
-    ReactorController::BaseMaster(parent) {
-        m_parent->threadmaster.internalTask(std::bind(&ChronoMaster::init, this), std::bind(&ChronoMaster::run, this));
+    ReactorController::BaseMaster(parent),
+    m_lock(m_execute) {
+        
+        // Build a task
+        Internal::ThreadWorker::InternalTask task(std::bind(&ChronoMaster::run, this),
+                                                  std::bind(&ChronoMaster::kill, this));
+        
+        m_parent->threadmaster.internalTask(task);
     }
 
     ReactorController::ChronoMaster::~ChronoMaster() {
     }
-    
-    void ReactorController::ChronoMaster::init() {
+
+    void ReactorController::ChronoMaster::run() {
+        
         // Initialize all of the m_steps with our start time
         std::chrono::time_point<std::chrono::steady_clock> start(std::chrono::steady_clock::now());
         for(auto it = std::begin(m_steps); it != std::end(m_steps); ++it) {
             (*it)->next = start;
         }
-    }
-
-    void ReactorController::ChronoMaster::run() {
         
-        // Get the current time
-        std::chrono::time_point<std::chrono::steady_clock> now(std::chrono::steady_clock::now());
-        
-        // Check if any intervals are before now and if so execute their callbacks and add their step.
-        for(auto it = std::begin(m_steps); it != std::end(m_steps); ++it) {
-            if(((*it)->next - now).count() <= 0) {
-                for(auto callback = std::begin((*it)->callbacks); callback != std::end((*it)->callbacks); ++callback) {
-                    (*callback)(now);
+        do {
+            // Get the current time
+            std::chrono::time_point<std::chrono::steady_clock> now(std::chrono::steady_clock::now());
+            
+            // Check if any intervals are before now and if so execute their callbacks and add their step.
+            for(auto it = std::begin(m_steps); it != std::end(m_steps); ++it) {
+                if(((*it)->next - now).count() <= 0) {
+                    for(auto callback = std::begin((*it)->callbacks); callback != std::end((*it)->callbacks); ++callback) {
+                        (*callback)(now);
+                    }
+                    (*it)->next += (*it)->step;
                 }
-                (*it)->next += (*it)->step;
+                // Since we are sorted, we can ignore any after this time
+                else {
+                    break;
+                }
             }
-            // Since we are sorted, we can ignore any after this time
-            else {
-                break;
-            }
+            
+            // Sort the list so the next soonest interval is on top
+            std::sort(std::begin(m_steps), std::end(m_steps), [](const std::unique_ptr<Step>& a, const std::unique_ptr<Step>& b) {
+                return a->next < b->next;
+            });
         }
-        
-        // Sort the list so the next soonest interval is on top
-        std::sort(std::begin(m_steps), std::end(m_steps), [](const std::unique_ptr<Step>& a, const std::unique_ptr<Step>& b) {
-            return a->next < b->next;
-        });
-        
-        // Sleep until it's time to emit this event
-        std::this_thread::sleep_until(m_steps.front()->next);
+        // Sleep until it's time to emit this event, or the lock is released and we should finish
+        while(!m_execute.try_lock_until(m_steps.front()->next));
+    }
+    
+    void ReactorController::ChronoMaster::kill() {
+        //Releasing the lock will kill the system immediantly
+        m_lock.release();
     }
 }

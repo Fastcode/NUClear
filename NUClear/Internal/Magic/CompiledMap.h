@@ -1,3 +1,20 @@
+/**
+ * Copyright (C) 2013 Jake Woods <jake.f.woods@gmail.com>, Trent Houliston <trent@houliston.me>
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+ * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
+ * rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the
+ * Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+ * WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+ * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 #ifndef NUCLEAR_INTERNAL_MAGIC_COMPILEDMAP_H
 #define NUCLEAR_INTERNAL_MAGIC_COMPILEDMAP_H
 
@@ -44,6 +61,8 @@ namespace Magic {
      * @tparam TKey         The key being used to access the data
      * @tparam TValue       The type of data which is being stored in this map
      * @tparam Type         The type of map which is being created
+     *
+     * @author Trent Houliston
      */
     template <typename TMapID, typename TKey, typename TValue, enum MapType Type>
     class CompiledMap;
@@ -54,6 +73,8 @@ namespace Magic {
      * @details
      *  This map stores a single value in it's store when the set function is called, and when get is later called
      *  this object will be returned
+     *
+     * @author Trent Houliston
      *
      * @see CompiledMap
      */
@@ -103,6 +124,8 @@ namespace Magic {
      * @details
      *  This map acts as a ring buffer. When data is stored, it will remove the oldest element that is stored up to
      *  the capacity of the queue. The list of previous elements are accessable using the get(int) method.
+     *
+     * @author Trent Houliston
      *
      * @see CompiledMap
      */
@@ -175,6 +198,8 @@ namespace Magic {
      *
      * @details
      *  This map acts as a map of lists. When data is stored, add that element to the list of all items that are stored
+     *
+     * @author Trent Houliston
      *
      * @see CompiledMap
      */

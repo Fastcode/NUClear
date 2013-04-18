@@ -45,17 +45,19 @@ namespace NUClear {
             };
         
             class ThreadMaster : public BaseMaster {
-            public:
-                ThreadMaster(ReactorController* parent);
-                
-                void start();
-                void submit(std::unique_ptr<Internal::Reaction::Task>&& task);
-                void internalTask(std::function<void ()> init, std::function<void ()> task);
-            private:
-                std::map<std::thread::id, std::unique_ptr<Internal::ThreadWorker>> m_threads;
-                std::vector<std::pair<std::function<void ()>, std::function<void ()>>> m_internalTasks;
-                Internal::TaskScheduler m_scheduler;
-                int numThreads = 4;
+                public:
+                    
+                    ThreadMaster(ReactorController* parent);
+                    
+                    void start();
+                    void shutdown();
+                    void submit(std::unique_ptr<Internal::Reaction::Task>&& task);
+                    void internalTask(Internal::ThreadWorker::InternalTask task);
+                private:
+                    std::map<std::thread::id, std::unique_ptr<Internal::ThreadWorker>> m_threads;
+                    std::vector<Internal::ThreadWorker::InternalTask> m_internalTasks;
+                    Internal::TaskScheduler m_scheduler;
+                    int numThreads = 4;
             };
 
             class ChronoMaster : public BaseMaster {
@@ -74,14 +76,14 @@ namespace NUClear {
                     };
                     
                     void run();
-                    void init();
+                    void kill();
                 
-                    /// @brief If the system should continue to execute or if it should stop
-                    bool m_execute;
-                
+                    /// @brief a mutex which is responsible for controlling if the system should continue to run
+                    std::timed_mutex m_execute;
+                    /// @brief a lock which will be unlocked when the system should finish executing
+                    std::unique_lock<std::timed_mutex> m_lock;
                     /// @brief A vector of steps containing the callbacks to execute, is sorted regularly to maintain the order
                     std::vector<std::unique_ptr<Step>> m_steps;
-                
                     /// @brief A list of types which have already been loaded (to avoid duplication)
                     std::set<std::type_index> m_loaded;
             };
@@ -118,7 +120,6 @@ namespace NUClear {
             };
 
             class ReactorMaster : public BaseMaster {
-
                 public:
                     ReactorMaster(ReactorController* parent);
 
@@ -145,6 +146,7 @@ namespace NUClear {
             ReactorController();
 
             void start();
+            void shutdown();
 
             template <typename TData>
             auto get() -> decltype(cachemaster.get<TData>()) {

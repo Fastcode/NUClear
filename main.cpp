@@ -101,6 +101,7 @@ class Vision : public NUClear::Reactor {
                 
                 if(i > 1000000) {
                     std::cout << "Average API time: " << avg << " ns" << std::endl;
+                    reactorController.shutdown();
                 }
                 else {
                     double soFar = (avg*i);
