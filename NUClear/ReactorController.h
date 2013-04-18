@@ -22,13 +22,13 @@
 #include <set>
 #include <thread>
 #include <vector>
-#include <deque>
 #include <typeindex>
 #include <map>
 #include <iostream>
 #include "Internal/ThreadWorker.h"
 #include "Internal/TaskScheduler.h"
 #include "Internal/CommandTypes/CommandTypes.h"
+#include "Internal/Magic/CompiledCache.h"
 
 namespace NUClear {
     
@@ -72,40 +72,26 @@ namespace NUClear {
             };
         
             class CacheMaster : public BaseMaster {
-                
-                public:
-                    struct NoDataException {};
-                
+                private:
                     template <typename TData>
-                    class Cache {
-                        private:
-                            Cache() = delete;
-                            ~Cache() = delete;
-                            static int m_capacity;
-                            static std::deque<std::shared_ptr<TData>> m_cache;
-                        
-                        public:
-                            static void capacity(int num);
-                            static void cache(TData* data);
-                            static std::shared_ptr<TData> get();
-                            static std::shared_ptr<std::vector<std::shared_ptr<const TData>>> get(int length);
+                    struct Cache {
+                        typedef Internal::Magic::CompiledCache<CacheMaster, TData, Internal::Magic::QUEUE> cache;
                     };
-                
-                    template <typename TData>
-                    std::shared_ptr<TData> getData(TData*);
-                    
-                    template <int num, typename TData>
-                    std::shared_ptr<std::vector<std::shared_ptr<const TData>>> getData(Internal::CommandTypes::Last<num, TData>*);
-                
-                    template <int ticks, class period>
-                    std::shared_ptr<std::chrono::time_point<std::chrono::steady_clock>> getData(Internal::CommandTypes::Every<ticks, period>*);
-                
                 public:
                     CacheMaster(ReactorController* parent);
                     ~CacheMaster();
                 
                     template <typename TData>
                     void cache(TData* cache);
+                
+                    template <typename TData>
+                    std::shared_ptr<TData> getData(TData*);
+                    
+                    template <int num, typename TData>
+                    std::shared_ptr<std::vector<std::shared_ptr<const TData>>> getData(Internal::CommandTypes::Last<num, TData>*);
+                    
+                    template <int ticks, class period>
+                    std::shared_ptr<std::chrono::time_point<std::chrono::steady_clock>> getData(Internal::CommandTypes::Every<ticks, period>*);
                 
                     template <typename TData>
                     auto get() -> decltype(std::declval<CacheMaster>().getData(std::declval<TData*>())) {

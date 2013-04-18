@@ -17,65 +17,31 @@
 
 
 namespace NUClear {
-
-    template <typename TData>
-    int ReactorController::CacheMaster::Cache<TData>::m_capacity = 1;
-    
-    template <typename TData>
-    std::deque<std::shared_ptr<TData>> ReactorController::CacheMaster::Cache<TData>::m_cache = std::deque<std::shared_ptr<TData>>(1);
-    
-    template <typename TData>
-    void ReactorController::CacheMaster::Cache<TData>::capacity(int num) {
-            for(;m_capacity < num; ++m_capacity) {
-                m_cache.emplace_back(nullptr);
-            }
-    }
-    
-    template <typename TData>
-    void ReactorController::CacheMaster::Cache<TData>::cache(TData *data) {
-        m_cache.pop_back();
-        m_cache.push_front(std::shared_ptr<TData>(data));
-    }
-    
-    template <typename TData>
-    std::shared_ptr<TData> ReactorController::CacheMaster::Cache<TData>::get() {
-        if(!m_cache.empty()) {
-            return m_cache.front();
-        }
-        else {
-            throw NoDataException();
-        }
-    }
-    
-    template <typename TData>
-    std::shared_ptr<std::vector<std::shared_ptr<const TData>>> ReactorController::CacheMaster::Cache<TData>::get(int length) {
-        return std::shared_ptr<std::vector<std::shared_ptr<const TData>>>(new std::vector<std::shared_ptr<const TData>>(std::begin(m_cache), std::begin(m_cache) + length));
-    }
     
     template <int num, typename TData>
     void ReactorController::CacheMaster::ensureCache() {
-        Cache<TData>::capacity(num);
+        Cache<TData>::cache::minCapacity(num);
     }
     
     template <typename TData>
     std::shared_ptr<TData> ReactorController::CacheMaster::getData(TData*) {
-        return Cache<TData>::get();
+        return Cache<TData>::cache::get();
     }
     
     template <int num, typename TData>
     std::shared_ptr<std::vector<std::shared_ptr<const TData>>> ReactorController::CacheMaster::getData(Internal::CommandTypes::Last<num, TData>*) {
         
-        return Cache<TData>::get(num);
+        return Cache<TData>::cache::get(num);
     }
     
     template <int ticks, class period>
     std::shared_ptr<std::chrono::time_point<std::chrono::steady_clock>> ReactorController::CacheMaster::getData(Internal::CommandTypes::Every<ticks, period>*) {
         
-        return std::shared_ptr<std::chrono::time_point<std::chrono::steady_clock>>(new std::chrono::time_point<std::chrono::steady_clock>(Cache<Internal::CommandTypes::Every<ticks, period>>::get()->m_time));
+        return std::shared_ptr<std::chrono::time_point<std::chrono::steady_clock>>(new std::chrono::time_point<std::chrono::steady_clock>(Cache<Internal::CommandTypes::Every<ticks, period>>::cache::get()->m_time));
     }
     
     template <typename TData>
     void ReactorController::CacheMaster::cache(TData* data) {
-        Cache<TData>::cache(data);
+        Cache<TData>::cache::cache(data);
     }
 }

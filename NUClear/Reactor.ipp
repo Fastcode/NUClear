@@ -44,7 +44,7 @@ namespace NUClear {
                 reactorController.threadmaster.submit(std::move(task));
             }
             // At least one of the data elements that was requested is not cached, cancel callback
-            catch (ReactorController::CacheMaster::NoDataException) {}
+            catch (Internal::Magic::NoDataException) {}
         }
     }
 

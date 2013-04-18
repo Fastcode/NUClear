@@ -30,6 +30,7 @@
 #include "Internal/CommandTypes/CommandTypes.h"
 #include "Internal/Magic/unpack.h"
 #include "Internal/Magic/BoundCallback.h"
+#include "Internal/Magic/CompiledCache.h"
 
 namespace NUClear {
     
