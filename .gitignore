@@ -12,6 +12,9 @@
 *.la
 *.a
 
+# Build files
+build/
+
 .exe
 tags
 *.swp
