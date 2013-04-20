@@ -1,3 +1,3 @@
 FILE(GLOB src **.cpp)
 
-add_library(libnuclear, ${src} )
+add_library(nuclear ${src} )

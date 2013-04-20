@@ -6,6 +6,7 @@ set(VERSION_MINOR 2)
 set(VERSION_PATCH 0)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 # Compiler settings -- TODO: Add support for non-gcc style flags
 set(CMAKE_CXX_FLAGS "-Wall -std=c++11")
