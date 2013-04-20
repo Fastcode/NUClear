@@ -25,11 +25,11 @@
 #include <typeindex>
 #include <chrono>
 #include <atomic>
-#include "Internal/Reaction.h"
-#include "Internal/CommandTypes/CommandTypes.h"
-#include "Internal/Magic/unpack.h"
-#include "Internal/Magic/BoundCallback.h"
-#include "Internal/Magic/CompiledMap.h"
+#include "NUClear/Internal/Reaction.h"
+#include "NUClear/Internal/CommandTypes/CommandTypes.h"
+#include "NUClear/Internal/Magic/unpack.h"
+#include "NUClear/Internal/Magic/BoundCallback.h"
+#include "NUClear/Internal/Magic/CompiledMap.h"
 
 namespace NUClear {
     
@@ -201,7 +201,7 @@ namespace NUClear {
     };
 }
 
-#include "ReactorController.h"
-#include "Reactor.ipp"
+#include "NUClear/ReactorController.h"
+#include "NUClear/Reactor.ipp"
 #endif
 

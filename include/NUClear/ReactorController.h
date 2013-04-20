@@ -25,10 +25,11 @@
 #include <typeindex>
 #include <mutex>
 #include <map>
-#include "Internal/ThreadWorker.h"
-#include "Internal/TaskScheduler.h"
-#include "Internal/CommandTypes/CommandTypes.h"
-#include "Internal/Magic/CompiledMap.h"
+#include <iostream>
+#include "NUClear/Internal/ThreadWorker.h"
+#include "NUClear/Internal/TaskScheduler.h"
+#include "NUClear/Internal/CommandTypes/CommandTypes.h"
+#include "NUClear/Internal/Magic/CompiledMap.h"
 
 namespace NUClear {
     
@@ -164,10 +165,17 @@ namespace NUClear {
     };
 }
 
+<<<<<<< HEAD:NUClear/ReactorController.h
 #include "Reactor.h"
 #include "ChronoMaster.ipp"
 #include "CacheMaster.ipp"
 #include "ReactorMaster.ipp"
 #include "ReactorController.ipp"
+=======
+#include "NUClear/Reactor.h"
+#include "NUClear/ChronoMaster.ipp"
+#include "NUClear/ReactorMaster.ipp"
+#include "NUClear/ReactorController.ipp"
+>>>>>>> NUClear:include/NUClear/ReactorController.h
 #endif
 

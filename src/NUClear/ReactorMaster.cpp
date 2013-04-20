@@ -15,22 +15,10 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include "ReactorController.h"
+#include "NUClear/ReactorController.h"
 
 namespace NUClear {
     
-    ReactorController::ReactorController() :
-        threadmaster(this)
-        , chronomaster(this)
-        , cachemaster(this)
-        , reactormaster(this)
-         {}
-
-    void ReactorController::start() {
-        threadmaster.start();
-    }
-    
-    void ReactorController::shutdown() {
-        threadmaster.shutdown();
-    }
+    ReactorController::ReactorMaster::ReactorMaster(ReactorController* parent) :
+        ReactorController::BaseMaster(parent) {}
 }

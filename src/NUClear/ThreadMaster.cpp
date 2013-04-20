@@ -15,8 +15,8 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include "ReactorController.h"
-#include "Internal/ThreadPoolTask.h"
+#include "NUClear/ReactorController.h"
+#include "NUClear/Internal/ThreadPoolTask.h"
 
 namespace NUClear {
     

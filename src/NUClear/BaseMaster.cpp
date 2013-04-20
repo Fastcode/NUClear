@@ -15,17 +15,9 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include "Reactor.h"
+#include "NUClear/ReactorController.h"
 
 namespace NUClear {
     
-    Reactor::Reactor(ReactorController& reactorController) :
-        reactorController(reactorController) {
-    }
-    
-    void Reactor::buildOptionsImpl(Internal::Reaction::Options& options, Single* /*placeholder*/) {
-        options.m_single = true;
-    }
-
-    Reactor::~Reactor() {}
+    ReactorController::BaseMaster::BaseMaster(ReactorController* parent) : m_parent(parent) {}
 }
