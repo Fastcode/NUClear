@@ -30,6 +30,6 @@ endif()
 # Add the subdirectories
 add_subdirectory(src/NUClear)
 
-# Temporary main complication
+# Temporary main compilation
 add_executable(main main.cpp)
 target_link_libraries(main nuclear)
