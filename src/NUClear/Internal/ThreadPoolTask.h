@@ -18,8 +18,8 @@
 #ifndef NUCLEAR_INTERNAL_THREADPOOLTASK_H
 #define NUCLEAR_INTERNAL_THREADPOOLTASK_H
 
-#include "ThreadWorker.h"
-#include "TaskScheduler.h"
+#include "NUClear/Internal/ThreadWorker.h"
+#include "NUClear/Internal/TaskScheduler.h"
 
 namespace NUClear {
 namespace Internal {

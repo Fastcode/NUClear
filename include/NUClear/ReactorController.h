@@ -165,17 +165,10 @@ namespace NUClear {
     };
 }
 
-<<<<<<< HEAD:NUClear/ReactorController.h
-#include "Reactor.h"
-#include "ChronoMaster.ipp"
-#include "CacheMaster.ipp"
-#include "ReactorMaster.ipp"
-#include "ReactorController.ipp"
-=======
 #include "NUClear/Reactor.h"
 #include "NUClear/ChronoMaster.ipp"
+#include "NUClear/CacheMaster.ipp"
 #include "NUClear/ReactorMaster.ipp"
 #include "NUClear/ReactorController.ipp"
->>>>>>> NUClear:include/NUClear/ReactorController.h
 #endif
 

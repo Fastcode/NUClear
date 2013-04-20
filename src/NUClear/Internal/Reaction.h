@@ -23,7 +23,7 @@
 #include <atomic>
 #include <typeindex>
 #include <memory>
-#include "CommandTypes/CommandTypes.h"
+#include "NUClear/Internal/CommandTypes/CommandTypes.h"
 
 namespace NUClear {
 namespace Internal {
