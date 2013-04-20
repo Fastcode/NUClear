@@ -25,9 +25,9 @@
 #include <typeindex>
 #include <map>
 #include <iostream>
-#include "Internal/CommandTypes.h"
-#include "Internal/ThreadWorker.h"
-#include "Internal/TaskScheduler.h"
+#include "NUClear/Internal/CommandTypes.h"
+#include "NUClear/Internal/ThreadWorker.h"
+#include "NUClear/Internal/TaskScheduler.h"
 
 namespace NUClear {
     
@@ -144,9 +144,9 @@ namespace NUClear {
     };
 }
 
-#include "Reactor.h"
-#include "ChronoMaster.ipp"
-#include "ReactorMaster.ipp"
-#include "ReactorController.ipp"
+#include "NUClear/Reactor.h"
+#include "NUClear/ChronoMaster.ipp"
+#include "NUClear/ReactorMaster.ipp"
+#include "NUClear/ReactorController.ipp"
 #endif
 
