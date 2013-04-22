@@ -13,6 +13,7 @@ set(CMAKE_CXX_FLAGS "-Wall -std=c++11 -pthread")
 set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG")
 
+message("Targeting compiler: ${CMAKE_CXX_COMPILER_ID}")
 if("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU")
     set(GCC_MINIMUM_VERSION 4.7.2)
     execute_process(
