@@ -1,4 +1,4 @@
-FILE(GLOB src "*.cpp" ".h" ".ipp")
+FILE(GLOB src "*.cpp" "*.h" "*.ipp")
 
 FILE(GLOB src_internal 
     "Internal/*.h"
