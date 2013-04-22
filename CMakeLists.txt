@@ -13,6 +13,12 @@ set(CMAKE_CXX_FLAGS "-Wall -std=c++11 -pthread")
 set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG")
 
+# XCode support. TODO: Consider better placement for this
+if("${CMAKE_GENERATOR}" MATCHES "Xcode")
+    message("Enabling xcode support")
+    set(CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LIRARY "libc++")
+endif()
+
 if("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU")
     set(GCC_MINIMUM_VERSION 4.7.2)
     execute_process(
@@ -23,7 +29,6 @@ if("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU")
     endif()
 elseif("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
-    set(CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LIRARY "libc++")
 else()
     message(fatal_error "Unsupported compiler!")
 endif()
