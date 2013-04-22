@@ -48,4 +48,20 @@ namespace NUClear {
     void ReactorController::CacheMaster::cache(TData* data) {
         ValueCache<TData>::set(data);
     }
+    
+    template <typename... TData, typename TElement>
+    std::shared_ptr<TElement> doLink(std::tuple<TData...> data, TElement element) {
+        return element;
+    }
+    
+    template <typename... TData, typename TElement, int index>
+    std::shared_ptr<TElement> doLink(std::tuple<TData...> data, Internal::CommandTypes::Linked<TElement, index>) {
+        
+        // TODO this is where we get the actual linked data
+        
+        // Something like this
+        //LinkedCache::get(std::get<index>(data).get(), typeid(TElement));
+        
+        return std::shared_ptr<TElement>(new TElement());
+    }
 }
