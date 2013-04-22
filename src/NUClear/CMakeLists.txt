@@ -1,12 +1,26 @@
-FILE(GLOB src "*.cpp"
-    "Internal/*.cpp")
+FILE(GLOB src "*.cpp" ".h" ".ipp")
 
-FILE(GLOB inc "*.h"
+FILE(GLOB src_internal 
     "Internal/*.h"
-    "Internal/Magic/*.h")
+    "Internal/*.cpp"
+    "Internal/*.ipp") 
 
-FILE(GLOB ipp "*.ipp"
-    "Internal/*.ipp"
+FILE(GLOB src_internal_magic 
+    "Internal/Magic/*.h"
+    "Internal/Magic/*.cpp"
     "Internal/Magic/*.ipp")
 
-add_library(nuclear ${src} ${inc} ${ipp})
+FILE(GLOB include_public
+    "${CMAKE_CURRENT_SOURCE_DIR}/include/*.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/include/*.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/include/*.ipp")
+
+source_group(NUClear FILES ${src} ${include_public})
+source_group(NUClear\\Internal FILES ${src_internal})
+source_group(NUClear\\Internal\\Magic FILES ${src_internal_magic})
+
+add_library(nuclear 
+    ${include_public} 
+    ${src} 
+    ${src_internal} 
+    ${src_internal_magic})
