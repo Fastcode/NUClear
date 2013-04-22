@@ -74,7 +74,7 @@ namespace Magic {
                  * @param func the callback to execute with the values
                  * @param args the arguments to call the function with
                  */
-                BoundCallback(TFunc func, TTypes... args) : params(args...), callback(func) { }
+                BoundCallback(TFunc func, std::tuple<TTypes...>&& args) : params(args), callback(func) { }
             
                 /**
                  * @brief Applies all of the values in the tuple to the function and executes it.
@@ -101,8 +101,8 @@ namespace Magic {
      * @tparam TTypes   the types of the function arguments that are to be bound to the function
      */
     template <typename TFunc, typename... TTypes>
-    BoundCallback<TFunc, TTypes...> bindCallback(TFunc function, TTypes... args) {
-        return BoundCallback<TFunc, TTypes...>(function, args...);
+    BoundCallback<TFunc, TTypes...> bindCallback(TFunc function, std::tuple<TTypes...>&& args) {
+        return BoundCallback<TFunc, TTypes...>(function, std::move(args));
     }
 }
 }

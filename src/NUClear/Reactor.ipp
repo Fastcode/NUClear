@@ -73,7 +73,10 @@ namespace NUClear {
         
         // Return a reaction object that gets and runs with the correct paramters
         return new Internal::Reaction([this, callback]() -> std::function<void ()> {
-            return Internal::Magic::bindCallback(callback, reactorController.get<TTriggersAndWiths>()...);
+            
+            auto&& data = std::make_tuple(reactorController.get<TTriggersAndWiths>()...);
+            
+            return Internal::Magic::bindCallback(callback, std::move(data));
         }, options);
     }
 
