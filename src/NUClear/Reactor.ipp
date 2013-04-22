@@ -72,19 +72,8 @@ namespace NUClear {
     Internal::Reaction* Reactor::buildReaction(TFunc callback, Internal::Reaction::Options& options) {
         
         // Return a reaction object that gets and runs with the correct paramters
-        return new Internal::Reaction([this, callback]() -> std::pair<std::function<void ()>, std::vector<std::pair<std::type_index, std::shared_ptr<void>>>> {
-            
-            
-            // TODO make a tuple of reactorController.get<TTriggersAndWiths>()
-            
-            // TODO process this tuple using linked
-            
-            // TODO build our runtime pair vector mapping TTriggersAndWiths types to the objects in the passed tuple
-            
-            //std::vector<std::pair<std::type_index, std::shared_ptr<void>> args Internal::Magic::tuple2vector();
-            
-            return std::make_pair(Internal::Magic::bindCallback(callback, reactorController.get<TTriggersAndWiths>()...),
-                                  std::vector<std::pair<std::type_index, std::shared_ptr<void>>>());
+        return new Internal::Reaction([this, callback]() -> std::function<void ()> {
+            return Internal::Magic::bindCallback(callback, reactorController.get<TTriggersAndWiths>()...);
         }, options);
     }
 

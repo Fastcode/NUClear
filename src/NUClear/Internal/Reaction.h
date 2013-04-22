@@ -21,7 +21,6 @@
 #include <functional>
 #include <chrono>
 #include <atomic>
-#include <vector>
 #include <typeindex>
 #include <memory>
 #include "NUClear/Internal/CommandTypes/CommandTypes.h"
@@ -89,10 +88,10 @@ namespace Internal {
                      * @brief Creates a new ReactionTask object bound with the parent Reaction object (that created it) and task.
                      *
                      * @param parent    the Reaction object that spawned this ReactionTask
-                     * @param args      a pair containing a function with its arguments bound, and the arguments that were bound
+                     * @param task      the data bound callback to be executed in the threadpool
                      */
-                    Task(Reaction* parent, std::pair<std::function<void ()>, std::vector<std::pair<std::type_index, std::shared_ptr<void>>>> args);
-                
+                    Task(Reaction* parent, std::function<void ()> task);
+                    
                     /**
                      * @brief Runs the internal data bound task and times it.
                      *
@@ -101,13 +100,11 @@ namespace Internal {
                      *  used in a debugging context to calculate how long callbacks are taking to run.
                      */
                     void operator()();
-                
-                    /// @brief the parent Reaction object which spawned this
-                    Reaction* m_parent;
+                    
                     /// @brief the data bound callback to be executed
                     std::function<void ()> m_callback;
-                    /// @brief the arguments which are bound to this callback
-                    std::vector<std::pair<std::type_index, std::shared_ptr<void>>> m_args;
+                    /// @brief the parent Reaction object which spawned this
+                    Reaction* m_parent;
                     /// @brief the time that this event was created and sent to the queue
                     std::chrono::time_point<std::chrono::steady_clock> m_emitTime;
                     /// @brief the time that execution started on this call
@@ -122,7 +119,7 @@ namespace Internal {
              * @param callback  the callback generator function (creates databound callbacks)
              * @param options   the options to use in Tasks
              */
-            Reaction(std::function<std::pair<std::function<void ()>, std::vector<std::pair<std::type_index, std::shared_ptr<void>>>> ()> callback, Reaction::Options options);
+            Reaction(std::function<std::function<void ()> ()> callback, Reaction::Options options);
         
             /**
              * @brief creates a new databound callback task that can be executed.
@@ -141,7 +138,7 @@ namespace Internal {
             /// @brief a source for reactionIds, atomically creates longs
             static std::atomic<std::uint64_t> reactionIdSource;
             /// @brief the callback generator function (creates databound callbacks)
-            std::function<std::pair<std::function<void ()>, std::vector<std::pair<std::type_index, std::shared_ptr<void>>>> ()> m_callback;
+            std::function<std::function<void ()> ()> m_callback;
     };
 }
 }
