@@ -18,7 +18,7 @@
 #ifndef NUCLEAR_INTERNAL_TASKSCHEDULER_H
 #define NUCLEAR_INTERNAL_TASKSCHEDULER_H
 
-#include <map>
+#include <unordered_map>
 #include <vector>
 #include <atomic>
 #include <queue>
@@ -134,7 +134,7 @@ namespace Internal {
             /// @brief if the scheduler is running or is shut down
             bool m_shutdown;
             /// @brief our map of sync types to queues
-            std::map<std::type_index, std::unique_ptr<TaskQueue>> m_queues;
+            std::unordered_map<std::type_index, std::unique_ptr<TaskQueue>> m_queues;
             /// @brief the mutex which our threads synchronize their access to this object
             std::mutex m_mutex;
             /// @brief the condition object that threads wait on if they can't get a task

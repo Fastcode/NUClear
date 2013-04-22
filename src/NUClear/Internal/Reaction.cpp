@@ -22,7 +22,7 @@ namespace Internal {
     
     std::atomic<uint64_t> Reaction::reactionIdSource(0);
     
-    Reaction::Reaction(std::function<std::function<void ()> ()> callback, Reaction::Options options) :
+    Reaction::Reaction(std::function<std::pair<std::function<void ()>, std::vector<std::pair<std::type_index, std::shared_ptr<void>>>> ()> callback, Reaction::Options options) :
     m_options(options),
     m_reactionId(++reactionIdSource),
     m_running(false),
@@ -34,9 +34,10 @@ namespace Internal {
         return std::unique_ptr<Reaction::Task>(new Reaction::Task(this, m_callback()));
     }
     
-    Reaction::Task::Task(Reaction* parent, std::function<void ()> callback) :
-    m_callback(callback),
+    Reaction::Task::Task(Reaction* parent, std::pair<std::function<void ()>, std::vector<std::pair<std::type_index, std::shared_ptr<void>>>> args) :
     m_parent(parent),
+    m_callback(args.first),
+    m_args(args.second),
     m_emitTime(std::chrono::steady_clock::now()) {
     }
     
