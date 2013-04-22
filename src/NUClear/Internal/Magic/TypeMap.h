@@ -15,8 +15,8 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_INTERNAL_MAGIC_COMPILEDMAP_H
-#define NUCLEAR_INTERNAL_MAGIC_COMPILEDMAP_H
+#ifndef NUCLEAR_INTERNAL_MAGIC_TYPEMAP_H
+#define NUCLEAR_INTERNAL_MAGIC_TYPEMAP_H
 
 #include <deque>
 #include <vector>
@@ -31,60 +31,31 @@ namespace Magic {
     struct NoDataException {};
     
     /**
-     * @brief This enum is used to select what kind of map is to be used for the data
-     */
-    enum MapType {
-        /// @see CompiledMap <TMapID, TData, SINGLE>
-        SINGLE,
-        /// @see CompiledMap <TMapID, TData, QUEUE>
-        QUEUE,
-        /// @see CompiledMap <TMapID, TData, LIST>
-        LIST
-    };
-    
-    /**
-     * @brief
-     *  This class provides a compile time map. This allows the compiler to optimize map access if the types are known
-     *  at compile time.
-     *
-     * @details
-     *  This map is accessed by template paramters, because of this when the compiler compiles this map. It can resolve
-     *  each of the map accesses into a direct function call. This allows the map to be looked up at compile time and
-     *  optimized to very efficent code. There are several variations of the Map provided through the MapType parameter
-     *  the operation of each of these is described in their individual documentation.
-     *
-     * @attention
-     *  Note that because this is an entirely static class, if two maps with the same TMapID are used, they access the
-     *  same map
-     *
-     * @tparam TMapID     A typename identifier to ensure that a new map is generated for each usage
-     * @tparam TKey         The key being used to access the data
-     * @tparam TValue       The type of data which is being stored in this map
-     * @tparam Type         The type of map which is being created
-     *
-     * @author Trent Houliston
-     */
-    template <typename TMapID, typename TKey, typename TValue, enum MapType Type>
-    class CompiledMap;
-    
-    /**
      * @brief The simplest and fastest map format, It stores a single value and returns it when requested later.
      *
      * @details
      *  This map stores a single value in it's store when the set function is called, and when get is later called
-     *  this object will be returned
+     *  this object will be returned. This map is accessed by template paramters, because of this when the compiler
+     *  compiles this map. It can resolve each of the map accesses into a direct function call. This allows the map to
+     *  be looked up at compile time and optimized to very efficent code. There are several variations of the Map
+     *  provided through the MapType parameter the operation of each of these is described in their individual
+     *  documentation.
+     *
+     * @attention
+     *  Note that because this is an entirely static class, if two maps with the same TMapID are used, they access the
+     *  same map
      *
      * @author Trent Houliston
      *
      * @see CompiledMap
      */
     template <typename TMapID, typename TKey, typename TValue>
-    class CompiledMap <TMapID, TKey, TValue, SINGLE> {
+    class TypeMap {
         private:
             /// @brief Deleted constructor as this class is a static class.
-            CompiledMap() = delete;
+            TypeMap() = delete;
             /// @brief Deleted destructor as this class is a static class.
-            ~CompiledMap() = delete;
+            ~TypeMap() = delete;
             /// @brief the data variable where the data is stored for this map key.
             static std::shared_ptr<TValue> m_data;
             
@@ -123,19 +94,25 @@ namespace Magic {
      *
      * @details
      *  This map acts as a ring buffer. When data is stored, it will remove the oldest element that is stored up to
-     *  the capacity of the queue. The list of previous elements are accessable using the get(int) method.
+     *  the capacity of the queue. The list of previous elements are accessable using the get(int) method. It isaccessed
+     *  by template paramters, because of this when the compiler compiles this map. It can resolve each of the map
+     *  accesses into a direct function call. This allows the map to be looked up at compile time and optimized to very
+     *  efficent code. There are several variations of the Map provided through the MapType parameter the operation of
+     *  each of these is described in their individual documentation.
+     *
+     * @attention
+     *  Note that because this is an entirely static class, if two maps with the same TMapID are used, they access the
+     *  same map
      *
      * @author Trent Houliston
-     *
-     * @see CompiledMap
      */
     template <typename TMapID, typename TKey, typename TValue>
-    class CompiledMap <TMapID, TKey, TValue, QUEUE> {
+    class TypeBuffer {
         private:
             /// @brief Deleted constructor as this class is a static class
-            CompiledMap() = delete;
+            TypeBuffer() = delete;
             /// @brief Deleted destructor as this class is a static class
-            ~CompiledMap() = delete;
+            ~TypeBuffer() = delete;
             /// @brief the number of previous elements that we store
             static int m_capacity;
             /// @brief the queue where we store mapped elements
@@ -197,19 +174,25 @@ namespace Magic {
      *  This map acts as a map of lists, adding every stored element to the list of the set type.
      *
      * @details
-     *  This map acts as a map of lists. When data is stored, add that element to the list of all items that are stored
+     *  This map acts as a map of lists. When data is stored, add that element to the list of all items that are stored.
+     *  It is accessed by template paramters, because of this when the compiler compiles this map. It can resolve
+     *  each of the map accesses into a direct function call. This allows the map to be looked up at compile time and
+     *  optimized to very efficent code. There are several variations of the Map provided through the MapType parameter
+     *  the operation of each of these is described in their individual documentation.
+     *
+     * @attention
+     *  Note that because this is an entirely static class, if two maps with the same TMapID are used, they access the
+     *  same map
      *
      * @author Trent Houliston
-     *
-     * @see CompiledMap
      */
     template <typename TMapID, typename TKey, typename TValue>
-    class CompiledMap <TMapID, TKey, TValue, LIST> {
+    class TypeList {
         private:
             /// @brief Deleted constructor as this class is a static class
-            CompiledMap() = delete;
+            TypeList() = delete;
             /// @brief Deleted destructor as this class is a static class
-            ~CompiledMap() = delete;
+            ~TypeList() = delete;
             /// @brief the vector where we store the elements
             static std::vector<std::shared_ptr<TValue>> m_data;
             
@@ -238,15 +221,15 @@ namespace Magic {
     
     //Initialize the capacity of a QUEUE map
     template <typename TMapID, typename TKey, typename TValue>
-    int CompiledMap<TMapID, TKey, TValue, QUEUE>::m_capacity = 1;
+    int TypeBuffer<TMapID, TKey, TValue>::m_capacity = 1;
     
     //Initialize the deque object of a QUEUE map
     template <typename TMapID, typename TKey, typename TValue>
-    std::deque<std::shared_ptr<TValue>> CompiledMap<TMapID, TKey, TValue, QUEUE>::m_data = std::deque<std::shared_ptr<TValue>>(1);
+    std::deque<std::shared_ptr<TValue>> TypeBuffer<TMapID, TKey, TValue>::m_data = std::deque<std::shared_ptr<TValue>>(1);
     
     //Initialize the vector of a LIST map
     template <typename TMapID, typename TKey, typename TValue>
-    std::vector<std::shared_ptr<TValue>> CompiledMap<TMapID, TKey, TValue, LIST>::m_data = std::vector<std::shared_ptr<TValue>>();
+    std::vector<std::shared_ptr<TValue>> TypeList<TMapID, TKey, TValue>::m_data = std::vector<std::shared_ptr<TValue>>();
 }
 }
 }

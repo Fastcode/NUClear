@@ -29,7 +29,7 @@
 #include "NUClear/Internal/ThreadWorker.h"
 #include "NUClear/Internal/TaskScheduler.h"
 #include "NUClear/Internal/CommandTypes/CommandTypes.h"
-#include "NUClear/Internal/Magic/CompiledMap.h"
+#include "NUClear/Internal/Magic/TypeMap.h"
 
 namespace NUClear {
     
@@ -92,7 +92,7 @@ namespace NUClear {
             class CacheMaster : public BaseMaster {
                 private:
                     template <typename TData>
-                    using ValueCache = Internal::Magic::CompiledMap<CacheMaster, TData, TData, Internal::Magic::QUEUE>;
+                    using ValueCache = Internal::Magic::TypeBuffer<CacheMaster, TData, TData>;
                 
                 public:
                     CacheMaster(ReactorController* parent);
@@ -131,7 +131,7 @@ namespace NUClear {
 
                 private:
                     template <typename TKey>
-                    using CallbackCache = Internal::Magic::CompiledMap<Reactor, TKey, Internal::Reaction, Internal::Magic::LIST>;
+                    using CallbackCache = Internal::Magic::TypeList<Reactor, TKey, Internal::Reaction>;
 
                     std::vector<std::unique_ptr<NUClear::Reactor>> m_reactors;
             };

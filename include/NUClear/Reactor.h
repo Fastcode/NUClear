@@ -29,7 +29,7 @@
 #include "NUClear/Internal/CommandTypes/CommandTypes.h"
 #include "NUClear/Internal/Magic/unpack.h"
 #include "NUClear/Internal/Magic/BoundCallback.h"
-#include "NUClear/Internal/Magic/CompiledMap.h"
+#include "NUClear/Internal/Magic/TypeMap.h"
 
 namespace NUClear {
     
@@ -89,7 +89,7 @@ namespace NUClear {
         private:
         
             template <typename TKey>
-            using CallbackCache = Internal::Magic::CompiledMap<Reactor, TKey, Internal::Reaction, Internal::Magic::LIST>;
+            using CallbackCache = Internal::Magic::TypeList<Reactor, TKey, Internal::Reaction>;
         
             /**
              * @brief Base template instantitation that gets specialized. 
