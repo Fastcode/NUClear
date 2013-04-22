@@ -110,6 +110,9 @@ namespace NUClear {
                     template <int ticks, class period>
                     std::shared_ptr<std::chrono::time_point<std::chrono::steady_clock>> getData(Internal::CommandTypes::Every<ticks, period>*);
                 
+                    template <typename TData, int index>
+                    Internal::CommandTypes::Linked<TData, index> getData(Internal::CommandTypes::Linked<TData, index>*);
+                
                     template <typename TData>
                     auto get() -> decltype(std::declval<CacheMaster>().getData(std::declval<TData*>())) {
                         return getData(reinterpret_cast<TData*>(0));

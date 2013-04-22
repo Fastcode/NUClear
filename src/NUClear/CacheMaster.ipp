@@ -39,6 +39,11 @@ namespace NUClear {
         return std::shared_ptr<std::chrono::time_point<std::chrono::steady_clock>>(new std::chrono::time_point<std::chrono::steady_clock>(ValueCache<Internal::CommandTypes::Every<ticks, period>>::get()->m_time));
     }
     
+    template <typename TData, int index>
+    Internal::CommandTypes::Linked<TData, index> ReactorController::CacheMaster::getData(Internal::CommandTypes::Linked<TData, index>*) {
+        return Internal::CommandTypes::Linked<TData, index>();
+    }
+    
     template <typename TData>
     void ReactorController::CacheMaster::cache(TData* data) {
         ValueCache<TData>::set(data);
