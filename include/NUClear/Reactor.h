@@ -75,6 +75,9 @@ namespace NUClear {
             template <typename TSync>
             using Sync = Internal::CommandTypes::Sync<TSync>;
         
+            template <typename TData, int index = 0>
+            using Linked = Internal::CommandTypes::Linked<TData, index>;
+        
             using Single = Internal::CommandTypes::Single;
 
             template <typename TTrigger, typename TFunc>

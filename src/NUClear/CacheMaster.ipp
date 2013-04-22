@@ -50,7 +50,7 @@ namespace NUClear {
     }
     
     template <typename... TData, typename TElement>
-    std::shared_ptr<TElement> doLink(std::tuple<TData...> data, TElement element) {
+    TElement doLink(std::tuple<TData...> data, TElement element) {
         return element;
     }
     

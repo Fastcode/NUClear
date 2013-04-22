@@ -91,7 +91,7 @@ class Vision : public NUClear::Reactor {
                     }
                 }
             });
-            */
+            
             
             on<Trigger<Every<1, std::chrono::hours>>>([](const std::chrono::time_point<std::chrono::steady_clock>& time){});
             
@@ -113,6 +113,10 @@ class Vision : public NUClear::Reactor {
                     reactorController.emit(new int(i + 1));
                     reactorController.emit(new std::chrono::time_point<std::chrono::steady_clock>(std::chrono::steady_clock::now()));
                 }
+            });*/
+            
+            on<Trigger<RandomData>, With<Linked<CameraData>>>([](const RandomData& randomData, const CameraData& cameraData) {
+                
             });
         }
     private:
