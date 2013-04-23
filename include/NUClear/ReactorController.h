@@ -129,7 +129,7 @@ namespace NUClear {
                     std::shared_ptr<TElement> doLink(std::tuple<TData...> data, Internal::CommandTypes::Linked<TElement, index>);
                 
                     template <typename... TData, int... S>
-                    auto link(Internal::Magic::Sequence<S...> s, std::tuple<TData...> data) -> decltype(std::make_tuple(doLink(std::get<S>(data))...)) {
+                    auto link(Internal::Magic::Sequence<S...> s, std::tuple<TData...> data) -> decltype(std::make_tuple(doLink(data, std::get<S>(data))...)) {
                         return std::make_tuple(doLink(data, std::get<S>(data))...);
                     }
                 
