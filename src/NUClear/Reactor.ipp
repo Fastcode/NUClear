@@ -69,19 +69,19 @@ namespace NUClear {
     }
     
     template <typename... TTypes>
-    struct NeedsSecondPassImpl;
+    struct NeedsFillImpl;
     
     template <>
-    struct NeedsSecondPassImpl<> : std::false_type {};
+    struct NeedsFillImpl<> : std::false_type {};
     
     template <typename THead, typename... TRest>
-    struct NeedsSecondPassImpl<THead, TRest...> : std::conditional<std::is_base_of<Internal::CommandTypes::SecondPass, THead>::value, std::true_type, NeedsSecondPassImpl<TRest...>>::type {};
+    struct NeedsFillImpl<THead, TRest...> : std::conditional<std::is_base_of<Internal::CommandTypes::Fill, THead>::value, std::true_type, NeedsFillImpl<TRest...>>::type {};
     
     template <typename TTuple>
-    struct NeedsSecondPass;
+    struct NeedsFill;
     
     template <typename... TTypes>
-    struct NeedsSecondPass<std::tuple<TTypes...>> : NeedsSecondPassImpl<TTypes...> {
+    struct NeedsFill<std::tuple<TTypes...>> : NeedsFillImpl<TTypes...> {
     };
     
     template <>
@@ -89,7 +89,7 @@ namespace NUClear {
         template <typename TFunc, typename... TData>
         static const std::function<void ()> get(Reactor* parent, TFunc callback, std::tuple<TData...> data) {
             return [parent, callback, data] {
-                auto&& newData = parent->reactorController.cachemaster.link(data);
+                auto&& newData = parent->reactorController.cachemaster.fill(data);
                 Internal::Magic::apply(callback, std::move(newData));
             };
         }
@@ -114,7 +114,7 @@ namespace NUClear {
             
             auto&& data = std::make_tuple(reactorController.get<TTriggersAndWiths>()...);
             
-            return buildCallback<NeedsSecondPass<typename std::remove_reference<decltype(data)>::type>::value>::get(this, callback, data);
+            return buildCallback<NeedsFill<typename std::remove_reference<decltype(data)>::type>::value>::get(this, callback, data);
         }, options);
     }
 

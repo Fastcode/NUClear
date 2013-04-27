@@ -116,7 +116,7 @@ class Vision : public NUClear::Reactor {
             });
             
             on<Trigger<RandomData>, With<Linked<CameraData>>>([](const RandomData& randomData, const CameraData& cameraData) {
-                
+                std::cout << "Got linked data" << std::endl;
             });
         }
     private:

@@ -50,12 +50,12 @@ namespace NUClear {
     }
     
     template <typename... TData, typename TElement>
-    TElement ReactorController::CacheMaster::doLink(std::tuple<TData...> data, TElement element) {
+    TElement ReactorController::CacheMaster::doFill(std::tuple<TData...> data, TElement element) {
         return element;
     }
     
     template <typename... TData, typename TElement, int index>
-    std::shared_ptr<TElement> ReactorController::CacheMaster::doLink(std::tuple<TData...> data, Internal::CommandTypes::Linked<TElement, index>) {
+    std::shared_ptr<TElement> ReactorController::CacheMaster::doFill(std::tuple<TData...> data, Internal::CommandTypes::Linked<TElement, index>) {
         
         // TODO this is where we get the actual linked data
         

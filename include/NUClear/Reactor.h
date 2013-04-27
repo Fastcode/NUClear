@@ -154,7 +154,16 @@ namespace NUClear {
             template <enum EPriority P>
             void buildOptionsImpl(Internal::Reaction::Options& options, Priority<P>* /*placeholder*/);
         
-        
+            /**
+             * @brief Builds a callback based on if it needs a second pass at runtime.
+             *
+             * @details
+             *  If this is run with true, then when the callback is executed, it will have it's second pass run to
+             *  get additional data.
+             *
+             * @tparam secondPass if a second pass over the paramters needs to be done when the callback is executed.
+             *
+             */
             template <bool secondPass>
             struct buildCallback;
         

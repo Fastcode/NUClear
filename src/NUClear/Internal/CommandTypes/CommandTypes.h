@@ -78,7 +78,7 @@ namespace NUClear {
              *  Other placeholders extend from this class type to mean that their data is collected during the second
              *  pass of collecting data.
              */
-            class SecondPass {};
+            class Fill {};
             
             /**
              * @ingroup Wrappers
@@ -224,7 +224,7 @@ namespace NUClear {
              * @return  Returns a vector of shared_ptr with the signature std::vector<std::shared_ptr<TData>>
              */
             template <typename TData, int index = 0>
-            class Linked : public SecondPass { public: Linked() {}; ~Linked() {}; };
+            class Linked : public Fill { public: Linked() {}; ~Linked() {}; };
         }
     }
 }
