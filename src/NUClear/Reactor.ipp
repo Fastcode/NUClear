@@ -68,11 +68,13 @@ namespace NUClear {
         options.m_priority = P;
     }
     
-    template <bool secondPass>
-    struct buildCallback;
+    template <typename... TData>
+    constexpr bool needsSecondPass(std::tuple<TData...> data) {
+        return true;
+    }
     
     template <>
-    struct buildCallback<true> {
+    struct Reactor::buildCallback<true> {
         template <typename TFunc, typename... TData>
         static const std::function<void ()> get(Reactor* parent, TFunc callback, std::tuple<TData...> data) {
             return [parent, callback, data] {
@@ -84,7 +86,7 @@ namespace NUClear {
     };
     
     template <>
-    struct buildCallback<false> {
+    struct Reactor::buildCallback<false> {
         
         template <typename TFunc, typename... TData>
         static const std::function<void ()> get(Reactor* parent, TFunc callback, std::tuple<TData...> data) {

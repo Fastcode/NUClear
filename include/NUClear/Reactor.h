@@ -154,6 +154,10 @@ namespace NUClear {
             template <enum EPriority P>
             void buildOptionsImpl(Internal::Reaction::Options& options, Priority<P>* /*placeholder*/);
         
+        
+            template <bool secondPass>
+            struct buildCallback;
+        
             /**
              * @brief Builds a callback wrapper function for a given callback. 
              * @details 
