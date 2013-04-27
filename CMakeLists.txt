@@ -16,7 +16,7 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG")
 # XCode support. TODO: Consider better placement for this
 if("${CMAKE_GENERATOR}" MATCHES "Xcode")
     message("Enabling xcode support")
-    set(CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LIRARY "libc++")
+    set(CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LIBRARY "libc++")
 endif()
 
 if("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU")
