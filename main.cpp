@@ -47,54 +47,7 @@ class RandomData {
 class Vision : public NUClear::Reactor {
     public:
         Vision(NUClear::ReactorController& control) : Reactor(control) {
-            /*
-            on<Trigger<MotorData>, With<CameraData>>([](const MotorData& cameraData, const CameraData& motorData) {
-                std::cout << "Double trigger!" << std::endl;
-            });
-
-            on<Trigger<CameraData>, With<MotorData>>(std::bind(&Vision::reactInner, this, std::placeholders::_1, std::placeholders::_2));
             
-            on<Trigger<Every<1, std::chrono::seconds>>>([](const std::chrono::time_point<std::chrono::steady_clock>& time) {
-                std::cout << "Every 1 seconds called" << std::endl;
-            });
-            
-            on<Trigger<Every<2, std::chrono::seconds>>>([](const std::chrono::time_point<std::chrono::steady_clock>& time) {
-                std::cout << "Every 2 seconds called" << std::endl;
-            });
-            
-            on<Trigger<CameraData>, With<>, Options<Sync<Vision>, Single, Priority<NUClear::REALTIME>>>([](const CameraData& cameraData){
-                std::cout << "With Options" << std::endl;
-            });
-            
-            on<Trigger<Last<3, RandomData>>>([](const std::vector<std::shared_ptr<const RandomData>>& data) {
-                std::cout << "I'm getting the last 3 CameraDatas!: " << data.size() << std::endl;
-                
-                for(auto it = std::begin(data); it != std::end(data); ++it) {
-                    if(*it) {
-                        std::cout << (*it)->data << std::endl;
-                    }
-                    else {
-                        std::cout << "nullptr" << std::endl;
-                    }
-                }
-            });
-            
-            on<Trigger<Last<5, RandomData>>>([](std::vector<std::shared_ptr<const RandomData>>& data) {
-                std::cout << "I'm getting the last 5 CameraDatas!: " << data.size() << std::endl;
-                
-                for(auto it = std::begin(data); it != std::end(data); ++it) {
-                    if(*it) {
-                        std::cout << (*it)->data << std::endl;
-                    }
-                    else {
-                        std::cout << "nullptr" << std::endl;
-                    }
-                }
-            });
-            
-            
-            on<Trigger<Every<1, std::chrono::hours>>>([](const std::chrono::time_point<std::chrono::steady_clock>& time){});
-            */
             // This section of code here is for timing how long our API system is taking
             on<Trigger<std::chrono::time_point<std::chrono::steady_clock>>, With<int, double>>([this](const std::chrono::time_point<std::chrono::steady_clock>& point, const int& i, const double& avg) {
                 auto now = std::chrono::steady_clock::now();
@@ -119,10 +72,6 @@ class Vision : public NUClear::Reactor {
                 std::cout << "Got linked data" << std::endl;
             });
         }
-    private:
-        void reactInner(const CameraData& cameraData, const MotorData& motorData) {
-            std::cout << "ReactInner on cameraData, got: [" << cameraData.data << "], [" << motorData.data << "]" << std::endl;
-        }
 };
 
 int main(int argc, char** argv) {
@@ -130,47 +79,18 @@ int main(int argc, char** argv) {
     
     controller.install<Vision>();
     
-    
-    controller.emit(new RandomData("Data 1"));
-    controller.emit(new RandomData("Data 2"));
-    controller.emit(new RandomData("Data 3"));
-    controller.emit(new RandomData("Data 4"));
-    controller.emit(new RandomData("Data 5"));
-    controller.emit(new RandomData("Data 6"));
-
-    std::chrono::time_point<std::chrono::steady_clock> a(std::chrono::steady_clock::now());
-    controller.emit(new MotorData());
-    std::chrono::time_point<std::chrono::steady_clock> b(std::chrono::steady_clock::now());
     controller.emit(new CameraData());
-    std::chrono::time_point<std::chrono::steady_clock> c(std::chrono::steady_clock::now());
-    controller.emit(new MotorData());
-    std::chrono::time_point<std::chrono::steady_clock> d(std::chrono::steady_clock::now());
-    controller.emit(new CameraData());
-    std::chrono::time_point<std::chrono::steady_clock> e(std::chrono::steady_clock::now());
-    controller.emit(new MotorData());
-    std::chrono::time_point<std::chrono::steady_clock> f(std::chrono::steady_clock::now());
-    controller.emit(new CameraData());
-    std::chrono::time_point<std::chrono::steady_clock> g(std::chrono::steady_clock::now());
+    controller.emit(new RandomData("Hi!"));
     
-    std::cout << "Emit MotorData 1 Elapsed: " << std::chrono::duration_cast<std::chrono::nanoseconds>(b - a).count() << std::endl;
-    
-    std::cout << "Emit CameraData 1 Elapsed: " << std::chrono::duration_cast<std::chrono::nanoseconds>(c - b).count() << std::endl;
-    
-    std::cout << "Emit MotorData 2 Elapsed: " << std::chrono::duration_cast<std::chrono::nanoseconds>(d - c).count() << std::endl;
-    
-    std::cout << "Emit CameraData 2 Elapsed: " << std::chrono::duration_cast<std::chrono::nanoseconds>(e - d).count() << std::endl;
-    
-    std::cout << "Emit MotorData 3 Elapsed: " << std::chrono::duration_cast<std::chrono::nanoseconds>(f - e).count() << std::endl;
-    
-    std::cout << "Emit CameraData 3 Elapsed: " << std::chrono::duration_cast<std::chrono::nanoseconds>(g - f).count() << std::endl;
-    
-    std::cout << "Starting API Speed Test" << std::endl;
+    std::cout << "Starting speed test" << std::endl << std::endl;
     
     controller.emit(new int(0));
     controller.emit(new double(0));
     controller.emit(new std::chrono::time_point<std::chrono::steady_clock>(std::chrono::steady_clock::now()));
     
+    auto time = std::chrono::steady_clock::now();
     controller.start();
+    std::cout << "Total Runtime: " << std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - time).count() << " ms" << std::endl;
     
     return 0;
 }
