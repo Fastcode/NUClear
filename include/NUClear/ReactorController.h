@@ -134,8 +134,8 @@ namespace NUClear {
                     }
                 
                     template <typename... TData>
-                    auto link(std::tuple<TData...> data) -> decltype(link(typename Internal::Magic::GenerateSequence<sizeof...(TData)>::get(), data)) {
-                        return link(typename Internal::Magic::GenerateSequence<sizeof...(TData)>::get(), data);
+                    auto link(std::tuple<TData...> data) -> decltype(link(typename Internal::Magic::GenerateSequence<sizeof...(TData)>::type(), data)) {
+                        return link(typename Internal::Magic::GenerateSequence<sizeof...(TData)>::type(), data);
                     }
             };
 

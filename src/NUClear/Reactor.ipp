@@ -76,9 +76,16 @@ namespace NUClear {
             
             auto&& data = std::make_tuple(reactorController.get<TTriggersAndWiths>()...);
             
-            auto&& newData = reactorController.cachemaster.link(data);
+            return [this, callback, data] {
+                
+                auto&& newData = reactorController.cachemaster.link(data);
+                
+                Internal::Magic::apply(callback, std::move(newData));
+            };
             
-            return Internal::Magic::bindCallback(callback, std::move(newData));
+            //auto&& newData = reactorController.cachemaster.link(data);
+            
+            //return Internal::Magic::bindCallback(callback, std::move(data));
         }, options);
     }
 

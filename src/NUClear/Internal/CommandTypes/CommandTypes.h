@@ -72,6 +72,16 @@ namespace NUClear {
             
             /**
              * @ingroup Wrappers
+             * @brief This is a special base class for types which use a second pass to collect their data
+             *
+             * @details
+             *  Other placeholders extend from this class type to mean that their data is collected during the second
+             *  pass of collecting data.
+             */
+            class SecondPass {};
+            
+            /**
+             * @ingroup Wrappers
              * @brief This is a wrapper class which is used to list the data types to trigger a callback on.
              *
              * @details
@@ -214,7 +224,7 @@ namespace NUClear {
              * @return  Returns a vector of shared_ptr with the signature std::vector<std::shared_ptr<TData>>
              */
             template <typename TData, int index = 0>
-            class Linked { public: Linked() {}; ~Linked() {}; };
+            class Linked : public SecondPass { public: Linked() {}; ~Linked() {}; };
         }
     }
 }

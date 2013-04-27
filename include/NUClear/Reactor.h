@@ -28,7 +28,7 @@
 #include "NUClear/Internal/Reaction.h"
 #include "NUClear/Internal/CommandTypes/CommandTypes.h"
 #include "NUClear/Internal/Magic/unpack.h"
-#include "NUClear/Internal/Magic/BoundCallback.h"
+#include "NUClear/Internal/Magic/apply.h"
 #include "NUClear/Internal/Magic/TypeMap.h"
 
 namespace NUClear {
