@@ -68,17 +68,27 @@ namespace NUClear {
         options.m_priority = P;
     }
     
-    template <typename... TData>
-    constexpr bool needsSecondPass(std::tuple<TData...> data) {
-        return true;
-    }
+    template <typename... TTypes>
+    struct NeedsSecondPassImpl;
+    
+    template <>
+    struct NeedsSecondPassImpl<> : std::false_type {};
+    
+    template <typename THead, typename... TRest>
+    struct NeedsSecondPassImpl<THead, TRest...> : std::conditional<std::is_base_of<Internal::CommandTypes::SecondPass, THead>::value, std::true_type, NeedsSecondPassImpl<TRest...>>::type {};
+    
+    template <typename TTuple>
+    struct NeedsSecondPass;
+    
+    template <typename... TTypes>
+    struct NeedsSecondPass<std::tuple<TTypes...>> : NeedsSecondPassImpl<TTypes...> {
+    };
     
     template <>
     struct Reactor::buildCallback<true> {
         template <typename TFunc, typename... TData>
         static const std::function<void ()> get(Reactor* parent, TFunc callback, std::tuple<TData...> data) {
             return [parent, callback, data] {
-                
                 auto&& newData = parent->reactorController.cachemaster.link(data);
                 Internal::Magic::apply(callback, std::move(newData));
             };
@@ -104,7 +114,7 @@ namespace NUClear {
             
             auto&& data = std::make_tuple(reactorController.get<TTriggersAndWiths>()...);
             
-            return buildCallback<true>::get(this, callback, data);
+            return buildCallback<NeedsSecondPass<typename std::remove_reference<decltype(data)>::type>::value>::get(this, callback, data);
         }, options);
     }
 
