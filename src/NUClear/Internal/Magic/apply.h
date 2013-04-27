@@ -20,29 +20,69 @@
 
 #include <tuple>
 #include "Sequence.h"
+#include "Dereferenceable.h"
 
 namespace NUClear {
 namespace Internal {
 namespace Magic {
     
-            
-    /**
-     * @brief Dereferences and uses the values from the tuple as the arguments for the function call.
-     *
-     * @details
-     *  This function uses the values which are stored in the tuple and dereferences them as parameters in
-     *  the callback function. It does this using the generated sequence of integers for this tuple. These
-     *  values are then used to extract the function parameters in order.
-     *
-     * @param s the Sequence object which is passed in holding the int template pack
-     *
-     * @tparam S the integer pack giving the ordinal position of the tuple value to get
-     */
-    template<typename TFunc, int... S, typename... TArgs>
-    void apply(TFunc function, Sequence<S...> s, std::tuple<TArgs...> args) {
+    // Anonymous Namespace to hide implementation details
+    namespace {
         
-        // Get each of the values from the tuple, dereference them and call the function with them
-        function((*(std::get<S>(args)))...);
+        /**
+         * @brief
+         *
+         * @todo Document
+         */
+        template <bool Dereference>
+        struct dereference;
+        
+        /**
+         * @brief
+         *
+         * @todo Document
+         */
+        template <>
+        struct dereference<true> {
+            template <typename TType>
+            static constexpr auto get(TType data) -> decltype(*data) {
+                return *data;
+            }
+        };
+        
+        /**
+         * @brief
+         *
+         * @todo Document
+         */
+        template <>
+        struct dereference<false> {
+            
+            template <typename TType>
+            static constexpr const TType get(TType data) {
+                return data;
+            }
+        };
+        
+        /**
+         * @brief Dereferences and uses the values from the tuple as the arguments for the function call.
+         *
+         * @details
+         *  This function uses the values which are stored in the tuple and dereferences them as parameters in
+         *  the callback function. It does this using the generated sequence of integers for this tuple. These
+         *  values are then used to extract the function parameters in order.
+         *
+         * @param s the Sequence object which is passed in holding the int template pack
+         *
+         * @tparam S the integer pack giving the ordinal position of the tuple value to get
+         */
+        template<typename TFunc, int... S, typename... TArgs>
+        void apply(TFunc function, Sequence<S...> s, std::tuple<TArgs...> args) {
+            
+            // Get each of the values from the tuple, dereference them and call the function with them
+            
+            function(dereference<Dereferenceable<decltype(std::get<S>(args))>() == true>::get((std::get<S>(args)))...);
+        }
     }
     
     /**

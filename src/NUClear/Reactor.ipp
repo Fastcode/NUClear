@@ -67,6 +67,32 @@ namespace NUClear {
     void Reactor::buildOptionsImpl(Internal::Reaction::Options& options, Priority<P>* /*placeholder*/) {
         options.m_priority = P;
     }
+    
+    template <bool secondPass>
+    struct buildCallback;
+    
+    template <>
+    struct buildCallback<true> {
+        template <typename TFunc, typename... TData>
+        static const std::function<void ()> get(Reactor* parent, TFunc callback, std::tuple<TData...> data) {
+            return [parent, callback, data] {
+                
+                auto&& newData = parent->reactorController.cachemaster.link(data);
+                Internal::Magic::apply(callback, std::move(newData));
+            };
+        }
+    };
+    
+    template <>
+    struct buildCallback<false> {
+        
+        template <typename TFunc, typename... TData>
+        static const std::function<void ()> get(Reactor* parent, TFunc callback, std::tuple<TData...> data) {
+            return [parent, callback, data] {
+                Internal::Magic::apply(callback, std::move(data));
+            };
+        }
+    };
 
     template <typename TFunc, typename... TTriggersAndWiths>
     Internal::Reaction* Reactor::buildReaction(TFunc callback, Internal::Reaction::Options& options) {
@@ -76,16 +102,7 @@ namespace NUClear {
             
             auto&& data = std::make_tuple(reactorController.get<TTriggersAndWiths>()...);
             
-            return [this, callback, data] {
-                
-                auto&& newData = reactorController.cachemaster.link(data);
-                
-                Internal::Magic::apply(callback, std::move(newData));
-            };
-            
-            //auto&& newData = reactorController.cachemaster.link(data);
-            
-            //return Internal::Magic::bindCallback(callback, std::move(data));
+            return buildCallback<true>::get(this, callback, data);
         }, options);
     }
 
