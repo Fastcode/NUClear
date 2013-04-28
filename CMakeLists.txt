@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8)
+rmake_minimum_required(VERSION 2.8)
 project(NUClear)
 
 set(VERSION_MAJOR 0)
@@ -34,6 +34,11 @@ endif()
 
 # Add the subdirectories
 add_subdirectory(src/NUClear)
+
+# Optional build supports
+if(NUCLEAR_BUILD_TESTS)
+    add_subdirectory(tests)
+endif()
 
 # Temporary main compilation
 add_executable(main main.cpp)
