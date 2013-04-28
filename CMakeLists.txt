@@ -1,9 +1,12 @@
-rmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 2.8)
 project(NUClear)
 
 set(VERSION_MAJOR 0)
 set(VERSION_MINOR 2)
 set(VERSION_PATCH 0)
+
+# Supported options:
+option(NUCLEAR_BUILD_TESTS "Builds all of the NUClear unit tests." ON)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)
@@ -37,6 +40,7 @@ add_subdirectory(src/NUClear)
 
 # Optional build supports
 if(NUCLEAR_BUILD_TESTS)
+    enable_testing()
     add_subdirectory(tests)
 endif()
 
