@@ -95,6 +95,8 @@ namespace NUClear {
                     template <typename TData>
                     using ValueCache = Internal::Magic::TypeBuffer<CacheMaster, TData, TData>;
                 
+                    std::unordered_map<void*, std::vector<std::pair<std::type_index, std::shared_ptr<void>>>> m_linkedCache;
+                
                     std::unordered_map<std::thread::id, std::vector<std::pair<std::type_index, std::shared_ptr<void>>>> m_threadArgs;
                 
                 public:
@@ -126,6 +128,9 @@ namespace NUClear {
                 
                     void setThreadArgs(std::thread::id threadId, std::vector<std::pair<std::type_index, std::shared_ptr<void>>>&& args);
                     std::vector<std::pair<std::type_index, std::shared_ptr<void>>> getThreadArgs(std::thread::id threadId);
+                
+                    template <typename TData>
+                    void linkCache(void* data, std::vector<std::pair<std::type_index, std::shared_ptr<void>>> args);
                 
                     template <typename... TData, typename TElement>
                     TElement doFill(std::tuple<TData...> data, TElement element);

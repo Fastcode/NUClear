@@ -33,6 +33,14 @@ namespace NUClear {
     template <typename TTrigger>
     void ReactorController::ReactorMaster::emit(TTrigger* data) {
         
+        // Get our current arguments (if we have any)
+        auto args = m_parent->cachemaster.getThreadArgs(std::this_thread::get_id());
+        
+        // Cache them in our linked cache
+        if(!args.empty()) {
+            m_parent->cachemaster.linkCache<TTrigger>(data, args);
+        }
+        
         m_parent->cachemaster.cache<TTrigger>(data);
         
         for(auto& reaction : CallbackCache<TTrigger>::get()) {

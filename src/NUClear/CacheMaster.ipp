@@ -49,6 +49,12 @@ namespace NUClear {
         ValueCache<TData>::set(data);
     }
     
+    template <typename TData>
+    void ReactorController::CacheMaster::linkCache(void* data, std::vector<std::pair<std::type_index, std::shared_ptr<void>>> args) {
+        
+        m_linkedCache.insert(std::pair<void*, std::vector<std::pair<std::type_index, std::shared_ptr<void>>>>(data, args));
+    }
+    
     template <typename... TData, typename TElement>
     TElement ReactorController::CacheMaster::doFill(std::tuple<TData...> data, TElement element) {
         return element;
@@ -56,6 +62,19 @@ namespace NUClear {
     
     template <typename... TData, typename TElement, int index>
     std::shared_ptr<TElement> ReactorController::CacheMaster::doFill(std::tuple<TData...> data, Internal::CommandTypes::Linked<TElement, index>) {
+        
+        auto it = m_linkedCache.find(static_cast<void*>(std::get<index>(data).get()));
+        
+        if(it != std::end(m_linkedCache)) {
+            // TODO Do a bredth first search on all of the types until our typeid == the search for typeid
+            
+            
+            for(auto& pair : it->second) {
+                if(pair.first == typeid(TElement)) {
+                    return std::static_pointer_cast<TElement>(pair.second);
+                }
+            }
+        }
         
         // TODO this is where we get the actual linked data
         
