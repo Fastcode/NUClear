@@ -24,6 +24,7 @@
 #include <vector>
 #include <typeindex>
 #include <mutex>
+#include <map>
 #include <unordered_map>
 #include <iostream>
 #include "NUClear/Internal/ThreadWorker.h"
@@ -95,7 +96,7 @@ namespace NUClear {
                     template <typename TData>
                     using ValueCache = Internal::Magic::TypeBuffer<CacheMaster, TData, TData>;
                 
-                    std::unordered_map<void*, std::vector<std::pair<std::type_index, std::shared_ptr<void>>>> m_linkedCache;
+                    std::map<void*, std::vector<std::pair<std::type_index, std::shared_ptr<void>>>> m_linkedCache;
                 
                     std::unordered_map<std::thread::id, std::vector<std::pair<std::type_index, std::shared_ptr<void>>>> m_threadArgs;
                 
