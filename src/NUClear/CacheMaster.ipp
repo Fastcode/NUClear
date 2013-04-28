@@ -49,12 +49,6 @@ namespace NUClear {
         ValueCache<TData>::set(data);
     }
     
-    template <typename TData>
-    void ReactorController::CacheMaster::linkCache(void* data, std::vector<std::pair<std::type_index, std::shared_ptr<void>>> args) {
-        
-        m_linkedCache.insert(std::pair<void*, std::vector<std::pair<std::type_index, std::shared_ptr<void>>>>(data, args));
-    }
-    
     template <typename... TData, typename TElement>
     TElement ReactorController::CacheMaster::doFill(std::tuple<TData...> data, TElement element) {
         return element;

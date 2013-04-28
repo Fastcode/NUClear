@@ -38,7 +38,7 @@ namespace NUClear {
         
         // Cache them in our linked cache
         if(!args.empty()) {
-            m_parent->cachemaster.linkCache<TTrigger>(data, args);
+            m_parent->cachemaster.linkCache(data, args);
         }
         
         m_parent->cachemaster.cache<TTrigger>(data);

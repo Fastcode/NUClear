@@ -18,23 +18,12 @@
 #include <iostream>
 #include <string>
 #include <functional>
-#include <map>
-#include <vector>
-#include <typeindex>
-#include <tuple>
-#include <chrono>
 
 #include "NUClear/NUClear.h"
 
 class CameraData {
     public: 
         CameraData() : data("Class::CameraData") {}
-        std::string data;
-};
-
-class MotorData {
-    public: 
-        MotorData() : data("Class::MotorData") {}
         std::string data;
 };
 

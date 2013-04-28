@@ -30,6 +30,11 @@ namespace NUClear {
         m_threadArgs[threadId] = std::move(args);
     }
     
+    void ReactorController::CacheMaster::linkCache(void* data, std::vector<std::pair<std::type_index, std::shared_ptr<void>>> args) {
+        
+        m_linkedCache.insert(std::pair<void*, std::vector<std::pair<std::type_index, std::shared_ptr<void>>>>(data, args));
+    }
+    
     std::vector<std::pair<std::type_index, std::shared_ptr<void>>> ReactorController::CacheMaster::getThreadArgs(std::thread::id threadId) {
         auto&& args = m_threadArgs.find(threadId);
         

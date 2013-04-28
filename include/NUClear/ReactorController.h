@@ -129,7 +129,6 @@ namespace NUClear {
                     void setThreadArgs(std::thread::id threadId, std::vector<std::pair<std::type_index, std::shared_ptr<void>>>&& args);
                     std::vector<std::pair<std::type_index, std::shared_ptr<void>>> getThreadArgs(std::thread::id threadId);
                 
-                    template <typename TData>
                     void linkCache(void* data, std::vector<std::pair<std::type_index, std::shared_ptr<void>>> args);
                 
                     template <typename... TData, typename TElement>
