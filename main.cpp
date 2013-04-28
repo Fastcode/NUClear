@@ -48,28 +48,14 @@ class Vision : public NUClear::Reactor {
     public:
         Vision(NUClear::ReactorController& control) : Reactor(control) {
             
-            // This section of code here is for timing how long our API system is taking
-            on<Trigger<std::chrono::time_point<std::chrono::steady_clock>>, With<int, double>>([this](const std::chrono::time_point<std::chrono::steady_clock>& point, const int& i, const double& avg) {
-                auto now = std::chrono::steady_clock::now();
-                
-                if(i > 1000000) {
-                    std::cout << "Average API time: " << avg << " ns" << std::endl;
-                    reactorController.shutdown();
-                }
-                else {
-                    double soFar = (avg*i);
-                    double timeTaken = std::chrono::duration_cast<std::chrono::nanoseconds>(now.time_since_epoch() - point.time_since_epoch()).count();
-                    
-                    double total = (soFar + timeTaken)/(i+1);
-                    
-                    reactorController.emit(new double(total));
-                    reactorController.emit(new int(i + 1));
-                    reactorController.emit(new std::chrono::time_point<std::chrono::steady_clock>(std::chrono::steady_clock::now()));
-                }
+            on<Trigger<RandomData>>([this](const RandomData& cameraData) {
+                std::cout << "Emitting CameraData" << std::endl;
+                reactorController.emit(new CameraData());
             });
             
-            on<Trigger<RandomData>, With<Linked<CameraData>>>([](const RandomData& randomData, const CameraData& cameraData) {
-                std::cout << "Got linked data" << std::endl;
+            on<Trigger<CameraData>, With<Linked<RandomData>>>([this](const CameraData& cameraData, const RandomData& randomData) {
+                std::cout << randomData.data << std::endl;
+                reactorController.shutdown();
             });
         }
 };
@@ -79,18 +65,10 @@ int main(int argc, char** argv) {
     
     controller.install<Vision>();
     
-    controller.emit(new CameraData());
-    controller.emit(new RandomData("Hi!"));
+    //Trigger the first one, which will trigger the linked one
+    controller.emit(new RandomData("I WAS LINKED!"));
     
-    std::cout << "Starting speed test" << std::endl << std::endl;
-    
-    controller.emit(new int(0));
-    controller.emit(new double(0));
-    controller.emit(new std::chrono::time_point<std::chrono::steady_clock>(std::chrono::steady_clock::now()));
-    
-    auto time = std::chrono::steady_clock::now();
     controller.start();
-    std::cout << "Total Runtime: " << std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - time).count() << " ms" << std::endl;
     
     return 0;
 }
