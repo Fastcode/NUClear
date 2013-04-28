@@ -46,7 +46,9 @@ namespace NUClear {
     
     template <typename TData>
     void ReactorController::CacheMaster::cache(TData* data) {
-        ValueCache<TData>::set(data);
+        ValueCache<TData>::set(std::shared_ptr<TData>(data, [this] (TData* data) {
+            m_linkedCache.erase(data);
+        }));
     }
     
     template <typename... TData, typename TElement>
