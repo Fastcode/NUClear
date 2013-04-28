@@ -93,8 +93,6 @@ class Vision : public NUClear::Reactor {
             });
             */
             
-            on<Trigger<Every<1, std::chrono::hours>>>([](const std::chrono::time_point<std::chrono::steady_clock>& time){});
-            
             // This section of code here is for timing how long our API system is taking
             on<Trigger<std::chrono::time_point<std::chrono::steady_clock>>, With<int, double>>([this](const std::chrono::time_point<std::chrono::steady_clock>& point, const int& i, const double& avg) {
                 auto now = std::chrono::steady_clock::now();
@@ -113,6 +111,11 @@ class Vision : public NUClear::Reactor {
                     reactorController.emit(new int(i + 1));
                     reactorController.emit(new std::chrono::time_point<std::chrono::steady_clock>(std::chrono::steady_clock::now()));
                 }
+            }
+
+            on<Trigger<CameraData>, With<RandomData>>([this](const CameraData& cameraData, const RandomData& randomData) {
+                std::cout << randomData.data << std::endl;
+                reactorController.shutdown();
             });
         }
     private:
