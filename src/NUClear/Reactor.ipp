@@ -49,6 +49,7 @@ namespace NUClear {
         , Reactor::Options<TOptions...>
         , TFunc>::operator()(TFunc callback) {
             Internal::Reaction::Options options;
+            context->buildOptions<TOptions...>(options);
             context->bindTriggers<TTriggers...>(context->buildReaction<TFunc, TTriggers..., TWiths...>(callback, options));
     }
     
@@ -90,6 +91,11 @@ namespace NUClear {
         static const std::function<void ()> get(Reactor* parent, TFunc callback, std::tuple<TData...> data) {
             return [parent, callback, data] {
                 auto&& newData = parent->reactorController.cachemaster.fill(data);
+                
+                std::vector<std::pair<std::type_index, std::shared_ptr<void>>> args(Internal::Magic::buildVector(newData));
+                
+                // TODO get a vector of our args and store it against our thread_id
+                
                 Internal::Magic::apply(callback, std::move(newData));
             };
         }
@@ -101,6 +107,10 @@ namespace NUClear {
         template <typename TFunc, typename... TData>
         static const std::function<void ()> get(Reactor* parent, TFunc callback, std::tuple<TData...> data) {
             return [parent, callback, data] {
+                // TODO get a vector of our args and store it against our thread_id
+                
+                std::vector<std::pair<std::type_index, std::shared_ptr<void>>> args(Internal::Magic::buildVector(data));
+                
                 Internal::Magic::apply(callback, std::move(data));
             };
         }

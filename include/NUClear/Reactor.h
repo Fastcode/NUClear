@@ -30,6 +30,7 @@
 #include "NUClear/Internal/Magic/unpack.h"
 #include "NUClear/Internal/Magic/apply.h"
 #include "NUClear/Internal/Magic/TypeMap.h"
+#include "NUClear/Internal/Magic/buildVector.h"
 
 namespace NUClear {
     
