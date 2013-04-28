@@ -68,7 +68,7 @@ namespace NUClear {
         // Push on our first element
         searchQueue.push_front(static_cast<void*>(std::get<index>(data).get()));
         
-        while (searchQueue.empty()) {
+        while (!searchQueue.empty()) {
             auto el = searchQueue.front();
             searchQueue.pop_front();
             
@@ -77,7 +77,7 @@ namespace NUClear {
             if(it != std::end(m_linkedCache)) {
                 
                 for(auto& element : it->second) {
-                    if(element.first == typeid(TElement)) {
+                    if(element.first == typeid(std::shared_ptr<TElement>)) {
                         return std::static_pointer_cast<TElement>(element.second);
                     }
                     else {
