@@ -43,7 +43,3 @@ if(NUCLEAR_BUILD_TESTS)
     enable_testing()
     add_subdirectory(tests)
 endif()
-
-# Temporary main compilation
-add_executable(main main.cpp)
-target_link_libraries(main nuclear)
