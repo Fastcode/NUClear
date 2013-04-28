@@ -25,4 +25,19 @@ namespace NUClear {
     
     ReactorController::CacheMaster::~CacheMaster() {
     }
+    
+    void ReactorController::CacheMaster::setThreadArgs(std::thread::id threadId, std::vector<std::pair<std::type_index, std::shared_ptr<void>>>&& args) {
+        m_threadArgs[threadId] = std::move(args);
+    }
+    
+    std::vector<std::pair<std::type_index, std::shared_ptr<void>>> ReactorController::CacheMaster::getThreadArgs(std::thread::id threadId) {
+        auto&& args = m_threadArgs.find(threadId);
+        
+        if(args != std::end(m_threadArgs)) {
+            return args->second;
+        }
+        else {
+            return std::vector<std::pair<std::type_index, std::shared_ptr<void>>>();
+        }
+    }
 }

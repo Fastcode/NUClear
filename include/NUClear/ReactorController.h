@@ -24,7 +24,7 @@
 #include <vector>
 #include <typeindex>
 #include <mutex>
-#include <map>
+#include <unordered_map>
 #include <iostream>
 #include "NUClear/Internal/ThreadWorker.h"
 #include "NUClear/Internal/TaskScheduler.h"
@@ -56,7 +56,7 @@ namespace NUClear {
                     void submit(std::unique_ptr<Internal::Reaction::Task>&& task);
                     void internalTask(Internal::ThreadWorker::InternalTask task);
                 private:
-                    std::map<std::thread::id, std::unique_ptr<Internal::ThreadWorker>> m_threads;
+                    std::unordered_map<std::thread::id, std::unique_ptr<Internal::ThreadWorker>> m_threads;
                     std::vector<Internal::ThreadWorker::InternalTask> m_internalTasks;
                     Internal::TaskScheduler m_scheduler;
                     int numThreads = 1;
@@ -95,6 +95,8 @@ namespace NUClear {
                     template <typename TData>
                     using ValueCache = Internal::Magic::TypeBuffer<CacheMaster, TData, TData>;
                 
+                    std::unordered_map<std::thread::id, std::vector<std::pair<std::type_index, std::shared_ptr<void>>>> m_threadArgs;
+                
                 public:
                     CacheMaster(ReactorController* parent);
                     ~CacheMaster();
@@ -121,6 +123,9 @@ namespace NUClear {
                 
                     template <int num, typename TData>
                     void ensureCache();
+                
+                    void setThreadArgs(std::thread::id threadId, std::vector<std::pair<std::type_index, std::shared_ptr<void>>>&& args);
+                    std::vector<std::pair<std::type_index, std::shared_ptr<void>>> getThreadArgs(std::thread::id threadId);
                 
                     template <typename... TData, typename TElement>
                     TElement doFill(std::tuple<TData...> data, TElement element);

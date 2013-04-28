@@ -20,7 +20,6 @@
 
 #include <string>
 #include <functional>
-#include <map>
 #include <vector>
 #include <typeindex>
 #include <chrono>
