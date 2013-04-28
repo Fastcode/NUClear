@@ -42,7 +42,7 @@ class Vision : public NUClear::Reactor {
                 reactorController.emit(new CameraData());
             });
             
-            on<Trigger<CameraData>, With<RandomData>>([this](const CameraData& cameraData, const RandomData& randomData) {
+            on<Trigger<CameraData>, With<Linked<RandomData>>>([this](const CameraData& cameraData, const RandomData& randomData) {
                 std::cout << randomData.data << std::endl;
                 reactorController.shutdown();
             });
