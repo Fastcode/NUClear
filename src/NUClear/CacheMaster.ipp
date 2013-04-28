@@ -63,24 +63,32 @@ namespace NUClear {
     template <typename... TData, typename TElement, int index>
     std::shared_ptr<TElement> ReactorController::CacheMaster::doFill(std::tuple<TData...> data, Internal::CommandTypes::Linked<TElement, index>) {
         
-        auto it = m_linkedCache.find(static_cast<void*>(std::get<index>(data).get()));
+        // Build our queue we are using for our search
+        std::deque<void*> searchQueue;
         
-        if(it != std::end(m_linkedCache)) {
-            // TODO Do a bredth first search on all of the types until our typeid == the search for typeid
+        // Push on our first element
+        searchQueue.push_front(static_cast<void*>(std::get<index>(data).get()));
+        
+        while (searchQueue.empty()) {
+            auto el = searchQueue.front();
+            searchQueue.pop_front();
             
+            auto it = m_linkedCache.find(el);
             
-            for(auto& pair : it->second) {
-                if(pair.first == typeid(TElement)) {
-                    return std::static_pointer_cast<TElement>(pair.second);
+            if(it != std::end(m_linkedCache)) {
+                
+                for(auto& element : it->second) {
+                    if(element.first == typeid(TElement)) {
+                        return std::static_pointer_cast<TElement>(element.second);
+                    }
+                    else {
+                        searchQueue.push_back(element.second.get());
+                    }
                 }
             }
         }
         
-        // TODO this is where we get the actual linked data
-        
-        // Something like this
-        //LinkedCache::get(std::get<index>(data).get(), typeid(TElement));
-        
-        return std::shared_ptr<TElement>(new TElement());
+        // We don't have the data
+        throw Internal::Magic::NoDataException();
     }
 }
