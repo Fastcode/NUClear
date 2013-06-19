@@ -15,17 +15,22 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include "NUClear/Reactor.h"
+#include "NUClear/PowerPlant.h"
 
 namespace NUClear {
     
-    Reactor::Reactor(PowerPlant& powerPlant) :
-        powerPlant(powerPlant) {
+    PowerPlant::PowerPlant() :
+        threadmaster(this)
+        , chronomaster(this)
+        , cachemaster(this)
+        , reactormaster(this)
+         {}
+
+    void PowerPlant::start() {
+        threadmaster.start();
     }
     
-    void Reactor::buildOptionsImpl(Internal::Reaction::Options& options, Single* /*placeholder*/) {
-        options.m_single = true;
+    void PowerPlant::shutdown() {
+        threadmaster.shutdown();
     }
-
-    Reactor::~Reactor() {}
 }

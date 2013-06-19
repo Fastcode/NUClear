@@ -24,14 +24,14 @@ namespace NUClear {
     // forward declaration resolution. See the similar comment in Reactor.h for more information.
 
     template <typename TReactor>
-    void ReactorController::ReactorMaster::install() {
+    void PowerPlant::ReactorMaster::install() {
         // The reactor constructor should handle subscribing to events
         std::unique_ptr<NUClear::Reactor> reactor(new TReactor(*m_parent));
         m_reactors.push_back(std::move(reactor));
     }
 
     template <typename TTrigger>
-    void ReactorController::ReactorMaster::emit(TTrigger* data) {
+    void PowerPlant::ReactorMaster::emit(TTrigger* data) {
         
         m_parent->cachemaster.cache<TTrigger>(data);
         

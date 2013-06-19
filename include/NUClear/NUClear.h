@@ -18,7 +18,7 @@
 #ifndef NUCLEAR_NUCLEAR_H
 #define NUCLEAR_NUCLEAR_H
 
-#include "ReactorController.h"
+#include "PowerPlant.h"
 #include "Reactor.h"
 
 /**

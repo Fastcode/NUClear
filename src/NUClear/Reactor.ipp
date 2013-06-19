@@ -73,7 +73,7 @@ namespace NUClear {
         
         // Return a reaction object that gets and runs with the correct paramters
         return new Internal::Reaction([this, callback]() -> std::function<void ()> {
-            return Internal::Magic::bindCallback(callback, reactorController.get<TTriggersAndWiths>()...);
+            return Internal::Magic::bindCallback(callback, powerPlant.get<TTriggersAndWiths>()...);
         }, options);
     }
 
@@ -108,7 +108,7 @@ namespace NUClear {
     void Reactor::bindTriggersImpl(Internal::Reaction* callback, Every<ticks, period>* placeholder) {
         
         // Add this interval to the chronometer
-        reactorController.chronomaster.add<ticks, period>();
+        powerPlant.chronomaster.add<ticks, period>();
         
         // Register as normal
         bindTriggersImpl<Every<ticks, period>>(callback, placeholder);
@@ -118,7 +118,7 @@ namespace NUClear {
     void Reactor::bindTriggersImpl(Internal::Reaction* callback, Last<num, TData>* placeholder) {
         
         // Let the ReactorMaster know to cache at least this many of this type
-        reactorController.cachemaster.ensureCache<num, TData>();
+        powerPlant.cachemaster.ensureCache<num, TData>();
         
         // Register our callback on the inner type
         bindTriggersImpl<TData>(callback, reinterpret_cast<TData*>(0));

@@ -1,3 +1,7 @@
-add_executable(raw_test raw_test.cpp)
-target_link_libraries(raw_test nuclear)
-add_test(raw_tests raw_test)
+FILE(GLOB testsrc "${CMAKE_CURRENT_SOURCE_DIR}/tests/*.cpp")
+
+source_group(Tests FILES ${testsrc})
+
+add_executable(tests tests.cpp ${testsrc})
+target_link_libraries(tests nuclear)
+add_test(tests tests)

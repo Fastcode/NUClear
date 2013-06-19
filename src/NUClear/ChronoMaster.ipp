@@ -20,7 +20,7 @@
 namespace NUClear {
     
     template <int ticks, class period>
-    void ReactorController::ChronoMaster::add() {
+    void PowerPlant::ChronoMaster::add() {
         // Check if we have not already loaded this type in
         if(m_loaded.find(typeid(NUClear::Internal::CommandTypes::Every<ticks, period>)) == std::end(m_loaded)) {
             

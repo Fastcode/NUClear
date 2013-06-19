@@ -15,22 +15,39 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include "NUClear/ReactorController.h"
+#include <catch.hpp>
 
-namespace NUClear {
-    
-    ReactorController::ReactorController() :
-        threadmaster(this)
-        , chronomaster(this)
-        , cachemaster(this)
-        , reactormaster(this)
-         {}
+#include "NUClear/NUClear.h"
 
-    void ReactorController::start() {
-        threadmaster.start();
+namespace api {
+    namespace basic {
+        struct SimpleMessage {
+            int test;
+        };
+        
+        class TestReactor : public NUClear::Reactor {
+        public:
+            TestReactor(NUClear::PowerPlant& plant) : Reactor(plant) {
+                on<Trigger<SimpleMessage>>([this](SimpleMessage& message) {
+                    
+                    // The message we recieved should have test == 10
+                    REQUIRE(10 == message.test);
+                    
+                    // We are finished the test
+                    this->powerPlant.shutdown();
+                });
+            }
+        };
     }
+}
+
+TEST_CASE( "api/Basic", "A very basic test for Emit and On" ) {
     
-    void ReactorController::shutdown() {
-        threadmaster.shutdown();
-    }
+    NUClear::PowerPlant plant;
+    
+    plant.install<api::basic::TestReactor>();
+    
+    plant.emit(new api::basic::SimpleMessage{10});
+    
+    plant.start();
 }

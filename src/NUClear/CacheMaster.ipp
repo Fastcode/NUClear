@@ -19,28 +19,28 @@
 namespace NUClear {
     
     template <int num, typename TData>
-    void ReactorController::CacheMaster::ensureCache() {
+    void PowerPlant::CacheMaster::ensureCache() {
         ValueCache<TData>::cache::minCapacity(num);
     }
     
     template <typename TData>
-    std::shared_ptr<TData> ReactorController::CacheMaster::getData(TData*) {
+    std::shared_ptr<TData> PowerPlant::CacheMaster::getData(TData*) {
         return ValueCache<TData>::get();
     }
     
     template <int num, typename TData>
-    std::shared_ptr<std::vector<std::shared_ptr<const TData>>> ReactorController::CacheMaster::getData(Internal::CommandTypes::Last<num, TData>*) {
+    std::shared_ptr<std::vector<std::shared_ptr<const TData>>> PowerPlant::CacheMaster::getData(Internal::CommandTypes::Last<num, TData>*) {
         return ValueCache<TData>::cache::get(num);
     }
     
     template <int ticks, class period>
-    std::shared_ptr<std::chrono::time_point<std::chrono::steady_clock>> ReactorController::CacheMaster::getData(Internal::CommandTypes::Every<ticks, period>*) {
+    std::shared_ptr<std::chrono::time_point<std::chrono::steady_clock>> PowerPlant::CacheMaster::getData(Internal::CommandTypes::Every<ticks, period>*) {
         
         return std::shared_ptr<std::chrono::time_point<std::chrono::steady_clock>>(new std::chrono::time_point<std::chrono::steady_clock>(ValueCache<Internal::CommandTypes::Every<ticks, period>>::get()->m_time));
     }
     
     template <typename TData>
-    void ReactorController::CacheMaster::cache(TData* data) {
+    void PowerPlant::CacheMaster::cache(TData* data) {
         ValueCache<TData>::set(data);
     }
 }

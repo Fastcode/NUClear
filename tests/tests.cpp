@@ -15,15 +15,6 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-namespace NUClear {
-
-    template <typename TReactor>
-    void ReactorController::install() {
-        reactormaster.install<TReactor>();
-    }
-
-    template <typename TTrigger>
-    void ReactorController::emit(TTrigger* data) {
-        reactormaster.emit(data);
-    }
-}
+// This is our main CATCH file make new files to make tests
+#define CATCH_CONFIG_MAIN
+#include <catch.hpp>

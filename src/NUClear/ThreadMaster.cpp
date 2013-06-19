@@ -15,16 +15,16 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include "NUClear/ReactorController.h"
+#include "NUClear/PowerPlant.h"
 #include "NUClear/Internal/ThreadPoolTask.h"
 
 namespace NUClear {
     
-    ReactorController::ThreadMaster::ThreadMaster(ReactorController* parent) :
-    ReactorController::BaseMaster(parent) {
+    PowerPlant::ThreadMaster::ThreadMaster(PowerPlant* parent) :
+    PowerPlant::BaseMaster(parent) {
     }
 
-    void ReactorController::ThreadMaster::start() {
+    void PowerPlant::ThreadMaster::start() {
         // Start our internal service threads
         for(auto& task : m_internalTasks) {
             // Start a thread worker with our task
@@ -44,7 +44,7 @@ namespace NUClear {
         }
     }
     
-    void ReactorController::ThreadMaster::shutdown() {
+    void PowerPlant::ThreadMaster::shutdown() {
         // Kill everything
         for(auto& thread : m_threads) {
             thread.second->kill();
@@ -53,11 +53,11 @@ namespace NUClear {
         m_scheduler.shutdown();
     }
     
-    void ReactorController::ThreadMaster::internalTask(Internal::ThreadWorker::InternalTask task) {
+    void PowerPlant::ThreadMaster::internalTask(Internal::ThreadWorker::InternalTask task) {
         m_internalTasks.push_back(task);
     }
     
-    void ReactorController::ThreadMaster::submit(std::unique_ptr<Internal::Reaction::Task>&& task) {
+    void PowerPlant::ThreadMaster::submit(std::unique_ptr<Internal::Reaction::Task>&& task) {
         m_scheduler.submit(std::move(task));
     }
 }

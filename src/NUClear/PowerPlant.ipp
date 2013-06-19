@@ -15,17 +15,15 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include "NUClear/Reactor.h"
-
 namespace NUClear {
-    
-    Reactor::Reactor(PowerPlant& powerPlant) :
-        powerPlant(powerPlant) {
-    }
-    
-    void Reactor::buildOptionsImpl(Internal::Reaction::Options& options, Single* /*placeholder*/) {
-        options.m_single = true;
+
+    template <typename TReactor>
+    void PowerPlant::install() {
+        reactormaster.install<TReactor>();
     }
 
-    Reactor::~Reactor() {}
+    template <typename TTrigger>
+    void PowerPlant::emit(TTrigger* data) {
+        reactormaster.emit(data);
+    }
 }
