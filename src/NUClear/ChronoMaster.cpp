@@ -34,7 +34,10 @@ namespace NUClear {
     }
 
     void PowerPlant::ChronoMaster::run() {
-        if(!m_steps.empty()) {
+        
+        // Only start doing every if we actually have some
+        if (!m_steps.empty()) {
+            
             // Initialize all of the m_steps with our start time
             std::chrono::time_point<std::chrono::steady_clock> start(std::chrono::steady_clock::now());
             for(auto& step : m_steps) {

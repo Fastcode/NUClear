@@ -20,7 +20,6 @@
 
 #include <string>
 #include <functional>
-#include <map>
 #include <vector>
 #include <typeindex>
 #include <chrono>
@@ -28,8 +27,9 @@
 #include "NUClear/Internal/Reaction.h"
 #include "NUClear/Internal/CommandTypes/CommandTypes.h"
 #include "NUClear/Internal/Magic/unpack.h"
-#include "NUClear/Internal/Magic/BoundCallback.h"
+#include "NUClear/Internal/Magic/apply.h"
 #include "NUClear/Internal/Magic/TypeMap.h"
+#include "NUClear/Internal/Magic/buildVector.h"
 
 namespace NUClear {
     
@@ -75,6 +75,9 @@ namespace NUClear {
         
             template <typename TSync>
             using Sync = Internal::CommandTypes::Sync<TSync>;
+        
+            template <typename TData, int index = 0>
+            using Linked = Internal::CommandTypes::Linked<TData, index>;
         
             using Single = Internal::CommandTypes::Single;
 
@@ -150,6 +153,19 @@ namespace NUClear {
              */
             template <enum EPriority P>
             void buildOptionsImpl(Internal::Reaction::Options& options, Priority<P>* /*placeholder*/);
+        
+            /**
+             * @brief Builds a callback based on if it needs a second pass at runtime.
+             *
+             * @details
+             *  If this is run with true, then when the callback is executed, it will have it's second pass run to
+             *  get additional data.
+             *
+             * @tparam secondPass if a second pass over the paramters needs to be done when the callback is executed.
+             *
+             */
+            template <bool secondPass>
+            struct buildCallback;
         
             /**
              * @brief Builds a callback wrapper function for a given callback. 

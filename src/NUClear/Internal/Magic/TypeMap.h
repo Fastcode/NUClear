@@ -129,7 +129,7 @@ namespace Magic {
                     m_data.emplace_back(nullptr);
                 }
             }
-        
+            
             /**
              * @brief Stores the passed pointer in our storage, removing the oldest element for this key
              *
@@ -138,6 +138,16 @@ namespace Magic {
             static void set(TValue* data) {
                 m_data.pop_back();
                 m_data.push_front(std::shared_ptr<TValue>(data));
+            }
+            
+            /**
+             * @brief Stores the passed pointer in our storage, removing the oldest element for this key
+             *
+             * @param a shared pointer to cache
+             */
+            static void set(std::shared_ptr<TValue> data) {
+                m_data.pop_back();
+                m_data.push_front(data);
             }
         
             /**

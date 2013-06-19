@@ -39,8 +39,55 @@ namespace NUClear {
         return std::shared_ptr<std::chrono::time_point<std::chrono::steady_clock>>(new std::chrono::time_point<std::chrono::steady_clock>(ValueCache<Internal::CommandTypes::Every<ticks, period>>::get()->m_time));
     }
     
+    template <typename TData, int index>
+    Internal::CommandTypes::Linked<TData, index> PowerPlant::CacheMaster::getData(Internal::CommandTypes::Linked<TData, index>*) {
+        return Internal::CommandTypes::Linked<TData, index>();
+    }
+    
     template <typename TData>
     void PowerPlant::CacheMaster::cache(TData* data) {
-        ValueCache<TData>::set(data);
+        ValueCache<TData>::set(std::shared_ptr<TData>(data, [this] (TData* data) {
+            if(m_linkedCache.find(data) != std::end(m_linkedCache)) {
+                m_linkedCache.erase(data);
+            }
+            delete data;
+        }));
+    }
+    
+    template <typename... TData, typename TElement>
+    TElement PowerPlant::CacheMaster::doFill(std::tuple<TData...> data, TElement element) {
+        return element;
+    }
+    
+    template <typename... TData, typename TElement, int index>
+    std::shared_ptr<TElement> PowerPlant::CacheMaster::doFill(std::tuple<TData...> data, Internal::CommandTypes::Linked<TElement, index>) {
+        
+        // Build our queue we are using for our search
+        std::deque<void*> searchQueue;
+        
+        // Push on our first element
+        searchQueue.push_front(static_cast<void*>(std::get<index>(data).get()));
+        
+        while (!searchQueue.empty()) {
+            auto el = searchQueue.front();
+            searchQueue.pop_front();
+            
+            auto it = m_linkedCache.find(el);
+            
+            if(it != std::end(m_linkedCache)) {
+                
+                for(auto& element : it->second) {
+                    if(element.first == typeid(std::shared_ptr<TElement>)) {
+                        return std::static_pointer_cast<TElement>(element.second);
+                    }
+                    else {
+                        searchQueue.push_back(element.second.get());
+                    }
+                }
+            }
+        }
+        
+        // We don't have the data
+        throw Internal::Magic::NoDataException();
     }
 }

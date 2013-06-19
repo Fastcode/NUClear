@@ -15,34 +15,43 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include "NUClear/PowerPlant.h"
+#include <catch.hpp>
 
-namespace NUClear {
+#include "NUClear/NUClear.h"
+
+
+// Anonymous namespace to keep everything file local
+namespace {
     
-    PowerPlant::CacheMaster::CacheMaster(PowerPlant* parent) :
-    PowerPlant::BaseMaster(parent)
-    {}
+    struct SimpleMessage {
+        int data;
+    };
     
-    PowerPlant::CacheMaster::~CacheMaster() {
-    }
-    
-    void PowerPlant::CacheMaster::setThreadArgs(std::thread::id threadId, std::vector<std::pair<std::type_index, std::shared_ptr<void>>>&& args) {
-        m_threadArgs[threadId] = std::move(args);
-    }
-    
-    void PowerPlant::CacheMaster::linkCache(void* data, std::vector<std::pair<std::type_index, std::shared_ptr<void>>> args) {
-        
-        m_linkedCache.insert(std::pair<void*, std::vector<std::pair<std::type_index, std::shared_ptr<void>>>>(data, args));
-    }
-    
-    std::vector<std::pair<std::type_index, std::shared_ptr<void>>> PowerPlant::CacheMaster::getThreadArgs(std::thread::id threadId) {
-        auto&& args = m_threadArgs.find(threadId);
-        
-        if(args != std::end(m_threadArgs)) {
-            return args->second;
+    class TestReactor : public NUClear::Reactor {
+    public:
+        TestReactor(NUClear::PowerPlant& plant) : Reactor(plant) {
+            on<Trigger<SimpleMessage>>([this](SimpleMessage& message) {
+                
+                // The message we recieved should have test == 10
+                REQUIRE(message.data == 10);
+                
+                // We are finished the test
+                this->powerPlant.shutdown();
+            });
         }
-        else {
-            return std::vector<std::pair<std::type_index, std::shared_ptr<void>>>();
-        }
-    }
+    };
+}
+
+TEST_CASE("api/basic", "A very basic test for Emit and On") {
+    
+    // For some reason that is beyond me... putting this here stops this unit tests segfaulting
+    REQUIRE(true);
+    
+    NUClear::PowerPlant plant;
+    
+    plant.install<TestReactor>();
+    
+    plant.emit(new SimpleMessage{10});
+    
+    plant.start();
 }

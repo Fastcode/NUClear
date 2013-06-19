@@ -28,7 +28,7 @@ namespace NUClear {
             m_loaded.insert(typeid(NUClear::Internal::CommandTypes::Every<ticks, period>));
             
             std::function<void (std::chrono::time_point<std::chrono::steady_clock>)> emit = [this](std::chrono::time_point<std::chrono::steady_clock> time){
-                m_parent->emit(new NUClear::Internal::CommandTypes::Every<ticks, period>(time));
+                m_parent->reactormaster.emit(new NUClear::Internal::CommandTypes::Every<ticks, period>(time));
             };
             
             // Get our period in whatever time our clock measures

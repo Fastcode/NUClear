@@ -25,11 +25,13 @@
 #include <typeindex>
 #include <mutex>
 #include <map>
+#include <unordered_map>
 #include <iostream>
 #include "NUClear/Internal/ThreadWorker.h"
 #include "NUClear/Internal/TaskScheduler.h"
 #include "NUClear/Internal/CommandTypes/CommandTypes.h"
 #include "NUClear/Internal/Magic/TypeMap.h"
+#include "NUClear/Internal/Magic/Sequence.h"
 
 namespace NUClear {
     
@@ -55,10 +57,10 @@ namespace NUClear {
                     void submit(std::unique_ptr<Internal::Reaction::Task>&& task);
                     void internalTask(Internal::ThreadWorker::InternalTask task);
                 private:
-                    std::map<std::thread::id, std::unique_ptr<Internal::ThreadWorker>> m_threads;
+                    std::unordered_map<std::thread::id, std::unique_ptr<Internal::ThreadWorker>> m_threads;
                     std::vector<Internal::ThreadWorker::InternalTask> m_internalTasks;
                     Internal::TaskScheduler m_scheduler;
-                    int numThreads = 4;
+                    int numThreads = 1;
             };
 
             class ChronoMaster : public BaseMaster {
@@ -94,6 +96,10 @@ namespace NUClear {
                     template <typename TData>
                     using ValueCache = Internal::Magic::TypeBuffer<CacheMaster, TData, TData>;
                 
+                    std::map<void*, std::vector<std::pair<std::type_index, std::shared_ptr<void>>>> m_linkedCache;
+                
+                    std::unordered_map<std::thread::id, std::vector<std::pair<std::type_index, std::shared_ptr<void>>>> m_threadArgs;
+                
                 public:
                     CacheMaster(PowerPlant* parent);
                     ~CacheMaster();
@@ -110,6 +116,9 @@ namespace NUClear {
                     template <int ticks, class period>
                     std::shared_ptr<std::chrono::time_point<std::chrono::steady_clock>> getData(Internal::CommandTypes::Every<ticks, period>*);
                 
+                    template <typename TData, int index>
+                    Internal::CommandTypes::Linked<TData, index> getData(Internal::CommandTypes::Linked<TData, index>*);
+                
                     template <typename TData>
                     auto get() -> decltype(std::declval<CacheMaster>().getData(std::declval<TData*>())) {
                         return getData(reinterpret_cast<TData*>(0));
@@ -117,6 +126,27 @@ namespace NUClear {
                 
                     template <int num, typename TData>
                     void ensureCache();
+                
+                    void setThreadArgs(std::thread::id threadId, std::vector<std::pair<std::type_index, std::shared_ptr<void>>>&& args);
+                    std::vector<std::pair<std::type_index, std::shared_ptr<void>>> getThreadArgs(std::thread::id threadId);
+                
+                    void linkCache(void* data, std::vector<std::pair<std::type_index, std::shared_ptr<void>>> args);
+                
+                    template <typename... TData, typename TElement>
+                    TElement doFill(std::tuple<TData...> data, TElement element);
+                
+                    template <typename... TData, typename TElement, int index>
+                    std::shared_ptr<TElement> doFill(std::tuple<TData...> data, Internal::CommandTypes::Linked<TElement, index>);
+                
+                    template <typename... TData, int... S>
+                    auto fill(Internal::Magic::Sequence<S...> s, std::tuple<TData...> data) -> decltype(std::make_tuple(doFill(data, std::get<S>(data))...)) {
+                        return std::make_tuple(doFill(data, std::get<S>(data))...);
+                    }
+                
+                    template <typename... TData>
+                    auto fill(std::tuple<TData...> data) -> decltype(fill(typename Internal::Magic::GenerateSequence<sizeof...(TData)>::type(), data)) {
+                        return fill(typename Internal::Magic::GenerateSequence<sizeof...(TData)>::type(), data);
+                    }
             };
 
             class ReactorMaster : public BaseMaster {

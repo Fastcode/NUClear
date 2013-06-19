@@ -15,39 +15,40 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include <catch.hpp>
+#ifndef NUCLEAR_INTERNAL_MAGIC_BUILDVECTOR_H
+#define NUCLEAR_INTERNAL_MAGIC_BUILDVECTOR_H
 
-#include "NUClear/NUClear.h"
+#include <tuple>
+#include <vector>
+#include "Sequence.h"
 
-namespace api {
-    namespace basic {
-        struct SimpleMessage {
-            int test;
-        };
+namespace NUClear {
+namespace Internal {
+namespace Magic {
+    
+    // Anonymous Namespace to hide implementation details
+    namespace {
         
-        class TestReactor : public NUClear::Reactor {
-        public:
-            TestReactor(NUClear::PowerPlant& plant) : Reactor(plant) {
-                on<Trigger<SimpleMessage>>([this](SimpleMessage& message) {
-                    
-                    // The message we recieved should have test == 10
-                    REQUIRE(10 == message.test);
-                    
-                    // We are finished the test
-                    this->powerPlant.shutdown();
-                });
-            }
-        };
+        /**
+         * @todo Document
+         */
+        template<int... S, typename... TArgs>
+        std::vector<std::pair<std::type_index, std::shared_ptr<void>>> buildVector(Sequence<S...> s, std::tuple<TArgs...> args) {
+            
+            // Use an initializer list to return the correct list
+            return { {typeid(TArgs), std::get<S>(args) }... };
+        }
+    }
+    
+    /**
+     * @todo Document
+     */
+    template<typename... TArgs>
+    std::vector<std::pair<std::type_index, std::shared_ptr<void>>> buildVector(std::tuple<TArgs...> args) {
+        return buildVector(typename GenerateSequence<sizeof...(TArgs)>::type(), args);
     }
 }
-
-TEST_CASE( "api/Basic", "A very basic test for Emit and On" ) {
-    
-    NUClear::PowerPlant plant;
-    
-    plant.install<api::basic::TestReactor>();
-    
-    plant.emit(new api::basic::SimpleMessage{10});
-    
-    plant.start();
 }
+}
+
+#endif

@@ -49,6 +49,7 @@ namespace NUClear {
         , Reactor::Options<TOptions...>
         , TFunc>::operator()(TFunc callback) {
             Internal::Reaction::Options options;
+            context->buildOptions<TOptions...>(options);
             context->bindTriggers<TTriggers...>(context->buildReaction<TFunc, TTriggers..., TWiths...>(callback, options));
     }
     
@@ -67,13 +68,60 @@ namespace NUClear {
     void Reactor::buildOptionsImpl(Internal::Reaction::Options& options, Priority<P>* /*placeholder*/) {
         options.m_priority = P;
     }
+    
+    template <typename... TTypes>
+    struct NeedsFillImpl;
+    
+    template <>
+    struct NeedsFillImpl<> : std::false_type {};
+    
+    template <typename THead, typename... TRest>
+    struct NeedsFillImpl<THead, TRest...> : std::conditional<std::is_base_of<Internal::CommandTypes::Fill, THead>::value, std::true_type, NeedsFillImpl<TRest...>>::type {};
+    
+    template <typename TTuple>
+    struct NeedsFill;
+    
+    template <typename... TTypes>
+    struct NeedsFill<std::tuple<TTypes...>> : NeedsFillImpl<TTypes...> {
+    };
+    
+    template <>
+    struct Reactor::buildCallback<true> {
+        template <typename TFunc, typename... TData>
+        static const std::function<void ()> get(Reactor* parent, TFunc callback, std::tuple<TData...> data) {
+            return [parent, callback, data] {
+                auto&& newData = parent->powerPlant.cachemaster.fill(data);
+                
+                parent->powerPlant.cachemaster.setThreadArgs(std::this_thread::get_id(), std::move(Internal::Magic::buildVector(newData)));
+                
+                Internal::Magic::apply(callback, std::move(newData));
+            };
+        }
+    };
+    
+    template <>
+    struct Reactor::buildCallback<false> {
+        
+        template <typename TFunc, typename... TData>
+        static const std::function<void ()> get(Reactor* parent, TFunc callback, std::tuple<TData...> data) {
+            return [parent, callback, data] {
+                
+                parent->powerPlant.cachemaster.setThreadArgs(std::this_thread::get_id(), std::move(Internal::Magic::buildVector(data)));
+                
+                Internal::Magic::apply(callback, std::move(data));
+            };
+        }
+    };
 
     template <typename TFunc, typename... TTriggersAndWiths>
     Internal::Reaction* Reactor::buildReaction(TFunc callback, Internal::Reaction::Options& options) {
         
         // Return a reaction object that gets and runs with the correct paramters
         return new Internal::Reaction([this, callback]() -> std::function<void ()> {
-            return Internal::Magic::bindCallback(callback, powerPlant.get<TTriggersAndWiths>()...);
+            
+            auto&& data = std::make_tuple(powerPlant.get<TTriggersAndWiths>()...);
+            
+            return buildCallback<NeedsFill<typename std::remove_reference<decltype(data)>::type>::value>::get(this, callback, data);
         }, options);
     }
 

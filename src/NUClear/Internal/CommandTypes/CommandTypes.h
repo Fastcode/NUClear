@@ -72,6 +72,16 @@ namespace NUClear {
             
             /**
              * @ingroup Wrappers
+             * @brief This is a special base class for types which use a second pass to collect their data
+             *
+             * @details
+             *  Other placeholders extend from this class type to mean that their data is collected during the second
+             *  pass of collecting data.
+             */
+            class Fill {};
+            
+            /**
+             * @ingroup Wrappers
              * @brief This is a wrapper class which is used to list the data types to trigger a callback on.
              *
              * @details
@@ -198,6 +208,23 @@ namespace NUClear {
              */
             template <int n, typename TData>
             class Last { Last() = delete; ~Last() = delete; };
+            
+            /**
+             * @ingroup SmartTypes
+             * @brief This is a special type which is used to get an object which was used in our paramters creation.
+             *
+             * @details
+             *  This object is a special type which can get an object which was used in our parameters creation. It will
+             *  search based on the parameters of the other members of the call, and try to find one that is of the
+             *  passed type.
+             *
+             * @tparam TData    The datatype of object to get
+             * @tdata index     The index of the parameter in our call to search for the linked data
+             *
+             * @return  Returns a vector of shared_ptr with the signature std::vector<std::shared_ptr<TData>>
+             */
+            template <typename TData, int index = 0>
+            class Linked : public Fill { public: Linked() {}; ~Linked() {}; };
         }
     }
 }

@@ -15,34 +15,27 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include "NUClear/PowerPlant.h"
+#ifndef NUCLEAR_INTERNAL_MAGIC_DEREFERENCEABLE_H
+#define NUCLEAR_INTERNAL_MAGIC_DEREFERENCEABLE_H
+
+#include <type_traits>
 
 namespace NUClear {
+namespace Internal {
+namespace Magic {
     
-    PowerPlant::CacheMaster::CacheMaster(PowerPlant* parent) :
-    PowerPlant::BaseMaster(parent)
-    {}
-    
-    PowerPlant::CacheMaster::~CacheMaster() {
+    // Anonymous Namespace to hide implementation details
+    namespace {
+        template<class T>
+        static auto doTest(int) -> decltype(*std::declval<T>(), void());
+        template<class>
+        static char doTest(long);
     }
     
-    void PowerPlant::CacheMaster::setThreadArgs(std::thread::id threadId, std::vector<std::pair<std::type_index, std::shared_ptr<void>>>&& args) {
-        m_threadArgs[threadId] = std::move(args);
-    }
-    
-    void PowerPlant::CacheMaster::linkCache(void* data, std::vector<std::pair<std::type_index, std::shared_ptr<void>>> args) {
-        
-        m_linkedCache.insert(std::pair<void*, std::vector<std::pair<std::type_index, std::shared_ptr<void>>>>(data, args));
-    }
-    
-    std::vector<std::pair<std::type_index, std::shared_ptr<void>>> PowerPlant::CacheMaster::getThreadArgs(std::thread::id threadId) {
-        auto&& args = m_threadArgs.find(threadId);
-        
-        if(args != std::end(m_threadArgs)) {
-            return args->second;
-        }
-        else {
-            return std::vector<std::pair<std::type_index, std::shared_ptr<void>>>();
-        }
-    }
+    template<class T>
+    struct Dereferenceable : std::is_void<decltype(doTest<T>(0))> {};
 }
+}
+}
+
+#endif
