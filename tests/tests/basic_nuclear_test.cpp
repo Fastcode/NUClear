@@ -19,9 +19,35 @@
 
 #include "NUClear/NUClear.h"
 
-TEST_CASE( "Woot!", "Testing in another file!" ) {
+namespace api {
+    namespace basic {
+        struct SimpleMessage {
+            int test;
+        };
+        
+        class TestReactor : public NUClear::Reactor {
+        public:
+            TestReactor(NUClear::PowerPlant& plant) : Reactor(plant) {
+                on<Trigger<SimpleMessage>>([this](SimpleMessage& message) {
+                    
+                    // The message we recieved should have test == 10
+                    REQUIRE(10 == message.test);
+                    
+                    // We are finished the test
+                    this->powerPlant.shutdown();
+                });
+            }
+        };
+    }
+}
+
+TEST_CASE( "api/Basic", "A very basic test for Emit and On" ) {
     
     NUClear::PowerPlant plant;
     
-    REQUIRE( 1 == 1 );
+    plant.install<api::basic::TestReactor>();
+    
+    plant.emit(new api::basic::SimpleMessage{10});
+    
+    plant.start();
 }
