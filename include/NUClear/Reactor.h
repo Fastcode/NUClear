@@ -33,7 +33,7 @@
 
 namespace NUClear {
     
-    class ReactorController;
+    class PowerPlant;
 
     /**
      * @brief Base class for any system that wants to react to events/data from the rest of the system.
@@ -47,13 +47,14 @@ namespace NUClear {
      */
     class Reactor {
         public:
-            friend class ReactorController;
+            friend class PowerPlant;
 
-            Reactor(ReactorController& reactorController);
+            Reactor(PowerPlant& powerPlant);
             ~Reactor();
  
         protected:
-                
+            PowerPlant& powerPlant;
+        
             template <typename... TTriggers>
             using Trigger = Internal::CommandTypes::Trigger<TTriggers...>;
         
@@ -85,7 +86,6 @@ namespace NUClear {
 
             template <typename TTrigger, typename TWith, typename TOption, typename TFunc>
             void on(TFunc callback);
-            ReactorController& reactorController;
         private:
         
             template <typename TKey>
@@ -201,7 +201,7 @@ namespace NUClear {
     };
 }
 
-#include "NUClear/ReactorController.h"
+#include "NUClear/PowerPlant.h"
 #include "NUClear/Reactor.ipp"
 #endif
 

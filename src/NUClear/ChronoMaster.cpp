@@ -15,12 +15,12 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include "NUClear/ReactorController.h"
+#include "NUClear/PowerPlant.h"
 
 namespace NUClear {
     
-    ReactorController::ChronoMaster::ChronoMaster(ReactorController* parent) :
-    ReactorController::BaseMaster(parent),
+    PowerPlant::ChronoMaster::ChronoMaster(PowerPlant* parent) :
+    PowerPlant::BaseMaster(parent),
     m_lock(m_execute) {
         
         // Build a task
@@ -30,10 +30,10 @@ namespace NUClear {
         m_parent->threadmaster.internalTask(task);
     }
 
-    ReactorController::ChronoMaster::~ChronoMaster() {
+    PowerPlant::ChronoMaster::~ChronoMaster() {
     }
 
-    void ReactorController::ChronoMaster::run() {
+    void PowerPlant::ChronoMaster::run() {
         if(!m_steps.empty()) {
             // Initialize all of the m_steps with our start time
             std::chrono::time_point<std::chrono::steady_clock> start(std::chrono::steady_clock::now());
@@ -69,7 +69,7 @@ namespace NUClear {
         }
     }
     
-    void ReactorController::ChronoMaster::kill() {
+    void PowerPlant::ChronoMaster::kill() {
         //If we unlock the lock, then the lock will return true, ending the chronomasters run method
         m_lock.unlock();
     }

@@ -15,22 +15,13 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include "NUClear/ReactorController.h"
+#include <catch.hpp>
 
-namespace NUClear {
-    
-    ReactorController::ReactorController() :
-        threadmaster(this)
-        , chronomaster(this)
-        , cachemaster(this)
-        , reactormaster(this)
-         {}
+#include "NUClear/NUClear.h"
 
-    void ReactorController::start() {
-        threadmaster.start();
-    }
+TEST_CASE( "Woot!", "Testing in another file!" ) {
     
-    void ReactorController::shutdown() {
-        threadmaster.shutdown();
-    }
+    NUClear::PowerPlant plant;
+    
+    REQUIRE( 1 == 1 );
 }

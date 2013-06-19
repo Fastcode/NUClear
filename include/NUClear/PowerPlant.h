@@ -15,8 +15,8 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_REACTORCONTROLLER_H
-#define NUCLEAR_REACTORCONTROLLER_H
+#ifndef NUCLEAR_POWERPLANT_H
+#define NUCLEAR_POWERPLANT_H
 
 #include <memory>
 #include <set>
@@ -34,21 +34,21 @@
 namespace NUClear {
     
     class Reactor;
-    class ReactorController {
+    class PowerPlant {
         private:
             friend class Reactor;
 
             class BaseMaster {
                 public:
-                    BaseMaster(ReactorController* parent); 
+                    BaseMaster(PowerPlant* parent); 
                 protected:
-                    ReactorController* m_parent;
+                    PowerPlant* m_parent;
             };
         
             class ThreadMaster : public BaseMaster {
                 public:
                     
-                    ThreadMaster(ReactorController* parent);
+                    ThreadMaster(PowerPlant* parent);
                     
                     void start();
                     void shutdown();
@@ -63,7 +63,7 @@ namespace NUClear {
 
             class ChronoMaster : public BaseMaster {
                 public:
-                    ChronoMaster(ReactorController* parent);
+                    ChronoMaster(PowerPlant* parent);
                     ~ChronoMaster();
 
                     template <int ticks, class period>
@@ -95,7 +95,7 @@ namespace NUClear {
                     using ValueCache = Internal::Magic::TypeBuffer<CacheMaster, TData, TData>;
                 
                 public:
-                    CacheMaster(ReactorController* parent);
+                    CacheMaster(PowerPlant* parent);
                     ~CacheMaster();
                 
                     template <typename TData>
@@ -121,7 +121,7 @@ namespace NUClear {
 
             class ReactorMaster : public BaseMaster {
                 public:
-                    ReactorMaster(ReactorController* parent);
+                    ReactorMaster(PowerPlant* parent);
 
                     template <typename TTrigger>
                     void emit(TTrigger* data);
@@ -142,7 +142,7 @@ namespace NUClear {
             CacheMaster cachemaster;
             ReactorMaster reactormaster;
         public:
-            ReactorController();
+            PowerPlant();
 
             void start();
             void shutdown();
@@ -169,6 +169,6 @@ namespace NUClear {
 #include "NUClear/ChronoMaster.ipp"
 #include "NUClear/CacheMaster.ipp"
 #include "NUClear/ReactorMaster.ipp"
-#include "NUClear/ReactorController.ipp"
+#include "NUClear/PowerPlant.ipp"
 #endif
 

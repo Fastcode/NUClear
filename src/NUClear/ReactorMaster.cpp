@@ -15,10 +15,10 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include "NUClear/ReactorController.h"
+#include "NUClear/PowerPlant.h"
 
 namespace NUClear {
     
-    ReactorController::ReactorMaster::ReactorMaster(ReactorController* parent) :
-        ReactorController::BaseMaster(parent) {}
+    PowerPlant::ReactorMaster::ReactorMaster(PowerPlant* parent) :
+        PowerPlant::BaseMaster(parent) {}
 }

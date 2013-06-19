@@ -15,14 +15,14 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include "NUClear/ReactorController.h"
+#include "NUClear/PowerPlant.h"
 
 namespace NUClear {
     
-    ReactorController::CacheMaster::CacheMaster(ReactorController* parent) :
-    ReactorController::BaseMaster(parent)
+    PowerPlant::CacheMaster::CacheMaster(PowerPlant* parent) :
+    PowerPlant::BaseMaster(parent)
     {}
     
-    ReactorController::CacheMaster::~CacheMaster() {
+    PowerPlant::CacheMaster::~CacheMaster() {
     }
 }
