@@ -1,7 +1,13 @@
+find_package(CATCH)
+find_package(ZMQ REQUIRED)
+
+include_directories(${CATCH_INCLUDE_DIRS})
+include_directories(${ZMQ_INCLUDE_DIRS})
+
 FILE(GLOB testsrc "${CMAKE_CURRENT_SOURCE_DIR}/tests/*.cpp")
 
 source_group(Tests FILES ${testsrc})
 
 add_executable(tests tests.cpp ${testsrc})
-target_link_libraries(tests nuclear)
+target_link_libraries(tests nuclear ${ZMQ_LIBRARIES})
 add_test(tests tests)

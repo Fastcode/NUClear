@@ -8,6 +8,9 @@ set(VERSION_PATCH 0)
 # Supported options:
 option(NUCLEAR_BUILD_TESTS "Builds all of the NUClear unit tests." ON)
 
+# We use additional modules that cmake needs to know about
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
+
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)
 

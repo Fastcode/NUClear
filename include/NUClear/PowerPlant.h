@@ -27,6 +27,12 @@
 #include <map>
 #include <unordered_map>
 #include <iostream>
+#include <string>
+#include <sstream>
+
+#include <zmq.hpp>
+
+#include "NUClear/Networking/Serialization.h"
 #include "NUClear/Internal/ThreadWorker.h"
 #include "NUClear/Internal/TaskScheduler.h"
 #include "NUClear/Internal/CommandTypes/CommandTypes.h"
@@ -37,6 +43,15 @@ namespace NUClear {
     
     class Reactor;
     class PowerPlant {
+        
+        public:
+            struct Configuration {
+                unsigned threadCount = 4;
+                
+                std::string networkGroup = "NUClear";
+                unsigned networkPort = 7447;
+            };
+        
         private:
             friend class Reactor;
 
@@ -60,7 +75,6 @@ namespace NUClear {
                     std::unordered_map<std::thread::id, std::unique_ptr<Internal::ThreadWorker>> m_threads;
                     std::vector<Internal::ThreadWorker::InternalTask> m_internalTasks;
                     Internal::TaskScheduler m_scheduler;
-                    int numThreads = 1;
             };
 
             class ChronoMaster : public BaseMaster {
@@ -165,14 +179,41 @@ namespace NUClear {
 
                     std::vector<std::unique_ptr<NUClear::Reactor>> m_reactors;
             };
+        
+            class NetworkMaster : public BaseMaster {
+                public:
+                    NetworkMaster(PowerPlant* parent);
+                
+                    // Serializes a data and pushes it out over the network
+                    template<typename TType>
+                    void emit(TType* data);
+                
+                    // Adds a type to deserialize (finds a deserializer, subscribes to this message)
+                    template<typename TType>
+                    void addType();
+                
+                private:
+                    // Starts up a new thread that receives network packets and listens for new clients
+                    void run();
+                
+                    // Converts a string into our epgm address for our network
+                    static std::string addressForName(std::string name, unsigned port);
+                
+                    zmq::context_t m_context;
+                    zmq::socket_t m_pub;
+                    zmq::socket_t m_sub;
+            };
 
         protected:
+            const Configuration configuration;
             ThreadMaster threadmaster;
             ChronoMaster chronomaster;
             CacheMaster cachemaster;
             ReactorMaster reactormaster;
+            NetworkMaster networkmaster;
         public:
             PowerPlant();
+            PowerPlant(Configuration config);
 
             void start();
             void shutdown();
@@ -196,9 +237,10 @@ namespace NUClear {
 }
 
 #include "NUClear/Reactor.h"
+#include "NUClear/PowerPlant.ipp"
 #include "NUClear/ChronoMaster.ipp"
 #include "NUClear/CacheMaster.ipp"
 #include "NUClear/ReactorMaster.ipp"
-#include "NUClear/PowerPlant.ipp"
+#include "NUClear/NetworkMaster.ipp"
 #endif
 

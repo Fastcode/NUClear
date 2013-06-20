@@ -20,11 +20,22 @@
 namespace NUClear {
     
     PowerPlant::PowerPlant() :
-        threadmaster(this)
-        , chronomaster(this)
-        , cachemaster(this)
-        , reactormaster(this)
-         {}
+    configuration()
+    , threadmaster(this)
+    , chronomaster(this)
+    , cachemaster(this)
+    , reactormaster(this)
+    , networkmaster(this)
+    {}
+    
+    PowerPlant::PowerPlant(Configuration config) :
+    configuration(config)
+    , threadmaster(this)
+    , chronomaster(this)
+    , cachemaster(this)
+    , reactormaster(this)
+    , networkmaster(this)
+    {}
 
     void PowerPlant::start() {
         threadmaster.start();

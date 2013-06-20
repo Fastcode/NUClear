@@ -66,10 +66,9 @@ namespace {
 
 TEST_CASE("api/linked/basic", "Testing the Linked<> smart type") {
     
-    // For some reason that is beyond me... putting this here stops this unit test segfaulting
-    REQUIRE(true);
-    
-    NUClear::PowerPlant plant;
+    NUClear::PowerPlant::Configuration config;
+    config.threadCount = 1;
+    NUClear::PowerPlant plant(config);
     plant.install<TestReactor>();
     
     // I emit the value 10 to get everything started

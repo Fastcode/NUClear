@@ -15,41 +15,15 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include <catch.hpp>
+#include "NUClear/PowerPlant.h"
 
-#include "NUClear/NUClear.h"
-
-
-// Anonymous namespace to keep everything file local
-namespace {
-    
-    struct SimpleMessage {
-        int data;
-    };
-    
-    class TestReactor : public NUClear::Reactor {
-    public:
-        TestReactor(NUClear::PowerPlant& plant) : Reactor(plant) {
-            on<Trigger<SimpleMessage>>([this](SimpleMessage& message) {
-                
-                // The message we recieved should have test == 10
-                REQUIRE(message.data == 10);
-                
-                // We are finished the test
-                this->powerPlant.shutdown();
-            });
-        }
-    };
-}
-
-TEST_CASE("api/basic", "A very basic test for Emit and On") {
-    
-    NUClear::PowerPlant::Configuration config;
-    config.threadCount = 1;
-    NUClear::PowerPlant plant(config);
-    plant.install<TestReactor>();
-    
-    plant.emit(new SimpleMessage{10});
-    
-    plant.start();
+namespace NUClear {
+    namespace Networking {
+        template <typename TType>
+        class Serializer {
+            TType* deserialize(void* data) {
+                return static_cast<TType*>(data);
+            }
+        };
+    }
 }

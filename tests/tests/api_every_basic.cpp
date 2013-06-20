@@ -66,11 +66,9 @@ namespace {
 
 TEST_CASE("api/every/basic", "Testing the Every<> Smart Type") {
     
-    // For some reason that is beyond me... putting this here stops this unit test segfaulting
-    REQUIRE(true);
-    
-    NUClear::PowerPlant plant;
-    
+    NUClear::PowerPlant::Configuration config;
+    config.threadCount = 1;
+    NUClear::PowerPlant plant(config);
     plant.install<TestReactor>();
     
     plant.start();

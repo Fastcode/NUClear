@@ -1,4 +1,16 @@
-FILE(GLOB src "*.cpp" "*.h" "*.ipp")
+FIND_PACKAGE(ZMQ REQUIRED)
+
+include_directories(${ZMQ_INCLUDE_DIRS})
+
+FILE(GLOB src 
+    "*.cpp"
+    "*.h"
+    "*.ipp")
+
+FILE(GLOB src_networking 
+    "Networking/*.h"
+    "Networking/*.cpp"
+    "Networking/*.ipp") 
 
 FILE(GLOB src_internal 
     "Internal/*.h"
@@ -21,6 +33,7 @@ FILE(GLOB include_public
     "${PROJECT_SOURCE_DIR}/include/NUClear/*.ipp")
 
 source_group(NUClear FILES ${src} ${include_public})
+source_group(NUClear\\Networking FILES ${src_networking})
 source_group(NUClear\\Internal FILES ${src_internal})
 source_group(NUClear\\Internal\\Magic FILES ${src_internal_magic})
 source_group(NUClear\\Internal\\CommandTypes FILES ${src_internal_commandtypes})
@@ -28,6 +41,7 @@ source_group(NUClear\\Internal\\CommandTypes FILES ${src_internal_commandtypes})
 add_library(nuclear 
     ${include_public} 
     ${src} 
+    ${src_networking}
     ${src_internal} 
     ${src_internal_commandtypes}
     ${src_internal_magic})

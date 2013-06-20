@@ -15,41 +15,30 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include <catch.hpp>
+namespace NUClear {
 
-#include "NUClear/NUClear.h"
-
-
-// Anonymous namespace to keep everything file local
-namespace {
+    template <typename TType>
+    void PowerPlant::NetworkMaster::emit(TType* data) {
+        zmq::message_t message;
+        
+        m_pub.send(data, sizeof(TType));
+    }
     
-    struct SimpleMessage {
-        int data;
-    };
-    
-    class TestReactor : public NUClear::Reactor {
-    public:
-        TestReactor(NUClear::PowerPlant& plant) : Reactor(plant) {
-            on<Trigger<SimpleMessage>>([this](SimpleMessage& message) {
-                
-                // The message we recieved should have test == 10
-                REQUIRE(message.data == 10);
-                
-                // We are finished the test
-                this->powerPlant.shutdown();
-            });
-        }
-    };
-}
-
-TEST_CASE("api/basic", "A very basic test for Emit and On") {
-    
-    NUClear::PowerPlant::Configuration config;
-    config.threadCount = 1;
-    NUClear::PowerPlant plant(config);
-    plant.install<TestReactor>();
-    
-    plant.emit(new SimpleMessage{10});
-    
-    plant.start();
+    template <typename TType>
+    void PowerPlant::NetworkMaster::addType() {
+        
+        std::string type = typeid(TType).name();
+        
+        // TODO here is where we make our void lambda that can interpret this type it deserializes and emits
+        // TODO we also need to know the source of the message so we can send that too
+        std::function<void (void*)> parse = [this](void* data) {
+            TType* parsed = Networking::Serializer<TType>::deserialize(data);
+            this->m_parent->reactormaster.emit(new int(1));
+        };
+        
+        // TODO put this parse function into an unordered map
+        
+        // This is how we subscribe to a paticular message type, the "B" is the message type
+        m_sub.setsockopt(ZMQ_SUBSCRIBE, type.c_str(), 1);
+    }
 }
