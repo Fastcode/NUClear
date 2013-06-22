@@ -19,26 +19,52 @@ namespace NUClear {
 
     template <typename TType>
     void PowerPlant::NetworkMaster::emit(TType* data) {
-        zmq::message_t message;
         
-        m_pub.send(data, sizeof(TType));
+        std::pair<std::shared_ptr<void>, size_t> serialized = Networking::Serializer<TType>::serialize(data);
+        
+        Networking::Hash type = Networking::hash<TType>();
+        
+        // Create our message part for the datatype we are sending
+        zmq::message_t sendType(type.size);
+        memcpy(sendType.data(), type.data, type.size);
+        
+        // Create our message to send (no need for a deallocator since the shared_ptr will handle that)
+        zmq::message_t message(serialized.second);
+        memcpy(message.data(), serialized.first.get(), serialized.second);
+        
+        // Send the message type
+        m_pub.send(sendType, ZMQ_SNDMORE);
+        
+        // Send the data
+        m_pub.send(message);
     }
     
     template <typename TType>
     void PowerPlant::NetworkMaster::addType() {
         
-        std::string type = typeid(TType).name();
+        // Get the hash for this type
+        Networking::Hash type = Networking::hash<TType>();
         
-        // TODO here is where we make our void lambda that can interpret this type it deserializes and emits
-        // TODO we also need to know the source of the message so we can send that too
-        std::function<void (void*)> parse = [this](void* data) {
-            TType* parsed = Networking::Serializer<TType>::deserialize(data);
-            this->m_parent->reactormaster.emit(new int(1));
-        };
-        
-        // TODO put this parse function into an unordered map
-        
-        // This is how we subscribe to a paticular message type, the "B" is the message type
-        m_sub.setsockopt(ZMQ_SUBSCRIBE, type.c_str(), 1);
+        // Check if we have already registered this type
+        if(m_deserialize.find(type) == std::end(m_deserialize)) {
+            
+            // Create our deserialization function
+            std::function<void (std::string, void*)> parse = [this](std::string source, void* data) {
+                
+                // Deserialize our data
+                TType* parsed = Networking::Serializer<TType>::deserialize(data);
+                
+                // Wrap our object in a Network object
+                Internal::CommandTypes::Network<TType>* event = new Internal::CommandTypes::Network<TType>{source, std::shared_ptr<TType>(parsed)};
+                
+                // Emit the object
+                this->m_parent->reactormaster.emit(event);
+            };
+            
+            m_deserialize.insert(std::make_pair(type, parse));
+            
+            // Subscribe to this message type
+            m_sub.setsockopt(ZMQ_SUBSCRIBE, type.data, type.size);
+        }
     }
 }

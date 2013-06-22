@@ -199,6 +199,7 @@ namespace NUClear {
                     // Converts a string into our epgm address for our network
                     static std::string addressForName(std::string name, unsigned port);
                 
+                    std::unordered_map<Networking::Hash, std::function<void(std::string, void*)>> m_deserialize;
                     zmq::context_t m_context;
                     zmq::socket_t m_pub;
                     zmq::socket_t m_sub;
@@ -226,8 +227,11 @@ namespace NUClear {
             template <typename TReactor>
             void install();
             
-            template <typename TTrigger>
-            void emit(TTrigger* data);
+            template <typename TData>
+            void emit(TData* data);
+        
+            template <typename TData>
+            void networkEmit(TData* data);
 
             // Chrono functions
 

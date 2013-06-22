@@ -79,6 +79,9 @@ namespace NUClear {
             template <typename TData, int index = 0>
             using Linked = Internal::CommandTypes::Linked<TData, index>;
         
+            template <typename TData>
+            using Network = Internal::CommandTypes::Network<TData>;
+        
             using Single = Internal::CommandTypes::Single;
 
             template <typename TTrigger, typename TFunc>
@@ -153,6 +156,15 @@ namespace NUClear {
              */
             template <enum EPriority P>
             void buildOptionsImpl(Internal::Reaction::Options& options, Priority<P>* /*placeholder*/);
+            
+            template <typename TType>
+            void exists(TType* /*placeholder*/);
+        
+            template <int num, typename TData>
+            void exists(Last<num, TData>* /*placeholder*/);
+            
+            template <typename TData>
+            void exists(Network<TData>* /*placeholder*/);
         
             /**
              * @brief Builds a callback based on if it needs a second pass at runtime.

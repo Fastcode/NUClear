@@ -18,6 +18,8 @@
 #ifndef NUCLEAR_INTERNAL_COMMANDTYPES_COMMANDTYPES_H
 #define NUCLEAR_INTERNAL_COMMANDTYPES_COMMANDTYPES_H
 
+#include <string>
+
 namespace NUClear {
     
     /**
@@ -78,7 +80,7 @@ namespace NUClear {
              *  Other placeholders extend from this class type to mean that their data is collected during the second
              *  pass of collecting data.
              */
-            class Fill {};
+            struct Fill {};
             
             /**
              * @ingroup Wrappers
@@ -92,7 +94,7 @@ namespace NUClear {
              * @tparam TTriggers the datatypes to trigger a callback on
              */
             template <typename... TTriggers>
-            class Trigger { Trigger() = delete; ~Trigger() = delete; };
+            struct Trigger { Trigger() = delete; ~Trigger() = delete; };
             
             /**
              * @ingroup Wrappers
@@ -106,7 +108,7 @@ namespace NUClear {
              * @tparam TWiths the datatypes to get from the cache and use in the callback.
              */
             template <typename... TWiths>
-            class With { With() = delete; ~With() = delete; };
+            struct With { With() = delete; ~With() = delete; };
             
             /**
              * @ingroup Wrappers
@@ -119,7 +121,7 @@ namespace NUClear {
              * @tparam TOptions The list of options that to be used in the callback
              */
             template <typename... TOptions>
-            class Options { Options() = delete; ~Options() = delete; };
+            struct Options { Options() = delete; ~Options() = delete; };
             
             /**
              * @ingroup Options
@@ -139,7 +141,7 @@ namespace NUClear {
              * @tparam P the priority to run the task at (LOW DEFAULT HIGH and REALTIME)
              */
             template <enum EPriority P>
-            class Priority { Priority() = delete; ~Priority() = delete; };
+            struct Priority { Priority() = delete; ~Priority() = delete; };
             
             /**
              * @ingroup Options
@@ -153,7 +155,7 @@ namespace NUClear {
              * @tparam TSync the type with which to synchronize on
              */
             template <typename TSync>
-            class Sync { Sync() = delete; ~Sync() = delete; };
+            struct Sync { Sync() = delete; ~Sync() = delete; };
             
             /**
              * @ingroup Options
@@ -164,7 +166,7 @@ namespace NUClear {
              *  in the system at any one time. If the task is triggered again while an existing task is either in the
              *  queue or is still executing, then this new task will be ignored.
              */
-            class Single { Single() = delete; ~Single() = delete; };
+            struct Single { Single() = delete; ~Single() = delete; };
             
             /**
              * @ingroup SmartTypes
@@ -186,10 +188,9 @@ namespace NUClear {
              * @return Returns the time the every was emitted as an std::chrono::time_point<std::chrono::steady_clock>
              */
             template <int ticks, class period = std::chrono::milliseconds>
-            class Every {
-                public:
-                    Every(std::chrono::time_point<std::chrono::steady_clock> time) : m_time(time) {}
-                    const std::chrono::time_point<std::chrono::steady_clock> m_time;
+            struct Every {
+                Every(std::chrono::time_point<std::chrono::steady_clock> time) : m_time(time) {}
+                const std::chrono::time_point<std::chrono::steady_clock> m_time;
             };
             
             /**
@@ -207,7 +208,26 @@ namespace NUClear {
              * @return  Returns a vector of shared_ptr with the signature std::vector<std::shared_ptr<TData>>
              */
             template <int n, typename TData>
-            class Last { Last() = delete; ~Last() = delete; };
+            struct Last { Last() = delete; ~Last() = delete; };
+            
+            /**
+             * @ingroup SmartTypes
+             * @brief This is a special type which is used to get data that is sent over the network from other NUClear
+             *  instances
+             *
+             * @details
+             *  This class is used to get a paticular datatype from the network. Once this object is collected the
+             *  original data and the sender can be accessed from this object.
+             *
+             * @tparam TType    The datatype of the networked data to get
+             *
+             * @return Returns an object of type Network<TType> which contains a sender and the data
+             */
+            template <typename TType>
+            struct Network {
+                const std::string sender;
+                const std::shared_ptr<const TType> data;
+            };
             
             /**
              * @ingroup SmartTypes
@@ -224,7 +244,7 @@ namespace NUClear {
              * @return  Returns a vector of shared_ptr with the signature std::vector<std::shared_ptr<TData>>
              */
             template <typename TData, int index = 0>
-            class Linked : public Fill { public: Linked() {}; ~Linked() {}; };
+            struct Linked : public Fill { public: Linked() {}; ~Linked() {}; };
         }
     }
 }

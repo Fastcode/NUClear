@@ -15,20 +15,21 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+#include "NUClear/PowerPlant.h"
+
 namespace NUClear {
-
-    template <typename TReactor>
-    void PowerPlant::install() {
-        reactormaster.install<TReactor>();
-    }
-
-    template <typename TData>
-    void PowerPlant::emit(TData* data) {
-        reactormaster.emit(data);
-    }
-    
-    template <typename TData>
-    void PowerPlant::networkEmit(TData* data) {
-        networkmaster.emit(data);
+    namespace Networking {
+        
+        bool Hash::operator==(const Hash& hash) const {
+            if(size == hash.size) {
+                for(int i = 0; i < size; ++i) {
+                    if(data[i] != hash.data[i]) {
+                        return false;
+                    }
+                }
+                return true;
+            }
+            return false;
+        }
     }
 }

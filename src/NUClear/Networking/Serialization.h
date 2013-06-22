@@ -19,11 +19,52 @@
 
 namespace NUClear {
     namespace Networking {
+        
+        struct Hash {
+            uint8_t* data;
+            size_t size;
+            size_t stdhash;
+            
+            bool operator==(const Hash& hash) const;
+        };
+        
         template <typename TType>
-        class Serializer {
-            TType* deserialize(void* data) {
+        struct Serializer {
+            
+            static TType* deserialize(void* data) {
                 return static_cast<TType*>(data);
             }
+            
+            static std::pair<std::shared_ptr<void>, size_t> serialize(TType* data) {
+                
+                // Make a shared pointer (so it is deallocated correctly)
+                std::shared_ptr<TType> ptr(data);
+                
+                return std::make_pair(std::static_pointer_cast<void>(ptr), sizeof(TType));
+            }
         };
+        
+        template <typename TType>
+        Hash hash() {
+            
+            // Set all the bytes to the first byte of the mangled name (TODO use murmur3 or something to hash better)
+            uint8_t* data = new uint8_t[8] {
+                static_cast<uint8_t>(typeid(TType).name()[0])
+            };
+            
+            return Hash{data, 8};
+        }
     }
+}
+
+namespace std
+{
+    template <>
+    struct hash<NUClear::Networking::Hash> : public unary_function<NUClear::Networking::Hash, size_t>
+    {
+        size_t operator()(const NUClear::Networking::Hash& v) const
+        {
+            return v.stdhash;
+        }
+    };
 }

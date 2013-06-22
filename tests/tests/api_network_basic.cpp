@@ -22,54 +22,34 @@
 // Anonymous namespace to keep everything file local
 namespace {
     
+    struct TestObject {
+        int x;
+    };
+    
     class TestReactor : public NUClear::Reactor {
     public:
         // Store our times
         std::vector<std::chrono::time_point<std::chrono::steady_clock>> times;
         
         TestReactor(NUClear::PowerPlant& plant) : Reactor(plant) {
-            // Trigger every 10 milliseconds
-            on<Trigger<Every<10, std::chrono::milliseconds>>>([this](const std::chrono::time_point<std::chrono::steady_clock>& message) {
-                
-                // Store 11 times (10 durations)
-                if(times.size() < 11) {
-                    times.push_back(message);
-                }
-                
-                // Check that the 10 times are about 10ms each (within 1ms)
-                // and that all of them are within 1ms of 100ms
-                else if (times.size() == 11) {
-                    std::chrono::nanoseconds total = std::chrono::nanoseconds(0);
-                    
-                    for(int i = 0; i < abs(times.size() - 1); ++i) {
-                        std::chrono::nanoseconds wait = times[i + 1] - times[i];
-                        total += wait;
-                        
-                        std::chrono::milliseconds test = std::chrono::duration_cast<std::chrono::milliseconds>(wait);
-                        
-                        // Check that our local drift is within 1ms
-                        REQUIRE(abs(10 - test.count()) <= 1);
-                    }
-                    
-                    std::chrono::milliseconds test = std::chrono::duration_cast<std::chrono::milliseconds>(total);
-                    
-                    // Check that our total drift is also within 1ms
-                    REQUIRE(abs(100 - test.count()) <= 1);
-                    
-                    // We are finished the test
-                    this->powerPlant.shutdown();
-                }
+            
+            // Trigger on a networked event
+            on<Trigger<Network<TestObject>>>([this](const Network<TestObject>& message) {
+                REQUIRE(message.data->x == 5);
             });
         }
     };
 }
 
-TEST_CASE("api/every/basic", "Testing the Every<> Smart Type") {
+TEST_CASE("api/network/basic", "Testing the Networking system") {
     
     NUClear::PowerPlant::Configuration config;
     config.threadCount = 1;
     NUClear::PowerPlant plant(config);
+    
     plant.install<TestReactor>();
+    
+    plant.networkEmit(new TestObject{5});
     
     plant.start();
 }

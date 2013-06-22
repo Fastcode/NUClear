@@ -48,8 +48,16 @@ namespace NUClear {
         , Reactor::With<TWiths...>
         , Reactor::Options<TOptions...>
         , TFunc>::operator()(TFunc callback) {
+            
+            // Build up our options
             Internal::Reaction::Options options;
             context->buildOptions<TOptions...>(options);
+            
+            // Run any existence commands needed (running because a type exists)
+            Internal::Magic::unpack((context->exists(reinterpret_cast<TTriggers*>(0)), 0)...);
+            Internal::Magic::unpack((context->exists(reinterpret_cast<TWiths*>(0)), 0)...);
+            
+            // Bind all of our trigger events
             context->bindTriggers<TTriggers...>(context->buildReaction<TFunc, TTriggers..., TWiths...>(callback, options));
     }
     
@@ -90,6 +98,8 @@ namespace NUClear {
         template <typename TFunc, typename... TData>
         static const std::function<void ()> get(Reactor* parent, TFunc callback, std::tuple<TData...> data) {
             return [parent, callback, data] {
+                
+                // Perform our second pass over the data
                 auto&& newData = parent->powerPlant.cachemaster.fill(data);
                 
                 parent->powerPlant.cachemaster.setThreadArgs(std::this_thread::get_id(), std::move(Internal::Magic::buildVector(newData)));
@@ -123,6 +133,25 @@ namespace NUClear {
             
             return buildCallback<NeedsFill<typename std::remove_reference<decltype(data)>::type>::value>::get(this, callback, data);
         }, options);
+    }
+    
+    template <typename TType>
+    void Reactor::exists(TType* /*placeholder*/) {
+        // Do nothing in the base case
+    }
+    
+    template <int num, typename TData>
+    void Reactor::exists(Last<num, TData>* /*placeholder*/) {
+        
+        // Let the ReactorMaster know to cache at least this many of this type
+        powerPlant.cachemaster.ensureCache<num, TData>();
+    }
+    
+    template <typename TData>
+    void Reactor::exists(Network<TData>* /*placeholder*/) {
+        
+        // Tell the network master to subscribe to this type
+        powerPlant.networkmaster.addType<TData>();
     }
 
     /**
@@ -164,9 +193,6 @@ namespace NUClear {
     
     template <int num, typename TData>
     void Reactor::bindTriggersImpl(Internal::Reaction* callback, Last<num, TData>* placeholder) {
-        
-        // Let the ReactorMaster know to cache at least this many of this type
-        powerPlant.cachemaster.ensureCache<num, TData>();
         
         // Register our callback on the inner type
         bindTriggersImpl<TData>(callback, reinterpret_cast<TData*>(0));
