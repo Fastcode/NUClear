@@ -21,15 +21,26 @@ namespace NUClear {
     namespace Networking {
         
         bool Hash::operator==(const Hash& hash) const {
-            if(size == hash.size) {
-                for(int i = 0; i < size; ++i) {
-                    if(data[i] != hash.data[i]) {
-                        return false;
-                    }
+            for(int i = 0; i < SIZE; ++i) {
+                if(data[i] != hash.data[i]) {
+                    return false;
                 }
-                return true;
             }
-            return false;
+            return true;
+        }
+        
+        size_t Hash::hash() const {
+            return hashToStdHash(data);
+        }
+        
+        size_t Hash::hashToStdHash(const uint8_t* data) {
+            size_t hash = 0;
+            
+            for(int i = 0; i < SIZE; ++i) {
+                hash ^= data[i] << ((i % sizeof(size_t)) * 8);
+            }
+            
+            return hash;
         }
     }
 }

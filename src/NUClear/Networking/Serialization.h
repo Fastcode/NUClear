@@ -21,11 +21,15 @@ namespace NUClear {
     namespace Networking {
         
         struct Hash {
-            uint8_t* data;
-            size_t size;
-            size_t stdhash;
+            static const size_t SIZE = 16;
+            
+            uint8_t data[SIZE];
             
             bool operator==(const Hash& hash) const;
+            
+            size_t hash() const;
+            
+            static size_t hashToStdHash(const uint8_t* data);
         };
         
         template <typename TType>
@@ -48,11 +52,7 @@ namespace NUClear {
         Hash hash() {
             
             // Set all the bytes to the first byte of the mangled name (TODO use murmur3 or something to hash better)
-            uint8_t* data = new uint8_t[8] {
-                static_cast<uint8_t>(typeid(TType).name()[0])
-            };
-            
-            return Hash{data, 8};
+            return Hash{{static_cast<uint8_t>(typeid(TType).name()[0])}};
         }
     }
 }
@@ -64,7 +64,7 @@ namespace std
     {
         size_t operator()(const NUClear::Networking::Hash& v) const
         {
-            return v.stdhash;
+            return v.hash();
         }
     };
 }

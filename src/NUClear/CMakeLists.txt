@@ -10,7 +10,9 @@ FILE(GLOB src
 FILE(GLOB src_networking 
     "Networking/*.h"
     "Networking/*.cpp"
-    "Networking/*.ipp") 
+    "Networking/*.cc"
+    "Networking/*.ipp"
+    "Networking/*.proto") 
 
 FILE(GLOB src_internal 
     "Internal/*.h"

@@ -34,12 +34,45 @@ namespace NUClear {
         
         // Connect our subscriber to this address
         m_sub.connect(address.c_str());
+        
+        // Build a task
+        Internal::ThreadWorker::InternalTask task(std::bind(&NetworkMaster::run, this),
+                                                  std::bind(&NetworkMaster::kill, this));
+        
+        m_parent->threadmaster.internalTask(task);
     }
     
     void PowerPlant::NetworkMaster::run() {
         
+        while (m_running) {
+            
+            zmq::message_t* message = new zmq::message_t();
+            m_sub.recv(message);
+            
+            size_t type = Networking::Hash::hashToStdHash(static_cast<uint8_t*>(message->data()));
+            
+            auto it = m_deserialize.find(type);
+            
+            if(it != std::end(m_deserialize)) {
+                it->second(static_cast<uint8_t*>(message->data()) + Networking::Hash::SIZE);
+            }
+            
+            delete message;
+            
+            // Receive a message
+            
+            // Get the deserializer for this message
+            
+        }
+        
+        // TODO setup an internal task to run here from the thread master
+        
         // Repeatedly recieve messages, find their type, run their deserialization functor and continue
     
+    }
+    
+    void PowerPlant::NetworkMaster::kill() {
+        // TODO kill this thread somehow
     }
     
     std::string PowerPlant::NetworkMaster::addressForName(std::string name, unsigned port) {

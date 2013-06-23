@@ -33,6 +33,7 @@
 #include <zmq.hpp>
 
 #include "NUClear/Networking/Serialization.h"
+#include "NUClear/Networking/NetworkMessage.pb.h"
 #include "NUClear/Internal/ThreadWorker.h"
 #include "NUClear/Internal/TaskScheduler.h"
 #include "NUClear/Internal/CommandTypes/CommandTypes.h"
@@ -48,6 +49,7 @@ namespace NUClear {
             struct Configuration {
                 unsigned threadCount = 4;
                 
+                std::string networkName = "default";
                 std::string networkGroup = "NUClear";
                 unsigned networkPort = 7447;
             };
@@ -196,10 +198,13 @@ namespace NUClear {
                     // Starts up a new thread that receives network packets and listens for new clients
                     void run();
                 
+                    void kill();
+                
                     // Converts a string into our epgm address for our network
                     static std::string addressForName(std::string name, unsigned port);
                 
                     std::unordered_map<Networking::Hash, std::function<void(std::string, void*)>> m_deserialize;
+                    volatile bool m_running;
                     zmq::context_t m_context;
                     zmq::socket_t m_pub;
                     zmq::socket_t m_sub;

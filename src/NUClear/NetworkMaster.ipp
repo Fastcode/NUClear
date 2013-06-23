@@ -20,20 +20,30 @@ namespace NUClear {
     template <typename TType>
     void PowerPlant::NetworkMaster::emit(TType* data) {
         
-        std::pair<std::shared_ptr<void>, size_t> serialized = Networking::Serializer<TType>::serialize(data);
+        // Get the hash for this type
+        Networking::Hash hash = Networking::hash<TType>();
         
-        Networking::Hash type = Networking::hash<TType>();
+        // Serialize our data
+        std::pair<std::shared_ptr<void>, size_t> payload = Networking::Serializer<TType>::serialize(data);
         
-        // Create our message part for the datatype we are sending
-        zmq::message_t sendType(type.size);
-        memcpy(sendType.data(), type.data, type.size);
+        // Create a Message protocol buffer to send
+        Networking::NetworkMessage net;
         
-        // Create our message to send (no need for a deallocator since the shared_ptr will handle that)
-        zmq::message_t message(serialized.second);
-        memcpy(message.data(), serialized.first.get(), serialized.second);
+        std::string typeString;
+        typeString.
         
-        // Send the message type
-        m_pub.send(sendType, ZMQ_SNDMORE);
+        net.set_type(std::string(hash.data, Networking::Hash::SIZE));
+        net.set_source(m_parent->configuration.networkName);
+        net.set_payload(std::string(static_cast<char*>(payload.first.get()), payload.second));
+        
+        // Serialize our protocol buffer
+        std::string serialized = net.SerializeAsString();
+        
+        // Create a zmq message which holds our hash, and then our data
+        zmq::message_t message(serialized.size());
+        
+        // Copy in our data
+        memcpy(message.data(), serialized.data(), serialized.size());
         
         // Send the data
         m_pub.send(message);
@@ -61,10 +71,11 @@ namespace NUClear {
                 this->m_parent->reactormaster.emit(event);
             };
             
+            // Store our function for use
             m_deserialize.insert(std::make_pair(type, parse));
             
             // Subscribe to this message type
-            m_sub.setsockopt(ZMQ_SUBSCRIBE, type.data, type.size);
+            m_sub.setsockopt(ZMQ_SUBSCRIBE, type.data, Networking::Hash::SIZE);
         }
     }
 }
