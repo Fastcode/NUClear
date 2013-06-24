@@ -4,6 +4,9 @@ FIND_PACKAGE(Protobuf REQUIRED)
 include_directories(${ZMQ_INCLUDE_DIRS})
 include_directories(${PROTOBUF_INCLUDE_DIRS})
 
+# Compile the proto files
+PROTOBUF_GENERATE_CPP(Networking/NetworkMessage.pb.cc Networking/NetworkMessage.pb.h Networking/NetworkMessage.proto)
+
 FILE(GLOB src 
     "*.cpp"
     "*.h"
