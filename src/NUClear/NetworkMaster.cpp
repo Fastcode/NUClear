@@ -21,6 +21,7 @@ namespace NUClear {
     
     PowerPlant::NetworkMaster::NetworkMaster(PowerPlant* parent) :
     PowerPlant::BaseMaster(parent),
+    m_running(true),
     m_context(1),
     m_pub(m_context, ZMQ_PUB),
     m_sub(m_context, ZMQ_SUB) {
@@ -46,8 +47,8 @@ namespace NUClear {
         
         while (m_running) {
             
-            zmq::message_t* message = new zmq::message_t();
-            m_sub.recv(message);
+            std::unique_ptr<zmq::message_t> message(new zmq::message_t());
+            m_sub.recv(message.get());
             
             Networking::NetworkMessage proto;
             proto.ParseFromArray(message->data(), message->size());
@@ -61,23 +62,14 @@ namespace NUClear {
             if(it != std::end(m_deserialize)) {
                 it->second(proto.source(), proto.payload().data(), proto.payload().size());
             }
-            
-            delete message;
-            
-            // Receive a message
-            
-            // Get the deserializer for this message
-            
         }
         
-        // TODO setup an internal task to run here from the thread master
-        
-        // Repeatedly recieve messages, find their type, run their deserialization functor and continue
+        std::cout << "HI!" << std::endl;
     
     }
     
     void PowerPlant::NetworkMaster::kill() {
-        // TODO kill this thread somehow
+        m_running = false;
     }
     
     std::string PowerPlant::NetworkMaster::addressForName(std::string name, unsigned port) {
