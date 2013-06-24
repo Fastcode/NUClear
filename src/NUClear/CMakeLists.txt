@@ -4,9 +4,6 @@ FIND_PACKAGE(Protobuf REQUIRED)
 include_directories(${ZMQ_INCLUDE_DIRS})
 include_directories(${PROTOBUF_INCLUDE_DIRS})
 
-# Compile the proto files
-PROTOBUF_GENERATE_CPP(proto_src proto_h Networking/NetworkMessage.proto)
-
 FILE(GLOB src 
     "*.cpp"
     "*.h"
@@ -15,6 +12,7 @@ FILE(GLOB src
 FILE(GLOB src_networking 
     "Networking/*.h"
     "Networking/*.cpp"
+    "Networking/*.cc"
     "Networking/*.ipp"
     "Networking/*.proto") 
 
@@ -48,8 +46,6 @@ add_library(nuclear
     ${include_public} 
     ${src} 
     ${src_networking}
-    ${proto_src}
-    ${proto_h}
     ${src_internal}
     ${src_internal_commandtypes}
     ${src_internal_magic})
