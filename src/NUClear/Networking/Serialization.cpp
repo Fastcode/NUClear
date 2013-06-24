@@ -21,7 +21,7 @@ namespace NUClear {
     namespace Networking {
         
         bool Hash::operator==(const Hash& hash) const {
-            for(int i = 0; i < SIZE; ++i) {
+            for(unsigned i = 0; i < SIZE; ++i) {
                 if(data[i] != hash.data[i]) {
                     return false;
                 }
@@ -36,7 +36,7 @@ namespace NUClear {
         size_t Hash::hashToStdHash(const uint8_t* data) {
             size_t hash = 0;
             
-            for(int i = 0; i < SIZE; ++i) {
+            for(unsigned i = 0; i < SIZE; ++i) {
                 hash ^= data[i] << ((i % sizeof(size_t)) * 8);
             }
             

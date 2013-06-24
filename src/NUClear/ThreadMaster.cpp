@@ -33,7 +33,7 @@ namespace NUClear {
         }
         
         // Start our pool threads
-        for(int i = 0; i < m_parent->configuration.threadCount; ++i) {
+        for(unsigned i = 0; i < m_parent->configuration.threadCount; ++i) {
             std::unique_ptr<Internal::ThreadWorker> thread = std::unique_ptr<Internal::ThreadWorker>(new Internal::ThreadWorker(Internal::ThreadPoolTask(m_scheduler)));
             m_threads.insert(std::pair<std::thread::id, std::unique_ptr<Internal::ThreadWorker>>(thread->getThreadId(), std::move(thread)));
         }
