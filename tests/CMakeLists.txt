@@ -10,5 +10,5 @@ FILE(GLOB testsrc "${CMAKE_CURRENT_SOURCE_DIR}/tests/*.cpp")
 source_group(Tests FILES ${testsrc})
 
 add_executable(tests tests.cpp ${testsrc})
-target_link_libraries(tests nuclear ${ZMQ_LIBRARIES} ${PROTOBUF_LIBRARY})
+target_link_libraries(tests nuclear ${ZMQ_LIBRARIES} ${PROTOBUF_LIBRARIES})
 add_test(tests tests)
