@@ -49,12 +49,17 @@ namespace NUClear {
             zmq::message_t* message = new zmq::message_t();
             m_sub.recv(message);
             
-            size_t type = Networking::Hash::hashToStdHash(static_cast<uint8_t*>(message->data()));
+            Networking::NetworkMessage proto;
+            proto.ParseFromArray(message->data(), message->size());
             
+            // Get our hash
+            Networking::Hash type;
+            memcpy(type.data, proto.type().data(), Networking::Hash::SIZE);
+            
+            // Find this type's deserializer (if it exists)
             auto it = m_deserialize.find(type);
-            
             if(it != std::end(m_deserialize)) {
-                it->second(static_cast<uint8_t*>(message->data()) + Networking::Hash::SIZE);
+                it->second(proto.source(), proto.payload().data(), proto.payload().size());
             }
             
             delete message;

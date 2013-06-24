@@ -1,6 +1,8 @@
 FIND_PACKAGE(ZMQ REQUIRED)
+FIND_PACKAGE(Protobuf REQUIRED)
 
 include_directories(${ZMQ_INCLUDE_DIRS})
+include_directories(${PROTOBUF_INCLUDE_DIRS})
 
 FILE(GLOB src 
     "*.cpp"

@@ -35,8 +35,10 @@ namespace NUClear {
         template <typename TType>
         struct Serializer {
             
-            static TType* deserialize(void* data) {
-                return static_cast<TType*>(data);
+            static TType* deserialize(const void* data, const size_t length) {
+                TType* object = new TType();
+                memcpy(object, data, sizeof(TType));
+                return object;
             }
             
             static std::pair<std::shared_ptr<void>, size_t> serialize(TType* data) {
