@@ -49,7 +49,10 @@ TEST_CASE("api/network/basic", "Testing the Networking system") {
     
     plant.install<TestReactor>();
     
-    plant.networkEmit(new TestObject{5});
+    for (int i = 0; i < 50; ++i) {
+        plant.networkEmit(new TestObject{5});
+        std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    }
     
     plant.start();
 }

@@ -45,33 +45,34 @@ namespace NUClear {
     
     void PowerPlant::NetworkMaster::run() {
         
+        zmq::pollitem_t items[] = {{m_sub, 0, ZMQ_POLLIN, 0}};
+        
         while (m_running) {
-            
-            std::unique_ptr<zmq::message_t> message(new zmq::message_t());
-            m_sub.recv(message.get());
-            
-            Networking::NetworkMessage proto;
-            proto.ParseFromArray(message->data(), message->size());
-            
-            // Get our hash
-            Networking::Hash type;
-            memcpy(type.data, proto.type().data(), Networking::Hash::SIZE);
-            
-            // Find this type's deserializer (if it exists)
-            auto it = m_deserialize.find(type);
-            if(it != std::end(m_deserialize)) {
-                it->second(proto.source(), proto.payload().data(), proto.payload().size());
+            if(zmq::poll(items, 1, 500) > 0) {
+                std::unique_ptr<zmq::message_t> message(new zmq::message_t());
+                
+                m_sub.recv(message.get());
+                
+                Networking::NetworkMessage proto;
+                proto.ParseFromArray(message->data(), message->size());
+                
+                // Get our hash
+                Networking::Hash type;
+                memcpy(type.data, proto.type().data(), Networking::Hash::SIZE);
+                
+                // Find this type's deserializer (if it exists)
+                auto it = m_deserialize.find(type);
+                if(it != std::end(m_deserialize)) {
+                    it->second(proto.source(), proto.payload().data(), proto.payload().size());
+                }
             }
         }
-        
-        std::cout << "HI!" << std::endl;
-    
     }
     
     void PowerPlant::NetworkMaster::kill() {
         m_running = false;
     }
-    
+
     std::string PowerPlant::NetworkMaster::addressForName(std::string name, unsigned port) {
         
         // Hash our string
