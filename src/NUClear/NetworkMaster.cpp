@@ -30,11 +30,14 @@ namespace NUClear {
         std::string address = addressForName(m_parent->configuration.networkGroup,
                                              m_parent->configuration.networkPort);
         
+        std::cout << "Bound to address " << address << std::endl;
+        
         // Bind our publisher to this address
         m_pub.bind(address.c_str());
         
-        // Connect our subscriber to this address
+        // Connect our subscriber to this address and subscribe to all messages
         m_sub.connect(address.c_str());
+        m_sub.setsockopt(ZMQ_SUBSCRIBE, 0, 0);
         
         // Build a task
         Internal::ThreadWorker::InternalTask task(std::bind(&NetworkMaster::run, this),
@@ -45,14 +48,11 @@ namespace NUClear {
     
     void PowerPlant::NetworkMaster::run() {
         
+        // Use poll items as they allow us to use a timeout
         zmq::pollitem_t items[] = {{m_sub, 0, ZMQ_POLLIN, 0}};
-        
-        int i = 0;
         
         while (m_running) {
             int res = zmq::poll(items, 1, 500);
-            
-            std::cout << ++i << " " << res << std::endl;
             
             if(res > 0) {
                 std::unique_ptr<zmq::message_t> message(new zmq::message_t());
@@ -82,11 +82,10 @@ namespace NUClear {
     std::string PowerPlant::NetworkMaster::addressForName(std::string name, unsigned port) {
         
         // Hash our string
-        std::hash<std::string> hash_fn;
-        size_t hash = hash_fn(name);
+        Networking::Hash hash = Networking::murmurHash3(name.c_str(), name.size());
         
         // Convert our hash into a multicast address
-        uint32_t addr = 0xE0000200 + (hash % (0xEFFFFFFF - 0xE0000200));
+        uint32_t addr = 0xE0000200 + (hash.hash() % (0xEFFFFFFF - 0xE0000200));
         
         // Split our mulitcast address into a epgm address
         std::stringstream out;

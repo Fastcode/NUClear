@@ -32,6 +32,8 @@ namespace NUClear {
             static size_t hashToStdHash(const uint8_t* data);
         };
         
+        Hash murmurHash3(const void* key, const size_t len);
+        
         template <typename TType>
         struct Serializer {
             
@@ -52,9 +54,9 @@ namespace NUClear {
         
         template <typename TType>
         Hash hash() {
+            const char* name = typeid(TType).name();
             
-            // Set all the bytes to the first byte of the mangled name (TODO use murmur3 or something to hash better)
-            return Hash{{static_cast<uint8_t>(typeid(TType).name()[0])}};
+            return murmurHash3(name, strlen(name));
         }
     }
 }

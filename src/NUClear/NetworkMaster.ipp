@@ -70,9 +70,6 @@ namespace NUClear {
             
             // Store our function for use
             m_deserialize.insert(std::make_pair(type, parse));
-            
-            // Subscribe to this message type
-            m_sub.setsockopt(ZMQ_SUBSCRIBE, type.data, Networking::Hash::SIZE);
         }
     }
 }
