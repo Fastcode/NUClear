@@ -29,7 +29,7 @@ namespace {
     class NetworkEmitter : public NUClear::Reactor {
     public:
         NetworkEmitter(NUClear::PowerPlant& plant) : Reactor(plant) {
-            on<Trigger<Every<500, std::chrono::milliseconds>>>([this](const std::chrono::time_point<std::chrono::steady_clock>& tick) {
+            on<Trigger<Every<500, std::chrono::milliseconds>>>([this](const time_t& tick) {
                 powerPlant.networkEmit(new TestObject{5});
             });
         }
@@ -45,6 +45,7 @@ namespace {
             // Trigger on a networked event
             on<Trigger<Network<TestObject>>>([this](const Network<TestObject>& message) {
                 REQUIRE(message.data->x == 5);
+                powerPlant.shutdown();
             });
         }
     };

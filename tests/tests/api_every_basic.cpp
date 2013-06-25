@@ -29,7 +29,7 @@ namespace {
         
         TestReactor(NUClear::PowerPlant& plant) : Reactor(plant) {
             // Trigger every 10 milliseconds
-            on<Trigger<Every<10, std::chrono::milliseconds>>>([this](const std::chrono::time_point<std::chrono::steady_clock>& message) {
+            on<Trigger<Every<10, std::chrono::milliseconds>>>([this](const time_t& message) {
                 
                 // Store 11 times (10 durations)
                 if(times.size() < 11) {

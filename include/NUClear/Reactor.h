@@ -55,6 +55,8 @@ namespace NUClear {
         protected:
             PowerPlant& powerPlant;
         
+            typedef std::chrono::time_point<std::chrono::steady_clock> time_t;
+        
             template <typename... TTriggers>
             using Trigger = Internal::CommandTypes::Trigger<TTriggers...>;
         
