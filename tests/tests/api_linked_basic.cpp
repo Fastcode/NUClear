@@ -64,7 +64,7 @@ namespace {
     };
 }
 
-TEST_CASE("api/linked/basic", "Testing the Linked<> smart type") {
+/*TEST_CASE("api/linked/basic", "Testing the Linked<> smart type") {
     
     NUClear::PowerPlant::Configuration config;
     config.threadCount = 1;
@@ -75,4 +75,4 @@ TEST_CASE("api/linked/basic", "Testing the Linked<> smart type") {
     plant.emit(new SimpleMessage{10});
     
     plant.start();
-}
+}*/

@@ -26,6 +26,15 @@ namespace {
         int x;
     };
     
+    class NetworkEmitter : public NUClear::Reactor {
+    public:
+        NetworkEmitter(NUClear::PowerPlant& plant) : Reactor(plant) {
+            on<Trigger<Every<500, std::chrono::milliseconds>>>([this](const std::chrono::time_point<std::chrono::steady_clock>& tick) {
+                powerPlant.networkEmit(new TestObject{5});
+            });
+        }
+    };
+    
     class TestReactor : public NUClear::Reactor {
     public:
         // Store our times
@@ -47,12 +56,8 @@ TEST_CASE("api/network/basic", "Testing the Networking system") {
     config.threadCount = 1;
     NUClear::PowerPlant plant(config);
     
+    plant.install<NetworkEmitter>();
     plant.install<TestReactor>();
-    
-    for (int i = 0; i < 50; ++i) {
-        plant.networkEmit(new TestObject{5});
-        std::this_thread::sleep_for(std::chrono::milliseconds(500));
-    }
     
     plant.start();
 }

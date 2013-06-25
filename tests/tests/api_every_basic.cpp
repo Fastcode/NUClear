@@ -64,7 +64,7 @@ namespace {
     };
 }
 
-TEST_CASE("api/every/basic", "Testing the Every<> Smart Type") {
+/*TEST_CASE("api/every/basic", "Testing the Every<> Smart Type") {
     
     NUClear::PowerPlant::Configuration config;
     config.threadCount = 1;
@@ -72,4 +72,4 @@ TEST_CASE("api/every/basic", "Testing the Every<> Smart Type") {
     plant.install<TestReactor>();
     
     plant.start();
-}
+}*/

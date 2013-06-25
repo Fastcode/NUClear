@@ -47,8 +47,14 @@ namespace NUClear {
         
         zmq::pollitem_t items[] = {{m_sub, 0, ZMQ_POLLIN, 0}};
         
+        int i = 0;
+        
         while (m_running) {
-            if(zmq::poll(items, 1, 500) > 0) {
+            int res = zmq::poll(items, 1, 500);
+            
+            std::cout << ++i << " " << res << std::endl;
+            
+            if(res > 0) {
                 std::unique_ptr<zmq::message_t> message(new zmq::message_t());
                 
                 m_sub.recv(message.get());
