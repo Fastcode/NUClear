@@ -32,7 +32,7 @@ namespace NUClear {
     
     void PowerPlant::CacheMaster::linkCache(void* data, std::vector<std::pair<std::type_index, std::shared_ptr<void>>> args) {
         
-        m_linkedCache.insert(std::pair<void*, std::vector<std::pair<std::type_index, std::shared_ptr<void>>>>(data, args));
+        m_linkedCache.insert(std::make_pair(data, args));
     }
     
     std::vector<std::pair<std::type_index, std::shared_ptr<void>>> PowerPlant::CacheMaster::getThreadArgs(std::thread::id threadId) {

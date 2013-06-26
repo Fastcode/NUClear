@@ -1,6 +1,8 @@
 FIND_PACKAGE(ZMQ REQUIRED)
 FIND_PACKAGE(Protobuf REQUIRED)
 
+PROTOBUF_GENERATE_CPP(proto_src proto_h Networking/NetworkMessage.proto)
+
 include_directories(${ZMQ_INCLUDE_DIRS})
 include_directories(${PROTOBUF_INCLUDE_DIRS})
 
@@ -46,6 +48,8 @@ add_library(nuclear
     ${include_public} 
     ${src} 
     ${src_networking}
+    ${proto_src}
+    ${proto_h}
     ${src_internal}
     ${src_internal_commandtypes}
     ${src_internal_magic})

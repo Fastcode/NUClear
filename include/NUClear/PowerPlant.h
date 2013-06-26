@@ -33,7 +33,7 @@
 #include <zmq.hpp>
 
 #include "NUClear/Networking/Serialization.h"
-#include "NUClear/Networking/NetworkMessage.pb.h"
+#include "NUClear/NetworkMessage.pb.h"
 #include "NUClear/Internal/ThreadWorker.h"
 #include "NUClear/Internal/TaskScheduler.h"
 #include "NUClear/Internal/CommandTypes/CommandTypes.h"

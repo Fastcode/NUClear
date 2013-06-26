@@ -13,6 +13,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)
+include_directories(${CMAKE_CURRENT_BINARY_DIR}/src)
 
 # Compiler settings -- TODO: Add support for non-gcc style flags
 set(CMAKE_CXX_FLAGS "-Wall -std=c++11 -pthread")
