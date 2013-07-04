@@ -232,11 +232,8 @@ namespace NUClear {
             template <typename TReactor>
             void install();
             
-            template <typename TData>
+            template <enum Internal::CommandTypes::Scope... TScopes, typename TData>
             void emit(TData* data);
-        
-            template <typename TData>
-            void networkEmit(TData* data);
 
             // Chrono functions
 

@@ -72,6 +72,12 @@ namespace NUClear {
              *  which may be more difficult to accomplish easier.
              */
             
+            // TODO document
+            enum class Scope {
+                LOCAL,
+                NETWORK
+            };
+            
             /**
              * @ingroup Wrappers
              * @brief This is a special base class for types which use a second pass to collect their data

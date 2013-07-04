@@ -62,7 +62,9 @@ namespace NUClear {
         
             template <typename... TWiths>
             using With = Internal::CommandTypes::With<TWiths...>;
-            
+        
+            using Scope = Internal::CommandTypes::Scope;
+        
             template <typename... TOptions>
             using Options = Internal::CommandTypes::Options<TOptions...>;
         
