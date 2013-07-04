@@ -147,12 +147,29 @@ namespace NUClear {
         powerPlant.cachemaster.ensureCache<num, TData>();
     }
     
+    template <int ticks, class period>
+    void Reactor::exists(Every<ticks, period>* /*placeholder*/) {
+        
+        // Add this interval to the chronometer
+        powerPlant.chronomaster.add<ticks, period>();
+    }
+    
     template <typename TData>
     void Reactor::exists(Network<TData>* /*placeholder*/) {
         
         // Tell the network master to subscribe to this type
         powerPlant.networkmaster.addType<TData>();
     }
+
+    template <typename TData>
+    struct Reactor::TriggerType {
+        typedef TData type;
+    };
+    
+    template <int num, typename TData>
+    struct Reactor::TriggerType<NUClear::Internal::CommandTypes::Last<num, TData>> {
+        typedef TData type;
+    };
 
     /**
      * @brief calls bindTriggersImpl on every trigger in the list. Minimum list size is 1
@@ -162,39 +179,19 @@ namespace NUClear {
      */
     template <typename TTrigger, typename... TTriggers>
     void Reactor::bindTriggers(Internal::Reaction* callback) {
-        bindTriggersImpl(callback, reinterpret_cast<TTrigger*>(0));
-
-        // See unpack.h for explanation
-        Internal::Magic::unpack((bindTriggersImpl(callback, reinterpret_cast<TTriggers*>(0)), 0)...);
-    }
-
-    /**
-     * @brief The implementation method for bindTriggers, provides partial template specialization for specific-trigger type logic.
-     * @tparam TTrigger the trigger to bind to
-     * @param callback the callback to bind
-     * @param placeholder used for partial template specialization
-     */
-    template <typename TTrigger>
-    void Reactor::bindTriggersImpl(Internal::Reaction* callback, TTrigger* /*placeholder*/) {
         
-        // Store our data in the cache
-        CallbackCache<TTrigger>::set(callback);
-    }
-
-    template <int ticks, class period>
-    void Reactor::bindTriggersImpl(Internal::Reaction* callback, Every<ticks, period>* placeholder) {
+        // Single trigger that is not ignored
+        if(sizeof...(TTriggers) == 0 && !std::is_same<typename TriggerType<TTrigger>::type, std::nullptr_t>::value) {
+            CallbackCache<typename TriggerType<TTrigger>::type>::set(callback);
+        }
         
-        // Add this interval to the chronometer
-        powerPlant.chronomaster.add<ticks, period>();
-        
-        // Register as normal
-        bindTriggersImpl<Every<ticks, period>>(callback, placeholder);
-    }
-    
-    template <int num, typename TData>
-    void Reactor::bindTriggersImpl(Internal::Reaction* callback, Last<num, TData>* placeholder) {
-        
-        // Register our callback on the inner type
-        bindTriggersImpl<TData>(callback, reinterpret_cast<TData*>(0));
+        // Multi Trigger (and)
+        else {
+            // TODO Generate a sequence
+            // TODO set a callback for each of TTrigger and TTriggers along with their number
+            // TODO have a tuple of atomic booleans for each TTrigger
+            // TODO when a trigger comes in, use the int to set that boolean to true
+            // TODO when all the booleans are true, run the callback and set all booleans to false
+        }
     }
 }

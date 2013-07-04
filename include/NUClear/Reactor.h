@@ -164,7 +164,10 @@ namespace NUClear {
         
             template <int num, typename TData>
             void exists(Last<num, TData>* /*placeholder*/);
-            
+        
+            template <int ticks, class period>
+            void exists(Every<ticks, period>* /*placeholder*/);
+        
             template <typename TData>
             void exists(Network<TData>* /*placeholder*/);
         
@@ -201,33 +204,9 @@ namespace NUClear {
              */
             template <typename TTrigger, typename... TTriggers>
             void bindTriggers(Internal::Reaction* callback);
-
-            /**
-             * @brief The implementation method for bindTriggers, provides partial template specialization for specific-trigger type logic.
-             * @tparam TTrigger the trigger to bind to
-             * @param callback the callback to bind
-             * @param placeholder used for partial template specialization
-             */
-            template <typename TTrigger>
-            void bindTriggersImpl(Internal::Reaction* callback, TTrigger* /*placeholder*/);
         
-            /**
-             * @brief The implementation method for bindTriggers, provides partial template specialization for specific-trigger type logic.
-             * @tparam TTrigger the trigger to bind to
-             * @param callback the callback to bind
-             * @param placeholder used for partial template specialization
-             */
-            template <int ticks, class period = std::chrono::milliseconds>
-            void bindTriggersImpl(Internal::Reaction* callback, Every<ticks, period>* /*placeholder*/);
-        
-            /**
-             * @brief The implementation method for bindTriggers, provides partial template specialization for specific-trigger type logic.
-             * @tparam TTrigger the trigger to bind to
-             * @param callback the callback to bind
-             * @param placeholder used for partial template specialization
-             */
-            template <int num, typename TData>
-            void bindTriggersImpl(Internal::Reaction* callback, Last<num, TData>* /*placeholder*/);
+            template <typename TType>
+            struct TriggerType;
     };
 }
 
