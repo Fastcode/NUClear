@@ -40,10 +40,10 @@ namespace {
                 if(message.data == 10) {
                     
                     // Emit another message of this type with a different value (20)
-                    powerPlant.emit(new SimpleMessage{20});
+                    emit(new SimpleMessage{20});
                     
                     // Emit our event that will be linked from
-                    powerPlant.emit(new LinkMe{30});
+                    emit(new LinkMe{30});
                 }
             });
             

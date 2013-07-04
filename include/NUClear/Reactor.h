@@ -55,6 +55,8 @@ namespace NUClear {
         protected:
             PowerPlant& powerPlant;
         
+            // IMPORTED TYPES TO ALLOW LOCAL USAGE
+        
             typedef std::chrono::time_point<std::chrono::steady_clock> time_t;
         
             template <typename... TTriggers>
@@ -85,9 +87,11 @@ namespace NUClear {
         
             template <typename TData>
             using Network = Internal::CommandTypes::Network<TData>;
-        
+
             using Single = Internal::CommandTypes::Single;
 
+            // FUNCTIONS
+        
             template <typename TTrigger, typename TFunc>
             void on(TFunc callback); 
 
@@ -96,6 +100,9 @@ namespace NUClear {
 
             template <typename TTrigger, typename TWith, typename TOption, typename TFunc>
             void on(TFunc callback);
+        
+            template <enum Internal::CommandTypes::Scope... TScopes, typename TData>
+            void emit(TData* data);
         private:
         
             template <typename TKey>

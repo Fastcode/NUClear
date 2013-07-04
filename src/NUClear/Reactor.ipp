@@ -31,6 +31,11 @@ namespace NUClear {
     void Reactor::on(TFunc callback) {
         OnImpl<TTrigger, TWith, TOptions, TFunc>(this)(callback);
     }
+    
+    template <enum Internal::CommandTypes::Scope... TScopes, typename TData>
+    void Reactor::emit(TData* data) {
+        powerPlant.emit<TScopes...>(data);
+    }
 
     // == Private Method == 
     template <typename... TTriggers, typename... TWiths, typename... TOptions, typename TFunc>
