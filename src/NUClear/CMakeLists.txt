@@ -27,6 +27,11 @@ FILE(GLOB src_internal_commandtypes
     "Internal/CommandTypes/*.h"
     "Internal/CommandTypes/*.cpp"
     "Internal/CommandTypes/*.ipp")
+    
+FILE(GLOB src_internal_extensions
+    "Internal/Extensions/*.h"
+    "Internal/Extensions/*.cpp"
+    "Internal/Extensions/*.ipp") 
 
 FILE(GLOB src_internal_magic 
     "Internal/Magic/*.h"
@@ -43,6 +48,7 @@ source_group(NUClear\\Networking FILES ${src_networking} ${proto_src} ${proto_h}
 source_group(NUClear\\Internal FILES ${src_internal})
 source_group(NUClear\\Internal\\Magic FILES ${src_internal_magic})
 source_group(NUClear\\Internal\\CommandTypes FILES ${src_internal_commandtypes})
+source_group(NUClear\\Internal\\Extensions FILES ${src_internal_extensions})
 
 add_library(nuclear 
     ${include_public} 
@@ -52,4 +58,5 @@ add_library(nuclear
     ${proto_h}
     ${src_internal}
     ${src_internal_commandtypes}
+    ${src_internal_extensions}
     ${src_internal_magic})

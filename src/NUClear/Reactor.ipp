@@ -146,44 +146,9 @@ namespace NUClear {
         Exists(Reactor* context) : context(context) {}
         void operator()() {}
     };
-    
-    template <int num, typename TData>
-    struct Reactor::Exists<Internal::CommandTypes::Last<num, TData>> {
-        
-        Reactor* context;
-        Exists(Reactor* context) : context(context) {}
-        void operator()() {
-            context->powerPlant.cachemaster.ensureCache<num, TData>();
-        }
-    };
-    
-    template <int ticks, class period>
-    struct Reactor::Exists<Internal::CommandTypes::Every<ticks, period>> {
-        
-        Reactor* context;
-        Exists(Reactor* context) : context(context) {}
-        void operator()() {
-            context->powerPlant.chronomaster.add<ticks, period>();
-        }
-    };
-    
-    template <typename TData>
-    struct Reactor::Exists<Internal::CommandTypes::Network<TData>> {
-        
-        Reactor* context;
-        Exists(Reactor* context) : context(context) {}
-        void operator()() {
-            context->powerPlant.networkmaster.addType<TData>();
-        }
-    };
 
     template <typename TData>
     struct Reactor::TriggerType {
-        typedef TData type;
-    };
-    
-    template <int num, typename TData>
-    struct Reactor::TriggerType<NUClear::Internal::CommandTypes::Last<num, TData>> {
         typedef TData type;
     };
 

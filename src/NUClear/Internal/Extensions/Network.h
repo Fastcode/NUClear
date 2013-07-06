@@ -15,33 +15,19 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+#ifndef NUCLEAR_INTERNAL_EXTENSIONS_NETWORK_H
+#define NUCLEAR_INTERNAL_EXTENSIONS_NETWORK_H
 
-namespace NUClear {
-    
-    template <int num, typename TData>
-    void PowerPlant::CacheMaster::ensureCache() {
-        ValueCache<TData>::cache::minCapacity(num);
-    }
-    
-    template <typename TData>
-    struct PowerPlant::CacheMaster::Get {
-        std::shared_ptr<TData> operator()() {
-            return ValueCache<TData>::get();
-        }
-    };
+#include "NUClear/NUClear.h"
 
-    template <typename TData>
-    void PowerPlant::CacheMaster::cache(TData* data) {
-        ValueCache<TData>::set(std::shared_ptr<TData>(data, [this] (TData* data) {
-            if(m_linkedCache.find(data) != std::end(m_linkedCache)) {
-                m_linkedCache.erase(data);
-            }
-            delete data;
-        }));
-    }
+template <typename TData>
+struct NUClear::Reactor::Exists<NUClear::Internal::CommandTypes::Network<TData>> {
     
-    template <typename... TData, typename TElement>
-    TElement PowerPlant::CacheMaster::doFill(std::tuple<TData...> data, TElement element) {
-        return element;
+    Reactor* context;
+    Exists(Reactor* context) : context(context) {}
+    void operator()() {
+        context->powerPlant.networkmaster.addType<TData>();
     }
-}
+};
+
+#endif

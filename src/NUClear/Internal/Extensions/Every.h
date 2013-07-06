@@ -15,33 +15,26 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+#ifndef NUCLEAR_INTERNAL_EXTENSIONS_EVERY_H
+#define NUCLEAR_INTERNAL_EXTENSIONS_EVERY_H
 
-namespace NUClear {
-    
-    template <int num, typename TData>
-    void PowerPlant::CacheMaster::ensureCache() {
-        ValueCache<TData>::cache::minCapacity(num);
-    }
-    
-    template <typename TData>
-    struct PowerPlant::CacheMaster::Get {
-        std::shared_ptr<TData> operator()() {
-            return ValueCache<TData>::get();
-        }
-    };
+#include "NUClear/NUClear.h"
 
-    template <typename TData>
-    void PowerPlant::CacheMaster::cache(TData* data) {
-        ValueCache<TData>::set(std::shared_ptr<TData>(data, [this] (TData* data) {
-            if(m_linkedCache.find(data) != std::end(m_linkedCache)) {
-                m_linkedCache.erase(data);
-            }
-            delete data;
-        }));
-    }
+template <int ticks, class period>
+struct NUClear::Reactor::Exists<NUClear::Internal::CommandTypes::Every<ticks, period>> {
     
-    template <typename... TData, typename TElement>
-    TElement PowerPlant::CacheMaster::doFill(std::tuple<TData...> data, TElement element) {
-        return element;
+    Reactor* context;
+    Exists(Reactor* context) : context(context) {}
+    void operator()() {
+        context->powerPlant.chronomaster.add<ticks, period>();
     }
-}
+};
+
+template <int ticks, class period>
+struct NUClear::PowerPlant::CacheMaster::Get<NUClear::Internal::CommandTypes::Every<ticks, period>> {
+    std::shared_ptr<std::chrono::time_point<std::chrono::steady_clock>> operator()() {
+        return std::shared_ptr<std::chrono::time_point<std::chrono::steady_clock>>(new std::chrono::time_point<std::chrono::steady_clock>(ValueCache<Internal::CommandTypes::Every<ticks, period>>::get()->m_time));
+    }
+};
+
+#endif

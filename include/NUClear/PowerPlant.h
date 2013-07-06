@@ -234,5 +234,12 @@ namespace NUClear {
 #include "NUClear/CacheMaster.ipp"
 #include "NUClear/ReactorMaster.ipp"
 #include "NUClear/NetworkMaster.ipp"
+
+// Include our built in extensions
+#include "NUClear/Internal/Extensions/Every.h"
+#include "NUClear/Internal/Extensions/Last.h"
+#include "NUClear/Internal/Extensions/Linked.h"
+#include "NUClear/Internal/Extensions/Network.h"
+
 #endif
 
