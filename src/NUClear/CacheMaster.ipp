@@ -24,25 +24,32 @@ namespace NUClear {
     }
     
     template <typename TData>
-    std::shared_ptr<TData> PowerPlant::CacheMaster::getData(TData*) {
-        return ValueCache<TData>::get();
-    }
+    struct PowerPlant::CacheMaster::Get {
+        std::shared_ptr<TData> operator()() {
+            return ValueCache<TData>::get();
+        }
+    };
     
     template <int num, typename TData>
-    std::shared_ptr<std::vector<std::shared_ptr<const TData>>> PowerPlant::CacheMaster::getData(Internal::CommandTypes::Last<num, TData>*) {
-        return ValueCache<TData>::cache::get(num);
-    }
+    struct PowerPlant::CacheMaster::Get<Internal::CommandTypes::Last<num, TData>> {
+        std::shared_ptr<std::vector<std::shared_ptr<const TData>>> operator()() {
+            return ValueCache<TData>::get(num);
+        }
+    };
     
     template <int ticks, class period>
-    std::shared_ptr<std::chrono::time_point<std::chrono::steady_clock>> PowerPlant::CacheMaster::getData(Internal::CommandTypes::Every<ticks, period>*) {
-        
-        return std::shared_ptr<std::chrono::time_point<std::chrono::steady_clock>>(new std::chrono::time_point<std::chrono::steady_clock>(ValueCache<Internal::CommandTypes::Every<ticks, period>>::get()->m_time));
-    }
+    struct PowerPlant::CacheMaster::Get<Internal::CommandTypes::Every<ticks, period>> {
+        std::shared_ptr<std::chrono::time_point<std::chrono::steady_clock>> operator()() {
+            return std::shared_ptr<std::chrono::time_point<std::chrono::steady_clock>>(new std::chrono::time_point<std::chrono::steady_clock>(ValueCache<Internal::CommandTypes::Every<ticks, period>>::get()->m_time));
+        }
+    };
     
     template <typename TData, int index>
-    Internal::CommandTypes::Linked<TData, index> PowerPlant::CacheMaster::getData(Internal::CommandTypes::Linked<TData, index>*) {
-        return Internal::CommandTypes::Linked<TData, index>();
-    }
+    struct PowerPlant::CacheMaster::Get<Internal::CommandTypes::Linked<TData, index>> {
+        Internal::CommandTypes::Linked<TData, index> operator()() {
+            return Internal::CommandTypes::Linked<TData, index>();
+        }
+    };
     
     template <typename TData>
     void PowerPlant::CacheMaster::cache(TData* data) {

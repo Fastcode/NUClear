@@ -72,7 +72,15 @@ namespace NUClear {
              *  which may be more difficult to accomplish easier.
              */
             
-            // TODO document
+            /**
+             * @brief This enum is used to modify in what way a packet is sent, either Local, Network or both
+             *
+             * @details
+             *  When using the emit function, these options can be added in order to specify where the packet is to be
+             *  sent. If nothing or LOCAL is specified, then it will only be send within this powerplant. If NETWORK is
+             *  specified, then the data will be sent to other powerplants but not this one, if both LOCAL and NETWORK
+             *  are chosen, then the event will propagate to both the network and local powerplants.
+             */
             enum class Scope {
                 LOCAL,
                 NETWORK

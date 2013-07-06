@@ -124,20 +124,11 @@ namespace NUClear {
                     void cache(TData* cache);
                 
                     template <typename TData>
-                    std::shared_ptr<TData> getData(TData*);
-                    
-                    template <int num, typename TData>
-                    std::shared_ptr<std::vector<std::shared_ptr<const TData>>> getData(Internal::CommandTypes::Last<num, TData>*);
-                    
-                    template <int ticks, class period>
-                    std::shared_ptr<std::chrono::time_point<std::chrono::steady_clock>> getData(Internal::CommandTypes::Every<ticks, period>*);
-                
-                    template <typename TData, int index>
-                    Internal::CommandTypes::Linked<TData, index> getData(Internal::CommandTypes::Linked<TData, index>*);
+                    struct Get;
                 
                     template <typename TData>
-                    auto get() -> decltype(std::declval<CacheMaster>().getData(std::declval<TData*>())) {
-                        return getData(reinterpret_cast<TData*>(0));
+                    auto get() -> decltype(Get<TData>()()) {
+                        return Get<TData>()();
                     }
                 
                     template <int num, typename TData>
