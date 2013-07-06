@@ -167,18 +167,9 @@ namespace NUClear {
              */
             template <enum EPriority P>
             void buildOptionsImpl(Internal::Reaction::Options& options, Priority<P>* /*placeholder*/);
-            
+        
             template <typename TType>
-            void exists(TType* /*placeholder*/);
-        
-            template <int num, typename TData>
-            void exists(Last<num, TData>* /*placeholder*/);
-        
-            template <int ticks, class period>
-            void exists(Every<ticks, period>* /*placeholder*/);
-        
-            template <typename TData>
-            void exists(Network<TData>* /*placeholder*/);
+            struct Exists;
         
             /**
              * @brief Builds a callback based on if it needs a second pass at runtime.

@@ -59,8 +59,8 @@ namespace NUClear {
             context->buildOptions<TOptions...>(options);
             
             // Run any existence commands needed (running because a type exists)
-            Internal::Magic::unpack((context->exists(reinterpret_cast<TTriggers*>(0)), 0)...);
-            Internal::Magic::unpack((context->exists(reinterpret_cast<TWiths*>(0)), 0)...);
+            Internal::Magic::unpack((Exists<TTriggers>(context)(), 0)...);
+            Internal::Magic::unpack((Exists<TWiths>(context)(), 0)...);
             
             // Bind all of our trigger events
             context->bindTriggers<TTriggers...>(context->buildReaction<TFunc, TTriggers..., TWiths...>(callback, options));
@@ -82,21 +82,20 @@ namespace NUClear {
         options.m_priority = P;
     }
     
+    // NEEDS FILL METAFUNCTION
     template <typename... TTypes>
-    struct NeedsFillImpl;
-    
-    template <>
-    struct NeedsFillImpl<> : std::false_type {};
-    
-    template <typename THead, typename... TRest>
-    struct NeedsFillImpl<THead, TRest...> : std::conditional<std::is_base_of<Internal::CommandTypes::Fill, THead>::value, std::true_type, NeedsFillImpl<TRest...>>::type {};
-    
-    template <typename TTuple>
-    struct NeedsFill;
+    struct NeedsFill : std::false_type {};
     
     template <typename... TTypes>
-    struct NeedsFill<std::tuple<TTypes...>> : NeedsFillImpl<TTypes...> {
-    };
+    struct NeedsFill<std::tuple<TTypes...>> : NeedsFill<TTypes...> {};
+    
+    template <typename THead, typename... TTypes>
+    struct NeedsFill<THead, TTypes...> :
+    std::conditional<
+        std::is_base_of<Internal::CommandTypes::Fill, THead>::value,
+        std::true_type,
+        NeedsFill<TTypes...>
+    >::type {};
     
     template <>
     struct Reactor::buildCallback<true> {
@@ -140,31 +139,43 @@ namespace NUClear {
         }, options);
     }
     
-    template <typename TType>
-    void Reactor::exists(TType* /*placeholder*/) {
-        // Do nothing in the base case
-    }
+    template <typename TData>
+    struct Reactor::Exists {
+        
+        Reactor* context;
+        Exists(Reactor* context) : context(context) {}
+        void operator()() {}
+    };
     
     template <int num, typename TData>
-    void Reactor::exists(Last<num, TData>* /*placeholder*/) {
+    struct Reactor::Exists<Internal::CommandTypes::Last<num, TData>> {
         
-        // Let the ReactorMaster know to cache at least this many of this type
-        powerPlant.cachemaster.ensureCache<num, TData>();
-    }
+        Reactor* context;
+        Exists(Reactor* context) : context(context) {}
+        void operator()() {
+            context->powerPlant.cachemaster.ensureCache<num, TData>();
+        }
+    };
     
     template <int ticks, class period>
-    void Reactor::exists(Every<ticks, period>* /*placeholder*/) {
+    struct Reactor::Exists<Internal::CommandTypes::Every<ticks, period>> {
         
-        // Add this interval to the chronometer
-        powerPlant.chronomaster.add<ticks, period>();
-    }
+        Reactor* context;
+        Exists(Reactor* context) : context(context) {}
+        void operator()() {
+            context->powerPlant.chronomaster.add<ticks, period>();
+        }
+    };
     
     template <typename TData>
-    void Reactor::exists(Network<TData>* /*placeholder*/) {
+    struct Reactor::Exists<Internal::CommandTypes::Network<TData>> {
         
-        // Tell the network master to subscribe to this type
-        powerPlant.networkmaster.addType<TData>();
-    }
+        Reactor* context;
+        Exists(Reactor* context) : context(context) {}
+        void operator()() {
+            context->powerPlant.networkmaster.addType<TData>();
+        }
+    };
 
     template <typename TData>
     struct Reactor::TriggerType {

@@ -234,11 +234,6 @@ namespace NUClear {
             
             template <enum Internal::CommandTypes::Scope... TScopes, typename TData>
             void emit(TData* data);
-
-            // Chrono functions
-
-            // Threading Functions
-
     };
 }
 
