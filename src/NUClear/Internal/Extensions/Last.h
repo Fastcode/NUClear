@@ -20,26 +20,28 @@
 
 #include "NUClear/NUClear.h"
 
-template <int num, typename TData>
-struct NUClear::Reactor::TriggerType<NUClear::Internal::CommandTypes::Last<num, TData>> {
-    typedef TData type;
-};
-
-template <int num, typename TData>
-struct NUClear::Reactor::Exists<NUClear::Internal::CommandTypes::Last<num, TData>> {
+namespace NUClear {
+    template <int num, typename TData>
+    struct Reactor::TriggerType<Internal::CommandTypes::Last<num, TData>> {
+        typedef TData type;
+    };
     
-    Reactor* context;
-    Exists(Reactor* context) : context(context) {}
-    void operator()() {
-        context->powerPlant.cachemaster.ensureCache<num, TData>();
-    }
-};
-
-template <int num, typename TData>
-struct NUClear::PowerPlant::CacheMaster::Get<NUClear::Internal::CommandTypes::Last<num, TData>> {
-    std::shared_ptr<std::vector<std::shared_ptr<const TData>>> operator()() {
-        return ValueCache<TData>::get(num);
-    }
-};
+    template <int num, typename TData>
+    struct Reactor::Exists<Internal::CommandTypes::Last<num, TData>> {
+        
+        Reactor* context;
+        Exists(Reactor* context) : context(context) {}
+        void operator()() {
+            context->powerPlant.cachemaster.ensureCache<num, TData>();
+        }
+    };
+    
+    template <int num, typename TData>
+    struct PowerPlant::CacheMaster::Get<Internal::CommandTypes::Last<num, TData>> {
+        std::shared_ptr<std::vector<std::shared_ptr<const TData>>> operator()() {
+            return ValueCache<TData>::get(num);
+        }
+    };
+}
 
 #endif

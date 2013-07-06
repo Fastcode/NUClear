@@ -20,44 +20,57 @@
 
 #include "NUClear/NUClear.h"
 
-template <typename TData, int index>
-struct NUClear::PowerPlant::CacheMaster::Get<NUClear::Internal::CommandTypes::Linked<TData, index>> {
-    Internal::CommandTypes::Linked<TData, index> operator()() {
-        return Internal::CommandTypes::Linked<TData, index>();
-    }
-};
 
-template <typename... TData, typename TElement, int index>
-// TODO this needs to be a struct!
-std::shared_ptr<TElement> NUClear::PowerPlant::CacheMaster::doFill(std::tuple<TData...> data, Internal::CommandTypes::Linked<TElement, index>) {
+namespace NUClear {
+    template <typename TData, int index>
+    struct Reactor::TriggerType<Internal::CommandTypes::Linked<TData, index>> {
+        static_assert(std::is_void<TData>::value, "You cannot put a Linked<> object in a trigger statement");
+    };
     
-    // Build our queue we are using for our search
-    std::deque<void*> searchQueue;
+    template <typename TData, int index>
+    struct PowerPlant::CacheMaster::Get<Internal::CommandTypes::Linked<TData, index>> {
+        Internal::CommandTypes::Linked<TData, index> operator()() {
+            return Internal::CommandTypes::Linked<TData, index>();
+        }
+    };
     
-    // Push on our first element
-    searchQueue.push_front(static_cast<void*>(std::get<index>(data).get()));
-    
-    while (!searchQueue.empty()) {
-        auto el = searchQueue.front();
-        searchQueue.pop_front();
+    template <typename TData, int index, typename... TList>
+    struct PowerPlant::CacheMaster::Fill<Internal::CommandTypes::Linked<TData, index>, TList...> {
         
-        auto it = m_linkedCache.find(el);
+        CacheMaster* context;
+        Fill(CacheMaster* context) : context(context) {};
         
-        if(it != std::end(m_linkedCache)) {
+        std::shared_ptr<TData> operator()(Internal::CommandTypes::Linked<TData, index>, std::tuple<TList...> list) {
             
-            for(auto& element : it->second) {
-                if(element.first == typeid(std::shared_ptr<TElement>)) {
-                    return std::static_pointer_cast<TElement>(element.second);
-                }
-                else {
-                    searchQueue.push_back(element.second.get());
+            // Build our queue we are using for our search
+            std::deque<void*> searchQueue;
+            
+            // Push on our first element
+            searchQueue.push_front(static_cast<void*>(std::get<index>(list).get()));
+            
+            while (!searchQueue.empty()) {
+                auto el = searchQueue.front();
+                searchQueue.pop_front();
+                
+                auto it = context->m_linkedCache.find(el);
+                
+                if(it != std::end(context->m_linkedCache)) {
+                    
+                    for(auto& element : it->second) {
+                        if(element.first == typeid(std::shared_ptr<TData>)) {
+                            return std::static_pointer_cast<TData>(element.second);
+                        }
+                        else {
+                            searchQueue.push_back(element.second.get());
+                        }
+                    }
                 }
             }
+            
+            // We don't have the data
+            throw Internal::Magic::NoDataException();
         }
-    }
-    
-    // We don't have the data
-    throw Internal::Magic::NoDataException();
+    };
 }
 
 #endif

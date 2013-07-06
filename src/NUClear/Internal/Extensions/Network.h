@@ -20,14 +20,17 @@
 
 #include "NUClear/NUClear.h"
 
-template <typename TData>
-struct NUClear::Reactor::Exists<NUClear::Internal::CommandTypes::Network<TData>> {
-    
-    Reactor* context;
-    Exists(Reactor* context) : context(context) {}
-    void operator()() {
-        context->powerPlant.networkmaster.addType<TData>();
-    }
-};
+
+namespace NUClear {
+    template <typename TData>
+    struct Reactor::Exists<Internal::CommandTypes::Network<TData>> {
+        
+        Reactor* context;
+        Exists(Reactor* context) : context(context) {}
+        void operator()() {
+            context->powerPlant.networkmaster.addType<TData>();
+        }
+    };
+}
 
 #endif

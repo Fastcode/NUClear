@@ -29,6 +29,15 @@ namespace NUClear {
             return ValueCache<TData>::get();
         }
     };
+    
+    template <typename TData, typename... TList>
+    struct PowerPlant::CacheMaster::Fill {
+        CacheMaster* context;
+        Fill(CacheMaster* context) : context(context) {};
+        TData operator()(TData element, std::tuple<TList...> list) {
+            return element;
+        }
+    };
 
     template <typename TData>
     void PowerPlant::CacheMaster::cache(TData* data) {
@@ -38,10 +47,5 @@ namespace NUClear {
             }
             delete data;
         }));
-    }
-    
-    template <typename... TData, typename TElement>
-    TElement PowerPlant::CacheMaster::doFill(std::tuple<TData...> data, TElement element) {
-        return element;
     }
 }

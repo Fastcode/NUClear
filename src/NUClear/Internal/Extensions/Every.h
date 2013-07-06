@@ -20,21 +20,24 @@
 
 #include "NUClear/NUClear.h"
 
-template <int ticks, class period>
-struct NUClear::Reactor::Exists<NUClear::Internal::CommandTypes::Every<ticks, period>> {
+namespace NUClear {
     
-    Reactor* context;
-    Exists(Reactor* context) : context(context) {}
-    void operator()() {
-        context->powerPlant.chronomaster.add<ticks, period>();
-    }
-};
-
-template <int ticks, class period>
-struct NUClear::PowerPlant::CacheMaster::Get<NUClear::Internal::CommandTypes::Every<ticks, period>> {
-    std::shared_ptr<std::chrono::time_point<std::chrono::steady_clock>> operator()() {
-        return std::shared_ptr<std::chrono::time_point<std::chrono::steady_clock>>(new std::chrono::time_point<std::chrono::steady_clock>(ValueCache<Internal::CommandTypes::Every<ticks, period>>::get()->m_time));
-    }
-};
+    template <int ticks, class period>
+    struct Reactor::Exists<Internal::CommandTypes::Every<ticks, period>> {
+        
+        Reactor* context;
+        Exists(Reactor* context) : context(context) {}
+        void operator()() {
+            context->powerPlant.chronomaster.add<ticks, period>();
+        }
+    };
+    
+    template <int ticks, class period>
+    struct PowerPlant::CacheMaster::Get<Internal::CommandTypes::Every<ticks, period>> {
+        std::shared_ptr<std::chrono::time_point<std::chrono::steady_clock>> operator()() {
+            return std::shared_ptr<std::chrono::time_point<std::chrono::steady_clock>>(new std::chrono::time_point<std::chrono::steady_clock>(ValueCache<Internal::CommandTypes::Every<ticks, period>>::get()->m_time));
+        }
+    };
+}
 
 #endif

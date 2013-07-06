@@ -81,7 +81,7 @@ namespace Magic {
             
             // Get each of the values from the tuple, dereference them and call the function with them
             
-            function(dereference<Dereferenceable<decltype(std::get<S>(args))>() == true>::get((std::get<S>(args)))...);
+            function(dereference<Dereferenceable<TArgs>::value>::get((std::get<S>(args)))...);
         }
     }
     

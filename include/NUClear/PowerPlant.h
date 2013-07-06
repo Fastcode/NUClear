@@ -126,6 +126,9 @@ namespace NUClear {
                     template <typename TData>
                     struct Get;
                 
+                    template <typename TData, typename... TElements>
+                    struct Fill;
+                
                     template <typename TData>
                     auto get() -> decltype(Get<TData>()()) {
                         return Get<TData>()();
@@ -139,15 +142,10 @@ namespace NUClear {
                 
                     void linkCache(void* data, std::vector<std::pair<std::type_index, std::shared_ptr<void>>> args);
                 
-                    template <typename... TData, typename TElement>
-                    TElement doFill(std::tuple<TData...> data, TElement element);
-                
-                    template <typename... TData, typename TElement, int index>
-                    std::shared_ptr<TElement> doFill(std::tuple<TData...> data, Internal::CommandTypes::Linked<TElement, index>);
-                
                     template <typename... TData, int... S>
-                    auto fill(Internal::Magic::Sequence<S...> s, std::tuple<TData...> data) -> decltype(std::make_tuple(doFill(data, std::get<S>(data))...)) {
-                        return std::make_tuple(doFill(data, std::get<S>(data))...);
+                    auto fill(Internal::Magic::Sequence<S...>, std::tuple<TData...> data)
+                    -> decltype(std::make_tuple(Fill<typename std::remove_reference<decltype(std::get<S>(data))>::type, TData...>(this)(std::get<S>(data), data)...)) {
+                        return std::make_tuple(Fill<typename std::remove_reference<decltype(std::get<S>(data))>::type, TData...>(this)(std::get<S>(data), data)...);
                     }
                 
                     template <typename... TData>

@@ -27,6 +27,7 @@ namespace NUClear {
     }
     
     void PowerPlant::CacheMaster::setThreadArgs(std::thread::id threadId, std::vector<std::pair<std::type_index, std::shared_ptr<void>>>&& args) {
+        // TODO replace this with thread_local
         m_threadArgs[threadId] = std::move(args);
     }
     

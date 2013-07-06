@@ -46,6 +46,9 @@ namespace Internal {
     class Reaction {
         public:
         
+        // TODO add ability to enable/disable reactions
+        // TODO am i putting null in the linked cache when there is no parent event?
+        
             /**
              * @brief This struct holds all of the options which are specified in the Options<> part of a call.
              *

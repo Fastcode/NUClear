@@ -94,7 +94,7 @@ namespace NUClear {
              *  Other placeholders extend from this class type to mean that their data is collected during the second
              *  pass of collecting data.
              */
-            struct Fill {};
+            struct FillType {};
             
             /**
              * @ingroup Wrappers
@@ -258,7 +258,7 @@ namespace NUClear {
              * @return  Returns a vector of shared_ptr with the signature std::vector<std::shared_ptr<TData>>
              */
             template <typename TData, int index = 0>
-            struct Linked : public Fill { public: Linked() {}; ~Linked() {}; };
+            struct Linked : public FillType { public: Linked() {}; ~Linked() {}; };
         }
     }
 }

@@ -92,7 +92,7 @@ namespace NUClear {
     template <typename THead, typename... TTypes>
     struct NeedsFill<THead, TTypes...> :
     std::conditional<
-        std::is_base_of<Internal::CommandTypes::Fill, THead>::value,
+        std::is_base_of<Internal::CommandTypes::FillType, THead>::value,
         std::true_type,
         NeedsFill<TTypes...>
     >::type {};
@@ -105,6 +105,8 @@ namespace NUClear {
                 
                 // Perform our second pass over the data
                 auto&& newData = parent->powerPlant.cachemaster.fill(data);
+                
+                // TODO do a static assert that TFunc can take arguments of type decltype(newData)
                 
                 parent->powerPlant.cachemaster.setThreadArgs(std::this_thread::get_id(), std::move(Internal::Magic::buildVector(newData)));
                 
@@ -119,6 +121,8 @@ namespace NUClear {
         template <typename TFunc, typename... TData>
         static const std::function<void ()> get(Reactor* parent, TFunc callback, std::tuple<TData...> data) {
             return [parent, callback, data] {
+                
+                // TODO do a static assert that TFunc can take arguments of type decltype(data)
                 
                 parent->powerPlant.cachemaster.setThreadArgs(std::this_thread::get_id(), std::move(Internal::Magic::buildVector(data)));
                 
