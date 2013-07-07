@@ -344,6 +344,7 @@ namespace NUClear {
                     volatile bool m_running;
                     zmq::context_t m_context;
                     zmq::socket_t m_pub;
+                    zmq::socket_t m_termPub;
                     zmq::socket_t m_sub;
             };
 

@@ -24,6 +24,7 @@ namespace NUClear {
     m_running(true),
     m_context(1),
     m_pub(m_context, ZMQ_PUB),
+    m_termPub(m_context, ZMQ_PUB),
     m_sub(m_context, ZMQ_SUB) {
         
         // Get our PGM address
@@ -35,8 +36,12 @@ namespace NUClear {
         // Bind our publisher to this address
         m_pub.bind(address.c_str());
         
+        // Create a secondary inprocess publisher used to terminate the thread
+        m_termPub.bind("inproc://networkmaster-term");
+        
         // Connect our subscriber to this address and subscribe to all messages
         m_sub.connect(address.c_str());
+        m_sub.connect("inproc://networkmaster-term");
         m_sub.setsockopt(ZMQ_SUBSCRIBE, 0, 0);
         
         // Build a task
@@ -48,19 +53,16 @@ namespace NUClear {
     
     void PowerPlant::NetworkMaster::run() {
         
-        // Use poll items as they allow us to use a timeout
-        zmq::pollitem_t items[] = {{m_sub, 0, ZMQ_POLLIN, 0}};
-        
         while (m_running) {
-            int res = zmq::poll(items, 1, 500);
             
-            if(res > 0) {
-                std::unique_ptr<zmq::message_t> message(new zmq::message_t());
-                
-                m_sub.recv(message.get());
+            zmq::message_t message;
+            m_sub.recv(&message);
+            
+            // If our message size is 0, then it is probably our termination message
+            if(message.size() > 0) {
                 
                 Networking::NetworkMessage proto;
-                proto.ParseFromArray(message->data(), message->size());
+                proto.ParseFromArray(message.data(), message.size());
                 
                 // Get our hash
                 Networking::Hash type;
@@ -76,7 +78,13 @@ namespace NUClear {
     }
     
     void PowerPlant::NetworkMaster::kill() {
+        
+        // Set our running status to false
         m_running = false;
+        
+        // Send a message to ensure that our block is released
+        zmq::message_t message(0);
+        m_termPub.send(message);
     }
 
     std::string PowerPlant::NetworkMaster::addressForName(std::string name, unsigned port) {
