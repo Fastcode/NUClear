@@ -40,10 +40,10 @@ namespace NUClear {
         m_sub.setsockopt(ZMQ_SUBSCRIBE, 0, 0);
         
         // Build a task
-        Internal::ThreadWorker::InternalTask task(std::bind(&NetworkMaster::run, this),
+        Internal::ThreadWorker::ServiceTask task(std::bind(&NetworkMaster::run, this),
                                                   std::bind(&NetworkMaster::kill, this));
         
-        m_parent->threadmaster.internalTask(task);
+        m_parent->threadmaster.serviceTask(task);
     }
     
     void PowerPlant::NetworkMaster::run() {

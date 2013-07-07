@@ -21,7 +21,7 @@ namespace NUClear {
 namespace Internal {
     
     ThreadPoolTask::ThreadPoolTask(TaskScheduler& scheduler) :
-    ThreadWorker::InternalTask(std::bind(&ThreadPoolTask::run, this), std::bind(&ThreadPoolTask::kill, this)),
+    ThreadWorker::ServiceTask(std::bind(&ThreadPoolTask::run, this), std::bind(&ThreadPoolTask::kill, this)),
     m_scheduler(scheduler),
     m_execute(true) {
     }

@@ -23,7 +23,7 @@
 
 namespace NUClear {
 namespace Internal {
-    class ThreadPoolTask : public ThreadWorker::InternalTask {
+    class ThreadPoolTask : public ThreadWorker::ServiceTask {
         public:
             ThreadPoolTask(TaskScheduler& scheduler);
             ~ThreadPoolTask();

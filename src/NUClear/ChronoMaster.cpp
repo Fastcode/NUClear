@@ -24,13 +24,10 @@ namespace NUClear {
     m_lock(m_execute) {
         
         // Build a task
-        Internal::ThreadWorker::InternalTask task(std::bind(&ChronoMaster::run, this),
+        Internal::ThreadWorker::ServiceTask task(std::bind(&ChronoMaster::run, this),
                                                   std::bind(&ChronoMaster::kill, this));
         
-        m_parent->threadmaster.internalTask(task);
-    }
-
-    PowerPlant::ChronoMaster::~ChronoMaster() {
+        m_parent->threadmaster.serviceTask(task);
     }
 
     void PowerPlant::ChronoMaster::run() {

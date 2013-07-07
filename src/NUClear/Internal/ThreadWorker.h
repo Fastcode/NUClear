@@ -44,8 +44,8 @@ namespace Internal {
              *  This struct holds the details of what the ThreadWorker will execute, as well as how to eventually
              *  shut down the system.
              */
-            struct InternalTask {
-                InternalTask(std::function<void ()> run, std::function<void ()> kill) : run(run), kill(kill) {}
+            struct ServiceTask {
+                ServiceTask(std::function<void ()> run, std::function<void ()> kill) : run(run), kill(kill) {}
                 /// @brief the function that will be run as the main body of the system
                 std::function<void ()> run;
                 /// @brief the function that is executed in order to kill the system
@@ -53,11 +53,11 @@ namespace Internal {
             };
         
             /**
-             * @brief Constructs a new ThreadWorker using the passed InternalTask to execute
+             * @brief Constructs a new ThreadWorker using the passed ServiceTask to execute
              *
              * @param task the task that the ThreadWorker will work on
              */
-            ThreadWorker(InternalTask task);
+            ThreadWorker(ServiceTask task);
         
             /**
              * @brief destructs this ThreadWorker instance, it will kill the thread if it is not already dead (should
@@ -105,7 +105,7 @@ namespace Internal {
             void core();
         
             /// @brief the internal task that will be executed without a scheduler
-            InternalTask m_task;
+            ServiceTask m_task;
             /// @brief our internal thread object
             std::thread m_thread;
     };

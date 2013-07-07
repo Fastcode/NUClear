@@ -26,35 +26,35 @@ namespace NUClear {
 
     void PowerPlant::ThreadMaster::start() {
         // Start our internal service threads
-        for(auto& task : m_internalTasks) {
+        for(auto& task : m_serviceTasks) {
             // Start a thread worker with our task
             std::unique_ptr<Internal::ThreadWorker> thread = std::unique_ptr<Internal::ThreadWorker>(new Internal::ThreadWorker(task));
-            m_threads.insert(std::pair<std::thread::id, std::unique_ptr<Internal::ThreadWorker>>(thread->getThreadId(), std::move(thread)));
+            m_threads.push_back(std::move(thread));
         }
         
         // Start our pool threads
         for(unsigned i = 0; i < m_parent->configuration.threadCount; ++i) {
             std::unique_ptr<Internal::ThreadWorker> thread = std::unique_ptr<Internal::ThreadWorker>(new Internal::ThreadWorker(Internal::ThreadPoolTask(m_scheduler)));
-            m_threads.insert(std::pair<std::thread::id, std::unique_ptr<Internal::ThreadWorker>>(thread->getThreadId(), std::move(thread)));
+            m_threads.push_back(std::move(thread));
         }
         
         // Now wait for all the threads to finish executing
         for(auto& thread : m_threads) {
-            thread.second->join();
+            thread->join();
         }
     }
     
     void PowerPlant::ThreadMaster::shutdown() {
         // Kill everything
         for(auto& thread : m_threads) {
-            thread.second->kill();
+            thread->kill();
         }
         // Kill the task scheduler
         m_scheduler.shutdown();
     }
     
-    void PowerPlant::ThreadMaster::internalTask(Internal::ThreadWorker::InternalTask task) {
-        m_internalTasks.push_back(task);
+    void PowerPlant::ThreadMaster::serviceTask(Internal::ThreadWorker::ServiceTask task) {
+        m_serviceTasks.push_back(task);
     }
     
     void PowerPlant::ThreadMaster::submit(std::unique_ptr<Internal::Reaction::Task>&& task) {
