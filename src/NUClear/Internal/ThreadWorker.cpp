@@ -52,6 +52,7 @@ namespace Internal {
     
     void ThreadWorker::core() {
         
+        // Run our main task
         m_task.run();
     }
 }

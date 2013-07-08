@@ -70,6 +70,10 @@ namespace NUClear {
             template <typename... TOptions>
             using Options = Internal::CommandTypes::Options<TOptions...>;
         
+            using Initialize = Internal::CommandTypes::Initialize;
+        
+            using Shutdown = Internal::CommandTypes::Shutdown;
+        
             template <int ticks, class period = std::chrono::milliseconds>
             using Every = Internal::CommandTypes::Every<ticks, period>;
         

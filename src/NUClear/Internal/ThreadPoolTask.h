@@ -31,7 +31,6 @@ namespace Internal {
             void kill();
         private:
             TaskScheduler& m_scheduler;
-            volatile bool m_execute;
     };
 }
 }

@@ -22,8 +22,7 @@ namespace Internal {
     
     ThreadPoolTask::ThreadPoolTask(TaskScheduler& scheduler) :
     ThreadWorker::ServiceTask(std::bind(&ThreadPoolTask::run, this), std::bind(&ThreadPoolTask::kill, this)),
-    m_scheduler(scheduler),
-    m_execute(true) {
+    m_scheduler(scheduler) {
     }
     
     ThreadPoolTask::~ThreadPoolTask() {
@@ -32,19 +31,49 @@ namespace Internal {
     void ThreadPoolTask::run() {
         try {
             // So long as we are executing
-            while(m_execute) {
+            while(true) {
+                
                 // Get a task
-                
                 std::unique_ptr<Reaction::Task> task(m_scheduler.getTask());
-                
+                std::shared_ptr<NUClearTaskEvent> stats = task->m_stats;
                 
                 // Try to execute the task (catching any exceptions so it doesn't kill the pool thread)
                 try {
+                    stats->started = std::chrono::steady_clock::now();
                     (*task)();
+                    stats->finished = std::chrono::steady_clock::now();
                 }
                 // Catch everything
                 catch(...) {
+                    stats->finished = std::chrono::steady_clock::now();
                     //TODO update the task item with the exception details
+                }
+                
+                // We have stopped running
+                task->m_parent->m_running = false;
+                
+                // If we are a sync type
+                if(task->m_parent->m_options.m_syncQueue) {
+                    
+                    auto& queue = task->m_parent->m_options.m_syncQueue->m_queue;
+                    auto& active = task->m_parent->m_options.m_syncQueue->m_active;
+                    auto& mutex = task->m_parent->m_options.m_syncQueue->m_mutex;
+                    
+                    // Lock our sync types mutex
+                    std::unique_lock<std::mutex> lock(mutex);
+                    
+                    // If there is something in our sync queue move it to the main queue
+                    if (!queue.empty()) {
+                        std::unique_ptr<Reaction::Task> syncTask(std::move(const_cast<std::unique_ptr<Reaction::Task>&>(queue.top())));
+                        queue.pop();
+                        
+                        m_scheduler.submit(std::move(syncTask));
+                    }
+                    // Otherwise set active to false
+                    else {
+                        active = false;
+                    }
+                    // TODO if there is something in the sync queue then push it into the real queue, otherwise set this sync queue to clear
                 }
                 
                 //TODO pass off the completed task to another class for processing of details
@@ -55,7 +84,7 @@ namespace Internal {
     }
     
     void ThreadPoolTask::kill() {
-        m_execute = false;
+        // We don't do anything on being killed, the scheduler handles our demise
     }
     
 }

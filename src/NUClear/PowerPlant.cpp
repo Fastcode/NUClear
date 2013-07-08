@@ -38,10 +38,12 @@ namespace NUClear {
     {}
 
     void PowerPlant::start() {
+        reactormaster.emit(new Internal::CommandTypes::Initialize());
         threadmaster.start();
     }
     
     void PowerPlant::shutdown() {
+        reactormaster.emit(new Internal::CommandTypes::Shutdown());
         threadmaster.shutdown();
     }
 }

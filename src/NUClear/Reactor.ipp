@@ -74,7 +74,7 @@ namespace NUClear {
     
     template <typename TSync>
     void Reactor::buildOptionsImpl(Internal::Reaction::Options& options, Sync<TSync>* /*placeholder*/) {
-        options.m_syncType = typeid(TSync);
+        options.m_syncQueue = Sync<TSync>::SyncQueue;
     }
     
     template <enum EPriority P>
@@ -135,7 +135,7 @@ namespace NUClear {
     Internal::Reaction* Reactor::buildReaction(TFunc callback, Internal::Reaction::Options& options) {
         
         // Return a reaction object that gets and runs with the correct paramters
-        return new Internal::Reaction([this, callback]() -> std::function<void ()> {
+        return new Internal::Reaction(typeid(TFunc).name(), [this, callback]() -> std::function<void ()> {
             
             auto&& data = std::make_tuple(powerPlant.get<TTriggersAndWiths>()...);
             

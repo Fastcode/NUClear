@@ -19,6 +19,7 @@
 #define NUCLEAR_INTERNAL_COMMANDTYPES_COMMANDTYPES_H
 
 #include <string>
+#include "NUClear/Internal/Reaction.h"
 
 namespace NUClear {
     
@@ -38,6 +39,10 @@ namespace NUClear {
     };
     
     namespace Internal {
+        
+        // Forward declare SyncQueue
+        struct SyncQueue;
+        
         namespace CommandTypes {
             
             /**
@@ -169,7 +174,14 @@ namespace NUClear {
              * @tparam TSync the type with which to synchronize on
              */
             template <typename TSync>
-            struct Sync { Sync() = delete; ~Sync() = delete; };
+            struct Sync {
+                friend class Reaction;
+                
+                Sync() = delete;
+                ~Sync() = delete;
+                private:
+                static const std::shared_ptr<Internal::SyncQueue> queue;
+            };
             
             /**
              * @ingroup Options
@@ -181,6 +193,9 @@ namespace NUClear {
              *  queue or is still executing, then this new task will be ignored.
              */
             struct Single { Single() = delete; ~Single() = delete; };
+            
+            struct Initialize {};
+            struct Shutdown {};
             
             /**
              * @ingroup SmartTypes

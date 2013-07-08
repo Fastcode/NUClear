@@ -21,8 +21,11 @@ namespace NUClear {
 namespace Internal {
     
     std::atomic<uint64_t> Reaction::reactionIdSource(0);
+    std::atomic<uint64_t> Reaction::Task::taskIdSource(0);
     
-    Reaction::Reaction(std::function<std::function<void ()> ()> callback, Reaction::Options options) :
+    
+    Reaction::Reaction(std::string name, std::function<std::function<void ()> ()> callback, Reaction::Options options) :
+    m_name(name),
     m_options(options),
     m_reactionId(++reactionIdSource),
     m_running(false),
@@ -37,18 +40,13 @@ namespace Internal {
     Reaction::Task::Task(Reaction* parent, std::function<void ()> callback) :
     m_callback(callback),
     m_parent(parent),
-    m_emitTime(std::chrono::steady_clock::now()) {
+    m_taskId(++taskIdSource),
+    m_stats(new NUClearTaskEvent{parent->m_name, parent->m_reactionId, m_taskId, std::chrono::steady_clock::now()}) {
     }
     
     void Reaction::Task::operator()() {
-        
-        // Start timing and execute our function
-        m_startTime = std::chrono::steady_clock::now();
+        // Call our callback
         m_callback();
-        
-        // Finish timing and calculate our runtime
-        const auto& end = std::chrono::steady_clock::now();
-        m_runtime = end.time_since_epoch() - m_startTime.time_since_epoch();
     }
 }
 }
