@@ -64,6 +64,7 @@ namespace NUClear {
                     return a->next < b->next;
                 });
             }
+            // TODO http://gcc.gnu.org/bugzilla/show_bug.cgi?id=54562 :(
             // Sleep until it's time to emit this event, or the lock is released and we should finish
             while(!m_execute.try_lock_until(m_steps.front()->next));
         }
