@@ -51,7 +51,7 @@ namespace Internal {
     /**
      * @brief This type is used to identify reactions (every reaction has a unique identifier).
      */
-    typedef std::uint64_t reactionId_t;
+    using reactionId_t = std::uint64_t;
     
     /**
      * @brief This class holds the definition of a Reaction (call signature)

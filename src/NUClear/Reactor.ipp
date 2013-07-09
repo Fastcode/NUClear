@@ -153,7 +153,7 @@ namespace NUClear {
 
     template <typename TData>
     struct Reactor::TriggerType {
-        typedef TData type;
+        using type = TData;
     };
 
     /**

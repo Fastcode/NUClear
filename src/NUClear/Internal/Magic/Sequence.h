@@ -68,7 +68,7 @@ namespace Magic {
      */
     template<int... S>
     struct GenerateSequence<0, S...> {
-        typedef Sequence<S...> type;
+        using type = Sequence<S...>;
     };
 }
 }

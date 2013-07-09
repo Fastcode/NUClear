@@ -20,7 +20,7 @@ namespace NUClear {
     
     template <int num, typename TData>
     void PowerPlant::CacheMaster::ensureCache() {
-        ValueCache<TData>::cache::minCapacity(num);
+        ValueCache<TData>::minCapacity(num);
     }
     
     template <typename TData>
@@ -42,7 +42,12 @@ namespace NUClear {
     template <typename TData>
     void PowerPlant::CacheMaster::cache(TData* data) {
         ValueCache<TData>::set(std::shared_ptr<TData>(data, [this] (TData* data) {
-            if(m_linkedCache.find(data) != std::end(m_linkedCache)) {
+            
+            // The running variable is needed as that at the end of the program after the end of main static variables
+            // are still around. And if one of these static variables is anchoring a shared_ptr then it will persist on.
+            // When it is deallocated it tries to find the m_linkedCache object that was deallocated at the end of main.
+            // Because of this, after the end of main m_linkedCache is a bad memory and will segfault
+            if(running && m_linkedCache.find(data) != std::end(m_linkedCache)) {
                 m_linkedCache.erase(data);
             }
             delete data;

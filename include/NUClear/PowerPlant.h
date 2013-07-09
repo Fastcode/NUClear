@@ -78,6 +78,10 @@ namespace NUClear {
             };
         
         private:
+            
+            // This boolean is used to aid the static content
+            static volatile bool running;
+        
             /**
              * @brief The base master class is used as a base for all of the other masters.
              *
