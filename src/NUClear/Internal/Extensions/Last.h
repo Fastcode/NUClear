@@ -31,14 +31,14 @@ namespace NUClear {
         
         Reactor* context;
         Exists(Reactor* context) : context(context) {}
-        void operator()() {
+        void operator()() const {
             context->powerPlant.cachemaster.ensureCache<num, TData>();
         }
     };
     
     template <int num, typename TData>
     struct PowerPlant::CacheMaster::Get<Internal::CommandTypes::Last<num, TData>> {
-        std::shared_ptr<std::vector<std::shared_ptr<const TData>>> operator()() {
+        std::shared_ptr<std::vector<std::shared_ptr<const TData>>> operator()() const {
             return ValueCache<TData>::get(num);
         }
     };

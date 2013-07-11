@@ -46,7 +46,7 @@ namespace Internal {
                 // Catch everything
                 catch(...) {
                     stats->finished = std::chrono::steady_clock::now();
-                    //TODO update the task item with the exception details
+                    stats->exception = std::current_exception();
                 }
                 
                 // We have stopped running
@@ -73,7 +73,6 @@ namespace Internal {
                     else {
                         active = false;
                     }
-                    // TODO if there is something in the sync queue then push it into the real queue, otherwise set this sync queue to clear
                 }
                 
                 //TODO pass off the completed task to another class for processing of details

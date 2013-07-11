@@ -29,7 +29,7 @@ namespace NUClear {
     
     template <typename TData, int index>
     struct PowerPlant::CacheMaster::Get<Internal::CommandTypes::Linked<TData, index>> {
-        Internal::CommandTypes::Linked<TData, index> operator()() {
+        Internal::CommandTypes::Linked<TData, index> operator()() const {
             return Internal::CommandTypes::Linked<TData, index>();
         }
     };
@@ -40,7 +40,7 @@ namespace NUClear {
         CacheMaster* context;
         Fill(CacheMaster* context) : context(context) {};
         
-        std::shared_ptr<TData> operator()(Internal::CommandTypes::Linked<TData, index>, std::tuple<TList...> list) {
+        std::shared_ptr<TData> operator()(const Internal::CommandTypes::Linked<TData, index>&, const std::tuple<TList...>& list) const {
             
             // Build our queue we are using for our search
             std::deque<void*> searchQueue;

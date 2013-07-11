@@ -27,7 +27,7 @@ namespace NUClear {
         
         Reactor* context;
         Exists(Reactor* context) : context(context) {}
-        void operator()() {
+        void operator()() const {
             context->powerPlant.networkmaster.addType<TData>();
         }
     };

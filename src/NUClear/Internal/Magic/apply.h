@@ -80,7 +80,7 @@ namespace Magic {
         void apply(TFunc function, Sequence<S...> s, std::tuple<TArgs...> args) {
             
             // Get each of the values from the tuple, dereference them and call the function with them
-            
+            // Also ensure that each value is a const reference
             function(dereference<Dereferenceable<TArgs>::value>::get((std::get<S>(args)))...);
         }
     }

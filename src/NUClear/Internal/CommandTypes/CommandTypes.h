@@ -194,7 +194,10 @@ namespace NUClear {
              */
             struct Single { Single() = delete; ~Single() = delete; };
             
+            // TODO document
             struct Initialize {};
+            
+            // TODO document
             struct Shutdown {};
             
             /**
