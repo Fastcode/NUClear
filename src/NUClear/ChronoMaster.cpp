@@ -36,14 +36,14 @@ namespace NUClear {
         if (!m_steps.empty()) {
             
             // Initialize all of the m_steps with our start time
-            std::chrono::time_point<std::chrono::steady_clock> start(std::chrono::steady_clock::now());
+            clock::time_point start(clock::now());
             for(auto& step : m_steps) {
                 step->next = start;
             }
             
             do {
                 // Get the current time
-                std::chrono::time_point<std::chrono::steady_clock> now(std::chrono::steady_clock::now());
+                clock::time_point now(clock::now());
                 
                 // Check if any intervals are before now and if so execute their callbacks and add their step.
                 for(auto& step : m_steps) {

@@ -23,6 +23,8 @@
 
 namespace NUClear {
     
+    typedef std::chrono::high_resolution_clock clock;
+    
     /**
      * @ingroup Options
      * @brief Enum to specify which of the priorities to use for a task
@@ -212,17 +214,17 @@ namespace NUClear {
              *  correct timing to be called.
              *
              * @attention Note that the period which is used to measure the ticks in must be equal to or greater then
-             *  std::chrono::steady_clock::duration or the program will not compile
+             *  clock::duration or the program will not compile
              *
              * @tparam ticks the number of ticks of a paticular type to wait
              * @tparam period a type of duration (e.g. std::chrono::seconds) to measure the ticks in, Defaults to Milliseconds
              *
-             * @return Returns the time the every was emitted as an std::chrono::time_point<std::chrono::steady_clock>
+             * @return Returns the time the every was emitted as an clock::time_point
              */
             template <int ticks, class period = std::chrono::milliseconds>
             struct Every {
-                Every(std::chrono::time_point<std::chrono::steady_clock> time) : m_time(time) {}
-                const std::chrono::time_point<std::chrono::steady_clock> m_time;
+                Every(clock::time_point time) : m_time(time) {}
+                const clock::time_point m_time;
             };
             
             /**

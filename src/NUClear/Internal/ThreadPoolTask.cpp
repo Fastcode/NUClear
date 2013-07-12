@@ -39,13 +39,13 @@ namespace Internal {
                 
                 // Try to execute the task (catching any exceptions so it doesn't kill the pool thread)
                 try {
-                    stats->started = std::chrono::steady_clock::now();
+                    stats->started = clock::now();
                     (*task)();
-                    stats->finished = std::chrono::steady_clock::now();
+                    stats->finished = clock::now();
                 }
                 // Catch everything
                 catch(...) {
-                    stats->finished = std::chrono::steady_clock::now();
+                    stats->finished = clock::now();
                     stats->exception = std::current_exception();
                 }
                 

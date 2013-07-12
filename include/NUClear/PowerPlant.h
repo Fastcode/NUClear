@@ -45,6 +45,9 @@ namespace NUClear {
     // Forward declare reactor
     class Reactor;
     
+    // Declare our clock type
+    using clock = std::chrono::high_resolution_clock;
+    
     /**
      * @brief The PowerPlant is the core of a NUClear system. It holds all Reactors in it and manages their communications.
      *
@@ -178,11 +181,11 @@ namespace NUClear {
                     /// @brief this class holds the callbacks to emit events, as well as when to emit these events.
                     struct Step {
                         /// @brief the size our step is measured in (the size our clock uses)
-                        std::chrono::steady_clock::duration step;
+                        clock::duration step;
                         /// @brief the time at which we need to emit our next event
-                        std::chrono::time_point<std::chrono::steady_clock> next;
+                        clock::time_point next;
                         /// @brief the callbacks to emit for this time (e.g. 1000ms and 1second will trigger on the same tick)
-                        std::vector<std::function<void (std::chrono::time_point<std::chrono::steady_clock>)>> callbacks;
+                        std::vector<std::function<void (clock::time_point)>> callbacks;
                     };
                 
                     /// @brief Our Run method for the task scheduler, starts the Every events emitting

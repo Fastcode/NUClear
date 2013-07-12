@@ -25,7 +25,7 @@ namespace {
     class TestReactor : public NUClear::Reactor {
     public:
         // Store our times
-        std::vector<std::chrono::time_point<std::chrono::steady_clock>> times;
+        std::vector<NUClear::clock::time_point> times;
         
         TestReactor(NUClear::PowerPlant& plant) : Reactor(plant) {
             // Trigger every 10 milliseconds

@@ -36,9 +36,9 @@ namespace NUClear {
         std::string name;
         std::uint64_t reactionId;
         std::uint64_t taskId;
-        std::chrono::time_point<std::chrono::steady_clock> emitted;
-        std::chrono::time_point<std::chrono::steady_clock> started;
-        std::chrono::time_point<std::chrono::steady_clock> finished;
+        clock::time_point emitted;
+        clock::time_point started;
+        clock::time_point finished;
         std::vector<std::pair<std::type_index, std::shared_ptr<void>>> args;
         std::exception_ptr exception;
     };
@@ -138,7 +138,7 @@ namespace Internal {
                     /// @brief the statistics object that persists after this for information and debugging
                     std::shared_ptr<NUClearTaskEvent> m_stats;
                     /// @brief the time that this event was created and sent to the queue
-                    std::chrono::time_point<std::chrono::steady_clock> m_emitTime;
+                    clock::time_point m_emitTime;
             };
         
             /**

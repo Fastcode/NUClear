@@ -37,8 +37,6 @@ namespace {
     
     class TestReactor : public NUClear::Reactor {
     public:
-        // Store our times
-        std::vector<std::chrono::time_point<std::chrono::steady_clock>> times;
         
         TestReactor(NUClear::PowerPlant& plant) : Reactor(plant) {
             

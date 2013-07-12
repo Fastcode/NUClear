@@ -41,7 +41,7 @@ namespace Internal {
     m_callback(callback),
     m_parent(parent),
     m_taskId(++taskIdSource),
-    m_stats(new NUClearTaskEvent{parent->m_name, parent->m_reactionId, m_taskId, std::chrono::steady_clock::now()}) {
+    m_stats(new NUClearTaskEvent{parent->m_name, parent->m_reactionId, m_taskId, clock::now()}) {
     }
     
     void Reaction::Task::operator()() {

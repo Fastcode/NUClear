@@ -57,7 +57,7 @@ namespace NUClear {
         
             // IMPORTED TYPES TO ALLOW LOCAL USAGE
         
-            using time_t = std::chrono::time_point<std::chrono::steady_clock>;
+            using time_t = clock::time_point;
         
             template <typename... TTriggers>
             using Trigger = Internal::CommandTypes::Trigger<TTriggers...>;
