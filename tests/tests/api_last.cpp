@@ -36,7 +36,7 @@ namespace {
                 // Check that we have the same number of elements as our first data or 5 elements
                 REQUIRE(data.size() == std::min(5, data.front()->data));
                 
-                for (int i = 1; i < data.size(); ++i) {
+                for (unsigned i = 1; i < data.size(); ++i) {
                     // Check that the value is correct
                     REQUIRE(data[i - 1]->data == data[i]->data + 1);
                 }
@@ -54,7 +54,7 @@ namespace {
     };
 }
 
-TEST_CASE("api/last/basic", "Testing the Last<> Smart Type") {
+TEST_CASE("Testing the Last<> Smart Type", "[api][last]") {
     
     NUClear::PowerPlant::Configuration config;
     config.threadCount = 1;
