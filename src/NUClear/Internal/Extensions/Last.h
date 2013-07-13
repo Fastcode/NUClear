@@ -28,17 +28,14 @@ namespace NUClear {
     
     template <int num, typename TData>
     struct Reactor::Exists<Internal::CommandTypes::Last<num, TData>> {
-        
-        Reactor* context;
-        Exists(Reactor* context) : context(context) {}
-        void operator()() const {
+        static void exists(Reactor* context) {
             context->powerPlant.cachemaster.ensureCache<num, TData>();
         }
     };
     
     template <int num, typename TData>
     struct PowerPlant::CacheMaster::Get<Internal::CommandTypes::Last<num, TData>> {
-        std::shared_ptr<std::vector<std::shared_ptr<const TData>>> operator()() const {
+        static std::shared_ptr<std::vector<std::shared_ptr<const TData>>> get(PowerPlant* context) {
             return ValueCache<TData>::get(num);
         }
     };

@@ -19,48 +19,40 @@ namespace NUClear {
     
     template <typename TTrigger, typename TFunc>
     void Reactor::on(TFunc callback) {
-        OnImpl<TTrigger, With<>, Options<>, TFunc>(this)(callback);
+        On<TTrigger, With<>, Options<>, TFunc>::on(this, callback);
     }
 
     template <typename TTrigger, typename TWith, typename TFunc>
     void Reactor::on(TFunc callback) {
-        OnImpl<TTrigger, TWith, Options<>, TFunc>(this)(callback);
+        On<TTrigger, TWith, Options<>, TFunc>::on(this, callback);
     }
 
     template <typename TTrigger, typename TWith, typename TOptions, typename TFunc>
     void Reactor::on(TFunc callback) {
-        OnImpl<TTrigger, TWith, TOptions, TFunc>(this)(callback);
+        On<TTrigger, TWith, TOptions, TFunc>::on(this, callback);
     }
     
-    template <enum Internal::CommandTypes::Scope... TScopes, typename TData>
+    template <typename... THandlers, typename TData>
     void Reactor::emit(TData* data) {
-        powerPlant.emit<TScopes...>(data);
+        powerPlant.emit<THandlers...>(data);
     }
 
     // == Private Method == 
-    template <typename... TTriggers, typename... TWiths, typename... TOptions, typename TFunc>
-    Reactor::OnImpl<
-        Reactor::Trigger<TTriggers...>
-        , Reactor::With<TWiths...>
-        , Reactor::Options<TOptions...>
-        , TFunc>::OnImpl(Reactor* context) {
-            this->context = context;
-    }
 
     template <typename... TTriggers, typename... TWiths, typename... TOptions, typename TFunc>
-    void Reactor::OnImpl<
+    void Reactor::On<
         Reactor::Trigger<TTriggers...>
         , Reactor::With<TWiths...>
         , Reactor::Options<TOptions...>
-        , TFunc>::operator()(TFunc callback) {
+        , TFunc>::on(Reactor* context, TFunc callback) {
             
             // Build up our options
             Internal::Reaction::Options options;
             context->buildOptions<TOptions...>(options);
             
             // Run any existence commands needed (running because a type exists)
-            Internal::Magic::unpack((Exists<TTriggers>(context)(), 0)...);
-            Internal::Magic::unpack((Exists<TWiths>(context)(), 0)...);
+            Internal::Magic::unpack((Exists<TTriggers>::exists(context), 0)...);
+            Internal::Magic::unpack((Exists<TWiths>::exists(context), 0)...);
             
             // Bind all of our trigger events
             context->bindTriggers<TTriggers...>(context->buildReaction<TFunc, TTriggers..., TWiths...>(callback, options));
@@ -145,10 +137,7 @@ namespace NUClear {
     
     template <typename TData>
     struct Reactor::Exists {
-        
-        Reactor* context;
-        Exists(Reactor* context) : context(context) {}
-        void operator()() {}
+        static void exists(Reactor* context) {};
     };
 
     template <typename TData>

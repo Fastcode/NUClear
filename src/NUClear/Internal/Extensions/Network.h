@@ -22,12 +22,18 @@
 
 
 namespace NUClear {
+    
+    
+    template <typename TData>
+    struct PowerPlant::Emit<Internal::CommandTypes::Scope::NETWORK, TData> {
+        static void emit(PowerPlant* context, TData* data) {
+            context->networkmaster.emit(data);
+        };
+    };
+    
     template <typename TData>
     struct Reactor::Exists<Internal::CommandTypes::Network<TData>> {
-        
-        Reactor* context;
-        Exists(Reactor* context) : context(context) {}
-        void operator()() const {
+        static void exists(Reactor* context) {
             context->powerPlant.networkmaster.addType<TData>();
         }
     };

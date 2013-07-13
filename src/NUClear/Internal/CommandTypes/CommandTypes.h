@@ -88,9 +88,9 @@ namespace NUClear {
              *  specified, then the data will be sent to other powerplants but not this one, if both LOCAL and NETWORK
              *  are chosen, then the event will propagate to both the network and local powerplants.
              */
-            enum class Scope {
-                LOCAL,
-                NETWORK
+            struct Scope {
+                struct LOCAL;
+                struct NETWORK;
             };
             
             /**

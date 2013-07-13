@@ -25,16 +25,14 @@ namespace NUClear {
     
     template <typename TData>
     struct PowerPlant::CacheMaster::Get {
-        std::shared_ptr<TData> operator()() {
+        static std::shared_ptr<TData> get(PowerPlant* context) {
             return ValueCache<TData>::get();
         }
     };
     
     template <typename TData, typename... TList>
     struct PowerPlant::CacheMaster::Fill {
-        CacheMaster* context;
-        Fill(CacheMaster* context) : context(context) {};
-        TData operator()(TData element, std::tuple<TList...> list) {
+        static TData fill(PowerPlant*, TData element, std::tuple<TList...>) {
             return element;
         }
     };

@@ -278,8 +278,8 @@ namespace NUClear {
                     struct Fill;
                 
                     template <typename TData>
-                    auto get() -> decltype(Get<TData>()()) {
-                        return Get<TData>()();
+                    auto get() -> decltype(Get<TData>::get(m_parent)) {
+                        return Get<TData>::get(m_parent);
                     }
                 
                     void setThreadArgs(std::thread::id threadId, std::vector<std::pair<std::type_index, std::shared_ptr<void>>>&& args);
@@ -289,8 +289,8 @@ namespace NUClear {
                 
                     template <typename... TData, int... S>
                     auto fill(Internal::Magic::Sequence<S...>, std::tuple<TData...> data)
-                    -> decltype(std::make_tuple(Fill<typename std::remove_reference<decltype(std::get<S>(data))>::type, TData...>(this)(std::get<S>(data), data)...)) {
-                        return std::make_tuple(Fill<typename std::remove_reference<decltype(std::get<S>(data))>::type, TData...>(this)(std::get<S>(data), data)...);
+                    -> decltype(std::make_tuple(Fill<typename std::remove_reference<decltype(std::get<S>(data))>::type, TData...>::fill(m_parent, std::get<S>(data), data)...)) {
+                        return std::make_tuple(Fill<typename std::remove_reference<decltype(std::get<S>(data))>::type, TData...>::fill(m_parent, std::get<S>(data), data)...);
                     }
                 
                     template <typename... TData>
@@ -354,6 +354,9 @@ namespace NUClear {
                     zmq::socket_t m_termPub;
                     zmq::socket_t m_sub;
             };
+        
+            template <typename THandler, typename TData>
+            struct Emit;
 
         protected:
             const Configuration configuration;
@@ -377,7 +380,7 @@ namespace NUClear {
             template <typename TReactor>
             void install();
             
-            template <enum Internal::CommandTypes::Scope... TScopes, typename TData>
+            template <typename... THandlers, typename TData>
             void emit(TData* data);
     };
 }

@@ -24,17 +24,14 @@ namespace NUClear {
     
     template <int ticks, class period>
     struct Reactor::Exists<Internal::CommandTypes::Every<ticks, period>> {
-        
-        Reactor* context;
-        Exists(Reactor* context) : context(context) {}
-        void operator()() const {
+        static void exists(Reactor* context) {
             context->powerPlant.chronomaster.add<ticks, period>();
         }
     };
     
     template <int ticks, class period>
     struct PowerPlant::CacheMaster::Get<Internal::CommandTypes::Every<ticks, period>> {
-        std::shared_ptr<clock::time_point> operator()() const {
+        static std::shared_ptr<clock::time_point> get(PowerPlant* context) {
             return std::shared_ptr<clock::time_point>(new clock::time_point(ValueCache<Internal::CommandTypes::Every<ticks, period>>::get()->m_time));
         }
     };

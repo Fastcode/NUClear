@@ -105,7 +105,7 @@ namespace NUClear {
             template <typename TTrigger, typename TWith, typename TOption, typename TFunc>
             void on(TFunc callback);
         
-            template <enum Internal::CommandTypes::Scope... TScopes, typename TData>
+            template <typename... THandlers, typename TData>
             void emit(TData* data);
         private:
         
@@ -119,7 +119,7 @@ namespace NUClear {
              *  The template parameters are left unnamed to reflect the fact that they are simply placeholders.
              */
             template <typename, typename, typename, typename>
-            struct OnImpl {};
+            struct On { };
 
             /**
              * @brief Standard Trigger<...>, With<...> specialization of OnImpl.
@@ -135,10 +135,8 @@ namespace NUClear {
              * @tparam TFunc the callback type, should be automatically deduced
              */
             template <typename... TTriggers, typename... TWiths, typename... TOptions, typename TFunc>
-            struct OnImpl<Trigger<TTriggers...>, With<TWiths...>, Options<TOptions...>, TFunc> {
-                Reactor* context;
-                OnImpl(Reactor* context); 
-                void operator()(TFunc callback);            
+            struct On<Trigger<TTriggers...>, With<TWiths...>, Options<TOptions...>, TFunc> {
+                static void on(Reactor* context, TFunc callback);
             };
         
             /**

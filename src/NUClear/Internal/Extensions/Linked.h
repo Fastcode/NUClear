@@ -29,7 +29,7 @@ namespace NUClear {
     
     template <typename TData, int index>
     struct PowerPlant::CacheMaster::Get<Internal::CommandTypes::Linked<TData, index>> {
-        Internal::CommandTypes::Linked<TData, index> operator()() const {
+        static Internal::CommandTypes::Linked<TData, index> get(PowerPlant* context) {
             return Internal::CommandTypes::Linked<TData, index>();
         }
     };
@@ -37,10 +37,7 @@ namespace NUClear {
     template <typename TData, int index, typename... TList>
     struct PowerPlant::CacheMaster::Fill<Internal::CommandTypes::Linked<TData, index>, TList...> {
         
-        CacheMaster* context;
-        Fill(CacheMaster* context) : context(context) {};
-        
-        std::shared_ptr<TData> operator()(const Internal::CommandTypes::Linked<TData, index>&, const std::tuple<TList...>& list) const {
+        static std::shared_ptr<TData> fill(PowerPlant* context, const Internal::CommandTypes::Linked<TData, index>&, const std::tuple<TList...>& list) {
             
             // Build our queue we are using for our search
             std::deque<void*> searchQueue;
@@ -52,9 +49,9 @@ namespace NUClear {
                 auto el = searchQueue.front();
                 searchQueue.pop_front();
                 
-                auto it = context->m_linkedCache.find(el);
+                auto it = context->cachemaster.m_linkedCache.find(el);
                 
-                if(it != std::end(context->m_linkedCache)) {
+                if(it != std::end(context->cachemaster.m_linkedCache)) {
                     
                     for(auto& element : it->second) {
                         if(element.first == typeid(std::shared_ptr<TData>)) {
