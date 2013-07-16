@@ -29,9 +29,10 @@ namespace NUClear {
             template <typename TType>
             struct DefaultSerialization<TType, true> {
                 
-                static Hash hash() {
+                static const Hash hash() {
+                    TType type;
                     // We base the hash on the name of the protocol buffer
-                    return murmurHash3(TType::New().GetTypeName().c_str, TType::New().GetTypeName().size());
+                    return murmurHash3(type.GetTypeName().c_str(), type.GetTypeName().size());
                 }
                 
                 static TType* deserialize(const std::string data) {
@@ -48,7 +49,10 @@ namespace NUClear {
             template <typename TType>
             struct DefaultSerialization<TType, false> {
                 
-                static Hash hash() {
+                // Assert that the type is trivially copyable (we can directly copy the bytes)
+                static_assert(std::is_trivially_copyable<TType>::value, "Only trivially copyable classes can be serialized using the default serializer.");
+                
+                static const Hash hash() {
                     // We base the hash on the mangled name of the type
                     return murmurHash3(typeid(TType).name(), strlen(typeid(TType).name()));
                 }

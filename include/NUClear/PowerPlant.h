@@ -63,7 +63,7 @@ namespace NUClear {
         
         public:
             /**
-             * @brief
+             * @brief TODO
              *
              * @details
              *  TODO
@@ -82,7 +82,7 @@ namespace NUClear {
         
         private:
             
-            // This boolean is used to aid the static content
+            /// @brief This boolean is used to aid the static content in knowing if the PowerPlant still exists
             static volatile bool running;
         
             /**
@@ -112,16 +112,20 @@ namespace NUClear {
                     ThreadMaster(PowerPlant* parent);
                 
                     /**
-                     * @brief
-                     *  Starts up the ThreadMaster initiating all service threads and pool threads. It will block
-                     *  the thread until the system is shut down. This method should only be called from the main thread.
+                     * @brief Starts up the ThreadMaster initiating all service threads and pool threads.
+                     * 
+                     * @details
+                     *  This will start up the entire system, beginning all threads and running the needed code. It will
+                     *  block the thread that calls it until the system is shut down. This method should only be called
+                     *  from the main thread. This will prevent the main thread ending which deletes all statics (which
+                     *  are important for us).
                      */
                     void start();
                 
                     /**
                      * @brief 
                      *  Shuts down the ThreadMaster, it will terminate all of the service and pool threads, and then
-                     *  releases the main thread to terminate the system
+                     *  releases the main thread to terminate the system.
                      */
                     void shutdown();
                 
@@ -249,8 +253,8 @@ namespace NUClear {
                      *  This method sets the minimum number of previous elements to store before they are deleted from
                      *  the cache. It will keep the largest number that this is called with for each datatype.
                      *
-                     *  @tparam num     the number of elements to maintain
-                     *  @tparam TData   the type of data to maintain the elements for
+                     * @tparam num     the number of elements to maintain
+                     * @tparam TData   the type of data to maintain the elements for
                      */
                     template <int num, typename TData>
                     void ensureCache();
@@ -273,26 +277,93 @@ namespace NUClear {
                      *
                      * @details
                      *  TODO give code example of an extension
+                     *
+                     * @tparam TData        TODO
+                     * @tparam TElements    TODO
                      */
                     template <typename TData, typename... TElements>
                     struct Fill;
                 
+                    /**
+                     * @brief TODO
+                     *
+                     * @details
+                     *  TODO
+                     *
+                     * @tparam TData TODO
+                     *
+                     * @return TODO
+                     */
                     template <typename TData>
                     auto get() -> decltype(Get<TData>::get(m_parent)) {
                         return Get<TData>::get(m_parent);
                     }
-                
-                    void setThreadArgs(std::thread::id threadId, std::vector<std::pair<std::type_index, std::shared_ptr<void>>>&& args);
+                    
+                    /**
+                     * @brief TODO
+                     *
+                     * @details
+                     *  TODO
+                     *
+                     * @param threadId  TODO
+                     *
+                     * @return TODO
+                     */
                     std::vector<std::pair<std::type_index, std::shared_ptr<void>>> getThreadArgs(std::thread::id threadId);
-                
+                    
+                    /**
+                     * @brief TODO
+                     *
+                     * @details
+                     *  TODO
+                     *
+                     * @param threadId  TODO
+                     * @param args      TODO
+                     */
+                    void setThreadArgs(std::thread::id threadId, std::vector<std::pair<std::type_index, std::shared_ptr<void>>>&& args);
+                    
+                    /**
+                     * @brief TODO
+                     *
+                     * @details
+                     *  TODO
+                     *
+                     * @param data TODO
+                     * @param args TODO
+                     */
                     void linkCache(void* data, std::vector<std::pair<std::type_index, std::shared_ptr<void>>> args);
                 
+                    /**
+                     * @brief TODO
+                     *
+                     * @details
+                     *  TODO
+                     *
+                     * @tparam TData    TODO
+                     * @tparam S        TODO
+                     *
+                     * @param data
+                     *
+                     * @return TODO
+                     */
                     template <typename... TData, int... S>
                     auto fill(Internal::Magic::Sequence<S...>, std::tuple<TData...> data)
                     -> decltype(std::make_tuple(Fill<typename std::remove_reference<decltype(std::get<S>(data))>::type, TData...>::fill(m_parent, std::get<S>(data), data)...)) {
                         return std::make_tuple(Fill<typename std::remove_reference<decltype(std::get<S>(data))>::type, TData...>::fill(m_parent, std::get<S>(data), data)...);
                     }
                 
+                    /**
+                     * @brief TODO
+                     *
+                     * @details
+                     *  TODO
+                     *
+                     * @tparam TData TODO
+                     *
+                     * @param data TODO
+                     *
+                     * @return TODO
+                     */
                     template <typename... TData>
                     auto fill(std::tuple<TData...> data) -> decltype(fill(typename Internal::Magic::GenerateSequence<sizeof...(TData)>::type(), data)) {
                         return fill(typename Internal::Magic::GenerateSequence<sizeof...(TData)>::type(), data);
@@ -311,81 +382,208 @@ namespace NUClear {
              */
             class ReactorMaster : public BaseMaster {
                 public:
+                    /**
+                     * @brief Constructs a new ReactorMaster which is held in the PowerPlant that created it.
+                     */
                     ReactorMaster(PowerPlant* parent);
 
+                    /**
+                     * @brief TODO
+                     *
+                     * @details
+                     *  TODO
+                     *
+                     * @tparam TTrigger TODO
+                     *
+                     * @param data TODO
+                     */
                     template <typename TTrigger>
                     void emit(TTrigger* data);
                     
+                    /**
+                     * @brief TODO
+                     *
+                     * @details
+                     *  TODO
+                     *
+                     * @tparam TReactor TODO
+                     */
                     template <typename TReactor>
                     void install();
 
                 private:
+                    /// @brief TODO
                     template <typename TKey>
                     using CallbackCache = Internal::Magic::TypeList<Reactor, TKey, Internal::Reaction>;
 
+                    /// @brief TODO
                     std::vector<std::unique_ptr<NUClear::Reactor>> m_reactors;
             };
         
             class NetworkMaster : public BaseMaster {
                 public:
+                    /// @brief TODO
                     NetworkMaster(PowerPlant* parent);
                 
-                    // Serializes a data and pushes it out over the network
-                    template<typename TType>
-                    void emit(TType* data);
+                    /**
+                     * @brief TODO
+                     *
+                     * @details
+                     *  TODO
+                     *
+                     * @tparam TData
+                     *
+                     * @param data
+                     */
+                    template<typename TData>
+                    void emit(TData* data);
                 
-                    // Adds a type to deserialize (finds a deserializer, subscribes to this message)
+                    /**
+                     * @brief TODO
+                     *
+                     * @details
+                     *  TODO
+                     *
+                     * @tparam TType TODO
+                     */
                     template<typename TType>
                     void addType();
                 
                 private:
-                    // Starts up a new thread that receives network packets and listens for new clients
+                    /**
+                     * @brief TODO
+                     *
+                     * @details
+                     *  TODO
+                     */
                     void run();
                 
+                    /**
+                     * @brief TODO
+                     *
+                     * @details
+                     *  TODO
+                     */
                     void kill();
                 
-                    // Converts a string into our epgm address for our network
-                    static std::string addressForName(std::string name, unsigned port);
+                    /**
+                     * @brief TODO
+                     *
+                     * @details
+                     *  TODO
+                     *
+                     * @param name
+                     * @param port
+                     */
+                    static std::string addressForName(const std::string name, const unsigned port);
                 
+                    /// @brief TODO
                     std::unordered_map<Networking::Hash, std::function<void(const std::string, std::string)>> m_deserialize;
+                    /// @brief TODO
                     volatile bool m_running;
+                    /// @brief TODO
+                    std::mutex m_send;
+                    /// @brief TODO
                     zmq::context_t m_context;
+                    /// @brief TODO
                     zmq::socket_t m_pub;
+                    /// @brief TODO
                     zmq::socket_t m_termPub;
+                    /// @brief TODO
                     zmq::socket_t m_sub;
             };
         
+            /**
+             * @brief TODO
+             *
+             * @details
+             *  TODO
+             *
+             * @tparam THandler
+             * @tparam TData
+             */
             template <typename THandler, typename TData>
             struct Emit;
 
         protected:
+            /// @brief TODO
             const Configuration configuration;
+            /// @brief TODO
             ThreadMaster threadmaster;
+            /// @brief TODO
             ChronoMaster chronomaster;
+            /// @brief TODO
             CacheMaster cachemaster;
+            /// @brief TODO
             ReactorMaster reactormaster;
+            /// @brief TODO
             NetworkMaster networkmaster;
         public:
+            /**
+             * @brief TODO
+             *
+             * @details
+             *  TODO
+             */
             PowerPlant();
+        
+            /**
+             * @brief TODO
+             *
+             * @details
+             *  TODO
+             *
+             * @param config TODO
+             */
             PowerPlant(Configuration config);
 
+            /**
+             * @brief TODO
+             *
+             * @details
+             *  TODO
+             */
             void start();
-            void shutdown();
-
-            template <typename TData>
-            auto get() -> decltype(cachemaster.get<TData>()) {
-                return cachemaster.get<TData>();
-            }
         
+            /**
+             * @brief TODO
+             *
+             * @details
+             *  TODO
+             */
+            void shutdown();
+        
+            /**
+             * @brief TODO
+             *
+             * @details
+             *  TODO
+             *
+             * @tparam TReactor TODO
+             */
             template <typename TReactor>
             void install();
-            
+        
+            /**
+             * @brief TODO
+             *
+             * @details
+             *  TODO
+             *
+             * @tparam THandlers    TODO
+             * @tparam TData        TODO
+             *
+             * @param data TODO
+             */
             template <typename... THandlers, typename TData>
             void emit(TData* data);
     };
 }
 
+// Include our Reactor.h first as the tight coupling between powerplant and reactor requires a specific include order
 #include "NUClear/Reactor.h"
+
+// Include all of our implementation files (which use the previously included reactor.h)
 #include "NUClear/PowerPlant.ipp"
 #include "NUClear/ChronoMaster.ipp"
 #include "NUClear/CacheMaster.ipp"

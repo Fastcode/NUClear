@@ -42,7 +42,8 @@ namespace NUClear {
         // Copy in our data
         memcpy(message.data(), serialized.data(), serialized.size());
         
-        // Send the data
+        // Send the data after locking the mutex
+        std::unique_lock<std::mutex>(m_send);
         m_pub.send(message);
     }
     

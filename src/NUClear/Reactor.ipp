@@ -129,7 +129,7 @@ namespace NUClear {
         // Return a reaction object that gets and runs with the correct paramters
         return new Internal::Reaction(typeid(TFunc).name(), [this, callback]() -> std::function<void ()> {
             
-            auto&& data = std::make_tuple(powerPlant.get<TTriggersAndWiths>()...);
+            auto&& data = std::make_tuple(powerPlant.cachemaster.get<TTriggersAndWiths>()...);
             
             return buildCallback<NeedsFill<typename std::remove_reference<decltype(data)>::type>::value>::get(this, callback, data);
         }, options);
