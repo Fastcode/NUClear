@@ -347,7 +347,7 @@ namespace NUClear {
                     // Converts a string into our epgm address for our network
                     static std::string addressForName(std::string name, unsigned port);
                 
-                    std::unordered_map<Networking::Hash, std::function<void(const std::string, const void*, const size_t)>> m_deserialize;
+                    std::unordered_map<Networking::Hash, std::function<void(const std::string, std::string)>> m_deserialize;
                     volatile bool m_running;
                     zmq::context_t m_context;
                     zmq::socket_t m_pub;

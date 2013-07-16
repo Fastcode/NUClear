@@ -20,5 +20,30 @@
 namespace NUClear {
     namespace Networking {
         
+        struct Hash {
+            static const size_t SIZE = 16;
+            
+            uint8_t data[SIZE];
+            
+            bool operator==(const Hash& hash) const;
+            
+            size_t hash() const;
+            
+            static size_t hashToStdHash(const uint8_t* data);
+        };
+        
+        Hash murmurHash3(const void* key, const size_t len);
     }
+}
+
+namespace std
+{
+    template <>
+    struct hash<NUClear::Networking::Hash> : public unary_function<NUClear::Networking::Hash, size_t>
+    {
+        size_t operator()(const NUClear::Networking::Hash& v) const
+        {
+            return v.hash();
+        }
+    };
 }

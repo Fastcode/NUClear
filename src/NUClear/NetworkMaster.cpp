@@ -71,7 +71,7 @@ namespace NUClear {
                 // Find this type's deserializer (if it exists)
                 auto it = m_deserialize.find(type);
                 if(it != std::end(m_deserialize)) {
-                    it->second(proto.source(), proto.payload().data(), proto.payload().size());
+                    it->second(proto.source(), proto.payload());
                 }
             }
         }

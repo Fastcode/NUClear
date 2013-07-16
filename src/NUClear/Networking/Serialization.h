@@ -15,60 +15,77 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+#include <google/protobuf/message.h>
 #include "NUClear/PowerPlant.h"
+#include "NUClear/Networking/MurmurHash3.h"
 
 namespace NUClear {
     namespace Networking {
         
-        struct Hash {
-            static const size_t SIZE = 16;
+        namespace {
+            template <typename TType, bool IsProtoBuf = std::is_base_of<google::protobuf::Message, TType>::value>
+            struct DefaultSerialization;
             
-            uint8_t data[SIZE];
+            template <typename TType>
+            struct DefaultSerialization<TType, true> {
+                
+                static Hash hash() {
+                    // We base the hash on the name of the protocol buffer
+                    return murmurHash3(TType::New().GetTypeName().c_str, TType::New().GetTypeName().size());
+                }
+                
+                static TType* deserialize(const std::string data) {
+                    TType* buff = new TType();
+                    buff->ParseFromString(data);
+                    return buff;
+                }
+                
+                static std::string serialize(TType* data) {
+                    return data->SerializeAsString();
+                }
+            };
             
-            bool operator==(const Hash& hash) const;
+            template <typename TType>
+            struct DefaultSerialization<TType, false> {
+                
+                static Hash hash() {
+                    // We base the hash on the mangled name of the type
+                    return murmurHash3(typeid(TType).name(), strlen(typeid(TType).name()));
+                }
             
-            size_t hash() const;
-            
-            static size_t hashToStdHash(const uint8_t* data);
-        };
+                static TType* deserialize(const std::string data) {
+                    
+                    TType* object = new TType();
+                    memcpy(object, data.data(), sizeof(TType));
+                    return object;
+                }
+                
+                static std::string serialize(const TType* data) {
+                    
+                    const char* bytes = reinterpret_cast<const char*>(data);
+                    std::string result(bytes, sizeof(TType));
+                    return result;
+                }
+            };
+        }
         
-        Hash murmurHash3(const void* key, const size_t len);
+        template <typename TType>
+        Hash hash() {
+            
+            // If we have a protocol buffer use it otherwise do the default option
+            return DefaultSerialization<TType>::hash();
+        }
         
         template <typename TType>
         struct Serializer {
             
-            static TType* deserialize(const void* data, const size_t length) {
-                TType* object = new TType();
-                memcpy(object, data, sizeof(TType));
-                return object;
+            static TType* deserialize(const std::string data) {
+                return DefaultSerialization<TType>::deserialize(data);
             }
             
-            static std::pair<std::shared_ptr<void>, size_t> serialize(TType* data) {
-                
-                // Make a shared pointer (so it is deallocated correctly)
-                std::shared_ptr<TType> ptr(data);
-                
-                return std::make_pair(std::static_pointer_cast<void>(ptr), sizeof(TType));
+            static std::string serialize(TType* data) {
+                return DefaultSerialization<TType>::serialize(data);
             }
         };
-        
-        template <typename TType>
-        Hash hash() {
-            const char* name = typeid(TType).name();
-            
-            return murmurHash3(name, strlen(name));
-        }
     }
-}
-
-namespace std
-{
-    template <>
-    struct hash<NUClear::Networking::Hash> : public unary_function<NUClear::Networking::Hash, size_t>
-    {
-        size_t operator()(const NUClear::Networking::Hash& v) const
-        {
-            return v.hash();
-        }
-    };
 }

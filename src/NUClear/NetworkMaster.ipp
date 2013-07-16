@@ -24,14 +24,14 @@ namespace NUClear {
         Networking::Hash hash = Networking::hash<TType>();
         
         // Serialize our data
-        std::pair<std::shared_ptr<void>, size_t> payload = Networking::Serializer<TType>::serialize(data);
+        std::string payload = Networking::Serializer<TType>::serialize(data);
         
         // Create a Message protocol buffer to send
         Networking::NetworkMessage net;
         
         net.set_type(std::string(reinterpret_cast<char*>(hash.data), Networking::Hash::SIZE));
         net.set_source(m_parent->configuration.networkName);
-        net.set_payload(std::string(static_cast<char*>(payload.first.get()), payload.second));
+        net.set_payload(payload);
         
         // Serialize our protocol buffer
         std::string serialized = net.SerializeAsString();
@@ -56,10 +56,10 @@ namespace NUClear {
         if(m_deserialize.find(type) == std::end(m_deserialize)) {
             
             // Create our deserialization function
-            std::function<void (const std::string, const void*, const size_t)> parse = [this](const std::string source, const void* data, const size_t length) {
+            std::function<void (const std::string, const std::string)> parse = [this](const std::string source, const std::string data) {
                 
                 // Deserialize our data
-                TType* parsed = Networking::Serializer<TType>::deserialize(data, length);
+                TType* parsed = Networking::Serializer<TType>::deserialize(data);
                 
                 // Wrap our object in a Network object
                 Internal::CommandTypes::Network<TType>* event = new Internal::CommandTypes::Network<TType>{source, std::shared_ptr<TType>(parsed)};
