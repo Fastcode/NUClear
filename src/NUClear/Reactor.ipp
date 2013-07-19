@@ -17,34 +17,84 @@
 
 namespace NUClear {
     
-    template <typename TTrigger, typename TFunc>
+    // TODO enhance fill so that it only runs on the FillTypes
+    // TODO enhance fill so that it will repeatedly run until all fill types are filled
+    // TODO build the function signature deducer
+    //          run get on everything and pass it into another one along with the NeedsFill status
+    //          run Fill on everything until NeedsFill is false
+    //          Get the final type by making it a const reference
+    
+    /* Meta functions */
+    
+    template <typename... TTypes>
+    struct NeedsFill : std::false_type {};
+    
+    template <typename... TTypes>
+    struct NeedsFill<std::tuple<TTypes...>> : NeedsFill<TTypes...> {};
+    
+    template <typename THead, typename... TTypes>
+    struct NeedsFill<THead, TTypes...> :
+    std::conditional<
+    std::is_base_of<Internal::CommandTypes::FillType, THead>::value,
+    std::true_type,
+    NeedsFill<TTypes...>
+    >::type {};
+    
+    // This metafunction extracts the type that is expected by the final function
+    template <typename TType, bool Dereferenceable>
+    struct FinalType;
+    template <typename TType>
+    struct FinalType<TType, false> {
+        using type = typename std::add_const<typename std::add_lvalue_reference<TType>::type>::type;
+    };
+    template <typename TType>
+    struct FinalType<TType, true> {
+        using type = typename std::add_const<typename std::add_lvalue_reference<decltype(*std::declval<TType>())>::type>::type;
+    };
+    template <typename TType>
+    struct GetFinalType : public FinalType<TType, Internal::Magic::Dereferenceable<TType>::value> {};
+    
+    // This metafunction builds a proper On given a series of function arguments
+    template <typename TFunc, typename... TParams>
+    struct Reactor::On : public On<TFunc, Reactor::Trigger<>, Reactor::With<>, Reactor::Options<>, TParams...> {};
+    
+    template <typename TFunc, typename... TTriggers, typename... TWiths, typename... TOptions, typename... TNewTriggers, typename... TParams>
+    struct Reactor::On<TFunc, Reactor::Trigger<TTriggers...>, Reactor::With<TWiths...>, Reactor::Options<TOptions...>, Reactor::Trigger<TNewTriggers...>, TParams...> : public Reactor::On<TFunc, Reactor::Trigger<TTriggers..., TNewTriggers...>, Reactor::With<TWiths...>, Reactor::Options<TOptions...>, TParams...> {};
+    
+    template <typename TFunc, typename... TTriggers, typename... TWiths, typename... TOptions, typename... TNewWiths, typename... TParams>
+    struct Reactor::On<TFunc, Reactor::Trigger<TTriggers...>, Reactor::With<TWiths...>, Reactor::Options<TOptions...>, Reactor::With<TNewWiths...>, TParams...> : public Reactor::On<TFunc, Reactor::Trigger<TTriggers...>, Reactor::With<TWiths..., TNewWiths...>, Reactor::Options<TOptions...>, TParams...> {};
+    
+    template <typename TFunc, typename... TTriggers, typename... TWiths, typename... TOptions, typename... TNewOptions, typename... TParams>
+    struct Reactor::On<TFunc, Reactor::Trigger<TTriggers...>, Reactor::With<TWiths...>, Reactor::Options<TOptions...>, Reactor::Options<TNewOptions...>, TParams...> : public Reactor::On<TFunc, Reactor::Trigger<TTriggers...>, Reactor::With<TWiths...>, Reactor::Options<TOptions..., TNewOptions...>, TParams...> {};
+    
+    /* End Meta functions */
+    
+    template <typename... TParams, typename TFunc>
     void Reactor::on(TFunc callback) {
-        On<TTrigger, With<>, Options<>, TFunc>::on(this, callback);
-    }
-
-    template <typename TTrigger, typename TWith, typename TFunc>
-    void Reactor::on(TFunc callback) {
-        On<TTrigger, TWith, Options<>, TFunc>::on(this, callback);
-    }
-
-    template <typename TTrigger, typename TWith, typename TOptions, typename TFunc>
-    void Reactor::on(TFunc callback) {
-        On<TTrigger, TWith, TOptions, TFunc>::on(this, callback);
+        
+        // There must be some parameters
+        static_assert(sizeof...(TParams) > 0, "TODO not enough parameters message");
+        
+        On<TFunc, TParams...>::on(this, callback);
     }
     
     template <typename... THandlers, typename TData>
     void Reactor::emit(TData* data) {
         powerPlant.emit<THandlers...>(data);
     }
-
-    // == Private Method == 
-
-    template <typename... TTriggers, typename... TWiths, typename... TOptions, typename TFunc>
+    
+    // This is our final On statement
+    template <typename TFunc, typename... TTriggers, typename... TWiths, typename... TOptions>
     void Reactor::On<
-        Reactor::Trigger<TTriggers...>
-        , Reactor::With<TWiths...>
-        , Reactor::Options<TOptions...>
-        , TFunc>::on(Reactor* context, TFunc callback) {
+        TFunc,
+        Reactor::Trigger<TTriggers...>,
+        Reactor::With<TWiths...>,
+        Reactor::Options<TOptions...>>::on(Reactor* context, TFunc callback) {
+            
+            // TODO our static asserts go here
+            // Static assert that our Triggers and withs are compatible with TFunc
+            // Static assert that our Triggers have at least one element
+            static_assert(sizeof...(TTriggers) > 0, "You must have at least one Trigger in a callback");
             
             // Build up our options
             Internal::Reaction::Options options;
@@ -73,21 +123,6 @@ namespace NUClear {
     void Reactor::buildOptionsImpl(Internal::Reaction::Options& options, Priority<P>* /*placeholder*/) {
         options.m_priority = P;
     }
-    
-    // NEEDS FILL METAFUNCTION
-    template <typename... TTypes>
-    struct NeedsFill : std::false_type {};
-    
-    template <typename... TTypes>
-    struct NeedsFill<std::tuple<TTypes...>> : NeedsFill<TTypes...> {};
-    
-    template <typename THead, typename... TTypes>
-    struct NeedsFill<THead, TTypes...> :
-    std::conditional<
-        std::is_base_of<Internal::CommandTypes::FillType, THead>::value,
-        std::true_type,
-        NeedsFill<TTypes...>
-    >::type {};
     
     template <>
     struct Reactor::buildCallback<true> {

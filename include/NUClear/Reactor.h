@@ -123,43 +123,13 @@ namespace NUClear {
              * @details
              *  TODO
              *
-             * @tparam TTrigger TODO
+             * @tparam TParams  TODO
              * @tparam TFunc    TODO
              *
              * @param callback TODO
              */
-            template <typename TTrigger, typename TFunc>
+            template <typename... TParams, typename TFunc>
             void on(TFunc callback); 
-
-            /**
-             * @brief TODO
-             *
-             * @details
-             *  TODO
-             *
-             * @tparam TTrigger         TODO
-             * @tparam TWithOrOption    TODO
-             * @tparam TFunc            TODO
-             *
-             * @param callback TODO
-             */
-            template <typename TTrigger, typename TWithOrOption, typename TFunc>
-            void on(TFunc callback); 
-
-            /**
-             * @brief TODO
-             *
-             * @details
-             *  TODO
-             *
-             * @tparam TTrigger     TODO
-             * @tparam TWith        TODO
-             * @tparam TOption      TODO
-             *
-             * @param callback TODO
-             */
-            template <typename TTrigger, typename TWith, typename TOption, typename TFunc>
-            void on(TFunc callback);
         
             /**
              * @brief TODO
@@ -187,10 +157,8 @@ namespace NUClear {
              *  This should never be instantiated and will throw a giant compile error if it somehow is. 
              *  The template parameters are left unnamed to reflect the fact that they are simply placeholders.
              */
-            template <typename, typename, typename, typename>
+            template <typename, typename...>
             struct On;
-        
-            // TODO add in a metafunction that reorders our typenames until they match one of the specializations
         
             /**
              * @brief Standard Trigger<...>, With<...> specialization of On.
@@ -209,8 +177,8 @@ namespace NUClear {
              * @tparam TOptions     the options that the callback is executed with
              * @tparam TFunc        the callback type, should be automatically deduced
              */
-            template <typename... TTriggers, typename... TWiths, typename... TOptions, typename TFunc>
-            struct On<Trigger<TTriggers...>, With<TWiths...>, Options<TOptions...>, TFunc> {
+            template <typename TFunc, typename... TTriggers, typename... TWiths, typename... TOptions>
+            struct On<TFunc, Trigger<TTriggers...>, With<TWiths...>, Options<TOptions...>> {
                 static void on(Reactor* context, TFunc callback);
             };
         

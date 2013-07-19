@@ -34,6 +34,11 @@ namespace NUClear {
 
     template <typename TReactor>
     void PowerPlant::install() {
+        
+        // Make sure that the class that we recieved is a reactor
+        static_assert(std::is_base_of<Reactor, TReactor>::value, "You must install Reactors");
+        
+        // Install the reactor
         reactormaster.install<TReactor>();
     }
     
