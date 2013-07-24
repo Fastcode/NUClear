@@ -34,11 +34,7 @@ namespace NUClear {
     
     template <typename THead, typename... TTypes>
     struct NeedsFill<THead, TTypes...> :
-    std::conditional<
-    std::is_base_of<Internal::CommandTypes::FillType, THead>::value,
-    std::true_type,
-    NeedsFill<TTypes...>
-    >::type {};
+    Meta::If<std::is_base_of<Internal::CommandTypes::FillType, THead>, std::true_type, NeedsFill<TTypes...>> {};
     
     // This metafunction extracts the type that is expected by the final function
     template <typename TType, bool Dereferenceable>

@@ -37,6 +37,7 @@
 #include "NUClear/Internal/ThreadWorker.h"
 #include "NUClear/Internal/TaskScheduler.h"
 #include "NUClear/Internal/CommandTypes/CommandTypes.h"
+#include "NUClear/Internal/Magic/MetaProgramming.h"
 #include "NUClear/Internal/Magic/TypeMap.h"
 #include "NUClear/Internal/Magic/Sequence.h"
 
@@ -47,6 +48,9 @@ namespace NUClear {
     
     // Declare our clock type
     using clock = std::chrono::high_resolution_clock;
+    
+    // We import our Meta Programming tools
+    using namespace Internal::Magic::MetaProgramming;
     
     /**
      * @brief The PowerPlant is the core of a NUClear system. It holds all Reactors in it and manages their communications.

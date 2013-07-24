@@ -29,9 +29,13 @@
 #include "NUClear/Internal/Magic/unpack.h"
 #include "NUClear/Internal/Magic/apply.h"
 #include "NUClear/Internal/Magic/TypeMap.h"
+#include "NUClear/Internal/Magic/MetaProgramming.h"
 #include "NUClear/Internal/Magic/buildVector.h"
 
 namespace NUClear {
+    
+    // Import our meta programming utility
+    using namespace Internal::Magic::MetaProgramming;
     
     class PowerPlant;
 
