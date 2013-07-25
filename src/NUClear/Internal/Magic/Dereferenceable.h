@@ -32,8 +32,22 @@ namespace Magic {
         static char doTest(long);
     }
     
-    template<class T>
-    struct Dereferenceable : std::is_void<decltype(doTest<T>(0))> {};
+    template<class T, bool Result = std::is_void<decltype(doTest<T>(0))>::value>
+    struct Dereferenceable;
+    
+    template<typename T>
+    struct Dereferenceable<T, true> {
+        static auto dereference(T data) -> decltype(*data) {
+            return *data;
+        }
+    };
+    
+    template<typename T>
+    struct Dereferenceable<T, false> {
+        static T dereference(T data) {
+            return std::move(data);
+        }
+    };
 }
 }
 }

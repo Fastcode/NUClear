@@ -65,7 +65,7 @@ namespace {
         DifferentOrderingReactor(NUClear::PowerPlant& plant) : Reactor(plant) {
             // Check that the lists are combined, and that the function args are in order
             on<With<DifferentOrderingMessage1>, Trigger<DifferentOrderingMessage3>, With<DifferentOrderingMessage2>>
-            ([this](const DifferentOrderingMessage3& m1, const DifferentOrderingMessage1& m2, const DifferentOrderingMessage2& m3) {
+            ([this](const DifferentOrderingMessage1& m1, const DifferentOrderingMessage3& m2, const DifferentOrderingMessage2& m3) {
                 this->powerPlant.shutdown();
             });
         }

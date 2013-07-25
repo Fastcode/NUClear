@@ -165,6 +165,18 @@ namespace NUClear {
             struct On;
         
             /**
+             * @brief TODO
+             *
+             * @details
+             *  TODO
+             */
+            template <typename, typename...>
+            struct OnBuilder;
+        
+            template <typename TFunc, typename TTuple, int Stage = 0>
+            struct CheckFunctionSignature;
+        
+            /**
              * @brief Standard Trigger<...>, With<...> specialization of On.
              *
              * @details 
@@ -181,8 +193,8 @@ namespace NUClear {
              * @tparam TOptions     the options that the callback is executed with
              * @tparam TFunc        the callback type, should be automatically deduced
              */
-            template <typename TFunc, typename... TTriggers, typename... TWiths, typename... TOptions>
-            struct On<TFunc, Trigger<TTriggers...>, With<TWiths...>, Options<TOptions...>> {
+            template <typename TFunc, typename... TTriggers, typename... TWiths, typename... TOptions, typename... TFuncArgs>
+            struct On<TFunc, Trigger<TTriggers...>, With<TWiths...>, Options<TOptions...>, std::tuple<TFuncArgs...>> {
                 static void on(Reactor* context, TFunc callback);
             };
         

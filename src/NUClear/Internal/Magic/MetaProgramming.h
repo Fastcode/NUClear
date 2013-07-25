@@ -32,6 +32,12 @@ namespace Meta {
     template <typename If, typename Then, typename Else = void>
     using If = Do<std::conditional<If::value, Then, Else>>;
     
+    template <typename TType>
+    using AddConst = Do<std::add_const<TType>>;
+    
+    template <typename TType>
+    using AddLRef = Do<std::add_lvalue_reference<TType>>;
+    
     template <typename... T>
     struct All : std::true_type {};
     template <typename Head, typename... Tail>
