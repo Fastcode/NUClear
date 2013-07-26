@@ -36,20 +36,6 @@ namespace NUClear {
     struct NeedsFill<THead, TTypes...> :
     Meta::If<std::is_base_of<Internal::CommandTypes::FillType, THead>, std::true_type, NeedsFill<TTypes...>> {};
     
-    // This metafunction extracts the type that is expected by the final function
-    template <typename TType, bool Dereferenceable>
-    struct FinalType;
-    template <typename TType>
-    struct FinalType<TType, false> {
-        using type = typename std::add_const<typename std::add_lvalue_reference<TType>::type>::type;
-    };
-    template <typename TType>
-    struct FinalType<TType, true> {
-        using type = typename std::add_const<typename std::add_lvalue_reference<decltype(*std::declval<TType>())>::type>::type;
-    };
-    template <typename TType>
-    struct GetFinalType : public FinalType<TType, Internal::Magic::Dereferenceable<TType>::value> {};
-    
     // This metafunction builds a proper On given a series of function arguments
     template <typename TFunc, typename... TParams>
     struct Reactor::On : public OnBuilder<TFunc, Reactor::Trigger<>, Reactor::With<>, Reactor::Options<>, std::tuple<>, TParams...> {};
@@ -146,11 +132,12 @@ namespace NUClear {
     
     template <typename TFunc, typename... TTypes>
     struct Reactor::CheckFunctionSignature<TFunc, std::tuple<TTypes...>, 0> :
-    public Reactor::CheckFunctionSignature<TFunc, std::tuple<decltype(std::declval<PowerPlant::CacheMaster>().get<TTypes>())...>, 1> {};
+    public Reactor::CheckFunctionSignature<TFunc, std::tuple<decltype(std::declval<PowerPlant::CacheMaster>().get<TTypes>())...>,
+    NeedsFill<decltype(std::declval<PowerPlant::CacheMaster>().get<TTypes>())...>::value ? 1 : 2> {};
     
     template <typename TFunc, typename... TTypes>
     struct Reactor::CheckFunctionSignature<TFunc, std::tuple<TTypes...>, 1> :
-    public Reactor::CheckFunctionSignature<TFunc, std::tuple<decltype(std::declval<PowerPlant::CacheMaster>().fill(std::tuple<TTypes...>()))>, 2> {};
+    public Reactor::CheckFunctionSignature<TFunc, decltype(std::declval<PowerPlant::CacheMaster>().fill(std::tuple<TTypes...>())), 2> {};
     
     template <typename TFunc, typename... TTypes>
     struct Reactor::CheckFunctionSignature<TFunc, std::tuple<TTypes...>, 2> :
@@ -195,8 +182,7 @@ namespace NUClear {
             
             std::tuple<decltype(PowerPlant::CacheMaster::Get<TFuncArgs>::get(std::declval<PowerPlant*>()))...> x;
             
-            // TODO this currently does not work, but the logic is there
-            //static_assert(Reactor::CheckFunctionSignature<TFunc, std::tuple<TFuncArgs...>>::value, "Your callback function does not match the types in the On statement");
+            static_assert(Reactor::CheckFunctionSignature<TFunc, std::tuple<TFuncArgs...>>::value, "Your callback function does not match the types in the On statement");
             static_assert(sizeof...(TTriggers) > 0, "You must have at least one Trigger in a callback");
             
             // Build up our options
