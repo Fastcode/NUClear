@@ -45,7 +45,7 @@ namespace Magic {
      */
     template<typename... TArgs>
     std::vector<std::pair<std::type_index, std::shared_ptr<void>>> buildVector(std::tuple<TArgs...> args) {
-        return buildVector(typename GenerateSequence<sizeof...(TArgs)>::type(), args);
+        return buildVector(GenerateSequence<sizeof...(TArgs)>(), args);
     }
 }
 }

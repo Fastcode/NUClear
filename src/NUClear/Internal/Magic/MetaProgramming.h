@@ -38,6 +38,9 @@ namespace Meta {
     template <typename TType>
     using AddLRef = Do<std::add_lvalue_reference<TType>>;
     
+    template <typename TType>
+    using RemoveRef = Do<std::remove_reference<TType>>;
+    
     template <typename... T>
     struct All : std::true_type {};
     template <typename Head, typename... Tail>

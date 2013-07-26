@@ -18,9 +18,14 @@
 #ifndef NUCLEAR_INTERNAL_MAGIC_SEQUENCE_H
 #define NUCLEAR_INTERNAL_MAGIC_SEQUENCE_H
 
+#include "MetaProgramming.h"
+
 namespace NUClear {
 namespace Internal {
 namespace Magic {
+    
+    // Import our Metaprogramming tools
+    using namespace MetaProgramming;
     
     /**
      * @brief Holds a generated integer sequence of numbers as a variardic pack.
@@ -40,36 +45,42 @@ namespace Magic {
     template<int... S>
     struct Sequence { };
     
-    /**
-     * @brief This is the recursive case for generating the sequence.
-     *
-     * @details
-     *  This struct recursivly generates the variardic pack based on the provided parameters. It builds these until
-     *  there is one consistent type.
-     *
-     * @tparam N the number to start from
-     * @tparam S the numbers we have generated (starts as only our last number)
-     *
-     * @author Trent Houliston
-     */
-    template<int N, int... S>
-    struct GenerateSequence : GenerateSequence<N-1, N-1, S...> { };
+    // Anonymous
+    namespace {        
+        /**
+         * @brief This is the recursive case for generating the sequence.
+         *
+         * @details
+         *  This struct recursivly generates the variardic pack based on the provided parameters. It builds these until
+         *  there is one consistent type.
+         *
+         * @tparam N the number to start from
+         * @tparam S the numbers we have generated (starts as only our last number)
+         *
+         * @author Trent Houliston
+         */
+        template<int N, int... S>
+        struct GenSequence : GenSequence<N-1, N-1, S...> { };
+        
+        /**
+         * @brief This is the final output of the recursive case, it contains the generated sequence accessable by get()
+         *
+         * @details
+         *  This is the final result of the recursive case, it's generate Sequence object which contains the variardic pack
+         *  can be accessed by using GeneratedSequence<Value>::get();
+         *
+         * @tparam S the variardic pack of integers
+         *
+         * @author Trent Houliston
+         */
+        template<int... S>
+        struct GenSequence<0, S...> {
+            using type = Sequence<S...>;
+        };
+    }
     
-    /**
-     * @brief This is the final output of the recursive case, it contains the generated sequence accessable by get()
-     *
-     * @details
-     *  This is the final result of the recursive case, it's generate Sequence object which contains the variardic pack
-     *  can be accessed by using GeneratedSequence<Value>::get();
-     *
-     * @tparam S the variardic pack of integers
-     *
-     * @author Trent Houliston
-     */
-    template<int... S>
-    struct GenerateSequence<0, S...> {
-        using type = Sequence<S...>;
-    };
+    template <int Count>
+    using GenerateSequence = Meta::Do<GenSequence<Count>>;
 }
 }
 }

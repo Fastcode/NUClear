@@ -248,20 +248,24 @@ namespace NUClear {
             struct Exists;
         
             /**
-             * @brief Builds a callback based on if it needs a second pass at runtime.
+             * @brief TODO
              *
              * @details
-             *  If this is run with true, then when the callback is executed, it will have it's second pass run to
-             *  get additional data.
-             *
-             * @tparam secondPass if a second pass over the paramters needs to be done when the callback is executed.
+             *  TODO
              */
-            template <bool secondPass>
-            struct buildCallback;
+            struct BasicCallback;
+            
+            /**
+             * @brief TODO
+             *
+             * @details
+             *  TODO
+             */
+            struct FillCallback;
         
             /**
              * @brief Builds a callback wrapper function for a given callback. TODO this needs updating
-             
+             *
              * @details 
              *  All callbacks are wrapped in a void() lambda that knows how to get the correct arguments
              *  when called. This is done so all callbacks can be stored and called in a uniform way.

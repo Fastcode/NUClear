@@ -212,10 +212,9 @@ namespace NUClear {
         options.m_priority = P;
     }
     
-    template <>
-    struct Reactor::buildCallback<true> {
+    struct Reactor::FillCallback {
         template <typename TFunc, typename... TData>
-        static const std::function<void ()> get(Reactor* parent, TFunc callback, std::tuple<TData...> data) {
+        static const std::function<void ()> buildCallback(Reactor* parent, TFunc callback, std::tuple<TData...> data) {
             return [parent, callback, data] {
                 
                 // Perform our second pass over the data
@@ -230,11 +229,10 @@ namespace NUClear {
         }
     };
     
-    template <>
-    struct Reactor::buildCallback<false> {
+    struct Reactor::BasicCallback {
         
         template <typename TFunc, typename... TData>
-        static const std::function<void ()> get(Reactor* parent, TFunc callback, std::tuple<TData...> data) {
+        static const std::function<void ()> buildCallback(Reactor* parent, TFunc callback, std::tuple<TData...> data) {
             return [parent, callback, data] {
                 
                 // TODO do a static assert that TFunc can take arguments of type decltype(data)
@@ -254,7 +252,7 @@ namespace NUClear {
             
             auto&& data = std::make_tuple(powerPlant.cachemaster.get<TTriggersAndWiths>()...);
             
-            return buildCallback<NeedsFill<typename std::remove_reference<decltype(data)>::type>::value>::get(this, callback, data);
+            return Meta::If<NeedsFill<Meta::RemoveRef<decltype(data)>>, FillCallback, BasicCallback>::buildCallback(this, callback, data);
         }, options);
     }
     

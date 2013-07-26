@@ -369,8 +369,8 @@ namespace NUClear {
                      * @return TODO
                      */
                     template <typename... TData>
-                    auto fill(std::tuple<TData...> data) -> decltype(fill(typename Internal::Magic::GenerateSequence<sizeof...(TData)>::type(), data)) {
-                        return fill(typename Internal::Magic::GenerateSequence<sizeof...(TData)>::type(), data);
+                    auto fill(std::tuple<TData...> data) -> decltype(fill(Internal::Magic::GenerateSequence<sizeof...(TData)>(), data)) {
+                        return fill(Internal::Magic::GenerateSequence<sizeof...(TData)>(), data);
                     }
             };
         

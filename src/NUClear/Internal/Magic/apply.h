@@ -55,7 +55,7 @@ namespace Magic {
      */
     template<typename TFunc, typename... TArgs>
     void apply(TFunc function, std::tuple<TArgs...> args) {
-        apply(function, typename GenerateSequence<sizeof...(TArgs)>::type(), args);
+        apply(function, GenerateSequence<sizeof...(TArgs)>(), args);
     }
 }
 }
