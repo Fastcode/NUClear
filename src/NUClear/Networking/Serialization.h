@@ -23,6 +23,8 @@
 namespace NUClear {
     namespace Networking {
         
+        //TODO find a way to use std::enable_if to pick protocol buffers or block copying
+        
         namespace {
             template <typename TType, bool IsProtoBuf = std::is_base_of<google::protobuf::Message, TType>::value>
             struct DefaultSerialization;
@@ -51,7 +53,7 @@ namespace NUClear {
             struct DefaultSerialization<TType, false> {
                 
                 // Assert that the type is trivially copyable (we can directly copy the bytes)
-                static_assert(std::is_trivially_copyable<TType>::value, "Only trivially copyable classes can be serialized using the default serializer.");
+                static_assert(std::is_trivial<TType>::value, "Only trivial classes can be serialized using the default serializer.");
                 
                 static const Hash hash() {
                     // We base the hash on the mangled name of the type
