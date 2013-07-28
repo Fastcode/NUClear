@@ -29,8 +29,8 @@ namespace Meta {
     template <typename T>
     using Do = typename T::type;
     
-    template <typename If, typename Then, typename Else = void>
-    using If = Do<std::conditional<If::value, Then, Else>>;
+    template <typename Predecate, typename Then, typename Else = void>
+    using If = Do<std::conditional<Predecate::value, Then, Else>>;
     
     template <typename TType>
     using AddConst = Do<std::add_const<TType>>;
