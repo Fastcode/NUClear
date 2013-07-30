@@ -118,6 +118,9 @@ namespace NUClear {
         
             /// @brief TODO inherit from commandtype
             using Single = Internal::CommandTypes::Single;
+        
+            /// @brief This provides functions to modify how an on statement runs after it has been created
+            using OnHandle = Internal::Reaction::OnHandle;
 
         // FUNCTIONS
         
@@ -195,7 +198,7 @@ namespace NUClear {
              */
             template <typename TFunc, typename... TTriggers, typename... TWiths, typename... TOptions, typename... TFuncArgs>
             struct On<TFunc, Trigger<TTriggers...>, With<TWiths...>, Options<TOptions...>, std::tuple<TFuncArgs...>> {
-                static void on(Reactor* context, TFunc callback);
+                static OnHandle on(Reactor* context, TFunc callback);
             };
         
             /**
@@ -286,9 +289,11 @@ namespace NUClear {
              * @tparam TTrigger the event/data type to add the callback for
              *
              * @param callback the callback to add
+             *
+             * @return A handler which allows us to modify our Reaction at runtime
              */
             template <typename TTrigger, typename... TTriggers>
-            void bindTriggers(Internal::Reaction* callback);
+            OnHandle bindTriggers(Internal::Reaction* callback);
         
             /**
              * @brief TODO

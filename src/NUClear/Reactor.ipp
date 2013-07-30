@@ -162,7 +162,7 @@ namespace NUClear {
     
     // This is our final On statement
     template <typename TFunc, typename... TTriggers, typename... TWiths, typename... TOptions, typename... TFuncArgs>
-    void Reactor::On<
+    Reactor::OnHandle Reactor::On<
         TFunc,
         Reactor::Trigger<TTriggers...>,
         Reactor::With<TWiths...>,
@@ -185,7 +185,7 @@ namespace NUClear {
             Internal::Magic::unpack((Exists<TFuncArgs>::exists(context), 0)...);
             
             // Bind all of our trigger events to a reaction
-            context->bindTriggers<TTriggers...>(context->buildReaction<TFunc, TFuncArgs...>(callback, options));
+            return context->bindTriggers<TTriggers...>(context->buildReaction<TFunc, TFuncArgs...>(callback, options));
     }
     
     template <typename... TOption>
@@ -268,7 +268,7 @@ namespace NUClear {
      * @param callback the callback to bind to these triggers
      */
     template <typename TTrigger, typename... TTriggers>
-    void Reactor::bindTriggers(Internal::Reaction* callback) {
+    Reactor::OnHandle Reactor::bindTriggers(Internal::Reaction* callback) {
         
         // Single trigger that is not ignored
         if(sizeof...(TTriggers) == 0 && !std::is_same<typename TriggerType<TTrigger>::type, std::nullptr_t>::value) {
@@ -283,5 +283,7 @@ namespace NUClear {
             // TODO when a trigger comes in, use the int to set that boolean to true
             // TODO when all the booleans are true, run the callback and set all booleans to false
         }
+        
+        return OnHandle(callback);
     }
 }

@@ -47,8 +47,10 @@ namespace NUClear {
         // Trigger all our reactions
         for(auto& reaction : CallbackCache<TData>::get()) {
             try {
-                // TODO only run if the reaction is enabled
-                m_parent->threadmaster.submit(reaction->getTask(task));
+                // Only run if our reaction is enabled
+                if(reaction->isEnabled()) {
+                    m_parent->threadmaster.submit(reaction->getTask(task));
+                }
             }
             // If there is no data, then ignore the task
             catch (Internal::Magic::NoDataException) {}

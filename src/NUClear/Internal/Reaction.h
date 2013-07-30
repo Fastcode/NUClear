@@ -70,9 +70,7 @@ namespace Internal {
             
             // Forward declare Task
             class Task;
-        
-        // TODO add ability to enable/disable reactions
-        
+
             /**
              * @brief This struct holds all of the options which are specified in the Options<> part of a call.
              *
@@ -147,6 +145,50 @@ namespace Internal {
             };
         
             /**
+             * @brief TODO document
+             *
+             * @details
+             *  TODO document
+             */
+            class OnHandle {
+            public:
+                /// @brief the reaction that we are managing
+                Reaction* m_context;
+                
+                /**
+                 * @brief TODO document
+                 *
+                 * @details
+                 *  TODO document
+                 */
+                OnHandle(Reaction* context);
+                
+                /**
+                 * @brief TODO document
+                 *
+                 * @details
+                 *  TODO document
+                 */
+                void enable();
+                
+                /**
+                 * @brief TODO document
+                 *
+                 * @details
+                 *  TODO document
+                 */
+                void disable();
+                
+                /**
+                 * @brief TODO document
+                 *
+                 * @details
+                 *  TODO document
+                 */
+                bool isEnabled();
+            };
+        
+            /**
              * @brief Constructs a new Reaction with the passed callback generator and options
              *
              * @param callback  the callback generator function (creates databound callbacks)
@@ -162,7 +204,13 @@ namespace Internal {
              * @return a unique_ptr to a Task which has the data for it's call bound into it
              */
             std::unique_ptr<Task> getTask(const Task* cause);
-            ///
+        
+            /**
+             * @brief returns true if this reaction is currently enabled
+             */
+            bool isEnabled();
+        
+            /// @brief This holds the mangled name of the On function that is being called
             const std::string m_name;
             /// @brief the options for this Reaction (decides how Tasks will be scheduled)
             Reaction::Options m_options;
@@ -173,6 +221,8 @@ namespace Internal {
         private:
             /// @brief a source for reactionIds, atomically creates longs
             static std::atomic<std::uint64_t> reactionIdSource;
+            /// @brief if this reaction object is currently enabled
+            std::atomic<bool> m_enabled;
             /// @brief the callback generator function (creates databound callbacks)
             std::function<std::function<void (Task&)> ()> m_callback;
     };

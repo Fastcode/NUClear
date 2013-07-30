@@ -29,12 +29,32 @@ namespace Internal {
     m_options(options),
     m_reactionId(++reactionIdSource),
     m_running(false),
+    m_enabled(true),
     m_callback(callback) {
     }
     
     std::unique_ptr<Reaction::Task> Reaction::getTask(const Task* cause) {
         // Build a new data bound task using our callback generator
         return std::unique_ptr<Reaction::Task>(new Reaction::Task(this, cause, m_callback()));
+    }
+    
+    bool Reaction::isEnabled() {
+        return m_enabled;
+    }
+    
+    Reaction::OnHandle::OnHandle(Reaction* context) : m_context(context) {
+    };
+    
+    bool Reaction::OnHandle::isEnabled() {
+        return m_context->m_enabled;
+    }
+    
+    void Reaction::OnHandle::enable() {
+        m_context->m_enabled = true;
+    }
+    
+    void Reaction::OnHandle::disable() {
+        m_context->m_enabled = false;
     }
     
     Reaction::Task::Task(Reaction* parent, const Task* cause, std::function<void (Task&)> callback) :
