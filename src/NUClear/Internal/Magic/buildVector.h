@@ -41,7 +41,7 @@ namespace Magic {
     }
     
     /**
-     * @todo This method will convert an std::tuple into a std::vector<std::pair<type_index, std::shared_ptr<void>>>
+     * @brief This method will convert an std::tuple into a std::vector<std::pair<type_index, std::shared_ptr<void>>>
      *
      * @details
      *  This function takes an std::tuple and for each of the elements within it (which are assumed to be shared_ptrs)

@@ -196,10 +196,25 @@ namespace NUClear {
              */
             struct Single { Single() = delete; ~Single() = delete; };
             
-            // TODO document
+            /**
+             * @ingroup SmartTypes
+             * @brief This type is emitted when the system is first started up.
+             *
+             * @details
+             *  This type is emitted when the system first starts up, after reactors have been installed. This is
+             *  used if a reactor needs to use information provided by other reactors constructors.
+             */
             struct Initialize {};
             
-            // TODO document
+            /**
+             * @ingroup SmartTypes
+             * @brief This type is emitted when the system starts shutting down.
+             *
+             * @details
+             *  Once this type is emitted, all existing tasks within the system are completed including the shutdown
+             *  tasks, Any new emit events will not be processed and all new tasks will be ignored. Once all tasks are
+             *  finish the system will terminate.
+             */
             struct Shutdown {};
             
             /**
