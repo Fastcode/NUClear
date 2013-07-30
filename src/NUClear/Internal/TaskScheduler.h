@@ -62,28 +62,6 @@ namespace Internal {
      */
     class TaskScheduler {
         public:
-            /**
-             * @brief This class is a single Sync queue, it holds events to be executed.
-             *
-             * @details
-             *  This class is a queue which holds Reaction::Task objects of a single Sync type. This way, if a task from
-             *  this queue is currently being executed, this task has it's status set to active. This means that until
-             *  that task finishes, no other tasks from this sync group will run.
-             *
-             * @author Trent Houliston
-             */
-            class TaskQueue {
-                public:
-                    /**
-                     * @brief Constructs a new task queue
-                     */
-                    TaskQueue();
-                
-                    /// @brief the queue which holds the reactions (in priority sorted order)
-                    std::priority_queue<std::unique_ptr<Reaction::Task>> m_queue;
-                    /// @brief if this queue is currently active
-                    std::atomic<bool> m_active;
-            };
         
             /**
              * @brief This exception is thrown when the task_scheduler has been shut down
@@ -132,9 +110,9 @@ namespace Internal {
             std::unique_ptr<Reaction::Task> getTask();
         private:
             /// @brief if the scheduler is running or is shut down
-            bool m_shutdown;
-            /// @brief our map of sync types to queues
-            std::map<std::type_index, std::unique_ptr<TaskQueue>> m_queues;
+            volatile bool m_shutdown;
+            /// @brief our queue
+            std::priority_queue<std::unique_ptr<Reaction::Task>> m_queue;
             /// @brief the mutex which our threads synchronize their access to this object
             std::mutex m_mutex;
             /// @brief the condition object that threads wait on if they can't get a task

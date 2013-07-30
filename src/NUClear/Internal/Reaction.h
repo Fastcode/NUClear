@@ -22,16 +22,38 @@
 #include <chrono>
 #include <atomic>
 #include <typeindex>
+#include <queue>
+#include <vector>
+#include <mutex>
 #include <memory>
+#include <string>
+
 #include "NUClear/Internal/CommandTypes/CommandTypes.h"
 
 namespace NUClear {
+    
+    struct NUClearTaskEvent {
+        std::string name;
+        std::uint64_t reactionId;
+        std::uint64_t taskId;
+        std::uint64_t causeReactionId;
+        std::uint64_t causeTaskId;
+        clock::time_point emitted;
+        clock::time_point started;
+        clock::time_point finished;
+        std::vector<std::pair<std::type_index, std::shared_ptr<void>>> args;
+        std::exception_ptr exception;
+    };
+    
 namespace Internal {
+    
+    // Forward declare the SyncQueue type
+    struct SyncQueue;
     
     /**
      * @brief This type is used to identify reactions (every reaction has a unique identifier).
      */
-    typedef std::uint64_t reactionId_t;
+    using reactionId_t = std::uint64_t;
     
     /**
      * @brief This class holds the definition of a Reaction (call signature)
@@ -45,6 +67,11 @@ namespace Internal {
      */
     class Reaction {
         public:
+            
+            // Forward declare Task
+            class Task;
+        
+        // TODO add ability to enable/disable reactions
         
             /**
              * @brief This struct holds all of the options which are specified in the Options<> part of a call.
@@ -63,10 +90,10 @@ namespace Internal {
                  *  This creates a new ReactionOptions with the default optoins. These default options are a Sync type of
                  *  nullptr, a non single case, and DEFAULT priority.
                  */
-                Options() : m_syncType(typeid(nullptr)), m_single(false), m_priority(DEFAULT) {}
+                Options() : m_syncQueue(nullptr), m_single(false), m_priority(DEFAULT) {}
                 
                 /// @brief the sync type to use, acts as a compile time mutex
-                std::type_index m_syncType;
+                std::shared_ptr<SyncQueue> m_syncQueue;
                 /// @brief if only a single event of this type should be queued or running at any time
                 bool m_single;
                 /// @brief the priority with which to execute
@@ -83,14 +110,18 @@ namespace Internal {
              * @author Trent Houliston
              */
             class Task {
+                private:
+                    /// @brief a source for reactionIds, atomically creates longs
+                    static std::atomic<std::uint64_t> taskIdSource;
                 public:
                     /**
                      * @brief Creates a new ReactionTask object bound with the parent Reaction object (that created it) and task.
                      *
                      * @param parent    the Reaction object that spawned this ReactionTask
+                     * @param cause     the task that caused this task to run
                      * @param task      the data bound callback to be executed in the threadpool
                      */
-                    Task(Reaction* parent, std::function<void ()> task);
+                    Task(Reaction* parent, const Task* cause, std::function<void (Task&)> task);
                     
                     /**
                      * @brief Runs the internal data bound task and times it.
@@ -100,17 +131,19 @@ namespace Internal {
                      *  used in a debugging context to calculate how long callbacks are taking to run.
                      */
                     void operator()();
-                    
+                
+                    /// @brief the arguments that are used to call this task
+                    std::vector<std::pair<std::type_index, std::shared_ptr<void>>> m_args;
                     /// @brief the data bound callback to be executed
-                    std::function<void ()> m_callback;
+                    std::function<void (Task&)> m_callback;
                     /// @brief the parent Reaction object which spawned this
                     Reaction* m_parent;
+                    /// @brief the taskId of this task (the sequence number of this paticular task)
+                    reactionId_t m_taskId;
+                    /// @brief the statistics object that persists after this for information and debugging
+                    std::shared_ptr<NUClearTaskEvent> m_stats;
                     /// @brief the time that this event was created and sent to the queue
-                    std::chrono::time_point<std::chrono::steady_clock> m_emitTime;
-                    /// @brief the time that execution started on this call
-                    std::chrono::time_point<std::chrono::steady_clock> m_startTime;
-                    /// @brief the total amount of time that execution took to run
-                    std::chrono::nanoseconds m_runtime;
+                    clock::time_point m_emitTime;
             };
         
             /**
@@ -119,27 +152,43 @@ namespace Internal {
              * @param callback  the callback generator function (creates databound callbacks)
              * @param options   the options to use in Tasks
              */
-            Reaction(std::function<std::function<void ()> ()> callback, Reaction::Options options);
+            Reaction(std::string name, std::function<std::function<void (Task&)> ()> callback, Reaction::Options options);
         
             /**
              * @brief creates a new databound callback task that can be executed.
              *
+             * @param cause the task that caused this task to run (or nullptr if did not have a parent)
+             *
              * @return a unique_ptr to a Task which has the data for it's call bound into it
              */
-            std::unique_ptr<Task> getTask();
-        
+            std::unique_ptr<Task> getTask(const Task* cause);
+            ///
+            const std::string m_name;
             /// @brief the options for this Reaction (decides how Tasks will be scheduled)
             Reaction::Options m_options;
             /// @brief the unique identifier for this Reaction object
             const reactionId_t m_reactionId;
             /// @brief if this reaction is currently enqueued or running
-            bool m_running;
+            volatile bool m_running;
         private:
             /// @brief a source for reactionIds, atomically creates longs
             static std::atomic<std::uint64_t> reactionIdSource;
             /// @brief the callback generator function (creates databound callbacks)
-            std::function<std::function<void ()> ()> m_callback;
+            std::function<std::function<void (Task&)> ()> m_callback;
     };
+    
+    // TODO document
+    struct SyncQueue {
+        SyncQueue(const std::type_index type, bool active) : m_type(type), m_active(active) {}
+        const std::type_index m_type;
+        volatile bool m_active;
+        std::mutex m_mutex;
+        std::priority_queue<std::unique_ptr<Internal::Reaction::Task>> m_queue;
+    };
+    
+    // This is declared here so that by the time we allocate our SyncQueue it is not an incomplete type
+    template <typename TSync>
+    const std::shared_ptr<SyncQueue> CommandTypes::Sync<TSync>::queue = std::shared_ptr<Internal::SyncQueue>(new SyncQueue(typeid(TSync), false));
 }
 }
 #endif

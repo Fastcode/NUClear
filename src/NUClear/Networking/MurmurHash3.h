@@ -15,38 +15,35 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include "Reaction.h"
+#include "NUClear/PowerPlant.h"
 
 namespace NUClear {
-namespace Internal {
-    
-    std::atomic<uint64_t> Reaction::reactionIdSource(0);
-    std::atomic<uint64_t> Reaction::Task::taskIdSource(0);
-    
-    
-    Reaction::Reaction(std::string name, std::function<std::function<void (Reaction::Task&)> ()> callback, Reaction::Options options) :
-    m_name(name),
-    m_options(options),
-    m_reactionId(++reactionIdSource),
-    m_running(false),
-    m_callback(callback) {
-    }
-    
-    std::unique_ptr<Reaction::Task> Reaction::getTask(const Task* cause) {
-        // Build a new data bound task using our callback generator
-        return std::unique_ptr<Reaction::Task>(new Reaction::Task(this, cause, m_callback()));
-    }
-    
-    Reaction::Task::Task(Reaction* parent, const Task* cause, std::function<void (Task&)> callback) :
-    m_callback(callback),
-    m_parent(parent),
-    m_taskId(++taskIdSource),
-    m_stats(new NUClearTaskEvent{parent->m_name, parent->m_reactionId, m_taskId, cause ? cause->m_parent->m_reactionId : -1, cause ? cause->m_taskId : -1, clock::now()}) {
-    }
-    
-    void Reaction::Task::operator()() {
-        // Call our callback
-        m_callback(*this);
+    namespace Networking {
+        
+        struct Hash {
+            static const size_t SIZE = 16;
+            
+            uint8_t data[SIZE];
+            
+            bool operator==(const Hash& hash) const;
+            
+            size_t hash() const;
+            
+            static size_t hashToStdHash(const uint8_t* data);
+        };
+        
+        Hash murmurHash3(const void* key, const size_t len);
     }
 }
+
+namespace std
+{
+    template <>
+    struct hash<NUClear::Networking::Hash> : public unary_function<NUClear::Networking::Hash, size_t>
+    {
+        size_t operator()(const NUClear::Networking::Hash& v) const
+        {
+            return v.hash();
+        }
+    };
 }

@@ -26,14 +26,38 @@ namespace Magic {
     
     // Anonymous Namespace to hide implementation details
     namespace {
+        // This uses SFINAE to work out if the dereference operator exists, if it does not then this doTest will fail
+        // substitution and not be used, resulting in the other option being used (which does not have a void return type)
         template<class T>
         static auto doTest(int) -> decltype(*std::declval<T>(), void());
+        
+        // As 0 is an int, it will attempt to match the above doTest first before this one (with a return type of void)
         template<class>
-        static char doTest(long);
+        static char doTest(char);
     }
     
-    template<class T>
-    struct Dereferenceable : std::is_void<decltype(doTest<T>(0))> {};
+    /**
+     * @brief TODO
+     *
+     * @details
+     *  TODO
+     */
+    template<class T, bool Result = std::is_void<decltype(doTest<T>(0))>::value>
+    struct Dereferenceable;
+    
+    template<typename T>
+    struct Dereferenceable<T, true> {
+        static auto dereference(T data) -> decltype(*data) {
+            return *data;
+        }
+    };
+    
+    template<typename T>
+    struct Dereferenceable<T, false> {
+        static T dereference(T data) {
+            return std::move(data);
+        }
+    };
 }
 }
 }

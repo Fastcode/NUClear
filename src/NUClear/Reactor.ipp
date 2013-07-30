@@ -17,40 +17,175 @@
 
 namespace NUClear {
     
-    template <typename TTrigger, typename TFunc>
+    /* Meta functions */
+    template <typename... TTypes>
+    struct NeedsFill : std::false_type {};
+    
+    template <typename... TTypes>
+    struct NeedsFill<std::tuple<TTypes...>> : NeedsFill<TTypes...> {};
+    
+    template <typename THead, typename... TTypes>
+    struct NeedsFill<THead, TTypes...> :
+    Meta::If<std::is_base_of<Internal::CommandTypes::FillType, THead>, std::true_type, NeedsFill<TTypes...>> {};
+    
+    // This metafunction builds a proper On given a series of function arguments
+    template <typename TFunc, typename... TParams>
+    struct Reactor::On : public OnBuilder<TFunc, Reactor::Trigger<>, Reactor::With<>, Reactor::Options<>, std::tuple<>, TParams...> {};
+    
+    template <
+        typename TFunc,
+        typename... TTriggers,
+        typename... TWiths,
+        typename... TOptions,
+        typename... TFuncArgs,
+        typename... TNewTriggers,
+        typename... TParams>
+    struct Reactor::OnBuilder<
+        TFunc, Reactor::Trigger<TTriggers...>,
+        Reactor::With<TWiths...>,
+        Reactor::Options<TOptions...>,
+        std::tuple<TFuncArgs...>,
+        Reactor::Trigger<TNewTriggers...>,
+        TParams...> :
+    public Reactor::OnBuilder<
+        TFunc,
+        Reactor::Trigger<TTriggers..., TNewTriggers...>,
+        Reactor::With<TWiths...>,
+        Reactor::Options<TOptions...>,
+        std::tuple<TFuncArgs..., TNewTriggers...>,
+        TParams...> {};
+    
+    template <
+        typename TFunc,
+        typename... TTriggers,
+        typename... TWiths,
+        typename... TOptions,
+        typename... TFuncArgs,
+        typename... TNewWiths,
+        typename... TParams>
+    struct Reactor::OnBuilder<
+        TFunc,
+        Reactor::Trigger<TTriggers...>,
+        Reactor::With<TWiths...>,
+        Reactor::Options<TOptions...>,
+        std::tuple<TFuncArgs...>,
+        Reactor::With<TNewWiths...>,
+        TParams...> :
+    public Reactor::OnBuilder<
+        TFunc,
+        Reactor::Trigger<TTriggers...>,
+        Reactor::With<TWiths..., TNewWiths...>,
+        Reactor::Options<TOptions...>,
+        std::tuple<TFuncArgs..., TNewWiths...>,
+        TParams...> {};
+    
+    template <
+        typename TFunc,
+        typename... TTriggers,
+        typename... TWiths,
+        typename... TOptions,
+        typename... TFuncArgs,
+        typename... TNewOptions,
+        typename... TParams>
+    struct Reactor::OnBuilder<
+        TFunc,
+        Reactor::Trigger<TTriggers...>,
+        Reactor::With<TWiths...>,
+        Reactor::Options<TOptions...>,
+        Reactor::Options<TNewOptions...>,
+        std::tuple<TFuncArgs...>,
+        TParams...> :
+    public Reactor::OnBuilder<
+        TFunc,
+        Reactor::Trigger<TTriggers...>,
+        Reactor::With<TWiths...>,
+        Reactor::Options<TOptions..., TNewOptions...>,
+        std::tuple<TFuncArgs...>,
+        TParams...> {};
+    
+    template <
+        typename TFunc,
+        typename... TTriggers,
+        typename... TWiths,
+        typename... TOptions,
+        typename... TFuncArgs>
+    struct Reactor::OnBuilder<
+        TFunc,
+        Reactor::Trigger<TTriggers...>,
+        Reactor::With<TWiths...>,
+        Reactor::Options<TOptions...>,
+        std::tuple<TFuncArgs...>> :
+    public Reactor::On<
+        TFunc,
+        Reactor::Trigger<TTriggers...>,
+        Reactor::With<TWiths...>,
+        Reactor::Options<TOptions...>,
+        std::tuple<TFuncArgs...>> {};
+    
+    template <typename TFunc, typename... TTypes>
+    struct Reactor::CheckFunctionSignature<TFunc, std::tuple<TTypes...>, 0> :
+    public Reactor::CheckFunctionSignature<TFunc, std::tuple<decltype(std::declval<PowerPlant::CacheMaster>().get<TTypes>())...>,
+    NeedsFill<decltype(std::declval<PowerPlant::CacheMaster>().get<TTypes>())...>::value ? 1 : 2> {};
+    
+    template <typename TFunc, typename... TTypes>
+    struct Reactor::CheckFunctionSignature<TFunc, std::tuple<TTypes...>, 1> :
+    public Reactor::CheckFunctionSignature<TFunc, decltype(std::declval<PowerPlant::CacheMaster>().fill(std::tuple<TTypes...>())), 2> {};
+    
+    template <typename TFunc, typename... TTypes>
+    struct Reactor::CheckFunctionSignature<TFunc, std::tuple<TTypes...>, 2> :
+    public Reactor::CheckFunctionSignature<TFunc, std::tuple<decltype(Internal::Magic::Dereferenceable<TTypes>::dereference(std::declval<TTypes>()))...>, 3> {};
+    
+    template <typename TFunc, typename... TTypes>
+    struct Reactor::CheckFunctionSignature<TFunc, std::tuple<TTypes...>, 3> :
+    public Reactor::CheckFunctionSignature<TFunc, std::tuple<Meta::AddConst<TTypes>...>, 4> {};
+    
+    template <typename TFunc, typename... TTypes>
+    struct Reactor::CheckFunctionSignature<TFunc, std::tuple<TTypes...>, 4> :
+    public Meta::If<std::is_assignable<std::function<void (TTypes...)>, TFunc>, std::true_type, std::false_type> {};
+    
+    
+    /* End Meta functions */
+    
+    template <typename... TParams, typename TFunc>
     void Reactor::on(TFunc callback) {
-        OnImpl<TTrigger, With<>, Options<>, TFunc>(this)(callback);
+        
+        // There must be some parameters
+        static_assert(sizeof...(TParams) > 0, "TODO not enough parameters message");
+        
+        On<TFunc, TParams...>::on(this, callback);
     }
-
-    template <typename TTrigger, typename TWith, typename TFunc>
-    void Reactor::on(TFunc callback) {
-        OnImpl<TTrigger, TWith, Options<>, TFunc>(this)(callback);
+    
+    template <typename... THandlers, typename TData>
+    void Reactor::emit(TData* data) {
+        powerPlant.emit<THandlers...>(data);
     }
-
-    template <typename TTrigger, typename TWith, typename TOptions, typename TFunc>
-    void Reactor::on(TFunc callback) {
-        OnImpl<TTrigger, TWith, TOptions, TFunc>(this)(callback);
-    }
-
-    // == Private Method == 
-    template <typename... TTriggers, typename... TWiths, typename... TOptions, typename TFunc>
-    Reactor::OnImpl<
-        Reactor::Trigger<TTriggers...>
-        , Reactor::With<TWiths...>
-        , Reactor::Options<TOptions...>
-        , TFunc>::OnImpl(Reactor* context) {
-            this->context = context;
-    }
-
-    template <typename... TTriggers, typename... TWiths, typename... TOptions, typename TFunc>
-    void Reactor::OnImpl<
-        Reactor::Trigger<TTriggers...>
-        , Reactor::With<TWiths...>
-        , Reactor::Options<TOptions...>
-        , TFunc>::operator()(TFunc callback) {
+    
+    // This is our final On statement
+    template <typename TFunc, typename... TTriggers, typename... TWiths, typename... TOptions, typename... TFuncArgs>
+    void Reactor::On<
+        TFunc,
+        Reactor::Trigger<TTriggers...>,
+        Reactor::With<TWiths...>,
+        Reactor::Options<TOptions...>,
+        std::tuple<TFuncArgs...>>::on(Reactor* context, TFunc callback) {
+            
+            // TODO our static asserts go here
+            // Static assert that our Triggers and withs are compatible with TFunc
+            
+            std::tuple<decltype(PowerPlant::CacheMaster::Get<TFuncArgs>::get(std::declval<PowerPlant*>()))...> x;
+            
+            static_assert(Reactor::CheckFunctionSignature<TFunc, std::tuple<TFuncArgs...>>::value, "Your callback function does not match the types in the On statement");
+            static_assert(sizeof...(TTriggers) > 0, "You must have at least one Trigger in a callback");
+            
+            // Build up our options
             Internal::Reaction::Options options;
             context->buildOptions<TOptions...>(options);
-            context->bindTriggers<TTriggers...>(context->buildReaction<TFunc, TTriggers..., TWiths...>(callback, options));
+            
+            // Run any existence commands needed (running because a type exists)
+            Internal::Magic::unpack((Exists<TFuncArgs>::exists(context), 0)...);
+            
+            // Bind all of our trigger events to a reaction
+            context->bindTriggers<TTriggers...>(context->buildReaction<TFunc, TFuncArgs...>(callback, options));
     }
     
     template <typename... TOption>
@@ -61,7 +196,7 @@ namespace NUClear {
     
     template <typename TSync>
     void Reactor::buildOptionsImpl(Internal::Reaction::Options& options, Sync<TSync>* /*placeholder*/) {
-        options.m_syncType = typeid(TSync);
+        options.m_syncQueue = Sync<TSync>::SyncQueue;
     }
     
     template <enum EPriority P>
@@ -69,46 +204,37 @@ namespace NUClear {
         options.m_priority = P;
     }
     
-    template <typename... TTypes>
-    struct NeedsFillImpl;
-    
-    template <>
-    struct NeedsFillImpl<> : std::false_type {};
-    
-    template <typename THead, typename... TRest>
-    struct NeedsFillImpl<THead, TRest...> : std::conditional<std::is_base_of<Internal::CommandTypes::Fill, THead>::value, std::true_type, NeedsFillImpl<TRest...>>::type {};
-    
-    template <typename TTuple>
-    struct NeedsFill;
-    
-    template <typename... TTypes>
-    struct NeedsFill<std::tuple<TTypes...>> : NeedsFillImpl<TTypes...> {
-    };
-    
-    template <>
-    struct Reactor::buildCallback<true> {
+    struct Reactor::FillCallback {
         template <typename TFunc, typename... TData>
-        static const std::function<void ()> get(Reactor* parent, TFunc callback, std::tuple<TData...> data) {
-            return [parent, callback, data] {
+        static const std::function<void (Internal::Reaction::Task&)> buildCallback(Reactor* parent, TFunc callback, std::tuple<TData...> data) {
+            return [parent, callback, data](Internal::Reaction::Task& task) {
+                
+                // Perform our second pass over the data
                 auto&& newData = parent->powerPlant.cachemaster.fill(data);
                 
-                parent->powerPlant.cachemaster.setThreadArgs(std::this_thread::get_id(), std::move(Internal::Magic::buildVector(newData)));
+                // Store our arguments
+                task.m_args = Internal::Magic::buildVector(newData);
+                parent->powerPlant.cachemaster.setCurrentTask(std::this_thread::get_id(), &task);
                 
                 Internal::Magic::apply(callback, std::move(newData));
+                
+                parent->powerPlant.cachemaster.setCurrentTask(std::this_thread::get_id(), nullptr);
             };
         }
     };
     
-    template <>
-    struct Reactor::buildCallback<false> {
+    struct Reactor::BasicCallback {
         
         template <typename TFunc, typename... TData>
-        static const std::function<void ()> get(Reactor* parent, TFunc callback, std::tuple<TData...> data) {
-            return [parent, callback, data] {
+        static const std::function<void (Internal::Reaction::Task&)> buildCallback(Reactor* parent, TFunc callback, std::tuple<TData...> data) {
+            return [parent, callback, data] (Internal::Reaction::Task& task) {
                 
-                parent->powerPlant.cachemaster.setThreadArgs(std::this_thread::get_id(), std::move(Internal::Magic::buildVector(data)));
+                task.m_args = Internal::Magic::buildVector(data);
+                parent->powerPlant.cachemaster.setCurrentTask(std::this_thread::get_id(), &task);
                 
-                Internal::Magic::apply(callback, std::move(data));
+                Internal::Magic::apply(callback, data);
+                
+                parent->powerPlant.cachemaster.setCurrentTask(std::this_thread::get_id(), nullptr);
             };
         }
     };
@@ -117,13 +243,23 @@ namespace NUClear {
     Internal::Reaction* Reactor::buildReaction(TFunc callback, Internal::Reaction::Options& options) {
         
         // Return a reaction object that gets and runs with the correct paramters
-        return new Internal::Reaction([this, callback]() -> std::function<void ()> {
+        return new Internal::Reaction(typeid(TFunc).name(), [this, callback]() -> std::function<void (Internal::Reaction::Task&)> {
             
-            auto&& data = std::make_tuple(powerPlant.get<TTriggersAndWiths>()...);
+            auto&& data = std::make_tuple(powerPlant.cachemaster.get<TTriggersAndWiths>()...);
             
-            return buildCallback<NeedsFill<typename std::remove_reference<decltype(data)>::type>::value>::get(this, callback, data);
+            return Meta::If<NeedsFill<Meta::RemoveRef<decltype(data)>>, FillCallback, BasicCallback>::buildCallback(this, callback, data);
         }, options);
     }
+    
+    template <typename TData>
+    struct Reactor::Exists {
+        static void exists(Reactor* context) {};
+    };
+
+    template <typename TData>
+    struct Reactor::TriggerType {
+        using type = TData;
+    };
 
     /**
      * @brief calls bindTriggersImpl on every trigger in the list. Minimum list size is 1
@@ -133,42 +269,19 @@ namespace NUClear {
      */
     template <typename TTrigger, typename... TTriggers>
     void Reactor::bindTriggers(Internal::Reaction* callback) {
-        bindTriggersImpl(callback, reinterpret_cast<TTrigger*>(0));
-
-        // See unpack.h for explanation
-        Internal::Magic::unpack((bindTriggersImpl(callback, reinterpret_cast<TTriggers*>(0)), 0)...);
-    }
-
-    /**
-     * @brief The implementation method for bindTriggers, provides partial template specialization for specific-trigger type logic.
-     * @tparam TTrigger the trigger to bind to
-     * @param callback the callback to bind
-     * @param placeholder used for partial template specialization
-     */
-    template <typename TTrigger>
-    void Reactor::bindTriggersImpl(Internal::Reaction* callback, TTrigger* /*placeholder*/) {
         
-        // Store our data in the cache
-        CallbackCache<TTrigger>::set(callback);
-    }
-
-    template <int ticks, class period>
-    void Reactor::bindTriggersImpl(Internal::Reaction* callback, Every<ticks, period>* placeholder) {
+        // Single trigger that is not ignored
+        if(sizeof...(TTriggers) == 0 && !std::is_same<typename TriggerType<TTrigger>::type, std::nullptr_t>::value) {
+            CallbackCache<typename TriggerType<TTrigger>::type>::set(callback);
+        }
         
-        // Add this interval to the chronometer
-        powerPlant.chronomaster.add<ticks, period>();
-        
-        // Register as normal
-        bindTriggersImpl<Every<ticks, period>>(callback, placeholder);
-    }
-    
-    template <int num, typename TData>
-    void Reactor::bindTriggersImpl(Internal::Reaction* callback, Last<num, TData>* placeholder) {
-        
-        // Let the ReactorMaster know to cache at least this many of this type
-        powerPlant.cachemaster.ensureCache<num, TData>();
-        
-        // Register our callback on the inner type
-        bindTriggersImpl<TData>(callback, reinterpret_cast<TData*>(0));
+        // Multi Trigger (and)
+        else {
+            // TODO Generate a sequence
+            // TODO set a callback for each of TTrigger and TTriggers along with their number
+            // TODO have a tuple of atomic booleans for each TTrigger
+            // TODO when a trigger comes in, use the int to set that boolean to true
+            // TODO when all the booleans are true, run the callback and set all booleans to false
+        }
     }
 }

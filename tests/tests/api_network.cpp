@@ -19,61 +19,44 @@
 
 #include "NUClear/NUClear.h"
 
-
 // Anonymous namespace to keep everything file local
 namespace {
-    struct SimpleMessage {
-        int data;
+    
+    struct TestObject {
+        int x;
     };
     
-    struct LinkMe {
-        int data;
+    class NetworkEmitter : public NUClear::Reactor {
+    public:
+        NetworkEmitter(NUClear::PowerPlant& plant) : Reactor(plant) {
+            on<Trigger<Every<500, std::chrono::milliseconds>>>([this](const time_t& tick) {
+                emit<Scope::NETWORK>(new TestObject{5});
+            });
+        }
     };
     
     class TestReactor : public NUClear::Reactor {
     public:
         
         TestReactor(NUClear::PowerPlant& plant) : Reactor(plant) {
-            on<Trigger<SimpleMessage>>([this](SimpleMessage& message) {
-                
-                // We check that it's 10 so we don't keep doing this forever
-                if(message.data == 10) {
-                    
-                    // Emit another message of this type with a different value (20)
-                    powerPlant.emit(new SimpleMessage{20});
-                    
-                    // Emit our event that will be linked from
-                    powerPlant.emit(new LinkMe{30});
-                }
-            });
             
-            
-            // This checks the linked case, the m should be 10 as we are using the linked event
-            on<Trigger<LinkMe>, With<Linked<SimpleMessage>>>([this](LinkMe& l, SimpleMessage& m) {
-                REQUIRE(m.data == 10);
-            });
-            
-            // This checks the normal case, the m should be 20 as we are using the globally cached event
-            on<Trigger<LinkMe>, With<SimpleMessage>>([this](LinkMe& l, SimpleMessage& m) {
-                REQUIRE(m.data == 20);
-                
-                // This is bad but I know that this event will fire second, so I shutdown on this one
+            // Trigger on a networked event
+            on<Trigger<Network<TestObject>>>([this](const Network<TestObject>& message) {
+                REQUIRE(message.data->x == 5);
                 powerPlant.shutdown();
             });
         }
     };
 }
 
-TEST_CASE("api/linked/basic", "Testing the Linked<> smart type") {
+TEST_CASE("Testing the Networking system", "[api][network]") {
     
-    // For some reason that is beyond me... putting this here stops this unit test segfaulting
-    REQUIRE(true);
+    NUClear::PowerPlant::Configuration config;
+    config.threadCount = 1;
+    NUClear::PowerPlant plant(config);
     
-    NUClear::PowerPlant plant;
+    plant.install<NetworkEmitter>();
     plant.install<TestReactor>();
-    
-    // I emit the value 10 to get everything started
-    plant.emit(new SimpleMessage{10});
     
     plant.start();
 }

@@ -20,7 +20,7 @@
 namespace NUClear {
 namespace Internal {
     
-    ThreadWorker::ThreadWorker(InternalTask task) :
+    ThreadWorker::ThreadWorker(ServiceTask task) :
     m_task(task),
     m_thread(std::bind(&ThreadWorker::core, this)) {
     }
@@ -52,6 +52,7 @@ namespace Internal {
     
     void ThreadWorker::core() {
         
+        // Run our main task
         m_task.run();
     }
 }

@@ -15,38 +15,47 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include "Reaction.h"
+#ifndef NUCLEAR_INTERNAL_MAGIC_METAPROGRAMMING_H
+#define NUCLEAR_INTERNAL_MAGIC_METAPROGRAMMING_H
+
+#include <type_traits>
 
 namespace NUClear {
 namespace Internal {
+namespace Magic {
+namespace MetaProgramming {
+namespace Meta {
     
-    std::atomic<uint64_t> Reaction::reactionIdSource(0);
-    std::atomic<uint64_t> Reaction::Task::taskIdSource(0);
+    template <typename T>
+    using Do = typename T::type;
     
+    template <typename Predecate, typename Then, typename Else = void>
+    using If = Do<std::conditional<Predecate::value, Then, Else>>;
     
-    Reaction::Reaction(std::string name, std::function<std::function<void (Reaction::Task&)> ()> callback, Reaction::Options options) :
-    m_name(name),
-    m_options(options),
-    m_reactionId(++reactionIdSource),
-    m_running(false),
-    m_callback(callback) {
-    }
+    template <typename TType>
+    using AddConst = Do<std::add_const<TType>>;
     
-    std::unique_ptr<Reaction::Task> Reaction::getTask(const Task* cause) {
-        // Build a new data bound task using our callback generator
-        return std::unique_ptr<Reaction::Task>(new Reaction::Task(this, cause, m_callback()));
-    }
+    template <typename TType>
+    using AddLRef = Do<std::add_lvalue_reference<TType>>;
     
-    Reaction::Task::Task(Reaction* parent, const Task* cause, std::function<void (Task&)> callback) :
-    m_callback(callback),
-    m_parent(parent),
-    m_taskId(++taskIdSource),
-    m_stats(new NUClearTaskEvent{parent->m_name, parent->m_reactionId, m_taskId, cause ? cause->m_parent->m_reactionId : -1, cause ? cause->m_taskId : -1, clock::now()}) {
-    }
+    template <typename TType>
+    using RemoveRef = Do<std::remove_reference<TType>>;
     
-    void Reaction::Task::operator()() {
-        // Call our callback
-        m_callback(*this);
-    }
+    template <typename... T>
+    struct All : std::true_type {};
+    template <typename Head, typename... Tail>
+    struct All<Head, Tail...> : If<Head, All<Tail...>, std::false_type> {};
+    
+    template <typename T>
+    struct Not : If<T, std::false_type, std::true_type> {};
+    
+    template <typename... Conditions>
+    struct EnableIf : Do<std::enable_if<All<Conditions...>::value, std::nullptr_t>> {};
+    
 }
 }
+}
+}
+}
+
+#endif

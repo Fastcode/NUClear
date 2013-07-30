@@ -20,29 +20,26 @@
 namespace NUClear {
     
     PowerPlant::CacheMaster::CacheMaster(PowerPlant* parent) :
-    PowerPlant::BaseMaster(parent)
-    {}
+    PowerPlant::BaseMaster(parent) {}
     
-    PowerPlant::CacheMaster::~CacheMaster() {
-    }
-    
-    void PowerPlant::CacheMaster::setThreadArgs(std::thread::id threadId, std::vector<std::pair<std::type_index, std::shared_ptr<void>>>&& args) {
-        m_threadArgs[threadId] = std::move(args);
+    void PowerPlant::CacheMaster::setCurrentTask(std::thread::id threadId, const Internal::Reaction::Task* args) {
+        // TODO replace this with thread_local if possible (c++11 keyword thread_local)
+        m_threadArgs[threadId] = args;
     }
     
     void PowerPlant::CacheMaster::linkCache(void* data, std::vector<std::pair<std::type_index, std::shared_ptr<void>>> args) {
         
-        m_linkedCache.insert(std::pair<void*, std::vector<std::pair<std::type_index, std::shared_ptr<void>>>>(data, args));
+        m_linkedCache.insert(std::make_pair(data, args));
     }
     
-    std::vector<std::pair<std::type_index, std::shared_ptr<void>>> PowerPlant::CacheMaster::getThreadArgs(std::thread::id threadId) {
-        auto&& args = m_threadArgs.find(threadId);
+    const Internal::Reaction::Task* PowerPlant::CacheMaster::getCurrentTask(std::thread::id threadId) {
+        auto task = m_threadArgs.find(threadId);
         
-        if(args != std::end(m_threadArgs)) {
-            return args->second;
+        if(task != std::end(m_threadArgs)) {
+            return task->second;
         }
         else {
-            return std::vector<std::pair<std::type_index, std::shared_ptr<void>>>();
+            return nullptr;
         }
     }
 }

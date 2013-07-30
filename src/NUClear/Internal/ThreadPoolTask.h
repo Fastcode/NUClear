@@ -23,7 +23,7 @@
 
 namespace NUClear {
 namespace Internal {
-    class ThreadPoolTask : public ThreadWorker::InternalTask {
+    class ThreadPoolTask : public ThreadWorker::ServiceTask {
         public:
             ThreadPoolTask(TaskScheduler& scheduler);
             ~ThreadPoolTask();
@@ -31,7 +31,6 @@ namespace Internal {
             void kill();
         private:
             TaskScheduler& m_scheduler;
-            volatile bool m_execute;
     };
 }
 }

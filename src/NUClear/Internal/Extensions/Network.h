@@ -15,38 +15,28 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include "Reaction.h"
+#ifndef NUCLEAR_INTERNAL_EXTENSIONS_NETWORK_H
+#define NUCLEAR_INTERNAL_EXTENSIONS_NETWORK_H
+
+#include "NUClear/NUClear.h"
+
 
 namespace NUClear {
-namespace Internal {
-    
-    std::atomic<uint64_t> Reaction::reactionIdSource(0);
-    std::atomic<uint64_t> Reaction::Task::taskIdSource(0);
     
     
-    Reaction::Reaction(std::string name, std::function<std::function<void (Reaction::Task&)> ()> callback, Reaction::Options options) :
-    m_name(name),
-    m_options(options),
-    m_reactionId(++reactionIdSource),
-    m_running(false),
-    m_callback(callback) {
-    }
+    template <typename TData>
+    struct PowerPlant::Emit<Internal::CommandTypes::Scope::NETWORK, TData> {
+        static void emit(PowerPlant* context, TData* data) {
+            context->networkmaster.emit(data);
+        };
+    };
     
-    std::unique_ptr<Reaction::Task> Reaction::getTask(const Task* cause) {
-        // Build a new data bound task using our callback generator
-        return std::unique_ptr<Reaction::Task>(new Reaction::Task(this, cause, m_callback()));
-    }
-    
-    Reaction::Task::Task(Reaction* parent, const Task* cause, std::function<void (Task&)> callback) :
-    m_callback(callback),
-    m_parent(parent),
-    m_taskId(++taskIdSource),
-    m_stats(new NUClearTaskEvent{parent->m_name, parent->m_reactionId, m_taskId, cause ? cause->m_parent->m_reactionId : -1, cause ? cause->m_taskId : -1, clock::now()}) {
-    }
-    
-    void Reaction::Task::operator()() {
-        // Call our callback
-        m_callback(*this);
-    }
+    template <typename TData>
+    struct Reactor::Exists<Internal::CommandTypes::Network<TData>> {
+        static void exists(Reactor* context) {
+            context->powerPlant.networkmaster.addType<TData>();
+        }
+    };
 }
-}
+
+#endif

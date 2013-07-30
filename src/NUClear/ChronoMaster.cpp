@@ -24,13 +24,10 @@ namespace NUClear {
     m_lock(m_execute) {
         
         // Build a task
-        Internal::ThreadWorker::InternalTask task(std::bind(&ChronoMaster::run, this),
+        Internal::ThreadWorker::ServiceTask task(std::bind(&ChronoMaster::run, this),
                                                   std::bind(&ChronoMaster::kill, this));
         
-        m_parent->threadmaster.internalTask(task);
-    }
-
-    PowerPlant::ChronoMaster::~ChronoMaster() {
+        m_parent->threadmaster.serviceTask(task);
     }
 
     void PowerPlant::ChronoMaster::run() {
@@ -39,14 +36,14 @@ namespace NUClear {
         if (!m_steps.empty()) {
             
             // Initialize all of the m_steps with our start time
-            std::chrono::time_point<std::chrono::steady_clock> start(std::chrono::steady_clock::now());
+            clock::time_point start(clock::now());
             for(auto& step : m_steps) {
                 step->next = start;
             }
             
             do {
                 // Get the current time
-                std::chrono::time_point<std::chrono::steady_clock> now(std::chrono::steady_clock::now());
+                clock::time_point now(clock::now());
                 
                 // Check if any intervals are before now and if so execute their callbacks and add their step.
                 for(auto& step : m_steps) {
@@ -67,6 +64,7 @@ namespace NUClear {
                     return a->next < b->next;
                 });
             }
+            // TODO http://gcc.gnu.org/bugzilla/show_bug.cgi?id=54562 :(
             // Sleep until it's time to emit this event, or the lock is released and we should finish
             while(!m_execute.try_lock_until(m_steps.front()->next));
         }

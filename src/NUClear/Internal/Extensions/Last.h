@@ -15,38 +15,30 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include "Reaction.h"
+#ifndef NUCLEAR_INTERNAL_EXTENSIONS_LAST_H
+#define NUCLEAR_INTERNAL_EXTENSIONS_LAST_H
+
+#include "NUClear/NUClear.h"
 
 namespace NUClear {
-namespace Internal {
+    template <int num, typename TData>
+    struct Reactor::TriggerType<Internal::CommandTypes::Last<num, TData>> {
+        typedef TData type;
+    };
     
-    std::atomic<uint64_t> Reaction::reactionIdSource(0);
-    std::atomic<uint64_t> Reaction::Task::taskIdSource(0);
+    template <int num, typename TData>
+    struct Reactor::Exists<Internal::CommandTypes::Last<num, TData>> {
+        static void exists(Reactor* context) {
+            context->powerPlant.cachemaster.ensureCache<num, TData>();
+        }
+    };
     
-    
-    Reaction::Reaction(std::string name, std::function<std::function<void (Reaction::Task&)> ()> callback, Reaction::Options options) :
-    m_name(name),
-    m_options(options),
-    m_reactionId(++reactionIdSource),
-    m_running(false),
-    m_callback(callback) {
-    }
-    
-    std::unique_ptr<Reaction::Task> Reaction::getTask(const Task* cause) {
-        // Build a new data bound task using our callback generator
-        return std::unique_ptr<Reaction::Task>(new Reaction::Task(this, cause, m_callback()));
-    }
-    
-    Reaction::Task::Task(Reaction* parent, const Task* cause, std::function<void (Task&)> callback) :
-    m_callback(callback),
-    m_parent(parent),
-    m_taskId(++taskIdSource),
-    m_stats(new NUClearTaskEvent{parent->m_name, parent->m_reactionId, m_taskId, cause ? cause->m_parent->m_reactionId : -1, cause ? cause->m_taskId : -1, clock::now()}) {
-    }
-    
-    void Reaction::Task::operator()() {
-        // Call our callback
-        m_callback(*this);
-    }
+    template <int num, typename TData>
+    struct PowerPlant::CacheMaster::Get<Internal::CommandTypes::Last<num, TData>> {
+        static std::shared_ptr<std::vector<std::shared_ptr<const TData>>> get(PowerPlant* context) {
+            return ValueCache<TData>::get(num);
+        }
+    };
 }
-}
+
+#endif

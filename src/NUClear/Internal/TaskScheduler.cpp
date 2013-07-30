@@ -20,48 +20,7 @@
 namespace NUClear {
 namespace Internal {
     
-    namespace {
-        bool compareQueues(std::pair<const std::type_index&, std::unique_ptr<TaskScheduler::TaskQueue>&> a, std::pair<const std::type_index&, std::unique_ptr<TaskScheduler::TaskQueue>&> b) {
-            // If we are not active and not the default queue then we are smaller
-            if(!a.second->m_active && a.first != typeid(nullptr)) {
-                return false;
-            }
-            
-            // If our queue is empty then return false
-            else if(a.second->m_queue.empty()) {
-                return false;
-            }
-            
-            // If the other queue is empty then return true
-            else if(b.second->m_queue.empty())
-            {
-                return true;
-            }
-            
-            // If we have a higher priority then return true
-            else if(a.second->m_queue.top()->m_parent->m_options.m_priority > b.second->m_queue.top()->m_parent->m_options.m_priority) {
-                return true;
-            }
-            
-            // If our event is older then return true
-            else if(a.second->m_queue.top()->m_emitTime < b.second->m_queue.top()->m_emitTime) {
-                return true;
-            }
-            
-            // Otherwise assume that we are greater
-            // (arbitrary pick should never happen unless two events are emitted at the exact same nanosecond?)
-            else {
-                return false;
-            }
-        }
-    }
-    
-    TaskScheduler::TaskQueue::TaskQueue() : m_active(false) {
-    }
-    
     TaskScheduler::TaskScheduler() : m_shutdown(false) {
-        std::type_index a(typeid(nullptr));
-        m_queues.insert(std::make_pair(a, std::unique_ptr<TaskQueue>(new TaskQueue())));
     }
     
     TaskScheduler::~TaskScheduler() {
@@ -77,20 +36,43 @@ namespace Internal {
     
     void TaskScheduler::submit(std::unique_ptr<Reaction::Task>&& task) {
         {
+            // Obtain the lock
             std::unique_lock<std::mutex> lock(m_mutex);
             
+            // We do not accept new tasks once we are shutdown or if this is a Single reaction that is already in the system
             if(!m_shutdown && (!task->m_parent->m_options.m_single || !task->m_parent->m_running)) {
                 
-                auto it = m_queues.find(task->m_parent->m_options.m_syncType);
-                if(it == std::end(m_queues)) {
-                    m_queues.insert(std::make_pair(task->m_parent->m_options.m_syncType, std::unique_ptr<TaskQueue>(new TaskQueue())));
+                // We are now running
+                task->m_parent->m_running = true;
+                
+                // If we are a sync type
+                if(task->m_parent->m_options.m_syncQueue) {
+                    
+                    auto& queue = task->m_parent->m_options.m_syncQueue->m_queue;
+                    auto& active = task->m_parent->m_options.m_syncQueue->m_active;
+                    auto& mutex = task->m_parent->m_options.m_syncQueue->m_mutex;
+                    
+                    // Lock our sync types mutex
+                    std::unique_lock<std::mutex> lock(mutex);
+                    
+                    // If a sync type is already executing then push it onto the sync queue
+                    if (active) {
+                        queue.push(std::move(task));
+                    }
+                    // Otherwise push it onto the main queue and set us to active
+                    else {
+                        active = true;
+                        m_queue.push(std::move(task));
+                    }
                 }
+                // Otherwise move it onto the main queue
                 else {
-                    it->second->m_queue.push(std::move(task));
+                    m_queue.push(std::move(task));
                 }
             }
-            
         }
+        
+        // Notify a thread that it can proceed
         m_condition.notify_one();
     }
     
@@ -99,31 +81,31 @@ namespace Internal {
         //Obtain the lock
         std::unique_lock<std::mutex> lock(m_mutex);
         
-        while(true) {
-            // Get the queue we will be using (the active queue with the highest priority oldest element)
-            auto queue = m_queues.begin();
-            for(auto it = std::begin(m_queues); it != std::end(m_queues); ++it)
-            {
-                if(compareQueues(std::pair<const std::type_index&, std::unique_ptr<TaskQueue>&>(it->first, it->second),
-                                 std::pair<const std::type_index&, std::unique_ptr<TaskQueue>&>(queue->first, queue->second))) {
-                    queue = it;
+        // How this works in practice is that it will not shut down a thread until all tasks are drained
+        while (true) {
+            // If there is nothing in the queue
+            if (m_queue.empty()) {
+                
+                // And we are shutting down then terminate the requesting thread and tell all other threads to wake up
+                if(m_shutdown) {
+                    m_condition.notify_all();
+                    throw TaskScheduler::SchedulerShutdownException();
+                }
+                else {
+                    // Wait for something to happen!
+                    m_condition.wait(lock);
                 }
             }
-            
-            // If the queue is empty wait for notificiation
-            if(!m_shutdown && queue->second->m_queue.empty()) {
-                m_condition.wait(lock);
-            }
-            else if(m_shutdown) {
-                throw TaskScheduler::SchedulerShutdownException();
-            }
             else {
-                // Const cast is required here as for some reason the std::priority_queue only returns const references
-                std::unique_ptr<Reaction::Task> x(std::move(const_cast<std::unique_ptr<Reaction::Task>&>(queue->second->m_queue.top())));
-                queue->second->m_queue.pop();
-                return std::move(x);
+                // Return the type
+                // If you're wondering why all the rediculiousness, it's because priority queue is not as feature complete as it should be
+                std::unique_ptr<Reaction::Task> task(std::move(const_cast<std::unique_ptr<Reaction::Task>&>(m_queue.top())));
+                m_queue.pop();
+                
+                return std::move(task);
             }
         }
+        
     }
 }
 }

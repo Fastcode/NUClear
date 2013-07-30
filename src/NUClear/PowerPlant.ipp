@@ -16,14 +16,48 @@
  */
 
 namespace NUClear {
+    
+    template <typename TTarget, typename... TValues>
+    struct HasScope;
+    
+    // If we have no values then we don't have that scope
+    template <typename TTarget>
+    struct HasScope<TTarget> : public std::false_type {};
+    
+    // If we have the type (first two types are the same) then we have it
+    template <typename TTarget, typename... TRest>
+    struct HasScope<TTarget, TTarget, TRest...> : public std::true_type {};
+    
+    // If we don't have it but we have more to test, continue testing
+    template <typename TFirst, typename TSecond, typename... TRest>
+    struct HasScope<TFirst, TSecond, TRest...> : public HasScope<TFirst, TRest...> {};
 
     template <typename TReactor>
     void PowerPlant::install() {
+        
+        // Make sure that the class that we recieved is a reactor
+        static_assert(std::is_base_of<Reactor, TReactor>::value, "You must install Reactors");
+        
+        // Install the reactor
         reactormaster.install<TReactor>();
     }
+    
+    template <typename TData>
+    struct PowerPlant::Emit<Internal::CommandTypes::Scope::LOCAL, TData> {
+        static void emit(PowerPlant* context, TData* data) {
+            context->reactormaster.emit(data);
+        };
+    };
 
-    template <typename TTrigger>
-    void PowerPlant::emit(TTrigger* data) {
-        reactormaster.emit(data);
+    template <typename... THandlers, typename TData>
+    void PowerPlant::emit(TData* data) {
+        
+        // If there are no types defined, the default is to emit local
+        if(sizeof...(THandlers) == 0) {
+            emit<Internal::CommandTypes::Scope::LOCAL>(data);
+        }
+        else {
+            Internal::Magic::unpack((PowerPlant::Emit<THandlers, TData>::emit(this, data), 0)...);
+        }
     }
 }

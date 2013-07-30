@@ -25,11 +25,11 @@ namespace {
     class TestReactor : public NUClear::Reactor {
     public:
         // Store our times
-        std::vector<std::chrono::time_point<std::chrono::steady_clock>> times;
+        std::vector<NUClear::clock::time_point> times;
         
         TestReactor(NUClear::PowerPlant& plant) : Reactor(plant) {
             // Trigger every 10 milliseconds
-            on<Trigger<Every<10, std::chrono::milliseconds>>>([this](const std::chrono::time_point<std::chrono::steady_clock>& message) {
+            on<Trigger<Every<10, std::chrono::milliseconds>>>([this](const time_t& message) {
                 
                 // Store 11 times (10 durations)
                 if(times.size() < 11) {
@@ -41,7 +41,7 @@ namespace {
                 else if (times.size() == 11) {
                     std::chrono::nanoseconds total = std::chrono::nanoseconds(0);
                     
-                    for(int i = 0; i < times.size() - 1; ++i) {
+                    for(int i = 0; i < abs(times.size() - 1); ++i) {
                         std::chrono::nanoseconds wait = times[i + 1] - times[i];
                         total += wait;
                         
@@ -64,13 +64,11 @@ namespace {
     };
 }
 
-TEST_CASE("api/every/basic", "Testing the Every<> Smart Type") {
+TEST_CASE("Testing the Every<> Smart Type", "[api][every]") {
     
-    // For some reason that is beyond me... putting this here stops this unit test segfaulting
-    REQUIRE(true);
-    
-    NUClear::PowerPlant plant;
-    
+    NUClear::PowerPlant::Configuration config;
+    config.threadCount = 1;
+    NUClear::PowerPlant plant(config);
     plant.install<TestReactor>();
     
     plant.start();

@@ -19,70 +19,49 @@
 
 #include "NUClear/NUClear.h"
 
-
 // Anonymous namespace to keep everything file local
 namespace {
     
-    struct SimpleMessage {
+    struct TestData {
         int data;
     };
     
     class TestReactor : public NUClear::Reactor {
     public:
+        
         TestReactor(NUClear::PowerPlant& plant) : Reactor(plant) {
-            
-            on<Trigger<SimpleMessage>>([this](SimpleMessage& message) {
+            // Trigger every 10 milliseconds
+            on<Trigger<Last<5, TestData>>>([this](const std::vector<std::shared_ptr<const TestData>>& data) {
                 
-                // The message we recieved should have test == 10
-                REQUIRE(message.data == 10);
+                // Check that we have the same number of elements as our first data or 5 elements
+                REQUIRE(data.size() == std::min(5, data.front()->data));
                 
-                // We are finished the test
-                this->powerPlant.shutdown();
+                for (unsigned i = 1; i < data.size(); ++i) {
+                    // Check that the value is correct
+                    REQUIRE(data[i - 1]->data == data[i]->data + 1);
+                }
+                
+                // We will continue until we have done 10 elements
+                if (data.front()->data < 10) {
+                    emit(new TestData{data.front()->data + 1});
+                }
+                else {
+                    // We are finished the test
+                    this->powerPlant.shutdown();
+                }
             });
         }
     };
 }
 
-TEST_CASE("A very basic test for Emit and On", "[api]") {
+TEST_CASE("Testing the Last<> Smart Type", "[api][last]") {
     
     NUClear::PowerPlant::Configuration config;
     config.threadCount = 1;
     NUClear::PowerPlant plant(config);
     plant.install<TestReactor>();
     
-    plant.emit(new SimpleMessage{10});
-    
-    plant.start();
-}
-
-namespace {
-    
-    struct DifferentOrderingMessage1 {};
-    struct DifferentOrderingMessage2 {};
-    struct DifferentOrderingMessage3 {};
-    
-    class DifferentOrderingReactor : public NUClear::Reactor {
-    public:
-        DifferentOrderingReactor(NUClear::PowerPlant& plant) : Reactor(plant) {
-            // Check that the lists are combined, and that the function args are in order
-            on<With<DifferentOrderingMessage1>, Trigger<DifferentOrderingMessage3>, With<DifferentOrderingMessage2>>
-            ([this](const DifferentOrderingMessage1& m1, const DifferentOrderingMessage3& m2, const DifferentOrderingMessage2& m3) {
-                this->powerPlant.shutdown();
-            });
-        }
-    };
-}
-
-TEST_CASE("Testing poorly ordered on arguments", "[api]") {
-    
-    NUClear::PowerPlant::Configuration config;
-    config.threadCount = 1;
-    NUClear::PowerPlant plant(config);
-    plant.install<DifferentOrderingReactor>();
-    
-    plant.emit(new DifferentOrderingMessage1);
-    plant.emit(new DifferentOrderingMessage2);
-    plant.emit(new DifferentOrderingMessage3);
+    plant.emit(new TestData{1});
     
     plant.start();
 }

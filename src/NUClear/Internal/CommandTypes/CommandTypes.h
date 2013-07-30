@@ -18,7 +18,12 @@
 #ifndef NUCLEAR_INTERNAL_COMMANDTYPES_COMMANDTYPES_H
 #define NUCLEAR_INTERNAL_COMMANDTYPES_COMMANDTYPES_H
 
+#include <string>
+#include "NUClear/Internal/Reaction.h"
+
 namespace NUClear {
+    
+    typedef std::chrono::high_resolution_clock clock;
     
     /**
      * @ingroup Options
@@ -36,6 +41,10 @@ namespace NUClear {
     };
     
     namespace Internal {
+        
+        // Forward declare SyncQueue
+        struct SyncQueue;
+        
         namespace CommandTypes {
             
             /**
@@ -71,6 +80,20 @@ namespace NUClear {
              */
             
             /**
+             * @brief This enum is used to modify in what way a packet is sent, either Local, Network or both
+             *
+             * @details
+             *  When using the emit function, these options can be added in order to specify where the packet is to be
+             *  sent. If nothing or LOCAL is specified, then it will only be send within this powerplant. If NETWORK is
+             *  specified, then the data will be sent to other powerplants but not this one, if both LOCAL and NETWORK
+             *  are chosen, then the event will propagate to both the network and local powerplants.
+             */
+            struct Scope {
+                struct LOCAL;
+                struct NETWORK;
+            };
+            
+            /**
              * @ingroup Wrappers
              * @brief This is a special base class for types which use a second pass to collect their data
              *
@@ -78,7 +101,7 @@ namespace NUClear {
              *  Other placeholders extend from this class type to mean that their data is collected during the second
              *  pass of collecting data.
              */
-            class Fill {};
+            struct FillType {};
             
             /**
              * @ingroup Wrappers
@@ -92,7 +115,7 @@ namespace NUClear {
              * @tparam TTriggers the datatypes to trigger a callback on
              */
             template <typename... TTriggers>
-            class Trigger { Trigger() = delete; ~Trigger() = delete; };
+            struct Trigger { Trigger() = delete; ~Trigger() = delete; };
             
             /**
              * @ingroup Wrappers
@@ -106,7 +129,7 @@ namespace NUClear {
              * @tparam TWiths the datatypes to get from the cache and use in the callback.
              */
             template <typename... TWiths>
-            class With { With() = delete; ~With() = delete; };
+            struct With { With() = delete; ~With() = delete; };
             
             /**
              * @ingroup Wrappers
@@ -119,7 +142,7 @@ namespace NUClear {
              * @tparam TOptions The list of options that to be used in the callback
              */
             template <typename... TOptions>
-            class Options { Options() = delete; ~Options() = delete; };
+            struct Options { Options() = delete; ~Options() = delete; };
             
             /**
              * @ingroup Options
@@ -139,7 +162,7 @@ namespace NUClear {
              * @tparam P the priority to run the task at (LOW DEFAULT HIGH and REALTIME)
              */
             template <enum EPriority P>
-            class Priority { Priority() = delete; ~Priority() = delete; };
+            struct Priority { Priority() = delete; ~Priority() = delete; };
             
             /**
              * @ingroup Options
@@ -153,7 +176,14 @@ namespace NUClear {
              * @tparam TSync the type with which to synchronize on
              */
             template <typename TSync>
-            class Sync { Sync() = delete; ~Sync() = delete; };
+            struct Sync {
+                friend class Reaction;
+                
+                Sync() = delete;
+                ~Sync() = delete;
+                private:
+                static const std::shared_ptr<Internal::SyncQueue> queue;
+            };
             
             /**
              * @ingroup Options
@@ -164,7 +194,13 @@ namespace NUClear {
              *  in the system at any one time. If the task is triggered again while an existing task is either in the
              *  queue or is still executing, then this new task will be ignored.
              */
-            class Single { Single() = delete; ~Single() = delete; };
+            struct Single { Single() = delete; ~Single() = delete; };
+            
+            // TODO document
+            struct Initialize {};
+            
+            // TODO document
+            struct Shutdown {};
             
             /**
              * @ingroup SmartTypes
@@ -178,18 +214,17 @@ namespace NUClear {
              *  correct timing to be called.
              *
              * @attention Note that the period which is used to measure the ticks in must be equal to or greater then
-             *  std::chrono::steady_clock::duration or the program will not compile
+             *  clock::duration or the program will not compile
              *
              * @tparam ticks the number of ticks of a paticular type to wait
              * @tparam period a type of duration (e.g. std::chrono::seconds) to measure the ticks in, Defaults to Milliseconds
              *
-             * @return Returns the time the every was emitted as an std::chrono::time_point<std::chrono::steady_clock>
+             * @return Returns the time the every was emitted as an clock::time_point
              */
             template <int ticks, class period = std::chrono::milliseconds>
-            class Every {
-                public:
-                    Every(std::chrono::time_point<std::chrono::steady_clock> time) : m_time(time) {}
-                    const std::chrono::time_point<std::chrono::steady_clock> m_time;
+            struct Every {
+                Every(clock::time_point time) : m_time(time) {}
+                const clock::time_point m_time;
             };
             
             /**
@@ -207,7 +242,26 @@ namespace NUClear {
              * @return  Returns a vector of shared_ptr with the signature std::vector<std::shared_ptr<TData>>
              */
             template <int n, typename TData>
-            class Last { Last() = delete; ~Last() = delete; };
+            struct Last { Last() = delete; ~Last() = delete; };
+            
+            /**
+             * @ingroup SmartTypes
+             * @brief This is a special type which is used to get data that is sent over the network from other NUClear
+             *  instances
+             *
+             * @details
+             *  This class is used to get a paticular datatype from the network. Once this object is collected the
+             *  original data and the sender can be accessed from this object.
+             *
+             * @tparam TType    The datatype of the networked data to get
+             *
+             * @return Returns an object of type Network<TType> which contains a sender and the data
+             */
+            template <typename TType>
+            struct Network {
+                const std::string sender;
+                const std::shared_ptr<const TType> data;
+            };
             
             /**
              * @ingroup SmartTypes
@@ -224,7 +278,7 @@ namespace NUClear {
              * @return  Returns a vector of shared_ptr with the signature std::vector<std::shared_ptr<TData>>
              */
             template <typename TData, int index = 0>
-            class Linked : public Fill { public: Linked() {}; ~Linked() {}; };
+            struct Linked : public FillType { public: Linked() {}; ~Linked() {}; };
         }
     }
 }

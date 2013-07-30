@@ -19,70 +19,59 @@
 
 #include "NUClear/NUClear.h"
 
-
 // Anonymous namespace to keep everything file local
 namespace {
-    
     struct SimpleMessage {
+        int data;
+    };
+    
+    struct LinkMe {
         int data;
     };
     
     class TestReactor : public NUClear::Reactor {
     public:
+        
         TestReactor(NUClear::PowerPlant& plant) : Reactor(plant) {
-            
             on<Trigger<SimpleMessage>>([this](SimpleMessage& message) {
                 
-                // The message we recieved should have test == 10
-                REQUIRE(message.data == 10);
+                // We check that it's 10 so we don't keep doing this forever
+                if(message.data == 10) {
+                    
+                    // Emit another message of this type with a different value (20)
+                    emit(new SimpleMessage{20});
+                    
+                    // Emit our event that will be linked from
+                    emit(new LinkMe{30});
+                }
+            });
+            
+            
+            // This checks the linked case, the m should be 10 as we are using the linked event
+            on<Trigger<LinkMe>, With<Linked<SimpleMessage>>>([this](LinkMe& l, SimpleMessage& m) {
+                REQUIRE(m.data == 10);
+            });
+            
+            // This checks the normal case, the m should be 20 as we are using the globally cached event
+            on<Trigger<LinkMe>, With<SimpleMessage>>([this](LinkMe& l, SimpleMessage& m) {
+                REQUIRE(m.data == 20);
                 
-                // We are finished the test
-                this->powerPlant.shutdown();
+                // This is bad but I know that this event will fire second, so I shutdown on this one
+                powerPlant.shutdown();
             });
         }
     };
 }
 
-TEST_CASE("A very basic test for Emit and On", "[api]") {
+TEST_CASE("Testing the Linked<> smart type", "[api][linked]") {
     
     NUClear::PowerPlant::Configuration config;
     config.threadCount = 1;
     NUClear::PowerPlant plant(config);
     plant.install<TestReactor>();
     
+    // I emit the value 10 to get everything started
     plant.emit(new SimpleMessage{10});
-    
-    plant.start();
-}
-
-namespace {
-    
-    struct DifferentOrderingMessage1 {};
-    struct DifferentOrderingMessage2 {};
-    struct DifferentOrderingMessage3 {};
-    
-    class DifferentOrderingReactor : public NUClear::Reactor {
-    public:
-        DifferentOrderingReactor(NUClear::PowerPlant& plant) : Reactor(plant) {
-            // Check that the lists are combined, and that the function args are in order
-            on<With<DifferentOrderingMessage1>, Trigger<DifferentOrderingMessage3>, With<DifferentOrderingMessage2>>
-            ([this](const DifferentOrderingMessage1& m1, const DifferentOrderingMessage3& m2, const DifferentOrderingMessage2& m3) {
-                this->powerPlant.shutdown();
-            });
-        }
-    };
-}
-
-TEST_CASE("Testing poorly ordered on arguments", "[api]") {
-    
-    NUClear::PowerPlant::Configuration config;
-    config.threadCount = 1;
-    NUClear::PowerPlant plant(config);
-    plant.install<DifferentOrderingReactor>();
-    
-    plant.emit(new DifferentOrderingMessage1);
-    plant.emit(new DifferentOrderingMessage2);
-    plant.emit(new DifferentOrderingMessage3);
     
     plant.start();
 }

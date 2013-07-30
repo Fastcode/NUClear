@@ -125,9 +125,7 @@ namespace Magic {
              * @param num the minimum number of previous elements to store
              */
             static void minCapacity(int num) {
-                for(;m_capacity < num; ++m_capacity) {
-                    m_data.emplace_back(nullptr);
-                }
+                m_capacity = std::max(num, m_capacity);
             }
             
             /**
@@ -136,7 +134,12 @@ namespace Magic {
              * @param data a pointer to the data to store (the map takes ownership of it)
              */
             static void set(TValue* data) {
-                m_data.pop_back();
+                // If we are full then remove our last element
+                if(m_data.size() == m_capacity) {\
+                    m_data.pop_back();
+                }
+                
+                // Push onto our front
                 m_data.push_front(std::shared_ptr<TValue>(data));
             }
             
@@ -146,7 +149,12 @@ namespace Magic {
              * @param a shared pointer to cache
              */
             static void set(std::shared_ptr<TValue> data) {
-                m_data.pop_back();
+                // If we are full then remove our last element
+                if(m_data.size() >= m_capacity) {
+                    m_data.pop_back();
+                }
+                
+                // Push onto our front
                 m_data.push_front(data);
             }
         
@@ -174,7 +182,9 @@ namespace Magic {
              * @attention make sure that minCapacity has been called with at least this length or a segfault will occur
              */
             static std::shared_ptr<std::vector<std::shared_ptr<const TValue>>> get(int length) {
-                return std::shared_ptr<std::vector<std::shared_ptr<const TValue>>>(new std::vector<std::shared_ptr<const TValue>>(std::begin(m_data), std::begin(m_data) + length));
+                auto* ret = new std::vector<std::shared_ptr<const TValue>>(std::begin(m_data),
+                                                                           std::begin(m_data) + std::min(static_cast<int>(m_data.size()), length));
+                return std::shared_ptr<std::vector<std::shared_ptr<const TValue>>>(ret);
             };
     };
     
@@ -235,7 +245,7 @@ namespace Magic {
     
     //Initialize the deque object of a QUEUE map
     template <typename TMapID, typename TKey, typename TValue>
-    std::deque<std::shared_ptr<TValue>> TypeBuffer<TMapID, TKey, TValue>::m_data = std::deque<std::shared_ptr<TValue>>(1);
+    std::deque<std::shared_ptr<TValue>> TypeBuffer<TMapID, TKey, TValue>::m_data = std::deque<std::shared_ptr<TValue>>();
     
     //Initialize the vector of a LIST map
     template <typename TMapID, typename TKey, typename TValue>

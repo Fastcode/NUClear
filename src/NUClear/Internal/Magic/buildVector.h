@@ -30,7 +30,7 @@ namespace Magic {
     namespace {
         
         /**
-         * @todo Document
+         * @brief This is the sequence expansion that performs the operation
          */
         template<int... S, typename... TArgs>
         std::vector<std::pair<std::type_index, std::shared_ptr<void>>> buildVector(Sequence<S...> s, std::tuple<TArgs...> args) {
@@ -41,11 +41,19 @@ namespace Magic {
     }
     
     /**
-     * @todo Document
+     * @todo This method will convert an std::tuple into a std::vector<std::pair<type_index, std::shared_ptr<void>>>
+     *
+     * @details
+     *  This function takes an std::tuple and for each of the elements within it (which are assumed to be shared_ptrs)
+     *  it will make a pair of type_id for the shared_ptr type it is carrying as well as storing the argument itself.
+     *
+     * @tparam TArgs the types of the arguments
+     *
+     * @param args the arguments that are being used
      */
     template<typename... TArgs>
     std::vector<std::pair<std::type_index, std::shared_ptr<void>>> buildVector(std::tuple<TArgs...> args) {
-        return buildVector(typename GenerateSequence<sizeof...(TArgs)>::type(), args);
+        return buildVector(GenerateSequence<sizeof...(TArgs)>(), args);
     }
 }
 }

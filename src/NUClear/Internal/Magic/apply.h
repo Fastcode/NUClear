@@ -30,41 +30,6 @@ namespace Magic {
     namespace {
         
         /**
-         * @brief
-         *
-         * @todo Document
-         */
-        template <bool Dereference>
-        struct dereference;
-        
-        /**
-         * @brief
-         *
-         * @todo Document
-         */
-        template <>
-        struct dereference<true> {
-            template <typename TType>
-            static constexpr auto get(TType data) -> decltype(*data) {
-                return *data;
-            }
-        };
-        
-        /**
-         * @brief
-         *
-         * @todo Document
-         */
-        template <>
-        struct dereference<false> {
-            
-            template <typename TType>
-            static constexpr const TType get(TType data) {
-                return data;
-            }
-        };
-        
-        /**
          * @brief Dereferences and uses the values from the tuple as the arguments for the function call.
          *
          * @details
@@ -77,11 +42,11 @@ namespace Magic {
          * @tparam S the integer pack giving the ordinal position of the tuple value to get
          */
         template<typename TFunc, int... S, typename... TArgs>
-        void apply(TFunc function, Sequence<S...> s, std::tuple<TArgs...> args) {
+        void apply(TFunc function, Sequence<S...> s, const std::tuple<TArgs...>& args) {
             
             // Get each of the values from the tuple, dereference them and call the function with them
-            
-            function(dereference<Dereferenceable<decltype(std::get<S>(args))>() == true>::get((std::get<S>(args)))...);
+            // Also ensure that each value is a const reference
+            function(Dereferenceable<TArgs>::dereference(std::get<S>(args))...);
         }
     }
     
@@ -89,8 +54,8 @@ namespace Magic {
      * @brief Applies all of the values in the tuple to the function and executes it.
      */
     template<typename TFunc, typename... TArgs>
-    void apply(TFunc function, std::tuple<TArgs...> args) {
-        apply(function, typename GenerateSequence<sizeof...(TArgs)>::type(), args);
+    void apply(TFunc function, const std::tuple<TArgs...>& args) {
+        apply(function, GenerateSequence<sizeof...(TArgs)>(), args);
     }
 }
 }
