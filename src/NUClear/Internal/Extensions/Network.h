@@ -18,7 +18,7 @@
 #ifndef NUCLEAR_INTERNAL_EXTENSIONS_NETWORK_H
 #define NUCLEAR_INTERNAL_EXTENSIONS_NETWORK_H
 
-#include "NUClear/NUClear.h"
+#include "NUClear.h"
 
 
 namespace NUClear {

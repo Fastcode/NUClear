@@ -18,7 +18,7 @@
 #ifndef NUCLEAR_INTERNAL_EXTENSIONS_LINKED_H
 #define NUCLEAR_INTERNAL_EXTENSIONS_LINKED_H
 
-#include "NUClear/NUClear.h"
+#include "NUClear.h"
 
 
 namespace NUClear {

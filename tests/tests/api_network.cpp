@@ -17,7 +17,7 @@
 
 #include <catch.hpp>
 
-#include "NUClear/NUClear.h"
+#include "NUClear.h"
 
 // Anonymous namespace to keep everything file local
 namespace {

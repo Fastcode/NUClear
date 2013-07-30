@@ -18,8 +18,8 @@
 #ifndef NUCLEAR_NUCLEAR_H
 #define NUCLEAR_NUCLEAR_H
 
-#include "PowerPlant.h"
-#include "Reactor.h"
+#include "NUClear/PowerPlant.h"
+#include "NUClear/Reactor.h"
 
 /**
  * @namespace NUClear

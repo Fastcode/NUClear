@@ -18,7 +18,7 @@
 #ifndef NUCLEAR_INTERNAL_EXTENSIONS_LAST_H
 #define NUCLEAR_INTERNAL_EXTENSIONS_LAST_H
 
-#include "NUClear/NUClear.h"
+#include "NUClear.h"
 
 namespace NUClear {
     template <int num, typename TData>
