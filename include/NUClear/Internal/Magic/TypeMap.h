@@ -114,7 +114,7 @@ namespace Magic {
             /// @brief Deleted destructor as this class is a static class
             ~TypeBuffer() = delete;
             /// @brief the number of previous elements that we store
-            static int m_capacity;
+            static size_t m_capacity;
             /// @brief the queue where we store mapped elements
             static std::deque<std::shared_ptr<TValue>> m_data;
             
@@ -124,7 +124,7 @@ namespace Magic {
              *
              * @param num the minimum number of previous elements to store
              */
-            static void minCapacity(int num) {
+            static void minCapacity(size_t num) {
                 m_capacity = std::max(num, m_capacity);
             }
             
@@ -241,7 +241,7 @@ namespace Magic {
     
     //Initialize the capacity of a QUEUE map
     template <typename TMapID, typename TKey, typename TValue>
-    int TypeBuffer<TMapID, TKey, TValue>::m_capacity = 1;
+    size_t TypeBuffer<TMapID, TKey, TValue>::m_capacity = 1;
     
     //Initialize the deque object of a QUEUE map
     template <typename TMapID, typename TKey, typename TValue>
