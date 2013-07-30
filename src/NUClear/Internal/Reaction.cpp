@@ -24,7 +24,7 @@ namespace Internal {
     std::atomic<uint64_t> Reaction::Task::taskIdSource(0);
     
     
-    Reaction::Reaction(std::string name, std::function<std::function<void ()> ()> callback, Reaction::Options options) :
+    Reaction::Reaction(std::string name, std::function<std::function<void (Reaction::Task&)> ()> callback, Reaction::Options options) :
     m_name(name),
     m_options(options),
     m_reactionId(++reactionIdSource),
@@ -32,21 +32,21 @@ namespace Internal {
     m_callback(callback) {
     }
     
-    std::unique_ptr<Reaction::Task> Reaction::getTask() {
+    std::unique_ptr<Reaction::Task> Reaction::getTask(const Task* cause) {
         // Build a new data bound task using our callback generator
-        return std::unique_ptr<Reaction::Task>(new Reaction::Task(this, m_callback()));
+        return std::unique_ptr<Reaction::Task>(new Reaction::Task(this, cause, m_callback()));
     }
     
-    Reaction::Task::Task(Reaction* parent, std::function<void ()> callback) :
+    Reaction::Task::Task(Reaction* parent, const Task* cause, std::function<void (Task&)> callback) :
     m_callback(callback),
     m_parent(parent),
     m_taskId(++taskIdSource),
-    m_stats(new NUClearTaskEvent{parent->m_name, parent->m_reactionId, m_taskId, clock::now()}) {
+    m_stats(new NUClearTaskEvent{parent->m_name, parent->m_reactionId, m_taskId, cause ? cause->m_parent->m_reactionId : -1, cause ? cause->m_taskId : -1, clock::now()}) {
     }
     
     void Reaction::Task::operator()() {
         // Call our callback
-        m_callback();
+        m_callback(*this);
     }
 }
 }

@@ -17,15 +17,7 @@
 
 namespace NUClear {
     
-    // TODO enhance fill so that it only runs on the FillTypes
-    // TODO enhance fill so that it will repeatedly run until all fill types are filled
-    // TODO build the function signature deducer
-    //          run get on everything and pass it into another one along with the NeedsFill status
-    //          run Fill on everything until NeedsFill is false
-    //          Get the final type by making it a const reference
-    
     /* Meta functions */
-    
     template <typename... TTypes>
     struct NeedsFill : std::false_type {};
     
@@ -214,17 +206,19 @@ namespace NUClear {
     
     struct Reactor::FillCallback {
         template <typename TFunc, typename... TData>
-        static const std::function<void ()> buildCallback(Reactor* parent, TFunc callback, std::tuple<TData...> data) {
-            return [parent, callback, data] {
+        static const std::function<void (Internal::Reaction::Task&)> buildCallback(Reactor* parent, TFunc callback, std::tuple<TData...> data) {
+            return [parent, callback, data](Internal::Reaction::Task& task) {
                 
                 // Perform our second pass over the data
                 auto&& newData = parent->powerPlant.cachemaster.fill(data);
                 
-                // TODO do a static assert that TFunc can take arguments of type decltype(newData)
-                
-                parent->powerPlant.cachemaster.setThreadArgs(std::this_thread::get_id(), std::move(Internal::Magic::buildVector(newData)));
+                // Store our arguments
+                task.m_args = Internal::Magic::buildVector(newData);
+                parent->powerPlant.cachemaster.setCurrentTask(std::this_thread::get_id(), &task);
                 
                 Internal::Magic::apply(callback, std::move(newData));
+                
+                parent->powerPlant.cachemaster.setCurrentTask(std::this_thread::get_id(), nullptr);
             };
         }
     };
@@ -232,14 +226,15 @@ namespace NUClear {
     struct Reactor::BasicCallback {
         
         template <typename TFunc, typename... TData>
-        static const std::function<void ()> buildCallback(Reactor* parent, TFunc callback, std::tuple<TData...> data) {
-            return [parent, callback, data] {
+        static const std::function<void (Internal::Reaction::Task&)> buildCallback(Reactor* parent, TFunc callback, std::tuple<TData...> data) {
+            return [parent, callback, data] (Internal::Reaction::Task& task) {
                 
-                // TODO do a static assert that TFunc can take arguments of type decltype(data)
+                task.m_args = Internal::Magic::buildVector(data);
+                parent->powerPlant.cachemaster.setCurrentTask(std::this_thread::get_id(), &task);
                 
-                parent->powerPlant.cachemaster.setThreadArgs(std::this_thread::get_id(), std::move(Internal::Magic::buildVector(data)));
+                Internal::Magic::apply(callback, data);
                 
-                Internal::Magic::apply(callback, std::move(data));
+                parent->powerPlant.cachemaster.setCurrentTask(std::this_thread::get_id(), nullptr);
             };
         }
     };
@@ -248,7 +243,7 @@ namespace NUClear {
     Internal::Reaction* Reactor::buildReaction(TFunc callback, Internal::Reaction::Options& options) {
         
         // Return a reaction object that gets and runs with the correct paramters
-        return new Internal::Reaction(typeid(TFunc).name(), [this, callback]() -> std::function<void ()> {
+        return new Internal::Reaction(typeid(TFunc).name(), [this, callback]() -> std::function<void (Internal::Reaction::Task&)> {
             
             auto&& data = std::make_tuple(powerPlant.cachemaster.get<TTriggersAndWiths>()...);
             

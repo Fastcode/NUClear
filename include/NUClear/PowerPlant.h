@@ -231,7 +231,7 @@ namespace NUClear {
                     std::map<void*, std::vector<std::pair<std::type_index, std::shared_ptr<void>>>> m_linkedCache;
                 
                     /// @brief This map stores the thread arguments when a function is called so that on an emit they can be retrieved.
-                    std::unordered_map<std::thread::id, std::vector<std::pair<std::type_index, std::shared_ptr<void>>>> m_threadArgs;
+                    std::unordered_map<std::thread::id, const Internal::Reaction::Task*> m_threadArgs;
                 
                 public:
                     /// @brief Construct a new CacheMaster with our PowerPlant as context
@@ -302,7 +302,7 @@ namespace NUClear {
                     auto get() -> decltype(Get<TData>::get(m_parent)) {
                         return Get<TData>::get(m_parent);
                     }
-                    
+                
                     /**
                      * @brief TODO
                      *
@@ -313,7 +313,7 @@ namespace NUClear {
                      *
                      * @return TODO
                      */
-                    std::vector<std::pair<std::type_index, std::shared_ptr<void>>> getThreadArgs(std::thread::id threadId);
+                    const Internal::Reaction::Task* getCurrentTask(std::thread::id threadId);
                     
                     /**
                      * @brief TODO
@@ -322,10 +322,10 @@ namespace NUClear {
                      *  TODO
                      *
                      * @param threadId  TODO
-                     * @param args      TODO
+                     * @param task      TODO
                      */
-                    void setThreadArgs(std::thread::id threadId, std::vector<std::pair<std::type_index, std::shared_ptr<void>>>&& args);
-                    
+                    void setCurrentTask(std::thread::id threadId, const Internal::Reaction::Task* task);
+                
                     /**
                      * @brief TODO
                      *

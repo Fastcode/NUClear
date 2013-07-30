@@ -36,6 +36,8 @@ namespace NUClear {
         std::string name;
         std::uint64_t reactionId;
         std::uint64_t taskId;
+        std::uint64_t causeReactionId;
+        std::uint64_t causeTaskId;
         clock::time_point emitted;
         clock::time_point started;
         clock::time_point finished;
@@ -116,9 +118,10 @@ namespace Internal {
                      * @brief Creates a new ReactionTask object bound with the parent Reaction object (that created it) and task.
                      *
                      * @param parent    the Reaction object that spawned this ReactionTask
+                     * @param cause     the task that caused this task to run
                      * @param task      the data bound callback to be executed in the threadpool
                      */
-                    Task(Reaction* parent, std::function<void ()> task);
+                    Task(Reaction* parent, const Task* cause, std::function<void (Task&)> task);
                     
                     /**
                      * @brief Runs the internal data bound task and times it.
@@ -128,12 +131,14 @@ namespace Internal {
                      *  used in a debugging context to calculate how long callbacks are taking to run.
                      */
                     void operator()();
-                    
+                
+                    /// @brief the arguments that are used to call this task
+                    std::vector<std::pair<std::type_index, std::shared_ptr<void>>> m_args;
                     /// @brief the data bound callback to be executed
-                    std::function<void ()> m_callback;
+                    std::function<void (Task&)> m_callback;
                     /// @brief the parent Reaction object which spawned this
                     Reaction* m_parent;
-                    // TODO document
+                    /// @brief the taskId of this task (the sequence number of this paticular task)
                     reactionId_t m_taskId;
                     /// @brief the statistics object that persists after this for information and debugging
                     std::shared_ptr<NUClearTaskEvent> m_stats;
@@ -147,14 +152,16 @@ namespace Internal {
              * @param callback  the callback generator function (creates databound callbacks)
              * @param options   the options to use in Tasks
              */
-            Reaction(std::string name, std::function<std::function<void ()> ()> callback, Reaction::Options options);
+            Reaction(std::string name, std::function<std::function<void (Task&)> ()> callback, Reaction::Options options);
         
             /**
              * @brief creates a new databound callback task that can be executed.
              *
+             * @param cause the task that caused this task to run (or nullptr if did not have a parent)
+             *
              * @return a unique_ptr to a Task which has the data for it's call bound into it
              */
-            std::unique_ptr<Task> getTask();
+            std::unique_ptr<Task> getTask(const Task* cause);
             ///
             const std::string m_name;
             /// @brief the options for this Reaction (decides how Tasks will be scheduled)
@@ -167,7 +174,7 @@ namespace Internal {
             /// @brief a source for reactionIds, atomically creates longs
             static std::atomic<std::uint64_t> reactionIdSource;
             /// @brief the callback generator function (creates databound callbacks)
-            std::function<std::function<void ()> ()> m_callback;
+            std::function<std::function<void (Task&)> ()> m_callback;
     };
     
     // TODO document

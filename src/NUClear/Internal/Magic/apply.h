@@ -42,7 +42,7 @@ namespace Magic {
          * @tparam S the integer pack giving the ordinal position of the tuple value to get
          */
         template<typename TFunc, int... S, typename... TArgs>
-        void apply(TFunc function, Sequence<S...> s, std::tuple<TArgs...> args) {
+        void apply(TFunc function, Sequence<S...> s, const std::tuple<TArgs...>& args) {
             
             // Get each of the values from the tuple, dereference them and call the function with them
             // Also ensure that each value is a const reference
@@ -54,7 +54,7 @@ namespace Magic {
      * @brief Applies all of the values in the tuple to the function and executes it.
      */
     template<typename TFunc, typename... TArgs>
-    void apply(TFunc function, std::tuple<TArgs...> args) {
+    void apply(TFunc function, const std::tuple<TArgs...>& args) {
         apply(function, GenerateSequence<sizeof...(TArgs)>(), args);
     }
 }

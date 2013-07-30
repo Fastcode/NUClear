@@ -75,7 +75,10 @@ namespace Internal {
                     }
                 }
                 
-                //TODO pass off the completed task to another class for processing of details
+                // Copy our thread args into the stats
+                stats->args = task->m_args;
+                
+                //TODO pass off the completed task to another class for processing of details (note that you can't emit it, as it would cause stats for the stats etc inifinity)
             }
         }
         // If this is thrown, it means that we should finish execution

@@ -19,7 +19,6 @@
 
 #include "NUClear/NUClear.h"
 
-
 // Anonymous namespace to keep everything file local
 namespace {
     struct SimpleMessage {

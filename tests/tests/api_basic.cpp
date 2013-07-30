@@ -30,6 +30,7 @@ namespace {
     class TestReactor : public NUClear::Reactor {
     public:
         TestReactor(NUClear::PowerPlant& plant) : Reactor(plant) {
+            
             on<Trigger<SimpleMessage>>([this](SimpleMessage& message) {
                 
                 // The message we recieved should have test == 10

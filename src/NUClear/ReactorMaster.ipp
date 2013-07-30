@@ -30,22 +30,25 @@ namespace NUClear {
         m_reactors.push_back(std::move(reactor));
     }
 
-    template <typename TTrigger>
-    void PowerPlant::ReactorMaster::emit(TTrigger* data) {
+    template <typename TData>
+    void PowerPlant::ReactorMaster::emit(TData* data) {
         
         // Get our current arguments (if we have any)
-        auto args = m_parent->cachemaster.getThreadArgs(std::this_thread::get_id());
+        auto task = m_parent->cachemaster.getCurrentTask(std::this_thread::get_id());
         
         // Cache them in our linked cache
-        if(!args.empty()) {
-            m_parent->cachemaster.linkCache(data, args);
+        if(task) {
+            m_parent->cachemaster.linkCache(data, task->m_args);
         }
         
-        m_parent->cachemaster.cache<TTrigger>(data);
+        // Cache our data
+        m_parent->cachemaster.cache<TData>(data);
         
-        for(auto& reaction : CallbackCache<TTrigger>::get()) {
+        // Trigger all our reactions
+        for(auto& reaction : CallbackCache<TData>::get()) {
             try {
-                m_parent->threadmaster.submit(reaction->getTask());
+                // TODO only run if the reaction is enabled
+                m_parent->threadmaster.submit(reaction->getTask(task));
             }
             // If there is no data, then ignore the task
             catch (Internal::Magic::NoDataException) {}
