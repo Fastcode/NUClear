@@ -50,7 +50,7 @@ SOURCE_GROUP(NUClear\\Internal\\Magic           FILES ${src_internal_magic})
 SOURCE_GROUP(NUClear\\Internal\\CommandTypes    FILES ${src_internal_commandtypes})
 SOURCE_GROUP(NUClear\\Internal\\Extensions      FILES ${src_internal_extensions})
 
-ADD_LIBRARY(nuclear SHARED
+ADD_LIBRARY(nuclear STATIC
     ${include_public} 
     ${src} 
     ${src_networking}
@@ -63,4 +63,4 @@ ADD_LIBRARY(nuclear SHARED
     
 TARGET_LINK_LIBRARIES(nuclear ${ZMQ_LIBRARIES} ${PROTOBUF_LIBRARIES})
     
-INSTALL(TARGETS nuclear LIBRARY DESTINATION lib)
+INSTALL(TARGETS nuclear ARCHIVE DESTINATION lib)
