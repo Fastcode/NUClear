@@ -43,14 +43,14 @@ FILE(GLOB include_public
     "${PROJECT_SOURCE_DIR}/include/NUClear/*.cpp"
     "${PROJECT_SOURCE_DIR}/include/NUClear/*.ipp")
 
-source_group(NUClear FILES ${src} ${include_public})
-source_group(NUClear\\Networking FILES ${src_networking} ${proto_src} ${proto_h})
-source_group(NUClear\\Internal FILES ${src_internal})
-source_group(NUClear\\Internal\\Magic FILES ${src_internal_magic})
-source_group(NUClear\\Internal\\CommandTypes FILES ${src_internal_commandtypes})
-source_group(NUClear\\Internal\\Extensions FILES ${src_internal_extensions})
+SOURCE_GROUP(NUClear                            FILES ${src} ${include_public})
+SOURCE_GROUP(NUClear\\Networking                FILES ${src_networking} ${proto_src} ${proto_h})
+SOURCE_GROUP(NUClear\\Internal                  FILES ${src_internal})
+SOURCE_GROUP(NUClear\\Internal\\Magic           FILES ${src_internal_magic})
+SOURCE_GROUP(NUClear\\Internal\\CommandTypes    FILES ${src_internal_commandtypes})
+SOURCE_GROUP(NUClear\\Internal\\Extensions      FILES ${src_internal_extensions})
 
-add_library(nuclear 
+ADD_LIBRARY(nuclear 
     ${include_public} 
     ${src} 
     ${src_networking}

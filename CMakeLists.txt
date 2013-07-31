@@ -11,12 +11,13 @@ option(NUCLEAR_BUILD_TESTS "Builds all of the NUClear unit tests." ON)
 # We use additional modules that cmake needs to know about
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 
+# This directory contains our header files and ipp files
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)
+# Our protocol buffers are generated in this folder
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/src)
 
-# Compiler settings -- TODO: Add support for non-gcc style flags
-set(CMAKE_CXX_FLAGS "-Wall -std=c++11 -pthread")
+# Common C++ Flags
+set(CMAKE_CXX_FLAGS "-std=c++11")
 set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG")
 
@@ -24,6 +25,7 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG")
 if("${CMAKE_GENERATOR}" MATCHES "Xcode")
     message("Enabling xcode support")
     set(CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LIBRARY "libc++")
+    set(CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LANGUAGE_STANDARD "c++0x")
 endif()
 
 if("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU")
@@ -33,8 +35,12 @@ if("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU")
     if(GCC_VERSION VERSION_LESS ${GCC_MINIMUM_VERSION})
         message(FATAL_ERROR "${PROJECT_NAME} requires g++ 4.7.2 or greater.")
     endif()
+
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -Wall")
+    
 elseif("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wpedantic -stdlib=libc++")
+    
 else()
     message(fatal_error "Unsupported compiler!")
 endif()
