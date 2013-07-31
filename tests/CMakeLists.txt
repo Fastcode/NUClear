@@ -2,13 +2,13 @@ FIND_PACKAGE(CATCH)
 FIND_PACKAGE(ZMQ REQUIRED)
 FIND_PACKAGE(Protobuf REQUIRED)
 
-include_directories(${CATCH_INCLUDE_DIRS})
-include_directories(${ZMQ_INCLUDE_DIRS})
+INCLUDE_DIRECTORIES(${CATCH_INCLUDE_DIRS})
+INCLUDE_DIRECTORIES(${ZMQ_INCLUDE_DIRS})
 
 FILE(GLOB testsrc "${CMAKE_CURRENT_SOURCE_DIR}/tests/*.cpp")
 
-source_group(Tests FILES ${testsrc})
+SOURCE_GROUP(Tests FILES ${testsrc})
 
-add_executable(tests tests.cpp ${testsrc})
-target_link_libraries(tests nuclear ${ZMQ_LIBRARIES} ${PROTOBUF_LIBRARIES})
-add_test(tests tests)
+ADD_EXECUTABLE(tests tests.cpp ${testsrc})
+TARGET_LINK_LIBRARIES(tests nuclear ${ZMQ_LIBRARIES} ${PROTOBUF_LIBRARIES})
+ADD_TEST(tests tests)

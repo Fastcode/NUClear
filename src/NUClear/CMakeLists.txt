@@ -3,8 +3,8 @@ FIND_PACKAGE(Protobuf REQUIRED)
 
 PROTOBUF_GENERATE_CPP(proto_src proto_h Networking/NetworkMessage.proto)
 
-include_directories(${ZMQ_INCLUDE_DIRS})
-include_directories(${PROTOBUF_INCLUDE_DIRS})
+INCLUDE_DIRECTORIES(${ZMQ_INCLUDE_DIRS})
+INCLUDE_DIRECTORIES(${PROTOBUF_INCLUDE_DIRS})
 
 FILE(GLOB src 
     "*.cpp"
