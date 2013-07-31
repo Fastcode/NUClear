@@ -48,7 +48,10 @@ ENDIF()
 # Add the subdirectories
 ADD_SUBDIRECTORY(src/NUClear)
 
-
+# Install NUClear.h
+INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/include/NUClear.h DESTINATION include)
+# Install the headers and templates that NUClear.h depends on
+INSTALL(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/NUClear DESTINATION include PATTERN "*.h" PATTERN "*.ipp")
 
 # Optional build supports
 if(NUCLEAR_BUILD_TESTS)
