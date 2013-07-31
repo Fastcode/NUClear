@@ -50,6 +50,8 @@ ADD_SUBDIRECTORY(src/NUClear)
 
 # Install NUClear.h
 INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/include/NUClear.h DESTINATION include)
+# Install the protocol buffer header (since it likes to hide away)
+INSTALL(FILES ${CMAKE_CURRENT_BINARY_DIR}/src/NUClear/NetworkMessage.pb.h DESTINATION include/NUClear)
 # Install the headers and templates that NUClear.h depends on
 INSTALL(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/NUClear DESTINATION include PATTERN "*.h" PATTERN "*.ipp")
 
