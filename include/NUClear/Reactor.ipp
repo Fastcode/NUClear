@@ -137,7 +137,7 @@ namespace NUClear {
     
     template <typename TFunc, typename... TTypes>
     struct Reactor::CheckFunctionSignature<TFunc, std::tuple<TTypes...>, 3> :
-    public Reactor::CheckFunctionSignature<TFunc, std::tuple<Meta::AddConst<TTypes>...>, 4> {};
+    public Reactor::CheckFunctionSignature<TFunc, std::tuple<Meta::AddConst<Meta::RemoveRef<TTypes>>...>, 4> {};
     
     template <typename TFunc, typename... TTypes>
     struct Reactor::CheckFunctionSignature<TFunc, std::tuple<TTypes...>, 4> :

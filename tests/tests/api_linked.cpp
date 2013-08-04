@@ -33,7 +33,7 @@ namespace {
     public:
         
         TestReactor(NUClear::PowerPlant& plant) : Reactor(plant) {
-            on<Trigger<SimpleMessage>>([this](SimpleMessage& message) {
+            on<Trigger<SimpleMessage>>([this](const SimpleMessage& message) {
                 
                 // We check that it's 10 so we don't keep doing this forever
                 if(message.data == 10) {
@@ -48,12 +48,12 @@ namespace {
             
             
             // This checks the linked case, the m should be 10 as we are using the linked event
-            on<Trigger<LinkMe>, With<Linked<SimpleMessage>>>([this](LinkMe& l, SimpleMessage& m) {
+            on<Trigger<LinkMe>, With<Linked<SimpleMessage>>>([this](const LinkMe& l, const SimpleMessage& m) {
                 REQUIRE(m.data == 10);
             });
             
             // This checks the normal case, the m should be 20 as we are using the globally cached event
-            on<Trigger<LinkMe>, With<SimpleMessage>>([this](LinkMe& l, SimpleMessage& m) {
+            on<Trigger<LinkMe>, With<SimpleMessage>>([this](const LinkMe& l, const SimpleMessage& m) {
                 REQUIRE(m.data == 20);
                 
                 // This is bad but I know that this event will fire second, so I shutdown on this one
