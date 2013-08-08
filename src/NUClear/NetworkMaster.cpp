@@ -108,4 +108,8 @@ namespace NUClear {
         
         return out.str();
     }
+
+    zmq::context_t& PowerPlant::NetworkMaster::getZMQContext() {
+        return m_context;
+    }
 }

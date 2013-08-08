@@ -452,7 +452,17 @@ namespace NUClear {
                      */
                     template<typename TType>
                     void addType();
-                
+
+                    /**
+                     * @brief TODO
+                     *
+                     * @details
+                     *  TODO
+                     *
+                     * @returns the zmq context in use by the system
+                     */
+                    zmq::context_t& getZMQContext();
+
                 private:
                     /**
                      * @brief TODO
@@ -581,6 +591,18 @@ namespace NUClear {
              */
             template <typename... THandlers, typename TData>
             void emit(TData* data);
+
+            /**
+             * @brief TODO
+             *
+             * @details
+             *  TODO
+             *
+             * @attention This is an advanced method for when you need your own zmq socket, only use it if you know you need it
+             *
+             * @returns the zmq context in use by the system
+             */
+            zmq::context_t& getZMQContext();
     };
 }
 

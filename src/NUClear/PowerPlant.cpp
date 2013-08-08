@@ -50,4 +50,8 @@ namespace NUClear {
         threadmaster.shutdown();
         running = false;
     }
+
+    zmq::context_t& PowerPlant::getZMQContext() {
+        return networkmaster.getZMQContext();
+    }
 }
