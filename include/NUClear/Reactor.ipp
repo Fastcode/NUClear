@@ -92,8 +92,8 @@ namespace NUClear {
         Reactor::Trigger<TTriggers...>,
         Reactor::With<TWiths...>,
         Reactor::Options<TOptions...>,
-        Reactor::Options<TNewOptions...>,
         std::tuple<TFuncArgs...>,
+        Reactor::Options<TNewOptions...>,
         TParams...> :
     public Reactor::OnBuilder<
         TFunc,
