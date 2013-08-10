@@ -27,11 +27,6 @@ namespace NUClear {
         threadArgs[threadId] = args;
     }
     
-    void PowerPlant::CacheMaster::linkCache(void* data, std::vector<std::pair<std::type_index, std::shared_ptr<void>>> args) {
-        
-        linkedCache.insert(std::make_pair(data, args));
-    }
-    
     const Internal::Reaction::Task* PowerPlant::CacheMaster::getCurrentTask(std::thread::id threadId) {
         auto task = threadArgs.find(threadId);
         

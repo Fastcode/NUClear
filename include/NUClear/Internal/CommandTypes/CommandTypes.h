@@ -277,23 +277,6 @@ namespace NUClear {
                 const std::string sender;
                 const std::shared_ptr<const TType> data;
             };
-            
-            /**
-             * @ingroup SmartTypes
-             * @brief This is a special type which is used to get an object which was used in our paramters creation.
-             *
-             * @details
-             *  This object is a special type which can get an object which was used in our parameters creation. It will
-             *  search based on the parameters of the other members of the call, and try to find one that is of the
-             *  passed type.
-             *
-             * @tparam TData    The datatype of object to get
-             * @tdata index     The index of the parameter in our call to search for the linked data
-             *
-             * @return  Returns a vector of shared_ptr with the signature std::vector<std::shared_ptr<TData>>
-             */
-            template <typename TData, int index = 0>
-            struct Linked : public FillType { public: Linked() {}; ~Linked() {}; };
         }
     }
 }

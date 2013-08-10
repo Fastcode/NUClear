@@ -36,11 +36,6 @@ namespace NUClear {
         // Get our current arguments (if we have any)
         auto task = parent->cachemaster.getCurrentTask(std::this_thread::get_id());
         
-        // Cache them in our linked cache
-        if(task) {
-            parent->cachemaster.linkCache(data, task->args);
-        }
-        
         // Cache our data
         parent->cachemaster.cache<TData>(data);
         

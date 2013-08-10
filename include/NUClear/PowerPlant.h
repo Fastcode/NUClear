@@ -85,10 +85,6 @@ namespace NUClear {
             };
         
         private:
-            
-            /// @brief This boolean is used to aid the static content in knowing if the PowerPlant still exists
-            static volatile bool running;
-        
             /**
              * @brief The base master class is used as a base for all of the other masters.
              *
@@ -227,9 +223,6 @@ namespace NUClear {
                     template <typename TData>
                     using ValueCache = Internal::Magic::TypeBuffer<CacheMaster, TData, TData>;
                 
-                    /// @brief This map contains the linked cache, it maps objects to the shared_ptrs that created them
-                    std::map<void*, std::vector<std::pair<std::type_index, std::shared_ptr<void>>>> linkedCache;
-                
                     /// @brief This map stores the thread arguments when a function is called so that on an emit they can be retrieved.
                     std::unordered_map<std::thread::id, const Internal::Reaction::Task*> threadArgs;
                 
@@ -325,17 +318,6 @@ namespace NUClear {
                      * @param task      TODO
                      */
                     void setCurrentTask(std::thread::id threadId, const Internal::Reaction::Task* task);
-                
-                    /**
-                     * @brief TODO
-                     *
-                     * @details
-                     *  TODO
-                     *
-                     * @param data TODO
-                     * @param args TODO
-                     */
-                    void linkCache(void* data, std::vector<std::pair<std::type_index, std::shared_ptr<void>>> args);
                 
                     /**
                      * @brief TODO
@@ -619,7 +601,6 @@ namespace NUClear {
 // Include our built in extensions
 #include "NUClear/Internal/Extensions/Every.h"
 #include "NUClear/Internal/Extensions/Last.h"
-#include "NUClear/Internal/Extensions/Linked.h"
 #include "NUClear/Internal/Extensions/Network.h"
 
 #endif

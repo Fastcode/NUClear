@@ -105,10 +105,6 @@ namespace NUClear {
             using Priority = Internal::CommandTypes::Priority<P>;
         
             /// @brief TODO inherit from commandtype
-            template <typename TData, int index = 0>
-            using Linked = Internal::CommandTypes::Linked<TData, index>;
-        
-            /// @brief TODO inherit from commandtype
             template <typename TData>
             using Network = Internal::CommandTypes::Network<TData>;
         

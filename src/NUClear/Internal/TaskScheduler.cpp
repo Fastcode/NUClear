@@ -19,8 +19,8 @@
 
 namespace NUClear {
 namespace Internal {
-    
-    TaskScheduler::TaskScheduler() : shutdown(false) {
+
+    TaskScheduler::TaskScheduler() : shutdown_(false) {
     }
     
     TaskScheduler::~TaskScheduler() {
@@ -29,7 +29,7 @@ namespace Internal {
     void TaskScheduler::shutdown() {
         {
             std::unique_lock<std::mutex> lock(mutex);
-            shutdown = true;
+            shutdown_ = true;
         }
         condition.notify_all();
     }
@@ -40,7 +40,7 @@ namespace Internal {
             std::unique_lock<std::mutex> lock(mutex);
             
             // We do not accept new tasks once we are shutdown or if this is a Single reaction that is already in the system
-            if(!shutdown && (!task->parent->options.single || !task->parent->running)) {
+            if(!shutdown_ && (!task->parent->options.single || !task->parent->running)) {
                 
                 // We are now running
                 task->parent->running = true;
@@ -87,7 +87,7 @@ namespace Internal {
             if (queue.empty()) {
                 
                 // And we are shutting down then terminate the requesting thread and tell all other threads to wake up
-                if(shutdown) {
+                if(shutdown_) {
                     condition.notify_all();
                     throw TaskScheduler::SchedulerShutdownException();
                 }

@@ -19,8 +19,6 @@
 
 namespace NUClear {
     
-    volatile bool PowerPlant::running = false;
-    
     PowerPlant::PowerPlant() :
     configuration()
     , threadmaster(this)
@@ -40,7 +38,6 @@ namespace NUClear {
     {}
 
     void PowerPlant::start() {
-        running = true;
         reactormaster.emit(new Internal::CommandTypes::Initialize());
         threadmaster.start();
     }
@@ -48,7 +45,6 @@ namespace NUClear {
     void PowerPlant::shutdown() {
         reactormaster.emit(new Internal::CommandTypes::Shutdown());
         threadmaster.shutdown();
-        running = false;
     }
 
     zmq::context_t& PowerPlant::getZMQContext() {
