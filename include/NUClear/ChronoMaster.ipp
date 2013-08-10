@@ -22,29 +22,29 @@ namespace NUClear {
     template <int ticks, class period>
     void PowerPlant::ChronoMaster::add() {
         // Check if we have not already loaded this type in
-        if(m_loaded.find(typeid(NUClear::Internal::CommandTypes::Every<ticks, period>)) == std::end(m_loaded)) {
+        if(loaded.find(typeid(NUClear::Internal::CommandTypes::Every<ticks, period>)) == std::end(loaded)) {
             
             // Flag this type as loaded
-            m_loaded.insert(typeid(NUClear::Internal::CommandTypes::Every<ticks, period>));
+            loaded.insert(typeid(NUClear::Internal::CommandTypes::Every<ticks, period>));
             
             std::function<void (clock::time_point)> emit = [this](clock::time_point time){
-                m_parent->reactormaster.emit(new NUClear::Internal::CommandTypes::Every<ticks, period>(time));
+                parent->reactormaster.emit(new NUClear::Internal::CommandTypes::Every<ticks, period>(time));
             };
             
             // Get our period in whatever time our clock measures
             clock::duration step((period(ticks)));
             
             // See if we already have one with this period
-            auto item = std::find_if(std::begin(m_steps), std::end(m_steps), [step](std::unique_ptr<Step>& find) {
+            auto item = std::find_if(std::begin(steps), std::end(steps), [step](std::unique_ptr<Step>& find) {
                 return find->step.count() == step.count();
             });
             
             // If we don't then create a new one with our initial data
-            if(item == std::end(m_steps)) {
+            if(item == std::end(steps)) {
                 std::unique_ptr<Step> s(new Step());
                 s->step = step;
                 s->callbacks.push_back(emit);
-                m_steps.push_back(std::move(s));
+                steps.push_back(std::move(s));
             }
             
             // Otherwise just add the callback to the existing element

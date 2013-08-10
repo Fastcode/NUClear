@@ -24,7 +24,7 @@ namespace NUClear {
     }
     
     void Reactor::buildOptionsImpl(Internal::Reaction::Options& options, Single* /*placeholder*/) {
-        options.m_single = true;
+        options.single = true;
     }
 
     Reactor::~Reactor() {}

@@ -30,7 +30,7 @@ namespace NUClear {
         Networking::NetworkMessage net;
         
         net.set_type(std::string(reinterpret_cast<char*>(hash.data), Networking::Hash::SIZE));
-        net.set_source(m_parent->configuration.networkName);
+        net.set_source(parent->configuration.networkName);
         net.set_payload(payload);
         
         // Serialize our protocol buffer
@@ -43,8 +43,8 @@ namespace NUClear {
         memcpy(message.data(), serialized.data(), serialized.size());
         
         // Send the data after locking the mutex
-        std::unique_lock<std::mutex>(m_send);
-        m_pub.send(message);
+        std::unique_lock<std::mutex>(send);
+        pub.send(message);
     }
     
     template <typename TType>
@@ -54,7 +54,7 @@ namespace NUClear {
         Networking::Hash type = Networking::hash<TType>();
         
         // Check if we have already registered this type
-        if(m_deserialize.find(type) == std::end(m_deserialize)) {
+        if(deserialize.find(type) == std::end(deserialize)) {
             
             // Create our deserialization function
             std::function<void (const std::string, const std::string)> parse = [this](const std::string source, const std::string data) {
@@ -66,11 +66,11 @@ namespace NUClear {
                 Internal::CommandTypes::Network<TType>* event = new Internal::CommandTypes::Network<TType>{source, std::shared_ptr<TType>(parsed)};
                 
                 // Emit the object
-                this->m_parent->reactormaster.emit(event);
+                this->parent->reactormaster.emit(event);
             };
             
             // Store our function for use
-            m_deserialize.insert(std::make_pair(type, parse));
+            deserialize.insert(std::make_pair(type, parse));
         }
     }
 }

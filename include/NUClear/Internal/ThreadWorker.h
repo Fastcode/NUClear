@@ -105,9 +105,9 @@ namespace Internal {
             void core();
         
             /// @brief the internal task that will be executed without a scheduler
-            ServiceTask m_task;
+            ServiceTask task;
             /// @brief our internal thread object
-            std::thread m_thread;
+            std::thread thread;
     };
 }
 }

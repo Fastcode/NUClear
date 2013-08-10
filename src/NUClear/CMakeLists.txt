@@ -8,39 +8,38 @@ INCLUDE_DIRECTORIES(${PROTOBUF_INCLUDE_DIRS})
 
 FILE(GLOB src 
     "*.cpp"
-    "*.h"
-    "*.ipp")
+    "${PROJECT_SOURCE_DIR}/include/NUClear/*.h"
+    "${PROJECT_SOURCE_DIR}/include/NUClear/*.ipp")
 
 FILE(GLOB src_networking 
-    "Networking/*.h"
-    "Networking/*.cpp"
-    "Networking/*.cc"
-    "Networking/*.ipp"
-    "Networking/*.proto") 
+    "${PROJECT_SOURCE_DIR}/src/NUClear/Networking/*.proto"
+    "${PROJECT_SOURCE_DIR}/src/NUClear/Networking/*.cpp"
+    "${PROJECT_SOURCE_DIR}/include/NUClear/Networking/*.h"
+    "${PROJECT_SOURCE_DIR}/include/NUClear/Networking/*.ipp") 
 
 FILE(GLOB src_internal 
-    "Internal/*.h"
-    "Internal/*.cpp"
-    "Internal/*.ipp") 
+    "${PROJECT_SOURCE_DIR}/src/NUClear/Internal/*.cpp"
+    "${PROJECT_SOURCE_DIR}/include/NUClear/Internal/*.h"
+    "${PROJECT_SOURCE_DIR}/include/NUClear/Internal/*.ipp") 
     
 FILE(GLOB src_internal_commandtypes
-    "Internal/CommandTypes/*.h"
-    "Internal/CommandTypes/*.cpp"
-    "Internal/CommandTypes/*.ipp")
+    "${PROJECT_SOURCE_DIR}/src/NUClear/Internal/CommandTypes/*.cpp"
+    "${PROJECT_SOURCE_DIR}/include/NUClear/Internal/CommandTypes/*.h"
+    "${PROJECT_SOURCE_DIR}/include/NUClear/Internal/CommandTypes/*.ipp")
     
 FILE(GLOB src_internal_extensions
-    "Internal/Extensions/*.h"
-    "Internal/Extensions/*.cpp"
-    "Internal/Extensions/*.ipp") 
+    "${PROJECT_SOURCE_DIR}/src/NUClear/Internal/Extensions/*.cpp"
+    "${PROJECT_SOURCE_DIR}/include/NUClear/Internal/Extensions/*.h"
+    "${PROJECT_SOURCE_DIR}/include/NUClear/Internal/Extensions/*.ipp") 
 
 FILE(GLOB src_internal_magic 
-    "Internal/Magic/*.h"
-    "Internal/Magic/*.cpp"
-    "Internal/Magic/*.ipp")
+    "${PROJECT_SOURCE_DIR}/src/NUClear/Internal/Magic/*.cpp"
+    "${PROJECT_SOURCE_DIR}/include/NUClear/Internal/Magic/*.h"
+    "${PROJECT_SOURCE_DIR}/include/NUClear/Internal/Magic/*.ipp")
 
 FILE(GLOB include_public
+    "${PROJECT_SOURCE_DIR}/src/NUClear/*.cpp"
     "${PROJECT_SOURCE_DIR}/include/NUClear/*.h"
-    "${PROJECT_SOURCE_DIR}/include/NUClear/*.cpp"
     "${PROJECT_SOURCE_DIR}/include/NUClear/*.ipp")
 
 SOURCE_GROUP(NUClear                            FILES ${src} ${include_public})

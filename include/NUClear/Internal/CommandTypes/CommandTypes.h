@@ -238,8 +238,8 @@ namespace NUClear {
              */
             template <int ticks, class period = std::chrono::milliseconds>
             struct Every {
-                Every(clock::time_point time) : m_time(time) {}
-                const clock::time_point m_time;
+                Every(clock::time_point time) : time(time) {}
+                const clock::time_point time;
             };
             
             /**

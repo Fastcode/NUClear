@@ -21,8 +21,8 @@ namespace NUClear {
 namespace Internal {
     
     ThreadWorker::ThreadWorker(ServiceTask task) :
-    m_task(task),
-    m_thread(std::bind(&ThreadWorker::core, this)) {
+    task(task),
+    thread(std::bind(&ThreadWorker::core, this)) {
     }
 
     ThreadWorker::~ThreadWorker() {
@@ -30,15 +30,15 @@ namespace Internal {
     }
     
     void ThreadWorker::kill() {
-        m_task.kill();
+        task.kill();
     }
     
     void ThreadWorker::join() {
         
         // only join the thread if it's joinable (or errors!)
         try {
-            if(m_thread.joinable()) {
-                m_thread.join();
+            if(thread.joinable()) {
+                thread.join();
             }
         }
         // Why this is thrown if you try to join an unjoinable thread, i'll never know
@@ -47,13 +47,13 @@ namespace Internal {
     
     std::thread::id ThreadWorker::getThreadId() {
         // get the thread id from our internal thread
-        return m_thread.get_id();
+        return thread.get_id();
     }
     
     void ThreadWorker::core() {
         
         // Run our main task
-        m_task.run();
+        task.run();
     }
 }
 }

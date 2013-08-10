@@ -101,7 +101,7 @@ namespace NUClear {
                     BaseMaster(PowerPlant* parent); 
                 protected:
                     /// @brief The PowerPlant that this belongs to
-                    PowerPlant* m_parent;
+                    PowerPlant* parent;
             };
         
             /**
@@ -155,11 +155,11 @@ namespace NUClear {
                 
                 private:
                     /// @brief A vector of the threads in the system
-                    std::vector<std::unique_ptr<Internal::ThreadWorker>> m_threads;
+                    std::vector<std::unique_ptr<Internal::ThreadWorker>> threads;
                     /// @brief A vector of the Service tasks to be started with the system
-                    std::vector<Internal::ThreadWorker::ServiceTask> m_serviceTasks;
+                    std::vector<Internal::ThreadWorker::ServiceTask> serviceTasks;
                     /// @brief Our TaskScheduler that handles distributing task to the pool threads
-                    Internal::TaskScheduler m_scheduler;
+                    Internal::TaskScheduler scheduler;
             };
 
             /**
@@ -202,13 +202,13 @@ namespace NUClear {
                     void kill();
                 
                     /// @brief a mutex which is responsible for controlling if the system should continue to run
-                    std::timed_mutex m_execute;
+                    std::timed_mutex execute;
                     /// @brief a lock which will be unlocked when the system should finish executing
-                    std::unique_lock<std::timed_mutex> m_lock;
+                    std::unique_lock<std::timed_mutex> lock;
                     /// @brief A vector of steps containing the callbacks to execute, is sorted regularly to maintain the order
-                    std::vector<std::unique_ptr<Step>> m_steps;
+                    std::vector<std::unique_ptr<Step>> steps;
                     /// @brief A list of types which have already been loaded (to avoid duplication)
-                    std::set<std::type_index> m_loaded;
+                    std::set<std::type_index> loaded;
             };
         
             /**
@@ -228,10 +228,10 @@ namespace NUClear {
                     using ValueCache = Internal::Magic::TypeBuffer<CacheMaster, TData, TData>;
                 
                     /// @brief This map contains the linked cache, it maps objects to the shared_ptrs that created them
-                    std::map<void*, std::vector<std::pair<std::type_index, std::shared_ptr<void>>>> m_linkedCache;
+                    std::map<void*, std::vector<std::pair<std::type_index, std::shared_ptr<void>>>> linkedCache;
                 
                     /// @brief This map stores the thread arguments when a function is called so that on an emit they can be retrieved.
-                    std::unordered_map<std::thread::id, const Internal::Reaction::Task*> m_threadArgs;
+                    std::unordered_map<std::thread::id, const Internal::Reaction::Task*> threadArgs;
                 
                 public:
                     /// @brief Construct a new CacheMaster with our PowerPlant as context
@@ -299,8 +299,8 @@ namespace NUClear {
                      * @return TODO
                      */
                     template <typename TData>
-                    auto get() -> decltype(Get<TData>::get(m_parent)) {
-                        return Get<TData>::get(m_parent);
+                    auto get() -> decltype(Get<TData>::get(parent)) {
+                        return Get<TData>::get(parent);
                     }
                 
                     /**
@@ -352,8 +352,8 @@ namespace NUClear {
                      */
                     template <typename... TData, int... S>
                     auto fill(Internal::Magic::Sequence<S...>, std::tuple<TData...> data)
-                    -> decltype(std::make_tuple(Fill<typename std::remove_reference<decltype(std::get<S>(data))>::type, TData...>::fill(m_parent, std::get<S>(data), data)...)) {
-                        return std::make_tuple(Fill<typename std::remove_reference<decltype(std::get<S>(data))>::type, TData...>::fill(m_parent, std::get<S>(data), data)...);
+                    -> decltype(std::make_tuple(Fill<typename std::remove_reference<decltype(std::get<S>(data))>::type, TData...>::fill(parent, std::get<S>(data), data)...)) {
+                        return std::make_tuple(Fill<typename std::remove_reference<decltype(std::get<S>(data))>::type, TData...>::fill(parent, std::get<S>(data), data)...);
                     }
                 
                     /**
@@ -421,7 +421,7 @@ namespace NUClear {
                     using CallbackCache = Internal::Magic::TypeList<Reactor, TKey, Internal::Reaction>;
 
                     /// @brief TODO
-                    std::vector<std::unique_ptr<NUClear::Reactor>> m_reactors;
+                    std::vector<std::unique_ptr<NUClear::Reactor>> reactors;
             };
         
             class NetworkMaster : public BaseMaster {
@@ -492,19 +492,19 @@ namespace NUClear {
                     static std::string addressForName(const std::string name, const unsigned port);
                 
                     /// @brief TODO
-                    std::unordered_map<Networking::Hash, std::function<void(const std::string, std::string)>> m_deserialize;
+                    std::unordered_map<Networking::Hash, std::function<void(const std::string, std::string)>> deserialize;
                     /// @brief TODO
-                    volatile bool m_running;
+                    volatile bool running;
                     /// @brief TODO
-                    std::mutex m_send;
+                    std::mutex send;
                     /// @brief TODO
-                    zmq::context_t m_context;
+                    zmq::context_t context;
                     /// @brief TODO
-                    zmq::socket_t m_pub;
+                    zmq::socket_t pub;
                     /// @brief TODO
-                    zmq::socket_t m_termPub;
+                    zmq::socket_t termPub;
                     /// @brief TODO
-                    zmq::socket_t m_sub;
+                    zmq::socket_t sub;
             };
         
             /**

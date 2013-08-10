@@ -20,7 +20,7 @@
 namespace NUClear {
 namespace Internal {
     
-    TaskScheduler::TaskScheduler() : m_shutdown(false) {
+    TaskScheduler::TaskScheduler() : shutdown(false) {
     }
     
     TaskScheduler::~TaskScheduler() {
@@ -28,29 +28,29 @@ namespace Internal {
     
     void TaskScheduler::shutdown() {
         {
-            std::unique_lock<std::mutex> lock(m_mutex);
-            m_shutdown = true;
+            std::unique_lock<std::mutex> lock(mutex);
+            shutdown = true;
         }
-        m_condition.notify_all();
+        condition.notify_all();
     }
     
     void TaskScheduler::submit(std::unique_ptr<Reaction::Task>&& task) {
         {
             // Obtain the lock
-            std::unique_lock<std::mutex> lock(m_mutex);
+            std::unique_lock<std::mutex> lock(mutex);
             
             // We do not accept new tasks once we are shutdown or if this is a Single reaction that is already in the system
-            if(!m_shutdown && (!task->m_parent->m_options.m_single || !task->m_parent->m_running)) {
+            if(!shutdown && (!task->parent->options.single || !task->parent->running)) {
                 
                 // We are now running
-                task->m_parent->m_running = true;
+                task->parent->running = true;
                 
                 // If we are a sync type
-                if(task->m_parent->m_options.m_syncQueue) {
+                if(task->parent->options.syncQueue) {
                     
-                    auto& queue = task->m_parent->m_options.m_syncQueue->m_queue;
-                    auto& active = task->m_parent->m_options.m_syncQueue->m_active;
-                    auto& mutex = task->m_parent->m_options.m_syncQueue->m_mutex;
+                    auto& queue = task->parent->options.syncQueue->queue;
+                    auto& active = task->parent->options.syncQueue->active;
+                    auto& mutex = task->parent->options.syncQueue->mutex;
                     
                     // Lock our sync types mutex
                     std::unique_lock<std::mutex> lock(mutex);
@@ -62,45 +62,45 @@ namespace Internal {
                     // Otherwise push it onto the main queue and set us to active
                     else {
                         active = true;
-                        m_queue.push(std::move(task));
+                        queue.push(std::move(task));
                     }
                 }
                 // Otherwise move it onto the main queue
                 else {
-                    m_queue.push(std::move(task));
+                    queue.push(std::move(task));
                 }
             }
         }
         
         // Notify a thread that it can proceed
-        m_condition.notify_one();
+        condition.notify_one();
     }
     
     std::unique_ptr<Reaction::Task> TaskScheduler::getTask() {
         
         //Obtain the lock
-        std::unique_lock<std::mutex> lock(m_mutex);
+        std::unique_lock<std::mutex> lock(mutex);
         
         // How this works in practice is that it will not shut down a thread until all tasks are drained
         while (true) {
             // If there is nothing in the queue
-            if (m_queue.empty()) {
+            if (queue.empty()) {
                 
                 // And we are shutting down then terminate the requesting thread and tell all other threads to wake up
-                if(m_shutdown) {
-                    m_condition.notify_all();
+                if(shutdown) {
+                    condition.notify_all();
                     throw TaskScheduler::SchedulerShutdownException();
                 }
                 else {
                     // Wait for something to happen!
-                    m_condition.wait(lock);
+                    condition.wait(lock);
                 }
             }
             else {
                 // Return the type
                 // If you're wondering why all the rediculiousness, it's because priority queue is not as feature complete as it should be
-                std::unique_ptr<Reaction::Task> task(std::move(const_cast<std::unique_ptr<Reaction::Task>&>(m_queue.top())));
-                m_queue.pop();
+                std::unique_ptr<Reaction::Task> task(std::move(const_cast<std::unique_ptr<Reaction::Task>&>(queue.top())));
+                queue.pop();
                 
                 return std::move(task);
             }

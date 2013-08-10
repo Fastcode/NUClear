@@ -19,5 +19,5 @@
 
 namespace NUClear {
     
-    PowerPlant::BaseMaster::BaseMaster(PowerPlant* parent) : m_parent(parent) {}
+    PowerPlant::BaseMaster::BaseMaster(PowerPlant* parent) : parent(parent) {}
 }

@@ -24,18 +24,18 @@ namespace NUClear {
     
     void PowerPlant::CacheMaster::setCurrentTask(std::thread::id threadId, const Internal::Reaction::Task* args) {
         // TODO replace this with thread_local if possible (c++11 keyword thread_local)
-        m_threadArgs[threadId] = args;
+        threadArgs[threadId] = args;
     }
     
     void PowerPlant::CacheMaster::linkCache(void* data, std::vector<std::pair<std::type_index, std::shared_ptr<void>>> args) {
         
-        m_linkedCache.insert(std::make_pair(data, args));
+        linkedCache.insert(std::make_pair(data, args));
     }
     
     const Internal::Reaction::Task* PowerPlant::CacheMaster::getCurrentTask(std::thread::id threadId) {
-        auto task = m_threadArgs.find(threadId);
+        auto task = threadArgs.find(threadId);
         
-        if(task != std::end(m_threadArgs)) {
+        if(task != std::end(threadArgs)) {
             return task->second;
         }
         else {

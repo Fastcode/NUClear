@@ -32,7 +32,7 @@ namespace NUClear {
     template <int ticks, class period>
     struct PowerPlant::CacheMaster::Get<Internal::CommandTypes::Every<ticks, period>> {
         static std::shared_ptr<clock::time_point> get(PowerPlant* context) {
-            return std::shared_ptr<clock::time_point>(new clock::time_point(ValueCache<Internal::CommandTypes::Every<ticks, period>>::get()->m_time));
+            return std::shared_ptr<clock::time_point>(new clock::time_point(ValueCache<Internal::CommandTypes::Every<ticks, period>>::get()->time));
         }
     };
 }

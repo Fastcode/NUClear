@@ -49,9 +49,9 @@ namespace NUClear {
                 auto el = searchQueue.front();
                 searchQueue.pop_front();
                 
-                auto it = context->cachemaster.m_linkedCache.find(el);
+                auto it = context->cachemaster.linkedCache.find(el);
                 
-                if(it != std::end(context->cachemaster.m_linkedCache)) {
+                if(it != std::end(context->cachemaster.linkedCache)) {
                     
                     for(auto& element : it->second) {
                         if(element.first == typeid(std::shared_ptr<TData>)) {

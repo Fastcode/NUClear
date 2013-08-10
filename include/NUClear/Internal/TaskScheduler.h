@@ -110,13 +110,13 @@ namespace Internal {
             std::unique_ptr<Reaction::Task> getTask();
         private:
             /// @brief if the scheduler is running or is shut down
-            volatile bool m_shutdown;
+            volatile bool shutdown;
             /// @brief our queue
-            std::priority_queue<std::unique_ptr<Reaction::Task>> m_queue;
+            std::priority_queue<std::unique_ptr<Reaction::Task>> queue;
             /// @brief the mutex which our threads synchronize their access to this object
-            std::mutex m_mutex;
+            std::mutex mutex;
             /// @brief the condition object that threads wait on if they can't get a task
-            std::condition_variable m_condition;
+            std::condition_variable condition;
         
     };
 }

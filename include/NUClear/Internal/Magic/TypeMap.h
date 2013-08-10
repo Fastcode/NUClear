@@ -57,7 +57,7 @@ namespace Magic {
             /// @brief Deleted destructor as this class is a static class.
             ~TypeMap() = delete;
             /// @brief the data variable where the data is stored for this map key.
-            static std::shared_ptr<TValue> m_data;
+            static std::shared_ptr<TValue> data;
             
         public:
             /**
@@ -66,7 +66,7 @@ namespace Magic {
              * @param data a pointer to the data to be stored (the map takes ownership)
              */
             static void set(TValue* data) {
-                m_data = std::shared_ptr<TValue>(data);
+                data = std::shared_ptr<TValue>(data);
             };
         
             /**
@@ -78,8 +78,8 @@ namespace Magic {
              */
             static std::shared_ptr<TKey> get() {
                 //If the pointer is not a nullptr
-                if(*m_data) {
-                    return m_data;
+                if(*data) {
+                    return data;
                 }
                 else {
                     throw NoDataException();
@@ -114,9 +114,9 @@ namespace Magic {
             /// @brief Deleted destructor as this class is a static class
             ~TypeBuffer() = delete;
             /// @brief the number of previous elements that we store
-            static size_t m_capacity;
+            static size_t capacity;
             /// @brief the queue where we store mapped elements
-            static std::deque<std::shared_ptr<TValue>> m_data;
+            static std::deque<std::shared_ptr<TValue>> data;
             
         public:
             /**
@@ -125,7 +125,7 @@ namespace Magic {
              * @param num the minimum number of previous elements to store
              */
             static void minCapacity(size_t num) {
-                m_capacity = std::max(num, m_capacity);
+                capacity = std::max(num, capacity);
             }
             
             /**
@@ -135,12 +135,12 @@ namespace Magic {
              */
             static void set(TValue* data) {
                 // If we are full then remove our last element
-                if(m_data.size() == m_capacity) {\
-                    m_data.pop_back();
+                if(data.size() == capacity) {\
+                    data.pop_back();
                 }
                 
                 // Push onto our front
-                m_data.push_front(std::shared_ptr<TValue>(data));
+                data.push_front(std::shared_ptr<TValue>(data));
             }
             
             /**
@@ -150,12 +150,12 @@ namespace Magic {
              */
             static void set(std::shared_ptr<TValue> data) {
                 // If we are full then remove our last element
-                if(m_data.size() >= m_capacity) {
-                    m_data.pop_back();
+                if(data.size() >= capacity) {
+                    data.pop_back();
                 }
                 
                 // Push onto our front
-                m_data.push_front(data);
+                data.push_front(data);
             }
         
             /**
@@ -166,8 +166,8 @@ namespace Magic {
              * @throws NoDataException if there is no data that was previously stored
              */
             static std::shared_ptr<TValue> get() {
-                if(!m_data.empty() && m_data.front() != nullptr) {
-                    return m_data.front();
+                if(!data.empty() && data.front() != nullptr) {
+                    return data.front();
                 }
                 else {
                     throw NoDataException();
@@ -182,8 +182,8 @@ namespace Magic {
              * @attention make sure that minCapacity has been called with at least this length or a segfault will occur
              */
             static std::shared_ptr<std::vector<std::shared_ptr<const TValue>>> get(int length) {
-                auto* ret = new std::vector<std::shared_ptr<const TValue>>(std::begin(m_data),
-                                                                           std::begin(m_data) + std::min(static_cast<int>(m_data.size()), length));
+                auto* ret = new std::vector<std::shared_ptr<const TValue>>(std::begin(data),
+                                                                           std::begin(data) + std::min(static_cast<int>(data.size()), length));
                 return std::shared_ptr<std::vector<std::shared_ptr<const TValue>>>(ret);
             };
     };
@@ -214,7 +214,7 @@ namespace Magic {
             /// @brief Deleted destructor as this class is a static class
             ~TypeList() = delete;
             /// @brief the vector where we store the elements
-            static std::vector<std::shared_ptr<TValue>> m_data;
+            static std::vector<std::shared_ptr<TValue>> data;
             
         public:
             /**
@@ -223,7 +223,7 @@ namespace Magic {
              * @param data a pointer to the data to store (the map takes ownership of it)
              */
             static void set(TValue* data) {
-                m_data.push_back(std::shared_ptr<TValue>(data));
+                data.push_back(std::shared_ptr<TValue>(data));
             }
             
             /**
@@ -234,22 +234,22 @@ namespace Magic {
              * @throws NoDataException if there is no data that was previously stored
              */
             static std::vector<std::shared_ptr<TValue>>& get() {
-                return m_data;
+                return data;
             };
     };
     
     
     //Initialize the capacity of a QUEUE map
     template <typename TMapID, typename TKey, typename TValue>
-    size_t TypeBuffer<TMapID, TKey, TValue>::m_capacity = 1;
+    size_t TypeBuffer<TMapID, TKey, TValue>::capacity = 1;
     
     //Initialize the deque object of a QUEUE map
     template <typename TMapID, typename TKey, typename TValue>
-    std::deque<std::shared_ptr<TValue>> TypeBuffer<TMapID, TKey, TValue>::m_data = std::deque<std::shared_ptr<TValue>>();
+    std::deque<std::shared_ptr<TValue>> TypeBuffer<TMapID, TKey, TValue>::data = std::deque<std::shared_ptr<TValue>>();
     
     //Initialize the vector of a LIST map
     template <typename TMapID, typename TKey, typename TValue>
-    std::vector<std::shared_ptr<TValue>> TypeList<TMapID, TKey, TValue>::m_data = std::vector<std::shared_ptr<TValue>>();
+    std::vector<std::shared_ptr<TValue>> TypeList<TMapID, TKey, TValue>::data = std::vector<std::shared_ptr<TValue>>();
 }
 }
 }

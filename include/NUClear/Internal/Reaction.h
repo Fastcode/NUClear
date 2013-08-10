@@ -88,14 +88,14 @@ namespace Internal {
                  *  This creates a new ReactionOptions with the default optoins. These default options are a Sync type of
                  *  nullptr, a non single case, and DEFAULT priority.
                  */
-                Options() : m_syncQueue(nullptr), m_single(false), m_priority(DEFAULT) {}
+                Options() : syncQueue(nullptr), single(false), priority(DEFAULT) {}
                 
                 /// @brief the sync type to use, acts as a compile time mutex
-                std::shared_ptr<SyncQueue> m_syncQueue;
+                std::shared_ptr<SyncQueue> syncQueue;
                 /// @brief if only a single event of this type should be queued or running at any time
-                bool m_single;
+                bool single;
                 /// @brief the priority with which to execute
-                EPriority m_priority;
+                EPriority priority;
             };
         
             /**
@@ -131,17 +131,17 @@ namespace Internal {
                     void operator()();
                 
                     /// @brief the arguments that are used to call this task
-                    std::vector<std::pair<std::type_index, std::shared_ptr<void>>> m_args;
+                    std::vector<std::pair<std::type_index, std::shared_ptr<void>>> args;
                     /// @brief the data bound callback to be executed
-                    std::function<void (Task&)> m_callback;
+                    std::function<void (Task&)> callback;
                     /// @brief the parent Reaction object which spawned this
-                    Reaction* m_parent;
+                    Reaction* parent;
                     /// @brief the taskId of this task (the sequence number of this paticular task)
-                    reactionId_t m_taskId;
+                    reactionId_t taskId;
                     /// @brief the statistics object that persists after this for information and debugging
-                    std::shared_ptr<NUClearTaskEvent> m_stats;
+                    std::shared_ptr<NUClearTaskEvent> stats;
                     /// @brief the time that this event was created and sent to the queue
-                    clock::time_point m_emitTime;
+                    clock::time_point emitTime;
             };
         
             /**
@@ -153,7 +153,7 @@ namespace Internal {
             class OnHandle {
             public:
                 /// @brief the reaction that we are managing
-                Reaction* m_context;
+                Reaction* context;
                 
                 /**
                  * @brief TODO document
@@ -211,29 +211,29 @@ namespace Internal {
             bool isEnabled();
         
             /// @brief This holds the mangled name of the On function that is being called
-            const std::string m_name;
+            const std::string name;
             /// @brief the options for this Reaction (decides how Tasks will be scheduled)
-            Reaction::Options m_options;
+            Reaction::Options options;
             /// @brief the unique identifier for this Reaction object
-            const reactionId_t m_reactionId;
+            const reactionId_t reactionId;
             /// @brief if this reaction is currently enqueued or running
-            volatile bool m_running;
+            volatile bool running;
         private:
             /// @brief a source for reactionIds, atomically creates longs
             static std::atomic<std::uint64_t> reactionIdSource;
             /// @brief if this reaction object is currently enabled
-            std::atomic<bool> m_enabled;
+            std::atomic<bool> enabled;
             /// @brief the callback generator function (creates databound callbacks)
-            std::function<std::function<void (Task&)> ()> m_callback;
+            std::function<std::function<void (Task&)> ()> callback;
     };
     
     // TODO document
     struct SyncQueue {
-        SyncQueue(const std::type_index type, bool active) : m_type(type), m_active(active) {}
-        const std::type_index m_type;
-        volatile bool m_active;
-        std::mutex m_mutex;
-        std::priority_queue<std::unique_ptr<Internal::Reaction::Task>> m_queue;
+        SyncQueue(const std::type_index type, bool active) : type(type), active(active) {}
+        const std::type_index type;
+        volatile bool active;
+        std::mutex mutex;
+        std::priority_queue<std::unique_ptr<Internal::Reaction::Task>> queue;
     };
     
     // This is declared here so that by the time we allocate our SyncQueue it is not an incomplete type

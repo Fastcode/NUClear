@@ -21,42 +21,42 @@ namespace NUClear {
     
     PowerPlant::NetworkMaster::NetworkMaster(PowerPlant* parent) :
     PowerPlant::BaseMaster(parent),
-    m_running(true),
-    m_context(1),
-    m_pub(m_context, ZMQ_PUB),
-    m_termPub(m_context, ZMQ_PUB),
-    m_sub(m_context, ZMQ_SUB) {
+    running(true),
+    context(1),
+    pub(context, ZMQ_PUB),
+    termPub(context, ZMQ_PUB),
+    sub(context, ZMQ_SUB) {
         
         // Get our PGM address
-        std::string address = addressForName(m_parent->configuration.networkGroup,
-                                             m_parent->configuration.networkPort);
+        std::string address = addressForName(parent->configuration.networkGroup,
+                                             parent->configuration.networkPort);
         
         std::cout << "Bound to address " << address << std::endl;
         
         // Bind our publisher to this address
-        m_pub.bind(address.c_str());
+        pub.bind(address.c_str());
         
         // Create a secondary inprocess publisher used to terminate the thread
-        m_termPub.bind("inproc://networkmaster-term");
+        termPub.bind("inproc://networkmaster-term");
         
         // Connect our subscriber to this address and subscribe to all messages
-        m_sub.connect(address.c_str());
-        m_sub.connect("inproc://networkmaster-term");
-        m_sub.setsockopt(ZMQ_SUBSCRIBE, 0, 0);
+        sub.connect(address.c_str());
+        sub.connect("inproc://networkmaster-term");
+        sub.setsockopt(ZMQ_SUBSCRIBE, 0, 0);
         
         // Build a task
         Internal::ThreadWorker::ServiceTask task(std::bind(&NetworkMaster::run, this),
                                                   std::bind(&NetworkMaster::kill, this));
         
-        m_parent->threadmaster.serviceTask(task);
+        parent->threadmaster.serviceTask(task);
     }
     
     void PowerPlant::NetworkMaster::run() {
         
-        while (m_running) {
+        while (running) {
             
             zmq::message_t message;
-            m_sub.recv(&message);
+            sub.recv(&message);
             
             // If our message size is 0, then it is probably our termination message
             if(message.size() > 0) {
@@ -69,8 +69,8 @@ namespace NUClear {
                 memcpy(type.data, proto.type().data(), Networking::Hash::SIZE);
                 
                 // Find this type's deserializer (if it exists)
-                auto it = m_deserialize.find(type);
-                if(it != std::end(m_deserialize)) {
+                auto it = deserialize.find(type);
+                if(it != std::end(deserialize)) {
                     it->second(proto.source(), proto.payload());
                 }
             }
@@ -80,11 +80,11 @@ namespace NUClear {
     void PowerPlant::NetworkMaster::kill() {
         
         // Set our running status to false
-        m_running = false;
+        running = false;
         
         // Send a message to ensure that our block is released
         zmq::message_t message(0);
-        m_termPub.send(message);
+        termPub.send(message);
     }
 
     std::string PowerPlant::NetworkMaster::addressForName(std::string name, unsigned port) {
@@ -110,6 +110,6 @@ namespace NUClear {
     }
 
     zmq::context_t& PowerPlant::NetworkMaster::getZMQContext() {
-        return m_context;
+        return context;
     }
 }

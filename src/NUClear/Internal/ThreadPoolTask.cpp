@@ -22,7 +22,7 @@ namespace Internal {
     
     ThreadPoolTask::ThreadPoolTask(TaskScheduler& scheduler) :
     ThreadWorker::ServiceTask(std::bind(&ThreadPoolTask::run, this), std::bind(&ThreadPoolTask::kill, this)),
-    m_scheduler(scheduler) {
+    scheduler(scheduler) {
     }
     
     ThreadPoolTask::~ThreadPoolTask() {
@@ -34,8 +34,8 @@ namespace Internal {
             while(true) {
                 
                 // Get a task
-                std::unique_ptr<Reaction::Task> task(m_scheduler.getTask());
-                std::shared_ptr<NUClearTaskEvent> stats = task->m_stats;
+                std::unique_ptr<Reaction::Task> task(scheduler.getTask());
+                std::shared_ptr<NUClearTaskEvent> stats = task->stats;
                 
                 // Try to execute the task (catching any exceptions so it doesn't kill the pool thread)
                 try {
@@ -50,14 +50,14 @@ namespace Internal {
                 }
                 
                 // We have stopped running
-                task->m_parent->m_running = false;
+                task->parent->running = false;
                 
                 // If we are a sync type
-                if(task->m_parent->m_options.m_syncQueue) {
+                if(task->parent->options.syncQueue) {
                     
-                    auto& queue = task->m_parent->m_options.m_syncQueue->m_queue;
-                    auto& active = task->m_parent->m_options.m_syncQueue->m_active;
-                    auto& mutex = task->m_parent->m_options.m_syncQueue->m_mutex;
+                    auto& queue = task->parent->options.syncQueue->queue;
+                    auto& active = task->parent->options.syncQueue->active;
+                    auto& mutex = task->parent->options.syncQueue->mutex;
                     
                     // Lock our sync types mutex
                     std::unique_lock<std::mutex> lock(mutex);
@@ -67,7 +67,7 @@ namespace Internal {
                         std::unique_ptr<Reaction::Task> syncTask(std::move(const_cast<std::unique_ptr<Reaction::Task>&>(queue.top())));
                         queue.pop();
                         
-                        m_scheduler.submit(std::move(syncTask));
+                        scheduler.submit(std::move(syncTask));
                     }
                     // Otherwise set active to false
                     else {
@@ -76,7 +76,7 @@ namespace Internal {
                 }
                 
                 // Copy our thread args into the stats
-                stats->args = task->m_args;
+                stats->args = task->args;
                 
                 //TODO pass off the completed task to another class for processing of details (note that you can't emit it, as it would cause stats for the stats etc inifinity)
             }

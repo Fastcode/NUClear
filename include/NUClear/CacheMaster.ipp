@@ -43,10 +43,10 @@ namespace NUClear {
             
             // The running variable is needed as that at the end of the program after the end of main static variables
             // are still around. And if one of these static variables is anchoring a shared_ptr then it will persist on.
-            // When it is deallocated it tries to find the m_linkedCache object that was deallocated at the end of main.
-            // Because of this, after the end of main m_linkedCache is a bad memory and will segfault
-            if(running && m_linkedCache.find(data) != std::end(m_linkedCache)) {
-                m_linkedCache.erase(data);
+            // When it is deallocated it tries to find the linkedCache object that was deallocated at the end of main.
+            // Because of this, after the end of main linkedCache is a bad memory and will segfault
+            if(running && linkedCache.find(data) != std::end(linkedCache)) {
+                linkedCache.erase(data);
             }
             delete data;
         }));

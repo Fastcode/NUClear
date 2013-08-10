@@ -25,48 +25,48 @@ namespace Internal {
     
     
     Reaction::Reaction(std::string name, std::function<std::function<void (Reaction::Task&)> ()> callback, Reaction::Options options) :
-    m_name(name),
-    m_options(options),
-    m_reactionId(++reactionIdSource),
-    m_running(false),
-    m_enabled(true),
-    m_callback(callback) {
+    name(name),
+    options(options),
+    reactionId(++reactionIdSource),
+    running(false),
+    enabled(true),
+    callback(callback) {
     }
     
     std::unique_ptr<Reaction::Task> Reaction::getTask(const Task* cause) {
         // Build a new data bound task using our callback generator
-        return std::unique_ptr<Reaction::Task>(new Reaction::Task(this, cause, m_callback()));
+        return std::unique_ptr<Reaction::Task>(new Reaction::Task(this, cause, callback()));
     }
     
     bool Reaction::isEnabled() {
-        return m_enabled;
+        return enabled;
     }
     
-    Reaction::OnHandle::OnHandle(Reaction* context) : m_context(context) {
+    Reaction::OnHandle::OnHandle(Reaction* context) : context(context) {
     };
     
     bool Reaction::OnHandle::isEnabled() {
-        return m_context->m_enabled;
+        return context->enabled;
     }
     
     void Reaction::OnHandle::enable() {
-        m_context->m_enabled = true;
+        context->enabled = true;
     }
     
     void Reaction::OnHandle::disable() {
-        m_context->m_enabled = false;
+        context->enabled = false;
     }
     
     Reaction::Task::Task(Reaction* parent, const Task* cause, std::function<void (Task&)> callback) :
-    m_callback(callback),
-    m_parent(parent),
-    m_taskId(++taskIdSource),
-    m_stats(new NUClearTaskEvent{parent->m_name, parent->m_reactionId, m_taskId, cause ? cause->m_parent->m_reactionId : -1, cause ? cause->m_taskId : -1, clock::now()}) {
+    callback(callback),
+    parent(parent),
+    taskId(++taskIdSource),
+    stats(new NUClearTaskEvent{parent->name, parent->reactionId, taskId, cause ? cause->parent->reactionId : -1, cause ? cause->taskId : -1, clock::now()}) {
     }
     
     void Reaction::Task::operator()() {
         // Call our callback
-        m_callback(*this);
+        callback(*this);
     }
 }
 }

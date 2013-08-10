@@ -196,12 +196,12 @@ namespace NUClear {
     
     template <typename TSync>
     void Reactor::buildOptionsImpl(Internal::Reaction::Options& options, Sync<TSync>* /*placeholder*/) {
-        options.m_syncQueue = Sync<TSync>::SyncQueue;
+        options.syncQueue = Sync<TSync>::SyncQueue;
     }
     
     template <enum EPriority P>
     void Reactor::buildOptionsImpl(Internal::Reaction::Options& options, Priority<P>* /*placeholder*/) {
-        options.m_priority = P;
+        options.priority = P;
     }
     
     struct Reactor::FillCallback {
@@ -213,7 +213,7 @@ namespace NUClear {
                 auto&& newData = parent->powerPlant.cachemaster.fill(data);
                 
                 // Store our arguments
-                task.m_args = Internal::Magic::buildVector(newData);
+                task.args = Internal::Magic::buildVector(newData);
                 parent->powerPlant.cachemaster.setCurrentTask(std::this_thread::get_id(), &task);
                 
                 Internal::Magic::apply(callback, std::move(newData));
@@ -229,7 +229,7 @@ namespace NUClear {
         static const std::function<void (Internal::Reaction::Task&)> buildCallback(Reactor* parent, TFunc callback, std::tuple<TData...> data) {
             return [parent, callback, data] (Internal::Reaction::Task& task) {
                 
-                task.m_args = Internal::Magic::buildVector(data);
+                task.args = Internal::Magic::buildVector(data);
                 parent->powerPlant.cachemaster.setCurrentTask(std::this_thread::get_id(), &task);
                 
                 Internal::Magic::apply(callback, data);

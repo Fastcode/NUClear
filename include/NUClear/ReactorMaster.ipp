@@ -26,30 +26,30 @@ namespace NUClear {
     template <typename TReactor>
     void PowerPlant::ReactorMaster::install() {
         // The reactor constructor should handle subscribing to events
-        std::unique_ptr<NUClear::Reactor> reactor(new TReactor(*m_parent));
-        m_reactors.push_back(std::move(reactor));
+        std::unique_ptr<NUClear::Reactor> reactor(new TReactor(*parent));
+        reactors.push_back(std::move(reactor));
     }
 
     template <typename TData>
     void PowerPlant::ReactorMaster::emit(TData* data) {
         
         // Get our current arguments (if we have any)
-        auto task = m_parent->cachemaster.getCurrentTask(std::this_thread::get_id());
+        auto task = parent->cachemaster.getCurrentTask(std::this_thread::get_id());
         
         // Cache them in our linked cache
         if(task) {
-            m_parent->cachemaster.linkCache(data, task->m_args);
+            parent->cachemaster.linkCache(data, task->args);
         }
         
         // Cache our data
-        m_parent->cachemaster.cache<TData>(data);
+        parent->cachemaster.cache<TData>(data);
         
         // Trigger all our reactions
         for(auto& reaction : CallbackCache<TData>::get()) {
             try {
                 // Only run if our reaction is enabled
                 if(reaction->isEnabled()) {
-                    m_parent->threadmaster.submit(reaction->getTask(task));
+                    parent->threadmaster.submit(reaction->getTask(task));
                 }
             }
             // If there is no data, then ignore the task

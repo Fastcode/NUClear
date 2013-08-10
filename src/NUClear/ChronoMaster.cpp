@@ -21,23 +21,23 @@ namespace NUClear {
     
     PowerPlant::ChronoMaster::ChronoMaster(PowerPlant* parent) :
     PowerPlant::BaseMaster(parent),
-    m_lock(m_execute) {
+    lock(execute) {
         
         // Build a task
         Internal::ThreadWorker::ServiceTask task(std::bind(&ChronoMaster::run, this),
                                                   std::bind(&ChronoMaster::kill, this));
         
-        m_parent->threadmaster.serviceTask(task);
+        parent->threadmaster.serviceTask(task);
     }
 
     void PowerPlant::ChronoMaster::run() {
         
         // Only start doing every if we actually have some
-        if (!m_steps.empty()) {
+        if (!steps.empty()) {
             
-            // Initialize all of the m_steps with our start time
+            // Initialize all of the steps with our start time
             clock::time_point start(clock::now());
-            for(auto& step : m_steps) {
+            for(auto& step : steps) {
                 step->next = start;
             }
             
@@ -46,7 +46,7 @@ namespace NUClear {
                 clock::time_point now(clock::now());
                 
                 // Check if any intervals are before now and if so execute their callbacks and add their step.
-                for(auto& step : m_steps) {
+                for(auto& step : steps) {
                     if((step->next - now).count() <= 0) {
                         for(auto& callback : step->callbacks) {
                             callback(now);
@@ -60,18 +60,18 @@ namespace NUClear {
                 }
                 
                 // Sort the list so the next soonest interval is on top
-                std::sort(std::begin(m_steps), std::end(m_steps), [](const std::unique_ptr<Step>& a, const std::unique_ptr<Step>& b) {
+                std::sort(std::begin(steps), std::end(steps), [](const std::unique_ptr<Step>& a, const std::unique_ptr<Step>& b) {
                     return a->next < b->next;
                 });
             }
             // TODO http://gcc.gnu.org/bugzilla/show_bug.cgi?id=54562 :(
             // Sleep until it's time to emit this event, or the lock is released and we should finish
-            while(!m_execute.try_lock_until(m_steps.front()->next));
+            while(!execute.try_lock_until(steps.front()->next));
         }
     }
     
     void PowerPlant::ChronoMaster::kill() {
         //If we unlock the lock, then the lock will return true, ending the chronomasters run method
-        m_lock.unlock();
+        lock.unlock();
     }
 }

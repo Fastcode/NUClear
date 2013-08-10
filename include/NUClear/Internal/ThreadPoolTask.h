@@ -30,7 +30,7 @@ namespace Internal {
             void run();
             void kill();
         private:
-            TaskScheduler& m_scheduler;
+            TaskScheduler& scheduler;
     };
 }
 }
