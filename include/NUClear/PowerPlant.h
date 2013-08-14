@@ -548,7 +548,17 @@ namespace NUClear {
              *  TODO
              */
             void shutdown();
-        
+
+            /**
+             * @brief TODO
+             *
+             * @details
+             *  TODO
+             *
+             * @param task TODO
+             */
+            void addServiceTask(Internal::ThreadWorker::ServiceTask task);
+
             /**
              * @brief TODO
              *

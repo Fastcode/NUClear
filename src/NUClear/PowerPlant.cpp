@@ -37,6 +37,10 @@ namespace NUClear {
     , networkmaster(this)
     {}
 
+    void PowerPlant::addServiceTask(Internal::ThreadWorker::ServiceTask task) {
+        threadmaster.serviceTask(task);
+    }
+
     void PowerPlant::start() {
         reactormaster.emit(new Internal::CommandTypes::Initialize());
         threadmaster.start();
