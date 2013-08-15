@@ -21,20 +21,4 @@ namespace NUClear {
     
     PowerPlant::CacheMaster::CacheMaster(PowerPlant* parent) :
     PowerPlant::BaseMaster(parent) {}
-    
-    void PowerPlant::CacheMaster::setCurrentTask(std::thread::id threadId, const Internal::Reaction::Task* args) {
-        // TODO replace this with thread_local if possible (c++11 keyword thread_local)
-        threadArgs[threadId] = args;
-    }
-    
-    const Internal::Reaction::Task* PowerPlant::CacheMaster::getCurrentTask(std::thread::id threadId) {
-        auto task = threadArgs.find(threadId);
-        
-        if(task != std::end(threadArgs)) {
-            return task->second;
-        }
-        else {
-            return nullptr;
-        }
-    }
 }

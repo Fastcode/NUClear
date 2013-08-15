@@ -28,12 +28,8 @@
 #include <unordered_map>
 #include <iostream>
 #include <string>
-#include <sstream>
 
-#include <zmq.hpp>
-
-#include "NUClear/Networking/Serialization.h"
-#include "NUClear/NetworkMessage.pb.h"
+#include "NUClear/Serialization/Serialization.h"
 #include "NUClear/Internal/ThreadWorker.h"
 #include "NUClear/Internal/TaskScheduler.h"
 #include "NUClear/Internal/CommandTypes/CommandTypes.h"
@@ -107,10 +103,37 @@ namespace NUClear {
              *  TODO
              */
             class ThreadMaster : public BaseMaster {
+                private:
+                    // TODO when c++11 comes out in full, this can be replaced with a thread_local keyword variable
+                    std::map<std::thread::id, const Internal::Reaction::Task*> currentTask;
+
                 public:
                     /// @brief Construct a new ThreadMaster with our PowerPlant as context
                     ThreadMaster(PowerPlant* parent);
-                
+
+                    /**
+                     * @brief TODO
+                     *
+                     * @details
+                     *  TODO
+                     *
+                     * @param threadId  TODO
+                     *
+                     * @return TODO
+                     */
+                    const Internal::Reaction::Task* getCurrentTask(std::thread::id threadId);
+
+                    /**
+                     * @brief TODO
+                     *
+                     * @details
+                     *  TODO
+                     *
+                     * @param threadId  TODO
+                     * @param task      TODO
+                     */
+                    void setCurrentTask(std::thread::id threadId, const Internal::Reaction::Task* task);
+
                     /**
                      * @brief Starts up the ThreadMaster initiating all service threads and pool threads.
                      * 
@@ -156,55 +179,6 @@ namespace NUClear {
                     std::vector<Internal::ThreadWorker::ServiceTask> serviceTasks;
                     /// @brief Our TaskScheduler that handles distributing task to the pool threads
                     Internal::TaskScheduler scheduler;
-            };
-
-            /**
-             * @brief The Chronomaster is a Service thread that manages the Every class time emissions.
-             *
-             * @details
-             *  TODO
-             */
-            class ChronoMaster : public BaseMaster {
-                public:
-                    /// @brief Construct a new ThreadMaster with our PowerPlant as context
-                    ChronoMaster(PowerPlant* parent);
-
-                    /**
-                     * @brief Adds a new timeperiod to count and send out events for.
-                     *
-                     * @details
-                     *  TODO
-                     *
-                     * @tparam ticks    The number of ticks of the period to wait between emitting events
-                     * @tparam period   The period that the ticks are measured in (a type of std::chrono::duration)
-                     */
-                    template <int ticks, class period>
-                    void add();
-                
-                private:
-                    /// @brief this class holds the callbacks to emit events, as well as when to emit these events.
-                    struct Step {
-                        /// @brief the size our step is measured in (the size our clock uses)
-                        clock::duration step;
-                        /// @brief the time at which we need to emit our next event
-                        clock::time_point next;
-                        /// @brief the callbacks to emit for this time (e.g. 1000ms and 1second will trigger on the same tick)
-                        std::vector<std::function<void (clock::time_point)>> callbacks;
-                    };
-                
-                    /// @brief Our Run method for the task scheduler, starts the Every events emitting
-                    void run();
-                    /// @brief Our Kill method for the task scheduler, shuts down the chronomaster and stops emitting events
-                    void kill();
-                
-                    /// @brief a mutex which is responsible for controlling if the system should continue to run
-                    std::timed_mutex execute;
-                    /// @brief a lock which will be unlocked when the system should finish executing
-                    std::unique_lock<std::timed_mutex> lock;
-                    /// @brief A vector of steps containing the callbacks to execute, is sorted regularly to maintain the order
-                    std::vector<std::unique_ptr<Step>> steps;
-                    /// @brief A list of types which have already been loaded (to avoid duplication)
-                    std::set<std::type_index> loaded;
             };
         
             /**
@@ -273,18 +247,6 @@ namespace NUClear {
                      * @brief TODO
                      *
                      * @details
-                     *  TODO give code example of an extension
-                     *
-                     * @tparam TData        TODO
-                     * @tparam TElements    TODO
-                     */
-                    template <typename TData, typename... TElements>
-                    struct Fill;
-                
-                    /**
-                     * @brief TODO
-                     *
-                     * @details
                      *  TODO
                      *
                      * @tparam TData TODO
@@ -294,65 +256,6 @@ namespace NUClear {
                     template <typename TData>
                     auto get() -> decltype(Get<TData>::get(parent)) {
                         return Get<TData>::get(parent);
-                    }
-                
-                    /**
-                     * @brief TODO
-                     *
-                     * @details
-                     *  TODO
-                     *
-                     * @param threadId  TODO
-                     *
-                     * @return TODO
-                     */
-                    const Internal::Reaction::Task* getCurrentTask(std::thread::id threadId);
-                    
-                    /**
-                     * @brief TODO
-                     *
-                     * @details
-                     *  TODO
-                     *
-                     * @param threadId  TODO
-                     * @param task      TODO
-                     */
-                    void setCurrentTask(std::thread::id threadId, const Internal::Reaction::Task* task);
-                
-                    /**
-                     * @brief TODO
-                     *
-                     * @details
-                     *  TODO
-                     *
-                     * @tparam TData    TODO
-                     * @tparam S        TODO
-                     *
-                     * @param data
-                     *
-                     * @return TODO
-                     */
-                    template <typename... TData, int... S>
-                    auto fill(Internal::Magic::Sequence<S...>, std::tuple<TData...> data)
-                    -> decltype(std::make_tuple(Fill<typename std::remove_reference<decltype(std::get<S>(data))>::type, TData...>::fill(parent, std::get<S>(data), data)...)) {
-                        return std::make_tuple(Fill<typename std::remove_reference<decltype(std::get<S>(data))>::type, TData...>::fill(parent, std::get<S>(data), data)...);
-                    }
-                
-                    /**
-                     * @brief TODO
-                     *
-                     * @details
-                     *  TODO
-                     *
-                     * @tparam TData TODO
-                     *
-                     * @param data TODO
-                     *
-                     * @return TODO
-                     */
-                    template <typename... TData>
-                    auto fill(std::tuple<TData...> data) -> decltype(fill(Internal::Magic::GenerateSequence<sizeof...(TData)>(), data)) {
-                        return fill(Internal::Magic::GenerateSequence<sizeof...(TData)>(), data);
                     }
             };
         
@@ -405,90 +308,7 @@ namespace NUClear {
                     /// @brief TODO
                     std::vector<std::unique_ptr<NUClear::Reactor>> reactors;
             };
-        
-            class NetworkMaster : public BaseMaster {
-                public:
-                    /// @brief TODO
-                    NetworkMaster(PowerPlant* parent);
-                
-                    /**
-                     * @brief TODO
-                     *
-                     * @details
-                     *  TODO
-                     *
-                     * @tparam TData
-                     *
-                     * @param data
-                     */
-                    template<typename TData>
-                    void emit(TData* data);
-                
-                    /**
-                     * @brief TODO
-                     *
-                     * @details
-                     *  TODO
-                     *
-                     * @tparam TType TODO
-                     */
-                    template<typename TType>
-                    void addType();
 
-                    /**
-                     * @brief TODO
-                     *
-                     * @details
-                     *  TODO
-                     *
-                     * @returns the zmq context in use by the system
-                     */
-                    zmq::context_t& getZMQContext();
-
-                private:
-                    /**
-                     * @brief TODO
-                     *
-                     * @details
-                     *  TODO
-                     */
-                    void run();
-                
-                    /**
-                     * @brief TODO
-                     *
-                     * @details
-                     *  TODO
-                     */
-                    void kill();
-                
-                    /**
-                     * @brief TODO
-                     *
-                     * @details
-                     *  TODO
-                     *
-                     * @param name
-                     * @param port
-                     */
-                    static std::string addressForName(const std::string name, const unsigned port);
-                
-                    /// @brief TODO
-                    std::unordered_map<Networking::Hash, std::function<void(const std::string, std::string)>> deserialize;
-                    /// @brief TODO
-                    volatile bool running;
-                    /// @brief TODO
-                    std::mutex send;
-                    /// @brief TODO
-                    zmq::context_t context;
-                    /// @brief TODO
-                    zmq::socket_t pub;
-                    /// @brief TODO
-                    zmq::socket_t termPub;
-                    /// @brief TODO
-                    zmq::socket_t sub;
-            };
-        
             /**
              * @brief TODO
              *
@@ -503,18 +323,14 @@ namespace NUClear {
 
         protected:
             /// @brief TODO
-            const Configuration configuration;
-            /// @brief TODO
             ThreadMaster threadmaster;
-            /// @brief TODO
-            ChronoMaster chronomaster;
             /// @brief TODO
             CacheMaster cachemaster;
             /// @brief TODO
             ReactorMaster reactormaster;
-            /// @brief TODO
-            NetworkMaster networkmaster;
         public:
+            /// @brief TODO
+            const Configuration configuration;
             /**
              * @brief TODO
              *
@@ -583,18 +399,6 @@ namespace NUClear {
              */
             template <typename... THandlers, typename TData>
             void emit(TData* data);
-
-            /**
-             * @brief TODO
-             *
-             * @details
-             *  TODO
-             *
-             * @attention This is an advanced method for when you need your own zmq socket, only use it if you know you need it
-             *
-             * @returns the zmq context in use by the system
-             */
-            zmq::context_t& getZMQContext();
     };
 }
 
@@ -603,15 +407,13 @@ namespace NUClear {
 
 // Include all of our implementation files (which use the previously included reactor.h)
 #include "NUClear/PowerPlant.ipp"
-#include "NUClear/ChronoMaster.ipp"
 #include "NUClear/CacheMaster.ipp"
 #include "NUClear/ReactorMaster.ipp"
-#include "NUClear/NetworkMaster.ipp"
 
 // Include our built in extensions
-#include "NUClear/Internal/Extensions/Every.h"
-#include "NUClear/Internal/Extensions/Last.h"
-#include "NUClear/Internal/Extensions/Network.h"
+#include "NUClear/Extensions/Chrono.h"
+#include "NUClear/Extensions/Last.h"
+#include "NUClear/Extensions/Networking.h"
 
 #endif
 

@@ -17,17 +17,6 @@
 
 namespace NUClear {
     
-    /* Meta functions */
-    template <typename... TTypes>
-    struct NeedsFill : std::false_type {};
-    
-    template <typename... TTypes>
-    struct NeedsFill<std::tuple<TTypes...>> : NeedsFill<TTypes...> {};
-    
-    template <typename THead, typename... TTypes>
-    struct NeedsFill<THead, TTypes...> :
-    Meta::If<std::is_base_of<Internal::CommandTypes::FillType, THead>, std::true_type, NeedsFill<TTypes...>> {};
-    
     // This metafunction builds a proper On given a series of function arguments
     template <typename TFunc, typename... TParams>
     struct Reactor::On : public OnBuilder<TFunc, Reactor::Trigger<>, Reactor::With<>, Reactor::Options<>, std::tuple<>, TParams...> {};
@@ -124,23 +113,18 @@ namespace NUClear {
     
     template <typename TFunc, typename... TTypes>
     struct Reactor::CheckFunctionSignature<TFunc, std::tuple<TTypes...>, 0> :
-    public Reactor::CheckFunctionSignature<TFunc, std::tuple<decltype(std::declval<PowerPlant::CacheMaster>().get<TTypes>())...>,
-    NeedsFill<decltype(std::declval<PowerPlant::CacheMaster>().get<TTypes>())...>::value ? 1 : 2> {};
+    public Reactor::CheckFunctionSignature<TFunc, std::tuple<decltype(std::declval<PowerPlant::CacheMaster>().get<TTypes>())...>, 1> {};
     
     template <typename TFunc, typename... TTypes>
     struct Reactor::CheckFunctionSignature<TFunc, std::tuple<TTypes...>, 1> :
-    public Reactor::CheckFunctionSignature<TFunc, decltype(std::declval<PowerPlant::CacheMaster>().fill(std::tuple<TTypes...>())), 2> {};
+    public Reactor::CheckFunctionSignature<TFunc, std::tuple<decltype(Internal::Magic::Dereferenceable<TTypes>::dereference(std::declval<TTypes>()))...>, 2> {};
     
     template <typename TFunc, typename... TTypes>
     struct Reactor::CheckFunctionSignature<TFunc, std::tuple<TTypes...>, 2> :
-    public Reactor::CheckFunctionSignature<TFunc, std::tuple<decltype(Internal::Magic::Dereferenceable<TTypes>::dereference(std::declval<TTypes>()))...>, 3> {};
+    public Reactor::CheckFunctionSignature<TFunc, std::tuple<Meta::AddConst<Meta::RemoveRef<TTypes>>...>, 3> {};
     
     template <typename TFunc, typename... TTypes>
     struct Reactor::CheckFunctionSignature<TFunc, std::tuple<TTypes...>, 3> :
-    public Reactor::CheckFunctionSignature<TFunc, std::tuple<Meta::AddConst<Meta::RemoveRef<TTypes>>...>, 4> {};
-    
-    template <typename TFunc, typename... TTypes>
-    struct Reactor::CheckFunctionSignature<TFunc, std::tuple<TTypes...>, 4> :
     public Meta::If<std::is_assignable<std::function<void (TTypes...)>, TFunc>, std::true_type, std::false_type> {};
     
     
@@ -157,7 +141,7 @@ namespace NUClear {
     
     template <typename... THandlers, typename TData>
     void Reactor::emit(TData* data) {
-        powerPlant.emit<THandlers...>(data);
+        powerPlant->emit<THandlers...>(data);
     }
     
     // This is our final On statement
@@ -203,41 +187,6 @@ namespace NUClear {
     void Reactor::buildOptionsImpl(Internal::Reaction::Options& options, Priority<P>* /*placeholder*/) {
         options.priority = P;
     }
-    
-    struct Reactor::FillCallback {
-        template <typename TFunc, typename... TData>
-        static const std::function<void (Internal::Reaction::Task&)> buildCallback(Reactor* parent, TFunc callback, std::tuple<TData...> data) {
-            return [parent, callback, data](Internal::Reaction::Task& task) {
-                
-                // Perform our second pass over the data
-                auto&& newData = parent->powerPlant.cachemaster.fill(data);
-                
-                // Store our arguments
-                task.args = Internal::Magic::buildVector(newData);
-                parent->powerPlant.cachemaster.setCurrentTask(std::this_thread::get_id(), &task);
-                
-                Internal::Magic::apply(callback, std::move(newData));
-                
-                parent->powerPlant.cachemaster.setCurrentTask(std::this_thread::get_id(), nullptr);
-            };
-        }
-    };
-    
-    struct Reactor::BasicCallback {
-        
-        template <typename TFunc, typename... TData>
-        static const std::function<void (Internal::Reaction::Task&)> buildCallback(Reactor* parent, TFunc callback, std::tuple<TData...> data) {
-            return [parent, callback, data] (Internal::Reaction::Task& task) {
-                
-                task.args = Internal::Magic::buildVector(data);
-                parent->powerPlant.cachemaster.setCurrentTask(std::this_thread::get_id(), &task);
-                
-                Internal::Magic::apply(callback, data);
-                
-                parent->powerPlant.cachemaster.setCurrentTask(std::this_thread::get_id(), nullptr);
-            };
-        }
-    };
 
     template <typename TFunc, typename... TTriggersAndWiths>
     Internal::Reaction* Reactor::buildReaction(TFunc callback, Internal::Reaction::Options& options) {
@@ -245,9 +194,17 @@ namespace NUClear {
         // Return a reaction object that gets and runs with the correct paramters
         return new Internal::Reaction(typeid(TFunc).name(), [this, callback]() -> std::function<void (Internal::Reaction::Task&)> {
             
-            auto&& data = std::make_tuple(powerPlant.cachemaster.get<TTriggersAndWiths>()...);
+            auto&& data = std::make_tuple(powerPlant->cachemaster.get<TTriggersAndWiths>()...);
             
-            return Meta::If<NeedsFill<Meta::RemoveRef<decltype(data)>>, FillCallback, BasicCallback>::buildCallback(this, callback, data);
+            return [this, callback, data] (Internal::Reaction::Task& task) {
+                
+                task.args = Internal::Magic::buildVector(data);
+                this->powerPlant->threadmaster.setCurrentTask(std::this_thread::get_id(), &task);
+                
+                Internal::Magic::apply(callback, data);
+                
+                this->powerPlant->threadmaster.setCurrentTask(std::this_thread::get_id(), nullptr);
+            };
         }, options);
     }
     

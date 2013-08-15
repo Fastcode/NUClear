@@ -29,7 +29,7 @@ namespace {
     class TestReactor : public NUClear::Reactor {
     public:
         
-        TestReactor(NUClear::PowerPlant& plant) : Reactor(plant) {
+        TestReactor(NUClear::PowerPlant* plant) : Reactor(plant) {
             // Trigger every 10 milliseconds
             on<Trigger<Last<5, TestData>>>([this](const std::vector<std::shared_ptr<const TestData>>& data) {
                 
@@ -47,7 +47,7 @@ namespace {
                 }
                 else {
                     // We are finished the test
-                    this->powerPlant.shutdown();
+                    this->powerPlant->shutdown();
                 }
             });
         }

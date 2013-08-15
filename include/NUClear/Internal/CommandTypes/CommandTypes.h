@@ -95,16 +95,6 @@ namespace NUClear {
             
             /**
              * @ingroup Wrappers
-             * @brief This is a special base class for types which use a second pass to collect their data
-             *
-             * @details
-             *  Other placeholders extend from this class type to mean that their data is collected during the second
-             *  pass of collecting data.
-             */
-            struct FillType {};
-            
-            /**
-             * @ingroup Wrappers
              * @brief This is a wrapper class which is used to list the data types to trigger a callback on.
              *
              * @details

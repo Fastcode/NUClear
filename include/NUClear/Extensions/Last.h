@@ -15,24 +15,28 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_INTERNAL_EXTENSIONS_EVERY_H
-#define NUCLEAR_INTERNAL_EXTENSIONS_EVERY_H
+#ifndef NUCLEAR_EXTENSIONS_LAST_H
+#define NUCLEAR_EXTENSIONS_LAST_H
 
 #include "NUClear.h"
 
 namespace NUClear {
+    template <int num, typename TData>
+    struct Reactor::TriggerType<Internal::CommandTypes::Last<num, TData>> {
+        typedef TData type;
+    };
     
-    template <int ticks, class period>
-    struct Reactor::Exists<Internal::CommandTypes::Every<ticks, period>> {
+    template <int num, typename TData>
+    struct Reactor::Exists<Internal::CommandTypes::Last<num, TData>> {
         static void exists(Reactor* context) {
-            context->powerPlant.chronomaster.add<ticks, period>();
+            context->powerPlant->cachemaster.ensureCache<num, TData>();
         }
     };
     
-    template <int ticks, class period>
-    struct PowerPlant::CacheMaster::Get<Internal::CommandTypes::Every<ticks, period>> {
-        static std::shared_ptr<clock::time_point> get(PowerPlant* context) {
-            return std::shared_ptr<clock::time_point>(new clock::time_point(ValueCache<Internal::CommandTypes::Every<ticks, period>>::get()->time));
+    template <int num, typename TData>
+    struct PowerPlant::CacheMaster::Get<Internal::CommandTypes::Last<num, TData>> {
+        static std::shared_ptr<std::vector<std::shared_ptr<const TData>>> get(PowerPlant* context) {
+            return ValueCache<TData>::get(num);
         }
     };
 }

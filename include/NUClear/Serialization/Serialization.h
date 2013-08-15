@@ -15,13 +15,16 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+#ifndef NUCLEAR_SERIALIZATION_H
+#define NUCLEAR_SERIALIZATION_H
+
 #include <type_traits>
 #include <google/protobuf/message.h>
 #include "NUClear/PowerPlant.h"
-#include "NUClear/Networking/MurmurHash3.h"
+#include "NUClear/Serialization/MurmurHash3.h"
 
 namespace NUClear {
-    namespace Networking {
+    namespace Serialization {
         
         //TODO find a way to use std::enable_if to pick protocol buffers or block copying
         
@@ -96,3 +99,5 @@ namespace NUClear {
         };
     }
 }
+
+#endif

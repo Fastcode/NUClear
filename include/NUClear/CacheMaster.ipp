@@ -29,13 +29,6 @@ namespace NUClear {
             return ValueCache<TData>::get();
         }
     };
-    
-    template <typename TData, typename... TList>
-    struct PowerPlant::CacheMaster::Fill {
-        static TData fill(PowerPlant*, TData element, std::tuple<TList...>) {
-            return element;
-        }
-    };
 
     template <typename TData>
     void PowerPlant::CacheMaster::cache(TData* data) {

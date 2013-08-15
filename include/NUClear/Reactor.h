@@ -55,7 +55,7 @@ namespace NUClear {
         public:
             friend class PowerPlant;
 
-            Reactor(PowerPlant& powerPlant);
+            Reactor(PowerPlant* powerPlant);
             ~Reactor();
  
         protected:
@@ -66,7 +66,7 @@ namespace NUClear {
          * for the user.                                                                                               *
          **************************************************************************************************************/
             /// @brief TODO
-            PowerPlant& powerPlant;
+            PowerPlant* powerPlant;
         
             /// @brief TODO inherit from commandtype
             using time_t = clock::time_point;

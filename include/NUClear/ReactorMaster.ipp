@@ -26,7 +26,7 @@ namespace NUClear {
     template <typename TReactor>
     void PowerPlant::ReactorMaster::install() {
         // The reactor constructor should handle subscribing to events
-        std::unique_ptr<NUClear::Reactor> reactor(new TReactor(*parent));
+        std::unique_ptr<NUClear::Reactor> reactor(new TReactor(parent));
         reactors.push_back(std::move(reactor));
     }
 
@@ -34,7 +34,7 @@ namespace NUClear {
     void PowerPlant::ReactorMaster::emit(TData* data) {
         
         // Get our current arguments (if we have any)
-        auto task = parent->cachemaster.getCurrentTask(std::this_thread::get_id());
+        auto task = parent->threadmaster.getCurrentTask(std::this_thread::get_id());
         
         // Cache our data
         parent->cachemaster.cache<TData>(data);

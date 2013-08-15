@@ -15,26 +15,39 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_INTERNAL_EXTENSIONS_NETWORK_H
-#define NUCLEAR_INTERNAL_EXTENSIONS_NETWORK_H
+#ifndef NUCLEAR_MURMURHASH3_H
+#define NUCLEAR_MURMURHASH3_H
 
-#include "NUClear.h"
-
+#include <functional>
+#include <stdint.h>
 
 namespace NUClear {
-    
-    
-    template <typename TData>
-    struct PowerPlant::Emit<Internal::CommandTypes::Scope::NETWORK, TData> {
-        static void emit(PowerPlant* context, TData* data) {
-            context->networkmaster.emit(data);
+    namespace Serialization {
+        
+        struct Hash {
+            static const size_t SIZE = 16;
+            
+            uint8_t data[SIZE];
+            
+            bool operator==(const Hash& hash) const;
+            
+            size_t hash() const;
+            
+            static size_t hashToStdHash(const uint8_t* data);
         };
-    };
-    
-    template <typename TData>
-    struct Reactor::Exists<Internal::CommandTypes::Network<TData>> {
-        static void exists(Reactor* context) {
-            context->powerPlant.networkmaster.addType<TData>();
+        
+        Hash murmurHash3(const void* key, const size_t len);
+    }
+}
+
+namespace std
+{
+    template <>
+    struct hash<NUClear::Serialization::Hash> : public unary_function<NUClear::Serialization::Hash, size_t>
+    {
+        size_t operator()(const NUClear::Serialization::Hash& v) const
+        {
+            return v.hash();
         }
     };
 }

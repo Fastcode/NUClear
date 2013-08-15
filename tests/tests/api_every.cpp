@@ -27,7 +27,7 @@ namespace {
         // Store our times
         std::vector<NUClear::clock::time_point> times;
         
-        TestReactor(NUClear::PowerPlant& plant) : Reactor(plant) {
+        TestReactor(NUClear::PowerPlant* plant) : Reactor(plant) {
             // Trigger every 10 milliseconds
             on<Trigger<Every<10, std::chrono::milliseconds>>>([this](const time_t& message) {
                 
@@ -57,7 +57,7 @@ namespace {
                     REQUIRE(abs(100 - test.count()) <= 1);
                     
                     // We are finished the test
-                    this->powerPlant.shutdown();
+                    this->powerPlant->shutdown();
                 }
             });
         }
