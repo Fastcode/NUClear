@@ -22,12 +22,20 @@
 
 namespace NUClear {
 
+    struct ChronoConfig {
+        std::type_index type;
+        std::function<void ()> emitter;
+        clock::duration step;
+    };
+
     template <int ticks, class period>
     struct Reactor::Exists<Internal::CommandTypes::Every<ticks, period>> {
         static void exists(Reactor* context) {
 
-            // TODO add this Every to our chronomaster
-            //context->powerPlant.chronomaster.add<ticks, period>();
+            // Direct emit our type to the ChronoConfiguration
+            context->emit<Scope::DIRECT>(new ChronoConfig(typeid(Internal::CommandTypes::Every<ticks, period>),
+                                                          [context] { context->emit(new Internal::CommandTypes::Every<ticks, period>(clock::now())); },
+                                                          clock::duration(period(ticks))));
         }
     };
 

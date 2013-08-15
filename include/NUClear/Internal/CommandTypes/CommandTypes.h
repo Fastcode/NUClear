@@ -89,6 +89,7 @@ namespace NUClear {
              *  are chosen, then the event will propagate to both the network and local powerplants.
              */
             struct Scope {
+                struct DIRECT;
                 struct LOCAL;
                 struct NETWORK;
             };
