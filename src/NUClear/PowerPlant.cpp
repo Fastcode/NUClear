@@ -42,7 +42,15 @@ namespace NUClear {
     , cachemaster(this)
     , reactormaster(this) {
 
-        // TODO log that we are starting up
+        // State that we are setting up
+        std::cout << "Building the PowerPlant with " << configuration.threadCount << " threads" << std::endl;
+
+        // Install the chrono extension
+        std::cout << "Setting up the Chrono extension" << std::endl;
+        install<Extensions::Chrono>();
+
+        std::cout << "Setting up the Networking extension" << std::endl;
+        install<Extensions::Networking>();
     }
 
     void PowerPlant::addServiceTask(Internal::ThreadWorker::ServiceTask task) {

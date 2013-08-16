@@ -32,19 +32,44 @@ namespace NUClear {
 
     template <typename TData>
     void PowerPlant::ReactorMaster::emit(TData* data) {
-        
+
         // Get our current arguments (if we have any)
         auto task = parent->threadmaster.getCurrentTask(std::this_thread::get_id());
-        
+
         // Cache our data
         parent->cachemaster.cache<TData>(data);
-        
+
         // Trigger all our reactions
         for(auto& reaction : CallbackCache<TData>::get()) {
             try {
                 // Only run if our reaction is enabled
                 if(reaction->isEnabled()) {
                     parent->threadmaster.submit(reaction->getTask(task));
+                }
+            }
+            // If there is no data, then ignore the task
+            catch (Internal::Magic::NoDataException) {}
+        }
+    }
+
+    template <typename TData>
+    void PowerPlant::ReactorMaster::directEmit(TData* data) {
+
+        // Get our current arguments (if we have any)
+        auto currentTask = parent->threadmaster.getCurrentTask(std::this_thread::get_id());
+
+        // Cache our data
+        parent->cachemaster.cache<TData>(data);
+
+        // Trigger all our reactions directly (no thread pool)
+        for(auto& reaction : CallbackCache<TData>::get()) {
+            try {
+                // Only run if our reaction is enabled
+                if(reaction->isEnabled()) {
+
+                    // Get and execute this reaction right now (don't send it to the thread pool)
+                    std::unique_ptr<Internal::Reaction::Task> task = std::move(reaction->getTask(currentTask));
+                    (*task)();
                 }
             }
             // If there is no data, then ignore the task

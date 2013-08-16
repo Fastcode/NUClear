@@ -22,11 +22,46 @@ namespace NUClear {
 
         Chrono::Chrono(PowerPlant* parent) : Reactor(parent), lock(execute) {
 
+            on<Trigger<ChronoConfig>>([this] (const ChronoConfig& config) {
+                add(config);
+            });
+
             // Build a task and add it as a service task
             Internal::ThreadWorker::ServiceTask task(std::bind(&Chrono::run, this),
                                                      std::bind(&Chrono::kill, this));
             parent->addServiceTask(task);
         }
+
+        void Chrono::add(const NUClear::ChronoConfig& config) {
+            // Check if we have not already loaded this type in
+            if(loaded.find(config.type) == std::end(loaded)) {
+
+                // Flag this type as loaded
+                loaded.insert(config.type);
+
+                // Get our period in whatever time our clock measures
+                clock::duration step(config.step);
+
+                // See if we already have one with this period
+                auto item = std::find_if(std::begin(steps), std::end(steps), [step](std::unique_ptr<Step>& find) {
+                    return find->step.count() == step.count();
+                });
+
+                // If we don't then create a new one with our initial data
+                if(item == std::end(steps)) {
+                    std::unique_ptr<Step> s(new Step());
+                    s->step = step;
+                    s->callbacks.push_back(config.emitter);
+                    steps.push_back(std::move(s));
+                }
+
+                // Otherwise just add the callback to the existing element
+                else {
+                    (*item)->callbacks.push_back(config.emitter);
+                }
+            }
+        }
+
 
         void Chrono::run() {
 
@@ -47,7 +82,7 @@ namespace NUClear {
                     for(auto& step : steps) {
                         if((step->next - now).count() <= 0) {
                             for(auto& callback : step->callbacks) {
-                                callback(now);
+                                callback();
                             }
                             step->next += step->step;
                         }

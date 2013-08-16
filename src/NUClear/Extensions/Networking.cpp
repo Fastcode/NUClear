@@ -67,8 +67,8 @@ namespace NUClear {
                     proto.ParseFromArray(message.data(), message.size());
 
                     // Get our hash
-                    Networking::Hash type;
-                    memcpy(type.data, proto.type().data(), Networking::Hash::SIZE);
+                    Serialization::Hash type;
+                    memcpy(type.data, proto.type().data(), Serialization::Hash::SIZE);
 
                     // Find this type's deserializer (if it exists)
                     auto it = deserialize.find(type);
@@ -92,7 +92,7 @@ namespace NUClear {
         std::string Networking::addressForName(std::string name, unsigned port) {
 
             // Hash our string
-            Networking::Hash hash = Networking::murmurHash3(name.c_str(), name.size());
+            Serialization::Hash hash = Serialization::murmurHash3(name.c_str(), name.size());
 
             // Convert our hash into a multicast address
             uint32_t addr = 0xE0000200 + (hash.hash() % (0xEFFFFFFF - 0xE0000200));

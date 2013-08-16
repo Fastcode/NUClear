@@ -255,6 +255,7 @@ namespace NUClear {
                      */
                     template <typename TData>
                     auto get() -> decltype(Get<TData>::get(parent)) {
+                        std::cout << typeid(TData).name() << std::endl;
                         return Get<TData>::get(parent);
                     }
             };
@@ -288,7 +289,20 @@ namespace NUClear {
                      */
                     template <typename TTrigger>
                     void emit(TTrigger* data);
-                    
+
+                    /**
+                     * @brief TODO
+                     *
+                     * @details
+                     *  TODO
+                     *
+                     * @tparam TTrigger TODO
+                     *
+                     * @param data TODO
+                     */
+                    template <typename TTrigger>
+                    void directEmit(TTrigger* data);
+
                     /**
                      * @brief TODO
                      *
@@ -321,6 +335,9 @@ namespace NUClear {
             template <typename THandler, typename TData>
             struct Emit;
 
+        public:
+            /// @brief TODO
+            const Configuration configuration;
         protected:
             /// @brief TODO
             ThreadMaster threadmaster;
@@ -329,8 +346,6 @@ namespace NUClear {
             /// @brief TODO
             ReactorMaster reactormaster;
         public:
-            /// @brief TODO
-            const Configuration configuration;
             /**
              * @brief TODO
              *

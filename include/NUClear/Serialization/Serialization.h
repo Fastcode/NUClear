@@ -18,6 +18,7 @@
 #ifndef NUCLEAR_SERIALIZATION_H
 #define NUCLEAR_SERIALIZATION_H
 
+#include <cxxabi.h>
 #include <type_traits>
 #include <google/protobuf/message.h>
 #include "NUClear/PowerPlant.h"
@@ -25,6 +26,33 @@
 
 namespace NUClear {
     namespace Serialization {
+
+        /**
+         * @brief TODO this demangles mangled names
+         * 
+         * @details
+         *  TODO
+         *
+         * @tparam TType TODO
+         *
+         * @returns TODO
+         */
+        template <typename TType>
+        const std::string demangled() {
+
+            int status = -4;
+
+            char* res = abi::__cxa_demangle(typeid(TType).name(), NULL, NULL, &status);
+
+            const char* const demangled_name = (status == 0) ? res : typeid(TType).name();
+
+            std::string ret_val(demangled_name);
+            
+            free(res);
+            
+            return ret_val;
+        }
+
         
         //TODO find a way to use std::enable_if to pick protocol buffers or block copying
         
@@ -59,8 +87,9 @@ namespace NUClear {
                 static_assert(std::is_trivial<TType>::value, "Only trivial classes can be serialized using the default serializer.");
                 
                 static const Hash hash() {
-                    // We base the hash on the mangled name of the type
-                    return murmurHash3(typeid(TType).name(), strlen(typeid(TType).name()));
+                    // We base the hash on the demangled name of the type
+                    std::string typeName = demangled<TType>();
+                    return murmurHash3(typeName.c_str(), typeName.size());
                 }
             
                 static TType* deserialize(const std::string data) {

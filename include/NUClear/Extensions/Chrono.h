@@ -33,9 +33,11 @@ namespace NUClear {
         static void exists(Reactor* context) {
 
             // Direct emit our type to the ChronoConfiguration
-            context->emit<Scope::DIRECT>(new ChronoConfig(typeid(Internal::CommandTypes::Every<ticks, period>),
-                                                          [context] { context->emit(new Internal::CommandTypes::Every<ticks, period>(clock::now())); },
-                                                          clock::duration(period(ticks))));
+            context->emit<Scope::DIRECT>(new ChronoConfig {
+                typeid(Internal::CommandTypes::Every<ticks, period>),
+                [context] { context->emit(new Internal::CommandTypes::Every<ticks, period>(clock::now())); },
+                clock::duration(period(ticks))
+            });
         }
     };
 
@@ -65,44 +67,10 @@ namespace NUClear {
              * @details
              *  TODO
              *
-             * @tparam ticks    The number of ticks of the period to wait between emitting events
-             * @tparam period   The period that the ticks are measured in (a type of std::chrono::duration)
+             * @param config contains the information required to configure the new 
              */
-            template <int ticks, class period>
-            void add() {
-                // Check if we have not already loaded this type in
-                if(loaded.find(typeid(NUClear::Internal::CommandTypes::Every<ticks, period>)) == std::end(loaded)) {
-
-                    // Flag this type as loaded
-                    loaded.insert(typeid(NUClear::Internal::CommandTypes::Every<ticks, period>));
-
-                    std::function<void (clock::time_point)> emitter = [this](clock::time_point time){
-                        emit(new NUClear::Internal::CommandTypes::Every<ticks, period>(time));
-                    };
-
-                    // Get our period in whatever time our clock measures
-                    clock::duration step((period(ticks)));
-
-                    // See if we already have one with this period
-                    auto item = std::find_if(std::begin(steps), std::end(steps), [step](std::unique_ptr<Step>& find) {
-                        return find->step.count() == step.count();
-                    });
-
-                    // If we don't then create a new one with our initial data
-                    if(item == std::end(steps)) {
-                        std::unique_ptr<Step> s(new Step());
-                        s->step = step;
-                        s->callbacks.push_back(emitter);
-                        steps.push_back(std::move(s));
-                    }
-
-                    // Otherwise just add the callback to the existing element
-                    else {
-                        (*item)->callbacks.push_back(emitter);
-                    }
-                }
-            }
-
+            void add(const ChronoConfig& config);
+            
         private:
             /// @brief this class holds the callbacks to emit events, as well as when to emit these events.
             struct Step {
@@ -111,7 +79,7 @@ namespace NUClear {
                 /// @brief the time at which we need to emit our next event
                 clock::time_point next;
                 /// @brief the callbacks to emit for this time (e.g. 1000ms and 1second will trigger on the same tick)
-                std::vector<std::function<void (clock::time_point)>> callbacks;
+                std::vector<std::function<void ()>> callbacks;
             };
 
             /// @brief Our Run method for the task scheduler, starts the Every events emitting
