@@ -21,12 +21,13 @@
 
 namespace NUClear {
     namespace Extensions {
+        zmq::context_t Networking::ZMQ_CONTEXT(1);
+
         Networking::Networking(PowerPlant* parent) : Reactor(parent),
         running(true),
-        context(1),
-        pub(context, ZMQ_PUB),
-        termPub(context, ZMQ_PUB),
-        sub(context, ZMQ_SUB) {
+        pub(ZMQ_CONTEXT, ZMQ_PUB),
+        termPub(ZMQ_CONTEXT, ZMQ_PUB),
+        sub(ZMQ_CONTEXT, ZMQ_SUB) {
 
             // Get our PGM address
             std::string address = addressForName(parent->configuration.networkGroup,
@@ -50,6 +51,10 @@ namespace NUClear {
                                                      std::bind(&Networking::kill, this));
 
             powerPlant->addServiceTask(task);
+
+            // We emit our zmq context here so that other classes are able to use it as well (if they need zmq)
+            
+            
 
             on<Trigger<NetworkTypeConfig>>([this] (const NetworkTypeConfig& config) {
 

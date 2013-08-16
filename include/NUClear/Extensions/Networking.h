@@ -79,6 +79,8 @@ namespace NUClear {
     namespace Extensions {
         class Networking : public Reactor {
         public:
+            static zmq::context_t ZMQ_CONTEXT;
+
             /// @brief TODO
             Networking(PowerPlant* parent);
 
@@ -116,8 +118,6 @@ namespace NUClear {
             volatile bool running;
             /// @brief TODO
             std::mutex sendMutex;
-            /// @brief TODO
-            zmq::context_t context;
             /// @brief TODO
             zmq::socket_t pub;
             /// @brief TODO
