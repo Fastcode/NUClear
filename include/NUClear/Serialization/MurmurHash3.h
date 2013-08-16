@@ -18,8 +18,8 @@
 #ifndef NUCLEAR_MURMURHASH3_H
 #define NUCLEAR_MURMURHASH3_H
 
-#include <stdint.h>
-#include <stddef.h>
+#include <cstdint>
+#include <cstring>
 
 #include <functional>
 
