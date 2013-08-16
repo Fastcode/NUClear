@@ -14,7 +14,7 @@
  * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-
+#define CATCH_CONFIG_MAIN
 #include <catch.hpp>
 
 #include "NUClear.h"
@@ -22,41 +22,46 @@
 // Anonymous namespace to keep everything file local
 namespace {
     
-    struct TestObject {
-        int x;
-    };
-    
-    class NetworkEmitter : public NUClear::Reactor {
-    public:
-        NetworkEmitter(NUClear::PowerPlant* plant) : Reactor(plant) {
-            on<Trigger<Every<500, std::chrono::milliseconds>>>([this](const time_t& tick) {
-                emit<Scope::NETWORK>(new TestObject{5});
-            });
-        }
+    struct TestData {
+        int data;
     };
     
     class TestReactor : public NUClear::Reactor {
     public:
         
         TestReactor(NUClear::PowerPlant* plant) : Reactor(plant) {
-            
-            // Trigger on a networked event
-            on<Trigger<Network<TestObject>>>([this](const Network<TestObject>& message) {
-                REQUIRE(message.data->x == 5);
-                powerPlant->shutdown();
+            // Trigger every 10 milliseconds
+            on<Trigger<Last<5, TestData>>>([this](const std::vector<std::shared_ptr<const TestData>>& data) {
+                
+                // Check that we have the same number of elements as our first data or 5 elements
+                REQUIRE(data.size() == std::min(5, data.front()->data));
+                
+                for (unsigned i = 1; i < data.size(); ++i) {
+                    // Check that the value is correct
+                    REQUIRE(data[i - 1]->data == data[i]->data + 1);
+                }
+                
+                // We will continue until we have done 10 elements
+                if (data.front()->data < 10) {
+                    emit(new TestData{data.front()->data + 1});
+                }
+                else {
+                    // We are finished the test
+                    this->powerPlant->shutdown();
+                }
             });
         }
     };
 }
 
-TEST_CASE("Testing the Networking system", "[api][network][hidden]") {
+TEST_CASE("Testing the Last<> Smart Type", "[api][last]") {
     
     NUClear::PowerPlant::Configuration config;
     config.threadCount = 1;
     NUClear::PowerPlant plant(config);
-    
-    plant.install<NetworkEmitter>();
     plant.install<TestReactor>();
+    
+    plant.emit(new TestData{1});
     
     plant.start();
 }

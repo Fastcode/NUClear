@@ -1,10 +1,13 @@
 FIND_PACKAGE(CATCH REQUIRED)
 INCLUDE_DIRECTORIES(${CATCH_INCLUDE_DIRS})
 
-FILE(GLOB testsrc "${CMAKE_CURRENT_SOURCE_DIR}/tests/*.cpp")
+FILE(GLOB testsrc "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
 
-SOURCE_GROUP(Tests FILES ${testsrc})
+FOREACH(test ${testsrc})
 
-ADD_EXECUTABLE(tests tests.cpp ${testsrc})
-TARGET_LINK_LIBRARIES(tests nuclear)
-ADD_TEST(tests tests)
+    # Get just the file name
+    GET_FILENAME_COMPONENT(raw_name ${test} NAME_WE)
+    ADD_EXECUTABLE(${raw_name} ${test})
+    TARGET_LINK_LIBRARIES(${raw_name} nuclear)
+    ADD_TEST(tests ${raw_name})
+ENDFOREACH()
