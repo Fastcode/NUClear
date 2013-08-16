@@ -22,31 +22,57 @@
 #include <zmq.hpp>
 
 #include "NUClear.h"
+#include "NUClear/NetworkMessage.pb.h"
 #include "NUClear/Serialization/MurmurHash3.h"
 
 namespace NUClear {
 
-    struct NetworkSend {
-        std::string data;
+    struct NetworkTypeConfig {
+        Serialization::Hash hash;
+        std::function<void (Reactor* network, const std::string, const std::string)> deserializer;
     };
     
-    
+    // Our emit overload for a networked emit
     template <typename TData>
     struct PowerPlant::Emit<Internal::CommandTypes::Scope::NETWORK, TData> {
         static void emit(PowerPlant* context, TData* data) {
 
-            // TODO send this data pointer over to the network stack using a direct emit method
-            // Serialize the data into a string and send via direct emitting a NetworkSend object
-            //context->networkmaster.emit(data);
+            Serialization::NetworkMessage* message = new Serialization::NetworkMessage();
+
+            // Get our hash for this type
+            Serialization::Hash hash = Serialization::hash<TData>();
+
+            // Serialize our data
+            std::string payload = Serialization::Serializer<TData>::serialize(data);
+
+            // Fill our protocol buffer
+            message->set_type(std::string(reinterpret_cast<char*>(hash.data), Serialization::Hash::SIZE));
+            message->set_source(context->configuration.networkName);
+            message->set_payload(payload);
+
+            // Send our data to be emitted
+            context->emit(message);
         };
     };
-    
+
+    // Our Exists overload to start listening for paticular network datatypes
     template <typename TData>
     struct Reactor::Exists<Internal::CommandTypes::Network<TData>> {
         static void exists(Reactor* context) {
 
-            // TODO add this datatype to the network master (probably build our type here) (direct emit)
-            //context->powerPlant.networkmaster.addType<TData>();
+            // Send a direct emit to the Network reactor to tell it about the new type to listen for
+            context->emit<Scope::DIRECT>(new NetworkTypeConfig {
+                Serialization::hash<TData>(),
+                [] (Reactor* reactor, const std::string source, const std::string data) {
+
+                    // Deserialize our data and store it in the network object
+                    TData* parsed = Serialization::Serializer<TData>::deserialize(data);
+                    Network<TData>* event = new Network<TData> { source, std::shared_ptr<const TData>(parsed) };
+
+                    // Emit it to the world
+                    reactor->emit(event);
+                }
+            });
         }
     };
 
@@ -55,41 +81,6 @@ namespace NUClear {
         public:
             /// @brief TODO
             Networking(PowerPlant* parent);
-
-            /**
-             * @brief TODO
-             *
-             * @details
-             *  TODO
-             *
-             * @tparam TType TODO
-             */
-            template<typename TType>
-            void addType() {
-
-                // Get the hash for this type
-                Serialization::Hash type = Serialization::hash<TType>();
-
-                // Check if we have already registered this type
-                if(deserialize.find(type) == std::end(deserialize)) {
-
-                    // Create our deserialization function
-                    std::function<void (const std::string, const std::string)> parse = [this](const std::string source, const std::string data) {
-
-                        // Deserialize our data
-                        TType* parsed = Serialization::Serializer<TType>::deserialize(data);
-
-                        // Wrap our object in a Network object
-                        Internal::CommandTypes::Network<TType>* event = new Internal::CommandTypes::Network<TType>{source, std::shared_ptr<TType>(parsed)};
-
-                        // Emit the object
-                        emit(event);
-                    };
-                    
-                    // Store our function for use
-                    deserialize.insert(std::make_pair(type, parse));
-                }
-            }
 
         private:
             /**
@@ -120,11 +111,11 @@ namespace NUClear {
             static std::string addressForName(const std::string name, const unsigned port);
 
             /// @brief TODO
-            std::unordered_map<Serialization::Hash, std::function<void(const std::string, std::string)>> deserialize;
+            std::unordered_map<Serialization::Hash, std::function<void(Reactor*, const std::string, std::string)>> deserialize;
             /// @brief TODO
             volatile bool running;
             /// @brief TODO
-            std::mutex send;
+            std::mutex sendMutex;
             /// @brief TODO
             zmq::context_t context;
             /// @brief TODO
@@ -136,43 +127,5 @@ namespace NUClear {
         };
     }
 }
-
-
-/*
-
-namespace NUClear {
-
-    template <typename TType>
-    void PowerPlant::NetworkMaster::emit(TType* data) {
-
-        // Get the hash for this type
-        Networking::Hash hash = Networking::hash<TType>();
-
-        // Serialize our data
-        std::string payload = Networking::Serializer<TType>::serialize(data);
-
-        // Create a Message protocol buffer to send
-        Networking::NetworkMessage net;
-
-        net.set_type(std::string(reinterpret_cast<char*>(hash.data), Networking::Hash::SIZE));
-        net.set_source(parent->configuration.networkName);
-        net.set_payload(payload);
-
-        // Serialize our protocol buffer
-        std::string serialized = net.SerializeAsString();
-
-        // Create a zmq message which holds our hash, and then our data
-        zmq::message_t message(serialized.size());
-
-        // Copy in our data
-        memcpy(message.data(), serialized.data(), serialized.size());
-
-        // Send the data after locking the mutex
-        std::unique_lock<std::mutex>(send);
-        pub.send(message);
-    }
-
-}
-*/
 
 #endif

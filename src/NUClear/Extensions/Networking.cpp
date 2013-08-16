@@ -16,7 +16,6 @@
  */
 
 #include "NUClear/Extensions/Networking.h"
-#include "NUClear/NetworkMessage.pb.h"
 
 #include <sstream>
 
@@ -51,6 +50,31 @@ namespace NUClear {
                                                      std::bind(&Networking::kill, this));
 
             powerPlant->addServiceTask(task);
+
+            on<Trigger<NetworkTypeConfig>>([this] (const NetworkTypeConfig& config) {
+
+                // Check if we have already registered this type
+                if(deserialize.find(config.hash) == std::end(deserialize)) {
+                    // Store our function for use
+                    deserialize.insert(std::make_pair(config.hash, config.deserializer));
+                }
+            });
+
+            on<Trigger<Serialization::NetworkMessage>>([this] (const Serialization::NetworkMessage& message) {
+
+                // Serialize our protocol buffer
+                std::string serialized = message.SerializeAsString();
+
+                // Create a zmq message which holds our hash, and then our data
+                zmq::message_t zmsg(serialized.size());
+
+                // Copy in our data
+                memcpy(zmsg.data(), serialized.data(), serialized.size());
+                
+                // Send the data after locking the mutex
+                std::lock_guard<std::mutex> lock(sendMutex);
+                pub.send(zmsg);
+            });
         }
 
         void Networking::run() {
@@ -73,7 +97,7 @@ namespace NUClear {
                     // Find this type's deserializer (if it exists)
                     auto it = deserialize.find(type);
                     if(it != std::end(deserialize)) {
-                        it->second(proto.source(), proto.payload());
+                        it->second(this, proto.source(), proto.payload());
                     }
                 }
             }
