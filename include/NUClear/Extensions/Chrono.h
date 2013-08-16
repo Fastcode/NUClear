@@ -22,6 +22,12 @@
 
 namespace NUClear {
 
+    /**
+     * @brief This contains all of the information needed to setup a new every.
+     *
+     * @details
+     *  This is created when an exists for an every happens, it is then direct emitted to the Chronomaster object
+     */
     struct ChronoConfig {
         std::type_index type;
         std::function<void ()> emitter;

@@ -153,11 +153,6 @@ namespace NUClear {
         Reactor::Options<TOptions...>,
         std::tuple<TFuncArgs...>>::on(Reactor* context, TFunc callback) {
             
-            // TODO our static asserts go here
-            // Static assert that our Triggers and withs are compatible with TFunc
-            
-            std::tuple<decltype(PowerPlant::CacheMaster::Get<TFuncArgs>::get(std::declval<PowerPlant*>()))...> x;
-            
             static_assert(Reactor::CheckFunctionSignature<TFunc, std::tuple<TFuncArgs...>>::value, "Your callback function does not match the types in the On statement");
             static_assert(sizeof...(TTriggers) > 0, "You must have at least one Trigger in a callback");
             

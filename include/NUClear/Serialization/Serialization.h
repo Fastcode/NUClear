@@ -28,28 +28,23 @@ namespace NUClear {
     namespace Serialization {
 
         /**
-         * @brief TODO this demangles mangled names
+         * @brief This method returns the demangled name of the template type this is called with
          * 
          * @details
-         *  TODO
+         *  This uses the cxxabi in order to demangle the name of the type that is specified in TType
          *
-         * @tparam TType TODO
+         * @tparam TType the type to demangle
          *
-         * @returns TODO
+         * @returns the demangled name of this type
          */
         template <typename TType>
         const std::string demangled() {
 
             int status = -4;
-
             char* res = abi::__cxa_demangle(typeid(TType).name(), NULL, NULL, &status);
-
             const char* const demangled_name = (status == 0) ? res : typeid(TType).name();
-
             std::string ret_val(demangled_name);
-            
             free(res);
-            
             return ret_val;
         }
 

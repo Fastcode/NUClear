@@ -28,13 +28,10 @@ namespace NUClear {
         
         struct Hash {
             static const size_t SIZE = 16;
-            
             uint8_t data[SIZE];
             
             bool operator==(const Hash& hash) const;
-            
             size_t hash() const;
-            
             static size_t hashToStdHash(const uint8_t* data);
         };
         
@@ -42,13 +39,11 @@ namespace NUClear {
     }
 }
 
-namespace std
-{
+namespace std {
     template <>
-    struct hash<NUClear::Serialization::Hash> : public unary_function<NUClear::Serialization::Hash, size_t>
-    {
-        size_t operator()(const NUClear::Serialization::Hash& v) const
-        {
+    struct hash<NUClear::Serialization::Hash> : public unary_function<NUClear::Serialization::Hash, size_t> {
+        
+        size_t operator()(const NUClear::Serialization::Hash& v) const {
             return v.hash();
         }
     };
