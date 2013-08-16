@@ -18,8 +18,10 @@
 #ifndef NUCLEAR_MURMURHASH3_H
 #define NUCLEAR_MURMURHASH3_H
 
-#include <functional>
 #include <stdint.h>
+#include <stddef.h>
+
+#include <functional>
 
 namespace NUClear {
     namespace Serialization {
