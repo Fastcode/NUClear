@@ -49,7 +49,7 @@ namespace {
     };
 }
 
-TEST_CASE("Testing the Networking system", "[api][network]") {
+TEST_CASE("Testing the Networking system", "[api][network][hidden]") {
     
     NUClear::PowerPlant::Configuration config;
     config.threadCount = 1;

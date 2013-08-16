@@ -255,7 +255,6 @@ namespace NUClear {
                      */
                     template <typename TData>
                     auto get() -> decltype(Get<TData>::get(parent)) {
-                        std::cout << typeid(TData).name() << std::endl;
                         return Get<TData>::get(parent);
                     }
             };
