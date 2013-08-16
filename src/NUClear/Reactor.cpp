@@ -19,8 +19,7 @@
 
 namespace NUClear {
     
-    Reactor::Reactor(PowerPlant& powerPlant) :
-        powerPlant(powerPlant) {
+    Reactor::Reactor(PowerPlant* powerPlant) : powerPlant(powerPlant) {
     }
     
     void Reactor::buildOptionsImpl(Internal::Reaction::Options& options, Single* /*placeholder*/) {

@@ -15,26 +15,28 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_INTERNAL_EXTENSIONS_NETWORK_H
-#define NUCLEAR_INTERNAL_EXTENSIONS_NETWORK_H
+#ifndef NUCLEAR_EXTENSIONS_LAST_H
+#define NUCLEAR_EXTENSIONS_LAST_H
 
 #include "NUClear.h"
 
-
 namespace NUClear {
-    
-    
-    template <typename TData>
-    struct PowerPlant::Emit<Internal::CommandTypes::Scope::NETWORK, TData> {
-        static void emit(PowerPlant* context, TData* data) {
-            context->networkmaster.emit(data);
-        };
+    template <int num, typename TData>
+    struct Reactor::TriggerType<Internal::CommandTypes::Last<num, TData>> {
+        typedef TData type;
     };
     
-    template <typename TData>
-    struct Reactor::Exists<Internal::CommandTypes::Network<TData>> {
+    template <int num, typename TData>
+    struct Reactor::Exists<Internal::CommandTypes::Last<num, TData>> {
         static void exists(Reactor* context) {
-            context->powerPlant.networkmaster.addType<TData>();
+            context->powerPlant->cachemaster.ensureCache<num, TData>();
+        }
+    };
+    
+    template <int num, typename TData>
+    struct PowerPlant::CacheMaster::Get<Internal::CommandTypes::Last<num, TData>> {
+        static std::shared_ptr<std::vector<std::shared_ptr<const TData>>> get(PowerPlant* context) {
+            return ValueCache<TData>::get(num);
         }
     };
 }

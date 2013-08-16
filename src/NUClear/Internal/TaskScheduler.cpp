@@ -28,7 +28,7 @@ namespace Internal {
     
     void TaskScheduler::shutdown() {
         {
-            std::unique_lock<std::mutex> lock(mutex);
+            std::lock_guard<std::mutex> lock(mutex);
             shutdown_ = true;
         }
         condition.notify_all();
@@ -37,7 +37,7 @@ namespace Internal {
     void TaskScheduler::submit(std::unique_ptr<Reaction::Task>&& task) {
         {
             // Obtain the lock
-            std::unique_lock<std::mutex> lock(mutex);
+            std::lock_guard<std::mutex> lock(mutex);
             
             // We do not accept new tasks once we are shutdown or if this is a Single reaction that is already in the system
             if(!shutdown_ && (!task->parent->options.single || !task->parent->running)) {
@@ -50,10 +50,10 @@ namespace Internal {
                     
                     auto& queue = task->parent->options.syncQueue->queue;
                     auto& active = task->parent->options.syncQueue->active;
-                    auto& mutex = task->parent->options.syncQueue->mutex;
+                    auto& syncMutex = task->parent->options.syncQueue->mutex;
                     
                     // Lock our sync types mutex
-                    std::unique_lock<std::mutex> lock(mutex);
+                    std::lock_guard<std::mutex> lock(syncMutex);
                     
                     // If a sync type is already executing then push it onto the sync queue
                     if (active) {

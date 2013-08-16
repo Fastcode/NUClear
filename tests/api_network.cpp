@@ -14,7 +14,7 @@
  * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-
+#define CATCH_CONFIG_MAIN
 #include <catch.hpp>
 
 #include "NUClear.h"
@@ -28,7 +28,7 @@ namespace {
     
     class NetworkEmitter : public NUClear::Reactor {
     public:
-        NetworkEmitter(NUClear::PowerPlant& plant) : Reactor(plant) {
+        NetworkEmitter(NUClear::PowerPlant* plant) : Reactor(plant) {
             on<Trigger<Every<500, std::chrono::milliseconds>>>([this](const time_t& tick) {
                 emit<Scope::NETWORK>(new TestObject{5});
             });
@@ -38,18 +38,18 @@ namespace {
     class TestReactor : public NUClear::Reactor {
     public:
         
-        TestReactor(NUClear::PowerPlant& plant) : Reactor(plant) {
+        TestReactor(NUClear::PowerPlant* plant) : Reactor(plant) {
             
             // Trigger on a networked event
             on<Trigger<Network<TestObject>>>([this](const Network<TestObject>& message) {
                 REQUIRE(message.data->x == 5);
-                powerPlant.shutdown();
+                powerPlant->shutdown();
             });
         }
     };
 }
 
-TEST_CASE("Testing the Networking system", "[api][network]") {
+TEST_CASE("Testing the Networking system", "[api][network][hidden]") {
     
     NUClear::PowerPlant::Configuration config;
     config.threadCount = 1;

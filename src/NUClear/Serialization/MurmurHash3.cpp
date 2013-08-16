@@ -15,10 +15,10 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include "NUClear/PowerPlant.h"
+#include "NUClear/Serialization/MurmurHash3.h"
 
 namespace NUClear {
-    namespace Networking {
+    namespace Serialization {
         
         bool Hash::operator==(const Hash& hash) const {
             for(unsigned i = 0; i < SIZE; ++i) {

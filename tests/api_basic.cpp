@@ -14,7 +14,7 @@
  * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-
+#define CATCH_CONFIG_MAIN
 #include <catch.hpp>
 
 #include "NUClear.h"
@@ -29,7 +29,7 @@ namespace {
     
     class TestReactor : public NUClear::Reactor {
     public:
-        TestReactor(NUClear::PowerPlant& plant) : Reactor(plant) {
+        TestReactor(NUClear::PowerPlant* plant) : Reactor(plant) {
             
             on<Trigger<SimpleMessage>>([this](const SimpleMessage& message) {
                 
@@ -37,7 +37,7 @@ namespace {
                 REQUIRE(message.data == 10);
                 
                 // We are finished the test
-                this->powerPlant.shutdown();
+                this->powerPlant->shutdown();
             });
         }
     };
@@ -63,11 +63,11 @@ namespace {
     
     class DifferentOrderingReactor : public NUClear::Reactor {
     public:
-        DifferentOrderingReactor(NUClear::PowerPlant& plant) : Reactor(plant) {
+        DifferentOrderingReactor(NUClear::PowerPlant* plant) : Reactor(plant) {
             // Check that the lists are combined, and that the function args are in order
             on<With<DifferentOrderingMessage1>, Trigger<DifferentOrderingMessage3>, With<DifferentOrderingMessage2>>
             ([this](const DifferentOrderingMessage1& m1, const DifferentOrderingMessage3& m2, const DifferentOrderingMessage2& m3) {
-                this->powerPlant.shutdown();
+                this->powerPlant->shutdown();
             });
         }
     };

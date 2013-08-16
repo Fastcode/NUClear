@@ -57,10 +57,10 @@ namespace Internal {
                     
                     auto& queue = task->parent->options.syncQueue->queue;
                     auto& active = task->parent->options.syncQueue->active;
-                    auto& mutex = task->parent->options.syncQueue->mutex;
+                    auto& syncMutex = task->parent->options.syncQueue->mutex;
                     
                     // Lock our sync types mutex
-                    std::unique_lock<std::mutex> lock(mutex);
+                    std::lock_guard<std::mutex> lock(syncMutex);
                     
                     // If there is something in our sync queue move it to the main queue
                     if (!queue.empty()) {

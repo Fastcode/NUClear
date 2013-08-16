@@ -89,19 +89,10 @@ namespace NUClear {
              *  are chosen, then the event will propagate to both the network and local powerplants.
              */
             struct Scope {
+                struct DIRECT;
                 struct LOCAL;
                 struct NETWORK;
             };
-            
-            /**
-             * @ingroup Wrappers
-             * @brief This is a special base class for types which use a second pass to collect their data
-             *
-             * @details
-             *  Other placeholders extend from this class type to mean that their data is collected during the second
-             *  pass of collecting data.
-             */
-            struct FillType {};
             
             /**
              * @ingroup Wrappers

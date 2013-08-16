@@ -46,7 +46,14 @@ namespace NUClear {
     struct PowerPlant::Emit<Internal::CommandTypes::Scope::LOCAL, TData> {
         static void emit(PowerPlant* context, TData* data) {
             context->reactormaster.emit(data);
-        };
+        }
+    };
+
+    template <typename TData>
+    struct PowerPlant::Emit<Internal::CommandTypes::Scope::DIRECT, TData> {
+        static void emit(PowerPlant* context, TData* data) {
+            context->reactormaster.directEmit(data);
+        }
     };
 
     template <typename... THandlers, typename TData>
