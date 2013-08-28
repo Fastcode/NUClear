@@ -80,11 +80,6 @@ namespace NUClear {
                 std::lock_guard<std::mutex> lock(sendMutex);
                 pub.send(zmsg);
             });
-
-            // When we are shutting down, we need to shutdown ZMQ
-            on<Trigger<Shutdown>>([this](const Shutdown&) {
-                ZMQ_CONTEXT.close();
-            });
         }
 
         void Networking::run() {
