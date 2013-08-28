@@ -4,7 +4,6 @@
 #  NUCLEAR_FOUND - system has NUClear
 #  NUCLEAR_INCLUDE_DIRS - the NUClear include directory
 #  NUCLEAR_LIBRARIES - Link these to use NUClear
-#  ZMQ_DEFINITIONS - Compiler switches required for using ZMQ
 #
 #  Copyright (c) 2013 Trent Houliston <trent@houliston.me>
 #
