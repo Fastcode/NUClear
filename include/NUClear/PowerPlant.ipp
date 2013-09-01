@@ -66,7 +66,10 @@ namespace NUClear {
         }
         else {
             // Release our data from the pointer
-            auto ptr = data.release();
+            TData* ptr = data.release();
+
+            // For some reason GCC thinks this variable is unused? this supresses that warning
+            (void) ptr;
 
             // TODO These functions should be noexcept
             Internal::Magic::unpack((PowerPlant::Emit<THandlers, TData>::emit(this, ptr), 0)...);
