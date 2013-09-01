@@ -106,6 +106,11 @@ namespace NUClear {
                     }
                 }
             }
+
+            // Close everything
+            pub.close();
+            sub.close();
+            termPub.close();
         }
 
         void Networking::kill() {
