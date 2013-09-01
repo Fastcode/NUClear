@@ -140,8 +140,8 @@ namespace NUClear {
     }
     
     template <typename... THandlers, typename TData>
-    void Reactor::emit(TData* data) {
-        powerPlant->emit<THandlers...>(data);
+    void Reactor::emit(std::unique_ptr<TData>&& data) {
+        powerPlant->emit<THandlers...>(std::forward<std::unique_ptr<TData>>(data));
     }
     
     // This is our final On statement

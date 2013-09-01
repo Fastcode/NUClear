@@ -57,17 +57,17 @@ namespace Internal {
                     
                     // If a sync type is already executing then push it onto the sync queue
                     if (active) {
-                        queue.push(std::move(task));
+                        queue.push(std::forward<std::unique_ptr<Reaction::Task>>(task));
                     }
                     // Otherwise push it onto the main queue and set us to active
                     else {
                         active = true;
-                        queue.push(std::move(task));
+                        queue.push(std::forward<std::unique_ptr<Reaction::Task>>(task));
                     }
                 }
                 // Otherwise move it onto the main queue
                 else {
-                    queue.push(std::move(task));
+                    queue.push(std::forward<std::unique_ptr<Reaction::Task>>(task));
                 }
             }
         }

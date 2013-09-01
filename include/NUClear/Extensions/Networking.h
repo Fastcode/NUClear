@@ -37,7 +37,7 @@ namespace NUClear {
     struct PowerPlant::Emit<Internal::CommandTypes::Scope::NETWORK, TData> {
         static void emit(PowerPlant* context, TData* data) {
 
-            Serialization::NetworkMessage* message = new Serialization::NetworkMessage();
+            auto message = std::make_unique<Serialization::NetworkMessage>();
 
             // Get our hash for this type
             Serialization::Hash hash = Serialization::hash<TData>();
@@ -51,7 +51,7 @@ namespace NUClear {
             message->set_payload(payload);
 
             // Send our data to be emitted
-            context->emit(message);
+            context->emit(std::move(message));
         };
     };
 
@@ -61,7 +61,7 @@ namespace NUClear {
         static void exists(Reactor* context) {
 
             // Send a direct emit to the Network reactor to tell it about the new type to listen for
-            context->emit<Scope::DIRECT>(new NetworkTypeConfig {
+            context->emit<Scope::DIRECT>(std::unique_ptr<NetworkTypeConfig>(new NetworkTypeConfig {
                 Serialization::hash<TData>(),
                 [] (Reactor* reactor, const std::string source, const std::string data) {
 
@@ -72,7 +72,7 @@ namespace NUClear {
                     // Emit it to the world
                     reactor->emit(event);
                 }
-            });
+            }));
         }
     };
 

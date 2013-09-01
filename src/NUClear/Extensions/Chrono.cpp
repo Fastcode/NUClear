@@ -49,7 +49,7 @@ namespace NUClear {
 
                 // If we don't then create a new one with our initial data
                 if(item == std::end(steps)) {
-                    std::unique_ptr<Step> s(new Step());
+                    std::unique_ptr<Step> s(std::make_unique<Step>());
                     s->step = step;
                     s->callbacks.push_back(config.emitter);
                     steps.push_back(std::move(s));

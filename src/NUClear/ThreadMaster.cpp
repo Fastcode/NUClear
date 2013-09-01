@@ -45,14 +45,12 @@ namespace NUClear {
         // Start our internal service threads
         for(auto& task : serviceTasks) {
             // Start a thread worker with our task
-            std::unique_ptr<Internal::ThreadWorker> thread = std::unique_ptr<Internal::ThreadWorker>(new Internal::ThreadWorker(task));
-            threads.push_back(std::move(thread));
+            threads.push_back(std::make_unique<Internal::ThreadWorker>(task));
         }
         
         // Start our pool threads
         for(unsigned i = 0; i < parent->configuration.threadCount; ++i) {
-            std::unique_ptr<Internal::ThreadWorker> thread = std::unique_ptr<Internal::ThreadWorker>(new Internal::ThreadWorker(Internal::ThreadPoolTask(scheduler)));
-            threads.push_back(std::move(thread));
+            threads.push_back(std::make_unique<Internal::ThreadWorker>(Internal::ThreadPoolTask(scheduler)));
         }
         
         // Now wait for all the threads to finish executing
@@ -75,6 +73,6 @@ namespace NUClear {
     }
     
     void PowerPlant::ThreadMaster::submit(std::unique_ptr<Internal::Reaction::Task>&& task) {
-        scheduler.submit(std::move(task));
+        scheduler.submit(std::forward<std::unique_ptr<Internal::Reaction::Task>>(task));
     }
 }

@@ -78,7 +78,7 @@ namespace Internal {
                 // Copy our thread args into the stats
                 stats->args = task->args;
                 
-                //TODO pass off the completed task to another class for processing of details (note that you can't emit it, as it would cause stats for the stats etc inifinity)
+                //TODO pass off the completed task to another class for processing of details using direct emit
             }
         }
         // If this is thrown, it means that we should finish execution

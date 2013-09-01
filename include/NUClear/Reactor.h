@@ -146,7 +146,7 @@ namespace NUClear {
              * @param data
              */
             template <typename... THandlers, typename TData>
-            void emit(TData* data);
+            void emit(std::unique_ptr<TData>&& data);
         private:
         
             /// @brief TODO

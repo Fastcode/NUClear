@@ -26,8 +26,7 @@ namespace NUClear {
     template <typename TReactor>
     void PowerPlant::ReactorMaster::install() {
         // The reactor constructor should handle subscribing to events
-        std::unique_ptr<NUClear::Reactor> reactor(new TReactor(parent));
-        reactors.push_back(std::move(reactor));
+        reactors.push_back(std::make_unique<TReactor>(parent));
     }
 
     template <typename TData>

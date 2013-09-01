@@ -50,7 +50,7 @@ TEST_CASE("A very basic test for Emit and On", "[api]") {
     NUClear::PowerPlant plant(config);
     plant.install<TestReactor>();
     
-    plant.emit(new SimpleMessage{10});
+    plant.emit(std::unique_ptr<SimpleMessage>(new SimpleMessage{10}));
     
     plant.start();
 }
@@ -80,9 +80,9 @@ TEST_CASE("Testing poorly ordered on arguments", "[api]") {
     NUClear::PowerPlant plant(config);
     plant.install<DifferentOrderingReactor>();
     
-    plant.emit(new DifferentOrderingMessage1);
-    plant.emit(new DifferentOrderingMessage2);
-    plant.emit(new DifferentOrderingMessage3);
+    plant.emit(std::make_unique<DifferentOrderingMessage1>());
+    plant.emit(std::make_unique<DifferentOrderingMessage2>());
+    plant.emit(std::make_unique<DifferentOrderingMessage3>());
     
     plant.start();
 }

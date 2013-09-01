@@ -39,11 +39,12 @@ namespace NUClear {
         static void exists(Reactor* context) {
 
             // Direct emit our type to the ChronoConfiguration
-            context->emit<Scope::DIRECT>(new ChronoConfig {
+            
+            context->emit<Scope::DIRECT>(std::unique_ptr<ChronoConfig>(new ChronoConfig {
                 typeid(Internal::CommandTypes::Every<ticks, period>),
                 [context] { context->emit(new Internal::CommandTypes::Every<ticks, period>(clock::now())); },
                 clock::duration(period(ticks))
-            });
+            }));
         }
     };
 

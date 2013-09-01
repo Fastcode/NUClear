@@ -57,14 +57,19 @@ namespace NUClear {
     };
 
     template <typename... THandlers, typename TData>
-    void PowerPlant::emit(TData* data) {
+    void PowerPlant::emit(std::unique_ptr<TData>&& data) {
+
         
         // If there are no types defined, the default is to emit local
         if(sizeof...(THandlers) == 0) {
-            emit<Internal::CommandTypes::Scope::LOCAL>(data);
+            emit<Internal::CommandTypes::Scope::LOCAL>(std::forward<std::unique_ptr<TData>>(data));
         }
         else {
-            Internal::Magic::unpack((PowerPlant::Emit<THandlers, TData>::emit(this, data), 0)...);
+            // Release our data from the pointer
+            auto ptr = data.release();
+
+            // TODO These functions should be noexcept
+            Internal::Magic::unpack((PowerPlant::Emit<THandlers, TData>::emit(this, ptr), 0)...);
         }
     }
 }

@@ -37,6 +37,16 @@
 #include "NUClear/Internal/Magic/TypeMap.h"
 #include "NUClear/Internal/Magic/Sequence.h"
 
+// Patch for std::make_unique in c++11 (should be fixed in c++14)
+#if __cplusplus == 201103L
+namespace std {
+    template<typename T, typename... Args>
+    std::unique_ptr<T> make_unique(Args&&... args) {
+        return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
+    }
+}
+#endif
+
 namespace NUClear {
     
     // Forward declare reactor
@@ -412,7 +422,7 @@ namespace NUClear {
              * @param data TODO
              */
             template <typename... THandlers, typename TData>
-            void emit(TData* data);
+            void emit(std::unique_ptr<TData>&& data);
     };
 }
 
