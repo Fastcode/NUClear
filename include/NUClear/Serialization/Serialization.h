@@ -87,16 +87,16 @@ namespace NUClear {
                     return murmurHash3(typeName.c_str(), typeName.size());
                 }
             
-                static TType* deserialize(const std::string data) {
-                    
-                    TType* object = new TType();
-                    memcpy(object, data.data(), sizeof(TType));
+                static TType deserialize(const std::string data) {
+
+                    TType object;
+                    memcpy(&object, data.data(), sizeof(TType));
                     return object;
                 }
                 
-                static std::string serialize(const TType* data) {
+                static std::string serialize(const TType& data) {
                     
-                    const char* bytes = reinterpret_cast<const char*>(data);
+                    const char* bytes = reinterpret_cast<const char*>(&data);
                     std::string result(bytes, sizeof(TType));
                     return result;
                 }
@@ -113,12 +113,12 @@ namespace NUClear {
         template <typename TType>
         struct Serializer {
             
-            static TType* deserialize(const std::string data) {
+            static TType deserialize(const std::string data) {
                 return DefaultSerialization<TType>::deserialize(data);
             }
             
-            static std::string serialize(TType* data) {
-                return DefaultSerialization<TType>::serialize(data);
+            static std::string serialize(const TType& data) {
+                return DefaultSerialization<TType>::serialize(std::forward<const TType&>(data));
             }
         };
     }

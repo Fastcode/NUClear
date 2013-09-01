@@ -43,7 +43,7 @@ namespace NUClear {
             Serialization::Hash hash = Serialization::hash<TData>();
 
             // Serialize our data
-            std::string payload = Serialization::Serializer<TData>::serialize(data);
+            std::string payload = Serialization::Serializer<TData>::serialize(*data);
 
             // Fill our protocol buffer
             message->set_type(std::string(reinterpret_cast<char*>(hash.data), Serialization::Hash::SIZE));
@@ -66,11 +66,11 @@ namespace NUClear {
                 [] (Reactor* reactor, const std::string source, const std::string data) {
 
                     // Deserialize our data and store it in the network object
-                    TData* parsed = Serialization::Serializer<TData>::deserialize(data);
-                    Network<TData>* event = new Network<TData> { source, std::shared_ptr<const TData>(parsed) };
+                    std::unique_ptr<TData> parsed(std::make_unique<TData>(Serialization::Serializer<TData>::deserialize(data)));
+                    std::unique_ptr<Network<TData>> event = std::make_unique<Network<TData>>(source, std::move(parsed));
 
                     // Emit it to the world
-                    reactor->emit(event);
+                    reactor->emit(std::move(event));
                 }
             }));
         }

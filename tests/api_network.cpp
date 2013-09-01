@@ -30,7 +30,7 @@ namespace {
     public:
         NetworkEmitter(NUClear::PowerPlant* plant) : Reactor(plant) {
             on<Trigger<Every<500, std::chrono::milliseconds>>>([this](const time_t& tick) {
-                emit<Scope::NETWORK>(new TestObject{5});
+                emit<Scope::NETWORK>(std::unique_ptr<TestObject>(new TestObject{5}));
             });
         }
     };

@@ -42,7 +42,7 @@ namespace NUClear {
             
             context->emit<Scope::DIRECT>(std::unique_ptr<ChronoConfig>(new ChronoConfig {
                 typeid(Internal::CommandTypes::Every<ticks, period>),
-                [context] { context->emit(new Internal::CommandTypes::Every<ticks, period>(clock::now())); },
+                [context] { context->emit(std::make_unique<Internal::CommandTypes::Every<ticks, period>>(clock::now())); },
                 clock::duration(period(ticks))
             }));
         }

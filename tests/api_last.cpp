@@ -23,6 +23,7 @@
 namespace {
     
     struct TestData {
+        TestData(int data) : data(data) {};
         int data;
     };
     
@@ -43,7 +44,7 @@ namespace {
                 
                 // We will continue until we have done 10 elements
                 if (data.front()->data < 10) {
-                    emit(new TestData{data.front()->data + 1});
+                    emit(std::make_unique<TestData>(data.front()->data + 1));
                 }
                 else {
                     // We are finished the test
@@ -61,7 +62,7 @@ TEST_CASE("Testing the Last<> Smart Type", "[api][last]") {
     NUClear::PowerPlant plant(config);
     plant.install<TestReactor>();
     
-    plant.emit(new TestData{1});
+    plant.emit(std::make_unique<TestData>(1));
     
     plant.start();
 }

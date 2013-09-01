@@ -265,8 +265,9 @@ namespace NUClear {
              */
             template <typename TType>
             struct Network {
+                Network(std::string sender, std::unique_ptr<TType>&& data) : sender(sender), data(std::move(data)) {};
                 const std::string sender;
-                const std::shared_ptr<const TType> data;
+                const std::unique_ptr<const TType> data;
             };
         }
     }
