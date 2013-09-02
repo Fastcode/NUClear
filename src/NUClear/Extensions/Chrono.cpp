@@ -43,21 +43,21 @@ namespace NUClear {
                 clock::duration step(config.step);
 
                 // See if we already have one with this period
-                auto item = std::find_if(std::begin(steps), std::end(steps), [step](std::unique_ptr<Step>& find) {
-                    return find->step.count() == step.count();
+                auto item = std::find_if(std::begin(steps), std::end(steps), [step](const Step& find) {
+                    return find.step.count() == step.count();
                 });
 
                 // If we don't then create a new one with our initial data
                 if(item == std::end(steps)) {
-                    std::unique_ptr<Step> s(std::make_unique<Step>());
-                    s->step = step;
-                    s->callbacks.push_back(config.emitter);
+                    Step s;
+                    s.step = step;
+                    s.callbacks.push_back(std::function<void ()>(config.emitter));
                     steps.push_back(std::move(s));
                 }
 
                 // Otherwise just add the callback to the existing element
                 else {
-                    (*item)->callbacks.push_back(config.emitter);
+                    item->callbacks.push_back(config.emitter);
                 }
             }
         }
@@ -71,7 +71,7 @@ namespace NUClear {
                 // Initialize all of the steps with our start time
                 clock::time_point start(clock::now());
                 for(auto& step : steps) {
-                    step->next = start;
+                    step.next = start;
                 }
 
                 do {
@@ -80,11 +80,11 @@ namespace NUClear {
 
                     // Check if any intervals are before now and if so execute their callbacks and add their step.
                     for(auto& step : steps) {
-                        if((step->next - now).count() <= 0) {
-                            for(auto& callback : step->callbacks) {
+                        if((step.next - now).count() <= 0) {
+                            for(auto& callback : step.callbacks) {
                                 callback();
                             }
-                            step->next += step->step;
+                            step.next += step.step;
                         }
                         // Since we are sorted, we can ignore any after this time
                         else {
@@ -93,13 +93,13 @@ namespace NUClear {
                     }
 
                     // Sort the list so the next soonest interval is on top
-                    std::sort(std::begin(steps), std::end(steps), [](const std::unique_ptr<Step>& a, const std::unique_ptr<Step>& b) {
-                        return a->next < b->next;
+                    std::sort(std::begin(steps), std::end(steps), [](const Step& a, const Step& b) {
+                        return a.next < b.next;
                     });
                 }
                 // TODO http://gcc.gnu.org/bugzilla/show_bug.cgi?id=54562 :(
                 // Sleep until it's time to emit this event, or the lock is released and we should finish
-                while(!execute.try_lock_until(steps.front()->next));
+                while(!execute.try_lock_until(steps.front().next));
             }
         }
         

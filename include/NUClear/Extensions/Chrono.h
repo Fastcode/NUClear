@@ -99,7 +99,7 @@ namespace NUClear {
             /// @brief a lock which will be unlocked when the system should finish executing
             std::unique_lock<std::timed_mutex> lock;
             /// @brief A vector of steps containing the callbacks to execute, is sorted regularly to maintain the order
-            std::vector<std::unique_ptr<Step>> steps;
+            std::vector<Step> steps;
             /// @brief A list of types which have already been loaded (to avoid duplication)
             std::set<std::type_index> loaded;
         };
