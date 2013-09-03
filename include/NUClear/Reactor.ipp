@@ -160,11 +160,14 @@ namespace NUClear {
             Internal::Reaction::Options options;
             context->buildOptions<TOptions...>(options);
             
-            // Run any existence commands needed (running because a type exists)
-            Internal::Magic::unpack((Exists<TFuncArgs>::exists(context), 0)...);
             
             // Bind all of our trigger events to a reaction
-            return context->bindTriggers<TTriggers...>(context->buildReaction<TFunc, TFuncArgs...>(callback, options));
+            auto onHandler = context->bindTriggers<TTriggers...>(context->buildReaction<TFunc, TFuncArgs...>(callback, options));
+
+            // Run any existence commands needed (running because a type exists)
+            Internal::Magic::unpack((Exists<TFuncArgs>::exists(context), 0)...);
+
+            return onHandler;
     }
     
     template <typename... TOption>
@@ -188,7 +191,8 @@ namespace NUClear {
         
         // Return a reaction object that gets and runs with the correct paramters
         return new Internal::Reaction(typeid(TFunc).name(), [this, callback]() -> std::function<void (Internal::Reaction::Task&)> {
-            
+
+            // TODO consider potential threading implications if two threads emit at once and overwrite (then this will get the same value for both)
             auto&& data = std::make_tuple(powerPlant->cachemaster.get<TTriggersAndWiths>()...);
             
             return [this, callback, data] (Internal::Reaction::Task& task) {
