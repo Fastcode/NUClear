@@ -42,6 +42,7 @@ namespace NUClear {
         clock::time_point started;
         clock::time_point finished;
         std::vector<std::pair<std::type_index, std::shared_ptr<void>>> args;
+        std::vector<std::string> log;
         std::exception_ptr exception;
     };
     

@@ -19,6 +19,7 @@
 #define NUCLEAR_REACTOR_H
 
 #include <string>
+#include <sstream>
 #include <functional>
 #include <vector>
 #include <typeindex>
@@ -31,6 +32,7 @@
 #include "NUClear/Internal/Magic/TypeMap.h"
 #include "NUClear/Internal/Magic/MetaProgramming.h"
 #include "NUClear/Internal/Magic/buildVector.h"
+#include "NUClear/Messages/LogMessage.h"
 
 namespace NUClear {
     
@@ -147,7 +149,15 @@ namespace NUClear {
              */
             template <typename... THandlers, typename TData>
             void emit(std::unique_ptr<TData>&& data);
+
+            template <typename... TArgs>
+            void log(TArgs... args);
         private:
+            template <typename TFirst, typename... TArgs>
+            void logImpl(std::stringstream& output, TFirst first, TArgs... args);
+
+            void logImpl(std::stringstream& output);
+
         
             /// @brief TODO
             template <typename TKey>

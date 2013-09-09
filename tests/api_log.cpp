@@ -14,19 +14,40 @@
  * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+#define CATCH_CONFIG_MAIN
+#include <catch.hpp>
 
-#include "NUClear/Reactor.h"
+#include "NUClear.h"
 
-namespace NUClear {
+// Anonymous namespace to keep everything file local
+namespace {
     
-    Reactor::Reactor(PowerPlant* powerPlant) : powerPlant(powerPlant) {
-    }
+    class TestReactor : public NUClear::Reactor {
+    public:
+        
+        TestReactor(NUClear::PowerPlant* plant) : Reactor(plant) {
+            
+
+            on<Trigger<NUClear::Messages::LogMessage>>([this](const NUClear::Messages::LogMessage& logMessage) {
+                REQUIRE(logMessage.message == "Got int: 5");
+                powerPlant->shutdown();
+            });
+
+            on<Trigger<int>>([this](const int& v) {
+                log("Got int: ", v);
+            });
+        }
+    };
+}
+
+TEST_CASE("Testing the Log<>() function", "[api][log]") {
     
-    void Reactor::buildOptionsImpl(Internal::Reaction::Options& options, Single* /*placeholder*/) {
-        options.single = true;
-    }
-
-    Reactor::~Reactor() {}
-
-    void Reactor::logImpl(std::stringstream& output) {}
+    NUClear::PowerPlant::Configuration config;
+    config.threadCount = 1;
+    NUClear::PowerPlant plant(config);
+    plant.install<TestReactor>();
+    
+    plant.emit(std::make_unique<int>(5));
+    
+    plant.start();
 }
