@@ -19,7 +19,7 @@
 
 namespace NUClear {
 
-    PowerPlant::PowerPlant(Configuration config, int argc, char *argv[]) :
+    PowerPlant::PowerPlant(Configuration config, int argc, const char *argv[]) :
     configuration(config)
     , threadmaster(this)
     , cachemaster(this)
@@ -36,7 +36,7 @@ namespace NUClear {
 
         // Emit our arguments if any.
         if(argc > 0) {
-            emit<Internal::CommandTypes::Scope::INITIALIZE>(std::make_unique<Messages::CommandLineArguments>(std::vector<std::string>(argv, argv + argc)));
+            emit<Internal::CommandTypes::Scope::INITIALIZE>(std::make_unique<Internal::CommandTypes::CommandLineArguments>(std::vector<std::string>(argv, argv + argc)));
         }
     }
 

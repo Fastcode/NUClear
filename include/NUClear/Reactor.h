@@ -101,6 +101,8 @@ namespace NUClear {
             /// @brief TODO inherit from commandtype
             template <int num, class TData>
             using Last = Internal::CommandTypes::Last<num, TData>;
+
+            using CommandLineArguments = Internal::CommandTypes::CommandLineArguments;
         
             /// @brief TODO inherit from commandtype
             template <enum EPriority P>

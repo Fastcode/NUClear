@@ -250,6 +250,22 @@ namespace NUClear {
              */
             template <int n, typename TData>
             struct Last { Last() = delete; ~Last() = delete; };
+
+            /**
+             * @ingroup SmartTypes
+             * @brief This is a special type which is used to get the list of command line arguments supplied to to running executable.
+             *
+             * @details
+             *  This class is used to get command line arguments that the running executable was called with. These are returned
+             *  as a vector of strings containing all arguments including argv[0] which traditionally contains the path this
+             *  executable is running in.
+             *
+             *  @return Returns a vector of strings with the command line arguments passed to the program
+             */
+            struct CommandLineArguments { 
+                CommandLineArguments(const std::vector<std::string>& args) : args(args) {}
+                std::vector<std::string> args;
+            };
             
             /**
              * @ingroup SmartTypes

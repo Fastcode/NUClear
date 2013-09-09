@@ -27,10 +27,9 @@ namespace {
     public:
         
         TestReactor(NUClear::PowerPlant* plant) : Reactor(plant) {
-            emit<Scope::INITIALIZE>(std::make_unique<int>(5));
-
-            on<Trigger<int>>([this](const int& v) {
-                REQUIRE(v == 5);
+            on<Trigger<CommandLineArguments>>([this](const std::vector<std::string>& args) {
+                REQUIRE(args[0] == "Hello");
+                REQUIRE(args[1] == "World");
 
                 // We can't call shutdown here because 
                 // we haven't started yet. That's because
@@ -38,7 +37,7 @@ namespace {
                 // considered fully "initialized"
                 emit(std::make_unique<ShutdownNowPlx>());
             });
-            
+
             on<Trigger<ShutdownNowPlx>>([this](const ShutdownNowPlx& plx) {
                 powerPlant->shutdown();
             });
@@ -46,10 +45,13 @@ namespace {
     };
 }
 
-TEST_CASE("Testing the Initialize scope", "[api][initialize]") {
+TEST_CASE("Testing the Command Line argument capturing", "[api][command_line_arguments]") {
+    int argc = 2;
+    const char* argv[] = { "Hello", "World" };
+
     NUClear::PowerPlant::Configuration config;
     config.threadCount = 1;
-    NUClear::PowerPlant plant(config);
+    NUClear::PowerPlant plant(config, argc, argv);
     plant.install<TestReactor>();
     
     plant.start();

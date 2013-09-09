@@ -376,24 +376,6 @@ namespace NUClear {
             ReactorMaster reactormaster;
         public:
             /**
-             * @brief TODO
-             *
-             * @details
-             *  TODO
-             */
-            //PowerPlant();
-        
-            /**
-             * @brief TODO
-             *
-             * @details
-             *  TODO
-             *
-             * @param config TODO
-             */
-            //PowerPlant(Configuration config);
-
-            /**
              * @brief 
              *  Constructs a PowerPlant with the given configuration and provides access
              *  to argv for all reactors.
@@ -402,7 +384,7 @@ namespace NUClear {
              *  If PowerPlant is constructed with argv and argv then a CommandLineArguments
              *  message will be emitted and available to all reactors.
              */
-            PowerPlant(Configuration config = Configuration(), int argc = 0, char *argv[] = nullptr);
+            PowerPlant(Configuration config = Configuration(), int argc = 0, const char *argv[] = nullptr);
 
             /**
              * @brief TODO
@@ -469,6 +451,7 @@ namespace NUClear {
 #include "NUClear/Extensions/Chrono.h"
 #include "NUClear/Extensions/Last.h"
 #include "NUClear/Extensions/Networking.h"
+#include "NUClear/Extensions/CommandLineArguments.h"
 
 #endif
 
