@@ -19,7 +19,7 @@
 
 namespace NUClear {
     
-    PowerPlant::PowerPlant() :
+    /*PowerPlant::PowerPlant() :
     configuration()
     , threadmaster(this)
     , cachemaster(this)
@@ -51,7 +51,30 @@ namespace NUClear {
 
         std::cout << "Setting up the Networking extension" << std::endl;
         install<Extensions::Networking>();
+    }*/
+
+    PowerPlant::PowerPlant(Configuration config, int argc, char *argv[]) :
+    configuration(config)
+    , threadmaster(this)
+    , cachemaster(this)
+    , reactormaster(this) {
+        // State that we are setting up
+        std::cout << "Building the PowerPlant with " << configuration.threadCount << " threads" << std::endl;
+
+        // Install the chrono extension
+        std::cout << "Setting up the Chrono extension" << std::endl;
+        install<Extensions::Chrono>();
+
+        std::cout << "Setting up the Networking extension" << std::endl;
+        install<Extensions::Networking>();
+
+        // Emit our arguments if any.
+        if(argc > 0) {
+            emit(std::make_unique<Messages::CommandLineArguments>(std::vector<std::string>(argv, argv + argc)));
+        }
     }
+
+
 
     void PowerPlant::addServiceTask(Internal::ThreadWorker::ServiceTask task) {
         threadmaster.serviceTask(task);

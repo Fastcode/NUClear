@@ -29,6 +29,7 @@
 #include <iostream>
 #include <string>
 
+#include "NUClear/Messages/CommandLineArguments.h"
 #include "NUClear/Serialization/Serialization.h"
 #include "NUClear/Internal/ThreadWorker.h"
 #include "NUClear/Internal/TaskScheduler.h"
@@ -79,15 +80,21 @@ namespace NUClear {
              *  TODO
              */
             struct Configuration {
+                Configuration() :
+                    threadCount(4)
+                    , networkName("default")
+                    , networkGroup("NUClear")
+                    , networkPort(7447) {}
+
                 /// @brief The number of threads the system will use
-                unsigned threadCount = 4;
+                unsigned threadCount;
                 
                 /// @brief The name of the network we are connecting to
-                std::string networkName = "default";
+                std::string networkName;
                 /// @brief The name of this PowerPlant within the networked PowerPlants
-                std::string networkGroup = "NUClear";
+                std::string networkGroup;
                 /// @brief The port to use when connecting to the network
-                unsigned networkPort = 7447;
+                unsigned networkPort;
             };
         
         private:
@@ -361,7 +368,7 @@ namespace NUClear {
              * @details
              *  TODO
              */
-            PowerPlant();
+            //PowerPlant();
         
             /**
              * @brief TODO
@@ -371,7 +378,18 @@ namespace NUClear {
              *
              * @param config TODO
              */
-            PowerPlant(Configuration config);
+            //PowerPlant(Configuration config);
+
+            /**
+             * @brief 
+             *  Constructs a PowerPlant with the given configuration and provides access
+             *  to argv for all reactors.
+             *
+             * @details
+             *  If PowerPlant is constructed with argv and argv then a CommandLineArguments
+             *  message will be emitted and available to all reactors.
+             */
+            PowerPlant(Configuration config = Configuration(), int argc = 0, char *argv[] = nullptr);
 
             /**
              * @brief TODO
