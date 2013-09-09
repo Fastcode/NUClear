@@ -92,6 +92,7 @@ namespace NUClear {
                 struct DIRECT;
                 struct LOCAL;
                 struct NETWORK;
+                struct INITIALIZE;
             };
             
             /**

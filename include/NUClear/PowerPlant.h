@@ -22,6 +22,7 @@
 #include <set>
 #include <thread>
 #include <vector>
+#include <queue>
 #include <typeindex>
 #include <mutex>
 #include <map>
@@ -320,6 +321,14 @@ namespace NUClear {
                     void directEmit(TTrigger* data);
 
                     /**
+                     * @brief 
+                     *  Queues an emit to trigger on start() instead of
+                     *  immediately.
+                     */
+                    template <typename TTrigger>
+                    void emitOnStart(TTrigger* data);
+
+                    /**
                      * @brief TODO
                      *
                      * @details
@@ -330,6 +339,8 @@ namespace NUClear {
                     template <typename TReactor>
                     void install();
 
+                    void start();
+
                 private:
                     /// @brief TODO
                     template <typename TKey>
@@ -337,6 +348,8 @@ namespace NUClear {
 
                     /// @brief TODO
                     std::vector<std::unique_ptr<NUClear::Reactor>> reactors;
+
+                    std::queue<std::function<void ()>> deferredEmits;
             };
 
             /**

@@ -56,6 +56,13 @@ namespace NUClear {
         }
     };
 
+    template <typename TData>
+    struct PowerPlant::Emit<Internal::CommandTypes::Scope::INITIALIZE, TData> {
+        static void emit(PowerPlant* context, TData* data) {
+            context->reactormaster.emitOnStart(data);
+        }
+    };
+
     template <typename... THandlers, typename TData>
     void PowerPlant::emit(std::unique_ptr<TData>&& data) {
 

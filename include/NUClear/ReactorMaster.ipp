@@ -75,4 +75,13 @@ namespace NUClear {
             catch (Internal::Magic::NoDataException) {}
         }
     }
+
+    template <typename TData>
+    void PowerPlant::ReactorMaster::emitOnStart(TData* data) {
+        // We don't actually want to emit anything yet so we're going to
+        // queue it up and emit when we call start.
+        deferredEmits.push([this, data]() {
+            directEmit(data);
+        });
+    }
 }

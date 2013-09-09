@@ -18,40 +18,6 @@
 #include "NUClear/PowerPlant.h"
 
 namespace NUClear {
-    
-    /*PowerPlant::PowerPlant() :
-    configuration()
-    , threadmaster(this)
-    , cachemaster(this)
-    , reactormaster(this) {
-
-        // State that we are setting up
-        std::cout << "Building the PowerPlant with " << configuration.threadCount << " threads" << std::endl;
-
-        // Install the chrono extension
-        std::cout << "Setting up the Chrono extension" << std::endl;
-        install<Extensions::Chrono>();
-
-        std::cout << "Setting up the Networking extension" << std::endl;
-        install<Extensions::Networking>();
-    }
-    
-    PowerPlant::PowerPlant(Configuration config) :
-    configuration(config)
-    , threadmaster(this)
-    , cachemaster(this)
-    , reactormaster(this) {
-
-        // State that we are setting up
-        std::cout << "Building the PowerPlant with " << configuration.threadCount << " threads" << std::endl;
-
-        // Install the chrono extension
-        std::cout << "Setting up the Chrono extension" << std::endl;
-        install<Extensions::Chrono>();
-
-        std::cout << "Setting up the Networking extension" << std::endl;
-        install<Extensions::Networking>();
-    }*/
 
     PowerPlant::PowerPlant(Configuration config, int argc, char *argv[]) :
     configuration(config)
@@ -70,7 +36,7 @@ namespace NUClear {
 
         // Emit our arguments if any.
         if(argc > 0) {
-            emit(std::make_unique<Messages::CommandLineArguments>(std::vector<std::string>(argv, argv + argc)));
+            emit<Internal::CommandTypes::Scope::INITIALIZE>(std::make_unique<Messages::CommandLineArguments>(std::vector<std::string>(argv, argv + argc)));
         }
     }
 
@@ -81,7 +47,13 @@ namespace NUClear {
     }
 
     void PowerPlant::start() {
+        // ReactorMaster needs to start before we emit initialize so
+        // people waiting on Scope::INITIALIZE messages will get
+        // them on Trigger<Initialize>
+        reactormaster.start();
+
         reactormaster.emit(new Internal::CommandTypes::Initialize());
+
         threadmaster.start();
     }
     
