@@ -30,7 +30,6 @@
 #include <iostream>
 #include <string>
 
-#include "NUClear/Messages/CommandLineArguments.h"
 #include "NUClear/Serialization/Serialization.h"
 #include "NUClear/Internal/ThreadWorker.h"
 #include "NUClear/Internal/TaskScheduler.h"
