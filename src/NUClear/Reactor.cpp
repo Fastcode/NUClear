@@ -27,6 +27,4 @@ namespace NUClear {
     }
 
     Reactor::~Reactor() {}
-
-    void Reactor::logImpl(std::stringstream& output) {}
 }

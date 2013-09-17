@@ -158,8 +158,8 @@ namespace NUClear {
             template <typename TFirst, typename... TArgs>
             void logImpl(std::stringstream& output, TFirst first, TArgs... args);
 
-            void logImpl(std::stringstream& output);
-
+            template <typename TFirst>
+            void logImpl(std::stringstream& output, TFirst first);
         
             /// @brief TODO
             template <typename TKey>

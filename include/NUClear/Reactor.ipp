@@ -154,6 +154,11 @@ namespace NUClear {
         logImpl(output, std::forward<TArgs>(args)...);
     }
 
+    template <typename TFirst>
+    void Reactor::logImpl(std::stringstream& output, TFirst first) {
+        output << first;
+    }
+
     template <typename... TParams, typename TFunc>
     void Reactor::on(TFunc callback) {
         
