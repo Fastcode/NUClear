@@ -102,6 +102,11 @@ namespace NUClear {
             template <int num, class TData>
             using Last = Internal::CommandTypes::Last<num, TData>;
 
+            /// @brief The type of data that is returned by Last<num, TData>
+            template <class TData>
+            using LastList = std::vector<std::shared_ptr<const TData>>;
+
+            /// @breif TODO inherit docs from commandtype
             using CommandLineArguments = Internal::CommandTypes::CommandLineArguments;
         
             /// @brief TODO inherit from commandtype
