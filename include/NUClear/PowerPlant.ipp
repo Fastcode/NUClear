@@ -44,21 +44,21 @@ namespace NUClear {
     
     template <typename TData>
     struct PowerPlant::Emit<Internal::CommandTypes::Scope::LOCAL, TData> {
-        static void emit(PowerPlant* context, TData* data) {
+        static void emit(PowerPlant* context, std::shared_ptr<TData> data) {
             context->reactormaster.emit(data);
         }
     };
 
     template <typename TData>
     struct PowerPlant::Emit<Internal::CommandTypes::Scope::DIRECT, TData> {
-        static void emit(PowerPlant* context, TData* data) {
+        static void emit(PowerPlant* context, std::shared_ptr<TData> data) {
             context->reactormaster.directEmit(data);
         }
     };
 
     template <typename TData>
     struct PowerPlant::Emit<Internal::CommandTypes::Scope::INITIALIZE, TData> {
-        static void emit(PowerPlant* context, TData* data) {
+        static void emit(PowerPlant* context, std::shared_ptr<TData> data) {
             context->reactormaster.emitOnStart(data);
         }
     };
@@ -72,8 +72,8 @@ namespace NUClear {
             emit<Internal::CommandTypes::Scope::LOCAL>(std::forward<std::unique_ptr<TData>>(data));
         }
         else {
-            // Release our data from the pointer
-            TData* ptr = data.release();
+            // Release our data from the pointer and wrap it in a shared_ptr
+            std::shared_ptr<TData> ptr = std::shared_ptr<TData>(data.release());
 
             // For some reason GCC thinks this variable is unused? this supresses that warning
             (void) ptr;

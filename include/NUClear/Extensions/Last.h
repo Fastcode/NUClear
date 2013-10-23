@@ -21,6 +21,14 @@
 #include "NUClear.h"
 
 namespace NUClear {
+
+    template <int num, typename TData>
+    struct PowerPlant::CacheMaster::Get<Internal::CommandTypes::Last<num, TData>> {
+        static std::shared_ptr<std::vector<std::shared_ptr<const TData>>> get() {
+            return;
+        }
+    };
+
     template <int num, typename TData>
     struct Reactor::TriggerType<Internal::CommandTypes::Last<num, TData>> {
         typedef TData type;
@@ -29,14 +37,13 @@ namespace NUClear {
     template <int num, typename TData>
     struct Reactor::Exists<Internal::CommandTypes::Last<num, TData>> {
         static void exists(Reactor* context) {
-            context->powerPlant->cachemaster.ensureCache<num, TData>();
-        }
-    };
-    
-    template <int num, typename TData>
-    struct PowerPlant::CacheMaster::Get<Internal::CommandTypes::Last<num, TData>> {
-        static std::shared_ptr<std::vector<std::shared_ptr<const TData>>> get(PowerPlant* context) {
-            return ValueCache<TData>::get(num);
+
+
+
+
+            // The last thing is going to have to be handled by each reactor...
+
+            // The reactor itself will need to add a "last" builder on
         }
     };
 }

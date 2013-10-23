@@ -30,7 +30,7 @@ namespace NUClear {
     }
 
     template <typename TData>
-    void PowerPlant::ReactorMaster::emit(TData* data) {
+    void PowerPlant::ReactorMaster::emit(std::shared_ptr<TData> data) {
 
         // Get our current arguments (if we have any)
         auto task = parent->threadmaster.getCurrentTask(std::this_thread::get_id());
@@ -52,7 +52,7 @@ namespace NUClear {
     }
 
     template <typename TData>
-    void PowerPlant::ReactorMaster::directEmit(TData* data) {
+    void PowerPlant::ReactorMaster::directEmit(std::shared_ptr<TData> data) {
 
         // Get our current arguments (if we have any)
         auto currentTask = parent->threadmaster.getCurrentTask(std::this_thread::get_id());
@@ -77,7 +77,7 @@ namespace NUClear {
     }
 
     template <typename TData>
-    void PowerPlant::ReactorMaster::emitOnStart(TData* data) {
+    void PowerPlant::ReactorMaster::emitOnStart(std::shared_ptr<TData> data) {
         // We don't actually want to emit anything yet so we're going to
         // queue it up and emit when we call start.
         deferredEmits.push([this, data]() {

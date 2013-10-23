@@ -168,7 +168,7 @@ namespace NUClear {
         
             /// @brief TODO
             template <typename TKey>
-            using CallbackCache = Internal::Magic::TypeList<Reactor, TKey, Internal::Reaction>;
+            using CallbackCache = Internal::Magic::TypeMap<Reactor, TKey, std::vector<Internal::Reaction>>;
         
             /**
              * @brief Base template instantitation that gets specialized. 

@@ -35,7 +35,7 @@ namespace NUClear {
     // Our emit overload for a networked emit
     template <typename TData>
     struct PowerPlant::Emit<Internal::CommandTypes::Scope::NETWORK, TData> {
-        static void emit(PowerPlant* context, TData* data) {
+        static void emit(PowerPlant* context, std::shared_ptr<TData> data) {
 
             auto message = std::make_unique<Serialization::NetworkMessage>();
 
