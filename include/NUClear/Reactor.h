@@ -99,6 +99,10 @@ namespace NUClear {
             using Every = Internal::CommandTypes::Every<ticks, period>;
         
             /// @brief TODO inherit from commandtype
+            template <typename TData>
+            using Raw = Internal::CommandTypes::Raw<TData>;
+        
+            /// @brief TODO inherit from commandtype
             template <int num, class TData>
             using Last = Internal::CommandTypes::Last<num, TData>;
 

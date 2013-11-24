@@ -19,32 +19,37 @@
 #define NUCLEAR_EXTENSIONS_LAST_H
 
 #include "NUClear.h"
+#include <deque>
 
 namespace NUClear {
 
     template <int num, typename TData>
     struct PowerPlant::CacheMaster::Get<Internal::CommandTypes::Last<num, TData>> {
-        static std::shared_ptr<std::vector<std::shared_ptr<const TData>>> get() {
-            return;
+        static std::shared_ptr<std::vector<std::shared_ptr<const TData>>> get(PowerPlant* context) {
+            
+            // This holds the last elements that are needed, it is static so it will survive
+            static std::deque<std::shared_ptr<TData>> elements;
+            
+            // Add our element to the end of the queue
+            elements.push_back(PowerPlant::CacheMaster::Get<TData>::get(std::forward<PowerPlant*>(context)));
+            
+            // If we have too many elements, then remove the first one
+            if(elements.size() > num) {
+                elements.pop_front();
+            }
+            
+            // Copy the data into a vector
+            auto data = std::make_shared<std::vector<std::shared_ptr<const TData>>>();
+            data->insert(data->begin(), elements.begin(), elements.end());
+            
+            // Return the data
+            return data;
         }
     };
 
     template <int num, typename TData>
     struct Reactor::TriggerType<Internal::CommandTypes::Last<num, TData>> {
         typedef TData type;
-    };
-    
-    template <int num, typename TData>
-    struct Reactor::Exists<Internal::CommandTypes::Last<num, TData>> {
-        static void exists(Reactor* context) {
-
-
-
-
-            // The last thing is going to have to be handled by each reactor...
-
-            // The reactor itself will need to add a "last" builder on
-        }
     };
 }
 

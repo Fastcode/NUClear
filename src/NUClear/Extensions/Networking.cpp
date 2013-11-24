@@ -52,10 +52,6 @@ namespace NUClear {
 
             powerPlant->addServiceTask(task);
 
-            // We emit our zmq context here so that other classes are able to use it as well (if they need zmq)
-            
-            
-
             on<Trigger<NetworkTypeConfig>>([this] (const NetworkTypeConfig& config) {
 
                 // Check if we have already registered this type
