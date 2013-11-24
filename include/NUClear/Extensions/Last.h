@@ -20,6 +20,7 @@
 
 #include "NUClear.h"
 #include <deque>
+#include <unordered_set>
 
 namespace NUClear {
 
@@ -35,15 +36,19 @@ namespace NUClear {
     struct Reactor::Exists<Internal::CommandTypes::Last<num, TData>> {
         static void exists(Reactor* context) {
             
-            // Context must do it itself since we will lose template args otherwise
+            // This map tracks what lasts are already looked after
+            static std::unordered_set<std::type_index> inserted;
             
-            // TODO if this type has not allready been registered
-            if(true) {
+            // Check if we are already looking after this type
+            if(inserted.find(typeid(Internal::CommandTypes::Last<num, TData>)) == inserted.end()) {
+                
+                // Make a new reaction
                 context->on<Trigger<Raw<TData>>>([context] (const std::shared_ptr<const TData>& d) {
                     
                     // This holds the last elements that are needed
                     static std::deque<std::shared_ptr<const TData>> elements;
                     
+                    // Push back our new element
                     elements.push_back(d);
                     
                     // If we have too many elements, then remove the first one
@@ -51,10 +56,11 @@ namespace NUClear {
                         elements.pop_front();
                     }
                     
-                    // Copy the data into a vector
+                    // Copy the data into a vector on a last
                     auto data = std::make_unique<Internal::CommandTypes::Last<num, TData>>();
                     data->data->insert(data->data->begin(), elements.begin(), elements.end());
 
+                    // Emit the object for use
                     context->emit(std::move(data));
                 });
             }
