@@ -51,41 +51,71 @@ namespace Magic {
      */
     template <typename TMapID, typename TKey, typename TValue>
     class TypeMap {
-        private:
-            /// @brief Deleted constructor as this class is a static class.
-            TypeMap() = delete;
-            /// @brief Deleted destructor as this class is a static class.
-            ~TypeMap() = delete;
-            /// @brief the data variable where the data is stored for this map key.
-            static std::shared_ptr<TValue> data;
-            
-        public:
-            /**
-             * @brief Stores the passed value in this map.
-             *
-             * @param data a pointer to the data to be stored (the map takes ownership)
-             */
-            static void set(std::shared_ptr<TValue> data) {
-                data = std::shared_ptr<TValue>(data);
-            };
+    private:
+        /// @brief Deleted constructor as this class is a static class.
+        TypeMap() = delete;
+        /// @brief Deleted destructor as this class is a static class.
+        ~TypeMap() = delete;
+        /// @brief the data variable where the data is stored for this map key.
+        static std::shared_ptr<TValue> data;
         
-            /**
-             * @brief Gets the value that was previously stored.
-             *
-             * @return a shared_ptr to the data that was previously stored
-             *
-             * @throws NoDataException if there is no data that was previously stored
-             */
-            static std::shared_ptr<TKey> get() {
-                //If the pointer is not a nullptr
-                if(data) {
-                    return data;
-                }
-                else {
-                    throw NoDataException();
-                }
+    public:
+        /**
+         * @brief Stores the passed value in this map.
+         *
+         * @param data a pointer to the data to be stored (the map takes ownership)
+         */
+        static void set(std::shared_ptr<TValue> d) {
+            data = std::shared_ptr<TValue>(d);
+        };
+        
+        /**
+         * @brief Gets the value that was previously stored.
+         *
+         * @return a shared_ptr to the data that was previously stored
+         *
+         * @throws NoDataException if there is no data that was previously stored
+         */
+        static std::shared_ptr<TValue> get() {
+            //If the pointer is not a nullptr
+            if(data) {
+                return data;
             }
+            else {
+                throw NoDataException();
+            }
+        }
     };
+    
+    template <typename TMapID, typename TKey, typename TValue>
+    class TypeList {
+    private:
+        /// @brief Deleted constructor as this class is a static class.
+        TypeList() = delete;
+        /// @brief Deleted destructor as this class is a static class.
+        ~TypeList() = delete;
+        /// @brief the data variable where the data is stored for this map key.
+        static std::vector<TValue> data;
+        
+    public:
+
+        /**
+         * @brief Gets the value that was previously stored.
+         *
+         * @return a shared_ptr to the data that was previously stored
+         *
+         * @throws NoDataException if there is no data that was previously stored
+         */
+        static std::vector<TValue>& get() {
+            return data;
+        }
+    };
+    
+    template <typename TMapID, typename TKey, typename TValue>
+    std::shared_ptr<TValue> TypeMap<TMapID, TKey, TValue>::data;
+    
+    template <typename TMapID, typename TKey, typename TValue>
+    std::vector<TValue> TypeList<TMapID, TKey, TValue>::data;
 }
 }
 }

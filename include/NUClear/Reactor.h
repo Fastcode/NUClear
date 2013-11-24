@@ -168,7 +168,7 @@ namespace NUClear {
         
             /// @brief TODO
             template <typename TKey>
-            using CallbackCache = Internal::Magic::TypeMap<Reactor, TKey, std::vector<Internal::Reaction>>;
+            using CallbackCache = Internal::Magic::TypeList<Reactor, TKey, std::unique_ptr<Internal::Reaction>>;
         
             /**
              * @brief Base template instantitation that gets specialized. 
@@ -294,7 +294,7 @@ namespace NUClear {
              * @returns The wrapped callback
              */
             template <typename TFunc, typename... TTriggersAndWiths>
-            Internal::Reaction* buildReaction(TFunc callback, Internal::Reaction::Options& options);
+            std::unique_ptr<Internal::Reaction> buildReaction(TFunc callback, Internal::Reaction::Options& options);
         
             /**
              * @brief Adds a single data -> callback mapping for a single type.
@@ -306,7 +306,7 @@ namespace NUClear {
              * @return A handler which allows us to modify our Reaction at runtime
              */
             template <typename TTrigger, typename... TTriggers>
-            OnHandle bindTriggers(Internal::Reaction* callback);
+            OnHandle bindTriggers(std::unique_ptr<Internal::Reaction>&& callback);
         
             /**
              * @brief TODO

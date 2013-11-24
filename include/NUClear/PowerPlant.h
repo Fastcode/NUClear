@@ -330,7 +330,7 @@ namespace NUClear {
                 private:
                     /// @brief TODO
                     template <typename TKey>
-                    using CallbackCache = Internal::Magic::TypeMap<Reactor, TKey, std::vector<Internal::Reaction>>;
+                    using CallbackCache = Internal::Magic::TypeList<Reactor, TKey, std::unique_ptr<Internal::Reaction>>;
 
                     /// @brief TODO
                     std::vector<std::unique_ptr<NUClear::Reactor>> reactors;
