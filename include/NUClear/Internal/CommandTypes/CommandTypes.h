@@ -262,7 +262,11 @@ namespace NUClear {
              * @return  Returns a vector of shared_ptr with the signature std::vector<std::shared_ptr<TData>>
              */
             template <int n, typename TData>
-            struct Last { Last() = delete; ~Last() = delete; };
+            struct Last {
+                public:
+                    std::shared_ptr<std::vector<std::shared_ptr<const TData>>> data;
+                    Last() : data(std::make_shared<std::vector<std::shared_ptr<const TData>>>()) { }
+            };
 
             /**
              * @ingroup SmartTypes

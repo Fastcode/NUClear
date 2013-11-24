@@ -26,30 +26,40 @@ namespace NUClear {
     template <int num, typename TData>
     struct PowerPlant::CacheMaster::Get<Internal::CommandTypes::Last<num, TData>> {
         static std::shared_ptr<std::vector<std::shared_ptr<const TData>>> get(PowerPlant* context) {
-            
-            // This holds the last elements that are needed, it is static so it will survive
-            static std::deque<std::shared_ptr<TData>> elements;
-            
-            // Add our element to the end of the queue
-            elements.push_back(PowerPlant::CacheMaster::Get<TData>::get(std::forward<PowerPlant*>(context)));
-            
-            // If we have too many elements, then remove the first one
-            if(elements.size() > num) {
-                elements.pop_front();
-            }
-            
-            // Copy the data into a vector
-            auto data = std::make_shared<std::vector<std::shared_ptr<const TData>>>();
-            data->insert(data->begin(), elements.begin(), elements.end());
-            
-            // Return the data
-            return data;
+
+            return ValueCache<Internal::CommandTypes::Last<num, TData>>::get()->data;
         }
     };
-
+    
     template <int num, typename TData>
-    struct Reactor::TriggerType<Internal::CommandTypes::Last<num, TData>> {
-        typedef TData type;
+    struct Reactor::Exists<Internal::CommandTypes::Last<num, TData>> {
+        static void exists(Reactor* context) {
+            
+            // Context must do it itself since we will lose template args otherwise
+            
+            // TODO if this type has not allready been registered
+            if(true) {
+                context->on<Trigger<Raw<TData>>>([context] (const std::shared_ptr<const TData>& d) {
+                    
+                    // This holds the last elements that are needed
+                    static std::deque<std::shared_ptr<const TData>> elements;
+                    
+                    elements.push_back(d);
+                    
+                    // If we have too many elements, then remove the first one
+                    if(elements.size() > num) {
+                        elements.pop_front();
+                    }
+                    
+                    // Copy the data into a vector
+                    auto data = std::make_unique<Internal::CommandTypes::Last<num, TData>>();
+                    data->data->insert(data->data->begin(), elements.begin(), elements.end());
+
+                    context->emit(std::move(data));
+                });
+            }
+            
+        }
     };
 }
 
