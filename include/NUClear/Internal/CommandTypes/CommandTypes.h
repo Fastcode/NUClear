@@ -233,6 +233,19 @@ namespace NUClear {
                 Every(clock::time_point time) : time(time) {}
                 const clock::time_point time;
             };
+
+            /**
+             * @ingroup SmartTypes
+             * @brief A smart type which instead of returning a const reference to the data, returns a shared_ptr.
+             *
+             * @details
+             *  This type can be used to access the shared_ptr to the data being used. This is useful if the data that
+             *  the type points to is needed in future operations.
+             *
+             * @tparam TData the type of data to get the shared_ptr for
+             */
+            template <typename TData>
+            struct Raw { Raw() = delete; ~Raw() = delete; };
             
             /**
              * @ingroup SmartTypes

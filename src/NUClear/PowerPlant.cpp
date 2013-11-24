@@ -52,13 +52,13 @@ namespace NUClear {
         // them on Trigger<Initialize>
         reactormaster.start();
 
-        reactormaster.emit(new Internal::CommandTypes::Initialize());
+        emit<Internal::CommandTypes::Scope::DIRECT>(std::make_unique<Internal::CommandTypes::Initialize>());
 
         threadmaster.start();
     }
     
     void PowerPlant::shutdown() {
-        reactormaster.emit(new Internal::CommandTypes::Shutdown());
         threadmaster.shutdown();
+        emit<Internal::CommandTypes::Scope::DIRECT>(std::make_unique<Internal::CommandTypes::Shutdown>());
     }
 }

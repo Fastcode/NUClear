@@ -216,10 +216,10 @@ namespace NUClear {
     }
 
     template <typename TFunc, typename... TTriggersAndWiths>
-    Internal::Reaction* Reactor::buildReaction(TFunc callback, Internal::Reaction::Options& options) {
+    std::unique_ptr<Internal::Reaction> Reactor::buildReaction(TFunc callback, Internal::Reaction::Options& options) {
         
         // Return a reaction object that gets and runs with the correct paramters
-        return new Internal::Reaction(typeid(TFunc).name(), [this, callback]() -> std::function<void (Internal::Reaction::Task&)> {
+        return std::make_unique<Internal::Reaction>(typeid(TFunc).name(), [this, callback]() -> std::function<void (Internal::Reaction::Task&)> {
 
             // TODO consider potential threading implications if two threads emit at once and overwrite (then this will get the same value for both)
             auto&& data = std::make_tuple(powerPlant->cachemaster.get<TTriggersAndWiths>()...);
@@ -253,11 +253,11 @@ namespace NUClear {
      * @param callback the callback to bind to these triggers
      */
     template <typename TTrigger, typename... TTriggers>
-    Reactor::OnHandle Reactor::bindTriggers(Internal::Reaction* callback) {
+    Reactor::OnHandle Reactor::bindTriggers(std::unique_ptr<Internal::Reaction>&& callback) {
         
         // Single trigger that is not ignored
         if(sizeof...(TTriggers) == 0 && !std::is_same<typename TriggerType<TTrigger>::type, std::nullptr_t>::value) {
-            CallbackCache<typename TriggerType<TTrigger>::type>::set(callback);
+            CallbackCache<typename TriggerType<TTrigger>::type>::get().push_back(std::forward<std::unique_ptr<Internal::Reaction>>(callback));
         }
         
         // Multi Trigger (and)
@@ -269,6 +269,6 @@ namespace NUClear {
             // TODO when all the booleans are true, run the callback and set all booleans to false
         }
         
-        return OnHandle(callback);
+        return OnHandle(callback.get());
     }
 }

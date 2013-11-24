@@ -51,190 +51,71 @@ namespace Magic {
      */
     template <typename TMapID, typename TKey, typename TValue>
     class TypeMap {
-        private:
-            /// @brief Deleted constructor as this class is a static class.
-            TypeMap() = delete;
-            /// @brief Deleted destructor as this class is a static class.
-            ~TypeMap() = delete;
-            /// @brief the data variable where the data is stored for this map key.
-            static std::shared_ptr<TValue> data;
-            
-        public:
-            /**
-             * @brief Stores the passed value in this map.
-             *
-             * @param data a pointer to the data to be stored (the map takes ownership)
-             */
-            static void set(TValue* data) {
-                data = std::shared_ptr<TValue>(data);
-            };
+    private:
+        /// @brief Deleted constructor as this class is a static class.
+        TypeMap() = delete;
+        /// @brief Deleted destructor as this class is a static class.
+        ~TypeMap() = delete;
+        /// @brief the data variable where the data is stored for this map key.
+        static std::shared_ptr<TValue> data;
         
-            /**
-             * @brief Gets the value that was previously stored.
-             *
-             * @return a shared_ptr to the data that was previously stored
-             *
-             * @throws NoDataException if there is no data that was previously stored
-             */
-            static std::shared_ptr<TKey> get() {
-                //If the pointer is not a nullptr
-                if(*data) {
-                    return data;
-                }
-                else {
-                    throw NoDataException();
-                }
+    public:
+        /**
+         * @brief Stores the passed value in this map.
+         *
+         * @param data a pointer to the data to be stored (the map takes ownership)
+         */
+        static void set(std::shared_ptr<TValue> d) {
+            data = std::shared_ptr<TValue>(d);
+        };
+        
+        /**
+         * @brief Gets the value that was previously stored.
+         *
+         * @return a shared_ptr to the data that was previously stored
+         *
+         * @throws NoDataException if there is no data that was previously stored
+         */
+        static std::shared_ptr<TValue> get() {
+            //If the pointer is not a nullptr
+            if(data) {
+                return data;
             }
+            else {
+                throw NoDataException();
+            }
+        }
     };
     
-    /**
-     * @brief
-     *  This map acts as a ring buffer of data, with the ability to get both the most recent data element as well
-     *  as the previous n elements.
-     *
-     * @details
-     *  This map acts as a ring buffer. When data is stored, it will remove the oldest element that is stored up to
-     *  the capacity of the queue. The list of previous elements are accessable using the get(int) method. It isaccessed
-     *  by template paramters, because of this when the compiler compiles this map. It can resolve each of the map
-     *  accesses into a direct function call. This allows the map to be looked up at compile time and optimized to very
-     *  efficent code. There are several variations of the Map provided through the MapType parameter the operation of
-     *  each of these is described in their individual documentation.
-     *
-     * @attention
-     *  Note that because this is an entirely static class, if two maps with the same TMapID are used, they access the
-     *  same map
-     *
-     * @author Trent Houliston
-     */
-    template <typename TMapID, typename TKey, typename TValue>
-    class TypeBuffer {
-        private:
-            /// @brief Deleted constructor as this class is a static class
-            TypeBuffer() = delete;
-            /// @brief Deleted destructor as this class is a static class
-            ~TypeBuffer() = delete;
-            /// @brief the number of previous elements that we store
-            static size_t capacity;
-            /// @brief the queue where we store mapped elements
-            static std::deque<std::shared_ptr<TValue>> list;
-            
-        public:
-            /**
-             * @brief increases the minimum capacity of stored objects to the passed integer.
-             *
-             * @param num the minimum number of previous elements to store
-             */
-            static void minCapacity(size_t num) {
-                capacity = std::max(num, capacity);
-            }
-            
-            /**
-             * @brief Stores the passed pointer in our storage, removing the oldest element for this key
-             *
-             * @param data a pointer to the data to store (the map takes ownership of it)
-             */
-            static void set(TValue* data) {
-                // If we are full then remove our last element
-                if(list.size() == capacity) {
-                    list.pop_back();
-                }
-                
-                // Push onto our front
-                list.push_front(std::shared_ptr<TValue>(data));
-            }
-        
-            /**
-             * @brief Gets the most recent value that was previously stored.
-             *
-             * @return a shared_ptr to the most recent data that was stored
-             *
-             * @throws NoDataException if there is no data that was previously stored
-             */
-            static std::shared_ptr<TValue> get() {
-                if(!list.empty() && list.front() != nullptr) {
-                    return list.front();
-                }
-                else {
-                    throw NoDataException();
-                }
-            };
-        
-            /**
-             * @brief Gets the last n elements in the map for this key
-             *
-             * @return a vector with the last n elements that have been stored
-             *
-             * @attention make sure that minCapacity has been called with at least this length or a segfault will occur
-             */
-            static std::shared_ptr<std::vector<std::shared_ptr<const TValue>>> get(int length) {
-                auto* ret = new std::vector<std::shared_ptr<const TValue>>(std::begin(list),
-                                                                           std::begin(list) + std::min(static_cast<int>(list.size()), length));
-                return std::shared_ptr<std::vector<std::shared_ptr<const TValue>>>(ret);
-            };
-    };
-    
-    
-    /**
-     * @brief
-     *  This map acts as a map of lists, adding every stored element to the list of the set type.
-     *
-     * @details
-     *  This map acts as a map of lists. When data is stored, add that element to the list of all items that are stored.
-     *  It is accessed by template paramters, because of this when the compiler compiles this map. It can resolve
-     *  each of the map accesses into a direct function call. This allows the map to be looked up at compile time and
-     *  optimized to very efficent code. There are several variations of the Map provided through the MapType parameter
-     *  the operation of each of these is described in their individual documentation.
-     *
-     * @attention
-     *  Note that because this is an entirely static class, if two maps with the same TMapID are used, they access the
-     *  same map
-     *
-     * @author Trent Houliston
-     */
     template <typename TMapID, typename TKey, typename TValue>
     class TypeList {
-        private:
-            /// @brief Deleted constructor as this class is a static class
-            TypeList() = delete;
-            /// @brief Deleted destructor as this class is a static class
-            ~TypeList() = delete;
-            /// @brief the vector where we store the elements
-            static std::vector<std::shared_ptr<TValue>> list;
-            
-        public:
-            /**
-             * @brief Stores the passed pointer in our storage, adding it to our collection of elements
-             *
-             * @param data a pointer to the data to store (the map takes ownership of it)
-             */
-            static void set(TValue* data) {
-                list.push_back(std::shared_ptr<TValue>(data));
-            }
-            
-            /**
-             * @brief Gets the value that was previously stored.
-             *
-             * @return a vector of values that were previously stored
-             *
-             * @throws NoDataException if there is no data that was previously stored
-             */
-            static std::vector<std::shared_ptr<TValue>>& get() {
-                return list;
-            };
+    private:
+        /// @brief Deleted constructor as this class is a static class.
+        TypeList() = delete;
+        /// @brief Deleted destructor as this class is a static class.
+        ~TypeList() = delete;
+        /// @brief the data variable where the data is stored for this map key.
+        static std::vector<TValue> data;
+        
+    public:
+
+        /**
+         * @brief Gets the value that was previously stored.
+         *
+         * @return a shared_ptr to the data that was previously stored
+         *
+         * @throws NoDataException if there is no data that was previously stored
+         */
+        static std::vector<TValue>& get() {
+            return data;
+        }
     };
     
-    
-    //Initialize the capacity of a QUEUE map
     template <typename TMapID, typename TKey, typename TValue>
-    size_t TypeBuffer<TMapID, TKey, TValue>::capacity = 1;
+    std::shared_ptr<TValue> TypeMap<TMapID, TKey, TValue>::data;
     
-    //Initialize the deque object of a QUEUE map
     template <typename TMapID, typename TKey, typename TValue>
-    std::deque<std::shared_ptr<TValue>> TypeBuffer<TMapID, TKey, TValue>::list = std::deque<std::shared_ptr<TValue>>();
-    
-    //Initialize the vector of a LIST map
-    template <typename TMapID, typename TKey, typename TValue>
-    std::vector<std::shared_ptr<TValue>> TypeList<TMapID, TKey, TValue>::list = std::vector<std::shared_ptr<TValue>>();
+    std::vector<TValue> TypeList<TMapID, TKey, TValue>::data;
 }
 }
 }

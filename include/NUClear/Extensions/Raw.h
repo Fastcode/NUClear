@@ -15,18 +15,24 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+#ifndef NUCLEAR_EXTENSIONS_RAW_H
+#define NUCLEAR_EXTENSIONS_RAW_H
+
+#include "NUClear.h"
 
 namespace NUClear {
-    
+
     template <typename TData>
-    struct PowerPlant::CacheMaster::Get {
-        static std::shared_ptr<TData> get(PowerPlant* context) {
-            return ValueCache<TData>::get();
-        }
+    struct Reactor::TriggerType<Internal::CommandTypes::Raw<TData>> {
+        typedef TData type;
     };
 
     template <typename TData>
-    void PowerPlant::CacheMaster::cache(std::shared_ptr<TData> data) {
-        ValueCache<TData>::set(data);
-    }
+    struct PowerPlant::CacheMaster::Get<Internal::CommandTypes::Raw<TData>> {
+        static std::shared_ptr<std::shared_ptr<TData>> get(PowerPlant* context) {
+            return std::make_shared<std::shared_ptr<TData>>(ValueCache<TData>::get());
+        }
+    };
 }
+
+#endif

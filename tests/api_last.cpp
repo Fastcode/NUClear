@@ -35,16 +35,16 @@ namespace {
             on<Trigger<Last<5, TestData>>>([this](const std::vector<std::shared_ptr<const TestData>>& data) {
                 
                 // Check that we have the same number of elements as our first data or 5 elements
-                REQUIRE(data.size() == std::min(5, data.front()->data));
+                REQUIRE(data.size() == std::min(5, data.back()->data));
                 
-                for (unsigned i = 1; i < data.size(); ++i) {
+                for (int i = 1; i < data.size(); ++i) {
                     // Check that the value is correct
-                    REQUIRE(data[i - 1]->data == data[i]->data + 1);
+                    REQUIRE(data[i]->data == data[i - 1]->data + 1);
                 }
                 
                 // We will continue until we have done 10 elements
-                if (data.front()->data < 10) {
-                    emit(std::make_unique<TestData>(data.front()->data + 1));
+                if (data.back()->data < 10) {
+                    emit(std::make_unique<TestData>(data.back()->data + 1));
                 }
                 else {
                     // We are finished the test

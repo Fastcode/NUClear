@@ -212,7 +212,7 @@ namespace NUClear {
                 private:
                     /// @brief This Value cache is a special Static type buffer that allows compile time lookup of types.
                     template <typename TData>
-                    using ValueCache = Internal::Magic::TypeBuffer<CacheMaster, TData, TData>;
+                    using ValueCache = Internal::Magic::TypeMap<CacheMaster, TData, TData>;
                 
                     /// @brief This map stores the thread arguments when a function is called so that on an emit they can be retrieved.
                     std::unordered_map<std::thread::id, const Internal::Reaction::Task*> threadArgs;
@@ -232,20 +232,7 @@ namespace NUClear {
                      * @param cache the data that we are caching
                      */
                     template <typename TData>
-                    void cache(TData* cache);
-                
-                    /**
-                     * @brief Sets the minimum number of previous elements to store for each datatype.
-                     *
-                     * @details
-                     *  This method sets the minimum number of previous elements to store before they are deleted from
-                     *  the cache. It will keep the largest number that this is called with for each datatype.
-                     *
-                     * @tparam num     the number of elements to maintain
-                     * @tparam TData   the type of data to maintain the elements for
-                     */
-                    template <int num, typename TData>
-                    void ensureCache();
+                    void cache(std::shared_ptr<TData> cache);
                 
                     /**
                      * @brief
@@ -303,8 +290,8 @@ namespace NUClear {
                      *
                      * @param data TODO
                      */
-                    template <typename TTrigger>
-                    void emit(TTrigger* data);
+                    template <typename TData>
+                    void emit(std::shared_ptr<TData> data);
 
                     /**
                      * @brief TODO
@@ -316,16 +303,16 @@ namespace NUClear {
                      *
                      * @param data TODO
                      */
-                    template <typename TTrigger>
-                    void directEmit(TTrigger* data);
+                    template <typename TData>
+                    void directEmit(std::shared_ptr<TData> data);
 
                     /**
                      * @brief 
                      *  Queues an emit to trigger on start() instead of
                      *  immediately.
                      */
-                    template <typename TTrigger>
-                    void emitOnStart(TTrigger* data);
+                    template <typename TData>
+                    void emitOnStart(std::shared_ptr<TData> data);
 
                     /**
                      * @brief TODO
@@ -343,7 +330,7 @@ namespace NUClear {
                 private:
                     /// @brief TODO
                     template <typename TKey>
-                    using CallbackCache = Internal::Magic::TypeList<Reactor, TKey, Internal::Reaction>;
+                    using CallbackCache = Internal::Magic::TypeList<Reactor, TKey, std::unique_ptr<Internal::Reaction>>;
 
                     /// @brief TODO
                     std::vector<std::unique_ptr<NUClear::Reactor>> reactors;
@@ -448,6 +435,7 @@ namespace NUClear {
 
 // Include our built in extensions
 #include "NUClear/Extensions/Chrono.h"
+#include "NUClear/Extensions/Raw.h"
 #include "NUClear/Extensions/Last.h"
 #include "NUClear/Extensions/Networking.h"
 #include "NUClear/Extensions/CommandLineArguments.h"

@@ -24,7 +24,6 @@ namespace NUClear {
     template <>
     struct PowerPlant::CacheMaster::Get<Internal::CommandTypes::CommandLineArguments> {
         static std::shared_ptr<std::vector<std::string>> get(PowerPlant* context) {
-            std::cout << "Get called" << std::endl;
             return std::make_shared<std::vector<std::string>>(ValueCache<Internal::CommandTypes::CommandLineArguments>::get()->args);
         }
     };
