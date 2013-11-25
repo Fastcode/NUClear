@@ -26,7 +26,7 @@ namespace {
     class TestReactor : public NUClear::Reactor {
     public:
         
-        TestReactor(NUClear::PowerPlant* plant) : Reactor(plant) {
+        TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
             emit<Scope::INITIALIZE>(std::make_unique<int>(5));
 
             on<Trigger<int>>([this](const int& v) {

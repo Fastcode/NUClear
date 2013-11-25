@@ -56,7 +56,7 @@ namespace NUClear {
         public:
             friend class PowerPlant;
 
-            Reactor(PowerPlant* powerPlant);
+            Reactor(std::unique_ptr<Environment> environment);
             ~Reactor();
  
         protected:
@@ -66,7 +66,7 @@ namespace NUClear {
          * usage there does not need to be any namespace declarations on the used types. This affords a simpler API    *
          * for the user.                                                                                               *
          **************************************************************************************************************/
-            Environment* environment;
+            std::unique_ptr<Environment> environment;
 
             /// @brief TODO
             PowerPlant* powerPlant;

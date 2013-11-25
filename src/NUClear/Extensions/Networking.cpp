@@ -23,15 +23,15 @@ namespace NUClear {
     namespace Extensions {
         zmq::context_t Networking::ZMQ_CONTEXT(1);
 
-        Networking::Networking(PowerPlant* parent) : Reactor(parent),
+        Networking::Networking(std::unique_ptr<Environment> environment) : Reactor(std::move(environment)),
         running(true),
         pub(ZMQ_CONTEXT, ZMQ_PUB),
         termPub(ZMQ_CONTEXT, ZMQ_PUB),
         sub(ZMQ_CONTEXT, ZMQ_SUB) {
 
             // Get our PGM address
-            std::string address = addressForName(parent->configuration.networkGroup,
-                                                 parent->configuration.networkPort);
+            std::string address = addressForName(powerPlant->configuration.networkGroup,
+                                                 powerPlant->configuration.networkPort);
 
             std::cout << "Network bound to address " << address << std::endl;
 

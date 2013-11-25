@@ -25,7 +25,7 @@ namespace {
     class TestReactor : public NUClear::Reactor {
     public:
         
-        TestReactor(NUClear::PowerPlant* plant) : Reactor(plant) {
+        TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
             
 
             on<Trigger<NUClear::Messages::LogMessage>>([this](const NUClear::Messages::LogMessage& logMessage) {
