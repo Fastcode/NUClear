@@ -239,7 +239,7 @@ namespace Internal {
     
     // This is declared here so that by the time we allocate our SyncQueue it is not an incomplete type
     template <typename TSync>
-    const std::shared_ptr<SyncQueue> CommandTypes::Sync<TSync>::queue = std::shared_ptr<Internal::SyncQueue>(new SyncQueue(typeid(TSync), false));
+    const std::shared_ptr<SyncQueue> CommandTypes::Sync<TSync>::queue = std::make_shared<Internal::SyncQueue>(typeid(TSync), false);
 }
 }
 #endif

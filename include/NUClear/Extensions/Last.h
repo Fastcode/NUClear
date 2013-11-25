@@ -43,7 +43,7 @@ namespace NUClear {
             if(inserted.find(typeid(Internal::CommandTypes::Last<num, TData>)) == inserted.end()) {
                 
                 // Make a new reaction
-                context->on<Trigger<Raw<TData>>>([context] (const std::shared_ptr<const TData>& d) {
+                context->on<Trigger<Raw<TData>>, Options<Sync<Internal::CommandTypes::Last<num, TData>>>>([context] (const std::shared_ptr<const TData>& d) {
                     
                     // This holds the last elements that are needed
                     static std::deque<std::shared_ptr<const TData>> elements;

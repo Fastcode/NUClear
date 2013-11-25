@@ -173,7 +173,6 @@ namespace NUClear {
                 
                 Sync() = delete;
                 ~Sync() = delete;
-                private:
                 static const std::shared_ptr<Internal::SyncQueue> queue;
             };
             

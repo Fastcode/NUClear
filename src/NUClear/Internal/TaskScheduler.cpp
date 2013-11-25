@@ -48,7 +48,7 @@ namespace Internal {
                 // If we are a sync type
                 if(task->parent->options.syncQueue) {
                     
-                    auto& queue = task->parent->options.syncQueue->queue;
+                    auto& syncqueue = task->parent->options.syncQueue->queue;
                     auto& active = task->parent->options.syncQueue->active;
                     auto& syncMutex = task->parent->options.syncQueue->mutex;
                     
@@ -57,7 +57,7 @@ namespace Internal {
                     
                     // If a sync type is already executing then push it onto the sync queue
                     if (active) {
-                        queue.push(std::forward<std::unique_ptr<Reaction::Task>>(task));
+                        syncqueue.push(std::forward<std::unique_ptr<Reaction::Task>>(task));
                     }
                     // Otherwise push it onto the main queue and set us to active
                     else {
