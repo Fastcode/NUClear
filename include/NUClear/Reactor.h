@@ -33,13 +33,12 @@
 #include "NUClear/Internal/Magic/MetaProgramming.h"
 #include "NUClear/Internal/Magic/buildVector.h"
 #include "NUClear/Messages/LogMessage.h"
+#include "NUClear/ForwardDeclarations.h"
 
 namespace NUClear {
     
     // Import our meta programming utility
     using namespace Internal::Magic::MetaProgramming;
-    
-    class PowerPlant;
 
     /**
      * @brief Base class for any system that wants to react to events/data from the rest of the system.
@@ -67,6 +66,8 @@ namespace NUClear {
          * usage there does not need to be any namespace declarations on the used types. This affords a simpler API    *
          * for the user.                                                                                               *
          **************************************************************************************************************/
+            Environment* environment;
+
             /// @brief TODO
             PowerPlant* powerPlant;
         
@@ -326,6 +327,7 @@ namespace NUClear {
 }
 
 // We need to really make sure that PowerPlant is included as we use it in our ipp file
+#include "NUClear/Environment.h"
 #include "NUClear/PowerPlant.h"
 #include "NUClear/Reactor.ipp"
 #endif

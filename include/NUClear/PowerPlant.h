@@ -37,6 +37,7 @@
 #include "NUClear/Internal/Magic/MetaProgramming.h"
 #include "NUClear/Internal/Magic/TypeMap.h"
 #include "NUClear/Internal/Magic/Sequence.h"
+#include "NUClear/ForwardDeclarations.h"
 
 // Patch for std::make_unique in c++11 (should be fixed in c++14)
 #if __cplusplus == 201103L
@@ -49,10 +50,6 @@ namespace std {
 #endif
 
 namespace NUClear {
-    
-    // Forward declare reactor
-    class Reactor;
-    
     // Declare our clock type
     using clock = std::chrono::high_resolution_clock;
     
