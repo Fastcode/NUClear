@@ -38,6 +38,7 @@
 #include "NUClear/Internal/Magic/TypeMap.h"
 #include "NUClear/Internal/Magic/Sequence.h"
 #include "NUClear/ForwardDeclarations.h"
+#include "NUClear/LogLevel.h"
 
 // Patch for std::make_unique in c++11 (should be fixed in c++14)
 #if __cplusplus == 201103L
@@ -319,7 +320,7 @@ namespace NUClear {
                      *
                      * @tparam TReactor TODO
                      */
-                    template <typename TReactor>
+                    template <typename TReactor, enum LogLevel level = DEBUG>
                     void install();
 
                     void start();
@@ -403,7 +404,7 @@ namespace NUClear {
              *
              * @tparam TReactor TODO
              */
-            template <typename TReactor>
+            template <typename TReactor, enum LogLevel level = DEBUG>
             void install();
         
             /**

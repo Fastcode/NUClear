@@ -32,14 +32,14 @@ namespace NUClear {
     template <typename TFirst, typename TSecond, typename... TRest>
     struct HasScope<TFirst, TSecond, TRest...> : public HasScope<TFirst, TRest...> {};
 
-    template <typename TReactor>
+    template <typename TReactor, enum LogLevel level>
     void PowerPlant::install() {
         
         // Make sure that the class that we recieved is a reactor
         static_assert(std::is_base_of<Reactor, TReactor>::value, "You must install Reactors");
         
         // Install the reactor
-        reactormaster.install<TReactor>();
+        reactormaster.install<TReactor, level>();
     }
     
     template <typename TData>

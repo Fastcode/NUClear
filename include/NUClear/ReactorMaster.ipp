@@ -23,10 +23,10 @@ namespace NUClear {
     // What this means is: This code needs to be down here, it can't be moved into the class or namespace since that'll break the 
     // forward declaration resolution. See the similar comment in Reactor.h for more information.
 
-    template <typename TReactor>
+    template <typename TReactor, enum LogLevel level>
     void PowerPlant::ReactorMaster::install() {
         // The reactor constructor should handle subscribing to events
-        reactors.push_back(std::make_unique<TReactor>(std::make_unique<Environment>(parent, LogLevel::DEBUG)));
+        reactors.push_back(std::make_unique<TReactor>(std::make_unique<Environment>(parent, level)));
     }
 
     template <typename TData>

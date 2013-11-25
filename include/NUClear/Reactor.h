@@ -33,6 +33,7 @@
 #include "NUClear/Internal/Magic/MetaProgramming.h"
 #include "NUClear/Internal/Magic/buildVector.h"
 #include "NUClear/Messages/LogMessage.h"
+#include "NUClear/LogLevel.h"
 #include "NUClear/ForwardDeclarations.h"
 
 namespace NUClear {
@@ -162,7 +163,7 @@ namespace NUClear {
             template <typename... THandlers, typename TData>
             void emit(std::unique_ptr<TData>&& data);
 
-            template <typename... TArgs>
+            template <enum LogLevel level, typename... TArgs>
             void log(TArgs... args);
         private:
             template <typename TFirst, typename... TArgs>

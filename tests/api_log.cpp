@@ -34,7 +34,7 @@ namespace {
             });
 
             on<Trigger<int>>([this](const int& v) {
-                log("Got int: ", v);
+                log<NUClear::DEBUG>("Got int: ", v);
             });
         }
     };
@@ -45,7 +45,7 @@ TEST_CASE("Testing the Log<>() function", "[api][log]") {
     NUClear::PowerPlant::Configuration config;
     config.threadCount = 1;
     NUClear::PowerPlant plant(config);
-    plant.install<TestReactor>();
+    plant.install<TestReactor, NUClear::DEBUG>();
     
     plant.emit(std::make_unique<int>(5));
     
