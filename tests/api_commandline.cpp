@@ -26,7 +26,7 @@ namespace {
     class TestReactor : public NUClear::Reactor {
     public:
         
-        TestReactor(NUClear::PowerPlant* plant) : Reactor(plant) {
+        TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
             on<Trigger<CommandLineArguments>>([this](const std::vector<std::string>& args) {
                 REQUIRE(args[0] == "Hello");
                 REQUIRE(args[1] == "World");

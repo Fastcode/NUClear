@@ -19,7 +19,7 @@
 
 namespace NUClear {
     
-    Reactor::Reactor(PowerPlant* powerPlant) : powerPlant(powerPlant) {
+    Reactor::Reactor(std::unique_ptr<Environment> environment) : environment(std::move(environment)), powerPlant(this->environment->powerPlant) {
     }
     
     void Reactor::buildOptionsImpl(Internal::Reaction::Options& options, Single* /*placeholder*/) {

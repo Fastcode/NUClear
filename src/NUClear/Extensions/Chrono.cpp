@@ -20,7 +20,7 @@
 namespace NUClear {
     namespace Extensions {
 
-        Chrono::Chrono(PowerPlant* parent) : Reactor(parent), lock(execute) {
+        Chrono::Chrono(std::unique_ptr<Environment> environment) : Reactor(std::move(environment)), lock(execute) {
 
             on<Trigger<ChronoConfig>>([this] (const ChronoConfig& config) {
                 add(config);
@@ -29,7 +29,7 @@ namespace NUClear {
             // Build a task and add it as a service task
             Internal::ThreadWorker::ServiceTask task(std::bind(&Chrono::run, this),
                                                      std::bind(&Chrono::kill, this));
-            parent->addServiceTask(task);
+            this->powerPlant->addServiceTask(task);
         }
 
         void Chrono::add(const NUClear::ChronoConfig& config) {

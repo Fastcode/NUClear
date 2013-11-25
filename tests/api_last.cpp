@@ -30,7 +30,7 @@ namespace {
     class TestReactor : public NUClear::Reactor {
     public:
         
-        TestReactor(NUClear::PowerPlant* plant) : Reactor(plant) {
+        TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
             // Trigger every 10 milliseconds
             on<Trigger<Last<5, TestData>>>([this](const std::vector<std::shared_ptr<const TestData>>& data) {
                 

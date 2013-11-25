@@ -33,13 +33,13 @@
 #include "NUClear/Internal/Magic/MetaProgramming.h"
 #include "NUClear/Internal/Magic/buildVector.h"
 #include "NUClear/Messages/LogMessage.h"
+#include "NUClear/LogLevel.h"
+#include "NUClear/ForwardDeclarations.h"
 
 namespace NUClear {
     
     // Import our meta programming utility
     using namespace Internal::Magic::MetaProgramming;
-    
-    class PowerPlant;
 
     /**
      * @brief Base class for any system that wants to react to events/data from the rest of the system.
@@ -57,7 +57,7 @@ namespace NUClear {
         public:
             friend class PowerPlant;
 
-            Reactor(PowerPlant* powerPlant);
+            Reactor(std::unique_ptr<Environment> environment);
             ~Reactor();
  
         protected:
@@ -67,6 +67,8 @@ namespace NUClear {
          * usage there does not need to be any namespace declarations on the used types. This affords a simpler API    *
          * for the user.                                                                                               *
          **************************************************************************************************************/
+            std::unique_ptr<Environment> environment;
+
             /// @brief TODO
             PowerPlant* powerPlant;
         
@@ -161,7 +163,7 @@ namespace NUClear {
             template <typename... THandlers, typename TData>
             void emit(std::unique_ptr<TData>&& data);
 
-            template <typename... TArgs>
+            template <enum LogLevel level, typename... TArgs>
             void log(TArgs... args);
         private:
             template <typename TFirst, typename... TArgs>
@@ -326,6 +328,7 @@ namespace NUClear {
 }
 
 // We need to really make sure that PowerPlant is included as we use it in our ipp file
+#include "NUClear/Environment.h"
 #include "NUClear/PowerPlant.h"
 #include "NUClear/Reactor.ipp"
 #endif

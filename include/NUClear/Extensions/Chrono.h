@@ -66,7 +66,7 @@ namespace NUClear {
         class Chrono : public Reactor {
         public:
             /// @brief Construct a new ThreadMaster with our PowerPlant as context
-            Chrono(PowerPlant* parent);
+            Chrono(std::unique_ptr<Environment> environment);
 
             /**
              * @brief Adds a new timeperiod to count and send out events for.

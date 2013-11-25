@@ -28,7 +28,7 @@ namespace {
     
     class NetworkEmitter : public NUClear::Reactor {
     public:
-        NetworkEmitter(NUClear::PowerPlant* plant) : Reactor(plant) {
+        NetworkEmitter(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
             on<Trigger<Every<500, std::chrono::milliseconds>>>([this](const time_t& tick) {
                 emit<Scope::NETWORK>(std::unique_ptr<TestObject>(new TestObject{5}));
             });
@@ -38,7 +38,7 @@ namespace {
     class TestReactor : public NUClear::Reactor {
     public:
         
-        TestReactor(NUClear::PowerPlant* plant) : Reactor(plant) {
+        TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
             
             // Trigger on a networked event
             on<Trigger<Network<TestObject>>>([this](const Network<TestObject>& message) {

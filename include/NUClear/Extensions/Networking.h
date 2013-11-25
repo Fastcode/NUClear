@@ -82,7 +82,7 @@ namespace NUClear {
             static zmq::context_t ZMQ_CONTEXT;
 
             /// @brief TODO
-            Networking(PowerPlant* parent);
+            Networking(std::unique_ptr<Environment> environment);
 
         private:
             /**

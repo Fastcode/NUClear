@@ -27,7 +27,7 @@ namespace {
         // Store our times
         std::vector<NUClear::clock::time_point> times;
         
-        TestReactor(NUClear::PowerPlant* plant) : Reactor(plant) {
+        TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
             // Trigger every 10 milliseconds
             on<Trigger<Every<10, std::chrono::milliseconds>>>([this](const time_t& message) {
                 
