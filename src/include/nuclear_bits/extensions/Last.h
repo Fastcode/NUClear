@@ -26,25 +26,25 @@
 namespace NUClear {
 
     template <int num, typename TData>
-    struct PowerPlant::CacheMaster::Get<Internal::CommandTypes::Last<num, TData>> {
+    struct PowerPlant::CacheMaster::Get<dsl::Last<num, TData>> {
         static std::shared_ptr<std::vector<std::shared_ptr<const TData>>> get(PowerPlant* context) {
 
-            return ValueCache<Internal::CommandTypes::Last<num, TData>>::get()->data;
+            return ValueCache<dsl::Last<num, TData>>::get()->data;
         }
     };
     
     template <int num, typename TData>
-    struct Reactor::Exists<Internal::CommandTypes::Last<num, TData>> {
+    struct Reactor::Exists<dsl::Last<num, TData>> {
         static void exists(Reactor* context) {
             
             // This map tracks what lasts are already looked after
             static std::unordered_set<std::type_index> inserted;
             
             // Check if we are already looking after this type
-            if(inserted.find(typeid(Internal::CommandTypes::Last<num, TData>)) == inserted.end()) {
+            if(inserted.find(typeid(dsl::Last<num, TData>)) == inserted.end()) {
                 
                 // Make a new reaction
-                context->on<Trigger<Raw<TData>>, Options<Sync<Internal::CommandTypes::Last<num, TData>>>>([context] (const std::shared_ptr<const TData>& d) {
+                context->on<Trigger<Raw<TData>>, Options<Sync<dsl::Last<num, TData>>>>([context] (const std::shared_ptr<const TData>& d) {
                     
                     // This holds the last elements that are needed
                     static std::deque<std::shared_ptr<const TData>> elements;
@@ -58,7 +58,7 @@ namespace NUClear {
                     }
                     
                     // Copy the data into a vector on a last
-                    auto data = std::make_unique<Internal::CommandTypes::Last<num, TData>>();
+                    auto data = std::make_unique<dsl::Last<num, TData>>();
                     data->data->insert(data->data->begin(), elements.begin(), elements.end());
 
                     // Emit the object for use

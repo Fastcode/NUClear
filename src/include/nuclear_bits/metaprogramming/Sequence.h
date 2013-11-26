@@ -15,17 +15,13 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_INTERNAL_MAGIC_SEQUENCE_H
-#define NUCLEAR_INTERNAL_MAGIC_SEQUENCE_H
+#ifndef NUCLEAR_METAPROGRAMMING_SEQUENCE_H
+#define NUCLEAR_METAPROGRAMMING_SEQUENCE_H
 
 #include "MetaProgramming.h"
 
 namespace NUClear {
-namespace Internal {
-namespace Magic {
-    
-    // Import our Metaprogramming tools
-    using namespace MetaProgramming;
+namespace metaprogramming {
     
     /**
      * @brief This class is used to hold a sequence of integers as a variardic pack
@@ -85,7 +81,6 @@ namespace Magic {
      */
     template <int Count>
     using GenerateSequence = Meta::Do<GenSequence<Count>>;
-}
 }
 }
 #endif

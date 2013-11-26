@@ -35,27 +35,27 @@ namespace NUClear {
     };
 
     template <int ticks, class period>
-    struct Reactor::Exists<Internal::CommandTypes::Every<ticks, period>> {
+    struct Reactor::Exists<dsl::Every<ticks, period>> {
         static void exists(Reactor* context) {
 
             // Direct emit our type to the ChronoConfiguration
             
             context->emit<Scope::DIRECT>(std::unique_ptr<ChronoConfig>(new ChronoConfig {
-                typeid(Internal::CommandTypes::Every<ticks, period>),
-                [context] { context->emit(std::make_unique<Internal::CommandTypes::Every<ticks, period>>(clock::now())); },
+                typeid(dsl::Every<ticks, period>),
+                [context] { context->emit(std::make_unique<dsl::Every<ticks, period>>(clock::now())); },
                 clock::duration(period(ticks))
             }));
         }
     };
 
     template <int ticks, class period>
-    struct PowerPlant::CacheMaster::Get<Internal::CommandTypes::Every<ticks, period>> {
+    struct PowerPlant::CacheMaster::Get<dsl::Every<ticks, period>> {
         static std::shared_ptr<clock::time_point> get(PowerPlant* context) {
-            return std::shared_ptr<clock::time_point>(new clock::time_point(ValueCache<Internal::CommandTypes::Every<ticks, period>>::get()->time));
+            return std::shared_ptr<clock::time_point>(new clock::time_point(ValueCache<dsl::Every<ticks, period>>::get()->time));
         }
     };
 
-    namespace Extensions {
+    namespace extensions {
 
         /**
          * @brief The Chronomaster is a Service thread that manages the Every class time emissions.

@@ -15,8 +15,8 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_NUCLEAR_H
-#define NUCLEAR_NUCLEAR_H
+#ifndef NUCLEAR_H
+#define NUCLEAR_H
 
 #include "nuclear_bits/PowerPlant.h"
 #include "nuclear_bits/Reactor.h"

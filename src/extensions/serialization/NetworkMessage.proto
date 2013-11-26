@@ -1,4 +1,4 @@
-package NUClear.Serialization;
+package NUClear.extensions.serialization;
 message NetworkMessage {
   required bytes type = 1;
   required string source = 2;

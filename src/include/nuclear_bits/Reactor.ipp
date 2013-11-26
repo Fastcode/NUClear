@@ -117,7 +117,7 @@ namespace NUClear {
     
     template <typename TFunc, typename... TTypes>
     struct Reactor::CheckFunctionSignature<TFunc, std::tuple<TTypes...>, 1> :
-    public Reactor::CheckFunctionSignature<TFunc, std::tuple<decltype(Internal::Magic::Dereferenceable<TTypes>::dereference(std::declval<TTypes>()))...>, 2> {};
+    public Reactor::CheckFunctionSignature<TFunc, std::tuple<decltype(metaprogramming::Dereferenceable<TTypes>::dereference(std::declval<TTypes>()))...>, 2> {};
     
     template <typename TFunc, typename... TTypes>
     struct Reactor::CheckFunctionSignature<TFunc, std::tuple<TTypes...>, 2> :
@@ -146,7 +146,7 @@ namespace NUClear {
                 task->stats->log.push_back(output);
             }
 
-            emit<Scope::DIRECT>(std::make_unique<Messages::LogMessage>(output));
+            emit<Scope::DIRECT>(std::make_unique<messages::LogMessage>(output));
         }
     }
 
@@ -188,7 +188,7 @@ namespace NUClear {
             static_assert(sizeof...(TTriggers) > 0, "You must have at least one Trigger in a callback");
             
             // Build up our options
-            Internal::Reaction::Options options;
+            threading::Reaction::Options options;
             context->buildOptions<TOptions...>(options);
             
             
@@ -196,42 +196,42 @@ namespace NUClear {
             auto onHandler = context->bindTriggers<TTriggers...>(context->buildReaction<TFunc, TFuncArgs...>(callback, options));
 
             // Run any existence commands needed (running because a type exists)
-            Internal::Magic::unpack((Exists<TFuncArgs>::exists(context), 0)...);
+            metaprogramming::unpack((Exists<TFuncArgs>::exists(context), 0)...);
 
             return onHandler;
     }
     
     template <typename... TOption>
-    void Reactor::buildOptions(Internal::Reaction::Options& options) {
+    void Reactor::buildOptions(threading::Reaction::Options& options) {
         // See unpack.h for explanation
-        Internal::Magic::unpack((buildOptionsImpl(options, reinterpret_cast<TOption*>(0)), 0)...);
+        metaprogramming::unpack((buildOptionsImpl(options, reinterpret_cast<TOption*>(0)), 0)...);
     }
     
     template <typename TSync>
-    void Reactor::buildOptionsImpl(Internal::Reaction::Options& options, Sync<TSync>* /*placeholder*/) {
+    void Reactor::buildOptionsImpl(threading::Reaction::Options& options, Sync<TSync>* /*placeholder*/) {
         options.syncQueue = Sync<TSync>::queue;
     }
     
     template <enum EPriority P>
-    void Reactor::buildOptionsImpl(Internal::Reaction::Options& options, Priority<P>* /*placeholder*/) {
+    void Reactor::buildOptionsImpl(threading::Reaction::Options& options, Priority<P>* /*placeholder*/) {
         options.priority = P;
     }
 
     template <typename TFunc, typename... TTriggersAndWiths>
-    std::unique_ptr<Internal::Reaction> Reactor::buildReaction(TFunc callback, Internal::Reaction::Options& options) {
+    std::unique_ptr<threading::Reaction> Reactor::buildReaction(TFunc callback, threading::Reaction::Options& options) {
         
         // Return a reaction object that gets and runs with the correct paramters
-        return std::make_unique<Internal::Reaction>(typeid(TFunc).name(), [this, callback]() -> std::function<void (Internal::Reaction::Task&)> {
+        return std::make_unique<threading::Reaction>(typeid(TFunc).name(), [this, callback]() -> std::function<void (threading::Reaction::Task&)> {
 
             // TODO consider potential threading implications if two threads emit at once and overwrite (then this will get the same value for both)
             auto&& data = std::make_tuple(powerPlant->cachemaster.get<TTriggersAndWiths>()...);
             
-            return [this, callback, data] (Internal::Reaction::Task& task) {
+            return [this, callback, data] (threading::Reaction::Task& task) {
                 
-                task.args = Internal::Magic::buildVector(data);
+                task.args = metaprogramming::buildVector(data);
                 this->powerPlant->threadmaster.setCurrentTask(std::this_thread::get_id(), &task);
                 
-                Internal::Magic::apply(callback, data);
+                metaprogramming::apply(callback, data);
                 
                 this->powerPlant->threadmaster.setCurrentTask(std::this_thread::get_id(), nullptr);
             };
@@ -255,11 +255,11 @@ namespace NUClear {
      * @param callback the callback to bind to these triggers
      */
     template <typename TTrigger, typename... TTriggers>
-    Reactor::OnHandle Reactor::bindTriggers(std::unique_ptr<Internal::Reaction>&& callback) {
+    Reactor::OnHandle Reactor::bindTriggers(std::unique_ptr<threading::Reaction>&& callback) {
         
         // Single trigger that is not ignored
         if(sizeof...(TTriggers) == 0 && !std::is_same<typename TriggerType<TTrigger>::type, std::nullptr_t>::value) {
-            CallbackCache<typename TriggerType<TTrigger>::type>::get().push_back(std::forward<std::unique_ptr<Internal::Reaction>>(callback));
+            CallbackCache<typename TriggerType<TTrigger>::type>::get().push_back(std::forward<std::unique_ptr<threading::Reaction>>(callback));
         }
         
         // Multi Trigger (and)

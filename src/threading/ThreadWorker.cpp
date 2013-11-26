@@ -18,7 +18,7 @@
 #include "nuclear_bits/threading/ThreadWorker.h"
 
 namespace NUClear {
-namespace Internal {
+namespace threading {
     
     ThreadWorker::ThreadWorker(ServiceTask task) :
     task(task),

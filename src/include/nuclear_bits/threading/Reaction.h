@@ -15,8 +15,8 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_INTERNAL_REACTION_H
-#define NUCLEAR_INTERNAL_REACTION_H
+#ifndef NUCLEAR_THREADING_REACTION_H
+#define NUCLEAR_THREADING_REACTION_H
 
 #include <functional>
 #include <chrono>
@@ -46,7 +46,7 @@ namespace NUClear {
         std::exception_ptr exception;
     };
     
-namespace Internal {
+namespace threading {
     
     // Forward declare the SyncQueue type
     struct SyncQueue;
@@ -234,12 +234,12 @@ namespace Internal {
         const std::type_index type;
         volatile bool active;
         std::mutex mutex;
-        std::priority_queue<std::unique_ptr<Internal::Reaction::Task>> queue;
+        std::priority_queue<std::unique_ptr<Reaction::Task>> queue;
     };
     
     // This is declared here so that by the time we allocate our SyncQueue it is not an incomplete type
     template <typename TSync>
-    const std::shared_ptr<SyncQueue> CommandTypes::Sync<TSync>::queue = std::make_shared<Internal::SyncQueue>(typeid(TSync), false);
+    const std::shared_ptr<SyncQueue> dsl::Sync<TSync>::queue = std::make_shared<dsl::SyncQueue>(typeid(TSync), false);
 }
 }
 #endif

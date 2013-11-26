@@ -33,7 +33,7 @@ FILE(GLOB src_dsl
     "include/nuclear_bits/dsl/*.ipp")
 
 FILE(GLOB src_messages
-    "dsl/*.cpp"
+    "messages/*.cpp"
     "include/nuclear_bits/messages/*.h"
     "include/nuclear_bits/messages/*.ipp")
 
@@ -47,7 +47,7 @@ SOURCE_GROUP(threading                  FILES ${src_threading})
 SOURCE_GROUP(extensions                 FILES ${src_extensions})
 SOURCE_GROUP(dsl                        FILES ${src_dsl})
 SOURCE_GROUP(messages                   FILES ${src_messages})
-SOURCE_GROUP(messages                   FILES ${src_metaprogramming})
+SOURCE_GROUP(metaprogramming            FILES ${src_metaprogramming})
 SOURCE_GROUP(extensions\\serialization  FILES ${proto_src} ${proto_h} ${src_extensions_serialization})
 
 ADD_LIBRARY(nuclear STATIC

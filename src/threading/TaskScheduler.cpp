@@ -18,7 +18,7 @@
 #include "nuclear_bits/threading/TaskScheduler.h"
 
 namespace NUClear {
-namespace Internal {
+namespace threading {
 
     TaskScheduler::TaskScheduler() : shutdown_(false) {
     }

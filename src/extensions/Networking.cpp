@@ -20,7 +20,7 @@
 #include <sstream>
 
 namespace NUClear {
-    namespace Extensions {
+    namespace extensions {
         zmq::context_t Networking::ZMQ_CONTEXT(1);
 
         Networking::Networking(std::unique_ptr<Environment> environment) : Reactor(std::move(environment)),
@@ -47,7 +47,7 @@ namespace NUClear {
             sub.setsockopt(ZMQ_SUBSCRIBE, 0, 0);
 
             // Build a task
-            Internal::ThreadWorker::ServiceTask task(std::bind(&Networking::run, this),
+            threading::ThreadWorker::ServiceTask task(std::bind(&Networking::run, this),
                                                      std::bind(&Networking::kill, this));
 
             powerPlant->addServiceTask(task);
@@ -61,7 +61,7 @@ namespace NUClear {
                 }
             });
 
-            on<Trigger<Serialization::NetworkMessage>>([this] (const Serialization::NetworkMessage& message) {
+            on<Trigger<serialization::NetworkMessage>>([this] (const serialization::NetworkMessage& message) {
 
                 // Serialize our protocol buffer
                 std::string serialized = message.SerializeAsString();
@@ -88,12 +88,12 @@ namespace NUClear {
                 // If our message size is 0, then it is probably our termination message
                 if(message.size() > 0) {
 
-                    Serialization::NetworkMessage proto;
+                    serialization::NetworkMessage proto;
                     proto.ParseFromArray(message.data(), message.size());
 
                     // Get our hash
-                    Serialization::Hash type;
-                    memcpy(type.data, proto.type().data(), Serialization::Hash::SIZE);
+                    serialization::Hash type;
+                    memcpy(type.data, proto.type().data(), serialization::Hash::SIZE);
 
                     // Find this type's deserializer (if it exists)
                     auto it = deserialize.find(type);
@@ -122,7 +122,7 @@ namespace NUClear {
         std::string Networking::addressForName(std::string name, unsigned port) {
 
             // Hash our string
-            Serialization::Hash hash = Serialization::murmurHash3(name.c_str(), name.size());
+            serialization::Hash hash = serialization::murmurHash3(name.c_str(), name.size());
 
             // Convert our hash into a multicast address
             uint32_t addr = 0xE0000200 + (hash.hash() % (0xEFFFFFFF - 0xE0000200));

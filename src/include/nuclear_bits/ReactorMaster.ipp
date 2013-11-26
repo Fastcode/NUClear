@@ -47,7 +47,7 @@ namespace NUClear {
                 }
             }
             // If there is no data, then ignore the task
-            catch (Internal::Magic::NoDataException) {}
+            catch (metaprogramming::NoDataException) {}
         }
     }
 
@@ -67,12 +67,12 @@ namespace NUClear {
                 if(reaction->isEnabled()) {
 
                     // Get and execute this reaction right now (don't send it to the thread pool)
-                    std::unique_ptr<Internal::Reaction::Task> task = std::move(reaction->getTask(currentTask));
+                    std::unique_ptr<threading::Reaction::Task> task = std::move(reaction->getTask(currentTask));
                     (*task)();
                 }
             }
             // If there is no data, then ignore the task
-            catch (Internal::Magic::NoDataException) {}
+            catch (metaprogramming::NoDataException) {}
         }
     }
 

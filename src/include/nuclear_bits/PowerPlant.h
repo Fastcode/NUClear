@@ -55,7 +55,7 @@ namespace NUClear {
     using clock = std::chrono::high_resolution_clock;
     
     // We import our Meta Programming tools
-    using namespace Internal::Magic::MetaProgramming;
+    using namespace metaprogramming;
     
     /**
      * @brief The PowerPlant is the core of a NUClear system. It holds all Reactors in it and manages their communications.
@@ -120,7 +120,7 @@ namespace NUClear {
             class ThreadMaster : public BaseMaster {
                 private:
                     // TODO when c++11 comes out in full, this can be replaced with a thread_local keyword variable
-                    std::map<std::thread::id, const Internal::Reaction::Task*> currentTask;
+                    std::map<std::thread::id, const threading::Reaction::Task*> currentTask;
 
                 public:
                     /// @brief Construct a new ThreadMaster with our PowerPlant as context
@@ -136,7 +136,7 @@ namespace NUClear {
                      *
                      * @return TODO
                      */
-                    const Internal::Reaction::Task* getCurrentTask(std::thread::id threadId);
+                    const threading::Reaction::Task* getCurrentTask(std::thread::id threadId);
 
                     /**
                      * @brief TODO
@@ -147,7 +147,7 @@ namespace NUClear {
                      * @param threadId  TODO
                      * @param task      TODO
                      */
-                    void setCurrentTask(std::thread::id threadId, const Internal::Reaction::Task* task);
+                    void setCurrentTask(std::thread::id threadId, const threading::Reaction::Task* task);
 
                     /**
                      * @brief Starts up the ThreadMaster initiating all service threads and pool threads.
@@ -175,7 +175,7 @@ namespace NUClear {
                      *
                      * @param task The Reactor task to be executed in the thread pool
                      */
-                    void submit(std::unique_ptr<Internal::Reaction::Task>&& task);
+                    void submit(std::unique_ptr<threading::Reaction::Task>&& task);
                 
                     /**
                      * @brief Submits a service task to be executed when the system starts up (will run in its own thread)
@@ -185,15 +185,15 @@ namespace NUClear {
                      *
                      * @param task The Service task to be executed with the system
                      */
-                    void serviceTask(Internal::ThreadWorker::ServiceTask task);
+                    void serviceTask(threading::ThreadWorker::ServiceTask task);
                 
                 private:
                     /// @brief A vector of the threads in the system
-                    std::vector<std::unique_ptr<Internal::ThreadWorker>> threads;
+                    std::vector<std::unique_ptr<threading::ThreadWorker>> threads;
                     /// @brief A vector of the Service tasks to be started with the system
-                    std::vector<Internal::ThreadWorker::ServiceTask> serviceTasks;
+                    std::vector<threading::ThreadWorker::ServiceTask> serviceTasks;
                     /// @brief Our TaskScheduler that handles distributing task to the pool threads
-                    Internal::TaskScheduler scheduler;
+                    threading::TaskScheduler scheduler;
             };
         
             /**
@@ -210,10 +210,10 @@ namespace NUClear {
                 private:
                     /// @brief This Value cache is a special Static type buffer that allows compile time lookup of types.
                     template <typename TData>
-                    using ValueCache = Internal::Magic::TypeMap<CacheMaster, TData, TData>;
+                    using ValueCache = metaprogramming::TypeMap<CacheMaster, TData, TData>;
                 
                     /// @brief This map stores the thread arguments when a function is called so that on an emit they can be retrieved.
-                    std::unordered_map<std::thread::id, const Internal::Reaction::Task*> threadArgs;
+                    std::unordered_map<std::thread::id, const threading::Reaction::Task*> threadArgs;
                 
                 public:
                     /// @brief Construct a new CacheMaster with our PowerPlant as context
@@ -328,7 +328,7 @@ namespace NUClear {
                 private:
                     /// @brief TODO
                     template <typename TKey>
-                    using CallbackCache = Internal::Magic::TypeList<Reactor, TKey, std::unique_ptr<Internal::Reaction>>;
+                    using CallbackCache = metaprogramming::TypeList<Reactor, TKey, std::unique_ptr<threading::Reaction>>;
 
                     /// @brief TODO
                     std::vector<std::unique_ptr<NUClear::Reactor>> reactors;
@@ -394,7 +394,7 @@ namespace NUClear {
              *
              * @param task TODO
              */
-            void addServiceTask(Internal::ThreadWorker::ServiceTask task);
+            void addServiceTask(threading::ThreadWorker::ServiceTask task);
 
             /**
              * @brief TODO

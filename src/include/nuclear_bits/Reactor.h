@@ -39,7 +39,7 @@
 namespace NUClear {
     
     // Import our meta programming utility
-    using namespace Internal::Magic::MetaProgramming;
+    using namespace metaprogramming;
 
     /**
      * @brief Base class for any system that wants to react to events/data from the rest of the system.
@@ -77,61 +77,61 @@ namespace NUClear {
         
             /// @brief TODO inherit from commandtype
             template <typename... TTriggers>
-            using Trigger = Internal::CommandTypes::Trigger<TTriggers...>;
+            using Trigger = dsl::Trigger<TTriggers...>;
         
             /// @brief TODO inherit from commandtype
             template <typename... TWiths>
-            using With = Internal::CommandTypes::With<TWiths...>;
+            using With = dsl::With<TWiths...>;
         
             /// @brief TODO inherit from commandtype
-            using Scope = Internal::CommandTypes::Scope;
+            using Scope = dsl::Scope;
         
             /// @brief TODO inherit from commandtype
             template <typename... TOptions>
-            using Options = Internal::CommandTypes::Options<TOptions...>;
+            using Options = dsl::Options<TOptions...>;
         
             /// @brief TODO inherit from commandtype
-            using Initialize = Internal::CommandTypes::Initialize;
+            using Initialize = dsl::Initialize;
         
             /// @brief TODO inherit from commandtype
-            using Shutdown = Internal::CommandTypes::Shutdown;
+            using Shutdown = dsl::Shutdown;
         
             /// @brief TODO inherit from commandtype
             template <int ticks, class period = std::chrono::milliseconds>
-            using Every = Internal::CommandTypes::Every<ticks, period>;
+            using Every = dsl::Every<ticks, period>;
         
             /// @brief TODO inherit from commandtype
             template <typename TData>
-            using Raw = Internal::CommandTypes::Raw<TData>;
+            using Raw = dsl::Raw<TData>;
         
             /// @brief TODO inherit from commandtype
             template <int num, class TData>
-            using Last = Internal::CommandTypes::Last<num, TData>;
+            using Last = dsl::Last<num, TData>;
 
             /// @brief The type of data that is returned by Last<num, TData>
             template <class TData>
             using LastList = std::vector<std::shared_ptr<const TData>>;
 
             /// @breif TODO inherit docs from commandtype
-            using CommandLineArguments = Internal::CommandTypes::CommandLineArguments;
+            using CommandLineArguments = dsl::CommandLineArguments;
         
             /// @brief TODO inherit from commandtype
             template <enum EPriority P>
-            using Priority = Internal::CommandTypes::Priority<P>;
+            using Priority = dsl::Priority<P>;
         
             /// @brief TODO inherit from commandtype
             template <typename TData>
-            using Network = Internal::CommandTypes::Network<TData>;
+            using Network = dsl::Network<TData>;
         
             /// @brief TODO inherit from commandtype
             template <typename TSync>
-            using Sync = Internal::CommandTypes::Sync<TSync>;
+            using Sync = dsl::Sync<TSync>;
         
             /// @brief TODO inherit from commandtype
-            using Single = Internal::CommandTypes::Single;
+            using Single = dsl::Single;
         
             /// @brief This provides functions to modify how an on statement runs after it has been created
-            using OnHandle = Internal::Reaction::OnHandle;
+            using OnHandle = threading::Reaction::OnHandle;
 
         // FUNCTIONS
         
@@ -174,7 +174,7 @@ namespace NUClear {
         
             /// @brief TODO
             template <typename TKey>
-            using CallbackCache = Internal::Magic::TypeList<Reactor, TKey, std::unique_ptr<Internal::Reaction>>;
+            using CallbackCache = metaprogramming::TypeList<Reactor, TKey, std::unique_ptr<threading::Reaction>>;
         
             /**
              * @brief Base template instantitation that gets specialized. 
@@ -228,7 +228,7 @@ namespace NUClear {
              * @param the options to populate
              */
             template <typename... TOption>
-            void buildOptions(Internal::Reaction::Options& options);
+            void buildOptions(threading::Reaction::Options& options);
         
             /**
              * @brief This case of build options is used when the Single option is specified.
@@ -236,7 +236,7 @@ namespace NUClear {
              * @param options the options object we are building
              * @param placeholder which is used to specialize this method
              */
-            void buildOptionsImpl(Internal::Reaction::Options& options, Single* /*placeholder*/);
+            void buildOptionsImpl(threading::Reaction::Options& options, Single* /*placeholder*/);
         
             /**
              * @brief This case of build options is used to add the Sync option.
@@ -246,7 +246,7 @@ namespace NUClear {
              * @param placeholder which is used to specialize this method
              */
             template <typename TSync>
-            void buildOptionsImpl(Internal::Reaction::Options& options, Sync<TSync>* /*placeholder*/);
+            void buildOptionsImpl(threading::Reaction::Options& options, Sync<TSync>* /*placeholder*/);
         
             /**
              * @brief This case of build options is used to add the Priority option.
@@ -256,7 +256,7 @@ namespace NUClear {
              * @param placeholder which is used to specialize this method
              */
             template <enum EPriority P>
-            void buildOptionsImpl(Internal::Reaction::Options& options, Priority<P>* /*placeholder*/);
+            void buildOptionsImpl(threading::Reaction::Options& options, Priority<P>* /*placeholder*/);
         
             /**
              * @brief TODO
@@ -300,7 +300,7 @@ namespace NUClear {
              * @returns The wrapped callback
              */
             template <typename TFunc, typename... TTriggersAndWiths>
-            std::unique_ptr<Internal::Reaction> buildReaction(TFunc callback, Internal::Reaction::Options& options);
+            std::unique_ptr<threading::Reaction> buildReaction(TFunc callback, threading::Reaction::Options& options);
         
             /**
              * @brief Adds a single data -> callback mapping for a single type.
@@ -312,7 +312,7 @@ namespace NUClear {
              * @return A handler which allows us to modify our Reaction at runtime
              */
             template <typename TTrigger, typename... TTriggers>
-            OnHandle bindTriggers(std::unique_ptr<Internal::Reaction>&& callback);
+            OnHandle bindTriggers(std::unique_ptr<threading::Reaction>&& callback);
         
             /**
              * @brief TODO

@@ -15,8 +15,8 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_INTERNAL_TASKSCHEDULER_H
-#define NUCLEAR_INTERNAL_TASKSCHEDULER_H
+#ifndef NUCLEAR_THREADING_TASKSCHEDULER_H
+#define NUCLEAR_THREADING_TASKSCHEDULER_H
 
 #include <map>
 #include <vector>
@@ -30,7 +30,7 @@
 #include "Reaction.h"
 
 namespace NUClear {
-namespace Internal {
+namespace threading {
 
     /**
      * @brief This class is responsible for scheduling and handling multiple threads at once.

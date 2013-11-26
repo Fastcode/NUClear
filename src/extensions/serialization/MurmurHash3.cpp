@@ -18,7 +18,7 @@
 #include "nuclear_bits/extensions/serialization/MurmurHash3.h"
 
 namespace NUClear {
-    namespace Serialization {
+    namespace threading {
         
         bool Hash::operator==(const Hash& hash) const {
             for(unsigned i = 0; i < SIZE; ++i) {

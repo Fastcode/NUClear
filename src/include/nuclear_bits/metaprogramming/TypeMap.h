@@ -15,15 +15,14 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_INTERNAL_MAGIC_TYPEMAP_H
-#define NUCLEAR_INTERNAL_MAGIC_TYPEMAP_H
+#ifndef NUCLEAR_METAPROGRAMMING_TYPEMAP_H
+#define NUCLEAR_METAPROGRAMMING_TYPEMAP_H
 
 #include <deque>
 #include <vector>
 
 namespace NUClear {
-namespace Internal {
-namespace Magic {
+namespace metaprogramming {
     
     /**
      * @brief This exception is thrown when there is no data in the map to return.
@@ -116,7 +115,6 @@ namespace Magic {
     
     template <typename TMapID, typename TKey, typename TValue>
     std::vector<TValue> TypeList<TMapID, TKey, TValue>::data;
-}
 }
 }
 

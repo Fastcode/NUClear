@@ -22,9 +22,9 @@
 
 namespace NUClear {
     template <>
-    struct PowerPlant::CacheMaster::Get<Internal::CommandTypes::CommandLineArguments> {
+    struct PowerPlant::CacheMaster::Get<dsl::CommandLineArguments> {
         static std::shared_ptr<std::vector<std::string>> get(PowerPlant* context) {
-            return std::make_shared<std::vector<std::string>>(ValueCache<Internal::CommandTypes::CommandLineArguments>::get()->args);
+            return std::make_shared<std::vector<std::string>>(ValueCache<dsl::CommandLineArguments>::get()->args);
         }
     };
 }

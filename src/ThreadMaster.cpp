@@ -25,12 +25,12 @@ namespace NUClear {
     }
 
 
-    void PowerPlant::ThreadMaster::setCurrentTask(std::thread::id threadId, const Internal::Reaction::Task* task) {
+    void PowerPlant::ThreadMaster::setCurrentTask(std::thread::id threadId, const threading::Reaction::Task* task) {
         // TODO replace this with thread_local if possible (c++11 keyword thread_local)
         currentTask[threadId] = task;
     }
 
-    const Internal::Reaction::Task* PowerPlant::ThreadMaster::getCurrentTask(std::thread::id threadId) {
+    const threading::Reaction::Task* PowerPlant::ThreadMaster::getCurrentTask(std::thread::id threadId) {
         auto task = currentTask.find(threadId);
 
         if(task != std::end(currentTask)) {
@@ -45,12 +45,12 @@ namespace NUClear {
         // Start our internal service threads
         for(auto& task : serviceTasks) {
             // Start a thread worker with our task
-            threads.push_back(std::make_unique<Internal::ThreadWorker>(task));
+            threads.push_back(std::make_unique<threading::ThreadWorker>(task));
         }
         
         // Start our pool threads
         for(unsigned i = 0; i < parent->configuration.threadCount; ++i) {
-            threads.push_back(std::make_unique<Internal::ThreadWorker>(Internal::ThreadPoolTask(scheduler)));
+            threads.push_back(std::make_unique<threading::ThreadWorker>(threading::ThreadPoolTask(scheduler)));
         }
         
         // Now wait for all the threads to finish executing
@@ -68,11 +68,11 @@ namespace NUClear {
         scheduler.shutdown();
     }
     
-    void PowerPlant::ThreadMaster::serviceTask(Internal::ThreadWorker::ServiceTask task) {
+    void PowerPlant::ThreadMaster::serviceTask(threading::ThreadWorker::ServiceTask task) {
         serviceTasks.push_back(task);
     }
     
-    void PowerPlant::ThreadMaster::submit(std::unique_ptr<Internal::Reaction::Task>&& task) {
-        scheduler.submit(std::forward<std::unique_ptr<Internal::Reaction::Task>>(task));
+    void PowerPlant::ThreadMaster::submit(std::unique_ptr<threading::Reaction::Task>&& task) {
+        scheduler.submit(std::forward<std::unique_ptr<threading::Reaction::Task>>(task));
     }
 }

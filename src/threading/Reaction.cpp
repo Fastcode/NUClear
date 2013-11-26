@@ -18,7 +18,7 @@
 #include "nuclear_bits/threading/Reaction.h"
 
 namespace NUClear {
-namespace Internal {
+namespace threading {
     
     std::atomic<uint64_t> Reaction::reactionIdSource(0);
     std::atomic<uint64_t> Reaction::Task::taskIdSource(0);

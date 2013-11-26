@@ -15,14 +15,13 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_INTERNAL_MAGIC_DEREFERENCEABLE_H
-#define NUCLEAR_INTERNAL_MAGIC_DEREFERENCEABLE_H
+#ifndef NUCLEAR_METAPROGRAMMING_DEREFERENCEABLE_H
+#define NUCLEAR_METAPROGRAMMING_DEREFERENCEABLE_H
 
 #include <type_traits>
 
 namespace NUClear {
-namespace Internal {
-namespace Magic {
+namespace metaprogramming {
     
     // Anonymous Namespace to hide implementation details
     namespace {
@@ -58,7 +57,6 @@ namespace Magic {
             return std::move(data);
         }
     };
-}
 }
 }
 

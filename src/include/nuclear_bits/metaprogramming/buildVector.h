@@ -15,16 +15,15 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_INTERNAL_MAGIC_BUILDVECTOR_H
-#define NUCLEAR_INTERNAL_MAGIC_BUILDVECTOR_H
+#ifndef NUCLEAR_METAPROGRAMMING_BUILDVECTOR_H
+#define NUCLEAR_METAPROGRAMMING_BUILDVECTOR_H
 
 #include <tuple>
 #include <vector>
 #include "Sequence.h"
 
 namespace NUClear {
-namespace Internal {
-namespace Magic {
+namespace metaprogramming {
     
     // Anonymous Namespace to hide implementation details
     namespace {
@@ -55,7 +54,6 @@ namespace Magic {
     std::vector<std::pair<std::type_index, std::shared_ptr<void>>> buildVector(std::tuple<TArgs...> args) {
         return buildVector(GenerateSequence<sizeof...(TArgs)>(), args);
     }
-}
 }
 }
 

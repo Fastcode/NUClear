@@ -15,12 +15,11 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_INTERNAL_MAGIC_UNPACK_H
-#define NUCLEAR_INTERNAL_MAGIC_UNPACK_H
+#ifndef NUCLEAR_METAPROGRAMMING_UNPACK_H
+#define NUCLEAR_METAPROGRAMMING_UNPACK_H
 
 namespace NUClear {
-namespace Internal {
-namespace Magic {
+namespace metaprogramming {
     
     /**
      * @brief Executes a series of function calls from a variardic template pack. 
@@ -45,7 +44,6 @@ namespace Magic {
      */
     template <typename... Ts>
     void unpack(Ts... t) {}
-}
 }
 }
 #endif

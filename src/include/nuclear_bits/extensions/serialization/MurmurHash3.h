@@ -15,8 +15,8 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_MURMURHASH3_H
-#define NUCLEAR_MURMURHASH3_H
+#ifndef NUCLEAR_EXTENSIONS_SERIALIZATION_MURMURHASH3_H
+#define NUCLEAR_EXTENSIONS_SERIALIZATION_MURMURHASH3_H
 
 #include <cstdint>
 #include <cstring>
@@ -24,26 +24,28 @@
 #include <functional>
 
 namespace NUClear {
-    namespace Serialization {
-        
-        struct Hash {
-            static const size_t SIZE = 16;
-            uint8_t data[SIZE];
+    namespace extensions {
+        namespace serialization {
             
-            bool operator==(const Hash& hash) const;
-            size_t hash() const;
-            static size_t hashToStdHash(const uint8_t* data);
-        };
-        
-        Hash murmurHash3(const void* key, const size_t len);
+            struct Hash {
+                static const size_t SIZE = 16;
+                uint8_t data[SIZE];
+                
+                bool operator==(const Hash& hash) const;
+                size_t hash() const;
+                static size_t hashToStdHash(const uint8_t* data);
+            };
+            
+            Hash murmurHash3(const void* key, const size_t len);
+        }
     }
 }
 
 namespace std {
     template <>
-    struct hash<NUClear::Serialization::Hash> : public unary_function<NUClear::Serialization::Hash, size_t> {
+    struct hash<NUClear::extensions::serialization::Hash> : public unary_function<NUClear::extensions::serialization::Hash, size_t> {
         
-        size_t operator()(const NUClear::Serialization::Hash& v) const {
+        size_t operator()(const NUClear::extensions::serialization::Hash& v) const {
             return v.hash();
         }
     };

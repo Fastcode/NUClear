@@ -43,21 +43,21 @@ namespace NUClear {
     }
     
     template <typename TData>
-    struct PowerPlant::Emit<Internal::CommandTypes::Scope::LOCAL, TData> {
+    struct PowerPlant::Emit<dsl::Scope::LOCAL, TData> {
         static void emit(PowerPlant* context, std::shared_ptr<TData> data) {
             context->reactormaster.emit(data);
         }
     };
 
     template <typename TData>
-    struct PowerPlant::Emit<Internal::CommandTypes::Scope::DIRECT, TData> {
+    struct PowerPlant::Emit<dsl::Scope::DIRECT, TData> {
         static void emit(PowerPlant* context, std::shared_ptr<TData> data) {
             context->reactormaster.directEmit(data);
         }
     };
 
     template <typename TData>
-    struct PowerPlant::Emit<Internal::CommandTypes::Scope::INITIALIZE, TData> {
+    struct PowerPlant::Emit<dsl::Scope::INITIALIZE, TData> {
         static void emit(PowerPlant* context, std::shared_ptr<TData> data) {
             context->reactormaster.emitOnStart(data);
         }
@@ -69,7 +69,7 @@ namespace NUClear {
         
         // If there are no types defined, the default is to emit local
         if(sizeof...(THandlers) == 0) {
-            emit<Internal::CommandTypes::Scope::LOCAL>(std::forward<std::unique_ptr<TData>>(data));
+            emit<dsl::Scope::LOCAL>(std::forward<std::unique_ptr<TData>>(data));
         }
         else {
             // Release our data from the pointer and wrap it in a shared_ptr
@@ -79,7 +79,7 @@ namespace NUClear {
             (void) ptr;
 
             // TODO These functions should be noexcept
-            Internal::Magic::unpack((PowerPlant::Emit<THandlers, TData>::emit(this, ptr), 0)...);
+            metaprogramming::unpack((PowerPlant::Emit<THandlers, TData>::emit(this, ptr), 0)...);
         }
     }
 }

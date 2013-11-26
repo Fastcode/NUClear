@@ -15,16 +15,15 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_INTERNAL_MAGIC_APPLY_H
-#define NUCLEAR_INTERNAL_MAGIC_APPLY_H
+#ifndef NUCLEAR_METAPROGRAMMING_APPLY_H
+#define NUCLEAR_METAPROGRAMMING_APPLY_H
 
 #include <tuple>
 #include "Sequence.h"
 #include "Dereferenceable.h"
 
 namespace NUClear {
-namespace Internal {
-namespace Magic {
+namespace metaprogramming {
     
     // Anonymous Namespace to hide implementation details
     namespace {
@@ -57,7 +56,6 @@ namespace Magic {
     void apply(TFunc function, const std::tuple<TArgs...>& args) {
         apply(function, GenerateSequence<sizeof...(TArgs)>(), args);
     }
-}
 }
 }
 

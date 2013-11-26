@@ -15,15 +15,15 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_INTERNAL_THREADWORKER_H
-#define NUCLEAR_INTERNAL_THREADWORKER_H
+#ifndef NUCLEAR_THREADING_THREADWORKER_H
+#define NUCLEAR_THREADING_THREADWORKER_H
 
 #include <thread>
 #include "Reaction.h"
 #include "TaskScheduler.h"
 
 namespace NUClear {
-namespace Internal {
+namespace threading {
     
     /**
      * @brief This class implements a wrapper around an std::thread to act as a member of a thread pool.

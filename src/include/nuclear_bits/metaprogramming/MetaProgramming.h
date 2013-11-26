@@ -15,15 +15,13 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_INTERNAL_MAGIC_METAPROGRAMMING_H
-#define NUCLEAR_INTERNAL_MAGIC_METAPROGRAMMING_H
+#ifndef NUCLEAR_METAPROGRAMMING_META_H
+#define NUCLEAR_METAPROGRAMMING_META_H
 
 #include <type_traits>
 
 namespace NUClear {
-namespace Internal {
-namespace Magic {
-namespace MetaProgramming {
+namespace metaprogramming {
 namespace Meta {
     
     template <typename T>
@@ -52,8 +50,6 @@ namespace Meta {
     template <typename... Conditions>
     struct EnableIf : Do<std::enable_if<All<Conditions...>::value, std::nullptr_t>> {};
     
-}
-}
 }
 }
 }

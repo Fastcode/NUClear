@@ -18,7 +18,7 @@
 #include "nuclear_bits/threading/ThreadPoolTask.h"
 
 namespace NUClear {
-namespace Internal {
+namespace threading {
     
     ThreadPoolTask::ThreadPoolTask(TaskScheduler& scheduler) :
     ThreadWorker::ServiceTask(std::bind(&ThreadPoolTask::run, this), std::bind(&ThreadPoolTask::kill, this)),

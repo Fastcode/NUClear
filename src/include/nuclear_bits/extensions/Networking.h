@@ -28,25 +28,25 @@
 namespace NUClear {
 
     struct NetworkTypeConfig {
-        Serialization::Hash hash;
+        extensions::serialization::Hash hash;
         std::function<void (Reactor* network, const std::string, const std::string)> deserializer;
     };
     
     // Our emit overload for a networked emit
     template <typename TData>
-    struct PowerPlant::Emit<Internal::CommandTypes::Scope::NETWORK, TData> {
+    struct PowerPlant::Emit<dsl::Scope::NETWORK, TData> {
         static void emit(PowerPlant* context, std::shared_ptr<TData> data) {
 
-            auto message = std::make_unique<Serialization::NetworkMessage>();
+            auto message = std::make_unique<extensions::serialization::NetworkMessage>();
 
             // Get our hash for this type
-            Serialization::Hash hash = Serialization::hash<TData>();
+            extensions::serialization::Hash hash = extensions::serialization::hash<TData>();
 
             // Serialize our data
-            std::string payload = Serialization::Serializer<TData>::serialize(*data);
+            std::string payload = extensions::serialization::Serializer<TData>::serialize(*data);
 
             // Fill our protocol buffer
-            message->set_type(std::string(reinterpret_cast<char*>(hash.data), Serialization::Hash::SIZE));
+            message->set_type(std::string(reinterpret_cast<char*>(hash.data), extensions::serialization::Hash::SIZE));
             message->set_source(context->configuration.networkName);
             message->set_payload(payload);
 
@@ -57,16 +57,16 @@ namespace NUClear {
 
     // Our Exists overload to start listening for paticular network datatypes
     template <typename TData>
-    struct Reactor::Exists<Internal::CommandTypes::Network<TData>> {
+    struct Reactor::Exists<dsl::Network<TData>> {
         static void exists(Reactor* context) {
 
             // Send a direct emit to the Network reactor to tell it about the new type to listen for
             context->emit<Scope::DIRECT>(std::unique_ptr<NetworkTypeConfig>(new NetworkTypeConfig {
-                Serialization::hash<TData>(),
+                extensions::serialization::hash<TData>(),
                 [] (Reactor* reactor, const std::string source, const std::string data) {
 
                     // Deserialize our data and store it in the network object
-                    std::unique_ptr<TData> parsed(std::make_unique<TData>(Serialization::Serializer<TData>::deserialize(data)));
+                    std::unique_ptr<TData> parsed(std::make_unique<TData>(extensions::serialization::Serializer<TData>::deserialize(data)));
                     std::unique_ptr<Network<TData>> event = std::make_unique<Network<TData>>(source, std::move(parsed));
 
                     // Emit it to the world
@@ -76,7 +76,7 @@ namespace NUClear {
         }
     };
 
-    namespace Extensions {
+    namespace extensions {
         class Networking : public Reactor {
         public:
             static zmq::context_t ZMQ_CONTEXT;
@@ -113,7 +113,7 @@ namespace NUClear {
             static std::string addressForName(const std::string name, const unsigned port);
 
             /// @brief TODO
-            std::unordered_map<Serialization::Hash, std::function<void(Reactor*, const std::string, std::string)>> deserialize;
+            std::unordered_map<serialization::Hash, std::function<void(Reactor*, const std::string, std::string)>> deserialize;
             /// @brief TODO
             volatile bool running;
             /// @brief TODO

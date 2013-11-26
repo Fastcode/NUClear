@@ -23,12 +23,12 @@
 namespace NUClear {
 
     template <typename TData>
-    struct Reactor::TriggerType<Internal::CommandTypes::Raw<TData>> {
+    struct Reactor::TriggerType<dsl::Raw<TData>> {
         typedef TData type;
     };
 
     template <typename TData>
-    struct PowerPlant::CacheMaster::Get<Internal::CommandTypes::Raw<TData>> {
+    struct PowerPlant::CacheMaster::Get<dsl::Raw<TData>> {
         static std::shared_ptr<std::shared_ptr<TData>> get(PowerPlant* context) {
             return std::make_shared<std::shared_ptr<TData>>(ValueCache<TData>::get());
         }

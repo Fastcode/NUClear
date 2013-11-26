@@ -18,7 +18,7 @@
 #include "nuclear_bits/Extensions/Chrono.h"
 
 namespace NUClear {
-    namespace Extensions {
+    namespace extensions {
 
         Chrono::Chrono(std::unique_ptr<Environment> environment) : Reactor(std::move(environment)), lock(execute) {
 
@@ -27,7 +27,7 @@ namespace NUClear {
             });
 
             // Build a task and add it as a service task
-            Internal::ThreadWorker::ServiceTask task(std::bind(&Chrono::run, this),
+            threading::ThreadWorker::ServiceTask task(std::bind(&Chrono::run, this),
                                                      std::bind(&Chrono::kill, this));
             this->powerPlant->addServiceTask(task);
         }

@@ -29,20 +29,18 @@ namespace NUClear {
 
         // Install the chrono extension
         std::cout << "Setting up the Chrono extension" << std::endl;
-        install<Extensions::Chrono>();
+        install<extensions::Chrono>();
 
         std::cout << "Setting up the Networking extension" << std::endl;
-        install<Extensions::Networking>();
+        install<extensions::Networking>();
 
         // Emit our arguments if any.
         if(argc > 0) {
-            emit<Internal::CommandTypes::Scope::INITIALIZE>(std::make_unique<Internal::CommandTypes::CommandLineArguments>(std::vector<std::string>(argv, argv + argc)));
+            emit<dsl::Scope::INITIALIZE>(std::make_unique<dsl::CommandLineArguments>(std::vector<std::string>(argv, argv + argc)));
         }
     }
-
-
-
-    void PowerPlant::addServiceTask(Internal::ThreadWorker::ServiceTask task) {
+    
+    void PowerPlant::addServiceTask(threading::ThreadWorker::ServiceTask task) {
         threadmaster.serviceTask(task);
     }
 
@@ -52,13 +50,13 @@ namespace NUClear {
         // them on Trigger<Initialize>
         reactormaster.start();
 
-        emit<Internal::CommandTypes::Scope::DIRECT>(std::make_unique<Internal::CommandTypes::Initialize>());
+        emit<dsl::Scope::DIRECT>(std::make_unique<dsl::Initialize>());
 
         threadmaster.start();
     }
     
     void PowerPlant::shutdown() {
         threadmaster.shutdown();
-        emit<Internal::CommandTypes::Scope::DIRECT>(std::make_unique<Internal::CommandTypes::Shutdown>());
+        emit<dsl::Scope::DIRECT>(std::make_unique<dsl::Shutdown>());
     }
 }
