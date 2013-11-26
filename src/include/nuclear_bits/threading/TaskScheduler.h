@@ -95,7 +95,7 @@ namespace threading {
              *
              * @param task  the task to be executed
              */
-            void submit(std::unique_ptr<Reaction::Task>&& task);
+            void submit(std::unique_ptr<ReactionTask>&& task);
         
             /**
              * @brief Get a task object to be executed by a thread.
@@ -107,12 +107,12 @@ namespace threading {
              *
              * @return the task which has been given to be executed
              */
-            std::unique_ptr<Reaction::Task> getTask();
+            std::unique_ptr<ReactionTask> getTask();
         private:
             /// @brief if the scheduler is running or is shut down
             volatile bool shutdown_;
             /// @brief our queue
-            std::priority_queue<std::unique_ptr<Reaction::Task>> queue;
+            std::priority_queue<std::unique_ptr<ReactionTask>> queue;
             /// @brief the mutex which our threads synchronize their access to this object
             std::mutex mutex;
             /// @brief the condition object that threads wait on if they can't get a task

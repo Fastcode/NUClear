@@ -33,7 +33,6 @@
 #include "nuclear_bits/extensions/serialization/Serialization.h"
 #include "nuclear_bits/threading/ThreadWorker.h"
 #include "nuclear_bits/threading/TaskScheduler.h"
-#include "nuclear_bits/dsl/CommandTypes.h"
 #include "nuclear_bits/metaprogramming/MetaProgramming.h"
 #include "nuclear_bits/metaprogramming/TypeMap.h"
 #include "nuclear_bits/metaprogramming/Sequence.h"
@@ -120,7 +119,7 @@ namespace NUClear {
             class ThreadMaster : public BaseMaster {
                 private:
                     // TODO when c++11 comes out in full, this can be replaced with a thread_local keyword variable
-                    std::map<std::thread::id, const threading::Reaction::Task*> currentTask;
+                    std::map<std::thread::id, const threading::ReactionTask*> currentTask;
 
                 public:
                     /// @brief Construct a new ThreadMaster with our PowerPlant as context
@@ -136,7 +135,7 @@ namespace NUClear {
                      *
                      * @return TODO
                      */
-                    const threading::Reaction::Task* getCurrentTask(std::thread::id threadId);
+                    const threading::ReactionTask* getCurrentTask(std::thread::id threadId);
 
                     /**
                      * @brief TODO
@@ -147,7 +146,7 @@ namespace NUClear {
                      * @param threadId  TODO
                      * @param task      TODO
                      */
-                    void setCurrentTask(std::thread::id threadId, const threading::Reaction::Task* task);
+                    void setCurrentTask(std::thread::id threadId, const threading::ReactionTask* task);
 
                     /**
                      * @brief Starts up the ThreadMaster initiating all service threads and pool threads.
@@ -175,7 +174,7 @@ namespace NUClear {
                      *
                      * @param task The Reactor task to be executed in the thread pool
                      */
-                    void submit(std::unique_ptr<threading::Reaction::Task>&& task);
+                    void submit(std::unique_ptr<threading::ReactionTask>&& task);
                 
                     /**
                      * @brief Submits a service task to be executed when the system starts up (will run in its own thread)
@@ -213,7 +212,7 @@ namespace NUClear {
                     using ValueCache = metaprogramming::TypeMap<CacheMaster, TData, TData>;
                 
                     /// @brief This map stores the thread arguments when a function is called so that on an emit they can be retrieved.
-                    std::unordered_map<std::thread::id, const threading::Reaction::Task*> threadArgs;
+                    std::unordered_map<std::thread::id, const threading::ReactionTask*> threadArgs;
                 
                 public:
                     /// @brief Construct a new CacheMaster with our PowerPlant as context

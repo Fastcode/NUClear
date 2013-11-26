@@ -15,17 +15,24 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_MESSAGES_LOGMESSAGE_H
-#define NUCLEAR_MESSAGES_LOGMESSAGE_H
+#include "nuclear_bits/threading/ReactionTask.h"
 
 namespace NUClear {
-    namespace messages {
-        struct LogMessage {
-            
-            std::string message;
-            
-            LogMessage(const std::string& message) : message(message) {}
-        };
+namespace threading {
+    
+    std::atomic<uint64_t> ReactionTask::taskIdSource(0);
+    
+    
+    ReactionTask::ReactionTask(Reaction* parent, const Task* cause, std::function<void (ReactionTask&)> callback) :
+    callback(callback),
+    parent(parent),
+    taskId(++taskIdSource),
+    stats(new NUClearTaskEvent{parent->name, parent->reactionId, taskId, cause ? cause->parent->reactionId : -1, cause ? cause->taskId : -1, clock::now()}) {
+    }
+    
+    void ReactionTask::operator()() {
+        // Call our callback
+        callback(*this);
     }
 }
-#endif
+}

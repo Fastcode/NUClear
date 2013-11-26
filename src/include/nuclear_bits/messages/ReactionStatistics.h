@@ -15,16 +15,23 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_MESSAGES_LOGMESSAGE_H
-#define NUCLEAR_MESSAGES_LOGMESSAGE_H
+#ifndef NUCLEAR_MESSAGES_REACTIONSTATISTICS_H
+#define NUCLEAR_MESSAGES_REACTIONSTATISTICS_H
 
 namespace NUClear {
     namespace messages {
-        struct LogMessage {
-            
-            std::string message;
-            
-            LogMessage(const std::string& message) : message(message) {}
+        struct ReactionStatistics {
+            std::string name;
+            std::uint64_t reactionId;
+            std::uint64_t taskId;
+            std::uint64_t causeReactionId;
+            std::uint64_t causeTaskId;
+            clock::time_point emitted;
+            clock::time_point started;
+            clock::time_point finished;
+            std::vector<std::pair<std::type_index, std::shared_ptr<void>>> args;
+            std::vector<std::string> log;
+            std::exception_ptr exception;
         };
     }
 }

@@ -26,7 +26,7 @@
 #include <chrono>
 #include <atomic>
 #include "nuclear_bits/threading/Reaction.h"
-#include "nuclear_bits/dsl/CommandTypes.h"
+#include "nuclear_bits/dsl/dsl.h"
 #include "nuclear_bits/metaprogramming/unpack.h"
 #include "nuclear_bits/metaprogramming/apply.h"
 #include "nuclear_bits/metaprogramming/TypeMap.h"

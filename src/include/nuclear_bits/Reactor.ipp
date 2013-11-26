@@ -188,7 +188,7 @@ namespace NUClear {
             static_assert(sizeof...(TTriggers) > 0, "You must have at least one Trigger in a callback");
             
             // Build up our options
-            threading::Reaction::Options options;
+            threading::ReactionOptions options;
             context->buildOptions<TOptions...>(options);
             
             
