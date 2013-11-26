@@ -18,6 +18,8 @@
 #ifndef NUCLEAR_MESSAGES_REACTIONSTATISTICS_H
 #define NUCLEAR_MESSAGES_REACTIONSTATISTICS_H
 
+#include "nuclear_bits/clock.h"
+
 namespace NUClear {
     namespace messages {
         struct ReactionStatistics {

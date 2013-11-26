@@ -26,6 +26,7 @@
 #include <chrono>
 #include <atomic>
 #include "nuclear_bits/threading/Reaction.h"
+#include "nuclear_bits/threading/ReactionHandle.h"
 #include "nuclear_bits/dsl/dsl.h"
 #include "nuclear_bits/metaprogramming/unpack.h"
 #include "nuclear_bits/metaprogramming/apply.h"
@@ -131,7 +132,7 @@ namespace NUClear {
             using Single = dsl::Single;
         
             /// @brief This provides functions to modify how an on statement runs after it has been created
-            using OnHandle = threading::Reaction::OnHandle;
+            using ReactionHandle = threading::ReactionHandle;
 
         // FUNCTIONS
         
@@ -217,7 +218,7 @@ namespace NUClear {
              */
             template <typename TFunc, typename... TTriggers, typename... TWiths, typename... TOptions, typename... TFuncArgs>
             struct On<TFunc, Trigger<TTriggers...>, With<TWiths...>, Options<TOptions...>, std::tuple<TFuncArgs...>> {
-                static OnHandle on(Reactor* context, TFunc callback);
+                static ReactionHandle on(Reactor* context, TFunc callback);
             };
         
             /**
@@ -228,7 +229,7 @@ namespace NUClear {
              * @param the options to populate
              */
             template <typename... TOption>
-            void buildOptions(threading::Reaction::Options& options);
+            void buildOptions(threading::ReactionOptions& options);
         
             /**
              * @brief This case of build options is used when the Single option is specified.
@@ -236,7 +237,7 @@ namespace NUClear {
              * @param options the options object we are building
              * @param placeholder which is used to specialize this method
              */
-            void buildOptionsImpl(threading::Reaction::Options& options, Single* /*placeholder*/);
+            void buildOptionsImpl(threading::ReactionOptions& options, Single* /*placeholder*/);
         
             /**
              * @brief This case of build options is used to add the Sync option.
@@ -246,7 +247,7 @@ namespace NUClear {
              * @param placeholder which is used to specialize this method
              */
             template <typename TSync>
-            void buildOptionsImpl(threading::Reaction::Options& options, Sync<TSync>* /*placeholder*/);
+            void buildOptionsImpl(threading::ReactionOptions& options, Sync<TSync>* /*placeholder*/);
         
             /**
              * @brief This case of build options is used to add the Priority option.
@@ -256,7 +257,7 @@ namespace NUClear {
              * @param placeholder which is used to specialize this method
              */
             template <enum EPriority P>
-            void buildOptionsImpl(threading::Reaction::Options& options, Priority<P>* /*placeholder*/);
+            void buildOptionsImpl(threading::ReactionOptions& options, Priority<P>* /*placeholder*/);
         
             /**
              * @brief TODO
@@ -300,7 +301,7 @@ namespace NUClear {
              * @returns The wrapped callback
              */
             template <typename TFunc, typename... TTriggersAndWiths>
-            std::unique_ptr<threading::Reaction> buildReaction(TFunc callback, threading::Reaction::Options& options);
+            std::unique_ptr<threading::Reaction> buildReaction(TFunc callback, threading::ReactionOptions& options);
         
             /**
              * @brief Adds a single data -> callback mapping for a single type.
@@ -312,7 +313,7 @@ namespace NUClear {
              * @return A handler which allows us to modify our Reaction at runtime
              */
             template <typename TTrigger, typename... TTriggers>
-            OnHandle bindTriggers(std::unique_ptr<threading::Reaction>&& callback);
+            ReactionHandle bindTriggers(std::unique_ptr<threading::Reaction>&& callback);
         
             /**
              * @brief TODO

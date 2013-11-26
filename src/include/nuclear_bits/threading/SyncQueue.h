@@ -15,12 +15,9 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_THREADING_REACTION_H
-#define NUCLEAR_THREADING_REACTION_H
+#ifndef NUCLEAR_THREADING_SYNCQUEUE_H
+#define NUCLEAR_THREADING_SYNCQUEUE_H
 
-#include <functional>
-#include <chrono>
-#include <atomic>
 #include <typeindex>
 #include <queue>
 #include <vector>
@@ -28,23 +25,19 @@
 #include <memory>
 #include <string>
 
-#include "nuclear_bits/dsl/Sync.h"
+#include "ReactionTask.h"
 
 namespace NUClear {
-namespace threading {
+    namespace threading {
         
-    // TODO document
-    struct SyncQueue {
-        SyncQueue(const std::type_index type, bool active) : type(type), active(active) {}
-        const std::type_index type;
-        volatile bool active;
-        std::mutex mutex;
-        std::priority_queue<std::unique_ptr<Reaction::Task>> queue;
-    };
-    
-    // This is declared here so that by the time we allocate our SyncQueue it is not an incomplete type
-    template <typename TSync>
-    const std::shared_ptr<SyncQueue> dsl::Sync<TSync>::queue = std::make_shared<dsl::SyncQueue>(typeid(TSync), false);
-}
+        // TODO document
+        struct SyncQueue {
+            SyncQueue(const std::type_index type, bool active) : type(type), active(active) {}
+            const std::type_index type;
+            volatile bool active;
+            std::mutex mutex;
+            std::priority_queue<std::unique_ptr<ReactionTask>> queue;
+        };
+    }
 }
 #endif

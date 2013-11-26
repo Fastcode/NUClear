@@ -67,7 +67,7 @@ namespace NUClear {
                 if(reaction->isEnabled()) {
 
                     // Get and execute this reaction right now (don't send it to the thread pool)
-                    std::unique_ptr<threading::Reaction::Task> task = std::move(reaction->getTask(currentTask));
+                    std::unique_ptr<threading::ReactionTask> task = std::move(reaction->getTask(currentTask));
                     (*task)();
                 }
             }

@@ -14,29 +14,10 @@
  * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-
-#ifndef NUCLEAR_DSL_SCOPE_H
-#define NUCLEAR_DSL_SCOPE_H
-
+#ifndef NUCLEAR_CLOCK_H
+#define NUCLEAR_CLOCK_H
 namespace NUClear {
-    namespace dsl {
-        
-        /**
-         * @brief This enum is used to modify in what way a packet is sent, either Local, Network or both
-         *
-         * @details
-         *  When using the emit function, these options can be added in order to specify where the packet is to be
-         *  sent. If nothing or LOCAL is specified, then it will only be send within this powerplant. If NETWORK is
-         *  specified, then the data will be sent to other powerplants but not this one, if both LOCAL and NETWORK
-         *  are chosen, then the event will propagate to both the network and local powerplants.
-         */
-        struct Scope {
-            struct DIRECT;
-            struct LOCAL;
-            struct NETWORK;
-            struct INITIALIZE;
-        };
-    }
+    
+    using clock = std::chrono::high_resolution_clock;
 }
-
 #endif

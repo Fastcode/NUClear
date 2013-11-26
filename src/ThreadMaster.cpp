@@ -25,12 +25,12 @@ namespace NUClear {
     }
 
 
-    void PowerPlant::ThreadMaster::setCurrentTask(std::thread::id threadId, const threading::Reaction::Task* task) {
+    void PowerPlant::ThreadMaster::setCurrentTask(std::thread::id threadId, const threading::ReactionTask* task) {
         // TODO replace this with thread_local if possible (c++11 keyword thread_local)
         currentTask[threadId] = task;
     }
 
-    const threading::Reaction::Task* PowerPlant::ThreadMaster::getCurrentTask(std::thread::id threadId) {
+    const threading::ReactionTask* PowerPlant::ThreadMaster::getCurrentTask(std::thread::id threadId) {
         auto task = currentTask.find(threadId);
 
         if(task != std::end(currentTask)) {
@@ -72,7 +72,7 @@ namespace NUClear {
         serviceTasks.push_back(task);
     }
     
-    void PowerPlant::ThreadMaster::submit(std::unique_ptr<threading::Reaction::Task>&& task) {
-        scheduler.submit(std::forward<std::unique_ptr<threading::Reaction::Task>>(task));
+    void PowerPlant::ThreadMaster::submit(std::unique_ptr<threading::ReactionTask>&& task) {
+        scheduler.submit(std::forward<std::unique_ptr<threading::ReactionTask>>(task));
     }
 }

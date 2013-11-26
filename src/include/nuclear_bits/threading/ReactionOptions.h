@@ -21,6 +21,7 @@
 #include <memory>
 
 #include "nuclear_bits/dsl/Priority.h"
+#include "SyncQueue.h"
 
 namespace NUClear {
     namespace threading {

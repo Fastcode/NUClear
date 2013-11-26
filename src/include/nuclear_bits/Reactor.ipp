@@ -177,7 +177,7 @@ namespace NUClear {
     
     // This is our final On statement
     template <typename TFunc, typename... TTriggers, typename... TWiths, typename... TOptions, typename... TFuncArgs>
-    Reactor::OnHandle Reactor::On<
+    Reactor::ReactionHandle Reactor::On<
         TFunc,
         Reactor::Trigger<TTriggers...>,
         Reactor::With<TWiths...>,
@@ -202,31 +202,31 @@ namespace NUClear {
     }
     
     template <typename... TOption>
-    void Reactor::buildOptions(threading::Reaction::Options& options) {
+    void Reactor::buildOptions(threading::ReactionOptions& options) {
         // See unpack.h for explanation
         metaprogramming::unpack((buildOptionsImpl(options, reinterpret_cast<TOption*>(0)), 0)...);
     }
     
     template <typename TSync>
-    void Reactor::buildOptionsImpl(threading::Reaction::Options& options, Sync<TSync>* /*placeholder*/) {
+    void Reactor::buildOptionsImpl(threading::ReactionOptions& options, Sync<TSync>* /*placeholder*/) {
         options.syncQueue = Sync<TSync>::queue;
     }
     
     template <enum EPriority P>
-    void Reactor::buildOptionsImpl(threading::Reaction::Options& options, Priority<P>* /*placeholder*/) {
+    void Reactor::buildOptionsImpl(threading::ReactionOptions& options, Priority<P>* /*placeholder*/) {
         options.priority = P;
     }
 
     template <typename TFunc, typename... TTriggersAndWiths>
-    std::unique_ptr<threading::Reaction> Reactor::buildReaction(TFunc callback, threading::Reaction::Options& options) {
+    std::unique_ptr<threading::Reaction> Reactor::buildReaction(TFunc callback, threading::ReactionOptions& options) {
         
         // Return a reaction object that gets and runs with the correct paramters
-        return std::make_unique<threading::Reaction>(typeid(TFunc).name(), [this, callback]() -> std::function<void (threading::Reaction::Task&)> {
+        return std::make_unique<threading::Reaction>(typeid(TFunc).name(), [this, callback]() -> std::function<void (threading::ReactionTask&)> {
 
             // TODO consider potential threading implications if two threads emit at once and overwrite (then this will get the same value for both)
             auto&& data = std::make_tuple(powerPlant->cachemaster.get<TTriggersAndWiths>()...);
             
-            return [this, callback, data] (threading::Reaction::Task& task) {
+            return [this, callback, data] (threading::ReactionTask& task) {
                 
                 task.args = metaprogramming::buildVector(data);
                 this->powerPlant->threadmaster.setCurrentTask(std::this_thread::get_id(), &task);
@@ -255,7 +255,7 @@ namespace NUClear {
      * @param callback the callback to bind to these triggers
      */
     template <typename TTrigger, typename... TTriggers>
-    Reactor::OnHandle Reactor::bindTriggers(std::unique_ptr<threading::Reaction>&& callback) {
+    Reactor::ReactionHandle Reactor::bindTriggers(std::unique_ptr<threading::Reaction>&& callback) {
         
         // Single trigger that is not ignored
         if(sizeof...(TTriggers) == 0 && !std::is_same<typename TriggerType<TTrigger>::type, std::nullptr_t>::value) {
@@ -271,6 +271,6 @@ namespace NUClear {
             // TODO when all the booleans are true, run the callback and set all booleans to false
         }
         
-        return OnHandle(callback.get());
+        return ReactionHandle(callback.get());
     }
 }

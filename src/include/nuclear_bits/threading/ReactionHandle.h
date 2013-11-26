@@ -15,28 +15,64 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_DSL_SCOPE_H
-#define NUCLEAR_DSL_SCOPE_H
+#ifndef NUCLEAR_THREADING_REACTIONHANDLE_H
+#define NUCLEAR_THREADING_REACTIONHANDLE_H
+
+#include <typeindex>
+#include <queue>
+#include <vector>
+#include <mutex>
+#include <memory>
+#include <string>
+
+#include "Reaction.h"
 
 namespace NUClear {
-    namespace dsl {
+    namespace threading {
         
         /**
-         * @brief This enum is used to modify in what way a packet is sent, either Local, Network or both
+         * @brief TODO document
          *
          * @details
-         *  When using the emit function, these options can be added in order to specify where the packet is to be
-         *  sent. If nothing or LOCAL is specified, then it will only be send within this powerplant. If NETWORK is
-         *  specified, then the data will be sent to other powerplants but not this one, if both LOCAL and NETWORK
-         *  are chosen, then the event will propagate to both the network and local powerplants.
+         *  TODO document
          */
-        struct Scope {
-            struct DIRECT;
-            struct LOCAL;
-            struct NETWORK;
-            struct INITIALIZE;
+        class ReactionHandle {
+        public:
+            /// @brief the reaction that we are managing
+            Reaction* context;
+            
+            /**
+             * @brief TODO document
+             *
+             * @details
+             *  TODO document
+             */
+            ReactionHandle(Reaction* context);
+            
+            /**
+             * @brief TODO document
+             *
+             * @details
+             *  TODO document
+             */
+            void enable();
+            
+            /**
+             * @brief TODO document
+             *
+             * @details
+             *  TODO document
+             */
+            void disable();
+            
+            /**
+             * @brief TODO document
+             *
+             * @details
+             *  TODO document
+             */
+            bool isEnabled();
         };
     }
 }
-
 #endif
