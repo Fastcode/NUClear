@@ -17,7 +17,7 @@
 #define CATCH_CONFIG_MAIN
 #include <catch.hpp>
 
-#include "NUClear.h"
+#include "nuclear"
 
 // Anonymous namespace to keep everything file local
 namespace {

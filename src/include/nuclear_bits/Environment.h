@@ -14,40 +14,34 @@
  * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-#define CATCH_CONFIG_MAIN
-#include <catch.hpp>
+#ifndef NUCLEAR_ENVIRONMENT_H
+#define NUCLEAR_ENVIRONMENT_H
 
-#include "nuclear"
+#include "nuclear_bits/LogLevel.h"
+#include "nuclear_bits/ForwardDeclarations.h"
 
-// Anonymous namespace to keep everything file local
-namespace {
-    
-    class TestReactor : public NUClear::Reactor {
-    public:
-        
-        TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
-            
+namespace NUClear {
+    /**
+     * @brief 
+     *  Environment defines variables that are passed from the installing PowerPlant context
+     *  into a Reactor.
+     *
+     * @details
+     *  The Environment is used to provide information from the PowerPlant to Reactors.
+     *  Each Reactor owns it's own environment and can use it to access useful information.
+     *
+     * @author Jake Woods
+     */
+    class Environment {
+        public:
+            Environment(PowerPlant* powerPlant, LogLevel logLevel = LogLevel::INFO);
 
-            on<Trigger<NUClear::Messages::LogMessage>>([this](const NUClear::Messages::LogMessage& logMessage) {
-                REQUIRE(logMessage.message == "Got int: 5");
-                powerPlant->shutdown();
-            });
+        private:
+            friend class PowerPlant;
+            friend class Reactor;
 
-            on<Trigger<int>>([this](const int& v) {
-                log<NUClear::DEBUG>("Got int: ", v);
-            });
-        }
+            PowerPlant* powerPlant;
+            LogLevel logLevel;
     };
 }
-
-TEST_CASE("Testing the Log<>() function", "[api][log]") {
-    
-    NUClear::PowerPlant::Configuration config;
-    config.threadCount = 1;
-    NUClear::PowerPlant plant(config);
-    plant.install<TestReactor, NUClear::DEBUG>();
-    
-    plant.emit(std::make_unique<int>(5));
-    
-    plant.start();
-}
+#endif
