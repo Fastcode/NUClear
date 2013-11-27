@@ -36,7 +36,7 @@ namespace NUClear {
             std::cout << "Network bound to address " << address << std::endl;
 
             // Bind our publisher to this address
-            pub.bind(address.c_str());
+            pub.connect(address.c_str());
 
             // Create a secondary inprocess publisher used to terminate the thread
             termPub.bind("inproc://networkmaster-term");
