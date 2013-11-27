@@ -40,8 +40,8 @@ namespace NUClear {
             const int nblocks = len / 16;
             
             // Magic number seeds (NUClear in hex)
-            uint64_t h1 = 0x4e55436c656172;
-            uint64_t h2 = 0x4e55436c656172;
+            uint64_t h1 = 0x4e55436c;
+            uint64_t h2 = 0x4e55436c;
             
             // Murmurhash3 magic numbers
             const uint64_t c1 = 0x87c37b91114253d5;
@@ -52,7 +52,7 @@ namespace NUClear {
             const uint8_t* data = static_cast<const uint8_t*>(key);
             
             // Perform the hashing for each block
-            for(int i = 0; i < nblocks; i++)
+            for(int i = 0; i < nblocks; ++i)
             {
                 uint64_t k1 = blocks[i*2+0];
                 uint64_t k2 = blocks[i*2+1];
@@ -62,22 +62,22 @@ namespace NUClear {
                 k1 *= c2;
                 h1 ^= k1;
                 
-                h1 = rotl64(h1,27);
+                h1  = rotl64(h1,27);
                 h1 += h2;
-                h1 = h1 * 5 + 0x52dce729;
+                h1  = h1 * 5 + 0x52dce729;
                 
                 k2 *= c2;
                 k2  = rotl64(k2,33);
                 k2 *= c1;
                 h2 ^= k2;
                 
-                h2 = rotl64(h2,31);
+                h2  = rotl64(h2,31);
                 h2 += h1;
-                h2 = h2*5+0x38495ab5;
+                h2  = h2 * 5 + 0x38495ab5;
             }
             
             // Hash our tail block
-            const uint8_t * tail = static_cast<const uint8_t*>(data + nblocks*16);
+            const uint8_t * tail = static_cast<const uint8_t*>(data + nblocks * 16);
             
             uint64_t k1 = 0;
             uint64_t k2 = 0;
@@ -91,7 +91,10 @@ namespace NUClear {
                 case 11: k2 ^= ((uint64_t)tail[10]) << 16;
                 case 10: k2 ^= ((uint64_t)tail[ 9]) << 8;
                 case  9: k2 ^= ((uint64_t)tail[ 8]) << 0;
-                    k2 *= c2; k2  = rotl64(k2,33); k2 *= c1; h2 ^= k2;
+                    k2 *= c2;
+                    k2  = rotl64(k2,33);
+                    k2 *= c1;
+                    h2 ^= k2;
                     
                 case  8: k1 ^= ((uint64_t)tail[ 7]) << 56;
                 case  7: k1 ^= ((uint64_t)tail[ 6]) << 48;
@@ -101,11 +104,15 @@ namespace NUClear {
                 case  3: k1 ^= ((uint64_t)tail[ 2]) << 16;
                 case  2: k1 ^= ((uint64_t)tail[ 1]) << 8;
                 case  1: k1 ^= ((uint64_t)tail[ 0]) << 0;
-                    k1 *= c1; k1  = rotl64(k1,31); k1 *= c2; h1 ^= k1;
+                    k1 *= c1;
+                    k1  = rotl64(k1,31);
+                    k1 *= c2;
+                    h1 ^= k1;
             };
             
             // Hash finalization
-            h1 ^= len; h2 ^= len;
+            h1 ^= len;
+            h2 ^= len;
             
             h1 += h2;
             h2 += h1;
