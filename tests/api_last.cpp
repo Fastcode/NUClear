@@ -37,7 +37,7 @@ namespace {
                 // Check that we have the same number of elements as our first data or 5 elements
                 REQUIRE(data.size() == std::min(5, data.back()->data));
                 
-                for (int i = 1; i < data.size(); ++i) {
+                for (unsigned i = 1; i < data.size(); ++i) {
                     // Check that the value is correct
                     REQUIRE(data[i]->data == data[i - 1]->data + 1);
                 }
