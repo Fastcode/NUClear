@@ -19,57 +19,46 @@
 
 #include "nuclear"
 
+
 // Anonymous namespace to keep everything file local
 namespace {
     
+    volatile bool didShutDown = false;
+    
+    struct SimpleMessage {
+        int data;
+    };
+    
     class TestReactor : public NUClear::Reactor {
     public:
-        // Store our times
-        std::vector<NUClear::clock::time_point> times;
-        
         TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
-            // Trigger every 10 milliseconds
-            on<Trigger<Every<10, std::chrono::milliseconds>>>([this](const time_t& message) {
+            
+            on<Trigger<SimpleMessage>>([this](const SimpleMessage& message) {
                 
-                // Store 11 times (10 durations)
-                if(times.size() < 11) {
-                    times.push_back(message);
-                }
+                // The message we recieved should have test == 10
+                REQUIRE(message.data == 10);
                 
-                // Check that the 10 times are about 10ms each (within 1ms)
-                // and that all of them are within 1ms of 100ms
-                else if (times.size() == 11) {
-                    std::chrono::nanoseconds total = std::chrono::nanoseconds(0);
-                    
-                    for(int i = 0; i < abs(times.size() - 1); ++i) {
-                        std::chrono::nanoseconds wait = times[i + 1] - times[i];
-                        total += wait;
-                        
-                        std::chrono::milliseconds test = std::chrono::duration_cast<std::chrono::milliseconds>(wait);
-                        
-                        // Check that our local drift is within 1ms
-                        REQUIRE(abs(10 - test.count()) <= 1);
-                    }
-                    
-                    std::chrono::milliseconds test = std::chrono::duration_cast<std::chrono::milliseconds>(total);
-                    
-                    // Check that our total drift is also within 1ms
-                    REQUIRE(abs(100 - test.count()) <= 1);
-                    
-                    // We are finished the test
-                    this->powerPlant->shutdown();
-                }
+                // We are finished the test
+                this->powerPlant->shutdown();
+            });
+            
+            on<Trigger<Shutdown>>([this](const Shutdown&) {
+                didShutDown = true;
             });
         }
     };
 }
 
-TEST_CASE("Testing the Every<> Smart Type", "[api][every]") {
+TEST_CASE("A test that a shutdown message is emitted when the system shuts down", "[api]") {
     
     NUClear::PowerPlant::Configuration config;
     config.threadCount = 1;
     NUClear::PowerPlant plant(config);
     plant.install<TestReactor>();
     
+    plant.emit(std::unique_ptr<SimpleMessage>(new SimpleMessage{10}));
+    
     plant.start();
+    
+    REQUIRE(didShutDown);
 }

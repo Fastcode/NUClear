@@ -14,40 +14,27 @@
  * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-#define CATCH_CONFIG_MAIN
-#include <catch.hpp>
 
-#include "nuclear"
+#ifndef NUCLEAR_DSL_SINGLE_H
+#define NUCLEAR_DSL_SINGLE_H
 
-// Anonymous namespace to keep everything file local
-namespace {
-    
-    class TestReactor : public NUClear::Reactor {
-    public:
+namespace NUClear {
+    namespace dsl {
         
-        TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
-            
-
-            on<Trigger<NUClear::messages::LogMessage>>([this](const NUClear::messages::LogMessage& logMessage) {
-                REQUIRE(logMessage.message == "Got int: 5");
-                powerPlant->shutdown();
-            });
-
-            on<Trigger<int>>([this](const int& v) {
-                log<NUClear::DEBUG>("Got int: ", v);
-            });
-        }
-    };
+        /**
+         * @ingroup Options
+         * @brief This option sets the Single instance status of the task
+         *
+         * @details
+         *  If a task is declared as being Single, then that means that only a single instance of the task can be
+         *  in the system at any one time. If the task is triggered again while an existing task is either in the
+         *  queue or is still executing, then this new task will be ignored.
+         */
+        struct Single {
+            Single() = delete;
+            ~Single() = delete;
+        };
+    }
 }
 
-TEST_CASE("Testing the Log<>() function", "[api][log]") {
-    
-    NUClear::PowerPlant::Configuration config;
-    config.threadCount = 1;
-    NUClear::PowerPlant plant(config);
-    plant.install<TestReactor, NUClear::DEBUG>();
-    
-    plant.emit(std::make_unique<int>(5));
-    
-    plant.start();
-}
+#endif

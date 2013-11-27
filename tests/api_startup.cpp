@@ -39,6 +39,10 @@ namespace {
                 // We are finished the test
                 this->powerPlant->shutdown();
             });
+            
+            on<Trigger<Initialize>>([this](const Initialize&) {
+                emit(std::unique_ptr<SimpleMessage>(new SimpleMessage{10}));
+            });
         }
     };
 }
@@ -49,8 +53,6 @@ TEST_CASE("A very basic test for Emit and On", "[api]") {
     config.threadCount = 1;
     NUClear::PowerPlant plant(config);
     plant.install<TestReactor>();
-    
-    plant.emit(std::unique_ptr<SimpleMessage>(new SimpleMessage{10}));
     
     plant.start();
 }

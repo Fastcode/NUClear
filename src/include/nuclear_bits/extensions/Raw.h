@@ -14,40 +14,25 @@
  * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-#define CATCH_CONFIG_MAIN
-#include <catch.hpp>
+
+#ifndef NUCLEAR_EXTENSIONS_RAW_H
+#define NUCLEAR_EXTENSIONS_RAW_H
 
 #include "nuclear"
 
-// Anonymous namespace to keep everything file local
-namespace {
-    
-    class TestReactor : public NUClear::Reactor {
-    public:
-        
-        TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
-            
+namespace NUClear {
 
-            on<Trigger<NUClear::messages::LogMessage>>([this](const NUClear::messages::LogMessage& logMessage) {
-                REQUIRE(logMessage.message == "Got int: 5");
-                powerPlant->shutdown();
-            });
+    template <typename TData>
+    struct Reactor::TriggerType<dsl::Raw<TData>> {
+        typedef TData type;
+    };
 
-            on<Trigger<int>>([this](const int& v) {
-                log<NUClear::DEBUG>("Got int: ", v);
-            });
+    template <typename TData>
+    struct PowerPlant::CacheMaster::Get<dsl::Raw<TData>> {
+        static std::shared_ptr<std::shared_ptr<TData>> get(PowerPlant* context) {
+            return std::make_shared<std::shared_ptr<TData>>(ValueCache<TData>::get());
         }
     };
 }
 
-TEST_CASE("Testing the Log<>() function", "[api][log]") {
-    
-    NUClear::PowerPlant::Configuration config;
-    config.threadCount = 1;
-    NUClear::PowerPlant plant(config);
-    plant.install<TestReactor, NUClear::DEBUG>();
-    
-    plant.emit(std::make_unique<int>(5));
-    
-    plant.start();
-}
+#endif

@@ -12,7 +12,7 @@ OPTION(NUCLEAR_BUILD_TESTS "Builds all of the NUClear unit tests." ON)
 SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 
 # This directory contains our header files and ipp files
-INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/include)
+INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/src/include)
 # Our protocol buffers are generated in this folder
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR}/src)
 
@@ -46,7 +46,7 @@ ELSE()
 ENDIF()
 
 # Add the subdirectories
-ADD_SUBDIRECTORY(src/NUClear)
+ADD_SUBDIRECTORY(src)
 
 # Install NUClear.h
 INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/include/NUClear.h DESTINATION include)

@@ -14,40 +14,33 @@
  * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-#define CATCH_CONFIG_MAIN
-#include <catch.hpp>
 
-#include "nuclear"
+#ifndef NUCLEAR_DSL_NETWORK_H
+#define NUCLEAR_DSL_NETWORK_H
 
-// Anonymous namespace to keep everything file local
-namespace {
-    
-    class TestReactor : public NUClear::Reactor {
-    public:
+namespace NUClear {
+    namespace dsl {
         
-        TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
-            
-
-            on<Trigger<NUClear::messages::LogMessage>>([this](const NUClear::messages::LogMessage& logMessage) {
-                REQUIRE(logMessage.message == "Got int: 5");
-                powerPlant->shutdown();
-            });
-
-            on<Trigger<int>>([this](const int& v) {
-                log<NUClear::DEBUG>("Got int: ", v);
-            });
-        }
-    };
+        /**
+         * @ingroup SmartTypes
+         * @brief This is a special type which is used to get data that is sent over the network from other NUClear
+         *  instances
+         *
+         * @details
+         *  This class is used to get a paticular datatype from the network. Once this object is collected the
+         *  original data and the sender can be accessed from this object.
+         *
+         * @tparam TType    The datatype of the networked data to get
+         *
+         * @return Returns an object of type Network<TType> which contains a sender and the data
+         */
+        template <typename TType>
+        struct Network {
+            Network(std::string sender, std::unique_ptr<TType>&& data) : sender(sender), data(std::move(data)) {};
+            const std::string sender;
+            const std::unique_ptr<const TType> data;
+        };
+    }
 }
 
-TEST_CASE("Testing the Log<>() function", "[api][log]") {
-    
-    NUClear::PowerPlant::Configuration config;
-    config.threadCount = 1;
-    NUClear::PowerPlant plant(config);
-    plant.install<TestReactor, NUClear::DEBUG>();
-    
-    plant.emit(std::make_unique<int>(5));
-    
-    plant.start();
-}
+#endif

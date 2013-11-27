@@ -1,6 +1,0 @@
-package NUClear.Serialization;
-message NetworkMessage {
-  required bytes type = 1;
-  required string source = 2;
-  required bytes payload = 3;
-}

@@ -14,40 +14,25 @@
  * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-#define CATCH_CONFIG_MAIN
-#include <catch.hpp>
+
+#ifndef NUCLEAR_EXTENSIONS_COMMANDLINEARGUMENTS_H
+#define NUCLEAR_EXTENSIONS_COMMANDLINEARGUMENTS_H
 
 #include "nuclear"
 
-// Anonymous namespace to keep everything file local
-namespace {
+namespace NUClear {
     
-    class TestReactor : public NUClear::Reactor {
-    public:
-        
-        TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
-            
-
-            on<Trigger<NUClear::messages::LogMessage>>([this](const NUClear::messages::LogMessage& logMessage) {
-                REQUIRE(logMessage.message == "Got int: 5");
-                powerPlant->shutdown();
-            });
-
-            on<Trigger<int>>([this](const int& v) {
-                log<NUClear::DEBUG>("Got int: ", v);
-            });
+    template <>
+    struct Reactor::TriggerType<dsl::CommandLineArguments> {
+        typedef DataFor<dsl::CommandLineArguments, std::vector<std::string>> type;
+    };
+    
+    template <>
+    struct PowerPlant::CacheMaster::Get<dsl::CommandLineArguments> {
+        static std::shared_ptr<std::vector<std::string>> get(PowerPlant* context) {
+            return ValueCache<DataFor<dsl::CommandLineArguments, std::vector<std::string>>>::get()->data;
         }
     };
 }
 
-TEST_CASE("Testing the Log<>() function", "[api][log]") {
-    
-    NUClear::PowerPlant::Configuration config;
-    config.threadCount = 1;
-    NUClear::PowerPlant plant(config);
-    plant.install<TestReactor, NUClear::DEBUG>();
-    
-    plant.emit(std::make_unique<int>(5));
-    
-    plant.start();
-}
+#endif

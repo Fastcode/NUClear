@@ -14,40 +14,33 @@
  * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-#define CATCH_CONFIG_MAIN
-#include <catch.hpp>
 
-#include "nuclear"
+#ifndef NUCLEAR_DSL_LAST_H
+#define NUCLEAR_DSL_LAST_H
 
-// Anonymous namespace to keep everything file local
-namespace {
-    
-    class TestReactor : public NUClear::Reactor {
-    public:
+namespace NUClear {
+    namespace dsl {
         
-        TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
-            
-
-            on<Trigger<NUClear::messages::LogMessage>>([this](const NUClear::messages::LogMessage& logMessage) {
-                REQUIRE(logMessage.message == "Got int: 5");
-                powerPlant->shutdown();
-            });
-
-            on<Trigger<int>>([this](const int& v) {
-                log<NUClear::DEBUG>("Got int: ", v);
-            });
-        }
-    };
+        /**
+         * @ingroup SmartTypes
+         * @brief This is a special type which is used to get a list of the last n emissions of type TData
+         *
+         * @details
+         *  This class is used to get the last n data events of a type which have been emitted. These are returned
+         *  as const shared pointers in a vector, which can then be used to access the data. The data is returned in
+         *  descending order, i.e. the most recent event is first in the result
+         *
+         * @tparam n        The number of events to get
+         * @tparam TData    The datatype of object to get
+         *
+         * @return  Returns a vector of shared_ptr with the signature std::vector<std::shared_ptr<TData>>
+         */
+        template <int n, typename TData>
+        struct Last {
+            Last() = delete;
+            ~Last() = delete;
+        };
+    }
 }
 
-TEST_CASE("Testing the Log<>() function", "[api][log]") {
-    
-    NUClear::PowerPlant::Configuration config;
-    config.threadCount = 1;
-    NUClear::PowerPlant plant(config);
-    plant.install<TestReactor, NUClear::DEBUG>();
-    
-    plant.emit(std::make_unique<int>(5));
-    
-    plant.start();
-}
+#endif

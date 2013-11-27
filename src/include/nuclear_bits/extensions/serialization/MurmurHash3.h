@@ -14,40 +14,41 @@
  * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-#define CATCH_CONFIG_MAIN
-#include <catch.hpp>
 
-#include "nuclear"
+#ifndef NUCLEAR_EXTENSIONS_SERIALIZATION_MURMURHASH3_H
+#define NUCLEAR_EXTENSIONS_SERIALIZATION_MURMURHASH3_H
 
-// Anonymous namespace to keep everything file local
-namespace {
-    
-    class TestReactor : public NUClear::Reactor {
-    public:
-        
-        TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
+#include <cstdint>
+#include <cstring>
+
+#include <functional>
+
+namespace NUClear {
+    namespace extensions {
+        namespace serialization {
             
+            struct Hash {
+                static const size_t SIZE = 16;
+                uint8_t data[SIZE];
+                
+                bool operator==(const Hash& hash) const;
+                size_t hash() const;
+                static size_t hashToStdHash(const uint8_t* data);
+            };
+            
+            Hash murmurHash3(const void* key, const size_t len);
+        }
+    }
+}
 
-            on<Trigger<NUClear::messages::LogMessage>>([this](const NUClear::messages::LogMessage& logMessage) {
-                REQUIRE(logMessage.message == "Got int: 5");
-                powerPlant->shutdown();
-            });
-
-            on<Trigger<int>>([this](const int& v) {
-                log<NUClear::DEBUG>("Got int: ", v);
-            });
+namespace std {
+    template <>
+    struct hash<NUClear::extensions::serialization::Hash> : public unary_function<NUClear::extensions::serialization::Hash, size_t> {
+        
+        size_t operator()(const NUClear::extensions::serialization::Hash& v) const {
+            return v.hash();
         }
     };
 }
 
-TEST_CASE("Testing the Log<>() function", "[api][log]") {
-    
-    NUClear::PowerPlant::Configuration config;
-    config.threadCount = 1;
-    NUClear::PowerPlant plant(config);
-    plant.install<TestReactor, NUClear::DEBUG>();
-    
-    plant.emit(std::make_unique<int>(5));
-    
-    plant.start();
-}
+#endif

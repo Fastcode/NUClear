@@ -14,40 +14,44 @@
  * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-#define CATCH_CONFIG_MAIN
-#include <catch.hpp>
 
-#include "nuclear"
+#ifndef NUCLEAR_METAPROGRAMMING_META_H
+#define NUCLEAR_METAPROGRAMMING_META_H
 
-// Anonymous namespace to keep everything file local
-namespace {
+#include <type_traits>
+
+namespace NUClear {
+namespace metaprogramming {
+namespace Meta {
     
-    class TestReactor : public NUClear::Reactor {
-    public:
-        
-        TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
-            
-
-            on<Trigger<NUClear::messages::LogMessage>>([this](const NUClear::messages::LogMessage& logMessage) {
-                REQUIRE(logMessage.message == "Got int: 5");
-                powerPlant->shutdown();
-            });
-
-            on<Trigger<int>>([this](const int& v) {
-                log<NUClear::DEBUG>("Got int: ", v);
-            });
-        }
-    };
+    template <typename T>
+    using Do = typename T::type;
+    
+    template <typename Predecate, typename Then, typename Else = void>
+    using If = Do<std::conditional<Predecate::value, Then, Else>>;
+    
+    template <typename TType>
+    using AddConst = Do<std::add_const<TType>>;
+    
+    template <typename TType>
+    using AddLRef = Do<std::add_lvalue_reference<TType>>;
+    
+    template <typename TType>
+    using RemoveRef = Do<std::remove_reference<TType>>;
+    
+    template <typename... T>
+    struct All : std::true_type {};
+    template <typename Head, typename... Tail>
+    struct All<Head, Tail...> : If<Head, All<Tail...>, std::false_type> {};
+    
+    template <typename T>
+    struct Not : If<T, std::false_type, std::true_type> {};
+    
+    template <typename... Conditions>
+    struct EnableIf : Do<std::enable_if<All<Conditions...>::value, std::nullptr_t>> {};
+    
+}
+}
 }
 
-TEST_CASE("Testing the Log<>() function", "[api][log]") {
-    
-    NUClear::PowerPlant::Configuration config;
-    config.threadCount = 1;
-    NUClear::PowerPlant plant(config);
-    plant.install<TestReactor, NUClear::DEBUG>();
-    
-    plant.emit(std::make_unique<int>(5));
-    
-    plant.start();
-}
+#endif

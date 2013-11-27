@@ -14,40 +14,40 @@
  * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-#define CATCH_CONFIG_MAIN
-#include <catch.hpp>
 
-#include "nuclear"
+#ifndef NUCLEAR_THREADING_SYNCQUEUE_H
+#define NUCLEAR_THREADING_SYNCQUEUE_H
 
-// Anonymous namespace to keep everything file local
-namespace {
-    
-    class TestReactor : public NUClear::Reactor {
-    public:
+#include <typeindex>
+#include <queue>
+#include <vector>
+#include <mutex>
+#include <memory>
+#include <string>
+
+#include "ReactionTask.h"
+
+namespace NUClear {
+    namespace threading {
         
-        TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
-            
-
-            on<Trigger<NUClear::messages::LogMessage>>([this](const NUClear::messages::LogMessage& logMessage) {
-                REQUIRE(logMessage.message == "Got int: 5");
-                powerPlant->shutdown();
-            });
-
-            on<Trigger<int>>([this](const int& v) {
-                log<NUClear::DEBUG>("Got int: ", v);
-            });
-        }
-    };
+        
+        // TODO document
+        struct SyncQueue {
+            SyncQueue(const std::type_index type) : type(type), active(false) {}
+            const std::type_index type;
+            volatile bool active;
+            std::mutex mutex;
+            std::priority_queue<std::unique_ptr<ReactionTask>> queue;
+        };
+        
+        
+        template <typename QueueFor>
+        struct SyncQueueFor {
+            static std::shared_ptr<SyncQueue> queue;
+        };
+        
+        template <typename QueueFor>
+        std::shared_ptr<SyncQueue> SyncQueueFor<QueueFor>::queue(std::make_shared<SyncQueue>(typeid(QueueFor)));
+    }
 }
-
-TEST_CASE("Testing the Log<>() function", "[api][log]") {
-    
-    NUClear::PowerPlant::Configuration config;
-    config.threadCount = 1;
-    NUClear::PowerPlant plant(config);
-    plant.install<TestReactor, NUClear::DEBUG>();
-    
-    plant.emit(std::make_unique<int>(5));
-    
-    plant.start();
-}
+#endif
