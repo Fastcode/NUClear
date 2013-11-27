@@ -29,10 +29,7 @@ namespace NUClear {
          *  This type is emitted when the system first starts up, after reactors have been installed. This is
          *  used if a reactor needs to use information provided by other reactors constructors.
          */
-        struct Initialize {
-            Initialize() = delete;
-            ~Initialize() = delete;
-        };
+        struct Initialize {};
     }
 }
 

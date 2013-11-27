@@ -30,10 +30,7 @@ namespace NUClear {
          *  tasks, Any new emit events will not be processed and all new tasks will be ignored. Once all tasks are
          *  finish the system will terminate.
          */
-        struct Shutdown {
-            Shutdown() = delete;
-            ~Shutdown() = delete;
-        };
+        struct Shutdown {};
     }
 }
 

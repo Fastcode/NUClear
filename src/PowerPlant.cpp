@@ -51,13 +51,13 @@ namespace NUClear {
         // them on Trigger<Initialize>
         reactormaster.start();
 
-        emit<dsl::Scope::DIRECT>(std::make_unique<DataFor<dsl::Initialize>>());
+        emit<dsl::Scope::DIRECT>(std::make_unique<dsl::Initialize>());
 
         threadmaster.start();
     }
     
     void PowerPlant::shutdown() {
         threadmaster.shutdown();
-        emit<dsl::Scope::DIRECT>(std::make_unique<DataFor<dsl::Shutdown>>());
+        emit<dsl::Scope::DIRECT>(std::make_unique<dsl::Shutdown>());
     }
 }
