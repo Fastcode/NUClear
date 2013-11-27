@@ -30,14 +30,24 @@
 namespace NUClear {
     namespace threading {
         
+        
         // TODO document
         struct SyncQueue {
-            SyncQueue(const std::type_index type, bool active) : type(type), active(active) {}
+            SyncQueue(const std::type_index type) : type(type), active(false) {}
             const std::type_index type;
             volatile bool active;
             std::mutex mutex;
             std::priority_queue<std::unique_ptr<ReactionTask>> queue;
         };
+        
+        
+        template <typename QueueFor>
+        struct SyncQueueFor {
+            static std::shared_ptr<SyncQueue> queue;
+        };
+        
+        template <typename QueueFor>
+        std::shared_ptr<SyncQueue> SyncQueueFor<QueueFor>::queue(std::make_shared<SyncQueue>(typeid(QueueFor)));
     }
 }
 #endif

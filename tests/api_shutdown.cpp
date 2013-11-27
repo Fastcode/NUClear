@@ -19,35 +19,46 @@
 
 #include "nuclear"
 
+
 // Anonymous namespace to keep everything file local
 namespace {
     
+    volatile bool didShutDown = false;
+    
+    struct SimpleMessage {
+        int data;
+    };
+    
     class TestReactor : public NUClear::Reactor {
     public:
-        
         TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
             
-
-            on<Trigger<NUClear::messages::LogMessage>>([this](const NUClear::messages::LogMessage& logMessage) {
-                REQUIRE(logMessage.message == "Got int: 5");
-                powerPlant->shutdown();
+            on<Trigger<SimpleMessage>>([this](const SimpleMessage& message) {
+                
+                // The message we recieved should have test == 10
+                REQUIRE(message.data == 10);
+                
+                // We are finished the test
+                this->powerPlant->shutdown();
             });
-
-            on<Trigger<int>>([this](const int& v) {
-                log<NUClear::DEBUG>("Got int: ", v);
+            
+            on<Trigger<Shutdown>>([this](const Shutdown&) {
+                didShutDown = true;
             });
         }
     };
 }
 
-TEST_CASE("Testing the Log<>() function", "[api][log]") {
+TEST_CASE("A test that a shutdown message is emitted when the system shuts down", "[api]") {
     
     NUClear::PowerPlant::Configuration config;
     config.threadCount = 1;
     NUClear::PowerPlant plant(config);
-    plant.install<TestReactor, NUClear::DEBUG>();
+    plant.install<TestReactor>();
     
-    plant.emit(std::make_unique<int>(5));
+    plant.emit(std::unique_ptr<SimpleMessage>(new SimpleMessage{10}));
     
     plant.start();
+    
+    REQUIRE(didShutDown);
 }

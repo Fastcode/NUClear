@@ -15,7 +15,7 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include "nuclear_bits/Extensions/Chrono.h"
+#include "nuclear_bits/extensions/Chrono.h"
 
 namespace NUClear {
     namespace extensions {

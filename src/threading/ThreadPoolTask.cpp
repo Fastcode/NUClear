@@ -34,8 +34,8 @@ namespace threading {
             while(true) {
                 
                 // Get a task
-                std::unique_ptr<Reaction::Task> task(scheduler.getTask());
-                std::shared_ptr<NUClearTaskEvent> stats = task->stats;
+                std::unique_ptr<ReactionTask> task(scheduler.getTask());
+                std::shared_ptr<messages::ReactionStatistics> stats = task->stats;
                 
                 // Try to execute the task (catching any exceptions so it doesn't kill the pool thread)
                 try {
@@ -64,7 +64,7 @@ namespace threading {
                     
                     // If there is something in our sync queue move it to the main queue
                     if (!queue.empty()) {
-                        std::unique_ptr<Reaction::Task> syncTask(std::move(const_cast<std::unique_ptr<Reaction::Task>&>(queue.top())));
+                        std::unique_ptr<ReactionTask> syncTask(std::move(const_cast<std::unique_ptr<ReactionTask>&>(queue.top())));
                         queue.pop();
                         
                         scheduler.submit(std::move(syncTask));

@@ -15,28 +15,26 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_MESSAGES_REACTIONSTATISTICS_H
-#define NUCLEAR_MESSAGES_REACTIONSTATISTICS_H
-
-#include <string>
-
-#include "nuclear_bits/clock.h"
+#include "nuclear_bits/threading/ReactionHandle.h"
 
 namespace NUClear {
-    namespace messages {
-        struct ReactionStatistics {
-            std::string name;
-            std::uint64_t reactionId;
-            std::uint64_t taskId;
-            std::uint64_t causeReactionId;
-            std::uint64_t causeTaskId;
-            clock::time_point emitted;
-            clock::time_point started;
-            clock::time_point finished;
-            std::vector<std::pair<std::type_index, std::shared_ptr<void>>> args;
-            std::vector<std::string> log;
-            std::exception_ptr exception;
+    namespace threading {
+        
+        
+        ReactionHandle::ReactionHandle(Reaction* context) : context(context) {
         };
+        
+        bool ReactionHandle::isEnabled() {
+            return context->enabled;
+        }
+        
+        void ReactionHandle::enable() {
+            context->enabled = true;
+        }
+        
+        void ReactionHandle::disable() {
+            context->enabled = false;
+        }
+        
     }
 }
-#endif

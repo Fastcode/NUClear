@@ -24,12 +24,17 @@
 #include "nuclear"
 
 namespace NUClear {
+    
+    template <int num, typename TData>
+    struct Reactor::TriggerType<dsl::Last<num, TData>> {
+        typedef DataFor<dsl::Last<num, TData>, std::vector<std::shared_ptr<const TData>>> type;
+    };
 
     template <int num, typename TData>
     struct PowerPlant::CacheMaster::Get<dsl::Last<num, TData>> {
         static std::shared_ptr<std::vector<std::shared_ptr<const TData>>> get(PowerPlant* context) {
 
-            return ValueCache<dsl::Last<num, TData>>::get()->data;
+            return ValueCache<DataFor<dsl::Last<num, TData>, std::vector<std::shared_ptr<const TData>>>>::get()->data;
         }
     };
     
@@ -58,7 +63,7 @@ namespace NUClear {
                     }
                     
                     // Copy the data into a vector on a last
-                    auto data = std::make_unique<dsl::Last<num, TData>>();
+                    auto data = std::make_unique<DataFor<dsl::Last<num, TData>, std::vector<std::shared_ptr<const TData>>>>();
                     data->data->insert(data->data->begin(), elements.begin(), elements.end());
 
                     // Emit the object for use

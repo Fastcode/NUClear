@@ -40,6 +40,7 @@ namespace NUClear {
          * @author Trent Houliston
          */
         class Reaction {
+            friend class ReactionHandle;
         public:
             /**
              * @brief Constructs a new Reaction with the passed callback generator and options

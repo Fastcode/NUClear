@@ -209,7 +209,7 @@ namespace NUClear {
     
     template <typename TSync>
     void Reactor::buildOptionsImpl(threading::ReactionOptions& options, Sync<TSync>* /*placeholder*/) {
-        options.syncQueue = Sync<TSync>::queue;
+        options.syncQueue = threading::SyncQueueFor<TSync>::queue;
     }
     
     template <enum EPriority P>

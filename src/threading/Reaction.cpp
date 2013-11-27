@@ -21,10 +21,8 @@ namespace NUClear {
 namespace threading {
     
     std::atomic<uint64_t> Reaction::reactionIdSource(0);
-    std::atomic<uint64_t> Reaction::Task::taskIdSource(0);
     
-    
-    Reaction::Reaction(std::string name, std::function<std::function<void (Reaction::Task&)> ()> callback, Reaction::Options options) :
+    Reaction::Reaction(std::string name, std::function<std::function<void (ReactionTask&)> ()> callback, ReactionOptions options) :
     name(name),
     options(options),
     reactionId(++reactionIdSource),
@@ -33,40 +31,13 @@ namespace threading {
     callback(callback) {
     }
     
-    std::unique_ptr<Reaction::Task> Reaction::getTask(const Task* cause) {
+    std::unique_ptr<ReactionTask> Reaction::getTask(const ReactionTask* cause) {
         // Build a new data bound task using our callback generator
-        return std::unique_ptr<Reaction::Task>(new Reaction::Task(this, cause, callback()));
+        return std::unique_ptr<ReactionTask>(new ReactionTask(this, cause, callback()));
     }
     
     bool Reaction::isEnabled() {
         return enabled;
-    }
-    
-    Reaction::OnHandle::OnHandle(Reaction* context) : context(context) {
-    };
-    
-    bool Reaction::OnHandle::isEnabled() {
-        return context->enabled;
-    }
-    
-    void Reaction::OnHandle::enable() {
-        context->enabled = true;
-    }
-    
-    void Reaction::OnHandle::disable() {
-        context->enabled = false;
-    }
-    
-    Reaction::Task::Task(Reaction* parent, const Task* cause, std::function<void (Task&)> callback) :
-    callback(callback),
-    parent(parent),
-    taskId(++taskIdSource),
-    stats(new NUClearTaskEvent{parent->name, parent->reactionId, taskId, cause ? cause->parent->reactionId : -1, cause ? cause->taskId : -1, clock::now()}) {
-    }
-    
-    void Reaction::Task::operator()() {
-        // Call our callback
-        callback(*this);
     }
 }
 }

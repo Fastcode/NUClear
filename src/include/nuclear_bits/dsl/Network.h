@@ -36,8 +36,9 @@ namespace NUClear {
          */
         template <typename TType>
         struct Network {
-            Network() = delete;
-            ~Network() = delete;
+            Network(std::string sender, std::unique_ptr<TType>&& data) : sender(sender), data(std::move(data)) {};
+            const std::string sender;
+            const std::unique_ptr<const TType> data;
         };
     }
 }

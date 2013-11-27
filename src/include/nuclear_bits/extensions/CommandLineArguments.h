@@ -21,10 +21,16 @@
 #include "nuclear"
 
 namespace NUClear {
+    
+    template <>
+    struct Reactor::TriggerType<dsl::CommandLineArguments> {
+        typedef DataFor<dsl::CommandLineArguments, std::vector<std::string>> type;
+    };
+    
     template <>
     struct PowerPlant::CacheMaster::Get<dsl::CommandLineArguments> {
         static std::shared_ptr<std::vector<std::string>> get(PowerPlant* context) {
-            return std::make_shared<std::vector<std::string>>(ValueCache<dsl::CommandLineArguments>::get()->args);
+            return ValueCache<DataFor<dsl::CommandLineArguments, std::vector<std::string>>>::get()->data;
         }
     };
 }

@@ -34,7 +34,7 @@ namespace threading {
         condition.notify_all();
     }
     
-    void TaskScheduler::submit(std::unique_ptr<Reaction::Task>&& task) {
+    void TaskScheduler::submit(std::unique_ptr<ReactionTask>&& task) {
         {
             // Obtain the lock
             std::lock_guard<std::mutex> lock(mutex);
@@ -57,17 +57,17 @@ namespace threading {
                     
                     // If a sync type is already executing then push it onto the sync queue
                     if (active) {
-                        syncqueue.push(std::forward<std::unique_ptr<Reaction::Task>>(task));
+                        syncqueue.push(std::forward<std::unique_ptr<ReactionTask>>(task));
                     }
                     // Otherwise push it onto the main queue and set us to active
                     else {
                         active = true;
-                        queue.push(std::forward<std::unique_ptr<Reaction::Task>>(task));
+                        queue.push(std::forward<std::unique_ptr<ReactionTask>>(task));
                     }
                 }
                 // Otherwise move it onto the main queue
                 else {
-                    queue.push(std::forward<std::unique_ptr<Reaction::Task>>(task));
+                    queue.push(std::forward<std::unique_ptr<ReactionTask>>(task));
                 }
             }
         }
@@ -76,7 +76,7 @@ namespace threading {
         condition.notify_one();
     }
     
-    std::unique_ptr<Reaction::Task> TaskScheduler::getTask() {
+    std::unique_ptr<ReactionTask> TaskScheduler::getTask() {
         
         //Obtain the lock
         std::unique_lock<std::mutex> lock(mutex);
@@ -99,7 +99,7 @@ namespace threading {
             else {
                 // Return the type
                 // If you're wondering why all the rediculiousness, it's because priority queue is not as feature complete as it should be
-                std::unique_ptr<Reaction::Task> task(std::move(const_cast<std::unique_ptr<Reaction::Task>&>(queue.top())));
+                std::unique_ptr<ReactionTask> task(std::move(const_cast<std::unique_ptr<ReactionTask>&>(queue.top())));
                 queue.pop();
                 
                 return std::move(task);

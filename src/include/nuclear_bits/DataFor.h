@@ -14,29 +14,16 @@
  * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-
-#ifndef NUCLEAR_MESSAGES_REACTIONSTATISTICS_H
-#define NUCLEAR_MESSAGES_REACTIONSTATISTICS_H
-
-#include <string>
-
-#include "nuclear_bits/clock.h"
+#ifndef NUCLEAR_DATAFOR_H
+#define NUCLEAR_DATAFOR_H
 
 namespace NUClear {
-    namespace messages {
-        struct ReactionStatistics {
-            std::string name;
-            std::uint64_t reactionId;
-            std::uint64_t taskId;
-            std::uint64_t causeReactionId;
-            std::uint64_t causeTaskId;
-            clock::time_point emitted;
-            clock::time_point started;
-            clock::time_point finished;
-            std::vector<std::pair<std::type_index, std::shared_ptr<void>>> args;
-            std::vector<std::string> log;
-            std::exception_ptr exception;
-        };
-    }
+    
+    template <typename TFor, typename TData = void>
+    struct DataFor {
+        DataFor() {};
+        DataFor(std::shared_ptr<TData> data) : data(data) {}
+        std::shared_ptr<TData> data;
+    };
 }
 #endif

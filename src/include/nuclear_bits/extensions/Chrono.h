@@ -42,16 +42,23 @@ namespace NUClear {
             
             context->emit<Scope::DIRECT>(std::unique_ptr<ChronoConfig>(new ChronoConfig {
                 typeid(dsl::Every<ticks, period>),
-                [context] { context->emit(std::make_unique<dsl::Every<ticks, period>>(clock::now())); },
+                [context] { // Function that emits our timepoint when needed
+                    context->emit(std::make_unique<DataFor<dsl::Every<ticks, period>, Reactor::time_t>>(std::make_shared<Reactor::time_t>(clock::now())));
+                },
                 clock::duration(period(ticks))
             }));
         }
+    };
+    
+    template <int ticks, class period>
+    struct Reactor::TriggerType<dsl::Every<ticks, period>> {
+        typedef DataFor<dsl::Every<ticks, period>, Reactor::time_t> type;
     };
 
     template <int ticks, class period>
     struct PowerPlant::CacheMaster::Get<dsl::Every<ticks, period>> {
         static std::shared_ptr<clock::time_point> get(PowerPlant* context) {
-            return std::shared_ptr<clock::time_point>(new clock::time_point(ValueCache<dsl::Every<ticks, period>>::get()->time));
+            return ValueCache<DataFor<dsl::Every<ticks, period>, Reactor::time_t>>::get()->data;
         }
     };
 

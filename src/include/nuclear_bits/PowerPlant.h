@@ -30,6 +30,7 @@
 #include <iostream>
 #include <string>
 
+#include "nuclear_bits/DataFor.h"
 #include "nuclear_bits/extensions/serialization/Serialization.h"
 #include "nuclear_bits/threading/ThreadWorker.h"
 #include "nuclear_bits/threading/TaskScheduler.h"

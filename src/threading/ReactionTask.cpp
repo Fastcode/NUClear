@@ -16,23 +16,29 @@
  */
 
 #include "nuclear_bits/threading/ReactionTask.h"
+#include "nuclear_bits/threading/Reaction.h"
 
 namespace NUClear {
-namespace threading {
-    
-    std::atomic<uint64_t> ReactionTask::taskIdSource(0);
-    
-    
-    ReactionTask::ReactionTask(Reaction* parent, const Task* cause, std::function<void (ReactionTask&)> callback) :
-    callback(callback),
-    parent(parent),
-    taskId(++taskIdSource),
-    stats(new NUClearTaskEvent{parent->name, parent->reactionId, taskId, cause ? cause->parent->reactionId : -1, cause ? cause->taskId : -1, clock::now()}) {
+    namespace threading {
+        
+        std::atomic<uint64_t> ReactionTask::taskIdSource(0);
+        
+        ReactionTask::ReactionTask(Reaction* parent, const ReactionTask* cause, std::function<void (ReactionTask&)> callback) :
+        callback(callback),
+        parent(parent),
+        taskId(++taskIdSource),
+        stats(new messages::ReactionStatistics {
+            parent->name,
+            parent->reactionId,
+            taskId,
+            cause ? cause->parent->reactionId : -1,
+            cause ? cause->taskId : -1,
+            clock::now()
+        }) {}
+        
+        void ReactionTask::operator()() {
+            // Call our callback
+            callback(*this);
+        }
     }
-    
-    void ReactionTask::operator()() {
-        // Call our callback
-        callback(*this);
-    }
-}
 }

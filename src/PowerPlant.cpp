@@ -36,7 +36,8 @@ namespace NUClear {
 
         // Emit our arguments if any.
         if(argc > 0) {
-            emit<dsl::Scope::INITIALIZE>(std::make_unique<dsl::CommandLineArguments>(std::vector<std::string>(argv, argv + argc)));
+            emit<dsl::Scope::INITIALIZE>(std::make_unique<DataFor<dsl::CommandLineArguments, std::vector<std::string>>>
+                                         (std::make_shared<std::vector<std::string>>(argv, argv + argc)));
         }
     }
     
@@ -50,13 +51,13 @@ namespace NUClear {
         // them on Trigger<Initialize>
         reactormaster.start();
 
-        emit<dsl::Scope::DIRECT>(std::make_unique<dsl::Initialize>());
+        emit<dsl::Scope::DIRECT>(std::make_unique<DataFor<dsl::Initialize>>());
 
         threadmaster.start();
     }
     
     void PowerPlant::shutdown() {
         threadmaster.shutdown();
-        emit<dsl::Scope::DIRECT>(std::make_unique<dsl::Shutdown>());
+        emit<dsl::Scope::DIRECT>(std::make_unique<DataFor<dsl::Shutdown>>());
     }
 }

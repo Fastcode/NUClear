@@ -16,6 +16,9 @@
  */
 #ifndef NUCLEAR_CLOCK_H
 #define NUCLEAR_CLOCK_H
+
+#include <chrono>
+
 namespace NUClear {
     
     using clock = std::chrono::high_resolution_clock;
