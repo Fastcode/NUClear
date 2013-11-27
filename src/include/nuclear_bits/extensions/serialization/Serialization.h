@@ -73,7 +73,7 @@ namespace NUClear {
                     }
                     
                     static std::string serialize(const TType& data) {
-                        return data->SerializeAsString();
+                        return data.SerializeAsString();
                     }
                 };
                 
