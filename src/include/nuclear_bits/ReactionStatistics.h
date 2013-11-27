@@ -23,20 +23,18 @@
 #include "nuclear_bits/clock.h"
 
 namespace NUClear {
-    namespace messages {
-        struct ReactionStatistics {
-            std::string name;
-            std::uint64_t reactionId;
-            std::uint64_t taskId;
-            std::uint64_t causeReactionId;
-            std::uint64_t causeTaskId;
-            clock::time_point emitted;
-            clock::time_point started;
-            clock::time_point finished;
-            std::vector<std::pair<std::type_index, std::shared_ptr<void>>> args;
-            std::vector<std::string> log;
-            std::exception_ptr exception;
-        };
-    }
+    struct ReactionStatistics {
+        std::string name;
+        std::uint64_t reactionId;
+        std::uint64_t taskId;
+        std::uint64_t causeReactionId;
+        std::uint64_t causeTaskId;
+        clock::time_point emitted;
+        clock::time_point started;
+        clock::time_point finished;
+        std::vector<std::pair<std::type_index, std::shared_ptr<void>>> args;
+        std::vector<std::string> log;
+        std::exception_ptr exception;
+    };
 }
 #endif

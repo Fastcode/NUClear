@@ -28,7 +28,7 @@ namespace {
         TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
             
 
-            on<Trigger<NUClear::messages::LogMessage>>([this](const NUClear::messages::LogMessage& logMessage) {
+            on<Trigger<NUClear::LogMessage>>([this](const NUClear::LogMessage& logMessage) {
                 REQUIRE(logMessage.message == "Got int: 5");
                 powerPlant->shutdown();
             });

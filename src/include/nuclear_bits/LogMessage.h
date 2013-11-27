@@ -19,13 +19,11 @@
 #define NUCLEAR_MESSAGES_LOGMESSAGE_H
 
 namespace NUClear {
-    namespace messages {
-        struct LogMessage {
-            
-            std::string message;
-            
-            LogMessage(const std::string& message) : message(message) {}
-        };
-    }
+    struct LogMessage {
+        
+        std::string message;
+        
+        LogMessage(const std::string& message) : message(message) {}
+    };
 }
 #endif

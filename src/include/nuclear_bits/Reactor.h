@@ -33,7 +33,7 @@
 #include "nuclear_bits/metaprogramming/TypeMap.h"
 #include "nuclear_bits/metaprogramming/MetaProgramming.h"
 #include "nuclear_bits/metaprogramming/buildVector.h"
-#include "nuclear_bits/messages/LogMessage.h"
+#include "nuclear_bits/LogMessage.h"
 #include "nuclear_bits/LogLevel.h"
 #include "nuclear_bits/ForwardDeclarations.h"
 

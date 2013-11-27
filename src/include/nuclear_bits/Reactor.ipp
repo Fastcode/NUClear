@@ -146,7 +146,7 @@ namespace NUClear {
                 task->stats->log.push_back(output);
             }
 
-            emit<Scope::DIRECT>(std::make_unique<messages::LogMessage>(output));
+            emit<Scope::DIRECT>(std::make_unique<LogMessage>(output));
         }
     }
 

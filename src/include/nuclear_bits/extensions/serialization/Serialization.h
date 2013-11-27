@@ -66,9 +66,9 @@ namespace NUClear {
                         return murmurHash3(type.GetTypeName().c_str(), type.GetTypeName().size());
                     }
                     
-                    static TType* deserialize(const std::string data) {
-                        TType* buff = new TType();
-                        buff->ParseFromString(data);
+                    static TType deserialize(const std::string& data) {
+                        TType buff;
+                        buff.ParseFromString(data);
                         return buff;
                     }
                     

@@ -35,7 +35,7 @@ namespace threading {
                 
                 // Get a task
                 std::unique_ptr<ReactionTask> task(scheduler.getTask());
-                std::shared_ptr<messages::ReactionStatistics> stats = task->stats;
+                std::shared_ptr<ReactionStatistics> stats = task->stats;
                 
                 // Try to execute the task (catching any exceptions so it doesn't kill the pool thread)
                 try {
