@@ -20,8 +20,9 @@
 namespace NUClear {
 namespace threading {
     
-    ThreadPoolTask::ThreadPoolTask(TaskScheduler& scheduler) :
+    ThreadPoolTask::ThreadPoolTask(PowerPlant* powerPlant, TaskScheduler& scheduler) :
     ThreadWorker::ServiceTask(std::bind(&ThreadPoolTask::run, this), std::bind(&ThreadPoolTask::kill, this)),
+    powerPlant(powerPlant),
     scheduler(scheduler) {
     }
     
@@ -35,18 +36,17 @@ namespace threading {
                 
                 // Get a task
                 std::unique_ptr<ReactionTask> task(scheduler.getTask());
-                std::shared_ptr<ReactionStatistics> stats = task->stats;
                 
                 // Try to execute the task (catching any exceptions so it doesn't kill the pool thread)
                 try {
-                    stats->started = clock::now();
+                    task->stats->started = clock::now();
                     (*task)();
-                    stats->finished = clock::now();
+                    task->stats->finished = clock::now();
                 }
                 // Catch everything
                 catch(...) {
-                    stats->finished = clock::now();
-                    stats->exception = std::current_exception();
+                    task->stats->finished = clock::now();
+                    task->stats->exception = std::current_exception();
                 }
                 
                 // We have stopped running
@@ -76,9 +76,10 @@ namespace threading {
                 }
                 
                 // Copy our thread args into the stats
-                stats->args = task->args;
+                task->stats->args = task->args;
                 
-                //TODO pass off the completed task to another class for processing of details using direct emit
+                // Emit our ReactionStats
+                powerPlant->emit<dsl::Scope::DIRECT>(std::move(task->stats));
             }
         }
         // If this is thrown, it means that we should finish execution

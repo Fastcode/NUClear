@@ -18,6 +18,7 @@
 #ifndef NUCLEAR_THREADING_THREADPOOLTASK_H
 #define NUCLEAR_THREADING_THREADPOOLTASK_H
 
+#include "nuclear_bits/PowerPlant.h"
 #include "nuclear_bits/threading/ThreadWorker.h"
 #include "nuclear_bits/threading/TaskScheduler.h"
 
@@ -25,11 +26,12 @@ namespace NUClear {
 namespace threading {
     class ThreadPoolTask : public ThreadWorker::ServiceTask {
         public:
-            ThreadPoolTask(TaskScheduler& scheduler);
+            ThreadPoolTask(PowerPlant* powerplant, TaskScheduler& scheduler);
             ~ThreadPoolTask();
             void run();
             void kill();
         private:
+            PowerPlant* powerPlant;
             TaskScheduler& scheduler;
     };
 }

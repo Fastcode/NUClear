@@ -50,7 +50,7 @@ namespace NUClear {
         
         // Start our pool threads
         for(unsigned i = 0; i < parent->configuration.threadCount; ++i) {
-            threads.push_back(std::make_unique<threading::ThreadWorker>(threading::ThreadPoolTask(scheduler)));
+            threads.push_back(std::make_unique<threading::ThreadWorker>(threading::ThreadPoolTask(parent, scheduler)));
         }
         
         // Now wait for all the threads to finish executing

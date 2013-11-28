@@ -72,7 +72,7 @@ namespace NUClear {
             /// @brief the taskId of this task (the sequence number of this paticular task)
             uint64_t taskId;
             /// @brief the statistics object that persists after this for information and debugging
-            std::shared_ptr<ReactionStatistics> stats;
+            std::unique_ptr<ReactionStatistics> stats;
         };
     }
 }
