@@ -26,6 +26,11 @@
 #include "nuclear_bits/extensions/serialization/MurmurHash3.h"
 
 namespace NUClear {
+    
+    struct NetworkingConfiguration {
+        std::string deviceName;
+        std::string networkAddress;
+    };
 
     struct NetworkTypeConfig {
         extensions::serialization::Hash hash;
@@ -47,7 +52,6 @@ namespace NUClear {
 
             // Fill our protocol buffer
             message->set_type(std::string(reinterpret_cast<char*>(hash.data), extensions::serialization::Hash::SIZE));
-            message->set_source(context->configuration.networkName);
             message->set_payload(payload);
 
             // Send our data to be emitted
@@ -101,21 +105,14 @@ namespace NUClear {
              */
             void kill();
 
-            /**
-             * @brief TODO
-             *
-             * @details
-             *  TODO
-             *
-             * @param name
-             * @param port
-             */
-            static std::string addressForName(const std::string name, const unsigned port);
-
             /// @brief TODO
             std::unordered_map<serialization::Hash, std::function<void(Reactor*, const std::string, std::string)>> deserialize;
             /// @brief TODO
             volatile bool running;
+            /// @brief TODO
+            std::string device;
+            /// @brief TODO
+            std::string address;
             /// @brief TODO
             std::mutex sendMutex;
             /// @brief TODO

@@ -25,25 +25,18 @@ namespace NUClear {
 
         Networking::Networking(std::unique_ptr<Environment> environment) : Reactor(std::move(environment)),
         running(true),
+        device("default"),
+        address(""),
         pub(ZMQ_CONTEXT, ZMQ_PUB),
         termPub(ZMQ_CONTEXT, ZMQ_PUB),
         sub(ZMQ_CONTEXT, ZMQ_SUB) {
-
-            // Get our PGM address
-            std::string address = addressForName(powerPlant->configuration.networkGroup,
-                                                 powerPlant->configuration.networkPort);
-
-            std::cout << "Network bound to address " << address << std::endl;
-
-            // Bind our publisher to this address
-            pub.connect(address.c_str());
 
             // Create a secondary inprocess publisher used to terminate the thread
             termPub.bind("inproc://networkmaster-term");
 
             // Connect our subscriber to this address and subscribe to all messages
-            sub.connect(address.c_str());
             sub.connect("inproc://networkmaster-term");
+            // This is a ZMQ subscruber, and it does not filter
             sub.setsockopt(ZMQ_SUBSCRIBE, 0, 0);
 
             // Build a task
@@ -60,9 +53,38 @@ namespace NUClear {
                     deserialize.insert(std::make_pair(config.hash, config.deserializer));
                 }
             });
+            
+            on<Trigger<NetworkingConfiguration>>([this] (const NetworkingConfiguration& config) {
+                
+                // Disconnect from our old address if it was connected
+                if(address != config.networkAddress && !address.empty()) {
+                    
+                    log<DEBUG>("Network disconnecting from ", address);
+                    
+                    pub.disconnect(address.c_str());
+                    sub.disconnect(address.c_str());
+                }
+                
+                // Change our device name
+                device = config.deviceName;
+                
+                if(address != config.networkAddress && !config.networkAddress.empty()) {
+                    
+                    // Change our network address
+                    address = config.networkAddress;
+                    
+                    log<DEBUG>("Network connecting to ", address, " as ", device);
+                    
+                    // Connect to the new address
+                    pub.connect(address.c_str());
+                    sub.connect(address.c_str());
+                }
+            });
 
-            on<Trigger<serialization::NetworkMessage>>([this] (const serialization::NetworkMessage& message) {
+            on<Trigger<serialization::NetworkMessage>>([this] (serialization::NetworkMessage message) {
 
+                message.set_source(device);
+                
                 // Serialize our protocol buffer
                 std::string serialized = message.SerializeAsString();
 
@@ -117,28 +139,6 @@ namespace NUClear {
             // Send a message to ensure that our block is released
             zmq::message_t message(0);
             termPub.send(message);
-        }
-
-        std::string Networking::addressForName(std::string name, unsigned port) {
-
-            // Hash our string
-            serialization::Hash hash = serialization::murmurHash3(name.c_str(), name.size());
-
-            // Convert our hash into a multicast address
-            uint32_t addr = 0xE0000200 + (hash.hash() % (0xEFFFFFFF - 0xE0000200));
-            
-            // Split our mulitcast address into a epgm address
-            std::stringstream out;
-            
-            // Build our string
-            out << "epgm://"
-            << ((addr >> 24) & 0xFF) << "."
-            << ((addr >> 16) & 0xFF) << "."
-            << ((addr >>  8) & 0xFF) << "."
-            << (addr & 0xFF) << ":"
-            << port;
-            
-            return out.str();
         }
     }
 }

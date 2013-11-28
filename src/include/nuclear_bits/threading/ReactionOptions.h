@@ -40,7 +40,7 @@ namespace NUClear {
              * @brief Creates a new ReactionOptions with the default options.
              *
              * @details
-             *  This creates a new ReactionOptions with the default optoins. These default options are a Sync type of
+             *  This creates a new ReactionOptions with the default options. These default options are a Sync type of
              *  nullptr, a non single case, and DEFAULT priority.
              */
             ReactionOptions() : syncQueue(nullptr), single(false), priority(DEFAULT) {}

@@ -78,21 +78,10 @@ namespace NUClear {
              *  TODO
              */
             struct Configuration {
-                Configuration() :
-                    threadCount(4)
-                    , networkName("default")
-                    , networkGroup("NUClear")
-                    , networkPort(7447) {}
+                Configuration() : threadCount(4) {}
 
                 /// @brief The number of threads the system will use
                 unsigned threadCount;
-                
-                /// @brief The name of the network we are connecting to
-                std::string networkName;
-                /// @brief The name of this PowerPlant within the networked PowerPlants
-                std::string networkGroup;
-                /// @brief The port to use when connecting to the network
-                unsigned networkPort;
             };
         
         private:
