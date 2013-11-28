@@ -26,11 +26,6 @@
 #include "nuclear_bits/extensions/serialization/MurmurHash3.h"
 
 namespace NUClear {
-    
-    struct NetworkingConfiguration {
-        std::string deviceName;
-        std::string networkAddress;
-    };
 
     struct NetworkTypeConfig {
         extensions::serialization::Hash hash;
@@ -81,6 +76,11 @@ namespace NUClear {
     };
 
     namespace extensions {
+        struct NetworkingConfiguration {
+            std::string deviceName;
+            std::string networkAddress;
+        };
+        
         class Networking : public Reactor {
         public:
             static zmq::context_t ZMQ_CONTEXT;

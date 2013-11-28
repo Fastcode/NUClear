@@ -58,5 +58,11 @@ TEST_CASE("Testing the Networking system", "[api][network][hidden]") {
     plant.install<NetworkEmitter>();
     plant.install<TestReactor>();
     
+    auto c = std::make_unique<NUClear::extensions::NetworkingConfiguration>();
+    c->deviceName = "default";
+    c->networkAddress = "epgm://238.158.129.230:7447";
+    
+    plant.emit<NUClear::dsl::Scope::INITIALIZE>(std::move(c));
+    
     plant.start();
 }
