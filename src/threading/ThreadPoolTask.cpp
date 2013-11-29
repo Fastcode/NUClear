@@ -59,19 +59,20 @@ namespace threading {
                     auto& active = task->parent->options.syncQueue->active;
                     auto& syncMutex = task->parent->options.syncQueue->mutex;
                     
-                    // Lock our sync types mutex
-                    std::lock_guard<std::mutex> lock(syncMutex);
+                    active = false;
                     
                     // If there is something in our sync queue move it to the main queue
                     if (!queue.empty()) {
-                        std::unique_ptr<ReactionTask> syncTask(std::move(const_cast<std::unique_ptr<ReactionTask>&>(queue.top())));
-                        queue.pop();
+                        
+                        std::unique_ptr<ReactionTask> syncTask;
+                        {
+                            // Lock our sync types mutex
+                            std::lock_guard<std::mutex> lock(syncMutex);
+                            syncTask = std::move(const_cast<std::unique_ptr<ReactionTask>&>(queue.top()));
+                            queue.pop();
+                        }
                         
                         scheduler.submit(std::move(syncTask));
-                    }
-                    // Otherwise set active to false
-                    else {
-                        active = false;
                     }
                 }
                 
