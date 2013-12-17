@@ -20,7 +20,7 @@
 namespace NUClear {
 namespace threading {
     
-    std::atomic<uint64_t> Reaction::reactionIdSource(0);
+    std::atomic<uint64_t> Reaction::reactionIdSource(1);
     
     Reaction::Reaction(std::string name, std::function<std::function<void (ReactionTask&)> ()> callback, ReactionOptions options) :
     name(name),
