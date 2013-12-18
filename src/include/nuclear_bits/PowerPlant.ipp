@@ -82,4 +82,45 @@ namespace NUClear {
             metaprogramming::unpack((PowerPlant::Emit<THandlers, TData>::emit(this, ptr), 0)...);
         }
     }
+    
+    // Anonymous metafunction that concatenates everything into a single string
+    namespace {
+        template <typename TFirst>
+        inline void logImpl(std::stringstream& output, TFirst first) {
+            output << first;
+        }
+        
+        template <typename TFirst, typename... TArgs>
+        inline void logImpl(std::stringstream& output, TFirst first, TArgs... args) {
+            output << first;
+            logImpl(output, std::forward<TArgs>(args)...);
+        }
+    }
+    
+    template <enum LogLevel level, typename... TArgs>
+    void PowerPlant::log(TArgs... args) {
+        
+        // Get our current task
+        auto* task = powerplant->threadmaster.getCurrentTask(std::this_thread::get_id());
+        
+        // If our reaction is logging at this level (TODO this needs to respect some level)
+        if(level >= DEBUG) {
+            
+            // Build our log message by concatenating everything to a stream
+            std::stringstream outputStream;
+            logImpl(outputStream, std::forward<TArgs>(args)...);
+            std::string output = outputStream.str();
+            
+            // Task could be null if log is called from a non-reaction context.
+            // If so we just don't link it to the current reaction.
+            if(task) {
+                task->stats->log.push_back(output);
+            }
+            
+            // Direct emit the log message so that any direct loggers can use it
+            powerplant->emit<dsl::Scope::DIRECT>(std::make_unique<LogMessage>(output));
+        }
+    }
+    
+    
 }

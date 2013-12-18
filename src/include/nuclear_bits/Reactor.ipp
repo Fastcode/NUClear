@@ -129,37 +129,6 @@ namespace NUClear {
     
     
     /* End Meta functions */
-    template <enum LogLevel level, typename... TArgs>
-    void Reactor::log(TArgs... args) {
-        if(level >= this->environment->logLevel) {
-            // Build our log
-            std::stringstream outputStream;
-            logImpl(outputStream, std::forward<TArgs>(args)...);
-            std::string output = outputStream.str();
-
-            // Attach our log to the current reaction.
-            auto task = powerPlant->threadmaster.getCurrentTask(std::this_thread::get_id());
-
-            // Task could be null if log is called from a non-reaction context.
-            // If so we just don't link it to the current reaction.
-            if(task != nullptr) {
-                task->stats->log.push_back(output);
-            }
-
-            emit<Scope::DIRECT>(std::make_unique<LogMessage>(output));
-        }
-    }
-
-    template <typename TFirst, typename... TArgs>
-    void Reactor::logImpl(std::stringstream& output, TFirst first, TArgs... args) {
-        output << first;
-        logImpl(output, std::forward<TArgs>(args)...);
-    }
-
-    template <typename TFirst>
-    void Reactor::logImpl(std::stringstream& output, TFirst first) {
-        output << first;
-    }
 
     template <typename... TParams, typename TFunc>
     void Reactor::on(TFunc callback) {

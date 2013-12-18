@@ -18,12 +18,22 @@
 #include "nuclear_bits/PowerPlant.h"
 
 namespace NUClear {
+    
+    PowerPlant* PowerPlant::powerplant = nullptr;
 
     PowerPlant::PowerPlant(Configuration config, int argc, const char *argv[]) :
     configuration(config)
     , threadmaster(this)
     , cachemaster(this)
     , reactormaster(this) {
+        
+        if(powerplant) {
+            throw std::runtime_error("There is already a powerplant in existance (There should be a single stack allocated PowerPlant");
+        }
+        
+        // Store our static variable
+        powerplant = this;
+        
         // State that we are setting up
         std::cout << "Building the PowerPlant with " << configuration.threadCount << " threads" << std::endl;
         
@@ -59,5 +69,8 @@ namespace NUClear {
     void PowerPlant::shutdown() {
         threadmaster.shutdown();
         emit<dsl::Scope::DIRECT>(std::make_unique<dsl::Shutdown>());
+        
+        // Bye bye powerplant
+        powerplant = nullptr;
     }
 }

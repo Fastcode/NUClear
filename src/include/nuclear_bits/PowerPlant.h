@@ -29,6 +29,7 @@
 #include <unordered_map>
 #include <iostream>
 #include <string>
+#include <sstream>
 
 #include "nuclear_bits/DataFor.h"
 #include "nuclear_bits/extensions/serialization/Serialization.h"
@@ -39,6 +40,7 @@
 #include "nuclear_bits/metaprogramming/Sequence.h"
 #include "nuclear_bits/ForwardDeclarations.h"
 #include "nuclear_bits/LogLevel.h"
+#include "nuclear_bits/LogMessage.h"
 
 // Patch for std::make_unique in c++11 (should be fixed in c++14)
 #if __cplusplus == 201103L
@@ -85,6 +87,9 @@ namespace NUClear {
             };
         
         private:
+            // There can only be one powerplant, so this is it
+            static PowerPlant* powerplant;
+        
             /**
              * @brief The base master class is used as a base for all of the other masters.
              *
@@ -395,6 +400,15 @@ namespace NUClear {
              */
             template <typename TReactor, enum LogLevel level = DEBUG>
             void install();
+            
+            /**
+             * @brief TODO
+             *
+             * @details
+             *  TODO
+             */
+            template <enum LogLevel level, typename... TArgs>
+            static void log(TArgs... args);
         
             /**
              * @brief TODO
@@ -410,6 +424,13 @@ namespace NUClear {
             template <typename... THandlers, typename TData>
             void emit(std::unique_ptr<TData>&& data);
     };
+    
+    // This free floating log function can be called from anywhere and will use the singleton PowerPlant
+    template <enum LogLevel level, typename... TArgs>
+    void log(TArgs... args) {
+        PowerPlant::log<level>(std::forward<TArgs>(args)...);
+    }
+    
 }
 
 // Include our Reactor.h first as the tight coupling between powerplant and reactor requires a specific include order

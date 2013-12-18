@@ -33,8 +33,6 @@
 #include "nuclear_bits/metaprogramming/TypeMap.h"
 #include "nuclear_bits/metaprogramming/MetaProgramming.h"
 #include "nuclear_bits/metaprogramming/buildVector.h"
-#include "nuclear_bits/LogMessage.h"
-#include "nuclear_bits/LogLevel.h"
 #include "nuclear_bits/ForwardDeclarations.h"
 
 namespace NUClear {
@@ -164,15 +162,7 @@ namespace NUClear {
             template <typename... THandlers, typename TData>
             void emit(std::unique_ptr<TData>&& data);
 
-            template <enum LogLevel level, typename... TArgs>
-            void log(TArgs... args);
         private:
-            template <typename TFirst, typename... TArgs>
-            void logImpl(std::stringstream& output, TFirst first, TArgs... args);
-
-            template <typename TFirst>
-            void logImpl(std::stringstream& output, TFirst first);
-        
             /// @brief TODO
             template <typename TKey>
             using CallbackCache = metaprogramming::TypeList<Reactor, TKey, std::unique_ptr<threading::Reaction>>;

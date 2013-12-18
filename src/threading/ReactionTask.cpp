@@ -21,7 +21,7 @@
 namespace NUClear {
     namespace threading {
         
-        std::atomic<uint64_t> ReactionTask::taskIdSource(1);
+        std::atomic<uint64_t> ReactionTask::taskIdSource(0);
         
         ReactionTask::ReactionTask(Reaction* parent, const ReactionTask* cause, std::function<void (ReactionTask&)> callback) :
         callback(callback),
