@@ -131,12 +131,12 @@ namespace NUClear {
     /* End Meta functions */
 
     template <typename... TParams, typename TFunc>
-    void Reactor::on(TFunc callback) {
+    Reactor::ReactionHandle Reactor::on(TFunc callback) {
         
         // There must be some parameters
         static_assert(sizeof...(TParams) > 0, "TODO not enough parameters message");
         
-        On<TFunc, TParams...>::on(this, callback);
+        return On<TFunc, TParams...>::on(this, callback);
     }
     
     template <typename... THandlers, typename TData>

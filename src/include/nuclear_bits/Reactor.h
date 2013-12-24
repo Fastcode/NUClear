@@ -146,7 +146,7 @@ namespace NUClear {
              * @param callback TODO
              */
             template <typename... TParams, typename TFunc>
-            void on(TFunc callback); 
+            Reactor::ReactionHandleReactionHandle on(TFunc callback); 
         
             /**
              * @brief TODO
