@@ -42,12 +42,13 @@ namespace NUClear {
             template <typename TType>
             const std::string demangled() {
                 
-                int status = -4;
-                char* res = abi::__cxa_demangle(typeid(TType).name(), NULL, NULL, &status);
-                const char* const demangled_name = (status == 0) ? res : typeid(TType).name();
-                std::string ret_val(demangled_name);
-                free(res);
-                return ret_val;
+                int status = -4; // some arbitrary value to eliminate the compiler warning
+				std::unique_ptr<char, void(*)(void*)> res {
+					abi::__cxa_demangle(typeid(TType).name(), nullptr, nullptr, &status),
+					std::free
+				};
+                
+                return std::string(status == 0 ? res.get() : typeid(TType).name());
             }
             
             
