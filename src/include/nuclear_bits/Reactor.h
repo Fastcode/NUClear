@@ -32,7 +32,6 @@
 #include "nuclear_bits/metaprogramming/apply.h"
 #include "nuclear_bits/metaprogramming/TypeMap.h"
 #include "nuclear_bits/metaprogramming/MetaProgramming.h"
-#include "nuclear_bits/metaprogramming/buildVector.h"
 #include "nuclear_bits/ForwardDeclarations.h"
 
 namespace NUClear {
