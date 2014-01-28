@@ -19,10 +19,11 @@ namespace NUClear {
     
     // This metafunction builds a proper On given a series of function arguments
     template <typename TFunc, typename... TParams>
-    struct Reactor::On : public OnBuilder<TFunc, Reactor::Trigger<>, Reactor::With<>, Reactor::Options<>, std::tuple<>, TParams...> {};
+    struct Reactor::On : public OnBuilder<TFunc, std::tuple<TParams...>, Reactor::Trigger<>, Reactor::With<>, Reactor::Options<>, std::tuple<>, TParams...> {};
     
     template <
         typename TFunc,
+        typename... TOriginal,
         typename... TTriggers,
         typename... TWiths,
         typename... TOptions,
@@ -30,7 +31,9 @@ namespace NUClear {
         typename... TNewTriggers,
         typename... TParams>
     struct Reactor::OnBuilder<
-        TFunc, Reactor::Trigger<TTriggers...>,
+        TFunc,
+        std::tuple<TOriginal...>,
+        Reactor::Trigger<TTriggers...>,
         Reactor::With<TWiths...>,
         Reactor::Options<TOptions...>,
         std::tuple<TFuncArgs...>,
@@ -38,6 +41,7 @@ namespace NUClear {
         TParams...> :
     public Reactor::OnBuilder<
         TFunc,
+        std::tuple<TOriginal...>,
         Reactor::Trigger<TTriggers..., TNewTriggers...>,
         Reactor::With<TWiths...>,
         Reactor::Options<TOptions...>,
@@ -46,6 +50,7 @@ namespace NUClear {
     
     template <
         typename TFunc,
+        typename... TOriginal,
         typename... TTriggers,
         typename... TWiths,
         typename... TOptions,
@@ -54,6 +59,7 @@ namespace NUClear {
         typename... TParams>
     struct Reactor::OnBuilder<
         TFunc,
+        std::tuple<TOriginal...>,
         Reactor::Trigger<TTriggers...>,
         Reactor::With<TWiths...>,
         Reactor::Options<TOptions...>,
@@ -62,6 +68,7 @@ namespace NUClear {
         TParams...> :
     public Reactor::OnBuilder<
         TFunc,
+        std::tuple<TOriginal...>,
         Reactor::Trigger<TTriggers...>,
         Reactor::With<TWiths..., TNewWiths...>,
         Reactor::Options<TOptions...>,
@@ -70,6 +77,7 @@ namespace NUClear {
     
     template <
         typename TFunc,
+        typename... TOriginal,
         typename... TTriggers,
         typename... TWiths,
         typename... TOptions,
@@ -78,6 +86,7 @@ namespace NUClear {
         typename... TParams>
     struct Reactor::OnBuilder<
         TFunc,
+        std::tuple<TOriginal...>,
         Reactor::Trigger<TTriggers...>,
         Reactor::With<TWiths...>,
         Reactor::Options<TOptions...>,
@@ -86,6 +95,7 @@ namespace NUClear {
         TParams...> :
     public Reactor::OnBuilder<
         TFunc,
+        std::tuple<TOriginal...>,
         Reactor::Trigger<TTriggers...>,
         Reactor::With<TWiths...>,
         Reactor::Options<TOptions..., TNewOptions...>,
@@ -94,18 +104,21 @@ namespace NUClear {
     
     template <
         typename TFunc,
+        typename... TOriginal,
         typename... TTriggers,
         typename... TWiths,
         typename... TOptions,
         typename... TFuncArgs>
     struct Reactor::OnBuilder<
         TFunc,
+        std::tuple<TOriginal...>,
         Reactor::Trigger<TTriggers...>,
         Reactor::With<TWiths...>,
         Reactor::Options<TOptions...>,
         std::tuple<TFuncArgs...>> :
     public Reactor::On<
         TFunc,
+        std::tuple<TOriginal...>,
         Reactor::Trigger<TTriggers...>,
         Reactor::With<TWiths...>,
         Reactor::Options<TOptions...>,
@@ -145,9 +158,10 @@ namespace NUClear {
     }
     
     // This is our final On statement
-    template <typename TFunc, typename... TTriggers, typename... TWiths, typename... TOptions, typename... TFuncArgs>
+    template <typename TFunc, typename... TOriginal, typename... TTriggers, typename... TWiths, typename... TOptions, typename... TFuncArgs>
     Reactor::ReactionHandle Reactor::On<
         TFunc,
+        std::tuple<TOriginal...>,
         Reactor::Trigger<TTriggers...>,
         Reactor::With<TWiths...>,
         Reactor::Options<TOptions...>,
@@ -160,9 +174,9 @@ namespace NUClear {
             threading::ReactionOptions options;
             context->buildOptions<TOptions...>(options);
             
-            
             // Bind all of our trigger events to a reaction
-            auto onHandler = context->bindTriggers<TTriggers...>(context->buildReaction<TFunc, TFuncArgs...>(callback, options));
+            auto onHandler = context->bindTriggers<TTriggers...>(context->buildReaction<TFunc, TFuncArgs...>(typeid(std::tuple<TOriginal...>).name(),
+                                                                                                             callback, options));
 
             // Run any existence commands needed (running because a type exists)
             metaprogramming::unpack((Exists<TFuncArgs>::exists(context), 0)...);
@@ -187,10 +201,10 @@ namespace NUClear {
     }
 
     template <typename TFunc, typename... TTriggersAndWiths>
-    std::unique_ptr<threading::Reaction> Reactor::buildReaction(TFunc callback, threading::ReactionOptions& options) {
+    std::unique_ptr<threading::Reaction> Reactor::buildReaction(const char* name, TFunc callback, threading::ReactionOptions& options) {
         
         // Return a reaction object that gets and runs with the correct paramters
-        return std::make_unique<threading::Reaction>(typeid(TFunc).name(), [this, callback]() -> std::function<void (threading::ReactionTask&)> {
+        return std::make_unique<threading::Reaction>(name, [this, callback]() -> std::function<void (threading::ReactionTask&)> {
 
             // TODO consider potential threading implications if two threads emit at once and overwrite (then this will get the same value for both)
             auto&& data = std::make_tuple(powerPlant->cachemaster.get<TTriggersAndWiths>()...);

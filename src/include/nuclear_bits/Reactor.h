@@ -210,8 +210,8 @@ namespace NUClear {
              * @tparam TOptions     the options that the callback is executed with
              * @tparam TFunc        the callback type, should be automatically deduced
              */
-            template <typename TFunc, typename... TTriggers, typename... TWiths, typename... TOptions, typename... TFuncArgs>
-            struct On<TFunc, Trigger<TTriggers...>, With<TWiths...>, Options<TOptions...>, std::tuple<TFuncArgs...>> {
+            template <typename TFunc, typename... TOriginal, typename... TTriggers, typename... TWiths, typename... TOptions, typename... TFuncArgs>
+            struct On<TFunc, std::tuple<TOriginal...>, Trigger<TTriggers...>, With<TWiths...>, Options<TOptions...>, std::tuple<TFuncArgs...>> {
                 static ReactionHandle on(Reactor* context, TFunc callback);
             };
         
@@ -295,7 +295,7 @@ namespace NUClear {
              * @returns The wrapped callback
              */
             template <typename TFunc, typename... TTriggersAndWiths>
-            std::unique_ptr<threading::Reaction> buildReaction(TFunc callback, threading::ReactionOptions& options);
+            std::unique_ptr<threading::Reaction> buildReaction(const char* name, TFunc callback, threading::ReactionOptions& options);
         
             /**
              * @brief Adds a single data -> callback mapping for a single type.
