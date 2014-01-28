@@ -76,9 +76,6 @@ namespace threading {
                     }
                 }
                 
-                // Copy our thread args into the stats
-                task->stats->args = task->args;
-                
                 // Emit our ReactionStats
                 powerPlant->emit<dsl::Scope::DIRECT>(std::move(task->stats));
             }

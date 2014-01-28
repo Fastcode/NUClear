@@ -197,7 +197,6 @@ namespace NUClear {
             
             return [this, callback, data] (threading::ReactionTask& task) {
                 
-                task.args = metaprogramming::buildVector(data);
                 this->powerPlant->threadmaster.setCurrentTask(std::this_thread::get_id(), &task);
                 
                 metaprogramming::apply(callback, data);
