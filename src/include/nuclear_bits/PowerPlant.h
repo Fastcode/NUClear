@@ -426,7 +426,7 @@ namespace NUClear {
     };
     
     // This free floating log function can be called from anywhere and will use the singleton PowerPlant
-    template <enum LogLevel level, typename... TArgs>
+    template <enum LogLevel level = NUClear::DEBUG, typename... TArgs>
     void log(TArgs... args) {
         PowerPlant::log<level>(std::forward<TArgs>(args)...);
     }

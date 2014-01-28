@@ -63,8 +63,6 @@ namespace NUClear {
              */
             void operator()();
             
-            /// @brief the arguments that are used to call this task
-            std::vector<std::pair<std::type_index, std::shared_ptr<void>>> args;
             /// @brief the data bound callback to be executed
             std::function<void (ReactionTask&)> callback;
             /// @brief the parent Reaction object which spawned this
