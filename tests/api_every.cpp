@@ -62,6 +62,48 @@ namespace {
             });
         }
     };
+
+    class TestReactorPer : public NUClear::Reactor {
+    public:
+        // Store our times
+        std::vector<NUClear::clock::time_point> times;
+        
+        TestReactorPer(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
+            // Trigger every 10 milliseconds
+            on<Trigger<Every<10, Per<std::chrono::seconds>>>>([this](const time_t& message) {
+                
+                // Store 11 times (10 durations)
+                if(times.size() < 11) {
+                    times.push_back(message);
+                }
+                
+                // Check that the 10 times are about 10ms each (within 1ms)
+                // and that all of them are within 1ms of 100ms
+                else if (times.size() == 11) {
+                    std::chrono::nanoseconds total = std::chrono::nanoseconds(0);
+                    
+                    for(int i = 0; i < abs(times.size() - 1); ++i) {
+                        std::chrono::nanoseconds wait = times[i + 1] - times[i];
+                        total += wait;
+                        
+                        std::chrono::milliseconds test = std::chrono::duration_cast<std::chrono::milliseconds>(wait);
+                        
+                        // Check that our local drift is within 1ms
+                        REQUIRE(abs(10 - test.count()) <= 1);
+                    }
+                    
+                    std::chrono::milliseconds test = std::chrono::duration_cast<std::chrono::milliseconds>(total);
+                    
+                    // Check that our total drift is also within 1ms
+                    REQUIRE(abs(100 - test.count()) <= 1);
+                    
+                    // We are finished the test
+                    this->powerPlant->shutdown();
+                }
+            });
+        }
+    };
+
 }
 
 TEST_CASE("Testing the Every<> Smart Type", "[api][every]") {
@@ -70,6 +112,16 @@ TEST_CASE("Testing the Every<> Smart Type", "[api][every]") {
     config.threadCount = 1;
     NUClear::PowerPlant plant(config);
     plant.install<TestReactor>();
+    
+    plant.start();
+}
+
+TEST_CASE("Testing the Every<> Smart Type using Per", "[api][every]") {
+    
+    NUClear::PowerPlant::Configuration config;
+    config.threadCount = 1;
+    NUClear::PowerPlant plant(config);
+    plant.install<TestReactorPer>();
     
     plant.start();
 }

@@ -21,6 +21,12 @@
 namespace NUClear {
     namespace dsl {
         
+        template <typename period>
+        struct Per {
+            Per() = delete;
+            ~Per() = delete;
+        };
+        
         /**
          * @ingroup SmartTypes
          * @brief A special flag type which specifies that this reaction should trigger at the given rate
@@ -40,7 +46,7 @@ namespace NUClear {
          *
          * @return Returns the time the every was emitted as an clock::time_point
          */
-        template <int ticks, class period = std::chrono::milliseconds>
+        template <int ticks, class period = NUClear::clock::duration>
         struct Every {
             Every() = delete;
             ~Every() = delete;

@@ -100,6 +100,10 @@ namespace NUClear {
             using Every = dsl::Every<ticks, period>;
         
             /// @brief TODO inherit from commandtype
+            template <class period>
+            using Per = dsl::Per<period>;
+        
+            /// @brief TODO inherit from commandtype
             template <typename TData>
             using Raw = dsl::Raw<TData>;
         

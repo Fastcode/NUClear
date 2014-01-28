@@ -51,6 +51,22 @@ namespace NUClear {
     };
     
     template <int ticks, class period>
+    struct Reactor::Exists<dsl::Every<ticks, dsl::Per<period>>> {
+        static void exists(Reactor* context) {
+            
+            // Direct emit our type to the ChronoConfiguration
+            
+            context->emit<Scope::DIRECT>(std::unique_ptr<ChronoConfig>(new ChronoConfig {
+                typeid(dsl::Every<ticks, dsl::Per<period>>),
+                [context] { // Function that emits our timepoint when needed
+                    context->emit(std::make_unique<DataFor<dsl::Every<ticks, dsl::Per<period>>, Reactor::time_t>>(std::make_shared<Reactor::time_t>(clock::now())));
+                },
+                clock::duration(long((double(period::period::num) / (double(ticks) * double(period::period::den))) * (double(clock::period::num) / double(clock::period::den))))
+            }));
+        }
+    };
+    
+    template <int ticks, class period>
     struct Reactor::TriggerType<dsl::Every<ticks, period>> {
         typedef DataFor<dsl::Every<ticks, period>, Reactor::time_t> type;
     };
