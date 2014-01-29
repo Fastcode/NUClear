@@ -21,7 +21,7 @@ namespace NUClear {
     
     template <typename TFor, typename TData = void>
     struct DataFor {
-        DataFor() {};
+        DataFor() : data(std::make_shared<TData>()) {};
         DataFor(std::shared_ptr<TData> data) : data(data) {}
         std::shared_ptr<TData> data;
     };
