@@ -61,7 +61,7 @@ namespace NUClear {
                 [context] { // Function that emits our timepoint when needed
                     context->emit(std::make_unique<DataFor<dsl::Every<ticks, dsl::Per<period>>, Reactor::time_t>>(std::make_shared<Reactor::time_t>(clock::now())));
                 },
-                clock::duration(long((double(period::period::num) / (double(ticks) * double(period::period::den))) * (double(clock::period::num) / double(clock::period::den))))
+                clock::duration(long((double(period::period::den) / (double(ticks) * double(period::period::num))) * (double(clock::period::den) / clock::period::num)))
             }));
         }
     };

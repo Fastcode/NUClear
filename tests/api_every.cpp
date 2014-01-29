@@ -70,7 +70,7 @@ namespace {
         
         TestReactorPer(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
             // Trigger every 10 milliseconds
-            on<Trigger<Every<10, Per<std::chrono::seconds>>>>([this](const time_t& message) {
+            on<Trigger<Every<100, Per<std::chrono::seconds>>>>([this](const time_t& message) {
                 
                 // Store 11 times (10 durations)
                 if(times.size() < 11) {
