@@ -1,5 +1,5 @@
-/**
- * Copyright (C) 2013 Jake Woods <jake.f.woods@gmail.com>, Trent Houliston <trent@houliston.me>
+/*
+ * Copyright (C) 2013 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -23,18 +23,36 @@
 #include "nuclear_bits/threading/TaskScheduler.h"
 
 namespace NUClear {
-namespace threading {
-    class ThreadPoolTask : public ThreadWorker::ServiceTask {
+    namespace threading {
+        
+        /**
+         * @brief A task that executes thread pool reactions, they should make up most of the tasks in a system
+         *
+         * @author Trent Houliston
+         */
+        class ThreadPoolTask : public ThreadWorker::ServiceTask {
         public:
+            
+            /**
+             * @brief Constructs a new ThreadPoolTask using a scheduler and powerplant
+             *
+             * @param powerplant the powerplant that this task is running under
+             * @param scheduler the scheduler instance shared between the ThreadPool
+             */
             ThreadPoolTask(PowerPlant* powerplant, TaskScheduler& scheduler);
             ~ThreadPoolTask();
+            
+            /// @brief runs the task, collecting and executing tasks from the scheduler
             void run();
+            /// @breif kills the thread pool task, preventing future tasks from executing
             void kill();
         private:
+            /// @brief the powerplant instance that this task is executing for
             PowerPlant* powerPlant;
+            /// @breif the scheduler that is used to obtain tasks to execute
             TaskScheduler& scheduler;
-    };
-}
+        };
+    }
 }
 
 #endif

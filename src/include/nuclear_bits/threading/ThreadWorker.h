@@ -1,5 +1,5 @@
-/**
- * Copyright (C) 2013 Jake Woods <jake.f.woods@gmail.com>, Trent Houliston <trent@houliston.me>
+/*
+ * Copyright (C) 2013 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -23,19 +23,19 @@
 #include "TaskScheduler.h"
 
 namespace NUClear {
-namespace threading {
-    
-    /**
-     * @brief This class implements a wrapper around an std::thread to act as a member of a thread pool.
-     * 
-     * @details
-     *  The thread worker class is responsible for executing Reactions which come in to be executed. It gets these
-     *  tasks from the TaskSchedulers TaskScheduler, and then executes these tasks.
-     *
-     * @author Trent Houliston
-     */
-    class ThreadWorker {
+    namespace threading {
         
+        /**
+         * @brief This class implements a wrapper around an std::thread to act as a member of the threads managed by NUClear.
+         *
+         * @details
+         *  This class holds a task, either a user provided service task, or a thread pool task.
+         *  These classes are then used by the overall threading system to start and stop the execution of tasks.
+         *
+         * @author Trent Houliston
+         */
+        class ThreadWorker {
+            
         public:
             /**
              * @brief This struct defines an internal task to be managed by a ThreadWorker.
@@ -51,27 +51,27 @@ namespace threading {
                 /// @brief the function that is executed in order to kill the system
                 std::function<void ()> kill;
             };
-        
+            
             /**
              * @brief Constructs a new ThreadWorker using the passed ServiceTask to execute
              *
              * @param task the task that the ThreadWorker will work on
              */
             ThreadWorker(ServiceTask task);
-        
+            
             /**
              * @brief destructs this ThreadWorker instance, it will kill the thread if it is not already dead (should
              *  always be already dead)
              */
             ~ThreadWorker();
-        
+            
             /**
              * @brief Gets the thread id of the thread that this object holds.
              *
              * @return the thread id of the thread this object contains
              */
             std::thread::id getThreadId();
-        
+            
             /**
              * @brief Tells this thread to stop executing as soon as it has finished executing it's current task.
              *
@@ -79,7 +79,7 @@ namespace threading {
              *  This method will tell the internal task that it should immediantly finish executing and end the thread.
              */
             void kill();
-        
+            
             /**
              * @brief Waits until this thread has finished executing and then returns.
              *
@@ -93,23 +93,23 @@ namespace threading {
              *  the main thread.
              */
             void join();
-        
+            
         private:
             /**
              * @brief Method which is executed by the thread when it starts up, executes run.
-             * 
+             *
              * @details
              *  This method is the method that the thread will execute when it starts up. It will simply hand off control
              *  to the Run function provided in the task
              */
             void core();
-        
+            
             /// @brief the internal task that will be executed without a scheduler
             ServiceTask task;
             /// @brief our internal thread object
             std::thread thread;
-    };
-}
+        };
+    }
 }
 
 #endif

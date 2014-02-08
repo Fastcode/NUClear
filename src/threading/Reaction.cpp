@@ -1,5 +1,5 @@
-/**
- * Copyright (C) 2013 Jake Woods <jake.f.woods@gmail.com>, Trent Houliston <trent@houliston.me>
+/*
+ * Copyright (C) 2013 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -18,26 +18,28 @@
 #include "nuclear_bits/threading/Reaction.h"
 
 namespace NUClear {
-namespace threading {
-    
-    std::atomic<uint64_t> Reaction::reactionIdSource(0);
-    
-    Reaction::Reaction(std::string name, std::function<std::function<void (ReactionTask&)> ()> callback, ReactionOptions options) :
-    name(name),
-    options(options),
-    reactionId(++reactionIdSource),
-    running(false),
-    enabled(true),
-    callback(callback) {
+    namespace threading {
+        
+        // Initialize our reaction source
+        std::atomic<uint64_t> Reaction::reactionIdSource(0);
+        
+        Reaction::Reaction(std::string name, std::function<std::function<void (ReactionTask&)> ()> callback, ReactionOptions options) :
+        name(name),
+        options(options),
+        reactionId(++reactionIdSource),
+        running(false),
+        enabled(true),
+        callback(callback) {
+        }
+        
+        std::unique_ptr<ReactionTask> Reaction::getTask(const ReactionTask* cause) {
+            // Build a new data bound task using our callback generator
+            // TODO this should be a make_unique call
+            return std::unique_ptr<ReactionTask>(new ReactionTask(this, cause, callback()));
+        }
+        
+        bool Reaction::isEnabled() {
+            return enabled;
+        }
     }
-    
-    std::unique_ptr<ReactionTask> Reaction::getTask(const ReactionTask* cause) {
-        // Build a new data bound task using our callback generator
-        return std::unique_ptr<ReactionTask>(new ReactionTask(this, cause, callback()));
-    }
-    
-    bool Reaction::isEnabled() {
-        return enabled;
-    }
-}
 }

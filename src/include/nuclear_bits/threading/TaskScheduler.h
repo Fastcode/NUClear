@@ -1,5 +1,5 @@
-/**
- * Copyright (C) 2013 Jake Woods <jake.f.woods@gmail.com>, Trent Houliston <trent@houliston.me>
+/*
+ * Copyright (C) 2013 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -30,61 +30,61 @@
 #include "Reaction.h"
 
 namespace NUClear {
-namespace threading {
-
-    /**
-     * @brief This class is responsible for scheduling and handling multiple threads at once.
-     * 
-     * @details
-     *  This task scheduler uses the options from each of the tasks to decide when to execute them in a thread. The rules
-     *  are applied to the tasks in the following order.
-     *
-     *  @em Priority
-     *  @code Priority<P> @endcode
-     *  When a priority is encountered, the task will be scheduled to execute based on this. If one of the three normal
-     *  options are specified (HIGH, DEFAULT and LOW), then within the specified Sync group, it will run before, normally
-     *  or after other reactions.
-     *  @attention Note that if Priority<REALTIME> is specified, the Sync type is ignored (Single is not).
-     *
-     *  @em Sync
-     *  @code Sync<TSync> @endcode
-     *  When a Sync type is encounterd, the system uses this as a compile time mutex flag. It will not allow two callbacks
-     *  with the same Sync type to execute at the same time. It will effectivly ensure that all of the callbacks with
-     *  this type run in sequence with eachother, rather then in parallell. It is also important to note again, that if
-     *  the priority of a task is realtime, it will ignore Sync groups.
-     *
-     *  @em Single
-     *  @code Single @endcode
-     *  If single is encountered while processing the function, and a Task object for this Reaction is already running
-     *  in a thread, or waiting in the Queue, then this task is ignored and dropped from the system.
-     *
-     * @author Trent Houliston
-     */
-    class TaskScheduler {
-        public:
+    namespace threading {
         
+        /**
+         * @brief This class is responsible for scheduling tasks and distributing them amoungst threads.
+         *
+         * @details
+         *  This task scheduler uses the options from each of the tasks to decide when to execute them in a thread. The rules
+         *  are applied to the tasks in the following order.
+         *
+         *  @em Priority
+         *  @code Priority<P> @endcode
+         *  When a priority is encountered, the task will be scheduled to execute based on this. If one of the three normal
+         *  options are specified (HIGH, DEFAULT and LOW), then within the specified Sync group, it will run before, normally
+         *  or after other reactions.
+         *  @attention Note that if Priority<REALTIME> is specified, the Sync type is ignored (Single is not).
+         *
+         *  @em Sync
+         *  @code Sync<TSync> @endcode
+         *  When a Sync type is encounterd, the system uses this as a compile time mutex flag. It will not allow two callbacks
+         *  with the same Sync type to execute at the same time. It will effectivly ensure that all of the callbacks with
+         *  this type run in sequence with eachother, rather then in parallell. It is also important to note again, that if
+         *  the priority of a task is realtime, it will ignore Sync groups.
+         *
+         *  @em Single
+         *  @code Single @endcode
+         *  If single is encountered while processing the function, and a Task object for this Reaction is already running
+         *  in a thread, or waiting in the Queue, then this task is ignored and dropped from the system.
+         *
+         * @author Trent Houliston
+         */
+        class TaskScheduler {
+        public:
+            
             /**
              * @brief This exception is thrown when the task_scheduler has been shut down
              */
             class SchedulerShutdownException {};
-    
+            
             /**
              * @brief Constructs a new TaskScheduler instance, and builds the nullptr sync queue.
              */
             TaskScheduler();
-        
+            
             /**
              * @brief destructs the TaskScheduler
              */
             ~TaskScheduler();
-        
+            
             /**
-             * @brief 
+             * @brief
              *  Shuts down the scheduler, all waiting threads are woken, and any attempt to get a task results in an
              *  exception
              */
             void shutdown();
-        
+            
             /**
              * @brief Submit a new task to be executed to the Scheduler.
              *
@@ -96,7 +96,7 @@ namespace threading {
              * @param task  the task to be executed
              */
             void submit(std::unique_ptr<ReactionTask>&& task);
-        
+            
             /**
              * @brief Get a task object to be executed by a thread.
              *
@@ -117,9 +117,9 @@ namespace threading {
             std::mutex mutex;
             /// @brief the condition object that threads wait on if they can't get a task
             std::condition_variable condition;
-        
-    };
-}
+            
+        };
+    }
 }
 
 #endif

@@ -1,5 +1,5 @@
-/**
- * Copyright (C) 2013 Jake Woods <jake.f.woods@gmail.com>, Trent Houliston <trent@houliston.me>
+/*
+ * Copyright (C) 2013 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -30,21 +30,24 @@ namespace NUClear {
     namespace threading {
         
         /**
-         * @brief This class holds the definition of a Reaction (call signature)
+         * @brief This class holds the definition of a Reaction (call signature).
          *
          * @details
-         *  A reaction holds the information about a callback. It holds the options as to how to process it in the scheduler,
-         *  it also holds a function which is used to generate databound Task objects (callback with the function arguments
-         *  already loaded and ready to run)
+         *  A reaction holds the information about a callback. It holds the options as to how to process it in the scheduler.
+         *  It also holds a function which is used to generate databound Task objects (callback with the function arguments
+         *  already loaded and ready to run).
          *
          * @author Trent Houliston
          */
         class Reaction {
+            // Reaction handles are given to user code to enable and disable the reaction
             friend class ReactionHandle;
+            
         public:
             /**
              * @brief Constructs a new Reaction with the passed callback generator and options
              *
+             * @param name      string identifier information about the reaction to help identify it
              * @param callback  the callback generator function (creates databound callbacks)
              * @param options   the options to use in Tasks
              */

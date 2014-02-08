@@ -1,5 +1,5 @@
-/**
- * Copyright (C) 2013 Jake Woods <jake.f.woods@gmail.com>, Trent Houliston <trent@houliston.me>
+/*
+ * Copyright (C) 2013 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -31,10 +31,14 @@ namespace NUClear {
     namespace threading {
         
         /**
-         * @brief TODO document
+         * @brief Gives user code access to control the reaction object.
          *
          * @details
-         *  TODO document
+         *  This object is given to user code when they create a reaction.
+         *  It contains functions which allow changing of the reaction after it has
+         *  been created such as enabling and disabling its execution.
+         *
+         * @author Trent Houliston
          */
         class ReactionHandle {
         public:
@@ -42,34 +46,26 @@ namespace NUClear {
             Reaction* context;
             
             /**
-             * @brief TODO document
+             * @brief Creates a new ReactionHandle for the reaction that is passed in.
              *
-             * @details
-             *  TODO document
+             * @param context the reaction that we are interacting with.
              */
             ReactionHandle(Reaction* context);
             
             /**
-             * @brief TODO document
-             *
-             * @details
-             *  TODO document
+             * @brief Enables the reaction and allows it to run.
              */
             void enable();
             
             /**
-             * @brief TODO document
-             *
-             * @details
-             *  TODO document
+             * @brief Disables the reaction, preventing it from running.
              */
             void disable();
             
             /**
-             * @brief TODO document
+             * @brief Returns if this reaction is currently enabled.
              *
-             * @details
-             *  TODO document
+             * @return true if the reaction is enabled, false otherwise.
              */
             bool isEnabled();
         };
