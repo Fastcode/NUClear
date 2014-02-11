@@ -1,5 +1,5 @@
-/**
- * Copyright (C) 2013 Jake Woods <jake.f.woods@gmail.com>, Trent Houliston <trent@houliston.me>
+/*
+ * Copyright (C) 2013 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -20,6 +20,7 @@
 
 #include <cstdint>
 #include <cstring>
+#include <bitset>
 
 #include <functional>
 
@@ -27,15 +28,38 @@ namespace NUClear {
     namespace extensions {
         namespace serialization {
             
+            /**
+             * @brief A 128 bit hash object used to identify types over the network
+             *
+             * @author Trent Houliston
+             */
             struct Hash {
-                static const size_t SIZE = 16;
-                uint8_t data[SIZE];
+                /// @brief our 128 bit hash
+                std::bitset<128> data;
                 
+                /**
+                 * @brief Check for equality between two hashes
+                 *
+                 * @param hash the hash to compare against
+                 *
+                 * @return if the hashes were equal
+                 */
                 bool operator==(const Hash& hash) const;
+                
+                /**
+                 * @brief Convert this hash into a hash for use in a hash table (std hash)
+                 *
+                 * @return the std hash for this hash
+                 */
                 size_t hash() const;
-                static size_t hashToStdHash(const uint8_t* data);
             };
             
+            /**
+             * @brief Constructs a new hash from the passed key (of length bytes)
+             *
+             * @param key a pointer to the data for the key
+             * @param len the number of bytes in the key
+             */
             Hash murmurHash3(const void* key, const size_t len);
         }
     }
@@ -45,6 +69,11 @@ namespace std {
     template <>
     struct hash<NUClear::extensions::serialization::Hash> : public unary_function<NUClear::extensions::serialization::Hash, size_t> {
         
+        /**
+         * @brief Hashes a Hash object to an std hash
+         *
+         * @return the std hash
+         */
         size_t operator()(const NUClear::extensions::serialization::Hash& v) const {
             return v.hash();
         }

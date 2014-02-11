@@ -1,5 +1,5 @@
-/**
- * Copyright (C) 2013 Jake Woods <jake.f.woods@gmail.com>, Trent Houliston <trent@houliston.me>
+/*
+ * Copyright (C) 2013 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -22,12 +22,7 @@ namespace NUClear {
         namespace serialization {
             
             bool Hash::operator==(const Hash& hash) const {
-                for(unsigned i = 0; i < SIZE; ++i) {
-                    if(data[i] != hash.data[i]) {
-                        return false;
-                    }
-                }
-                return true;
+                return data == hash.data;
             }
             
             inline uint64_t rotl64(const uint64_t x, const int8_t r)
@@ -134,24 +129,15 @@ namespace NUClear {
                 h2 += h1;
                 
                 Hash ret;
-                memcpy(ret.data, &h1, sizeof(uint64_t));
-                memcpy(ret.data + sizeof(uint64_t), &h2, sizeof(uint64_t));
+                memcpy(&ret.data, &h1, sizeof(uint64_t));
+                memcpy(&ret.data + sizeof(uint64_t), &h2, sizeof(uint64_t));
                 
                 return ret;
             }
             
             size_t Hash::hash() const {
-                return hashToStdHash(data);
-            }
-            
-            size_t Hash::hashToStdHash(const uint8_t* data) {
-                size_t hash = 0;
-                
-                for(unsigned i = 0; i < SIZE; ++i) {
-                    hash ^= data[i] << ((i % sizeof(size_t)) * 8);
-                }
-                
-                return hash;
+                std::hash<std::bitset<128>> hasher;
+                return hasher(data);
             }
         }
     }
