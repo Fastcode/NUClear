@@ -1,5 +1,5 @@
-/**
- * Copyright (C) 2013 Jake Woods <jake.f.woods@gmail.com>, Trent Houliston <trent@houliston.me>
+/*
+ * Copyright (C) 2013 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -22,11 +22,24 @@
 
 namespace NUClear {
     
+    /**
+     * @brief This is data storage for command line arguments
+     *
+     * @details
+     *  DSL types in general should not store data for themselves (to prevent users instansiating them)
+     */
     template <>
     struct Reactor::TriggerType<dsl::CommandLineArguments> {
         typedef DataFor<dsl::CommandLineArguments, std::vector<std::string>> type;
     };
     
+    /**
+     * @brief Retarget gets to command line arguments to the data store
+     *
+     * @details
+     *  As dsl types should not store data inside themselves, data is instead stored by proxy
+     *  using a DataFor element. This extention point overrides such that a get obtains the correct data
+     */
     template <>
     struct PowerPlant::CacheMaster::Get<dsl::CommandLineArguments> {
         static std::shared_ptr<std::vector<std::string>> get(PowerPlant* context) {

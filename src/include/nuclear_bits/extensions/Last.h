@@ -1,5 +1,5 @@
-/**
- * Copyright (C) 2013 Jake Woods <jake.f.woods@gmail.com>, Trent Houliston <trent@houliston.me>
+/*
+ * Copyright (C) 2013 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -25,11 +25,24 @@
 
 namespace NUClear {
     
+    /**
+     * @brief Last datatypes should trigger on the emission of a DataFor element of the
+     *          requested last type.
+     *
+     * @tparam num      The number of elements we are storing data for.
+     * @tparam TData    The datatype we are storing the lasts for.
+     */
     template <int num, typename TData>
     struct Reactor::TriggerType<dsl::Last<num, TData>> {
         typedef DataFor<dsl::Last<num, TData>, std::vector<std::shared_ptr<const TData>>> type;
     };
 
+    /**
+     * @brief Data for a last is obtained by proxy, as are most DSL types.
+     *
+     * @tparam num      The number of elements we are storing data for.
+     * @tparam TData    The datatype we are storing the lasts for.
+     */
     template <int num, typename TData>
     struct PowerPlant::CacheMaster::Get<dsl::Last<num, TData>> {
         static std::shared_ptr<std::vector<std::shared_ptr<const TData>>> get(PowerPlant* context) {
@@ -38,6 +51,17 @@ namespace NUClear {
         }
     };
     
+    /**
+     * @brief Sets up the required machinery for when a last is used.
+     *
+     * @details
+     *  When a last is used, this exists sets up a system to cache the last n
+     *  of a datatype. It uses the requesting reactor as the provider for
+     *  controlling the emissions.
+     *
+     * @tparam num      The number of elements we are storing data for.
+     * @tparam TData    The datatype we are storing the lasts for.
+     */
     template <int num, typename TData>
     struct Reactor::Exists<dsl::Last<num, TData>> {
         static void exists(Reactor* context) {

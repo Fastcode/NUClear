@@ -21,6 +21,9 @@
 
 namespace NUClear {
     namespace extensions {
+        
+        // This is a globally accessable context, useable by other reactors that wish
+        // to be able to use ZMQ (to save spawning new threads)
         zmq::context_t Networking::ZMQ_CONTEXT(1);
         
         Networking::Networking(std::unique_ptr<Environment> environment) : Reactor(std::move(environment)),

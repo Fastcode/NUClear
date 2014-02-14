@@ -1,5 +1,5 @@
-/**
- * Copyright (C) 2013 Jake Woods <jake.f.woods@gmail.com>, Trent Houliston <trent@houliston.me>
+/*
+ * Copyright (C) 2013 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -22,11 +22,17 @@
 
 namespace NUClear {
 
+    /**
+     * @brief As a raw, we want to trigger when our real type is emitted.
+     */
     template <typename TData>
     struct Reactor::TriggerType<dsl::Raw<TData>> {
         typedef TData type;
     };
 
+    /**
+     * @brief When getting, instead of getting the data normally, return a const pointer to it.
+     */
     template <typename TData>
     struct PowerPlant::CacheMaster::Get<dsl::Raw<TData>> {
         static std::shared_ptr<std::shared_ptr<TData>> get(PowerPlant* context) {
