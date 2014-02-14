@@ -26,7 +26,7 @@
 #include "nuclear_bits/extensions/serialization/MurmurHash3.h"
 
 namespace NUClear {
-
+    
     /**
      * @brief This type holds the details for how to deserialze a datatype that we want.
      *
@@ -53,25 +53,25 @@ namespace NUClear {
     template <typename TData>
     struct PowerPlant::Emit<dsl::Scope::NETWORK, TData> {
         static void emit(PowerPlant* context, std::shared_ptr<TData> data) {
-
+            
             // Make a network message (generic type to trigger on for the networking system)
             auto message = std::make_unique<extensions::serialization::NetworkMessage>();
-
+            
             // Get our hash for this type
             extensions::serialization::Hash hash = extensions::serialization::hash<TData>();
-
+            
             // Serialize our data
             std::string payload = extensions::serialization::Serializer<TData>::serialize(*data);
-
+            
             // Fill our protocol buffer
             message->set_type(std::string(reinterpret_cast<char*>(&hash.data), hash.data.size()));
             message->set_payload(payload);
-
+            
             // Send our data to be emitted
             context->emit(std::move(message));
         };
     };
-
+    
     /**
      * @brief Our extension for when a network type is requested in a trigger
      *
@@ -80,23 +80,23 @@ namespace NUClear {
     template <typename TData>
     struct Reactor::Exists<dsl::Network<TData>> {
         static void exists(Reactor* context) {
-
+            
             // Send a direct emit to the Network reactor to tell it about the new type to listen for
             context->emit<Scope::DIRECT>(std::unique_ptr<NetworkTypeConfig>(new NetworkTypeConfig {
                 extensions::serialization::hash<TData>(),
                 [] (Reactor* reactor, const std::string source, const std::string data) {
-
+                    
                     // Deserialize our data and store it in the network object
                     std::unique_ptr<TData> parsed(std::make_unique<TData>(extensions::serialization::Serializer<TData>::deserialize(data)));
                     std::unique_ptr<Network<TData>> event = std::make_unique<Network<TData>>(source, std::move(parsed));
-
+                    
                     // Emit it to the world
                     reactor->emit(std::move(event));
                 }
             }));
         }
     };
-
+    
     namespace extensions {
         
         /**
@@ -114,10 +114,10 @@ namespace NUClear {
             
             /// @brief This is a globally accessable ZMQ context so that only a single thread must be used for IO
             static zmq::context_t ZMQ_CONTEXT;
-
+            
             /// @brief Build our networking handler reactor
             Networking(std::unique_ptr<Environment> environment);
-
+            
         private:
             /**
              * @brief Starts up the networking reactor listening for packets.
@@ -127,12 +127,12 @@ namespace NUClear {
              *  are one of the ones that have been requested by a reaction.
              */
             void run();
-
+            
             /**
              * @brief Kills the networking system, stops the system waiting and kills the sockets.
              */
             void kill();
-
+            
             /// @brief A map of hash types and deseriaizers that can resolve them
             std::unordered_map<serialization::Hash, std::function<void(Reactor*, const std::string, std::string)>> deserialize;
             /// @brief If our system should be running

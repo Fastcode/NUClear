@@ -18,42 +18,42 @@
 #include "nuclear_bits/threading/ThreadWorker.h"
 
 namespace NUClear {
-namespace threading {
-    
-    ThreadWorker::ThreadWorker(ServiceTask task) :
-    task(task),
-    thread(std::bind(&ThreadWorker::core, this)) {
-    }
-
-    ThreadWorker::~ThreadWorker() {
-        // If you put code in here, all sorts of madness happens (don't do it)
-    }
-    
-    void ThreadWorker::kill() {
-        task.kill();
-    }
-    
-    void ThreadWorker::join() {
+    namespace threading {
         
-        // only join the thread if it's joinable (or errors!)
-        try {
-            if(thread.joinable()) {
-                thread.join();
-            }
+        ThreadWorker::ThreadWorker(ServiceTask task) :
+        task(task),
+        thread(std::bind(&ThreadWorker::core, this)) {
         }
-        // Why this is thrown if you try to join an unjoinable thread, i'll never know
-        catch (const std::system_error e) { }
-    }
-    
-    std::thread::id ThreadWorker::getThreadId() {
-        // get the thread id from our internal thread
-        return thread.get_id();
-    }
-    
-    void ThreadWorker::core() {
         
-        // Run our main task
-        task.run();
+        ThreadWorker::~ThreadWorker() {
+            // If you put code in here, all sorts of madness happens (don't do it)
+        }
+        
+        void ThreadWorker::kill() {
+            task.kill();
+        }
+        
+        void ThreadWorker::join() {
+            
+            // only join the thread if it's joinable (or errors!)
+            try {
+                if(thread.joinable()) {
+                    thread.join();
+                }
+            }
+            // Why this is thrown if you try to join an unjoinable thread, i'll never know
+            catch (const std::system_error e) { }
+        }
+        
+        std::thread::id ThreadWorker::getThreadId() {
+            // get the thread id from our internal thread
+            return thread.get_id();
+        }
+        
+        void ThreadWorker::core() {
+            
+            // Run our main task
+            task.run();
+        }
     }
-}
 }

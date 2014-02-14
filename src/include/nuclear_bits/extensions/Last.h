@@ -36,7 +36,7 @@ namespace NUClear {
     struct Reactor::TriggerType<dsl::Last<num, TData>> {
         typedef DataFor<dsl::Last<num, TData>, std::vector<std::shared_ptr<const TData>>> type;
     };
-
+    
     /**
      * @brief Data for a last is obtained by proxy, as are most DSL types.
      *
@@ -46,7 +46,7 @@ namespace NUClear {
     template <int num, typename TData>
     struct PowerPlant::CacheMaster::Get<dsl::Last<num, TData>> {
         static std::shared_ptr<std::vector<std::shared_ptr<const TData>>> get(PowerPlant* context) {
-
+            
             return ValueCache<DataFor<dsl::Last<num, TData>, std::vector<std::shared_ptr<const TData>>>>::get()->data;
         }
     };
@@ -89,7 +89,7 @@ namespace NUClear {
                     // Copy the data into a vector on a last
                     auto data = std::make_unique<DataFor<dsl::Last<num, TData>, std::vector<std::shared_ptr<const TData>>>>();
                     data->data->insert(data->data->begin(), elements.begin(), elements.end());
-
+                    
                     // Emit the object for use
                     context->emit(std::move(data));
                 });

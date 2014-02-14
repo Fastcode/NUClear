@@ -21,7 +21,7 @@
 #include "nuclear"
 
 namespace NUClear {
-
+    
     /**
      * @brief As a raw, we want to trigger when our real type is emitted.
      */
@@ -29,7 +29,7 @@ namespace NUClear {
     struct Reactor::TriggerType<dsl::Raw<TData>> {
         typedef TData type;
     };
-
+    
     /**
      * @brief When getting, instead of getting the data normally, return a const pointer to it.
      */
