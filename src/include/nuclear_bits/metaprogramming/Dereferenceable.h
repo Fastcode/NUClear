@@ -1,5 +1,5 @@
-/**
- * Copyright (C) 2013 Jake Woods <jake.f.woods@gmail.com>, Trent Houliston <trent@houliston.me>
+/*
+ * Copyright (C) 2013 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -36,14 +36,23 @@ namespace metaprogramming {
     }
     
     /**
-     * @brief TODO
+     * @brief This type provides a function that will either return the original data or dereference it depending on the datatype.
      *
      * @details
-     *  TODO
+     *  This will check if the passed type has a dereference operator, if it does then we can dereference it and return the result
+     *  Otherwise we can return the original data
+     *
+     * @tparam T        The type we are attempting to derefrence
+     * @tparam Result   If the type has a dereference operator or not
+     *
+     * @author Trent Houliston
      */
     template<class T, bool Result = std::is_void<decltype(doTest<T>(0))>::value>
     struct Dereferenceable;
     
+    /**
+     * @brief This type is resolved when the passed type is dereferenceable
+     */
     template<typename T>
     struct Dereferenceable<T, true> {
         static auto dereference(T data) -> decltype(*data) {
@@ -51,10 +60,13 @@ namespace metaprogramming {
         }
     };
     
+    /**
+     * @brief This type is resolved when the passed type is not dereferenceable
+     */
     template<typename T>
     struct Dereferenceable<T, false> {
         static T dereference(T data) {
-            return std::move(data);
+            return data;
         }
     };
 }

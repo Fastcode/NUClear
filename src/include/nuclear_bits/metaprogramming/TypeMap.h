@@ -1,5 +1,5 @@
-/**
- * Copyright (C) 2013 Jake Woods <jake.f.woods@gmail.com>, Trent Houliston <trent@houliston.me>
+/*
+ * Copyright (C) 2013 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -22,100 +22,100 @@
 #include <vector>
 
 namespace NUClear {
-namespace metaprogramming {
-    
-    /**
-     * @brief This exception is thrown when there is no data in the map to return.
-     */
-    struct NoDataException {};
-    
-    /**
-     * @brief The simplest and fastest map format, It stores a single value and returns it when requested later.
-     *
-     * @details
-     *  This map stores a single value in it's store when the set function is called, and when get is later called
-     *  this object will be returned. This map is accessed by template paramters, because of this when the compiler
-     *  compiles this map. It can resolve each of the map accesses into a direct function call. This allows the map to
-     *  be looked up at compile time and optimized to very efficent code. There are several variations of the Map
-     *  provided through the MapType parameter the operation of each of these is described in their individual
-     *  documentation.
-     *
-     * @attention
-     *  Note that because this is an entirely static class, if two maps with the same TMapID are used, they access the
-     *  same map
-     *
-     * @author Trent Houliston
-     *
-     * @see CompiledMap
-     */
-    template <typename TMapID, typename TKey, typename TValue>
-    class TypeMap {
-    private:
-        /// @brief Deleted constructor as this class is a static class.
-        TypeMap() = delete;
-        /// @brief Deleted destructor as this class is a static class.
-        ~TypeMap() = delete;
-        /// @brief the data variable where the data is stored for this map key.
-        static std::shared_ptr<TValue> data;
+    namespace metaprogramming {
         
-    public:
         /**
-         * @brief Stores the passed value in this map.
-         *
-         * @param data a pointer to the data to be stored (the map takes ownership)
+         * @brief This exception is thrown when there is no data in the map to return.
          */
-        static void set(std::shared_ptr<TValue> d) {
-            data = std::shared_ptr<TValue>(d);
+        struct NoDataException {};
+        
+        /**
+         * @brief The simplest and fastest map format, It stores a single value and returns it when requested later.
+         *
+         * @details
+         *  This map stores a single value in it's store when the set function is called, and when get is later called
+         *  this object will be returned. This map is accessed by template paramters, because of this when the compiler
+         *  compiles this map. It can resolve each of the map accesses into a direct function call. This allows the map to
+         *  be looked up at compile time and optimized to very efficent code. There are several variations of the Map
+         *  provided through the MapType parameter the operation of each of these is described in their individual
+         *  documentation.
+         *
+         * @attention
+         *  Note that because this is an entirely static class, if two maps with the same TMapID are used, they access the
+         *  same map
+         *
+         * @author Trent Houliston
+         *
+         * @see CompiledMap
+         */
+        template <typename TMapID, typename TKey, typename TValue>
+        class TypeMap {
+        private:
+            /// @brief Deleted constructor as this class is a static class.
+            TypeMap() = delete;
+            /// @brief Deleted destructor as this class is a static class.
+            ~TypeMap() = delete;
+            /// @brief the data variable where the data is stored for this map key.
+            static std::shared_ptr<TValue> data;
+            
+        public:
+            /**
+             * @brief Stores the passed value in this map.
+             *
+             * @param data a pointer to the data to be stored (the map takes ownership)
+             */
+            static void set(std::shared_ptr<TValue> d) {
+                data = d;
+            };
+            
+            /**
+             * @brief Gets the value that was previously stored.
+             *
+             * @return a shared_ptr to the data that was previously stored
+             *
+             * @throws NoDataException if there is no data that was previously stored
+             */
+            static std::shared_ptr<TValue> get() {
+                //If the pointer is not a nullptr
+                if(data) {
+                    return data;
+                }
+                else {
+                    throw NoDataException();
+                }
+            }
         };
         
-        /**
-         * @brief Gets the value that was previously stored.
-         *
-         * @return a shared_ptr to the data that was previously stored
-         *
-         * @throws NoDataException if there is no data that was previously stored
-         */
-        static std::shared_ptr<TValue> get() {
-            //If the pointer is not a nullptr
-            if(data) {
+        template <typename TMapID, typename TKey, typename TValue>
+        class TypeList {
+        private:
+            /// @brief Deleted constructor as this class is a static class.
+            TypeList() = delete;
+            /// @brief Deleted destructor as this class is a static class.
+            ~TypeList() = delete;
+            /// @brief the data variable where the data is stored for this map key.
+            static std::vector<TValue> data;
+            
+        public:
+            
+            /**
+             * @brief Gets the list that is stored in this type location
+             *
+             * @return A reference to the vector stored in this location
+             */
+            static std::vector<TValue>& get() {
                 return data;
             }
-            else {
-                throw NoDataException();
-            }
-        }
-    };
-    
-    template <typename TMapID, typename TKey, typename TValue>
-    class TypeList {
-    private:
-        /// @brief Deleted constructor as this class is a static class.
-        TypeList() = delete;
-        /// @brief Deleted destructor as this class is a static class.
-        ~TypeList() = delete;
-        /// @brief the data variable where the data is stored for this map key.
-        static std::vector<TValue> data;
+        };
         
-    public:
-
-        /**
-         * @brief Gets the value that was previously stored.
-         *
-         * @return a shared_ptr to the data that was previously stored
-         *
-         * @throws NoDataException if there is no data that was previously stored
-         */
-        static std::vector<TValue>& get() {
-            return data;
-        }
-    };
-    
-    template <typename TMapID, typename TKey, typename TValue>
-    std::shared_ptr<TValue> TypeMap<TMapID, TKey, TValue>::data;
-    
-    template <typename TMapID, typename TKey, typename TValue>
-    std::vector<TValue> TypeList<TMapID, TKey, TValue>::data;
-}
+        /// Initialize our shared_ptr data
+        template <typename TMapID, typename TKey, typename TValue>
+        std::shared_ptr<TValue> TypeMap<TMapID, TKey, TValue>::data;
+        
+        /// Initialize our type list data
+        template <typename TMapID, typename TKey, typename TValue>
+        std::vector<TValue> TypeList<TMapID, TKey, TValue>::data;
+    }
 }
 
 #endif
