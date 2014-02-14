@@ -1,5 +1,5 @@
-/**
- * Copyright (C) 2013 Jake Woods <jake.f.woods@gmail.com>, Trent Houliston <trent@houliston.me>
+/*
+ * Copyright (C) 2013 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -19,110 +19,98 @@ namespace NUClear {
     
     // This metafunction builds a proper On given a series of function arguments
     template <typename TFunc, typename... TParams>
-    struct Reactor::On : public OnBuilder<TFunc, std::tuple<TParams...>, Reactor::Trigger<>, Reactor::With<>, Reactor::Options<>, std::tuple<>, TParams...> {};
+    struct Reactor::On : public OnBuilder<TFunc, Reactor::Trigger<>, Reactor::With<>, Reactor::Options<>, std::tuple<>, TParams...> {};
     
     template <
-        typename TFunc,
-        typename... TOriginal,
-        typename... TTriggers,
-        typename... TWiths,
-        typename... TOptions,
-        typename... TFuncArgs,
-        typename... TNewTriggers,
-        typename... TParams>
+    typename TFunc,
+    typename... TTriggers,
+    typename... TWiths,
+    typename... TOptions,
+    typename... TFuncArgs,
+    typename... TNewTriggers,
+    typename... TParams>
     struct Reactor::OnBuilder<
-        TFunc,
-        std::tuple<TOriginal...>,
-        Reactor::Trigger<TTriggers...>,
-        Reactor::With<TWiths...>,
-        Reactor::Options<TOptions...>,
-        std::tuple<TFuncArgs...>,
-        Reactor::Trigger<TNewTriggers...>,
-        TParams...> :
+    TFunc,
+    Reactor::Trigger<TTriggers...>,
+    Reactor::With<TWiths...>,
+    Reactor::Options<TOptions...>,
+    std::tuple<TFuncArgs...>,
+    Reactor::Trigger<TNewTriggers...>,
+    TParams...> :
     public Reactor::OnBuilder<
-        TFunc,
-        std::tuple<TOriginal...>,
-        Reactor::Trigger<TTriggers..., TNewTriggers...>,
-        Reactor::With<TWiths...>,
-        Reactor::Options<TOptions...>,
-        std::tuple<TFuncArgs..., TNewTriggers...>,
-        TParams...> {};
+    TFunc,
+    Reactor::Trigger<TTriggers..., TNewTriggers...>,
+    Reactor::With<TWiths...>,
+    Reactor::Options<TOptions...>,
+    std::tuple<TFuncArgs..., TNewTriggers...>,
+    TParams...> {};
     
     template <
-        typename TFunc,
-        typename... TOriginal,
-        typename... TTriggers,
-        typename... TWiths,
-        typename... TOptions,
-        typename... TFuncArgs,
-        typename... TNewWiths,
-        typename... TParams>
+    typename TFunc,
+    typename... TTriggers,
+    typename... TWiths,
+    typename... TOptions,
+    typename... TFuncArgs,
+    typename... TNewWiths,
+    typename... TParams>
     struct Reactor::OnBuilder<
-        TFunc,
-        std::tuple<TOriginal...>,
-        Reactor::Trigger<TTriggers...>,
-        Reactor::With<TWiths...>,
-        Reactor::Options<TOptions...>,
-        std::tuple<TFuncArgs...>,
-        Reactor::With<TNewWiths...>,
-        TParams...> :
+    TFunc,
+    Reactor::Trigger<TTriggers...>,
+    Reactor::With<TWiths...>,
+    Reactor::Options<TOptions...>,
+    std::tuple<TFuncArgs...>,
+    Reactor::With<TNewWiths...>,
+    TParams...> :
     public Reactor::OnBuilder<
-        TFunc,
-        std::tuple<TOriginal...>,
-        Reactor::Trigger<TTriggers...>,
-        Reactor::With<TWiths..., TNewWiths...>,
-        Reactor::Options<TOptions...>,
-        std::tuple<TFuncArgs..., TNewWiths...>,
-        TParams...> {};
+    TFunc,
+    Reactor::Trigger<TTriggers...>,
+    Reactor::With<TWiths..., TNewWiths...>,
+    Reactor::Options<TOptions...>,
+    std::tuple<TFuncArgs..., TNewWiths...>,
+    TParams...> {};
     
     template <
-        typename TFunc,
-        typename... TOriginal,
-        typename... TTriggers,
-        typename... TWiths,
-        typename... TOptions,
-        typename... TFuncArgs,
-        typename... TNewOptions,
-        typename... TParams>
+    typename TFunc,
+    typename... TTriggers,
+    typename... TWiths,
+    typename... TOptions,
+    typename... TFuncArgs,
+    typename... TNewOptions,
+    typename... TParams>
     struct Reactor::OnBuilder<
-        TFunc,
-        std::tuple<TOriginal...>,
-        Reactor::Trigger<TTriggers...>,
-        Reactor::With<TWiths...>,
-        Reactor::Options<TOptions...>,
-        std::tuple<TFuncArgs...>,
-        Reactor::Options<TNewOptions...>,
-        TParams...> :
+    TFunc,
+    Reactor::Trigger<TTriggers...>,
+    Reactor::With<TWiths...>,
+    Reactor::Options<TOptions...>,
+    std::tuple<TFuncArgs...>,
+    Reactor::Options<TNewOptions...>,
+    TParams...> :
     public Reactor::OnBuilder<
-        TFunc,
-        std::tuple<TOriginal...>,
-        Reactor::Trigger<TTriggers...>,
-        Reactor::With<TWiths...>,
-        Reactor::Options<TOptions..., TNewOptions...>,
-        std::tuple<TFuncArgs...>,
-        TParams...> {};
+    TFunc,
+    Reactor::Trigger<TTriggers...>,
+    Reactor::With<TWiths...>,
+    Reactor::Options<TOptions..., TNewOptions...>,
+    std::tuple<TFuncArgs...>,
+    TParams...> {};
     
     template <
-        typename TFunc,
-        typename... TOriginal,
-        typename... TTriggers,
-        typename... TWiths,
-        typename... TOptions,
-        typename... TFuncArgs>
+    typename TFunc,
+    typename... TTriggers,
+    typename... TWiths,
+    typename... TOptions,
+    typename... TFuncArgs>
     struct Reactor::OnBuilder<
-        TFunc,
-        std::tuple<TOriginal...>,
-        Reactor::Trigger<TTriggers...>,
-        Reactor::With<TWiths...>,
-        Reactor::Options<TOptions...>,
-        std::tuple<TFuncArgs...>> :
+    TFunc,
+    Reactor::Trigger<TTriggers...>,
+    Reactor::With<TWiths...>,
+    Reactor::Options<TOptions...>,
+    std::tuple<TFuncArgs...>> :
     public Reactor::On<
-        TFunc,
-        std::tuple<TOriginal...>,
-        Reactor::Trigger<TTriggers...>,
-        Reactor::With<TWiths...>,
-        Reactor::Options<TOptions...>,
-        std::tuple<TFuncArgs...>> {};
+    TFunc,
+    Reactor::Trigger<TTriggers...>,
+    Reactor::With<TWiths...>,
+    Reactor::Options<TOptions...>,
+    std::tuple<TFuncArgs...>> {};
     
     template <typename TFunc, typename... TTypes>
     struct Reactor::CheckFunctionSignature<TFunc, std::tuple<TTypes...>, 0> :
@@ -142,14 +130,45 @@ namespace NUClear {
     
     
     /* End Meta functions */
-
+    
+    /**
+     * @brief Demangles the passed symbol to a string, or returns it if it cannot demangle it
+     *
+     * @param symbol the symbol to demangle
+     *
+     * @return the demangled symbol, or the original string if it could not be demangeld
+     */
+    inline std::string demangle(const char* symbol) {
+        
+        int status = -4; // some arbitrary value to eliminate the compiler warning
+        std::unique_ptr<char, void(*)(void*)> res {
+            abi::__cxa_demangle(symbol, nullptr, nullptr, &status),
+            std::free
+        };
+        
+        return std::string(status == 0 ? res.get() : symbol);
+    }
+    
     template <typename... TParams, typename TFunc>
     Reactor::ReactionHandle Reactor::on(TFunc callback) {
         
-        // There must be some parameters
-        static_assert(sizeof...(TParams) > 0, "TODO not enough parameters message");
+        // Forward an empty string as our user reaction name
+        return on<TParams...>("", std::forward<TFunc>(callback));
+    }
+    
+    template <typename... TParams, typename TFunc>
+    Reactor::ReactionHandle Reactor::on(std::string name, TFunc callback) {
         
-        return On<TFunc, TParams...>::on(this, callback);
+        // There must be some parameters
+        static_assert(sizeof...(TParams) > 0, "You must have at least one paramter in an on");
+        
+        std::stringstream identifier;
+        
+        identifier << name << std::endl;
+        identifier << demangle(typeid(std::tuple<TParams...>).name()) << std::endl;
+        identifier << demangle(typeid(TFunc).name());
+        
+        return On<TFunc, TParams...>::on(this, identifier.str(), callback);
     }
     
     template <typename... THandlers, typename TData>
@@ -158,30 +177,29 @@ namespace NUClear {
     }
     
     // This is our final On statement
-    template <typename TFunc, typename... TOriginal, typename... TTriggers, typename... TWiths, typename... TOptions, typename... TFuncArgs>
+    template <typename TFunc, typename... TTriggers, typename... TWiths, typename... TOptions, typename... TFuncArgs>
     Reactor::ReactionHandle Reactor::On<
-        TFunc,
-        std::tuple<TOriginal...>,
-        Reactor::Trigger<TTriggers...>,
-        Reactor::With<TWiths...>,
-        Reactor::Options<TOptions...>,
-        std::tuple<TFuncArgs...>>::on(Reactor* context, TFunc callback) {
-            
-            static_assert(Reactor::CheckFunctionSignature<TFunc, std::tuple<TFuncArgs...>>::value, "Your callback function does not match the types in the On statement");
-            static_assert(sizeof...(TTriggers) > 0, "You must have at least one Trigger in a callback");
-            
-            // Build up our options
-            threading::ReactionOptions options;
-            context->buildOptions<TOptions...>(options);
-            
-            // Bind all of our trigger events to a reaction
-            auto onHandler = context->bindTriggers<TTriggers...>(context->buildReaction<TFunc, TFuncArgs...>(typeid(std::tuple<TOriginal...>).name(),
-                                                                                                             callback, options));
-
-            // Run any existence commands needed (running because a type exists)
-            metaprogramming::unpack((Exists<TFuncArgs>::exists(context), 0)...);
-
-            return onHandler;
+    TFunc,
+    Reactor::Trigger<TTriggers...>,
+    Reactor::With<TWiths...>,
+    Reactor::Options<TOptions...>,
+    std::tuple<TFuncArgs...>>::on(Reactor* context, std::string name, TFunc callback) {
+        
+        static_assert(Reactor::CheckFunctionSignature<TFunc, std::tuple<TFuncArgs...>>::value, "Your callback function does not match the types in the On statement");
+        static_assert(sizeof...(TTriggers) > 0, "You must have at least one Trigger in a callback");
+        
+        // Build up our options
+        threading::ReactionOptions options;
+        context->buildOptions<TOptions...>(options);
+        
+        // Bind all of our trigger events to a reaction
+        auto onHandler = context->bindTriggers<TTriggers...>(context->buildReaction<TFunc, TFuncArgs...>(name,
+        callback, options));
+        
+        // Run any existence commands needed (running because a type exists)
+        metaprogramming::unpack((Exists<TFuncArgs>::exists(context), 0)...);
+        
+        return onHandler;
     }
     
     template <typename... TOption>
@@ -199,13 +217,13 @@ namespace NUClear {
     void Reactor::buildOptionsImpl(threading::ReactionOptions& options, Priority<P>* /*placeholder*/) {
         options.priority = P;
     }
-
+    
     template <typename TFunc, typename... TTriggersAndWiths>
-    std::unique_ptr<threading::Reaction> Reactor::buildReaction(const char* name, TFunc callback, threading::ReactionOptions& options) {
+    std::unique_ptr<threading::Reaction> Reactor::buildReaction(std::string name, TFunc callback, threading::ReactionOptions& options) {
         
         // Return a reaction object that gets and runs with the correct paramters
         return std::make_unique<threading::Reaction>(name, [this, callback]() -> std::function<void (threading::ReactionTask&)> {
-
+            
             // TODO consider potential threading implications if two threads emit at once and overwrite (then this will get the same value for both)
             auto&& data = std::make_tuple(powerPlant->cachemaster.get<TTriggersAndWiths>()...);
             
@@ -224,12 +242,12 @@ namespace NUClear {
     struct Reactor::Exists {
         static void exists(Reactor* context) {};
     };
-
+    
     template <typename TData>
     struct Reactor::TriggerType {
         using type = TData;
     };
-
+    
     /**
      * @brief calls bindTriggersImpl on every trigger in the list. Minimum list size is 1
      * @tparam TTrigger the required first trigger

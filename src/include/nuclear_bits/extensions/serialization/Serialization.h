@@ -51,7 +51,6 @@ namespace NUClear {
                 return std::string(status == 0 ? res.get() : typeid(TType).name());
             }
             
-            
             //TODO find a way to use std::enable_if to pick protocol buffers or block copying
             
             namespace {

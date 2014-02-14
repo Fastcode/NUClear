@@ -67,7 +67,7 @@ namespace NUClear {
              */
             bool isEnabled();
             
-            /// @brief This holds the mangled name of the On function that is being called
+            /// @brief This holds the demangled name of the On function that is being called
             const std::string name;
             /// @brief the options for this Reaction (decides how Tasks will be scheduled)
             ReactionOptions options;
