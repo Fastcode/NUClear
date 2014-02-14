@@ -1,5 +1,5 @@
-/**
- * Copyright (C) 2013 Jake Woods <jake.f.woods@gmail.com>, Trent Houliston <trent@houliston.me>
+/*
+ * Copyright (C) 2013 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -25,8 +25,6 @@ namespace NUClear {
      * @brief Enum to specify which of the priorities to use for a task
      */
     enum EPriority {
-        /// @brief Run the task immediantly, if there are no available threads in the thread pool, create a new thread to run this task
-        REALTIME,
         /// @brief Run this task before other tasks once there is a free thread
         HIGH,
         /// @brief Run this task at the normal priority
@@ -48,11 +46,9 @@ namespace NUClear {
          * @details
          *  The priority option sets at which priority to allocate this task a thread in the thread pool. The options
          *  LOW DEFAULT and HIGH act this way, choosing tasks which have a higher priority before lower ones (unless
-         *  their sync group is disabled). However Realtime works differently, ignoring the Sync group and ensuring
-         *  that the task is executed immediantly. If there is no thread pool thread ready to execute this task. The
-         *  system will spawn a new thread to ensure it happens.
+         *  their sync group is disabled). 
          *
-         * @tparam P the priority to run the task at (LOW DEFAULT HIGH and REALTIME)
+         * @tparam P the priority to run the task at (LOW DEFAULT and HIGH)
          */
         template <enum EPriority P>
         struct Priority {

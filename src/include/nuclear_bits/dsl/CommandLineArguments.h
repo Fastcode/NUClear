@@ -1,5 +1,5 @@
-/**
- * Copyright (C) 2013 Jake Woods <jake.f.woods@gmail.com>, Trent Houliston <trent@houliston.me>
+/*
+ * Copyright (C) 2013 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -30,7 +30,7 @@ namespace NUClear {
          *  as a vector of strings containing all arguments including argv[0] which traditionally contains the path this
          *  executable is running in.
          *
-         *  @return Returns a vector of strings with the command line arguments passed to the program
+         * @return Returns a vector of strings with the command line arguments passed to the program
          */
         struct CommandLineArguments {
             CommandLineArguments() = delete;

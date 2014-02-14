@@ -1,5 +1,5 @@
-/**
- * Copyright (C) 2013 Jake Woods <jake.f.woods@gmail.com>, Trent Houliston <trent@houliston.me>
+/*
+ * Copyright (C) 2013 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -22,18 +22,26 @@ namespace NUClear {
     namespace dsl {
         
         /**
-         * @brief This enum is used to modify in what way a packet is sent, either Local, Network or both
+         * @brief This struct contains the default emit types that are available
          *
          * @details
          *  When using the emit function, these options can be added in order to specify where the packet is to be
-         *  sent. If nothing or LOCAL is specified, then it will only be send within this powerplant. If NETWORK is
-         *  specified, then the data will be sent to other powerplants but not this one, if both LOCAL and NETWORK
-         *  are chosen, then the event will propagate to both the network and local powerplants.
+         *  sent. Multiple of these can be specified in order to emit to multiple destinations.
          */
         struct Scope {
+            /// @brief Send data to reactions that request it, but it will bypass the threadpool, directy calling the function.
             struct DIRECT;
+            /// @brief Send as ususal to reactions that request it within this powerplant.
             struct LOCAL;
+            /// @brief Send data to other powerplants over the network but not this one.
             struct NETWORK;
+            /**
+             * @brief Emit after all reactors have been installed directly before the main threadpool starts.
+             *
+             * @attention
+             *  If INITIALIZE is used after startup, it will result in no action. It will also store the event resulting
+             * in a memory leak.
+             */
             struct INITIALIZE;
         };
     }

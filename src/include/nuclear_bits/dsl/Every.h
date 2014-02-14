@@ -1,5 +1,5 @@
-/**
- * Copyright (C) 2013 Jake Woods <jake.f.woods@gmail.com>, Trent Houliston <trent@houliston.me>
+/*
+ * Copyright (C) 2013 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -21,6 +21,11 @@
 namespace NUClear {
     namespace dsl {
         
+        /**
+         * @brief This type is used within an every in order to measure a frequency rather then a period.
+         *
+         * @author Trent Houliston
+         */
         template <typename period>
         struct Per {
             Per() = delete;
@@ -42,7 +47,8 @@ namespace NUClear {
          *  clock::duration or the program will not compile
          *
          * @tparam ticks the number of ticks of a paticular type to wait
-         * @tparam period a type of duration (e.g. std::chrono::seconds) to measure the ticks in, Defaults to Milliseconds
+         * @tparam period a type of duration (e.g. std::chrono::seconds) to measure the ticks in, defaults to clock duration.
+         *                  This paramter may also be wrapped in a Per<> template in order to write a frequency rather then a period.
          *
          * @return Returns the time the every was emitted as an clock::time_point
          */
