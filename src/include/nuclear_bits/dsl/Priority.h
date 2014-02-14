@@ -46,7 +46,7 @@ namespace NUClear {
          * @details
          *  The priority option sets at which priority to allocate this task a thread in the thread pool. The options
          *  LOW DEFAULT and HIGH act this way, choosing tasks which have a higher priority before lower ones (unless
-         *  their sync group is disabled). 
+         *  their sync group is disabled).
          *
          * @tparam P the priority to run the task at (LOW DEFAULT and HIGH)
          */

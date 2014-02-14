@@ -18,9 +18,6 @@
 #ifndef NUCLEAR_DSL_SYNC_H
 #define NUCLEAR_DSL_SYNC_H
 
-#include <string>
-#include "nuclear_bits/threading/Reaction.h"
-
 namespace NUClear {
     namespace dsl {
         
