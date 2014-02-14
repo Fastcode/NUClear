@@ -1,5 +1,5 @@
-/**
- * Copyright (C) 2013 Jake Woods <jake.f.woods@gmail.com>, Trent Houliston <trent@houliston.me>
+/*
+ * Copyright (C) 2013 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -19,34 +19,35 @@
 
 namespace NUClear {
     namespace extensions {
-
+        
         Chrono::Chrono(std::unique_ptr<Environment> environment) : Reactor(std::move(environment)), lock(execute) {
-
+            
+            // Listen for ChronoConfigurations
             on<Trigger<ChronoConfig>>([this] (const ChronoConfig& config) {
                 add(config);
             });
-
+            
             // Build a task and add it as a service task
             threading::ThreadWorker::ServiceTask task(std::bind(&Chrono::run, this),
-                                                     std::bind(&Chrono::kill, this));
+                                                      std::bind(&Chrono::kill, this));
             this->powerPlant->addServiceTask(task);
         }
-
+        
         void Chrono::add(const NUClear::ChronoConfig& config) {
             // Check if we have not already loaded this type in
             if(loaded.find(config.type) == std::end(loaded)) {
-
+                
                 // Flag this type as loaded
                 loaded.insert(config.type);
-
+                
                 // Get our period in whatever time our clock measures
                 clock::duration step(config.step);
-
+                
                 // See if we already have one with this period
                 auto item = std::find_if(std::begin(steps), std::end(steps), [step](const Step& find) {
                     return find.step.count() == step.count();
                 });
-
+                
                 // If we don't then create a new one with our initial data
                 if(item == std::end(steps)) {
                     Step s;
@@ -54,30 +55,30 @@ namespace NUClear {
                     s.callbacks.push_back(std::function<void ()>(config.emitter));
                     steps.push_back(std::move(s));
                 }
-
+                
                 // Otherwise just add the callback to the existing element
                 else {
                     item->callbacks.push_back(config.emitter);
                 }
             }
         }
-
-
+        
+        
         void Chrono::run() {
-
+            
             // Only start doing every if we actually have some
             if (!steps.empty()) {
-
+                
                 // Initialize all of the steps with our start time
                 clock::time_point start(clock::now());
                 for(auto& step : steps) {
                     step.next = start;
                 }
-
+                
                 do {
                     // Get the current time
                     clock::time_point now(clock::now());
-
+                    
                     // Check if any intervals are before now and if so execute their callbacks and add their step.
                     for(auto& step : steps) {
                         if((step.next - now).count() <= 0) {
@@ -91,7 +92,7 @@ namespace NUClear {
                             break;
                         }
                     }
-
+                    
                     // Sort the list so the next soonest interval is on top
                     std::sort(std::begin(steps), std::end(steps), [](const Step& a, const Step& b) {
                         return a.next < b.next;
