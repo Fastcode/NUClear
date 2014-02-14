@@ -73,7 +73,7 @@ namespace NUClear {
         }
         else {
             // Release our data from the pointer and wrap it in a shared_ptr
-            std::shared_ptr<TData> ptr = std::shared_ptr<TData>(data.release());
+            std::shared_ptr<TData> ptr = std::shared_ptr<TData>(std::move(data));
 
             // For some reason GCC thinks this variable is unused? this supresses that warning
             (void) ptr;
