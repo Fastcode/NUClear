@@ -1,5 +1,5 @@
-/**
- * Copyright (C) 2013 Jake Woods <jake.f.woods@gmail.com>, Trent Houliston <trent@houliston.me>
+/*
+ * Copyright (C) 2013 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -23,16 +23,16 @@ namespace NUClear {
     PowerPlant::ThreadMaster::ThreadMaster(PowerPlant* parent) :
     PowerPlant::BaseMaster(parent) {
     }
-
-
+    
+    
     void PowerPlant::ThreadMaster::setCurrentTask(std::thread::id threadId, const threading::ReactionTask* task) {
         // TODO replace this with thread_local if possible (c++11 keyword thread_local)
         currentTask[threadId] = task;
     }
-
+    
     const threading::ReactionTask* PowerPlant::ThreadMaster::getCurrentTask(std::thread::id threadId) {
         auto task = currentTask.find(threadId);
-
+        
         if(task != std::end(currentTask)) {
             return task->second;
         }
@@ -40,8 +40,9 @@ namespace NUClear {
             return nullptr;
         }
     }
-
+    
     void PowerPlant::ThreadMaster::start() {
+        
         // Start our internal service threads
         for(auto& task : serviceTasks) {
             // Start a thread worker with our task

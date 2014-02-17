@@ -37,7 +37,7 @@ IF("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU")
     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -Wall")
     
 ELSEIF("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wpedantic -stdlib=libc++")
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wpedantic -Wextra -stdlib=libc++")
     
 ELSE()
     MESSAGE(FATAL_ERROR "Unsupported compiler!")

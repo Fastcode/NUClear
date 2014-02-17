@@ -41,7 +41,7 @@ namespace NUClear {
              * @tparam S the integer pack giving the ordinal position of the tuple value to get
              */
             template<typename TFunc, int... S, typename... TArgs>
-            void apply(TFunc& function, Sequence<S...> s, const std::tuple<TArgs...>& args) {
+            void apply(TFunc& function, Sequence<S...>, const std::tuple<TArgs...>& args) {
                 
                 // Get each of the values from the tuple, dereference them and call the function with them
                 // Also ensure that each value is a const reference

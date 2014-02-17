@@ -18,10 +18,10 @@
 #ifndef NUCLEAR_EXTENSIONS_NETWORKING_H
 #define NUCLEAR_EXTENSIONS_NETWORKING_H
 
+#include <nuclear>
 #include <string>
 #include <zmq.hpp>
 
-#include "nuclear"
 #include "NetworkMessage.pb.h"
 #include "nuclear_bits/extensions/serialization/MurmurHash3.h"
 

@@ -1,5 +1,5 @@
-/**
- * Copyright (C) 2013 Jake Woods <jake.f.woods@gmail.com>, Trent Houliston <trent@houliston.me>
+/*
+ * Copyright (C) 2013 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -14,6 +14,7 @@
  * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+
 #ifndef NUCLEAR_ENVIRONMENT_H
 #define NUCLEAR_ENVIRONMENT_H
 
@@ -21,8 +22,9 @@
 #include "nuclear_bits/ForwardDeclarations.h"
 
 namespace NUClear {
+    
     /**
-     * @brief 
+     * @brief
      *  Environment defines variables that are passed from the installing PowerPlant context
      *  into a Reactor.
      *
@@ -33,15 +35,17 @@ namespace NUClear {
      * @author Jake Woods
      */
     class Environment {
-        public:
-            Environment(PowerPlant* powerPlant, LogLevel logLevel = LogLevel::INFO);
-
-        private:
-            friend class PowerPlant;
-            friend class Reactor;
-
-            PowerPlant* powerPlant;
-            LogLevel logLevel;
+    public:
+        Environment(PowerPlant* powerPlant, LogLevel logLevel = LogLevel::INFO);
+        
+    private:
+        friend class PowerPlant;
+        friend class Reactor;
+        
+        /// @brief The PowerPlant to use in this reactor
+        PowerPlant* powerPlant;
+        /// @brief The log level to resepect for this reactor
+        LogLevel logLevel;
     };
 }
 #endif

@@ -24,7 +24,7 @@ namespace NUClear {
         /**
          * @brief Executes a series of function calls from a variardic template pack.
          *
-         * @detail
+         * @details
          *  This function is to be used as a helper to expand a variardic template pack into a series of function calls.
          *  As the variardic function pack can only be expanded in the situation where they are comma seperated (and the
          *  comma is a syntactic seperator not the comma operator) the only place this can expand is within a function call,
@@ -44,7 +44,7 @@ namespace NUClear {
          * @author Trent Houliston
          */
         template <typename... Ts>
-        void unpack(Ts... t) {}
+        void unpack(Ts...) {}
     }
 }
 #endif

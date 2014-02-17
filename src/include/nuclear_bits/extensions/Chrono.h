@@ -39,8 +39,8 @@ namespace NUClear {
     /**
      * @brief Partial specialization to handle the case when a normal every is used.
      *
-     * @tparm ticks the number of ticks that should be waited between each every.
-     * @tparm period the type that the ticks are measured in.
+     * @tparam ticks the number of ticks that should be waited between each every.
+     * @tparam period the type that the ticks are measured in.
      */
     template <int ticks, class period>
     struct Reactor::Exists<dsl::Every<ticks, period>> {
@@ -48,7 +48,7 @@ namespace NUClear {
         /**
          * @brief This is run when an every exists, it emits a configuration to the chrono system.
          *
-         * @param context, a pointer to the reactor that is using the exists.
+         * @param context a pointer to the reactor that is using the exists.
          */
         static void exists(Reactor* context) {
             
@@ -66,8 +66,8 @@ namespace NUClear {
     /**
      * @brief Partial specialization to handle the case when an every per is used.
      *
-     * @tparm ticks the divisor for the slice of time units to be measured in.
-     * @tparm period the time unit we are slicing.
+     * @tparam ticks the divisor for the slice of time units to be measured in.
+     * @tparam period the time unit we are slicing.
      */
     template <int ticks, class period>
     struct Reactor::Exists<dsl::Every<ticks, dsl::Per<period>>> {
@@ -75,7 +75,7 @@ namespace NUClear {
         /**
          * @brief This is run when an every exists, it emits a configuration to the chrono system.
          *
-         * @param context, a pointer to the reactor that is using the exists.
+         * @param context a pointer to the reactor that is using the exists.
          */
         static void exists(Reactor* context) {
             
@@ -97,8 +97,8 @@ namespace NUClear {
      * @details
      *  Since we don't actually trigger on the DSL type, we use the data that was stored with the type.
      *
-     * @tparm ticks the divisor for the slice of time units to be measured in.
-     * @tparm period the time unit we are slicing.
+     * @tparam ticks the divisor for the slice of time units to be measured in.
+     * @tparam period the time unit we are slicing.
      */
     template <int ticks, class period>
     struct Reactor::TriggerType<dsl::Every<ticks, period>> {
@@ -108,8 +108,10 @@ namespace NUClear {
     /**
      * @brief When getting data, make sure we use the DataFor instead of the normal store.
      *
-     * @tparm ticks the divisor for the slice of time units to be measured in.
-     * @tparm period the time unit we are slicing.
+     * @tparam ticks the divisor for the slice of time units to be measured in.
+     * 
+     
+     @tparam period the time unit we are slicing.
      */
     template <int ticks, class period>
     struct PowerPlant::CacheMaster::Get<dsl::Every<ticks, period>> {

@@ -1,5 +1,5 @@
-/**
- * Copyright (C) 2013 Jake Woods <jake.f.woods@gmail.com>, Trent Houliston <trent@houliston.me>
+/*
+ * Copyright (C) 2013 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -23,16 +23,30 @@
 #include "nuclear_bits/clock.h"
 
 namespace NUClear {
+    
+    /**
+     * @brief Holds details about reactions that are executed.
+     *
+     * @author Trent Houliston
+     */
     struct ReactionStatistics {
+        /// @brief A string containing the username/on arguments/and callback name of the reaction.
         std::string name;
+        /// @brief The id of this reaction.
         std::uint64_t reactionId;
+        /// @brief The task id of this reaction.
         std::uint64_t taskId;
+        /// @brief The reaction id of the reaction that caused this one or 0 if there was not one
         std::uint64_t causeReactionId;
+        /// @brief The reaction id of the task that caused this task or 0 if there was not one
         std::uint64_t causeTaskId;
+        /// @brief The time that this reaction was emitted to the thread pool
         clock::time_point emitted;
+        /// @brief The time that execution started on this reaction
         clock::time_point started;
+        /// @brief The time that execution finished on this reaction
         clock::time_point finished;
-        std::vector<std::string> log;
+        /// @brief An exception pointer that can be rethrown (if the reaction threw an exception)
         std::exception_ptr exception;
     };
 }

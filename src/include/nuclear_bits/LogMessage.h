@@ -1,5 +1,5 @@
-/**
- * Copyright (C) 2013 Jake Woods <jake.f.woods@gmail.com>, Trent Houliston <trent@houliston.me>
+/*
+ * Copyright (C) 2013 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -18,12 +18,29 @@
 #ifndef NUCLEAR_MESSAGES_LOGMESSAGE_H
 #define NUCLEAR_MESSAGES_LOGMESSAGE_H
 
+#include "LogLevel.h"
+
 namespace NUClear {
+    
+    /**
+     * @brief This type is a NUClear message type that holds a log message.
+     */
     struct LogMessage {
         
+        
+        /// @brief The logging level of the log.
+        LogLevel level;
+        
+        /// @brief The string contents of the message.
         std::string message;
         
-        LogMessage(const std::string& message) : message(message) {}
+        /**
+         * @brief Constructs a new LogMessage.
+         *
+         * @param level the logging level to set.
+         * @param message the message to set.
+         */
+        LogMessage(const LogLevel& level, const std::string& message) : level(level), message(message) {}
     };
 }
 #endif

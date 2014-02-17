@@ -1,5 +1,5 @@
-/**
- * Copyright (C) 2013 Jake Woods <jake.f.woods@gmail.com>, Trent Houliston <trent@houliston.me>
+/*
+ * Copyright (C) 2013 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -29,7 +29,7 @@ namespace {
     class NetworkEmitter : public NUClear::Reactor {
     public:
         NetworkEmitter(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
-            on<Trigger<Every<500, std::chrono::milliseconds>>>([this](const time_t& tick) {
+            on<Trigger<Every<500, std::chrono::milliseconds>>>([this](const time_t&) {
                 emit<Scope::NETWORK>(std::unique_ptr<TestObject>(new TestObject{5}));
             });
         }
