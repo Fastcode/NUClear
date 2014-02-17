@@ -18,7 +18,8 @@
 #ifndef NUCLEAR_METAPROGRAMMING_TYPEMAP_H
 #define NUCLEAR_METAPROGRAMMING_TYPEMAP_H
 
-#include <deque>
+#include <atomic>
+#include <memory>
 #include <vector>
 
 namespace NUClear {
@@ -56,17 +57,20 @@ namespace NUClear {
             /// @brief Deleted destructor as this class is a static class.
             ~TypeMap() = delete;
             /// @brief the data variable where the data is stored for this map key.
+            
             static std::shared_ptr<TValue> data;
             
         public:
             /**
              * @brief Stores the passed value in this map.
              *
-             * @param data a pointer to the data to be stored (the map takes ownership)
+             * @param d a pointer to the data to be stored (the map takes ownership)
              */
             static void set(std::shared_ptr<TValue> d) {
-                data = d;
-            };
+                
+                // Store atomically (to be thread safe)
+                std::atomic_store_explicit(&data, d, std::memory_order_relaxed);
+            }
             
             /**
              * @brief Gets the value that was previously stored.
@@ -76,9 +80,13 @@ namespace NUClear {
              * @throws NoDataException if there is no data that was previously stored
              */
             static std::shared_ptr<TValue> get() {
+                
+                // Atomically get our data
+                std::shared_ptr<TValue> d = std::atomic_load_explicit(&data, std::memory_order_relaxed);
+                
                 //If the pointer is not a nullptr
-                if(data) {
-                    return data;
+                if(d) {
+                    return d;
                 }
                 else {
                     throw NoDataException();
