@@ -38,7 +38,7 @@ namespace NUClear {
         /// @brief The hash for this data type
         extensions::serialization::Hash hash;
         /// @brief The deserializer used to convert the bytes into data
-        std::function<void (Reactor* network, const std::string, const std::string)> deserializer;
+        std::function<void (Reactor& network, const std::string, const std::string)> deserializer;
     };
     
     /**
@@ -52,7 +52,7 @@ namespace NUClear {
      */
     template <typename TData>
     struct PowerPlant::Emit<dsl::Scope::NETWORK, TData> {
-        static void emit(PowerPlant* context, std::shared_ptr<TData> data) {
+        static void emit(PowerPlant& context, std::shared_ptr<TData> data) {
             
             // Make a network message (generic type to trigger on for the networking system)
             auto message = std::make_unique<extensions::serialization::NetworkMessage>();
@@ -68,7 +68,7 @@ namespace NUClear {
             message->set_payload(payload);
             
             // Send our data to be emitted
-            context->emit(std::move(message));
+            context.emit(std::move(message));
         };
     };
     
@@ -79,19 +79,19 @@ namespace NUClear {
      */
     template <typename TData>
     struct Reactor::Exists<dsl::Network<TData>> {
-        static void exists(Reactor* context) {
+        static void exists(Reactor& context) {
             
             // Send a direct emit to the Network reactor to tell it about the new type to listen for
-            context->emit<Scope::DIRECT>(std::unique_ptr<NetworkTypeConfig>(new NetworkTypeConfig {
+            context.emit<Scope::DIRECT>(std::unique_ptr<NetworkTypeConfig>(new NetworkTypeConfig {
                 extensions::serialization::hash<TData>(),
-                [] (Reactor* reactor, const std::string source, const std::string data) {
+                [] (Reactor& reactor, const std::string source, const std::string data) {
                     
                     // Deserialize our data and store it in the network object
                     std::unique_ptr<TData> parsed(std::make_unique<TData>(extensions::serialization::Serializer<TData>::deserialize(data)));
                     std::unique_ptr<Network<TData>> event = std::make_unique<Network<TData>>(source, std::move(parsed));
                     
                     // Emit it to the world
-                    reactor->emit(std::move(event));
+                    reactor.emit(std::move(event));
                 }
             }));
         }
@@ -134,7 +134,7 @@ namespace NUClear {
             void kill();
             
             /// @brief A map of hash types and deseriaizers that can resolve them
-            std::unordered_map<serialization::Hash, std::function<void(Reactor*, const std::string, std::string)>> deserialize;
+            std::unordered_map<serialization::Hash, std::function<void(Reactor&, const std::string, std::string)>> deserialize;
             /// @brief If our system should be running
             volatile bool running;
             /// @brief The name of our device to identify it on outgoing packets

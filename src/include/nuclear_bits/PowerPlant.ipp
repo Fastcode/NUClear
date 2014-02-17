@@ -1,5 +1,5 @@
-/**
- * Copyright (C) 2013 Jake Woods <jake.f.woods@gmail.com>, Trent Houliston <trent@houliston.me>
+/*
+ * Copyright (C) 2013 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -31,7 +31,7 @@ namespace NUClear {
     // If we don't have it but we have more to test, continue testing
     template <typename TFirst, typename TSecond, typename... TRest>
     struct HasScope<TFirst, TSecond, TRest...> : public HasScope<TFirst, TRest...> {};
-
+    
     template <typename TReactor, enum LogLevel level>
     void PowerPlant::install() {
         
@@ -44,28 +44,28 @@ namespace NUClear {
     
     template <typename TData>
     struct PowerPlant::Emit<dsl::Scope::LOCAL, TData> {
-        static void emit(PowerPlant* context, std::shared_ptr<TData> data) {
-            context->reactormaster.emit(data);
+        static void emit(PowerPlant& context, std::shared_ptr<TData> data) {
+            context.reactormaster.emit(data);
         }
     };
-
+    
     template <typename TData>
     struct PowerPlant::Emit<dsl::Scope::DIRECT, TData> {
-        static void emit(PowerPlant* context, std::shared_ptr<TData> data) {
-            context->reactormaster.directEmit(data);
+        static void emit(PowerPlant& context, std::shared_ptr<TData> data) {
+            context.reactormaster.directEmit(data);
         }
     };
-
+    
     template <typename TData>
     struct PowerPlant::Emit<dsl::Scope::INITIALIZE, TData> {
-        static void emit(PowerPlant* context, std::shared_ptr<TData> data) {
-            context->reactormaster.emitOnStart(data);
+        static void emit(PowerPlant& context, std::shared_ptr<TData> data) {
+            context.reactormaster.emitOnStart(data);
         }
     };
-
+    
     template <typename... THandlers, typename TData>
     void PowerPlant::emit(std::unique_ptr<TData>&& data) {
-
+        
         
         // If there are no types defined, the default is to emit local
         if(sizeof...(THandlers) == 0) {
@@ -74,12 +74,12 @@ namespace NUClear {
         else {
             // Release our data from the pointer and wrap it in a shared_ptr
             std::shared_ptr<TData> ptr = std::shared_ptr<TData>(std::move(data));
-
+            
             // For some reason GCC thinks this variable is unused? this supresses that warning
             (void) ptr;
-
+            
             // TODO These functions should be noexcept
-            metaprogramming::unpack((PowerPlant::Emit<THandlers, TData>::emit(this, ptr), 0)...);
+            metaprogramming::unpack((PowerPlant::Emit<THandlers, TData>::emit(*this, ptr), 0)...);
         }
     }
     
@@ -101,7 +101,7 @@ namespace NUClear {
     void PowerPlant::log(TArgs... args) {
         
         // Get our current task
-        auto* task = powerplant->threadmaster.getCurrentTask(std::this_thread::get_id());
+        auto* task = powerplant->threadmaster.getCurrentTask();
         
         // If our reaction is logging at this level (TODO this needs to respect some level)
         if(level >= DEBUG) {

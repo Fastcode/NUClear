@@ -50,13 +50,13 @@ namespace NUClear {
          *
          * @param context a pointer to the reactor that is using the exists.
          */
-        static void exists(Reactor* context) {
+        static void exists(Reactor& context) {
             
             // Direct emit a ChronoConfig type for our desired length of time
-            context->emit<Scope::DIRECT>(std::unique_ptr<ChronoConfig>(new ChronoConfig {
+            context.emit<Scope::DIRECT>(std::unique_ptr<ChronoConfig>(new ChronoConfig {
                 typeid(dsl::Every<ticks, period>),
-                [context] { // Function that emits our timepoint when needed
-                    context->emit(std::make_unique<DataFor<dsl::Every<ticks, period>, Reactor::time_t>>(std::make_shared<Reactor::time_t>(clock::now())));
+                [&context] { // Function that emits our timepoint when needed
+                    context.emit(std::make_unique<DataFor<dsl::Every<ticks, period>, Reactor::time_t>>(std::make_shared<Reactor::time_t>(clock::now())));
                 },
                 clock::duration(period(ticks))
             }));
@@ -77,13 +77,13 @@ namespace NUClear {
          *
          * @param context a pointer to the reactor that is using the exists.
          */
-        static void exists(Reactor* context) {
+        static void exists(Reactor& context) {
             
             // Direct emit a ChronoConfig type for our desired length of time
-            context->emit<Scope::DIRECT>(std::unique_ptr<ChronoConfig>(new ChronoConfig {
+            context.emit<Scope::DIRECT>(std::unique_ptr<ChronoConfig>(new ChronoConfig {
                 typeid(dsl::Every<ticks, dsl::Per<period>>),
-                [context] { // Function that emits our timepoint when needed
-                    context->emit(std::make_unique<DataFor<dsl::Every<ticks, dsl::Per<period>>, Reactor::time_t>>(std::make_shared<Reactor::time_t>(clock::now())));
+                [&context] { // Function that emits our timepoint when needed
+                    context.emit(std::make_unique<DataFor<dsl::Every<ticks, dsl::Per<period>>, Reactor::time_t>>(std::make_shared<Reactor::time_t>(clock::now())));
                 },
                 // Work out our time unit needed to do an every per
                 clock::duration(long((double(period::period::den) / (double(ticks) * double(period::period::num))) * (double(clock::period::den) / clock::period::num)))
@@ -115,7 +115,7 @@ namespace NUClear {
      */
     template <int ticks, class period>
     struct PowerPlant::CacheMaster::Get<dsl::Every<ticks, period>> {
-        static std::shared_ptr<clock::time_point> get(PowerPlant* context) {
+        static std::shared_ptr<clock::time_point> get(PowerPlant& context) {
             return ValueCache<DataFor<dsl::Every<ticks, period>, Reactor::time_t>>::get()->data;
         }
     };

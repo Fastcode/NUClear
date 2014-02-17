@@ -30,7 +30,7 @@ namespace {
 
             on<Trigger<NUClear::LogMessage>>([this](const NUClear::LogMessage& logMessage) {
                 REQUIRE(logMessage.message == "Got int: 5");
-                powerPlant->shutdown();
+                powerPlant.shutdown();
             });
 
             on<Trigger<int>>([this](const int& v) {

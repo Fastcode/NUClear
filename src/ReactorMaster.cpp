@@ -19,7 +19,7 @@
 
 namespace NUClear {
     
-    PowerPlant::ReactorMaster::ReactorMaster(PowerPlant* parent) :
+    PowerPlant::ReactorMaster::ReactorMaster(PowerPlant& parent) :
         PowerPlant::BaseMaster(parent) {}
 
     void PowerPlant::ReactorMaster::start() {

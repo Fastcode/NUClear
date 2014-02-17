@@ -39,7 +39,7 @@ namespace {
             });
 
             on<Trigger<ShutdownNowPlx>>([this](const ShutdownNowPlx& plx) {
-                powerPlant->shutdown();
+                powerPlant.shutdown();
             });
         }
     };

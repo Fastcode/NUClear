@@ -45,7 +45,7 @@ namespace NUClear {
      */
     template <int num, typename TData>
     struct PowerPlant::CacheMaster::Get<dsl::Last<num, TData>> {
-        static std::shared_ptr<std::vector<std::shared_ptr<const TData>>> get(PowerPlant* context) {
+        static std::shared_ptr<std::vector<std::shared_ptr<const TData>>> get(PowerPlant& context) {
             
             return ValueCache<DataFor<dsl::Last<num, TData>, std::vector<std::shared_ptr<const TData>>>>::get()->data;
         }
@@ -64,7 +64,7 @@ namespace NUClear {
      */
     template <int num, typename TData>
     struct Reactor::Exists<dsl::Last<num, TData>> {
-        static void exists(Reactor* context) {
+        static void exists(Reactor& context) {
             
             // This map tracks what lasts are already looked after
             static std::unordered_set<std::type_index> inserted;
@@ -73,7 +73,7 @@ namespace NUClear {
             if(inserted.find(typeid(dsl::Last<num, TData>)) == inserted.end()) {
                 
                 // Make a new reaction
-                context->on<Trigger<Raw<TData>>, Options<Sync<dsl::Last<num, TData>>>>([context] (const std::shared_ptr<const TData>& d) {
+                context.on<Trigger<Raw<TData>>, Options<Sync<dsl::Last<num, TData>>>>([&context] (const std::shared_ptr<const TData>& d) {
                     
                     // This holds the last elements that are needed
                     static std::deque<std::shared_ptr<const TData>> elements;
@@ -91,7 +91,7 @@ namespace NUClear {
                     data->data->insert(data->data->begin(), elements.begin(), elements.end());
                     
                     // Emit the object for use
-                    context->emit(std::move(data));
+                    context.emit(std::move(data));
                 });
             }
             

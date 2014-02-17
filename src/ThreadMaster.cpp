@@ -20,18 +20,18 @@
 
 namespace NUClear {
     
-    PowerPlant::ThreadMaster::ThreadMaster(PowerPlant* parent) :
+    PowerPlant::ThreadMaster::ThreadMaster(PowerPlant& parent) :
     PowerPlant::BaseMaster(parent) {
     }
     
     
-    void PowerPlant::ThreadMaster::setCurrentTask(std::thread::id threadId, const threading::ReactionTask* task) {
+    void PowerPlant::ThreadMaster::setCurrentTask(const threading::ReactionTask* task) {
         // TODO replace this with thread_local if possible (c++11 keyword thread_local)
-        currentTask[threadId] = task;
+        currentTask[std::this_thread::get_id()] = task;
     }
     
-    const threading::ReactionTask* PowerPlant::ThreadMaster::getCurrentTask(std::thread::id threadId) {
-        auto task = currentTask.find(threadId);
+    const threading::ReactionTask* PowerPlant::ThreadMaster::getCurrentTask() {
+        auto task = currentTask.find(std::this_thread::get_id());
         
         if(task != std::end(currentTask)) {
             return task->second;
@@ -50,7 +50,7 @@ namespace NUClear {
         }
         
         // Start our pool threads
-        for(unsigned i = 0; i < parent->configuration.threadCount; ++i) {
+        for(unsigned i = 0; i < parent.configuration.threadCount; ++i) {
             threads.push_back(std::make_unique<threading::ThreadWorker>(threading::ThreadPoolTask(parent, scheduler)));
         }
         

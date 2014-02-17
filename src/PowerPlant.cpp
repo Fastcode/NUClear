@@ -1,5 +1,5 @@
-/**
- * Copyright (C) 2013 Jake Woods <jake.f.woods@gmail.com>, Trent Houliston <trent@houliston.me>
+/*
+ * Copyright (C) 2013 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -23,10 +23,11 @@ namespace NUClear {
 
     PowerPlant::PowerPlant(Configuration config, int argc, const char *argv[]) :
     configuration(config)
-    , threadmaster(this)
-    , cachemaster(this)
-    , reactormaster(this) {
+    , threadmaster(*this)
+    , cachemaster(*this)
+    , reactormaster(*this) {
         
+        // Stop people from making more then one powerplant
         if(powerplant) {
             throw std::runtime_error("There is already a powerplant in existance (There should be a single stack allocated PowerPlant");
         }
@@ -35,7 +36,7 @@ namespace NUClear {
         powerplant = this;
         
         // State that we are setting up
-        std::cout << "Building the PowerPlant with " << configuration.threadCount << " threads" << std::endl;
+        std::cout << "Building the PowerPlant with " << configuration.threadCount << " thread" << (configuration.threadCount != 1 ? "s" : "") << std::endl;
         
         // Install the chrono extension
         std::cout << "Installing the Chrono extension" << std::endl;
@@ -61,7 +62,7 @@ namespace NUClear {
         // them on Trigger<Initialize>
         reactormaster.start();
 
-        emit<dsl::Scope::DIRECT>(std::make_unique<dsl::Initialize>());
+        emit<dsl::Scope::DIRECT>(std::make_unique<dsl::Startup>());
 
         threadmaster.start();
     }

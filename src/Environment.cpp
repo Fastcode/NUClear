@@ -20,7 +20,7 @@
 
 namespace NUClear {
     
-    Environment::Environment(PowerPlant* powerPlant, LogLevel logLevel) :
+    Environment::Environment(PowerPlant& powerPlant, LogLevel logLevel) :
         powerPlant(powerPlant),
         logLevel(logLevel)
     {}

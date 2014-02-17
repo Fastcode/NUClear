@@ -68,7 +68,7 @@ namespace NUClear {
         std::unique_ptr<Environment> environment;
         
         /// @brief TODO
-        PowerPlant* powerPlant;
+        PowerPlant& powerPlant;
         
         /// @brief TODO inherit from commandtype
         using time_t = clock::time_point;
@@ -89,7 +89,7 @@ namespace NUClear {
         using Options = dsl::Options<TOptions...>;
         
         /// @brief TODO inherit from commandtype
-        using Initialize = dsl::Initialize;
+        using Startup = dsl::Startup;
         
         /// @brief TODO inherit from commandtype
         using Shutdown = dsl::Shutdown;
@@ -114,7 +114,7 @@ namespace NUClear {
         template <class TData>
         using LastList = std::vector<std::shared_ptr<const TData>>;
         
-        /// @breif TODO inherit docs from commandtype
+        /// @brief TODO inherit docs from commandtype
         using CommandLineArguments = dsl::CommandLineArguments;
         
         /// @brief TODO inherit from commandtype
@@ -164,7 +164,7 @@ namespace NUClear {
          * @param callback  TODO
          */
         template <typename... TParams, typename TFunc>
-        Reactor::ReactionHandle on(std::string name, TFunc callback);
+        Reactor::ReactionHandle on(const std::string& name, TFunc callback);
         
         /**
          * @brief TODO
@@ -227,15 +227,15 @@ namespace NUClear {
         template <typename TFunc, typename... TTriggers, typename... TWiths, typename... TOptions, typename... TFuncArgs>
         struct On<TFunc, Trigger<TTriggers...>, With<TWiths...>, Options<TOptions...>, std::tuple<TFuncArgs...>> {
             
-            static ReactionHandle on(Reactor* context, std::string name, TFunc callback);
+            static ReactionHandle on(Reactor& context, std::string name, TFunc callback);
         };
         
         /**
          * @brief This function populates the passed ReactionOptions object will all of the data held in the options.
          *
-         * @tparam the options which to apply to this options object
+         * @tparam TOption the options which to apply to this options object
          *
-         * @param the options to populate
+         * @param options the options to populate
          */
         template <typename... TOption>
         void buildOptions(threading::ReactionOptions& options);
@@ -261,7 +261,7 @@ namespace NUClear {
         /**
          * @brief This case of build options is used to add the Priority option.
          *
-         * @tparam TSync the sync type we are synchronizing on
+         * @tparam P the sync type we are synchronizing on
          *
          * @param placeholder which is used to specialize this method
          */

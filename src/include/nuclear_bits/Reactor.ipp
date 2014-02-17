@@ -157,7 +157,7 @@ namespace NUClear {
     }
     
     template <typename... TParams, typename TFunc>
-    Reactor::ReactionHandle Reactor::on(std::string name, TFunc callback) {
+    Reactor::ReactionHandle Reactor::on(const std::string& name, TFunc callback) {
         
         // There must be some parameters
         static_assert(sizeof...(TParams) > 0, "You must have at least one paramter in an on");
@@ -168,12 +168,12 @@ namespace NUClear {
         identifier << demangle(typeid(std::tuple<TParams...>).name()) << std::endl;
         identifier << demangle(typeid(TFunc).name());
         
-        return On<TFunc, TParams...>::on(this, identifier.str(), callback);
+        return On<TFunc, TParams...>::on(*this, identifier.str(), callback);
     }
     
     template <typename... THandlers, typename TData>
     void Reactor::emit(std::unique_ptr<TData>&& data) {
-        powerPlant->emit<THandlers...>(std::forward<std::unique_ptr<TData>>(data));
+        powerPlant.emit<THandlers...>(std::forward<std::unique_ptr<TData>>(data));
     }
     
     // This is our final On statement
@@ -183,17 +183,17 @@ namespace NUClear {
     Reactor::Trigger<TTriggers...>,
     Reactor::With<TWiths...>,
     Reactor::Options<TOptions...>,
-    std::tuple<TFuncArgs...>>::on(Reactor* context, std::string name, TFunc callback) {
+    std::tuple<TFuncArgs...>>::on(Reactor& context, std::string name, TFunc callback) {
         
         static_assert(Reactor::CheckFunctionSignature<TFunc, std::tuple<TFuncArgs...>>::value, "Your callback function does not match the types in the On statement");
         static_assert(sizeof...(TTriggers) > 0, "You must have at least one Trigger in a callback");
         
         // Build up our options
         threading::ReactionOptions options;
-        context->buildOptions<TOptions...>(options);
+        context.buildOptions<TOptions...>(options);
         
         // Bind all of our trigger events to a reaction
-        auto onHandler = context->bindTriggers<TTriggers...>(context->buildReaction<TFunc, TFuncArgs...>(name,
+        auto onHandler = context.bindTriggers<TTriggers...>(context.buildReaction<TFunc, TFuncArgs...>(name,
         callback, options));
         
         // Run any existence commands needed (running because a type exists)
@@ -225,22 +225,24 @@ namespace NUClear {
         return std::make_unique<threading::Reaction>(name, [this, callback]() -> std::function<void (threading::ReactionTask&)> {
             
             // TODO consider potential threading implications if two threads emit at once and overwrite (then this will get the same value for both)
-            auto&& data = std::make_tuple(powerPlant->cachemaster.get<TTriggersAndWiths>()...);
+            auto data = std::make_tuple(powerPlant.cachemaster.get<TTriggersAndWiths>()...);
+            
+            // TODO metafunction that when using get gets the new data object somehow?
             
             return [this, callback, data] (threading::ReactionTask& task) {
                 
-                this->powerPlant->threadmaster.setCurrentTask(std::this_thread::get_id(), &task);
+                this->powerPlant.threadmaster.setCurrentTask(&task);
                 
                 metaprogramming::apply(callback, data);
                 
-                this->powerPlant->threadmaster.setCurrentTask(std::this_thread::get_id(), nullptr);
+                this->powerPlant.threadmaster.setCurrentTask(nullptr);
             };
         }, options);
     }
     
     template <typename TData>
     struct Reactor::Exists {
-        static void exists(Reactor* context) {};
+        static void exists(Reactor& context) {};
     };
     
     template <typename TData>

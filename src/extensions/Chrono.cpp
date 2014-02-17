@@ -30,7 +30,7 @@ namespace NUClear {
             // Build a task and add it as a service task
             threading::ThreadWorker::ServiceTask task(std::bind(&Chrono::run, this),
                                                       std::bind(&Chrono::kill, this));
-            this->powerPlant->addServiceTask(task);
+            this->powerPlant.addServiceTask(task);
         }
         
         void Chrono::add(const NUClear::ChronoConfig& config) {

@@ -35,7 +35,7 @@ namespace NUClear {
      */
     template <typename TData>
     struct PowerPlant::CacheMaster::Get<dsl::Raw<TData>> {
-        static std::shared_ptr<std::shared_ptr<TData>> get(PowerPlant* context) {
+        static std::shared_ptr<std::shared_ptr<TData>> get(PowerPlant& context) {
             return std::make_shared<std::shared_ptr<TData>>(ValueCache<TData>::get());
         }
     };

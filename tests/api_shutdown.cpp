@@ -39,7 +39,7 @@ namespace {
                 REQUIRE(message.data == 10);
                 
                 // We are finished the test
-                this->powerPlant->shutdown();
+                powerPlant.shutdown();
             });
             
             on<Trigger<Shutdown>>([this](const Shutdown&) {

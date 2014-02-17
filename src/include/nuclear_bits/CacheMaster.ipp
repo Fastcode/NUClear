@@ -19,7 +19,7 @@ namespace NUClear {
     
     template <typename TData>
     struct PowerPlant::CacheMaster::Get {
-        static std::shared_ptr<TData> get(PowerPlant*) {
+        static std::shared_ptr<TData> get(PowerPlant&) {
             return ValueCache<TData>::get();
         }
     };

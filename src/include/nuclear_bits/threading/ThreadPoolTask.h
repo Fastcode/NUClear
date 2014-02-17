@@ -39,7 +39,7 @@ namespace NUClear {
              * @param powerplant the powerplant that this task is running under
              * @param scheduler the scheduler instance shared between the ThreadPool
              */
-            ThreadPoolTask(PowerPlant* powerplant, TaskScheduler& scheduler);
+            ThreadPoolTask(PowerPlant& powerplant, TaskScheduler& scheduler);
             ~ThreadPoolTask();
             
             /// @brief runs the task, collecting and executing tasks from the scheduler
@@ -48,7 +48,7 @@ namespace NUClear {
             void kill();
         private:
             /// @brief the powerplant instance that this task is executing for
-            PowerPlant* powerPlant;
+            PowerPlant& powerPlant;
             /// @breif the scheduler that is used to obtain tasks to execute
             TaskScheduler& scheduler;
         };

@@ -45,7 +45,7 @@ namespace NUClear {
             threading::ThreadWorker::ServiceTask task(std::bind(&Networking::run, this),
                                                       std::bind(&Networking::kill, this));
             
-            powerPlant->addServiceTask(task);
+            powerPlant.addServiceTask(task);
             
             // When we get a network type configuration, we must build a lambda to handle it
             on<Trigger<NetworkTypeConfig>>([this] (const NetworkTypeConfig& config) {
@@ -128,7 +128,7 @@ namespace NUClear {
                     // Find this type's deserializer (if it exists)
                     auto it = deserialize.find(type);
                     if(it != std::end(deserialize)) {
-                        it->second(this, proto.source(), proto.payload());
+                        it->second(*this, proto.source(), proto.payload());
                     }
                 }
             }

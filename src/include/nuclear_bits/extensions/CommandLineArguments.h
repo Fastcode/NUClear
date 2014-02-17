@@ -42,7 +42,7 @@ namespace NUClear {
      */
     template <>
     struct PowerPlant::CacheMaster::Get<dsl::CommandLineArguments> {
-        static std::shared_ptr<std::vector<std::string>> get(PowerPlant* context) {
+        static std::shared_ptr<std::vector<std::string>> get(PowerPlant& context) {
             return ValueCache<DataFor<dsl::CommandLineArguments, std::vector<std::string>>>::get()->data;
         }
     };
