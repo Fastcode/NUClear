@@ -34,13 +34,26 @@ namespace NUClear {
         /// @brief The string contents of the message.
         std::string message;
         
+        /// @brief The ID of the task that made this (or 0 if there was none)
+        uint64_t taskId;
+        
+        /// @brief The ID of the reaction that made this (or 0 if there was none)
+        uint64_t reactionId;
+        
         /**
          * @brief Constructs a new LogMessage.
          *
          * @param level the logging level to set.
          * @param message the message to set.
          */
-        LogMessage(const LogLevel& level, const std::string& message) : level(level), message(message) {}
+        LogMessage(const LogLevel& level
+                   , const std::string& message
+                   , const uint64_t& taskId
+                   , const uint64_t& reactionId)
+        : level(level)
+        , message(message)
+        , taskId(taskId)
+        , reactionId(reactionId) {}
     };
 }
 #endif

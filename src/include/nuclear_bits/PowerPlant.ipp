@@ -111,16 +111,11 @@ namespace NUClear {
             logImpl(outputStream, std::forward<TArgs>(args)...);
             std::string output = outputStream.str();
             
-            // Task could be null if log is called from a non-reaction context.
-            // If so we just don't link it to the current reaction.
-            if(task) {
-                task->stats->log.push_back(output);
-            }
-            
             // Direct emit the log message so that any direct loggers can use it
-            powerplant->emit<dsl::Scope::DIRECT>(std::make_unique<LogMessage>(output));
+            powerplant->emit<dsl::Scope::DIRECT>(std::make_unique<LogMessage>(level
+                                                                              , output
+                                                                              , task ? task->taskId : 0
+                                                                              , task ? task->parent->reactionId : 0));
         }
     }
-    
-    
 }
