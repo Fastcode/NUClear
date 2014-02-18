@@ -330,14 +330,16 @@ namespace NUClear {
         struct Emit;
         
     public:
-        /// @brief TODO
+        
+        /// @brief Holds the configuration information for this PowerPlant (such as number of pool threads)
         const Configuration configuration;
+        
     protected:
-        /// @brief TODO
+        /// @brief The ThreadMaster instance for this PowerPlant.
         ThreadMaster threadmaster;
-        /// @brief TODO
+        /// @brief The CacheMaster instance for this PowerPlant.
         CacheMaster cachemaster;
-        /// @brief TODO
+        /// @brief The ReactorMaster instance for this PowerPlant.
         ReactorMaster reactormaster;
     public:
         /**
@@ -352,61 +354,72 @@ namespace NUClear {
         PowerPlant(Configuration config = Configuration(), int argc = 0, const char *argv[] = nullptr);
         
         /**
-         * @brief TODO
+         * @brief Starts up this PowerPlants components in order and begins it running.
          *
          * @details
-         *  TODO
+         *  Starts up the PowerPlant instance and starts all the pool threads. This
+         *  method is blocking and will release when the PowerPlant shuts down.
+         *  It should only be called from the main thread so that statics are not
+         *  destructed.
          */
         void start();
         
         /**
-         * @brief TODO
-         *
-         * @details
-         *  TODO
+         * @brief Shuts down the PowerPlant, tells all component threads to terminate,
+         *  Then releases the main thread.
          */
         void shutdown();
         
         /**
-         * @brief TODO
+         * @brief Adds a service task thread to the PowerPlant's control.
          *
          * @details
-         *  TODO
+         *  A service task is a task that will be managed by the PowerPlants threadmaster
+         *  so that it can be started and killed with the rest of the system.
          *
-         * @param task TODO
+         * @param task The service task to add to the system
          */
         void addServiceTask(threading::ThreadWorker::ServiceTask task);
         
         /**
-         * @brief TODO
+         * @brief Installs a reactor of a particular type to the system.
          *
          * @details
-         *  TODO
+         *  This function creates a new Reactor of the type that is passed in
+         *  TReactor and constructs it. It passes through the specified LogLevel
+         *  in the environment of that reactor so that it can be used to filter logs.
          *
-         * @tparam TReactor TODO
+         * @tparam TReactor The type of the reactor to build and install
+         * @tparam level    The Logging level for this reactor to use
          */
         template <typename TReactor, enum LogLevel level = DEBUG>
         void install();
         
         /**
-         * @brief TODO
+         * @brief Log a message through NUClears system.
          *
          * @details
-         *  TODO
+         *  Logs a message through the system so the various log handlers
+         *  can access it.
+         *
+         * @tparam level The level to log at (defaults to DEBUG)
+         * @tparam TArgs The types of the arguments we are logging
+         *
+         * @param args The arguments we are logging
          */
         template <enum LogLevel level, typename... TArgs>
         static void log(TArgs... args);
         
         /**
-         * @brief TODO
+         * @brief Emits data to the system and routes it to the other systems that use it.
          *
          * @details
          *  TODO
          *
-         * @tparam THandlers    TODO
-         * @tparam TData        TODO
+         * @tparam THandlers    The handlers to use for this emit
+         * @tparam TData        The type of the data that we are emitting
          *
-         * @param data TODO
+         * @param data The data we are emitting
          */
         template <typename... THandlers, typename TData>
         void emit(std::unique_ptr<TData>&& data);

@@ -17,21 +17,6 @@
 
 namespace NUClear {
     
-    template <typename TTarget, typename... TValues>
-    struct HasScope;
-    
-    // If we have no values then we don't have that scope
-    template <typename TTarget>
-    struct HasScope<TTarget> : public std::false_type {};
-    
-    // If we have the type (first two types are the same) then we have it
-    template <typename TTarget, typename... TRest>
-    struct HasScope<TTarget, TTarget, TRest...> : public std::true_type {};
-    
-    // If we don't have it but we have more to test, continue testing
-    template <typename TFirst, typename TSecond, typename... TRest>
-    struct HasScope<TFirst, TSecond, TRest...> : public HasScope<TFirst, TRest...> {};
-    
     template <typename TReactor, enum LogLevel level>
     void PowerPlant::install() {
         
@@ -42,6 +27,7 @@ namespace NUClear {
         reactormaster.install<TReactor, level>();
     }
     
+    // Standard local emit (emit to the reactormaster)
     template <typename TData>
     struct PowerPlant::Emit<dsl::Scope::LOCAL, TData> {
         static void emit(PowerPlant& context, std::shared_ptr<TData> data) {
@@ -49,6 +35,7 @@ namespace NUClear {
         }
     };
     
+    // Direct emit (emit to the reactormasters directly)
     template <typename TData>
     struct PowerPlant::Emit<dsl::Scope::DIRECT, TData> {
         static void emit(PowerPlant& context, std::shared_ptr<TData> data) {
@@ -56,6 +43,7 @@ namespace NUClear {
         }
     };
     
+    // Initialize emit (emit to reactormaster on startup)
     template <typename TData>
     struct PowerPlant::Emit<dsl::Scope::INITIALIZE, TData> {
         static void emit(PowerPlant& context, std::shared_ptr<TData> data) {
@@ -63,6 +51,7 @@ namespace NUClear {
         }
     };
     
+    // Global emit handlers
     template <typename... THandlers, typename TData>
     void PowerPlant::emit(std::unique_ptr<TData>&& data) {
         
