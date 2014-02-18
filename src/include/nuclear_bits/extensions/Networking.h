@@ -18,7 +18,7 @@
 #ifndef NUCLEAR_EXTENSIONS_NETWORKING_H
 #define NUCLEAR_EXTENSIONS_NETWORKING_H
 
-#include <nuclear>
+#include "nuclear"
 #include <string>
 #include <zmq.hpp>
 
@@ -29,8 +29,6 @@ namespace NUClear {
     
     /**
      * @brief This type holds the details for how to deserialze a datatype that we want.
-     *
-     * @details
      *
      * @author Trent Houliston
      */

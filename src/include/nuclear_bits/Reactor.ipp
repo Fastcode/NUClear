@@ -21,6 +21,7 @@ namespace NUClear {
     template <typename TFunc, typename... TParams>
     struct Reactor::On : public OnBuilder<TFunc, Reactor::Trigger<>, Reactor::With<>, Reactor::Options<>, std::tuple<>, TParams...> {};
     
+    // This section of the metafunction adds triggers from our argument list to our list of triggers
     template <
     typename TFunc,
     typename... TTriggers,
@@ -45,6 +46,7 @@ namespace NUClear {
     std::tuple<TFuncArgs..., TNewTriggers...>,
     TParams...> {};
     
+    // This section of the metafunction adds withs from our argument list to our list of withs
     template <
     typename TFunc,
     typename... TTriggers,
@@ -69,6 +71,7 @@ namespace NUClear {
     std::tuple<TFuncArgs..., TNewWiths...>,
     TParams...> {};
     
+    // This section of the metafunction adds options from our argument list to our list of options
     template <
     typename TFunc,
     typename... TTriggers,
@@ -93,6 +96,7 @@ namespace NUClear {
     std::tuple<TFuncArgs...>,
     TParams...> {};
     
+    // This section of the metafunction is the final section that creats our On statement
     template <
     typename TFunc,
     typename... TTriggers,
@@ -112,18 +116,22 @@ namespace NUClear {
     Reactor::Options<TOptions...>,
     std::tuple<TFuncArgs...>> {};
     
+    // Step 1 of checking the function: get the actual types from the cache master (for extensions)
     template <typename TFunc, typename... TTypes>
     struct Reactor::CheckFunctionSignature<TFunc, std::tuple<TTypes...>, 0> :
     public Reactor::CheckFunctionSignature<TFunc, std::tuple<decltype(std::declval<PowerPlant::CacheMaster>().get<TTypes>())...>, 1> {};
     
+    // Step 2 of checking the function: if the type is dereferenceable, get the type it resovles to
     template <typename TFunc, typename... TTypes>
     struct Reactor::CheckFunctionSignature<TFunc, std::tuple<TTypes...>, 1> :
     public Reactor::CheckFunctionSignature<TFunc, std::tuple<decltype(metaprogramming::Dereferenceable<TTypes>::dereference(std::declval<TTypes>()))...>, 2> {};
     
+    // Step 3 of checking the function: remove the references and add const to our type
     template <typename TFunc, typename... TTypes>
     struct Reactor::CheckFunctionSignature<TFunc, std::tuple<TTypes...>, 2> :
     public Reactor::CheckFunctionSignature<TFunc, std::tuple<Meta::AddConst<Meta::RemoveRef<TTypes>>...>, 3> {};
     
+    // Step 4 of checking the function: see if we can assign a function that takes the types to the other type
     template <typename TFunc, typename... TTypes>
     struct Reactor::CheckFunctionSignature<TFunc, std::tuple<TTypes...>, 3> :
     public Meta::If<std::is_assignable<std::function<void (TTypes...)>, TFunc>, std::true_type, std::false_type> {};

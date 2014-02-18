@@ -47,9 +47,9 @@ namespace NUClear {
             /**
              * @brief Constructs a new Reaction with the passed callback generator and options
              *
-             * @param name      string identifier information about the reaction to help identify it
-             * @param callback  the callback generator function (creates databound callbacks)
-             * @param options   the options to use in Tasks
+             * @param identifier    string identifier information about the reaction to help identify it
+             * @param callback      the callback generator function (creates databound callbacks)
+             * @param options       the options to use in Tasks
              */
             Reaction(std::vector<const std::string> identifier, std::function<std::function<void (ReactionTask&)> ()> callback, ReactionOptions options);
             
