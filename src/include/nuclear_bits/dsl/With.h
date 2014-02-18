@@ -23,7 +23,7 @@ namespace NUClear {
         
         /**
          * @ingroup Wrappers
-         * @brief This is a wrapper class which is used to list the data types to trigger a callback on.
+         * @brief This is a wrapper class which is used to list the data types to use in addtion on a callback.
          *
          * @details
          *  This class is used in the on binding to specify additional data which is used in a call, but does not
