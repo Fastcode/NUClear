@@ -18,7 +18,7 @@
 #ifndef NUCLEAR_METAPROGRAMMING_TYPEMAP_H
 #define NUCLEAR_METAPROGRAMMING_TYPEMAP_H
 
-#include <atomic>
+#include <mutex>
 #include <memory>
 #include <vector>
 
@@ -59,6 +59,7 @@ namespace NUClear {
             /// @brief the data variable where the data is stored for this map key.
             
             static std::shared_ptr<TValue> data;
+            static std::mutex mutex;
             
         public:
             /**
@@ -68,8 +69,13 @@ namespace NUClear {
              */
             static void set(std::shared_ptr<TValue> d) {
                 
-                // Store atomically (to be thread safe)
-                std::atomic_store_explicit(&data, d, std::memory_order_relaxed);
+                // Do this once G++ supports it
+                //std::atomic_store_explicit(&data, d, std::memory_order_relaxed);
+                
+                // Lock a mutex and set our data
+                std::lock_guard<std::mutex> lock(mutex);
+                data = d;
+                
             }
             
             /**
@@ -81,8 +87,15 @@ namespace NUClear {
              */
             static std::shared_ptr<TValue> get() {
                 
-                // Atomically get our data
-                std::shared_ptr<TValue> d = std::atomic_load_explicit(&data, std::memory_order_relaxed);
+                // TODO do this when gcc supports it
+                // std::atomic_load_explicit(&data, std::memory_order_relaxed);
+                
+                std::shared_ptr<TValue> d;
+                {
+                    std::lock_guard<std::mutex> lock(mutex);
+                    d = data;
+                }
+                
                 
                 //If the pointer is not a nullptr
                 if(d) {
@@ -119,6 +132,8 @@ namespace NUClear {
         /// Initialize our shared_ptr data
         template <typename TMapID, typename TKey, typename TValue>
         std::shared_ptr<TValue> TypeMap<TMapID, TKey, TValue>::data;
+        template <typename TMapID, typename TKey, typename TValue>
+        std::mutex TypeMap<TMapID, TKey, TValue>::mutex;
         
         /// Initialize our type list data
         template <typename TMapID, typename TKey, typename TValue>
