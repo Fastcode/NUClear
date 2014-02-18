@@ -34,7 +34,7 @@ namespace {
             });
 
             on<Trigger<int>>([this](const int& v) {
-                NUClear::log<NUClear::DEBUG>("Got int: ", v);
+                NUClear::log<NUClear::DEBUG>("Got int:", v);
             });
         }
     };
