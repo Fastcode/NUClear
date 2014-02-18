@@ -170,7 +170,7 @@ namespace NUClear {
         // There must be some parameters
         static_assert(sizeof...(TParams) > 0, "You must have at least one paramter in an on");
         
-        std::vector<const std::string> identifier;
+        std::vector<std::string> identifier;
         identifier.reserve(3);
         
         identifier.push_back(name);
@@ -192,7 +192,7 @@ namespace NUClear {
     Reactor::Trigger<TTriggers...>,
     Reactor::With<TWiths...>,
     Reactor::Options<TOptions...>,
-    std::tuple<TFuncArgs...>>::on(Reactor& context, std::vector<const std::string> identifier, TFunc callback) {
+    std::tuple<TFuncArgs...>>::on(Reactor& context, std::vector<std::string> identifier, TFunc callback) {
         
         static_assert(Reactor::CheckFunctionSignature<TFunc, std::tuple<TFuncArgs...>>::value, "Your callback function does not match the types in the On statement");
         static_assert(sizeof...(TTriggers) > 0, "You must have at least one Trigger in a callback");
@@ -228,7 +228,7 @@ namespace NUClear {
     }
     
     template <typename TFunc, typename... TTriggersAndWiths>
-    std::unique_ptr<threading::Reaction> Reactor::buildReaction(std::vector<const std::string> identifier, TFunc callback, threading::ReactionOptions& options) {
+    std::unique_ptr<threading::Reaction> Reactor::buildReaction(std::vector<std::string> identifier, TFunc callback, threading::ReactionOptions& options) {
         
         // Return a reaction object that gets and runs with the correct paramters
         return std::make_unique<threading::Reaction>(identifier, [this, callback]() -> std::function<void (threading::ReactionTask&)> {
