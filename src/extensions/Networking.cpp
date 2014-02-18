@@ -45,7 +45,7 @@ namespace NUClear {
             threading::ThreadWorker::ServiceTask task(std::bind(&Networking::run, this),
                                                       std::bind(&Networking::kill, this));
             
-            powerPlant.addServiceTask(task);
+            powerplant.addServiceTask(task);
             
             // When we get a network type configuration, we must build a lambda to handle it
             on<Trigger<NetworkTypeConfig>>([this] (const NetworkTypeConfig& config) {

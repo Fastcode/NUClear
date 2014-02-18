@@ -57,7 +57,7 @@ namespace {
                     REQUIRE(abs(100 - test.count()) <= 1);
                     
                     // We are finished the test
-                    this->powerPlant.shutdown();
+                    this->powerplant.shutdown();
                 }
             });
         }
@@ -98,7 +98,7 @@ namespace {
                     REQUIRE(abs(100 - test.count()) <= 1);
                     
                     // We are finished the test
-                    this->powerPlant.shutdown();
+                    this->powerplant.shutdown();
                 }
             });
         }

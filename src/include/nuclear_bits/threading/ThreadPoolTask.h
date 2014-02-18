@@ -48,7 +48,7 @@ namespace NUClear {
             void kill();
         private:
             /// @brief the powerplant instance that this task is executing for
-            PowerPlant& powerPlant;
+            PowerPlant& powerplant;
             /// @breif the scheduler that is used to obtain tasks to execute
             TaskScheduler& scheduler;
         };

@@ -43,7 +43,7 @@ namespace {
             // Trigger on a networked event
             on<Trigger<Network<TestObject>>>([this](const Network<TestObject>& message) {
                 REQUIRE(message.data->x == 5);
-                powerPlant.shutdown();
+                powerplant.shutdown();
             });
         }
     };

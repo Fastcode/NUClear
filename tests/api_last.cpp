@@ -48,7 +48,7 @@ namespace {
                 }
                 else {
                     // We are finished the test
-                    this->powerPlant.shutdown();
+                    this->powerplant.shutdown();
                 }
             });
         }

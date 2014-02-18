@@ -173,7 +173,7 @@ namespace NUClear {
     
     template <typename... THandlers, typename TData>
     void Reactor::emit(std::unique_ptr<TData>&& data) {
-        powerPlant.emit<THandlers...>(std::forward<std::unique_ptr<TData>>(data));
+        powerplant.emit<THandlers...>(std::forward<std::unique_ptr<TData>>(data));
     }
     
     // This is our final On statement
@@ -225,17 +225,17 @@ namespace NUClear {
         return std::make_unique<threading::Reaction>(name, [this, callback]() -> std::function<void (threading::ReactionTask&)> {
             
             // TODO consider potential threading implications if two threads emit at once and overwrite (then this will get the same value for both)
-            auto data = std::make_tuple(powerPlant.cachemaster.get<TTriggersAndWiths>()...);
+            auto data = std::make_tuple(powerplant.cachemaster.get<TTriggersAndWiths>()...);
             
             // TODO metafunction that when using get gets the new data object somehow?
             
             return [this, callback, data] (threading::ReactionTask& task) {
                 
-                this->powerPlant.threadmaster.setCurrentTask(&task);
+                this->powerplant.threadmaster.setCurrentTask(&task);
                 
                 metaprogramming::apply(callback, data);
                 
-                this->powerPlant.threadmaster.setCurrentTask(nullptr);
+                this->powerplant.threadmaster.setCurrentTask(nullptr);
             };
         }, options);
     }
@@ -266,11 +266,13 @@ namespace NUClear {
         
         // Multi Trigger (and)
         else {
-            // TODO Generate a sequence
-            // TODO set a callback for each of TTrigger and TTriggers along with their number
-            // TODO have a tuple of atomic booleans for each TTrigger
-            // TODO when a trigger comes in, use the int to set that boolean to true
-            // TODO when all the booleans are true, run the callback and set all booleans to false
+            
+            // Make a bitset of sizeof...(TTriggers)
+            // Make a mutable lambda which takes this bitset
+            // Make it have a mutex in it and take an int
+            // Use std::bind to bind it to multiple reactions with different numbers
+            // Use these numbers to set flags in the bitset
+            // When bitset.all() is true, then clear the bitset and run the function
         }
         
         return ReactionHandle(callback.get());

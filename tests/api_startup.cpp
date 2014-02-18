@@ -37,7 +37,7 @@ namespace {
                 REQUIRE(message.data == 10);
                 
                 // We are finished the test
-                powerPlant.shutdown();
+                powerplant.shutdown();
             });
             
             on<Trigger<Startup>>([this](const Startup&) {
@@ -69,7 +69,7 @@ namespace {
             // Check that the lists are combined, and that the function args are in order
             on<With<DifferentOrderingMessage1>, Trigger<DifferentOrderingMessage3>, With<DifferentOrderingMessage2>>
             ([this](const DifferentOrderingMessage1& m1, const DifferentOrderingMessage3& m2, const DifferentOrderingMessage2& m3) {
-                powerPlant.shutdown();
+                powerplant.shutdown();
             });
         }
     };

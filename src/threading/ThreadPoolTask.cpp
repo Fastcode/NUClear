@@ -20,9 +20,9 @@
 namespace NUClear {
     namespace threading {
         
-        ThreadPoolTask::ThreadPoolTask(PowerPlant& powerPlant, TaskScheduler& scheduler) :
+        ThreadPoolTask::ThreadPoolTask(PowerPlant& powerplant, TaskScheduler& scheduler) :
         ThreadWorker::ServiceTask(std::bind(&ThreadPoolTask::run, this), std::bind(&ThreadPoolTask::kill, this)),
-        powerPlant(powerPlant),
+        powerplant(powerplant),
         scheduler(scheduler) {
         }
         
@@ -77,7 +77,7 @@ namespace NUClear {
                     }
                     
                     // Emit our ReactionStats
-                    powerPlant.emit<dsl::Scope::DIRECT>(std::move(task->stats));
+                    powerplant.emit<dsl::Scope::DIRECT>(std::move(task->stats));
                 }
             }
             // If this is thrown, it means that we should finish execution
