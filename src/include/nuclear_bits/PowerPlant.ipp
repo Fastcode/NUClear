@@ -92,7 +92,7 @@ namespace NUClear {
         
         template <typename TFirst, typename... TArgs>
         inline void logImpl(std::stringstream& output, TFirst first, TArgs... args) {
-            output << first;
+            output << first << " ";
             logImpl(output, std::forward<TArgs>(args)...);
         }
     }
