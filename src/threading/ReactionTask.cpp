@@ -29,7 +29,7 @@ namespace NUClear {
         parent(parent),
         taskId(++taskIdSource),
         stats(new ReactionStatistics {
-            parent->name,
+            parent->identifier,
             parent->reactionId,
             taskId,
             cause ? cause->parent->reactionId : 0,

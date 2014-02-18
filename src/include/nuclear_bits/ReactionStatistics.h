@@ -31,7 +31,7 @@ namespace NUClear {
      */
     struct ReactionStatistics {
         /// @brief A string containing the username/on arguments/and callback name of the reaction.
-        std::string name;
+        std::vector<const std::string> identifier;
         /// @brief The id of this reaction.
         std::uint64_t reactionId;
         /// @brief The task id of this reaction.

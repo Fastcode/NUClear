@@ -162,13 +162,14 @@ namespace NUClear {
         // There must be some parameters
         static_assert(sizeof...(TParams) > 0, "You must have at least one paramter in an on");
         
-        std::stringstream identifier;
+        std::vector<const std::string> identifier;
+        identifier.reserve(3);
         
-        identifier << name << std::endl;
-        identifier << demangle(typeid(std::tuple<TParams...>).name()) << std::endl;
-        identifier << demangle(typeid(TFunc).name());
+        identifier.push_back(name);
+        identifier.push_back(demangle(typeid(std::tuple<TParams...>).name()));
+        identifier.push_back(demangle(typeid(TFunc).name()));
         
-        return On<TFunc, TParams...>::on(*this, identifier.str(), callback);
+        return On<TFunc, TParams...>::on(*this, identifier, callback);
     }
     
     template <typename... THandlers, typename TData>
@@ -183,7 +184,7 @@ namespace NUClear {
     Reactor::Trigger<TTriggers...>,
     Reactor::With<TWiths...>,
     Reactor::Options<TOptions...>,
-    std::tuple<TFuncArgs...>>::on(Reactor& context, std::string name, TFunc callback) {
+    std::tuple<TFuncArgs...>>::on(Reactor& context, std::vector<const std::string> identifier, TFunc callback) {
         
         static_assert(Reactor::CheckFunctionSignature<TFunc, std::tuple<TFuncArgs...>>::value, "Your callback function does not match the types in the On statement");
         static_assert(sizeof...(TTriggers) > 0, "You must have at least one Trigger in a callback");
@@ -193,7 +194,7 @@ namespace NUClear {
         context.buildOptions<TOptions...>(options);
         
         // Bind all of our trigger events to a reaction
-        auto onHandler = context.bindTriggers<TTriggers...>(context.buildReaction<TFunc, TFuncArgs...>(name,
+        auto onHandler = context.bindTriggers<TTriggers...>(context.buildReaction<TFunc, TFuncArgs...>(identifier,
         callback, options));
         
         // Run any existence commands needed (running because a type exists)
@@ -219,10 +220,10 @@ namespace NUClear {
     }
     
     template <typename TFunc, typename... TTriggersAndWiths>
-    std::unique_ptr<threading::Reaction> Reactor::buildReaction(std::string name, TFunc callback, threading::ReactionOptions& options) {
+    std::unique_ptr<threading::Reaction> Reactor::buildReaction(std::vector<const std::string> identifier, TFunc callback, threading::ReactionOptions& options) {
         
         // Return a reaction object that gets and runs with the correct paramters
-        return std::make_unique<threading::Reaction>(name, [this, callback]() -> std::function<void (threading::ReactionTask&)> {
+        return std::make_unique<threading::Reaction>(identifier, [this, callback]() -> std::function<void (threading::ReactionTask&)> {
             
             // TODO consider potential threading implications if two threads emit at once and overwrite (then this will get the same value for both)
             auto data = std::make_tuple(powerplant.cachemaster.get<TTriggersAndWiths>()...);
