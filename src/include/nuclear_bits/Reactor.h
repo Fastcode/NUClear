@@ -59,54 +59,55 @@ namespace NUClear {
         ~Reactor();
         
     protected:
+        /// @brief Our environment
+        std::unique_ptr<Environment> environment;
+        
+        /// @brief TODO
+        PowerPlant& powerplant;
         
         /***************************************************************************************************************
          * The types here are imported from other contexts so that when extending from the Reactor type in normal      *
          * usage there does not need to be any namespace declarations on the used types. This affords a simpler API    *
          * for the user.                                                                                               *
          **************************************************************************************************************/
-        std::unique_ptr<Environment> environment;
         
-        /// @brief TODO
-        PowerPlant& powerPlant;
-        
-        /// @brief TODO inherit from commandtype
+        /// @brief The Time units used by the NUClear system
         using time_t = clock::time_point;
         
-        /// @brief TODO inherit from commandtype
+        /// @copydoc dsl::Trigger
         template <typename... TTriggers>
         using Trigger = dsl::Trigger<TTriggers...>;
         
-        /// @brief TODO inherit from commandtype
+        /// @copydoc dsl::With
         template <typename... TWiths>
         using With = dsl::With<TWiths...>;
         
-        /// @brief TODO inherit from commandtype
+        /// @copydoc dsl::Scope
         using Scope = dsl::Scope;
         
-        /// @brief TODO inherit from commandtype
+        /// @copydoc dsl::Options
         template <typename... TOptions>
         using Options = dsl::Options<TOptions...>;
         
-        /// @brief TODO inherit from commandtype
+        /// @copydoc dsl::Startup
         using Startup = dsl::Startup;
         
-        /// @brief TODO inherit from commandtype
+        /// @copydoc dsl::Shutdown
         using Shutdown = dsl::Shutdown;
         
-        /// @brief TODO inherit from commandtype
+        /// @copydoc dsl::Every
         template <int ticks, class period = std::chrono::milliseconds>
         using Every = dsl::Every<ticks, period>;
         
-        /// @brief TODO inherit from commandtype
+        /// @copydoc dsl::Per
         template <class period>
         using Per = dsl::Per<period>;
         
-        /// @brief TODO inherit from commandtype
+        /// @copydoc dsl::Raw
         template <typename TData>
         using Raw = dsl::Raw<TData>;
         
-        /// @brief TODO inherit from commandtype
+        /// @copydoc dsl::Last
         template <int num, class TData>
         using Last = dsl::Last<num, TData>;
         
@@ -114,22 +115,22 @@ namespace NUClear {
         template <class TData>
         using LastList = std::vector<std::shared_ptr<const TData>>;
         
-        /// @brief TODO inherit docs from commandtype
+        /// @copydoc dsl::CommandLineArguments
         using CommandLineArguments = dsl::CommandLineArguments;
         
-        /// @brief TODO inherit from commandtype
+        /// @copydoc dsl::Priority
         template <enum EPriority P>
         using Priority = dsl::Priority<P>;
         
-        /// @brief TODO inherit from commandtype
+        /// @copydoc dsl::Network
         template <typename TData>
         using Network = dsl::Network<TData>;
         
-        /// @brief TODO inherit from commandtype
+        /// @copydoc dsl::Sync
         template <typename TSync>
         using Sync = dsl::Sync<TSync>;
         
-        /// @brief TODO inherit from commandtype
+        /// @copydoc dsl::Single
         using Single = dsl::Single;
         
         /// @brief This provides functions to modify how an on statement runs after it has been created
@@ -138,50 +139,61 @@ namespace NUClear {
         // FUNCTIONS
         
         /**
-         * @brief TODO
+         * @brief The on function is the method used to create a reaction in the NUClear system.
          *
          * @details
-         *  TODO
+         *  This function is used to create a Reaction in the system. By providing the correct
+         *  template parameters, this function can modify how and when this reaction runs.
+         *  
          *
-         * @tparam TParams  TODO
-         * @tparam TFunc    TODO
+         * @tparam TParams  The parameters of the Every class
+         * @tparam TFunc    The type of the function passed in
          *
-         * @param callback  TODO
+         * @param callback  The callback to execute when the trigger on this happens
+         *
+         * @return A ReactionHandle that controls if the created reaction runs or not
          */
         template <typename... TParams, typename TFunc>
         Reactor::ReactionHandle on(TFunc callback);
         
         /**
-         * @brief TODO
+         * @brief The on function is the method used to create a reaction in the NUClear system.
          *
          * @details
-         *  TODO
+         *  This function is used to create a Reaction in the system. By providing the correct
+         *  template parameters, this function can modify how and when this reaction runs.
          *
-         * @tparam TParams  TODO
-         * @tparam TFunc    TODO
          *
-         * @param name      TODO
-         * @param callback  TODO
+         * @tparam TParams  The parameters of the Every class
+         * @tparam TFunc    The type of the function passed in
+         *
+         * @param name      The name of this reaction to show in statistics
+         * @param callback  The callback to execute when the trigger on this happens
+         *
+         * @return A ReactionHandle that controls if the created reaction runs or not
          */
         template <typename... TParams, typename TFunc>
         Reactor::ReactionHandle on(const std::string& name, TFunc callback);
         
         /**
-         * @brief TODO
+         * @brief Emits data into the system so that other reactors can use it.
          *
          * @details
-         *  TODO
+         *  This function emits data to the rest of the system so that it can be used.
+         *  This results in it being the new data used when a with is used, and triggering
+         *  any reaction that is set to be triggered on this data type.
          *
-         * @tparam THandlers
-         * @tparam TData
          *
-         * @param data
+         * @tparam THandlers    The handlers for this emit (e.g. LOCAL, NETWORK etc)
+         * @tparam TData        The type of the data we are emitting
+         *
+         * @param data The data to emit
          */
         template <typename... THandlers, typename TData>
         void emit(std::unique_ptr<TData>&& data);
         
     private:
-        /// @brief TODO
+        /// @brief The static cache where we link our callbacks to the ReactorMaster
         template <typename TKey>
         using CallbackCache = metaprogramming::TypeList<Reactor, TKey, std::unique_ptr<threading::Reaction>>;
         
@@ -196,14 +208,23 @@ namespace NUClear {
         struct On;
         
         /**
-         * @brief TODO
+         * @brief This type is used to build the final On statement that will be called.
          *
          * @details
-         *  TODO
+         *  This type self extends to rearrange the arguments in the On until they are useable by the system.
          */
         template <typename, typename...>
         struct OnBuilder;
         
+        /**
+         * @brief This metafunction will check that the function provided to the system is compatible with
+         *  the 
+         *
+         * @tparam TFunc    the function object that we are checking.
+         * @tparam TTuple   the expected arguments provided by the function.
+         * @tparam Stage    what stage of the function checking we are up to.
+         *
+         */
         template <typename TFunc, typename TTuple, int Stage = 0>
         struct CheckFunctionSignature;
         
@@ -240,13 +261,17 @@ namespace NUClear {
         template <typename... TOption>
         void buildOptions(threading::ReactionOptions& options);
         
+        /*
+         * NOTE THAT THE FUNCTIONS BELOW USE EMPTY POINTERS TO CHOOSE WHICH FUNCTION TO EXECUTE
+         * (as you can't partially specialize functions)
+         */
+        
         /**
          * @brief This case of build options is used when the Single option is specified.
          *
          * @param options the options object we are building
-         * @param placeholder which is used to specialize this method
          */
-        void buildOptionsImpl(threading::ReactionOptions& options, Single* /*placeholder*/);
+        void buildOptionsImpl(threading::ReactionOptions& options, Single*);
         
         /**
          * @brief This case of build options is used to add the Sync option.
@@ -256,7 +281,7 @@ namespace NUClear {
          * @param placeholder which is used to specialize this method
          */
         template <typename TSync>
-        void buildOptionsImpl(threading::ReactionOptions& options, Sync<TSync>* /*placeholder*/);
+        void buildOptionsImpl(threading::ReactionOptions& options, Sync<TSync>*);
         
         /**
          * @brief This case of build options is used to add the Priority option.
@@ -266,15 +291,16 @@ namespace NUClear {
          * @param placeholder which is used to specialize this method
          */
         template <enum EPriority P>
-        void buildOptionsImpl(threading::ReactionOptions& options, Priority<P>* /*placeholder*/);
+        void buildOptionsImpl(threading::ReactionOptions& options, Priority<P>*);
         
         /**
-         * @brief TODO
+         * @brief This extension point will execute when a paticular type exists within an on statement.
          *
          * @details
-         *  TODO
+         *  The function on the Exists will execute when a type is in a Trigger or With. This allows
+         *  functions to setup ready for the ons or triggers that will require this kind of data.
          *
-         * @tparam TData
+         * @tparam TData The datatype that exists in a statement
          */
         template <typename TData>
         struct Exists;
@@ -309,10 +335,13 @@ namespace NUClear {
         ReactionHandle bindTriggers(std::unique_ptr<threading::Reaction>&& callback);
         
         /**
-         * @brief TODO
+         * @brief This extension point is used to redirect when a trigger is called.
          *
          * @details
-         *  TODO
+         *  Normally a trigger will be called when it's own type is emitted, however it
+         *  is often useful to trigger a callback when a different type is emitted.
+         *  This can be used to create a type that is based on the Triggered type, but
+         *  is an operation performed on it.
          *
          * @tparam TData TODO
          */
