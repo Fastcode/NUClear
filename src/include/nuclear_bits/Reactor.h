@@ -103,6 +103,10 @@ namespace NUClear {
         template <class period>
         using Per = dsl::Per<period>;
         
+        /// @copydoc dsl::Optional
+        template <class TData>
+        using Optional = dsl::Optional<TData>;
+        
         /// @copydoc dsl::Raw
         template <typename TData>
         using Raw = dsl::Raw<TData>;

@@ -21,6 +21,7 @@
 #include "Trigger.h"
 #include "With.h"
 #include "Options.h"
+#include "Optional.h"
 #include "Startup.h"
 #include "Shutdown.h"
 #include "Single.h"

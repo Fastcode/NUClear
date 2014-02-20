@@ -444,6 +444,7 @@ namespace NUClear {
 // Include our built in extensions
 #include "nuclear_bits/extensions/Chrono.h"
 #include "nuclear_bits/extensions/Raw.h"
+#include "nuclear_bits/extensions/Optional.h"
 #include "nuclear_bits/extensions/Last.h"
 #include "nuclear_bits/extensions/Networking.h"
 #include "nuclear_bits/extensions/CommandLineArguments.h"
