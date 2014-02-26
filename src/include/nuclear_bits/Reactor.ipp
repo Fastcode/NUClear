@@ -268,6 +268,9 @@ namespace NUClear {
     template <typename TTrigger, typename... TTriggers>
     Reactor::ReactionHandle Reactor::bindTriggers(std::unique_ptr<threading::Reaction>&& callback) {
         
+        // Get our callbacks raw pointer (so we can give it to the handle)
+        auto* reactionPtr = callback.get();
+        
         // Single trigger that is not ignored
         if(sizeof...(TTriggers) == 0 && !std::is_same<typename TriggerType<TTrigger>::type, std::nullptr_t>::value) {
             CallbackCache<typename TriggerType<TTrigger>::type>::get().push_back(std::forward<std::unique_ptr<threading::Reaction>>(callback));
@@ -284,6 +287,6 @@ namespace NUClear {
             // When bitset.all() is true, then clear the bitset and run the function
         }
         
-        return ReactionHandle(callback.get());
+        return ReactionHandle(reactionPtr);
     }
 }

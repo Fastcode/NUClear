@@ -50,7 +50,7 @@ namespace NUClear {
              *
              * @param context the reaction that we are interacting with.
              */
-            ReactionHandle(Reaction* context);
+            ReactionHandle(Reaction* context = nullptr);
             
             /**
              * @brief Enables the reaction and allows it to run.
