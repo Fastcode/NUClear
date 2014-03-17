@@ -411,6 +411,23 @@ namespace NUClear {
         static void log(TArgs... args);
         
         /**
+         * @brief Gets the stored version of a type of data
+         *
+         * @details
+         *  Gets the most recent version of data emitted for a type.
+         *
+         * @attention Note that this is not the same as a with as exists will not run
+         *
+         * @tparam TData the data type to get
+         *
+         * @return A shared_ptr to the data stored in the system
+         */
+        template <typename TData>
+        auto get() -> decltype(cachemaster.get<TData>()) {
+            return cachemaster.get<TData>();
+        }
+        
+        /**
          * @brief Emits data to the system and routes it to the other systems that use it.
          *
          * @details
