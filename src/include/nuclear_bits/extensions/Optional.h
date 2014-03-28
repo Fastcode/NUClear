@@ -35,9 +35,9 @@ namespace NUClear {
      */
     template <typename TData>
     struct PowerPlant::CacheMaster::Get<dsl::Optional<TData>> {
-        static std::shared_ptr<std::shared_ptr<TData>> get(PowerPlant&) {
+        static std::shared_ptr<std::shared_ptr<const TData>> get(PowerPlant&) {
             
-            std::shared_ptr<TData> result(nullptr);
+            std::shared_ptr<const TData> result(nullptr);
             
             try {
                 result = ValueCache<TData>::get();
@@ -45,7 +45,7 @@ namespace NUClear {
             catch (metaprogramming::NoDataException) {
             }
             
-            return std::make_shared<std::shared_ptr<TData>>(result);
+            return std::make_shared<std::shared_ptr<const TData>>(result);
         }
     };
 }
