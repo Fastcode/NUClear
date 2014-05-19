@@ -35,12 +35,12 @@ namespace NUClear {
      */
     template <typename TData>
     struct PowerPlant::CacheMaster::Get<dsl::Optional<TData>> {
-        static std::shared_ptr<std::shared_ptr<const TData>> get(PowerPlant&) {
+        static std::shared_ptr<std::shared_ptr<const TData>> get(PowerPlant& p) {
             
             std::shared_ptr<const TData> result(nullptr);
             
             try {
-                result = ValueCache<TData>::get();
+                result = PowerPlant::CacheMaster::Get<TData>::get(std::forward<PowerPlant&>(p));
             }
             catch (metaprogramming::NoDataException) {
             }

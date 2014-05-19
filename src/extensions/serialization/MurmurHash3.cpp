@@ -22,7 +22,8 @@ namespace NUClear {
         namespace serialization {
             
             bool Hash::operator==(const Hash& hash) const {
-                return data == hash.data;
+                return data[0] == hash.data[0]
+                && data[1] == hash.data[1];
             }
             
             inline uint64_t rotl64(const uint64_t x, const int8_t r)
@@ -129,15 +130,14 @@ namespace NUClear {
                 h2 += h1;
                 
                 Hash ret;
-                memcpy(&ret.data, &h1, sizeof(uint64_t));
-                memcpy(&ret.data + sizeof(uint64_t), &h2, sizeof(uint64_t));
+                ret.data[0] = h1;
+                ret.data[1] = h2;
                 
                 return ret;
             }
             
             size_t Hash::hash() const {
-                std::hash<std::bitset<128>> hasher;
-                return hasher(data);
+                return data[0] ^ data[1];
             }
         }
     }

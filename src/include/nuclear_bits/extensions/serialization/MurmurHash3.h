@@ -19,8 +19,7 @@
 #define NUCLEAR_EXTENSIONS_SERIALIZATION_MURMURHASH3_H
 
 #include <cstdint>
-#include <cstring>
-#include <bitset>
+#include <array>
 
 #include <functional>
 
@@ -35,7 +34,7 @@ namespace NUClear {
              */
             struct Hash {
                 /// @brief our 128 bit hash
-                std::bitset<128> data;
+                std::array<uint64_t, 2> data;
                 
                 /**
                  * @brief Check for equality between two hashes
