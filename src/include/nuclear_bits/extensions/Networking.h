@@ -62,7 +62,8 @@ namespace NUClear {
             std::string payload = extensions::serialization::Serializer<TData>::serialize(*data);
             
             // Fill our protocol buffer
-            message->set_type(std::string(reinterpret_cast<char*>(&hash.data), hash.data.size()));
+            message->mutable_type()->set_h1(hash.data[0]);
+            message->mutable_type()->set_h2(hash.data[1]);
             message->set_payload(payload);
             
             // Send our data to be emitted

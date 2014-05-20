@@ -123,7 +123,7 @@ namespace NUClear {
                     
                     // Get our hash
                     serialization::Hash type;
-                    memcpy(&type.data, proto.type().data(), type.data.size());
+                    type.data = { proto.type().h1(), proto.type().h2() };
                     
                     // Find this type's deserializer (if it exists)
                     auto it = deserialize.find(type);
