@@ -396,7 +396,7 @@ namespace NUClear {
         void install();
         
         /**
-         * @brief Log a message through NUClears system.
+         * @brief Log a message through NUClear's system.
          *
          * @details
          *  Logs a message through the system so the various log handlers

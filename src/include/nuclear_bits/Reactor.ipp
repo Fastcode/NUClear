@@ -185,6 +185,11 @@ namespace NUClear {
         powerplant.emit<THandlers...>(std::forward<std::unique_ptr<TData>>(data));
     }
     
+    template <enum LogLevel level, typename... TArgs>
+    void Reactor::log(TArgs... args) {
+        powerplant.log<level, TArgs...>(std::forward<TArgs>(args)...);
+    }
+    
     // This is our final On statement
     template <typename TFunc, typename... TTriggers, typename... TWiths, typename... TOptions, typename... TFuncArgs>
     Reactor::ReactionHandle Reactor::On<

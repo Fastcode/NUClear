@@ -28,6 +28,7 @@
 #include "nuclear_bits/threading/Reaction.h"
 #include "nuclear_bits/threading/ReactionHandle.h"
 #include "nuclear_bits/dsl/dsl.h"
+#include "nuclear_bits/LogLevel.h"
 #include "nuclear_bits/metaprogramming/unpack.h"
 #include "nuclear_bits/metaprogramming/apply.h"
 #include "nuclear_bits/metaprogramming/TypeMap.h"
@@ -195,6 +196,21 @@ namespace NUClear {
          */
         template <typename... THandlers, typename TData>
         void emit(std::unique_ptr<TData>&& data);
+        
+        /**
+         * @brief Log a message through NUClear's system.
+         *
+         * @details
+         *  Logs a message through the system so the various log handlers
+         *  can access it.
+         *
+         * @tparam level The level to log at (defaults to DEBUG)
+         * @tparam TArgs The types of the arguments we are logging
+         *
+         * @param args The arguments we are logging
+         */
+        template <enum LogLevel level = DEBUG, typename... TArgs>
+        void log(TArgs... args);
         
     private:
         /// @brief The static cache where we link our callbacks to the ReactorMaster
