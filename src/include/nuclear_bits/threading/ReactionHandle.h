@@ -63,11 +63,18 @@ namespace NUClear {
             void disable();
             
             /**
+             * @brief Sets the enable status to the passed boolean.
+             *
+             * @param set the run status of the handle handle to be of the boolean
+             */
+            void enable(bool set);
+            
+            /**
              * @brief Returns if this reaction is currently enabled.
              *
              * @return true if the reaction is enabled, false otherwise.
              */
-            bool isEnabled();
+            bool enabled();
         };
     }
 }

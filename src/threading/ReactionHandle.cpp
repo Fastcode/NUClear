@@ -24,12 +24,16 @@ namespace NUClear {
         ReactionHandle::ReactionHandle(Reaction* context) : context(context) {
         }
         
-        bool ReactionHandle::isEnabled() {
+        bool ReactionHandle::enabled() {
             return context->enabled;
         }
         
         void ReactionHandle::enable() {
             context->enabled = true;
+        }
+        
+        void ReactionHandle::enable(bool set) {
+            context->enabled = set;
         }
         
         void ReactionHandle::disable() {
