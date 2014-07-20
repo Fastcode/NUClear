@@ -28,7 +28,7 @@ namespace NUClear {
         /**
          * @brief This exception is thrown when there is no data in the map to return.
          */
-        struct NoDataException {};
+        struct NoDataException : public std::exception {};
         
         /**
          * @brief The simplest and fastest map format, It stores a single value and returns it when requested later.
