@@ -19,26 +19,11 @@
 #include "nuclear_bits/threading/ThreadPoolTask.h"
 
 namespace NUClear {
+
+    const thread_local threading::ReactionTask* PowerPlant::ThreadMaster::currentTask = nullptr;
     
     PowerPlant::ThreadMaster::ThreadMaster(PowerPlant& parent) :
     PowerPlant::BaseMaster(parent) {
-    }
-    
-    
-    void PowerPlant::ThreadMaster::setCurrentTask(const threading::ReactionTask* task) {
-        // TODO replace this with thread_local if possible (c++11 keyword thread_local)
-        currentTask[std::this_thread::get_id()] = task;
-    }
-    
-    const threading::ReactionTask* PowerPlant::ThreadMaster::getCurrentTask() {
-        auto task = currentTask.find(std::this_thread::get_id());
-        
-        if(task != std::end(currentTask)) {
-            return task->second;
-        }
-        else {
-            return nullptr;
-        }
     }
     
     void PowerPlant::ThreadMaster::start() {

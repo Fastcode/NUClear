@@ -33,7 +33,7 @@ namespace NUClear {
     void PowerPlant::ReactorMaster::emit(std::shared_ptr<TData> data) {
         
         // Get our current arguments (if we have any)
-        auto* currentTask = parent.threadmaster.getCurrentTask();
+        auto* currentTask = ThreadMaster::currentTask;
         
         // Cache our data
         parent.cachemaster.cache<TData>(data);
@@ -55,7 +55,7 @@ namespace NUClear {
     void PowerPlant::ReactorMaster::directEmit(std::shared_ptr<TData> data) {
         
         // Get our current task if we have one so it can be restored
-        auto* currentTask = parent.threadmaster.getCurrentTask();
+        auto* currentTask = ThreadMaster::currentTask;
         
         // Cache our data
         parent.cachemaster.cache<TData>(data);
@@ -76,7 +76,7 @@ namespace NUClear {
             catch (...) {
                 
                 // Restore our task that we are working on
-                parent.threadmaster.setCurrentTask(currentTask);
+                ThreadMaster::currentTask = currentTask;
                 
                 // Rethrow our exception
                 std::rethrow_exception(std::current_exception());
@@ -84,7 +84,7 @@ namespace NUClear {
         }
         
         // Restore our task that we are working on
-        parent.threadmaster.setCurrentTask(currentTask);
+        ThreadMaster::currentTask = currentTask;
     }
     
     template <typename TData>

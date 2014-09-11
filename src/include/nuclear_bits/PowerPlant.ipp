@@ -90,7 +90,7 @@ namespace NUClear {
     void PowerPlant::log(TArgs... args) {
         
         // Get our current task
-        auto* task = powerplant->threadmaster.getCurrentTask();
+        auto* task = ThreadMaster::currentTask;
         
         // If our reaction is logging at this level (TODO this needs to respect some level)
         if(level >= DEBUG) {

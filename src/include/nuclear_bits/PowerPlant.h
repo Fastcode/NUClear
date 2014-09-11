@@ -120,31 +120,12 @@ namespace NUClear {
          *  It is also responsible for holding the Thread Pool for reactions, and the scheduler that allocates them.
          */
         class ThreadMaster : public BaseMaster {
-        private:
-            // TODO when c++11 comes out in full, this can be replaced with a thread_local keyword variable
-            std::map<std::thread::id, const threading::ReactionTask*> currentTask;
             
         public:
+            static thread_local const threading::ReactionTask* currentTask;
+
             /// @brief Construct a new ThreadMaster with our PowerPlant as context
             ThreadMaster(PowerPlant& parent);
-            
-            /**
-             * @brief Gets the Reaction Task that the current thread is executing.
-             *
-             * @details
-             *  This function will get the reaction task that the current thread is executing.
-             *  This allows tracing of which events caused which children.
-             *
-             * @return A pointer to the ReactionTask that is currently running, or nullptr if there isn't one
-             */
-            const threading::ReactionTask* getCurrentTask();
-            
-            /**
-             * @brief Sets the current reaction task that the current thread is executing
-             *
-             * @param task The task that is being executed
-             */
-            void setCurrentTask(const threading::ReactionTask* task);
             
             /**
              * @brief Starts up the ThreadMaster initiating all service threads and pool threads.

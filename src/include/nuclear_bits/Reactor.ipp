@@ -244,12 +244,12 @@ namespace NUClear {
             // TODO metafunction that when using get gets the new data object somehow?
             
             return [this, callback, data] (threading::ReactionTask& task) {
-                
-                this->powerplant.threadmaster.setCurrentTask(&task);
-                
+
+                PowerPlant::ThreadMaster::currentTask = &task;
+
                 metaprogramming::apply(callback, data);
-                
-                this->powerplant.threadmaster.setCurrentTask(nullptr);
+
+                PowerPlant::ThreadMaster::currentTask = nullptr;
             };
         }, options);
     }
