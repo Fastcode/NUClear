@@ -256,7 +256,7 @@ namespace NUClear {
     
     template <typename TData>
     struct Reactor::Exists {
-        static void exists(Reactor& context) {};
+        static void exists(Reactor&) {};
     };
     
     template <typename TData>

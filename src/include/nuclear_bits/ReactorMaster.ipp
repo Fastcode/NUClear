@@ -19,7 +19,7 @@ namespace NUClear {
     
     // === Template Implementations ===
     // As with Reactor.h this section contains all template function implementations for ReactorMaster.
-    // Unfortunately it's neccecary to have these here and outside the NUClear namespace due to our circular dependency on Reactor.
+    // Unfortunately it's necessary to have these here and outside the NUClear namespace due to our circular dependency on Reactor.
     // What this means is: This code needs to be down here, it can't be moved into the class or namespace since that'll break the
     // forward declaration resolution. See the similar comment in Reactor.h for more information.
     

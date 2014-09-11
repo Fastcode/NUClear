@@ -97,7 +97,7 @@ namespace NUClear {
                 }
                 else {
                     // Return the type
-                    // If you're wondering why all the rediculiousness, it's because priority queue is not as feature complete as it should be
+                    // If you're wondering why all the ridiculousness, it's because priority queue is not as feature complete as it should be
                     std::unique_ptr<ReactionTask> task(std::move(const_cast<std::unique_ptr<ReactionTask>&>(queue.top())));
                     queue.pop();
                     

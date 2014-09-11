@@ -45,7 +45,7 @@ namespace NUClear {
      */
     template <int num, typename TData>
     struct PowerPlant::CacheMaster::Get<dsl::Last<num, TData>> {
-        static std::shared_ptr<std::vector<std::shared_ptr<const TData>>> get(PowerPlant& context) {
+        static std::shared_ptr<std::vector<std::shared_ptr<const TData>>> get(PowerPlant&) {
             
             return ValueCache<DataFor<dsl::Last<num, TData>, std::vector<std::shared_ptr<const TData>>>>::get()->data;
         }

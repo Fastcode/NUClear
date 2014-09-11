@@ -115,7 +115,7 @@ namespace NUClear {
      */
     template <int ticks, class period>
     struct PowerPlant::CacheMaster::Get<dsl::Every<ticks, period>> {
-        static std::shared_ptr<clock::time_point> get(PowerPlant& context) {
+        static std::shared_ptr<clock::time_point> get(PowerPlant&) {
             return ValueCache<DataFor<dsl::Every<ticks, period>, Reactor::time_t>>::get()->data;
         }
     };
@@ -137,7 +137,7 @@ namespace NUClear {
             Chrono(std::unique_ptr<Environment> environment);
             
             /**
-             * @brief Adds a new timeperiod to count and send out events for.
+             * @brief Adds a new time period to count and send out events for.
              *
              * @param config contains the information required to configure the new
              */
