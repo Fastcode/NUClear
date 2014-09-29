@@ -19,6 +19,7 @@
 #define NUCLEAR_MESSAGES_REACTIONSTATISTICS_H
 
 #include <string>
+#include <vector>
 
 #include "nuclear_bits/clock.h"
 

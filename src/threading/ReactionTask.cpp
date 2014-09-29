@@ -29,12 +29,15 @@ namespace NUClear {
         parent(parent),
         taskId(++taskIdSource),
         stats(new ReactionStatistics {
-            parent->identifier,
-            parent->reactionId,
-            taskId,
-            cause ? cause->parent->reactionId : 0,
-            cause ? cause->taskId : 0,
-            clock::now()
+              parent->identifier
+            , parent->reactionId
+            , taskId
+            , cause ? cause->parent->reactionId : 0
+            , cause ? cause->taskId : 0
+            , clock::now()
+            , clock::time_point(std::chrono::seconds(0))
+            , clock::time_point(std::chrono::seconds(0))
+            , nullptr
         }) {}
         
         void ReactionTask::operator()() {
