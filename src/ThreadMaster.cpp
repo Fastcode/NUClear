@@ -20,7 +20,7 @@
 
 namespace NUClear {
 
-    const thread_local threading::ReactionTask* PowerPlant::ThreadMaster::currentTask = nullptr;
+    const __thread threading::ReactionTask* PowerPlant::ThreadMaster::currentTask = nullptr;
     
     PowerPlant::ThreadMaster::ThreadMaster(PowerPlant& parent) :
     PowerPlant::BaseMaster(parent) {

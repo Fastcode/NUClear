@@ -122,7 +122,7 @@ namespace NUClear {
         class ThreadMaster : public BaseMaster {
             
         public:
-            static thread_local const threading::ReactionTask* currentTask;
+            static __thread const threading::ReactionTask* currentTask;
 
             /// @brief Construct a new ThreadMaster with our PowerPlant as context
             ThreadMaster(PowerPlant& parent);
