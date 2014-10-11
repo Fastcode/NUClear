@@ -14,6 +14,8 @@ before_install:
 # Install required dependencies in the environment
 install:
   - sudo apt-get install g++-4.8 libzmq3-dev libprotobuf-dev protobuf-compiler
+  - wget https://raw.githubusercontent.com/philsquared/Catch/master/single_include/catch.hpp
+  - sudo mv catch.hpp /usr/local/include
 
 # Before our script is run (setup build)
 before_script:
