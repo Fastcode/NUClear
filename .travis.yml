@@ -3,9 +3,15 @@ compiler:
   - gcc
   - clang
 
+# Setup repository sources before install
+before_install:
+  - sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+  - sudo apt-get update
+  - sudo apt-get dist-upgrade -y
+
 # Install required dependencies in the environment
 install:
-  - sudo apt-get update
+  - sudo apt-get install g++-4.8 libzmq3-dev libprotobuf-dev protobuf-compiler
 
 # Before our script is run (setup build)
 before_script:
