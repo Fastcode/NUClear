@@ -5,7 +5,7 @@ compiler:
 
 # Install required dependencies in the environment
 install:
-  - test
+  - sudo apt-get update
 
 # Before our script is run (setup build)
 before_script:
