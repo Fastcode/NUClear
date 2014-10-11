@@ -1,0 +1,19 @@
+language: cpp
+compiler:
+  - gcc
+  - clang
+
+# Install required dependencies in the environment
+install:
+  - test
+
+# Before our script is run (setup build)
+before_script:
+  - mkdir build
+  - cd build
+  - cmake ..
+
+# Run our build
+script:
+  - make
+  - make test
