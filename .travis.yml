@@ -16,6 +16,8 @@ install:
   - sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.8 80 --slave /usr/bin/g++ g++ /usr/bin/g++-4.8
   - wget https://raw.githubusercontent.com/philsquared/Catch/master/single_include/catch.hpp
   - sudo mv catch.hpp /usr/local/include
+  - wget https://raw.githubusercontent.com/zeromq/cppzmq/master/zmq.hpp
+  - sudo mv zmq.hpp /usr/local/include
 
 # Before our script is run (setup build)
 before_script:
