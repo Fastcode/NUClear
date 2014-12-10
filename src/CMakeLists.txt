@@ -19,6 +19,16 @@ FILE(GLOB src_dsl
     "include/nuclear_bits/dsl/*.h"
     "include/nuclear_bits/dsl/*.ipp")
 
+FILE(GLOB src_dsl_operation
+    "dsl/operation/*.cpp"
+    "include/nuclear_bits/dsl/operation/*.h"
+    "include/nuclear_bits/dsl/operation/*.ipp")
+
+FILE(GLOB src_dsl_word
+    "dsl/word/*.cpp"
+    "include/nuclear_bits/dsl/word/*.h"
+    "include/nuclear_bits/dsl/word/*.ipp")
+
 FILE(GLOB src_messages
     "messages/*.cpp"
     "include/nuclear_bits/messages/*.h"
@@ -33,6 +43,8 @@ SOURCE_GROUP(""                         FILES ${src})
 SOURCE_GROUP(threading                  FILES ${src_threading})
 SOURCE_GROUP(extensions                 FILES ${src_extensions})
 SOURCE_GROUP(dsl                        FILES ${src_dsl})
+SOURCE_GROUP(dsl\\operation             FILES ${src_dsl_operation})
+SOURCE_GROUP(dsl\\word                  FILES ${src_dsl_word})
 SOURCE_GROUP(messages                   FILES ${src_messages})
 SOURCE_GROUP(metaprogramming            FILES ${src_metaprogramming})
 
@@ -40,8 +52,8 @@ ADD_LIBRARY(nuclear STATIC
     ${src} 
     ${src_threading}
     ${src_extensions}
-    ${src_extensions_serialization}
-    ${proto_src} ${proto_h}
+    ${src_dsl_operation}
+    ${src_dsl_word}
     ${src_dsl}
     ${src_messages}
     ${src_metaprogramming})
