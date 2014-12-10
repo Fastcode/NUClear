@@ -18,7 +18,6 @@
 #ifndef NUCLEAR_DSL_OPERATION_CACHEGET_H
 #define NUCLEAR_DSL_OPERATION_CACHEGET_H
 
-
 namespace NUClear {
     namespace dsl {
         namespace operation {
@@ -26,7 +25,7 @@ namespace NUClear {
             template <typename TType>
             struct CacheGet {
 
-                static std::tuple<TType> get() {
+                static TType get() {
                     return TType();
                 };
             };

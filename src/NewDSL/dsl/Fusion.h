@@ -55,6 +55,22 @@ namespace NUClear {
                 static bool precondition() { return true; }
                 static void postcondition() {}
             };
+
+            template <typename TData>
+            struct Tuplify {
+
+                static std::tuple<TData> make(TData&& data) {
+                    return data;
+                }
+            };
+
+            template <typename... TData>
+            struct Tuplify<std::tuple<TData...>> {
+
+                static std::tuple<TData...> make(std::tuple<TData...>&& data) {
+                    return data;
+                }
+            };
         }
 
         template <typename... TWords>
@@ -68,8 +84,8 @@ namespace NUClear {
             }
 
             // Fuses all the gets if they exist
-            static auto get() -> decltype(std::tuple_cat(std::conditional<has_function<TWords>::get, TWords, NoOp>::type::get()...)) {
-                return std::tuple_cat(std::conditional<has_function<TWords>::get, TWords, NoOp>::type::get()...);
+            static auto get() -> decltype(std::tuple_cat((Tuplify<decltype(std::conditional<has_function<TWords>::get, TWords, NoOp>::type::get())>::make(std::conditional<has_function<TWords>::get, TWords, NoOp>::type::get()))...)) {
+                return std::tuple_cat((Tuplify<decltype(std::conditional<has_function<TWords>::get, TWords, NoOp>::type::get())>::make(std::conditional<has_function<TWords>::get, TWords, NoOp>::type::get()))...);
             }
 
             // Fuses all the postconditions if they exist
