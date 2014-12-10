@@ -50,25 +50,25 @@ struct Track {
     static int s;
     int i;
     Track() : i(++s) {
-        std::cout << "Constructing default " << i << std::endl;
+        std::cout << "\tConstructing default " << i << std::endl;
     }
 
     Track(int i) : i(i) {
-        std::cout << "Constructing with " << i << std::endl;
+        std::cout << "\tConstructing with " << i << std::endl;
     }
 
     ~Track() {
-        std::cout << "Destructing " << i << std::endl;
+        std::cout << "\tDestructing " << i << std::endl;
     }
 
     Track(const Track& c) {
 
-        std::cout << "Copying from " << c.i << " to " << i << std::endl;
+        std::cout << "\tCopying from " << c.i << " to " << i << std::endl;
         i = c.i;
     }
 
     Track(Track&& c) {
-        std::cout << "Moving from " << c.i << " to " << i << std::endl;
+        std::cout << "\tMoving from " << c.i << " to " << i << std::endl;
         i = std::move(c.i);
     }
 };
@@ -108,31 +108,38 @@ int main() {
     auto postcondition = Parsed::postcondition;
 
     std::cout << "Types of the generated functions" << std::endl;
-    std::cout << demangled<decltype(get)>() << std::endl;
-    std::cout << demangled<decltype(bind)>() << std::endl;
-    std::cout << demangled<decltype(precondition)>() << std::endl;
-    std::cout << demangled<decltype(postcondition)>() << std::endl;
+    std::cout << "\tGet:  " << demangled<decltype(get)>() << std::endl;
+    std::cout << "\tBind: " << demangled<decltype(bind)>() << std::endl;
+    std::cout << "\tPre:  " << demangled<decltype(precondition)>() << std::endl;
+    std::cout << "\tPost: " << demangled<decltype(postcondition)>() << std::endl;
+    std::cout << std::endl;
 
     std::cout << "Creating the DSL object" << std::endl;
     DSL dsl(bind, precondition, postcondition);
+    std::cout << std::endl;
 
     // Making an executor
+    std::cout << "Creating a callback object" << std::endl;
     auto func = [](const Track& t1, const Track& t2) {
         std::cout << "T1: " << t1 << " T2: " << t2 << std::endl;
     };
-    NUClear::metaprogramming::apply(func, get());
+    auto vars = get();
+    auto call = [vars, func] {
+        NUClear::metaprogramming::apply(func, vars);
+    };
+    std::cout << std::endl;
+
+    std::cout << "Executing the callback object" << std::endl;
+    call();
+    std::cout << std::endl;
 
     std::cout << "Running bind on the DSL object" << std::endl;
     dsl.bind();
 
     std::cout << "Getting the precondition" << std::endl;
-    std::cout << dsl.precondition() << std::endl;
+    std::cout << "\tPrecondition: " << (dsl.precondition() ? "true" : "false") << std::endl;
+    std::cout << std::endl;
 
-    auto tup = get();
-
-    ParseDSL<Trigger<Track>, With<Track>, Single>::bind();
-
-    std::cout << std::get<0>(tup) << std::endl;
 
     std::cout << "Ending Test" << std::endl;
 }

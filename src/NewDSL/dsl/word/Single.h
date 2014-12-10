@@ -24,7 +24,6 @@ namespace NUClear {
 
 			struct Single {
     			inline static bool precondition() {
-    		    	std::cout << "Precondition" << std::endl;
     		    	return true;
     			}
 			};
