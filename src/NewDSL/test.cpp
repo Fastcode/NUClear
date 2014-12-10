@@ -28,9 +28,23 @@
 
 #include "dsl/Parse.h"
 
+#include "../include/nuclear_bits/metaprogramming/apply.h"
+
 using NUClear::dsl::ParseDSL;
 
 using namespace NUClear::dsl::word;
+
+template <typename TType>
+const std::string demangled() {
+
+    int status = -4; // some arbitrary value to eliminate the compiler warning
+    std::unique_ptr<char, void(*)(void*)> res {
+        abi::__cxa_demangle(typeid(TType).name(), nullptr, nullptr, &status),
+        std::free
+    };
+
+    return std::string(status == 0 ? res.get() : typeid(TType).name());
+}
 
 struct Track {
     static int s;
@@ -68,13 +82,53 @@ std::ostream& operator<<(std::ostream& out, const Track& t) {
     return out;
 }
 
+struct DSL {
 
+    DSL(void (*bind)(), bool (*precondition)(), void (*postcondition)())
+     : bind(bind)
+     , precondition(precondition)
+     , postcondition(postcondition) {
+     }
+
+    void (*bind)();
+    bool (*precondition)();
+    void (*postcondition)();
+};
 
 int main() {
 
     std::cout << "Beginning Test" << std::endl;
 
-    auto tup = ParseDSL<Trigger<Track>, With<Track>, Single>::get();
+    using Parsed = ParseDSL<Trigger<Track>, With<Track>, Single>;
+
+    // This gives us a get function
+    auto get = Parsed::get;
+    auto bind = Parsed::bind;
+    auto precondition = Parsed::precondition;
+    auto postcondition = Parsed::postcondition;
+
+    std::cout << "Types of the generated functions" << std::endl;
+    std::cout << demangled<decltype(get)>() << std::endl;
+    std::cout << demangled<decltype(bind)>() << std::endl;
+    std::cout << demangled<decltype(precondition)>() << std::endl;
+    std::cout << demangled<decltype(postcondition)>() << std::endl;
+
+    std::cout << "Creating the DSL object" << std::endl;
+    DSL dsl(bind, precondition, postcondition);
+
+    // Making an executor
+    auto func = [](const Track& t1, const Track& t2) {
+        std::cout << "T1: " << t1 << " T2: " << t2 << std::endl;
+    };
+    NUClear::metaprogramming::apply(func, get());
+
+    std::cout << "Running bind on the DSL object" << std::endl;
+    dsl.bind();
+
+    std::cout << "Getting the precondition" << std::endl;
+    std::cout << dsl.precondition() << std::endl;
+
+    auto tup = get();
 
     ParseDSL<Trigger<Track>, With<Track>, Single>::bind();
 

@@ -98,6 +98,14 @@ namespace NUClear {
             // Fuse all the preconditions
             static bool precondition() {
 
+                bool result = true;
+
+                for(bool condition : { (std::conditional<has_function<TWords>::precondition, TWords, NoOp>::type::precondition())... }) {
+                    result &= condition;
+                }
+
+                return result;
+
             }
         };
     }

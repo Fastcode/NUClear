@@ -23,8 +23,9 @@ namespace NUClear {
         namespace word {
 
 			struct Single {
-    			inline static void precondition() {
+    			inline static bool precondition() {
     		    	std::cout << "Precondition" << std::endl;
+    		    	return true;
     			}
 			};
 		}
