@@ -15,27 +15,29 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_DSL_WORD_SINGLE_H
-#define NUCLEAR_DSL_WORD_SINGLE_H
+#ifndef NUCLEAR_DSL_WORD_COMMANDLINEARGUMENTS_H
+#define NUCLEAR_DSL_WORD_COMMANDLINEARGUMENTS_H
 
 namespace NUClear {
     namespace dsl {
         namespace word {
 
             /**
-             * @ingroup Options
-             * @brief This option sets the Single instance status of the task
+             * @ingroup SmartTypes
+             * @brief This is a special type which is used to get the list of command line arguments supplied to to running executable.
              *
              * @details
-             *  If a task is declared as being Single, then that means that only a single instance of the task can be
-             *  in the system at any one time. If the task is triggered again while an existing task is either in the
-             *  queue or is still executing, then this new task will be ignored.
+             *  This class is used to get command line arguments that the running executable was called with. These are returned
+             *  as a vector of strings containing all arguments including argv[0] which traditionally contains the path this
+             *  executable is running in.
+             *
+             * @return Returns a vector of strings with the command line arguments passed to the program
              */
-            struct Single {
-                inline static bool precondition() {
-                    // TODO make it depend on if the reaction is running or not
-                    return true;
-                }
+            struct CommandLineArguments {
+
+                static std::vector<std::string> get() {
+                    // TODO Get the command line arguments
+                };
             };
         }
     }

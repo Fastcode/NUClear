@@ -18,12 +18,23 @@
 #ifndef NUCLEAR_DSL_WORD_WITH_H
 #define NUCLEAR_DSL_WORD_WITH_H
 
-#include "../Fusion.h"
+#include "nuclear_bits/dsl/Fusion.h"
 
 namespace NUClear {
     namespace dsl {
         namespace word {
 
+            /**
+             * @ingroup Wrappers
+             * @brief This is a wrapper class which is used to list the data types to use in addtion on a callback.
+             *
+             * @details
+             *  This class is used in the on binding to specify additional data which is used in a call, but does not
+             *  trigger the call to run. When the call is run, the latest version of the data available will be obtained.
+             *  from the cache, and used as a paramter in this function call.
+             *
+             * @tparam TWiths the datatypes to get from the cache and use in the callback.
+             */
             template <typename... TType>
             struct With : public Fusion<operation::CacheGet<TType>...> {};
         }

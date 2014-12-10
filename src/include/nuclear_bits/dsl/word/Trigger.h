@@ -18,17 +18,28 @@
 #ifndef NUCLEAR_DSL_WORD_TRIGGER_H
 #define NUCLEAR_DSL_WORD_TRIGGER_H
 
-#include "../operation/CacheGet.h"
-#include "../operation/TypeBind.h"
+#include "nuclear_bits/dsl/operation/CacheGet.h"
+#include "nuclear_bits/dsl/operation/TypeBind.h"
 
 namespace NUClear {
     namespace dsl {
         namespace word {
 
-			template <typename TType>
-			struct Trigger : public operation::CacheGet<TType>, operation::TypeBind<TType> {};
-		}
-	}
+            /**
+             * @ingroup Wrappers
+             * @brief This is a wrapper class which is used to list the data types to trigger a callback on.
+             *
+             * @details
+             *  This class is used in the on binding to specify which data types are to be used trigger a callback. It
+             *  works under and logic for multiple types. When all of the types have been emitted at least once since
+             *  the last time this event was triggered, this event is triggered again.
+             *
+             * @tparam TTriggers the datatypes to trigger a callback on
+             */
+            template <typename TType>
+            struct Trigger : public operation::CacheGet<TType>, operation::TypeBind<TType> {};
+        }
+    }
 }
 
 #endif

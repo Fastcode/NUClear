@@ -15,26 +15,26 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_DSL_WORD_SINGLE_H
-#define NUCLEAR_DSL_WORD_SINGLE_H
+#ifndef NUCLEAR_DSL_WORD_SHUTDOWN_H
+#define NUCLEAR_DSL_WORD_SHUTDOWN_H
 
 namespace NUClear {
     namespace dsl {
         namespace word {
 
             /**
-             * @ingroup Options
-             * @brief This option sets the Single instance status of the task
+             * @ingroup SmartTypes
+             * @brief This type is emitted when the system starts shutting down.
              *
              * @details
-             *  If a task is declared as being Single, then that means that only a single instance of the task can be
-             *  in the system at any one time. If the task is triggered again while an existing task is either in the
-             *  queue or is still executing, then this new task will be ignored.
+             *  Once this type is emitted, all existing tasks within the system are completed including the shutdown
+             *  tasks, Any new emit events will not be processed and all new tasks will be ignored. Once all tasks are
+             *  finish the system will terminate.
              */
-            struct Single {
-                inline static bool precondition() {
-                    // TODO make it depend on if the reaction is running or not
-                    return true;
+            struct Shutdown {
+
+                static void bind() {
+                    // TODO bind to when the system shuts down
                 }
             };
         }

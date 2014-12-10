@@ -15,29 +15,35 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_DSL_WORD_SINGLE_H
-#define NUCLEAR_DSL_WORD_SINGLE_H
+#ifndef NUCLEAR_DSL_WORD_SYNC_H
+#define NUCLEAR_DSL_WORD_SYNC_H
 
 namespace NUClear {
     namespace dsl {
-        namespace word {
 
-            /**
-             * @ingroup Options
-             * @brief This option sets the Single instance status of the task
-             *
-             * @details
-             *  If a task is declared as being Single, then that means that only a single instance of the task can be
-             *  in the system at any one time. If the task is triggered again while an existing task is either in the
-             *  queue or is still executing, then this new task will be ignored.
-             */
-            struct Single {
-                inline static bool precondition() {
-                    // TODO make it depend on if the reaction is running or not
-                    return true;
-                }
+        /**
+         * @ingroup Options
+         * @brief This option sets the Synchronization group of the task
+         *
+         * @details
+         *  The synchronization group of a task is a compile time mutex which will allow only a single task from
+         *  each distinct execution task to execute at a time. For example, if two tasks both had Sync<int> then only
+         *  one of those tasks would execute at a time.
+         *
+         * @tparam TSync the type with which to synchronize on
+         */
+        template <typename TSync>
+        struct Sync {
+
+            static bool precondition() {
+                // TODO Check if it's running and if so queue it otherwise run it
+                return true;
+            }
+
+            static bool postcondition() {
+                // TODO Check if there is something in the sync queue and reinject it
             };
-        }
+        };
     }
 }
 
