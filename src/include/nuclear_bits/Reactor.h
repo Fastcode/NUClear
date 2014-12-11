@@ -53,8 +53,12 @@ namespace NUClear {
     public:
         friend class PowerPlant;
         
-        Reactor(std::unique_ptr<Environment> environment);
-        ~Reactor();
+        Reactor::Reactor(std::unique_ptr<Environment> environment)
+          : environment(std::move(environment))
+          , powerplant(this->environment->powerplant) {
+        }
+        
+        Reactor::~Reactor() {}
         
     protected:
         /// @brief Our environment
@@ -146,16 +150,15 @@ namespace NUClear {
          * @details
          *  This function is used to create a Reaction in the system. By providing the correct
          *  template parameters, this function can modify how and when this reaction runs.
-         *  
          *
-         * @tparam TParams  The parameters of the Every class
+         * @tparam TDSL     The NUClear domain specific language information
          * @tparam TFunc    The type of the function passed in
          *
          * @param callback  The callback to execute when the trigger on this happens
          *
          * @return A ReactionHandle that controls if the created reaction runs or not
          */
-        template <typename... TParams, typename TFunc>
+        template <typename... TDSL, typename TFunc>
         Reactor::ReactionHandle on(TFunc callback);
         
         /**
@@ -165,8 +168,7 @@ namespace NUClear {
          *  This function is used to create a Reaction in the system. By providing the correct
          *  template parameters, this function can modify how and when this reaction runs.
          *
-         *
-         * @tparam TParams  The parameters of the Every class
+         * @tparam TDSL     The NUClear domain specific language information
          * @tparam TFunc    The type of the function passed in
          *
          * @param name      The name of this reaction to show in statistics
@@ -174,7 +176,7 @@ namespace NUClear {
          *
          * @return A ReactionHandle that controls if the created reaction runs or not
          */
-        template <typename... TParams, typename TFunc>
+        template <typename... TDSL, typename TFunc>
         Reactor::ReactionHandle on(const std::string& name, TFunc callback);
         
         /**

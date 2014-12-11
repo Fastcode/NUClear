@@ -23,7 +23,6 @@
 #include <memory>
 #include <string>
 
-#include "ReactionOptions.h"
 #include "ReactionTask.h"
 
 namespace NUClear {
@@ -51,7 +50,7 @@ namespace NUClear {
              * @param callback      the callback generator function (creates databound callbacks)
              * @param options       the options to use in Tasks
              */
-            Reaction(std::vector<std::string> identifier, std::function<std::function<void (ReactionTask&)> ()> callback, ReactionOptions options);
+            Reaction(std::vector<std::string> identifier, std::function<std::function<void (ReactionTask&)> ()> callback, bool (*preconditions)(), void (*postconditions)());
             
             /**
              * @brief creates a new databound callback task that can be executed.
@@ -69,12 +68,19 @@ namespace NUClear {
             
             /// @brief This holds the demangled name of the On function that is being called
             std::vector<std::string> identifier;
-            /// @brief the options for this Reaction (decides how Tasks will be scheduled)
-            ReactionOptions options;
+            
+            /// @brief TODO
+            bool (*precondition)();
+            
+            /// @brief TODO
+            void (*postcondition)();
+            
             /// @brief the unique identifier for this Reaction object
             const uint64_t reactionId;
+            
             /// @brief if this reaction is currently enqueued or running
             volatile bool running;
+            
         private:
             /// @brief a source for reactionIds, atomically creates longs
             static std::atomic<uint64_t> reactionIdSource;
