@@ -32,7 +32,6 @@
 #include <sstream>
 
 #include "nuclear_bits/DataFor.h"
-#include "nuclear_bits/extensions/serialization/Serialization.h"
 #include "nuclear_bits/threading/ThreadWorker.h"
 #include "nuclear_bits/threading/TaskScheduler.h"
 #include "nuclear_bits/metaprogramming/MetaProgramming.h"
@@ -438,14 +437,6 @@ namespace NUClear {
 #include "nuclear_bits/PowerPlant.ipp"
 #include "nuclear_bits/CacheMaster.ipp"
 #include "nuclear_bits/ReactorMaster.ipp"
-
-// Include our built in extensions
-#include "nuclear_bits/extensions/Chrono.h"
-#include "nuclear_bits/extensions/Raw.h"
-#include "nuclear_bits/extensions/Optional.h"
-#include "nuclear_bits/extensions/Last.h"
-#include "nuclear_bits/extensions/Networking.h"
-#include "nuclear_bits/extensions/CommandLineArguments.h"
 
 #endif
 
