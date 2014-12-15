@@ -24,7 +24,6 @@ namespace NUClear {
     PowerPlant::PowerPlant(Configuration config, int argc, const char *argv[]) :
     configuration(config)
     , threadmaster(*this)
-    , cachemaster(*this)
     , reactormaster(*this) {
         
         // Stop people from making more then one powerplant
@@ -37,18 +36,12 @@ namespace NUClear {
         
         // State that we are setting up
         std::cout << "Building the PowerPlant with " << configuration.threadCount << " thread" << (configuration.threadCount != 1 ? "s" : "") << std::endl;
-        
-        // Install the chrono extension
-        std::cout << "Installing the Chrono extension" << std::endl;
-        install<extensions::Chrono>();
-
-        std::cout << "Installing the Networking extension" << std::endl;
-        install<extensions::Networking>();
 
         // Emit our arguments if any.
         if(argc > 0) {
-            emit<dsl::Scope::INITIALIZE>(std::make_unique<DataFor<dsl::CommandLineArguments, std::vector<std::string>>>
-                                         (std::make_shared<std::vector<std::string>>(argv, argv + argc)));
+            // TODO emit the command line arguments
+//            emit<dsl::Scope::INITIALIZE>(std::make_unique<DataFor<dsl::CommandLineArguments, std::vector<std::string>>>
+//                                         (std::make_shared<std::vector<std::string>>(argv, argv + argc)));
         }
     }
     
@@ -57,19 +50,12 @@ namespace NUClear {
     }
 
     void PowerPlant::start() {
-        // ReactorMaster needs to start before we emit initialize so
-        // people waiting on Scope::INITIALIZE messages will get
-        // them on Trigger<Initialize>
-        reactormaster.start();
-
-        emit<dsl::Scope::DIRECT>(std::make_unique<dsl::Startup>());
 
         threadmaster.start();
     }
     
     void PowerPlant::shutdown() {
         threadmaster.shutdown();
-        emit<dsl::Scope::DIRECT>(std::make_unique<dsl::Shutdown>());
         
         // Bye bye powerplant
         powerplant = nullptr;

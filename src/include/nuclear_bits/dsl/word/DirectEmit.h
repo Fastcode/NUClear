@@ -15,20 +15,22 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include "nuclear_bits/PowerPlant.h"
+#ifndef NUCLEAR_DSL_WORD_DIRECT_H
+#define NUCLEAR_DSL_WORD_DIRECT_H
 
 namespace NUClear {
-    
-    PowerPlant::ReactorMaster::ReactorMaster(PowerPlant& parent) :
-        PowerPlant::BaseMaster(parent) {}
+    namespace dsl {
+        namespace word {
 
-    void PowerPlant::ReactorMaster::start() {
-        
-        // Execute all our deferred emits (initialize scope)
-        while(!deferredEmits.empty()) {
-            auto callback = deferredEmits.front();
-            callback();
-            deferredEmits.pop();
+            struct DirectEmit {
+
+                template <typename TData>
+                static void emit(std::shared_ptr<TData> data) {
+                    // TODO Bind to an always thread
+                }
+            };
         }
     }
 }
+
+#endif

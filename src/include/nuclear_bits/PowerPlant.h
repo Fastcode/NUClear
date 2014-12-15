@@ -31,13 +31,14 @@
 #include <string>
 #include <sstream>
 
-#include "nuclear_bits/DataFor.h"
+#include "nuclear_bits/dsl/word/LocalEmit.h"
+#include "nuclear_bits/dsl/word/DirectEmit.h"
+#include "nuclear_bits/ForwardDeclarations.h"
 #include "nuclear_bits/threading/ThreadWorker.h"
 #include "nuclear_bits/threading/TaskScheduler.h"
 #include "nuclear_bits/metaprogramming/MetaProgramming.h"
 #include "nuclear_bits/metaprogramming/TypeMap.h"
 #include "nuclear_bits/metaprogramming/Sequence.h"
-#include "nuclear_bits/ForwardDeclarations.h"
 #include "nuclear_bits/LogLevel.h"
 #include "nuclear_bits/LogMessage.h"
 
@@ -180,39 +181,7 @@ namespace NUClear {
             /**
              * @brief Constructs a new ReactorMaster which is held in the PowerPlant that created it.
              */
-            ReactorMaster(PowerPlant& parent);
-            
-            /**
-             * @brief Emits data to the reactions that need it and store the resulting data.
-             *
-             * @tparam TData The type of data we are emitting
-             *
-             * @param data The data we are emitting
-             */
-            template <typename TData>
-            void emit(std::shared_ptr<TData> data);
-            
-            /**
-             * @brief A direct emit is identical to a regular emit, except that it bypasses the thread pool.
-             *
-             * @tparam TData The type of data we are emitting
-             *
-             * @param data The data we are emitting
-             */
-            template <typename TData>
-            void directEmit(std::shared_ptr<TData> data);
-            
-            /**
-             * @brief
-             *  Queues an emit to trigger on start() instead of
-             *  immediately.
-             *
-             * @tparam TData The type of data we are emitting
-             *
-             * @param data The data we are emitting
-             */
-            template <typename TData>
-            void emitOnStart(std::shared_ptr<TData> data);
+            ReactorMaster(PowerPlant& parent) : PowerPlant::BaseMaster(parent) {}
             
             /**
              * @brief Builds and installs a reactor of the passed type.
@@ -221,11 +190,6 @@ namespace NUClear {
              */
             template <typename TReactor, enum LogLevel level = DEBUG>
             void install();
-            
-            /**
-             * @brief Starts the ReactorMaster, this will direct emit all of the emitOnStart events
-             */
-            void start();
             
         private:
             /// @brief Our cache that stores reactions that can be executed, can be accessed at compile time
@@ -319,21 +283,18 @@ namespace NUClear {
         static void log(TArgs... args);
         
         /**
-         * @brief Gets the stored version of a type of data
+         * @brief Emits data to the system and routes it to the other systems that use it.
          *
          * @details
-         *  Gets the most recent version of data emitted for a type.
+         *  TODO
          *
-         * @attention Note that this is not the same as a with as exists will not run
+         * @tparam THandlers    The handlers to use for this emit
+         * @tparam TData        The type of the data that we are emitting
          *
-         * @tparam TData the data type to get
-         *
-         * @return A shared_ptr to the data stored in the system
+         * @param data The data we are emitting
          */
         template <typename TData>
-        auto get() -> decltype(cachemaster.get<TData>()) {
-            return cachemaster.get<TData>();
-        }
+        void emit(std::unique_ptr<TData>&& data);
         
         /**
          * @brief Emits data to the system and routes it to the other systems that use it.
@@ -346,7 +307,7 @@ namespace NUClear {
          *
          * @param data The data we are emitting
          */
-        template <typename... THandlers, typename TData>
+        template <typename TFirstHandler, typename... THandlers, typename TData>
         void emit(std::unique_ptr<TData>&& data);
     };
     
@@ -363,7 +324,6 @@ namespace NUClear {
 
 // Include all of our implementation files (which use the previously included reactor.h)
 #include "nuclear_bits/PowerPlant.ipp"
-#include "nuclear_bits/CacheMaster.ipp"
 #include "nuclear_bits/ReactorMaster.ipp"
 
 #endif

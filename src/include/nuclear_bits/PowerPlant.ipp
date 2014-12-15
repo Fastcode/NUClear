@@ -27,49 +27,27 @@ namespace NUClear {
         reactormaster.install<TReactor, level>();
     }
     
-    // Standard local emit (emit to the reactormaster)
+    // Default emit with no types
     template <typename TData>
-    struct PowerPlant::Emit<dsl::Scope::LOCAL, TData> {
-        static void emit(PowerPlant& context, std::shared_ptr<TData> data) {
-            context.reactormaster.emit(data);
-        }
-    };
-    
-    // Direct emit (emit to the reactormasters directly)
-    template <typename TData>
-    struct PowerPlant::Emit<dsl::Scope::DIRECT, TData> {
-        static void emit(PowerPlant& context, std::shared_ptr<TData> data) {
-            context.reactormaster.directEmit(data);
-        }
-    };
-    
-    // Initialize emit (emit to reactormaster on startup)
-    template <typename TData>
-    struct PowerPlant::Emit<dsl::Scope::INITIALIZE, TData> {
-        static void emit(PowerPlant& context, std::shared_ptr<TData> data) {
-            context.reactormaster.emitOnStart(data);
-        }
-    };
-    
-    // Global emit handlers
-    template <typename... THandlers, typename TData>
     void PowerPlant::emit(std::unique_ptr<TData>&& data) {
         
+        // Release our data from the pointer and wrap it in a shared_ptr
+        std::shared_ptr<TData>&& ptr = std::shared_ptr<TData>(std::move(data));
         
-        // If there are no types defined, the default is to emit local
-        if(sizeof...(THandlers) == 0) {
-            emit<dsl::Scope::LOCAL>(std::forward<std::unique_ptr<TData>>(data));
-        }
-        else {
-            // Release our data from the pointer and wrap it in a shared_ptr
-            std::shared_ptr<TData> ptr = std::shared_ptr<TData>(std::move(data));
-            
-            // For some reason GCC thinks this variable is unused? this supresses that warning
-            (void) ptr;
-            
-            // TODO These functions should be noexcept
-            metaprogramming::unpack((PowerPlant::Emit<THandlers, TData>::emit(*this, ptr), 0)...);
-        }
+        // Pass it to the default emit handler
+        dsl::word::LocalEmit::emit(ptr);
+    }
+    
+    // Global emit handlers
+    template <typename TFirstHandler, typename... THandlers, typename TData>
+    void PowerPlant::emit(std::unique_ptr<TData>&& data) {
+        
+        // Release our data from the pointer and wrap it in a shared_ptr
+        std::shared_ptr<TData> ptr = std::shared_ptr<TData>(std::move(data));
+        
+        // Pass it to all of the provided emit handlers
+        TFirstHandler::emit(ptr);
+        metaprogramming::unpack((THandlers::emit(ptr), 0)...);
     }
     
     // Anonymous metafunction that concatenates everything into a single string
@@ -101,7 +79,7 @@ namespace NUClear {
             std::string output = outputStream.str();
             
             // Direct emit the log message so that any direct loggers can use it
-            powerplant->emit<dsl::Scope::DIRECT>(std::make_unique<LogMessage>(level
+            powerplant->emit<dsl::word::DirectEmit>(std::make_unique<LogMessage>(level
                                                                               , output
                                                                               , task ? task->taskId : 0
                                                                               , task ? task->parent->reactionId : 0));

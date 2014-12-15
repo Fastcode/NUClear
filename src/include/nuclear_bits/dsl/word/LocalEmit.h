@@ -15,17 +15,22 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+#ifndef NUCLEAR_DSL_WORD_LOCALEMIT_H
+#define NUCLEAR_DSL_WORD_LOCALEMIT_H
+
 namespace NUClear {
-    
-    // === Template Implementations ===
-    // As with Reactor.h this section contains all template function implementations for ReactorMaster.
-    // Unfortunately it's necessary to have these here and outside the NUClear namespace due to our circular dependency on Reactor.
-    // What this means is: This code needs to be down here, it can't be moved into the class or namespace since that'll break the
-    // forward declaration resolution. See the similar comment in Reactor.h for more information.
-    
-    template <typename TReactor, enum LogLevel level>
-    void PowerPlant::ReactorMaster::install() {
-        // The reactor constructor should handle subscribing to events
-        reactors.push_back(std::make_unique<TReactor>(std::make_unique<Environment>(parent, level)));
+    namespace dsl {
+        namespace word {
+
+            struct LocalEmit {
+                
+                template <typename TData>
+                static void emit(std::shared_ptr<TData> data) {
+                    // TODO Bind to an always thread
+                }
+            };
+        }
     }
 }
+
+#endif

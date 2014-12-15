@@ -38,6 +38,7 @@
 #include "nuclear_bits/dsl/word/Single.h"
 #include "nuclear_bits/dsl/word/Sync.h"
 
+#include "nuclear_bits/Environment.h"
 #include "nuclear_bits/threading/Reaction.h"
 #include "nuclear_bits/threading/ReactionHandle.h"
 #include "nuclear_bits/LogLevel.h"
@@ -189,7 +190,6 @@ namespace NUClear {
 }
 
 // We need to really make sure that PowerPlant is included as we use it in our ipp file
-#include "nuclear_bits/Environment.h"
 #include "nuclear_bits/PowerPlant.h"
 #include "nuclear_bits/Reactor.ipp"
 #endif
