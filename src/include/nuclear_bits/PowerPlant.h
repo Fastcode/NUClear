@@ -168,61 +168,6 @@ namespace NUClear {
         };
         
         /**
-         * @brief The CacheMaster is responsible for handling all of the data storage in the system.
-         *
-         * @attention
-         *  This CacheMaster uses static variables to enhance its speed, this means that you cannot have more then
-         *  one PowerPlant in an executable without resolving this.
-         */
-        class CacheMaster : public BaseMaster {
-        private:
-            /// @brief This Value cache is a special Static type buffer that allows compile time lookup of types.
-            template <typename TData>
-            using ValueCache = metaprogramming::TypeMap<CacheMaster, TData, TData>;
-            
-        public:
-            /// @brief Construct a new CacheMaster with our PowerPlant as context
-            CacheMaster(PowerPlant& parent) : BaseMaster(parent) {}
-            
-            /**
-             * @brief Stores the passed data in our cache so that it can be retrieved.
-             *
-             * @tparam TData the type of data we are caching
-             *
-             * @param cache the data that we are caching
-             */
-            template <typename TData>
-            void cache(std::shared_ptr<TData> cache);
-            
-            /**
-             * @brief
-             *  This datatype is used for extension of getting data, by default it will get the most recent
-             *  element from the cache.
-             *
-             * @details
-             *  TODO give code example of an extension
-             *
-             * @tparam TData the datatype that is mentioned in the trigger (does not have to be the return type)
-             *
-             * @author Trent Houliston
-             */
-            template <typename TData>
-            struct Get;
-            
-            /**
-             * @brief This gets data from the cache and returns it
-             *
-             * @tparam TData The type of data to get
-             *
-             * @return The data that is attached to this type (influenced by extensions)
-             */
-            template <typename TData>
-            auto get() -> decltype(Get<TData>::get(parent)) {
-                return Get<TData>::get(parent);
-            }
-        };
-        
-        /**
          * @brief The reactor master is responsible for holding all Reactors, as well as reactions.
          *  It also hands out tasks and collects data for the cache master.
          *
@@ -294,21 +239,6 @@ namespace NUClear {
             std::queue<std::function<void ()>> deferredEmits;
         };
         
-        /**
-         * @brief This extension point allows changing the way that paticular datatypes are emitted, 
-         *  as well as creating new scopes for emitting data
-         *
-         * @details
-         *  TODO provide an example
-         *
-         * @tparam THandler A type to distinguish different scopes to emit to (local network etc.)
-         * @tparam TData The type of data we are emitting
-         *
-         * @author Trent Houliston
-         */
-        template <typename THandler, typename TData>
-        struct Emit;
-        
     public:
         
         /// @brief Holds the configuration information for this PowerPlant (such as number of pool threads)
@@ -317,8 +247,6 @@ namespace NUClear {
     protected:
         /// @brief The ThreadMaster instance for this PowerPlant.
         ThreadMaster threadmaster;
-        /// @brief The CacheMaster instance for this PowerPlant.
-        CacheMaster cachemaster;
         /// @brief The ReactorMaster instance for this PowerPlant.
         ReactorMaster reactormaster;
     public:
