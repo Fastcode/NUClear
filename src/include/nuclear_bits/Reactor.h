@@ -25,9 +25,18 @@
 #include <typeindex>
 #include <chrono>
 #include <atomic>
+
+// Domain Specific Language
+#include "nuclear_bits/dsl/word/Trigger.h"
+#include "nuclear_bits/dsl/word/With.h"
+#include "nuclear_bits/dsl/word/Startup.h"
+#include "nuclear_bits/dsl/word/Shutdown.h"
+#include "nuclear_bits/dsl/word/Every.h"
+#include "nuclear_bits/dsl/word/Single.h"
+#include "nuclear_bits/dsl/word/Sync.h"
+
 #include "nuclear_bits/threading/Reaction.h"
 #include "nuclear_bits/threading/ReactionHandle.h"
-#include "nuclear_bits/dsl/dsl.h"
 #include "nuclear_bits/LogLevel.h"
 #include "nuclear_bits/metaprogramming/unpack.h"
 #include "nuclear_bits/metaprogramming/apply.h"
@@ -53,12 +62,12 @@ namespace NUClear {
     public:
         friend class PowerPlant;
         
-        Reactor::Reactor(std::unique_ptr<Environment> environment)
+        Reactor(std::unique_ptr<Environment> environment)
           : environment(std::move(environment))
           , powerplant(this->environment->powerplant) {
         }
         
-        Reactor::~Reactor() {}
+        ~Reactor() {}
         
     protected:
         /// @brief Our environment
@@ -73,71 +82,34 @@ namespace NUClear {
          * for the user.                                                                                               *
          **************************************************************************************************************/
         
-        /// @brief The Time units used by the NUClear system
-        using time_t = clock::time_point;
-        
         /// @copydoc dsl::Trigger
         template <typename... TTriggers>
-        using Trigger = dsl::Trigger<TTriggers...>;
+        using Trigger = dsl::word::Trigger<TTriggers...>;
         
         /// @copydoc dsl::With
         template <typename... TWiths>
-        using With = dsl::With<TWiths...>;
-        
-        /// @copydoc dsl::Scope
-        using Scope = dsl::Scope;
-        
-        /// @copydoc dsl::Options
-        template <typename... TOptions>
-        using Options = dsl::Options<TOptions...>;
+        using With = dsl::word::With<TWiths...>;
         
         /// @copydoc dsl::Startup
-        using Startup = dsl::Startup;
+        using Startup = dsl::word::Startup;
         
         /// @copydoc dsl::Shutdown
-        using Shutdown = dsl::Shutdown;
+        using Shutdown = dsl::word::Shutdown;
         
         /// @copydoc dsl::Every
         template <int ticks, class period = std::chrono::milliseconds>
-        using Every = dsl::Every<ticks, period>;
+        using Every = dsl::word::Every<ticks, period>;
         
         /// @copydoc dsl::Per
         template <class period>
-        using Per = dsl::Per<period>;
-        
-        /// @copydoc dsl::Optional
-        template <class TData>
-        using Optional = dsl::Optional<TData>;
-        
-        /// @copydoc dsl::Raw
-        template <typename TData>
-        using Raw = dsl::Raw<TData>;
-        
-        /// @copydoc dsl::Last
-        template <int num, class TData>
-        using Last = dsl::Last<num, TData>;
-        
-        /// @brief The type of data that is returned by Last<num, TData>
-        template <class TData>
-        using LastList = std::vector<std::shared_ptr<const TData>>;
-        
-        /// @copydoc dsl::CommandLineArguments
-        using CommandLineArguments = dsl::CommandLineArguments;
-        
-        /// @copydoc dsl::Priority
-        template <enum EPriority P>
-        using Priority = dsl::Priority<P>;
-        
-        /// @copydoc dsl::Network
-        template <typename TData>
-        using Network = dsl::Network<TData>;
+        using Per = dsl::word::Per<period>;
         
         /// @copydoc dsl::Sync
         template <typename TSync>
-        using Sync = dsl::Sync<TSync>;
+        using Sync = dsl::word::Sync<TSync>;
         
         /// @copydoc dsl::Single
-        using Single = dsl::Single;
+        using Single = dsl::word::Single;
         
         /// @brief This provides functions to modify how an on statement runs after it has been created
         using ReactionHandle = threading::ReactionHandle;

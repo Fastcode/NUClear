@@ -20,30 +20,32 @@
 
 namespace NUClear {
     namespace dsl {
+        namespace word {
 
-        /**
-         * @ingroup Options
-         * @brief This option sets the Synchronization group of the task
-         *
-         * @details
-         *  The synchronization group of a task is a compile time mutex which will allow only a single task from
-         *  each distinct execution task to execute at a time. For example, if two tasks both had Sync<int> then only
-         *  one of those tasks would execute at a time.
-         *
-         * @tparam TSync the type with which to synchronize on
-         */
-        template <typename TSync>
-        struct Sync {
+            /**
+             * @ingroup Options
+             * @brief This option sets the Synchronization group of the task
+             *
+             * @details
+             *  The synchronization group of a task is a compile time mutex which will allow only a single task from
+             *  each distinct execution task to execute at a time. For example, if two tasks both had Sync<int> then only
+             *  one of those tasks would execute at a time.
+             *
+             * @tparam TSync the type with which to synchronize on
+             */
+            template <typename TSync>
+            struct Sync {
 
-            static bool precondition() {
-                // TODO Check if it's running and if so queue it otherwise run it
-                return true;
-            }
+                static bool precondition() {
+                    // TODO Check if it's running and if so queue it otherwise run it
+                    return true;
+                }
 
-            static bool postcondition() {
-                // TODO Check if there is something in the sync queue and reinject it
+                static bool postcondition() {
+                    // TODO Check if there is something in the sync queue and reinject it
+                };
             };
-        };
+        }
     }
 }
 
