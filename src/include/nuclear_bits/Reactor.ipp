@@ -36,26 +36,35 @@ namespace NUClear {
     }
     
     template <typename... TParams, typename TFunc>
-    Reactor::ReactionHandle Reactor::on(TFunc callback) {
+    void Reactor::on(TFunc callback) {
         
         // Forward an empty string as our user reaction name
         return on<TParams...>("", std::forward<TFunc>(callback));
     }
     
-    template <typename... TParams, typename TFunc>
-    Reactor::ReactionHandle Reactor::on(const std::string& name, TFunc callback) {
+    template <typename... TDSL, typename TFunc>
+    void Reactor::on(const std::string& name, TFunc callback) {
         
         // There must be some parameters
-        static_assert(sizeof...(TParams) > 0, "You must have at least one paramter in an on");
+        static_assert(sizeof...(TDSL) > 0, "You must have at least one paramter in an on");
         
+        // Get our identifier
         std::vector<std::string> identifier;
         identifier.reserve(3);
         
+        // The name provided by the user
         identifier.push_back(name);
-        identifier.push_back(demangle(typeid(std::tuple<TParams...>).name()));
+        // The DSL that was used
+        identifier.push_back(demangle(typeid(std::tuple<TDSL...>).name()));
+        // The type of the function used
         identifier.push_back(demangle(typeid(TFunc).name()));
         
-        return On<TFunc, TParams...>::on(*this, identifier, callback);
+        // Execute our DSL
+        using DSL = dsl::Parse<TDSL...>;
+        
+        DSL::bind();
+        
+        
     }
     
     template <typename... THandlers, typename TData>

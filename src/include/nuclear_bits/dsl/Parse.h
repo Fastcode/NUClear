@@ -24,7 +24,7 @@ namespace NUClear {
     namespace dsl {
 
         template <typename... TDSL>
-        struct ParseDSL : public Fusion<TDSL...> {};
+        struct Parse : public Fusion<TDSL...> {};
     }
 }
 
