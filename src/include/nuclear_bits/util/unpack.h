@@ -15,11 +15,11 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_METAPROGRAMMING_UNPACK_H
-#define NUCLEAR_METAPROGRAMMING_UNPACK_H
+#ifndef NUCLEAR_UTIL_UNPACK_H
+#define NUCLEAR_UTIL_UNPACK_H
 
 namespace NUClear {
-    namespace metaprogramming {
+    namespace util {
         
         /**
          * @brief Executes a series of function calls from a variardic template pack.

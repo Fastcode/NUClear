@@ -23,13 +23,22 @@ namespace NUClear {
 
         // SFINAE for testing the existence of the operational functions in a type
         namespace {
+            
+            struct NoOp {
+                template <typename DSL, typename TFunc>
+                static inline void bind(TFunc&&) {}
+                static inline std::tuple<> get() { return std::tuple<>(); }
+                static inline bool precondition() { return true; }
+                static inline void postcondition() {}
+            };
+            
             template<typename T>
             struct has_function {
             private:
                 typedef std::true_type yes;
                 typedef std::false_type no;
 
-                template<typename U> static auto test_bind(int) -> decltype(U::bind(), yes());
+                template<typename U> static auto test_bind(int) -> decltype(U::template bind<NoOp>(0), yes());
                 template<typename> static no test_bind(...);
 
                 template<typename U> static auto test_get(int) -> decltype(U::get(), yes());
@@ -47,13 +56,6 @@ namespace NUClear {
                 static constexpr bool get = std::is_same<decltype(test_get<T>(0)),yes>::value;
                 static constexpr bool precondition = std::is_same<decltype(test_precondition<T>(0)),yes>::value;
                 static constexpr bool postcondition = std::is_same<decltype(test_postcondition<T>(0)),yes>::value;
-            };
-
-            struct NoOp {
-                static void bind() {}
-                static std::tuple<> get() { return std::tuple<>(); }
-                static bool precondition() { return true; }
-                static void postcondition() {}
             };
 
             template <typename TData>
@@ -77,9 +79,10 @@ namespace NUClear {
         struct Fusion {
 
             // Fuse all the binds
-            static void bind() {
+            template <typename DSL, typename TFunc>
+            static void bind(TFunc&& callback) {
                 auto x = {
-                (std::conditional<has_function<TWords>::bind, TWords, NoOp>::type::bind(), 0)...
+                    (std::conditional<has_function<TWords>::bind, TWords, NoOp>::type::template bind<DSL>(std::forward<TFunc>(callback)), 0)...
                 };
             }
 

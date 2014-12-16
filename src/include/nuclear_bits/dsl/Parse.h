@@ -24,7 +24,28 @@ namespace NUClear {
     namespace dsl {
 
         template <typename... TDSL>
-        struct Parse : public Fusion<TDSL...> {};
+        struct Parse {
+            
+            using DSL = Fusion<TDSL...>;
+        
+            static bool precondition() {
+                return DSL::precondition();
+            }
+            
+            static void postcondition() {
+                DSL::postcondition();
+            }
+            
+            static auto get() -> decltype(DSL::get()) {
+                return DSL::get();
+            }
+            
+            template <typename TFunc>
+            static auto bind(TFunc&& callback) -> decltype(DSL::template bind<DSL>(std::forward<TFunc>(callback))) {
+                return DSL::template bind<DSL>(std::forward<TFunc>(callback));
+            }
+        
+        };
     }
 }
 

@@ -31,14 +31,17 @@
 #include <string>
 #include <sstream>
 
+// Forward declarations
+#include "nuclear_bits/ForwardDeclarations.h"
+
+// Utilities
+#include "nuclear_bits/util/unpack.h"
+
+// Emit types
 #include "nuclear_bits/dsl/word/LocalEmit.h"
 #include "nuclear_bits/dsl/word/DirectEmit.h"
-#include "nuclear_bits/ForwardDeclarations.h"
 #include "nuclear_bits/threading/ThreadWorker.h"
 #include "nuclear_bits/threading/TaskScheduler.h"
-#include "nuclear_bits/metaprogramming/MetaProgramming.h"
-#include "nuclear_bits/metaprogramming/TypeMap.h"
-#include "nuclear_bits/metaprogramming/Sequence.h"
 #include "nuclear_bits/LogLevel.h"
 #include "nuclear_bits/LogMessage.h"
 
@@ -53,9 +56,6 @@ namespace std {
 #endif
 
 namespace NUClear {
-    
-    // We import our Meta Programming tools
-    using namespace metaprogramming;
     
     /**
      * @brief The PowerPlant is the core of a NUClear system. It holds all Reactors in it and manages their communications.
@@ -192,9 +192,6 @@ namespace NUClear {
             void install();
             
         private:
-            /// @brief Our cache that stores reactions that can be executed, can be accessed at compile time
-            template <typename TKey>
-            using CallbackCache = metaprogramming::TypeList<Reactor, TKey, std::unique_ptr<threading::Reaction>>;
             
             /// @brief Our vector of Reactors, will get destructed when this vector is
             std::vector<std::unique_ptr<NUClear::Reactor>> reactors;

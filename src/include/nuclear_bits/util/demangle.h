@@ -15,30 +15,30 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_DSL_OPERATION_TYPEBIND_H
-#define NUCLEAR_DSL_OPERATION_TYPEBIND_H
+#ifndef NUCLEAR_UTIL_DEMANGLE_H
+#define NUCLEAR_UTIL_DEMANGLE_H
 
-#include "nuclear_bits/util/demangle.h"
-#include "nuclear_bits/util/apply.h"
+#include <cxxabi.h>
 
 namespace NUClear {
-    namespace dsl {
-        namespace operation {
-
-            template <typename TType>
-            struct TypeBind {
-
-                template <typename DSL, typename TFunc>
-                static void bind(TFunc&& callback) {
-                    
-                    auto run = [callback] {
-                        
-                        util::apply(callback, DSL::get());
-                    };
-                    
-                    std::cout << "Binding " << util::demangle(typeid(TFunc).name()) << " to " << util::demangle(typeid(TType).name()) << std::endl;
-                };
+    namespace util {
+        
+        /**
+         * @brief Demangles the passed symbol to a string, or returns it if it cannot demangle it
+         *
+         * @param symbol the symbol to demangle
+         *
+         * @return the demangled symbol, or the original string if it could not be demangeld
+         */
+        inline std::string demangle(const char* symbol) {
+            
+            int status = -4; // some arbitrary value to eliminate the compiler warning
+            std::unique_ptr<char, void(*)(void*)> res {
+                abi::__cxa_demangle(symbol, nullptr, nullptr, &status),
+                std::free
             };
+            
+            return std::string(status == 0 ? res.get() : symbol);
         }
     }
 }

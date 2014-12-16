@@ -18,8 +18,6 @@
 #ifndef NUCLEAR_REACTOR_H
 #define NUCLEAR_REACTOR_H
 
-#include <cxxabi.h>
-
 #include <string>
 #include <sstream>
 #include <functional>
@@ -38,14 +36,13 @@
 #include "nuclear_bits/dsl/word/Single.h"
 #include "nuclear_bits/dsl/word/Sync.h"
 
+#include "nuclear_bits/util/demangle.h"
+
 #include "nuclear_bits/Environment.h"
 #include "nuclear_bits/threading/Reaction.h"
 #include "nuclear_bits/threading/ReactionHandle.h"
 #include "nuclear_bits/LogLevel.h"
-#include "nuclear_bits/metaprogramming/unpack.h"
-#include "nuclear_bits/metaprogramming/apply.h"
 #include "nuclear_bits/metaprogramming/TypeMap.h"
-#include "nuclear_bits/metaprogramming/MetaProgramming.h"
 #include "nuclear_bits/ForwardDeclarations.h"
 
 namespace NUClear {
@@ -153,7 +150,7 @@ namespace NUClear {
          * @return A ReactionHandle that controls if the created reaction runs or not
          */
         template <typename... TDSL, typename TFunc>
-        void on(const std::string& name, TFunc callback);
+        void on(const std::string& name, TFunc&& callback);
         
         /**
          * @brief Emits data into the system so that other reactors can use it.

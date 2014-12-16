@@ -15,15 +15,15 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_METAPROGRAMMING_APPLY_H
-#define NUCLEAR_METAPROGRAMMING_APPLY_H
+#ifndef NUCLEAR_UTIL_APPLY_H
+#define NUCLEAR_UTIL_APPLY_H
 
 #include <tuple>
 #include "Sequence.h"
-#include "Dereferenceable.h"
+#include "is_dereferenceable.h"
 
 namespace NUClear {
-    namespace metaprogramming {
+    namespace util {
         
         // Anonymous Namespace to hide implementation details
         namespace {
@@ -41,11 +41,11 @@ namespace NUClear {
              * @tparam S the integer pack giving the ordinal position of the tuple value to get
              */
             template<typename TFunc, int... S, typename... TArgs>
-            void apply(TFunc& function, Sequence<S...>, const std::tuple<TArgs...>& args) {
+            void apply(TFunc& function, Sequence<S...>, const std::tuple<TArgs...>&& args) {
                 
                 // Get each of the values from the tuple, dereference them and call the function with them
                 // Also ensure that each value is a const reference
-                function(Dereferenceable<TArgs>::dereference(std::get<S>(args))...);
+                function(dereference(std::get<S>(args))...);
             }
         }
         
@@ -53,8 +53,8 @@ namespace NUClear {
          * @brief Applies all of the values in the tuple to the function and executes it.
          */
         template<typename TFunc, typename... TArgs>
-        void apply(TFunc& function, const std::tuple<TArgs...>& args) {
-            apply(std::forward<TFunc&>(function), GenerateSequence<sizeof...(TArgs)>(), std::forward<const std::tuple<TArgs...>&>(args));
+        void apply(TFunc&& function, const std::tuple<TArgs...>&& args) {
+            apply(std::forward<TFunc&&>(function), GenerateSequence<sizeof...(TArgs)>(), std::forward<const std::tuple<TArgs...>&&>(args));
         }
     }
 }

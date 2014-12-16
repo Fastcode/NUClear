@@ -15,13 +15,13 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_METAPROGRAMMING_SEQUENCE_H
-#define NUCLEAR_METAPROGRAMMING_SEQUENCE_H
+#ifndef NUCLEAR_UTIL_SEQUENCE_H
+#define NUCLEAR_UTIL_SEQUENCE_H
 
 #include "MetaProgramming.h"
 
 namespace NUClear {
-    namespace metaprogramming {
+    namespace util {
         
         /**
          * @brief This class is used to hold a sequence of integers as a variardic pack

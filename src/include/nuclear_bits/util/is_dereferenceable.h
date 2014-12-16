@@ -15,31 +15,37 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_DSL_OPERATION_TYPEBIND_H
-#define NUCLEAR_DSL_OPERATION_TYPEBIND_H
+#ifndef NUCLEAR_UTIL_DEREFERENCEABLE_H
+#define NUCLEAR_UTIL_DEREFERENCEABLE_H
 
-#include "nuclear_bits/util/demangle.h"
-#include "nuclear_bits/util/apply.h"
+#include "MetaProgramming.h"
 
 namespace NUClear {
-    namespace dsl {
-        namespace operation {
-
-            template <typename TType>
-            struct TypeBind {
-
-                template <typename DSL, typename TFunc>
-                static void bind(TFunc&& callback) {
-                    
-                    auto run = [callback] {
-                        
-                        util::apply(callback, DSL::get());
-                    };
-                    
-                    std::cout << "Binding " << util::demangle(typeid(TFunc).name()) << " to " << util::demangle(typeid(TType).name()) << std::endl;
-                };
-            };
+    namespace util {
+        
+        template<typename T>
+        struct is_dereferenceable {
+        private:
+            typedef std::true_type yes;
+            typedef std::false_type no;
+            
+            template <typename U> static auto test(int) -> decltype(*std::declval<U>(), yes());
+            template <typename> static no test(...);
+            
+        public:
+            static constexpr bool value = std::is_same<decltype(test<T>(0)), yes>::value;
+        };
+        
+        template <typename TData>
+        auto dereference(TData&& d) -> decltype(*d) {
+            return *d;
         }
+        
+        template <typename TData>
+        auto dereference(TData&& d) -> decltype(d) {
+            return d;
+        }
+           
     }
 }
 

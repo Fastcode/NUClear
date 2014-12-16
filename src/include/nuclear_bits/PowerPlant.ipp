@@ -47,7 +47,7 @@ namespace NUClear {
         
         // Pass it to all of the provided emit handlers
         TFirstHandler::emit(ptr);
-        metaprogramming::unpack((THandlers::emit(ptr), 0)...);
+        util::unpack((THandlers::emit(ptr), 0)...);
     }
     
     // Anonymous metafunction that concatenates everything into a single string

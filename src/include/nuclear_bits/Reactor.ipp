@@ -17,24 +17,6 @@
 
 namespace NUClear {
     
-    /**
-     * @brief Demangles the passed symbol to a string, or returns it if it cannot demangle it
-     *
-     * @param symbol the symbol to demangle
-     *
-     * @return the demangled symbol, or the original string if it could not be demangeld
-     */
-    inline std::string demangle(const char* symbol) {
-        
-        int status = -4; // some arbitrary value to eliminate the compiler warning
-        std::unique_ptr<char, void(*)(void*)> res {
-            abi::__cxa_demangle(symbol, nullptr, nullptr, &status),
-            std::free
-        };
-        
-        return std::string(status == 0 ? res.get() : symbol);
-    }
-    
     template <typename... TParams, typename TFunc>
     void Reactor::on(TFunc callback) {
         
@@ -43,7 +25,7 @@ namespace NUClear {
     }
     
     template <typename... TDSL, typename TFunc>
-    void Reactor::on(const std::string& name, TFunc callback) {
+    void Reactor::on(const std::string& name, TFunc&& callback) {
         
         // There must be some parameters
         static_assert(sizeof...(TDSL) > 0, "You must have at least one paramter in an on");
@@ -55,14 +37,14 @@ namespace NUClear {
         // The name provided by the user
         identifier.push_back(name);
         // The DSL that was used
-        identifier.push_back(demangle(typeid(std::tuple<TDSL...>).name()));
+        identifier.push_back(util::demangle(typeid(std::tuple<TDSL...>).name()));
         // The type of the function used
-        identifier.push_back(demangle(typeid(TFunc).name()));
+        identifier.push_back(util::demangle(typeid(TFunc).name()));
         
         // Execute our DSL
         using DSL = dsl::Parse<TDSL...>;
         
-        DSL::bind();
+        DSL::bind(std::forward<TFunc&&>(callback));
         
         
     }

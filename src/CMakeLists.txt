@@ -34,6 +34,11 @@ FILE(GLOB src_messages
     "include/nuclear_bits/messages/*.h"
     "include/nuclear_bits/messages/*.ipp")
 
+FILE(GLOB src_util
+    "util/*.cpp"
+    "include/nuclear_bits/util/*.h"
+    "include/nuclear_bits/util/*.ipp")
+
 FILE(GLOB src_metaprogramming
     "metaprogramming/*.cpp"
     "include/nuclear_bits/metaprogramming/*.h"
@@ -46,6 +51,7 @@ SOURCE_GROUP(dsl                        FILES ${src_dsl})
 SOURCE_GROUP(dsl\\operation             FILES ${src_dsl_operation})
 SOURCE_GROUP(dsl\\word                  FILES ${src_dsl_word})
 SOURCE_GROUP(messages                   FILES ${src_messages})
+SOURCE_GROUP(util                       FILES ${src_util})
 SOURCE_GROUP(metaprogramming            FILES ${src_metaprogramming})
 
 ADD_LIBRARY(nuclear STATIC
@@ -56,6 +62,7 @@ ADD_LIBRARY(nuclear STATIC
     ${src_dsl_word}
     ${src_dsl}
     ${src_messages}
+    ${src_util}
     ${src_metaprogramming})
     
 INSTALL(TARGETS nuclear ARCHIVE DESTINATION lib)
