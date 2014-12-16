@@ -243,17 +243,6 @@ namespace NUClear {
         void shutdown();
         
         /**
-         * @brief Adds a service task thread to the PowerPlant's control.
-         *
-         * @details
-         *  A service task is a task that will be managed by the PowerPlants threadmaster
-         *  so that it can be started and killed with the rest of the system.
-         *
-         * @param task The service task to add to the system
-         */
-        void addServiceTask(threading::ThreadWorker::ServiceTask task);
-        
-        /**
          * @brief Installs a reactor of a particular type to the system.
          *
          * @details

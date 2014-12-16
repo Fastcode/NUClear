@@ -44,10 +44,6 @@ namespace NUClear {
 //                                         (std::make_shared<std::vector<std::string>>(argv, argv + argc)));
         }
     }
-    
-    void PowerPlant::addServiceTask(threading::ThreadWorker::ServiceTask task) {
-        threadmaster.serviceTask(task);
-    }
 
     void PowerPlant::start() {
 

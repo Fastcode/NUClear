@@ -36,7 +36,9 @@ namespace NUClear {
      */
     class Environment {
     public:
-        Environment(PowerPlant& powerplant, LogLevel logLevel = LogLevel::INFO);
+        Environment(PowerPlant& powerplant, LogLevel logLevel = LogLevel::INFO)
+          : powerplant(powerplant)
+          , logLevel(logLevel) {};
         
     private:
         friend class PowerPlant;

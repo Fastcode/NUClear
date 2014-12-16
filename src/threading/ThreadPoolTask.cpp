@@ -49,35 +49,14 @@ namespace NUClear {
                         task->stats->exception = std::current_exception();
                     }
                     
+                    // Postconditions
+                    // TODO run the postconditions
+                    
                     // We have stopped running
                     task->parent->running = false;
                     
-                    // If we are a sync type
-                    if(task->parent->options.syncQueue) {
-                        
-                        auto& queue = task->parent->options.syncQueue->queue;
-                        auto& active = task->parent->options.syncQueue->active;
-                        auto& syncMutex = task->parent->options.syncQueue->mutex;
-                        
-                        active = false;
-                        
-                        // If there is something in our sync queue move it to the main queue
-                        if (!queue.empty()) {
-                            
-                            std::unique_ptr<ReactionTask> syncTask;
-                            {
-                                // Lock our sync types mutex
-                                std::lock_guard<std::mutex> lock(syncMutex);
-                                syncTask = std::move(const_cast<std::unique_ptr<ReactionTask>&>(queue.top()));
-                                queue.pop();
-                            }
-                            
-                            scheduler.submit(std::move(syncTask));
-                        }
-                    }
-                    
                     // Emit our ReactionStats
-                    powerplant.emit<dsl::Scope::DIRECT>(std::move(task->stats));
+                    powerplant.emit<dsl::word::DirectEmit>(std::move(task->stats));
                 }
             }
             // If this is thrown, it means that we should finish execution
