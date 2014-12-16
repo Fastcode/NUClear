@@ -31,7 +31,9 @@ namespace NUClear {
              *  used if a reactor needs to use information provided by other reactors constructors.
              */
             struct Startup {
-                static void bind() {
+                
+                template <typename DSL, typename TFunc>
+                static void bind(TFunc&& callback) {
                     // TODO Bind to startup
                 }
             };

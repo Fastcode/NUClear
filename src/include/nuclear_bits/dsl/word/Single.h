@@ -32,7 +32,8 @@ namespace NUClear {
              *  queue or is still executing, then this new task will be ignored.
              */
             struct Single {
-                inline static bool precondition() {
+                template <typename DSL>
+                static bool precondition() {
                     // TODO make it depend on if the reaction is running or not
                     return true;
                 }

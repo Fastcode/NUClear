@@ -35,12 +35,14 @@ namespace NUClear {
              */
             template <typename TSync>
             struct Sync {
-
+                
+                template <typename DSL>
                 static bool precondition() {
                     // TODO Check if it's running and if so queue it otherwise run it
                     return true;
                 }
-
+                
+                template <typename DSL>
                 static bool postcondition() {
                     // TODO Check if there is something in the sync queue and reinject it
                 };

@@ -33,7 +33,7 @@ namespace NUClear {
                     
                     auto run = [callback] {
                         
-                        util::apply(callback, DSL::get());
+                        util::apply(callback, DSL::template get<DSL>());
                     };
                     
                     std::cout << "Binding " << util::demangle(typeid(TFunc).name()) << " to " << util::demangle(typeid(TType).name()) << std::endl;

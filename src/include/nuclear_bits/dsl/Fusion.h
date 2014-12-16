@@ -41,13 +41,14 @@ namespace NUClear {
                 template<typename U> static auto test_bind(int) -> decltype(U::template bind<NoOp>(0), yes());
                 template<typename> static no test_bind(...);
 
-                template<typename U> static auto test_get(int) -> decltype(U::get(), yes());
+                template<typename U> static auto test_get(int) -> decltype(U::template get<NoOp>(), yes());
                 template<typename> static no test_get(...);
 
-                template<typename U> static auto test_precondition(int) -> decltype(U::precondition(), yes());
+                template<typename U> static auto test_precondition(int) -> decltype(U::template precondition<NoOp>(), yes());
                 template<typename> static no test_precondition(...);
 
-                template<typename U> static auto test_postcondition(int) -> decltype(U::postcondition(), yes());
+                template<typename U> static auto test_postcondition(int) -> decltype(U::template postcondition<NoOp>
+                                                                                     (), yes());
                 template<typename> static no test_postcondition(...);
 
             public:
@@ -86,24 +87,25 @@ namespace NUClear {
                 };
             }
 
-            // Fuses all the gets if they exist
-            static auto get() -> decltype(std::tuple_cat((Tuplify<decltype(std::conditional<has_function<TWords>::get, TWords, NoOp>::type::get())>::make(std::conditional<has_function<TWords>::get, TWords, NoOp>::type::get()))...)) {
-                return std::tuple_cat((Tuplify<decltype(std::conditional<has_function<TWords>::get, TWords, NoOp>::type::get())>::make(std::conditional<has_function<TWords>::get, TWords, NoOp>::type::get()))...);
+            template <typename DSL>
+            static auto get() -> decltype(std::tuple_cat((Tuplify<decltype(std::conditional<has_function<TWords>::get, TWords, NoOp>::type::template get<DSL>())>::make(std::conditional<has_function<TWords>::get, TWords, NoOp>::type::template get<DSL>()))...)) {
+                
+                return std::tuple_cat((Tuplify<decltype(std::conditional<has_function<TWords>::get, TWords, NoOp>::type::template get<DSL>())>::make(std::conditional<has_function<TWords>::get, TWords, NoOp>::type::template get<DSL>()))...);
             }
 
-            // Fuses all the postconditions if they exist
+            template <typename DSL>
             static void postcondition() {
                 auto x = {
-                (std::conditional<has_function<TWords>::postcondition, TWords, NoOp>::type::postcondition(), 0)...
+                (std::conditional<has_function<TWords>::postcondition, TWords, NoOp>::type::template postcondition<DSL>(), 0)...
                 };
             }
-
-            // Fuse all the preconditions
+            
+            template <typename DSL>
             static bool precondition() {
 
                 bool result = true;
 
-                for(bool condition : { (std::conditional<has_function<TWords>::precondition, TWords, NoOp>::type::precondition())... }) {
+                for(bool condition : { (std::conditional<has_function<TWords>::precondition, TWords, NoOp>::type::template precondition<DSL>())... }) {
                     result &= condition;
                 }
 

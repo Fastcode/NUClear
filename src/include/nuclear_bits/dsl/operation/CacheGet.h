@@ -25,6 +25,7 @@ namespace NUClear {
             template <typename TType>
             struct CacheGet {
 
+                template <typename DSL>
                 static TType get() {
                     return TType();
                 };

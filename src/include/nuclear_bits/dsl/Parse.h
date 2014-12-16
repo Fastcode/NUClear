@@ -29,15 +29,15 @@ namespace NUClear {
             using DSL = Fusion<TDSL...>;
         
             static bool precondition() {
-                return DSL::precondition();
+                return DSL::template precondition<DSL>();
             }
             
             static void postcondition() {
-                DSL::postcondition();
+                DSL::template postcondition<DSL>();
             }
             
-            static auto get() -> decltype(DSL::get()) {
-                return DSL::get();
+            static auto get() -> decltype(DSL::template get<DSL>()) {
+                return DSL::template get<DSL>();
             }
             
             template <typename TFunc>
