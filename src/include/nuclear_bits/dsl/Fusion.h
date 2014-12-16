@@ -27,8 +27,14 @@ namespace NUClear {
             struct NoOp {
                 template <typename DSL, typename TFunc>
                 static inline void bind(TFunc&&) {}
+                
+                template <typename DSL>
                 static inline std::tuple<> get() { return std::tuple<>(); }
+                
+                template <typename DSL>
                 static inline bool precondition() { return true; }
+                
+                template <typename DSL>
                 static inline void postcondition() {}
             };
             

@@ -18,7 +18,10 @@
 #ifndef NUCLEAR_DSL_STORE_TYPECALLBACK_H
 #define NUCLEAR_DSL_STORE_TYPECALLBACK_H
 
+#include <memory>
+
 #include "nuclear_bits/util/TypeList.h"
+#include "nuclear_bits/threading/Reaction.h"
 
 namespace NUClear {
     namespace dsl {
@@ -29,7 +32,7 @@ namespace NUClear {
             }
             
             template <typename TKey>
-            using TypeCallbacks = util::TypeList<TypeCallback, TKey, std::function<void ()>>;
+            using TypeCallbacks = util::TypeList<TypeCallback, TKey, std::unique_ptr<threading::Reaction>>;
         }
     }
 }

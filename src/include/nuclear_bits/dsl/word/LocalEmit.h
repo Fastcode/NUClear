@@ -34,7 +34,17 @@ namespace NUClear {
                     
                     std::cout << "Triggering for type " << util::demangle(typeid(TData).name()) << std::endl;
                     
-                    for(const auto& func : store::TypeCallbacks<TData>::get()) {
+                    for(auto& reaction : store::TypeCallbacks<TData>::get()) {
+                        
+                        // Check if we should run
+                        if(reaction->isEnabled() && reaction->precondition()) {
+                            
+                            auto task = reaction->getTask(nullptr);
+                            
+                            std::cout << "TODO add the task to the thread queue" << std::endl;
+                            
+                            (*task)();
+                        };
                         
                         // Submit our task to the thread pool
                         

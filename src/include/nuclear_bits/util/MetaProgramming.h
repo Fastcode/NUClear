@@ -121,8 +121,8 @@ namespace NUClear {
              *
              * @returns A valid type if all condtions pass, an invalid type otherwise
              */
-            template <typename... Conditions>
-            struct EnableIf : Do<std::enable_if<All<Conditions...>::value, void>> {};
+            template <typename Condition, typename Value = void>
+            struct EnableIf : Do<std::enable_if<Condition::value, Value>> {};
             
         }
     }

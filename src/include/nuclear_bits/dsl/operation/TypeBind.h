@@ -32,10 +32,17 @@ namespace NUClear {
                 static void bind(TFunc&& callback) {
                     
                     
-                    auto run = [callback] {
+                    auto task = [callback] {
                         
-                        util::apply(callback, DSL::get());
+                        auto data = DSL::get();
+                        
+                        return [callback, data] {
+                            util::apply(callback, DSL::get());
+                        };
                     };
+                    
+                    // Create our reaction
+                    store::TypeCallbacks<TType>::get().push_back(std::unique_ptr<threading::Reaction>(new threading::Reaction({"TODO Fix me!"}, task, DSL::precondition, DSL::postcondition)));
                     
                     
                     

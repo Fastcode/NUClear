@@ -38,11 +38,10 @@ namespace NUClear {
         std::cout << "Building the PowerPlant with " << configuration.threadCount << " thread" << (configuration.threadCount != 1 ? "s" : "") << std::endl;
 
         // Emit our arguments if any.
-        if(argc > 0) {
-            // TODO emit the command line arguments
-//            emit<dsl::Scope::INITIALIZE>(std::make_unique<DataFor<dsl::CommandLineArguments, std::vector<std::string>>>
-//                                         (std::make_shared<std::vector<std::string>>(argv, argv + argc)));
-        }
+        std::cout << "TODO EMIT THE COMMAND LINE ARGUMENTS" << std::endl;
+        // TODO emit the command line arguments
+//      emit<dsl::Scope::INITIALIZE>(std::make_unique<DataFor<dsl::CommandLineArguments, std::vector<std::string>>>
+//                                  (std::make_shared<std::vector<std::string>>(argv, argv + argc)));
     }
 
     void PowerPlant::start() {
