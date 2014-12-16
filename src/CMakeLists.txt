@@ -19,6 +19,11 @@ FILE(GLOB src_dsl
     "include/nuclear_bits/dsl/*.h"
     "include/nuclear_bits/dsl/*.ipp")
 
+FILE(GLOB src_dsl_store
+    "dsl/store/*.cpp"
+    "include/nuclear_bits/dsl/store/*.h"
+    "include/nuclear_bits/dsl/store/*.ipp")
+
 FILE(GLOB src_dsl_operation
     "dsl/operation/*.cpp"
     "include/nuclear_bits/dsl/operation/*.h"
@@ -39,30 +44,25 @@ FILE(GLOB src_util
     "include/nuclear_bits/util/*.h"
     "include/nuclear_bits/util/*.ipp")
 
-FILE(GLOB src_metaprogramming
-    "metaprogramming/*.cpp"
-    "include/nuclear_bits/metaprogramming/*.h"
-    "include/nuclear_bits/metaprogramming/*.ipp")
-
 SOURCE_GROUP(""                         FILES ${src})
 SOURCE_GROUP(threading                  FILES ${src_threading})
 SOURCE_GROUP(extensions                 FILES ${src_extensions})
 SOURCE_GROUP(dsl                        FILES ${src_dsl})
+SOURCE_GROUP(dsl\\store                 FILES ${src_dsl_store})
 SOURCE_GROUP(dsl\\operation             FILES ${src_dsl_operation})
 SOURCE_GROUP(dsl\\word                  FILES ${src_dsl_word})
 SOURCE_GROUP(messages                   FILES ${src_messages})
 SOURCE_GROUP(util                       FILES ${src_util})
-SOURCE_GROUP(metaprogramming            FILES ${src_metaprogramming})
 
 ADD_LIBRARY(nuclear STATIC
     ${src} 
     ${src_threading}
     ${src_extensions}
+    ${src_dsl_store}
     ${src_dsl_operation}
     ${src_dsl_word}
     ${src_dsl}
     ${src_messages}
-    ${src_util}
-    ${src_metaprogramming})
+    ${src_util})
     
 INSTALL(TARGETS nuclear ARCHIVE DESTINATION lib)

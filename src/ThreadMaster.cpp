@@ -28,12 +28,6 @@ namespace NUClear {
     
     void PowerPlant::ThreadMaster::start() {
         
-        // Start our internal service threads
-        for(auto& task : serviceTasks) {
-            // Start a thread worker with our task
-            threads.push_back(std::make_unique<threading::ThreadWorker>(task));
-        }
-        
         // Start our pool threads
         for(unsigned i = 0; i < parent.configuration.threadCount; ++i) {
             threads.push_back(std::make_unique<threading::ThreadWorker>(threading::ThreadPoolTask(parent, scheduler)));
@@ -52,10 +46,6 @@ namespace NUClear {
         }
         // Kill the task scheduler
         scheduler.shutdown();
-    }
-    
-    void PowerPlant::ThreadMaster::serviceTask(threading::ThreadWorker::ServiceTask task) {
-        serviceTasks.push_back(task);
     }
     
     void PowerPlant::ThreadMaster::submit(std::unique_ptr<threading::ReactionTask>&& task) {

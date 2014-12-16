@@ -18,6 +18,9 @@
 #ifndef NUCLEAR_DSL_WORD_LOCALEMIT_H
 #define NUCLEAR_DSL_WORD_LOCALEMIT_H
 
+#include "nuclear_bits/dsl/store/TypeCallback.h"
+#include "nuclear_bits/util/demangle.h"
+
 namespace NUClear {
     namespace dsl {
         namespace word {
@@ -26,6 +29,16 @@ namespace NUClear {
                 
                 template <typename TData>
                 static void emit(std::shared_ptr<TData> data) {
+                    
+                    std::cout << "TODO SAVE THE TYPE IN THE STORE" << std::endl;
+                    
+                    std::cout << "Triggering for type " << util::demangle(typeid(TData).name()) << std::endl;
+                    
+                    for(const auto& func : store::TypeCallbacks<TData>::get()) {
+                        
+                        // Submit our task to the thread pool
+                        
+                    }
                     // TODO Bind to an always thread
                 }
             };

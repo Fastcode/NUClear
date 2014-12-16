@@ -28,7 +28,7 @@ namespace NUClear {
         
         // Stop people from making more then one powerplant
         if(powerplant) {
-            throw std::runtime_error("There is already a powerplant in existance (There should be a single stack allocated PowerPlant");
+            throw std::runtime_error("There is already a powerplant in existence (There should be a single stack allocated PowerPlant)");
         }
         
         // Store our static variable

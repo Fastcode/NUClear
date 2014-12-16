@@ -15,15 +15,15 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_METAPROGRAMMING_TYPEMAP_H
-#define NUCLEAR_METAPROGRAMMING_TYPEMAP_H
+#ifndef NUCLEAR_UTIL_TYPEMAP_H
+#define NUCLEAR_UTIL_TYPEMAP_H
 
 #include <mutex>
 #include <memory>
 #include <vector>
 
 namespace NUClear {
-    namespace metaprogramming {
+    namespace util {
         
         /**
          * @brief This exception is thrown when there is no data in the map to return.
@@ -107,37 +107,11 @@ namespace NUClear {
             }
         };
         
-        template <typename TMapID, typename TKey, typename TValue>
-        class TypeList {
-        private:
-            /// @brief Deleted constructor as this class is a static class.
-            TypeList() = delete;
-            /// @brief Deleted destructor as this class is a static class.
-            ~TypeList() = delete;
-            /// @brief the data variable where the data is stored for this map key.
-            static std::vector<TValue> data;
-            
-        public:
-            
-            /**
-             * @brief Gets the list that is stored in this type location
-             *
-             * @return A reference to the vector stored in this location
-             */
-            static std::vector<TValue>& get() {
-                return data;
-            }
-        };
-        
         /// Initialize our shared_ptr data
         template <typename TMapID, typename TKey, typename TValue>
         std::shared_ptr<TValue> TypeMap<TMapID, TKey, TValue>::data;
         template <typename TMapID, typename TKey, typename TValue>
         std::mutex TypeMap<TMapID, TKey, TValue>::mutex;
-        
-        /// Initialize our type list data
-        template <typename TMapID, typename TKey, typename TValue>
-        std::vector<TValue> TypeList<TMapID, TKey, TValue>::data;
     }
 }
 

@@ -15,37 +15,22 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_DSL_PARSE_H
-#define NUCLEAR_DSL_PARSE_H
+#ifndef NUCLEAR_DSL_STORE_TYPECALLBACK_H
+#define NUCLEAR_DSL_STORE_TYPECALLBACK_H
 
-#include "Fusion.h"
+#include "nuclear_bits/util/TypeList.h"
 
 namespace NUClear {
     namespace dsl {
-
-        template <typename... TDSL>
-        struct Parse {
+        namespace store {
             
-            using DSL = Fusion<TDSL...>;
-        
-            static bool precondition() {
-                return DSL::template precondition<Parse<TDSL...>>();
+            namespace {
+                struct TypeCallback {};
             }
             
-            static void postcondition() {
-                DSL::template postcondition<Parse<TDSL...>>();
-            }
-            
-            static auto get() -> decltype(DSL::template get<Parse<TDSL...>>()) {
-                return DSL::template get<Parse<TDSL...>>();
-            }
-            
-            template <typename TFunc>
-            static auto bind(TFunc&& callback) -> decltype(DSL::template bind<Parse<TDSL...>>(std::forward<TFunc>(callback))) {
-                return DSL::template bind<Parse<TDSL...>>(std::forward<TFunc>(callback));
-            }
-        
-        };
+            template <typename TKey>
+            using TypeCallbacks = util::TypeList<TypeCallback, TKey, std::function<void ()>>;
+        }
     }
 }
 

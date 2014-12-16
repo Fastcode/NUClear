@@ -24,7 +24,7 @@ namespace NUClear {
         // Initialize our id source
         std::atomic<uint64_t> ReactionTask::taskIdSource(0);
         
-        ReactionTask::ReactionTask(Reaction* parent, const ReactionTask* cause, std::function<void (ReactionTask&)> callback) :
+        ReactionTask::ReactionTask(Reaction* parent, const ReactionTask* cause, std::function<void ()> callback) :
         callback(callback),
         parent(parent),
         taskId(++taskIdSource),
@@ -42,7 +42,7 @@ namespace NUClear {
         
         void ReactionTask::operator()() {
             // Call our callback
-            callback(*this);
+            callback();
         }
     }
 }

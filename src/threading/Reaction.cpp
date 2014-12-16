@@ -23,7 +23,7 @@ namespace NUClear {
         // Initialize our reaction source
         std::atomic<uint64_t> Reaction::reactionIdSource(0);
         
-        Reaction::Reaction(std::vector<std::string> identifier, std::function<std::function<void (ReactionTask&)> ()> callback, bool (*precondition)(), void (*postcondition)())
+        Reaction::Reaction(std::vector<std::string> identifier, std::function<std::function<void ()> ()> callback, bool (*precondition)(), void (*postcondition)())
           : identifier(identifier)
           , precondition(precondition)
           , postcondition(postcondition)

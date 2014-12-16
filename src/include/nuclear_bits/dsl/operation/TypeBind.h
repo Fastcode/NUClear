@@ -31,12 +31,13 @@ namespace NUClear {
                 template <typename DSL, typename TFunc>
                 static void bind(TFunc&& callback) {
                     
+                    
                     auto run = [callback] {
                         
                         util::apply(callback, DSL::get());
                     };
                     
-                    // TODO bind to an event
+                    
                     
                     std::cout << "Binding " << util::demangle(typeid(TFunc).name()) << std::endl << " to " << std::endl << util::demangle(typeid(TType).name()) << std::endl;
                 };

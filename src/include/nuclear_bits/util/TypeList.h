@@ -15,37 +15,41 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_DSL_PARSE_H
-#define NUCLEAR_DSL_PARSE_H
+#ifndef NUCLEAR_UTIL_TYPELIST_H
+#define NUCLEAR_UTIL_TYPELIST_H
 
-#include "Fusion.h"
+#include <mutex>
+#include <memory>
+#include <vector>
 
 namespace NUClear {
-    namespace dsl {
-
-        template <typename... TDSL>
-        struct Parse {
-            
-            using DSL = Fusion<TDSL...>;
+    namespace util {
         
-            static bool precondition() {
-                return DSL::template precondition<Parse<TDSL...>>();
-            }
+        template <typename TMapID, typename TKey, typename TValue>
+        class TypeList {
+        private:
+            /// @brief Deleted constructor as this class is a static class.
+            TypeList() = delete;
+            /// @brief Deleted destructor as this class is a static class.
+            ~TypeList() = delete;
+            /// @brief the data variable where the data is stored for this map key.
+            static std::vector<TValue> data;
             
-            static void postcondition() {
-                DSL::template postcondition<Parse<TDSL...>>();
-            }
+        public:
             
-            static auto get() -> decltype(DSL::template get<Parse<TDSL...>>()) {
-                return DSL::template get<Parse<TDSL...>>();
+            /**
+             * @brief Gets the list that is stored in this type location
+             *
+             * @return A reference to the vector stored in this location
+             */
+            static std::vector<TValue>& get() {
+                return data;
             }
-            
-            template <typename TFunc>
-            static auto bind(TFunc&& callback) -> decltype(DSL::template bind<Parse<TDSL...>>(std::forward<TFunc>(callback))) {
-                return DSL::template bind<Parse<TDSL...>>(std::forward<TFunc>(callback));
-            }
-        
         };
+        
+        /// Initialize our type list data
+        template <typename TMapID, typename TKey, typename TValue>
+        std::vector<TValue> TypeList<TMapID, TKey, TValue>::data;
     }
 }
 

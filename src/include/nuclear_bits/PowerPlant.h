@@ -152,18 +152,9 @@ namespace NUClear {
              */
             void submit(std::unique_ptr<threading::ReactionTask>&& task);
             
-            /**
-             * @brief Submits a service task to be executed when the system starts up (will run in its own thread)
-             *
-             * @param task The Service task to be executed with the system
-             */
-            void serviceTask(threading::ThreadWorker::ServiceTask task);
-            
         private:
             /// @brief A vector of the threads in the system
             std::vector<std::unique_ptr<threading::ThreadWorker>> threads;
-            /// @brief A vector of the Service tasks to be started with the system
-            std::vector<threading::ThreadWorker::ServiceTask> serviceTasks;
             /// @brief Our TaskScheduler that handles distributing task to the pool threads
             threading::TaskScheduler scheduler;
         };

@@ -52,7 +52,7 @@ namespace NUClear {
              * @param cause     the task that caused this task to run.
              * @param task      the data bound callback to be executed in the threadpool.
              */
-            ReactionTask(Reaction* parent, const ReactionTask* cause, std::function<void (ReactionTask&)> task);
+            ReactionTask(Reaction* parent, const ReactionTask* cause, std::function<void ()> task);
             
             /**
              * @brief Runs the internal data bound task and times it.
@@ -64,7 +64,7 @@ namespace NUClear {
             void operator()();
             
             /// @brief the data bound callback to be executed
-            std::function<void (ReactionTask&)> callback;
+            std::function<void ()> callback;
             /// @brief the parent Reaction object which spawned this
             Reaction* parent;
             /// @brief the taskId of this task (the sequence number of this paticular task)
