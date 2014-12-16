@@ -29,20 +29,20 @@ namespace NUClear {
             using DSL = Fusion<TDSL...>;
         
             static bool precondition() {
-                return DSL::template precondition<DSL>();
+                return DSL::template precondition<Parse<TDSL...>>();
             }
             
             static void postcondition() {
-                DSL::template postcondition<DSL>();
+                DSL::template postcondition<Parse<TDSL...>>();
             }
             
-            static auto get() -> decltype(DSL::template get<DSL>()) {
-                return DSL::template get<DSL>();
+            static auto get() -> decltype(DSL::template get<Parse<TDSL...>>()) {
+                return DSL::template get<Parse<TDSL...>>();
             }
             
             template <typename TFunc>
-            static auto bind(TFunc&& callback) -> decltype(DSL::template bind<DSL>(std::forward<TFunc>(callback))) {
-                return DSL::template bind<DSL>(std::forward<TFunc>(callback));
+            static auto bind(TFunc&& callback) -> decltype(DSL::template bind<Parse<TDSL...>>(std::forward<TFunc>(callback))) {
+                return DSL::template bind<Parse<TDSL...>>(std::forward<TFunc>(callback));
             }
         
         };
