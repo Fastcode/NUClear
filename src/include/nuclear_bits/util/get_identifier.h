@@ -15,40 +15,28 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_DSL_WORD_LOCALEMIT_H
-#define NUCLEAR_DSL_WORD_LOCALEMIT_H
+#ifndef NUCLEAR_UTIL_GETIDENTIFIER_H
+#define NUCLEAR_UTIL_GETIDENTIFIER_H
 
-#include "nuclear_bits/dsl/store/TypeCallbackStore.h"
-#include "nuclear_bits/dsl/store/DataStore.h"
+#include <string>
+#include <vector>
 
 #include "nuclear_bits/util/demangle.h"
 
 namespace NUClear {
-    namespace dsl {
-        namespace word {
+    namespace util {
 
-            struct LocalEmit {
-                
-                template <typename TData>
-                static void emit(std::shared_ptr<TData> data) {
-                    
-                    // Set our data in the store
-                    store::DataStore<TData>::set(data);
-                    
-                    std::cout << "Triggering for type " << util::demangle(typeid(TData).name()) << std::endl;
-                    
-                    for(auto& reaction : store::TypeCallbackStore<TData>::get()) {
-                        
-                        // Check if we should run
-                        if(reaction->isEnabled() && reaction->precondition()) {
-                            
-                            auto task = reaction->getTask(nullptr);
-                            
-                            std::cout << "TODO add the task to the thread queue" << std::endl;
-                        };
-                    }
-                }
-            };
+        template <typename TFusion, typename TFunc>
+        std::vector<std::string> get_identifier(std::string usr) {
+            
+            std::vector<std::string> out;
+            out.reserve(3);
+            
+            out.push_back(usr);
+            out.push_back(demangle(typeid(TFusion).name()));
+            out.push_back(demangle(typeid(TFunc).name()));
+            
+            return out;
         }
     }
 }

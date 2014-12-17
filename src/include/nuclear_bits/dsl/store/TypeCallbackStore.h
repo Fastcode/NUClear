@@ -15,8 +15,8 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_DSL_STORE_TYPECALLBACK_H
-#define NUCLEAR_DSL_STORE_TYPECALLBACK_H
+#ifndef NUCLEAR_DSL_STORE_TYPECALLBACKSTORE_H
+#define NUCLEAR_DSL_STORE_TYPECALLBACKSTORE_H
 
 #include <memory>
 
@@ -27,12 +27,8 @@ namespace NUClear {
     namespace dsl {
         namespace store {
             
-            namespace {
-                struct TypeCallback {};
-            }
-            
             template <typename TKey>
-            using TypeCallbacks = util::TypeList<TypeCallback, TKey, std::unique_ptr<threading::Reaction>>;
+            using TypeCallbackStore = util::TypeList<TKey, TKey, std::unique_ptr<threading::Reaction>>;
         }
     }
 }

@@ -18,7 +18,7 @@
 #ifndef NUCLEAR_DSL_OPERATION_TYPEBIND_H
 #define NUCLEAR_DSL_OPERATION_TYPEBIND_H
 
-#include "nuclear_bits/util/demangle.h"
+#include "nuclear_bits/util/get_identifier.h"
 #include "nuclear_bits/util/apply.h"
 
 namespace NUClear {
@@ -31,22 +31,23 @@ namespace NUClear {
                 template <typename DSL, typename TFunc>
                 static void bind(TFunc&& callback) {
                     
-                    
+                    // Make our callback generator
                     auto task = [callback] {
                         
+                        // Bind our data to a variable (get in original thread)
                         auto data = DSL::get();
                         
+                        // Execute with the stored data
                         return [callback, data] {
                             util::apply(callback, DSL::get());
                         };
                     };
                     
-                    // Create our reaction
-                    store::TypeCallbacks<TType>::get().push_back(std::unique_ptr<threading::Reaction>(new threading::Reaction({"TODO Fix me!"}, task, DSL::precondition, DSL::postcondition)));
+                    // Get our identifier string
+                    std::vector<std::string> identifier = util::get_identifier<typename DSL::DSL, TFunc>("");
                     
-                    
-                    
-                    std::cout << "Binding " << util::demangle(typeid(TFunc).name()) << std::endl << " to " << std::endl << util::demangle(typeid(TType).name()) << std::endl;
+                    // Create our reaction and store it in the TypeCallbackStore
+                    store::TypeCallbackStore<TType>::get().push_back(std::unique_ptr<threading::Reaction>(new threading::Reaction(identifier, task, DSL::precondition, DSL::postcondition)));
                 };
             };
         }

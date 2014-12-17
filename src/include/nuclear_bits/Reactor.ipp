@@ -30,23 +30,10 @@ namespace NUClear {
         // There must be some parameters
         static_assert(sizeof...(TDSL) > 0, "You must have at least one paramter in an on");
         
-        // Get our identifier
-        std::vector<std::string> identifier;
-        identifier.reserve(3);
-        
-        // The name provided by the user
-        identifier.push_back(name);
-        // The DSL that was used
-        identifier.push_back(util::demangle(typeid(std::tuple<TDSL...>).name()));
-        // The type of the function used
-        identifier.push_back(util::demangle(typeid(TFunc).name()));
-        
-        // Execute our DSL
+        // Execute our compile time DSL Fusion
         using DSL = dsl::Parse<TDSL...>;
         
         DSL::bind(std::forward<TFunc&&>(callback));
-        
-        
     }
     
     template <typename... THandlers, typename TData>

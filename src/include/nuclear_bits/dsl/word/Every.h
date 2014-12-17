@@ -55,8 +55,9 @@ namespace NUClear {
              */
             template <int ticks, class period = NUClear::clock::duration>
             struct Every {
-
-                static void bind() {
+                
+                template <typename DSL, typename TFunc>
+                static void bind(TFunc&& callback) {
                     // TODO bind the every to run
                 }
             };
