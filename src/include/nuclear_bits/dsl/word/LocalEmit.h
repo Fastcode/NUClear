@@ -19,6 +19,8 @@
 #define NUCLEAR_DSL_WORD_LOCALEMIT_H
 
 #include "nuclear_bits/dsl/store/TypeCallback.h"
+#include "nuclear_bits/dsl/store/DataStore.h"
+
 #include "nuclear_bits/util/demangle.h"
 
 namespace NUClear {
@@ -30,7 +32,8 @@ namespace NUClear {
                 template <typename TData>
                 static void emit(std::shared_ptr<TData> data) {
                     
-                    std::cout << "TODO SAVE THE TYPE IN THE STORE" << std::endl;
+                    // Set our data in the store
+                    store::DataStore<TData>::set(data);
                     
                     std::cout << "Triggering for type " << util::demangle(typeid(TData).name()) << std::endl;
                     

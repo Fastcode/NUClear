@@ -15,37 +15,20 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_UTIL_DEREFERENCEABLE_H
-#define NUCLEAR_UTIL_DEREFERENCEABLE_H
+#ifndef NUCLEAR_DSL_STORE_DATASTORE_H
+#define NUCLEAR_DSL_STORE_DATASTORE_H
 
-#include "MetaProgramming.h"
+#include <memory>
+
+#include "nuclear_bits/util/TypeMap.h"
 
 namespace NUClear {
-    namespace util {
-        
-        template<typename T>
-        struct is_dereferenceable {
-        private:
-            typedef std::true_type yes;
-            typedef std::false_type no;
+    namespace dsl {
+        namespace store {
             
-            template <typename U> static auto test(int) -> decltype(*std::declval<U>(), yes());
-            template <typename> static no test(...);
-            
-        public:
-            static constexpr bool value = std::is_same<decltype(test<T>(0)), yes>::value;
-        };
-        
-        template <typename TData>
-        auto dereference(TData&& d) -> Meta::EnableIf<is_dereferenceable<TData>, decltype(*d)> {
-            return *d;
+            template <typename TData>
+            using DataStore = util::TypeMap<TData, TData, TData>;
         }
-        
-        template <typename TData>
-        auto dereference(TData&& d) -> Meta::EnableIf<Meta::Not<is_dereferenceable<TData>>, decltype(d)> {
-            return d;
-        }
-           
     }
 }
 

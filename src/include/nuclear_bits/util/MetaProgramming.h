@@ -108,7 +108,7 @@ namespace NUClear {
              * @return true_type if T is false_type, false_type if T is true_type.
              */
             template <typename T>
-            struct Not : If<T, std::false_type, std::true_type> {};
+            using Not = If<T, std::false_type, std::true_type>;
             
             /**
              * @brief This type is valid if all of the conditions succeed, otherwise it is an invalid type.
@@ -122,7 +122,7 @@ namespace NUClear {
              * @returns A valid type if all condtions pass, an invalid type otherwise
              */
             template <typename Condition, typename Value = void>
-            struct EnableIf : Do<std::enable_if<Condition::value, Value>> {};
+            using EnableIf = Do<std::enable_if<Condition::value, Value>>;
             
         }
     }

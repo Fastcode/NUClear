@@ -28,7 +28,9 @@ namespace NUClear {
         /**
          * @brief This exception is thrown when there is no data in the map to return.
          */
-        struct NoDataException : public std::exception {};
+        struct NoDataException : public std::runtime_error {
+            NoDataException() : std::runtime_error("No data available for type") {}
+        };
         
         /**
          * @brief The simplest and fastest map format, It stores a single value and returns it when requested later.
