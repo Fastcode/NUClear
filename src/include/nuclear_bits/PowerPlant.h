@@ -186,9 +186,6 @@ namespace NUClear {
             
             /// @brief Our vector of Reactors, will get destructed when this vector is
             std::vector<std::unique_ptr<NUClear::Reactor>> reactors;
-            
-            /// @brief A list of emits that are to be done just before startup
-            std::queue<std::function<void ()>> deferredEmits;
         };
         
     public:
