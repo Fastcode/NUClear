@@ -41,8 +41,8 @@ namespace NUClear {
             }
             
             template <typename TFunc>
-            static auto bind(TFunc&& callback) -> decltype(DSL::template bind<Parse<TDSL...>>(std::forward<TFunc>(callback))) {
-                return DSL::template bind<Parse<TDSL...>>(std::forward<TFunc>(callback));
+            static auto bind(const std::string& label, TFunc&& callback) -> decltype(DSL::template bind<Parse<TDSL...>>(std::forward<const std::string&>(label), std::forward<TFunc&&>(callback))) {
+                return DSL::template bind<Parse<TDSL...>>(std::forward<const std::string&>(label), std::forward<TFunc&&>(callback));
             }
         
         };

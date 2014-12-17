@@ -57,7 +57,7 @@ namespace NUClear {
             struct Every {
                 
                 template <typename DSL, typename TFunc>
-                static void bind(TFunc&& callback) {
+                static void bind(const std::string& label, TFunc&& callback) {
                     // TODO bind the every to run
                 }
             };

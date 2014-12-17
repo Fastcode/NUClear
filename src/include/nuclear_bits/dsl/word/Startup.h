@@ -33,7 +33,7 @@ namespace NUClear {
             struct Startup {
                 
                 template <typename DSL, typename TFunc>
-                static void bind(TFunc&& callback) {
+                static void bind(const std::string& label, TFunc&& callback) {
                     // TODO Bind to startup
                 }
             };

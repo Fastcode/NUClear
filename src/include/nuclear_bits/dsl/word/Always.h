@@ -31,7 +31,9 @@ namespace NUClear {
              *  until the whole system is told to shut down.
              */
             struct Always {
-                static void bind() {
+                
+                template <typename DSL, typename TFunc>
+                static void bind(const std::string& label, TFunc&& callback) {
                     // TODO Bind to an always thread
                 }
             };

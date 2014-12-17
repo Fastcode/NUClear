@@ -32,8 +32,9 @@ namespace NUClear {
              *  finish the system will terminate.
              */
             struct Shutdown {
-
-                static void bind() {
+                
+                template <typename DSL, typename TFunc>
+                static void bind(const std::string& label, TFunc&& callback) {
                     // TODO bind to when the system shuts down
                 }
             };

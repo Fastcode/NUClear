@@ -26,7 +26,7 @@ namespace NUClear {
             
             struct NoOp {
                 template <typename DSL, typename TFunc>
-                static inline void bind(TFunc&&) {}
+                static inline void bind(const std::string&, TFunc&&) {}
                 
                 template <typename DSL>
                 static inline std::tuple<> get() { return std::tuple<>(); }
@@ -44,7 +44,7 @@ namespace NUClear {
                 typedef std::true_type yes;
                 typedef std::false_type no;
 
-                template<typename U> static auto test_bind(int) -> decltype(U::template bind<NoOp>(0), yes());
+                template<typename U> static auto test_bind(int) -> decltype(U::template bind<NoOp>("", 0), yes());
                 template<typename> static no test_bind(...);
 
                 template<typename U> static auto test_get(int) -> decltype(U::template get<NoOp>(), yes());
@@ -87,9 +87,9 @@ namespace NUClear {
 
             // Fuse all the binds
             template <typename DSL, typename TFunc>
-            static void bind(TFunc&& callback) {
+            static void bind(const std::string& label, TFunc&& callback) {
                 auto x = {
-                    (std::conditional<has_function<TWords>::bind, TWords, NoOp>::type::template bind<DSL>(std::forward<TFunc>(callback)), 0)...
+                    (std::conditional<has_function<TWords>::bind, TWords, NoOp>::type::template bind<DSL>(std::forward<const std::string&>(label), std::forward<TFunc&&>(callback)), 0)...
                 };
             }
 

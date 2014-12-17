@@ -29,7 +29,7 @@ namespace NUClear {
             struct TypeBind {
 
                 template <typename DSL, typename TFunc>
-                static void bind(TFunc&& callback) {
+                static void bind(const std::string& label, TFunc&& callback) {
                     
                     // Make our callback generator
                     auto task = [callback] {
@@ -43,8 +43,10 @@ namespace NUClear {
                         };
                     };
                     
+                    std::cout << "Binding" << std::endl;
+                    
                     // Get our identifier string
-                    std::vector<std::string> identifier = util::get_identifier<typename DSL::DSL, TFunc>("");
+                    std::vector<std::string> identifier = util::get_identifier<typename DSL::DSL, TFunc>(label);
                     
                     // Create our reaction and store it in the TypeCallbackStore
                     store::TypeCallbackStore<TType>::get().push_back(std::unique_ptr<threading::Reaction>(new threading::Reaction(identifier, task, DSL::precondition, DSL::postcondition)));

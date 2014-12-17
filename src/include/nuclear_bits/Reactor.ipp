@@ -33,7 +33,7 @@ namespace NUClear {
         // Execute our compile time DSL Fusion
         using DSL = dsl::Parse<TDSL...>;
         
-        DSL::bind(std::forward<TFunc&&>(callback));
+        DSL::bind(std::forward<const std::string&>(name), std::forward<TFunc&&>(callback));
     }
     
     template <typename... THandlers, typename TData>
