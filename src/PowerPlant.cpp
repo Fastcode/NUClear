@@ -48,11 +48,17 @@ namespace NUClear {
     }
     
     void PowerPlant::onStartup(std::function<void ()>&& func) {
-        
-        startupTasks.push_back(func);
+        if (running) {
+            throw std::runtime_error("Unable to do onStartup as the PowerPlant has already started");
+        }
+        else {
+            startupTasks.push_back(func);
+        }
     }
 
     void PowerPlant::start() {
+        
+        running = true;
 
         // Direct emit startup event
         emit<dsl::word::emit::Direct>(std::make_unique<dsl::word::Startup>());
@@ -61,8 +67,11 @@ namespace NUClear {
         for(auto&& func : startupTasks) {
             func();
         }
+        startupTasks.clear();
         
         threadmaster.start();
+        
+        running = false;
     }
     
     void PowerPlant::submit(std::unique_ptr<threading::ReactionTask>&& task) {

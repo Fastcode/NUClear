@@ -185,6 +185,7 @@ namespace NUClear {
         };
         
         std::vector<std::function<void ()>> startupTasks;
+        volatile bool running = false;
         
     public:
         
