@@ -300,8 +300,8 @@ namespace NUClear {
 #include "nuclear_bits/Reactor.h"
 
 // Emit types
-#include "nuclear_bits/dsl/word/LocalEmit.h"
-#include "nuclear_bits/dsl/word/DirectEmit.h"
+#include "nuclear_bits/dsl/word/emit/Local.h"
+#include "nuclear_bits/dsl/word/emit/Direct.h"
 
 // Include all of our implementation files (which use the previously included reactor.h)
 #include "nuclear_bits/PowerPlant.ipp"

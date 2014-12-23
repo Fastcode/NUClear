@@ -15,20 +15,24 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_DSL_WORD_INITIALIZEEMIT_H
-#define NUCLEAR_DSL_WORD_INITIALIZEEMIT_H
+#ifndef NUCLEAR_DSL_WORD_EMIT_INITIALIZE_H
+#define NUCLEAR_DSL_WORD_EMIT_INITIALIZE_H
 
 namespace NUClear {
     namespace dsl {
         namespace word {
+            namespace emit {
 
-            struct InitializeEmit {
+                struct Initialize {
 
-                template <typename TData>
-                static void emit(std::shared_ptr<TData> data) {
-                    // TODO Bind to an always thread
-                }
-            };
+                    template <typename TData>
+                    static void emit(std::shared_ptr<TData> data) {
+                        
+                        std::cout "Initialize emit not yet implemented :(" << std::endl;
+                        // TODO Bind to an always thread
+                    }
+                };
+            }
         }
     }
 }

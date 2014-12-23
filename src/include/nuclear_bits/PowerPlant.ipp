@@ -35,7 +35,7 @@ namespace NUClear {
         std::shared_ptr<TData>&& ptr = std::shared_ptr<TData>(std::move(data));
         
         // Pass it to the default emit handler
-        dsl::word::LocalEmit::emit(*this, ptr);
+        dsl::word::emit::Local::emit(*this, ptr);
     }
     
     // Global emit handlers
@@ -76,7 +76,7 @@ namespace NUClear {
         std::string output = outputStream.str();
         
         // Direct emit the log message so that any direct loggers can use it
-        powerplant->emit<dsl::word::DirectEmit>(std::make_unique<LogMessage>(level
+        powerplant->emit<dsl::word::emit::Direct>(std::make_unique<LogMessage>(level
                                                                           , output
                                                                           , task ? task->taskId : 0
                                                                           , task ? task->parent->reactionId : 0));

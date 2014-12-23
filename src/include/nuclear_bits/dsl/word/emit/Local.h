@@ -15,8 +15,8 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_DSL_WORD_LOCALEMIT_H
-#define NUCLEAR_DSL_WORD_LOCALEMIT_H
+#ifndef NUCLEAR_DSL_WORD_EMIT_LOCAL_H
+#define NUCLEAR_DSL_WORD_EMIT_LOCAL_H
 
 #include "nuclear_bits/PowerPlant.h"
 
@@ -28,29 +28,29 @@
 namespace NUClear {
     namespace dsl {
         namespace word {
-
-            struct LocalEmit {
+            namespace emit {
                 
-                template <typename TData>
-                static void emit(PowerPlant& powerplant, std::shared_ptr<TData> data) {
+                struct Local {
                     
-                    // Set our data in the store
-                    store::DataStore<TData>::set(data);
-                    
-                    std::cout << "Triggering for type " << util::demangle(typeid(TData).name()) << std::endl;
-                    
-                    for(auto& reaction : store::TypeCallbackStore<TData>::get()) {
+                    template <typename TData>
+                    static void emit(PowerPlant& powerplant, std::shared_ptr<TData> data) {
                         
-                        // Check if we should run
-                        if(reaction->isEnabled() && reaction->precondition()) {
+                        // Set our data in the store
+                        store::DataStore<TData>::set(data);
+                        
+                        for(auto& reaction : store::TypeCallbackStore<TData>::get()) {
                             
-                            auto task = reaction->getTask(threading::ReactionTask::currentTask);
-                            
-                            powerplant.submit(std::move(task));
-                        };
+                            // Check if we should run
+                            if(reaction->isEnabled() && reaction->precondition()) {
+                                
+                                auto task = reaction->getTask(threading::ReactionTask::currentTask);
+                                
+                                powerplant.submit(std::move(task));
+                            };
+                        }
                     }
-                }
-            };
+                };
+            }
         }
     }
 }

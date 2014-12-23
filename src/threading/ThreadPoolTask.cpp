@@ -58,7 +58,7 @@ namespace NUClear {
                     --task->parent->activeTasks;
                     
                     // Emit our ReactionStats
-                    powerplant.emit<dsl::word::DirectEmit>(std::move(task->stats));
+                    powerplant.emit<dsl::word::emit::Direct>(std::move(task->stats));
                 }
             }
             // If this is thrown, it means that we should finish execution

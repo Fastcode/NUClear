@@ -15,32 +15,36 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_DSL_WORD_DIRECT_H
-#define NUCLEAR_DSL_WORD_DIRECT_H
+#ifndef NUCLEAR_DSL_WORD_EMIT_DIRECT_H
+#define NUCLEAR_DSL_WORD_EMIT_DIRECT_H
+
+#include "nuclear_bits/PowerPlant.h"
 
 namespace NUClear {
     namespace dsl {
         namespace word {
+            namespace emit {
 
-            struct DirectEmit {
+                struct Direct {
 
-                template <typename TData>
-                static void emit(PowerPlant&, std::shared_ptr<TData> data) {
-                    
-                    // Set our data in the store
-                    store::DataStore<TData>::set(data);
-                    
-                    for(auto& reaction : store::TypeCallbackStore<TData>::get()) {
+                    template <typename TData>
+                    static void emit(PowerPlant&, std::shared_ptr<TData> data) {
                         
-                        // Check if we should run
-                        if(reaction->isEnabled() && reaction->precondition()) {
+                        // Set our data in the store
+                        store::DataStore<TData>::set(data);
+                        
+                        for(auto& reaction : store::TypeCallbackStore<TData>::get()) {
                             
-                            auto task = reaction->getTask(threading::ReactionTask::currentTask);
-                            (*task)();
-                        };
+                            // Check if we should run
+                            if(reaction->isEnabled() && reaction->precondition()) {
+                                
+                                auto task = reaction->getTask(threading::ReactionTask::currentTask);
+                                (*task)();
+                            };
+                        }
                     }
-                }
-            };
+                };
+            }
         }
     }
 }
