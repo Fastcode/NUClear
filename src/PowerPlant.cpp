@@ -21,14 +21,14 @@ namespace NUClear {
     
     PowerPlant* PowerPlant::powerplant = nullptr;
 
-    PowerPlant::PowerPlant(Configuration config, int argc, const char *argv[]) :
-    configuration(config)
-    , threadmaster(*this)
-    , reactormaster(*this) {
+    PowerPlant::PowerPlant(Configuration config, int argc, const char *argv[])
+      : configuration(config)
+      , threadmaster(*this)
+      , reactormaster(*this) {
         
         // Stop people from making more then one powerplant
         if(powerplant) {
-            throw std::runtime_error("There is already a powerplant in existence (There should be a single stack allocated PowerPlant)");
+            throw std::runtime_error("There is already a powerplant in existence (There should be a single PowerPlant)");
         }
         
         // Store our static variable
@@ -36,18 +36,31 @@ namespace NUClear {
         
         // State that we are setting up
         std::cout << "Building the PowerPlant with " << configuration.threadCount << " thread" << (configuration.threadCount != 1 ? "s" : "") << std::endl;
-
+        
         // Emit our arguments if any.
-        std::cout << "TODO EMIT THE COMMAND LINE ARGUMENTS" << std::endl;
-        // TODO emit the command line arguments
-//      emit<dsl::Scope::INITIALIZE>(std::make_unique<DataFor<dsl::CommandLineArguments, std::vector<std::string>>>
-//                                  (std::make_shared<std::vector<std::string>>(argv, argv + argc)));
+        auto args = std::make_unique<message::CommandLineArguments>();
+        
+        for (int i = 0; i < argc; ++i) {
+            args->emplace_back(argv[i]);
+        }
+        
+        emit<dsl::word::emit::Initialize>(std::move(args));
+    }
+    
+    void PowerPlant::onStartup(std::function<void ()>&& func) {
+        
+        startupTasks.push_back(func);
     }
 
     void PowerPlant::start() {
 
         // Direct emit startup event
         emit<dsl::word::emit::Direct>(std::make_unique<dsl::word::Startup>());
+        
+        // Run all our Initialise scope tasks
+        for(auto&& func : startupTasks) {
+            func();
+        }
         
         threadmaster.start();
     }

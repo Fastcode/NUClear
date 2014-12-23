@@ -24,7 +24,7 @@
 #include <typeindex>
 #include <memory>
 
-#include "nuclear_bits/ReactionStatistics.h"
+#include "nuclear_bits/message/ReactionStatistics.h"
 
 namespace NUClear {
     namespace threading {
@@ -70,7 +70,7 @@ namespace NUClear {
             /// @brief the taskId of this task (the sequence number of this paticular task)
             uint64_t taskId;
             /// @brief the statistics object that persists after this for information and debugging
-            std::unique_ptr<ReactionStatistics> stats;
+            std::unique_ptr<message::ReactionStatistics> stats;
             
             static __thread ReactionTask* currentTask;
         };

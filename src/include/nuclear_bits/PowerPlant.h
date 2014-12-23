@@ -39,8 +39,8 @@
 
 #include "nuclear_bits/threading/ThreadWorker.h"
 #include "nuclear_bits/threading/TaskScheduler.h"
-#include "nuclear_bits/LogLevel.h"
-#include "nuclear_bits/LogMessage.h"
+#include "nuclear_bits/message/LogLevel.h"
+#include "nuclear_bits/message/LogMessage.h"
 
 // Patch for std::make_unique in c++11 (should be fixed in c++14)
 #if __cplusplus == 201103L
@@ -184,6 +184,8 @@ namespace NUClear {
             std::vector<std::unique_ptr<NUClear::Reactor>> reactors;
         };
         
+        std::vector<std::function<void ()>> startupTasks;
+        
     public:
         
         /// @brief Holds the configuration information for this PowerPlant (such as number of pool threads)
@@ -222,6 +224,11 @@ namespace NUClear {
          *  Then releases the main thread.
          */
         void shutdown();
+        
+        /**
+         * TODO document
+         */
+        void onStartup(std::function<void()>&& func);
         
         /**
          * @brief Installs a reactor of a particular type to the system.
@@ -302,6 +309,10 @@ namespace NUClear {
 // Emit types
 #include "nuclear_bits/dsl/word/emit/Local.h"
 #include "nuclear_bits/dsl/word/emit/Direct.h"
+#include "nuclear_bits/dsl/word/emit/Initialize.h"
+
+// Built in smart types
+#include "nuclear_bits/message/CommandLineArguments.h"
 
 // Include all of our implementation files (which use the previously included reactor.h)
 #include "nuclear_bits/PowerPlant.ipp"

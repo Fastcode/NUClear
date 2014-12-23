@@ -15,45 +15,18 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_MESSAGES_LOGMESSAGE_H
-#define NUCLEAR_MESSAGES_LOGMESSAGE_H
-
-#include "LogLevel.h"
+#ifndef NUCLEAR_MESSAGE_COMMANDLINEARGUMENTS_H
+#define NUCLEAR_MESSAGE_COMMANDLINEARGUMENTS_H
 
 namespace NUClear {
+    namespace message {
     
-    /**
-     * @brief This type is a NUClear message type that holds a log message.
-     */
-    struct LogMessage {
-        
-        
-        /// @brief The logging level of the log.
-        LogLevel level;
-        
-        /// @brief The string contents of the message.
-        std::string message;
-        
-        /// @brief The ID of the task that made this (or 0 if there was none)
-        uint64_t taskId;
-        
-        /// @brief The ID of the reaction that made this (or 0 if there was none)
-        uint64_t reactionId;
-        
         /**
-         * @brief Constructs a new LogMessage.
-         *
-         * @param level the logging level to set.
-         * @param message the message to set.
+         * @brief This type is a NUClear message type that holds a log message.
          */
-        LogMessage(const LogLevel& level
-                   , const std::string& message
-                   , const uint64_t& taskId
-                   , const uint64_t& reactionId)
-        : level(level)
-        , message(message)
-        , taskId(taskId)
-        , reactionId(reactionId) {}
-    };
-}
+        struct CommandLineArguments : public std::vector<std::string> {};
+        
+    }
+ }
+
 #endif

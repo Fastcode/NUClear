@@ -31,7 +31,7 @@ namespace NUClear {
           : callback(callback)
           , parent(parent)
           , taskId(++taskIdSource)
-          , stats(new ReactionStatistics {
+          , stats(new message::ReactionStatistics {
                 parent->identifier
               , parent->reactionId
               , taskId

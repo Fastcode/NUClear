@@ -18,6 +18,8 @@
 #ifndef NUCLEAR_DSL_WORD_EMIT_INITIALIZE_H
 #define NUCLEAR_DSL_WORD_EMIT_INITIALIZE_H
 
+#include "Direct.h"
+
 namespace NUClear {
     namespace dsl {
         namespace word {
@@ -26,10 +28,13 @@ namespace NUClear {
                 struct Initialize {
 
                     template <typename TData>
-                    static void emit(std::shared_ptr<TData> data) {
+                    static void emit(PowerPlant& powerplant, std::shared_ptr<TData> data) {
                         
-                        std::cout "Initialize emit not yet implemented :(" << std::endl;
-                        // TODO Bind to an always thread
+                        auto task = [&powerplant, data] {
+                            emit::Direct::emit(powerplant, data);
+                        };
+                        
+                        powerplant.onStartup(task);
                     }
                 };
             }

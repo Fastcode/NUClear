@@ -76,7 +76,7 @@ namespace NUClear {
         std::string output = outputStream.str();
         
         // Direct emit the log message so that any direct loggers can use it
-        powerplant->emit<dsl::word::emit::Direct>(std::make_unique<LogMessage>(level
+        powerplant->emit<dsl::word::emit::Direct>(std::make_unique<message::LogMessage>(level
                                                                           , output
                                                                           , task ? task->taskId : 0
                                                                           , task ? task->parent->reactionId : 0));

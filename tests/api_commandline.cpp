@@ -27,7 +27,7 @@ namespace {
     public:
         
         TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
-            on<Trigger<CommandLineArguments>>([this](const std::vector<std::string>& args) {
+            on<Trigger<NUClear::message::CommandLineArguments>>([this](const NUClear::message::CommandLineArguments& args) {
                 REQUIRE(args[0] == "Hello");
                 REQUIRE(args[1] == "World");
 

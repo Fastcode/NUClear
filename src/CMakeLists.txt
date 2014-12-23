@@ -39,10 +39,10 @@ FILE(GLOB src_dsl_word_emit
     "include/nuclear_bits/dsl/word/emit/*.h"
     "include/nuclear_bits/dsl/word/emit/*.ipp")
 
-FILE(GLOB src_messages
+FILE(GLOB src_message
     "messages/*.cpp"
-    "include/nuclear_bits/messages/*.h"
-    "include/nuclear_bits/messages/*.ipp")
+    "include/nuclear_bits/message/*.h"
+    "include/nuclear_bits/message/*.ipp")
 
 FILE(GLOB src_util
     "util/*.cpp"
@@ -57,7 +57,7 @@ SOURCE_GROUP(dsl\\store                 FILES ${src_dsl_store})
 SOURCE_GROUP(dsl\\operation             FILES ${src_dsl_operation})
 SOURCE_GROUP(dsl\\word                  FILES ${src_dsl_word})
 SOURCE_GROUP(dsl\\word\\emit            FILES ${src_dsl_word_emit})
-SOURCE_GROUP(messages                   FILES ${src_messages})
+SOURCE_GROUP(messages                   FILES ${src_message})
 SOURCE_GROUP(util                       FILES ${src_util})
 
 ADD_LIBRARY(nuclear STATIC
@@ -69,7 +69,7 @@ ADD_LIBRARY(nuclear STATIC
     ${src_dsl_word}
     ${src_dsl_word_emit}
     ${src_dsl}
-    ${src_messages}
+    ${src_message}
     ${src_util})
     
 INSTALL(TARGETS nuclear ARCHIVE DESTINATION lib)

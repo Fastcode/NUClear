@@ -27,7 +27,7 @@ namespace {
     public:
         
         TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
-            emit<Scope::INITIALIZE>(std::make_unique<int>(5));
+            emit<NUClear::dsl::word::emit::Initialize>(std::make_unique<int>(5));
 
             on<Trigger<int>>([this](const int& v) {
                 REQUIRE(v == 5);

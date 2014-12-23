@@ -41,7 +41,7 @@
 #include "nuclear_bits/Environment.h"
 #include "nuclear_bits/threading/Reaction.h"
 #include "nuclear_bits/threading/ReactionHandle.h"
-#include "nuclear_bits/LogLevel.h"
+#include "nuclear_bits/message/LogLevel.h"
 #include "nuclear_bits/ForwardDeclarations.h"
 
 namespace NUClear {
