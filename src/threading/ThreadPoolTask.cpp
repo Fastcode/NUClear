@@ -52,7 +52,7 @@ namespace NUClear {
                     }
                     
                     // Postconditions
-                    task->parent->postcondition();
+                    task->parent->postcondition(*task);
                     
                     // We have stopped running
                     --task->parent->activeTasks;

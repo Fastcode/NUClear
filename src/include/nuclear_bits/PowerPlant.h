@@ -185,7 +185,7 @@ namespace NUClear {
         };
         
         std::vector<std::function<void ()>> startupTasks;
-        volatile bool running = false;
+        volatile bool isRunning = false;
         
     public:
         
@@ -225,6 +225,11 @@ namespace NUClear {
          *  Then releases the main thread.
          */
         void shutdown();
+        
+        /**
+         * TODO document
+         */
+        bool running();
         
         /**
          * TODO document

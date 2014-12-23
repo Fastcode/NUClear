@@ -18,6 +18,9 @@
 #ifndef NUCLEAR_DSL_WORD_ALWAYS_H
 #define NUCLEAR_DSL_WORD_ALWAYS_H
 
+#include "nuclear_bits/util/apply.h"
+#include "nuclear_bits/util/get_identifier.h"
+
 namespace NUClear {
     namespace dsl {
         namespace word {
@@ -33,8 +36,43 @@ namespace NUClear {
             struct Always {
                 
                 template <typename DSL, typename TFunc>
-                static void bind(const std::string& label, TFunc&& callback) {
-                    // TODO Bind to an always thread
+                static void bind(PowerPlant& powerplant, const std::string& label, TFunc&& callback) {
+                    
+                    // Make our callback generator
+                    auto task = [callback] {
+                        
+                        // Bind our data to a variable (get in original thread)
+                        auto data = DSL::get();
+                        
+                        // Execute with the stored data
+                        return [callback, data] {
+                            util::apply(callback, DSL::get());
+                        };
+                    };
+                    
+                    // Get our identifier string
+                    std::vector<std::string> identifier = util::get_identifier<typename DSL::DSL, TFunc>(label);
+                    
+                    // Create our reaction and store it in the TypeCallbackStore
+                    auto reaction = std::make_shared<threading::Reaction>(identifier, task, DSL::precondition, DSL::postcondition);
+                    
+                    // A labmda that will get a reaction task
+                    auto run = [reaction] {
+                        auto task = reaction->getTask(nullptr);
+                        
+                        threading::ReactionTask::currentTask = task.get();
+                        
+                        (*task)();
+                        
+                        threading::ReactionTask::currentTask = nullptr;
+                    };
+                    
+                    // This is our function that runs forever until the powerplant exits
+                    auto loop = [&powerplant, run] {
+                        if(powerplant.running()) {
+                            run();
+                        }
+                    };
                 }
             };
         }

@@ -36,8 +36,8 @@ namespace NUClear {
         
         void TaskScheduler::submit(std::unique_ptr<ReactionTask>&& task) {
             
-            // We do not accept new tasks once we are shutdown or if it's precondition fails
-            if(!shutdown_ && task->parent->precondition()) {
+            // We do not accept new tasks once we are shutdown
+            if(!shutdown_) {
                 
                 // A new task has been added as running
                 ++task->parent->activeTasks;

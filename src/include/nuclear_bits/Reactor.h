@@ -28,6 +28,7 @@
 
 // Domain Specific Language
 #include "nuclear_bits/dsl/Parse.h"
+#include "nuclear_bits/dsl/word/Always.h"
 #include "nuclear_bits/dsl/word/Trigger.h"
 #include "nuclear_bits/dsl/word/With.h"
 #include "nuclear_bits/dsl/word/Startup.h"
@@ -85,6 +86,9 @@ namespace NUClear {
         /// @copydoc dsl::Trigger
         template <typename... TTriggers>
         using Trigger = dsl::word::Trigger<TTriggers...>;
+        
+        /// @copydoc dsl::Trigger
+        using Always = dsl::word::Always;
         
         /// @copydoc dsl::With
         template <typename... TWiths>

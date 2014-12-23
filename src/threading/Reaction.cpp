@@ -23,20 +23,20 @@ namespace NUClear {
         // Initialize our reaction source
         std::atomic<uint64_t> Reaction::reactionIdSource(0);
         
-        Reaction::Reaction(std::vector<std::string> identifier, std::function<std::function<void ()> ()> callback, bool (*precondition)(), void (*postcondition)())
+        Reaction::Reaction(std::vector<std::string> identifier, std::function<std::function<void ()> (ReactionTask&)> generator, bool (*precondition)(Reaction&), void (*postcondition)(ReactionTask&))
           : identifier(identifier)
           , precondition(precondition)
           , postcondition(postcondition)
           , reactionId(++reactionIdSource)
           , activeTasks(0)
           , enabled(true)
-          , callback(callback) {
+          , generator(generator) {
         }
         
         std::unique_ptr<ReactionTask> Reaction::getTask(const ReactionTask* cause) {
             // Build a new data bound task using our callback generator
             // TODO this should be a make_unique call
-            return std::unique_ptr<ReactionTask>(new ReactionTask(this, cause, callback()));
+            return std::unique_ptr<ReactionTask>(new ReactionTask(this, cause, generator));
         }
         
         bool Reaction::isEnabled() {

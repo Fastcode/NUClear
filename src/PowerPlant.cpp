@@ -48,7 +48,7 @@ namespace NUClear {
     }
     
     void PowerPlant::onStartup(std::function<void ()>&& func) {
-        if (running) {
+        if (isRunning) {
             throw std::runtime_error("Unable to do onStartup as the PowerPlant has already started");
         }
         else {
@@ -58,7 +58,7 @@ namespace NUClear {
 
     void PowerPlant::start() {
         
-        running = true;
+        isRunning = true;
 
         // Direct emit startup event
         emit<dsl::word::emit::Direct>(std::make_unique<dsl::word::Startup>());
@@ -69,9 +69,8 @@ namespace NUClear {
         }
         startupTasks.clear();
         
+        // Start all our threads
         threadmaster.start();
-        
-        running = false;
     }
     
     void PowerPlant::submit(std::unique_ptr<threading::ReactionTask>&& task) {
@@ -83,10 +82,16 @@ namespace NUClear {
         // Emit our shutdown event
         emit(std::make_unique<dsl::word::Shutdown>());
         
+        isRunning = false;
+        
         // Shutdown the threads
         threadmaster.shutdown();
         
         // Bye bye powerplant
         powerplant = nullptr;
+    }
+    
+    bool PowerPlant::running() {
+        return isRunning;
     }
 }

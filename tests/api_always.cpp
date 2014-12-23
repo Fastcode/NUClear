@@ -26,7 +26,26 @@ namespace {
     class TestReactor : public NUClear::Reactor {
     public:
         TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
-            REQUIRE(0 == 1);
+            
+            on<Always>([] {
+                std::cout << "IMA FIRIN MAH LAZOR!!! BWAAAAAAAGH" << std::endl;
+            });
         }
     };
 }
+
+
+TEST_CASE("Testing on<Always> functionality (permanant run)", "[api][log]") {
+    
+    NUClear::PowerPlant::Configuration config;
+    config.threadCount = 1;
+    NUClear::PowerPlant plant(config);
+    
+    // We are installing with an initial log level of debug
+    plant.install<TestReactor, NUClear::DEBUG>();
+    
+    plant.emit(std::make_unique<int>(5));
+    
+    plant.start();
+}
+

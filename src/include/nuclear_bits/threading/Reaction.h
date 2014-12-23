@@ -50,7 +50,7 @@ namespace NUClear {
              * @param callback      the callback generator function (creates databound callbacks)
              * @param options       the options to use in Tasks
              */
-            Reaction(std::vector<std::string> identifier, std::function<std::function<void ()> ()> callback, bool (*preconditions)(), void (*postconditions)());
+            Reaction(std::vector<std::string> identifier, std::function<std::function<void ()> (ReactionTask&)> callback, bool (*precondition)(Reaction&), void (*postconditions)(ReactionTask&));
             
             /**
              * @brief creates a new databound callback task that can be executed.
@@ -70,10 +70,10 @@ namespace NUClear {
             std::vector<std::string> identifier;
             
             /// @brief TODO
-            bool (*precondition)();
+            bool (*precondition)(Reaction&);
             
             /// @brief TODO
-            void (*postcondition)();
+            void (*postcondition)(ReactionTask&);
             
             /// @brief the unique identifier for this Reaction object
             const uint64_t reactionId;
@@ -86,7 +86,7 @@ namespace NUClear {
             /// @brief if this reaction object is currently enabled
             std::atomic<bool> enabled;
             /// @brief the callback generator function (creates databound callbacks)
-            std::function<std::function<void ()> ()> callback;
+            std::function<std::function<void ()> (ReactionTask&)> generator;
         };
     }
 }

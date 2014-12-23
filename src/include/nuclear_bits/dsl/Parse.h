@@ -28,21 +28,21 @@ namespace NUClear {
             
             using DSL = Fusion<TDSL...>;
         
-            static bool precondition() {
-                return DSL::template precondition<Parse<TDSL...>>();
+            static bool precondition(threading::Reaction& r) {
+                return DSL::template precondition<Parse<TDSL...>>(std::forward<threading::Reaction&>(r));
             }
             
-            static void postcondition() {
-                DSL::template postcondition<Parse<TDSL...>>();
+            static void postcondition(threading::ReactionTask& r) {
+                DSL::template postcondition<Parse<TDSL...>>(std::forward<threading::ReactionTask&>(r));
             }
             
-            static auto get() -> decltype(DSL::template get<Parse<TDSL...>>()) {
-                return DSL::template get<Parse<TDSL...>>();
+            static auto get(threading::ReactionTask& r) -> decltype(DSL::template get<Parse<TDSL...>>(std::forward<threading::ReactionTask&>(r))) {
+                return DSL::template get<Parse<TDSL...>>(std::forward<threading::ReactionTask&>(r));
             }
             
             template <typename TFunc>
-            static auto bind(const std::string& label, TFunc&& callback) -> decltype(DSL::template bind<Parse<TDSL...>>(std::forward<const std::string&>(label), std::forward<TFunc&&>(callback))) {
-                return DSL::template bind<Parse<TDSL...>>(std::forward<const std::string&>(label), std::forward<TFunc&&>(callback));
+            static auto bind(Reactor& r, const std::string& label, TFunc&& callback) -> decltype(DSL::template bind<Parse<TDSL...>>(std::forward<Reactor&>(r), std::forward<const std::string&>(label), std::forward<TFunc&&>(callback))) {
+                return DSL::template bind<Parse<TDSL...>>(std::forward<Reactor&>(r), std::forward<const std::string&>(label), std::forward<TFunc&&>(callback));
             }
         
         };

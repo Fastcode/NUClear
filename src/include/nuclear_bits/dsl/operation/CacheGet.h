@@ -28,7 +28,7 @@ namespace NUClear {
             struct CacheGet {
 
                 template <typename DSL>
-                static std::shared_ptr<TType> get() {
+                static std::shared_ptr<TType> get(threading::ReactionTask&) {
                     
                     return store::DataStore<TType>::get();
                 };

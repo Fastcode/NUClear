@@ -27,9 +27,8 @@ namespace NUClear {
         // Initialize our current task
         __thread ReactionTask* ReactionTask::currentTask = nullptr;
         
-        ReactionTask::ReactionTask(Reaction* parent, const ReactionTask* cause, std::function<void ()> callback)
-          : callback(callback)
-          , parent(parent)
+        ReactionTask::ReactionTask(Reaction* parent, const ReactionTask* cause, std::function<std::function<void ()> (ReactionTask&)> generator)
+          : parent(parent)
           , taskId(++taskIdSource)
           , stats(new message::ReactionStatistics {
                 parent->identifier
@@ -41,7 +40,8 @@ namespace NUClear {
               , clock::time_point(std::chrono::seconds(0))
               , clock::time_point(std::chrono::seconds(0))
               , nullptr
-          }) {}
+            })
+          , callback(generator(*this)) {}
         
         void ReactionTask::operator()() {
             // Call our callback

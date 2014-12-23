@@ -30,17 +30,17 @@ namespace NUClear {
             struct TypeBind {
 
                 template <typename DSL, typename TFunc>
-                static void bind(const std::string& label, TFunc&& callback) {
+                static void bind(Reactor&, const std::string& label, TFunc&& callback) {
                     
                     // Make our callback generator
-                    auto task = [callback] {
+                    auto task = [callback] (threading::ReactionTask& r) {
                         
                         // Bind our data to a variable (get in original thread)
-                        auto data = DSL::get();
+                        auto data = DSL::get(std::forward<threading::ReactionTask&>(r));
                         
                         // Execute with the stored data
                         return [callback, data] {
-                            util::apply(callback, DSL::get());
+                            util::apply(callback, std::move(data));
                         };
                     };
                     
