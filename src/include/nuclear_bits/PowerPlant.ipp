@@ -35,7 +35,7 @@ namespace NUClear {
         std::shared_ptr<TData>&& ptr = std::shared_ptr<TData>(std::move(data));
         
         // Pass it to the default emit handler
-        dsl::word::LocalEmit::emit(ptr);
+        dsl::word::LocalEmit::emit(*this, ptr);
     }
     
     // Global emit handlers
@@ -47,7 +47,7 @@ namespace NUClear {
         
         // Pass it to all of the provided emit handlers
         TFirstHandler::emit(ptr);
-        util::unpack((THandlers::emit(ptr), 0)...);
+        util::unpack((THandlers::emit(*this, ptr), 0)...);
     }
     
     // Anonymous metafunction that concatenates everything into a single string

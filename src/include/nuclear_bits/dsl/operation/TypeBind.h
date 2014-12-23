@@ -19,6 +19,7 @@
 #define NUCLEAR_DSL_OPERATION_TYPEBIND_H
 
 #include "nuclear_bits/util/get_identifier.h"
+#include "nuclear_bits/dsl/store/TypeCallbackStore.h"
 #include "nuclear_bits/util/apply.h"
 
 namespace NUClear {

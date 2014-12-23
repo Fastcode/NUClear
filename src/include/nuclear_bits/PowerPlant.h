@@ -37,9 +37,6 @@
 // Utilities
 #include "nuclear_bits/util/unpack.h"
 
-// Emit types
-#include "nuclear_bits/dsl/word/LocalEmit.h"
-#include "nuclear_bits/dsl/word/DirectEmit.h"
 #include "nuclear_bits/threading/ThreadWorker.h"
 #include "nuclear_bits/threading/TaskScheduler.h"
 #include "nuclear_bits/LogLevel.h"
@@ -242,6 +239,13 @@ namespace NUClear {
         void install();
         
         /**
+         * @brief Submits a new task to the ThreadPool to be queued and then executed.
+         *
+         * @param task The Reaction task to be executed in the thread pool
+         */
+        void submit(std::unique_ptr<threading::ReactionTask>&& task);
+        
+        /**
          * @brief Log a message through NUClear's system.
          *
          * @details
@@ -295,6 +299,10 @@ namespace NUClear {
 
 // Include our Reactor.h first as the tight coupling between powerplant and reactor requires a specific include order
 #include "nuclear_bits/Reactor.h"
+
+// Emit types
+#include "nuclear_bits/dsl/word/LocalEmit.h"
+#include "nuclear_bits/dsl/word/DirectEmit.h"
 
 // Include all of our implementation files (which use the previously included reactor.h)
 #include "nuclear_bits/PowerPlant.ipp"

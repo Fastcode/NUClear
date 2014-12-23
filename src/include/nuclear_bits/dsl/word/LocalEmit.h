@@ -18,6 +18,8 @@
 #ifndef NUCLEAR_DSL_WORD_LOCALEMIT_H
 #define NUCLEAR_DSL_WORD_LOCALEMIT_H
 
+#include "nuclear_bits/PowerPlant.h"
+
 #include "nuclear_bits/dsl/store/TypeCallbackStore.h"
 #include "nuclear_bits/dsl/store/DataStore.h"
 
@@ -30,7 +32,7 @@ namespace NUClear {
             struct LocalEmit {
                 
                 template <typename TData>
-                static void emit(std::shared_ptr<TData> data) {
+                static void emit(PowerPlant& powerplant, std::shared_ptr<TData> data) {
                     
                     // Set our data in the store
                     store::DataStore<TData>::set(data);
@@ -44,7 +46,7 @@ namespace NUClear {
                             
                             auto task = reaction->getTask(nullptr);
                             
-                            std::cout << "TODO add the task to the thread queue" << std::endl;
+                            powerplant.submit(std::move(task));
                         };
                     }
                 }

@@ -49,6 +49,10 @@ namespace NUClear {
         threadmaster.start();
     }
     
+    void PowerPlant::submit(std::unique_ptr<threading::ReactionTask>&& task) {
+        threadmaster.submit(std::forward<std::unique_ptr<threading::ReactionTask>>(task));
+    }
+    
     void PowerPlant::shutdown() {
         threadmaster.shutdown();
         
