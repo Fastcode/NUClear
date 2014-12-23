@@ -46,6 +46,9 @@ namespace NUClear {
 
     void PowerPlant::start() {
 
+        // Direct emit startup event
+        emit<dsl::word::emit::Direct>(std::make_unique<dsl::word::Startup>());
+        
         threadmaster.start();
     }
     
@@ -54,6 +57,11 @@ namespace NUClear {
     }
     
     void PowerPlant::shutdown() {
+        
+        // Emit our shutdown event
+        emit(std::make_unique<dsl::word::Shutdown>());
+        
+        // Shutdown the threads
         threadmaster.shutdown();
         
         // Bye bye powerplant

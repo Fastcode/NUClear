@@ -20,6 +20,8 @@
 
 #include "nuclear_bits/dsl/Fusion.h"
 
+#include "nuclear_bits/dsl/operation/CacheGet.h"
+
 namespace NUClear {
     namespace dsl {
         namespace word {

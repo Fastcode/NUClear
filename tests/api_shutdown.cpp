@@ -42,7 +42,7 @@ namespace {
                 powerplant.shutdown();
             });
             
-            on<Trigger<Shutdown>>([this](const Shutdown&) {
+            on<Shutdown>([this]() {
                 didShutDown = true;
             });
         }

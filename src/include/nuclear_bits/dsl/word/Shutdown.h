@@ -18,6 +18,8 @@
 #ifndef NUCLEAR_DSL_WORD_SHUTDOWN_H
 #define NUCLEAR_DSL_WORD_SHUTDOWN_H
 
+#include "nuclear_bits/dsl/operation/TypeBind.h"
+
 namespace NUClear {
     namespace dsl {
         namespace word {
@@ -31,13 +33,7 @@ namespace NUClear {
              *  tasks, Any new emit events will not be processed and all new tasks will be ignored. Once all tasks are
              *  finish the system will terminate.
              */
-            struct Shutdown {
-                
-                template <typename DSL, typename TFunc>
-                static void bind(const std::string& label, TFunc&& callback) {
-                    // TODO bind to when the system shuts down
-                }
-            };
+            struct Shutdown : public operation::TypeBind<Shutdown> {};
         }
     }
 }

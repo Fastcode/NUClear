@@ -18,6 +18,8 @@
 #ifndef NUCLEAR_DSL_WORD_STARTUP_H
 #define NUCLEAR_DSL_WORD_STARTUP_H
 
+#include "nuclear_bits/dsl/operation/TypeBind.h"
+
 namespace NUClear {
     namespace dsl {
         namespace word {
@@ -30,13 +32,7 @@ namespace NUClear {
              *  This type is emitted when the system first starts up, after reactors have been installed. This is
              *  used if a reactor needs to use information provided by other reactors constructors.
              */
-            struct Startup {
-                
-                template <typename DSL, typename TFunc>
-                static void bind(const std::string& label, TFunc&& callback) {
-                    // TODO Bind to startup
-                }
-            };
+            struct Startup : public operation::TypeBind<Startup> {};
         }
     }
 }

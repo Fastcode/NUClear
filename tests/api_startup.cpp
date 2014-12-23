@@ -40,7 +40,7 @@ namespace {
                 powerplant.shutdown();
             });
             
-            on<Trigger<Startup>>([this](const Startup&) {
+            on<Startup>([this]() {
                 emit(std::unique_ptr<SimpleMessage>(new SimpleMessage{10}));
             });
         }
