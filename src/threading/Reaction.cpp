@@ -28,7 +28,7 @@ namespace NUClear {
           , precondition(precondition)
           , postcondition(postcondition)
           , reactionId(++reactionIdSource)
-          , running(false)
+          , activeTasks(0)
           , enabled(true)
           , callback(callback) {
         }

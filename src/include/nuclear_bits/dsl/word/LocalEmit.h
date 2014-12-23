@@ -44,7 +44,7 @@ namespace NUClear {
                         // Check if we should run
                         if(reaction->isEnabled() && reaction->precondition()) {
                             
-                            auto task = reaction->getTask(nullptr);
+                            auto task = reaction->getTask(threading::ReactionTask::currentTask);
                             
                             powerplant.submit(std::move(task));
                         };

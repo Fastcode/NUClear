@@ -71,6 +71,8 @@ namespace NUClear {
             uint64_t taskId;
             /// @brief the statistics object that persists after this for information and debugging
             std::unique_ptr<ReactionStatistics> stats;
+            
+            static __thread ReactionTask* currentTask;
         };
     }
 }

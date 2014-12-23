@@ -19,8 +19,6 @@
 #include "nuclear_bits/threading/ThreadPoolTask.h"
 
 namespace NUClear {
-
-    const __thread threading::ReactionTask* PowerPlant::ThreadMaster::currentTask = nullptr;
     
     PowerPlant::ThreadMaster::ThreadMaster(PowerPlant& parent) :
     PowerPlant::BaseMaster(parent) {

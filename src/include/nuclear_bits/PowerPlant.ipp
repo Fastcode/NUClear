@@ -46,7 +46,7 @@ namespace NUClear {
         std::shared_ptr<TData> ptr = std::shared_ptr<TData>(std::move(data));
         
         // Pass it to all of the provided emit handlers
-        TFirstHandler::emit(ptr);
+        TFirstHandler::emit(*this, ptr);
         util::unpack((THandlers::emit(*this, ptr), 0)...);
     }
     
@@ -68,21 +68,17 @@ namespace NUClear {
     void PowerPlant::log(TArgs... args) {
         
         // Get our current task
-        auto* task = ThreadMaster::currentTask;
+        auto* task = threading::ReactionTask::currentTask;
+            
+        // Build our log message by concatenating everything to a stream
+        std::stringstream outputStream;
+        logImpl(outputStream, std::forward<TArgs>(args)...);
+        std::string output = outputStream.str();
         
-        // If our reaction is logging at this level (TODO this needs to respect some level)
-        if(level >= DEBUG) {
-            
-            // Build our log message by concatenating everything to a stream
-            std::stringstream outputStream;
-            logImpl(outputStream, std::forward<TArgs>(args)...);
-            std::string output = outputStream.str();
-            
-            // Direct emit the log message so that any direct loggers can use it
-            powerplant->emit<dsl::word::DirectEmit>(std::make_unique<LogMessage>(level
-                                                                              , output
-                                                                              , task ? task->taskId : 0
-                                                                              , task ? task->parent->reactionId : 0));
-        }
+        // Direct emit the log message so that any direct loggers can use it
+        powerplant->emit<dsl::word::DirectEmit>(std::make_unique<LogMessage>(level
+                                                                          , output
+                                                                          , task ? task->taskId : 0
+                                                                          , task ? task->parent->reactionId : 0));
     }
 }

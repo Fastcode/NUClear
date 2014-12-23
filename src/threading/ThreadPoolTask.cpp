@@ -20,10 +20,10 @@
 namespace NUClear {
     namespace threading {
         
-        ThreadPoolTask::ThreadPoolTask(PowerPlant& powerplant, TaskScheduler& scheduler) :
-        ThreadWorker::ServiceTask(std::bind(&ThreadPoolTask::run, this), std::bind(&ThreadPoolTask::kill, this)),
-        powerplant(powerplant),
-        scheduler(scheduler) {
+        ThreadPoolTask::ThreadPoolTask(PowerPlant& powerplant, TaskScheduler& scheduler)
+          : ThreadWorker::ServiceTask(std::bind(&ThreadPoolTask::run, this), std::bind(&ThreadPoolTask::kill, this))
+          , powerplant(powerplant)
+          , scheduler(scheduler) {
         }
         
         ThreadPoolTask::~ThreadPoolTask() {
@@ -40,7 +40,9 @@ namespace NUClear {
                     // Try to execute the task (catching any exceptions so it doesn't kill the pool thread)
                     try {
                         task->stats->started = clock::now();
+                        ReactionTask::currentTask = task.get();
                         (*task)();
+                        ReactionTask::currentTask = nullptr;
                         task->stats->finished = clock::now();
                     }
                     // Catch everything
@@ -50,10 +52,10 @@ namespace NUClear {
                     }
                     
                     // Postconditions
-                    // TODO run the postconditions
+                    task->parent->postcondition();
                     
                     // We have stopped running
-                    task->parent->running = false;
+                    --task->parent->activeTasks;
                     
                     // Emit our ReactionStats
                     powerplant.emit<dsl::word::DirectEmit>(std::move(task->stats));

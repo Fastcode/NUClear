@@ -78,8 +78,7 @@ namespace NUClear {
             /// @brief the unique identifier for this Reaction object
             const uint64_t reactionId;
             
-            /// @brief if this reaction is currently enqueued or running
-            volatile bool running;
+            std::atomic<int> activeTasks;
             
         private:
             /// @brief a source for reactionIds, atomically creates longs

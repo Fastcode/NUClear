@@ -44,8 +44,6 @@ namespace NUClear {
                         };
                     };
                     
-                    std::cout << "Binding" << std::endl;
-                    
                     // Get our identifier string
                     std::vector<std::string> identifier = util::get_identifier<typename DSL::DSL, TFunc>(label);
                     

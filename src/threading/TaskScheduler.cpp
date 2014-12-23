@@ -37,12 +37,12 @@ namespace NUClear {
         void TaskScheduler::submit(std::unique_ptr<ReactionTask>&& task) {
             
             // We do not accept new tasks once we are shutdown or if it's precondition fails
-            if(!shutdown_ && task->parent->precondition) {
+            if(!shutdown_ && task->parent->precondition()) {
                 
-                // We are now running (enqueued to run counts as running)
-                task->parent->running = true;
+                // A new task has been added as running
+                ++task->parent->activeTasks;
                 
-                {
+                /* Mutex Scope */ {
                     std::lock_guard<std::mutex> lock(mutex);
                     queue.push(std::forward<std::unique_ptr<ReactionTask>>(task));
                 }

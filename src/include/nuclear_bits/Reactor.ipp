@@ -43,6 +43,9 @@ namespace NUClear {
     
     template <enum LogLevel level, typename... TArgs>
     void Reactor::log(TArgs... args) {
-        powerplant.log<level, TArgs...>(std::forward<TArgs>(args)...);
+        // If the log is above or equal to our log level
+        if (level >= environment->logLevel) {
+            powerplant.log<level, TArgs...>(std::forward<TArgs>(args)...);
+        }
     }
 }

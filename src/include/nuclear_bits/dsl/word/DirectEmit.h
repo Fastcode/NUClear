@@ -25,8 +25,20 @@ namespace NUClear {
             struct DirectEmit {
 
                 template <typename TData>
-                static void emit(std::shared_ptr<TData> data) {
-                    // TODO Bind to an always thread
+                static void emit(PowerPlant&, std::shared_ptr<TData> data) {
+                    
+                    // Set our data in the store
+                    store::DataStore<TData>::set(data);
+                    
+                    for(auto& reaction : store::TypeCallbackStore<TData>::get()) {
+                        
+                        // Check if we should run
+                        if(reaction->isEnabled() && reaction->precondition()) {
+                            
+                            auto task = reaction->getTask(threading::ReactionTask::currentTask);
+                            (*task)();
+                        };
+                    }
                 }
             };
         }
