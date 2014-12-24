@@ -55,6 +55,10 @@ namespace NUClear {
             startupTasks.push_back(func);
         }
     }
+    
+    void PowerPlant::addThreadTask(std::function<void ()>&& func) {
+        threadmaster.addThreadTask(std::forward<std::function<void ()>>(func));
+    }
 
     void PowerPlant::start() {
         

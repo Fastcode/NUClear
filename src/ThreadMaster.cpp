@@ -26,22 +26,34 @@ namespace NUClear {
     
     void PowerPlant::ThreadMaster::start() {
         
-        // Start our pool threads
-        for(unsigned i = 0; i < parent.configuration.threadCount; ++i) {
-            threads.push_back(std::make_unique<threading::ThreadWorker>(threading::ThreadPoolTask(parent, scheduler)));
+        for(uint i = 0; i < parent.configuration.threadCount; ++i) {
+            tasks.push_back(threading::makeThreadPoolTask(parent, scheduler));
+        }
+        
+        // Start all our tasks
+        for (auto& task : tasks) {
+            threads.push_back(std::make_unique<std::thread>(task));
         }
         
         // Now wait for all the threads to finish executing
         for(auto& thread : threads) {
-            thread->join();
+            try {
+                if (thread->joinable()) {
+                    thread->join();
+                }
+            }
+            // This gets thrown some time if between checking if joinable and joining
+            // the thread is no longer joinable
+            catch(std::system_error()) {
+            }
         }
     }
     
+    void PowerPlant::ThreadMaster::addThreadTask(std::function<void ()>&& task) {
+        tasks.push_back(std::forward<std::function<void ()>>(task));
+    }
+    
     void PowerPlant::ThreadMaster::shutdown() {
-        // Kill everything
-        for(auto& thread : threads) {
-            thread->kill();
-        }
         // Kill the task scheduler
         scheduler.shutdown();
     }

@@ -20,6 +20,7 @@
 
 #include "nuclear_bits/util/apply.h"
 #include "nuclear_bits/util/get_identifier.h"
+#include "nuclear_bits/util/apply.h"
 
 namespace NUClear {
     namespace dsl {
@@ -36,7 +37,7 @@ namespace NUClear {
             struct Always {
                 
                 template <typename DSL, typename TFunc>
-                static void bind(PowerPlant& powerplant, const std::string& label, TFunc&& callback) {
+                static void bind(Reactor& reactor, const std::string& label, TFunc&& callback) {
                     
                     // Make our callback generator
                     auto task = [callback] {
@@ -68,11 +69,13 @@ namespace NUClear {
                     };
                     
                     // This is our function that runs forever until the powerplant exits
-                    auto loop = [&powerplant, run] {
-                        if(powerplant.running()) {
+                    auto loop = [&reactor, run] {
+                        while(reactor.powerplant.running()) {
                             run();
                         }
                     };
+                    
+                    reactor.powerplant.addThreadTask(loop);
                 }
             };
         }

@@ -37,7 +37,6 @@
 // Utilities
 #include "nuclear_bits/util/unpack.h"
 
-#include "nuclear_bits/threading/ThreadWorker.h"
 #include "nuclear_bits/threading/TaskScheduler.h"
 #include "nuclear_bits/message/LogLevel.h"
 #include "nuclear_bits/message/LogMessage.h"
@@ -142,6 +141,11 @@ namespace NUClear {
             void shutdown();
             
             /**
+             * TODO document
+             */
+            void addThreadTask(std::function<void ()>&& task);
+            
+            /**
              * @brief Submits a new task to the ThreadPool to be queued and then executed.
              *
              * @param task The Reactor task to be executed in the thread pool
@@ -149,8 +153,10 @@ namespace NUClear {
             void submit(std::unique_ptr<threading::ReactionTask>&& task);
             
         private:
-            /// @brief A vector of the threads in the system
-            std::vector<std::unique_ptr<threading::ThreadWorker>> threads;
+            /// TODO
+            std::vector<std::function<void ()>> tasks;
+            /// @brief A vector of the running threads in the system
+            std::vector<std::unique_ptr<std::thread>> threads;
             /// @brief Our TaskScheduler that handles distributing task to the pool threads
             threading::TaskScheduler scheduler;
         };
@@ -234,7 +240,12 @@ namespace NUClear {
         /**
          * TODO document
          */
-        void onStartup(std::function<void()>&& func);
+        void onStartup(std::function<void ()>&& func);
+        
+        /**
+         * TODO document
+         */
+        void addThreadTask(std::function<void ()>&& func);
         
         /**
          * @brief Installs a reactor of a particular type to the system.

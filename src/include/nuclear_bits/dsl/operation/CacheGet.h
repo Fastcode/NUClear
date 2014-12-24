@@ -18,6 +18,7 @@
 #ifndef NUCLEAR_DSL_OPERATION_CACHEGET_H
 #define NUCLEAR_DSL_OPERATION_CACHEGET_H
 
+#include "nuclear_bits/util/MetaProgramming.h"
 #include "nuclear_bits/dsl/store/DataStore.h"
 
 namespace NUClear {
@@ -26,7 +27,7 @@ namespace NUClear {
 
             template <typename TType>
             struct CacheGet {
-
+                
                 template <typename DSL>
                 static std::shared_ptr<TType> get(threading::ReactionTask&) {
                     

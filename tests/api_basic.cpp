@@ -57,9 +57,9 @@ TEST_CASE("A very basic test for Emit and On", "[api]") {
 
 namespace {
     
-    struct DifferentOrderingMessage1 {};
-    struct DifferentOrderingMessage2 {};
-    struct DifferentOrderingMessage3 {};
+    struct DifferentOrderingMessage1 { int a; };
+    struct DifferentOrderingMessage2 { int a; };
+    struct DifferentOrderingMessage3 { int a; };
     
     class DifferentOrderingReactor : public NUClear::Reactor {
     public:

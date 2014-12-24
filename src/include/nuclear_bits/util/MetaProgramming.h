@@ -39,7 +39,7 @@ namespace NUClear {
         namespace Meta {
             
             /**
-             * @brief Executs a metafunction and becomes the result.
+             * @brief Executes a metafunction and becomes the result.
              *
              * @tparam T the metafunction to return the result of.
              *

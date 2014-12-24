@@ -26,18 +26,9 @@
 #include <chrono>
 #include <atomic>
 
-// Domain Specific Language
-#include "nuclear_bits/dsl/Parse.h"
-#include "nuclear_bits/dsl/word/Always.h"
-#include "nuclear_bits/dsl/word/Trigger.h"
-#include "nuclear_bits/dsl/word/With.h"
-#include "nuclear_bits/dsl/word/Startup.h"
-#include "nuclear_bits/dsl/word/Shutdown.h"
-#include "nuclear_bits/dsl/word/Every.h"
-#include "nuclear_bits/dsl/word/Single.h"
-#include "nuclear_bits/dsl/word/Sync.h"
-
 #include "nuclear_bits/util/demangle.h"
+
+#include "nuclear_bits/dsl/Parse.h"
 
 #include "nuclear_bits/Environment.h"
 #include "nuclear_bits/threading/Reaction.h"
@@ -46,6 +37,35 @@
 #include "nuclear_bits/ForwardDeclarations.h"
 
 namespace NUClear {
+    
+    // Domain specific language forward declaration
+    namespace dsl {
+        namespace word {
+            
+            struct Always;
+            
+            template <typename>
+            struct Trigger;
+            
+            template <typename...>
+            struct With;
+            
+            struct Startup;
+            
+            struct Shutdown;
+            
+            template <int, typename>
+            struct Every;
+            
+            template <typename>
+            struct Per;
+            
+            struct Single;
+            
+            template <typename>
+            struct Sync;
+        }
+    }
     
     /**
      * @brief Base class for any system that wants to react to events/data from the rest of the system.
@@ -83,36 +103,36 @@ namespace NUClear {
          * for the user.                                                                                               *
          **************************************************************************************************************/
         
-        /// @copydoc dsl::Trigger
+        /// @copydoc dsl::word::Trigger
         template <typename... TTriggers>
         using Trigger = dsl::word::Trigger<TTriggers...>;
         
-        /// @copydoc dsl::Trigger
+        /// @copydoc dsl::word::Always
         using Always = dsl::word::Always;
         
-        /// @copydoc dsl::With
+        /// @copydoc dsl::word::With
         template <typename... TWiths>
         using With = dsl::word::With<TWiths...>;
         
-        /// @copydoc dsl::Startup
+        /// @copydoc dsl::word::Startup
         using Startup = dsl::word::Startup;
         
-        /// @copydoc dsl::Shutdown
+        /// @copydoc dsl::word::Shutdown
         using Shutdown = dsl::word::Shutdown;
         
-        /// @copydoc dsl::Every
+        /// @copydoc dsl::word::Every
         template <int ticks, class period = std::chrono::milliseconds>
         using Every = dsl::word::Every<ticks, period>;
         
-        /// @copydoc dsl::Per
+        /// @copydoc dsl::word::Per
         template <class period>
         using Per = dsl::word::Per<period>;
         
-        /// @copydoc dsl::Sync
+        /// @copydoc dsl::word::Sync
         template <typename TSync>
         using Sync = dsl::word::Sync<TSync>;
         
-        /// @copydoc dsl::Single
+        /// @copydoc dsl::word::Single
         using Single = dsl::word::Single;
         
         /// @brief This provides functions to modify how an on statement runs after it has been created
@@ -192,5 +212,16 @@ namespace NUClear {
 // We need to really make sure that PowerPlant is included as we use it in our ipp file
 #include "nuclear_bits/PowerPlant.h"
 #include "nuclear_bits/Reactor.ipp"
+
+// Domain Specific Language
+#include "nuclear_bits/dsl/word/Always.h"
+#include "nuclear_bits/dsl/word/Trigger.h"
+#include "nuclear_bits/dsl/word/With.h"
+#include "nuclear_bits/dsl/word/Startup.h"
+#include "nuclear_bits/dsl/word/Shutdown.h"
+#include "nuclear_bits/dsl/word/Every.h"
+#include "nuclear_bits/dsl/word/Single.h"
+#include "nuclear_bits/dsl/word/Sync.h"
+
 #endif
 
