@@ -30,7 +30,7 @@ namespace {
         TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
             
             // Testing that the log message gets through
-            on<Trigger<NUClear::LogMessage>>([this](const NUClear::LogMessage& logMessage) {
+            on<Trigger<NUClear::message::LogMessage>>([this](const NUClear::message::LogMessage& logMessage) {
             
                 REQUIRE(logMessage.message == "Got int: 5");
                 REQUIRE(logMessage.level == NUClear::DEBUG);
