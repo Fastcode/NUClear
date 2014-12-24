@@ -21,7 +21,12 @@
 namespace NUClear {
     namespace dsl {
         namespace validation {
-        
+            
+            // TODO Test that the function signature matches the arguments that will be obtained by get
+            
+            // TODO Test that the function signature uses the correct constness in the arguments
+            
+            // TODO Test that the function provides at least a bind (otherwise it will never run)
         }
     }
 }
