@@ -18,6 +18,8 @@
 #include "nuclear_bits/PowerPlant.h"
 #include "nuclear_bits/threading/ThreadPoolTask.h"
 
+#include "nuclear_bits/extension/ChronoController.h"
+
 namespace NUClear {
     
     PowerPlant* PowerPlant::powerplant = nullptr;
@@ -36,12 +38,16 @@ namespace NUClear {
         // State that we are setting up
         std::cout << "Building the PowerPlant with " << configuration.threadCount << " thread" << (configuration.threadCount != 1 ? "s" : "") << std::endl;
         
+        // Install the Chrono reactor
+        install<extension::ChronoController>();
+          
         // Emit our arguments if any.
         auto args = std::make_unique<message::CommandLineArguments>();
         
         for (int i = 0; i < argc; ++i) {
             args->emplace_back(argv[i]);
         }
+          
         
         emit<dsl::word::emit::Initialize>(std::move(args));
     }

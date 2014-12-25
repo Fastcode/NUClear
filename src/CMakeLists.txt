@@ -9,10 +9,10 @@ FILE(GLOB src_threading
     "include/nuclear_bits/threading/*.h"
     "include/nuclear_bits/threading/*.ipp")
 
-FILE(GLOB src_extensions
-    "extensions/*.cpp"
-    "include/nuclear_bits/extensions/*.h"
-    "include/nuclear_bits/extensions/*.ipp")
+FILE(GLOB src_extension
+    "extension/*.cpp"
+    "include/nuclear_bits/extension/*.h"
+    "include/nuclear_bits/extension/*.ipp")
     
 FILE(GLOB src_dsl
     "dsl/*.cpp"
@@ -30,7 +30,7 @@ FILE(GLOB src_dsl_operation
     "include/nuclear_bits/dsl/operation/*.ipp")
 
 FILE(GLOB src_dsl_validation
-    "dsl/operation/*.cpp"
+    "dsl/validation/*.cpp"
     "include/nuclear_bits/dsl/validation/*.h"
     "include/nuclear_bits/dsl/validation/*.ipp")
 
@@ -40,7 +40,7 @@ FILE(GLOB src_dsl_word
     "include/nuclear_bits/dsl/word/*.ipp")
 
 FILE(GLOB src_dsl_word_emit
-    "dsl/word/*.cpp"
+    "dsl/word/emit/*.cpp"
     "include/nuclear_bits/dsl/word/emit/*.h"
     "include/nuclear_bits/dsl/word/emit/*.ipp")
 
@@ -56,7 +56,7 @@ FILE(GLOB src_util
 
 SOURCE_GROUP(""                         FILES ${src})
 SOURCE_GROUP(threading                  FILES ${src_threading})
-SOURCE_GROUP(extensions                 FILES ${src_extensions})
+SOURCE_GROUP(extension                  FILES ${src_extension})
 SOURCE_GROUP(dsl                        FILES ${src_dsl})
 SOURCE_GROUP(dsl\\store                 FILES ${src_dsl_store})
 SOURCE_GROUP(dsl\\operation             FILES ${src_dsl_operation})
@@ -69,7 +69,7 @@ SOURCE_GROUP(util                       FILES ${src_util})
 ADD_LIBRARY(nuclear STATIC
     ${src} 
     ${src_threading}
-    ${src_extensions}
+    ${src_extension}
     ${src_dsl_store}
     ${src_dsl_operation}
     ${src_dsl_validation}

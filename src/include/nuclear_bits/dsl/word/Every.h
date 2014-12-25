@@ -36,6 +36,11 @@ namespace NUClear {
                 Per() = delete;
                 ~Per() = delete;
             };
+            
+            struct EveryConfiguration {
+                clock::duration jump;
+                std::shared_ptr<threading::Reaction> reaction;
+            };
 
             /**
              * @ingroup SmartTypes
@@ -72,13 +77,22 @@ namespace NUClear {
                     // Create our reaction
                     auto reaction = std::make_shared<threading::Reaction>(identifier, task, DSL::precondition, DSL::postcondition);
                     
+                    // Work out our Reaction timing
+                    clock::duration jump;
                     
+                    // Send our configuration out
+                    reactor.powerplant.emit<emit::Direct>(std::make_unique<EveryConfiguration>(EveryConfiguration {
+                        jump,
+                        std::move(reaction)
+                    }));
                     
                     // Emit the every configuration to the reactor along with the Reaction object?
                     //reactor.emit<emit::Direct>(std::make_unique<EveryConfiguration>(period(ticks)));
                     // TODO bind the every to run
                 }
             };
+            
+            
         }
     }
 }
