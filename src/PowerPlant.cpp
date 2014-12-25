@@ -16,15 +16,14 @@
  */
 
 #include "nuclear_bits/PowerPlant.h"
+#include "nuclear_bits/threading/ThreadPoolTask.h"
 
 namespace NUClear {
     
     PowerPlant* PowerPlant::powerplant = nullptr;
 
     PowerPlant::PowerPlant(Configuration config, int argc, const char *argv[])
-      : configuration(config)
-      , threadmaster(*this)
-      , reactormaster(*this) {
+      : configuration(config) {
         
         // Stop people from making more then one powerplant
         if(powerplant) {
@@ -56,8 +55,8 @@ namespace NUClear {
         }
     }
     
-    void PowerPlant::addThreadTask(std::function<void ()>&& func) {
-        threadmaster.addThreadTask(std::forward<std::function<void ()>>(func));
+    void PowerPlant::addThreadTask(std::function<void ()>&& task) {
+        tasks.push_back(std::forward<std::function<void ()>>(task));
     }
 
     void PowerPlant::start() {
@@ -74,11 +73,32 @@ namespace NUClear {
         startupTasks.clear();
         
         // Start all our threads
-        threadmaster.start();
+        for(uint i = 0; i < configuration.threadCount; ++i) {
+            tasks.push_back(threading::makeThreadPoolTask(*this, scheduler));
+        }
+        
+        // Start all our tasks
+        for (auto& task : tasks) {
+            threads.push_back(std::make_unique<std::thread>(task));
+        }
+        
+        // Now wait for all the threads to finish executing
+        for(auto& thread : threads) {
+            try {
+                if (thread->joinable()) {
+                    thread->join();
+                }
+            }
+            // This gets thrown some time if between checking if joinable and joining
+            // the thread is no longer joinable
+            catch(std::system_error()) {
+            }
+        }
+
     }
     
     void PowerPlant::submit(std::unique_ptr<threading::ReactionTask>&& task) {
-        threadmaster.submit(std::forward<std::unique_ptr<threading::ReactionTask>>(task));
+        scheduler.submit(std::forward<std::unique_ptr<threading::ReactionTask>>(task));
     }
     
     void PowerPlant::shutdown() {
@@ -88,8 +108,8 @@ namespace NUClear {
         
         isRunning = false;
         
-        // Shutdown the threads
-        threadmaster.shutdown();
+        // Shutdown the scheduler
+        scheduler.shutdown();
         
         // Bye bye powerplant
         powerplant = nullptr;

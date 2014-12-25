@@ -23,8 +23,8 @@ namespace NUClear {
         // Make sure that the class that we recieved is a reactor
         static_assert(std::is_base_of<Reactor, TReactor>::value, "You must install Reactors");
         
-        // Install the reactor
-        reactormaster.install<TReactor, level>();
+        // The reactor constructor should handle subscribing to events
+        reactors.push_back(std::make_unique<TReactor>(std::make_unique<Environment>(*this, level)));
     }
     
     // Default emit with no types

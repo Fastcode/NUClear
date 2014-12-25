@@ -78,131 +78,18 @@ namespace NUClear {
          * @author Trent Houliston
          */
         struct Configuration {
-            /// @brief default to 4 threads
-            Configuration() : threadCount(4) {}
+            /// @brief default to the amount of hardware concurrency (or 2) threads
+            Configuration() : threadCount(std::thread::hardware_concurrency() == 0 ? 2 : std::thread::hardware_concurrency()) {}
             
             /// @brief The number of threads the system will use
-            unsigned threadCount;
+            unsigned int threadCount;
         };
-        
-    private:
-        // There can only be one powerplant, so this is it
-        static PowerPlant* powerplant;
-        
-        /**
-         * @brief The base master class is used as a base for all of the other masters.
-         *
-         * @details
-         *  A master is a segment of the PowerPlant that is responsible for a ptaicular role within the system.
-         *  They all have the same requirement to store a reference to the PowerPlant that they are a part of.
-         *
-         * @author Jake Woods
-         */
-        class BaseMaster {
-        public:
-            /// @brief Construct a new BaseMaster with our PowerPlant as context
-            BaseMaster(PowerPlant& parent) : parent(parent) {}
-        protected:
-            /// @brief The PowerPlant that this belongs to
-            PowerPlant& parent;
-        };
-        
-        /**
-         * @brief The ThreadMaster class is responsible for managing the thread pool and any service threads needed.
-         *
-         * @details
-         *  The ThreadMaster holds all of the threads in the system so that it can run their start and kill methods.
-         *  This allows the system to perform a graceful termination in the event of a system shutdown.
-         *  It is also responsible for holding the Thread Pool for reactions, and the scheduler that allocates them.
-         */
-        class ThreadMaster : public BaseMaster {
-            
-        public:
-
-            /// @brief Construct a new ThreadMaster with our PowerPlant as context
-            ThreadMaster(PowerPlant& parent);
-            
-            /**
-             * @brief Starts up the ThreadMaster initiating all service threads and pool threads.
-             *
-             * @details
-             *  This will start up the entire system, beginning all threads and running the needed code. It will
-             *  block the thread that calls it until the system is shut down. This method should only be called
-             *  from the main thread. This will prevent the main thread ending which deletes all statics (which
-             *  are important for us).
-             */
-            void start();
-            
-            /**
-             * @brief
-             *  Shuts down the ThreadMaster, it will terminate all of the service and pool threads, and then
-             *  releases the main thread to terminate the system.
-             */
-            void shutdown();
-            
-            /**
-             * TODO document
-             */
-            void addThreadTask(std::function<void ()>&& task);
-            
-            /**
-             * @brief Submits a new task to the ThreadPool to be queued and then executed.
-             *
-             * @param task The Reactor task to be executed in the thread pool
-             */
-            void submit(std::unique_ptr<threading::ReactionTask>&& task);
-            
-        private:
-            /// TODO
-            std::vector<std::function<void ()>> tasks;
-            /// @brief A vector of the running threads in the system
-            std::vector<std::unique_ptr<std::thread>> threads;
-            /// @brief Our TaskScheduler that handles distributing task to the pool threads
-            threading::TaskScheduler scheduler;
-        };
-        
-        /**
-         * @brief The reactor master is responsible for holding all Reactors, as well as reactions.
-         *  It also hands out tasks and collects data for the cache master.
-         *
-         * @attention
-         *  This ReactorMaster uses static variables to enhance its speed, this means that you cannot have more then
-         *  one PowerPlant in an executable without resolving this.
-         */
-        class ReactorMaster : public BaseMaster {
-        public:
-            /**
-             * @brief Constructs a new ReactorMaster which is held in the PowerPlant that created it.
-             */
-            ReactorMaster(PowerPlant& parent) : PowerPlant::BaseMaster(parent) {}
-            
-            /**
-             * @brief Builds and installs a reactor of the passed type.
-             *
-             * @tparam TReactor The type of the reactor we are installing
-             */
-            template <typename TReactor, enum LogLevel level = DEBUG>
-            void install();
-            
-        private:
-            
-            /// @brief Our vector of Reactors, will get destructed when this vector is
-            std::vector<std::unique_ptr<NUClear::Reactor>> reactors;
-        };
-        
-        std::vector<std::function<void ()>> startupTasks;
-        volatile bool isRunning = false;
         
     public:
         
         /// @brief Holds the configuration information for this PowerPlant (such as number of pool threads)
         const Configuration configuration;
         
-    protected:
-        /// @brief The ThreadMaster instance for this PowerPlant.
-        ThreadMaster threadmaster;
-        /// @brief The ReactorMaster instance for this PowerPlant.
-        ReactorMaster reactormaster;
     public:
         /**
          * @brief
@@ -245,7 +132,7 @@ namespace NUClear {
         /**
          * TODO document
          */
-        void addThreadTask(std::function<void ()>&& func);
+        void addThreadTask(std::function<void ()>&& task);
         
         /**
          * @brief Installs a reactor of a particular type to the system.
@@ -310,6 +197,24 @@ namespace NUClear {
          */
         template <typename TFirstHandler, typename... THandlers, typename TData>
         void emit(std::unique_ptr<TData>&& data);
+        
+        
+    private:
+        // There can only be one powerplant, so this is it
+        static PowerPlant* powerplant;
+        
+        /// TODO
+        std::vector<std::function<void ()>> tasks;
+        /// @brief A vector of the running threads in the system
+        std::vector<std::unique_ptr<std::thread>> threads;
+        /// @brief Our TaskScheduler that handles distributing task to the pool threads
+        threading::TaskScheduler scheduler;
+        /// @brief Our vector of Reactors, will get destructed when this vector is
+        std::vector<std::unique_ptr<NUClear::Reactor>> reactors;
+        
+        
+        std::vector<std::function<void ()>> startupTasks;
+        volatile bool isRunning = false;
     };
     
     // This free floating log function can be called from anywhere and will use the singleton PowerPlant
@@ -333,7 +238,6 @@ namespace NUClear {
 
 // Include all of our implementation files (which use the previously included reactor.h)
 #include "nuclear_bits/PowerPlant.ipp"
-#include "nuclear_bits/ReactorMaster.ipp"
 
 #endif
 
