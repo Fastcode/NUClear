@@ -31,9 +31,6 @@
 #include <string>
 #include <sstream>
 
-// Forward declarations
-#include "nuclear_bits/ForwardDeclarations.h"
-
 // Utilities
 #include "nuclear_bits/util/unpack.h"
 
@@ -52,6 +49,9 @@ namespace std {
 #endif
 
 namespace NUClear {
+    
+    // Forward declare reactor
+    class Reactor;
     
     /**
      * @brief The PowerPlant is the core of a NUClear system. It holds all Reactors in it and manages their communications.

@@ -19,9 +19,11 @@
 #define NUCLEAR_ENVIRONMENT_H
 
 #include "nuclear_bits/message/LogLevel.h"
-#include "nuclear_bits/ForwardDeclarations.h"
 
 namespace NUClear {
+    
+    // Forward declare reactor
+    class Reactor;
     
     /**
      * @brief
