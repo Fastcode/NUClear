@@ -94,8 +94,10 @@ namespace NUClear {
         /// @brief Our environment
         std::unique_ptr<Environment> environment;
         
+    public:
         /// @brief TODO
         PowerPlant& powerplant;
+    protected:
         
         /***************************************************************************************************************
          * The types here are imported from other contexts so that when extending from the Reactor type in normal      *
