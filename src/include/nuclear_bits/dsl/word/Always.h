@@ -18,9 +18,8 @@
 #ifndef NUCLEAR_DSL_WORD_ALWAYS_H
 #define NUCLEAR_DSL_WORD_ALWAYS_H
 
-#include "nuclear_bits/util/apply.h"
+#include "nuclear_bits/util/generate_callback.h"
 #include "nuclear_bits/util/get_identifier.h"
-#include "nuclear_bits/util/apply.h"
 
 namespace NUClear {
     namespace dsl {
@@ -40,16 +39,7 @@ namespace NUClear {
                 static void bind(Reactor& reactor, const std::string& label, TFunc&& callback) {
                     
                     // Make our callback generator
-                    auto task = [callback] (threading::ReactionTask& r) {
-                        
-                        // Bind our data to a variable (get in original thread)
-                        auto data = DSL::get(std::forward<threading::ReactionTask&>(r));
-                        
-                        // Execute with the stored data
-                        return [callback, data] {
-                            util::apply(callback, std::move(data));
-                        };
-                    };
+                    auto task = util::generate_callback<DSL>(std::forward<TFunc&&>(callback));
                     
                     // Get our identifier string
                     std::vector<std::string> identifier = util::get_identifier<typename DSL::DSL, TFunc>(label);
