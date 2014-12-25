@@ -29,11 +29,11 @@ namespace {
         
         TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
             // Trigger every 10 milliseconds
-            on<Trigger<Every<10, std::chrono::milliseconds>>>([this](const time_t& message) {
+            on<Every<10, std::chrono::milliseconds>>([this]() {
                 
                 // Store 11 times (10 durations)
                 if(times.size() < 11) {
-                    times.push_back(message);
+                    times.push_back(NUClear::clock::now());
                 }
                 
                 // Check that the 10 times are about 10ms each (within 1ms)
@@ -70,11 +70,11 @@ namespace {
         
         TestReactorPer(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
             // Trigger every 10 milliseconds
-            on<Trigger<Every<100, Per<std::chrono::seconds>>>>([this](const time_t& message) {
+            on<Every<100, Per<std::chrono::seconds>>>([this]() {
                 
                 // Store 11 times (10 durations)
                 if(times.size() < 11) {
-                    times.push_back(message);
+                    times.push_back(NUClear::clock::now());
                 }
                 
                 // Check that the 10 times are about 10ms each (within 1ms)

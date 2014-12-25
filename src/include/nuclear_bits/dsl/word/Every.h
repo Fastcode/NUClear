@@ -18,6 +18,10 @@
 #ifndef NUCLEAR_DSL_WORD_EVERY_H
 #define NUCLEAR_DSL_WORD_EVERY_H
 
+#include "nuclear_bits/dsl/word/emit/Direct.h"
+#include "nuclear_bits/util/generate_callback.h"
+#include "nuclear_bits/util/get_identifier.h"
+
 namespace NUClear {
     namespace dsl {
         namespace word {
@@ -57,7 +61,21 @@ namespace NUClear {
             struct Every {
                 
                 template <typename DSL, typename TFunc>
-                static void bind(Reactor& r, const std::string& label, TFunc&& callback) {
+                static void bind(Reactor& reactor, const std::string& label, TFunc&& callback) {
+                    
+                    // Make our callback generator
+                    auto task = util::generate_callback<DSL>(std::forward<TFunc&&>(callback));
+                    
+                    // Get our identifier string
+                    std::vector<std::string> identifier = util::get_identifier<typename DSL::DSL, TFunc>(label);
+                    
+                    // Create our reaction
+                    auto reaction = std::make_shared<threading::Reaction>(identifier, task, DSL::precondition, DSL::postcondition);
+                    
+                    
+                    
+                    // Emit the every configuration to the reactor along with the Reaction object?
+                    //reactor.emit<emit::Direct>(std::make_unique<EveryConfiguration>(period(ticks)));
                     // TODO bind the every to run
                 }
             };
