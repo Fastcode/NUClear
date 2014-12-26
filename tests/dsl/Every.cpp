@@ -78,8 +78,8 @@ namespace {
                     // As time goes on the average wait should be 0 (we accept less then 0.5ms for this test)
                     REQUIRE(fabs(mean) < 0.0005);
                     
-                    // Require that 95% (ish) of all results are within 1ms
-//                    REQUIRE(fabs(mean + stddev * 2) < 0.001);
+                    // Require that 95% (ish) of all results are within 2ms
+                    REQUIRE(fabs(mean + stddev * 2) < 0.00);
                     
                     
                 }
@@ -91,75 +91,6 @@ namespace {
             });
         }
     };
-
-    class TestReactorPer : public NUClear::Reactor {
-    public:
-        // Store our times
-        std::vector<NUClear::clock::time_point> times;
-        
-        static constexpr uint NUM_LOG_ITEMS = 100;
-        
-        static constexpr uint CYCLES_PER_SECOND = 100;
-        
-        TestReactorPer(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
-            // Trigger every 10 milliseconds
-            on<Every<CYCLES_PER_SECOND, Per<std::chrono::seconds>>>([this]() {
-                
-                // Start logging our times each time an emit happens
-                times.push_back(NUClear::clock::now());
-                
-                // Once we have enough items then we can do our statistics
-                if (times.size() == NUM_LOG_ITEMS) {
-                    
-                    // Build up our difference vector
-                    std::vector<double> diff;
-                    
-                    for(uint i = 0; i < times.size() - 1; ++i) {
-                        std::chrono::nanoseconds delta = times[i + 1] - times[i];
-                        
-                        // Store our difference in seconds
-                        diff.push_back(double(delta.count()) / double(std::nano::den));
-                    }
-                    
-                    // Normalize our differences to jitter
-                    for(double& d : diff) {
-                        d -= 1.0/double(CYCLES_PER_SECOND);
-                    }
-                    
-                    // Calculate our mean, range, and stddev for the set
-                    double sum = std::accumulate(std::begin(diff), std::end(diff), 0.0);
-                    double mean = sum / double(diff.size());
-                    double variance = std::inner_product(diff.begin(), diff.end(), diff.begin(), 0.0);
-                    double stddev = std::sqrt(variance / double(diff.size()));
-                    double min = *std::min_element(std::begin(diff), std::end(diff));
-                    double max = *std::max_element(std::begin(diff), std::end(diff));
-                    double range = max - min;
-                    
-                    INFO("Sum: " << sum);
-                    INFO("Mean: " << mean);
-                    INFO("Var: " << variance);
-                    INFO("Stddev: " << stddev);
-                    INFO("Min: " << min);
-                    INFO("Max: " << max);
-                    INFO("Range: " << range);
-                    
-                    // As time goes on the average wait should be 0 (we accept less then 0.5ms for this test)
-                    REQUIRE(fabs(mean) < 0.0005);
-                    
-                    // Require that 95% (ish) of all results are within 1ms
-//                    REQUIRE(fabs(mean + stddev * 2) < 0.001);
-                    
-                    
-                }
-                // Once we have more then enough items then we shutdown the powerplant
-                else if(times.size() > NUM_LOG_ITEMS) {
-                    // We are finished the test
-                    this->powerplant.shutdown();
-                }
-            });
-        }
-    };
-
 }
 
 TEST_CASE("Testing the Every<> Smart Type", "[api][every]") {
@@ -168,16 +99,6 @@ TEST_CASE("Testing the Every<> Smart Type", "[api][every]") {
     config.threadCount = 1;
     NUClear::PowerPlant plant(config);
     plant.install<TestReactor>();
-    
-    plant.start();
-}
-
-TEST_CASE("Testing the Every<> Smart Type using Per", "[api][every]") {
-    
-    NUClear::PowerPlant::Configuration config;
-    config.threadCount = 1;
-    NUClear::PowerPlant plant(config);
-    plant.install<TestReactorPer>();
     
     plant.start();
 }

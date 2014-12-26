@@ -82,8 +82,6 @@ namespace NUClear {
                     // Work out our Reaction timing
                     clock::duration jump = period(ticks);
                     
-                    std::cout << "Jump size " << std::chrono::duration_cast<std::chrono::milliseconds>(jump).count() << std::endl;
-                    
                     // Send our configuration out
                     reactor.powerplant.emit<emit::Direct>(std::make_unique<EveryConfiguration>(EveryConfiguration {
                         jump,

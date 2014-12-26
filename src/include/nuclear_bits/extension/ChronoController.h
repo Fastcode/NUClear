@@ -40,6 +40,7 @@ namespace NUClear {
         public:
             ChronoController(std::unique_ptr<NUClear::Environment> environment)
               : Reactor(std::move(environment))
+              , steps(0)
               , lock(execute) {
                   
                 on<Trigger<dsl::word::EveryConfiguration>>([this] (const dsl::word::EveryConfiguration& config) {
@@ -72,31 +73,45 @@ namespace NUClear {
                 });
                 
                 on<Always>([this] {
-                    
-                    // Get the current time
-                    clock::time_point now(clock::now());
-                    
-                    // Check if any intervals are before now and if so execute their callbacks and add their step.
-                    for(auto& step : steps) {
-                        if((step.next - now).count() <= 0) {
-                            for(auto& reaction : step.reactions) {
-                                
-                                // submit the reaction to the thread pool
-                                powerplant.submit(reaction->getTask(threading::ReactionTask::currentTask));
+                    // If we have steps to do
+                    if(!steps.empty()) {
+                        
+                        // Wait until the next event
+                        execute.try_lock_for(steps.front().next - clock::now() - std::chrono::milliseconds(2));
+                        
+                        // Get the current time
+                        clock::time_point now(clock::now());
+                        
+                        // Busy wait for the time to be right to improve accuracy
+                        while (now < steps.front().next) {
+                            now = clock::now();
+                        };
+                        
+                        // Check if any intervals are before now and if so execute their callbacks and add their step.
+                        for(auto& step : steps) {
+                            if((step.next - now).count() <= 0) {
+                                for(auto& reaction : step.reactions) {
+                                    
+                                    // submit the reaction to the thread pool
+                                    powerplant.submit(reaction->getTask(threading::ReactionTask::currentTask));
+                                }
+                                step.next += step.jump;
                             }
-                            step.next += step.jump;
+                            // Since we are sorted, we can ignore any after this time
+                            else {
+                                break;
+                            }
                         }
-                        // Since we are sorted, we can ignore any after this time
-                        else {
-                            break;
-                        }
+                        
+                        // Sort the steps
+                        std::sort(std::begin(steps), std::end(steps));
+                        
+                        
                     }
-                    
-                    // Sort the steps
-                    std::sort(std::begin(steps), std::end(steps));
-                    
-                    // Wait until the next event
-                    execute.try_lock_until(steps.front().next);
+                    // Otherwise we wait for something to happen
+                    else {
+                        execute.try_lock();
+                    }
                 });
                 
             }
