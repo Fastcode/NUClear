@@ -38,7 +38,6 @@ namespace NUClear {
             };
             
         public:
-            
             ChronoController(std::unique_ptr<NUClear::Environment> environment)
               : Reactor(std::move(environment))
               , lock(execute) {
@@ -101,6 +100,7 @@ namespace NUClear {
                 });
                 
             }
+        private:
             
             std::vector<Step> steps;
             std::timed_mutex execute;

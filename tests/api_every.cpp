@@ -17,6 +17,8 @@
 #define CATCH_CONFIG_MAIN
 #include <catch.hpp>
 
+#include <numeric>
+
 #include "nuclear"
 
 // Anonymous namespace to keep everything file local
@@ -27,35 +29,62 @@ namespace {
         // Store our times
         std::vector<NUClear::clock::time_point> times;
         
+        static constexpr uint NUM_LOG_ITEMS = 100;
+        
+        static constexpr uint WAIT_LENGTH_MILLIS = 10;
+        
         TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
             // Trigger every 10 milliseconds
-            on<Every<10, std::chrono::milliseconds>>([this]() {
+            on<Every<WAIT_LENGTH_MILLIS, std::chrono::milliseconds>>([this] {
                 
-                // Store 11 times (10 durations)
-                if(times.size() < 11) {
-                    times.push_back(NUClear::clock::now());
-                }
+                // Start logging our times each time an emit happens
+                times.push_back(NUClear::clock::now());
                 
-                // Check that the 10 times are about 10ms each (within 1ms)
-                // and that all of them are within 1ms of 100ms
-                else if (times.size() == 11) {
-                    std::chrono::nanoseconds total = std::chrono::nanoseconds(0);
+                // Once we have enough items then we can do our statistics
+                if (times.size() == NUM_LOG_ITEMS) {
                     
-                    for(int i = 0; i < abs(times.size() - 1); ++i) {
-                        std::chrono::nanoseconds wait = times[i + 1] - times[i];
-                        total += wait;
+                    // Build up our difference vector
+                    std::vector<double> diff;
+                    
+                    for(uint i = 0; i < times.size() - 1; ++i) {
+                        std::chrono::nanoseconds delta = times[i + 1] - times[i];
                         
-                        std::chrono::milliseconds test = std::chrono::duration_cast<std::chrono::milliseconds>(wait);
-                        
-                        // Check that our local drift is within 1ms
-                        REQUIRE(abs(10 - test.count()) <= 1);
+                        // Store our difference in seconds
+                        diff.push_back(double(delta.count()) / double(std::nano::den));
                     }
                     
-                    std::chrono::milliseconds test = std::chrono::duration_cast<std::chrono::milliseconds>(total);
+                    // Normalize our differences to jitter
+                    for(double& d : diff) {
+                        d -= double(WAIT_LENGTH_MILLIS) / 1000.0;
+                    }
                     
-                    // Check that our total drift is also within 1ms
-                    REQUIRE(abs(100 - test.count()) <= 1);
+                    // Calculate our mean, range, and stddev for the set
+                    double sum = std::accumulate(std::begin(diff), std::end(diff), 0.0);
+                    double mean = sum / double(diff.size());
+                    double variance = std::inner_product(diff.begin(), diff.end(), diff.begin(), 0.0);
+                    double stddev = std::sqrt(variance / double(diff.size()));
+                    double min = *std::min_element(std::begin(diff), std::end(diff));
+                    double max = *std::max_element(std::begin(diff), std::end(diff));
+                    double range = max - min;
                     
+                    INFO("Sum: " << sum);
+                    INFO("Mean: " << mean);
+                    INFO("Var: " << variance);
+                    INFO("Stddev: " << stddev);
+                    INFO("Min: " << min);
+                    INFO("Max: " << max);
+                    INFO("Range: " << range);
+                    
+                    // As time goes on the average wait should be 0 (we accept less then 0.5ms for this test)
+                    REQUIRE(fabs(mean) < 0.0005);
+                    
+                    // Require that 95% (ish) of all results are within 1ms
+//                    REQUIRE(fabs(mean + stddev * 2) < 0.001);
+                    
+                    
+                }
+                // Once we have more then enough items then we shutdown the powerplant
+                else if(times.size() > NUM_LOG_ITEMS) {
                     // We are finished the test
                     this->powerplant.shutdown();
                 }
@@ -68,35 +97,62 @@ namespace {
         // Store our times
         std::vector<NUClear::clock::time_point> times;
         
+        static constexpr uint NUM_LOG_ITEMS = 100;
+        
+        static constexpr uint CYCLES_PER_SECOND = 100;
+        
         TestReactorPer(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
             // Trigger every 10 milliseconds
-            on<Every<100, Per<std::chrono::seconds>>>([this]() {
+            on<Every<CYCLES_PER_SECOND, Per<std::chrono::seconds>>>([this]() {
                 
-                // Store 11 times (10 durations)
-                if(times.size() < 11) {
-                    times.push_back(NUClear::clock::now());
-                }
+                // Start logging our times each time an emit happens
+                times.push_back(NUClear::clock::now());
                 
-                // Check that the 10 times are about 10ms each (within 1ms)
-                // and that all of them are within 1ms of 100ms
-                else if (times.size() == 11) {
-                    std::chrono::nanoseconds total = std::chrono::nanoseconds(0);
+                // Once we have enough items then we can do our statistics
+                if (times.size() == NUM_LOG_ITEMS) {
                     
-                    for(int i = 0; i < abs(times.size() - 1); ++i) {
-                        std::chrono::nanoseconds wait = times[i + 1] - times[i];
-                        total += wait;
+                    // Build up our difference vector
+                    std::vector<double> diff;
+                    
+                    for(uint i = 0; i < times.size() - 1; ++i) {
+                        std::chrono::nanoseconds delta = times[i + 1] - times[i];
                         
-                        std::chrono::milliseconds test = std::chrono::duration_cast<std::chrono::milliseconds>(wait);
-                        
-                        // Check that our local drift is within 1ms
-                        REQUIRE(abs(10 - test.count()) <= 1);
+                        // Store our difference in seconds
+                        diff.push_back(double(delta.count()) / double(std::nano::den));
                     }
                     
-                    std::chrono::milliseconds test = std::chrono::duration_cast<std::chrono::milliseconds>(total);
+                    // Normalize our differences to jitter
+                    for(double& d : diff) {
+                        d -= 1.0/double(CYCLES_PER_SECOND);
+                    }
                     
-                    // Check that our total drift is also within 1ms
-                    REQUIRE(abs(100 - test.count()) <= 1);
+                    // Calculate our mean, range, and stddev for the set
+                    double sum = std::accumulate(std::begin(diff), std::end(diff), 0.0);
+                    double mean = sum / double(diff.size());
+                    double variance = std::inner_product(diff.begin(), diff.end(), diff.begin(), 0.0);
+                    double stddev = std::sqrt(variance / double(diff.size()));
+                    double min = *std::min_element(std::begin(diff), std::end(diff));
+                    double max = *std::max_element(std::begin(diff), std::end(diff));
+                    double range = max - min;
                     
+                    INFO("Sum: " << sum);
+                    INFO("Mean: " << mean);
+                    INFO("Var: " << variance);
+                    INFO("Stddev: " << stddev);
+                    INFO("Min: " << min);
+                    INFO("Max: " << max);
+                    INFO("Range: " << range);
+                    
+                    // As time goes on the average wait should be 0 (we accept less then 0.5ms for this test)
+                    REQUIRE(fabs(mean) < 0.0005);
+                    
+                    // Require that 95% (ish) of all results are within 1ms
+//                    REQUIRE(fabs(mean + stddev * 2) < 0.001);
+                    
+                    
+                }
+                // Once we have more then enough items then we shutdown the powerplant
+                else if(times.size() > NUM_LOG_ITEMS) {
                     // We are finished the test
                     this->powerplant.shutdown();
                 }

@@ -32,9 +32,11 @@ namespace NUClear {
              * @author Trent Houliston
              */
             template <typename period>
-            struct Per {
-                Per() = delete;
-                ~Per() = delete;
+            struct Per;
+            
+            template <typename Unit, int num, int den>
+            struct Per<std::chrono::duration<Unit, std::ratio<num, den>>> : public clock::duration {
+                Per(int ticks) : clock::duration(long(round((double(num) / double(ticks * den)) * (double(clock::period::den) / double(clock::period::num))))) {}
             };
             
             struct EveryConfiguration {
@@ -78,17 +80,15 @@ namespace NUClear {
                     auto reaction = std::make_shared<threading::Reaction>(identifier, task, DSL::precondition, DSL::postcondition);
                     
                     // Work out our Reaction timing
-                    clock::duration jump;
+                    clock::duration jump = period(ticks);
+                    
+                    std::cout << "Jump size " << std::chrono::duration_cast<std::chrono::milliseconds>(jump).count() << std::endl;
                     
                     // Send our configuration out
                     reactor.powerplant.emit<emit::Direct>(std::make_unique<EveryConfiguration>(EveryConfiguration {
                         jump,
                         std::move(reaction)
                     }));
-                    
-                    // Emit the every configuration to the reactor along with the Reaction object?
-                    //reactor.emit<emit::Direct>(std::make_unique<EveryConfiguration>(period(ticks)));
-                    // TODO bind the every to run
                 }
             };
             
