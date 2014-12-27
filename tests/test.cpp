@@ -15,44 +15,5 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+#define CATCH_CONFIG_MAIN
 #include <catch.hpp>
-
-#include "nuclear"
-
-
-// Anonymous namespace to keep everything file local
-namespace {
-    
-    struct SimpleMessage {
-        int data;
-    };
-    
-    class TestReactor : public NUClear::Reactor {
-    public:
-        TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
-            
-            on<Trigger<SimpleMessage>>([this](const SimpleMessage& message) {
-                
-                // The message we received should have test == 10
-                REQUIRE(message.data == 10);
-                
-                // We are finished the test
-                powerplant.shutdown();
-            });
-            
-            on<Startup>([this]() {
-                emit(std::unique_ptr<SimpleMessage>(new SimpleMessage{10}));
-            });
-        }
-    };
-}
-
-TEST_CASE("Testing the startup event is emitted at the start of the program", "[api]") {
-    
-    NUClear::PowerPlant::Configuration config;
-    config.threadCount = 1;
-    NUClear::PowerPlant plant(config);
-    plant.install<TestReactor>();
-    
-    plant.start();
-}

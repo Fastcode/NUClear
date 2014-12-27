@@ -3,11 +3,16 @@ INCLUDE_DIRECTORIES(${CATCH_INCLUDE_DIRS})
 
 FILE(GLOB_RECURSE testsrc "${CMAKE_CURRENT_SOURCE_DIR}/**.cpp")
 
-FOREACH(test ${testsrc})
+FILE(GLOB test_base       "${CMAKE_CURRENT_SOURCE_DIR}/test.cpp")
+FILE(GLOB test_dsl        "${CMAKE_CURRENT_SOURCE_DIR}/dsl/*.cpp")
+FILE(GLOB test_dsl_emit   "${CMAKE_CURRENT_SOURCE_DIR}/dsl/emit/*.cpp")
+FILE(GLOB test_log        "${CMAKE_CURRENT_SOURCE_DIR}/log*.cpp")
 
-    # Get just the file name
-    GET_FILENAME_COMPONENT(raw_name ${test} NAME_WE)
-    ADD_EXECUTABLE(${raw_name} ${test})
-    TARGET_LINK_LIBRARIES(${raw_name} nuclear)
-    ADD_TEST(${raw_name} ${raw_name})
-ENDFOREACH()
+SOURCE_GROUP(""           FILES ${test_base})
+SOURCE_GROUP(dsl          FILES ${test_dsl})
+SOURCE_GROUP(dsl\\emit    FILES ${test_dsl_emit})
+SOURCE_GROUP(log          FILES ${test_log})
+
+ADD_EXECUTABLE(test_nuclear ${test_base} ${test_dsl} ${test_dsl_emit} ${test_log})
+TARGET_LINK_LIBRARIES(test_nuclear nuclear)
+ADD_TEST(test_nuclear test_nuclear)
