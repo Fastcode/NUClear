@@ -7,8 +7,9 @@ env:
 
 # Setup repository sources before install
 before_install:
-  # Add toolchain for our GCC version checks
-  - if [[ $COMPILER == gcc* ]]; then sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test; fi
+
+  # Always use the thest toolchain so we update libstdc++
+  - sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
 
   # clang 3.4
   - if [[ $COMPILER == clang* ]]; then sudo add-apt-repository -y ppa:h-rayflood/llvm; fi
@@ -17,8 +18,10 @@ before_install:
 
 # Install our required dependencies
 install:
-  # gcc-4.8
-  - if [[ "$COMPILER" = "gcc-4.8" ]]; then sudo apt-get install -qq g++-4.8; fi
+  # Always install gcc-4.8 in order to update libstdc++
+  - sudo apt-get install -qq g++-4.8
+
+  # gcc-4.8 we still need to change our cxx variable
   - if [[ "$COMPILER" = "gcc-4.8" ]]; then export CXX="g++-4.8"; fi
 
     # gcc-4.9
