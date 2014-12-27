@@ -41,6 +41,7 @@ namespace NUClear {
         class Reaction {
             // Reaction handles are given to user code to enable and disable the reaction
             friend class ReactionHandle;
+            friend class ReactionTask;
             
         public:
             /**
@@ -75,11 +76,6 @@ namespace NUClear {
             /// @brief This holds the demangled name of the On function that is being called
             std::vector<std::string> identifier;
             
-            /// @brief TODO
-            bool (*precondition)(Reaction&);
-            
-            /// @brief TODO
-            void (*postcondition)(ReactionTask&);
             
             /// @brief the unique identifier for this Reaction object
             const uint64_t reactionId;
@@ -95,6 +91,12 @@ namespace NUClear {
              * @brief Unbinds this reaction from it's context
              */
             void unbind();
+            
+            /// @brief a precondition that must pass for the reaction task to be created
+            bool (*precondition)(Reaction&);
+            
+            /// @brief a postcondition that will get run when a ReactionTask has finished (is destructed)
+            void (*postcondition)(ReactionTask&);
             
             /// @brief a source for reactionIds, atomically creates longs
             static std::atomic<uint64_t> reactionIdSource;

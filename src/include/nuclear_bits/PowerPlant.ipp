@@ -79,6 +79,6 @@ namespace NUClear {
         powerplant->emit<dsl::word::emit::Direct>(std::make_unique<message::LogMessage>(level
                                                                           , output
                                                                           , task ? task->taskId : 0
-                                                                          , task ? task->parent->reactionId : 0));
+                                                                          , task ? task->parent.reactionId : 0));
     }
 }

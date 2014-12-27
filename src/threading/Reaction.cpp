@@ -29,11 +29,11 @@ namespace NUClear {
                            , void (*postcondition)(ReactionTask&)
                            , std::function<void (Reaction&)>&& unbinder)
           : identifier(identifier)
-          , precondition(precondition)
-          , postcondition(postcondition)
           , reactionId(++reactionIdSource)
           , activeTasks(0)
           , enabled(true)
+          , precondition(precondition)
+          , postcondition(postcondition)
           , generator(generator)
           , unbinder(unbinder) {
         }
@@ -44,9 +44,14 @@ namespace NUClear {
         }
         
         std::unique_ptr<ReactionTask> Reaction::getTask(const ReactionTask* cause) {
-            // Build a new data bound task using our callback generator
-            // TODO this should be a make_unique call
-            return std::unique_ptr<ReactionTask>(new ReactionTask(this, cause, generator));
+            
+            // Lock our mutex for our precondition
+            if(precondition(*this)) {
+                return std::unique_ptr<ReactionTask>(new ReactionTask(*this, cause, generator));
+            }
+            else {
+                throw std::runtime_error(":P");
+            }
         }
         
         bool Reaction::isEnabled() {

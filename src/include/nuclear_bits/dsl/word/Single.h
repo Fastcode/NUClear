@@ -34,9 +34,9 @@ namespace NUClear {
             struct Single {
                 
                 template <typename DSL>
-                static bool precondition(threading::Reaction&) {
-                    // TODO make it depend on if the reaction is running or not
-                    return true;
+                static bool precondition(threading::Reaction& reaction) {
+                    // We only run if there are no active tasks
+                    return reaction.activeTasks == 0;
                 }
             };
         }

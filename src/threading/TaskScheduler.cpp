@@ -39,15 +39,11 @@ namespace NUClear {
             // We do not accept new tasks once we are shutdown
             if(!shutdown_) {
                 
-                // A new task has been added as running
-                ++task->parent->activeTasks;
-                
                 /* Mutex Scope */ {
                     std::lock_guard<std::mutex> lock(mutex);
                     queue.push(std::forward<std::unique_ptr<ReactionTask>>(task));
                 }
             }
-            
             
             // Notify a thread that it can proceed
             condition.notify_one();

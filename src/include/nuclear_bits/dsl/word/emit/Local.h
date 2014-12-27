@@ -39,14 +39,13 @@ namespace NUClear {
                         store::DataStore<TData>::set(data);
                         
                         for(auto& reaction : store::TypeCallbackStore<TData>::get()) {
-                            
-                            // Check if we should run
-                            if(reaction->isEnabled() && reaction->precondition(*reaction)) {
-                                
+                            try {
                                 auto task = reaction->getTask(threading::ReactionTask::currentTask);
-                                
                                 powerplant.submit(std::move(task));
-                            };
+                            }
+                            catch(...) {
+                                // TODO should I do something here?
+                            }
                         }
                     }
                 };

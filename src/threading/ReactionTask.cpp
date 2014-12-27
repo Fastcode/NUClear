@@ -18,6 +18,8 @@
 #include "nuclear_bits/threading/ReactionTask.h"
 #include "nuclear_bits/threading/Reaction.h"
 
+#include <iostream>
+
 namespace NUClear {
     namespace threading {
         
@@ -27,21 +29,33 @@ namespace NUClear {
         // Initialize our current task
         __thread ReactionTask* ReactionTask::currentTask = nullptr;
         
-        ReactionTask::ReactionTask(Reaction* parent, const ReactionTask* cause, std::function<std::function<void ()> (ReactionTask&)> generator)
+        ReactionTask::ReactionTask(Reaction& parent, const ReactionTask* cause, std::function<std::function<void ()> (ReactionTask&)> generator)
           : parent(parent)
           , taskId(++taskIdSource)
           , stats(new message::ReactionStatistics {
-                parent->identifier
-              , parent->reactionId
+                parent.identifier
+              , parent.reactionId
               , taskId
-              , cause ? cause->parent->reactionId : 0
+              , cause ? cause->parent.reactionId : 0
               , cause ? cause->taskId : 0
               , clock::now()
               , clock::time_point(std::chrono::seconds(0))
               , clock::time_point(std::chrono::seconds(0))
               , nullptr
             })
-          , callback(generator(*this)) {}
+          , callback(generator(*this)) {
+        
+            // There is one new active task
+            ++parent.activeTasks;
+        }
+        
+        ReactionTask::~ReactionTask() {
+            // We run our postcondition before we die
+            parent.postcondition(*this);
+            
+            // Our parent has one less active task
+            --parent.activeTasks;
+        }
         
         void ReactionTask::operator()() {
             // Call our callback

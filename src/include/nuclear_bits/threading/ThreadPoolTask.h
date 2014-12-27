@@ -47,12 +47,6 @@ namespace NUClear {
                             task->stats->exception = std::current_exception();
                         }
                         
-                        // Postconditions
-                        task->parent->postcondition(*task);
-                        
-                        // We have stopped running
-                        --task->parent->activeTasks;
-                        
                         // Emit our ReactionStats
                         powerplant.emit<dsl::word::emit::Direct>(std::move(task->stats));
                     }

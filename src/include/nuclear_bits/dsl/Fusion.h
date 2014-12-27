@@ -118,14 +118,16 @@ namespace NUClear {
             
             template <typename DSL>
             static bool precondition(threading::Reaction& task) {
-
-                bool result = true;
-
-                for(bool condition : { (std::conditional<has_function<TWords>::precondition, TWords, NoOp>::type::template precondition<DSL>(std::forward<threading::Reaction&>(task)))... }) {
-                    result &= condition;
+                
+                for(bool (*condition)(threading::Reaction&) : {
+                    std::conditional<has_function<TWords>::precondition, TWords, NoOp>::type::template precondition<DSL>...
+                }) {
+                    if(!condition(std::forward<threading::Reaction&>(task))) {
+                        return false;
+                    }
                 }
 
-                return result;
+                return true;
 
             }
         };
