@@ -18,8 +18,6 @@
 #include "nuclear_bits/threading/ReactionTask.h"
 #include "nuclear_bits/threading/Reaction.h"
 
-#include <iostream>
-
 namespace NUClear {
     namespace threading {
         
