@@ -1,6 +1,8 @@
 language: cpp
 compiler:
-  - gcc-4.8
+  - gcc:
+    - 4.8
+    - 4.9
   - clang
 
 # Setup repository sources before install
