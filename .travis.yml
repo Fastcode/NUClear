@@ -22,19 +22,23 @@ install:
   - sudo apt-get install -qq g++-4.8
 
   # gcc-4.8 we still need to change our cxx variable
-  - if [[ "$COMPILER" = "gcc-4.8" ]]; then export CXX="g++-4.8"; fi
+  - if [[ "$COMPILER" == "gcc-4.8" ]]; then export CXX="g++-4.8"; fi
+  - if [[ "$COMPILER" == "gcc-4.8" ]]; then export CC="gcc-4.8"; fi
 
     # gcc-4.9
-  - if [[ "$COMPILER" = "gcc-4.9" ]]; then sudo apt-get install -qq g++-4.9; fi
-  - if [[ "$COMPILER" = "gcc-4.9" ]]; then export CXX="g++-4.9"; fi
+  - if [[ "$COMPILER" == "gcc-4.9" ]]; then sudo apt-get install -qq g++-4.9; fi
+  - if [[ "$COMPILER" == "gcc-4.9" ]]; then export CXX="g++-4.9"; fi
+  - if [[ "$COMPILER" == "gcc-4.9" ]]; then export CC="gcc-4.9"; fi
 
   # clang 3.4
   - if [[ "$COMPILER" == "clang-3.4" ]]; then sudo apt-get install --allow-unauthenticated -qq clang-3.4; fi
   - if [[ "$COMPILER" == "clang-3.4" ]]; then export CXX="clang++-3.4"; fi
+  - if [[ "$COMPILER" == "clang-3.4" ]]; then export CXX="clang-3.4"; fi
 
   # clang 3.5
   - if [[ "$COMPILER" == "clang-3.5" ]]; then sudo apt-get install --allow-unauthenticated -qq clang-3.5; fi
   - if [[ "$COMPILER" == "clang-3.5" ]]; then export CXX="clang++-3.5"; fi
+  - if [[ "$COMPILER" == "clang-3.5" ]]; then export CXX="clang-3.5"; fi
 
   # Catch
   - wget https://raw.githubusercontent.com/philsquared/Catch/master/single_include/catch.hpp
