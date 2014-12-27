@@ -68,7 +68,7 @@ namespace NUClear {
             struct Tuplify {
 
                 static std::tuple<TData> make(TData&& data) {
-                    return data;
+                    return std::make_tuple(data);
                 }
             };
 

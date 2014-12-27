@@ -77,7 +77,7 @@ namespace NUClear {
                     if(!steps.empty()) {
                         
                         // Wait until the next event
-                        execute.try_lock_for(steps.front().next - clock::now() - std::chrono::milliseconds(2));
+                        execute.try_lock_for(steps.front().next - clock::now());
                         
                         // Get the current time
                         clock::time_point now(clock::now());
