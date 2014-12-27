@@ -6,19 +6,19 @@ env:
 # Setup repository sources before install
 before_install:
   # Add toolchain for our GCC version checks
-  - if [ "$COMPILER" == "gcc*" ]; then sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test; fi
+  - if [[ "$COMPILER" == "gcc*" ]]; then sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test; fi
 
   - sudo apt-get update -qq
 
 # Install our required dependencies
 install:
   # gcc-4.8
-  - if [ "$COMPILER" = "gcc-4.8" ]; then sudo apt-get install -qq g++-4.8; fi
-  - if [ "$COMPILER" = "gcc-4.8" ]; then export CXX="g++-4.8"; fi
+  - if [[ "$COMPILER" = "gcc-4.8" ]]; then sudo apt-get install -qq g++-4.8; fi
+  - if [[ "$COMPILER" = "gcc-4.8" ]]; then export CXX="g++-4.8"; fi
 
     # gcc-4.9
-  - if [ "$COMPILER" = "gcc-4.9" ]; then sudo apt-get install -qq g++-4.9; fi
-  - if [ "$COMPILER" = "gcc-4.9" ]; then export CXX="g++-4.9"; fi
+  - if [[ "$COMPILER" = "gcc-4.9" ]]; then sudo apt-get install -qq g++-4.9; fi
+  - if [[ "$COMPILER" = "gcc-4.9" ]]; then export CXX="g++-4.9"; fi
 
   # Catch
   - wget https://raw.githubusercontent.com/philsquared/Catch/master/single_include/catch.hpp
