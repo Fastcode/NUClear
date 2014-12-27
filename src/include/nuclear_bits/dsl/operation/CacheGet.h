@@ -28,8 +28,8 @@ namespace NUClear {
             template <typename TType>
             struct CacheGet {
                 
-                template <typename DSL>
-                static std::shared_ptr<TType> get(threading::ReactionTask&) {
+                template <typename DSL, typename T = TType>
+                static auto get(threading::ReactionTask&) -> util::Meta::EnableIf<util::Meta::Not<std::is_empty<T>>, std::shared_ptr<T>> {
                     
                     return store::DataStore<TType>::get();
                 };
