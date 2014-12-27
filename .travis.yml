@@ -6,7 +6,7 @@ env:
 # Setup repository sources before install
 before_install:
   # Add toolchain for our GCC version checks
-  - if [[ "$COMPILER" == "gcc*" ]]; then sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test; fi
+  - if [[ $COMPILER == gcc* ]]; then sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test; fi
 
   - sudo apt-get update -qq
 
