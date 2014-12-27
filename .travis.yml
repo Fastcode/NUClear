@@ -1,8 +1,8 @@
 language: cpp
 compiler:
-  - gcc-4.8
-  - gcc-4.9
-  - clang-3.4
+  - export COMPILER_VERSION=gcc-4.8; gcc-4.8
+  - export COMPILER_VERSION=gcc-4.9; gcc-4.9
+  - export COMPILER_VERSION=clang-3.4; clang-3.4
 
 # Setup repository sources before install
 before_install:
