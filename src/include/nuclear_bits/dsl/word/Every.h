@@ -34,7 +34,7 @@ namespace NUClear {
             template <typename period>
             struct Per;
             
-            template <typename Unit, int num, int den>
+            template <typename Unit, std::intmax_t num, std::intmax_t den>
             struct Per<std::chrono::duration<Unit, std::ratio<num, den>>> : public clock::duration {
                 Per(int ticks) : clock::duration(long(round((double(num) / double(ticks * den)) * (double(clock::period::den) / double(clock::period::num))))) {}
             };

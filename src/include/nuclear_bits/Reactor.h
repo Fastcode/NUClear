@@ -165,7 +165,7 @@ namespace NUClear {
          * @return A ReactionHandle that controls if the created reaction runs or not
          */
         template <typename... TDSL, typename TFunc>
-        void on(TFunc callback);
+        std::vector<threading::ReactionHandle> on(TFunc callback);
         
         /**
          * @brief The on function is the method used to create a reaction in the NUClear system.

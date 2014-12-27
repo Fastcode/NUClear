@@ -45,7 +45,7 @@ namespace NUClear {
                 }
                 
                 template <typename DSL>
-                static bool postcondition(threading::ReactionTask&) {
+                static void postcondition(threading::ReactionTask&) {
                     std::cout << "TODO Postcondition for Sync not implemented" << std::endl;
                     // TODO Check if there is something in the sync queue and reinject it
                 };

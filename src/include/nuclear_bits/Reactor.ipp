@@ -18,7 +18,7 @@
 namespace NUClear {
     
     template <typename... TParams, typename TFunc>
-    void Reactor::on(TFunc callback) {
+    std::vector<threading::ReactionHandle> Reactor::on(TFunc callback) {
         
         // Forward an empty string as our user reaction name
         return on<TParams...>("", std::forward<TFunc>(callback));
