@@ -23,14 +23,24 @@ namespace NUClear {
         // Initialize our reaction source
         std::atomic<uint64_t> Reaction::reactionIdSource(0);
         
-        Reaction::Reaction(std::vector<std::string> identifier, std::function<std::function<void ()> (ReactionTask&)> generator, bool (*precondition)(Reaction&), void (*postcondition)(ReactionTask&))
+        Reaction::Reaction(std::vector<std::string> identifier
+                           , std::function<std::function<void ()> (ReactionTask&)> generator
+                           , bool (*precondition)(Reaction&)
+                           , void (*postcondition)(ReactionTask&)
+                           , std::function<void (Reaction&)>&& unbinder)
           : identifier(identifier)
           , precondition(precondition)
           , postcondition(postcondition)
           , reactionId(++reactionIdSource)
           , activeTasks(0)
           , enabled(true)
-          , generator(generator) {
+          , generator(generator)
+          , unbinder(unbinder) {
+        }
+        
+        void Reaction::unbind() {
+            // Unbind
+            unbinder(*this);
         }
         
         std::unique_ptr<ReactionTask> Reaction::getTask(const ReactionTask* cause) {

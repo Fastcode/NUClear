@@ -87,7 +87,16 @@ namespace NUClear {
           , powerplant(this->environment->powerplant) {
         }
         
-        ~Reactor() {}
+        ~Reactor() {
+            
+            // Unbind everything when we destroy the reactor
+            for (auto& handle : reactionHandles) {
+                handle.unbind();
+            }
+        }
+        
+    private:
+        std::vector<threading::ReactionHandle> reactionHandles;
         
     protected:
         /// @brief Our environment
@@ -174,7 +183,7 @@ namespace NUClear {
          * @return A ReactionHandle that controls if the created reaction runs or not
          */
         template <typename... TDSL, typename TFunc>
-        void on(const std::string& name, TFunc&& callback);
+        std::vector<threading::ReactionHandle> on(const std::string& name, TFunc&& callback);
         
         /**
          * @brief Emits data into the system so that other reactors can use it.

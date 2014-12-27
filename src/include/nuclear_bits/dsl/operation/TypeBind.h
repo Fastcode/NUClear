@@ -30,16 +30,38 @@ namespace NUClear {
             struct TypeBind {
 
                 template <typename DSL, typename TFunc>
-                static void bind(Reactor&, const std::string& label, TFunc&& callback) {
+                static std::vector<threading::ReactionHandle> bind(Reactor&, const std::string& label, TFunc&& callback) {
                     
                     // Generate our task
                     auto task = util::generate_callback<DSL>(std::forward<TFunc&&>(callback));
                     
+                    // Our unbinder to remove this reaction
+                    auto unbinder = [] (threading::Reaction& r) {
+                        
+                        auto& vec = store::TypeCallbackStore<TType>::get();
+                        
+                        auto item = std::find_if(std::begin(vec), std::end(vec), [&r] (const std::unique_ptr<threading::Reaction>& item) {
+                            return item->reactionId == r.reactionId;
+                        });
+                        
+                        // If the item is in the list erase the item
+                        if(item != std::end(vec)) {
+                            vec.erase(item);
+                        }
+                    };
+                    
                     // Get our identifier string
                     std::vector<std::string> identifier = util::get_identifier<typename DSL::DSL, TFunc>(label);
                     
+                    auto reaction = std::make_unique<threading::Reaction>(identifier, task, DSL::precondition, DSL::postcondition, unbinder);
+                    threading::ReactionHandle handle(reaction.get());
+                    
                     // Create our reaction and store it in the TypeCallbackStore
-                    store::TypeCallbackStore<TType>::get().push_back(std::make_unique<threading::Reaction>(identifier, task, DSL::precondition, DSL::postcondition));
+                    store::TypeCallbackStore<TType>::get().push_back(std::move(reaction));
+                    
+                    std::vector<threading::ReactionHandle> handles = { handle };
+                    
+                    return handles;
                 };
             };
         }

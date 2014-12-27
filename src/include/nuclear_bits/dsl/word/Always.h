@@ -36,7 +36,7 @@ namespace NUClear {
             struct Always {
                 
                 template <typename DSL, typename TFunc>
-                static void bind(Reactor& reactor, const std::string& label, TFunc&& callback) {
+                static std::vector<threading::ReactionHandle> bind(Reactor& reactor, const std::string& label, TFunc&& callback) {
                     
                     // Make our callback generator
                     auto task = util::generate_callback<DSL>(std::forward<TFunc&&>(callback));
@@ -44,8 +44,14 @@ namespace NUClear {
                     // Get our identifier string
                     std::vector<std::string> identifier = util::get_identifier<typename DSL::DSL, TFunc>(label);
                     
+                    
+                    auto unbinder = [] (threading::Reaction& r) {
+                        r.enabled = false;
+                    };
+                    
                     // Create our reaction and store it in the TypeCallbackStore
-                    auto reaction = std::make_shared<threading::Reaction>(identifier, task, DSL::precondition, DSL::postcondition);
+                    auto reaction = std::make_shared<threading::Reaction>(identifier, task, DSL::precondition, DSL::postcondition, unbinder);
+                    threading::ReactionHandle handle(reaction.get());
                     
                     // A labmda that will get a reaction task
                     auto run = [reaction] {
@@ -66,6 +72,10 @@ namespace NUClear {
                     };
                     
                     reactor.powerplant.addThreadTask(loop);
+                    
+                    // Return our handles
+                    std::vector<threading::ReactionHandle> handles = { handle };
+                    return handles;
                 }
             };
         }

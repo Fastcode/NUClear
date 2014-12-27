@@ -38,5 +38,9 @@ namespace NUClear {
         void ReactionHandle::disable() {
             context->enabled = false;
         }
+        
+        void ReactionHandle::unbind() {
+            context->unbind();
+        }
     }
 }

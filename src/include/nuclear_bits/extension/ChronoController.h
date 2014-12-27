@@ -67,6 +67,23 @@ namespace NUClear {
                     // Otherwise add a new step
                 });
                   
+                on<Trigger<dsl::word::UnbindEvery>>([this] (const dsl::word::UnbindEvery& unbind) {
+                    
+                    // Loop through all of our steps
+                    for(auto& step : steps) {
+                        
+                        // See if this step has the target reaction
+                        auto item = std::find_if(std::begin(step.reactions), std::end(step.reactions), [unbind] (const std::shared_ptr<threading::Reaction>& r) {
+                            return r->reactionId == unbind.reactionId;
+                        });
+                        
+                        // If we have this item then remove it
+                        if(item != std::end(step.reactions)) {
+                            step.reactions.erase(item);
+                        }
+                    }
+                });
+                  
                 // When we shutdown we unlock our lock so that our chrono will quit straight away
                 on<Shutdown>([this] {
                     lock.unlock();

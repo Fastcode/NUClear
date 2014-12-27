@@ -18,6 +18,8 @@
 #ifndef NUCLEAR_DSL_FUSION_H
 #define NUCLEAR_DSL_FUSION_H
 
+#include "nuclear_bits/threading/ReactionHandle.h"
+
 namespace NUClear {
     namespace dsl {
 
@@ -26,7 +28,7 @@ namespace NUClear {
             
             struct NoOp {
                 template <typename DSL, typename TFunc>
-                static inline void bind(Reactor&, const std::string&, TFunc&&) {}
+                static inline std::vector<threading::ReactionHandle> bind(Reactor&, const std::string&, TFunc&&) { return std::vector<threading::ReactionHandle>(); }
                 
                 template <typename DSL>
                 static inline std::tuple<> get(threading::ReactionTask&) { return std::tuple<>(); }
@@ -86,13 +88,21 @@ namespace NUClear {
 
             // Fuse all the binds
             template <typename DSL, typename TFunc>
-            static void bind(Reactor& r, const std::string& label, TFunc&& callback) {
-                auto x = {
-                    (std::conditional<has_function<TWords>::bind, TWords, NoOp>::type::template bind<DSL>(
-                        std::forward<Reactor&>(r)
-                      , std::forward<const std::string&>(label)
-                      , std::forward<TFunc&&>(callback)), 0)...
-                };
+            static std::vector<threading::ReactionHandle> bind(Reactor& r, const std::string& label, TFunc&& callback) {
+                
+                std::vector<threading::ReactionHandle> handles;
+                
+                std::vector<std::vector<threading::ReactionHandle>> handleSets({
+                    std::conditional<has_function<TWords>::bind, TWords, NoOp>::type::template bind<DSL>(std::forward<Reactor&>(r)
+                                                                                                        , std::forward<const std::string&>(label)
+                                                                                                        , std::forward<TFunc&&>(callback))...
+                });
+                
+                for(auto& set : handleSets) {
+                    handles.insert(std::end(handles), std::begin(set), std::end(set));
+                }
+                
+                return handles;
             }
 
             template <typename DSL>

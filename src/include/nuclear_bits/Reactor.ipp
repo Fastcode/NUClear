@@ -25,7 +25,7 @@ namespace NUClear {
     }
     
     template <typename... TDSL, typename TFunc>
-    void Reactor::on(const std::string& name, TFunc&& callback) {
+    std::vector<threading::ReactionHandle> Reactor::on(const std::string& name, TFunc&& callback) {
         
         // There must be some parameters
         static_assert(sizeof...(TDSL) > 0, "You must have at least one paramter in an on");
@@ -33,7 +33,11 @@ namespace NUClear {
         // Execute our compile time DSL Fusion
         using DSL = dsl::Parse<TDSL...>;
         
-        DSL::bind(std::forward<Reactor&>(*this), std::forward<const std::string&>(name), std::forward<TFunc&&>(callback));
+        auto handles = DSL::bind(std::forward<Reactor&>(*this), std::forward<const std::string&>(name), std::forward<TFunc&&>(callback));
+        
+        reactionHandles.insert(std::end(reactionHandles), std::begin(handles), std::end(handles));
+        
+        return handles;
     }
     
     template <typename... THandlers, typename TData>

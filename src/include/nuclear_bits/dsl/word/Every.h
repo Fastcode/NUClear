@@ -43,6 +43,10 @@ namespace NUClear {
                 clock::duration jump;
                 std::shared_ptr<threading::Reaction> reaction;
             };
+            
+            struct UnbindEvery {
+                uint64_t reactionId;
+            };
 
             /**
              * @ingroup SmartTypes
@@ -68,7 +72,7 @@ namespace NUClear {
             struct Every {
                 
                 template <typename DSL, typename TFunc>
-                static void bind(Reactor& reactor, const std::string& label, TFunc&& callback) {
+                static std::vector<threading::ReactionHandle> bind(Reactor& reactor, const std::string& label, TFunc&& callback) {
                     
                     // Make our callback generator
                     auto task = util::generate_callback<DSL>(std::forward<TFunc&&>(callback));
@@ -76,17 +80,29 @@ namespace NUClear {
                     // Get our identifier string
                     std::vector<std::string> identifier = util::get_identifier<typename DSL::DSL, TFunc>(label);
                     
+                    // Get our powerplant
+                    auto& powerplant = reactor.powerplant;
+                    
+                    auto unbinder = [&powerplant] (threading::Reaction& r) {
+                        powerplant.emit<emit::Direct>(std::make_unique<UnbindEvery>(UnbindEvery { r.reactionId }));
+                    };
+                    
                     // Create our reaction
-                    auto reaction = std::make_shared<threading::Reaction>(identifier, task, DSL::precondition, DSL::postcondition);
+                    auto reaction = std::make_shared<threading::Reaction>(identifier, task, DSL::precondition, DSL::postcondition, unbinder);
+                    threading::ReactionHandle handle(reaction.get());
                     
                     // Work out our Reaction timing
                     clock::duration jump = period(ticks);
                     
                     // Send our configuration out
-                    reactor.powerplant.emit<emit::Direct>(std::make_unique<EveryConfiguration>(EveryConfiguration {
+                    powerplant.emit<emit::Direct>(std::make_unique<EveryConfiguration>(EveryConfiguration {
                         jump,
                         std::move(reaction)
                     }));
+                    
+                    // Return our handles
+                    std::vector<threading::ReactionHandle> handles = { handle };
+                    return handles;
                 }
             };
             
