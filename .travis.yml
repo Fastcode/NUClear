@@ -5,19 +5,27 @@ compiler:
 
 # Setup repository sources before install
 before_install:
-  - sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
-  - sudo apt-get update
-  - sudo apt-get -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" dist-upgrade -y
+  # g++4.8.1
+  - if [ "$CXX" == "g++" ]; then sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test; fi
 
-# Install required dependencies in the environment
+  # clang 3.4
+  - if [ "$CXX" == "clang++" ]; then sudo add-apt-repository -y ppa:h-rayflood/llvm; fi
+
+  - sudo apt-get update -qq
+
+# Install our required dependencies
 install:
-  - sudo apt-get install g++-4.8 libzmq3-dev libprotobuf-dev protobuf-compiler
-  - sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.6 60 --slave /usr/bin/g++ g++ /usr/bin/g++-4.6
-  - sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.8 80 --slave /usr/bin/g++ g++ /usr/bin/g++-4.8
+  # g++4.8.1
+  - if [ "$CXX" = "g++" ]; then sudo apt-get install -qq g++-4.8; fi
+  - if [ "$CXX" = "g++" ]; then export CXX="g++-4.8"; fi
+
+  # clang 3.4
+  - if [ "$CXX" == "clang++" ]; then sudo apt-get install --allow-unauthenticated -qq clang-3.4; fi
+  - if [ "$CXX" == "clang++" ]; then export CXX="clang++-3.4"; fi
+
+  # Catch
   - wget https://raw.githubusercontent.com/philsquared/Catch/master/single_include/catch.hpp
   - sudo mv catch.hpp /usr/local/include
-  - wget https://raw.githubusercontent.com/zeromq/cppzmq/master/zmq.hpp
-  - sudo mv zmq.hpp /usr/local/include
 
 # Before our script is run (setup build)
 before_script:
@@ -28,4 +36,4 @@ before_script:
 # Run our build
 script:
   - make
-  - make test
+  - ./tests/test_nuclear
