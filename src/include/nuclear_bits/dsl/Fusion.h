@@ -30,19 +30,7 @@ namespace NUClear {
         // SFINAE for testing the existence of the operational functions in a type
         namespace {
             
-            struct NoOp {
-                template <typename DSL, typename TFunc>
-                static inline std::vector<threading::ReactionHandle> bind(Reactor&, const std::string&, TFunc&&) { return std::vector<threading::ReactionHandle>(); }
-                
-                template <typename DSL>
-                static inline std::tuple<> get(threading::ReactionTask&) { return std::tuple<>(); }
-                
-                template <typename DSL>
-                static inline bool precondition(threading::Reaction&) { return true; }
-                
-                template <typename DSL>
-                static inline void postcondition(threading::ReactionTask&) {}
-            };
+
             
             template<typename T>
             struct has_function {
@@ -50,16 +38,16 @@ namespace NUClear {
                 typedef std::true_type yes;
                 typedef std::false_type no;
 
-                template<typename U> static auto test_bind(int) -> decltype(U::template bind<NoOp>(std::declval<Reactor&>(), "", 0), yes());
+                template<typename U> static auto test_bind(int) -> decltype(U::template bind<fusion::NoOp>(std::declval<Reactor&>(), "", 0), yes());
                 template<typename> static no test_bind(...);
 
-                template<typename U> static auto test_get(int) -> decltype(U::template get<NoOp>(std::declval<threading::ReactionTask&>()), yes());
+                template<typename U> static auto test_get(int) -> decltype(U::template get<fusion::NoOp>(std::declval<threading::ReactionTask&>()), yes());
                 template<typename> static no test_get(...);
 
-                template<typename U> static auto test_precondition(int) -> decltype(U::template precondition<NoOp>(std::declval<threading::Reaction&>()), yes());
+                template<typename U> static auto test_precondition(int) -> decltype(U::template precondition<fusion::NoOp>(std::declval<threading::Reaction&>()), yes());
                 template<typename> static no test_precondition(...);
 
-                template<typename U> static auto test_postcondition(int) -> decltype(U::template postcondition<NoOp>(std::declval<threading::ReactionTask&>()), yes());
+                template<typename U> static auto test_postcondition(int) -> decltype(U::template postcondition<fusion::NoOp>(std::declval<threading::ReactionTask&>()), yes());
                 template<typename> static no test_postcondition(...);
 
             public:
@@ -99,7 +87,7 @@ namespace NUClear {
                 std::vector<threading::ReactionHandle> handles;
                 
                 std::vector<std::vector<threading::ReactionHandle>> handleSets({
-                    std::conditional<has_function<TWords>::bind, TWords, NoOp>::type::template bind<DSL>(std::forward<Reactor&>(r)
+                    std::conditional<has_function<TWords>::bind, TWords, fusion::NoOp>::type::template bind<DSL>(std::forward<Reactor&>(r)
                                                                                                         , std::forward<const std::string&>(label)
                                                                                                         , std::forward<TFunc&&>(callback))...
                 });
@@ -112,9 +100,9 @@ namespace NUClear {
             }
 
             template <typename DSL>
-            static auto get(threading::ReactionTask& task) -> decltype(std::tuple_cat((Tuplify<decltype(std::conditional<has_function<TWords>::get, TWords, NoOp>::type::template get<DSL>(std::forward<threading::ReactionTask&>(task)))>::make(std::conditional<has_function<TWords>::get, TWords, NoOp>::type::template get<DSL>(std::forward<threading::ReactionTask&>(task))))...)) {
+            static auto get(threading::ReactionTask& task) -> decltype(std::tuple_cat((Tuplify<decltype(std::conditional<has_function<TWords>::get, TWords, fusion::NoOp>::type::template get<DSL>(std::forward<threading::ReactionTask&>(task)))>::make(std::conditional<has_function<TWords>::get, TWords, fusion::NoOp>::type::template get<DSL>(std::forward<threading::ReactionTask&>(task))))...)) {
                 
-                return std::tuple_cat((Tuplify<decltype(std::conditional<has_function<TWords>::get, TWords, NoOp>::type::template get<DSL>(std::forward<threading::ReactionTask&>(task)))>::make(std::conditional<has_function<TWords>::get, TWords, NoOp>::type::template get<DSL>(std::forward<threading::ReactionTask&>(task))))...);
+                return std::tuple_cat((Tuplify<decltype(std::conditional<has_function<TWords>::get, TWords, fusion::NoOp>::type::template get<DSL>(std::forward<threading::ReactionTask&>(task)))>::make(std::conditional<has_function<TWords>::get, TWords, fusion::NoOp>::type::template get<DSL>(std::forward<threading::ReactionTask&>(task))))...);
             }
         };
     }

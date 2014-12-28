@@ -31,12 +31,12 @@ namespace NUClear {
             using DSL = Fusion<Sentence...>;
             
             static bool precondition(threading::Reaction& r) {
-                return util::Meta::If<fusion::has_precondition<DSL>, DSL, NoOp>::template precondition<Parse<Sentence...>>(r);
+                return util::Meta::If<fusion::has_precondition<DSL>, DSL, fusion::NoOp>::template precondition<Parse<Sentence...>>(r);
             }
             
             
             static void postcondition(threading::ReactionTask& r) {
-                util::Meta::If<fusion::has_postcondition<DSL>, DSL, NoOp>::template postcondition<Parse<Sentence...>>(r);
+                util::Meta::If<fusion::has_postcondition<DSL>, DSL, fusion::NoOp>::template postcondition<Parse<Sentence...>>(r);
             }
             
             
