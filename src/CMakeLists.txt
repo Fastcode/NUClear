@@ -29,6 +29,11 @@ FILE(GLOB src_dsl_operation
     "include/nuclear_bits/dsl/operation/*.h"
     "include/nuclear_bits/dsl/operation/*.ipp")
 
+FILE(GLOB src_dsl_fusion
+    "dsl/fusion/*.cpp"
+    "include/nuclear_bits/dsl/fusion/*.h"
+    "include/nuclear_bits/dsl/fusion/*.ipp")
+
 FILE(GLOB src_dsl_validation
     "dsl/validation/*.cpp"
     "include/nuclear_bits/dsl/validation/*.h"
@@ -60,6 +65,7 @@ SOURCE_GROUP(extension                  FILES ${src_extension})
 SOURCE_GROUP(dsl                        FILES ${src_dsl})
 SOURCE_GROUP(dsl\\store                 FILES ${src_dsl_store})
 SOURCE_GROUP(dsl\\operation             FILES ${src_dsl_operation})
+SOURCE_GROUP(dsl\\fusion                FILES ${src_dsl_fusion})
 SOURCE_GROUP(dsl\\validation            FILES ${src_dsl_validation})
 SOURCE_GROUP(dsl\\word                  FILES ${src_dsl_word})
 SOURCE_GROUP(dsl\\word\\emit            FILES ${src_dsl_word_emit})
@@ -72,6 +78,7 @@ ADD_LIBRARY(nuclear STATIC
     ${src_extension}
     ${src_dsl_store}
     ${src_dsl_operation}
+    ${src_dsl_fusion}
     ${src_dsl_validation}
     ${src_dsl_word}
     ${src_dsl_word_emit}

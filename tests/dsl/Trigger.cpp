@@ -67,9 +67,7 @@ namespace {
             // Check that the lists are combined, and that the function args are in order
             on<With<DifferentOrderingMessage1>, Trigger<DifferentOrderingMessage3>, With<DifferentOrderingMessage2>>
             ([this](const DifferentOrderingMessage1&, const DifferentOrderingMessage3&, const DifferentOrderingMessage2&) {
-                
-                REQUIRE(true == true);
-                
+
                 this->powerplant.shutdown();
             });
         }

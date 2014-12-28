@@ -19,6 +19,10 @@
 #define NUCLEAR_DSL_FUSION_H
 
 #include "nuclear_bits/threading/ReactionHandle.h"
+#include "nuclear_bits/dsl/fusion/BindFusion.h"
+#include "nuclear_bits/dsl/fusion/GetFusion.h"
+#include "nuclear_bits/dsl/fusion/PreconditionFusion.h"
+#include "nuclear_bits/dsl/fusion/PostconditionFusion.h"
 
 namespace NUClear {
     namespace dsl {

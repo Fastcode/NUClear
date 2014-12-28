@@ -101,14 +101,26 @@ namespace NUClear {
             struct All<Head, Tail...> : If<Head, All<Tail...>, std::false_type> {};
             
             /**
+             * @brief Becomes true_type if any of the predicates pass, and false_type they all fail.
+             *
+             * @tparam T the set of condtions to check.
+             *
+             * @return true_type if any of the conditions evaluate to true, false_type otherwise.
+             */
+            template <typename... T>
+            struct Any : std::false_type {};
+            template <typename Head, typename... Tail>
+            struct Any<Head, Tail...> : If<Head, std::true_type, Any<Tail...>> {};
+            
+            /**
              * @brief Becomes the inverse to the boolean type passed.
              *
              * @tparam T the type to attempt to inverse.
              *
              * @return true_type if T is false_type, false_type if T is true_type.
              */
-            template <typename T>
-            using Not = If<T, std::false_type, std::true_type>;
+            template <typename Condition>
+            using Not = If<Condition, std::false_type, std::true_type>;
             
             /**
              * @brief This type is valid if all of the conditions succeed, otherwise it is an invalid type.
