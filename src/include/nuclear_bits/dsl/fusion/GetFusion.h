@@ -19,7 +19,9 @@
 #define NUCLEAR_DSL_FUSION_GETFUSION_H
 
 #include "nuclear_bits/util/MetaProgramming.h"
+#include "nuclear_bits/util/tuplify.h"
 #include "nuclear_bits/threading/ReactionHandle.h"
+#include "nuclear_bits/dsl/fusion/has_get.h"
 
 namespace NUClear {
     namespace dsl {
@@ -27,6 +29,9 @@ namespace NUClear {
             
             template <typename Condition, typename Value>
             using EnableIf = util::Meta::EnableIf<Condition, Value>;
+            
+            template <typename Predecate, typename Then, typename Else>
+            using If = util::Meta::If<Predecate, Then, Else>;
             
             template <typename Condition>
             using Not = util::Meta::Not<Condition>;
@@ -37,80 +42,37 @@ namespace NUClear {
             template <typename... Conditions>
             using Any = util::Meta::Any<Conditions...>;
             
-            // SFINAE for testing the existence of the operational functions in a type
-            namespace {
-                
-                template<typename T>
-                struct has_get {
-                private:
-                    typedef std::true_type yes;
-                    typedef std::false_type no;
-                    
-                    template<typename U> static auto test(int) -> decltype(U::template get<void>(std::declval<threading::ReactionTask&>()), yes());
-                    template<typename> static no test(...);
-                    
-                public:
-                    static constexpr bool value = std::is_same<decltype(test<T>(0)),yes>::value;
-                };
-                
-                template <typename TData>
-                static inline std::tuple<TData> tuplify(TData&& data) {
-                    return std::make_tuple(std::move(data));
-                }
-                
-                template <typename... TElements>
-                static inline std::tuple<TElements...> tuplify(std::tuple<TElements...>&& tuple) {
-                    return tuple;
-                }
-            }
-            
+            template <typename...>
+            struct GetFusion;
+
             template <typename TFirst, typename... TWords>
-            struct GetFusion {
-                
+            struct GetFusion<TFirst, TWords...> {
                 
                 template <typename DSL, typename U = TFirst>
                 static inline auto get(threading::ReactionTask& task)
                 -> EnableIf<All<has_get<U>, Any<has_get<TWords>...>>
-                , decltype(std::tuple_cat(tuplify(TFirst::template get<DSL>(task)), GetFusion<TWords...>::template get<DSL>(task)))> {
-                    
+                , decltype(std::tuple_cat(util::tuplify(U::template get<DSL>(task)), If<All<has_get<U>, Any<has_get<TWords>...>>, GetFusion<TWords...>, NoOp>::template get<DSL>(task)))> {
                     // Tuplify and return what we need
-                    return std::tuple_cat(tuplify(TFirst::template get<DSL>(task)), GetFusion<TWords...>::template get<DSL>(task));
+                    return std::tuple_cat(util::tuplify(U::template get<DSL>(task)), If<All<has_get<U>, Any<has_get<TWords>...>>, GetFusion<TWords...>, NoOp>::template get<DSL>(task));
                 }
                 
                 template <typename DSL, typename U = TFirst>
                 static inline auto get(threading::ReactionTask& task)
                 -> EnableIf<All<has_get<U>, Not<Any<has_get<TWords>...>>>
-                , decltype(tuplify(TFirst::template get<DSL>(task)))> {
+                , decltype(util::tuplify(U::template get<DSL>(task)))> {
                     
                     // Tuplify and return our element
-                    return tuplify(TFirst::template get<DSL>(task));
+                    return util::tuplify(U::template get<DSL>(task));
                 }
                 
                 template <typename DSL, typename U = TFirst>
                 static inline auto get(threading::ReactionTask& task)
                 -> EnableIf<All<Not<has_get<U>>, Any<has_get<TWords>...>>
-                , decltype(GetFusion<TWords...>::template get<DSL>(task))> {
+                , decltype(If<All<Not<has_get<U>>, Any<has_get<TWords>...>>, GetFusion<TWords...>, NoOp>::template get<DSL>(task))> {
                     
                     // Pass on to the next element
                     return GetFusion<TWords...>::template get<DSL>(task);
                 }
-                
-                // Has + futures
-                // Has - futures
-                // NoHas + futures
-                
-                
-                // IDEA
-                // pass down a tuple of "Active Getters" and when we reach the "no further getters" then we make a tuple from all of them at the end of the line
-                
-                
-                
-                
-//                template <typename DSL>
-//                static auto get(threading::ReactionTask& task) -> decltype(std::tuple_cat((Tuplify<decltype(std::conditional<has_function<TWords>::get, TWords, NoOp>::type::template get<DSL>(std::forward<threading::ReactionTask&>(task)))>::make(std::conditional<has_function<TWords>::get, TWords, NoOp>::type::template get<DSL>(std::forward<threading::ReactionTask&>(task))))...)) {
-//                    
-//                    return std::tuple_cat((Tuplify<decltype(std::conditional<has_function<TWords>::get, TWords, NoOp>::type::template get<DSL>(std::forward<threading::ReactionTask&>(task)))>::make(std::conditional<has_function<TWords>::get, TWords, NoOp>::type::template get<DSL>(std::forward<threading::ReactionTask&>(task))))...);
-//                }
             };
         }
     }

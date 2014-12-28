@@ -77,7 +77,8 @@ namespace NUClear {
 
         template <typename... TWords>
         struct Fusion
-        : public fusion::PreconditionFusion<TWords...>
+        : public fusion::GetFusion<TWords...>
+        , public fusion::PreconditionFusion<TWords...>
         , public fusion::PostconditionFusion<TWords...> {
 
             // Fuse all the binds
@@ -97,12 +98,6 @@ namespace NUClear {
                 }
                 
                 return handles;
-            }
-
-            template <typename DSL>
-            static auto get(threading::ReactionTask& task) -> decltype(std::tuple_cat((Tuplify<decltype(std::conditional<has_function<TWords>::get, TWords, fusion::NoOp>::type::template get<DSL>(std::forward<threading::ReactionTask&>(task)))>::make(std::conditional<has_function<TWords>::get, TWords, fusion::NoOp>::type::template get<DSL>(std::forward<threading::ReactionTask&>(task))))...)) {
-                
-                return std::tuple_cat((Tuplify<decltype(std::conditional<has_function<TWords>::get, TWords, fusion::NoOp>::type::template get<DSL>(std::forward<threading::ReactionTask&>(task)))>::make(std::conditional<has_function<TWords>::get, TWords, fusion::NoOp>::type::template get<DSL>(std::forward<threading::ReactionTask&>(task))))...);
             }
         };
     }

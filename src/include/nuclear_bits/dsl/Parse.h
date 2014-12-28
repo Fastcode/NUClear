@@ -39,13 +39,10 @@ namespace NUClear {
                 util::Meta::If<fusion::has_postcondition<DSL>, DSL, fusion::NoOp>::template postcondition<Parse<Sentence...>>(r);
             }
             
-            
-            // TODO SFINAE for get, if there isn't a get function then we still need an empty tuple
-            
-            
             static auto get(threading::ReactionTask& r)
-            -> decltype(DSL::template get<Parse<Sentence...>>(r)) {
-                return DSL::template get<Parse<Sentence...>>(r);
+            -> decltype(util::Meta::If<fusion::has_get<DSL>, DSL, fusion::NoOp>::template get<Parse<Sentence...>>(r)) {
+                
+                return util::Meta::If<fusion::has_get<DSL>, DSL, fusion::NoOp>::template get<Parse<Sentence...>>(r);
             }
             
             // TODO for bind we always need to have a bind function (at least one) so have a static assert that if there isn't one then cry a lot
