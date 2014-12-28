@@ -18,7 +18,9 @@
 #ifndef NUCLEAR_DSL_PARSE_H
 #define NUCLEAR_DSL_PARSE_H
 
-#include "Fusion.h"
+#include "nuclear_bits/dsl/Fusion.h"
+#include "nuclear_bits/dsl/fusion/has_precondition.h"
+#include "nuclear_bits/dsl/fusion/has_postcondition.h"
 
 namespace NUClear {
     namespace dsl {
@@ -27,17 +29,14 @@ namespace NUClear {
         struct Parse {
             
             using DSL = Fusion<Sentence...>;
-        
-            // TODO SFINAE for precondition, if there isn't a precondition then we still need a function that returns true
             
             static bool precondition(threading::Reaction& r) {
-                return DSL::template precondition<Parse<Sentence...>>(r);
+                return util::Meta::If<fusion::has_precondition<DSL>, DSL, NoOp>::template precondition<Parse<Sentence...>>(r);
             }
             
-            // TODO SFINAE for postcondition, if there isn't a postconditoin then we still need an empty function
             
             static void postcondition(threading::ReactionTask& r) {
-                DSL::template postcondition<Parse<Sentence...>>(r);
+                util::Meta::If<fusion::has_postcondition<DSL>, DSL, NoOp>::template postcondition<Parse<Sentence...>>(r);
             }
             
             

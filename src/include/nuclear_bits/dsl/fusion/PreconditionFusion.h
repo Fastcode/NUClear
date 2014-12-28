@@ -18,6 +18,7 @@
 #ifndef NUCLEAR_DSL_FUSION_PRECONDITIONFUSION_H
 #define NUCLEAR_DSL_FUSION_PRECONDITIONFUSION_H
 
+#include "nuclear_bits/dsl/fusion/has_precondition.h"
 #include "nuclear_bits/util/MetaProgramming.h"
 
 namespace NUClear {
@@ -35,24 +36,6 @@ namespace NUClear {
             
             template <typename... Conditions>
             using Any = util::Meta::Any<Conditions...>;
-            
-            
-            // SFINAE for testing the existence of the operational functions in a type
-            namespace {
-                
-                template <typename T>
-                struct has_precondition {
-                private:
-                    typedef std::true_type yes;
-                    typedef std::false_type no;
-                    
-                    template<typename U> static auto test(int) -> decltype(U::template precondition<void>(std::declval<threading::Reaction&>()), yes());
-                    template<typename> static no test(...);
-                    
-                public:
-                    static constexpr bool value = std::is_same<decltype(test<T>(0)),yes>::value;
-                };
-            }
             
             template <typename TFirst, typename... TWords>
             struct PreconditionFusion {

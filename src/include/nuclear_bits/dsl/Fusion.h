@@ -88,7 +88,9 @@ namespace NUClear {
         }
 
         template <typename... TWords>
-        struct Fusion {
+        struct Fusion
+        : public fusion::PreconditionFusion<TWords...>
+        , public fusion::PostconditionFusion<TWords...> {
 
             // Fuse all the binds
             template <typename DSL, typename TFunc>
@@ -113,28 +115,6 @@ namespace NUClear {
             static auto get(threading::ReactionTask& task) -> decltype(std::tuple_cat((Tuplify<decltype(std::conditional<has_function<TWords>::get, TWords, NoOp>::type::template get<DSL>(std::forward<threading::ReactionTask&>(task)))>::make(std::conditional<has_function<TWords>::get, TWords, NoOp>::type::template get<DSL>(std::forward<threading::ReactionTask&>(task))))...)) {
                 
                 return std::tuple_cat((Tuplify<decltype(std::conditional<has_function<TWords>::get, TWords, NoOp>::type::template get<DSL>(std::forward<threading::ReactionTask&>(task)))>::make(std::conditional<has_function<TWords>::get, TWords, NoOp>::type::template get<DSL>(std::forward<threading::ReactionTask&>(task))))...);
-            }
-
-            template <typename DSL>
-            static void postcondition(threading::ReactionTask& task) {
-                util::unpack((std::conditional<has_function<TWords>::postcondition, TWords, NoOp>::type::template postcondition<DSL>(std::forward<threading::ReactionTask&>(task)), 0)...);
-            }
-            
-            template <typename DSL>
-            static bool precondition(threading::Reaction& task) {
-                
-                std::vector<std::function<bool(threading::Reaction&)>> conditions({
-                    std::conditional<has_function<TWords>::precondition, TWords, NoOp>::type::template precondition<DSL>...
-                });
-                
-                for(auto& condition : conditions) {
-                    if(!condition(std::forward<threading::Reaction&>(task))) {
-                        return false;
-                    }
-                }
-
-                return true;
-
             }
         };
     }

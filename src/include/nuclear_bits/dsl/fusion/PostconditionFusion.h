@@ -18,7 +18,8 @@
 #ifndef NUCLEAR_DSL_FUSION_POSTCONDITIONFUSION_H
 #define NUCLEAR_DSL_FUSION_POSTCONDITIONFUSION_H
 
-#include "nuclear_bits/threading/ReactionHandle.h"
+#include "nuclear_bits/threading/ReactionTask.h"
+#include "nuclear_bits/dsl/fusion/has_postcondition.h"
 
 namespace NUClear {
     namespace dsl {
@@ -35,23 +36,6 @@ namespace NUClear {
             
             template <typename... Conditions>
             using Any = util::Meta::Any<Conditions...>;
-            
-            // SFINAE for testing the existence of the operational functions in a type
-            namespace {
-                
-                template<typename T>
-                struct has_postcondition {
-                private:
-                    typedef std::true_type yes;
-                    typedef std::false_type no;
-                    
-                    template<typename U> static auto test(int) -> decltype(U::template postcondition<void>(std::declval<threading::ReactionTask&>()), yes());
-                    template<typename> static no test(...);
-                    
-                public:
-                    static constexpr bool value = std::is_same<decltype(test<T>(0)),yes>::value;
-                };
-            }
             
             
             template <typename TFirst, typename... TWords>
