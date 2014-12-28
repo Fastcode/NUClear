@@ -15,24 +15,30 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_DSL_FUSION_H
-#define NUCLEAR_DSL_FUSION_H
+#ifndef NUCLEAR_DSL_FUSION_HASBIND_H
+#define NUCLEAR_DSL_FUSION_HASBIND_H
 
+#include "nuclear_bits/util/MetaProgramming.h"
 #include "nuclear_bits/threading/ReactionHandle.h"
-#include "nuclear_bits/dsl/fusion/BindFusion.h"
-#include "nuclear_bits/dsl/fusion/GetFusion.h"
-#include "nuclear_bits/dsl/fusion/PreconditionFusion.h"
-#include "nuclear_bits/dsl/fusion/PostconditionFusion.h"
+#include "nuclear_bits/dsl/fusion/NoOp.h"
 
 namespace NUClear {
     namespace dsl {
-
-        template <typename... TWords>
-        struct Fusion
-        : public fusion::BindFusion<TWords...>
-        , public fusion::GetFusion<TWords...>
-        , public fusion::PreconditionFusion<TWords...>
-        , public fusion::PostconditionFusion<TWords...> {};
+        namespace fusion {
+            
+            template <typename T>
+            struct has_bind {
+            private:
+                typedef std::true_type yes;
+                typedef std::false_type no;
+                
+                template <typename U> static auto test(int) -> util::Meta::EnableIf<std::is_function<decltype(U::template bind<NoOp, NoOp>)>, yes>;
+                template <typename> static no test(...);
+                
+            public:
+                static constexpr bool value = std::is_same<decltype(test<T>(0)),yes>::value;
+            };
+        }
     }
 }
 

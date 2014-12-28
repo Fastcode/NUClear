@@ -20,6 +20,7 @@
 
 #include "nuclear_bits/util/MetaProgramming.h"
 #include "nuclear_bits/threading/ReactionHandle.h"
+#include "nuclear_bits/dsl/fusion/has_bind.h"
 
 namespace NUClear {
     namespace dsl {
@@ -38,57 +39,6 @@ namespace NUClear {
             using Any = util::Meta::Any<Conditions...>;
             
             
-            // SFINAE for testing the existence of the operational functions in a type
-            namespace {
-                
-                /**
-                 * @brief SFINAE check to determine if the bind function exists on the passed type
-                 *
-                 * @tparam T the type to check if the bind funciton exists on (with any paramters)
-                 */
-                template<typename T>
-                struct bind_exists {
-                private:
-                    typedef std::true_type yes;
-                    typedef std::false_type no;
-                    
-                    template<typename U> static auto test(int) -> decltype(U::template bind<void>, yes());
-                    template<typename> static no test(...);
-                    
-                public:
-                    static constexpr bool value = std::is_same<decltype(test<T>(0)),yes>::value;
-                };
-                
-                /**
-                 * @brief Used to test that the bind object that was found by bind_exists is in fact a function
-                 *
-                 * @tparam T       the type to check if bind exists and is a function
-                 * @tparam HasBind Boolean value if bind exists in the first place (can't check if it doesn't exist)
-                 */
-                template <typename T, bool HasBind = bind_exists<T>::value>
-                struct has_bind;
-                
-                /**
-                 * @brief When bind does exist we must confirm that it is a function
-                 *
-                 * @tparam T   the type to check if bind exists and is a function
-                 */
-                template <typename T>
-                struct has_bind<T, true> {
-                    static constexpr bool value = std::is_function<decltype(T::template bind<void>)>::value;
-                };
-                
-                /**
-                 * @brief If bind does not exist the value will always be false
-                 *
-                 * @tparam T   the type to check if bind exists and is a function
-                 */
-                template <typename T>
-                struct has_bind<T, false> {
-                    static constexpr bool value = false;
-                };
-            }
-            
             template <typename TFuncSignature, typename TFirst, typename... TWords>
             struct BindFission;
             
@@ -102,20 +52,18 @@ namespace NUClear {
                 static inline std::vector<threading::ReactionHandle> bind(Reactor& reactor, const std::string& identifier, TFunc callback, TRelevant... relevant, TRemainder... remainder) {
                     
                     // Call our bind function with the relevant arguments
-                    TFirst::template bind<DSL>(reactor, identifier, std::forward<TFunc>(callback), std::forward<TRelevant>(relevant)...);
+                    std::vector<threading::ReactionHandle> init = TFirst::template bind<DSL>(reactor, identifier, std::forward<TFunc>(callback), std::forward<TRelevant>(relevant)...);
                     
                     // Call the remainder of our fusion
-                    BindFusion<TWords...>::template bind<DSL>(reactor, identifier, std::forward<TFunc>(callback), std::forward<TRemainder>(remainder)...);
+                    auto newHandles = BindFusion<TWords...>::template bind<DSL>(reactor, identifier, std::forward<TFunc>(callback), std::forward<TRemainder>(remainder)...);
+                    
+                    init.insert(std::end(init), std::begin(newHandles), std::end(newHandles));
+                    return init;
                 }
             };
             
             template <typename TFirst, typename... TWords>
             struct BindFusion {
-                
-                
-                // Has + futures
-                // Has - futures
-                // NoHas + futures
                 
                 template <typename DSL, typename U = TFirst, typename TFunc, typename... TArgs>
                 static inline auto bind(Reactor& reactor, const std::string& identifier, TFunc callback, TArgs... args)
@@ -136,7 +84,7 @@ namespace NUClear {
                     // Us but not our children
                     
                     // Execute our function
-                    TFirst::template bind<DSL>(reactor, identifier, std::forward<TFunc>(callback), std::forward<TArgs>(args)...);
+                    return TFirst::template bind<DSL>(reactor, identifier, std::forward<TFunc>(callback), std::forward<TArgs>(args)...);
                 }
                 
                 template <typename DSL, typename U = TFirst, typename TFunc, typename... TArgs>
