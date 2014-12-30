@@ -19,26 +19,29 @@
 
 namespace NUClear {
     namespace threading {
-        
-        
+
+
         ReactionHandle::ReactionHandle(Reaction* context) : context(context) {
         }
-        
+
         bool ReactionHandle::enabled() {
             return context->enabled;
         }
-        
-        void ReactionHandle::enable() {
+
+        ReactionHandle& ReactionHandle::enable() {
             context->enabled = true;
+            return *this;
         }
-        
-        void ReactionHandle::enable(bool set) {
+
+        ReactionHandle& ReactionHandle::enable(bool set) {
             context->enabled = set;
+            return *this;
         }
-        
-        void ReactionHandle::disable() {
+
+        ReactionHandle& ReactionHandle::disable() {
             context->enabled = false;
+            return *this;
         }
-        
+
     }
 }
