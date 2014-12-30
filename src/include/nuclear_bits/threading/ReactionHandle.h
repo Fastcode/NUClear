@@ -29,7 +29,7 @@
 
 namespace NUClear {
     namespace threading {
-        
+
         /**
          * @brief Gives user code access to control the reaction object.
          *
@@ -44,31 +44,31 @@ namespace NUClear {
         public:
             /// @brief the reaction that we are managing
             Reaction* context;
-            
+
             /**
              * @brief Creates a new ReactionHandle for the reaction that is passed in.
              *
              * @param context the reaction that we are interacting with.
              */
             ReactionHandle(Reaction* context = nullptr);
-            
+
             /**
              * @brief Enables the reaction and allows it to run.
              */
-            void enable();
-            
+            ReactionHandle& enable();
+
             /**
              * @brief Disables the reaction, preventing it from running.
              */
-            void disable();
-            
+            ReactionHandle& disable();
+
             /**
              * @brief Sets the enable status to the passed boolean.
              *
              * @param set the run status of the handle handle to be of the boolean
              */
-            void enable(bool set);
-            
+            ReactionHandle& enable(bool set);
+
             /**
              * @brief Returns if this reaction is currently enabled.
              *
