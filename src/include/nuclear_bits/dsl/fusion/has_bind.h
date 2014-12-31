@@ -32,7 +32,11 @@ namespace NUClear {
                 typedef std::true_type yes;
                 typedef std::false_type no;
                 
-                template <typename U> static auto test(int) -> util::Meta::EnableIf<std::is_function<decltype(U::template bind<NoOp, NoOp>)>, yes>;
+                template <typename F, typename... A>
+                static yes test_func(std::vector<threading::ReactionHandle>(*)(Reactor&, const std::string&, F&&, A&&...));
+                static no test_func(...);
+                
+                template <typename U> static auto test(int) -> decltype(test_func(U::template bind<ParsedNoOp, std::function<void ()>>));
                 template <typename> static no test(...);
                 
             public:

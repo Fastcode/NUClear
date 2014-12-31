@@ -37,7 +37,9 @@ namespace NUClear {
              * @tparam TTriggers the datatypes to trigger a callback on
              */
             template <typename TType>
-            struct Trigger : public operation::CacheGet<TType>, operation::TypeBind<TType> {};
+            struct Trigger
+            : public operation::TypeBind<TType>
+            , public operation::CacheGet<TType> {};
         }
     }
 }

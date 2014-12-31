@@ -30,7 +30,7 @@ namespace NUClear {
                 typedef std::true_type yes;
                 typedef std::false_type no;
                 
-                template<typename U> static auto test(int) -> decltype(U::template precondition<NoOp>(std::declval<threading::Reaction&>()), yes());
+                template<typename U> static auto test(int) -> decltype(U::template precondition<ParsedNoOp>(std::declval<threading::Reaction&>()), yes());
                 template<typename> static no test(...);
                 
             public:

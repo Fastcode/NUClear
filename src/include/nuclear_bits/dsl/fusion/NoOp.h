@@ -24,6 +24,7 @@ namespace NUClear {
         namespace fusion {
             
             struct NoOp {
+                
                 template <typename DSL, typename TFunc>
                 static inline std::vector<threading::ReactionHandle> bind(Reactor&, const std::string&, TFunc&&) { return std::vector<threading::ReactionHandle>(); }
                 
@@ -35,6 +36,20 @@ namespace NUClear {
                 
                 template <typename DSL>
                 static inline void postcondition(threading::ReactionTask&) {}
+            };
+            
+            struct ParsedNoOp {
+                struct DSL {};
+                
+                template <typename TFunc>
+                static inline std::vector<threading::ReactionHandle> bind(Reactor&, const std::string&, TFunc&&);
+                
+                static inline std::tuple<> get(threading::ReactionTask&);
+                
+                static inline bool precondition(threading::Reaction&);
+                
+                static inline void postcondition(threading::ReactionTask&);
+                
             };
         }
     }
