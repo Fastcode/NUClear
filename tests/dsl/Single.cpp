@@ -19,56 +19,51 @@
 
 #include "nuclear"
 
+std::atomic<int> runCount1(0);
+std::atomic<int> runCount2(0);
 
-// Anonymous namespace to keep everything file local
-namespace {
-    
-    std::atomic<int> runCount1(0);
-    std::atomic<int> runCount2(0);
-    
-    struct SimpleMessage1 {
-        int data;
-    };
-    
-    struct SimpleMessage2 {
-        int data;
-    };
-    
-    class TestReactor : public NUClear::Reactor {
-    public:
-        TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
+struct SimpleMessage1 {
+    int data;
+};
+
+struct SimpleMessage2 {
+    int data;
+};
+
+class TestReactor : public NUClear::Reactor {
+public:
+    TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
+        
+        on<Trigger<SimpleMessage1>, Single>([this](const SimpleMessage1&) {
             
-            on<Trigger<SimpleMessage1>, Single>([this](const SimpleMessage1&) {
-                
-                // Increment our run count
-                ++runCount1;
-                
-                // Emit a message 2
-                emit(std::make_unique<SimpleMessage2>());
-                
-                // Wait for 10 ms
-                std::this_thread::sleep_for(std::chrono::milliseconds(10));
-                
-                // Emit another message 2
-                emit(std::make_unique<SimpleMessage2>());
-                
-                // We are finished the test
-                powerplant.shutdown();
-            });
+            // Increment our run count
+            ++runCount1;
             
-            on<Trigger<SimpleMessage2>, Single>([this](const SimpleMessage2&) {
-                ++runCount2;
-            });
+            // Emit a message 2
+            emit(std::make_unique<SimpleMessage2>());
             
-            on<Startup>([this]() {
-                
-                // Emit two events, only one should run
-                emit(std::make_unique<SimpleMessage1>());
-                emit(std::make_unique<SimpleMessage1>());
-            });
-        }
-    };
-}
+            // Wait for 10 ms
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+            
+            // Emit another message 2
+            emit(std::make_unique<SimpleMessage2>());
+            
+            // We are finished the test
+            powerplant.shutdown();
+        });
+        
+        on<Trigger<SimpleMessage2>, Single>([this](const SimpleMessage2&) {
+            ++runCount2;
+        });
+        
+        on<Startup>([this]() {
+            
+            // Emit two events, only one should run
+            emit(std::make_unique<SimpleMessage1>());
+            emit(std::make_unique<SimpleMessage1>());
+        });
+    }
+};
 
 TEST_CASE("Test that single prevents a second call while one is executing", "[api]") {
     

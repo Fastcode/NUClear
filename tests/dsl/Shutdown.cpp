@@ -19,35 +19,30 @@
 
 #include "nuclear"
 
+volatile bool didShutDown = false;
 
-// Anonymous namespace to keep everything file local
-namespace {
-    
-    volatile bool didShutDown = false;
-    
-    struct SimpleMessage {
-        int data;
-    };
-    
-    class TestReactor : public NUClear::Reactor {
-    public:
-        TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
+struct SimpleMessage {
+    int data;
+};
+
+class TestReactor : public NUClear::Reactor {
+public:
+    TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
+        
+        on<Trigger<SimpleMessage>>([this](const SimpleMessage& message) {
             
-            on<Trigger<SimpleMessage>>([this](const SimpleMessage& message) {
-                
-                // The message we recieved should have test == 10
-                REQUIRE(message.data == 10);
-                
-                // We are finished the test
-                powerplant.shutdown();
-            });
+            // The message we recieved should have test == 10
+            REQUIRE(message.data == 10);
             
-            on<Shutdown>([this]() {
-                didShutDown = true;
-            });
-        }
-    };
-}
+            // We are finished the test
+            powerplant.shutdown();
+        });
+        
+        on<Shutdown>([this]() {
+            didShutDown = true;
+        });
+    }
+};
 
 TEST_CASE("A test that a shutdown message is emitted when the system shuts down", "[api]") {
     

@@ -19,28 +19,23 @@
 
 #include "nuclear"
 
+int i = 0;
 
-// Anonymous namespace to keep everything file local
-namespace {
-    int i = 0;
-    
-    class TestReactor : public NUClear::Reactor {
-    public:
-        TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
+class TestReactor : public NUClear::Reactor {
+public:
+    TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
+        
+        on<Always>([this] {
             
-            on<Always>([this] {
-                
-                ++i;
-                
-                // Run until it's 11 then shutdown
-                if(i > 10) {
-                    powerplant.shutdown();
-                }
-            });
-        }
-    };
-}
-
+            ++i;
+            
+            // Run until it's 11 then shutdown
+            if(i > 10) {
+                powerplant.shutdown();
+            }
+        });
+    }
+};
 
 TEST_CASE("Testing on<Always> functionality (permanant run)", "[api][log]") {
     

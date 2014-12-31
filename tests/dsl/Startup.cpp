@@ -19,33 +19,28 @@
 
 #include "nuclear"
 
+struct SimpleMessage {
+    int data;
+};
 
-// Anonymous namespace to keep everything file local
-namespace {
-    
-    struct SimpleMessage {
-        int data;
-    };
-    
-    class TestReactor : public NUClear::Reactor {
-    public:
-        TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
+class TestReactor : public NUClear::Reactor {
+public:
+    TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
+        
+        on<Trigger<SimpleMessage>>([this](const SimpleMessage& message) {
             
-            on<Trigger<SimpleMessage>>([this](const SimpleMessage& message) {
-                
-                // The message we received should have test == 10
-                REQUIRE(message.data == 10);
-                
-                // We are finished the test
-                powerplant.shutdown();
-            });
+            // The message we received should have test == 10
+            REQUIRE(message.data == 10);
             
-            on<Startup>([this]() {
-                emit(std::unique_ptr<SimpleMessage>(new SimpleMessage{10}));
-            });
-        }
-    };
-}
+            // We are finished the test
+            powerplant.shutdown();
+        });
+        
+        on<Startup>([this]() {
+            emit(std::unique_ptr<SimpleMessage>(new SimpleMessage{10}));
+        });
+    }
+};
 
 TEST_CASE("Testing the startup event is emitted at the start of the program", "[api]") {
     

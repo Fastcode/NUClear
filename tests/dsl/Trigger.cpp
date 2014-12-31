@@ -19,29 +19,25 @@
 
 #include "nuclear"
 
+struct SimpleMessage {
+    int data;
+};
 
-// Anonymous namespace to keep everything file local
-namespace {
-    
-    struct SimpleMessage {
-        int data;
-    };
-    
-    class TestReactor : public NUClear::Reactor {
-    public:
-        TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
+class TestReactor : public NUClear::Reactor {
+public:
+    TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
+        
+        on<Trigger<SimpleMessage>>([this](const SimpleMessage& message) {
             
-            on<Trigger<SimpleMessage>>([this](const SimpleMessage& message) {
-                
-                // The message we recieved should have test == 10
-                REQUIRE(message.data == 10);
-                
-                // We are finished the test
-                this->powerplant.shutdown();
-            });
-        }
-    };
-}
+            // The message we recieved should have test == 10
+            REQUIRE(message.data == 10);
+            
+            // We are finished the test
+            this->powerplant.shutdown();
+        });
+    }
+};
+
 
 TEST_CASE("A very basic test for Emit and On", "[api]") {
     
@@ -51,39 +47,6 @@ TEST_CASE("A very basic test for Emit and On", "[api]") {
     plant.install<TestReactor>();
     
     plant.emit(std::unique_ptr<SimpleMessage>(new SimpleMessage{10}));
-    
-    plant.start();
-}
-
-namespace {
-    
-    struct DifferentOrderingMessage1 { int a; };
-    struct DifferentOrderingMessage2 { int a; };
-    struct DifferentOrderingMessage3 { int a; };
-    
-    class DifferentOrderingReactor : public NUClear::Reactor {
-    public:
-        DifferentOrderingReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
-            // Check that the lists are combined, and that the function args are in order
-            on<With<DifferentOrderingMessage1>, Trigger<DifferentOrderingMessage3>, With<DifferentOrderingMessage2>>
-            ([this](const DifferentOrderingMessage1&, const DifferentOrderingMessage3&, const DifferentOrderingMessage2&) {
-
-                this->powerplant.shutdown();
-            });
-        }
-    };
-}
-
-TEST_CASE("Testing poorly ordered on arguments", "[api]") {
-    
-    NUClear::PowerPlant::Configuration config;
-    config.threadCount = 1;
-    NUClear::PowerPlant plant(config);
-    plant.install<DifferentOrderingReactor>();
-    
-    plant.emit(std::make_unique<DifferentOrderingMessage1>());
-    plant.emit(std::make_unique<DifferentOrderingMessage2>());
-    plant.emit(std::make_unique<DifferentOrderingMessage3>());
     
     plant.start();
 }
