@@ -33,7 +33,7 @@ namespace NUClear {
                 static std::vector<threading::ReactionHandle> bind(Reactor&, const std::string& label, TFunc&& callback) {
                     
                     // Generate our task
-                    auto task = util::generate_callback<DSL>(std::forward<TFunc&&>(callback));
+                    auto task = util::generate_callback<DSL>(std::forward<TFunc>(callback));
                     
                     // Our unbinder to remove this reaction
                     auto unbinder = [] (threading::Reaction& r) {

@@ -54,7 +54,7 @@ namespace NUClear {
          */
         template<typename TFunc, typename... TArgs>
         void apply(TFunc&& function, const std::tuple<TArgs...>&& args) {
-            apply(std::forward<TFunc&&>(function), GenerateSequence<sizeof...(TArgs)>(), std::forward<const std::tuple<TArgs...>&&>(args));
+            apply(std::forward<TFunc>(function), GenerateSequence<sizeof...(TArgs)>(), std::forward<const std::tuple<TArgs...>>(args));
         }
     }
 }

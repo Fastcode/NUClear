@@ -39,7 +39,7 @@ namespace NUClear {
                 static std::vector<threading::ReactionHandle> bind(Reactor& reactor, const std::string& label, TFunc&& callback) {
                     
                     // Make our callback generator
-                    auto task = util::generate_callback<DSL>(std::forward<TFunc&&>(callback));
+                    auto task = util::generate_callback<DSL>(std::forward<TFunc>(callback));
                     
                     // Get our identifier string
                     std::vector<std::string> identifier = util::get_identifier<typename DSL::DSL, TFunc>(label);

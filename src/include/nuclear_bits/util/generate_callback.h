@@ -29,7 +29,7 @@ namespace NUClear {
             return [callback] (threading::ReactionTask& r) {
                 
                 // Bind our data to a variable (get in original thread)
-                auto data = DSL::get(std::forward<threading::ReactionTask&>(r));
+                auto data = DSL::get(r);
                 
                 // Execute with the stored data
                 return [callback, data] {

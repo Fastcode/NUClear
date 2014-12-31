@@ -49,7 +49,7 @@ namespace NUClear {
             struct BindFission<TRet (TRelevant...), TFirst, TWords...> {
                 
                 template <typename DSL, typename TFunc, typename... TRemainder>
-                static inline std::vector<threading::ReactionHandle> bind(Reactor& reactor, const std::string& identifier, TFunc callback, TRelevant... relevant, TRemainder... remainder) {
+                static inline std::vector<threading::ReactionHandle> bind(Reactor& reactor, const std::string& identifier, TFunc&& callback, TRelevant&&... relevant, TRemainder&&... remainder) {
                     
                     // Call our bind function with the relevant arguments
                     std::vector<threading::ReactionHandle> init = TFirst::template bind<DSL>(reactor, identifier, std::forward<TFunc>(callback), std::forward<TRelevant>(relevant)...);
@@ -66,7 +66,7 @@ namespace NUClear {
             struct BindFusion {
                 
                 template <typename DSL, typename U = TFirst, typename TFunc, typename... TArgs>
-                static inline auto bind(Reactor& reactor, const std::string& identifier, TFunc callback, TArgs... args)
+                static inline auto bind(Reactor& reactor, const std::string& identifier, TFunc&& callback, TArgs&&... args)
                 -> EnableIf<All<has_bind<U>, Any<has_bind<TWords>...>>
                 , std::vector<threading::ReactionHandle>> {
                     
@@ -77,7 +77,7 @@ namespace NUClear {
                 }
                 
                 template <typename DSL, typename U = TFirst, typename TFunc, typename... TArgs>
-                static inline auto bind(Reactor& reactor, const std::string& identifier, TFunc callback, TArgs... args)
+                static inline auto bind(Reactor& reactor, const std::string& identifier, TFunc&& callback, TArgs&&... args)
                 -> EnableIf<All<has_bind<U>, Not<Any<has_bind<TWords>...>>>
                 , std::vector<threading::ReactionHandle>> {
                     
@@ -88,7 +88,7 @@ namespace NUClear {
                 }
                 
                 template <typename DSL, typename U = TFirst, typename TFunc, typename... TArgs>
-                static inline auto bind(Reactor& reactor, const std::string& identifier, TFunc callback, TArgs... args)
+                static inline auto bind(Reactor& reactor, const std::string& identifier, TFunc&& callback, TArgs&&... args)
                 -> EnableIf<All<Not<has_bind<U>>, Any<has_bind<TWords>...>>
                 , std::vector<threading::ReactionHandle>> {
                     

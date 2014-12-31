@@ -18,7 +18,7 @@
 namespace NUClear {
     
     template <typename... TParams, typename TFunc>
-    std::vector<threading::ReactionHandle> Reactor::on(TFunc callback) {
+    std::vector<threading::ReactionHandle> Reactor::on(TFunc&& callback) {
         
         // Forward an empty string as our user reaction name
         return on<TParams...>("", std::forward<TFunc>(callback));
@@ -33,7 +33,7 @@ namespace NUClear {
         // Execute our compile time DSL Fusion
         using DSL = dsl::Parse<TDSL...>;
         
-        auto handles = DSL::bind(std::forward<Reactor&>(*this), std::forward<const std::string&>(name), std::forward<TFunc&&>(callback));
+        auto handles = DSL::bind(*this, name, std::forward<TFunc>(callback));
         
         reactionHandles.insert(std::end(reactionHandles), std::begin(handles), std::end(handles));
         
