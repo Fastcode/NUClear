@@ -26,7 +26,9 @@
 #include <chrono>
 #include <atomic>
 
+#include "nuclear_bits/util/apply.h"
 #include "nuclear_bits/util/demangle.h"
+#include "nuclear_bits/util/Sequence.h"
 
 #include "nuclear_bits/dsl/Parse.h"
 
@@ -148,8 +150,11 @@ namespace NUClear {
         /// @brief This provides functions to modify how an on statement runs after it has been created
         using ReactionHandle = threading::ReactionHandle;
         
+        template <typename DSL, typename... TArgs>
+        struct Binder;
+        
         // FUNCTIONS
-        
+
         /**
          * @brief The on function is the method used to create a reaction in the NUClear system.
          *
@@ -160,30 +165,12 @@ namespace NUClear {
          * @tparam TDSL     The NUClear domain specific language information
          * @tparam TFunc    The type of the function passed in
          *
-         * @param callback  The callback to execute when the trigger on this happens
+         * @param args      The arguments that will be passed to each of the binding DSL words in order
          *
-         * @return A ReactionHandle that controls if the created reaction runs or not
+         * @return A Binder object that can be used to bind callbacks to this DSL statement
          */
-        template <typename... TDSL, typename TFunc>
-        std::vector<threading::ReactionHandle> on(TFunc&& callback);
-        
-        /**
-         * @brief The on function is the method used to create a reaction in the NUClear system.
-         *
-         * @details
-         *  This function is used to create a Reaction in the system. By providing the correct
-         *  template parameters, this function can modify how and when this reaction runs.
-         *
-         * @tparam TDSL     The NUClear domain specific language information
-         * @tparam TFunc    The type of the function passed in
-         *
-         * @param name      The name of this reaction to show in statistics
-         * @param callback  The callback to execute when the trigger on this happens
-         *
-         * @return A ReactionHandle that controls if the created reaction runs or not
-         */
-        template <typename... TDSL, typename TFunc>
-        std::vector<threading::ReactionHandle> on(const std::string& name, TFunc&& callback);
+        template <typename... TDSL, typename... TArgs>
+        Binder<dsl::Parse<TDSL...>, TArgs...> on(TArgs&&... args);
         
         /**
          * @brief Emits data into the system so that other reactors can use it.

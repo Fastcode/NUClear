@@ -33,7 +33,7 @@ namespace NUClear {
                 typedef std::false_type no;
                 
                 template <typename F, typename... A>
-                static yes test_func(std::vector<threading::ReactionHandle>(*)(Reactor&, const std::string&, F&&, A&&...));
+                static yes test_func(std::vector<threading::ReactionHandle>(*)(Reactor&, const std::string&, F, A...));
                 static no test_func(...);
                 
                 template <typename U> static auto test(int) -> decltype(test_func(U::template bind<ParsedNoOp, std::function<void ()>>));

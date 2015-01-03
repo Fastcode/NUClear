@@ -45,8 +45,6 @@ namespace NUClear {
                 return util::Meta::If<fusion::has_get<DSL>, DSL, fusion::NoOp>::template get<Parse<Sentence...>>(r);
             }
             
-            // TODO for bind we always need to have a bind function (at least one) so have a static assert that if there isn't one then cry a lot
-            
             template <typename TFunc, typename... TArgs>
             static auto bind(Reactor& r, const std::string& label, TFunc&& callback, TArgs... args)
             -> std::vector<threading::ReactionHandle> {

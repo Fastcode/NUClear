@@ -19,21 +19,24 @@
 
 #include "nuclear"
 
-struct DifferentOrderingMessage1 { int a; };
-struct DifferentOrderingMessage2 { int a; };
-struct DifferentOrderingMessage3 { int a; };
-
-class DifferentOrderingReactor : public NUClear::Reactor {
-public:
-    DifferentOrderingReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
-        // Check that the lists are combined, and that the function args are in order
-        on<With<DifferentOrderingMessage1>, Trigger<DifferentOrderingMessage3>, With<DifferentOrderingMessage2>>
-        ([this](const DifferentOrderingMessage1&, const DifferentOrderingMessage3&, const DifferentOrderingMessage2&) {
-            
-            this->powerplant.shutdown();
-        });
-    }
-};
+namespace {
+    
+    struct DifferentOrderingMessage1 { int a; };
+    struct DifferentOrderingMessage2 { int a; };
+    struct DifferentOrderingMessage3 { int a; };
+    
+    class DifferentOrderingReactor : public NUClear::Reactor {
+    public:
+        DifferentOrderingReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
+            // Check that the lists are combined, and that the function args are in order
+            on<With<DifferentOrderingMessage1>, Trigger<DifferentOrderingMessage3>, With<DifferentOrderingMessage2>>
+            ().then([this](const DifferentOrderingMessage1&, const DifferentOrderingMessage3&, const DifferentOrderingMessage2&) {
+                
+                this->powerplant.shutdown();
+            });
+        }
+    };
+}
 
 TEST_CASE("Testing poorly ordered on arguments", "[api]") {
     

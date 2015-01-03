@@ -19,30 +19,32 @@
 
 #include "nuclear"
 
-volatile bool didShutDown = false;
-
-struct SimpleMessage {
-    int data;
-};
-
-class TestReactor : public NUClear::Reactor {
-public:
-    TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
-        
-        on<Trigger<SimpleMessage>>([this](const SimpleMessage& message) {
+// Anonymous namespace to keep everything file local
+namespace {
+    
+    volatile bool didShutDown = false;
+    
+    struct SimpleMessage {};
+    
+    class TestReactor : public NUClear::Reactor {
+    public:
+        TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
             
-            // The message we recieved should have test == 10
-            REQUIRE(message.data == 10);
+            on<Trigger<SimpleMessage>>().then([this] {
+                
+                std::cout << "Telling things to shutdown" << std::endl;
+                
+                // Shutdown so we can test shutting down
+                powerplant.shutdown();
+            });
             
-            // We are finished the test
-            powerplant.shutdown();
-        });
-        
-        on<Shutdown>([this]() {
-            didShutDown = true;
-        });
-    }
-};
+            on<Shutdown>().then([this] {
+                
+                didShutDown = true;
+            });
+        }
+    };
+}
 
 TEST_CASE("A test that a shutdown message is emitted when the system shuts down", "[api]") {
     
@@ -51,7 +53,7 @@ TEST_CASE("A test that a shutdown message is emitted when the system shuts down"
     NUClear::PowerPlant plant(config);
     plant.install<TestReactor>();
     
-    plant.emit(std::unique_ptr<SimpleMessage>(new SimpleMessage{10}));
+    plant.emit(std::make_unique<SimpleMessage>());
     
     plant.start();
     

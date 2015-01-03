@@ -21,6 +21,7 @@
 
 // Anonymous namespace to keep everything file local
 namespace {
+    
     struct ShutdownNowPlx {};
 
     class TestReactor : public NUClear::Reactor {
@@ -29,7 +30,7 @@ namespace {
         TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
             emit<NUClear::dsl::word::emit::Initialize>(std::make_unique<int>(5));
 
-            on<Trigger<int>>([this](const int& v) {
+            on<Trigger<int>>().then([this](const int& v) {
                 REQUIRE(v == 5);
 
                 // We can't call shutdown here because 
@@ -39,7 +40,7 @@ namespace {
                 emit(std::make_unique<ShutdownNowPlx>());
             });
             
-            on<Trigger<ShutdownNowPlx>>([this] {
+            on<Trigger<ShutdownNowPlx>>().then([this] {
                 powerplant.shutdown();
             });
         }

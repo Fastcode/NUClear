@@ -45,10 +45,10 @@ namespace NUClear {
             template <typename TFirst, typename... TWords>
             struct BindFusion;
             
-            template <typename TRet, typename... TRelevant, typename TFirst, typename... TWords>
-            struct BindFission<TRet (TRelevant...), TFirst, TWords...> {
+            template <typename TRet, typename TFunc, typename... TRelevant, typename TFirst, typename... TWords>
+            struct BindFission<TRet (Reactor&, const std::string&, TFunc, TRelevant...), TFirst, TWords...> {
                 
-                template <typename DSL, typename TFunc, typename... TRemainder>
+                template <typename DSL, typename... TRemainder>
                 static inline std::vector<threading::ReactionHandle> bind(Reactor& reactor, const std::string& identifier, TFunc&& callback, TRelevant&&... relevant, TRemainder&&... remainder) {
                     
                     // Call our bind function with the relevant arguments
@@ -73,7 +73,7 @@ namespace NUClear {
                     // Us and our children
                     
                     // Fission off the arguments that we need (Fission will rejoin fusion when it's done)
-                    return BindFission<decltype(TFirst::template get<DSL>), TFirst, TWords...>::template bind<DSL>(reactor, identifier, std::forward<TFunc>(callback), std::forward<TArgs>(args)...);
+                    return BindFission<decltype(TFirst::template bind<DSL, TFunc>), TFirst, TWords...>::template bind<DSL>(reactor, identifier, std::forward<TFunc>(callback), std::forward<TArgs>(args)...);
                 }
                 
                 template <typename DSL, typename U = TFirst, typename TFunc, typename... TArgs>

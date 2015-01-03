@@ -43,7 +43,7 @@ namespace NUClear {
               , steps(0)
               , lock(execute) {
                   
-                on<Trigger<dsl::word::EveryConfiguration>>([this] (const dsl::word::EveryConfiguration& config) {
+                on<Trigger<dsl::word::EveryConfiguration>>().then([this] (const dsl::word::EveryConfiguration& config) {
                     
                     auto item = std::find_if(std::begin(steps), std::end(steps), [&config] (const Step& item) {
                         return item.jump == config.jump;
@@ -67,7 +67,7 @@ namespace NUClear {
                     // Otherwise add a new step
                 });
                   
-                on<Trigger<dsl::word::UnbindEvery>>([this] (const dsl::word::UnbindEvery& unbind) {
+                on<Trigger<dsl::word::UnbindEvery>>().then([this] (const dsl::word::UnbindEvery& unbind) {
                     
                     // Loop through all of our steps
                     for(auto& step : steps) {
@@ -85,11 +85,11 @@ namespace NUClear {
                 });
                   
                 // When we shutdown we unlock our lock so that our chrono will quit straight away
-                on<Shutdown>([this] {
+                on<Shutdown>().then([this] {
                     lock.unlock();
                 });
                 
-                on<Always>([this] {
+                on<Always>().then([this] {
                     // If we have steps to do
                     if(!steps.empty()) {
                         

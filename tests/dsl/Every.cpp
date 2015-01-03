@@ -21,66 +21,69 @@
 
 #include "nuclear"
 
-class TestReactor : public NUClear::Reactor {
-public:
-    // Store our times
-    std::vector<NUClear::clock::time_point> times;
+namespace {
     
-    static constexpr uint NUM_LOG_ITEMS = 100;
-    
-    static constexpr uint WAIT_LENGTH_MILLIS = 10;
-    
-    TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
-        // Trigger every 10 milliseconds
-        on<Every<WAIT_LENGTH_MILLIS, std::chrono::milliseconds>>([this] {
-            
-            // Start logging our times each time an emit happens
-            times.push_back(NUClear::clock::now());
-            
-            // Once we have enough items then we can do our statistics
-            if (times.size() == NUM_LOG_ITEMS) {
+    class TestReactor : public NUClear::Reactor {
+    public:
+        // Store our times
+        std::vector<NUClear::clock::time_point> times;
+        
+        static constexpr uint NUM_LOG_ITEMS = 100;
+        
+        static constexpr uint WAIT_LENGTH_MILLIS = 10;
+        
+        TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
+            // Trigger every 10 milliseconds
+            on<Every<WAIT_LENGTH_MILLIS, std::chrono::milliseconds>>().then([this] {
                 
-                // Build up our difference vector
-                std::vector<double> diff;
+                // Start logging our times each time an emit happens
+                times.push_back(NUClear::clock::now());
                 
-                for(uint i = 0; i < times.size() - 1; ++i) {
-                    std::chrono::nanoseconds delta = times[i + 1] - times[i];
+                // Once we have enough items then we can do our statistics
+                if (times.size() == NUM_LOG_ITEMS) {
                     
-                    // Store our difference in seconds
-                    diff.push_back(double(delta.count()) / double(std::nano::den));
+                    // Build up our difference vector
+                    std::vector<double> diff;
+                    
+                    for(uint i = 0; i < times.size() - 1; ++i) {
+                        std::chrono::nanoseconds delta = times[i + 1] - times[i];
+                        
+                        // Store our difference in seconds
+                        diff.push_back(double(delta.count()) / double(std::nano::den));
+                    }
+                    
+                    // Normalize our differences to jitter
+                    for(double& d : diff) {
+                        d -= double(WAIT_LENGTH_MILLIS) / 1000.0;
+                    }
+                    
+                    // Calculate our mean, range, and stddev for the set
+                    double sum = std::accumulate(std::begin(diff), std::end(diff), 0.0);
+                    double mean = sum / double(diff.size());
+                    double variance = std::inner_product(diff.begin(), diff.end(), diff.begin(), 0.0);
+                    double stddev = std::sqrt(variance / double(diff.size()));
+                    
+                    INFO("Sum: " << sum);
+                    INFO("Mean: " << mean);
+                    INFO("Stddev: " << stddev);
+                    
+                    // As time goes on the average wait should be 0 (we accept less then 0.5ms for this test)
+                    REQUIRE(fabs(mean) < 0.0005);
+                    
+                    // Require that 95% (ish) of all results are within 3ms
+                    WARN("This is far too high error, need to reduce it somehow in the future");
+                    REQUIRE(fabs(mean + stddev * 2) < 0.003);
+                    
                 }
-                
-                // Normalize our differences to jitter
-                for(double& d : diff) {
-                    d -= double(WAIT_LENGTH_MILLIS) / 1000.0;
+                // Once we have more then enough items then we shutdown the powerplant
+                else if(times.size() > NUM_LOG_ITEMS) {
+                    // We are finished the test
+                    this->powerplant.shutdown();
                 }
-                
-                // Calculate our mean, range, and stddev for the set
-                double sum = std::accumulate(std::begin(diff), std::end(diff), 0.0);
-                double mean = sum / double(diff.size());
-                double variance = std::inner_product(diff.begin(), diff.end(), diff.begin(), 0.0);
-                double stddev = std::sqrt(variance / double(diff.size()));
-                
-                INFO("Sum: " << sum);
-                INFO("Mean: " << mean);
-                INFO("Stddev: " << stddev);
-                
-                // As time goes on the average wait should be 0 (we accept less then 0.5ms for this test)
-                REQUIRE(fabs(mean) < 0.0005);
-                
-                // Require that 95% (ish) of all results are within 3ms
-                WARN("This is far too high error, need to reduce it somehow in the future");
-                REQUIRE(fabs(mean + stddev * 2) < 0.003);
-                
-            }
-            // Once we have more then enough items then we shutdown the powerplant
-            else if(times.size() > NUM_LOG_ITEMS) {
-                // We are finished the test
-                this->powerplant.shutdown();
-            }
-        });
-    }
-};
+            });
+        }
+    };
+}
 
 TEST_CASE("Testing the Every<> Smart Type", "[api][every]") {
     

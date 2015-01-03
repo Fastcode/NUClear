@@ -17,34 +17,57 @@
 
 namespace NUClear {
     
-    template <typename... TParams, typename TFunc>
-    std::vector<threading::ReactionHandle> Reactor::on(TFunc&& callback) {
+    template <typename DSL, typename... TArgs>
+    struct Reactor::Binder {
+    public:
+        Binder(Reactor& r, TArgs&&... args)
+        : reactor(r)
+        , args(args...) {
+        }
         
-        // Forward an empty string as our user reaction name
-        return on<TParams...>("", std::forward<TFunc>(callback));
-    }
-    
-    template <typename... TDSL, typename TFunc>
-    std::vector<threading::ReactionHandle> Reactor::on(const std::string& name, TFunc&& callback) {
+        template <typename TFunc>
+        std::vector<ReactionHandle> then(const std::string& label, TFunc&& callback) {
+            
+            return then(label, std::forward<TFunc>(callback), util::GenerateSequence<sizeof...(TArgs)>());
+            
+        }
         
+        template <typename TFunc>
+        std::vector<ReactionHandle> then(TFunc&& callback) {
+            return then("", std::forward<TFunc>(callback));
+        }
+        
+    private:
+        
+        template <typename TFunc, int... Index>
+        std::vector<ReactionHandle> then(const std::string& label, TFunc&& callback, const util::Sequence<Index...>&) {
+            
+            std::vector<ReactionHandle> handles = DSL::bind(reactor, label, std::forward<TFunc>(callback), std::get<Index>(args)...);
+            
+            // Put all of the handles into our global list so we can debind them on destruction
+            reactor.reactionHandles.insert(std::end(reactor.reactionHandles), std::begin(handles), std::end(handles));
+            
+            return handles;
+        }
+        
+        Reactor& reactor;
+        std::tuple<TArgs...> args;
+    };
+
+    template <typename... TDSL, typename... TArgs>
+    Reactor::Binder<dsl::Parse<TDSL...>, TArgs...> Reactor::on(TArgs&&... args) {
+
         // There must be some parameters
-        static_assert(sizeof...(TDSL) > 0, "You must have at least one paramter in an on");
+        static_assert(sizeof...(TDSL) > 0, "You must have at least one parameter in an on");
         
-        // Execute our compile time DSL Fusion
-        using DSL = dsl::Parse<TDSL...>;
-        
-        auto handles = DSL::bind(*this, name, std::forward<TFunc>(callback));
-        
-        reactionHandles.insert(std::end(reactionHandles), std::begin(handles), std::end(handles));
-        
-        return handles;
+        return Binder<dsl::Parse<TDSL...>, TArgs...>(*this, std::forward<TArgs>(args)...);
     }
-    
+
     template <typename... THandlers, typename TData>
     void Reactor::emit(std::unique_ptr<TData>&& data) {
         powerplant.emit<THandlers...>(std::forward<std::unique_ptr<TData>>(data));
     }
-    
+
     template <enum LogLevel level, typename... TArgs>
     void Reactor::log(TArgs... args) {
         // If the log is above or equal to our log level

@@ -19,28 +19,31 @@
 
 #include "nuclear"
 
-struct ShutdownNowPlx {};
-
-class TestReactor : public NUClear::Reactor {
-public:
+namespace {
     
-    TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
-        on<Trigger<NUClear::message::CommandLineArguments>>([this](const NUClear::message::CommandLineArguments& args) {
-            REQUIRE(args[0] == "Hello");
-            REQUIRE(args[1] == "World");
-            
-            // We can't call shutdown here because
-            // we haven't started yet. That's because
-            // emits from Scope::INITIALIZE are not
-            // considered fully "initialized"
-            emit(std::make_unique<ShutdownNowPlx>());
-        });
+    struct ShutdownNowPlx {};
+    
+    class TestReactor : public NUClear::Reactor {
+    public:
         
-        on<Trigger<ShutdownNowPlx>>([this] {
-            powerplant.shutdown();
-        });
-    }
-};
+        TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
+            on<Trigger<NUClear::message::CommandLineArguments>>().then([this](const NUClear::message::CommandLineArguments& args) {
+                REQUIRE(args[0] == "Hello");
+                REQUIRE(args[1] == "World");
+                
+                // We can't call shutdown here because
+                // we haven't started yet. That's because
+                // emits from Scope::INITIALIZE are not
+                // considered fully "initialized"
+                emit(std::make_unique<ShutdownNowPlx>());
+            });
+            
+            on<Trigger<ShutdownNowPlx>>([this] {
+                powerplant.shutdown();
+            });
+        }
+    };
+}
 
 TEST_CASE("Testing the Command Line argument capturing", "[api][command_line_arguments]") {
     int argc = 2;

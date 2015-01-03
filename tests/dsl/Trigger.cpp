@@ -19,24 +19,26 @@
 
 #include "nuclear"
 
-struct SimpleMessage {
-    int data;
-};
-
-class TestReactor : public NUClear::Reactor {
-public:
-    TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
-        
-        on<Trigger<SimpleMessage>>([this](const SimpleMessage& message) {
+namespace {
+    struct SimpleMessage {
+        int data;
+    };
+    
+    class TestReactor : public NUClear::Reactor {
+    public:
+        TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
             
-            // The message we recieved should have test == 10
-            REQUIRE(message.data == 10);
-            
-            // We are finished the test
-            this->powerplant.shutdown();
-        });
-    }
-};
+            on<Trigger<SimpleMessage>>().then([this](const SimpleMessage& message) {
+                
+                // The message we recieved should have test == 10
+                REQUIRE(message.data == 10);
+                
+                // We are finished the test
+                this->powerplant.shutdown();
+            });
+        }
+    };
+}
 
 
 TEST_CASE("A very basic test for Emit and On", "[api]") {
