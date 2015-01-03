@@ -38,6 +38,10 @@ namespace NUClear {
             template <typename... Conditions>
             using Any = util::Meta::Any<Conditions...>;
             
+            // This function is needed because G++ is a little slow when it comes to templated functions and needs some help
+            template <typename R, typename... A>
+            auto resolve_function_type(R(*)(A...))
+            -> R(*)(A...);
             
             template <typename TFuncSignature, typename TFirst, typename... TWords>
             struct BindFission;
@@ -45,8 +49,8 @@ namespace NUClear {
             template <typename TFirst, typename... TWords>
             struct BindFusion;
             
-            template <typename TRet, typename TFunc, typename... TRelevant, typename TFirst, typename... TWords>
-            struct BindFission<TRet (Reactor&, const std::string&, TFunc, TRelevant...), TFirst, TWords...> {
+            template <typename TFunc, typename... TRelevant, typename TFirst, typename... TWords>
+            struct BindFission<std::vector<threading::ReactionHandle>(*)(Reactor&, const std::string&, TFunc, TRelevant...), TFirst, TWords...> {
                 
                 template <typename DSL, typename... TRemainder>
                 static inline std::vector<threading::ReactionHandle> bind(Reactor& reactor, const std::string& identifier, TFunc&& callback, TRelevant&&... relevant, TRemainder&&... remainder) {
@@ -65,6 +69,15 @@ namespace NUClear {
             template <typename TFirst, typename... TWords>
             struct BindFusion {
                 
+                /**
+                 * @brief This function is enabled in the situation that TFirst has a bind function, and there
+                 *          is a bind function within TWords also.
+                 *
+                 * @tparam DSL      The parsed DSL that resulted from all these functions
+                 * @tparam U        A copy of TFirst used for SFINAE
+                 * @tparam TFunc    The type of the callback function passed to bind
+                 * @tparam TArgs    The types of the runtime arguments passed into the bind
+                 */
                 template <typename DSL, typename U = TFirst, typename TFunc, typename... TArgs>
                 static inline auto bind(Reactor& reactor, const std::string& identifier, TFunc&& callback, TArgs&&... args)
                 -> EnableIf<All<has_bind<U>, Any<has_bind<TWords>...>>
@@ -72,10 +85,22 @@ namespace NUClear {
                     
                     // Us and our children
                     
+                    // Get the type of the function, G++ needs a little help to work this out
+                    using BindFunc = decltype(resolve_function_type(TFirst::template bind<DSL, TFunc>));
+                    
                     // Fission off the arguments that we need (Fission will rejoin fusion when it's done)
-                    return BindFission<decltype(TFirst::template bind<DSL, TFunc>), TFirst, TWords...>::template bind<DSL>(reactor, identifier, std::forward<TFunc>(callback), std::forward<TArgs>(args)...);
+                    return BindFission<BindFunc, TFirst, TWords...>::template bind<DSL>(reactor, identifier, std::forward<TFunc>(callback), std::forward<TArgs>(args)...);
                 }
                 
+                /**
+                 * @brief This function is enabled in the situation that TFirst has a bind function, however there
+                 *          are no further bind functions within our words
+                 *
+                 * @tparam DSL      The parsed DSL that resulted from all these functions
+                 * @tparam U        A copy of TFirst used for SFINAE
+                 * @tparam TFunc    The type of the callback function passed to bind
+                 * @tparam TArgs    The types of the runtime arguments passed into the bind
+                 */
                 template <typename DSL, typename U = TFirst, typename TFunc, typename... TArgs>
                 static inline auto bind(Reactor& reactor, const std::string& identifier, TFunc&& callback, TArgs&&... args)
                 -> EnableIf<All<has_bind<U>, Not<Any<has_bind<TWords>...>>>
@@ -87,57 +112,25 @@ namespace NUClear {
                     return TFirst::template bind<DSL>(reactor, identifier, std::forward<TFunc>(callback), std::forward<TArgs>(args)...);
                 }
                 
+                /**
+                 * @brief This function is enabled in the situation that TFirst does not have a bind function, but there
+                 *          are words further down that do
+                 *
+                 * @tparam DSL      The parsed DSL that resulted from all these functions
+                 * @tparam U        A copy of TFirst used for SFINAE
+                 * @tparam TFunc    The type of the callback function passed to bind
+                 * @tparam TArgs    The types of the runtime arguments passed into the bind
+                 */
                 template <typename DSL, typename U = TFirst, typename TFunc, typename... TArgs>
                 static inline auto bind(Reactor& reactor, const std::string& identifier, TFunc&& callback, TArgs&&... args)
                 -> EnableIf<All<Not<has_bind<U>>, Any<has_bind<TWords>...>>
                 , std::vector<threading::ReactionHandle>> {
                     
                     // Not us but our children
+                    
                     // Forward onto the next stage of bind
                     return BindFusion<TWords...>::template bind<DSL>(reactor, identifier, std::forward<TFunc>(callback), std::forward<TArgs>(args)...);
                 }
-                
-                
-//                /**
-//                 * @brief This function is enabled in the situation that TFirst has a bind function, and there
-//                 *          is a bind function within TWords also.
-//                 *
-//                 * @tparam U        A copy of TFirst used for SFINAE
-//                 * @tparam TFunc    The type of the callback function passed to bind
-//                 * @tparam TArgs    The types of the runtime arguments passed into the bind
-//                 */
-//                template <typename DSL, typename U = TFirst, typename TFunc, typename... TArgs>
-//                static inline void bind(Reactor& reactor, const std::string& identifier, TFunc callback, TArgs... args) {
-//                    
-//                }
-//                
-//                /**
-//                 * @brief This function is enabled in the situation that TFirst has a bind function, however there
-//                 *          are no further bind functions within our words
-//                 *
-//                 * @tparam U        A copy of TFirst used for SFINAE
-//                 * @tparam TFunc    The type of the callback function passed to bind
-//                 * @tparam TArgs    The types of the runtime arguments passed into the bind
-//                 */
-//                template <typename DSL, typename U = TFirst, typename TFunc, typename... TArgs>
-//                static inline void bind(Reactor& reactor, const std::string& identifier, TFunc callback, TArgs... args) {
-//
-//                }
-//                
-//                /**
-//                 * @brief This function is enabled in the situation that TFirst does not have a bind function, but there
-//                 *          are words further down that do
-//                 *
-//                 * @tparam U        A copy of TFirst used for SFINAE
-//                 * @tparam TFunc    The type of the callback function passed to bind
-//                 * @tparam TArgs    The types of the runtime arguments passed into the bind
-//                 */
-//                template <typename DSL, typename U = TFirst, typename TFunc, typename... TArgs>
-//                static inline void bind(Reactor& reactor, const std::string& identifier, TFunc callback, TArgs... args) {
-//                    
-//                    // Forward onto the next stage of bind
-//                    BindFusion<TWords...>::template bind<DSL>(reactor, identifier, std::forward<TFunc>(callback), std::forward<TArgs>(args)...);
-//                }
             };
         }
     }
