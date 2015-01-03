@@ -122,12 +122,10 @@ namespace NUClear {
                         
                         // Sort the steps
                         std::sort(std::begin(steps), std::end(steps));
-                        
-                        
                     }
                     // Otherwise we wait for something to happen
                     else {
-                        execute.try_lock();
+                        execute.lock();
                     }
                 });
                 
