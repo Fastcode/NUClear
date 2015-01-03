@@ -32,8 +32,6 @@ namespace {
             
             on<Trigger<SimpleMessage>>().then([this] {
                 
-                std::cout << "Telling things to shutdown" << std::endl;
-                
                 // Shutdown so we can test shutting down
                 powerplant.shutdown();
             });

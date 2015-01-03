@@ -37,7 +37,7 @@ namespace {
                 powerplant.shutdown();
             });
             
-            on<Startup>([this]() {
+            on<Startup>().then([this]() {
                 emit(std::unique_ptr<SimpleMessage>(new SimpleMessage{10}));
             });
         }

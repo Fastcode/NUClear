@@ -38,7 +38,7 @@ namespace {
                 emit(std::make_unique<ShutdownNowPlx>());
             });
             
-            on<Trigger<ShutdownNowPlx>>([this] {
+            on<Trigger<ShutdownNowPlx>>().then([this] {
                 powerplant.shutdown();
             });
         }
