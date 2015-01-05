@@ -20,6 +20,7 @@
 
 #include "nuclear_bits/dsl/word/emit/Direct.h"
 #include "nuclear_bits/dsl/word/Single.h"
+#include "nuclear_bits/dsl/store/ThreadStore.h"
 #include "nuclear_bits/util/generate_callback.h"
 #include "nuclear_bits/util/get_identifier.h"
 
@@ -80,10 +81,11 @@ namespace NUClear {
                     return handles;
                 }
                 
+                template <typename DSL>
                 static inline std::tuple<int, int> get(threading::ReactionTask&) {
                     
-                    // Temp
-                    return std::make_tuple(1, 2);
+                    // Return our thread local variable
+                    return std::make_tuple(store::ThreadStore<int, 0>::value, store::ThreadStore<int, 1>::value);
                 };
             };
         }

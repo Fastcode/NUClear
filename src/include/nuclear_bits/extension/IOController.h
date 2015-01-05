@@ -71,8 +71,6 @@ namespace NUClear {
                     events |= config.events & dsl::word::IO::CLOSE ? POLLHUP            : 0;
                     events |= config.events & dsl::word::IO::ERROR ? POLLNVAL | POLLERR : 0;
                     
-                    std::cout << config.fd << " " << config.events << std::endl;
-                    
                     reactions.push_back(Task {
                         config.fd,
                         events,
@@ -159,6 +157,16 @@ namespace NUClear {
                                             if (it->events & fd.revents) {
                                                 // Add the task to our queue
                                                 try {
+                                                    // Store our fd in thread store 1
+                                                    dsl::store::ThreadStore<int, 0>::value = fd.fd;
+                                                    
+                                                    // Evaluate and store our set in thread store 2
+                                                    dsl::store::ThreadStore<int, 1>::value = 0;
+                                                    dsl::store::ThreadStore<int, 1>::value |= fd.revents & POLLIN               ? dsl::word::IO::READ     : 0;
+                                                    dsl::store::ThreadStore<int, 1>::value |= fd.revents & POLLOUT              ? dsl::word::IO::WRITE    : 0;
+                                                    dsl::store::ThreadStore<int, 1>::value |= fd.revents & POLLHUP              ? dsl::word::IO::CLOSE    : 0;
+                                                    dsl::store::ThreadStore<int, 1>::value |= fd.revents & (POLLNVAL | POLLERR) ? dsl::word::IO::ERROR    : 0;
+                                                    
                                                     powerplant.submit(it->reaction->getTask(NUClear::threading::ReactionTask::currentTask));
                                                 }
                                                 catch(...) {

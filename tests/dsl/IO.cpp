@@ -38,23 +38,30 @@ namespace {
             in = fds[0];
             out = fds[1];
             
-            on<IO>(in, IO::READ).then([this] {
+            on<IO>(in, IO::READ).then([this] (int fd, int set) {
                 
-                // Check the data recieved is the same as sent
-                std::cout << "Read Task" << std::endl;
+                // Read from our FD
+                char val;
+                int bytes = read(fd, &val, 1);
+                
+                // Check the data is correct
+                REQUIRE((set & IO::READ) != 0);
+                REQUIRE(bytes == 1);
+                REQUIRE((val & 0xFF) == 0xDE);
                 
                 // Shutdown
                 powerplant.shutdown();
             });
             
-            writer = on<IO>(out, IO::WRITE).then([this] {
-                // Send data into read
+            writer = on<IO>(out, IO::WRITE).then([this] (int fd, int set) {
                 
+                // Send data into our fd
                 char val = 0xDE;
+                int bytes = write(fd, &val, 1);
                 
-                write(out, &val, 1);
-                
-                std::cout << "Write Task" << std::endl;
+                // Check that our data was sent
+                REQUIRE((set & IO::WRITE) != 0);
+                REQUIRE(bytes == 1);
                 
                 // Unbind ourselves
                 writer.unbind();
