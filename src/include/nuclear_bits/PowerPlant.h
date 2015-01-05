@@ -31,16 +31,12 @@
 #include <string>
 #include <sstream>
 
-#include "nuclear_bits/DataFor.h"
-#include "nuclear_bits/extensions/serialization/Serialization.h"
-#include "nuclear_bits/threading/ThreadWorker.h"
+// Utilities
+#include "nuclear_bits/util/unpack.h"
+
 #include "nuclear_bits/threading/TaskScheduler.h"
-#include "nuclear_bits/metaprogramming/MetaProgramming.h"
-#include "nuclear_bits/metaprogramming/TypeMap.h"
-#include "nuclear_bits/metaprogramming/Sequence.h"
-#include "nuclear_bits/ForwardDeclarations.h"
-#include "nuclear_bits/LogLevel.h"
-#include "nuclear_bits/LogMessage.h"
+#include "nuclear_bits/message/LogLevel.h"
+#include "nuclear_bits/message/LogMessage.h"
 
 // Patch for std::make_unique in c++11 (should be fixed in c++14)
 #if __cplusplus == 201103L
@@ -54,8 +50,8 @@ namespace std {
 
 namespace NUClear {
     
-    // We import our Meta Programming tools
-    using namespace metaprogramming;
+    // Forward declare reactor
+    class Reactor;
     
     /**
      * @brief The PowerPlant is the core of a NUClear system. It holds all Reactors in it and manages their communications.
@@ -82,246 +78,18 @@ namespace NUClear {
          * @author Trent Houliston
          */
         struct Configuration {
-            /// @brief default to 4 threads
-            Configuration() : threadCount(4) {}
+            /// @brief default to the amount of hardware concurrency (or 2) threads
+            Configuration() : threadCount(std::thread::hardware_concurrency() == 0 ? 2 : std::thread::hardware_concurrency()) {}
             
             /// @brief The number of threads the system will use
-            unsigned threadCount;
+            unsigned int threadCount;
         };
-        
-    private:
-        // There can only be one powerplant, so this is it
-        static PowerPlant* powerplant;
-        
-        /**
-         * @brief The base master class is used as a base for all of the other masters.
-         *
-         * @details
-         *  A master is a segment of the PowerPlant that is responsible for a ptaicular role within the system.
-         *  They all have the same requirement to store a reference to the PowerPlant that they are a part of.
-         *
-         * @author Jake Woods
-         */
-        class BaseMaster {
-        public:
-            /// @brief Construct a new BaseMaster with our PowerPlant as context
-            BaseMaster(PowerPlant& parent) : parent(parent) {}
-        protected:
-            /// @brief The PowerPlant that this belongs to
-            PowerPlant& parent;
-        };
-        
-        /**
-         * @brief The ThreadMaster class is responsible for managing the thread pool and any service threads needed.
-         *
-         * @details
-         *  The ThreadMaster holds all of the threads in the system so that it can run their start and kill methods.
-         *  This allows the system to perform a graceful termination in the event of a system shutdown.
-         *  It is also responsible for holding the Thread Pool for reactions, and the scheduler that allocates them.
-         */
-        class ThreadMaster : public BaseMaster {
-            
-        public:
-            static __thread const threading::ReactionTask* currentTask;
-
-            /// @brief Construct a new ThreadMaster with our PowerPlant as context
-            ThreadMaster(PowerPlant& parent);
-            
-            /**
-             * @brief Starts up the ThreadMaster initiating all service threads and pool threads.
-             *
-             * @details
-             *  This will start up the entire system, beginning all threads and running the needed code. It will
-             *  block the thread that calls it until the system is shut down. This method should only be called
-             *  from the main thread. This will prevent the main thread ending which deletes all statics (which
-             *  are important for us).
-             */
-            void start();
-            
-            /**
-             * @brief
-             *  Shuts down the ThreadMaster, it will terminate all of the service and pool threads, and then
-             *  releases the main thread to terminate the system.
-             */
-            void shutdown();
-            
-            /**
-             * @brief Submits a new task to the ThreadPool to be queued and then executed.
-             *
-             * @param task The Reactor task to be executed in the thread pool
-             */
-            void submit(std::unique_ptr<threading::ReactionTask>&& task);
-            
-            /**
-             * @brief Submits a service task to be executed when the system starts up (will run in its own thread)
-             *
-             * @param task The Service task to be executed with the system
-             */
-            void serviceTask(threading::ThreadWorker::ServiceTask task);
-            
-        private:
-            /// @brief A vector of the threads in the system
-            std::vector<std::unique_ptr<threading::ThreadWorker>> threads;
-            /// @brief A vector of the Service tasks to be started with the system
-            std::vector<threading::ThreadWorker::ServiceTask> serviceTasks;
-            /// @brief Our TaskScheduler that handles distributing task to the pool threads
-            threading::TaskScheduler scheduler;
-        };
-        
-        /**
-         * @brief The CacheMaster is responsible for handling all of the data storage in the system.
-         *
-         * @attention
-         *  This CacheMaster uses static variables to enhance its speed, this means that you cannot have more then
-         *  one PowerPlant in an executable without resolving this.
-         */
-        class CacheMaster : public BaseMaster {
-        private:
-            /// @brief This Value cache is a special Static type buffer that allows compile time lookup of types.
-            template <typename TData>
-            using ValueCache = metaprogramming::TypeMap<CacheMaster, TData, TData>;
-            
-        public:
-            /// @brief Construct a new CacheMaster with our PowerPlant as context
-            CacheMaster(PowerPlant& parent) : BaseMaster(parent) {}
-            
-            /**
-             * @brief Stores the passed data in our cache so that it can be retrieved.
-             *
-             * @tparam TData the type of data we are caching
-             *
-             * @param cache the data that we are caching
-             */
-            template <typename TData>
-            void cache(std::shared_ptr<TData> cache);
-            
-            /**
-             * @brief
-             *  This datatype is used for extension of getting data, by default it will get the most recent
-             *  element from the cache.
-             *
-             * @details
-             *  TODO give code example of an extension
-             *
-             * @tparam TData the datatype that is mentioned in the trigger (does not have to be the return type)
-             *
-             * @author Trent Houliston
-             */
-            template <typename TData>
-            struct Get;
-            
-            /**
-             * @brief This gets data from the cache and returns it
-             *
-             * @tparam TData The type of data to get
-             *
-             * @return The data that is attached to this type (influenced by extensions)
-             */
-            template <typename TData>
-            auto get() -> decltype(Get<TData>::get(parent)) {
-                return Get<TData>::get(parent);
-            }
-        };
-        
-        /**
-         * @brief The reactor master is responsible for holding all Reactors, as well as reactions.
-         *  It also hands out tasks and collects data for the cache master.
-         *
-         * @attention
-         *  This ReactorMaster uses static variables to enhance its speed, this means that you cannot have more then
-         *  one PowerPlant in an executable without resolving this.
-         */
-        class ReactorMaster : public BaseMaster {
-        public:
-            /**
-             * @brief Constructs a new ReactorMaster which is held in the PowerPlant that created it.
-             */
-            ReactorMaster(PowerPlant& parent);
-            
-            /**
-             * @brief Emits data to the reactions that need it and store the resulting data.
-             *
-             * @tparam TData The type of data we are emitting
-             *
-             * @param data The data we are emitting
-             */
-            template <typename TData>
-            void emit(std::shared_ptr<TData> data);
-            
-            /**
-             * @brief A direct emit is identical to a regular emit, except that it bypasses the thread pool.
-             *
-             * @tparam TData The type of data we are emitting
-             *
-             * @param data The data we are emitting
-             */
-            template <typename TData>
-            void directEmit(std::shared_ptr<TData> data);
-            
-            /**
-             * @brief
-             *  Queues an emit to trigger on start() instead of
-             *  immediately.
-             *
-             * @tparam TData The type of data we are emitting
-             *
-             * @param data The data we are emitting
-             */
-            template <typename TData>
-            void emitOnStart(std::shared_ptr<TData> data);
-            
-            /**
-             * @brief Builds and installs a reactor of the passed type.
-             *
-             * @tparam TReactor The type of the reactor we are installing
-             */
-            template <typename TReactor, enum LogLevel level = DEBUG>
-            void install();
-            
-            /**
-             * @brief Starts the ReactorMaster, this will direct emit all of the emitOnStart events
-             */
-            void start();
-            
-        private:
-            /// @brief Our cache that stores reactions that can be executed, can be accessed at compile time
-            template <typename TKey>
-            using CallbackCache = metaprogramming::TypeList<Reactor, TKey, std::unique_ptr<threading::Reaction>>;
-            
-            /// @brief Our vector of Reactors, will get destructed when this vector is
-            std::vector<std::unique_ptr<NUClear::Reactor>> reactors;
-            
-            /// @brief A list of emits that are to be done just before startup
-            std::queue<std::function<void ()>> deferredEmits;
-        };
-        
-        /**
-         * @brief This extension point allows changing the way that paticular datatypes are emitted, 
-         *  as well as creating new scopes for emitting data
-         *
-         * @details
-         *  TODO provide an example
-         *
-         * @tparam THandler A type to distinguish different scopes to emit to (local network etc.)
-         * @tparam TData The type of data we are emitting
-         *
-         * @author Trent Houliston
-         */
-        template <typename THandler, typename TData>
-        struct Emit;
         
     public:
         
         /// @brief Holds the configuration information for this PowerPlant (such as number of pool threads)
         const Configuration configuration;
         
-    protected:
-        /// @brief The ThreadMaster instance for this PowerPlant.
-        ThreadMaster threadmaster;
-        /// @brief The CacheMaster instance for this PowerPlant.
-        CacheMaster cachemaster;
-        /// @brief The ReactorMaster instance for this PowerPlant.
-        ReactorMaster reactormaster;
     public:
         /**
          * @brief
@@ -352,15 +120,19 @@ namespace NUClear {
         void shutdown();
         
         /**
-         * @brief Adds a service task thread to the PowerPlant's control.
-         *
-         * @details
-         *  A service task is a task that will be managed by the PowerPlants threadmaster
-         *  so that it can be started and killed with the rest of the system.
-         *
-         * @param task The service task to add to the system
+         * TODO document
          */
-        void addServiceTask(threading::ThreadWorker::ServiceTask task);
+        bool running();
+        
+        /**
+         * TODO document
+         */
+        void onStartup(std::function<void ()>&& func);
+        
+        /**
+         * TODO document
+         */
+        void addThreadTask(std::function<void ()>&& task);
         
         /**
          * @brief Installs a reactor of a particular type to the system.
@@ -375,6 +147,13 @@ namespace NUClear {
          */
         template <typename TReactor, enum LogLevel level = DEBUG>
         void install();
+        
+        /**
+         * @brief Submits a new task to the ThreadPool to be queued and then executed.
+         *
+         * @param task The Reaction task to be executed in the thread pool
+         */
+        void submit(std::unique_ptr<threading::ReactionTask>&& task);
         
         /**
          * @brief Log a message through NUClear's system.
@@ -392,21 +171,18 @@ namespace NUClear {
         static void log(TArgs... args);
         
         /**
-         * @brief Gets the stored version of a type of data
+         * @brief Emits data to the system and routes it to the other systems that use it.
          *
          * @details
-         *  Gets the most recent version of data emitted for a type.
+         *  TODO
          *
-         * @attention Note that this is not the same as a with as exists will not run
+         * @tparam THandlers    The handlers to use for this emit
+         * @tparam TData        The type of the data that we are emitting
          *
-         * @tparam TData the data type to get
-         *
-         * @return A shared_ptr to the data stored in the system
+         * @param data The data we are emitting
          */
         template <typename TData>
-        auto get() -> decltype(cachemaster.get<TData>()) {
-            return cachemaster.get<TData>();
-        }
+        void emit(std::unique_ptr<TData>&& data);
         
         /**
          * @brief Emits data to the system and routes it to the other systems that use it.
@@ -419,8 +195,26 @@ namespace NUClear {
          *
          * @param data The data we are emitting
          */
-        template <typename... THandlers, typename TData>
+        template <typename TFirstHandler, typename... THandlers, typename TData>
         void emit(std::unique_ptr<TData>&& data);
+        
+        
+    private:
+        // There can only be one powerplant, so this is it
+        static PowerPlant* powerplant;
+        
+        /// TODO
+        std::vector<std::function<void ()>> tasks;
+        /// @brief A vector of the running threads in the system
+        std::vector<std::unique_ptr<std::thread>> threads;
+        /// @brief Our TaskScheduler that handles distributing task to the pool threads
+        threading::TaskScheduler scheduler;
+        /// @brief Our vector of Reactors, will get destructed when this vector is
+        std::vector<std::unique_ptr<NUClear::Reactor>> reactors;
+        
+        
+        std::vector<std::function<void ()>> startupTasks;
+        volatile bool isRunning = false;
     };
     
     // This free floating log function can be called from anywhere and will use the singleton PowerPlant
@@ -434,18 +228,16 @@ namespace NUClear {
 // Include our Reactor.h first as the tight coupling between powerplant and reactor requires a specific include order
 #include "nuclear_bits/Reactor.h"
 
+// Emit types
+#include "nuclear_bits/dsl/word/emit/Local.h"
+#include "nuclear_bits/dsl/word/emit/Direct.h"
+#include "nuclear_bits/dsl/word/emit/Initialize.h"
+
+// Built in smart types
+#include "nuclear_bits/message/CommandLineArguments.h"
+
 // Include all of our implementation files (which use the previously included reactor.h)
 #include "nuclear_bits/PowerPlant.ipp"
-#include "nuclear_bits/CacheMaster.ipp"
-#include "nuclear_bits/ReactorMaster.ipp"
-
-// Include our built in extensions
-#include "nuclear_bits/extensions/Chrono.h"
-#include "nuclear_bits/extensions/Raw.h"
-#include "nuclear_bits/extensions/Optional.h"
-#include "nuclear_bits/extensions/Last.h"
-#include "nuclear_bits/extensions/Networking.h"
-#include "nuclear_bits/extensions/CommandLineArguments.h"
 
 #endif
 

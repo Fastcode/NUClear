@@ -18,10 +18,12 @@
 #ifndef NUCLEAR_ENVIRONMENT_H
 #define NUCLEAR_ENVIRONMENT_H
 
-#include "nuclear_bits/LogLevel.h"
-#include "nuclear_bits/ForwardDeclarations.h"
+#include "nuclear_bits/message/LogLevel.h"
 
 namespace NUClear {
+    
+    // Forward declare reactor
+    class Reactor;
     
     /**
      * @brief
@@ -36,7 +38,9 @@ namespace NUClear {
      */
     class Environment {
     public:
-        Environment(PowerPlant& powerplant, LogLevel logLevel = LogLevel::INFO);
+        Environment(PowerPlant& powerplant, LogLevel logLevel = LogLevel::INFO)
+          : powerplant(powerplant)
+          , logLevel(logLevel) {};
         
     private:
         friend class PowerPlant;

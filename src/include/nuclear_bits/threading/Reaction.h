@@ -23,7 +23,6 @@
 #include <memory>
 #include <string>
 
-#include "ReactionOptions.h"
 #include "ReactionTask.h"
 
 namespace NUClear {
@@ -42,16 +41,23 @@ namespace NUClear {
         class Reaction {
             // Reaction handles are given to user code to enable and disable the reaction
             friend class ReactionHandle;
+            friend class ReactionTask;
             
         public:
             /**
              * @brief Constructs a new Reaction with the passed callback generator and options
              *
-             * @param identifier    string identifier information about the reaction to help identify it
-             * @param callback      the callback generator function (creates databound callbacks)
-             * @param options       the options to use in Tasks
+             * @param identifier     string identifier information about the reaction to help identify it
+             * @param callback       the callback generator function (creates databound callbacks)
+             * @param options        the options to use in Tasks
+             * @param precondition   a function that checks if the reaction should run before creating it
+             * @param postcondition  a function that runs 
              */
-            Reaction(std::vector<std::string> identifier, std::function<std::function<void (ReactionTask&)> ()> callback, ReactionOptions options);
+            Reaction(std::vector<std::string> identifier
+                     , std::function<std::function<void ()> (ReactionTask&)> callback
+                     , bool (*precondition)(Reaction&)
+                     , void (*postcondition)(ReactionTask&)
+                     , std::function<void (Reaction&)>&& unbinder);
             
             /**
              * @brief creates a new databound callback task that can be executed.
@@ -69,19 +75,35 @@ namespace NUClear {
             
             /// @brief This holds the demangled name of the On function that is being called
             std::vector<std::string> identifier;
-            /// @brief the options for this Reaction (decides how Tasks will be scheduled)
-            ReactionOptions options;
+            
+            
             /// @brief the unique identifier for this Reaction object
             const uint64_t reactionId;
-            /// @brief if this reaction is currently enqueued or running
-            volatile bool running;
-        private:
-            /// @brief a source for reactionIds, atomically creates longs
-            static std::atomic<uint64_t> reactionIdSource;
+            
+            /// @brief the number of currently active tasks (existing reaction tasks)
+            std::atomic<int> activeTasks;
+            
             /// @brief if this reaction object is currently enabled
             std::atomic<bool> enabled;
+            
+        private:
+            /**
+             * @brief Unbinds this reaction from it's context
+             */
+            void unbind();
+            
+            /// @brief a precondition that must pass for the reaction task to be created
+            bool (*precondition)(Reaction&);
+            
+            /// @brief a postcondition that will get run when a ReactionTask has finished (is destructed)
+            void (*postcondition)(ReactionTask&);
+            
+            /// @brief a source for reactionIds, atomically creates longs
+            static std::atomic<uint64_t> reactionIdSource;
             /// @brief the callback generator function (creates databound callbacks)
-            std::function<std::function<void (ReactionTask&)> ()> callback;
+            std::function<std::function<void ()> (ReactionTask&)> generator;
+            /// @brief unbinds the reaction and cleans up
+            std::function<void (Reaction&)> unbinder;
         };
     }
 }

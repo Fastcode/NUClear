@@ -24,7 +24,7 @@
 #include <typeindex>
 #include <memory>
 
-#include "nuclear_bits/ReactionStatistics.h"
+#include "nuclear_bits/message/ReactionStatistics.h"
 
 namespace NUClear {
     namespace threading {
@@ -52,7 +52,9 @@ namespace NUClear {
              * @param cause     the task that caused this task to run.
              * @param task      the data bound callback to be executed in the threadpool.
              */
-            ReactionTask(Reaction* parent, const ReactionTask* cause, std::function<void (ReactionTask&)> task);
+            ReactionTask(Reaction& parent, const ReactionTask* cause, std::function<std::function<void ()> (ReactionTask&)> generator);
+            
+            ~ReactionTask();
             
             /**
              * @brief Runs the internal data bound task and times it.
@@ -63,14 +65,19 @@ namespace NUClear {
              */
             void operator()();
             
-            /// @brief the data bound callback to be executed
-            std::function<void (ReactionTask&)> callback;
             /// @brief the parent Reaction object which spawned this
-            Reaction* parent;
+            Reaction& parent;
             /// @brief the taskId of this task (the sequence number of this paticular task)
             uint64_t taskId;
             /// @brief the statistics object that persists after this for information and debugging
-            std::unique_ptr<ReactionStatistics> stats;
+            std::unique_ptr<message::ReactionStatistics> stats;
+            
+            
+            /// @brief the data bound callback to be executed
+            /// @attention note this must be last in the list as the this pointer is passed to the callback generator
+            std::function<void ()> callback;
+            
+            static __thread ReactionTask* currentTask;
         };
     }
 }

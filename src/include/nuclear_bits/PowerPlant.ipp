@@ -23,53 +23,31 @@ namespace NUClear {
         // Make sure that the class that we recieved is a reactor
         static_assert(std::is_base_of<Reactor, TReactor>::value, "You must install Reactors");
         
-        // Install the reactor
-        reactormaster.install<TReactor, level>();
+        // The reactor constructor should handle subscribing to events
+        reactors.push_back(std::make_unique<TReactor>(std::make_unique<Environment>(*this, level)));
     }
     
-    // Standard local emit (emit to the reactormaster)
+    // Default emit with no types
     template <typename TData>
-    struct PowerPlant::Emit<dsl::Scope::LOCAL, TData> {
-        static void emit(PowerPlant& context, std::shared_ptr<TData> data) {
-            context.reactormaster.emit(data);
-        }
-    };
-    
-    // Direct emit (emit to the reactormasters directly)
-    template <typename TData>
-    struct PowerPlant::Emit<dsl::Scope::DIRECT, TData> {
-        static void emit(PowerPlant& context, std::shared_ptr<TData> data) {
-            context.reactormaster.directEmit(data);
-        }
-    };
-    
-    // Initialize emit (emit to reactormaster on startup)
-    template <typename TData>
-    struct PowerPlant::Emit<dsl::Scope::INITIALIZE, TData> {
-        static void emit(PowerPlant& context, std::shared_ptr<TData> data) {
-            context.reactormaster.emitOnStart(data);
-        }
-    };
-    
-    // Global emit handlers
-    template <typename... THandlers, typename TData>
     void PowerPlant::emit(std::unique_ptr<TData>&& data) {
         
+        // Release our data from the pointer and wrap it in a shared_ptr
+        std::shared_ptr<TData>&& ptr = std::shared_ptr<TData>(std::move(data));
         
-        // If there are no types defined, the default is to emit local
-        if(sizeof...(THandlers) == 0) {
-            emit<dsl::Scope::LOCAL>(std::forward<std::unique_ptr<TData>>(data));
-        }
-        else {
-            // Release our data from the pointer and wrap it in a shared_ptr
-            std::shared_ptr<TData> ptr = std::shared_ptr<TData>(std::move(data));
-            
-            // For some reason GCC thinks this variable is unused? this supresses that warning
-            (void) ptr;
-            
-            // TODO These functions should be noexcept
-            metaprogramming::unpack((PowerPlant::Emit<THandlers, TData>::emit(*this, ptr), 0)...);
-        }
+        // Pass it to the default emit handler
+        dsl::word::emit::Local::emit(*this, ptr);
+    }
+    
+    // Global emit handlers
+    template <typename TFirstHandler, typename... THandlers, typename TData>
+    void PowerPlant::emit(std::unique_ptr<TData>&& data) {
+        
+        // Release our data from the pointer and wrap it in a shared_ptr
+        std::shared_ptr<TData> ptr = std::shared_ptr<TData>(std::move(data));
+        
+        // Pass it to all of the provided emit handlers
+        TFirstHandler::emit(*this, ptr);
+        util::unpack((THandlers::emit(*this, ptr), 0)...);
     }
     
     // Anonymous metafunction that concatenates everything into a single string
@@ -90,21 +68,17 @@ namespace NUClear {
     void PowerPlant::log(TArgs... args) {
         
         // Get our current task
-        auto* task = ThreadMaster::currentTask;
+        auto* task = threading::ReactionTask::currentTask;
+            
+        // Build our log message by concatenating everything to a stream
+        std::stringstream outputStream;
+        logImpl(outputStream, std::forward<TArgs>(args)...);
+        std::string output = outputStream.str();
         
-        // If our reaction is logging at this level (TODO this needs to respect some level)
-        if(level >= DEBUG) {
-            
-            // Build our log message by concatenating everything to a stream
-            std::stringstream outputStream;
-            logImpl(outputStream, std::forward<TArgs>(args)...);
-            std::string output = outputStream.str();
-            
-            // Direct emit the log message so that any direct loggers can use it
-            powerplant->emit<dsl::Scope::DIRECT>(std::make_unique<LogMessage>(level
-                                                                              , output
-                                                                              , task ? task->taskId : 0
-                                                                              , task ? task->parent->reactionId : 0));
-        }
+        // Direct emit the log message so that any direct loggers can use it
+        powerplant->emit<dsl::word::emit::Direct>(std::make_unique<message::LogMessage>(level
+                                                                          , output
+                                                                          , task ? task->taskId : 0
+                                                                          , task ? task->parent.reactionId : 0));
     }
 }

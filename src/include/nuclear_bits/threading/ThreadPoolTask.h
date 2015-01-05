@@ -19,39 +19,42 @@
 #define NUCLEAR_THREADING_THREADPOOLTASK_H
 
 #include "nuclear_bits/PowerPlant.h"
-#include "nuclear_bits/threading/ThreadWorker.h"
 #include "nuclear_bits/threading/TaskScheduler.h"
 
 namespace NUClear {
     namespace threading {
         
-        /**
-         * @brief A task that executes thread pool reactions, they should make up most of the tasks in a system
-         *
-         * @author Trent Houliston
-         */
-        class ThreadPoolTask : public ThreadWorker::ServiceTask {
-        public:
-            
-            /**
-             * @brief Constructs a new ThreadPoolTask using a scheduler and powerplant
-             *
-             * @param powerplant the powerplant that this task is running under
-             * @param scheduler the scheduler instance shared between the ThreadPool
-             */
-            ThreadPoolTask(PowerPlant& powerplant, TaskScheduler& scheduler);
-            ~ThreadPoolTask();
-            
-            /// @brief runs the task, collecting and executing tasks from the scheduler
-            void run();
-            /// @breif kills the thread pool task, preventing future tasks from executing
-            void kill();
-        private:
-            /// @brief the powerplant instance that this task is executing for
-            PowerPlant& powerplant;
-            /// @breif the scheduler that is used to obtain tasks to execute
-            TaskScheduler& scheduler;
-        };
+        inline std::function<void ()> makeThreadPoolTask(PowerPlant& powerplant, TaskScheduler& scheduler) {
+            return [&powerplant, &scheduler] {
+                try {
+                    // So long as we are executing
+                    while(true) {
+                        
+                        // Get a task
+                        std::unique_ptr<ReactionTask> task(scheduler.getTask());
+                        
+                        // Try to execute the task (catching any exceptions so it doesn't kill the pool thread)
+                        try {
+                            task->stats->started = clock::now();
+                            ReactionTask::currentTask = task.get();
+                            (*task)();
+                            ReactionTask::currentTask = nullptr;
+                            task->stats->finished = clock::now();
+                        }
+                        // Catch everything
+                        catch(...) {
+                            task->stats->finished = clock::now();
+                            task->stats->exception = std::current_exception();
+                        }
+                        
+                        // Emit our ReactionStats
+                        powerplant.emit<dsl::word::emit::Direct>(std::move(task->stats));
+                    }
+                }
+                // If this is thrown, it means that we should finish execution
+                catch (TaskScheduler::SchedulerShutdownException) {}
+            };
+        }
     }
 }
 

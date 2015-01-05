@@ -75,6 +75,11 @@ namespace NUClear {
              * @return true if the reaction is enabled, false otherwise.
              */
             bool enabled();
+            
+            /**
+             * @brief Unbinds the reaction and cleans up so it will never run again
+             */
+            void unbind();
         };
     }
 }

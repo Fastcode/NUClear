@@ -25,20 +25,48 @@
 #include <typeindex>
 #include <chrono>
 #include <atomic>
+
+#include "nuclear_bits/util/apply.h"
+#include "nuclear_bits/util/demangle.h"
+#include "nuclear_bits/util/Sequence.h"
+
+#include "nuclear_bits/dsl/Parse.h"
+
+#include "nuclear_bits/Environment.h"
 #include "nuclear_bits/threading/Reaction.h"
 #include "nuclear_bits/threading/ReactionHandle.h"
-#include "nuclear_bits/dsl/dsl.h"
-#include "nuclear_bits/LogLevel.h"
-#include "nuclear_bits/metaprogramming/unpack.h"
-#include "nuclear_bits/metaprogramming/apply.h"
-#include "nuclear_bits/metaprogramming/TypeMap.h"
-#include "nuclear_bits/metaprogramming/MetaProgramming.h"
-#include "nuclear_bits/ForwardDeclarations.h"
+#include "nuclear_bits/message/LogLevel.h"
 
 namespace NUClear {
     
-    // Import our meta programming utility
-    using namespace metaprogramming;
+    // Domain specific language forward declaration
+    namespace dsl {
+        namespace word {
+            
+            struct Always;
+            
+            template <typename>
+            struct Trigger;
+            
+            template <typename...>
+            struct With;
+            
+            struct Startup;
+            
+            struct Shutdown;
+            
+            template <int, typename>
+            struct Every;
+            
+            template <typename>
+            struct Per;
+            
+            struct Single;
+            
+            template <typename>
+            struct Sync;
+        }
+    }
     
     /**
      * @brief Base class for any system that wants to react to events/data from the rest of the system.
@@ -56,15 +84,30 @@ namespace NUClear {
     public:
         friend class PowerPlant;
         
-        Reactor(std::unique_ptr<Environment> environment);
-        ~Reactor();
+        Reactor(std::unique_ptr<Environment> environment)
+          : environment(std::move(environment))
+          , powerplant(this->environment->powerplant) {
+        }
+        
+        ~Reactor() {
+            
+            // Unbind everything when we destroy the reactor
+            for (auto& handle : reactionHandles) {
+                handle.unbind();
+            }
+        }
+        
+    private:
+        std::vector<threading::ReactionHandle> reactionHandles;
         
     protected:
         /// @brief Our environment
         std::unique_ptr<Environment> environment;
         
+    public:
         /// @brief TODO
         PowerPlant& powerplant;
+    protected:
         
         /***************************************************************************************************************
          * The types here are imported from other contexts so that when extending from the Reactor type in normal      *
@@ -72,95 +115,77 @@ namespace NUClear {
          * for the user.                                                                                               *
          **************************************************************************************************************/
         
-        /// @brief The Time units used by the NUClear system
-        using time_t = clock::time_point;
-        
-        /// @copydoc dsl::Trigger
+        /// @copydoc dsl::word::Trigger
         template <typename... TTriggers>
-        using Trigger = dsl::Trigger<TTriggers...>;
+        using Trigger = dsl::word::Trigger<TTriggers...>;
         
-        /// @copydoc dsl::With
+        /// @copydoc dsl::word::Always
+        using Always = dsl::word::Always;
+        
+        /// @copydoc dsl::word::With
         template <typename... TWiths>
-        using With = dsl::With<TWiths...>;
+        using With = dsl::word::With<TWiths...>;
         
-        /// @copydoc dsl::Scope
-        using Scope = dsl::Scope;
+        /// @copydoc dsl::word::Startup
+        using Startup = dsl::word::Startup;
         
-        /// @copydoc dsl::Options
-        template <typename... TOptions>
-        using Options = dsl::Options<TOptions...>;
+        /// @copydoc dsl::word::Shutdown
+        using Shutdown = dsl::word::Shutdown;
         
-        /// @copydoc dsl::Startup
-        using Startup = dsl::Startup;
-        
-        /// @copydoc dsl::Shutdown
-        using Shutdown = dsl::Shutdown;
-        
-        /// @copydoc dsl::Every
+        /// @copydoc dsl::word::Every
         template <int ticks, class period = std::chrono::milliseconds>
-        using Every = dsl::Every<ticks, period>;
+        using Every = dsl::word::Every<ticks, period>;
         
-        /// @copydoc dsl::Per
+        /// @copydoc dsl::word::Per
         template <class period>
-        using Per = dsl::Per<period>;
+        using Per = dsl::word::Per<period>;
         
-        /// @copydoc dsl::Optional
-        template <class TData>
-        using Optional = dsl::Optional<TData>;
-        
-        /// @copydoc dsl::Raw
-        template <typename TData>
-        using Raw = dsl::Raw<TData>;
-        
-        /// @copydoc dsl::Last
-        template <int num, class TData>
-        using Last = dsl::Last<num, TData>;
-        
-        /// @brief The type of data that is returned by Last<num, TData>
-        template <class TData>
-        using LastList = std::vector<std::shared_ptr<const TData>>;
-        
-        /// @copydoc dsl::CommandLineArguments
-        using CommandLineArguments = dsl::CommandLineArguments;
-        
-        /// @copydoc dsl::Priority
-        template <enum EPriority P>
-        using Priority = dsl::Priority<P>;
-        
-        /// @copydoc dsl::Network
-        template <typename TData>
-        using Network = dsl::Network<TData>;
-        
-        /// @copydoc dsl::Sync
+        /// @copydoc dsl::word::Sync
         template <typename TSync>
-        using Sync = dsl::Sync<TSync>;
+        using Sync = dsl::word::Sync<TSync>;
         
-        /// @copydoc dsl::Single
-        using Single = dsl::Single;
+        /// @copydoc dsl::word::Single
+        using Single = dsl::word::Single;
         
         /// @brief This provides functions to modify how an on statement runs after it has been created
         using ReactionHandle = threading::ReactionHandle;
         
+        template <typename DSL, typename... TArgs>
+        struct Binder {
+        public:
+            Binder(Reactor& r, TArgs&&... args)
+            : reactor(r)
+            , args(args...) {}
+            
+            template <typename TFunc>
+            std::vector<ReactionHandle> then(const std::string& label, TFunc&& callback) {
+                return then(label, std::forward<TFunc>(callback), util::GenerateSequence<sizeof...(TArgs)>());
+            }
+            
+            template <typename TFunc>
+            std::vector<ReactionHandle> then(TFunc&& callback) {
+                return then("", std::forward<TFunc>(callback));
+            }
+            
+        private:
+            
+            template <typename TFunc, int... Index>
+            std::vector<ReactionHandle> then(const std::string& label, TFunc&& callback, const util::Sequence<Index...>&) {
+                
+                std::vector<ReactionHandle> handles = DSL::bind(reactor, label, std::forward<TFunc>(callback), std::get<Index>(args)...);
+                
+                // Put all of the handles into our global list so we can debind them on destruction
+                reactor.reactionHandles.insert(std::end(reactor.reactionHandles), std::begin(handles), std::end(handles));
+                
+                return handles;
+            }
+            
+            Reactor& reactor;
+            std::tuple<TArgs...> args;
+        };
+        
         // FUNCTIONS
-        
-        /**
-         * @brief The on function is the method used to create a reaction in the NUClear system.
-         *
-         * @details
-         *  This function is used to create a Reaction in the system. By providing the correct
-         *  template parameters, this function can modify how and when this reaction runs.
-         *  
-         *
-         * @tparam TParams  The parameters of the Every class
-         * @tparam TFunc    The type of the function passed in
-         *
-         * @param callback  The callback to execute when the trigger on this happens
-         *
-         * @return A ReactionHandle that controls if the created reaction runs or not
-         */
-        template <typename... TParams, typename TFunc>
-        Reactor::ReactionHandle on(TFunc callback);
-        
+
         /**
          * @brief The on function is the method used to create a reaction in the NUClear system.
          *
@@ -168,17 +193,21 @@ namespace NUClear {
          *  This function is used to create a Reaction in the system. By providing the correct
          *  template parameters, this function can modify how and when this reaction runs.
          *
-         *
-         * @tparam TParams  The parameters of the Every class
+         * @tparam TDSL     The NUClear domain specific language information
          * @tparam TFunc    The type of the function passed in
          *
-         * @param name      The name of this reaction to show in statistics
-         * @param callback  The callback to execute when the trigger on this happens
+         * @param args      The arguments that will be passed to each of the binding DSL words in order
          *
-         * @return A ReactionHandle that controls if the created reaction runs or not
+         * @return A Binder object that can be used to bind callbacks to this DSL statement
          */
-        template <typename... TParams, typename TFunc>
-        Reactor::ReactionHandle on(const std::string& name, TFunc callback);
+        template <typename... TDSL, typename... TArgs>
+        Binder<dsl::Parse<TDSL...>, TArgs...> on(TArgs&&... args) {
+            
+            // There must be some parameters
+            static_assert(sizeof...(TDSL) > 0, "You must have at least one parameter in an on");
+            
+            return Binder<dsl::Parse<TDSL...>, TArgs...>(*this, std::forward<TArgs>(args)...);
+        }
         
         /**
          * @brief Emits data into the system so that other reactors can use it.
@@ -195,7 +224,9 @@ namespace NUClear {
          * @param data The data to emit
          */
         template <typename... THandlers, typename TData>
-        void emit(std::unique_ptr<TData>&& data);
+        void emit(std::unique_ptr<TData>&& data) {
+            powerplant.emit<THandlers...>(std::forward<std::unique_ptr<TData>>(data));
+        }
         
         /**
          * @brief Log a message through NUClear's system.
@@ -210,169 +241,25 @@ namespace NUClear {
          * @param args The arguments we are logging
          */
         template <enum LogLevel level = DEBUG, typename... TArgs>
-        void log(TArgs... args);
-        
-    private:
-        /// @brief The static cache where we link our callbacks to the ReactorMaster
-        template <typename TKey>
-        using CallbackCache = metaprogramming::TypeList<Reactor, TKey, std::unique_ptr<threading::Reaction>>;
-        
-        /**
-         * @brief Base template instantitation that gets specialized.
-         *
-         * @details
-         *  This should never be instantiated and will throw a giant compile error if it somehow is.
-         *  The template parameters are left unnamed to reflect the fact that they are simply placeholders.
-         */
-        template <typename, typename...>
-        struct On;
-        
-        /**
-         * @brief This type is used to build the final On statement that will be called.
-         *
-         * @details
-         *  This type self extends to rearrange the arguments in the On until they are useable by the system.
-         */
-        template <typename, typename...>
-        struct OnBuilder;
-        
-        /**
-         * @brief This metafunction will check that the function provided to the system is compatible with
-         *  the 
-         *
-         * @tparam TFunc    the function object that we are checking.
-         * @tparam TTuple   the expected arguments provided by the function.
-         * @tparam Stage    what stage of the function checking we are up to.
-         *
-         */
-        template <typename TFunc, typename TTuple, int Stage = 0>
-        struct CheckFunctionSignature;
-        
-        /**
-         * @brief Standard Trigger<...>, With<...> specialization of On.
-         *
-         * @details
-         *  This class essentially acts as a polymorphic lambda function in that it allows us
-         *  to select what specialization of On we want based on the compile-time template arguments.
-         *  In this case this specialization matches OnImpl<Trigger<...>, With<...>>(callback) such that
-         *  we can get the individual "trigger" and "with" lists. Essentially, think of this as a function
-         *  rather then a class as that's what it would be if C++ allowed partial template specialization of
-         *  functions.
-         *
-         * @tparam TTriggers    the list of events/data that trigger this reaction
-         * @tparam TWiths       the list of events/data that is required for this reaction but does not trigger the
-         *                      reaction.
-         * @tparam TOptions     the options that the callback is executed with
-         * @tparam TFunc        the callback type, should be automatically deduced
-         */
-        template <typename TFunc, typename... TTriggers, typename... TWiths, typename... TOptions, typename... TFuncArgs>
-        struct On<TFunc, Trigger<TTriggers...>, With<TWiths...>, Options<TOptions...>, std::tuple<TFuncArgs...>> {
+        void log(TArgs... args) {
             
-            static ReactionHandle on(Reactor& context, std::vector<std::string> identifier, TFunc callback);
-        };
-        
-        /**
-         * @brief This function populates the passed ReactionOptions object will all of the data held in the options.
-         *
-         * @tparam TOption the options which to apply to this options object
-         *
-         * @param options the options to populate
-         */
-        template <typename... TOption>
-        void buildOptions(threading::ReactionOptions& options);
-        
-        /*
-         * NOTE THAT THE FUNCTIONS BELOW USE EMPTY POINTERS TO CHOOSE WHICH FUNCTION TO EXECUTE
-         * (as you can't partially specialize functions)
-         */
-        
-        /**
-         * @brief This case of build options is used when the Single option is specified.
-         *
-         * @param options the options object we are building
-         */
-        void buildOptionsImpl(threading::ReactionOptions& options, Single*);
-        
-        /**
-         * @brief This case of build options is used to add the Sync option.
-         *
-         * @tparam TSync the sync type we are synchronizing on
-         *
-         * @param placeholder which is used to specialize this method
-         */
-        template <typename TSync>
-        void buildOptionsImpl(threading::ReactionOptions& options, Sync<TSync>*);
-        
-        /**
-         * @brief This case of build options is used to add the Priority option.
-         *
-         * @tparam P the sync type we are synchronizing on
-         *
-         * @param placeholder which is used to specialize this method
-         */
-        template <enum EPriority P>
-        void buildOptionsImpl(threading::ReactionOptions& options, Priority<P>*);
-        
-        /**
-         * @brief This extension point will execute when a paticular type exists within an on statement.
-         *
-         * @details
-         *  The function on the Exists will execute when a type is in a Trigger or With. This allows
-         *  functions to setup ready for the ons or triggers that will require this kind of data.
-         *
-         * @tparam TData The datatype that exists in a statement
-         */
-        template <typename TData>
-        struct Exists;
-        
-        /**
-         * @brief Builds a callback wrapper function for a given callback. TODO this needs updating
-         *
-         * @details
-         *  All callbacks are wrapped in a void() lambda that knows how to get the correct arguments
-         *  when called. This is done so all callbacks can be stored and called in a uniform way.
-         *
-         * @tparam TFunc the callback type
-         * @tparam TTriggersAndWiths the list of all triggers and required data for this reaction
-         *
-         * @param callback the callback function
-         *
-         * @return The wrapped callback
-         */
-        template <typename TFunc, typename... TTriggersAndWiths>
-        std::unique_ptr<threading::Reaction> buildReaction(std::vector<std::string> identifier, TFunc callback, threading::ReactionOptions& options);
-        
-        /**
-         * @brief Adds a single data -> callback mapping for a single type.
-         *
-         * @tparam TTrigger the event/data type to add the callback for
-         *
-         * @param callback the callback to add
-         *
-         * @return A handler which allows us to modify our Reaction at runtime
-         */
-        template <typename TTrigger, typename... TTriggers>
-        ReactionHandle bindTriggers(std::unique_ptr<threading::Reaction>&& callback);
-        
-        /**
-         * @brief This extension point is used to redirect when a trigger is called.
-         *
-         * @details
-         *  Normally a trigger will be called when it's own type is emitted, however it
-         *  is often useful to trigger a callback when a different type is emitted.
-         *  This can be used to create a type that is based on the Triggered type, but
-         *  is an operation performed on it.
-         *
-         * @tparam TData TODO
-         */
-        template <typename TData>
-        struct TriggerType;
+            // If the log is above or equal to our log level
+            if (level >= environment->logLevel) {
+                powerplant.log<level, TArgs...>(std::forward<TArgs>(args)...);
+            }
+        }
     };
 }
 
-// We need to really make sure that PowerPlant is included as we use it in our ipp file
-#include "nuclear_bits/Environment.h"
-#include "nuclear_bits/PowerPlant.h"
-#include "nuclear_bits/Reactor.ipp"
+// Domain Specific Language
+#include "nuclear_bits/dsl/word/Always.h"
+#include "nuclear_bits/dsl/word/Trigger.h"
+#include "nuclear_bits/dsl/word/With.h"
+#include "nuclear_bits/dsl/word/Startup.h"
+#include "nuclear_bits/dsl/word/Shutdown.h"
+#include "nuclear_bits/dsl/word/Every.h"
+#include "nuclear_bits/dsl/word/Single.h"
+#include "nuclear_bits/dsl/word/Sync.h"
+
 #endif
 

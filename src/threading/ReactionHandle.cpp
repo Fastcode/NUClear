@@ -19,8 +19,7 @@
 
 namespace NUClear {
     namespace threading {
-
-
+        
         ReactionHandle::ReactionHandle(Reaction* context) : context(context) {
         }
 
@@ -42,6 +41,9 @@ namespace NUClear {
             context->enabled = false;
             return *this;
         }
-
+        
+        void ReactionHandle::unbind() {
+            context->unbind();
+        }
     }
 }
