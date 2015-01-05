@@ -19,6 +19,7 @@
 #include "nuclear_bits/threading/ThreadPoolTask.h"
 
 #include "nuclear_bits/extension/ChronoController.h"
+#include "nuclear_bits/extension/IOController.h"
 
 namespace NUClear {
     
@@ -40,6 +41,7 @@ namespace NUClear {
         
         // Install the Chrono reactor
         install<extension::ChronoController>();
+        install<extension::IOController>();
           
         // Emit our arguments if any.
         auto args = std::make_unique<message::CommandLineArguments>();
@@ -47,7 +49,6 @@ namespace NUClear {
         for (int i = 0; i < argc; ++i) {
             args->emplace_back(argv[i]);
         }
-          
         
         emit<dsl::word::emit::Initialize>(std::move(args));
     }

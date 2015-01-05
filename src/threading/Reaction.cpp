@@ -50,7 +50,7 @@ namespace NUClear {
                 return std::unique_ptr<ReactionTask>(new ReactionTask(*this, cause, generator));
             }
             else {
-                throw std::runtime_error(":P");
+                throw std::runtime_error("Task is unable to be created as the precondition fails");
             }
         }
         

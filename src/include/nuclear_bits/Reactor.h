@@ -45,6 +45,8 @@ namespace NUClear {
             
             struct Always;
             
+            struct IO;
+            
             template <typename>
             struct Trigger;
             
@@ -121,6 +123,9 @@ namespace NUClear {
         
         /// @copydoc dsl::word::Always
         using Always = dsl::word::Always;
+        
+        /// @copydoc dsl::word::IO
+        using IO = dsl::word::IO;
         
         /// @copydoc dsl::word::With
         template <typename... TWiths>
@@ -253,6 +258,7 @@ namespace NUClear {
 
 // Domain Specific Language
 #include "nuclear_bits/dsl/word/Always.h"
+#include "nuclear_bits/dsl/word/IO.h"
 #include "nuclear_bits/dsl/word/Trigger.h"
 #include "nuclear_bits/dsl/word/With.h"
 #include "nuclear_bits/dsl/word/Startup.h"
