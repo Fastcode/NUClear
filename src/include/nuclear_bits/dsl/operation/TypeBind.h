@@ -30,7 +30,7 @@ namespace NUClear {
             struct TypeBind {
 
                 template <typename DSL, typename TFunc>
-                static std::vector<threading::ReactionHandle> bind(Reactor&, const std::string& label, TFunc&& callback) {
+                static inline std::vector<threading::ReactionHandle> bind(Reactor&, const std::string& label, TFunc&& callback) {
                     
                     // Generate our task
                     auto task = util::generate_callback<DSL>(std::forward<TFunc>(callback));

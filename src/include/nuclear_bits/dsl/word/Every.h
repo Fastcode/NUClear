@@ -72,7 +72,7 @@ namespace NUClear {
             struct Every {
                 
                 template <typename DSL, typename TFunc>
-                static std::vector<threading::ReactionHandle> bind(Reactor& reactor, const std::string& label, TFunc&& callback) {
+                static inline std::vector<threading::ReactionHandle> bind(Reactor& reactor, const std::string& label, TFunc&& callback) {
                     
                     // Make our callback generator
                     auto task = util::generate_callback<DSL>(std::forward<TFunc>(callback));
@@ -83,6 +83,7 @@ namespace NUClear {
                     // Get our powerplant
                     auto& powerplant = reactor.powerplant;
                     
+                    // Create our unbinder
                     auto unbinder = [&powerplant] (threading::Reaction& r) {
                         powerplant.emit<emit::Direct>(std::make_unique<UnbindEvery>(UnbindEvery { r.reactionId }));
                     };

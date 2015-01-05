@@ -36,7 +36,7 @@ namespace NUClear {
             struct Always {
                 
                 template <typename DSL, typename TFunc>
-                static std::vector<threading::ReactionHandle> bind(Reactor& reactor, const std::string& label, TFunc&& callback) {
+                static inline std::vector<threading::ReactionHandle> bind(Reactor& reactor, const std::string& label, TFunc&& callback) {
                     
                     // Make our callback generator
                     auto task = util::generate_callback<DSL>(std::forward<TFunc>(callback));

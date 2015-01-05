@@ -37,7 +37,7 @@ namespace NUClear {
             struct Sync {
                 
                 template <typename DSL>
-                static bool precondition(threading::Reaction&) {
+                static inline bool precondition(threading::Reaction&) {
                     
                     std::cout << "TODO Precondition for Sync not implemented" << std::endl;
                     // TODO Check if it's running and if so queue it otherwise run it

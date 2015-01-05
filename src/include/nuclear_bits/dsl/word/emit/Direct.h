@@ -19,6 +19,8 @@
 #define NUCLEAR_DSL_WORD_EMIT_DIRECT_H
 
 #include "nuclear_bits/PowerPlant.h"
+#include "nuclear_bits/dsl/store/DataStore.h"
+#include "nuclear_bits/dsl/store/TypeCallbackStore.h"
 
 namespace NUClear {
     namespace dsl {
