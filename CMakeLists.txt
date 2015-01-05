@@ -51,8 +51,6 @@ ENDIF()
 # Add the subdirectories
 ADD_SUBDIRECTORY(src)
 
-# Install the protocol buffer header (since it likes to hide away)
-INSTALL(FILES ${CMAKE_CURRENT_BINARY_DIR}/src/NetworkMessage.pb.h DESTINATION include/nuclear_bits/extensions)
 # Install the headers and templates that NUClear.h depends on
 INSTALL(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/src/include/ DESTINATION include PATTERN "*.h" PATTERN "*.ipp")
 
