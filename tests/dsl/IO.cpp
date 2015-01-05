@@ -38,19 +38,32 @@ namespace {
             in = fds[0];
             out = fds[1];
             
-            on<IO>(in, IO::READ).then([this] () {
+            on<IO>(in, IO::READ).then([this] {
+                
                 // Check the data recieved is the same as sent
+                std::cout << "Read Task" << std::endl;
                 
                 // Shutdown
+                powerplant.shutdown();
             });
             
-            on<IO>(out, IO::WRITE).then([this] {
+            writer = on<IO>(out, IO::WRITE).then([this] {
                 // Send data into read
-            });
+                
+                char val = 0xDE;
+                
+                write(out, &val, 1);
+                
+                std::cout << "Write Task" << std::endl;
+                
+                // Unbind ourselves
+                writer.unbind();
+            })[0];
         }
         
         int in;
         int out;
+        ReactionHandle writer;
     };
 }
 

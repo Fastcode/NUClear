@@ -21,14 +21,26 @@
 #include <algorithm>
 
 extern "C" {
-    #include <unistd.h>
-    #include <poll.h>
+#include <unistd.h>
+#include <poll.h>
 }
-    
+
 namespace NUClear {
     namespace extension {
         
         class IOController : public Reactor {
+        private:
+            
+            struct Task {
+                int fd;
+                short events;
+                std::shared_ptr<threading::Reaction> reaction;
+                
+                bool operator< (const Task& other) const {
+                    return fd == other.fd ? events < other.events : fd < other.fd;
+                }
+            };
+            
         public:
             explicit IOController(std::unique_ptr<NUClear::Environment> environment)
             : Reactor(std::move(environment)) {
@@ -47,15 +59,51 @@ namespace NUClear {
                 fds.push_back(pollfd { notifyRecv, POLLIN, 0 });
                 
                 on<Trigger<dsl::word::IOConfiguration>>().then([this] (const dsl::word::IOConfiguration& config) {
-                
-                
-                    std::cout << "Add the FD " << config.fd << " to the set" << std::endl;
                     
+                    // Lock our mutex to avoid concurrent modification
+                    std::lock_guard<std::mutex> lock(reactionMutex);
+                    
+                    // Work out our event mask
+                    short events = 0;
+                    
+                    events |= config.events & dsl::word::IO::READ  ? POLLIN             : 0;
+                    events |= config.events & dsl::word::IO::WRITE ? POLLOUT            : 0;
+                    events |= config.events & dsl::word::IO::CLOSE ? POLLHUP            : 0;
+                    events |= config.events & dsl::word::IO::ERROR ? POLLNVAL | POLLERR : 0;
+                    
+                    std::cout << config.fd << " " << config.events << std::endl;
+                    
+                    reactions.push_back(Task {
+                        config.fd,
+                        events,
+                        config.reaction
+                    });
+                    
+                    // Resort our list
+                    std::sort(std::begin(reactions), std::end(reactions));
+                    
+                    // Let the poll command know that stuff happened
+                    dirty = true;
+                    write(notifySend, &dirty, 1);
                 });
                 
                 on<Trigger<dsl::word::UnbindIO>>().then([this] (const dsl::word::UnbindIO& unbind) {
-                
-                    std::cout << "TODO remove the FD from the set" << std::endl;
+                    
+                    // Lock our mutex to avoid concurrent modification
+                    std::lock_guard<std::mutex> lock(reactionMutex);
+                    
+                    // Find our reaction
+                    auto reaction = std::find_if(std::begin(reactions), std::end(reactions), [&unbind] (const Task& t) {
+                        return t.reaction->reactionId == unbind.reactionId;
+                    });
+                    
+                    if(reaction != std::end(reactions)) {
+                        reactions.erase(reaction);
+                    }
+                    
+                    // Let the poll command know that stuff happened
+                    dirty = true;
+                    write(notifySend, &dirty, 1);
                 });
                 
                 on<Shutdown>().then([this] {
@@ -72,11 +120,83 @@ namespace NUClear {
                     // Poll our file descriptors for events
                     int result = poll(fds.data(), fds.size(), -1);
                     
+                    // Check if we had an error on our Poll request
                     if(result < 0) {
                         throw std::system_error(errno, std::system_category(), "There was an IO error while attempting to poll the file descriptors");
                     }
-                    
-                    std::this_thread::sleep_for(std::chrono::seconds(1));
+                    else {
+                        for(auto& fd : fds) {
+                            
+                            // Something happened
+                            if(fd.revents) {
+                                
+                                // It's our notification handle
+                                if(fd.fd == notifyRecv) {
+                                    
+                                }
+                                // It's a regular handle
+                                else {
+                                    
+                                    // Find our relevant reactions
+                                    auto range = std::equal_range(std::begin(reactions)
+                                                                  , std::end(reactions)
+                                                                  , Task { fd.fd, 0, nullptr }
+                                                                  , [] (const Task& a, const Task& b) {
+                                                                      return a.fd < b.fd;
+                                                                  });
+                                    
+                                    
+                                    // There are no reactions for this!
+                                    if(range.first == std::end(reactions)) {
+                                        // TODO maybe we should remove this from our set?
+                                    }
+                                    else {
+                                        
+                                        // Loop through our values
+                                        for(auto it = range.first; it != range.second; ++it) {
+                                            
+                                            // We should emit if the reaction is interested
+                                            if (it->events & fd.revents) {
+                                                // Add the task to our queue
+                                                try {
+                                                    powerplant.submit(it->reaction->getTask(NUClear::threading::ReactionTask::currentTask));
+                                                }
+                                                catch(...) {
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                
+                                // Reset our events
+                                fd.revents = 0;
+                            }
+                        }
+                        
+                        // If our list is dirty
+                        if(dirty) {
+                            // Get the lock so we don't concurrently modify the list
+                            std::lock_guard<std::mutex> lock(reactionMutex);
+                            
+                            // Clear our fds to be rebuilt
+                            fds.clear();
+                            
+                            // Insert our notifyFd
+                            fds.push_back(pollfd { notifyRecv, POLLIN, 0 });
+                            
+                            for (const auto& r : reactions) {
+                                
+                                // If we are the same fd, then add our interest set
+                                if(r.fd == fds.back().fd) {
+                                    fds.back().events |= r.events;
+                                }
+                                // Otherwise add a new one
+                                else {
+                                    fds.push_back(pollfd { r.fd, r.events, 0 });
+                                }
+                            }
+                        }
+                    }
                 });
                 
             }
@@ -85,7 +205,10 @@ namespace NUClear {
             int notifyRecv;
             int notifySend;
             
+            bool dirty;
+            std::mutex reactionMutex;
             std::vector<pollfd> fds;
+            std::vector<Task> reactions;
         };
     }
 }

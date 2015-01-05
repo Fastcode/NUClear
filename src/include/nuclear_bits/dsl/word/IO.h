@@ -19,6 +19,7 @@
 #define NUCLEAR_DSL_WORD_IO_H
 
 #include "nuclear_bits/dsl/word/emit/Direct.h"
+#include "nuclear_bits/dsl/word/Single.h"
 #include "nuclear_bits/util/generate_callback.h"
 #include "nuclear_bits/util/get_identifier.h"
 
@@ -28,6 +29,7 @@ namespace NUClear {
             
             struct IOConfiguration {
                 int fd;
+                int events;
                 std::shared_ptr<threading::Reaction> reaction;
             };
             
@@ -35,12 +37,15 @@ namespace NUClear {
                 uint64_t reactionId;
             };
 
-            struct IO {
+            // IO is implicitly single
+            struct IO : public Single {
                 
-                static constexpr int READ = 1;
-                static constexpr int WRITE = 2;
-                static constexpr int CLOSE = 4;
-                static constexpr int ERROR = 8;
+                enum Events {
+                    READ = 1,
+                    WRITE = 2,
+                    CLOSE = 4,
+                    ERROR = 8
+                };
                 
                 template <typename DSL, typename TFunc>
                 static inline std::vector<threading::ReactionHandle> bind(Reactor& reactor, const std::string& label, TFunc&& callback, int fd, int watchSet) {
@@ -66,6 +71,7 @@ namespace NUClear {
                     // Send our configuration out
                     powerplant.emit<emit::Direct>(std::make_unique<IOConfiguration>(IOConfiguration {
                         fd,
+                        watchSet,
                         std::move(reaction)
                     }));
                     
