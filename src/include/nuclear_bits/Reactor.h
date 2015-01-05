@@ -151,7 +151,38 @@ namespace NUClear {
         using ReactionHandle = threading::ReactionHandle;
         
         template <typename DSL, typename... TArgs>
-        struct Binder;
+        struct Binder {
+        public:
+            Binder(Reactor& r, TArgs&&... args)
+            : reactor(r)
+            , args(args...) {}
+            
+            template <typename TFunc>
+            std::vector<ReactionHandle> then(const std::string& label, TFunc&& callback) {
+                return then(label, std::forward<TFunc>(callback), util::GenerateSequence<sizeof...(TArgs)>());
+            }
+            
+            template <typename TFunc>
+            std::vector<ReactionHandle> then(TFunc&& callback) {
+                return then("", std::forward<TFunc>(callback));
+            }
+            
+        private:
+            
+            template <typename TFunc, int... Index>
+            std::vector<ReactionHandle> then(const std::string& label, TFunc&& callback, const util::Sequence<Index...>&) {
+                
+                std::vector<ReactionHandle> handles = DSL::bind(reactor, label, std::forward<TFunc>(callback), std::get<Index>(args)...);
+                
+                // Put all of the handles into our global list so we can debind them on destruction
+                reactor.reactionHandles.insert(std::end(reactor.reactionHandles), std::begin(handles), std::end(handles));
+                
+                return handles;
+            }
+            
+            Reactor& reactor;
+            std::tuple<TArgs...> args;
+        };
         
         // FUNCTIONS
 
@@ -170,7 +201,13 @@ namespace NUClear {
          * @return A Binder object that can be used to bind callbacks to this DSL statement
          */
         template <typename... TDSL, typename... TArgs>
-        Binder<dsl::Parse<TDSL...>, TArgs...> on(TArgs&&... args);
+        Binder<dsl::Parse<TDSL...>, TArgs...> on(TArgs&&... args) {
+            
+            // There must be some parameters
+            static_assert(sizeof...(TDSL) > 0, "You must have at least one parameter in an on");
+            
+            return Binder<dsl::Parse<TDSL...>, TArgs...>(*this, std::forward<TArgs>(args)...);
+        }
         
         /**
          * @brief Emits data into the system so that other reactors can use it.
@@ -187,7 +224,9 @@ namespace NUClear {
          * @param data The data to emit
          */
         template <typename... THandlers, typename TData>
-        void emit(std::unique_ptr<TData>&& data);
+        void emit(std::unique_ptr<TData>&& data) {
+            powerplant.emit<THandlers...>(std::forward<std::unique_ptr<TData>>(data));
+        }
         
         /**
          * @brief Log a message through NUClear's system.
@@ -202,13 +241,15 @@ namespace NUClear {
          * @param args The arguments we are logging
          */
         template <enum LogLevel level = DEBUG, typename... TArgs>
-        void log(TArgs... args);
+        void log(TArgs... args) {
+            
+            // If the log is above or equal to our log level
+            if (level >= environment->logLevel) {
+                powerplant.log<level, TArgs...>(std::forward<TArgs>(args)...);
+            }
+        }
     };
 }
-
-// We need to really make sure that PowerPlant is included as we use it in our ipp file
-#include "nuclear_bits/PowerPlant.h"
-#include "nuclear_bits/Reactor.ipp"
 
 // Domain Specific Language
 #include "nuclear_bits/dsl/word/Always.h"

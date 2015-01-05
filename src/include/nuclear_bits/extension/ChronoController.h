@@ -38,7 +38,7 @@ namespace NUClear {
             };
             
         public:
-            ChronoController(std::unique_ptr<NUClear::Environment> environment)
+            explicit ChronoController(std::unique_ptr<NUClear::Environment> environment)
               : Reactor(std::move(environment))
               , steps(0)
               , lock(execute) {
