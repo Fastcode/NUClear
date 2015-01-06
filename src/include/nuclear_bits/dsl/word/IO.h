@@ -86,7 +86,7 @@ namespace NUClear {
                     
                     // Return our thread local variable
                     return std::make_tuple(store::ThreadStore<int, 0>::value, store::ThreadStore<int, 1>::value);
-                };
+                }
             };
         }
     }

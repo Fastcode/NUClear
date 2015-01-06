@@ -48,7 +48,7 @@ namespace NUClear {
                 static void postcondition(threading::ReactionTask&) {
                     std::cout << "TODO Postcondition for Sync not implemented" << std::endl;
                     // TODO Check if there is something in the sync queue and reinject it
-                };
+                }
             };
         }
     }

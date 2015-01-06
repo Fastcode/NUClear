@@ -41,13 +41,13 @@ namespace {
             on<IO>(in, IO::READ).then([this] (int fd, int set) {
                 
                 // Read from our FD
-                char val;
+                unsigned char val;
                 int bytes = read(fd, &val, 1);
                 
                 // Check the data is correct
                 REQUIRE((set & IO::READ) != 0);
                 REQUIRE(bytes == 1);
-                REQUIRE((val & 0xFF) == 0xDE);
+                REQUIRE(val == 0xDE);
                 
                 // Shutdown
                 powerplant.shutdown();
@@ -56,7 +56,7 @@ namespace {
             writer = on<IO>(out, IO::WRITE).then([this] (int fd, int set) {
                 
                 // Send data into our fd
-                char val = 0xDE;
+                unsigned char val = 0xDE;
                 int bytes = write(fd, &val, 1);
                 
                 // Check that our data was sent

@@ -32,7 +32,7 @@ namespace NUClear {
                 static inline auto get(threading::ReactionTask&) -> util::Meta::EnableIf<util::Meta::Not<std::is_empty<T>>, std::shared_ptr<T>> {
                     
                     return store::DataStore<TType>::get();
-                };
+                }
             };
         }
     }
