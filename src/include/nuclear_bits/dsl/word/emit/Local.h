@@ -23,8 +23,6 @@
 #include "nuclear_bits/dsl/store/TypeCallbackStore.h"
 #include "nuclear_bits/dsl/store/DataStore.h"
 
-#include "nuclear_bits/util/demangle.h"
-
 namespace NUClear {
     namespace dsl {
         namespace word {
