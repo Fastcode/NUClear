@@ -3,7 +3,9 @@ env:
   - COMPILER="gcc-4.8"
   - COMPILER="gcc-4.9"
   - COMPILER="clang-3.4"
-  - COMPILER="clang-3.5"
+
+# Travis does not yet have clang-3.5
+#  - COMPILER="clang-3.5"
 
 # Setup repository sources before install
 before_install:
@@ -33,12 +35,12 @@ install:
   # clang 3.4
   - if [[ "$COMPILER" == "clang-3.4" ]]; then sudo apt-get install --allow-unauthenticated -qq clang-3.4; fi
   - if [[ "$COMPILER" == "clang-3.4" ]]; then export CXX="clang++-3.4"; fi
-  - if [[ "$COMPILER" == "clang-3.4" ]]; then export CXX="clang-3.4"; fi
+  - if [[ "$COMPILER" == "clang-3.4" ]]; then export CC="clang-3.4"; fi
 
   # clang 3.5
   - if [[ "$COMPILER" == "clang-3.5" ]]; then sudo apt-get install --allow-unauthenticated -qq clang-3.5; fi
   - if [[ "$COMPILER" == "clang-3.5" ]]; then export CXX="clang++-3.5"; fi
-  - if [[ "$COMPILER" == "clang-3.5" ]]; then export CXX="clang-3.5"; fi
+  - if [[ "$COMPILER" == "clang-3.5" ]]; then export CC="clang-3.5"; fi
 
   # Catch
   - wget https://raw.githubusercontent.com/philsquared/Catch/master/single_include/catch.hpp

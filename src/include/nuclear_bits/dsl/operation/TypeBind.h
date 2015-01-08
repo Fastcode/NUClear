@@ -62,7 +62,7 @@ namespace NUClear {
                     std::vector<threading::ReactionHandle> handles = { handle };
                     
                     return handles;
-                };
+                }
             };
         }
     }

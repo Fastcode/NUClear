@@ -82,7 +82,11 @@ namespace NUClear {
                     
                     // Let the poll command know that stuff happened
                     dirty = true;
-                    write(notifySend, &dirty, 1);
+                    
+                    // Check if there was an error
+                    if(write(notifySend, &dirty, 1) < 0) {
+                        throw std::system_error(errno, std::system_category(), "There was an error while writing to the notification pipe");
+                    }
                 });
                 
                 on<Trigger<dsl::word::UnbindIO>>().then([this] (const dsl::word::UnbindIO& unbind) {
@@ -101,7 +105,9 @@ namespace NUClear {
                     
                     // Let the poll command know that stuff happened
                     dirty = true;
-                    write(notifySend, &dirty, 1);
+                    if(write(notifySend, &dirty, 1) < 0) {
+                        throw std::system_error(errno, std::system_category(), "There was an error while writing to the notification pipe");
+                    }
                 });
                 
                 on<Shutdown>().then([this] {
@@ -110,7 +116,9 @@ namespace NUClear {
                     char val = 0;
                     
                     // Send a single byte down the pipe
-                    write(notifySend, &val, 1);
+                    if(write(notifySend, &val, 1) < 0) {
+                        throw std::system_error(errno, std::system_category(), "There was an error while writing to the notification pipe");
+                    }
                 });
                 
                 on<Always>().then([this] {
