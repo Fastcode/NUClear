@@ -23,6 +23,7 @@
 #include "nuclear_bits/dsl/word/Single.h"
 #include "nuclear_bits/dsl/store/ThreadStore.h"
 #include "nuclear_bits/util/generate_reaction.h"
+
 namespace NUClear {
     namespace dsl {
         namespace word {
