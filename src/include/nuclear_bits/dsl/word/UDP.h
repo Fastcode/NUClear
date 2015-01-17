@@ -34,7 +34,11 @@ namespace NUClear {
             struct UDP {
                 
                 struct Packet {
-                    std::string from;
+                    /// If there was an error while reading the packet
+                    bool error;
+                    /// The address that the packet is from/to
+                    uint32_t address;
+                    /// The data to be sent in the packet
                     std::vector<char> data;
                 };
                 
@@ -54,12 +58,12 @@ namespace NUClear {
                     address.sin_port = htons(port);
                     address.sin_addr.s_addr = INADDR_ANY;
                     
-                    
+                    // Bind to the address, and if we fail throw an error
                     if(::bind(fd, reinterpret_cast<sockaddr*>(&address), sizeof(sockaddr))) {
                         throw std::system_error(errno, std::system_category(), "We were unable to bind the UDP socket to the port");
                     }
                     
-                    // Generate an IO reaction
+                    // Generate a reaction for the IO system that closes on death
                     auto reaction = util::generate_reaction<DSL, IO>(reactor, label, std::forward<TFunc>(callback), [fd] {
                         ::close(fd);
                     });
@@ -75,28 +79,34 @@ namespace NUClear {
                     // Return our handles
                     std::vector<threading::ReactionHandle> handles = { handle };
                     return handles;
-                    
-                    
-                    
                 }
                 
                 template <typename DSL>
                 static inline Packet get(threading::ReactionTask&) {
                     
+                    
+                    // Get our filedescriptor from the magic cache
                     int fd = store::ThreadStore<int, 0>::value;
-                    int interestSet = store::ThreadStore<int, 1>::value;
                     
-//                    recv(socket, buffer, buffersize, 0);
+                    // Make a packet with 2k of storage (hopefully packets are smaller then this as most MTUs are around 1500)
+                    Packet p;
+                    p.error = true;
+                    p.data.resize(2048);
                     
+                    // Make a socket address to store our sender information
+                    sockaddr_in from;
+                    socklen_t sSize = sizeof(sockaddr_in);
                     
-                    // Read our UDP packet
+                    ssize_t recieved = recvfrom(fd, p.data.data(), p.data.size(), 0, reinterpret_cast<sockaddr*>(&from), &sSize);
                     
-                    // Make it nice
+                    // if no error
+                    if(recieved > 0) {
+                        p.error = false;
+                        p.address = ntohl(from.sin_addr.s_addr);
+                        p.data.resize(recieved);
+                    }
                     
-                    // Return it from the get
-                    
-                    // Return our thread local variable
-                    return Packet();
+                    return p;
                 };
             };
         }

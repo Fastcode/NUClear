@@ -138,7 +138,9 @@ namespace NUClear {
                                 
                                 // It's our notification handle
                                 if(fd.fd == notifyRecv) {
-                                    
+                                    // Read our value to clear it's read status
+                                    char val;
+                                    read(fd.fd, &val, sizeof(char));
                                 }
                                 // It's a regular handle
                                 else {
