@@ -22,6 +22,7 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
+#include <cstring>
 
 #include "nuclear_bits/PowerPlant.h"
 #include "nuclear_bits/dsl/word/IO.h"

@@ -21,8 +21,8 @@
 #include <algorithm>
 
 extern "C" {
-#include <unistd.h>
-#include <poll.h>
+    #include <unistd.h>
+    #include <poll.h>
 }
 
 namespace NUClear {
