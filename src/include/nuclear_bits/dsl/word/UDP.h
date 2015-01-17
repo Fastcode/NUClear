@@ -57,7 +57,7 @@ namespace NUClear {
                     memset(&address, 0, sizeof(sockaddr_in));
                     address.sin_family = AF_INET;
                     address.sin_port = htons(port);
-                    address.sin_addr.s_addr = INADDR_ANY;
+                    address.sin_addr.s_addr = htonl(INADDR_ANY);
                     
                     // Bind to the address, and if we fail throw an error
                     if(::bind(fd, reinterpret_cast<sockaddr*>(&address), sizeof(sockaddr))) {
@@ -108,7 +108,7 @@ namespace NUClear {
                     }
                     
                     return p;
-                };
+                }
             };
         }
     }

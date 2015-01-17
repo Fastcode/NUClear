@@ -140,7 +140,9 @@ namespace NUClear {
                                 if(fd.fd == notifyRecv) {
                                     // Read our value to clear it's read status
                                     char val;
-                                    read(fd.fd, &val, sizeof(char));
+                                    if(read(fd.fd, &val, sizeof(char)) < 0) {
+                                        throw std::system_error(errno, std::system_category(), "There was an error reading our notification pipe?");
+                                    };
                                 }
                                 // It's a regular handle
                                 else {

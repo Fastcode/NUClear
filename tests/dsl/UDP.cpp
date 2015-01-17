@@ -21,7 +21,7 @@
 
 namespace {
     
-    static constexpr short port = 40000;
+    static constexpr unsigned short port = 40000;
     const std::string testString = "Hello UDP World!";
     
     struct Message {

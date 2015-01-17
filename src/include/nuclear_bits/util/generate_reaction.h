@@ -27,7 +27,7 @@ namespace NUClear {
     namespace util {
         
         template <typename DSL, typename TUnbind, typename TFunc>
-        std::unique_ptr<threading::Reaction> generate_reaction(Reactor& reactor, const std::string& label, TFunc&& callback, std::function<void()> unbind = []{}) {
+        std::unique_ptr<threading::Reaction> generate_reaction(Reactor& reactor, const std::string& label, TFunc&& callback, std::function<void()> unbind = std::function<void()>()) {
         
             // Make our callback generator
             auto task = util::generate_callback<DSL>(std::forward<TFunc>(callback));
