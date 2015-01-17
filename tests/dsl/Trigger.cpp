@@ -48,7 +48,9 @@ TEST_CASE("A very basic test for Emit and On", "[api]") {
     NUClear::PowerPlant plant(config);
     plant.install<TestReactor>();
     
-    plant.emit(std::unique_ptr<SimpleMessage>(new SimpleMessage{10}));
+    auto message = std::make_unique<SimpleMessage>(SimpleMessage { 10 });
+    
+    plant.emit(message);
     
     plant.start();
 }

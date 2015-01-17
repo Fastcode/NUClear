@@ -183,6 +183,8 @@ namespace NUClear {
          */
         template <typename TData>
         void emit(std::unique_ptr<TData>&& data);
+        template <typename TData>
+        void emit(std::unique_ptr<TData>& data);
         
         /**
          * @brief Emits data to the system and routes it to the other systems that use it.
@@ -197,6 +199,8 @@ namespace NUClear {
          */
         template <typename TFirstHandler, typename... THandlers, typename TData>
         void emit(std::unique_ptr<TData>&& data);
+        template <typename TFirstHandler, typename... THandlers, typename TData>
+        void emit(std::unique_ptr<TData>& data);
         
         
     private:

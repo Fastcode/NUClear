@@ -31,11 +31,20 @@ namespace NUClear {
     template <typename TData>
     void PowerPlant::emit(std::unique_ptr<TData>&& data) {
         
-        // Release our data from the pointer and wrap it in a shared_ptr
-        std::shared_ptr<TData>&& ptr = std::shared_ptr<TData>(std::move(data));
+        emit<dsl::word::emit::Local>(std::forward<std::unique_ptr<TData>>(data));
+    }
+    // Default emit with no types
+    template <typename TData>
+    void PowerPlant::emit(std::unique_ptr<TData>& data) {
         
-        // Pass it to the default emit handler
-        dsl::word::emit::Local::emit(*this, ptr);
+        emit<dsl::word::emit::Local>(std::move(data));
+    }
+    
+    // Default emit with no types
+    template <typename TFirstHandler, typename... THandlers, typename TData>
+    void PowerPlant::emit(std::unique_ptr<TData>& data) {
+        
+        emit<dsl::word::emit::Local>(std::move(data));
     }
     
     // Global emit handlers
