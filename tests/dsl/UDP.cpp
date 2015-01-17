@@ -54,7 +54,6 @@ namespace {
                 
                 size_t sent = sendto(fd, testString.data(), testString.size(), 0, reinterpret_cast<sockaddr*>(&address), sizeof(sockaddr_in));
                 
-                std::cout << sent << std::endl;
                 REQUIRE(sent == testString.size());
             });
             
