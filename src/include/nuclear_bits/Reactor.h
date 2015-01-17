@@ -143,7 +143,7 @@ namespace NUClear {
         using Shutdown = dsl::word::Shutdown;
         
         /// @copydoc dsl::word::Every
-        template <int ticks, class period = std::chrono::milliseconds>
+        template <int ticks = 0, class period = std::chrono::milliseconds>
         using Every = dsl::word::Every<ticks, period>;
         
         /// @copydoc dsl::word::Per

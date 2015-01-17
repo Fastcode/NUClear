@@ -18,9 +18,9 @@
 #ifndef NUCLEAR_DSL_WORD_EVERY_H
 #define NUCLEAR_DSL_WORD_EVERY_H
 
+#include "nuclear_bits/dsl/operation/Unbind.h"
 #include "nuclear_bits/dsl/word/emit/Direct.h"
-#include "nuclear_bits/util/generate_callback.h"
-#include "nuclear_bits/util/get_identifier.h"
+#include "nuclear_bits/util/generate_reaction.h"
 
 namespace NUClear {
     namespace dsl {
@@ -43,10 +43,6 @@ namespace NUClear {
                 clock::duration jump;
                 std::shared_ptr<threading::Reaction> reaction;
             };
-            
-            struct UnbindEvery {
-                uint64_t reactionId;
-            };
 
             /**
              * @ingroup SmartTypes
@@ -68,35 +64,21 @@ namespace NUClear {
              *
              * @return nothing
              */
-            template <int ticks, class period = NUClear::clock::duration>
-            struct Every {
+            template <int ticks = 0, class period = NUClear::clock::duration>
+            struct Every;
+            
+            template <>
+            struct Every<0, NUClear::clock::duration> {
                 
                 template <typename DSL, typename TFunc>
-                static inline std::vector<threading::ReactionHandle> bind(Reactor& reactor, const std::string& label, TFunc&& callback) {
+                static inline std::vector<threading::ReactionHandle> bind(Reactor& reactor, const std::string& label, TFunc&& callback, NUClear::clock::duration jump) {
                     
-                    // Make our callback generator
-                    auto task = util::generate_callback<DSL>(std::forward<TFunc>(callback));
+                    auto reaction = util::generate_reaction<DSL, Every<>>(reactor, label, std::forward<TFunc>(callback));
                     
-                    // Get our identifier string
-                    std::vector<std::string> identifier = util::get_identifier<typename DSL::DSL, TFunc>(label);
-                    
-                    // Get our powerplant
-                    auto& powerplant = reactor.powerplant;
-                    
-                    // Create our unbinder
-                    auto unbinder = [&powerplant] (threading::Reaction& r) {
-                        powerplant.emit<emit::Direct>(std::make_unique<UnbindEvery>(UnbindEvery { r.reactionId }));
-                    };
-                    
-                    // Create our reaction
-                    auto reaction = std::make_shared<threading::Reaction>(identifier, task, DSL::precondition, DSL::postcondition, unbinder);
                     threading::ReactionHandle handle(reaction.get());
                     
-                    // Work out our Reaction timing
-                    clock::duration jump = period(ticks);
-                    
                     // Send our configuration out
-                    powerplant.emit<emit::Direct>(std::make_unique<EveryConfiguration>(EveryConfiguration {
+                    reactor.powerplant.emit<emit::Direct>(std::make_unique<EveryConfiguration>(EveryConfiguration {
                         jump,
                         std::move(reaction)
                     }));
@@ -107,7 +89,30 @@ namespace NUClear {
                 }
             };
             
-            
+            template <int ticks, class period>
+            struct Every {
+                
+                template <typename DSL, typename TFunc>
+                static inline std::vector<threading::ReactionHandle> bind(Reactor& reactor, const std::string& label, TFunc&& callback) {
+                    
+                    auto reaction = util::generate_reaction<DSL, Every<>>(reactor, label, std::forward<TFunc>(callback));
+                    
+                    threading::ReactionHandle handle(reaction.get());
+                    
+                    // Work out our Reaction timing
+                    clock::duration jump = period(ticks);
+                    
+                    // Send our configuration out
+                    reactor.powerplant.emit<emit::Direct>(std::make_unique<EveryConfiguration>(EveryConfiguration {
+                        jump,
+                        std::move(reaction)
+                    }));
+                    
+                    // Return our handles
+                    std::vector<threading::ReactionHandle> handles = { handle };
+                    return handles;
+                }
+            };
         }
     }
 }

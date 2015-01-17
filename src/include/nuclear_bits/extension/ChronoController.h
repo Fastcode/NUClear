@@ -67,8 +67,8 @@ namespace NUClear {
                     // Otherwise add a new step
                 });
                   
-                on<Trigger<dsl::word::UnbindEvery>>().then([this] (const dsl::word::UnbindEvery& unbind) {
-                    
+                on<Trigger<dsl::operation::Unbind<Every<>>>>().then([this] (const dsl::operation::Unbind<Every<>>& unbind) {
+                  
                     // Loop through all of our steps
                     for(auto& step : steps) {
                         

@@ -18,12 +18,11 @@
 #ifndef NUCLEAR_DSL_WORD_IO_H
 #define NUCLEAR_DSL_WORD_IO_H
 
+#include "nuclear_bits/dsl/operation/Unbind.h"
 #include "nuclear_bits/dsl/word/emit/Direct.h"
 #include "nuclear_bits/dsl/word/Single.h"
 #include "nuclear_bits/dsl/store/ThreadStore.h"
-#include "nuclear_bits/util/generate_callback.h"
-#include "nuclear_bits/util/get_identifier.h"
-
+#include "nuclear_bits/util/generate_reaction.h"
 namespace NUClear {
     namespace dsl {
         namespace word {
@@ -32,10 +31,6 @@ namespace NUClear {
                 int fd;
                 int events;
                 std::shared_ptr<threading::Reaction> reaction;
-            };
-            
-            struct UnbindIO {
-                uint64_t reactionId;
             };
 
             // IO is implicitly single
@@ -51,26 +46,11 @@ namespace NUClear {
                 template <typename DSL, typename TFunc>
                 static inline std::vector<threading::ReactionHandle> bind(Reactor& reactor, const std::string& label, TFunc&& callback, int fd, int watchSet) {
                     
-                    // Make our callback generator
-                    auto task = util::generate_callback<DSL>(std::forward<TFunc>(callback));
-                    
-                    // Get our identifier string
-                    std::vector<std::string> identifier = util::get_identifier<typename DSL::DSL, TFunc>(label);
-                    
-                    // Get our powerplant
-                    auto& powerplant = reactor.powerplant;
-                    
-                    // Create our unbinder
-                    auto unbinder = [&powerplant] (threading::Reaction& r) {
-                        powerplant.emit<emit::Direct>(std::make_unique<UnbindIO>(UnbindIO { r.reactionId }));
-                    };
-                    
-                    // Create our reaction
-                    auto reaction = std::make_shared<threading::Reaction>(identifier, task, DSL::precondition, DSL::postcondition, unbinder);
+                    auto reaction = util::generate_reaction<DSL, IO>(reactor, label, std::forward<TFunc>(callback));
                     threading::ReactionHandle handle(reaction.get());
                     
                     // Send our configuration out
-                    powerplant.emit<emit::Direct>(std::make_unique<IOConfiguration>(IOConfiguration {
+                    reactor.powerplant.emit<emit::Direct>(std::make_unique<IOConfiguration>(IOConfiguration {
                         fd,
                         watchSet,
                         std::move(reaction)

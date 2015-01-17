@@ -89,7 +89,7 @@ namespace NUClear {
                     }
                 });
                 
-                on<Trigger<dsl::word::UnbindIO>>().then([this] (const dsl::word::UnbindIO& unbind) {
+                on<Trigger<dsl::operation::Unbind<IO>>>().then([this] (const dsl::operation::Unbind<IO>& unbind) {
                     
                     // Lock our mutex to avoid concurrent modification
                     std::lock_guard<std::mutex> lock(reactionMutex);
