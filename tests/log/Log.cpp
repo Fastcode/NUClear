@@ -44,7 +44,7 @@ namespace {
             
             // Testing that the log level gets through
 
-            on<Trigger<int>>([this](const int& v) {
+            on<Trigger<int>>().then([this](const int& v) {
                 
                 // Our test val is 1337 to start with
                 REQUIRE(testVal == 1337);
