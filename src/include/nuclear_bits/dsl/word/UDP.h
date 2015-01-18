@@ -22,11 +22,14 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
+
+#include <net/if.h>
 #include <cstring>
 
 #include "nuclear_bits/PowerPlant.h"
 #include "nuclear_bits/dsl/word/IO.h"
 #include "nuclear_bits/util/generate_reaction.h"
+#include "nuclear_bits/util/get_network_interfaces.h"
 
 namespace NUClear {
     namespace dsl {
@@ -85,7 +88,6 @@ namespace NUClear {
                 template <typename DSL>
                 static inline Packet get(threading::ReactionTask&) {
                     
-                    
                     // Get our filedescriptor from the magic cache
                     int fd = store::ThreadStore<int, 0>::value;
                     
@@ -109,6 +111,110 @@ namespace NUClear {
                     
                     return p;
                 }
+                
+                struct Broadcast {
+                    
+                    template <typename DSL, typename TFunc>
+                    static inline std::vector<threading::ReactionHandle> bind(Reactor& reactor, const std::string& label, TFunc&& callback, int port) {
+                       
+                        // Our list of broadcast file descriptors
+                        std::vector<int> fds;
+                        
+                        // Get all the network interfaces
+                        auto interfaces = util::get_network_interfaces();
+                        
+                        std::vector<uint32_t> addresses;
+                        
+                        for(auto& iface : interfaces) {
+                            // We don't care about interfaces with a netmask of 255.255.255.255
+                            if(iface.ip != iface.broadcast) {
+                                // Two broadcast ips that are the same are probably on the same network so ignore those
+                                if(std::find(std::begin(addresses), std::end(addresses), iface.broadcast) == std::end(addresses)) {
+                                    addresses.push_back(iface.broadcast);
+                                }
+                            }
+                        }
+                        
+                        for(auto& ad : addresses) {
+                            
+                            // Make our socket
+                            int fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+                            if(fd < 0) {
+                                throw std::system_error(errno, std::system_category(), "We were unable to open the UDP socket");
+                            }
+                            
+                            // The address we will be binding to (our broadcast address)
+                            sockaddr_in address;
+                            memset(&address, 0, sizeof(sockaddr_in));
+                            address.sin_family = AF_INET;
+                            address.sin_port = htons(port);
+                            address.sin_addr.s_addr = htonl(ad);
+                            
+                            // We are a broadcast socket
+                            int broadcast = true;
+                            if(setsockopt(fd, SOL_SOCKET, SO_BROADCAST, &broadcast, sizeof(broadcast)) < 0) {
+                                throw std::system_error(errno, std::system_category(), "We were unable to set the socket as broadcast");
+                            }
+                            
+                            // Bind to the address, and if we fail throw an error
+                            if(::bind(fd, reinterpret_cast<sockaddr*>(&address), sizeof(sockaddr))) {
+                                throw std::system_error(errno, std::system_category(), "We were unable to bind the UDP socket to the port");
+                            }
+                            
+                            fds.push_back(fd);
+                        }
+                        
+                        // Generate a reaction for the IO system that closes on death
+                        auto reaction = util::generate_reaction<DSL, IO>(reactor, label, std::forward<TFunc>(callback), [fds] {
+                            // Close all the sockets
+                            for(auto& fd : fds) {
+                                ::close(fd);
+                            }
+                        });
+                        threading::ReactionHandle handle(reaction.get());
+                        
+                        // Send our configuration out for each file descriptor (same reaction)
+                        for(auto& fd : fds) {
+                            reactor.powerplant.emit<emit::Direct>(std::make_unique<IOConfiguration>(IOConfiguration {
+                                fd,
+                                IO::READ,
+                                std::move(reaction)
+                            }));
+                        }
+                        
+                        // Return our handles
+                        std::vector<threading::ReactionHandle> handles = { handle };
+                        return handles;
+                    }
+                    
+                    template <typename DSL>
+                    static inline Packet get(threading::ReactionTask&) {
+                        
+                        // Get our filedescriptor from the magic cache
+                        int fd = store::ThreadStore<int, 0>::value;
+                        
+                        // Make a packet with 2k of storage (hopefully packets are smaller then this as most MTUs are around 1500)
+                        Packet p;
+                        p.error = true;
+                        p.data.resize(2048);
+                        
+                        // Make a socket address to store our sender information
+                        sockaddr_in from;
+                        socklen_t sSize = sizeof(sockaddr_in);
+                        
+                        ssize_t recieved = recvfrom(fd, p.data.data(), p.data.size(), 0, reinterpret_cast<sockaddr*>(&from), &sSize);
+                        
+                        // if no error
+                        if(recieved > 0) {
+                            p.error = false;
+                            p.address = ntohl(from.sin_addr.s_addr);
+                            p.data.resize(recieved);
+                        }
+                        
+                        return p;
+                    }
+
+                };
             };
         }
     }
