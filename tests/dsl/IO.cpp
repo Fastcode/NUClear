@@ -74,7 +74,7 @@ namespace {
     };
 }
 
-TEST_CASE("Testing the IO extension", "[api]") {
+TEST_CASE("Testing the IO extension", "[api][io]") {
     
     NUClear::PowerPlant::Configuration config;
     config.threadCount = 1;

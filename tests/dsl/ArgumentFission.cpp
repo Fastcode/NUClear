@@ -112,7 +112,7 @@ namespace {
     };
 }
 
-TEST_CASE("Testing distributing arguments to multiple bind functions (NUClear Fission)", "[api]") {
+TEST_CASE("Testing distributing arguments to multiple bind functions (NUClear Fission)", "[api][dsl][fission]") {
     
     NUClear::PowerPlant::Configuration config;
     config.threadCount = 1;

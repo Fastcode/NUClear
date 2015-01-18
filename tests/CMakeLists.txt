@@ -6,7 +6,7 @@ FILE(GLOB_RECURSE testsrc "${CMAKE_CURRENT_SOURCE_DIR}/**.cpp")
 FILE(GLOB test_base       "${CMAKE_CURRENT_SOURCE_DIR}/test.cpp")
 FILE(GLOB test_dsl        "${CMAKE_CURRENT_SOURCE_DIR}/dsl/*.cpp")
 FILE(GLOB test_dsl_emit   "${CMAKE_CURRENT_SOURCE_DIR}/dsl/emit/*.cpp")
-FILE(GLOB test_log        "${CMAKE_CURRENT_SOURCE_DIR}/log*.cpp")
+FILE(GLOB test_log        "${CMAKE_CURRENT_SOURCE_DIR}/log/*.cpp")
 
 SOURCE_GROUP(""           FILES ${test_base})
 SOURCE_GROUP(dsl          FILES ${test_dsl})

@@ -41,7 +41,7 @@ namespace {
 }
 
 
-TEST_CASE("A very basic test for Emit and On", "[api]") {
+TEST_CASE("A very basic test for Emit and On", "[api][trigger]") {
     
     NUClear::PowerPlant::Configuration config;
     config.threadCount = 1;

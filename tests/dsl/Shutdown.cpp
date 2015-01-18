@@ -44,7 +44,7 @@ namespace {
     };
 }
 
-TEST_CASE("A test that a shutdown message is emitted when the system shuts down", "[api]") {
+TEST_CASE("A test that a shutdown message is emitted when the system shuts down", "[api][shutdown]") {
     
     NUClear::PowerPlant::Configuration config;
     config.threadCount = 1;

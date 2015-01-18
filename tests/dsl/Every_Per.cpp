@@ -85,7 +85,7 @@ namespace {
     };
 }
 
-TEST_CASE("Testing the Every<> Smart Type using Per", "[api][every]") {
+TEST_CASE("Testing the Every<> Smart Type using Per", "[api][every][per]") {
     
     NUClear::PowerPlant::Configuration config;
     config.threadCount = 1;

@@ -40,7 +40,7 @@ namespace {
     };
 }
 
-TEST_CASE("Testing on<Always> functionality (permanant run)", "[api][log]") {
+TEST_CASE("Testing on<Always> functionality (permanant run)", "[api][always]") {
     
     NUClear::PowerPlant::Configuration config;
     config.threadCount = 1;

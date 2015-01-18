@@ -68,7 +68,7 @@ namespace {
     };
 }
 
-TEST_CASE("Test that single prevents a second call while one is executing", "[api]") {
+TEST_CASE("Test that single prevents a second call while one is executing", "[api][precondition][single]") {
     
     NUClear::PowerPlant::Configuration config;
     // Unless there are at least 2 threads here single makes no sense ;)

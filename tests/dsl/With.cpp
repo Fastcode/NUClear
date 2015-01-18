@@ -38,7 +38,7 @@ namespace {
     };
 }
 
-TEST_CASE("Testing poorly ordered on arguments", "[api]") {
+TEST_CASE("Testing poorly ordered on arguments", "[api][with]") {
     
     NUClear::PowerPlant::Configuration config;
     config.threadCount = 1;

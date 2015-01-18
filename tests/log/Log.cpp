@@ -14,7 +14,7 @@
  * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-#define CATCH_CONFIG_MAIN
+
 #include <catch.hpp>
 
 #include "nuclear"
@@ -30,7 +30,7 @@ namespace {
         TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
             
             // Testing that the log message gets through
-            on<Trigger<NUClear::message::LogMessage>>([this](const NUClear::message::LogMessage& logMessage) {
+            on<Trigger<NUClear::message::LogMessage>>().then([this](const NUClear::message::LogMessage& logMessage) {
             
                 REQUIRE(logMessage.message == "Got int: 5");
                 REQUIRE(logMessage.level == NUClear::DEBUG);
