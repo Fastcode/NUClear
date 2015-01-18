@@ -15,39 +15,18 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_DSL_WORD_EMIT_LOCAL_H
-#define NUCLEAR_DSL_WORD_EMIT_LOCAL_H
-
-#include "nuclear_bits/PowerPlant.h"
-
-#include "nuclear_bits/dsl/store/TypeCallbackStore.h"
-#include "nuclear_bits/dsl/store/DataStore.h"
+#ifndef NUCLEAR_DSL_OPERATION_UNBIND_H
+#define NUCLEAR_DSL_OPERATION_UNBIND_H
 
 namespace NUClear {
     namespace dsl {
-        namespace word {
-            namespace emit {
-                
-                struct Local {
-                    
-                    template <typename TData>
-                    static void emit(PowerPlant& powerplant, std::shared_ptr<TData> data) {
-                        
-                        // Set our data in the store
-                        store::DataStore<TData>::set(data);
-                        
-                        for(auto& reaction : store::TypeCallbackStore<TData>::get()) {
-                            try {
-                                auto task = reaction->getTask(threading::ReactionTask::currentTask);
-                                powerplant.submit(std::move(task));
-                            }
-                            catch(...) {
-                                // TODO should I do something here?
-                            }
-                        }
-                    }
-                };
-            }
+        namespace operation {
+            
+            template <typename TType>
+            struct Unbind {
+                Unbind(uint64_t reactionId) : reactionId(reactionId) {};
+                const uint64_t reactionId;
+            };
         }
     }
 }

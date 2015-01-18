@@ -47,6 +47,8 @@ namespace NUClear {
             
             struct IO;
             
+            struct UDP;
+            
             template <typename>
             struct Trigger;
             
@@ -127,6 +129,9 @@ namespace NUClear {
         /// @copydoc dsl::word::IO
         using IO = dsl::word::IO;
         
+        /// @copydoc dsl::word::UDP
+        using UDP = dsl::word::UDP;
+        
         /// @copydoc dsl::word::With
         template <typename... TWiths>
         using With = dsl::word::With<TWiths...>;
@@ -138,7 +143,7 @@ namespace NUClear {
         using Shutdown = dsl::word::Shutdown;
         
         /// @copydoc dsl::word::Every
-        template <int ticks, class period = std::chrono::milliseconds>
+        template <int ticks = 0, class period = std::chrono::milliseconds>
         using Every = dsl::word::Every<ticks, period>;
         
         /// @copydoc dsl::word::Per
@@ -259,6 +264,7 @@ namespace NUClear {
 // Domain Specific Language
 #include "nuclear_bits/dsl/word/Always.h"
 #include "nuclear_bits/dsl/word/IO.h"
+#include "nuclear_bits/dsl/word/UDP.h"
 #include "nuclear_bits/dsl/word/Trigger.h"
 #include "nuclear_bits/dsl/word/With.h"
 #include "nuclear_bits/dsl/word/Startup.h"

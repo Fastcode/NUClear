@@ -21,8 +21,8 @@
 #include <algorithm>
 
 extern "C" {
-#include <unistd.h>
-#include <poll.h>
+    #include <unistd.h>
+    #include <poll.h>
 }
 
 namespace NUClear {
@@ -89,7 +89,7 @@ namespace NUClear {
                     }
                 });
                 
-                on<Trigger<dsl::word::UnbindIO>>().then([this] (const dsl::word::UnbindIO& unbind) {
+                on<Trigger<dsl::operation::Unbind<IO>>>().then([this] (const dsl::operation::Unbind<IO>& unbind) {
                     
                     // Lock our mutex to avoid concurrent modification
                     std::lock_guard<std::mutex> lock(reactionMutex);
@@ -138,7 +138,11 @@ namespace NUClear {
                                 
                                 // It's our notification handle
                                 if(fd.fd == notifyRecv) {
-                                    
+                                    // Read our value to clear it's read status
+                                    char val;
+                                    if(read(fd.fd, &val, sizeof(char)) < 0) {
+                                        throw std::system_error(errno, std::system_category(), "There was an error reading our notification pipe?");
+                                    };
                                 }
                                 // It's a regular handle
                                 else {
