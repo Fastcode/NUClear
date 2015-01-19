@@ -59,7 +59,7 @@ namespace NUClear {
             for(ifreq* r = ifc.ifc_req; r < ifc.ifc_req + (ifc.ifc_len / sizeof(ifreq));) {
                 
                 // Somewhat platform dependant as to if this variable exists
-                #ifndef linux
+                #ifndef __linux__
                 int len=IFNAMSIZ + r->ifr_addr.sa_len;
                 #else
                 int len=sizeof(ifreq);

@@ -151,9 +151,12 @@ namespace NUClear {
                             address.sin_addr.s_addr = htonl(ad);
                             
                             // We are a broadcast socket
-                            int broadcast = true;
-                            if(setsockopt(fd, SOL_SOCKET, SO_BROADCAST, &broadcast, sizeof(broadcast)) < 0) {
+                            int yes = true;
+                            if(setsockopt(fd, SOL_SOCKET, SO_BROADCAST, &yes, sizeof(yes)) < 0) {
                                 throw std::system_error(errno, std::system_category(), "We were unable to set the socket as broadcast");
+                            }
+                            if(setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) < 0) {
+                                throw std::system_error(errno, std::system_category(), "We were unable to set reuse address on the socket");
                             }
                             
                             // Bind to the address, and if we fail throw an error
@@ -171,14 +174,15 @@ namespace NUClear {
                                 ::close(fd);
                             }
                         });
-                        threading::ReactionHandle handle(reaction.get());
+                        std::shared_ptr<threading::Reaction> r(std::move(reaction));
+                        threading::ReactionHandle handle(r.get());
                         
                         // Send our configuration out for each file descriptor (same reaction)
                         for(auto& fd : fds) {
                             reactor.powerplant.emit<emit::Direct>(std::make_unique<IOConfiguration>(IOConfiguration {
                                 fd,
                                 IO::READ,
-                                std::move(reaction)
+                                r
                             }));
                         }
                         
