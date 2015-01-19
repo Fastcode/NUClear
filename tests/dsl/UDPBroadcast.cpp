@@ -21,8 +21,8 @@
 
 namespace {
     
-    static constexpr unsigned short port = 40000;
-    const std::string testString = "Hello UDP World!";
+    static constexpr unsigned short port = 40001;
+    const std::string testString = "Hello UDP Broadcast World!";
     
     struct Message {
     };
@@ -31,10 +31,9 @@ namespace {
     public:
         TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
             
-            on<UDP>(port).then([this](const UDP::Packet& packet) {
+            on<UDP::Broadcast>(port).then([this](const UDP::Packet& packet) {
                 
                 // Check that the data we received is correct
-                REQUIRE(packet.address == INADDR_LOOPBACK);
                 REQUIRE(packet.data.size() == testString.size());
                 REQUIRE(std::memcmp(packet.data.data(), testString.data(), testString.size()) == 0);
                 
@@ -43,20 +42,47 @@ namespace {
             });
             
             on<Trigger<Message>>().then([this] {
-            
-                // Open a random socket
-                int fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
                 
-                sockaddr_in address;
-                address.sin_family = AF_INET;
-                address.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
-                address.sin_port = htons(port);
+                // Get all the network interfaces
+                auto interfaces = NUClear::util::get_network_interfaces();
                 
-                size_t sent = sendto(fd, testString.data(), testString.size(), 0, reinterpret_cast<sockaddr*>(&address), sizeof(sockaddr_in));
+                std::vector<uint32_t> addresses;
                 
-                close(fd);
+                for(auto& iface : interfaces) {
+                    // We don't care about interfaces with a netmask of 255.255.255.255
+                    if(iface.ip != iface.broadcast) {
+                        // Two broadcast ips that are the same are probably on the same network so ignore those
+                        if(std::find(std::begin(addresses), std::end(addresses), iface.broadcast) == std::end(addresses)) {
+                            addresses.push_back(iface.broadcast);
+                        }
+                    }
+                }
                 
-                REQUIRE(sent == testString.size());
+                for(auto& ad : addresses) {
+                
+                    // Open a random socket
+                    int fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+                    
+                    // Set our socket to broadcast
+                    int broadcast = 1;
+                    REQUIRE(setsockopt(fd, SOL_SOCKET, SO_BROADCAST, &broadcast, sizeof(broadcast)) >= 0);
+                    
+                    sockaddr_in address;
+                    address.sin_family = AF_INET;
+                    address.sin_addr.s_addr = htonl(ad);
+                    address.sin_port = htons(port);
+                    
+                    int sent = sendto(fd, testString.data(), testString.size(), 0, reinterpret_cast<sockaddr*>(&address), sizeof(sockaddr_in));
+                    if(sent < 0) {
+                        std::cout << errno << std::endl;
+                        throw std::system_error(errno, std::system_category());
+                        
+                    }
+                    
+                    close(fd);
+                    
+                    REQUIRE(sent == testString.size());
+                }
             });
             
             on<Startup>().then([this] {
@@ -69,7 +95,7 @@ namespace {
     };
 }
 
-TEST_CASE("Testing sending and receiving of UDP messages", "[api][network][udp]") {
+TEST_CASE("Testing sending and receiving of UDP Broadcast messages", "[api][network][udp][broadcast]") {
     
     NUClear::PowerPlant::Configuration config;
     config.threadCount = 1;
