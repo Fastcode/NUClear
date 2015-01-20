@@ -18,12 +18,16 @@
 #ifndef NUCLEAR_DSL_FUSION_PRECONDITIONFUSION_H
 #define NUCLEAR_DSL_FUSION_PRECONDITIONFUSION_H
 
-#include "nuclear_bits/dsl/fusion/has_precondition.h"
 #include "nuclear_bits/util/MetaProgramming.h"
+#include "nuclear_bits/dsl/operation/DSLProxy.h"
+#include "nuclear_bits/dsl/fusion/has_precondition.h"
 
 namespace NUClear {
     namespace dsl {
         namespace fusion {
+            
+            template <typename Predecate, typename Then, typename Else>
+            using If = util::Meta::If<Predecate, Then, Else>;
             
             template <typename Condition, typename Value>
             using EnableIf = util::Meta::EnableIf<Condition, Value>;
@@ -42,10 +46,10 @@ namespace NUClear {
                 
                 template <typename DSL, typename U = TFirst>
                 static inline auto precondition(threading::Reaction& task)
-                -> EnableIf<All<has_precondition<U>, Any<has_precondition<TWords>...>>, bool> {
+                -> EnableIf<All<Any<has_precondition<U>, has_precondition<operation::DSLProxy<U>>>, Any<Any<has_precondition<TWords>, has_precondition<operation::DSLProxy<TWords>>>...>>, bool> {
                     
                     // Run this precondition
-                    if(!TFirst::template precondition<DSL>(task)) {
+                    if(!If<has_precondition<TFirst>, TFirst, operation::DSLProxy<TFirst>>::template precondition<DSL>(task)) {
                         return false;
                     }
                     // Run future preconditions
@@ -56,15 +60,15 @@ namespace NUClear {
                 
                 template <typename DSL, typename U = TFirst>
                 static inline auto precondition(threading::Reaction& task)
-                -> EnableIf<All<has_precondition<U>, Not<Any<has_precondition<TWords>...>>>, bool> {
+                -> EnableIf<All<Any<has_precondition<U>, has_precondition<operation::DSLProxy<U>>>, Not<Any<Any<has_precondition<TWords>, has_precondition<operation::DSLProxy<U>>>...>>>, bool> {
                     
                     // Run this precondition
-                    return TFirst::template precondition<DSL>(task);
+                    return If<has_precondition<TFirst>, TFirst, operation::DSLProxy<TFirst>>::template precondition<DSL>(task);
                 }
                 
                 template <typename DSL, typename U = TFirst>
                 static inline auto precondition(threading::Reaction& task)
-                -> EnableIf<All<Not<has_precondition<U>>, Any<has_precondition<TWords>...>>, bool> {
+                -> EnableIf<All<Not<Any<has_precondition<U>, has_precondition<operation::DSLProxy<U>>>>, Any<Any<has_precondition<TWords>, has_precondition<operation::DSLProxy<TWords>>>...>>, bool> {
                     
                     // Run future precondition
                     return PreconditionFusion<TWords...>::template precondition<DSL>(task);

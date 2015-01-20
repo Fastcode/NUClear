@@ -27,11 +27,11 @@ namespace NUClear {
     namespace dsl {
         namespace fusion {
             
-            template <typename Condition, typename Value>
-            using EnableIf = util::Meta::EnableIf<Condition, Value>;
-            
             template <typename Predecate, typename Then, typename Else>
             using If = util::Meta::If<Predecate, Then, Else>;
+            
+            template <typename Condition, typename Value>
+            using EnableIf = util::Meta::EnableIf<Condition, Value>;
             
             template <typename Condition>
             using Not = util::Meta::Not<Condition>;
@@ -50,25 +50,28 @@ namespace NUClear {
                 
                 template <typename DSL, typename U = TFirst>
                 static inline auto get(threading::ReactionTask& task)
-                -> EnableIf<All<has_get<U>, Any<has_get<TWords>...>>
-                , decltype(std::tuple_cat(util::tuplify(U::template get<DSL>(task)), If<All<has_get<U>, Any<has_get<TWords>...>>, GetFusion<TWords...>, NoOp>::template get<DSL>(task)))> {
+                -> EnableIf<All<Any<has_get<U>, has_get<operation::DSLProxy<U>>>, Any<Any<has_get<TWords>, has_get<operation::DSLProxy<TWords>>>...>>
+                , decltype(std::tuple_cat(util::tuplify(If<has_get<U>, U, operation::DSLProxy<U>>::template get<DSL>(task)), If<All<Any<has_get<U>, has_get<operation::DSLProxy<U>>>, Any<Any<has_get<TWords>, has_get<operation::DSLProxy<TWords>>>...>>, GetFusion<TWords...>, NoOp>::template get<DSL>(task)))> {
                     // Tuplify and return what we need
-                    return std::tuple_cat(util::tuplify(U::template get<DSL>(task)), If<All<has_get<U>, Any<has_get<TWords>...>>, GetFusion<TWords...>, NoOp>::template get<DSL>(task));
+                    
+                    
+                    
+                    return std::tuple_cat(util::tuplify(If<has_get<U>, U, operation::DSLProxy<U>>::template get<DSL>(task)), If<All<Any<has_get<U>, has_get<operation::DSLProxy<U>>>, Any<Any<has_get<TWords>, has_get<operation::DSLProxy<TWords>>>...>>, GetFusion<TWords...>, NoOp>::template get<DSL>(task));
                 }
                 
                 template <typename DSL, typename U = TFirst>
                 static inline auto get(threading::ReactionTask& task)
-                -> EnableIf<All<has_get<U>, Not<Any<has_get<TWords>...>>>
-                , decltype(util::tuplify(U::template get<DSL>(task)))> {
+                -> EnableIf<All<Any<has_get<U>, has_get<operation::DSLProxy<U>>>, Not<Any<Any<has_get<TWords>, has_get<operation::DSLProxy<TWords>>>...>>>
+                , decltype(util::tuplify(If<has_get<U>, U, operation::DSLProxy<U>>::template get<DSL>(task)))> {
                     
                     // Tuplify and return our element
-                    return util::tuplify(U::template get<DSL>(task));
+                    return util::tuplify(If<has_get<U>, U, operation::DSLProxy<U>>::template get<DSL>(task));
                 }
                 
                 template <typename DSL, typename U = TFirst>
                 static inline auto get(threading::ReactionTask& task)
-                -> EnableIf<All<Not<has_get<U>>, Any<has_get<TWords>...>>
-                , decltype(If<All<Not<has_get<U>>, Any<has_get<TWords>...>>, GetFusion<TWords...>, NoOp>::template get<DSL>(task))> {
+                -> EnableIf<All<Not<Any<has_get<U>, has_get<operation::DSLProxy<U>>>>, Any<Any<has_get<TWords>, has_get<operation::DSLProxy<U>>>...>>
+                , decltype(If<All<Not<Any<has_get<U>, has_get<operation::DSLProxy<U>>>>, Any<Any<has_get<TWords>, has_get<operation::DSLProxy<U>>>...>>, GetFusion<TWords...>, NoOp>::template get<DSL>(task))> {
                     
                     // Pass on to the next element
                     return GetFusion<TWords...>::template get<DSL>(task);

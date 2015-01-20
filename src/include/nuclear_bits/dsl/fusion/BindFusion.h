@@ -20,11 +20,15 @@
 
 #include "nuclear_bits/util/MetaProgramming.h"
 #include "nuclear_bits/threading/ReactionHandle.h"
+#include "nuclear_bits/dsl/operation/DSLProxy.h"
 #include "nuclear_bits/dsl/fusion/has_bind.h"
 
 namespace NUClear {
     namespace dsl {
         namespace fusion {
+            
+            template <typename Predecate, typename Then, typename Else>
+            using If = util::Meta::If<Predecate, Then, Else>;
             
             template <typename Condition, typename Value>
             using EnableIf = util::Meta::EnableIf<Condition, Value>;
@@ -80,16 +84,16 @@ namespace NUClear {
                  */
                 template <typename DSL, typename U = TFirst, typename TFunc, typename... TArgs>
                 static inline auto bind(Reactor& reactor, const std::string& identifier, TFunc&& callback, TArgs&&... args)
-                -> EnableIf<All<has_bind<U>, Any<has_bind<TWords>...>>
+                -> EnableIf<All<Any<has_bind<U>, has_bind<operation::DSLProxy<U>>>, Any<Any<has_bind<TWords>, has_bind<operation::DSLProxy<TWords>>>...>>
                 , std::vector<threading::ReactionHandle>> {
                     
                     // Us and our children
                     
                     // Get the type of the function, G++ needs a little help to work this out
-                    using BindFunc = decltype(resolve_function_type(TFirst::template bind<DSL, TFunc>));
+                    using BindFunc = decltype(resolve_function_type(If<has_bind<TFirst>, TFirst, operation::DSLProxy<TFirst>>::template bind<DSL, TFunc>));
                     
                     // Fission off the arguments that we need (Fission will rejoin fusion when it's done)
-                    return BindFission<BindFunc, TFirst, TWords...>::template bind<DSL>(reactor, identifier, std::forward<TFunc>(callback), std::forward<TArgs>(args)...);
+                    return BindFission<BindFunc, If<has_bind<TFirst>, TFirst, operation::DSLProxy<TFirst>>, TWords...>::template bind<DSL>(reactor, identifier, std::forward<TFunc>(callback), std::forward<TArgs>(args)...);
                 }
                 
                 /**
@@ -103,13 +107,13 @@ namespace NUClear {
                  */
                 template <typename DSL, typename U = TFirst, typename TFunc, typename... TArgs>
                 static inline auto bind(Reactor& reactor, const std::string& identifier, TFunc&& callback, TArgs&&... args)
-                -> EnableIf<All<has_bind<U>, Not<Any<has_bind<TWords>...>>>
+                -> EnableIf<All<Any<has_bind<U>, has_bind<operation::DSLProxy<U>>>, Not<Any<Any<has_bind<TWords>, has_bind<operation::DSLProxy<TWords>>>...>>>
                 , std::vector<threading::ReactionHandle>> {
                     
                     // Us but not our children
                     
                     // Execute our function
-                    return TFirst::template bind<DSL>(reactor, identifier, std::forward<TFunc>(callback), std::forward<TArgs>(args)...);
+                    return If<has_bind<TFirst>, TFirst, operation::DSLProxy<TFirst>>::template bind<DSL>(reactor, identifier, std::forward<TFunc>(callback), std::forward<TArgs>(args)...);
                 }
                 
                 /**
@@ -123,7 +127,7 @@ namespace NUClear {
                  */
                 template <typename DSL, typename U = TFirst, typename TFunc, typename... TArgs>
                 static inline auto bind(Reactor& reactor, const std::string& identifier, TFunc&& callback, TArgs&&... args)
-                -> EnableIf<All<Not<has_bind<U>>, Any<has_bind<TWords>...>>
+                -> EnableIf<All<Not<Any<has_bind<U>, has_bind<operation::DSLProxy<U>>>>, Any<Any<has_bind<TWords>, has_bind<operation::DSLProxy<TWords>>>...>>
                 , std::vector<threading::ReactionHandle>> {
                     
                     // Not us but our children

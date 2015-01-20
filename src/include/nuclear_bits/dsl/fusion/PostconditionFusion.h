@@ -18,12 +18,18 @@
 #ifndef NUCLEAR_DSL_FUSION_POSTCONDITIONFUSION_H
 #define NUCLEAR_DSL_FUSION_POSTCONDITIONFUSION_H
 
+#include "nuclear_bits/util/MetaProgramming.h"
+
 #include "nuclear_bits/threading/ReactionTask.h"
+#include "nuclear_bits/dsl/operation/DSLProxy.h"
 #include "nuclear_bits/dsl/fusion/has_postcondition.h"
 
 namespace NUClear {
     namespace dsl {
         namespace fusion {
+            
+            template <typename Predecate, typename Then, typename Else>
+            using If = util::Meta::If<Predecate, Then, Else>;
             
             template <typename Condition, typename Value>
             using EnableIf = util::Meta::EnableIf<Condition, Value>;
@@ -43,10 +49,10 @@ namespace NUClear {
                 
                 template <typename DSL, typename U = TFirst>
                 static inline auto postcondition(threading::ReactionTask& task)
-                -> EnableIf<All<has_postcondition<U>, Any<has_postcondition<TWords>...>>, void> {
+                -> EnableIf<All<Any<has_postcondition<U>, has_postcondition<operation::DSLProxy<U>>>, Any<Any<has_postcondition<TWords>, has_postcondition<operation::DSLProxy<TWords>>>...>>, void> {
                     
                     // Run this postcondition
-                    TFirst::template postcondition<DSL>(task);
+                    If<has_postcondition<TFirst>, TFirst, operation::DSLProxy<TFirst>>::template postcondition<DSL>(task);
                     
                     // Run future postcondition
                     PreconditionFusion<TWords...>::template postcondition<DSL>(task);
@@ -54,15 +60,15 @@ namespace NUClear {
                 
                 template <typename DSL, typename U = TFirst>
                 static inline auto postcondition(threading::ReactionTask& task)
-                -> EnableIf<All<has_postcondition<U>, Not<Any<has_postcondition<TWords>...>>>, void> {
+                -> EnableIf<All<Any<has_postcondition<U>, has_postcondition<operation::DSLProxy<U>>>, Not<Any<Any<has_postcondition<TWords>, has_postcondition<operation::DSLProxy<TWords>>>...>>>, void> {
                     
                     // Run this postcondition
-                    TFirst::template postcondition<DSL>(task);
+                    If<has_postcondition<TFirst>, TFirst, operation::DSLProxy<TFirst>>::template postcondition<DSL>(task);
                 }
                 
                 template <typename DSL, typename U = TFirst>
                 static inline auto postcondition(threading::ReactionTask& task)
-                -> EnableIf<All<Not<has_postcondition<U>>, Any<has_postcondition<TWords>...>>, void> {
+                -> EnableIf<All<Not<Any<has_postcondition<U>, has_postcondition<operation::DSLProxy<U>>>>, Any<Any<has_postcondition<TWords>, has_postcondition<operation::DSLProxy<TWords>>>...>>, void> {
                     
                     // Run future postcondition
                     PreconditionFusion<TWords...>::template postcondition<DSL>(task);
