@@ -46,13 +46,31 @@ namespace NUClear {
             
             template <typename TFirst, typename... TWords>
             struct PostconditionFusion {
+            private:
+                /// Returns either the real type or the proxy if the real type does not have a postcondition function
+                template <typename U>
+                using Postcondition = If<has_postcondition<U>, U, operation::DSLProxy<U>>;
                 
+                /// Checks if U has a postcondition function, and at least one of the following words do
+                template <typename U>
+                using UsAndChildren = All<has_postcondition<Postcondition<U>>, Any<has_postcondition<Postcondition<TWords>>...>>;
+                
+                /// Checks if U has a postcondition function, and none of the following words do
+                template <typename U>
+                using UsNotChildren = All<has_postcondition<Postcondition<U>>, Not<Any<has_postcondition<Postcondition<TWords>>...>>>;
+                
+                /// Checks if we do not have a postcondition function, but at least one of the following words do
+                template <typename U>
+                using NotUsChildren = All<Not<has_postcondition<Postcondition<U>>>, Any<has_postcondition<Postcondition<TWords>>...>>;
+
+                
+            public:
                 template <typename DSL, typename U = TFirst>
                 static inline auto postcondition(threading::ReactionTask& task)
-                -> EnableIf<All<Any<has_postcondition<U>, has_postcondition<operation::DSLProxy<U>>>, Any<Any<has_postcondition<TWords>, has_postcondition<operation::DSLProxy<TWords>>>...>>, void> {
+                -> EnableIf<UsAndChildren<U>, void> {
                     
                     // Run this postcondition
-                    If<has_postcondition<TFirst>, TFirst, operation::DSLProxy<TFirst>>::template postcondition<DSL>(task);
+                    Postcondition<U>::template postcondition<DSL>(task);
                     
                     // Run future postcondition
                     PreconditionFusion<TWords...>::template postcondition<DSL>(task);
@@ -60,15 +78,15 @@ namespace NUClear {
                 
                 template <typename DSL, typename U = TFirst>
                 static inline auto postcondition(threading::ReactionTask& task)
-                -> EnableIf<All<Any<has_postcondition<U>, has_postcondition<operation::DSLProxy<U>>>, Not<Any<Any<has_postcondition<TWords>, has_postcondition<operation::DSLProxy<TWords>>>...>>>, void> {
+                -> EnableIf<UsNotChildren<U>, void> {
                     
                     // Run this postcondition
-                    If<has_postcondition<TFirst>, TFirst, operation::DSLProxy<TFirst>>::template postcondition<DSL>(task);
+                    Postcondition<U>::template postcondition<DSL>(task);
                 }
                 
                 template <typename DSL, typename U = TFirst>
                 static inline auto postcondition(threading::ReactionTask& task)
-                -> EnableIf<All<Not<Any<has_postcondition<U>, has_postcondition<operation::DSLProxy<U>>>>, Any<Any<has_postcondition<TWords>, has_postcondition<operation::DSLProxy<TWords>>>...>>, void> {
+                -> EnableIf<NotUsChildren<U>, void> {
                     
                     // Run future postcondition
                     PreconditionFusion<TWords...>::template postcondition<DSL>(task);

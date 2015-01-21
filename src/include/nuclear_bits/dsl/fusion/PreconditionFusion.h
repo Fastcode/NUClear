@@ -43,13 +43,30 @@ namespace NUClear {
             
             template <typename TFirst, typename... TWords>
             struct PreconditionFusion {
+            private:
+                /// Returns either the real type or the proxy if the real type does not have a precondition function
+                template <typename U>
+                using Precondition = If<has_precondition<U>, U, operation::DSLProxy<U>>;
                 
+                /// Checks if U has a precondition function, and at least one of the following words do
+                template <typename U>
+                using UsAndChildren = All<has_precondition<Precondition<U>>, Any<has_precondition<Precondition<TWords>>...>>;
+                
+                /// Checks if U has a precondition function, and none of the following words do
+                template <typename U>
+                using UsNotChildren = All<has_precondition<Precondition<U>>, Not<Any<has_precondition<Precondition<TWords>>...>>>;
+                
+                /// Checks if we do not have a precondition function, but at least one of the following words do
+                template <typename U>
+                using NotUsChildren = All<Not<has_precondition<Precondition<U>>>, Any<has_precondition<Precondition<TWords>>...>>;
+            
+            public:
                 template <typename DSL, typename U = TFirst>
                 static inline auto precondition(threading::Reaction& task)
-                -> EnableIf<All<Any<has_precondition<U>, has_precondition<operation::DSLProxy<U>>>, Any<Any<has_precondition<TWords>, has_precondition<operation::DSLProxy<TWords>>>...>>, bool> {
+                -> EnableIf<UsAndChildren<U>, bool> {
                     
                     // Run this precondition
-                    if(!If<has_precondition<TFirst>, TFirst, operation::DSLProxy<TFirst>>::template precondition<DSL>(task)) {
+                    if(!Precondition<U>::template precondition<DSL>(task)) {
                         return false;
                     }
                     // Run future preconditions
@@ -60,15 +77,15 @@ namespace NUClear {
                 
                 template <typename DSL, typename U = TFirst>
                 static inline auto precondition(threading::Reaction& task)
-                -> EnableIf<All<Any<has_precondition<U>, has_precondition<operation::DSLProxy<U>>>, Not<Any<Any<has_precondition<TWords>, has_precondition<operation::DSLProxy<U>>>...>>>, bool> {
+                -> EnableIf<UsNotChildren<U>, bool> {
                     
                     // Run this precondition
-                    return If<has_precondition<TFirst>, TFirst, operation::DSLProxy<TFirst>>::template precondition<DSL>(task);
+                    return Precondition<U>::template precondition<DSL>(task);
                 }
                 
                 template <typename DSL, typename U = TFirst>
                 static inline auto precondition(threading::Reaction& task)
-                -> EnableIf<All<Not<Any<has_precondition<U>, has_precondition<operation::DSLProxy<U>>>>, Any<Any<has_precondition<TWords>, has_precondition<operation::DSLProxy<TWords>>>...>>, bool> {
+                -> EnableIf<NotUsChildren<U>, bool> {
                     
                     // Run future precondition
                     return PreconditionFusion<TWords...>::template precondition<DSL>(task);
