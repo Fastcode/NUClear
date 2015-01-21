@@ -58,7 +58,7 @@ namespace NUClear {
                 // Add our notification pipe to our list of fds
                 fds.push_back(pollfd { notifyRecv, POLLIN, 0 });
                 
-                on<Trigger<dsl::word::IOConfiguration>>().then([this] (const dsl::word::IOConfiguration& config) {
+                on<Trigger<dsl::word::IOConfiguration>>().then("Configure IO Reaction", [this] (const dsl::word::IOConfiguration& config) {
                     
                     // Lock our mutex to avoid concurrent modification
                     std::lock_guard<std::mutex> lock(reactionMutex);
@@ -89,7 +89,7 @@ namespace NUClear {
                     }
                 });
                 
-                on<Trigger<dsl::operation::Unbind<IO>>>().then([this] (const dsl::operation::Unbind<IO>& unbind) {
+                on<Trigger<dsl::operation::Unbind<IO>>>().then("Unbind IO Reaction", [this] (const dsl::operation::Unbind<IO>& unbind) {
                     
                     // Lock our mutex to avoid concurrent modification
                     std::lock_guard<std::mutex> lock(reactionMutex);
@@ -110,7 +110,7 @@ namespace NUClear {
                     }
                 });
                 
-                on<Shutdown>().then([this] {
+                on<Shutdown>().then("Shutdown IO Controller", [this] {
                     
                     // A byte to send down the pipe
                     char val = 0;
@@ -121,7 +121,7 @@ namespace NUClear {
                     }
                 });
                 
-                on<Always>().then([this] {
+                on<Always>().then("IO Controller", [this] {
                     
                     // Poll our file descriptors for events
                     int result = poll(fds.data(), fds.size(), -1);
