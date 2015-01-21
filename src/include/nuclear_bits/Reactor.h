@@ -26,9 +26,8 @@
 #include <chrono>
 #include <atomic>
 
-#include "nuclear_bits/util/apply.h"
-#include "nuclear_bits/util/demangle.h"
 #include "nuclear_bits/util/Sequence.h"
+#include "nuclear_bits/util/tuplify.h"
 
 #include "nuclear_bits/dsl/Parse.h"
 
@@ -162,36 +161,70 @@ namespace NUClear {
         
         template <typename DSL, typename... TArgs>
         struct Binder {
+        private:
+            Reactor& reactor;
+            std::tuple<TArgs...> args;
+            
+            // On a reaction handle add it to our list
+            void addReactionHandle(ReactionHandle& r) {
+                reactor.reactionHandles.push_back(r);
+            }
+            
+            // Do nothing if it's not a reaction handle
+            void addReactionHandle(...) {}
+            
+            template <int i = 0, typename... Tp>
+            util::Meta::EnableIf<std::integral_constant<bool, i == sizeof...(Tp)>> addReactionHandles(std::tuple<Tp...>&) {}
+            
+            template <int i = 0, typename... Tp>
+            util::Meta::EnableIf<std::integral_constant<bool, i < sizeof...(Tp)>> addReactionHandles(std::tuple<Tp...>& t) {
+                addReactionHandle(std::get<i>(t));
+            }
+            
+            template<std::size_t I = 0, typename FuncT, typename... Tp>
+            inline typename std::enable_if<I < sizeof...(Tp), void>::type
+            for_each(std::tuple<Tp...>& t, FuncT f)
+            {
+                f(std::get<I>(t));
+                for_each<I + 1, FuncT, Tp...>(t, f);
+            }
+            
+            
+            template <typename TFunc, int... Index>
+            auto then(const std::string& label, TFunc&& callback, const util::Sequence<Index...>&)
+            -> decltype(util::detuplify(DSL::bind(reactor, label, std::forward<TFunc>(callback), std::get<Index>(args)...))) {
+                
+                // Get our tuple from binding our reaction
+                auto tuple = DSL::bind(reactor, label, std::forward<TFunc>(callback), std::get<Index>(args)...);
+                
+                // Get all reaction handles from the tuple and put them into our global list so we can debind them on destruction
+                addReactionHandles(tuple);
+                
+                // Return the arguments to the user (if there is only 1 we unwrap it for them since this is the most common case)
+                return util::detuplify(std::move(tuple));
+                
+                // Put all of the handles into our global list so we can debind them on destruction
+                //                reactor.reactionHandles.insert(std::end(reactor.reactionHandles), std::begin(handles), std::end(handles));
+                
+                //                return handles;
+            }
+            
         public:
             Binder(Reactor& r, TArgs&&... args)
             : reactor(r)
             , args(args...) {}
             
             template <typename TFunc>
-            std::vector<ReactionHandle> then(const std::string& label, TFunc&& callback) {
+            auto then(const std::string& label, TFunc&& callback)
+            -> decltype(then(label, std::forward<TFunc>(callback), util::GenerateSequence<sizeof...(TArgs)>())) {
                 return then(label, std::forward<TFunc>(callback), util::GenerateSequence<sizeof...(TArgs)>());
             }
             
             template <typename TFunc>
-            std::vector<ReactionHandle> then(TFunc&& callback) {
+            auto then(TFunc&& callback)
+            -> decltype(then("", std::forward<TFunc>(callback))) {
                 return then("", std::forward<TFunc>(callback));
             }
-            
-        private:
-            
-            template <typename TFunc, int... Index>
-            std::vector<ReactionHandle> then(const std::string& label, TFunc&& callback, const util::Sequence<Index...>&) {
-                
-                std::vector<ReactionHandle> handles = DSL::bind(reactor, label, std::forward<TFunc>(callback), std::get<Index>(args)...);
-                
-                // Put all of the handles into our global list so we can debind them on destruction
-                reactor.reactionHandles.insert(std::end(reactor.reactionHandles), std::begin(handles), std::end(handles));
-                
-                return handles;
-            }
-            
-            Reactor& reactor;
-            std::tuple<TArgs...> args;
         };
         
         // FUNCTIONS

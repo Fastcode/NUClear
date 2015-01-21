@@ -22,9 +22,12 @@ namespace NUClear {
     namespace message {
     
         /**
-         * @brief This type is a NUClear message type that holds a log message.
+         * @brief This type is a NUClear message type that holds command line arguments
          */
-        struct CommandLineArguments : public std::vector<std::string> {};
+        struct CommandLineArguments : public std::vector<std::string> {
+            // Inherit constructors
+            using std::vector<std::string>::vector;
+        };
         
     }
  }

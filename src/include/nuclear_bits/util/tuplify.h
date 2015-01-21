@@ -32,6 +32,16 @@ namespace NUClear {
         static inline std::tuple<TElements...> tuplify(std::tuple<TElements...>&& tuple) {
             return tuple;
         }
+        
+        template <typename TFirst, typename TSecond, typename... TElements>
+        static inline std::tuple<TFirst, TSecond, TElements...> detuplify(std::tuple<TFirst, TSecond, TElements...>&& tuple) {
+            return tuple;
+        }
+        
+        template <typename TData>
+        static inline TData detuplify(std::tuple<TData>&& tuple) {
+            return std::move(std::get<0>(tuple));
+        }
     }
 }
 

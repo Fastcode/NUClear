@@ -26,12 +26,12 @@ namespace {
         static double val2;
         
         template <typename DSL, typename TFunc>
-        static inline std::vector<NUClear::threading::ReactionHandle> bind(NUClear::Reactor&, const std::string&, TFunc&&, int v1, double v2) {
+        static inline int bind(NUClear::Reactor&, const std::string&, TFunc&&, int v1, double v2) {
             
             val1 = v1;
             val2 = v2;
             
-            return std::vector<NUClear::threading::ReactionHandle>();
+            return 5;
         }
     };
     
@@ -44,12 +44,12 @@ namespace {
         static std::chrono::nanoseconds val2;
         
         template <typename DSL, typename TFunc>
-        static inline std::vector<NUClear::threading::ReactionHandle> bind(NUClear::Reactor&, const std::string&, TFunc&&, std::string v1, std::chrono::nanoseconds v2) {
+        static inline double bind(NUClear::Reactor&, const std::string&, TFunc&&, std::string v1, std::chrono::nanoseconds v2) {
             
             val1 = v1;
             val2 = v2;
             
-            return std::vector<NUClear::threading::ReactionHandle>();
+            return 7.2;
         }
     };
     
@@ -63,13 +63,13 @@ namespace {
         static int val3;
         
         template <typename DSL, typename TFunc>
-        static inline std::vector<NUClear::threading::ReactionHandle> bind(NUClear::Reactor&, const std::string&, TFunc&&, int v1, int v2, int v3) {
+        static inline NUClear::threading::ReactionHandle bind(NUClear::Reactor&, const std::string&, TFunc&&, int v1, int v2, int v3) {
             
             val1 = v1;
             val2 = v2;
             val3 = v3;
             
-            return std::vector<NUClear::threading::ReactionHandle>();
+            return NUClear::threading::ReactionHandle(nullptr);
         }
     };
     
@@ -83,10 +83,16 @@ namespace {
     class TestReactor : public NUClear::Reactor {
     public:
         TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
+            int a;
+            double b;
             
             // Run all three of our extension tests
-            on<BindExtensionTest1, BindExtensionTest2, BindExtensionTest3>(5, 7.9, "Hello", std::chrono::seconds(2), 9, 10, 11)
+            std::tie(a, b, std::ignore) = on<BindExtensionTest1, BindExtensionTest2, BindExtensionTest3>(5, 7.9, "Hello", std::chrono::seconds(2), 9, 10, 11)
             .then([] {});
+            
+            // Check the returns from the bind
+            REQUIRE(a == 5);
+            REQUIRE(b == 7.2);
             
             REQUIRE(BindExtensionTest1::val1 == 5);
             REQUIRE(BindExtensionTest1::val2 == 7.9);
@@ -98,9 +104,6 @@ namespace {
             REQUIRE(BindExtensionTest3::val2 == 10);
             REQUIRE(BindExtensionTest3::val3 == 11);
             
-            // Try another ordering
-            
-            // Have our trigger that kills everything
             
             on<Trigger<ShutdownFlag>>()
             .then([this] {

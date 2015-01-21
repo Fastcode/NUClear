@@ -25,8 +25,8 @@ namespace NUClear {
             
             struct NoOp {
                 
-                template <typename DSL, typename TFunc>
-                static inline std::vector<threading::ReactionHandle> bind(Reactor&, const std::string&, TFunc&&) { return std::vector<threading::ReactionHandle>(); }
+                template <typename DSL, typename TFunc, typename... TArgs>
+                static inline std::tuple<> bind(Reactor&, const std::string&, TFunc&&, TArgs...) { return std::tuple<>(); }
                 
                 template <typename DSL>
                 static inline std::tuple<> get(threading::ReactionTask&) { return std::tuple<>(); }
@@ -42,7 +42,7 @@ namespace NUClear {
                 struct DSL {};
                 
                 template <typename TFunc>
-                static inline std::vector<threading::ReactionHandle> bind(Reactor&, const std::string&, TFunc&&);
+                static inline std::tuple<> bind(Reactor&, const std::string&, TFunc&&);
                 
                 static inline std::tuple<> get(threading::ReactionTask&);
                 

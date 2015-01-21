@@ -71,7 +71,7 @@ namespace NUClear {
             struct Every<0, NUClear::clock::duration> {
                 
                 template <typename DSL, typename TFunc>
-                static inline std::vector<threading::ReactionHandle> bind(Reactor& reactor, const std::string& label, TFunc&& callback, NUClear::clock::duration jump) {
+                static inline threading::ReactionHandle bind(Reactor& reactor, const std::string& label, TFunc&& callback, NUClear::clock::duration jump) {
                     
                     auto reaction = util::generate_reaction<DSL, Every<>>(reactor, label, std::forward<TFunc>(callback));
                     
@@ -83,9 +83,8 @@ namespace NUClear {
                         std::move(reaction)
                     }));
                     
-                    // Return our handles
-                    std::vector<threading::ReactionHandle> handles = { handle };
-                    return handles;
+                    // Return our handle
+                    return handle;
                 }
             };
             
@@ -93,7 +92,7 @@ namespace NUClear {
             struct Every {
                 
                 template <typename DSL, typename TFunc>
-                static inline std::vector<threading::ReactionHandle> bind(Reactor& reactor, const std::string& label, TFunc&& callback) {
+                static inline threading::ReactionHandle bind(Reactor& reactor, const std::string& label, TFunc&& callback) {
                     
                     auto reaction = util::generate_reaction<DSL, Every<>>(reactor, label, std::forward<TFunc>(callback));
                     
@@ -108,9 +107,8 @@ namespace NUClear {
                         std::move(reaction)
                     }));
                     
-                    // Return our handles
-                    std::vector<threading::ReactionHandle> handles = { handle };
-                    return handles;
+                    // Return our handle
+                    return handle;
                 }
             };
         }

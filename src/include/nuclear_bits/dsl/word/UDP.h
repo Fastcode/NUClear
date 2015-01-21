@@ -47,7 +47,7 @@ namespace NUClear {
                 };
                 
                 template <typename DSL, typename TFunc>
-                static inline std::vector<threading::ReactionHandle> bind(Reactor& reactor, const std::string& label, TFunc&& callback, int port) {
+                static inline threading::ReactionHandle bind(Reactor& reactor, const std::string& label, TFunc&& callback, int port) {
                     
                     // Make our socket
                     int fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
@@ -81,8 +81,7 @@ namespace NUClear {
                     }));
                     
                     // Return our handles
-                    std::vector<threading::ReactionHandle> handles = { handle };
-                    return handles;
+                    return handle;
                 }
                 
                 template <typename DSL>
@@ -115,7 +114,7 @@ namespace NUClear {
                 struct Broadcast {
                     
                     template <typename DSL, typename TFunc>
-                    static inline std::vector<threading::ReactionHandle> bind(Reactor& reactor, const std::string& label, TFunc&& callback, int port) {
+                    static inline threading::ReactionHandle bind(Reactor& reactor, const std::string& label, TFunc&& callback, int port) {
                        
                         // Our list of broadcast file descriptors
                         std::vector<int> fds;
@@ -187,8 +186,7 @@ namespace NUClear {
                         }
                         
                         // Return our handles
-                        std::vector<threading::ReactionHandle> handles = { handle };
-                        return handles;
+                        return handle;
                     }
                     
                     template <typename DSL>

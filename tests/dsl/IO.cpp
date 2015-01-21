@@ -65,7 +65,7 @@ namespace {
                 
                 // Unbind ourselves
                 writer.unbind();
-            })[0];
+            });
         }
         
         int in;

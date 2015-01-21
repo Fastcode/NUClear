@@ -45,7 +45,7 @@ namespace NUClear {
                 };
                 
                 template <typename DSL, typename TFunc>
-                static inline std::vector<threading::ReactionHandle> bind(Reactor& reactor, const std::string& label, TFunc&& callback, int fd, int watchSet) {
+                static inline threading::ReactionHandle bind(Reactor& reactor, const std::string& label, TFunc&& callback, int fd, int watchSet) {
                     
                     auto reaction = util::generate_reaction<DSL, IO>(reactor, label, std::forward<TFunc>(callback));
                     threading::ReactionHandle handle(reaction.get());
@@ -58,8 +58,7 @@ namespace NUClear {
                     }));
                     
                     // Return our handles
-                    std::vector<threading::ReactionHandle> handles = { handle };
-                    return handles;
+                    return handle;
                 }
                 
                 template <typename DSL>

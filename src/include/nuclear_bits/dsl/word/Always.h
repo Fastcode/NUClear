@@ -36,7 +36,7 @@ namespace NUClear {
             struct Always {
                 
                 template <typename DSL, typename TFunc>
-                static inline std::vector<threading::ReactionHandle> bind(Reactor& reactor, const std::string& label, TFunc&& callback) {
+                static inline threading::ReactionHandle bind(Reactor& reactor, const std::string& label, TFunc&& callback) {
                     
                     // Make our callback generator
                     auto task = util::generate_callback<DSL>(std::forward<TFunc>(callback));
@@ -73,9 +73,8 @@ namespace NUClear {
                     
                     reactor.powerplant.addThreadTask(loop);
                     
-                    // Return our handles
-                    std::vector<threading::ReactionHandle> handles = { handle };
-                    return handles;
+                    // Return our handle
+                    return handle;
                 }
             };
         }
