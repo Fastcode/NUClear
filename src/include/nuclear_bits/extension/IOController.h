@@ -215,6 +215,9 @@ namespace NUClear {
                                     fds.push_back(pollfd { r.fd, r.events, 0 });
                                 }
                             }
+                            
+                            // We just cleaned the list!
+                            dirty = false;
                         }
                     }
                 });
