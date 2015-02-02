@@ -101,6 +101,7 @@ namespace NUClear {
          *  message will be emitted and available to all reactors.
          */
         PowerPlant(Configuration config = Configuration(), int argc = 0, const char *argv[] = nullptr);
+        ~PowerPlant();
         
         /**
          * @brief Starts up this PowerPlants components in order and begins it running.

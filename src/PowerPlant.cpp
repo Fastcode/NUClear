@@ -53,6 +53,12 @@ namespace NUClear {
         emit<dsl::word::emit::Initialize>(std::move(args));
     }
     
+    PowerPlant::~PowerPlant() {
+        
+        // Bye bye powerplant
+        powerplant = nullptr;
+    }
+    
     void PowerPlant::onStartup(std::function<void ()>&& func) {
         if (isRunning) {
             throw std::runtime_error("Unable to do onStartup as the PowerPlant has already started");
