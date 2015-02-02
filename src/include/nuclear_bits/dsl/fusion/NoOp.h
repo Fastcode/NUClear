@@ -18,6 +18,7 @@
 #ifndef NUCLEAR_DSL_FUSION_NOOP_H
 #define NUCLEAR_DSL_FUSION_NOOP_H
 
+#include "nuclear_bits/dsl/word/Priority.h"
 
 namespace NUClear {
     namespace dsl {
@@ -35,6 +36,9 @@ namespace NUClear {
                 static inline bool precondition(threading::Reaction&) { return true; }
                 
                 template <typename DSL>
+                static inline int priority(threading::Reaction&) { return word::Priority::NORMAL::value; }
+                
+                template <typename DSL>
                 static inline void postcondition(threading::ReactionTask&) {}
             };
             
@@ -47,6 +51,8 @@ namespace NUClear {
                 static inline std::tuple<> get(threading::ReactionTask&);
                 
                 static inline bool precondition(threading::Reaction&);
+                
+                static inline bool priority(threading::Reaction&);
                 
                 static inline void postcondition(threading::ReactionTask&);
                 

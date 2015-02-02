@@ -53,7 +53,7 @@ namespace NUClear {
                     // Get our identifier string
                     std::vector<std::string> identifier = util::get_identifier<typename DSL::DSL, TFunc>(label);
                     
-                    auto reaction = std::make_unique<threading::Reaction>(identifier, task, DSL::precondition, DSL::postcondition, unbinder);
+                    auto reaction = std::make_unique<threading::Reaction>(identifier, task, DSL::precondition, DSL::priority, DSL::postcondition, unbinder);
                     threading::ReactionHandle handle(reaction.get());
                     
                     // Create our reaction and store it in the TypeCallbackStore

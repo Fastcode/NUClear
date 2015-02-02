@@ -26,6 +26,7 @@ namespace NUClear {
         Reaction::Reaction(std::vector<std::string> identifier
                            , std::function<std::function<void ()> (ReactionTask&)> generator
                            , bool (*precondition)(Reaction&)
+                           , int (*priority)(Reaction&)
                            , void (*postcondition)(ReactionTask&)
                            , std::function<void (Reaction&)>&& unbinder)
           : identifier(identifier)
@@ -33,6 +34,7 @@ namespace NUClear {
           , activeTasks(0)
           , enabled(true)
           , precondition(precondition)
+          , priority(priority)
           , postcondition(postcondition)
           , generator(generator)
           , unbinder(unbinder) {
@@ -47,7 +49,7 @@ namespace NUClear {
             
             // Lock our mutex for our precondition
             if(precondition(*this)) {
-                return std::unique_ptr<ReactionTask>(new ReactionTask(*this, cause, generator));
+                return std::unique_ptr<ReactionTask>(new ReactionTask(*this, cause, priority(*this), generator));
             }
             else {
                 throw std::runtime_error("Task is unable to be created as the precondition fails");

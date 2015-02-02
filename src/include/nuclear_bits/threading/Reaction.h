@@ -56,6 +56,7 @@ namespace NUClear {
             Reaction(std::vector<std::string> identifier
                      , std::function<std::function<void ()> (ReactionTask&)> callback
                      , bool (*precondition)(Reaction&)
+                     , int (*priority)(Reaction&)
                      , void (*postcondition)(ReactionTask&)
                      , std::function<void (Reaction&)>&& unbinder);
             
@@ -94,6 +95,9 @@ namespace NUClear {
             
             /// @brief a precondition that must pass for the reaction task to be created
             bool (*precondition)(Reaction&);
+            
+            /// @brief a precondition that must pass for the reaction task to be created
+            int (*priority)(Reaction&);
             
             /// @brief a postcondition that will get run when a ReactionTask has finished (is destructed)
             void (*postcondition)(ReactionTask&);

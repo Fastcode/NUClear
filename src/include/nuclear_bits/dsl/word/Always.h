@@ -50,7 +50,7 @@ namespace NUClear {
                     };
                     
                     // Create our reaction and store it in the TypeCallbackStore
-                    auto reaction = std::make_shared<threading::Reaction>(identifier, task, DSL::precondition, DSL::postcondition, unbinder);
+                    auto reaction = std::make_shared<threading::Reaction>(identifier, task, DSL::precondition, DSL::priority, DSL::postcondition, unbinder);
                     threading::ReactionHandle handle(reaction.get());
                     
                     // A labmda that will get a reaction task

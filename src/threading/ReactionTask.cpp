@@ -27,9 +27,10 @@ namespace NUClear {
         // Initialize our current task
         __thread ReactionTask* ReactionTask::currentTask = nullptr;
         
-        ReactionTask::ReactionTask(Reaction& parent, const ReactionTask* cause, std::function<std::function<void ()> (ReactionTask&)> generator)
+        ReactionTask::ReactionTask(Reaction& parent, const ReactionTask* cause, const int& priority, std::function<std::function<void ()> (ReactionTask&)> generator)
           : parent(parent)
           , taskId(++taskIdSource)
+          , priority(priority)
           , stats(new message::ReactionStatistics {
                 parent.identifier
               , parent.reactionId

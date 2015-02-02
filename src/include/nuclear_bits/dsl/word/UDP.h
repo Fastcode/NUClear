@@ -68,7 +68,7 @@ namespace NUClear {
                     }
                     
                     // Generate a reaction for the IO system that closes on death
-                    auto reaction = util::generate_reaction<DSL, IO>(reactor, label, std::forward<TFunc>(callback), [fd] {
+                    auto reaction = util::generate_reaction<DSL, IO>(reactor, label, std::forward<TFunc>(callback), [fd] (threading::Reaction&) {
                         ::close(fd);
                     });
                     threading::ReactionHandle handle(reaction.get());
@@ -167,7 +167,7 @@ namespace NUClear {
                         }
                         
                         // Generate a reaction for the IO system that closes on death
-                        auto reaction = util::generate_reaction<DSL, IO>(reactor, label, std::forward<TFunc>(callback), [fds] {
+                        auto reaction = util::generate_reaction<DSL, IO>(reactor, label, std::forward<TFunc>(callback), [fds] (threading::Reaction&) {
                             // Close all the sockets
                             for(auto& fd : fds) {
                                 ::close(fd);

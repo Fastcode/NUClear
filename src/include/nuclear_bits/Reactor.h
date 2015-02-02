@@ -44,6 +44,8 @@ namespace NUClear {
             
             struct Always;
             
+            struct Priority;
+            
             struct IO;
             
             struct UDP;
@@ -121,6 +123,9 @@ namespace NUClear {
         /// @copydoc dsl::word::Trigger
         template <typename... TTriggers>
         using Trigger = dsl::word::Trigger<TTriggers...>;
+        
+        /// @copydoc dsl::word::Priority
+        using Priority = dsl::word::Priority;
         
         /// @copydoc dsl::word::Always
         using Always = dsl::word::Always;
@@ -299,6 +304,7 @@ namespace NUClear {
 #include "nuclear_bits/dsl/word/IO.h"
 #include "nuclear_bits/dsl/word/UDP.h"
 #include "nuclear_bits/dsl/word/Trigger.h"
+#include "nuclear_bits/dsl/word/Priority.h"
 #include "nuclear_bits/dsl/word/With.h"
 #include "nuclear_bits/dsl/word/Startup.h"
 #include "nuclear_bits/dsl/word/Shutdown.h"

@@ -34,6 +34,9 @@ namespace NUClear {
                 return util::Meta::If<fusion::has_precondition<DSL>, DSL, fusion::NoOp>::template precondition<Parse<Sentence...>>(r);
             }
             
+            static int priority(threading::Reaction& r) {
+                return util::Meta::If<fusion::has_priority<DSL>, DSL, fusion::NoOp>::template priority<Parse<Sentence...>>(r);
+            }
             
             static void postcondition(threading::ReactionTask& r) {
                 util::Meta::If<fusion::has_postcondition<DSL>, DSL, fusion::NoOp>::template postcondition<Parse<Sentence...>>(r);

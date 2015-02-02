@@ -52,7 +52,7 @@ namespace NUClear {
              * @param cause     the task that caused this task to run.
              * @param task      the data bound callback to be executed in the threadpool.
              */
-            ReactionTask(Reaction& parent, const ReactionTask* cause, std::function<std::function<void ()> (ReactionTask&)> generator);
+            ReactionTask(Reaction& parent, const ReactionTask* cause, const int& priority, std::function<std::function<void ()> (ReactionTask&)> generator);
             
             ~ReactionTask();
             
@@ -69,6 +69,8 @@ namespace NUClear {
             Reaction& parent;
             /// @brief the taskId of this task (the sequence number of this paticular task)
             uint64_t taskId;
+            /// @brief the priority to run this task at
+            int priority;
             /// @brief the statistics object that persists after this for information and debugging
             std::unique_ptr<message::ReactionStatistics> stats;
             

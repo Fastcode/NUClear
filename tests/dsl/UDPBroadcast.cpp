@@ -74,9 +74,7 @@ namespace {
                     
                     int sent = sendto(fd, testString.data(), testString.size(), 0, reinterpret_cast<sockaddr*>(&address), sizeof(sockaddr_in));
                     if(sent < 0) {
-                        std::cout << errno << std::endl;
                         throw std::system_error(errno, std::system_category());
-                        
                     }
                     
                     close(fd);
