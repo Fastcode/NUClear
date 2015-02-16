@@ -70,6 +70,12 @@ namespace NUClear {
             
             template <typename>
             struct Sync;
+            
+            namespace emit {
+                struct Local;
+                struct Direct;
+                struct Initialize;
+            }
         }
     }
     
@@ -160,6 +166,15 @@ namespace NUClear {
         
         /// @copydoc dsl::word::Single
         using Single = dsl::word::Single;
+        
+        /// @copydoc dsl::word::emit::Local
+        using LOCAL = dsl::word::emit::Local;
+        
+        /// @copydoc dsl::word::emit::Direct
+        using DIRECT = dsl::word::emit::Direct;
+        
+        /// @copydoc dsl::word::emit::Initialize
+        using INITIALIZE = dsl::word::emit::Initialize;
         
         /// @brief This provides functions to modify how an on statement runs after it has been created
         using ReactionHandle = threading::ReactionHandle;
@@ -311,6 +326,9 @@ namespace NUClear {
 #include "nuclear_bits/dsl/word/Every.h"
 #include "nuclear_bits/dsl/word/Single.h"
 #include "nuclear_bits/dsl/word/Sync.h"
+#include "nuclear_bits/dsl/word/emit/Local.h"
+#include "nuclear_bits/dsl/word/emit/Initialize.h"
+#include "nuclear_bits/dsl/word/emit/Direct.h"
 
 #endif
 
