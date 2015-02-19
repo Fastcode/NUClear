@@ -19,19 +19,43 @@
 #define NUCLEAR_DSL_OPERATION_CACHEGET_H
 
 #include "nuclear_bits/util/MetaProgramming.h"
+#include "nuclear_bits/util/exception/NoDataException.h"
 #include "nuclear_bits/dsl/store/DataStore.h"
 
 namespace NUClear {
     namespace dsl {
         namespace operation {
+            
+            template <typename T>
+            struct CachedType {
+            private:
+                std::shared_ptr<T> data;
+                
+            public:
+                CachedType(std::shared_ptr<T>&& data) : data(data) {
+                    
+                    // If there is no data try to cancel the get
+                    if(!data) {
+                        throw util::exception::NoDataException();
+                    }
+                }
+                
+                operator std::shared_ptr<const T>() const {
+                    return data;
+                }
+                
+                operator const T&() const {
+                    return *data;
+                }
+            };
 
             template <typename TType>
             struct CacheGet {
                 
                 template <typename DSL, typename T = TType>
-                static inline auto get(threading::ReactionTask&) -> util::Meta::EnableIf<util::Meta::Not<std::is_empty<T>>, std::shared_ptr<T>> {
+                static inline auto get(threading::ReactionTask&) -> util::Meta::EnableIf<util::Meta::Not<std::is_empty<T>>, CachedType<T>> {
                     
-                    return store::DataStore<TType>::get();
+                    return CachedType<T>(store::DataStore<TType>::get());
                 }
             };
         }
