@@ -58,6 +58,8 @@ namespace {
                 for(uint i = 0; i < stored.size(); ++i){
                     REQUIRE(stored[i]->x == i);
                 }
+                
+                powerplant.shutdown();
             });
             
             on<Startup>().then([this] {
