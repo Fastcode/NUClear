@@ -51,6 +51,9 @@ namespace NUClear {
             struct UDP;
             
             template <typename>
+            struct Network;
+            
+            template <typename>
             struct Trigger;
             
             template <typename...>
@@ -148,6 +151,10 @@ namespace NUClear {
         
         /// @copydoc dsl::word::Startup
         using Startup = dsl::word::Startup;
+        
+        /// @copydoc dsl::word::Network
+        template <typename TData>
+        using Network = dsl::word::Network<TData>;
         
         /// @copydoc dsl::word::Shutdown
         using Shutdown = dsl::word::Shutdown;
@@ -322,6 +329,7 @@ namespace NUClear {
 #include "nuclear_bits/dsl/word/Priority.h"
 #include "nuclear_bits/dsl/word/With.h"
 #include "nuclear_bits/dsl/word/Startup.h"
+#include "nuclear_bits/dsl/word/Network.h"
 #include "nuclear_bits/dsl/word/Shutdown.h"
 #include "nuclear_bits/dsl/word/Every.h"
 #include "nuclear_bits/dsl/word/Single.h"
