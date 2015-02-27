@@ -35,7 +35,7 @@ namespace NUClear {
                 // Execute with the stored data
                 return [callback, data] {
                     // We call with only the relevant arguments to the passed function
-                    util::apply(callback, std::move(data), Meta::Do<util::RelevantArguments<TFunc, decltype(data)>>());
+                    util::apply(callback, std::move(data), Meta::Do<util::RelevantArguments<TFunc, Meta::Do<util::DereferenceTuple<decltype(data)>>>>());
                 };
             };
         }

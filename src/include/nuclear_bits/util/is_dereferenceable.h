@@ -45,6 +45,15 @@ namespace NUClear {
         auto dereference(TData&& d) -> Meta::EnableIf<Meta::Not<is_dereferenceable<TData>>, decltype(d)> {
             return d;
         }
+        
+        
+        template <typename T>
+        struct DereferenceTuple;
+        
+        template <typename... Ts>
+        struct DereferenceTuple<std::tuple<Ts...>> {
+            using type = std::tuple<decltype(dereference(std::declval<Ts>()))...>;
+        };
            
     }
 }
