@@ -24,29 +24,25 @@
 
 namespace NUClear {
     namespace util {
-        
-        // Anonymous Namespace to hide implementation details
-        namespace {
             
-            /**
-             * @brief Dereferences and uses the values from the tuple as the arguments for the function call.
-             *
-             * @details
-             *  This function uses the values which are stored in the tuple and dereferences them as parameters in
-             *  the callback function. It does this using the generated sequence of integers for this tuple. These
-             *  values are then used to extract the function parameters in order.
-             *
-             * @param s the Sequence object which is passed in holding the int template pack
-             *
-             * @tparam S the integer pack giving the ordinal position of the tuple value to get
-             */
-            template<typename TFunc, int... S, typename... TArgs>
-            void apply(TFunc& function, Sequence<S...>, const std::tuple<TArgs...>&& args) {
-                
-                // Get each of the values from the tuple, dereference them and call the function with them
-                // Also ensure that each value is a const reference
-                function(dereference(std::get<S>(args))...);
-            }
+        /**
+         * @brief Dereferences and uses the values from the tuple as the arguments for the function call.
+         *
+         * @details
+         *  This function uses the values which are stored in the tuple and dereferences them as parameters in
+         *  the callback function. It does this using the generated sequence of integers for this tuple. These
+         *  values are then used to extract the function parameters in order.
+         *
+         * @param s the Sequence object which is passed in holding the int template pack
+         *
+         * @tparam S the integer pack giving the ordinal position of the tuple value to get
+         */
+        template<typename TFunc, int... S, typename... TArgs>
+        void apply(TFunc& function, const std::tuple<TArgs...>&& args, Sequence<S...>) {
+            
+            // Get each of the values from the tuple, dereference them and call the function with them
+            // Also ensure that each value is a const reference
+            function(dereference(std::get<S>(args))...);
         }
         
         /**
@@ -54,7 +50,7 @@ namespace NUClear {
          */
         template<typename TFunc, typename... TArgs>
         void apply(TFunc&& function, const std::tuple<TArgs...>&& args) {
-            apply(std::forward<TFunc>(function), GenerateSequence<sizeof...(TArgs)>(), std::forward<const std::tuple<TArgs...>>(args));
+            apply(std::forward<TFunc>(function), std::forward<const std::tuple<TArgs...>>(args), GenerateSequence<sizeof...(TArgs)>());
         }
     }
 }

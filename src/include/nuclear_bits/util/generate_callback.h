@@ -19,6 +19,7 @@
 #define NUCLEAR_UTIL_GENERATE_CALLBACK_H
 
 #include "nuclear_bits/util/apply.h"
+#include "nuclear_bits/util/RelevantArguments.h"
 
 namespace NUClear {
     namespace util {
@@ -33,7 +34,8 @@ namespace NUClear {
                 
                 // Execute with the stored data
                 return [callback, data] {
-                    util::apply(callback, std::move(data));
+                    // We call with only the relevant arguments to the passed function
+                    util::apply(callback, std::move(data), Meta::Do<util::RelevantArguments<TFunc, decltype(data)>>());
                 };
             };
         }
