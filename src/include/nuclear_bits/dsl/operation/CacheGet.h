@@ -57,6 +57,11 @@ namespace NUClear {
                     
                     return CachedType<T>(store::DataStore<TType>::get());
                 }
+                
+                template <typename DSL, typename T = TType>
+                static inline auto get(threading::ReactionTask&) -> util::Meta::EnableIf<std::is_empty<T>, T> {
+                    return T();
+                }
             };
         }
     }
