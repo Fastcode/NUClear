@@ -38,12 +38,17 @@ namespace NUClear {
             struct UDP {
                 
                 struct Packet {
-                    /// If there was an error while reading the packet
-                    bool error;
+                    /// If the packet is valid (it contains data)
+                    bool valid;
                     /// The address that the packet is from/to
                     uint32_t address;
                     /// The data to be sent in the packet
                     std::vector<char> data;
+                    
+                    /// Our validator when returned for if we are a real packet
+                    operator bool() const {
+                        return valid;
+                    }
                 };
                 
                 template <typename DSL, typename TFunc>
@@ -92,20 +97,20 @@ namespace NUClear {
                     
                     // Make a packet with 2k of storage (hopefully packets are smaller then this as most MTUs are around 1500)
                     Packet p;
-                    p.error = true;
+                    p.valid = false;
                     p.data.resize(2048);
                     
                     // Make a socket address to store our sender information
                     sockaddr_in from;
                     socklen_t sSize = sizeof(sockaddr_in);
                     
-                    ssize_t recieved = recvfrom(fd, p.data.data(), p.data.size(), 0, reinterpret_cast<sockaddr*>(&from), &sSize);
+                    ssize_t received = recvfrom(fd, p.data.data(), p.data.size(), 0, reinterpret_cast<sockaddr*>(&from), &sSize);
                     
                     // if no error
-                    if(recieved > 0) {
-                        p.error = false;
+                    if(received > 0) {
+                        p.valid = true;
                         p.address = ntohl(from.sin_addr.s_addr);
-                        p.data.resize(recieved);
+                        p.data.resize(received);
                     }
                     
                     return p;
@@ -197,20 +202,20 @@ namespace NUClear {
                         
                         // Make a packet with 2k of storage (hopefully packets are smaller then this as most MTUs are around 1500)
                         Packet p;
-                        p.error = true;
+                        p.valid = false;
                         p.data.resize(2048);
                         
                         // Make a socket address to store our sender information
                         sockaddr_in from;
                         socklen_t sSize = sizeof(sockaddr_in);
                         
-                        ssize_t recieved = recvfrom(fd, p.data.data(), p.data.size(), 0, reinterpret_cast<sockaddr*>(&from), &sSize);
+                        ssize_t received = recvfrom(fd, p.data.data(), p.data.size(), 0, reinterpret_cast<sockaddr*>(&from), &sSize);
                         
                         // if no error
-                        if(recieved > 0) {
-                            p.error = false;
+                        if(received > 0) {
+                            p.valid = true;
                             p.address = ntohl(from.sin_addr.s_addr);
-                            p.data.resize(recieved);
+                            p.data.resize(received);
                         }
                         
                         return p;

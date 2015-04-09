@@ -15,23 +15,15 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_UTIL_EXCEPTION_NODATAEXCEPTION_H
-#define NUCLEAR_UTIL_EXCEPTION_NODATAEXCEPTION_H
-
-#include <stdexcept>
+#ifndef NUCLEAR_UTIL_EXCEPTION_CANCELRUNEXCEPTION_H
+#define NUCLEAR_UTIL_EXCEPTION_CANCELRUNEXCEPTION_H
 
 namespace NUClear {
     namespace util {
-        namespace exception {
         
-            class NoDataException : public std::runtime_error {
-            public:
-                using std::runtime_error::runtime_error;
-                
-                NoDataException() : std::runtime_error("There was no data available for this type") {}
-            };
-        }
+        struct CancelRunException : public std::exception {
+            using std::exception::exception;
+        };
     }
 }
-
 #endif

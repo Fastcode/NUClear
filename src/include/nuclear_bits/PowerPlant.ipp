@@ -20,7 +20,7 @@ namespace NUClear {
     template <typename TReactor, enum LogLevel level>
     void PowerPlant::install() {
         
-        // Make sure that the class that we recieved is a reactor
+        // Make sure that the class that we received is a reactor
         static_assert(std::is_base_of<Reactor, TReactor>::value, "You must install Reactors");
         
         // The reactor constructor should handle subscribing to events

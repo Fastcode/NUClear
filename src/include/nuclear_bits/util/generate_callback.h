@@ -20,9 +20,22 @@
 
 #include "nuclear_bits/util/apply.h"
 #include "nuclear_bits/util/RelevantArguments.h"
+#include "nuclear_bits/util/exception/CancelRunException.h"
 
 namespace NUClear {
     namespace util {
+        
+        template <size_t I = 0, typename... TData>
+        inline typename std::enable_if<I == sizeof...(TData), bool>::type
+        checkData(const std::tuple<TData...>&) {
+            return true;
+        }
+        
+        template<size_t I = 0, typename... TData>
+        inline typename std::enable_if<I < sizeof...(TData), bool>::type
+        checkData(const std::tuple<TData...>& t) {
+            return std::get<I>(t) && checkData<I + 1>(t);
+        }
         
         template <typename DSL, typename TFunc>
         std::function<std::function<void ()> (threading::ReactionTask&)> generate_callback(TFunc&& callback) {
@@ -31,6 +44,11 @@ namespace NUClear {
                 
                 // Bind our data to a variable (get in original thread)
                 auto data = DSL::get(r);
+                
+                // Check if our data is good (all the data exists) otherwise terminate the call
+                if(!checkData(data)) {
+                    throw CancelRunException();
+                }
                 
                 // Execute with the stored data
                 return [callback, data] {
