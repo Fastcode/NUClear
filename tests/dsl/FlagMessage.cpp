@@ -38,7 +38,7 @@ namespace {
                 a = data.get();
                 
                 // Emit the first half of the requred data
-                emit(std::move(data));
+                emit(data);
             });
             
             on<Trigger<MessageA>>().then([this] {
@@ -49,7 +49,7 @@ namespace {
                 b = data.get();
                 
                 // Emit the 2nd half
-                emit(std::move(data));
+                emit(data);
                 
                 // We can shutdown now, the other reactions will process before termination
                 powerplant.shutdown();

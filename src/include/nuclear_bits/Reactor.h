@@ -300,6 +300,10 @@ namespace NUClear {
         void emit(std::unique_ptr<TData>&& data) {
             powerplant.emit<THandlers...>(std::forward<std::unique_ptr<TData>>(data));
         }
+        template <typename... THandlers, typename TData>
+        void emit(std::unique_ptr<TData>& data) {
+            powerplant.emit<THandlers...>(std::forward<std::unique_ptr<TData>>(data));
+        }
         
         /**
          * @brief Log a message through NUClear's system.

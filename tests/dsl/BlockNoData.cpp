@@ -38,7 +38,7 @@ namespace {
                 a = data.get();
                 
                 // Emit required data
-                emit(std::move(data));
+                emit(data);
                 
                 // Since the data was emitted before the shutdown call it will be processed before total shutdown
                 powerplant.shutdown();
