@@ -73,7 +73,7 @@ namespace NUClear {
                     Postcondition<U>::template postcondition<DSL>(task);
                     
                     // Run future postcondition
-                    PreconditionFusion<TWords...>::template postcondition<DSL>(task);
+                    PostconditionFusion<TWords...>::template postcondition<DSL>(task);
                 }
                 
                 template <typename DSL, typename U = TFirst>
@@ -89,7 +89,7 @@ namespace NUClear {
                 -> EnableIf<NotUsChildren<U>, void> {
                     
                     // Run future postcondition
-                    PreconditionFusion<TWords...>::template postcondition<DSL>(task);
+                    PostconditionFusion<TWords...>::template postcondition<DSL>(task);
                 }
             };
         }
