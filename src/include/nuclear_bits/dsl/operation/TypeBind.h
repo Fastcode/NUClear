@@ -19,7 +19,6 @@
 #define NUCLEAR_DSL_OPERATION_TYPEBIND_H
 
 #include "nuclear_bits/dsl/store/TypeCallbackStore.h"
-#include "nuclear_bits/util/generate_callback.h"
 #include "nuclear_bits/util/get_identifier.h"
 
 namespace NUClear {
@@ -31,9 +30,6 @@ namespace NUClear {
 
                 template <typename DSL, typename TFunc>
                 static inline threading::ReactionHandle bind(Reactor&, const std::string& label, TFunc&& callback) {
-                    
-                    // Generate our task
-                    auto task = util::generate_callback<DSL>(std::forward<TFunc>(callback));
                     
                     // Our unbinder to remove this reaction
                     auto unbinder = [] (threading::Reaction& r) {
@@ -53,7 +49,7 @@ namespace NUClear {
                     // Get our identifier string
                     std::vector<std::string> identifier = util::get_identifier<typename DSL::DSL, TFunc>(label);
                     
-                    auto reaction = std::make_unique<threading::Reaction>(identifier, task, DSL::precondition, DSL::priority, DSL::postcondition, unbinder);
+                    auto reaction = std::make_unique<threading::Reaction>(std::move(identifier), std::forward<TFunc>(callback), DSL::precondition, DSL::priority, DSL::postcondition, std::move(unbinder));
                     threading::ReactionHandle handle(reaction.get());
                     
                     // Create our reaction and store it in the TypeCallbackStore

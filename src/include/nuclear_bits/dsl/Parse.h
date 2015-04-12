@@ -49,9 +49,9 @@ namespace NUClear {
             }
             
             template <typename TFunc, typename... TArgs>
-            static auto bind(Reactor& r, const std::string& label, TFunc&& callback, TArgs... args)
-            -> decltype(DSL::template bind<Parse<Sentence...>>(r, label, std::forward<TFunc>(callback), std::forward<TArgs>(args)...)) {
-                return DSL::template bind<Parse<Sentence...>>(r, label, std::forward<TFunc>(callback), std::forward<TArgs>(args)...);
+            static auto bind(Reactor& r, const std::string& label, TFunc callback, TArgs... args)
+            -> decltype(DSL::template bind<Parse<Sentence...>>(r, label, callback, std::forward<TArgs>(args)...)) {
+                return DSL::template bind<Parse<Sentence...>>(r, label, callback, std::forward<TArgs>(args)...);
             }
         
         };

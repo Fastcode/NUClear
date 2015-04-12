@@ -20,7 +20,6 @@
 
 #include "nuclear_bits/dsl/word/emit/Direct.h"
 #include "nuclear_bits/threading/Reaction.h"
-#include "nuclear_bits/util/generate_callback.h"
 #include "nuclear_bits/util/get_identifier.h"
 
 namespace NUClear {
@@ -28,9 +27,6 @@ namespace NUClear {
         
         template <typename DSL, typename TUnbind, typename TFunc>
         std::unique_ptr<threading::Reaction> generate_reaction(Reactor& reactor, const std::string& label, TFunc&& callback, std::function<void(threading::Reaction&)> unbind = std::function<void(threading::Reaction&)>()) {
-        
-            // Make our callback generator
-            auto task = util::generate_callback<DSL>(std::forward<TFunc>(callback));
             
             // Get our identifier string
             std::vector<std::string> identifier = util::get_identifier<typename DSL::DSL, TFunc>(label);
@@ -47,7 +43,7 @@ namespace NUClear {
             };
                         
             // Create our reaction
-            return std::make_unique<threading::Reaction>(identifier, task, DSL::precondition, DSL::priority, DSL::postcondition, unbinder);
+            return std::make_unique<threading::Reaction>(std::move(identifier), std::forward<TFunc>(callback), DSL::precondition, DSL::priority, DSL::postcondition, std::move(unbinder));
             
         }
     }

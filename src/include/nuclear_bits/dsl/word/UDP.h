@@ -90,10 +90,17 @@ namespace NUClear {
                 }
                 
                 template <typename DSL>
-                static inline Packet get(threading::ReactionTask&) {
+                static inline Packet get(threading::ReactionTask& r) {
                     
                     // Get our filedescriptor from the magic cache
-                    int fd = store::ThreadStore<int, 0>::value;
+                    auto event = IO::get<DSL>(r);
+                    
+                    // If our get is being run without an fd (something else triggered) then short circuit
+                    if (event.fd == 0) {
+                        Packet p;
+                        p.valid = false;
+                        return p;
+                    }
                     
                     // Make a packet with 2k of storage (hopefully packets are smaller then this as most MTUs are around 1500)
                     Packet p;
@@ -104,7 +111,7 @@ namespace NUClear {
                     sockaddr_in from;
                     socklen_t sSize = sizeof(sockaddr_in);
                     
-                    ssize_t received = recvfrom(fd, p.data.data(), p.data.size(), 0, reinterpret_cast<sockaddr*>(&from), &sSize);
+                    ssize_t received = recvfrom(event.fd, p.data.data(), p.data.size(), 0, reinterpret_cast<sockaddr*>(&from), &sSize);
                     
                     // if no error
                     if(received > 0) {
@@ -195,34 +202,17 @@ namespace NUClear {
                     }
                     
                     template <typename DSL>
-                    static inline Packet get(threading::ReactionTask&) {
-                        
-                        // Get our filedescriptor from the magic cache
-                        int fd = store::ThreadStore<int, 0>::value;
-                        
-                        // Make a packet with 2k of storage (hopefully packets are smaller then this as most MTUs are around 1500)
-                        Packet p;
-                        p.valid = false;
-                        p.data.resize(2048);
-                        
-                        // Make a socket address to store our sender information
-                        sockaddr_in from;
-                        socklen_t sSize = sizeof(sockaddr_in);
-                        
-                        ssize_t received = recvfrom(fd, p.data.data(), p.data.size(), 0, reinterpret_cast<sockaddr*>(&from), &sSize);
-                        
-                        // if no error
-                        if(received > 0) {
-                            p.valid = true;
-                            p.address = ntohl(from.sin_addr.s_addr);
-                            p.data.resize(received);
-                        }
-                        
-                        return p;
+                    static inline Packet get(threading::ReactionTask& r) {
+                        return UDP::get<DSL>(r);
                     }
 
                 };
             };
+        }
+        
+        namespace trait {
+            template <>
+            struct is_transient<word::UDP::Packet> : public std::true_type {};
         }
     }
 }

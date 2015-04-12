@@ -22,6 +22,7 @@
 #include "nuclear_bits/dsl/word/emit/Direct.h"
 #include "nuclear_bits/dsl/word/Single.h"
 #include "nuclear_bits/dsl/store/ThreadStore.h"
+#include "nuclear_bits/dsl/trait/is_transient.h"
 #include "nuclear_bits/util/generate_reaction.h"
 
 namespace NUClear {
@@ -37,11 +38,20 @@ namespace NUClear {
             // IO is implicitly single
             struct IO : public Single {
                 
-                enum Events {
+                enum EventType {
                     READ = 1,
                     WRITE = 2,
                     CLOSE = 4,
                     ERROR = 8
+                };
+                
+                struct Event {
+                    int fd;
+                    int events;
+                    
+                    operator bool() const {
+                        return fd != 0;
+                    }
                 };
                 
                 template <typename DSL, typename TFunc>
@@ -62,12 +72,17 @@ namespace NUClear {
                 }
                 
                 template <typename DSL>
-                static inline std::tuple<int, int> get(threading::ReactionTask&) {
+                static inline Event get(threading::ReactionTask&) {
                     
                     // Return our thread local variable
-                    return std::make_tuple(store::ThreadStore<int, 0>::value, store::ThreadStore<int, 1>::value);
+                    return Event { store::ThreadStore<int, 0>::value, store::ThreadStore<int, 1>::value };
                 }
             };
+        }
+        
+        namespace trait {
+            template <>
+            struct is_transient<word::IO::Event> : public std::true_type {};
         }
     }
 }

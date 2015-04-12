@@ -28,6 +28,7 @@
 
 #include "nuclear_bits/util/Sequence.h"
 #include "nuclear_bits/util/tuplify.h"
+#include "nuclear_bits/util/CallbackGenerator.h"
 
 #include "nuclear_bits/dsl/Parse.h"
 
@@ -222,18 +223,13 @@ namespace NUClear {
             -> decltype(util::detuplify(DSL::bind(reactor, label, std::forward<TFunc>(callback), std::get<Index>(args)...))) {
                 
                 // Get our tuple from binding our reaction
-                auto tuple = DSL::bind(reactor, label, std::forward<TFunc>(callback), std::get<Index>(args)...);
+                auto tuple = DSL::bind(reactor, label, util::CallbackGenerator<DSL, TFunc>(std::forward<TFunc>(callback)), std::get<Index>(args)...);
                 
                 // Get all reaction handles from the tuple and put them into our global list so we can debind them on destruction
                 addReactionHandles(tuple);
                 
                 // Return the arguments to the user (if there is only 1 we unwrap it for them since this is the most common case)
                 return util::detuplify(std::move(tuple));
-                
-                // Put all of the handles into our global list so we can debind them on destruction
-                //                reactor.reactionHandles.insert(std::end(reactor.reactionHandles), std::begin(handles), std::end(handles));
-                
-                //                return handles;
             }
             
         public:

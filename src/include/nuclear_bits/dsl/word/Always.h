@@ -18,7 +18,6 @@
 #ifndef NUCLEAR_DSL_WORD_ALWAYS_H
 #define NUCLEAR_DSL_WORD_ALWAYS_H
 
-#include "nuclear_bits/util/generate_callback.h"
 #include "nuclear_bits/util/get_identifier.h"
 
 namespace NUClear {
@@ -38,19 +37,15 @@ namespace NUClear {
                 template <typename DSL, typename TFunc>
                 static inline threading::ReactionHandle bind(Reactor& reactor, const std::string& label, TFunc&& callback) {
                     
-                    // Make our callback generator
-                    auto task = util::generate_callback<DSL>(std::forward<TFunc>(callback));
-                    
                     // Get our identifier string
                     std::vector<std::string> identifier = util::get_identifier<typename DSL::DSL, TFunc>(label);
-                    
                     
                     auto unbinder = [] (threading::Reaction& r) {
                         r.enabled = false;
                     };
                     
                     // Create our reaction and store it in the TypeCallbackStore
-                    auto reaction = std::make_shared<threading::Reaction>(identifier, task, DSL::precondition, DSL::priority, DSL::postcondition, unbinder);
+                    auto reaction = std::make_shared<threading::Reaction>(std::move(identifier), std::forward<TFunc>(callback), DSL::precondition, DSL::priority, DSL::postcondition, std::move(unbinder));
                     threading::ReactionHandle handle(reaction.get());
                     
                     // A labmda that will get a reaction task

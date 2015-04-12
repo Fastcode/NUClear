@@ -38,14 +38,14 @@ namespace {
             in = fds[0];
             out = fds[1];
             
-            on<IO>(in, IO::READ).then([this] (int fd, int set) {
+            on<IO>(in, IO::READ).then([this] (const IO::Event& e) {
                 
                 // Read from our FD
                 unsigned char val;
-                int bytes = read(fd, &val, 1);
+                int bytes = read(e.fd, &val, 1);
                 
                 // Check the data is correct
-                REQUIRE((set & IO::READ) != 0);
+                REQUIRE((e.events & IO::READ) != 0);
                 REQUIRE(bytes == 1);
                 REQUIRE(val == 0xDE);
                 
@@ -53,14 +53,14 @@ namespace {
                 powerplant.shutdown();
             });
             
-            writer = on<IO>(out, IO::WRITE).then([this] (int fd, int set) {
+            writer = on<IO>(out, IO::WRITE).then([this] (const IO::Event& e) {
                 
                 // Send data into our fd
                 unsigned char val = 0xDE;
-                int bytes = write(fd, &val, 1);
+                int bytes = write(e.fd, &val, 1);
                 
                 // Check that our data was sent
-                REQUIRE((set & IO::WRITE) != 0);
+                REQUIRE((e.events & IO::WRITE) != 0);
                 REQUIRE(bytes == 1);
                 
                 // Unbind ourselves

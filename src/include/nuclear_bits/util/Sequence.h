@@ -31,7 +31,9 @@ namespace NUClear {
          * @author Trent Houliston
          */
         template<int... S>
-        struct Sequence { };
+        struct Sequence {
+            static constexpr int length = sizeof...(S);
+        };
         
         // Anonymous
         namespace {

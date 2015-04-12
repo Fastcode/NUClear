@@ -44,7 +44,7 @@ namespace NUClear {
     template <typename TFirstHandler, typename... THandlers, typename TData>
     void PowerPlant::emit(std::unique_ptr<TData>& data) {
         
-        emit<dsl::word::emit::Local>(std::move(data));
+        emit<TFirstHandler, THandlers...>(std::move(data));
     }
     
     // Global emit handlers

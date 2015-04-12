@@ -24,6 +24,11 @@ FILE(GLOB src_dsl_store
     "include/nuclear_bits/dsl/store/*.h"
     "include/nuclear_bits/dsl/store/*.ipp")
 
+FILE(GLOB src_dsl_trait
+    "dsl/trait/*.cpp"
+    "include/nuclear_bits/dsl/trait/*.h"
+    "include/nuclear_bits/dsl/trait/*.ipp")
+
 FILE(GLOB src_dsl_operation
     "dsl/operation/*.cpp"
     "include/nuclear_bits/dsl/operation/*.h"
@@ -69,6 +74,7 @@ SOURCE_GROUP(threading                  FILES ${src_threading})
 SOURCE_GROUP(extension                  FILES ${src_extension})
 SOURCE_GROUP(dsl                        FILES ${src_dsl})
 SOURCE_GROUP(dsl\\store                 FILES ${src_dsl_store})
+SOURCE_GROUP(dsl\\trait                 FILES ${src_dsl_trait})
 SOURCE_GROUP(dsl\\operation             FILES ${src_dsl_operation})
 SOURCE_GROUP(dsl\\fusion                FILES ${src_dsl_fusion})
 SOURCE_GROUP(dsl\\validation            FILES ${src_dsl_validation})
@@ -83,6 +89,7 @@ ADD_LIBRARY(nuclear STATIC
     ${src_threading}
     ${src_extension}
     ${src_dsl_store}
+    ${src_dsl_trait}
     ${src_dsl_operation}
     ${src_dsl_fusion}
     ${src_dsl_validation}
