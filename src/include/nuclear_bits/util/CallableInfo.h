@@ -139,7 +139,7 @@ namespace NUClear {
         struct CallableInfo<Ret(Args......)volatile &&> : public function_info<Ret, Args...> {};
         template <typename Ret, typename... Args>
         struct CallableInfo<Ret(Args......)const volatile &&> : public function_info<Ret, Args...> {};
-
+        
         // Function Pointers
         // Regular
         template <typename Ret, typename... Args>
@@ -147,6 +147,14 @@ namespace NUClear {
         // C Variardic
         template <typename Ret, typename... Args>
         struct CallableInfo<Ret(*)(Args......)> : public function_info<Ret(*), Args...> {};
+        
+        // Function References
+        // Regular
+        template <typename Ret, typename... Args>
+        struct CallableInfo<Ret(&)(Args...)> : public function_info<Ret(&), Args...> {};
+        // C Variardic
+        template <typename Ret, typename... Args>
+        struct CallableInfo<Ret(&)(Args......)> : public function_info<Ret(&), Args...> {};
 
 
     }
