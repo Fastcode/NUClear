@@ -44,13 +44,13 @@ namespace {
             on<Trigger<Message>>().then([this] {
                 
                 // Get all the network interfaces
-                auto interfaces = NUClear::util::get_network_interfaces();
+                auto interfaces = NUClear::util::network::get_interfaces();
                 
                 std::vector<uint32_t> addresses;
                 
                 for(auto& iface : interfaces) {
-                    // We don't care about interfaces with a netmask of 255.255.255.255
-                    if(iface.ip != iface.broadcast) {
+                    // We send on broadcast addresses and we don't want loopback or point to point
+                    if(!iface.flags.loopback && !iface.flags.pointtopoint && iface.flags.broadcast) {
                         // Two broadcast ips that are the same are probably on the same network so ignore those
                         if(std::find(std::begin(addresses), std::end(addresses), iface.broadcast) == std::end(addresses)) {
                             addresses.push_back(iface.broadcast);
@@ -59,7 +59,7 @@ namespace {
                 }
                 
                 for(auto& ad : addresses) {
-                
+                    
                     // Open a random socket
                     int fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
                     

@@ -65,9 +65,14 @@ FILE(GLOB src_util
     "include/nuclear_bits/util/*.ipp")
 
 FILE(GLOB src_util_exception
-    "util/*.cpp"
+    "util/exception/*.cpp"
     "include/nuclear_bits/util/exception/*.h"
     "include/nuclear_bits/util/exception/*.ipp")
+
+FILE(GLOB src_util_network
+    "util/network/*.cpp"
+    "include/nuclear_bits/util/network/*.h"
+    "include/nuclear_bits/util/network/*.ipp")
 
 SOURCE_GROUP(""                         FILES ${src})
 SOURCE_GROUP(threading                  FILES ${src_threading})
@@ -83,6 +88,7 @@ SOURCE_GROUP(dsl\\word\\emit            FILES ${src_dsl_word_emit})
 SOURCE_GROUP(messages                   FILES ${src_message})
 SOURCE_GROUP(util                       FILES ${src_util})
 SOURCE_GROUP(util\\exception            FILES ${src_util_exception})
+SOURCE_GROUP(util\\network              FILES ${src_util_network})
 
 ADD_LIBRARY(nuclear STATIC
     ${src} 
@@ -98,6 +104,7 @@ ADD_LIBRARY(nuclear STATIC
     ${src_dsl}
     ${src_message}
     ${src_util}
+    ${src_util_network}
     ${src_util_exception})
 
 INSTALL(TARGETS nuclear ARCHIVE DESTINATION lib)

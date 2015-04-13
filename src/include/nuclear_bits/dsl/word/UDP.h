@@ -29,7 +29,7 @@
 #include "nuclear_bits/PowerPlant.h"
 #include "nuclear_bits/dsl/word/IO.h"
 #include "nuclear_bits/util/generate_reaction.h"
-#include "nuclear_bits/util/get_network_interfaces.h"
+#include "nuclear_bits/util/network/get_interfaces.h"
 
 namespace NUClear {
     namespace dsl {
@@ -132,13 +132,13 @@ namespace NUClear {
                         std::vector<int> fds;
                         
                         // Get all the network interfaces
-                        auto interfaces = util::get_network_interfaces();
+                        auto interfaces = util::network::get_interfaces();
                         
                         std::vector<uint32_t> addresses;
                         
                         for(auto& iface : interfaces) {
-                            // We don't care about interfaces with a netmask of 255.255.255.255
-                            if(iface.ip != iface.broadcast) {
+                            // We receive on broadcast addresses and we don't want loopback or point to point
+                            if(!iface.flags.loopback && !iface.flags.pointtopoint && iface.flags.broadcast) {
                                 // Two broadcast ips that are the same are probably on the same network so ignore those
                                 if(std::find(std::begin(addresses), std::end(addresses), iface.broadcast) == std::end(addresses)) {
                                     addresses.push_back(iface.broadcast);
