@@ -30,7 +30,7 @@ namespace NUClear {
                 };
             
                 template <typename DSL, typename TFunc>
-                static inline threading::ReactionHandle bind(Reactor& reactor, const std::string& label, TFunc&& callback) {
+                static inline threading::ReactionHandle bind(Reactor&, const std::string&, TFunc&&) {
                     
                     std::cout << "TODO NUClear networking not yet implemented" << std::endl;
    

@@ -55,8 +55,6 @@ namespace {
                         // Two broadcast ips that are the same are probably on the same network so ignore those
                         if(std::find(std::begin(addresses), std::end(addresses), iface.broadcast) == std::end(addresses)) {
                             addresses.push_back(iface.broadcast);
-                            
-                            std::cout << iface.name << std::endl;
                         }
                     }
                 }

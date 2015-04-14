@@ -98,6 +98,7 @@ namespace NUClear {
                     // If our get is being run without an fd (something else triggered) then short circuit
                     if (event.fd == 0) {
                         Packet p;
+                        p.address = INADDR_NONE;
                         p.valid = false;
                         return p;
                     }
