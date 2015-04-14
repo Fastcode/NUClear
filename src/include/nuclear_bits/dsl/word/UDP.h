@@ -207,6 +207,87 @@ namespace NUClear {
                     }
 
                 };
+                
+                struct Multicast {
+                    
+                    template <typename DSL, typename TFunc>
+                    static inline threading::ReactionHandle bind(Reactor& reactor, const std::string& label, TFunc&& callback, std::string multicastGroup, int port) {
+                        
+                        // Our multicast group address
+                        sockaddr_in addr;
+                        memset(&addr, 0, sizeof(sockaddr_in));
+                        addr.sin_family = AF_INET;
+                        addr.sin_addr.s_addr = inet_addr(multicastGroup.c_str());
+                        addr.sin_port = htons(port);
+                        
+                        // Make our socket
+                        int fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+                        if(fd < 0) {
+                            throw std::system_error(errno, std::system_category(), "We were unable to open the UDP socket");
+                        }
+                        
+                        int yes = true;
+                        if(setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) < 0) {
+                            throw std::system_error(errno, std::system_category(), "We were unable to set reuse address on the socket");
+                        }
+                        
+                        // Bind to the address
+                        if(::bind(fd, reinterpret_cast<sockaddr*>(&addr), sizeof(sockaddr))) {
+                            throw std::system_error(errno, std::system_category(), "We were unable to bind the UDP socket to the port");
+                        }
+                        
+                        // Get all the network interfaces that support multicast
+                        std::vector<uint32_t> addresses;
+                        for(auto& iface : util::network::get_interfaces()) {
+                            // We receive on broadcast addresses and we don't want loopback or point to point
+                            if(!iface.flags.loopback && !iface.flags.pointtopoint && iface.flags.multicast) {
+                                // Two broadcast ips that are the same are probably on the same network so ignore those
+                                if(std::find(std::begin(addresses), std::end(addresses), iface.broadcast) == std::end(addresses)) {
+                                    addresses.push_back(iface.ip);
+                                }
+                            }
+                        }
+                        
+                        for(auto& ad : addresses) {
+                            
+                            // Our multicast join request
+                            ip_mreq mreq;
+                            memset(&mreq, 0, sizeof(mreq));
+                            mreq.imr_multiaddr.s_addr = addr.sin_addr.s_addr;
+                            mreq.imr_interface.s_addr = htonl(ad);
+                            
+                            // Join our multicast group but first leave because of stupid things
+                            setsockopt(fd, IPPROTO_IP, IP_DROP_MEMBERSHIP, &mreq, sizeof(ip_mreq));
+                            if (setsockopt(fd, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mreq, sizeof(ip_mreq)) < 0) {
+                                throw std::system_error(errno, std::system_category(), "There was an error while attemping to join the multicast group");
+                            }
+                        }
+                        
+                        // Generate a reaction for the IO system that closes on death
+                        auto reaction = util::generate_reaction<DSL, IO>(reactor, label, std::forward<TFunc>(callback), [fd] (threading::Reaction&) {
+                            // Close all the sockets
+                            ::close(fd);
+                        });
+                        
+                        std::shared_ptr<threading::Reaction> r(std::move(reaction));
+                        threading::ReactionHandle handle(r.get());
+                        
+                        // Send our configuration out for each file descriptor (same reaction)
+                        reactor.powerplant.emit<emit::Direct>(std::make_unique<IOConfiguration>(IOConfiguration {
+                            fd,
+                            IO::READ,
+                            r
+                        }));
+                        
+                        // Return our handles
+                        return handle;
+                    }
+                    
+                    template <typename DSL>
+                    static inline Packet get(threading::ReactionTask& r) {
+                        return UDP::get<DSL>(r);
+                    }
+                };
             };
         }
         
