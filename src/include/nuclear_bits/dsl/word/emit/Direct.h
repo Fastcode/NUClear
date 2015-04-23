@@ -37,8 +37,7 @@ namespace NUClear {
                         
                         for(auto& reaction : store::TypeCallbackStore<TData>::get()) {
                             try {
-                                auto task = reaction->getTask(threading::ReactionTask::currentTask);
-                                (*task)();
+                                reaction->getTask()->operator()();
                             }
                             catch(...) {
                                 // TODO should something happen here?

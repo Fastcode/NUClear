@@ -35,11 +35,8 @@ namespace NUClear {
             /// @brief The string contents of the message.
             std::string message;
             
-            /// @brief The ID of the task that made this (or 0 if there was none)
-            uint64_t taskId;
-            
-            /// @brief The ID of the reaction that made this (or 0 if there was none)
-            uint64_t reactionId;
+            /// @brief The currently executing task that made this message
+            const ReactionStatistics* task;
             
             /**
              * @brief Constructs a new LogMessage.
@@ -49,12 +46,10 @@ namespace NUClear {
              */
             LogMessage(const LogLevel& level
                        , const std::string& message
-                       , const uint64_t& taskId
-                       , const uint64_t& reactionId)
+                       , const ReactionStatistics* task)
             : level(level)
             , message(message)
-            , taskId(taskId)
-            , reactionId(reactionId) {}
+            , task(task) {}
         };
     }
 }

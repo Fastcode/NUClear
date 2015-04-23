@@ -36,9 +36,7 @@ namespace NUClear {
                         // Try to execute the task (catching any exceptions so it doesn't kill the pool thread)
                         try {
                             task->stats->started = clock::now();
-                            ReactionTask::currentTask = task.get();
                             (*task)();
-                            ReactionTask::currentTask = nullptr;
                             task->stats->finished = clock::now();
                         }
                         // Catch everything

@@ -38,7 +38,7 @@ namespace NUClear {
                         
                         for(auto& reaction : store::TypeCallbackStore<TData>::get()) {
                             try {
-                                auto task = reaction->getTask(threading::ReactionTask::currentTask);
+                                auto task = reaction->getTask();
                                 powerplant.submit(std::move(task));
                             }
                             catch(...) {

@@ -44,17 +44,25 @@ namespace NUClear {
         private:
             /// @brief a source for reactionIds, atomically creates longs
             static std::atomic<std::uint64_t> taskIdSource;
+            
+            /// @brief the current task that is being executed by this thread (or nullptr if none is)
+            static __thread ReactionTask* currentTask;
         public:
+            
+            /**
+             * @brief Gets the current executing task, or nullptr if there isn't one.
+             *
+             * @return the current executing task or nullptr if there isn't one
+             */
+            static const ReactionTask* getCurrentTask();
+            
             /**
              * @brief Creates a new ReactionTask object bound with the parent Reaction object (that created it) and task.
              *
              * @param parent    the Reaction object that spawned this ReactionTask.
-             * @param cause     the task that caused this task to run.
              * @param task      the data bound callback to be executed in the threadpool.
              */
-            ReactionTask(Reaction& parent, const ReactionTask* cause, const int& priority, std::function<std::function<void ()> (ReactionTask&)> generator);
-            
-            ~ReactionTask();
+            ReactionTask(Reaction& parent, const int& priority, std::function<std::function<void ()> (ReactionTask&)> generator);
             
             /**
              * @brief Runs the internal data bound task and times it.
@@ -74,12 +82,9 @@ namespace NUClear {
             /// @brief the statistics object that persists after this for information and debugging
             std::unique_ptr<message::ReactionStatistics> stats;
             
-            
             /// @brief the data bound callback to be executed
             /// @attention note this must be last in the list as the this pointer is passed to the callback generator
             std::function<void ()> callback;
-            
-            static __thread ReactionTask* currentTask;
         };
     }
 }

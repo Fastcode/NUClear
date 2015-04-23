@@ -50,13 +50,8 @@ namespace NUClear {
                     
                     // A labmda that will get a reaction task
                     auto run = [reaction] {
-                        auto task = reaction->getTask(nullptr);
-                        
-                        threading::ReactionTask::currentTask = task.get();
-                        
+                        auto task = reaction->getTask();
                         (*task)();
-                        
-                        threading::ReactionTask::currentTask = nullptr;
                     };
                     
                     // This is our function that runs forever until the powerplant exits

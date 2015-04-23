@@ -75,9 +75,6 @@ namespace NUClear {
     
     template <enum LogLevel level, typename... TArgs>
     void PowerPlant::log(TArgs... args) {
-        
-        // Get our current task
-        auto* task = threading::ReactionTask::currentTask;
             
         // Build our log message by concatenating everything to a stream
         std::stringstream outputStream;
@@ -87,7 +84,6 @@ namespace NUClear {
         // Direct emit the log message so that any direct loggers can use it
         powerplant->emit<dsl::word::emit::Direct>(std::make_unique<message::LogMessage>(level
                                                                           , output
-                                                                          , task ? task->taskId : 0
-                                                                          , task ? task->parent.reactionId : 0));
+                                                                          , threading::ReactionTask::getCurrentTask()->stats.get()));
     }
 }

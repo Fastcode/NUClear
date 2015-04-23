@@ -110,7 +110,7 @@ namespace NUClear {
                                 for(auto& reaction : step.reactions) {
                                     
                                     // submit the reaction to the thread pool
-                                    powerplant.submit(reaction->getTask(threading::ReactionTask::currentTask));
+                                    powerplant.submit(reaction->getTask());
                                 }
                                 step.next += step.jump;
                             }

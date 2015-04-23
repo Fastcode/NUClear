@@ -183,7 +183,7 @@ namespace NUClear {
                                                     thread_mask::value |= fd.revents & (POLLNVAL | POLLERR) ? IO::ERROR    : 0;
                                                     
                                                     // Submit the task (which should run the get)
-                                                    powerplant.submit(it->reaction->getTask(NUClear::threading::ReactionTask::currentTask));
+                                                    powerplant.submit(it->reaction->getTask());
                                                     
                                                     // Reset our fd back to 0
                                                     thread_fd::value = 0;

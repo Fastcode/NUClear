@@ -45,11 +45,11 @@ namespace NUClear {
             unbinder(*this);
         }
         
-        std::unique_ptr<ReactionTask> Reaction::getTask(const ReactionTask* cause) {
+        std::unique_ptr<ReactionTask> Reaction::getTask() {
             
             // Lock our mutex for our precondition
             if(precondition(*this)) {
-                return std::unique_ptr<ReactionTask>(new ReactionTask(*this, cause, priority(*this), generator));
+                return std::unique_ptr<ReactionTask>(new ReactionTask(*this, priority(*this), generator));
             }
             else {
                 throw std::runtime_error("Task is unable to be created as the precondition fails");

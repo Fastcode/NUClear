@@ -63,11 +63,9 @@ namespace NUClear {
             /**
              * @brief creates a new databound callback task that can be executed.
              *
-             * @param cause the task that caused this task to run (or nullptr if did not have a parent)
-             *
              * @return a unique_ptr to a Task which has the data for it's call bound into it
              */
-            std::unique_ptr<ReactionTask> getTask(const ReactionTask* cause);
+            std::unique_ptr<ReactionTask> getTask();
             
             /**
              * @brief returns true if this reaction is currently enabled

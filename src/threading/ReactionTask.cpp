@@ -24,10 +24,14 @@ namespace NUClear {
         // Initialize our id source
         std::atomic<uint64_t> ReactionTask::taskIdSource(0);
         
+        // This here is a hack because for some reason Xcode is broken and doesn't generate the destructors for this class...???!!!
+        // TODO once XCode stops being so stupid, you can remove this
+        message::ReactionStatistics r;
+        
         // Initialize our current task
         __thread ReactionTask* ReactionTask::currentTask = nullptr;
         
-        ReactionTask::ReactionTask(Reaction& parent, const ReactionTask* cause, const int& priority, std::function<std::function<void ()> (ReactionTask&)> generator)
+        ReactionTask::ReactionTask(Reaction& parent, const int& priority, std::function<std::function<void ()> (ReactionTask&)> generator)
           : parent(parent)
           , taskId(++taskIdSource)
           , priority(priority)
@@ -35,8 +39,8 @@ namespace NUClear {
                 parent.identifier
               , parent.reactionId
               , taskId
-              , cause ? cause->parent.reactionId : 0
-              , cause ? cause->taskId : 0
+              , currentTask ? currentTask->parent.reactionId : 0
+              , currentTask ? currentTask->taskId : 0
               , clock::now()
               , clock::time_point(std::chrono::seconds(0))
               , clock::time_point(std::chrono::seconds(0))
@@ -48,17 +52,26 @@ namespace NUClear {
             ++parent.activeTasks;
         }
         
-        ReactionTask::~ReactionTask() {
-            // We run our postcondition before we die
+        const ReactionTask* ReactionTask::getCurrentTask() {
+            return currentTask;
+        }
+        
+        void ReactionTask::operator()() {
+            // Store our old task and set the current task to us
+            auto oldTask = currentTask;
+            currentTask = this;
+            
+            // Call our callback
+            callback();
+            
+            // We run our postcondition now we are done before we die
             parent.postcondition(*this);
             
             // Our parent has one less active task
             --parent.activeTasks;
-        }
-        
-        void ReactionTask::operator()() {
-            // Call our callback
-            callback();
+            
+            // Reset our task back to our old task
+            currentTask = oldTask;
         }
     }
 }
