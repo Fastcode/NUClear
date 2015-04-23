@@ -105,6 +105,7 @@ namespace NUClear {
                     
                     // Make a packet with 2k of storage (hopefully packets are smaller then this as most MTUs are around 1500)
                     Packet p;
+                    p.address = INADDR_NONE;
                     p.valid = false;
                     p.data.resize(2048);
                     

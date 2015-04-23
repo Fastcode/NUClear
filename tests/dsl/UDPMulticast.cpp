@@ -54,7 +54,7 @@ namespace {
                     if(!iface.flags.loopback && !iface.flags.pointtopoint && iface.flags.multicast) {
                         // Two broadcast ips that are the same are probably on the same network so ignore those
                         if(std::find(std::begin(addresses), std::end(addresses), iface.broadcast) == std::end(addresses)) {
-                            addresses.push_back(iface.broadcast);
+                            addresses.push_back(iface.ip);
                         }
                     }
                 }
@@ -73,7 +73,7 @@ namespace {
                     maddr.sin_port = htons(port);
                     
                     // Set our transmission interface for the multicast socket
-                    REQUIRE(setsockopt(fd, IPPROTO_IP, IP_MULTICAST_IF, &ifaddr, sizeof(ifaddr)));
+                    REQUIRE(setsockopt(fd, IPPROTO_IP, IP_MULTICAST_IF, &ifaddr, sizeof(ifaddr)) == 0);
                     
                     int sent = sendto(fd, testString.data(), testString.size(), 0, reinterpret_cast<sockaddr*>(&maddr), sizeof(maddr));
                     
