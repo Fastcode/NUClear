@@ -38,7 +38,7 @@ namespace NUClear {
         struct CallableInfo<Ret(T::*)(Args...)> : public function_info<Ret, Args...> {};
         // C Variardic
         template <typename T, typename Ret, typename... Args>
-        struct CallableInfo<Ret(T::*)(Args......)> : public function_info<Ret, Args...> {};
+        struct CallableInfo<Ret(T::*)(Args..., ...)> : public function_info<Ret, Args...> {};
         // Types that have cv-qualifiers
         template <typename T, typename Ret, typename... Args>
         struct CallableInfo<Ret(T::*)(Args...)const> : public function_info<Ret, Args...> {};
@@ -47,11 +47,11 @@ namespace NUClear {
         template <typename T, typename Ret, typename... Args>
         struct CallableInfo<Ret(T::*)(Args...)const volatile> : public function_info<Ret, Args...> {};
         template <typename T, typename Ret, typename... Args>
-        struct CallableInfo<Ret(T::*)(Args......)const> : public function_info<Ret, Args...> {};
+        struct CallableInfo<Ret(T::*)(Args..., ...)const> : public function_info<Ret, Args...> {};
         template <typename T, typename Ret, typename... Args>
-        struct CallableInfo<Ret(T::*)(Args......)volatile> : public function_info<Ret, Args...> {};
+        struct CallableInfo<Ret(T::*)(Args..., ...)volatile> : public function_info<Ret, Args...> {};
         template <typename T, typename Ret, typename... Args>
-        struct CallableInfo<Ret(T::*)(Args......)const volatile> : public function_info<Ret, Args...> {};
+        struct CallableInfo<Ret(T::*)(Args..., ...)const volatile> : public function_info<Ret, Args...> {};
         // Types that have ref-qualifiers
         template <typename T, typename Ret, typename... Args>
         struct CallableInfo<Ret(T::*)(Args...) &> : public function_info<Ret, Args...> {};
@@ -62,13 +62,13 @@ namespace NUClear {
         template <typename T, typename Ret, typename... Args>
         struct CallableInfo<Ret(T::*)(Args...)const volatile &> : public function_info<Ret, Args...> {};
         template <typename T, typename Ret, typename... Args>
-        struct CallableInfo<Ret(T::*)(Args......) &> : public function_info<Ret, Args...> {};
+        struct CallableInfo<Ret(T::*)(Args..., ...) &> : public function_info<Ret, Args...> {};
         template <typename T, typename Ret, typename... Args>
-        struct CallableInfo<Ret(T::*)(Args......)const &> : public function_info<Ret, Args...> {};
+        struct CallableInfo<Ret(T::*)(Args..., ...)const &> : public function_info<Ret, Args...> {};
         template <typename T, typename Ret, typename... Args>
-        struct CallableInfo<Ret(T::*)(Args......)volatile &> : public function_info<Ret, Args...> {};
+        struct CallableInfo<Ret(T::*)(Args..., ...)volatile &> : public function_info<Ret, Args...> {};
         template <typename T, typename Ret, typename... Args>
-        struct CallableInfo<Ret(T::*)(Args......)const volatile &> : public function_info<Ret, Args...> {};
+        struct CallableInfo<Ret(T::*)(Args..., ...)const volatile &> : public function_info<Ret, Args...> {};
         template <typename T, typename Ret, typename... Args>
         struct CallableInfo<Ret(T::*)(Args...) &&> : public function_info<Ret, Args...> {};
         template <typename T, typename Ret, typename... Args>
@@ -78,13 +78,13 @@ namespace NUClear {
         template <typename T, typename Ret, typename... Args>
         struct CallableInfo<Ret(T::*)(Args...)const volatile &&> : public function_info<Ret, Args...> {};
         template <typename T, typename Ret, typename... Args>
-        struct CallableInfo<Ret(T::*)(Args......) &&> : public function_info<Ret, Args...> {};
+        struct CallableInfo<Ret(T::*)(Args..., ...) &&> : public function_info<Ret, Args...> {};
         template <typename T, typename Ret, typename... Args>
-        struct CallableInfo<Ret(T::*)(Args......)const &&> : public function_info<Ret, Args...> {};
+        struct CallableInfo<Ret(T::*)(Args..., ...)const &&> : public function_info<Ret, Args...> {};
         template <typename T, typename Ret, typename... Args>
-        struct CallableInfo<Ret(T::*)(Args......)volatile &&> : public function_info<Ret, Args...> {};
+        struct CallableInfo<Ret(T::*)(Args..., ...)volatile &&> : public function_info<Ret, Args...> {};
         template <typename T, typename Ret, typename... Args>
-        struct CallableInfo<Ret(T::*)(Args......)const volatile &&> : public function_info<Ret, Args...> {};
+        struct CallableInfo<Ret(T::*)(Args..., ...)const volatile &&> : public function_info<Ret, Args...> {};
 
         // Function Types
         // Regular
@@ -92,7 +92,7 @@ namespace NUClear {
         struct CallableInfo<Ret(Args...)> : public function_info<Ret, Args...> {};
         // C Variardic
         template <typename Ret, typename... Args>
-        struct CallableInfo<Ret(Args......)> : public function_info<Ret, Args...> {};
+        struct CallableInfo<Ret(Args..., ...)> : public function_info<Ret, Args...> {};
         // Types that have cv-qualifiers
         template <typename Ret, typename... Args>
         struct CallableInfo<Ret(Args...)const> : public function_info<Ret, Args...> {};
@@ -101,11 +101,11 @@ namespace NUClear {
         template <typename Ret, typename... Args>
         struct CallableInfo<Ret(Args...)const volatile> : public function_info<Ret, Args...> {};
         template <typename Ret, typename... Args>
-        struct CallableInfo<Ret(Args......)const> : public function_info<Ret, Args...> {};
+        struct CallableInfo<Ret(Args..., ...)const> : public function_info<Ret, Args...> {};
         template <typename Ret, typename... Args>
-        struct CallableInfo<Ret(Args......)volatile> : public function_info<Ret, Args...> {};
+        struct CallableInfo<Ret(Args..., ...)volatile> : public function_info<Ret, Args...> {};
         template <typename Ret, typename... Args>
-        struct CallableInfo<Ret(Args......)const volatile> : public function_info<Ret, Args...> {};
+        struct CallableInfo<Ret(Args..., ...)const volatile> : public function_info<Ret, Args...> {};
         // Types that have ref-qualifiers
         template <typename Ret, typename... Args>
         struct CallableInfo<Ret(Args...) &> : public function_info<Ret, Args...> {};
@@ -116,13 +116,13 @@ namespace NUClear {
         template <typename Ret, typename... Args>
         struct CallableInfo<Ret(Args...)const volatile &> : public function_info<Ret, Args...> {};
         template <typename Ret, typename... Args>
-        struct CallableInfo<Ret(Args......) &> : public function_info<Ret, Args...> {};
+        struct CallableInfo<Ret(Args..., ...) &> : public function_info<Ret, Args...> {};
         template <typename Ret, typename... Args>
-        struct CallableInfo<Ret(Args......)const &> : public function_info<Ret, Args...> {};
+        struct CallableInfo<Ret(Args..., ...)const &> : public function_info<Ret, Args...> {};
         template <typename Ret, typename... Args>
-        struct CallableInfo<Ret(Args......)volatile &> : public function_info<Ret, Args...> {};
+        struct CallableInfo<Ret(Args..., ...)volatile &> : public function_info<Ret, Args...> {};
         template <typename Ret, typename... Args>
-        struct CallableInfo<Ret(Args......)const volatile &> : public function_info<Ret, Args...> {};
+        struct CallableInfo<Ret(Args..., ...)const volatile &> : public function_info<Ret, Args...> {};
         template <typename Ret, typename... Args>
         struct CallableInfo<Ret(Args...) &&> : public function_info<Ret, Args...> {};
         template <typename Ret, typename... Args>
@@ -132,13 +132,13 @@ namespace NUClear {
         template <typename Ret, typename... Args>
         struct CallableInfo<Ret(Args...)const volatile &&> : public function_info<Ret, Args...> {};
         template <typename Ret, typename... Args>
-        struct CallableInfo<Ret(Args......) &&> : public function_info<Ret, Args...> {};
+        struct CallableInfo<Ret(Args..., ...) &&> : public function_info<Ret, Args...> {};
         template <typename Ret, typename... Args>
-        struct CallableInfo<Ret(Args......)const &&> : public function_info<Ret, Args...> {};
+        struct CallableInfo<Ret(Args..., ...)const &&> : public function_info<Ret, Args...> {};
         template <typename Ret, typename... Args>
-        struct CallableInfo<Ret(Args......)volatile &&> : public function_info<Ret, Args...> {};
+        struct CallableInfo<Ret(Args..., ...)volatile &&> : public function_info<Ret, Args...> {};
         template <typename Ret, typename... Args>
-        struct CallableInfo<Ret(Args......)const volatile &&> : public function_info<Ret, Args...> {};
+        struct CallableInfo<Ret(Args..., ...)const volatile &&> : public function_info<Ret, Args...> {};
         
         // Function Pointers
         // Regular
@@ -146,7 +146,7 @@ namespace NUClear {
         struct CallableInfo<Ret(*)(Args...)> : public function_info<Ret(*), Args...> {};
         // C Variardic
         template <typename Ret, typename... Args>
-        struct CallableInfo<Ret(*)(Args......)> : public function_info<Ret(*), Args...> {};
+        struct CallableInfo<Ret(*)(Args..., ...)> : public function_info<Ret(*), Args...> {};
         
         // Function References
         // Regular
@@ -154,7 +154,7 @@ namespace NUClear {
         struct CallableInfo<Ret(&)(Args...)> : public function_info<Ret(&), Args...> {};
         // C Variardic
         template <typename Ret, typename... Args>
-        struct CallableInfo<Ret(&)(Args......)> : public function_info<Ret(&), Args...> {};
+        struct CallableInfo<Ret(&)(Args..., ...)> : public function_info<Ret(&), Args...> {};
 
 
     }
