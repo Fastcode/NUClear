@@ -22,8 +22,8 @@
 namespace {
     
     constexpr unsigned short port = 40002;
-    const std::string multicastAddress = "230.12.3.21";
     const std::string testString = "Hello UDP Multicast World!";
+    const std::string multicastAddress = "230.12.3.21";
     
     struct Message {
     };

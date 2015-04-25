@@ -51,6 +51,8 @@ namespace NUClear {
             
             struct UDP;
             
+            struct TCP;
+            
             template <typename...>
             struct Optional;
             
@@ -148,6 +150,9 @@ namespace NUClear {
         
         /// @copydoc dsl::word::UDP
         using UDP = dsl::word::UDP;
+        
+        /// @copydoc dsl::word::TCP
+        using TCP = dsl::word::TCP;
         
         /// @copydoc dsl::word::With
         template <typename... TWiths>
@@ -332,6 +337,7 @@ namespace NUClear {
 #include "nuclear_bits/dsl/word/Always.h"
 #include "nuclear_bits/dsl/word/IO.h"
 #include "nuclear_bits/dsl/word/UDP.h"
+#include "nuclear_bits/dsl/word/TCP.h"
 #include "nuclear_bits/dsl/word/Trigger.h"
 #include "nuclear_bits/dsl/word/Priority.h"
 #include "nuclear_bits/dsl/word/With.h"

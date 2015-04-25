@@ -21,8 +21,10 @@
 
 namespace {
     
-    constexpr unsigned short port = 40000;
-    const std::string testString = "Hello UDP World!";
+    constexpr unsigned short port = 40009;
+    bool messageReceived = false;
+    
+    const std::string testString = "Hello TCP World!";
     
     struct Message {
     };
@@ -31,31 +33,50 @@ namespace {
     public:
         TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
             
-            on<UDP>(port).then([this](const UDP::Packet& packet) {
+            on<TCP>(port).then([this](const TCP::Connection& connection) {
                 
-                // Check that the data we received is correct
-                REQUIRE(packet.address == INADDR_LOOPBACK);
-                REQUIRE(packet.data.size() == testString.size());
-                REQUIRE(std::memcmp(packet.data.data(), testString.data(), testString.size()) == 0);
-                
-                // Shutdown we are done with the test
-                powerplant.shutdown();
+                on<IO>(connection.fd, IO::READ).then([this] (IO::Event event) {
+                    
+                    char buff[1024];
+                    memset(buff, 0, sizeof(buff));
+                    
+                    // Read into the buffer
+                    int len = read(event.fd, buff, testString.size());
+                    
+                    // The connection was closed
+                    if (len == 0) {
+                        REQUIRE(messageReceived);
+                        powerplant.shutdown();
+                    }
+                    else {
+                        REQUIRE(len == testString.size());
+                        REQUIRE(testString == std::string(buff));
+                        messageReceived = true;
+                    }
+                });
             });
             
             on<Trigger<Message>>().then([this] {
             
                 // Open a random socket
-                int fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+                int fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
                 
+                // Our address to our local connection
                 sockaddr_in address;
                 address.sin_family = AF_INET;
                 address.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
                 address.sin_port = htons(port);
                 
-                size_t sent = sendto(fd, testString.data(), testString.size(), 0, reinterpret_cast<sockaddr*>(&address), sizeof(sockaddr_in));
+                // Connect to ourself
+                ::connect(fd, reinterpret_cast<sockaddr*>(&address), sizeof(address));
                 
+                // Write on our socket
+                size_t sent = write(fd, testString.data(), testString.size());
+                
+                // Close our connection
                 close(fd);
                 
+                // We must have sent the right amount of data
                 REQUIRE(sent == testString.size());
             });
             
@@ -69,7 +90,7 @@ namespace {
     };
 }
 
-TEST_CASE("Testing sending and receiving of UDP messages", "[api][network][udp]") {
+TEST_CASE("Testing listening for TCP connections and receiving data messages", "[api][network][tcp]") {
     
     NUClear::PowerPlant::Configuration config;
     config.threadCount = 1;
