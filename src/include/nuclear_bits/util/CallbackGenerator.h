@@ -21,7 +21,8 @@
 #include "nuclear_bits/dsl/trait/is_transient.h"
 #include "nuclear_bits/util/demangle.h"
 #include "nuclear_bits/util/apply.h"
-#include "nuclear_bits/util/TransientData.h"
+#include "nuclear_bits/util/TransientDataElements.h"
+#include "nuclear_bits/util/MergeTransient.h"
 #include "nuclear_bits/util/RelevantArguments.h"
 #include "nuclear_bits/util/exception/CancelRunException.h"
 
@@ -46,16 +47,17 @@ namespace NUClear {
 
             CallbackGenerator(TFunc&& callback)
             : callback(std::forward<TFunc>(callback))
-            , transients(std::make_shared<typename TransientData<DSL>::type>()) {};
+            , transients(std::make_shared<typename TransientDataElements<DSL>::type>()) {};
             
             template <typename... TData, int... DIndex, int... TIndex>
             void mergeTransients(std::tuple<TData...>& data, const Sequence<DIndex...>&, const Sequence<TIndex...>&) {
-                unpack(std::get<TIndex>(*transients) = std::get<DIndex>(data) ? std::get<DIndex>(data) : std::get<TIndex>(*transients)...);
-                unpack(std::get<DIndex>(data)       = std::get<DIndex>(data) ? std::get<DIndex>(data) : std::get<TIndex>(*transients)...);
+                
+                // Merge our transient data
+                unpack(MergeTransients<Meta::RemoveRef<decltype(std::get<DIndex>(data))>>::merge(std::get<TIndex>(*transients), std::get<DIndex>(data))...);
             }
 
             template <typename D = DSL>
-            Meta::EnableIf<Meta::Not<TransientData<D>>, std::function<void ()>> operator()(threading::ReactionTask& r) {
+            Meta::EnableIf<Meta::Not<TransientDataElements<D>>, std::function<void ()>> operator()(threading::ReactionTask& r) {
 
                 // Bind our data to a variable (this will run in the dispatching thread)
                 auto data = DSL::get(r);
@@ -74,13 +76,13 @@ namespace NUClear {
             }
             
             template <typename D = DSL>
-            Meta::EnableIf<TransientData<D>, std::function<void ()>> operator()(threading::ReactionTask& r) {
+            Meta::EnableIf<TransientDataElements<D>, std::function<void ()>> operator()(threading::ReactionTask& r) {
                 
                 // Bind our data to a variable (this will run in the dispatching thread)
                 auto data = DSL::get(r);
                 
                 // Merge our transient data in
-                mergeTransients(data, typename TransientData<D>::index(), GenerateSequence<TransientData<D>::index::length>());
+                mergeTransients(data, typename TransientDataElements<D>::index(), GenerateSequence<TransientDataElements<D>::index::length>());
                 
                 // Check if our data is good (all the data exists) otherwise terminate the call
                 if(!checkData(data)) {
@@ -96,7 +98,7 @@ namespace NUClear {
             }
             
             TFunc callback;
-            std::shared_ptr<typename TransientData<DSL>::type> transients;
+            std::shared_ptr<typename TransientDataElements<DSL>::type> transients;
         };
     }
 }

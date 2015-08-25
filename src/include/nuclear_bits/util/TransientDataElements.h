@@ -15,8 +15,8 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_UTIL_TRANSIENTDATA_H
-#define NUCLEAR_UTIL_TRANSIENTDATA_H
+#ifndef NUCLEAR_UTIL_TRANSIENTDATAELEMENTS_H
+#define NUCLEAR_UTIL_TRANSIENTDATAELEMENTS_H
 
 namespace NUClear {
     namespace util {
@@ -38,7 +38,7 @@ namespace NUClear {
         };
         
         template <typename DSL>
-        struct TransientData : public ExtractTransient<decltype(DSL::get(std::declval<threading::ReactionTask&>()))> {};
+        struct TransientDataElements : public ExtractTransient<decltype(DSL::get(std::declval<threading::ReactionTask&>()))> {};
         
     }
 }

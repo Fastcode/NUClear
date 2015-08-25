@@ -56,6 +56,9 @@ namespace NUClear {
             template <typename...>
             struct Optional;
             
+            template <size_t, typename...>
+            struct Last;
+            
             template <typename>
             struct Network;
             
@@ -161,6 +164,10 @@ namespace NUClear {
         /// @copydoc dsl::word::Optional
         template <typename... TDSL>
         using Optional = dsl::word::Optional<TDSL...>;
+        
+        /// @copydoc dsl::word::Last
+        template <size_t len, typename... TDSL>
+        using Last = dsl::word::Last<len, TDSL...>;
         
         /// @copydoc dsl::word::Startup
         using Startup = dsl::word::Startup;
@@ -336,6 +343,7 @@ namespace NUClear {
 #include "nuclear_bits/dsl/word/Network.h"
 #include "nuclear_bits/dsl/word/Shutdown.h"
 #include "nuclear_bits/dsl/word/Optional.h"
+#include "nuclear_bits/dsl/word/Last.h"
 #include "nuclear_bits/dsl/word/Every.h"
 #include "nuclear_bits/dsl/word/Single.h"
 #include "nuclear_bits/dsl/word/Sync.h"
