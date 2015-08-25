@@ -1,56 +1,62 @@
 language: cpp
+sudo: false
+addons:
+  apt:
+    sources:
+      - ubuntu-toolchain-r-test
+      - llvm-toolchain-precise
+      - llvm-toolchain-precise-3.5
+      - llvm-toolchain-precise-3.6
+      - llvm-toolchain-precise-3.7
+    packages:
+      - cmake
+      - gcc-4.8
+      - g++-4.8
+      - gcc-4.9
+      - g++-4.9
+      - gcc-5
+      - g++-5
+      - clang-3.5
+
 env:
   - COMPILER="gcc-4.8"
   - COMPILER="gcc-4.9"
-  - COMPILER="clang-3.4"
-
-# Travis does not yet have clang-3.5
-#  - COMPILER="clang-3.5"
-
-# Setup repository sources before install
-before_install:
-
-  # Always use the thest toolchain so we update libstdc++
-  - sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
-
-  # clang 3.4
-  - if [[ $COMPILER == clang* ]]; then sudo add-apt-repository -y ppa:h-rayflood/llvm; fi
-
-  - sudo apt-get update -qq
+  - COMPILER="gcc-5.1"
+  - COMPILER="clang-3.5"
 
 # Install our required dependencies
 install:
-  # Always install gcc-4.8 in order to update libstdc++
-  - sudo apt-get install -qq g++-4.8
 
-  # gcc-4.8 we still need to change our cxx variable
+  # gcc-4.8
   - if [[ "$COMPILER" == "gcc-4.8" ]]; then export CXX="g++-4.8"; fi
   - if [[ "$COMPILER" == "gcc-4.8" ]]; then export CC="gcc-4.8"; fi
 
-    # gcc-4.9
-  - if [[ "$COMPILER" == "gcc-4.9" ]]; then sudo apt-get install -qq g++-4.9; fi
+  # gcc-4.9
   - if [[ "$COMPILER" == "gcc-4.9" ]]; then export CXX="g++-4.9"; fi
   - if [[ "$COMPILER" == "gcc-4.9" ]]; then export CC="gcc-4.9"; fi
 
+  # gcc-5.1
+  - if [[ "$COMPILER" == "gcc-5.1" ]]; then export CXX="g++-5"; fi
+  - if [[ "$COMPILER" == "gcc-5.1" ]]; then export CC="gcc-5"; fi
+
   # clang 3.4
-  - if [[ "$COMPILER" == "clang-3.4" ]]; then sudo apt-get install --allow-unauthenticated -qq clang-3.4; fi
   - if [[ "$COMPILER" == "clang-3.4" ]]; then export CXX="clang++-3.4"; fi
   - if [[ "$COMPILER" == "clang-3.4" ]]; then export CC="clang-3.4"; fi
 
   # clang 3.5
-  - if [[ "$COMPILER" == "clang-3.5" ]]; then sudo apt-get install --allow-unauthenticated -qq clang-3.5; fi
   - if [[ "$COMPILER" == "clang-3.5" ]]; then export CXX="clang++-3.5"; fi
   - if [[ "$COMPILER" == "clang-3.5" ]]; then export CC="clang-3.5"; fi
 
   # Catch
   - wget https://raw.githubusercontent.com/philsquared/Catch/master/single_include/catch.hpp
-  - sudo mv catch.hpp /usr/local/include
+  - mkdir -p /tmp/include
+  - mv catch.hpp /tmp/include
 
 # Before our script is run (setup build)
 before_script:
   - mkdir build
   - cd build
-  - cmake ..
+  - cmake -DCATCH_INCLUDE_DIR=/tmp/include ..
 
 # Run our build
 script:
