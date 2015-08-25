@@ -36,7 +36,7 @@ namespace NUClear {
                 static yes test_func(R(*)(Reactor&, const std::string&, F, A...));
                 static no test_func(...);
                 
-                template <typename U> static auto test(int) -> decltype(test_func(U::template bind<ParsedNoOp, std::function<void ()>>));
+                template <typename U> static auto test(int) -> decltype(test_func(U::template bind<ParsedNoOp, std::function<std::function<void ()>(threading::ReactionTask&)>>));
                 template <typename> static no test(...);
                 
             public:

@@ -32,7 +32,7 @@ namespace NUClear {
                 static inline threading::ReactionHandle bind(Reactor&, const std::string& label, TFunc&& callback) {
                     
                     // Our unbinder to remove this reaction
-                    auto unbinder = [] (threading::Reaction& r) {
+                    std::function<void (threading::Reaction&)> unbinder([] (threading::Reaction& r) {
                         
                         auto& vec = store::TypeCallbackStore<TType>::get();
                         
@@ -44,7 +44,7 @@ namespace NUClear {
                         if(item != std::end(vec)) {
                             vec.erase(item);
                         }
-                    };
+                    });
                     
                     // Get our identifier string
                     std::vector<std::string> identifier = util::get_identifier<typename DSL::DSL, TFunc>(label);

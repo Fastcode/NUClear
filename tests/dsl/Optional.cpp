@@ -21,9 +21,16 @@
 
 namespace {
     
-    bool triggered = false;
+    int trigger1 = 0;
+    int trigger2 = 0;
+    int trigger3 = 0;
+    int trigger4 = 0;
     
     struct MessageA {};
+    
+    template <typename R, typename... A>
+    auto resolve_function_type(R(*)(A...))
+    -> R(*)(A...);
     struct MessageB {};
     
     class TestReactor : public NUClear::Reactor {
@@ -32,20 +39,59 @@ namespace {
         TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
             
             on<Trigger<MessageA>, With<MessageB>>().then([this] (const MessageA&, const MessageB&) {
-            
+                ++trigger1;
                 FAIL("This should never run as MessageB is never emitted");
             });
             
-            on<Trigger<MessageA>, Optional<With<MessageB>>>().then([this] (const MessageA&, const std::shared_ptr<const MessageB>&) {
-                triggered = true;
+            on<Trigger<MessageA>, Optional<With<MessageB>>>().then([this] (const MessageA&, const std::shared_ptr<const MessageB>& b) {
+                ++trigger2;
+                
+                switch(trigger2) {
+                    case 1:
+                        // On our trigger, b should not exist
+                        REQUIRE(!b);
+                        break;
+                    default:
+                        FAIL("Trigger 2 was triggered more than once");
+                }
+                
+                // Emit B to start the second set
+                emit(std::make_unique<MessageB>());
+            });
+            
+            on<Trigger<MessageB>, With<MessageA>>().then([this] {
+                // This should run once
+                ++trigger3;
+            });
+
+            // Double trigger test (to ensure that it can handle multiple DSL words
+            on<Optional<Trigger<MessageA>, Trigger<MessageB>>>().then([this] (const std::shared_ptr<const MessageA>& a, const std::shared_ptr<const MessageB>& b) {
+                ++trigger4;
+                switch (trigger4) {
+                    case 1:
+                        // Check that A exists and B does not
+                        REQUIRE(a);
+                        REQUIRE(!b);
+                        break;
+                    case 2:
+                        // Check that both exist
+                        REQUIRE(a);
+                        REQUIRE(b);
+                        
+                        // We should be done now
+                        powerplant.shutdown();
+                        break;
+                        
+                    default:
+                        FAIL("Trigger 4 should only be triggered twice");
+                        break;
+                }
             });
             
             on<Startup>().then([this] {
                 
                 // Emit only message A
                 emit(std::make_unique<MessageA>());
-                
-                powerplant.shutdown();
             });
         }
     };
@@ -61,5 +107,8 @@ TEST_CASE("Testing that optional is able to let data through even if it's invali
     plant.start();
     
     // Check that it was all as expected
-    REQUIRE(triggered);
+    REQUIRE(trigger1 == 0);
+    REQUIRE(trigger2 == 1);
+    REQUIRE(trigger3 == 1);
+    REQUIRE(trigger4 == 2);
 }
