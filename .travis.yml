@@ -43,13 +43,14 @@ install:
 
   # Catch
   - wget https://raw.githubusercontent.com/philsquared/Catch/master/single_include/catch.hpp
-  - sudo mv catch.hpp /usr/local/include
+  - mkdir -p /tmp/include
+  - mv catch.hpp /tmp/include
 
 # Before our script is run (setup build)
 before_script:
   - mkdir build
   - cd build
-  - cmake ..
+  - cmake -DCATCH_INCLUDE_DIR=/tmp/include ..
 
 # Run our build
 script:
