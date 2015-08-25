@@ -55,4 +55,4 @@ before_script:
 # Run our build
 script:
   - make
-  - ./tests/test_nuclear
+  - ./tests/test_nuclear exclude:[network]
