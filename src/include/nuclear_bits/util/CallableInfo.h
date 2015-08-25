@@ -53,6 +53,7 @@ namespace NUClear {
         template <typename T, typename Ret, typename... Args>
         struct CallableInfo<Ret(T::*)(Args..., ...)const volatile> : public function_info<Ret, Args...> {};
         // Types that have ref-qualifiers
+        #if __GNUC__ >= 5 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 9)
         template <typename T, typename Ret, typename... Args>
         struct CallableInfo<Ret(T::*)(Args...) &> : public function_info<Ret, Args...> {};
         template <typename T, typename Ret, typename... Args>
@@ -85,6 +86,7 @@ namespace NUClear {
         struct CallableInfo<Ret(T::*)(Args..., ...)volatile &&> : public function_info<Ret, Args...> {};
         template <typename T, typename Ret, typename... Args>
         struct CallableInfo<Ret(T::*)(Args..., ...)const volatile &&> : public function_info<Ret, Args...> {};
+        #endif
 
         // Function Types
         // Regular
@@ -107,6 +109,7 @@ namespace NUClear {
         template <typename Ret, typename... Args>
         struct CallableInfo<Ret(Args..., ...)const volatile> : public function_info<Ret, Args...> {};
         // Types that have ref-qualifiers
+        #if __GNUC__ >= 5 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 9)
         template <typename Ret, typename... Args>
         struct CallableInfo<Ret(Args...) &> : public function_info<Ret, Args...> {};
         template <typename Ret, typename... Args>
@@ -139,7 +142,8 @@ namespace NUClear {
         struct CallableInfo<Ret(Args..., ...)volatile &&> : public function_info<Ret, Args...> {};
         template <typename Ret, typename... Args>
         struct CallableInfo<Ret(Args..., ...)const volatile &&> : public function_info<Ret, Args...> {};
-        
+        #endif
+
         // Function Pointers
         // Regular
         template <typename Ret, typename... Args>
@@ -147,7 +151,7 @@ namespace NUClear {
         // C Variardic
         template <typename Ret, typename... Args>
         struct CallableInfo<Ret(*)(Args..., ...)> : public function_info<Ret(*), Args...> {};
-        
+
         // Function References
         // Regular
         template <typename Ret, typename... Args>
