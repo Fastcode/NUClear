@@ -33,8 +33,8 @@ namespace NUClear {
         : public fusion::BindFusion<TWords...>
         , public fusion::GetFusion<TWords...>
         , public fusion::PreconditionFusion<TWords...>
-        , public fusion::PriorityFusion<TWords...>
-        , public fusion::PostconditionFusion<TWords...> {};
+        , public fusion::PostconditionFusion<TWords...>
+        , public fusion::PriorityFusion<TWords...> {};
     }
 }
 

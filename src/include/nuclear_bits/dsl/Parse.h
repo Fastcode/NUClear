@@ -21,6 +21,7 @@
 #include "nuclear_bits/dsl/Fusion.h"
 #include "nuclear_bits/dsl/fusion/has_precondition.h"
 #include "nuclear_bits/dsl/fusion/has_postcondition.h"
+#include "nuclear_bits/dsl/validation/Validation.h"
 
 namespace NUClear {
     namespace dsl {

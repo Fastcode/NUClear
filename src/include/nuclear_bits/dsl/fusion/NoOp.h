@@ -52,7 +52,7 @@ namespace NUClear {
                 
                 static inline bool precondition(threading::Reaction&);
                 
-                static inline bool priority(threading::Reaction&);
+                static inline int priority(threading::Reaction&);
                 
                 static inline void postcondition(threading::ReactionTask&);
                 

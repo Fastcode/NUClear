@@ -34,6 +34,10 @@ namespace {
                 
                 this->powerplant.shutdown();
             });
+            
+            // Make sure we can pass an empty function in here
+            on<Trigger<DifferentOrderingMessage1>, With<DifferentOrderingMessage1, DifferentOrderingMessage2>>().then([this] {
+            });
         }
     };
 }

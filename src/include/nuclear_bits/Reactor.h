@@ -221,15 +221,6 @@ namespace NUClear {
                 addReactionHandle(std::get<i>(t));
             }
             
-            template<std::size_t I = 0, typename FuncT, typename... Tp>
-            inline typename std::enable_if<I < sizeof...(Tp), void>::type
-            for_each(std::tuple<Tp...>& t, FuncT f)
-            {
-                f(std::get<I>(t));
-                for_each<I + 1, FuncT, Tp...>(t, f);
-            }
-            
-            
             template <typename TFunc, int... Index>
             auto then(const std::string& label, TFunc&& callback, const util::Sequence<Index...>&)
             -> decltype(util::detuplify(DSL::bind(reactor, label, std::forward<TFunc>(callback), std::get<Index>(args)...))) {

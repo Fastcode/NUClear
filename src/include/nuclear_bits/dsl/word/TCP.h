@@ -89,7 +89,7 @@ namespace NUClear {
                     }));
                     
                     // Return our handles
-                    return handle;
+                    return std::make_tuple(handle, 0); // TODO get the port
                 }
                 
                 template <typename DSL>
