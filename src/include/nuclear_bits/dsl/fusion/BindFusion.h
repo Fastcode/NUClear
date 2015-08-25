@@ -57,7 +57,7 @@ namespace NUClear {
             };
             
             template <typename, typename, typename, typename, int>
-            struct BindFission;
+            struct BindFission {};
             
             template <typename TFirst
             , typename... TWords
@@ -74,13 +74,13 @@ namespace NUClear {
                  * @tparam TFunc    The type of the callback function passed to bind
                  * @tparam TArgs    The types of the runtime arguments passed into the bind
                  */
-                template <typename DSL, typename U = TFirst, typename TFunc>
+                template <typename DSL, typename TFunc>
                 static inline auto bind(Reactor& reactor, const std::string& identifier, TFunc&& callback, TFirstArgs&&... ourArgs, TWordsArgs... otherArgs)
-                -> decltype(std::tuple_cat(util::tuplify(Bind<U>::template bind<DSL>(reactor, identifier, std::forward<TFunc>(callback), std::forward<TFirstArgs>(ourArgs)...))
+                -> decltype(std::tuple_cat(util::tuplify(Bind<TFirst>::template bind<DSL>(reactor, identifier, std::forward<TFunc>(callback), std::forward<TFirstArgs>(ourArgs)...))
                                         , BindFusion<TWords...>::template bind<DSL>(reactor, identifier, std::forward<TFunc>(callback), std::forward<TWordsArgs>(otherArgs)...))) {
                     
                     // Execute our function and then pass on the remainder
-                    return std::tuple_cat(util::tuplify(Bind<U>::template bind<DSL>(reactor, identifier, std::forward<TFunc>(callback), std::forward<TFirstArgs>(ourArgs)...))
+                    return std::tuple_cat(util::tuplify(Bind<TFirst>::template bind<DSL>(reactor, identifier, std::forward<TFunc>(callback), std::forward<TFirstArgs>(ourArgs)...))
                                           , BindFusion<TWords...>::template bind<DSL>(reactor, identifier, std::forward<TFunc>(callback), std::forward<TWordsArgs>(otherArgs)...));
                 }
             };
@@ -100,12 +100,12 @@ namespace NUClear {
                  * @tparam TFunc    The type of the callback function passed to bind
                  * @tparam TArgs    The types of the runtime arguments passed into the bind
                  */
-                template <typename DSL, typename U = TFirst, typename TFunc>
+                template <typename DSL, typename TFunc>
                 static inline auto bind(Reactor& reactor, const std::string& identifier, TFunc&& callback, TFirstArgs&&... args)
-                -> decltype(util::tuplify(Bind<U>::template bind<DSL>(reactor, identifier, std::forward<TFunc>(callback), std::forward<TFirstArgs>(args)...))) {
+                -> decltype(util::tuplify(Bind<TFirst>::template bind<DSL>(reactor, identifier, std::forward<TFunc>(callback), std::forward<TFirstArgs>(args)...))) {
                     
                     // Execute our function
-                    return util::tuplify(Bind<U>::template bind<DSL>(reactor, identifier, std::forward<TFunc>(callback), std::forward<TFirstArgs>(args)...));
+                    return util::tuplify(Bind<TFirst>::template bind<DSL>(reactor, identifier, std::forward<TFunc>(callback), std::forward<TFirstArgs>(args)...));
                 }
             };
             
@@ -124,7 +124,7 @@ namespace NUClear {
                  * @tparam TFunc    The type of the callback function passed to bind
                  * @tparam TArgs    The types of the runtime arguments passed into the bind
                  */
-                template <typename DSL, typename U = TFirst, typename TFunc>
+                template <typename DSL, typename TFunc>
                 static inline auto bind(Reactor& reactor, const std::string& identifier, TFunc&& callback, TWordsArgs&&... args)
                 -> decltype(BindFusion<TWords...>::template bind<DSL>(reactor, identifier, std::forward<TFunc>(callback), std::forward<TWordsArgs>(args)...)) {
                     
@@ -132,26 +132,6 @@ namespace NUClear {
                     return BindFusion<TWords...>::template bind<DSL>(reactor, identifier, std::forward<TFunc>(callback), std::forward<TWordsArgs>(args)...);
                 }
             };
-            
-            template <typename TFirst
-            , typename... TWords
-            , typename... TFirstArgs
-            , typename... TWordsArgs>
-            struct BindFission<TFirst, std::tuple<TWords...>, std::tuple<TFirstArgs...>, std::tuple<TWordsArgs...>, 4> {
-                
-                /**
-                 * @brief This function is enabled in the situation that TFirst does not have a bind function, nor are there
-                 *          are words further down that do (this function should never be called as previous functions will terminate)
-                 *
-                 * @tparam DSL      The parsed DSL that resulted from all these functions
-                 * @tparam U        A copy of TFirst used for SFINAE
-                 * @tparam TFunc    The type of the callback function passed to bind
-                 * @tparam TArgs    The types of the runtime arguments passed into the bind
-                 */
-                template <typename DSL, typename U = TFirst, typename TFunc>
-                static inline std::tuple<> bind(Reactor& reactor, const std::string& identifier, TFunc&& callback);
-            };
-            
             
             /**
              *  @brief Performs an extraction of the arguments that make up the bind
@@ -190,8 +170,7 @@ namespace NUClear {
             , decltype(std::tuple_cat(std::declval<typename BindArguments<TWords>::type>()...))
             ,  All<has_bind<Bind<TFirst>>, Any<has_bind<Bind<TWords>>...>>::value      ? 1     // Us and our children
             :  All<has_bind<Bind<TFirst>>, Not<Any<has_bind<Bind<TWords>>...>>>::value ? 2     // Us but not our children
-            :  All<Not<has_bind<Bind<TFirst>>>, Any<has_bind<Bind<TWords>>...>>::value ? 3     // Not us but our children
-            :  All<Not<has_bind<Bind<TFirst>>>, Not<has_bind<Bind<TWords>>>...>::value ? 4 : 0 // Not us nor our children
+            :  All<Not<has_bind<Bind<TFirst>>>, Any<has_bind<Bind<TWords>>...>>::value ? 3 : 0 // Not us but our children
             > {};
         }
     }
