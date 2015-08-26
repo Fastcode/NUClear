@@ -52,7 +52,7 @@ namespace NUClear {
                 };
                 
                 template <typename DSL, typename TFunc>
-                static inline threading::ReactionHandle bind(Reactor& reactor, const std::string& label, TFunc&& callback, int port) {
+                static inline std::tuple<threading::ReactionHandle, int> bind(Reactor& reactor, const std::string& label, TFunc&& callback, int port) {
                     
                     // Make our socket
                     int fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
@@ -72,6 +72,13 @@ namespace NUClear {
                         throw std::system_error(errno, std::system_category(), "We were unable to bind the UDP socket to the port");
                     }
                     
+                    // Get the port we ended up listening on
+                    socklen_t len = sizeof(sockaddr_in);
+                    if (::getsockname(fd, reinterpret_cast<sockaddr*>(&address), &len) == -1) {
+                        throw std::system_error(errno, std::system_category(), "We were unable to get the port from the TCP socket");
+                    }
+                    port = ntohs(address.sin_port);
+                    
                     // Generate a reaction for the IO system that closes on death
                     auto reaction = util::generate_reaction<DSL, IO>(reactor, label, std::forward<TFunc>(callback), [fd] (threading::Reaction&) {
                         ::close(fd);
@@ -85,8 +92,8 @@ namespace NUClear {
                         std::move(reaction)
                     }));
                     
-                    // Return our handles
-                    return handle;
+                    // Return our handles and our bound port
+                    return std::make_tuple(handle, port);
                 }
                 
                 template <typename DSL>
@@ -128,7 +135,7 @@ namespace NUClear {
                 struct Broadcast {
                     
                     template <typename DSL, typename TFunc>
-                    static inline threading::ReactionHandle bind(Reactor& reactor, const std::string& label, TFunc&& callback, int port) {
+                    static inline std::tuple<threading::ReactionHandle, int> bind(Reactor& reactor, const std::string& label, TFunc&& callback, int port) {
                        
                         // Our list of broadcast file descriptors
                         std::vector<int> fds;
@@ -177,6 +184,13 @@ namespace NUClear {
                                 throw std::system_error(errno, std::system_category(), "We were unable to bind the UDP socket to the port");
                             }
                             
+                            // Set the port variable to whatever was returned (so they all use the same port)
+                            socklen_t len = sizeof(sockaddr_in);
+                            if (::getsockname(fd, reinterpret_cast<sockaddr*>(&address), &len) == -1) {
+                                throw std::system_error(errno, std::system_category(), "We were unable to get the port from the TCP socket");
+                            }
+                            port = ntohs(address.sin_port);
+                            
                             fds.push_back(fd);
                         }
                         
@@ -200,7 +214,7 @@ namespace NUClear {
                         }
                         
                         // Return our handles
-                        return handle;
+                        return std::make_tuple(handle, port);
                     }
                     
                     template <typename DSL>
@@ -213,14 +227,14 @@ namespace NUClear {
                 struct Multicast {
                     
                     template <typename DSL, typename TFunc>
-                    static inline threading::ReactionHandle bind(Reactor& reactor, const std::string& label, TFunc&& callback, std::string multicastGroup, int port) {
+                    static inline std::tuple<threading::ReactionHandle, int> bind(Reactor& reactor, const std::string& label, TFunc&& callback, std::string multicastGroup, int port) {
                         
                         // Our multicast group address
-                        sockaddr_in addr;
-                        memset(&addr, 0, sizeof(sockaddr_in));
-                        addr.sin_family = AF_INET;
-                        addr.sin_addr.s_addr = inet_addr(multicastGroup.c_str());
-                        addr.sin_port = htons(port);
+                        sockaddr_in address;
+                        memset(&address, 0, sizeof(sockaddr_in));
+                        address.sin_family = AF_INET;
+                        address.sin_addr.s_addr = inet_addr(multicastGroup.c_str());
+                        address.sin_port = htons(port);
                         
                         // Make our socket
                         int fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
@@ -234,9 +248,16 @@ namespace NUClear {
                         }
                         
                         // Bind to the address
-                        if(::bind(fd, reinterpret_cast<sockaddr*>(&addr), sizeof(sockaddr))) {
+                        if(::bind(fd, reinterpret_cast<sockaddr*>(&address), sizeof(sockaddr))) {
                             throw std::system_error(errno, std::system_category(), "We were unable to bind the UDP socket to the port");
                         }
+                        
+                        // Store the port variable that was used
+                        socklen_t len = sizeof(sockaddr_in);
+                        if (::getsockname(fd, reinterpret_cast<sockaddr*>(&address), &len) == -1) {
+                            throw std::system_error(errno, std::system_category(), "We were unable to get the port from the TCP socket");
+                        }
+                        port = ntohs(address.sin_port);
                         
                         // Get all the network interfaces that support multicast
                         std::vector<uint32_t> addresses;
@@ -255,7 +276,7 @@ namespace NUClear {
                             // Our multicast join request
                             ip_mreq mreq;
                             memset(&mreq, 0, sizeof(mreq));
-                            mreq.imr_multiaddr.s_addr = addr.sin_addr.s_addr;
+                            mreq.imr_multiaddr.s_addr = address.sin_addr.s_addr;
                             mreq.imr_interface.s_addr = htonl(ad);
                             
                             // Join our multicast group but first leave because of stupid things
@@ -282,7 +303,7 @@ namespace NUClear {
                         }));
                         
                         // Return our handles
-                        return handle;
+                        return std::make_tuple(handle, port);
                     }
                     
                     template <typename DSL>

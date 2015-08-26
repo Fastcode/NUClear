@@ -72,7 +72,7 @@ namespace {
                     REQUIRE(fabs(mean) < 0.0005);
                     
                     // Require that 95% (ish) of all results are within 3ms
-                    WARN("This is far too high error, need to reduce it somehow in the future");
+                    WARN("This (mean: " + std::to_string(mean * 1000000) + "\u00b5s sd: " + std::to_string(stddev * 1000000) + "\u00b5s) is far too high error, need to reduce it somehow in the future");
                     REQUIRE(fabs(mean + stddev * 2) < 0.003);
                 }
                 // Once we have more then enough items then we shutdown the powerplant

@@ -75,6 +75,13 @@ namespace NUClear {
                         throw std::system_error(errno, std::system_category(), "We were unable to listen on the TCP socket");
                     }
                     
+                    // Get the port we ended up listening on
+                    socklen_t len = sizeof(sockaddr_in);
+                    if (::getsockname(fd, reinterpret_cast<sockaddr*>(&address), &len) == -1) {
+                        throw std::system_error(errno, std::system_category(), "We were unable to get the port from the TCP socket");
+                    }
+                    port = ntohs(address.sin_port);
+                    
                     // Generate a reaction for the IO system that closes on death
                     auto reaction = util::generate_reaction<DSL, IO>(reactor, label, std::forward<TFunc>(callback), [fd] (threading::Reaction&) {
                         ::close(fd);
@@ -89,7 +96,7 @@ namespace NUClear {
                     }));
                     
                     // Return our handles
-                    return std::make_tuple(handle, 0); // TODO get the port
+                    return std::make_tuple(handle, port);
                 }
                 
                 template <typename DSL>

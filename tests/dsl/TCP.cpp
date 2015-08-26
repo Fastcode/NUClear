@@ -22,7 +22,7 @@
 namespace {
     
     constexpr unsigned short port = 40009;
-    bool messageReceived = false;
+    int messagesReceived = 0;
     
     const std::string testString = "Hello TCP World!";
     
@@ -33,6 +33,7 @@ namespace {
     public:
         TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
             
+            // Bind to a known port
             on<TCP>(port).then([this](const TCP::Connection& connection) {
                 
                 on<IO>(connection.fd, IO::READ).then([this] (IO::Event event) {
@@ -43,19 +44,42 @@ namespace {
                     // Read into the buffer
                     int len = read(event.fd, buff, testString.size());
                     
-                    // The connection was closed
-                    if (len == 0) {
-                        REQUIRE(messageReceived);
+                    // The connection was closed and the other test finished
+                    if (len == 0 && messagesReceived == 2) {
                         powerplant.shutdown();
                     }
                     else {
                         REQUIRE(len == testString.size());
                         REQUIRE(testString == std::string(buff));
-                        messageReceived = true;
+                        ++messagesReceived;
                     }
                 });
             });
             
+            // Bind to an unknown port and get the port number
+            int boundPort;
+            std::tie(std::ignore, boundPort) = on<TCP>(0).then([this](const TCP::Connection& connection) {
+                on<IO>(connection.fd, IO::READ).then([this] (IO::Event event) {
+                    
+                    char buff[1024];
+                    memset(buff, 0, sizeof(buff));
+                    
+                    // Read into the buffer
+                    int len = read(event.fd, buff, testString.size());
+                    
+                    // The connection was closed and the other test finished
+                    if (len == 0 && messagesReceived == 2) {
+                        powerplant.shutdown();
+                    }
+                    else {
+                        REQUIRE(len == testString.size());
+                        REQUIRE(testString == std::string(buff));
+                        ++messagesReceived;
+                    }
+                });
+            });
+            
+            // Send a test message to the known port
             on<Trigger<Message>>().then([this] {
             
                 // Open a random socket
@@ -66,6 +90,30 @@ namespace {
                 address.sin_family = AF_INET;
                 address.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
                 address.sin_port = htons(port);
+                
+                // Connect to ourself
+                ::connect(fd, reinterpret_cast<sockaddr*>(&address), sizeof(address));
+                
+                // Write on our socket
+                size_t sent = write(fd, testString.data(), testString.size());
+                
+                // Close our connection
+                close(fd);
+                
+                // We must have sent the right amount of data
+                REQUIRE(sent == testString.size());
+            });
+            
+            // Send a test message to the freely bound port
+            on<Trigger<Message>>().then([this, boundPort] {
+                // Open a random socket
+                int fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+                
+                // Our address to our local connection
+                sockaddr_in address;
+                address.sin_family = AF_INET;
+                address.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+                address.sin_port = htons(boundPort);
                 
                 // Connect to ourself
                 ::connect(fd, reinterpret_cast<sockaddr*>(&address), sizeof(address));

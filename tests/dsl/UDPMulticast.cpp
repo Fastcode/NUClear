@@ -24,6 +24,8 @@ namespace {
     constexpr unsigned short port = 40002;
     const std::string testString = "Hello UDP Multicast World!";
     const std::string multicastAddress = "230.12.3.21";
+    int countA = 0;
+    int countB = 0;
     
     struct Message {
     };
@@ -31,17 +33,35 @@ namespace {
     class TestReactor : public NUClear::Reactor {
     public:
         TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
-
+            
+            // Known port
             on<UDP::Multicast>(multicastAddress, port).then([this](const UDP::Packet& packet) {
-                
+                ++countA;
                 // Check that the data we received is correct
                 REQUIRE(packet.data.size() == testString.size());
                 REQUIRE(std::memcmp(packet.data.data(), testString.data(), testString.size()) == 0);
                 
                 // Shutdown we are done with the test
-                powerplant.shutdown();
+                if(countA >= 1 && countB >= 1) {
+                    powerplant.shutdown();
+                }
             });
             
+            // Unknown port
+            int boundPort;
+            std::tie(std::ignore, boundPort) = on<UDP::Multicast>(multicastAddress, 0).then([this](const UDP::Packet& packet) {
+                ++countB;
+                // Check that the data we received is correct
+                REQUIRE(packet.data.size() == testString.size());
+                REQUIRE(std::memcmp(packet.data.data(), testString.data(), testString.size()) == 0);
+                
+                // Shutdown we are done with the test
+                if(countA >= 1 && countB >= 1) {
+                    powerplant.shutdown();
+                }
+            });
+            
+            // Test a known port
             on<Trigger<Message>>().then([this] {
                 
                 // Get all the network interfaces
@@ -83,6 +103,48 @@ namespace {
                 }
             });
             
+            // Test an unknown port
+            on<Trigger<Message>>().then([this, boundPort] {
+                
+                // Get all the network interfaces
+                auto interfaces = NUClear::util::network::get_interfaces();
+                
+                std::vector<uint32_t> addresses;
+                
+                for(auto& iface : interfaces) {
+                    // We send on broadcast addresses and we don't want loopback or point to point
+                    if(!iface.flags.loopback && !iface.flags.pointtopoint && iface.flags.multicast) {
+                        // Two broadcast ips that are the same are probably on the same network so ignore those
+                        if(std::find(std::begin(addresses), std::end(addresses), iface.broadcast) == std::end(addresses)) {
+                            addresses.push_back(iface.ip);
+                        }
+                    }
+                }
+                
+                for(auto& ad : addresses) {
+                    
+                    // Open a random socket
+                    int fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+                    
+                    in_addr ifaddr;
+                    ifaddr.s_addr = htonl(ad);
+                    
+                    sockaddr_in maddr;
+                    maddr.sin_family = AF_INET;
+                    maddr.sin_addr.s_addr = inet_addr(multicastAddress.c_str());
+                    maddr.sin_port = htons(boundPort);
+                    
+                    // Set our transmission interface for the multicast socket
+                    REQUIRE(setsockopt(fd, IPPROTO_IP, IP_MULTICAST_IF, &ifaddr, sizeof(ifaddr)) == 0);
+                    
+                    int sent = sendto(fd, testString.data(), testString.size(), 0, reinterpret_cast<sockaddr*>(&maddr), sizeof(maddr));
+                    
+                    close(fd);
+                    
+                    REQUIRE(sent == testString.size());
+                }
+            });
+            
             on<Startup>().then([this] {
                 
                 // Emit a message just so it will be when everything is running
@@ -101,4 +163,7 @@ TEST_CASE("Testing sending and receiving of UDP Multicast messages", "[api][netw
     plant.install<TestReactor>();
     
     plant.start();
+    
+    REQUIRE(countA == 1);
+    REQUIRE(countB == 1);
 }
