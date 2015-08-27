@@ -6,7 +6,7 @@ SET(VERSION_MINOR 2)
 SET(VERSION_PATCH 0)
 
 # Supported options:
-OPTION(NUCLEAR_BUILD_TESTS "Builds all of the NUClear unit tests." ON)
+OPTION(BUILD_TESTS "Builds all of the NUClear unit tests." ON)
 
 # We use additional modules that cmake needs to know about
 SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
@@ -55,7 +55,7 @@ ADD_SUBDIRECTORY(src)
 INSTALL(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/src/include/ DESTINATION include PATTERN "*.h" PATTERN "*.ipp")
 
 # Optional build supports
-if(NUCLEAR_BUILD_TESTS)
+if(BUILD_TESTS)
     enable_testing()
     add_subdirectory(tests)
 endif()
