@@ -56,7 +56,7 @@ install:
 before_script:
   - mkdir build
   - cd build
-  - cmake -DCATCH_INCLUDE_DIR=/tmp/include ..
+  - cmake -DCMAKE_BUILD_TYPE=Release -DCATCH_INCLUDE_DIR=/tmp/include ..
 
 # Run our build
 script:
