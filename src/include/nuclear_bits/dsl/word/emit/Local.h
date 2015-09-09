@@ -28,9 +28,9 @@ namespace NUClear {
         namespace word {
             namespace emit {
                 
+                template <typename TData>
                 struct Local {
                     
-                    template <typename TData>
                     static void emit(PowerPlant& powerplant, std::shared_ptr<TData> data) {
                         
                         // Set our data in the store

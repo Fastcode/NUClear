@@ -41,22 +41,22 @@ namespace NUClear {
     }
     
     // Default emit with no types
-    template <typename TFirstHandler, typename... THandlers, typename TData>
-    void PowerPlant::emit(std::unique_ptr<TData>& data) {
+    template <template <typename> class TFirstHandler, template <typename> class... THandlers, typename TData, typename... TArgs>
+    void PowerPlant::emit(std::unique_ptr<TData>& data, TArgs... args) {
         
-        emit<TFirstHandler, THandlers...>(std::move(data));
+        emit<TFirstHandler, THandlers...>(std::move(data), std::forward<TArgs>(args)...);
     }
     
     // Global emit handlers
-    template <typename TFirstHandler, typename... THandlers, typename TData>
-    void PowerPlant::emit(std::unique_ptr<TData>&& data) {
+    template <template <typename> class TFirstHandler, template <typename> class... THandlers, typename TData,  typename... TArgs>
+    void PowerPlant::emit(std::unique_ptr<TData>&& data, TArgs... args) {
         
         // Release our data from the pointer and wrap it in a shared_ptr
         std::shared_ptr<TData> ptr = std::shared_ptr<TData>(std::move(data));
         
         // Pass it to all of the provided emit handlers
-        TFirstHandler::emit(*this, ptr);
-        util::unpack((THandlers::emit(*this, ptr), 0)...);
+        TFirstHandler<TData>::emit(*this, ptr);
+        util::unpack((THandlers<TData>::emit(*this, ptr), 0)...);
     }
     
     // Anonymous metafunction that concatenates everything into a single string

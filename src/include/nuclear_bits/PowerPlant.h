@@ -198,10 +198,10 @@ namespace NUClear {
          *
          * @param data The data we are emitting
          */
-        template <typename TFirstHandler, typename... THandlers, typename TData>
-        void emit(std::unique_ptr<TData>&& data);
-        template <typename TFirstHandler, typename... THandlers, typename TData>
-        void emit(std::unique_ptr<TData>& data);
+        template <template <typename> class TFirstHandler, template <typename> class... THandlers, typename TData, typename... TArgs>
+        void emit(std::unique_ptr<TData>&& data, TArgs... args);
+        template <template <typename> class TFirstHandler, template <typename> class... THandlers, typename TData, typename... TArgs>
+        void emit(std::unique_ptr<TData>& data, TArgs... args);
         
         
     private:
