@@ -82,7 +82,7 @@ namespace NUClear {
                 auto data = DSL::get(r);
                 
                 // Merge our transient data in
-                mergeTransients(data, typename TransientDataElements<D>::index(), GenerateSequence<TransientDataElements<D>::index::length>());
+                mergeTransients(data, typename TransientDataElements<D>::index(), GenerateSequence<0, TransientDataElements<D>::index::length>());
                 
                 // Check if our data is good (all the data exists) otherwise terminate the call
                 if(!checkData(data)) {

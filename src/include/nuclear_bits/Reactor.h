@@ -255,8 +255,8 @@ namespace NUClear {
             
             template <typename TFunc>
             auto then(const std::string& label, TFunc&& callback)
-            -> decltype(std::declval<Binder>().then(label, std::forward<TFunc>(callback), util::GenerateSequence<sizeof...(TArgs)>())) {
-                return then(label, std::forward<TFunc>(callback), util::GenerateSequence<sizeof...(TArgs)>());
+            -> decltype(std::declval<Binder>().then(label, std::forward<TFunc>(callback), util::GenerateSequence<0, sizeof...(TArgs)>())) {
+                return then(label, std::forward<TFunc>(callback), util::GenerateSequence<0, sizeof...(TArgs)>());
             }
             
             template <typename TFunc>

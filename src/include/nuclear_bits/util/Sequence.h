@@ -37,35 +37,26 @@ namespace NUClear {
         
         // Anonymous
         namespace {
-            /**
-             * @brief This is the recursive case for generating the sequence.
-             *
-             * @details
-             *  This struct recursivly generates the variardic pack based on the provided parameters. It builds these until
-             *  there is one consistent type.
-             *
-             * @tparam N the number to finish at
-             * @tparam S the numbers we have generated (starts as only our last number)
-             *
-             * @author Trent Houliston
-             */
-            template<int N, int... S>
-            struct GenSequence : GenSequence<N-1, N-1, S...> { };
             
             /**
-             * @brief This is the final output of the recursive case, it contains the generated sequence accessable by type
-             *
-             * @details
-             *  This is the final result of the recursive case, it's generate Sequence object which contains the variardic pack
-             *  can be accessed by using GeneratedSequence<Value>::type;
-             *
-             * @tparam S the variardic pack of integers
-             *
-             * @author Trent Houliston
+             * @brief Generate a sequence of numbers between a start and an end, this is the entry case
              */
-            template<int... S>
-            struct GenSequence<0, S...> {
-                using type = Sequence<S...>;
+            template <int Start, int End, typename Seq = Sequence<>>
+            struct GenSequence;
+            
+            /**
+             * Generates sequence
+             */
+            template <int Start, int End, int... Seq>
+            struct GenSequence<Start, End, Sequence<Seq...>>
+            : GenSequence<(End - Start > 0 ? Start + 1 : Start - 1), End, Sequence<Seq..., Start>> {};
+            
+            /**
+             * Runs when start and end are the same, terminates
+             */
+            template <int StartAndEnd, int... Seq>
+            struct GenSequence<StartAndEnd, StartAndEnd, Sequence<Seq...>> {
+                using type = Sequence<Seq...>;
             };
         }
         
@@ -73,16 +64,17 @@ namespace NUClear {
          * @brief Holds a generated integer sequence of numbers as a variardic pack.
          *
          * @details
-         *  This class is used to generate a variardic template pack which contains all of the integers from 0 to Count.
+         *  This class is used to generate a variardic template pack which contains all of the integers from Start to End (non inclusive).
          *  This can then be used in other templates or tempalate expansions as needed (for instance it is useful for
          *  expanding tuples).
          *
-         * @tparam Count the number to generate to (from 0 to Count-1)
+         * @tparam Start  the number to start counting from
+         * @tparam End     the number to finish counting at (non inclusive)
          *
          * @author Trent Houliston
          */
-        template <int Count>
-        using GenerateSequence = Meta::Do<GenSequence<Count>>;
+        template <int Start, int End>
+        using GenerateSequence = Meta::Do<GenSequence<Start, End>>;
     }
 }
 #endif

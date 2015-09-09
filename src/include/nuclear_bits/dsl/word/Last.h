@@ -68,10 +68,10 @@ namespace NUClear {
             public:
                 template <typename DSL>
                 static inline auto get(threading::ReactionTask& r)
-                -> decltype(wrap(Fusion<DSLWords...>::template get<DSL>(r), util::GenerateSequence<std::tuple_size<decltype(Fusion<DSLWords...>::template get<DSL>(r))>::value>())) {
+                -> decltype(wrap(Fusion<DSLWords...>::template get<DSL>(r), util::GenerateSequence<0, std::tuple_size<decltype(Fusion<DSLWords...>::template get<DSL>(r))>::value>())) {
                     
                     // Wrap all of our data in last list wrappers
-                    return wrap(Fusion<DSLWords...>::template get<DSL>(r), util::GenerateSequence<std::tuple_size<decltype(Fusion<DSLWords...>::template get<DSL>(r))>::value>());
+                    return wrap(Fusion<DSLWords...>::template get<DSL>(r), util::GenerateSequence<0, std::tuple_size<decltype(Fusion<DSLWords...>::template get<DSL>(r))>::value>());
                 }
             };
         }
