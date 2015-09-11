@@ -90,6 +90,8 @@ namespace NUClear {
                 struct Direct;
                 template <typename TData>
                 struct Initialize;
+                template <typename TData>
+                struct Network;
             }
         }
     }
@@ -208,6 +210,10 @@ namespace NUClear {
         /// @copydoc dsl::word::emit::Initialize
         template <typename TData>
         using INITIALIZE = dsl::word::emit::Initialize<TData>;
+        
+        /// @copydoc dsl::word::emit::Network
+        template <typename TData>
+        using NETWORK = dsl::word::emit::Network<TData>;
         
         /// @brief This provides functions to modify how an on statement runs after it has been created
         using ReactionHandle = threading::ReactionHandle;
@@ -356,6 +362,7 @@ namespace NUClear {
 #include "nuclear_bits/dsl/word/emit/Local.h"
 #include "nuclear_bits/dsl/word/emit/Initialize.h"
 #include "nuclear_bits/dsl/word/emit/Direct.h"
+#include "nuclear_bits/dsl/word/emit/Network.h"
 
 #endif
 
