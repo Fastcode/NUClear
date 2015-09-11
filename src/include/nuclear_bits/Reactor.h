@@ -306,11 +306,11 @@ namespace NUClear {
          * @param data The data to emit
          */
         template <template <typename> class... THandlers, typename TData, typename... TArgs>
-        void emit(std::unique_ptr<TData>&& data, TArgs... args) {
+        void emit(std::unique_ptr<TData>&& data, TArgs&&... args) {
             powerplant.emit<THandlers...>(std::forward<std::unique_ptr<TData>>(data), std::forward<TArgs>(args)...);
         }
         template <template <typename> class... THandlers, typename TData, typename... TArgs>
-        void emit(std::unique_ptr<TData>& data, TArgs... args) {
+        void emit(std::unique_ptr<TData>& data, TArgs&&... args) {
             powerplant.emit<THandlers...>(std::forward<std::unique_ptr<TData>>(data), std::forward<TArgs>(args)...);
         }
         
@@ -327,11 +327,11 @@ namespace NUClear {
          * @param args The arguments we are logging
          */
         template <enum LogLevel level = DEBUG, typename... TArgs>
-        void log(TArgs... args) {
+        void log(TArgs&&... args) {
             
             // If the log is above or equal to our log level
             if (level >= environment->logLevel) {
-                powerplant.log<level, TArgs...>(std::forward<TArgs>(args)...);
+                powerplant.log<level>(std::forward<TArgs>(args)...);
             }
         }
     };

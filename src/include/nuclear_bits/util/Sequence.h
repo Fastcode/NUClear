@@ -49,7 +49,9 @@ namespace NUClear {
              */
             template <int Start, int End, int... Seq>
             struct GenSequence<Start, End, Sequence<Seq...>>
-            : GenSequence<(End - Start > 0 ? Start + 1 : Start - 1), End, Sequence<Seq..., Start>> {};
+            : Meta::If<std::integral_constant<bool, (Start > End)>
+            , GenSequence<0, 0> // If we have been given an invalid sequence, just return an empty one
+            , GenSequence<Start + 1, End, Sequence<Seq..., Start>>> {};
             
             /**
              * Runs when start and end are the same, terminates

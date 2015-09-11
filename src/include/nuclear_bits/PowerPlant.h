@@ -33,6 +33,7 @@
 
 // Utilities
 #include "nuclear_bits/util/unpack.h"
+#include "nuclear_bits/util/FunctionFusion.h"
 
 #include "nuclear_bits/threading/TaskScheduler.h"
 #include "nuclear_bits/message/LogLevel.h"
@@ -101,6 +102,7 @@ namespace NUClear {
          *  message will be emitted and available to all reactors.
          */
         PowerPlant(Configuration config = Configuration(), int argc = 0, const char *argv[] = nullptr);
+        PowerPlant(const PowerPlant&) = delete;
         ~PowerPlant();
         
         /**
@@ -169,7 +171,7 @@ namespace NUClear {
          * @param args The arguments we are logging
          */
         template <enum LogLevel level, typename... TArgs>
-        static void log(TArgs... args);
+        static void log(TArgs&&... args);
         
         /**
          * @brief Emits data to the system and routes it to the other systems that use it.
@@ -199,9 +201,9 @@ namespace NUClear {
          * @param data The data we are emitting
          */
         template <template <typename> class TFirstHandler, template <typename> class... THandlers, typename TData, typename... TArgs>
-        void emit(std::unique_ptr<TData>&& data, TArgs... args);
+        void emit(std::unique_ptr<TData>&& data, TArgs&&... args);
         template <template <typename> class TFirstHandler, template <typename> class... THandlers, typename TData, typename... TArgs>
-        void emit(std::unique_ptr<TData>& data, TArgs... args);
+        void emit(std::unique_ptr<TData>& data, TArgs&&... args);
         
         
     private:
@@ -224,7 +226,7 @@ namespace NUClear {
     
     // This free floating log function can be called from anywhere and will use the singleton PowerPlant
     template <enum LogLevel level = NUClear::DEBUG, typename... TArgs>
-    void log(TArgs... args) {
+    void log(TArgs&&... args) {
         PowerPlant::log<level>(std::forward<TArgs>(args)...);
     }
     

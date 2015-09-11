@@ -47,7 +47,7 @@ namespace {
     };
 }
 
-TEST_CASE("Testing the Initialize scope", "[api][initialize]") {
+TEST_CASE("Testing the Initialize scope", "[api][emit][initialize]") {
     NUClear::PowerPlant::Configuration config;
     config.threadCount = 1;
     NUClear::PowerPlant plant(config);

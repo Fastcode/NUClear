@@ -42,39 +42,58 @@ namespace NUClear {
     
     // Default emit with no types
     template <template <typename> class TFirstHandler, template <typename> class... THandlers, typename TData, typename... TArgs>
-    void PowerPlant::emit(std::unique_ptr<TData>& data, TArgs... args) {
+    void PowerPlant::emit(std::unique_ptr<TData>& data, TArgs&&... args) {
         
         emit<TFirstHandler, THandlers...>(std::move(data), std::forward<TArgs>(args)...);
     }
     
+    template <typename Handler>
+    struct EmitCaller {
+        template <typename... TArgs>
+        static inline auto call(TArgs&&... args)
+        -> decltype(Handler::emit(std::forward<TArgs>(args)...), true) {
+            Handler::emit(std::forward<TArgs>(args)...);
+            return true;
+        }
+    };
+    
     // Global emit handlers
     template <template <typename> class TFirstHandler, template <typename> class... THandlers, typename TData,  typename... TArgs>
-    void PowerPlant::emit(std::unique_ptr<TData>&& data, TArgs... args) {
+    void PowerPlant::emit(std::unique_ptr<TData>&& data, TArgs&&... args) {
         
         // Release our data from the pointer and wrap it in a shared_ptr
         std::shared_ptr<TData> ptr = std::shared_ptr<TData>(std::move(data));
         
-        // Pass it to all of the provided emit handlers
-        TFirstHandler<TData>::emit(*this, ptr);
-        util::unpack((THandlers<TData>::emit(*this, ptr), 0)...);
+        // Provide a check to make sure they are passing us the right stuff
+        static_assert(util::FunctionFusion<std::tuple<TFirstHandler<TData>, THandlers<TData>...>
+                      , decltype(std::forward_as_tuple(*this, ptr, std::forward<TArgs>(args)...))
+                      , EmitCaller
+                      , 2>::value,
+                      "There was an error with the arguments for the emit function, Check that your scope and arguments match what you are trying to do.");
+        
+        // Fuse our emit handlers and call the fused function
+        util::FunctionFusion<std::tuple<TFirstHandler<TData>, THandlers<TData>...>
+        , decltype(std::forward_as_tuple(*this, ptr, std::forward<TArgs>(args)...))
+        , EmitCaller
+        , 2>::call(*this, ptr, std::forward<TArgs>(args)...);
     }
     
     // Anonymous metafunction that concatenates everything into a single string
     namespace {
         template <typename TFirst>
-        inline void logImpl(std::stringstream& output, TFirst first) {
+        inline void logImpl(std::stringstream& output, TFirst&& first) {
             output << first;
         }
         
         template <typename TFirst, typename... TArgs>
-        inline void logImpl(std::stringstream& output, TFirst first, TArgs... args) {
+        inline void logImpl(std::stringstream& output, TFirst&& first, TArgs&&... args) {
             output << first << " ";
             logImpl(output, std::forward<TArgs>(args)...);
         }
     }
     
     template <enum LogLevel level, typename... TArgs>
-    void PowerPlant::log(TArgs... args) {
+    void PowerPlant::log(TArgs&&... args) {
             
         // Build our log message by concatenating everything to a stream
         std::stringstream outputStream;
