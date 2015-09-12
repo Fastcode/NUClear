@@ -50,7 +50,7 @@ namespace {
             
             // Unknown port
             int boundPort;
-            std::tie(std::ignore, boundPort) = on<UDP>(0).then([this](const UDP::Packet& packet) {
+            std::tie(std::ignore, boundPort) = on<UDP>().then([this](const UDP::Packet& packet) {
                 
                 // Check that the data we received is correct
                 REQUIRE(packet.address == INADDR_LOOPBACK);

@@ -50,7 +50,7 @@ namespace {
             
             // Unknown port
             int boundPort;
-            std::tie(std::ignore, boundPort) = on<UDP::Broadcast>(0).then([this](const UDP::Packet& packet) {
+            std::tie(std::ignore, boundPort) = on<UDP::Broadcast>().then([this](const UDP::Packet& packet) {
                 
                 ++countB;
                 

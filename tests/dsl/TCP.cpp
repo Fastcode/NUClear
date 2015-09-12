@@ -58,7 +58,7 @@ namespace {
             
             // Bind to an unknown port and get the port number
             int boundPort;
-            std::tie(std::ignore, boundPort) = on<TCP>(0).then([this](const TCP::Connection& connection) {
+            std::tie(std::ignore, boundPort) = on<TCP>().then([this](const TCP::Connection& connection) {
                 on<IO>(connection.fd, IO::READ).then([this] (IO::Event event) {
                     
                     char buff[1024];

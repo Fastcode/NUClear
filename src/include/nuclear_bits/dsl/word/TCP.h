@@ -50,7 +50,7 @@ namespace NUClear {
                 };
                 
                 template <typename DSL, typename TFunc>
-                static inline std::tuple<threading::ReactionHandle, int> bind(Reactor& reactor, const std::string& label, TFunc&& callback, int port) {
+                static inline std::tuple<threading::ReactionHandle, int> bind(Reactor& reactor, const std::string& label, TFunc&& callback, int port = 0) {
                     
                     // Make our socket
                     int fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);

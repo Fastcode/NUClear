@@ -49,7 +49,7 @@ namespace {
             
             // Unknown port
             int boundPort;
-            std::tie(std::ignore, boundPort) = on<UDP::Multicast>(multicastAddress, 0).then([this](const UDP::Packet& packet) {
+            std::tie(std::ignore, boundPort) = on<UDP::Multicast>(multicastAddress).then([this](const UDP::Packet& packet) {
                 ++countB;
                 // Check that the data we received is correct
                 REQUIRE(packet.data.size() == testString.size());
