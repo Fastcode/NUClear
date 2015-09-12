@@ -27,151 +27,84 @@
 namespace NUClear {
     namespace dsl {
         namespace fusion {
-            
-            // Import our metaprogramming tools
+
+            // Import metaprogramming functions
+            template <typename Condition, typename Value>
+            using EnableIf = util::Meta::EnableIf<Condition, Value>;
+
             template <typename Predecate, typename Then, typename Else>
             using If = util::Meta::If<Predecate, Then, Else>;
-            
-            template <typename Condition>
-            using Not = util::Meta::Not<Condition>;
-            
-            template <typename... Conditions>
-            using All = util::Meta::All<Conditions...>;
-            
-            template <typename... Conditions>
-            using Any = util::Meta::Any<Conditions...>;
-            
-            // This function is needed because G++ is a little slow when it comes to templated functions and needs some help
-            template <typename R, typename... A>
-            auto resolve_function_type(R(*)(A...))
-            -> R(*)(A...);
-            
-            /// Returns either the real type or the proxy if the real type does not have a bind function
-            template <typename U>
-            using Bind = If<has_bind<U>, U, operation::DSLProxy<U>>;
-            
-            template <typename...>
-            struct BindFusion {
-                template <typename DSL, typename TFunc>
-                std::tuple<> bind(Reactor&, const std::string&, TFunc&&);
-            };
-            
-            template <typename, typename, typename, typename, int>
-            struct BindFission {};
-            
-            template <typename TFirst
-            , typename... TWords
-            , typename... TFirstArgs
-            , typename... TWordsArgs>
-            struct BindFission<TFirst, std::tuple<TWords...>, std::tuple<TFirstArgs...>, std::tuple<TWordsArgs...>, 1> {
-                
-                /**
-                 * @brief This function is enabled in the situation that TFirst has a bind function, and there
-                 *          is a bind function within TWords also.
-                 *
-                 * @tparam DSL      The parsed DSL that resulted from all these functions
-                 * @tparam U        A copy of TFirst used for SFINAE
-                 * @tparam TFunc    The type of the callback function passed to bind
-                 * @tparam TArgs    The types of the runtime arguments passed into the bind
-                 */
-                template <typename DSL, typename TFunc>
-                static inline auto bind(Reactor& reactor, const std::string& identifier, TFunc&& callback, TFirstArgs&&... ourArgs, TWordsArgs... otherArgs)
-                -> decltype(std::tuple_cat(util::tuplify(Bind<TFirst>::template bind<DSL>(reactor, identifier, std::forward<TFunc>(callback), std::forward<TFirstArgs>(ourArgs)...))
-                                        , BindFusion<TWords...>::template bind<DSL>(reactor, identifier, std::forward<TFunc>(callback), std::forward<TWordsArgs>(otherArgs)...))) {
-                    
-                    // Execute our function and then pass on the remainder
-                    return std::tuple_cat(util::tuplify(Bind<TFirst>::template bind<DSL>(reactor, identifier, std::forward<TFunc>(callback), std::forward<TFirstArgs>(ourArgs)...))
-                                          , BindFusion<TWords...>::template bind<DSL>(reactor, identifier, std::forward<TFunc>(callback), std::forward<TWordsArgs>(otherArgs)...));
-                }
-            };
-            
-            template <typename TFirst
-            , typename... TWords
-            , typename... TFirstArgs
-            , typename... TWordsArgs>
-            struct BindFission<TFirst, std::tuple<TWords...>, std::tuple<TFirstArgs...>, std::tuple<TWordsArgs...>, 2> {
-                
-                /**
-                 * @brief This function is enabled in the situation that TFirst has a bind function, however there
-                 *          are no further bind functions within our words
-                 *
-                 * @tparam DSL      The parsed DSL that resulted from all these functions
-                 * @tparam U        A copy of TFirst used for SFINAE
-                 * @tparam TFunc    The type of the callback function passed to bind
-                 * @tparam TArgs    The types of the runtime arguments passed into the bind
-                 */
-                template <typename DSL, typename TFunc>
-                static inline auto bind(Reactor& reactor, const std::string& identifier, TFunc&& callback, TFirstArgs&&... args)
-                -> decltype(util::tuplify(Bind<TFirst>::template bind<DSL>(reactor, identifier, std::forward<TFunc>(callback), std::forward<TFirstArgs>(args)...))) {
-                    
-                    // Execute our function
-                    return util::tuplify(Bind<TFirst>::template bind<DSL>(reactor, identifier, std::forward<TFunc>(callback), std::forward<TFirstArgs>(args)...));
-                }
-            };
-            
-            template <typename TFirst
-            , typename... TWords
-            , typename... TFirstArgs
-            , typename... TWordsArgs>
-            struct BindFission<TFirst, std::tuple<TWords...>, std::tuple<TFirstArgs...>, std::tuple<TWordsArgs...>, 3> {
-                
-                /**
-                 * @brief This function is enabled in the situation that TFirst does not have a bind function, but there
-                 *          are words further down that do
-                 *
-                 * @tparam DSL      The parsed DSL that resulted from all these functions
-                 * @tparam U        A copy of TFirst used for SFINAE
-                 * @tparam TFunc    The type of the callback function passed to bind
-                 * @tparam TArgs    The types of the runtime arguments passed into the bind
-                 */
-                template <typename DSL, typename TFunc>
-                static inline auto bind(Reactor& reactor, const std::string& identifier, TFunc&& callback, TWordsArgs&&... args)
-                -> decltype(BindFusion<TWords...>::template bind<DSL>(reactor, identifier, std::forward<TFunc>(callback), std::forward<TWordsArgs>(args)...)) {
-                    
-                    // Forward onto the next stage of bind
-                    return BindFusion<TWords...>::template bind<DSL>(reactor, identifier, std::forward<TFunc>(callback), std::forward<TWordsArgs>(args)...);
-                }
-            };
-            
+
+            template <typename T>
+            using Do = util::Meta::Do<T>;
+
             /**
-             *  @brief Performs an extraction of the arguments that make up the bind
+             * @brief This is our Function Fusion wrapper class that allows it to call bind functions
+             *
+             * @tparam Function the bind function that we are wrapping for
+             * @tparam DSL      the DSL that we pass to our bind function
              */
-            template <typename>
-            struct BindExtraction;
-            
-            template <typename R, typename I, typename Func, typename... TArgs>
-            struct BindExtraction<std::tuple<R, I, Func, TArgs...>> {
-                using type = std::tuple<TArgs...>;
+            template <typename Function, typename DSL>
+            struct BindCaller {
+                template <typename TFunc, typename... TArgs>
+                static inline auto call(Reactor& reactor, const std::string& identifier, TFunc&& callback, TArgs&&... args)
+                -> decltype(Function::template bind<DSL>(reactor, identifier, std::forward<TFunc>(callback), std::forward<TArgs>(args)...)) {
+                    return Function::template bind<DSL>(reactor, identifier, std::forward<TFunc>(callback), std::forward<TArgs>(args)...);
+                }
             };
-            
-            template <typename TWord, int test = 0>
-            struct BindArguments
-            : public BindArguments<
-              If<has_bind<TWord>, TWord, operation::DSLProxy<TWord>>,
-              has_bind<If<has_bind<TWord>, TWord, operation::DSLProxy<TWord>>>::value ? 2 : 1> {
+
+            template<typename, typename = std::tuple<>>
+            struct GetBindWords;
+
+            /**
+             * @brief Metafunction that extracts all of the Words with a bind function
+             *
+             * @tparam TWord The word we are looking at
+             * @tparam TRemainder The words we have yet to look at
+             * @tparam TBindWords The words we have found with bind functions
+             */
+            template <typename TWord, typename... TRemainder, typename... TBindWords>
+            struct GetBindWords<std::tuple<TWord, TRemainder...>, std::tuple<TBindWords...>>
+            : public If<has_bind<TWord>,
+                /*T*/ GetBindWords<std::tuple<TRemainder...>, std::tuple<TBindWords..., TWord>>,
+                /*F*/ GetBindWords<std::tuple<TRemainder...>, std::tuple<TBindWords...>>> {};
+
+            /**
+             * @brief Termination case for the GetBindWords metafunction
+             *
+             * @tparam TBindWords The words we have found with bind functions
+             */
+            template <typename... TBindWords>
+            struct GetBindWords<std::tuple<>, std::tuple<TBindWords...>> {
+                using type = std::tuple<TBindWords...>;
             };
-            
-            template <typename TWord>
-            struct BindArguments<TWord, 1> {
-                using type = std::tuple<>;
+
+            template <typename... TWords>
+            struct BindFusion {
+
+                // Get all of the words that have Bind functionality, or the DSL proxy if it has one
+                using BindWords = Do<GetBindWords<std::tuple<If<has_bind<TWords>, TWords, operation::DSLProxy<TWords>>...>>>;
+
+                // We have a bind function if we have at least one BindWord
+                static constexpr bool has_bind_t = std::tuple_size<BindWords>::value > 0;
+
+                template <typename DSL, typename TFunc, typename... TArgs>
+                static inline auto bind(Reactor& reactor, const std::string& identifier, TFunc&& callback, TArgs&&... args)
+                -> EnableIf<std::integral_constant<bool, has_bind_t>
+                , decltype(util::FunctionFusion<BindWords
+                           , decltype(std::forward_as_tuple(reactor, identifier, std::forward<TFunc>(callback), std::forward<TArgs>(args)...))
+                           , BindCaller
+                           , std::tuple<DSL>
+                           , 3>::call(reactor, identifier, std::forward<TFunc>(callback), std::forward<TArgs>(args)...))> {
+
+                    // Perform our function fusion
+                    return util::FunctionFusion<BindWords
+                    , decltype(std::forward_as_tuple(reactor, identifier, std::forward<TFunc>(callback), std::forward<TArgs>(args)...))
+                    , BindCaller
+                    , std::tuple<DSL>
+                    , 3>::call(reactor, identifier, std::forward<TFunc>(callback), std::forward<TArgs>(args)...);
+                }
             };
-            
-            template <typename TWord>
-            struct BindArguments<TWord, 2>
-            : public BindExtraction<typename util::CallableInfo<decltype(resolve_function_type(TWord::template bind<ParsedNoOp, std::function<std::function<void()>(threading::ReactionTask&)>>))>::arguments> {
-            };
-            
-            template <typename TFirst, typename... TWords>
-            struct BindFusion<TFirst, TWords...>
-            : public BindFission<
-              TFirst
-            , std::tuple<TWords...>
-            , typename BindArguments<TFirst>::type
-            , decltype(std::tuple_cat(std::declval<typename BindArguments<TWords>::type>()...))
-            ,  All<has_bind<Bind<TFirst>>, Any<has_bind<Bind<TWords>>...>>::value      ? 1     // Us and our children
-            :  All<has_bind<Bind<TFirst>>, Not<Any<has_bind<Bind<TWords>>...>>>::value ? 2     // Us but not our children
-            :  All<Not<has_bind<Bind<TFirst>>>, Any<has_bind<Bind<TWords>>...>>::value ? 3 : 0 // Not us but our children
-            > {};
         }
     }
 }

@@ -165,7 +165,8 @@ namespace NUClear {
 
         template <typename Functions
         , typename Arguments
-        , template <typename> class FunctionWrapper
+        , template <typename, typename...> class FunctionWrapper
+        , typename WrapperArgs
         , int Shared = 0
         , int Start = Shared
         , int End = std::tuple_size<Arguments>::value
@@ -191,6 +192,8 @@ namespace NUClear {
          * @tparam Arguments            the arguments we are calling the function with
          * @tparam FunctionWrapper      the template that is used to wrap the Function objects
          *                              to be called
+         * @tparam WrapperArgs          template types to be used on the FunctionWrapper in addition to the Fuctions type.
+         *                              May be empty.
          * @tparam Shared               the number of paramters (from 0) to use in all of the calls
          * @tparam Start                the current attempted index of the first argument to pass to the function
          * @tparam End                  the current attempted index of the element after the last argument to pass to the function
@@ -200,7 +203,8 @@ namespace NUClear {
         template <typename CurrentFunction
         , typename... Functions
         , typename... Arguments
-        , template <typename> class FunctionWrapper
+        , template <typename, typename...> class FunctionWrapper
+        , typename... WrapperArgs
         , int Shared
         , int Start
         , int End
@@ -210,6 +214,7 @@ namespace NUClear {
         std::tuple<CurrentFunction, Functions...>
         , std::tuple<Arguments...>
         , FunctionWrapper
+        , std::tuple<WrapperArgs...>
         , Shared
         , Start
         , End
@@ -221,16 +226,16 @@ namespace NUClear {
             // We are in an invalid range which makes this path invalid
             /*T*/ std::false_type,
             // Test if we are callable with the current arguments
-            /*F*/ If<is_callable<FunctionWrapper<CurrentFunction>, Shared, Start, End, std::tuple<Arguments...>>,
+            /*F*/ If<is_callable<FunctionWrapper<CurrentFunction, WrapperArgs...>, Shared, Start, End, std::tuple<Arguments...>>,
                 // test if our remainder is valid
-                /*T*/ If<FunctionFusion<std::tuple<Functions...>, std::tuple<Arguments...>, FunctionWrapper, Shared, End, sizeof...(Arguments), std::tuple<ProcessedFunctions..., CurrentFunction>, std::tuple<ArgumentRanges..., Sequence<Start, End>>>,
+                /*T*/ If<FunctionFusion<std::tuple<Functions...>, std::tuple<Arguments...>, FunctionWrapper, std::tuple<WrapperArgs...>, Shared, End, sizeof...(Arguments), std::tuple<ProcessedFunctions..., CurrentFunction>, std::tuple<ArgumentRanges..., Sequence<Start, End>>>,
                     // It is valid, extend from the next step
-                    /*T*/ FunctionFusion<std::tuple<Functions...>, std::tuple<Arguments...>, FunctionWrapper, Shared, End, sizeof...(Arguments), std::tuple<ProcessedFunctions..., CurrentFunction>, std::tuple<ArgumentRanges..., Sequence<Start, End>>>,
+                    /*T*/ FunctionFusion<std::tuple<Functions...>, std::tuple<Arguments...>, FunctionWrapper, std::tuple<WrapperArgs...>, Shared, End, sizeof...(Arguments), std::tuple<ProcessedFunctions..., CurrentFunction>, std::tuple<ArgumentRanges..., Sequence<Start, End>>>,
                     // It is not valid, try with one less argument assigned to us
-                    /*F*/ FunctionFusion<std::tuple<CurrentFunction, Functions...>, std::tuple<Arguments...>, FunctionWrapper, Shared, Start, End - 1, std::tuple<ProcessedFunctions...>, std::tuple<ArgumentRanges...>>
+                    /*F*/ FunctionFusion<std::tuple<CurrentFunction, Functions...>, std::tuple<Arguments...>, FunctionWrapper, std::tuple<WrapperArgs...>, Shared, Start, End - 1, std::tuple<ProcessedFunctions...>, std::tuple<ArgumentRanges...>>
                 >,
                 // We are not callable with this number of arguments, try one less
-                /*F*/ FunctionFusion<std::tuple<CurrentFunction, Functions...>, std::tuple<Arguments...>, FunctionWrapper, Shared, Start, End - 1, std::tuple<ProcessedFunctions...>, std::tuple<ArgumentRanges...>>
+                /*F*/ FunctionFusion<std::tuple<CurrentFunction, Functions...>, std::tuple<Arguments...>, FunctionWrapper, std::tuple<WrapperArgs...>, Shared, Start, End - 1, std::tuple<ProcessedFunctions...>, std::tuple<ArgumentRanges...>>
             >
         > {};
 
@@ -242,7 +247,8 @@ namespace NUClear {
          *          false_type to indicate its failure.
          */
         template <typename... Arguments
-        , template <typename> class FunctionWrapper
+        , template <typename, typename...> class FunctionWrapper
+        , typename... WrapperArgs
         , int Shared
         , int Start
         , int End
@@ -252,6 +258,7 @@ namespace NUClear {
         std::tuple<>
         , std::tuple<Arguments...>
         , FunctionWrapper
+        , std::tuple<WrapperArgs...>
         , Shared
         , Start
         , End
@@ -261,7 +268,7 @@ namespace NUClear {
         // Check if we used up all of our arguments (and not more than all of our arguments)
         If<std::integral_constant<bool, (Start == End && Start == sizeof...(Arguments))>,
             // We have used up the exact right number of arguments (and everything by this point should have been callable)
-            /*T*/ FunctionFusionCaller<std::tuple<FunctionWrapper<ProcessedFunctions>...>, Shared, std::tuple<Ranges...>, std::tuple<Arguments...>>,
+            /*T*/ FunctionFusionCaller<std::tuple<FunctionWrapper<ProcessedFunctions, WrapperArgs...>...>, Shared, std::tuple<Ranges...>, std::tuple<Arguments...>>,
             // We have the wrong number of arguments left over, this branch is bad
             /*F*/ std::false_type> {};
     }
