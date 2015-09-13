@@ -31,21 +31,27 @@ namespace {
             emit<Scope::INITIALIZE>(std::make_unique<int>(5));
             
             int boundPort;
-            std::tie(std::ignore, boundPort) = on<UDP>().then([this] (const UDP::Packet& packet) {
+            std::tie(std::ignore, boundPort) = on<UDP>().then([this, &boundPort] (const UDP::Packet& packet) {
                 ++receivedMessages;
                 
                 switch(packet.data[0]) {
                     case 'a':
                     case 'b':
                         REQUIRE(packet.source.address == INADDR_LOOPBACK);
+                        REQUIRE(packet.dest.address == INADDR_LOOPBACK);
+                        REQUIRE(packet.dest.port == boundPort);
                         break;
                     case 'c':
                         REQUIRE(packet.source.address == INADDR_LOOPBACK);
                         REQUIRE(packet.source.port == 12345);
+                        REQUIRE(packet.dest.address == INADDR_LOOPBACK);
+                        REQUIRE(packet.dest.port == boundPort);
                         break;
                     case 'd':
                         REQUIRE(packet.source.address == INADDR_LOOPBACK);
                         REQUIRE(packet.source.port == 54321);
+                        REQUIRE(packet.dest.address == INADDR_LOOPBACK);
+                        REQUIRE(packet.dest.port == boundPort);
                         break;
                 }
                 

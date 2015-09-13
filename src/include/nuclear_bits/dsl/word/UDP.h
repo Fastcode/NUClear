@@ -41,6 +41,7 @@ namespace NUClear {
                 struct Packet {
                     /// If the packet is valid (it contains data)
                     bool valid;
+                    
                     /// The information about this packet's source
                     struct {
                         /// The address that the packet is from
@@ -48,6 +49,15 @@ namespace NUClear {
                         /// The port that the packet is from
                         uint16_t port;
                     } source;
+                    
+                    /// The information about this packet's destination
+                    struct {
+                        /// The address that the packet is to
+                        uint32_t address;
+                        /// The port that the packet is to
+                        uint16_t port;
+                    } dest;
+                    
                     /// The data to be sent in the packet
                     std::vector<char> data;
                     
@@ -84,6 +94,13 @@ namespace NUClear {
                     if(::bind(fd, reinterpret_cast<sockaddr*>(&address), sizeof(sockaddr))) {
                         throw std::system_error(errno, std::system_category(), "We were unable to bind the UDP socket to the port");
                     }
+                    
+                    // Include struct in_pktinfo in the message "ancilliary" control data
+                    int yes = 1;
+                    if(setsockopt(fd, IPPROTO_IP, IP_PKTINFO, &yes, sizeof(yes)) < 0) {
+                        throw std::system_error(errno, std::system_category(), "We were unable to flag the socket as getting ancillary data");
+                    }
+                    
                     
                     // Get the port we ended up listening on
                     socklen_t len = sizeof(sockaddr_in);
@@ -132,17 +149,57 @@ namespace NUClear {
                     p.valid = false;
                     p.data.resize(2048);
                     
-                    // Make a socket address to store our sender information
+                    // Make some variables to hold our message header information
+                    char cmbuff[0x100];
                     sockaddr_in from;
-                    socklen_t sSize = sizeof(sockaddr_in);
+                    iovec payload;
+                    payload.iov_base = p.data.data();
+                    payload.iov_len = p.data.size();
                     
-                    ssize_t received = recvfrom(event.fd, p.data.data(), p.data.size(), 0, reinterpret_cast<sockaddr*>(&from), &sSize);
+                    // Make our message header to recieve with
+                    msghdr mh;
+                    mh.msg_name = &from;
+                    mh.msg_namelen = sizeof(sockaddr_in);
+                    mh.msg_control = cmbuff;
+                    mh.msg_controllen = sizeof(cmbuff);
+                    mh.msg_iov = &payload;
+                    mh.msg_iovlen = 1;
                     
+                    // Receive our message
+                    ssize_t received = ::recvmsg(event.fd, &mh, 0);
+                    
+                    
+                    // Iterate through control headers to get IP information
+                    int ourAddr;
+                    for (cmsghdr *cmsg = CMSG_FIRSTHDR(&mh);
+                         cmsg != nullptr;
+                         cmsg = CMSG_NXTHDR(&mh, cmsg)) {
+                        // ignore the control headers that don't match what we want
+                        if (cmsg->cmsg_level == IPPROTO_IP && cmsg->cmsg_type == IP_PKTINFO) {
+                            
+                            // Access the packet header information
+                            in_pktinfo* pi = reinterpret_cast<in_pktinfo*>(CMSG_DATA(cmsg));
+                            ourAddr = pi->ipi_addr.s_addr;
+                            
+                            // We are done
+                            break;
+                        }
+                    }
+                    
+                    // Get the port this socket is listening on
+                    socklen_t len = sizeof(sockaddr_in);
+                    sockaddr_in address;
+                    if (::getsockname(event.fd, reinterpret_cast<sockaddr*>(&address), &len) == -1) {
+                        throw std::system_error(errno, std::system_category(), "We were unable to get the port from the TCP socket");
+                    }
+
                     // if no error
                     if(received > 0) {
                         p.valid = true;
                         p.source.address = ntohl(from.sin_addr.s_addr);
                         p.source.port = ntohs(from.sin_port);
+                        p.dest.address = ntohl(ourAddr);
+                        p.dest.port = ntohs(address.sin_port);
                         p.data.resize(received);
                     }
                     
@@ -187,13 +244,18 @@ namespace NUClear {
                             address.sin_port = htons(port);
                             address.sin_addr.s_addr = htonl(ad);
                             
-                            // We are a broadcast socket
                             int yes = true;
+                            // We are a broadcast socket
                             if(setsockopt(fd, SOL_SOCKET, SO_BROADCAST, &yes, sizeof(yes)) < 0) {
                                 throw std::system_error(errno, std::system_category(), "We were unable to set the socket as broadcast");
                             }
+                            // Set that we reuse the address so more than one application can bind
                             if(setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) < 0) {
                                 throw std::system_error(errno, std::system_category(), "We were unable to set reuse address on the socket");
+                            }
+                            // Include struct in_pktinfo in the message "ancilliary" control data
+                            if(setsockopt(fd, IPPROTO_IP, IP_PKTINFO, &yes, sizeof(yes)) < 0) {
+                                throw std::system_error(errno, std::system_category(), "We were unable to flag the socket as getting ancillary data");
                             }
                             
                             // Bind to the address, and if we fail throw an error
@@ -260,8 +322,13 @@ namespace NUClear {
                         }
                         
                         int yes = true;
+                        // Set that we reuse the address so more than one application can bind
                         if(setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) < 0) {
                             throw std::system_error(errno, std::system_category(), "We were unable to set reuse address on the socket");
+                        }
+                        // Include struct in_pktinfo in the message "ancilliary" control data
+                        if(setsockopt(fd, IPPROTO_IP, IP_PKTINFO, &yes, sizeof(yes)) < 0) {
+                            throw std::system_error(errno, std::system_category(), "We were unable to flag the socket as getting ancillary data");
                         }
                         
                         // Bind to the address
