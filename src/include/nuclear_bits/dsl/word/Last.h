@@ -50,6 +50,18 @@ namespace NUClear {
                     return out;
                 }
                 
+                template <typename TOutput>
+                operator std::vector<TOutput>() const {
+                    
+                    std::vector<TOutput> out;
+                    
+                    for(const TData& item : list) {
+                        out.push_back(TOutput(item));
+                    }
+                    
+                    return out;
+                }
+                
                 operator bool() const {
                     return !list.empty();
                 }
