@@ -21,6 +21,7 @@
 #include "nuclear_bits/util/MetaProgramming.h"
 #include "nuclear_bits/util/tuplify.h"
 #include "nuclear_bits/threading/ReactionHandle.h"
+#include "nuclear_bits/dsl/operation/DSLProxy.h"
 #include "nuclear_bits/dsl/fusion/has_get.h"
 
 namespace NUClear {

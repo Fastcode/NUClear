@@ -80,7 +80,7 @@ namespace NUClear {
             
             /**
              * @brief Removes the reference qualifiers from the passed type.
-             
+             *
              * @tparam T the type to remove the reference qualifier to.
              *
              * @return the passed type T without its reference qualifier.
