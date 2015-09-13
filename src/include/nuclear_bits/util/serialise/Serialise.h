@@ -15,43 +15,44 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include <catch.hpp>
+#ifndef NUCLEAR_UTIL_SERIALISE_SERIALISE_H
+#define NUCLEAR_UTIL_SERIALISE_SERIALISE_H
 
-#include "nuclear"
+#include <string>
 
-// Anonymous namespace to keep everything file local
-namespace {
-    
-    struct ShutdownNowPlx {};
+#include "nuclear_bits/util/MetaProgramming.h"
 
-    class TestReactor : public NUClear::Reactor {
-    public:
-        
-        TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
-            emit<Scope::INITIALIZE>(std::make_unique<int>(5));
-
-            on<Trigger<int>>().then([this](const int& v) {
-                REQUIRE(v == 5);
-
-                // We can't call shutdown here because 
-                // we haven't started yet. That's because
-                // emits from Scope::INITIALIZE are not
-                // considered fully "initialized"
-                emit(std::make_unique<ShutdownNowPlx>());
-            });
+namespace NUClear {
+    namespace util {
+        namespace serialise {
             
-            on<Trigger<ShutdownNowPlx>>().then([this] {
-                powerplant.shutdown();
-            });
+            // Import metaprogramming tools
+            template <typename Condition, typename Value>
+            using EnableIf = util::Meta::EnableIf<Condition, Value>;
+
+            template <typename TData>
+            struct Serialise {
+                
+                // enable if is pod
+                template <typename T>
+                static inline EnableIf<std::is_pod<T>, std::string> serialise(const T& in) {
+
+                    const char* data = reinterpret_cast<const char*>(&in);
+                    
+                    return std::string(data, sizeof(T));
+                }
+                
+                static inline std::string serialise(const std::string& in) {
+                    return in;
+                }
+                
+                
+                // enable if is iterable of type pod
+                
+                // enable if is protocol buffer
+            };
         }
-    };
+    }
 }
 
-TEST_CASE("Testing the Initialize scope", "[api][emit][initialize]") {
-    NUClear::PowerPlant::Configuration config;
-    config.threadCount = 1;
-    NUClear::PowerPlant plant(config);
-    plant.install<TestReactor>();
-    
-    plant.start();
-}
+#endif

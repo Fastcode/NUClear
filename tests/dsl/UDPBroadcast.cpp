@@ -83,26 +83,8 @@ namespace {
                 
                 for(auto& ad : addresses) {
                     
-                    // Open a random socket
-                    int fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-                    
-                    // Set our socket to broadcast
-                    int broadcast = 1;
-                    REQUIRE(setsockopt(fd, SOL_SOCKET, SO_BROADCAST, &broadcast, sizeof(broadcast)) >= 0);
-                    
-                    sockaddr_in address;
-                    address.sin_family = AF_INET;
-                    address.sin_addr.s_addr = htonl(ad);
-                    address.sin_port = htons(port);
-                    
-                    int sent = sendto(fd, testString.data(), testString.size(), 0, reinterpret_cast<sockaddr*>(&address), sizeof(sockaddr_in));
-                    if(sent < 0) {
-                        throw std::system_error(errno, std::system_category());
-                    }
-                    
-                    close(fd);
-                    
-                    REQUIRE(sent == testString.size());
+                    // Send our message to that broadcast address
+                    emit<Scope::UDP>(std::make_unique<std::string>(testString), ad, port);
                 }
             });
             
@@ -125,26 +107,8 @@ namespace {
                 
                 for(auto& ad : addresses) {
                     
-                    // Open a random socket
-                    int fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-                    
-                    // Set our socket to broadcast
-                    int broadcast = 1;
-                    REQUIRE(setsockopt(fd, SOL_SOCKET, SO_BROADCAST, &broadcast, sizeof(broadcast)) >= 0);
-                    
-                    sockaddr_in address;
-                    address.sin_family = AF_INET;
-                    address.sin_addr.s_addr = htonl(ad);
-                    address.sin_port = htons(boundPort);
-                    
-                    int sent = sendto(fd, testString.data(), testString.size(), 0, reinterpret_cast<sockaddr*>(&address), sizeof(sockaddr_in));
-                    if(sent < 0) {
-                        throw std::system_error(errno, std::system_category());
-                    }
-                    
-                    close(fd);
-                    
-                    REQUIRE(sent == testString.size());
+                    // Send our message to that broadcast address
+                    emit<Scope::UDP>(std::make_unique<std::string>(testString), ad, boundPort);
                 }
             });
             

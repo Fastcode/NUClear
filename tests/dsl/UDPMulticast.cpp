@@ -81,25 +81,8 @@ namespace {
                 
                 for(auto& ad : addresses) {
                     
-                    // Open a random socket
-                    int fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-                    
-                    in_addr ifaddr;
-                    ifaddr.s_addr = htonl(ad);
-                    
-                    sockaddr_in maddr;
-                    maddr.sin_family = AF_INET;
-                    maddr.sin_addr.s_addr = inet_addr(multicastAddress.c_str());
-                    maddr.sin_port = htons(port);
-                    
-                    // Set our transmission interface for the multicast socket
-                    REQUIRE(setsockopt(fd, IPPROTO_IP, IP_MULTICAST_IF, &ifaddr, sizeof(ifaddr)) == 0);
-                    
-                    int sent = sendto(fd, testString.data(), testString.size(), 0, reinterpret_cast<sockaddr*>(&maddr), sizeof(maddr));
-                    
-                    close(fd);
-                    
-                    REQUIRE(sent == testString.size());
+                    // Send our message to that broadcast address
+                    emit<Scope::UDP>(std::make_unique<std::string>(testString), multicastAddress, port, ad, 0);
                 }
             });
             
@@ -123,25 +106,8 @@ namespace {
                 
                 for(auto& ad : addresses) {
                     
-                    // Open a random socket
-                    int fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-                    
-                    in_addr ifaddr;
-                    ifaddr.s_addr = htonl(ad);
-                    
-                    sockaddr_in maddr;
-                    maddr.sin_family = AF_INET;
-                    maddr.sin_addr.s_addr = inet_addr(multicastAddress.c_str());
-                    maddr.sin_port = htons(boundPort);
-                    
-                    // Set our transmission interface for the multicast socket
-                    REQUIRE(setsockopt(fd, IPPROTO_IP, IP_MULTICAST_IF, &ifaddr, sizeof(ifaddr)) == 0);
-                    
-                    int sent = sendto(fd, testString.data(), testString.size(), 0, reinterpret_cast<sockaddr*>(&maddr), sizeof(maddr));
-                    
-                    close(fd);
-                    
-                    REQUIRE(sent == testString.size());
+                    // Send our message to that broadcast address
+                    emit<Scope::UDP>(std::make_unique<std::string>(testString), multicastAddress, boundPort, ad, 0);
                 }
             });
             

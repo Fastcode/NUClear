@@ -29,6 +29,7 @@
 #include "nuclear_bits/PowerPlant.h"
 #include "nuclear_bits/dsl/word/IO.h"
 #include "nuclear_bits/util/generate_reaction.h"
+#include "nuclear_bits/util/FileDescriptor.h"
 
 
 namespace NUClear {
@@ -53,7 +54,8 @@ namespace NUClear {
                 static inline std::tuple<threading::ReactionHandle, int> bind(Reactor& reactor, const std::string& label, TFunc&& callback, int port = 0) {
                     
                     // Make our socket
-                    int fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+                    util::FileDescriptor fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+                    
                     if(fd < 0) {
                         throw std::system_error(errno, std::system_category(), "We were unable to open the TCP socket");
                     }
@@ -83,14 +85,15 @@ namespace NUClear {
                     port = ntohs(address.sin_port);
                     
                     // Generate a reaction for the IO system that closes on death
-                    auto reaction = util::generate_reaction<DSL, IO>(reactor, label, std::forward<TFunc>(callback), [fd] (threading::Reaction&) {
-                        ::close(fd);
+                    int cfd = fd;
+                    auto reaction = util::generate_reaction<DSL, IO>(reactor, label, std::forward<TFunc>(callback), [cfd] (threading::Reaction&) {
+                        ::close(cfd);
                     });
                     threading::ReactionHandle handle(reaction.get());
                     
                     // Send our configuration out
                     reactor.powerplant.emit<emit::Direct>(std::make_unique<IOConfiguration>(IOConfiguration {
-                        fd,
+                        fd.release(),
                         IO::READ,
                         std::move(reaction)
                     }));
@@ -114,13 +117,13 @@ namespace NUClear {
                         sockaddr_in addr;
                         socklen_t size = sizeof(addr);
                         
-                        int fd = ::accept(event.fd, reinterpret_cast<sockaddr*>(&addr), &size);
+                        util::FileDescriptor fd = ::accept(event.fd, reinterpret_cast<sockaddr*>(&addr), &size);
                         
                         if (fd < 0) {
                             return Connection { 0, 0, 0, 0, 0 };
                         }
                         else {
-                            return Connection { ntohl(addr.sin_addr.s_addr), addr.sin_port, 0, 0, fd };
+                            return Connection { ntohl(addr.sin_addr.s_addr), addr.sin_port, 0, 0, fd.release() };
                         }
                     }
                 }

@@ -83,7 +83,7 @@ namespace {
             on<Trigger<Message>>().then([this] {
             
                 // Open a random socket
-                int fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+                NUClear::util::FileDescriptor fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
                 
                 // Our address to our local connection
                 sockaddr_in address;
@@ -97,9 +97,6 @@ namespace {
                 // Write on our socket
                 size_t sent = write(fd, testString.data(), testString.size());
                 
-                // Close our connection
-                close(fd);
-                
                 // We must have sent the right amount of data
                 REQUIRE(sent == testString.size());
             });
@@ -107,7 +104,7 @@ namespace {
             // Send a test message to the freely bound port
             on<Trigger<Message>>().then([this, boundPort] {
                 // Open a random socket
-                int fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+                NUClear::util::FileDescriptor fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
                 
                 // Our address to our local connection
                 sockaddr_in address;
@@ -120,9 +117,6 @@ namespace {
                 
                 // Write on our socket
                 size_t sent = write(fd, testString.data(), testString.size());
-                
-                // Close our connection
-                close(fd);
                 
                 // We must have sent the right amount of data
                 REQUIRE(sent == testString.size());

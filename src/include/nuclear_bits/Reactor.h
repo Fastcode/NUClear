@@ -92,6 +92,8 @@ namespace NUClear {
                 struct Initialize;
                 template <typename TData>
                 struct Network;
+                template <typename TData>
+                struct UDP;
             }
         }
     }
@@ -199,21 +201,27 @@ namespace NUClear {
         /// @copydoc dsl::word::Single
         using Single = dsl::word::Single;
         
-        /// @copydoc dsl::word::emit::Local
-        template <typename TData>
-        using LOCAL = dsl::word::emit::Local<TData>;
-        
-        /// @copydoc dsl::word::emit::Direct
-        template <typename TData>
-        using DIRECT = dsl::word::emit::Direct<TData>;
-        
-        /// @copydoc dsl::word::emit::Initialize
-        template <typename TData>
-        using INITIALIZE = dsl::word::emit::Initialize<TData>;
-        
-        /// @copydoc dsl::word::emit::Network
-        template <typename TData>
-        using NETWORK = dsl::word::emit::Network<TData>;
+        struct Scope {
+            /// @copydoc dsl::word::emit::Local
+            template <typename TData>
+            using LOCAL = dsl::word::emit::Local<TData>;
+            
+            /// @copydoc dsl::word::emit::Direct
+            template <typename TData>
+            using DIRECT = dsl::word::emit::Direct<TData>;
+            
+            /// @copydoc dsl::word::emit::Initialize
+            template <typename TData>
+            using INITIALIZE = dsl::word::emit::Initialize<TData>;
+            
+            /// @copydoc dsl::word::emit::Network
+            template <typename TData>
+            using NETWORK = dsl::word::emit::Network<TData>;
+            
+            /// @copydoc dsl::word::emit::Network
+            template <typename TData>
+            using UDP = dsl::word::emit::UDP<TData>;
+        };
         
         /// @brief This provides functions to modify how an on statement runs after it has been created
         using ReactionHandle = threading::ReactionHandle;
@@ -363,6 +371,7 @@ namespace NUClear {
 #include "nuclear_bits/dsl/word/emit/Initialize.h"
 #include "nuclear_bits/dsl/word/emit/Direct.h"
 #include "nuclear_bits/dsl/word/emit/Network.h"
+#include "nuclear_bits/dsl/word/emit/UDP.h"
 
 #endif
 

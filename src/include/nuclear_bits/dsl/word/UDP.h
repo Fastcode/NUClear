@@ -29,6 +29,7 @@
 #include "nuclear_bits/PowerPlant.h"
 #include "nuclear_bits/dsl/word/IO.h"
 #include "nuclear_bits/util/generate_reaction.h"
+#include "nuclear_bits/util/FileDescriptor.h"
 #include "nuclear_bits/util/network/get_interfaces.h"
 
 namespace NUClear {
@@ -49,13 +50,20 @@ namespace NUClear {
                     operator bool() const {
                         return valid;
                     }
+                    
+                    // We can cast ourselves to a reference type so long as
+                    // that reference type is plain old data
+                    template <typename T>
+                    operator util::Meta::EnableIf<std::is_pod<T>, const T&> () {
+                        return *reinterpret_cast<const T*>(data.data());
+                    }
                 };
                 
                 template <typename DSL, typename TFunc>
                 static inline std::tuple<threading::ReactionHandle, int> bind(Reactor& reactor, const std::string& label, TFunc&& callback, int port = 0) {
                     
                     // Make our socket
-                    int fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+                    util::FileDescriptor fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
                     if(fd < 0) {
                         throw std::system_error(errno, std::system_category(), "We were unable to open the UDP socket");
                     }
@@ -80,14 +88,15 @@ namespace NUClear {
                     port = ntohs(address.sin_port);
                     
                     // Generate a reaction for the IO system that closes on death
-                    auto reaction = util::generate_reaction<DSL, IO>(reactor, label, std::forward<TFunc>(callback), [fd] (threading::Reaction&) {
-                        ::close(fd);
+                    int cfd = fd;
+                    auto reaction = util::generate_reaction<DSL, IO>(reactor, label, std::forward<TFunc>(callback), [cfd] (threading::Reaction&) {
+                        ::close(cfd);
                     });
                     threading::ReactionHandle handle(reaction.get());
                     
                     // Send our configuration out
                     reactor.powerplant.emit<emit::Direct>(std::make_unique<IOConfiguration>(IOConfiguration {
-                        fd,
+                        fd.release(),
                         IO::READ,
                         std::move(reaction)
                     }));
@@ -158,7 +167,7 @@ namespace NUClear {
                         for(auto& ad : addresses) {
                             
                             // Make our socket
-                            int fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+                            util::FileDescriptor fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
                             if(fd < 0) {
                                 throw std::system_error(errno, std::system_category(), "We were unable to open the UDP socket");
                             }
@@ -191,7 +200,7 @@ namespace NUClear {
                             }
                             port = ntohs(address.sin_port);
                             
-                            fds.push_back(fd);
+                            fds.push_back(fd.release());
                         }
                         
                         // Generate a reaction for the IO system that closes on death
@@ -237,7 +246,7 @@ namespace NUClear {
                         address.sin_port = htons(port);
                         
                         // Make our socket
-                        int fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+                        util::FileDescriptor fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
                         if(fd < 0) {
                             throw std::system_error(errno, std::system_category(), "We were unable to open the UDP socket");
                         }
@@ -287,9 +296,10 @@ namespace NUClear {
                         }
                         
                         // Generate a reaction for the IO system that closes on death
-                        auto reaction = util::generate_reaction<DSL, IO>(reactor, label, std::forward<TFunc>(callback), [fd] (threading::Reaction&) {
+                        int cfd = fd;
+                        auto reaction = util::generate_reaction<DSL, IO>(reactor, label, std::forward<TFunc>(callback), [cfd] (threading::Reaction&) {
                             // Close all the sockets
-                            ::close(fd);
+                            ::close(cfd);
                         });
                         
                         std::shared_ptr<threading::Reaction> r(std::move(reaction));
@@ -297,7 +307,7 @@ namespace NUClear {
                         
                         // Send our configuration out for each file descriptor (same reaction)
                         reactor.powerplant.emit<emit::Direct>(std::make_unique<IOConfiguration>(IOConfiguration {
-                            fd,
+                            fd.release(),
                             IO::READ,
                             r
                         }));

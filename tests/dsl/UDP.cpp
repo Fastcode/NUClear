@@ -67,38 +67,15 @@ namespace {
             // Send a test for a known port
             on<Trigger<Message>>().then([this] {
                 
-                // Open a random socket
-                int fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-                
-                sockaddr_in address;
-                address.sin_family = AF_INET;
-                address.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
-                address.sin_port = htons(port);
-                
-                size_t sent = sendto(fd, testString.data(), testString.size(), 0, reinterpret_cast<sockaddr*>(&address), sizeof(sockaddr_in));
-                
-                close(fd);
-                
-                REQUIRE(sent == testString.size());
+                emit<Scope::UDP>(std::make_unique<std::string>(testString), INADDR_LOOPBACK, port);
             });
             
             
             // Send a test for an unknown port
             on<Trigger<Message>>().then([this, boundPort] {
                 
-                // Open a random socket
-                int fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-                
-                sockaddr_in address;
-                address.sin_family = AF_INET;
-                address.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
-                address.sin_port = htons(boundPort);
-                
-                size_t sent = sendto(fd, testString.data(), testString.size(), 0, reinterpret_cast<sockaddr*>(&address), sizeof(sockaddr_in));
-                
-                close(fd);
-                
-                REQUIRE(sent == testString.size());
+                // Emit our UDP message
+                emit<Scope::UDP>(std::make_unique<std::string>(testString), INADDR_LOOPBACK, boundPort);
             });
             
             on<Startup>().then([this] {
