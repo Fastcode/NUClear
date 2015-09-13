@@ -42,13 +42,13 @@ namespace {
                     memset(buff, 0, sizeof(buff));
                     
                     // Read into the buffer
-                    int len = read(event.fd, buff, testString.size());
+                    uint len = read(event.fd, buff, testString.size());
                     
                     // The connection was closed and the other test finished
                     if (len == 0 && messagesReceived == 2) {
                         powerplant.shutdown();
                     }
-                    else {
+                    else if (messagesReceived < 2) {
                         REQUIRE(len == testString.size());
                         REQUIRE(testString == std::string(buff));
                         ++messagesReceived;
@@ -65,13 +65,13 @@ namespace {
                     memset(buff, 0, sizeof(buff));
                     
                     // Read into the buffer
-                    int len = read(event.fd, buff, testString.size());
+                    uint len = read(event.fd, buff, testString.size());
                     
                     // The connection was closed and the other test finished
                     if (len == 0 && messagesReceived == 2) {
                         powerplant.shutdown();
                     }
-                    else {
+                    else if (messagesReceived < 2) {
                         REQUIRE(len == testString.size());
                         REQUIRE(testString == std::string(buff));
                         ++messagesReceived;
@@ -94,6 +94,10 @@ namespace {
                 // Connect to ourself
                 ::connect(fd, reinterpret_cast<sockaddr*>(&address), sizeof(address));
                 
+                // Set linger so we ensure sending all data
+                linger l { 1, 2 };
+                REQUIRE(setsockopt(fd, SOL_SOCKET, SO_LINGER, &l, sizeof(linger)) == 0);
+                
                 // Write on our socket
                 size_t sent = write(fd, testString.data(), testString.size());
                 
@@ -114,6 +118,10 @@ namespace {
                 
                 // Connect to ourself
                 ::connect(fd, reinterpret_cast<sockaddr*>(&address), sizeof(address));
+                
+                // Set linger so we ensure sending all data
+                linger l { 1, 2 };
+                REQUIRE(setsockopt(fd, SOL_SOCKET, SO_LINGER, &l, sizeof(linger)) == 0);
                 
                 // Write on our socket
                 size_t sent = write(fd, testString.data(), testString.size());
