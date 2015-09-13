@@ -41,8 +41,13 @@ namespace NUClear {
                 struct Packet {
                     /// If the packet is valid (it contains data)
                     bool valid;
-                    /// The address that the packet is from/to
-                    uint32_t address;
+                    /// The information about this packet's source
+                    struct {
+                        /// The address that the packet is from
+                        uint32_t address;
+                        /// The port that the packet is from
+                        uint16_t port;
+                    } source;
                     /// The data to be sent in the packet
                     std::vector<char> data;
                     
@@ -114,14 +119,16 @@ namespace NUClear {
                     // If our get is being run without an fd (something else triggered) then short circuit
                     if (event.fd == 0) {
                         Packet p;
-                        p.address = INADDR_NONE;
+                        p.source.address = INADDR_NONE;
+                        p.source.port = 0;
                         p.valid = false;
                         return p;
                     }
                     
                     // Make a packet with 2k of storage (hopefully packets are smaller then this as most MTUs are around 1500)
                     Packet p;
-                    p.address = INADDR_NONE;
+                    p.source.address = INADDR_NONE;
+                    p.source.port = 0;
                     p.valid = false;
                     p.data.resize(2048);
                     
@@ -134,7 +141,8 @@ namespace NUClear {
                     // if no error
                     if(received > 0) {
                         p.valid = true;
-                        p.address = ntohl(from.sin_addr.s_addr);
+                        p.source.address = ntohl(from.sin_addr.s_addr);
+                        p.source.port = ntohs(from.sin_port);
                         p.data.resize(received);
                     }
                     
