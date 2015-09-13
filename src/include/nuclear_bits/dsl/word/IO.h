@@ -74,8 +74,12 @@ namespace NUClear {
                 template <typename DSL>
                 static inline Event get(threading::ReactionTask&) {
                     
+                    
+                    using thread_fd   = dsl::store::ThreadStore<int, 0>;
+                    using thread_mask = dsl::store::ThreadStore<int, 1>;
+                    
                     // Return our thread local variable
-                    return Event { store::ThreadStore<int, 0>::value, store::ThreadStore<int, 1>::value };
+                    return Event { thread_fd::value, thread_mask::value };
                 }
             };
         }
