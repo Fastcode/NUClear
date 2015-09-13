@@ -219,6 +219,9 @@ namespace NUClear {
                         
                         std::vector<uint32_t> addresses;
                         
+                        // We should always listen on 255.255.255.255
+                        addresses.push_back(htonl(INADDR_BROADCAST));
+                        
                         for(auto& iface : interfaces) {
                             // We receive on broadcast addresses and we don't want loopback or point to point
                             if(!iface.flags.loopback && !iface.flags.pointtopoint && iface.flags.broadcast) {
