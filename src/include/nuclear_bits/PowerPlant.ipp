@@ -111,6 +111,6 @@ namespace NUClear {
         // Direct emit the log message so that any direct loggers can use it
         powerplant->emit<dsl::word::emit::Direct>(std::make_unique<message::LogMessage>(level
               , output
-              , currentTask ? currentTask->stats.get() : nullptr)); // TODO currentTask might be bad!
+              , currentTask ? currentTask->stats.get() : nullptr));
     }
 }
