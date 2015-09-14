@@ -27,6 +27,7 @@ namespace NUClear {
                            , std::function<std::function<void ()> (ReactionTask&)> generator
                            , bool (*precondition)(Reaction&)
                            , int (*priority)(Reaction&)
+                           , std::unique_ptr<ReactionTask> (*reschedule)(std::unique_ptr<ReactionTask>&&)
                            , void (*postcondition)(ReactionTask&)
                            , std::function<void (Reaction&)>&& unbinder)
           : identifier(identifier)
@@ -35,6 +36,7 @@ namespace NUClear {
           , enabled(true)
           , precondition(precondition)
           , priority(priority)
+          , reschedule(reschedule)
           , postcondition(postcondition)
           , generator(generator)
           , unbinder(unbinder) {

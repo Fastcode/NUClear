@@ -56,22 +56,33 @@ namespace NUClear {
             return currentTask;
         }
         
-        void ReactionTask::operator()() {
-            // Store our old task and set the current task to us
-            auto oldTask = currentTask;
-            currentTask = this;
+        std::unique_ptr<ReactionTask> ReactionTask::run(std::unique_ptr<ReactionTask>&& us) {
             
-            // Call our callback
-            callback();
+            // Run our rescheduler and see if we are going to run
+            us = parent.reschedule(std::move(us));
             
-            // We run our postcondition now we are done before we die
-            parent.postcondition(*this);
+            // If we still control this reaction
+            if(us) {
+                
+                // Store our old task and set the current task to us
+                auto oldTask = currentTask;
+                currentTask = this;
+                
+                // Call our callback
+                callback();
+                
+                // We run our postcondition now we are done before we die
+                parent.postcondition(*this);
+                
+                // Our parent has one less active task
+                --parent.activeTasks;
+                
+                // Reset our task back to our old task
+                currentTask = oldTask;
+            }
             
-            // Our parent has one less active task
-            --parent.activeTasks;
-            
-            // Reset our task back to our old task
-            currentTask = oldTask;
+            // Return our original task
+            return std::move(us);
         }
     }
 }

@@ -39,6 +39,9 @@ namespace NUClear {
                 static inline int priority(threading::Reaction&) { return word::Priority::NORMAL::value; }
                 
                 template <typename DSL>
+                static inline std::unique_ptr<threading::ReactionTask> reschedule(std::unique_ptr<threading::ReactionTask>&& task) { return std::move(task); }
+                
+                template <typename DSL>
                 static inline void postcondition(threading::ReactionTask&) {}
             };
             
@@ -53,6 +56,8 @@ namespace NUClear {
                 static inline bool precondition(threading::Reaction&);
                 
                 static inline int priority(threading::Reaction&);
+                
+                static inline std::unique_ptr<threading::ReactionTask> reschedule(std::unique_ptr<threading::ReactionTask>&& task);
                 
                 static inline void postcondition(threading::ReactionTask&);
                 

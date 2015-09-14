@@ -22,8 +22,9 @@
 #include "nuclear_bits/dsl/fusion/BindFusion.h"
 #include "nuclear_bits/dsl/fusion/GetFusion.h"
 #include "nuclear_bits/dsl/fusion/PreconditionFusion.h"
-#include "nuclear_bits/dsl/fusion/PostconditionFusion.h"
 #include "nuclear_bits/dsl/fusion/PriorityFusion.h"
+#include "nuclear_bits/dsl/fusion/RescheduleFusion.h"
+#include "nuclear_bits/dsl/fusion/PostconditionFusion.h"
 
 namespace NUClear {
     namespace dsl {
@@ -33,8 +34,9 @@ namespace NUClear {
         : public fusion::BindFusion<TWords...>
         , public fusion::GetFusion<TWords...>
         , public fusion::PreconditionFusion<TWords...>
-        , public fusion::PostconditionFusion<TWords...>
-        , public fusion::PriorityFusion<TWords...> {};
+        , public fusion::PriorityFusion<TWords...>
+        , public fusion::RescheduleFusion<TWords...>
+        , public fusion::PostconditionFusion<TWords...> {};
     }
 }
 

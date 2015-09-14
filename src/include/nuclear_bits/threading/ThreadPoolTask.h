@@ -36,8 +36,12 @@ namespace NUClear {
                         // Try to execute the task (catching any exceptions so it doesn't kill the pool thread)
                         try {
                             task->stats->started = clock::now();
-                            (*task)();
-                            task->stats->finished = clock::now();
+                            task = task->run(std::move(task));
+                            
+                            // Check if we were rescheduled
+                            if(task) {
+                                task->stats->finished = clock::now();
+                            }
                         }
                         // Catch everything
                         catch(...) {

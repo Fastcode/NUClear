@@ -15,40 +15,28 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_DSL_WORD_EMIT_DIRECT_H
-#define NUCLEAR_DSL_WORD_EMIT_DIRECT_H
+#ifndef NUCLEAR_DSL_FUSION_HASRESCHEDULE_H
+#define NUCLEAR_DSL_FUSION_HASRESCHEDULE_H
 
-#include "nuclear_bits/PowerPlant.h"
-#include "nuclear_bits/dsl/store/DataStore.h"
-#include "nuclear_bits/dsl/store/TypeCallbackStore.h"
+#include "nuclear_bits/threading/ReactionTask.h"
+#include "nuclear_bits/dsl/fusion/NoOp.h"
 
 namespace NUClear {
     namespace dsl {
-        namespace word {
-            namespace emit {
-
-                template <typename TData>
-                struct Direct {
-
-                    static void emit(PowerPlant&, std::shared_ptr<TData> data) {
-                        
-                        // Set our data in the store
-                        store::DataStore<TData>::set(data);
-                        
-                        for(auto& reaction : store::TypeCallbackStore<TData>::get()) {
-                            try {
-                                auto task = reaction->getTask();
-                                task = task->run(std::move(task));
-                            }
-                            catch(util::CancelRunException ex) {
-                            }
-                            catch(...) {
-                                // TODO should something happen here?
-                            }
-                        }
-                    }
-                };
-            }
+        namespace fusion {
+            
+            template<typename T>
+            struct has_reschedule {
+            private:
+                typedef std::true_type yes;
+                typedef std::false_type no;
+                
+                template<typename U> static auto test(int) -> decltype(U::template reschedule<ParsedNoOp>(std::declval<std::unique_ptr<threading::ReactionTask>&&>()), yes());
+                template<typename> static no test(...);
+                
+            public:
+                static constexpr bool value = std::is_same<decltype(test<T>(0)),yes>::value;
+            };
         }
     }
 }

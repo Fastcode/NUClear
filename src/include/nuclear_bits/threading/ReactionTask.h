@@ -71,7 +71,7 @@ namespace NUClear {
              *  This runs the internal data bound task and times how long the execution takes. These figures can then be
              *  used in a debugging context to calculate how long callbacks are taking to run.
              */
-            void operator()();
+            std::unique_ptr<ReactionTask> run(std::unique_ptr<ReactionTask>&& us);
             
             /// @brief the parent Reaction object which spawned this
             Reaction& parent;
