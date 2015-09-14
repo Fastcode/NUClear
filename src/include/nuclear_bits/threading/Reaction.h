@@ -75,7 +75,6 @@ namespace NUClear {
             /// @brief This holds the demangled name of the On function that is being called
             std::vector<std::string> identifier;
             
-            
             /// @brief the unique identifier for this Reaction object
             const uint64_t reactionId;
             

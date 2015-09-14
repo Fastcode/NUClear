@@ -189,6 +189,8 @@ namespace NUClear {
                                                     thread_fd::value = 0;
                                                     thread_mask::value = 0;
                                                 }
+                                                catch(util::CancelRunException ex) {
+                                                }
                                                 catch(...) {
                                                 }
                                             }

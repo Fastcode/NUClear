@@ -109,8 +109,14 @@ namespace NUClear {
                             if((step.next - now).count() <= 0) {
                                 for(auto& reaction : step.reactions) {
                                     
-                                    // submit the reaction to the thread pool
-                                    powerplant.submit(reaction->getTask());
+                                    try {
+                                        // submit the reaction to the thread pool
+                                        powerplant.submit(reaction->getTask());
+                                    }
+                                    catch(util::CancelRunException ex) {
+                                    }
+                                    catch(...) {
+                                    }
                                 }
                                 step.next += step.jump;
                             }

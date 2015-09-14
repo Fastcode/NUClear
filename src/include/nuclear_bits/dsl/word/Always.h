@@ -57,7 +57,13 @@ namespace NUClear {
                     // This is our function that runs forever until the powerplant exits
                     auto loop = [&reactor, run] {
                         while(reactor.powerplant.running()) {
-                            run();
+                            try {
+                                run();
+                            }
+                            catch(util::CancelRunException ex) {
+                            }
+                            catch(...) {
+                            }
                         }
                     };
                     

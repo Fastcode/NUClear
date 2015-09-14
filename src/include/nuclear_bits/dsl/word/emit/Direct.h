@@ -39,6 +39,8 @@ namespace NUClear {
                             try {
                                 reaction->getTask()->operator()();
                             }
+                            catch(util::CancelRunException ex) {
+                            }
                             catch(...) {
                                 // TODO should something happen here?
                             }
