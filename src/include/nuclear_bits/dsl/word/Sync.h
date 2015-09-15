@@ -36,20 +36,58 @@ namespace NUClear {
             template <typename TSync>
             struct Sync {
                 
+                using task_ptr = std::unique_ptr<threading::ReactionTask>;
+                
+                /// @brief our queue which sorts tasks by priority
+                static std::priority_queue<task_ptr> queue;
+                static int running;
+                static std::mutex mutex;
+                
                 template <typename DSL>
-                static inline bool precondition(threading::Reaction&) {
+                static inline std::unique_ptr<threading::ReactionTask> reschedule(std::unique_ptr<threading::ReactionTask>&& task) {
                     
-                    std::cout << "TODO Precondition for Sync not implemented" << std::endl;
-                    // TODO Check if it's running and if so queue it otherwise run it
-                    return true;
+                    // Lock our mutex
+                    std::lock_guard<std::mutex> lock(mutex);
+                    
+                    // One more running task!
+                    ++running;
+                    
+                    // If this is our first task we don't sync
+                    if(running == 1) {
+                        return std::move(task);
+                    }
+                    // We are not the first, put our task in the queue
+                    else {
+                        queue.push(std::move(task));
+                        return std::unique_ptr<threading::ReactionTask>(nullptr);
+                    }
                 }
                 
                 template <typename DSL>
-                static void postcondition(threading::ReactionTask&) {
-                    std::cout << "TODO Postcondition for Sync not implemented" << std::endl;
-                    // TODO Check if there is something in the sync queue and reinject it
+                static void postcondition(threading::ReactionTask& task) {
+                    
+                    // Lock our mutex
+                    std::lock_guard<std::mutex> lock(mutex);
+                    
+                    // One less running task!
+                    --running;
+                    
+                    // If we have any tasks left over resubmit
+                    if(!queue.empty()) {
+                        
+                        // Return the type
+                        // If you're wondering why all the ridiculousness, it's because priority queue is not as feature complete as it should be
+                        std::unique_ptr<threading::ReactionTask> nextTask(std::move(const_cast<std::unique_ptr<threading::ReactionTask>&>(queue.top())));
+                        queue.pop();
+                        
+                        // Resubmit this task to the reaction queue
+                        task.parent.reactor.powerplant.submit(std::move(nextTask));
+                    }
                 }
             };
+            
+            template <typename TSync>
+            int Sync<TSync>::running = 0;
         }
     }
 }

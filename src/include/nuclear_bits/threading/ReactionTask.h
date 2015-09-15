@@ -30,7 +30,7 @@ namespace NUClear {
     namespace threading {
         // Forward declare reaction
         class Reaction;
-        
+
         /**
          * @brief This is a databound call of a Reaction ready to be executed.
          *
@@ -44,18 +44,18 @@ namespace NUClear {
         private:
             /// @brief a source for reactionIds, atomically creates longs
             static std::atomic<std::uint64_t> taskIdSource;
-            
+
             /// @brief the current task that is being executed by this thread (or nullptr if none is)
             static __thread ReactionTask* currentTask;
         public:
-            
+
             /**
              * @brief Gets the current executing task, or nullptr if there isn't one.
              *
              * @return the current executing task or nullptr if there isn't one
              */
             static const ReactionTask* getCurrentTask();
-            
+
             /**
              * @brief Creates a new ReactionTask object bound with the parent Reaction object (that created it) and task.
              *
@@ -63,7 +63,7 @@ namespace NUClear {
              * @param task      the data bound callback to be executed in the threadpool.
              */
             ReactionTask(Reaction& parent, const int& priority, std::function<std::function<void ()> (ReactionTask&)> generator);
-            
+
             /**
              * @brief Runs the internal data bound task and times it.
              *
@@ -72,7 +72,7 @@ namespace NUClear {
              *  used in a debugging context to calculate how long callbacks are taking to run.
              */
             std::unique_ptr<ReactionTask> run(std::unique_ptr<ReactionTask>&& us);
-            
+
             /// @brief the parent Reaction object which spawned this
             Reaction& parent;
             /// @brief the taskId of this task (the sequence number of this paticular task)
@@ -81,11 +81,23 @@ namespace NUClear {
             int priority;
             /// @brief the statistics object that persists after this for information and debugging
             std::unique_ptr<message::ReactionStatistics> stats;
-            
+
             /// @brief the data bound callback to be executed
             /// @attention note this must be last in the list as the this pointer is passed to the callback generator
             std::function<void ()> callback;
         };
+
+        /**
+         * @brief This overload is used to sort reactions by priority.
+         *
+         * @param a the reaction task a
+         * @param b the reaction task b
+         *
+         * @return true if a has lower priority than b, false otherwise
+         */
+        inline bool operator<(const std::unique_ptr<ReactionTask>& a, const std::unique_ptr<ReactionTask>& b) {
+            return a->priority < b->priority;
+        }
     }
 }
 #endif

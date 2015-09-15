@@ -26,6 +26,10 @@
 #include "ReactionTask.h"
 
 namespace NUClear {
+    
+    // Forward declare reactor
+    class Reactor;
+    
     namespace threading {
         
         /**
@@ -47,13 +51,16 @@ namespace NUClear {
             /**
              * @brief Constructs a new Reaction with the passed callback generator and options
              *
+             * @param reactor        the reactor this belongs to
              * @param identifier     string identifier information about the reaction to help identify it
              * @param callback       the callback generator function (creates databound callbacks)
-             * @param options        the options to use in Tasks
              * @param precondition   a function that checks if the reaction should run before creating it
-             * @param postcondition  a function that runs 
+             * @param priority       a function that calculates the priority of this
+             * @param rescheudle     a function that is able to take this task and reschedule it
+             * @param postcondition  a function that runs after the reaction task is finised
              */
-            Reaction(std::vector<std::string> identifier
+            Reaction(Reactor& reactor
+                     , std::vector<std::string> identifier
                      , std::function<std::function<void ()> (ReactionTask&)> callback
                      , bool (*precondition)(Reaction&)
                      , int (*priority)(Reaction&)
@@ -72,6 +79,9 @@ namespace NUClear {
              * @brief returns true if this reaction is currently enabled
              */
             bool isEnabled();
+            
+            /// @brief the reactor this belongs to
+            Reactor& reactor;
             
             /// @brief This holds the demangled name of the On function that is being called
             std::vector<std::string> identifier;

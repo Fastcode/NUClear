@@ -80,15 +80,21 @@ namespace NUClear {
                     else {
                         return std::move(ptr);
                     }
-                    
                 }
                 
                 template <typename DSL, typename U = TFirst>
                 static inline auto postcondition(std::unique_ptr<threading::ReactionTask>&& task)
                 -> EnableIf<UsNotChildren<U>, std::unique_ptr<threading::ReactionTask>> {
                     
-                    // Run this reschedule
-                    return RescheduleFusion<U>::template reschedule<DSL>(std::move(task));
+                    // If we haven't already been rescheduled
+                    if(task) {
+                        // Run this reschedule
+                        return RescheduleFusion<U>::template reschedule<DSL>(std::move(task));
+                    }
+                    else {
+                        // Just return our task
+                        return std::move(task);
+                    }
                 }
                 
                 template <typename DSL, typename U = TFirst>

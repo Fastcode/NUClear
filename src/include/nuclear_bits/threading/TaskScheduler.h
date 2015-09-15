@@ -112,7 +112,7 @@ namespace NUClear {
             /// @brief if the scheduler is running or is shut down
             volatile bool shutdown_;
             /// @brief our queue which sorts tasks by priority
-            std::priority_queue<std::unique_ptr<ReactionTask>, std::vector<std::unique_ptr<ReactionTask>>, bool(*)(const std::unique_ptr<ReactionTask>&, const std::unique_ptr<ReactionTask>&)> queue;
+            std::priority_queue<std::unique_ptr<ReactionTask>> queue;
             /// @brief the mutex which our threads synchronize their access to this object
             std::mutex mutex;
             /// @brief the condition object that threads wait on if they can't get a task

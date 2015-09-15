@@ -29,7 +29,7 @@ namespace NUClear {
             struct TypeBind {
 
                 template <typename DSL, typename TFunc>
-                static inline threading::ReactionHandle bind(Reactor&, const std::string& label, TFunc&& callback) {
+                static inline threading::ReactionHandle bind(Reactor& reactor, const std::string& label, TFunc&& callback) {
                     
                     // Our unbinder to remove this reaction
                     std::function<void (threading::Reaction&)> unbinder([] (threading::Reaction& r) {
@@ -49,7 +49,7 @@ namespace NUClear {
                     // Get our identifier string
                     std::vector<std::string> identifier = util::get_identifier<typename DSL::DSL, TFunc>(label);
                     
-                    auto reaction = std::make_unique<threading::Reaction>(std::move(identifier), std::forward<TFunc>(callback), DSL::precondition, DSL::priority, DSL::reschedule, DSL::postcondition, std::move(unbinder));
+                    auto reaction = std::make_unique<threading::Reaction>(reactor, std::move(identifier), std::forward<TFunc>(callback), DSL::precondition, DSL::priority, DSL::reschedule, DSL::postcondition, std::move(unbinder));
                     threading::ReactionHandle handle(reaction.get());
                     
                     // Create our reaction and store it in the TypeCallbackStore
