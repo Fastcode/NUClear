@@ -30,7 +30,7 @@ namespace NUClear {
                 static inline std::tuple<> bind(Reactor&, const std::string&, TFunc&&, TArgs...) { return std::tuple<>(); }
                 
                 template <typename DSL>
-                static inline std::tuple<> get(threading::ReactionTask&) { return std::tuple<>(); }
+                static inline std::tuple<> get(threading::Reaction&) { return std::tuple<>(); }
                 
                 template <typename DSL>
                 static inline bool precondition(threading::Reaction&) { return true; }
@@ -51,7 +51,7 @@ namespace NUClear {
                 template <typename TFunc>
                 static inline std::tuple<> bind(Reactor&, const std::string&, TFunc&&);
                 
-                static inline std::tuple<> get(threading::ReactionTask&);
+                static inline std::tuple<> get(threading::Reaction&);
                 
                 static inline bool precondition(threading::Reaction&);
                 

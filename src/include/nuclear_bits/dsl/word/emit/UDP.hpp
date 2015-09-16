@@ -74,7 +74,9 @@ namespace NUClear {
                         
                         // This isn't the greatest code, but lets assume our users don't send broadcasts they don't mean to...
                         int broadcast = 1;
-                        if(setsockopt(fd, SOL_SOCKET, SO_BROADCAST, &broadcast, sizeof(broadcast)) < 0);
+                        if(setsockopt(fd, SOL_SOCKET, SO_BROADCAST, &broadcast, sizeof(broadcast)) < 0) {
+                            throw std::system_error(errno, std::system_category(), "We were unable to enable broadcasting on this socket");
+                        }
                         
                         // Serialise the data
                         std::string data = util::serialise::Serialise<TData>::serialise(*input);

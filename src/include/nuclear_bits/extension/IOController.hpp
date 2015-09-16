@@ -184,7 +184,10 @@ namespace NUClear {
                                                 
                                                 // Submit the task (which should run the get)
                                                 try {
-                                                    powerplant.submit(it->reaction->getTask());
+                                                    auto task = it->reaction->getTask();
+                                                    if(task) {
+                                                        powerplant.submit(std::move(task));
+                                                    }
                                                 }
                                                 catch (util::CancelRunException ex) {
                                                 }

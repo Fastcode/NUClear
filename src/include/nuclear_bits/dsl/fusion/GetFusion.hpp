@@ -67,27 +67,27 @@ namespace NUClear {
 
             public:
                 template <typename DSL, typename U = TFirst>
-                static inline auto get(threading::ReactionTask& task)
-                -> EnableIf<UsAndChildren<U>, decltype(std::tuple_cat(util::tuplify(Get<U>::template get<DSL>(task)), If<UsAndChildren<U>, GetFusion<TWords...>, NoOp>::template get<DSL>(task)))> {
+                static inline auto get(threading::Reaction& reaction)
+                -> EnableIf<UsAndChildren<U>, decltype(std::tuple_cat(util::tuplify(Get<U>::template get<DSL>(reaction)), If<UsAndChildren<U>, GetFusion<TWords...>, NoOp>::template get<DSL>(reaction)))> {
                     // Tuplify and return what we need
                     
-                    return std::tuple_cat(util::tuplify(Get<U>::template get<DSL>(task)), GetFusion<TWords...>::template get<DSL>(task));
+                    return std::tuple_cat(util::tuplify(Get<U>::template get<DSL>(reaction)), GetFusion<TWords...>::template get<DSL>(reaction));
                 }
                 
                 template <typename DSL, typename U = TFirst>
-                static inline auto get(threading::ReactionTask& task)
-                -> EnableIf<UsNotChildren<U>, decltype(util::tuplify(Get<U>::template get<DSL>(task)))> {
+                static inline auto get(threading::Reaction& reaction)
+                -> EnableIf<UsNotChildren<U>, decltype(util::tuplify(Get<U>::template get<DSL>(reaction)))> {
                     
                     // Tuplify and return our element
-                    return util::tuplify(Get<U>::template get<DSL>(task));
+                    return util::tuplify(Get<U>::template get<DSL>(reaction));
                 }
                 
                 template <typename DSL, typename U = TFirst>
-                static inline auto get(threading::ReactionTask& task)
-                -> EnableIf<NotUsChildren<U>, decltype(If<NotUsChildren<U>, GetFusion<TWords...>, NoOp>::template get<DSL>(task))> {
+                static inline auto get(threading::Reaction& reaction)
+                -> EnableIf<NotUsChildren<U>, decltype(If<NotUsChildren<U>, GetFusion<TWords...>, NoOp>::template get<DSL>(reaction))> {
                     
                     // Pass on to the next element
-                    return GetFusion<TWords...>::template get<DSL>(task);
+                    return GetFusion<TWords...>::template get<DSL>(reaction);
                 }
             };
         }

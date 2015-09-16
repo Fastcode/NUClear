@@ -24,7 +24,7 @@ namespace {
     struct CustomGet : public NUClear::dsl::operation::TypeBind<int> {
         
         template <typename DSL>
-        static inline std::shared_ptr<int> get(NUClear::threading::ReactionTask&) {
+        static inline std::shared_ptr<int> get(NUClear::threading::Reaction&) {
             return std::make_shared<int>(5);
             
         }

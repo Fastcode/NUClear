@@ -128,7 +128,7 @@ namespace NUClear {
                 }
                 
                 template <typename DSL>
-                static inline Packet get(threading::ReactionTask& r) {
+                static inline Packet get(threading::Reaction& r) {
                     
                     // Get our filedescriptor from the magic cache
                     auto event = IO::get<DSL>(r);
@@ -300,7 +300,7 @@ namespace NUClear {
                     }
                     
                     template <typename DSL>
-                    static inline Packet get(threading::ReactionTask& r) {
+                    static inline Packet get(threading::Reaction& r) {
                         return UDP::get<DSL>(r);
                     }
 
@@ -395,7 +395,7 @@ namespace NUClear {
                     }
                     
                     template <typename DSL>
-                    static inline Packet get(threading::ReactionTask& r) {
+                    static inline Packet get(threading::Reaction& r) {
                         return UDP::get<DSL>(r);
                     }
                 };

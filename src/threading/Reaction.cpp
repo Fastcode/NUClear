@@ -25,21 +25,13 @@ namespace NUClear {
         
         Reaction::Reaction(Reactor& reactor
                            , std::vector<std::string> identifier
-                           , std::function<std::function<void ()> (ReactionTask&)> generator
-                           , bool (*precondition)(Reaction&)
-                           , int (*priority)(Reaction&)
-                           , std::unique_ptr<ReactionTask> (*reschedule)(std::unique_ptr<ReactionTask>&&)
-                           , void (*postcondition)(ReactionTask&)
+                           , std::function<std::pair<int, std::function<std::unique_ptr<ReactionTask> (std::unique_ptr<ReactionTask>&&)>> (Reaction&)> generator
                            , std::function<void (Reaction&)>&& unbinder)
           : reactor(reactor)
           , identifier(identifier)
           , reactionId(++reactionIdSource)
           , activeTasks(0)
           , enabled(true)
-          , precondition(precondition)
-          , priority(priority)
-          , reschedule(reschedule)
-          , postcondition(postcondition)
           , generator(generator)
           , unbinder(unbinder) {
         }
@@ -51,12 +43,18 @@ namespace NUClear {
         
         std::unique_ptr<ReactionTask> Reaction::getTask() {
             
-            // Lock our mutex for our precondition
-            if(precondition(*this)) {
-                return std::unique_ptr<ReactionTask>(new ReactionTask(*this, priority(*this), generator));
+            // Run our generator to get a functor we can run
+            int priority;
+            std::function<std::unique_ptr<ReactionTask> (std::unique_ptr<ReactionTask>&&)> func;
+            std::tie(priority, func) = generator(*this);
+            
+            // If our generator returns a valid function
+            if(func) {
+                return std::unique_ptr<ReactionTask>(new ReactionTask(*this, priority, func));
             }
+            // Otherwise we return a null pointer
             else {
-                throw std::runtime_error("Task is unable to be created as the precondition fails");
+                return std::unique_ptr<ReactionTask>(nullptr);
             }
         }
         

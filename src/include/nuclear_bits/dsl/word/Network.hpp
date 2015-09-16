@@ -39,7 +39,7 @@ namespace NUClear {
                 }
                 
                 template <typename DSL>
-                static inline std::tuple<Source, std::shared_ptr<const TData>> get(threading::ReactionTask&) {
+                static inline std::tuple<Source, std::shared_ptr<const TData>> get(threading::Reaction&) {
                     
                     return std::make_tuple(Source(), std::make_shared<TData>());
                 }

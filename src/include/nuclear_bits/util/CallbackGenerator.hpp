@@ -56,45 +56,47 @@ namespace NUClear {
                 unpack(MergeTransients<Meta::RemoveRef<decltype(std::get<DIndex>(data))>>::merge(std::get<TIndex>(*transients), std::get<DIndex>(data))...);
             }
 
-            template <typename D = DSL>
-            Meta::EnableIf<Meta::Not<TransientDataElements<D>>, std::function<void ()>> operator()(threading::ReactionTask& r) {
-
-                // Bind our data to a variable (this will run in the dispatching thread)
-                auto data = DSL::get(r);
+            std::pair<int, std::function<std::unique_ptr<threading::ReactionTask> (std::unique_ptr<threading::ReactionTask>&&)>> operator()(threading::Reaction& r) {
                 
-                // Check if our data is good (all the data exists) otherwise terminate the call
-                if(!checkData(data)) {
-                    throw CancelRunException();
+                // Check if we should even run
+                if(!DSL::precondition(r)) {
+                    // We cancel our execution by returning an empty function
+                    return std::make_pair(0, std::function<std::unique_ptr<threading::ReactionTask> (std::unique_ptr<threading::ReactionTask>&&)>());
                 }
-                
-                // We have to make a copy of the callback because the "this" variable can go out of scope
-                auto c = callback;
-                return [c, data] {
-                    // We call with only the relevant arguments to the passed function
-                    util::apply(c, std::move(data), Meta::Do<util::RelevantArguments<TFunc, Meta::Do<util::DereferenceTuple<decltype(data)>>>>());
-                };
-            }
-            
-            template <typename D = DSL>
-            Meta::EnableIf<TransientDataElements<D>, std::function<void ()>> operator()(threading::ReactionTask& r) {
-                
-                // Bind our data to a variable (this will run in the dispatching thread)
-                auto data = DSL::get(r);
-                
-                // Merge our transient data in
-                mergeTransients(data, typename TransientDataElements<D>::index(), GenerateSequence<0, TransientDataElements<D>::index::length>());
-                
-                // Check if our data is good (all the data exists) otherwise terminate the call
-                if(!checkData(data)) {
-                    throw CancelRunException();
+                else {
+                    
+                    // Bind our data to a variable (this will run in the dispatching thread)
+                    auto data = DSL::get(r);
+                    
+                    // Merge our transient data in
+                    mergeTransients(data, typename TransientDataElements<DSL>::index(), GenerateSequence<0, TransientDataElements<DSL>::index::length>());
+                    
+                    // Check if our data is good (all the data exists) otherwise terminate the call
+                    if(!checkData(data)) {
+                        // We cancel our execution by returning an empty function
+                        return std::make_pair(0, std::function<std::unique_ptr<threading::ReactionTask> (std::unique_ptr<threading::ReactionTask>&&)>());
+                    }
+                    
+                    // We have to make a copy of the callback because the "this" variable can go out of scope
+                    auto c = callback;
+                    return std::make_pair(DSL::priority(r), [c, data] (std::unique_ptr<threading::ReactionTask>&& task) {
+                        
+                        // Check if we are going to reschedule
+                        task = DSL::reschedule(std::move(task));
+                        
+                        // If we still control our task
+                        if(task) {
+                            // We call with only the relevant arguments to the passed function
+                            util::apply(c, std::move(data), Meta::Do<util::RelevantArguments<TFunc, Meta::Do<util::DereferenceTuple<decltype(data)>>>>());
+                            
+                            // Run our postconditions
+                            DSL::postcondition(*task);
+                        }
+                        
+                        // Return our task
+                        return std::move(task);
+                    });
                 }
-                
-                // We have to make a copy of the callback because the "this" variable can go out of scope
-                auto c = callback;
-                return [c, data] {
-                    // We call with only the relevant arguments to the passed function
-                    util::apply(c, std::move(data), Meta::Do<util::RelevantArguments<TFunc, Meta::Do<util::DereferenceTuple<decltype(data)>>>>());
-                };
             }
             
             TFunc callback;

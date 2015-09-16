@@ -41,7 +41,7 @@ namespace {
     struct TransientTypeGetter : public NUClear::dsl::operation::TypeBind<int> {
         
         template <typename DSL>
-        static inline DataType get(NUClear::threading::ReactionTask&) {
+        static inline DataType get(NUClear::threading::Reaction&) {
             
             // We say for this test that our data is valid if it is odd
             return DataType {

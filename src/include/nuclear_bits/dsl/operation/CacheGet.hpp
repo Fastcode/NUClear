@@ -51,7 +51,7 @@ namespace NUClear {
             struct CacheGet {
                 
                 template <typename DSL, typename T = TType>
-                static inline CachedType<T> get(threading::ReactionTask&) {
+                static inline CachedType<T> get(threading::Reaction&) {
                     
                     return CachedType<T>(store::DataStore<TType>::get());
                 }

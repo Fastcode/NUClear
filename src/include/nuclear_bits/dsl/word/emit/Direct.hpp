@@ -38,7 +38,9 @@ namespace NUClear {
                         for(auto& reaction : store::TypeCallbackStore<TData>::get()) {
                             try {
                                 auto task = reaction->getTask();
-                                task = task->run(std::move(task));
+                                if(task) {
+                                    task = task->run(std::move(task));
+                                }
                             }
                             catch(util::CancelRunException ex) {
                             }

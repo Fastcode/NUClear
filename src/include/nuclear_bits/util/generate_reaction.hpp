@@ -43,7 +43,7 @@ namespace NUClear {
             };
                         
             // Create our reaction
-            return std::make_unique<threading::Reaction>(reactor, std::move(identifier), std::forward<TFunc>(callback), DSL::precondition, DSL::priority, DSL::reschedule, DSL::postcondition, std::move(unbinder));
+            return std::make_unique<threading::Reaction>(reactor, std::move(identifier), std::forward<TFunc>(callback), std::move(unbinder));
         }
     }
 }

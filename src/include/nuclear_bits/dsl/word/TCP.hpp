@@ -103,7 +103,7 @@ namespace NUClear {
                 }
                 
                 template <typename DSL>
-                static inline Connection get(threading::ReactionTask& r) {
+                static inline Connection get(threading::Reaction& r) {
                     
                     // Get our file descriptor from the magic cache
                     auto event = IO::get<DSL>(r);

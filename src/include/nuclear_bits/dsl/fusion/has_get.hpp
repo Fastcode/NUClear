@@ -18,7 +18,7 @@
 #ifndef NUCLEAR_DSL_FUSION_HASGET_H
 #define NUCLEAR_DSL_FUSION_HASGET_H
 
-#include "nuclear_bits/threading/ReactionTask.hpp"
+#include "nuclear_bits/threading/Reaction.hpp"
 #include "nuclear_bits/dsl/fusion/NoOp.hpp"
 
 namespace NUClear {
@@ -31,7 +31,7 @@ namespace NUClear {
                 typedef std::true_type yes;
                 typedef std::false_type no;
                 
-                template<typename U> static auto test(int) -> decltype(U::template get<ParsedNoOp>(std::declval<threading::ReactionTask&>()), yes());
+                template<typename U> static auto test(int) -> decltype(U::template get<ParsedNoOp>(std::declval<threading::Reaction&>()), yes());
                 template<typename> static no test(...);
                 
             public:

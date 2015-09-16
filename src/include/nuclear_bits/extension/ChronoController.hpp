@@ -111,7 +111,10 @@ namespace NUClear {
                                     
                                     try {
                                         // submit the reaction to the thread pool
-                                        powerplant.submit(reaction->getTask());
+                                        auto task = reaction->getTask();
+                                        if(task) {
+                                            powerplant.submit(std::move(task));
+                                        }
                                     }
                                     catch(util::CancelRunException ex) {
                                     }

@@ -35,7 +35,7 @@ namespace NUClear {
                 return DSL::template bind<Parse<Sentence...>>(r, label, callback, std::forward<TArgs>(args)...);
             }
             
-            static inline auto get(threading::ReactionTask& r)
+            static inline auto get(threading::Reaction& r)
             -> decltype(util::Meta::If<fusion::has_get<DSL>, DSL, fusion::NoOp>::template get<Parse<Sentence...>>(r)) {
                 
                 return util::Meta::If<fusion::has_get<DSL>, DSL, fusion::NoOp>::template get<Parse<Sentence...>>(r);

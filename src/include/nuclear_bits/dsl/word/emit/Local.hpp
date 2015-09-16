@@ -39,7 +39,9 @@ namespace NUClear {
                         for(auto& reaction : store::TypeCallbackStore<TData>::get()) {
                             try {
                                 auto task = reaction->getTask();
-                                powerplant.submit(std::move(task));
+                                if(task) {
+                                    powerplant.submit(std::move(task));
+                                }
                             }
                             catch(...) {
                                 // TODO should I do something here?

@@ -31,7 +31,7 @@ namespace NUClear {
         // Initialize our current task
         __thread ReactionTask* ReactionTask::currentTask = nullptr;
         
-        ReactionTask::ReactionTask(Reaction& parent, const int& priority, std::function<std::function<void ()> (ReactionTask&)> generator)
+        ReactionTask::ReactionTask(Reaction& parent, int priority, std::function<std::unique_ptr<ReactionTask> (std::unique_ptr<ReactionTask>&&)> callback)
           : parent(parent)
           , taskId(++taskIdSource)
           , priority(priority)
@@ -46,7 +46,7 @@ namespace NUClear {
               , clock::time_point(std::chrono::seconds(0))
               , nullptr
             })
-          , callback(generator(*this)) {
+          , callback(callback) {
         
             // There is one new active task
             ++parent.activeTasks;
@@ -58,36 +58,32 @@ namespace NUClear {
         
         std::unique_ptr<ReactionTask> ReactionTask::run(std::unique_ptr<ReactionTask>&& us) {
             
-            // Run our rescheduler and see if we are going to run
-            us = parent.reschedule(std::move(us));
+            // Update our current task
+            auto oldTask = currentTask;
+            currentTask = this;
             
-            // If we still control this reaction
+            // Record our start time
+            stats->started = clock::now();
+            
+            // Run our callback at catch the returned task (to see if it rescheduled itself)
+            try {
+                us = callback(std::move(us));
+            }
+            catch(...) {
+                // Catch our exception if it happens
+                stats->exception = std::current_exception();
+            }
+            // If we were not rescheduled then finish off our stats
             if(us) {
-                
-                // Store our old task and set the current task to us
-                auto oldTask = currentTask;
-                currentTask = this;
-                
-                // Call our callback (catching any nasty exceptions)
-                try {
-                    stats->started = clock::now();
-                    callback();
-                }
-                catch(...) {
-                    // Catch our exception if it happens
-                    stats->exception = std::current_exception();
-                }
+                // Our finish time
                 stats->finished = clock::now();
                 
-                // We run our postcondition now we are done before we die
-                parent.postcondition(*this);
-                
-                // Our parent has one less active task
+                // There is one less task
                 --parent.activeTasks;
-                
-                // Reset our task back to our old task
-                currentTask = oldTask;
             }
+            
+            // Reset our task back
+            currentTask = oldTask;
             
             // Return our original task
             return std::move(us);

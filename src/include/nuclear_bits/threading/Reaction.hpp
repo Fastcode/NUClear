@@ -54,18 +54,11 @@ namespace NUClear {
              * @param reactor        the reactor this belongs to
              * @param identifier     string identifier information about the reaction to help identify it
              * @param callback       the callback generator function (creates databound callbacks)
-             * @param precondition   a function that checks if the reaction should run before creating it
-             * @param priority       a function that calculates the priority of this
-             * @param rescheudle     a function that is able to take this task and reschedule it
-             * @param postcondition  a function that runs after the reaction task is finised
+             * @param unbinder       the function used to unbind this reaction and clean it up
              */
             Reaction(Reactor& reactor
                      , std::vector<std::string> identifier
-                     , std::function<std::function<void ()> (ReactionTask&)> callback
-                     , bool (*precondition)(Reaction&)
-                     , int (*priority)(Reaction&)
-                     , std::unique_ptr<ReactionTask> (*reschedule)(std::unique_ptr<ReactionTask>&&)
-                     , void (*postcondition)(ReactionTask&)
+                     , std::function<std::pair<int, std::function<std::unique_ptr<ReactionTask> (std::unique_ptr<ReactionTask>&&)>> (Reaction&)> callback
                      , std::function<void (Reaction&)>&& unbinder);
             
             /**
@@ -100,23 +93,11 @@ namespace NUClear {
              * @brief Unbinds this reaction from it's context
              */
             void unbind();
-            
-            /// @brief a precondition that must pass for the reaction task to be created
-            bool (*precondition)(Reaction&);
-            
-            /// @brief a priority for this reaction
-            int (*priority)(Reaction&);
-            
-            /// @brief a possible rescheduler for this reaction
-            std::unique_ptr<ReactionTask> (*reschedule)(std::unique_ptr<ReactionTask>&&);
-            
-            /// @brief a postcondition that will get run when a ReactionTask has finished (is destructed)
-            void (*postcondition)(ReactionTask&);
-            
+
             /// @brief a source for reactionIds, atomically creates longs
             static std::atomic<uint64_t> reactionIdSource;
             /// @brief the callback generator function (creates databound callbacks)
-            std::function<std::function<void ()> (ReactionTask&)> generator;
+            std::function<std::pair<int, std::function<std::unique_ptr<ReactionTask> (std::unique_ptr<ReactionTask>&&)>> (Reaction&)> generator;
             /// @brief unbinds the reaction and cleans up
             std::function<void (Reaction&)> unbinder;
         };

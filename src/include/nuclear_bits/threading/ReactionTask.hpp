@@ -62,7 +62,7 @@ namespace NUClear {
              * @param parent    the Reaction object that spawned this ReactionTask.
              * @param task      the data bound callback to be executed in the threadpool.
              */
-            ReactionTask(Reaction& parent, const int& priority, std::function<std::function<void ()> (ReactionTask&)> generator);
+            ReactionTask(Reaction& parent, int priority, std::function<std::unique_ptr<ReactionTask> (std::unique_ptr<ReactionTask>&&)> callback);
 
             /**
              * @brief Runs the internal data bound task and times it.
@@ -84,7 +84,7 @@ namespace NUClear {
 
             /// @brief the data bound callback to be executed
             /// @attention note this must be last in the list as the this pointer is passed to the callback generator
-            std::function<void ()> callback;
+            std::function<std::unique_ptr<ReactionTask> (std::unique_ptr<ReactionTask>&&)> callback;
         };
 
         /**

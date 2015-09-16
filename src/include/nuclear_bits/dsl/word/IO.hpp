@@ -74,7 +74,7 @@ namespace NUClear {
                 }
                 
                 template <typename DSL>
-                static inline Event get(threading::ReactionTask&) {
+                static inline Event get(threading::Reaction&) {
                     
                     // If our thread store has a value
                     if(ThreadEventStore::value) {
