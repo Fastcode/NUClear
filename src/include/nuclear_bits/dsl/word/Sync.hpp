@@ -40,7 +40,11 @@ namespace NUClear {
                 
                 /// @brief our queue which sorts tasks by priority
                 static std::priority_queue<task_ptr> queue;
+                /// @brief how many tasks are currently running
                 static int running;
+                /// @brief if we are currently able to reschedule a task
+                static bool rescheduling;
+                /// @brief a mutex to ensure data consistency
                 static std::mutex mutex;
                 
                 template <typename DSL>
@@ -53,7 +57,8 @@ namespace NUClear {
                     ++running;
                     
                     // If this is our first task we don't sync
-                    if(running == 1) {
+                    if(rescheduling || running == 1) {
+                        rescheduling = false;
                         return std::move(task);
                     }
                     // We are not the first, put our task in the queue
@@ -80,6 +85,9 @@ namespace NUClear {
                         std::unique_ptr<threading::ReactionTask> nextTask(std::move(const_cast<std::unique_ptr<threading::ReactionTask>&>(queue.top())));
                         queue.pop();
                         
+                        // We can take a single task now
+                        rescheduling = true;
+                        
                         // Resubmit this task to the reaction queue
                         task.parent.reactor.powerplant.submit(std::move(nextTask));
                     }
@@ -87,7 +95,16 @@ namespace NUClear {
             };
             
             template <typename TSync>
+            std::priority_queue<typename Sync<TSync>::task_ptr> Sync<TSync>::queue;
+            
+            template <typename TSync>
             int Sync<TSync>::running = 0;
+            
+            template <typename TSync>
+            bool Sync<TSync>::rescheduling = false;
+            
+            template <typename TSync>
+            std::mutex Sync<TSync>::mutex;
         }
     }
 }

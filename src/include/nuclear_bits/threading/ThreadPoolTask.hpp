@@ -37,20 +37,18 @@ namespace NUClear {
                         try {
                             task->stats->started = clock::now();
                             task = task->run(std::move(task));
-                            
-                            // Check if we were rescheduled
-                            if(task) {
-                                task->stats->finished = clock::now();
-                            }
                         }
-                        // Catch everything
+                        // Catch everything if an exception occured
                         catch(...) {
                             task->stats->finished = clock::now();
                             task->stats->exception = std::current_exception();
                         }
                         
-                        // Emit our ReactionStats
-                        powerplant.emit<dsl::word::emit::Direct>(std::move(task->stats));
+                        // Emit our ReactionStats if it wasn't rescheduled
+                        if(task) {
+                            task->stats->finished = clock::now();
+                            powerplant.emit<dsl::word::emit::Direct>(std::move(task->stats));
+                        }
                     }
                 }
                 // If this is thrown, it means that we should finish execution

@@ -47,19 +47,19 @@ namespace NUClear {
             template <typename TFirst, typename... TWords>
             struct RescheduleFusion {
             private:
-                /// Returns either the real type or the proxy if the real type does not have a postcondition function
+                /// Returns either the real type or the proxy if the real type does not have a reschedule function
                 template <typename U>
                 using Reschedule = If<has_reschedule<U>, U, operation::DSLProxy<U>>;
                 
-                /// Checks if U has a postcondition function, and at least one of the following words do
+                /// Checks if U has a reschedule function, and at least one of the following words do
                 template <typename U>
                 using UsAndChildren = All<has_reschedule<Reschedule<U>>, Any<has_reschedule<Reschedule<TWords>>...>>;
                 
-                /// Checks if U has a postcondition function, and none of the following words do
+                /// Checks if U has a reschedule function, and none of the following words do
                 template <typename U>
                 using UsNotChildren = All<has_reschedule<Reschedule<U>>, Not<Any<has_reschedule<Reschedule<TWords>>...>>>;
                 
-                /// Checks if we do not have a postcondition function, but at least one of the following words do
+                /// Checks if we do not have a reschedule function, but at least one of the following words do
                 template <typename U>
                 using NotUsChildren = All<Not<has_reschedule<Reschedule<U>>>, Any<has_reschedule<Reschedule<TWords>>...>>;
 
@@ -83,13 +83,13 @@ namespace NUClear {
                 }
                 
                 template <typename DSL, typename U = TFirst>
-                static inline auto postcondition(std::unique_ptr<threading::ReactionTask>&& task)
+                static inline auto reschedule(std::unique_ptr<threading::ReactionTask>&& task)
                 -> EnableIf<UsNotChildren<U>, std::unique_ptr<threading::ReactionTask>> {
                     
                     // If we haven't already been rescheduled
                     if(task) {
                         // Run this reschedule
-                        return RescheduleFusion<U>::template reschedule<DSL>(std::move(task));
+                        return U::template reschedule<DSL>(std::move(task));
                     }
                     else {
                         // Just return our task
@@ -98,11 +98,11 @@ namespace NUClear {
                 }
                 
                 template <typename DSL, typename U = TFirst>
-                static inline auto postcondition(std::unique_ptr<threading::ReactionTask>&& task)
+                static inline auto reschedule(std::unique_ptr<threading::ReactionTask>&& task)
                 -> EnableIf<NotUsChildren<U>, std::unique_ptr<threading::ReactionTask>> {
                     
                     // Run future reschedules
-                    RescheduleFusion<TWords...>::template reschedule<DSL>(std::move(task));
+                    return RescheduleFusion<TWords...>::template reschedule<DSL>(std::move(task));
                 }
             };
         }
