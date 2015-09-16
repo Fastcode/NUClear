@@ -54,6 +54,8 @@ namespace NUClear {
                     }
                 };
                 
+                using ThreadEventStore = dsl::store::ThreadStore<Event>;
+                
                 template <typename DSL, typename TFunc>
                 static inline threading::ReactionHandle bind(Reactor& reactor, const std::string& label, TFunc&& callback, int fd, int watchSet) {
                     
@@ -74,12 +76,14 @@ namespace NUClear {
                 template <typename DSL>
                 static inline Event get(threading::ReactionTask&) {
                     
-                    
-                    using thread_fd   = dsl::store::ThreadStore<int, 0>;
-                    using thread_mask = dsl::store::ThreadStore<int, 1>;
-                    
-                    // Return our thread local variable
-                    return Event { thread_fd::value, thread_mask::value };
+                    // If our thread store has a value
+                    if(ThreadEventStore::value) {
+                        return *ThreadEventStore::value;
+                    }
+                    // Otherwise return an empty event
+                    else {
+                        return Event { 0, 0 };
+                    }
                 }
             };
         }

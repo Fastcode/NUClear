@@ -41,9 +41,6 @@ namespace NUClear {
                 }
             };
             
-            using thread_fd   = dsl::store::ThreadStore<int, 0>;
-            using thread_mask = dsl::store::ThreadStore<int, 1>;
-            
         public:
             explicit IOController(std::unique_ptr<NUClear::Environment> environment)
             : Reactor(std::move(environment)) {
@@ -170,29 +167,32 @@ namespace NUClear {
                                             
                                             // We should emit if the reaction is interested
                                             if (it->events & fd.revents) {
-                                                // Add the task to our queue
+                                                
+                                                // Make our event to pass through
+                                                IO::Event e;
+                                                e.fd = fd.fd;
+                                                
+                                                // Evaluate and store our set in thread store
+                                                e.events = 0;
+                                                e.events |= fd.revents & POLLIN               ? IO::READ     : 0;
+                                                e.events |= fd.revents & POLLOUT              ? IO::WRITE    : 0;
+                                                e.events |= fd.revents & POLLHUP              ? IO::CLOSE    : 0;
+                                                e.events |= fd.revents & (POLLNVAL | POLLERR) ? IO::ERROR    : 0;
+                                                
+                                                // Store the event in our thread local cache
+                                                IO::ThreadEventStore::value = &e;
+                                                
+                                                // Submit the task (which should run the get)
                                                 try {
-                                                    // Store our fd in thread store 1
-                                                    thread_fd::value = fd.fd;
-                                                    
-                                                    // Evaluate and store our set in thread store 2
-                                                    thread_mask::value = 0;
-                                                    thread_mask::value |= fd.revents & POLLIN               ? IO::READ     : 0;
-                                                    thread_mask::value |= fd.revents & POLLOUT              ? IO::WRITE    : 0;
-                                                    thread_mask::value |= fd.revents & POLLHUP              ? IO::CLOSE    : 0;
-                                                    thread_mask::value |= fd.revents & (POLLNVAL | POLLERR) ? IO::ERROR    : 0;
-                                                    
-                                                    // Submit the task (which should run the get)
                                                     powerplant.submit(it->reaction->getTask());
-                                                    
-                                                    // Reset our fd back to 0
-                                                    thread_fd::value = 0;
-                                                    thread_mask::value = 0;
                                                 }
-                                                catch(util::CancelRunException ex) {
+                                                catch (util::CancelRunException ex) {
                                                 }
-                                                catch(...) {
+                                                catch (...) {
                                                 }
+                                                
+                                                // Reset our value
+                                                IO::ThreadEventStore::value = nullptr;
                                             }
                                         }
                                     }

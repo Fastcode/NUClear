@@ -22,13 +22,13 @@ namespace NUClear {
     namespace dsl {
         namespace store {
             
-            template <typename TData, int Index>
+            template <typename TData, int Index = 0>
             struct ThreadStore {
-                static __thread TData value;
+                static __thread TData* value;
             };
             
             template <typename TData, int index>
-            __thread TData ThreadStore<TData, index>::value;
+            __thread TData* ThreadStore<TData, index>::value = nullptr;
         }
     }
 }
