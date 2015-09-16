@@ -43,7 +43,6 @@ IF("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU")
 
 ELSEIF("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -Wpedantic -Wextra")
-
 ELSE()
     MESSAGE(FATAL_ERROR "Unsupported compiler!")
 ENDIF()
@@ -52,7 +51,7 @@ ENDIF()
 ADD_SUBDIRECTORY(src)
 
 # Install the headers and templates that NUClear.h depends on
-INSTALL(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/src/include/ DESTINATION include PATTERN "*.h" PATTERN "*.ipp")
+INSTALL(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/src/include/ DESTINATION include PATTERN "*.hpp" PATTERN "*.ipp")
 
 # Optional build supports
 if(BUILD_TESTS)
