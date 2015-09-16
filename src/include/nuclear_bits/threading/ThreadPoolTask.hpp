@@ -33,20 +33,11 @@ namespace NUClear {
                         // Get a task
                         std::unique_ptr<ReactionTask> task(scheduler.getTask());
                         
-                        // Try to execute the task (catching any exceptions so it doesn't kill the pool thread)
-                        try {
-                            task->stats->started = clock::now();
-                            task = task->run(std::move(task));
-                        }
-                        // Catch everything if an exception occured
-                        catch(...) {
-                            task->stats->finished = clock::now();
-                            task->stats->exception = std::current_exception();
-                        }
+                        // Run the task
+                        task = task->run(std::move(task));
                         
-                        // Emit our ReactionStats if it wasn't rescheduled
+                        // If the task actually ran emit the statistics
                         if(task) {
-                            task->stats->finished = clock::now();
                             powerplant.emit<dsl::word::emit::Direct>(std::move(task->stats));
                         }
                     }

@@ -68,8 +68,16 @@ namespace NUClear {
                 auto oldTask = currentTask;
                 currentTask = this;
                 
-                // Call our callback
-                callback();
+                // Call our callback (catching any nasty exceptions)
+                try {
+                    stats->started = clock::now();
+                    callback();
+                }
+                catch(...) {
+                    // Catch our exception if it happens
+                    stats->exception = std::current_exception();
+                }
+                stats->finished = clock::now();
                 
                 // We run our postcondition now we are done before we die
                 parent.postcondition(*this);
