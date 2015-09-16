@@ -15,11 +15,11 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include "nuclear_bits/PowerPlant.h"
-#include "nuclear_bits/threading/ThreadPoolTask.h"
+#include "nuclear_bits/PowerPlant.hpp"
+#include "nuclear_bits/threading/ThreadPoolTask.hpp"
 
-#include "nuclear_bits/extension/ChronoController.h"
-#include "nuclear_bits/extension/IOController.h"
+#include "nuclear_bits/extension/ChronoController.hpp"
+#include "nuclear_bits/extension/IOController.hpp"
 
 namespace NUClear {
     

@@ -15,35 +15,44 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include "nuclear_bits/threading/ReactionHandle.hpp"
+#ifndef NUCLEAR_UTIL_SERIALISE_SERIALISE_H
+#define NUCLEAR_UTIL_SERIALISE_SERIALISE_H
+
+#include <string>
+
+#include "nuclear_bits/util/MetaProgramming.hpp"
 
 namespace NUClear {
-    namespace threading {
-        
-        ReactionHandle::ReactionHandle(Reaction* context) : context(context) {
-        }
+    namespace util {
+        namespace serialise {
+            
+            // Import metaprogramming tools
+            template <typename Condition, typename Value>
+            using EnableIf = util::Meta::EnableIf<Condition, Value>;
 
-        bool ReactionHandle::enabled() {
-            return context->enabled;
-        }
+            template <typename TData>
+            struct Serialise {
+                
+                // enable if is pod
+                template <typename T>
+                static inline EnableIf<std::is_pod<T>, std::string> serialise(const T& in) {
 
-        ReactionHandle& ReactionHandle::enable() {
-            context->enabled = true;
-            return *this;
-        }
-
-        ReactionHandle& ReactionHandle::enable(bool set) {
-            context->enabled = set;
-            return *this;
-        }
-
-        ReactionHandle& ReactionHandle::disable() {
-            context->enabled = false;
-            return *this;
-        }
-        
-        void ReactionHandle::unbind() {
-            context->unbind();
+                    const char* data = reinterpret_cast<const char*>(&in);
+                    
+                    return std::string(data, sizeof(T));
+                }
+                
+                static inline std::string serialise(const std::string& in) {
+                    return in;
+                }
+                
+                
+                // enable if is iterable of type pod
+                
+                // enable if is protocol buffer
+            };
         }
     }
 }
+
+#endif

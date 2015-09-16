@@ -15,35 +15,27 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include "nuclear_bits/threading/ReactionHandle.hpp"
+#ifndef NUCLEAR_DSL_WORD_SHUTDOWN_H
+#define NUCLEAR_DSL_WORD_SHUTDOWN_H
+
+#include "nuclear_bits/dsl/operation/TypeBind.hpp"
 
 namespace NUClear {
-    namespace threading {
-        
-        ReactionHandle::ReactionHandle(Reaction* context) : context(context) {
-        }
+    namespace dsl {
+        namespace word {
 
-        bool ReactionHandle::enabled() {
-            return context->enabled;
-        }
-
-        ReactionHandle& ReactionHandle::enable() {
-            context->enabled = true;
-            return *this;
-        }
-
-        ReactionHandle& ReactionHandle::enable(bool set) {
-            context->enabled = set;
-            return *this;
-        }
-
-        ReactionHandle& ReactionHandle::disable() {
-            context->enabled = false;
-            return *this;
-        }
-        
-        void ReactionHandle::unbind() {
-            context->unbind();
+            /**
+             * @ingroup SmartTypes
+             * @brief This type is emitted when the system starts shutting down.
+             *
+             * @details
+             *  Once this type is emitted, all existing tasks within the system are completed including the shutdown
+             *  tasks, Any new emit events will not be processed and all new tasks will be ignored. Once all tasks are
+             *  finish the system will terminate.
+             */
+            struct Shutdown : public operation::TypeBind<Shutdown> {};
         }
     }
 }
+
+#endif

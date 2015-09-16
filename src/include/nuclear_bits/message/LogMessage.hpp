@@ -15,35 +15,42 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include "nuclear_bits/threading/ReactionHandle.hpp"
+#ifndef NUCLEAR_MESSAGE_LOGMESSAGE_H
+#define NUCLEAR_MESSAGE_LOGMESSAGE_H
+
+#include "LogLevel.hpp"
 
 namespace NUClear {
-    namespace threading {
-        
-        ReactionHandle::ReactionHandle(Reaction* context) : context(context) {
-        }
-
-        bool ReactionHandle::enabled() {
-            return context->enabled;
-        }
-
-        ReactionHandle& ReactionHandle::enable() {
-            context->enabled = true;
-            return *this;
-        }
-
-        ReactionHandle& ReactionHandle::enable(bool set) {
-            context->enabled = set;
-            return *this;
-        }
-
-        ReactionHandle& ReactionHandle::disable() {
-            context->enabled = false;
-            return *this;
-        }
-        
-        void ReactionHandle::unbind() {
-            context->unbind();
-        }
+    namespace message {
+    
+        /**
+         * @brief This type is a NUClear message type that holds a log message.
+         */
+        struct LogMessage {
+            
+            
+            /// @brief The logging level of the log.
+            LogLevel level;
+            
+            /// @brief The string contents of the message.
+            std::string message;
+            
+            /// @brief The currently executing task that made this message
+            const ReactionStatistics* task;
+            
+            /**
+             * @brief Constructs a new LogMessage.
+             *
+             * @param level the logging level to set.
+             * @param message the message to set.
+             */
+            LogMessage(const LogLevel& level
+                       , const std::string& message
+                       , const ReactionStatistics* task)
+            : level(level)
+            , message(message)
+            , task(task) {}
+        };
     }
 }
+#endif

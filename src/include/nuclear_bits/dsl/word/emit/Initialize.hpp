@@ -15,35 +15,31 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include "nuclear_bits/threading/ReactionHandle.hpp"
+#ifndef NUCLEAR_DSL_WORD_EMIT_INITIALIZE_H
+#define NUCLEAR_DSL_WORD_EMIT_INITIALIZE_H
+
+#include "Direct.hpp"
 
 namespace NUClear {
-    namespace threading {
-        
-        ReactionHandle::ReactionHandle(Reaction* context) : context(context) {
-        }
+    namespace dsl {
+        namespace word {
+            namespace emit {
+                
+                template <typename TData>
+                struct Initialize {
 
-        bool ReactionHandle::enabled() {
-            return context->enabled;
-        }
-
-        ReactionHandle& ReactionHandle::enable() {
-            context->enabled = true;
-            return *this;
-        }
-
-        ReactionHandle& ReactionHandle::enable(bool set) {
-            context->enabled = set;
-            return *this;
-        }
-
-        ReactionHandle& ReactionHandle::disable() {
-            context->enabled = false;
-            return *this;
-        }
-        
-        void ReactionHandle::unbind() {
-            context->unbind();
+                    static void emit(PowerPlant& powerplant, std::shared_ptr<TData> data) {
+                        
+                        auto task = [&powerplant, data] {
+                            emit::Direct<TData>::emit(powerplant, data);
+                        };
+                        
+                        powerplant.onStartup(task);
+                    }
+                };
+            }
         }
     }
 }
+
+#endif

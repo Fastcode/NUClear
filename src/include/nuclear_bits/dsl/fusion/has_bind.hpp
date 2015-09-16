@@ -15,35 +15,35 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+#ifndef NUCLEAR_DSL_FUSION_HASBIND_H
+#define NUCLEAR_DSL_FUSION_HASBIND_H
+
+#include "nuclear_bits/util/MetaProgramming.hpp"
 #include "nuclear_bits/threading/ReactionHandle.hpp"
+#include "nuclear_bits/dsl/fusion/NoOp.hpp"
 
 namespace NUClear {
-    namespace threading {
-        
-        ReactionHandle::ReactionHandle(Reaction* context) : context(context) {
-        }
-
-        bool ReactionHandle::enabled() {
-            return context->enabled;
-        }
-
-        ReactionHandle& ReactionHandle::enable() {
-            context->enabled = true;
-            return *this;
-        }
-
-        ReactionHandle& ReactionHandle::enable(bool set) {
-            context->enabled = set;
-            return *this;
-        }
-
-        ReactionHandle& ReactionHandle::disable() {
-            context->enabled = false;
-            return *this;
-        }
-        
-        void ReactionHandle::unbind() {
-            context->unbind();
+    namespace dsl {
+        namespace fusion {
+            
+            template <typename T>
+            struct has_bind {
+            private:
+                typedef std::true_type yes;
+                typedef std::false_type no;
+                
+                template <typename R, typename F, typename... A>
+                static yes test_func(R(*)(Reactor&, const std::string&, F, A...));
+                static no test_func(...);
+                
+                template <typename U> static auto test(int) -> decltype(test_func(U::template bind<ParsedNoOp, std::function<std::function<void ()>(threading::ReactionTask&)>>));
+                template <typename> static no test(...);
+                
+            public:
+                static constexpr bool value = std::is_same<decltype(test<T>(0)),yes>::value;
+            };
         }
     }
 }
+
+#endif

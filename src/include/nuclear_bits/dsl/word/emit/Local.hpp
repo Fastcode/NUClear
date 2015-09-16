@@ -15,32 +15,41 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_H
-#define NUCLEAR_H
+#ifndef NUCLEAR_DSL_WORD_EMIT_LOCAL_H
+#define NUCLEAR_DSL_WORD_EMIT_LOCAL_H
 
 #include "nuclear_bits/PowerPlant.hpp"
-#include "nuclear_bits/Reactor.hpp"
 
-/**
- * @namespace NUClear
- *
- * @brief This namespace holds all of the Classes which are available in the public NUClear API.
- *
- * @details
- *  This namespace holds all of the classes which a user which is writing a program
- */
+#include "nuclear_bits/dsl/store/TypeCallbackStore.hpp"
+#include "nuclear_bits/dsl/store/DataStore.hpp"
 
-/**
- * @namespace NUClear::Internal
- *
- * @brief This namespace holds all of the internal functionality of NUClear, if you are using this API and you are
- *        using something from this namespace, you are probably doing it wrong.
- */
-
-/**
- * @namespace NUClear::Internal::Magic
- *
- * @brief This namespace holds template tricks and other c++ exploitation used throughout the system
- */
+namespace NUClear {
+    namespace dsl {
+        namespace word {
+            namespace emit {
+                
+                template <typename TData>
+                struct Local {
+                    
+                    static void emit(PowerPlant& powerplant, std::shared_ptr<TData> data) {
+                        
+                        // Set our data in the store
+                        store::DataStore<TData>::set(data);
+                        
+                        for(auto& reaction : store::TypeCallbackStore<TData>::get()) {
+                            try {
+                                auto task = reaction->getTask();
+                                powerplant.submit(std::move(task));
+                            }
+                            catch(...) {
+                                // TODO should I do something here?
+                            }
+                        }
+                    }
+                };
+            }
+        }
+    }
+}
 
 #endif

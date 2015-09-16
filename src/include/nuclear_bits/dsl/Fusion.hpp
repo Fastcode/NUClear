@@ -15,35 +15,29 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+#ifndef NUCLEAR_DSL_FUSION_H
+#define NUCLEAR_DSL_FUSION_H
+
 #include "nuclear_bits/threading/ReactionHandle.hpp"
+#include "nuclear_bits/dsl/fusion/BindFusion.hpp"
+#include "nuclear_bits/dsl/fusion/GetFusion.hpp"
+#include "nuclear_bits/dsl/fusion/PreconditionFusion.hpp"
+#include "nuclear_bits/dsl/fusion/PriorityFusion.hpp"
+#include "nuclear_bits/dsl/fusion/RescheduleFusion.hpp"
+#include "nuclear_bits/dsl/fusion/PostconditionFusion.hpp"
 
 namespace NUClear {
-    namespace threading {
-        
-        ReactionHandle::ReactionHandle(Reaction* context) : context(context) {
-        }
+    namespace dsl {
 
-        bool ReactionHandle::enabled() {
-            return context->enabled;
-        }
-
-        ReactionHandle& ReactionHandle::enable() {
-            context->enabled = true;
-            return *this;
-        }
-
-        ReactionHandle& ReactionHandle::enable(bool set) {
-            context->enabled = set;
-            return *this;
-        }
-
-        ReactionHandle& ReactionHandle::disable() {
-            context->enabled = false;
-            return *this;
-        }
-        
-        void ReactionHandle::unbind() {
-            context->unbind();
-        }
+        template <typename... TWords>
+        struct Fusion
+        : public fusion::BindFusion<TWords...>
+        , public fusion::GetFusion<TWords...>
+        , public fusion::PreconditionFusion<TWords...>
+        , public fusion::PriorityFusion<TWords...>
+        , public fusion::RescheduleFusion<TWords...>
+        , public fusion::PostconditionFusion<TWords...> {};
     }
 }
+
+#endif

@@ -1,82 +1,82 @@
 FILE(GLOB src
     "*.cpp"
     "include/nuclear"
-    "include/nuclear_bits/*.h"
+    "include/nuclear_bits/*.hpp"
     "include/nuclear_bits/*.ipp")
 
 FILE(GLOB src_threading
     "threading/*.cpp"
-    "include/nuclear_bits/threading/*.h"
+    "include/nuclear_bits/threading/*.hpp"
     "include/nuclear_bits/threading/*.ipp")
 
 FILE(GLOB src_extension
     "extension/*.cpp"
-    "include/nuclear_bits/extension/*.h"
+    "include/nuclear_bits/extension/*.hpp"
     "include/nuclear_bits/extension/*.ipp")
     
 FILE(GLOB src_dsl
     "dsl/*.cpp"
-    "include/nuclear_bits/dsl/*.h"
+    "include/nuclear_bits/dsl/*.hpp"
     "include/nuclear_bits/dsl/*.ipp")
 
 FILE(GLOB src_dsl_store
     "dsl/store/*.cpp"
-    "include/nuclear_bits/dsl/store/*.h"
+    "include/nuclear_bits/dsl/store/*.hpp"
     "include/nuclear_bits/dsl/store/*.ipp")
 
 FILE(GLOB src_dsl_trait
     "dsl/trait/*.cpp"
-    "include/nuclear_bits/dsl/trait/*.h"
+    "include/nuclear_bits/dsl/trait/*.hpp"
     "include/nuclear_bits/dsl/trait/*.ipp")
 
 FILE(GLOB src_dsl_operation
     "dsl/operation/*.cpp"
-    "include/nuclear_bits/dsl/operation/*.h"
+    "include/nuclear_bits/dsl/operation/*.hpp"
     "include/nuclear_bits/dsl/operation/*.ipp")
 
 FILE(GLOB src_dsl_fusion
     "dsl/fusion/*.cpp"
-    "include/nuclear_bits/dsl/fusion/*.h"
+    "include/nuclear_bits/dsl/fusion/*.hpp"
     "include/nuclear_bits/dsl/fusion/*.ipp")
 
 FILE(GLOB src_dsl_validation
     "dsl/validation/*.cpp"
-    "include/nuclear_bits/dsl/validation/*.h"
+    "include/nuclear_bits/dsl/validation/*.hpp"
     "include/nuclear_bits/dsl/validation/*.ipp")
 
 FILE(GLOB src_dsl_word
     "dsl/word/*.cpp"
-    "include/nuclear_bits/dsl/word/*.h"
+    "include/nuclear_bits/dsl/word/*.hpp"
     "include/nuclear_bits/dsl/word/*.ipp")
 
 FILE(GLOB src_dsl_word_emit
     "dsl/word/emit/*.cpp"
-    "include/nuclear_bits/dsl/word/emit/*.h"
+    "include/nuclear_bits/dsl/word/emit/*.hpp"
     "include/nuclear_bits/dsl/word/emit/*.ipp")
 
 FILE(GLOB src_message
     "messages/*.cpp"
-    "include/nuclear_bits/message/*.h"
+    "include/nuclear_bits/message/*.hpp"
     "include/nuclear_bits/message/*.ipp")
 
 FILE(GLOB src_util
     "util/*.cpp"
-    "include/nuclear_bits/util/*.h"
+    "include/nuclear_bits/util/*.hpp"
     "include/nuclear_bits/util/*.ipp")
 
 FILE(GLOB src_util_exception
     "util/exception/*.cpp"
-    "include/nuclear_bits/util/exception/*.h"
+    "include/nuclear_bits/util/exception/*.hpp"
     "include/nuclear_bits/util/exception/*.ipp")
 
 FILE(GLOB src_util_network
     "util/network/*.cpp"
-    "include/nuclear_bits/util/network/*.h"
+    "include/nuclear_bits/util/network/*.hpp"
     "include/nuclear_bits/util/network/*.ipp")
 
 FILE(GLOB src_util_serialise
     "util/network/*.cpp"
-    "include/nuclear_bits/util/serialise/*.h"
+    "include/nuclear_bits/util/serialise/*.hpp"
     "include/nuclear_bits/util/serialise/*.ipp")
 
 SOURCE_GROUP(""                         FILES ${src})

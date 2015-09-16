@@ -15,35 +15,22 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include "nuclear_bits/threading/ReactionHandle.hpp"
+#ifndef NUCLEAR_DSL_STORE_TYPECALLBACKSTORE_H
+#define NUCLEAR_DSL_STORE_TYPECALLBACKSTORE_H
+
+#include <memory>
+
+#include "nuclear_bits/util/TypeList.hpp"
+#include "nuclear_bits/threading/Reaction.hpp"
 
 namespace NUClear {
-    namespace threading {
-        
-        ReactionHandle::ReactionHandle(Reaction* context) : context(context) {
-        }
-
-        bool ReactionHandle::enabled() {
-            return context->enabled;
-        }
-
-        ReactionHandle& ReactionHandle::enable() {
-            context->enabled = true;
-            return *this;
-        }
-
-        ReactionHandle& ReactionHandle::enable(bool set) {
-            context->enabled = set;
-            return *this;
-        }
-
-        ReactionHandle& ReactionHandle::disable() {
-            context->enabled = false;
-            return *this;
-        }
-        
-        void ReactionHandle::unbind() {
-            context->unbind();
+    namespace dsl {
+        namespace store {
+            
+            template <typename TKey>
+            using TypeCallbackStore = util::TypeList<TKey, TKey, std::unique_ptr<threading::Reaction>>;
         }
     }
 }
+
+#endif

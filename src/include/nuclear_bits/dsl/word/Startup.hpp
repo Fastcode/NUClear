@@ -15,35 +15,26 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include "nuclear_bits/threading/ReactionHandle.hpp"
+#ifndef NUCLEAR_DSL_WORD_STARTUP_H
+#define NUCLEAR_DSL_WORD_STARTUP_H
+
+#include "nuclear_bits/dsl/operation/TypeBind.hpp"
 
 namespace NUClear {
-    namespace threading {
-        
-        ReactionHandle::ReactionHandle(Reaction* context) : context(context) {
-        }
+    namespace dsl {
+        namespace word {
 
-        bool ReactionHandle::enabled() {
-            return context->enabled;
-        }
-
-        ReactionHandle& ReactionHandle::enable() {
-            context->enabled = true;
-            return *this;
-        }
-
-        ReactionHandle& ReactionHandle::enable(bool set) {
-            context->enabled = set;
-            return *this;
-        }
-
-        ReactionHandle& ReactionHandle::disable() {
-            context->enabled = false;
-            return *this;
-        }
-        
-        void ReactionHandle::unbind() {
-            context->unbind();
+            /**
+             * @ingroup SmartTypes
+             * @brief This type is emitted when the system is first started up.
+             *
+             * @details
+             *  This type is emitted when the system first starts up, after reactors have been installed. This is
+             *  used if a reactor needs to use information provided by other reactors constructors.
+             */
+            struct Startup : public operation::TypeBind<Startup> {};
         }
     }
 }
+
+#endif

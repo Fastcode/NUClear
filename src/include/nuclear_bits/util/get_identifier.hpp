@@ -15,35 +15,30 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include "nuclear_bits/threading/ReactionHandle.hpp"
+#ifndef NUCLEAR_UTIL_GETIDENTIFIER_H
+#define NUCLEAR_UTIL_GETIDENTIFIER_H
+
+#include <string>
+#include <vector>
+
+#include "nuclear_bits/util/demangle.hpp"
 
 namespace NUClear {
-    namespace threading {
-        
-        ReactionHandle::ReactionHandle(Reaction* context) : context(context) {
-        }
+    namespace util {
 
-        bool ReactionHandle::enabled() {
-            return context->enabled;
-        }
-
-        ReactionHandle& ReactionHandle::enable() {
-            context->enabled = true;
-            return *this;
-        }
-
-        ReactionHandle& ReactionHandle::enable(bool set) {
-            context->enabled = set;
-            return *this;
-        }
-
-        ReactionHandle& ReactionHandle::disable() {
-            context->enabled = false;
-            return *this;
-        }
-        
-        void ReactionHandle::unbind() {
-            context->unbind();
+        template <typename TFusion, typename TFunc>
+        std::vector<std::string> get_identifier(std::string usr) {
+            
+            std::vector<std::string> out;
+            out.reserve(3);
+            
+            out.push_back(usr);
+            out.push_back(demangle(typeid(TFusion).name()));
+            out.push_back(demangle(typeid(TFunc).name()));
+            
+            return out;
         }
     }
 }
+
+#endif

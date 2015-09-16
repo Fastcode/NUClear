@@ -15,35 +15,47 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include "nuclear_bits/threading/ReactionHandle.hpp"
+#ifndef NUCLEAR_UTIL_DEREFERENCEABLE_H
+#define NUCLEAR_UTIL_DEREFERENCEABLE_H
+
+#include "MetaProgramming.hpp"
 
 namespace NUClear {
-    namespace threading {
+    namespace util {
         
-        ReactionHandle::ReactionHandle(Reaction* context) : context(context) {
-        }
-
-        bool ReactionHandle::enabled() {
-            return context->enabled;
-        }
-
-        ReactionHandle& ReactionHandle::enable() {
-            context->enabled = true;
-            return *this;
-        }
-
-        ReactionHandle& ReactionHandle::enable(bool set) {
-            context->enabled = set;
-            return *this;
-        }
-
-        ReactionHandle& ReactionHandle::disable() {
-            context->enabled = false;
-            return *this;
+        template<typename T>
+        struct is_dereferenceable {
+        private:
+            typedef std::true_type yes;
+            typedef std::false_type no;
+            
+            template <typename U> static auto test(int) -> decltype(*std::declval<U>(), yes());
+            template <typename> static no test(...);
+            
+        public:
+            static constexpr bool value = std::is_same<decltype(test<T>(0)), yes>::value;
+        };
+        
+        template <typename TData>
+        auto dereference(TData&& d) -> Meta::EnableIf<is_dereferenceable<TData>, decltype(*d)> {
+            return *d;
         }
         
-        void ReactionHandle::unbind() {
-            context->unbind();
+        template <typename TData>
+        auto dereference(TData&& d) -> Meta::EnableIf<Meta::Not<is_dereferenceable<TData>>, decltype(d)> {
+            return d;
         }
+        
+        
+        template <typename T>
+        struct DereferenceTuple;
+        
+        template <typename... Ts>
+        struct DereferenceTuple<std::tuple<Ts...>> {
+            using type = std::tuple<decltype(dereference(std::declval<Ts>()))...>;
+        };
+           
     }
 }
+
+#endif

@@ -15,35 +15,33 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include "nuclear_bits/threading/ReactionHandle.hpp"
+#ifndef NUCLEAR_DSL_WORD_TRIGGER_H
+#define NUCLEAR_DSL_WORD_TRIGGER_H
+
+#include "nuclear_bits/dsl/operation/CacheGet.hpp"
+#include "nuclear_bits/dsl/operation/TypeBind.hpp"
 
 namespace NUClear {
-    namespace threading {
-        
-        ReactionHandle::ReactionHandle(Reaction* context) : context(context) {
-        }
+    namespace dsl {
+        namespace word {
 
-        bool ReactionHandle::enabled() {
-            return context->enabled;
-        }
-
-        ReactionHandle& ReactionHandle::enable() {
-            context->enabled = true;
-            return *this;
-        }
-
-        ReactionHandle& ReactionHandle::enable(bool set) {
-            context->enabled = set;
-            return *this;
-        }
-
-        ReactionHandle& ReactionHandle::disable() {
-            context->enabled = false;
-            return *this;
-        }
-        
-        void ReactionHandle::unbind() {
-            context->unbind();
+            /**
+             * @ingroup Wrappers
+             * @brief This is a wrapper class which is used to list the data types to trigger a callback on.
+             *
+             * @details
+             *  This class is used in the on binding to specify which data types are to be used trigger a callback. It
+             *  works under and logic for multiple types. When all of the types have been emitted at least once since
+             *  the last time this event was triggered, this event is triggered again.
+             *
+             * @tparam TTriggers the datatypes to trigger a callback on
+             */
+            template <typename TType>
+            struct Trigger
+            : public operation::TypeBind<TType>
+            , public operation::CacheGet<TType> {};
         }
     }
 }
+
+#endif

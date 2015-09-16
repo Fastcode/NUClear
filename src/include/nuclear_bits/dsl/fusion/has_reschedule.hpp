@@ -15,35 +15,30 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include "nuclear_bits/threading/ReactionHandle.hpp"
+#ifndef NUCLEAR_DSL_FUSION_HASRESCHEDULE_H
+#define NUCLEAR_DSL_FUSION_HASRESCHEDULE_H
+
+#include "nuclear_bits/threading/ReactionTask.hpp"
+#include "nuclear_bits/dsl/fusion/NoOp.hpp"
 
 namespace NUClear {
-    namespace threading {
-        
-        ReactionHandle::ReactionHandle(Reaction* context) : context(context) {
-        }
-
-        bool ReactionHandle::enabled() {
-            return context->enabled;
-        }
-
-        ReactionHandle& ReactionHandle::enable() {
-            context->enabled = true;
-            return *this;
-        }
-
-        ReactionHandle& ReactionHandle::enable(bool set) {
-            context->enabled = set;
-            return *this;
-        }
-
-        ReactionHandle& ReactionHandle::disable() {
-            context->enabled = false;
-            return *this;
-        }
-        
-        void ReactionHandle::unbind() {
-            context->unbind();
+    namespace dsl {
+        namespace fusion {
+            
+            template<typename T>
+            struct has_reschedule {
+            private:
+                typedef std::true_type yes;
+                typedef std::false_type no;
+                
+                template<typename U> static auto test(int) -> decltype(U::template reschedule<ParsedNoOp>(std::declval<std::unique_ptr<threading::ReactionTask>>()), yes());
+                template<typename> static no test(...);
+                
+            public:
+                static constexpr bool value = std::is_same<decltype(test<T>(0)),yes>::value;
+            };
         }
     }
 }
+
+#endif

@@ -15,35 +15,41 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include "nuclear_bits/threading/ReactionHandle.hpp"
+#ifndef NUCLEAR_ENVIRONMENT_H
+#define NUCLEAR_ENVIRONMENT_H
+
+#include "nuclear_bits/message/LogLevel.hpp"
 
 namespace NUClear {
-    namespace threading {
+    
+    // Forward declare reactor
+    class Reactor;
+    
+    /**
+     * @brief
+     *  Environment defines variables that are passed from the installing PowerPlant context
+     *  into a Reactor.
+     *
+     * @details
+     *  The Environment is used to provide information from the PowerPlant to Reactors.
+     *  Each Reactor owns it's own environment and can use it to access useful information.
+     *
+     * @author Jake Woods
+     */
+    class Environment {
+    public:
+        Environment(PowerPlant& powerplant, LogLevel logLevel = LogLevel::INFO)
+          : powerplant(powerplant)
+          , logLevel(logLevel) {};
         
-        ReactionHandle::ReactionHandle(Reaction* context) : context(context) {
-        }
-
-        bool ReactionHandle::enabled() {
-            return context->enabled;
-        }
-
-        ReactionHandle& ReactionHandle::enable() {
-            context->enabled = true;
-            return *this;
-        }
-
-        ReactionHandle& ReactionHandle::enable(bool set) {
-            context->enabled = set;
-            return *this;
-        }
-
-        ReactionHandle& ReactionHandle::disable() {
-            context->enabled = false;
-            return *this;
-        }
+    private:
+        friend class PowerPlant;
+        friend class Reactor;
         
-        void ReactionHandle::unbind() {
-            context->unbind();
-        }
-    }
+        /// @brief The PowerPlant to use in this reactor
+        PowerPlant& powerplant;
+        /// @brief The log level to resepect for this reactor
+        LogLevel logLevel;
+    };
 }
+#endif
