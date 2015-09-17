@@ -65,8 +65,6 @@ namespace NUClear {
                             try {
                                 run();
                             }
-                            catch(util::CancelRunException ex) {
-                            }
                             catch(...) {
                             }
                         }

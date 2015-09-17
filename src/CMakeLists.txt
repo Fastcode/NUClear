@@ -13,7 +13,7 @@ FILE(GLOB src_extension
     "extension/*.cpp"
     "include/nuclear_bits/extension/*.hpp"
     "include/nuclear_bits/extension/*.ipp")
-    
+
 FILE(GLOB src_dsl
     "dsl/*.cpp"
     "include/nuclear_bits/dsl/*.hpp"
@@ -64,11 +64,6 @@ FILE(GLOB src_util
     "include/nuclear_bits/util/*.hpp"
     "include/nuclear_bits/util/*.ipp")
 
-FILE(GLOB src_util_exception
-    "util/exception/*.cpp"
-    "include/nuclear_bits/util/exception/*.hpp"
-    "include/nuclear_bits/util/exception/*.ipp")
-
 FILE(GLOB src_util_network
     "util/network/*.cpp"
     "include/nuclear_bits/util/network/*.hpp"
@@ -92,7 +87,6 @@ SOURCE_GROUP(dsl\\word                  FILES ${src_dsl_word})
 SOURCE_GROUP(dsl\\word\\emit            FILES ${src_dsl_word_emit})
 SOURCE_GROUP(messages                   FILES ${src_message})
 SOURCE_GROUP(util                       FILES ${src_util})
-SOURCE_GROUP(util\\exception            FILES ${src_util_exception})
 SOURCE_GROUP(util\\network              FILES ${src_util_network})
 SOURCE_GROUP(util\\serialise            FILES ${src_util_serialise})
 
@@ -110,7 +104,6 @@ ADD_LIBRARY(nuclear STATIC
     ${src_dsl}
     ${src_message}
     ${src_util}
-    ${src_util_exception}
     ${src_util_network}
     ${src_util_serialise})
 

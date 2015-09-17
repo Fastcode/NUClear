@@ -24,7 +24,6 @@
 #include "nuclear_bits/util/TransientDataElements.hpp"
 #include "nuclear_bits/util/MergeTransient.hpp"
 #include "nuclear_bits/util/RelevantArguments.hpp"
-#include "nuclear_bits/util/exception/CancelRunException.hpp"
 
 namespace NUClear {
     namespace util {

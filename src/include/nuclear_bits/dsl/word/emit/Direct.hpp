@@ -42,8 +42,6 @@ namespace NUClear {
                                     task = task->run(std::move(task));
                                 }
                             }
-                            catch(util::CancelRunException ex) {
-                            }
                             catch(...) {
                                 // TODO should something happen here?
                             }

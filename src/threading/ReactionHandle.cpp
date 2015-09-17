@@ -45,5 +45,9 @@ namespace NUClear {
         void ReactionHandle::unbind() {
             context->unbind();
         }
+        
+        ReactionHandle::operator bool() const {
+            return context != nullptr;
+        }
     }
 }

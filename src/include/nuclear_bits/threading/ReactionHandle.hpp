@@ -80,6 +80,13 @@ namespace NUClear {
              * @brief Unbinds the reaction and cleans up so it will never run again
              */
             void unbind();
+            
+            /**
+             * @brief Returns if this reaction handle holds a valid pointer (may be already unbound)
+             *
+             * @return true if the reaction held in this is not a nullptr
+             */
+            operator bool() const;
         };
     }
 }
