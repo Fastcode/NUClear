@@ -15,32 +15,17 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_DSL_WORD_SINGLE_H
-#define NUCLEAR_DSL_WORD_SINGLE_H
+#ifndef NUCLEAR_MESSAGE_NETWORKCONFIGURATION_H
+#define NUCLEAR_MESSAGE_NETWORKCONFIGURATION_H
 
 namespace NUClear {
-    namespace dsl {
-        namespace word {
-
-            /**
-             * @ingroup Options
-             * @brief This option sets the Single instance status of the task
-             *
-             * @details
-             *  If a task is declared as being Single, then that means that only a single instance of the task can be
-             *  in the system at any one time. If the task is triggered again while an existing task is either in the
-             *  queue or is still executing, then this new task will be ignored.
-             */
-            struct Single {
-                
-                template <typename DSL>
-                static inline bool precondition(threading::Reaction& reaction) {
-                    // We only run if there are no active tasks
-                    return reaction.activeTasks == 0;
-                }
-            };
-        }
+    namespace message {
+        
+        struct NetworkConfiguration {
+            std::string name;
+            std::string multicastGroup;
+            int multicastPort;
+        };
     }
 }
-
 #endif

@@ -374,4 +374,3 @@ namespace NUClear {
 #include "nuclear_bits/dsl/word/emit/UDP.hpp"
 
 #endif
-

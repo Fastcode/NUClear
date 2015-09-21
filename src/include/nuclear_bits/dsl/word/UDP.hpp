@@ -48,7 +48,7 @@ namespace NUClear {
                         uint32_t address;
                         /// The port that the packet is from
                         uint16_t port;
-                    } source;
+                    } remote;
                     
                     /// The information about this packet's destination
                     struct {
@@ -56,7 +56,7 @@ namespace NUClear {
                         uint32_t address;
                         /// The port that the packet is to
                         uint16_t port;
-                    } dest;
+                    } local;
                     
                     /// The data to be sent in the packet
                     std::vector<char> data;
@@ -75,7 +75,7 @@ namespace NUClear {
                 };
                 
                 template <typename DSL, typename TFunc>
-                static inline std::tuple<threading::ReactionHandle, int> bind(Reactor& reactor, const std::string& label, TFunc&& callback, int port = 0) {
+                static inline std::tuple<threading::ReactionHandle, int, int> bind(Reactor& reactor, const std::string& label, TFunc&& callback, int port = 0) {
                     
                     // Make our socket
                     util::FileDescriptor fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
@@ -101,7 +101,6 @@ namespace NUClear {
                         throw std::system_error(errno, std::system_category(), "We were unable to flag the socket as getting ancillary data");
                     }
                     
-                    
                     // Get the port we ended up listening on
                     socklen_t len = sizeof(sockaddr_in);
                     if (::getsockname(fd, reinterpret_cast<sockaddr*>(&address), &len) == -1) {
@@ -124,7 +123,7 @@ namespace NUClear {
                     }));
                     
                     // Return our handles and our bound port
-                    return std::make_tuple(handle, port);
+                    return std::make_tuple(handle, port, cfd);
                 }
                 
                 template <typename DSL>
@@ -136,16 +135,16 @@ namespace NUClear {
                     // If our get is being run without an fd (something else triggered) then short circuit
                     if (event.fd == 0) {
                         Packet p;
-                        p.source.address = INADDR_NONE;
-                        p.source.port = 0;
+                        p.remote.address = INADDR_NONE;
+                        p.remote.port = 0;
                         p.valid = false;
                         return p;
                     }
                     
                     // Make a packet with 2k of storage (hopefully packets are smaller then this as most MTUs are around 1500)
                     Packet p;
-                    p.source.address = INADDR_NONE;
-                    p.source.port = 0;
+                    p.remote.address = INADDR_NONE;
+                    p.remote.port = 0;
                     p.valid = false;
                     p.data.resize(2048);
                     
@@ -196,10 +195,10 @@ namespace NUClear {
                     // if no error
                     if(received > 0) {
                         p.valid = true;
-                        p.source.address = ntohl(from.sin_addr.s_addr);
-                        p.source.port = ntohs(from.sin_port);
-                        p.dest.address = ntohl(ourAddr);
-                        p.dest.port = ntohs(address.sin_port);
+                        p.remote.address = ntohl(from.sin_addr.s_addr);
+                        p.remote.port = ntohs(from.sin_port);
+                        p.local.address = ntohl(ourAddr);
+                        p.local.port = ntohs(address.sin_port);
                         p.data.resize(received);
                     }
                     
@@ -309,7 +308,7 @@ namespace NUClear {
                 struct Multicast {
                     
                     template <typename DSL, typename TFunc>
-                    static inline std::tuple<threading::ReactionHandle, int> bind(Reactor& reactor, const std::string& label, TFunc&& callback, std::string multicastGroup, int port = 0) {
+                    static inline std::tuple<threading::ReactionHandle, int, int> bind(Reactor& reactor, const std::string& label, TFunc&& callback, std::string multicastGroup, int port = 0) {
                         
                         // Our multicast group address
                         sockaddr_in address;
@@ -391,7 +390,7 @@ namespace NUClear {
                         }));
                         
                         // Return our handles
-                        return std::make_tuple(handle, port);
+                        return std::make_tuple(handle, port, cfd);
                     }
                     
                     template <typename DSL>

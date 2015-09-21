@@ -41,9 +41,7 @@ namespace NUClear {
                 /// @brief our queue which sorts tasks by priority
                 static std::priority_queue<task_ptr> queue;
                 /// @brief how many tasks are currently running
-                static int running;
-                /// @brief if we are currently able to reschedule a task
-                static bool rescheduling;
+                static volatile bool running;
                 /// @brief a mutex to ensure data consistency
                 static std::mutex mutex;
                 
@@ -53,18 +51,14 @@ namespace NUClear {
                     // Lock our mutex
                     std::lock_guard<std::mutex> lock(mutex);
                     
-                    // One more running task!
-                    ++running;
-                    
-                    // If this is our first task we don't sync
-                    if(rescheduling || running == 1) {
-                        rescheduling = false;
-                        return std::move(task);
-                    }
-                    // We are not the first, put our task in the queue
-                    else {
+                    // If we are already running then queue, otherwise return and set running
+                    if(running) {
                         queue.push(std::move(task));
                         return std::unique_ptr<threading::ReactionTask>(nullptr);
+                    }
+                    else {
+                        running = true;
+                        return std::move(task);
                     }
                 }
                 
@@ -74,19 +68,13 @@ namespace NUClear {
                     // Lock our mutex
                     std::lock_guard<std::mutex> lock(mutex);
                     
-                    // One less running task!
-                    --running;
+                    // We are finished running
+                    running = false;
                     
-                    // If we have any tasks left over resubmit
+                    // If we have another task, add it
                     if(!queue.empty()) {
-                        
-                        // Return the type
-                        // If you're wondering why all the ridiculousness, it's because priority queue is not as feature complete as it should be
                         std::unique_ptr<threading::ReactionTask> nextTask(std::move(const_cast<std::unique_ptr<threading::ReactionTask>&>(queue.top())));
                         queue.pop();
-                        
-                        // We can take a single task now
-                        rescheduling = true;
                         
                         // Resubmit this task to the reaction queue
                         task.parent.reactor.powerplant.submit(std::move(nextTask));
@@ -98,10 +86,7 @@ namespace NUClear {
             std::priority_queue<typename Sync<TSync>::task_ptr> Sync<TSync>::queue;
             
             template <typename TSync>
-            int Sync<TSync>::running = 0;
-            
-            template <typename TSync>
-            bool Sync<TSync>::rescheduling = false;
+            volatile bool Sync<TSync>::running = false;
             
             template <typename TSync>
             std::mutex Sync<TSync>::mutex;

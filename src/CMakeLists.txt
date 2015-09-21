@@ -14,6 +14,11 @@ FILE(GLOB src_extension
     "include/nuclear_bits/extension/*.hpp"
     "include/nuclear_bits/extension/*.ipp")
 
+FILE(GLOB src_extension_network
+    "extension/network/*.cpp"
+    "include/nuclear_bits/extension/network/*.hpp"
+    "include/nuclear_bits/extension/network/*.ipp")
+
 FILE(GLOB src_dsl
     "dsl/*.cpp"
     "include/nuclear_bits/dsl/*.hpp"
@@ -70,13 +75,14 @@ FILE(GLOB src_util_network
     "include/nuclear_bits/util/network/*.ipp")
 
 FILE(GLOB src_util_serialise
-    "util/network/*.cpp"
+    "util/serialise/*.cpp"
     "include/nuclear_bits/util/serialise/*.hpp"
     "include/nuclear_bits/util/serialise/*.ipp")
 
 SOURCE_GROUP(""                         FILES ${src})
 SOURCE_GROUP(threading                  FILES ${src_threading})
 SOURCE_GROUP(extension                  FILES ${src_extension})
+SOURCE_GROUP(extension\\network         FILES ${src_extension_network})
 SOURCE_GROUP(dsl                        FILES ${src_dsl})
 SOURCE_GROUP(dsl\\store                 FILES ${src_dsl_store})
 SOURCE_GROUP(dsl\\trait                 FILES ${src_dsl_trait})
@@ -94,6 +100,7 @@ ADD_LIBRARY(nuclear STATIC
     ${src} 
     ${src_threading}
     ${src_extension}
+    ${src_extension_network}
     ${src_dsl_store}
     ${src_dsl_trait}
     ${src_dsl_operation}

@@ -39,10 +39,17 @@ namespace NUClear {
             struct TCP {
                 
                 struct Connection {
-                    uint32_t remoteAddress;
-                    unsigned short remotePort;
-                    uint32_t localAddress;
-                    unsigned short localPort;
+                    
+                    struct {
+                        uint32_t address;
+                        uint16_t port;
+                    } remote;
+                    
+                    struct {
+                        uint32_t address;
+                        uint16_t port;
+                    } local;
+        
                     int fd;
                     
                     operator bool() const {
@@ -51,7 +58,7 @@ namespace NUClear {
                 };
                 
                 template <typename DSL, typename TFunc>
-                static inline std::tuple<threading::ReactionHandle, int> bind(Reactor& reactor, const std::string& label, TFunc&& callback, int port = 0) {
+                static inline std::tuple<threading::ReactionHandle, int, int> bind(Reactor& reactor, const std::string& label, TFunc&& callback, int port = 0) {
                     
                     // Make our socket
                     util::FileDescriptor fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
@@ -99,7 +106,7 @@ namespace NUClear {
                     }));
                     
                     // Return our handles
-                    return std::make_tuple(handle, port);
+                    return std::make_tuple(handle, port, cfd);
                 }
                 
                 template <typename DSL>
@@ -110,20 +117,25 @@ namespace NUClear {
                     
                     // If our get is being run without an fd (something else triggered) then short circuit
                     if (event.fd == 0) {
-                        return Connection { 0, 0, 0, 0, 0 };
+                        return Connection { { 0, 0 }, { 0, 0 }, 0 };
                     }
                     else {
                         // Accept our connection
-                        sockaddr_in addr;
-                        socklen_t size = sizeof(addr);
+                        sockaddr_in local;
+                        sockaddr_in remote;
+                        socklen_t size = sizeof(sockaddr_in);
                         
-                        util::FileDescriptor fd = ::accept(event.fd, reinterpret_cast<sockaddr*>(&addr), &size);
+                        // Accept the remote connection
+                        util::FileDescriptor fd = ::accept(event.fd, reinterpret_cast<sockaddr*>(&remote), &size);
+                        
+                        // Get our local address
+                        ::getsockname(fd, reinterpret_cast<sockaddr*>(&local), &size);
                         
                         if (fd < 0) {
-                            return Connection { 0, 0, 0, 0, 0 };
+                            return Connection { { 0, 0 }, { 0, 0 }, 0 };
                         }
                         else {
-                            return Connection { ntohl(addr.sin_addr.s_addr), addr.sin_port, 0, 0, fd.release() };
+                            return Connection { { ntohl(remote.sin_addr.s_addr), ntohs(remote.sin_port) }, { ntohl(local.sin_addr.s_addr), ntohs(local.sin_port)} , fd.release() };
                         }
                     }
                 }

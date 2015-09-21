@@ -20,6 +20,7 @@
 
 #include "nuclear_bits/extension/ChronoController.hpp"
 #include "nuclear_bits/extension/IOController.hpp"
+#include "nuclear_bits/extension/NetworkController.hpp"
 
 namespace NUClear {
     
@@ -42,6 +43,7 @@ namespace NUClear {
         // Install the Chrono reactor
         install<extension::ChronoController>();
         install<extension::IOController>();
+        install<extension::NetworkController>();
           
         // Emit our arguments if any.
         auto args = std::make_unique<message::CommandLineArguments>();

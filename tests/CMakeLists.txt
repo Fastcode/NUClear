@@ -16,3 +16,7 @@ SOURCE_GROUP(log          FILES ${test_log})
 ADD_EXECUTABLE(test_nuclear ${test_base} ${test_dsl} ${test_dsl_emit} ${test_log})
 TARGET_LINK_LIBRARIES(test_nuclear nuclear)
 ADD_TEST(test_nuclear test_nuclear)
+
+ADD_EXECUTABLE(test_network networktest.cpp)
+TARGET_LINK_LIBRARIES(test_network nuclear)
+ADD_TEST(test_network test_nuclear)

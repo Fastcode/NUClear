@@ -242,9 +242,10 @@ namespace NUClear {
 
 // Built in smart types
 #include "nuclear_bits/message/CommandLineArguments.hpp"
+#include "nuclear_bits/message/NetworkConfiguration.hpp"
+#include "nuclear_bits/message/NetworkEvent.hpp"
 
 // Include all of our implementation files (which use the previously included reactor.h)
 #include "nuclear_bits/PowerPlant.ipp"
 
 #endif
-

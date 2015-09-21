@@ -37,7 +37,7 @@ namespace {
             on<UDP>(port).then([this](const UDP::Packet& packet) {
                 
                 // Check that the data we received is correct
-                REQUIRE(packet.source.address == INADDR_LOOPBACK);
+                REQUIRE(packet.remote.address == INADDR_LOOPBACK);
                 REQUIRE(packet.data.size() == testString.size());
                 REQUIRE(std::memcmp(packet.data.data(), testString.data(), testString.size()) == 0);
                 
@@ -50,10 +50,10 @@ namespace {
             
             // Unknown port
             int boundPort;
-            std::tie(std::ignore, boundPort) = on<UDP>().then([this](const UDP::Packet& packet) {
+            std::tie(std::ignore, boundPort, std::ignore) = on<UDP>().then([this](const UDP::Packet& packet) {
                 
                 // Check that the data we received is correct
-                REQUIRE(packet.source.address == INADDR_LOOPBACK);
+                REQUIRE(packet.remote.address == INADDR_LOOPBACK);
                 REQUIRE(packet.data.size() == testString.size());
                 REQUIRE(std::memcmp(packet.data.data(), testString.data(), testString.size()) == 0);
                 

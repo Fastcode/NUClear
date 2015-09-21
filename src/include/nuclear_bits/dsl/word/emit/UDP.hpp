@@ -79,7 +79,7 @@ namespace NUClear {
                         }
                         
                         // Serialise the data
-                        std::string data = util::serialise::Serialise<TData>::serialise(*input);
+                        std::vector<char> data = util::serialise::Serialise<TData>::serialise(*input);
                         
                         // Try to send our data
                         if(::sendto(fd, data.data(), data.size(), 0, reinterpret_cast<sockaddr*>(&target), sizeof(sockaddr_in)) < 0) {

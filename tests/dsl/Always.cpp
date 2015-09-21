@@ -55,4 +55,3 @@ TEST_CASE("Testing on<Always> functionality (permanant run)", "[api][always]") {
     
     REQUIRE(i == 11);
 }
-

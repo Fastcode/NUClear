@@ -18,23 +18,35 @@
 #ifndef NUCLEAR_DSL_WORD_EMIT_NETWORK_H
 #define NUCLEAR_DSL_WORD_EMIT_NETWORK_H
 
+#include <array>
+
+#include "nuclear_bits/util/serialise/Serialise.hpp"
+
 namespace NUClear {
     namespace dsl {
         namespace word {
             namespace emit {
-
+                
+                struct NetworkEmit {
+                    std::string target;
+                    std::array<uint64_t, 2> hash;
+                    std::vector<char> data;
+                    bool reliable;
+                };
+                
                 template <typename TData>
                 struct Network {
                     
-                    static void emit(PowerPlant& powerplant, std::shared_ptr<TData> data, std::string target) {
+                    static void emit(PowerPlant& powerplant, std::shared_ptr<TData> data, std::string s = "", bool reliable = false) {
                         
-                        // TODO emit to the network to the person in target
-                    }
-                    
-                    
-                    static void emit(PowerPlant& powerplant, std::shared_ptr<TData> data) {
+                        auto e = std::make_unique<NetworkEmit>();
                         
-                        // TODO emit to the network to everyone
+                        e->target = s;
+                        e->hash = util::serialise::Serialise<TData>::hash();
+                        e->data = util::serialise::Serialise<TData>::serialise(*data);
+                        e->reliable = reliable;
+                        
+                        powerplant.emit<Direct>(e);
                     }
                 };
             }

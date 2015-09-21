@@ -15,30 +15,29 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_DSL_WORD_SINGLE_H
-#define NUCLEAR_DSL_WORD_SINGLE_H
+#ifndef NUCLEAR_UTIL_SERIALISE_MURMURHASH3_H
+#define NUCLEAR_UTIL_SERIALISE_MURMURHASH3_H
+
+#include <cstdint>
+#include <array>
+
+#include <functional>
 
 namespace NUClear {
-    namespace dsl {
-        namespace word {
-
+    namespace util {
+        namespace serialise {
+            
             /**
-             * @ingroup Options
-             * @brief This option sets the Single instance status of the task
+             * @brief Constructs a new hash from the passed key (of length bytes)
              *
-             * @details
-             *  If a task is declared as being Single, then that means that only a single instance of the task can be
-             *  in the system at any one time. If the task is triggered again while an existing task is either in the
-             *  queue or is still executing, then this new task will be ignored.
+             * @details Gets the hash digest of the passed bytes using the MurmurHash3
+             *  hashing function. Specifically the x64 128 bit version using the seed
+             *  0x4e55436c
+             *
+             * @param key a pointer to the data for the key
+             * @param len the number of bytes in the key
              */
-            struct Single {
-                
-                template <typename DSL>
-                static inline bool precondition(threading::Reaction& reaction) {
-                    // We only run if there are no active tasks
-                    return reaction.activeTasks == 0;
-                }
-            };
+            std::array<uint64_t, 2> murmurHash3(const void* key, const size_t len);
         }
     }
 }

@@ -20,6 +20,8 @@
 
 #include <string>
 
+#include "nuclear_bits/util/demangle.hpp"
+#include "nuclear_bits/util/serialise/MurmurHash3.hpp"
 #include "nuclear_bits/util/MetaProgramming.hpp"
 
 namespace NUClear {
@@ -29,27 +31,71 @@ namespace NUClear {
             // Import metaprogramming tools
             template <typename Condition, typename Value>
             using EnableIf = util::Meta::EnableIf<Condition, Value>;
-
-            template <typename TData>
-            struct Serialise {
+            
+            template <typename T, typename Check = T>
+            struct Serialise;
+            
+            // Plain old data
+            template <typename T>
+            struct Serialise<T, EnableIf<std::is_pod<T>, T>> {
                 
-                // enable if is pod
-                template <typename T>
-                static inline EnableIf<std::is_pod<T>, std::string> serialise(const T& in) {
-
-                    const char* data = reinterpret_cast<const char*>(&in);
+                static inline std::vector<char> serialise(const T& in) {
                     
-                    return std::string(data, sizeof(T));
+                    // Copy the bytes into an array
+                    const char* dataptr = reinterpret_cast<const char*>(&in);
+                    return std::vector<char>(dataptr, dataptr + sizeof(T));
                 }
                 
-                static inline std::string serialise(const std::string& in) {
-                    return in;
+                static inline T deserialise(const std::vector<char>& in) {
+                    
+                    // Copy the data into an object of the correct type
+                    T ret = *reinterpret_cast<T*>(in.data());
+                    return ret;
                 }
                 
+                static inline std::array<uint64_t, 2> hash() {
+                    
+                    // Serialise based on the demangled class name
+                    std::string typeName = demangle(typeid(T).name());
+                    return murmurHash3(typeName.c_str(), typeName.size());
+                }
+            };
+            
+            // Iterable of pod
+            template <typename T>
+            struct Serialise<T, EnableIf<std::is_same<typename std::iterator_traits<decltype(std::declval<T>().begin())>::iterator_category, std::random_access_iterator_tag>, T>> {
                 
-                // enable if is iterable of type pod
+                using StoredType = Meta::RemoveRef<decltype(*std::declval<T>().begin())>;
                 
-                // enable if is protocol buffer
+                static inline std::vector<char> serialise(const T& in) {
+                    std::vector<char> out;
+                    out.reserve(std::distance(in.begin(), in.end()));
+                    
+                    for(const StoredType& item : in) {
+                        const char* i = reinterpret_cast<const char*>(&item);
+                        out.insert(out.end(), i, i + sizeof(decltype(item)));
+                    }
+                    
+                    return out;
+                }
+                
+                static inline T deserialise(const std::vector<char>& in) {
+                    
+                    T out;
+                    
+                    const StoredType* data = reinterpret_cast<const StoredType*>(in.data());
+                    
+                    out.insert(out.end(), data, data + (in.size() / sizeof(StoredType)));
+                               
+                   return out;
+                }
+                
+                static inline std::array<uint64_t, 2> hash() {
+                    
+                    // Serialise based on the demangled class name
+                    std::string typeName = demangle(typeid(T).name());
+                    return murmurHash3(typeName.c_str(), typeName.size());
+                }
             };
         }
     }

@@ -62,22 +62,11 @@ namespace NUClear {
             auto oldTask = currentTask;
             currentTask = this;
             
-            // Record our start time
-            stats->started = clock::now();
-            
             // Run our callback at catch the returned task (to see if it rescheduled itself)
-            try {
-                us = callback(std::move(us));
-            }
-            catch(...) {
-                // Catch our exception if it happens
-                stats->exception = std::current_exception();
-            }
+            us = callback(std::move(us));
+            
             // If we were not rescheduled then finish off our stats
             if(us) {
-                // Our finish time
-                stats->finished = clock::now();
-                
                 // There is one less task
                 --parent.activeTasks;
             }
