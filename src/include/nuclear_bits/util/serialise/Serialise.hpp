@@ -24,6 +24,15 @@
 #include "nuclear_bits/util/serialise/MurmurHash3.hpp"
 #include "nuclear_bits/util/MetaProgramming.hpp"
 
+// Forward declare google protocol buffers
+// We don't actually use or require them, but if
+// Anyone ever does in their code this will work
+namespace google {
+    namespace protobuf {
+        class Message;
+    }
+}
+
 namespace NUClear {
     namespace util {
         namespace serialise {
@@ -37,7 +46,7 @@ namespace NUClear {
             
             // Plain old data
             template <typename T>
-            struct Serialise<T, EnableIf<std::is_pod<T>, T>> {
+            struct Serialise<T, EnableIf<std::is_trivially_copyable<T>, T>> {
                 
                 static inline std::vector<char> serialise(const T& in) {
                     
@@ -95,6 +104,35 @@ namespace NUClear {
                     // Serialise based on the demangled class name
                     std::string typeName = demangle(typeid(T).name());
                     return murmurHash3(typeName.c_str(), typeName.size());
+                }
+            };
+            
+            // Google protobuf
+            template <typename T>
+            struct Serialise<T, EnableIf<std::is_base_of<google::protobuf::Message, T>, T>> {
+              
+                static inline std::vector<char> serialise(const T& in) {
+                    std::vector<char> output(in.ByteSize());
+                    in.SerializeToArray(output.data(), output.size());
+                    
+                    return output;
+                }
+                
+                static inline T deserialise(const std::vector<char>& in) {
+                    // Make a buffer
+                    T out;
+                    
+                    // Deserialize it
+                    out.ParseFromArray(in.data(), in.size());
+                    return out;
+                }
+                
+                static inline std::array<uint64_t, 2> hash() {
+                    
+                    // We have to construct an instance to call the reflection functions
+                    T type;
+                    // We base the hash on the name of the protocol buffer
+                    return murmurHash3(type.GetTypeName().c_str(), type.GetTypeName().size());
                 }
             };
         }
