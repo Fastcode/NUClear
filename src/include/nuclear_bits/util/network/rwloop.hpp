@@ -32,6 +32,9 @@ namespace NUClear {
                     if(r == -1) {
                         return -1;
                     }
+                    else if(r == 0) {
+                        return done;
+                    }
                     done += r;
                 }
                 
@@ -47,6 +50,9 @@ namespace NUClear {
                     
                     if(r == -1) {
                         return -1;
+                    }
+                    if(r == 0) {
+                        return done;
                     }
                     done += r;
                 }
