@@ -19,6 +19,7 @@
 #define NUCLEAR_UTIL_SERIALISE_SERIALISE_H
 
 #include <string>
+#include <type_traits>
 
 #include "nuclear_bits/util/demangle.hpp"
 #include "nuclear_bits/util/serialise/MurmurHash3.hpp"

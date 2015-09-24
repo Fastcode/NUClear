@@ -169,7 +169,7 @@ namespace NUClear {
                     
                     
                     // Iterate through control headers to get IP information
-                    int ourAddr;
+                    int ourAddr = 0;
                     for (cmsghdr *cmsg = CMSG_FIRSTHDR(&mh);
                          cmsg != nullptr;
                          cmsg = CMSG_NXTHDR(&mh, cmsg)) {
