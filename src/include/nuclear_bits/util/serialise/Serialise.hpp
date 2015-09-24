@@ -47,7 +47,7 @@ namespace NUClear {
             
             // Plain old data
             template <typename T>
-            struct Serialise<T, EnableIf<std::is_trivially_copyable<T>, T>> {
+            struct Serialise<T, EnableIf<std::is_trivial<T>, T>> {
                 
                 static inline std::vector<char> serialise(const T& in) {
                     
