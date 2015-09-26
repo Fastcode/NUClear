@@ -43,6 +43,11 @@ namespace NUClear {
         
         std::unique_ptr<ReactionTask> Reaction::getTask() {
             
+            // If we are not enabled, don't run
+            if (!enabled) {
+                return std::unique_ptr<ReactionTask>(nullptr);
+            }
+            
             // Run our generator to get a functor we can run
             int priority;
             std::function<std::unique_ptr<ReactionTask> (std::unique_ptr<ReactionTask>&&)> func;
