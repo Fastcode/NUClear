@@ -62,6 +62,8 @@ namespace NUClear {
             template <typename>
             struct Network;
             
+            struct NetworkSource;
+            
             template <typename>
             struct Trigger;
             
@@ -182,6 +184,9 @@ namespace NUClear {
         /// @copydoc dsl::word::Network
         template <typename TData>
         using Network = dsl::word::Network<TData>;
+        
+        /// @copydoc dsl::word::Network
+        using NetworkSource = dsl::word::NetworkSource;
         
         /// @copydoc dsl::word::Shutdown
         using Shutdown = dsl::word::Shutdown;

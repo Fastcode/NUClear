@@ -96,7 +96,7 @@ namespace NUClear {
                     const StoredType* data = reinterpret_cast<const StoredType*>(in.data());
                     
                     out.insert(out.end(), data, data + (in.size() / sizeof(StoredType)));
-                               
+
                    return out;
                 }
                 
