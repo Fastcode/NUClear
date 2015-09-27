@@ -20,34 +20,47 @@
 namespace NUClear {
     namespace threading {
         
-        ReactionHandle::ReactionHandle(Reaction* context) : context(context) {
+        ReactionHandle::ReactionHandle(std::shared_ptr<Reaction> context) : context(context) {
         }
 
         bool ReactionHandle::enabled() {
-            return context->enabled;
+            auto c = context.lock();
+            return c ? bool(c->enabled) : false;
         }
 
         ReactionHandle& ReactionHandle::enable() {
-            context->enabled = true;
+            auto c = context.lock();
+            if(c) {
+                c->enabled = true;
+            }
             return *this;
         }
 
         ReactionHandle& ReactionHandle::enable(bool set) {
-            context->enabled = set;
+            auto c = context.lock();
+            if(c) {
+                c->enabled = set;
+            }
             return *this;
         }
 
         ReactionHandle& ReactionHandle::disable() {
-            context->enabled = false;
+            auto c = context.lock();
+            if(c) {
+                c->enabled = false;
+            }
             return *this;
         }
         
         void ReactionHandle::unbind() {
-            context->unbind();
+            auto c = context.lock();
+            if(c) {
+                c->unbind();
+            }
         }
         
         ReactionHandle::operator bool() const {
-            return context != nullptr;
+            return bool(context.lock());
         }
     }
 }

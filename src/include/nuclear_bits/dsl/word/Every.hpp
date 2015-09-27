@@ -96,16 +96,18 @@ namespace NUClear {
                     
                     auto reaction = util::generate_reaction<DSL, Every<>>(reactor, label, std::forward<TFunc>(callback));
                     
-                    threading::ReactionHandle handle(reaction.get());
-                    
                     // Work out our Reaction timing
                     clock::duration jump = period(ticks);
                     
-                    // Send our configuration out
-                    reactor.powerplant.emit<emit::Direct>(std::make_unique<EveryConfiguration>(EveryConfiguration {
+                    auto everyConfig = std::make_unique<EveryConfiguration>(EveryConfiguration {
                         jump,
                         std::move(reaction)
-                    }));
+                    });
+                    
+                    threading::ReactionHandle handle(everyConfig->reaction);
+                    
+                    // Send our configuration out
+                    reactor.powerplant.emit<emit::Direct>(everyConfig);
                     
                     // Return our handle
                     return handle;

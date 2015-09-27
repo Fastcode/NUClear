@@ -55,7 +55,7 @@ namespace NUClear {
                     task->hash = util::serialise::Serialise<TData>::hash();
                     task->reaction = util::generate_reaction<DSL, NetworkListen>(reactor, label, std::forward<TFunc>(callback));
                     
-                    threading::ReactionHandle handle(task->reaction.get());
+                    threading::ReactionHandle handle(task->reaction);
                     
                     reactor.powerplant.emit<emit::Direct>(task);
                     

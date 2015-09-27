@@ -60,14 +60,17 @@ namespace NUClear {
                 static inline threading::ReactionHandle bind(Reactor& reactor, const std::string& label, TFunc&& callback, int fd, int watchSet) {
                     
                     auto reaction = util::generate_reaction<DSL, IO>(reactor, label, std::forward<TFunc>(callback));
-                    threading::ReactionHandle handle(reaction.get());
                     
-                    // Send our configuration out
-                    reactor.powerplant.emit<emit::Direct>(std::make_unique<IOConfiguration>(IOConfiguration {
+                    auto ioConfig = std::make_unique<IOConfiguration>(IOConfiguration {
                         fd,
                         watchSet,
                         std::move(reaction)
-                    }));
+                    });
+                    
+                    threading::ReactionHandle handle(ioConfig->reaction);
+                    
+                    // Send our configuration out
+                    reactor.powerplant.emit<emit::Direct>(ioConfig);
                     
                     // Return our handles
                     return handle;

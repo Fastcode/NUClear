@@ -28,7 +28,7 @@ namespace NUClear {
         namespace store {
             
             template <typename TKey>
-            using TypeCallbackStore = util::TypeList<TKey, TKey, std::unique_ptr<threading::Reaction>>;
+            using TypeCallbackStore = util::TypeList<TKey, TKey, std::shared_ptr<threading::Reaction>>;
         }
     }
 }

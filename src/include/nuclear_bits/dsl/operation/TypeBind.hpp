@@ -36,7 +36,7 @@ namespace NUClear {
                         
                         auto& vec = store::TypeCallbackStore<TType>::get();
                         
-                        auto item = std::find_if(std::begin(vec), std::end(vec), [&r] (const std::unique_ptr<threading::Reaction>& item) {
+                        auto item = std::find_if(std::begin(vec), std::end(vec), [&r] (const std::shared_ptr<threading::Reaction>& item) {
                             return item->reactionId == r.reactionId;
                         });
                         
@@ -49,8 +49,8 @@ namespace NUClear {
                     // Get our identifier string
                     std::vector<std::string> identifier = util::get_identifier<typename DSL::DSL, TFunc>(label);
                     
-                    auto reaction = std::make_unique<threading::Reaction>(reactor, std::move(identifier), std::forward<TFunc>(callback), std::move(unbinder));
-                    threading::ReactionHandle handle(reaction.get());
+                    auto reaction = std::make_shared<threading::Reaction>(reactor, std::move(identifier), std::forward<TFunc>(callback), std::move(unbinder));
+                    threading::ReactionHandle handle(reaction);
                     
                     // Create our reaction and store it in the TypeCallbackStore
                     store::TypeCallbackStore<TType>::get().push_back(std::move(reaction));

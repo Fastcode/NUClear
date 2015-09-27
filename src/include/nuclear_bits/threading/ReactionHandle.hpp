@@ -43,14 +43,14 @@ namespace NUClear {
         class ReactionHandle {
         public:
             /// @brief the reaction that we are managing
-            Reaction* context;
+            std::weak_ptr<Reaction> context;
 
             /**
              * @brief Creates a new ReactionHandle for the reaction that is passed in.
              *
              * @param context the reaction that we are interacting with.
              */
-            ReactionHandle(Reaction* context = nullptr);
+            ReactionHandle(std::shared_ptr<Reaction> context = nullptr);
 
             /**
              * @brief Enables the reaction and allows it to run.

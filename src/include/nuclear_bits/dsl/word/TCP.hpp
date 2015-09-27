@@ -96,14 +96,17 @@ namespace NUClear {
                     auto reaction = util::generate_reaction<DSL, IO>(reactor, label, std::forward<TFunc>(callback), [cfd] (threading::Reaction&) {
                         ::close(cfd);
                     });
-                    threading::ReactionHandle handle(reaction.get());
                     
-                    // Send our configuration out
-                    reactor.powerplant.emit<emit::Direct>(std::make_unique<IOConfiguration>(IOConfiguration {
+                    auto ioConfig = std::make_unique<IOConfiguration>(IOConfiguration {
                         fd.release(),
                         IO::READ,
                         std::move(reaction)
-                    }));
+                    });
+                    
+                    threading::ReactionHandle handle(ioConfig->reaction);
+                    
+                    // Send our configuration out
+                    reactor.powerplant.emit<emit::Direct>(ioConfig);
                     
                     // Return our handles
                     return std::make_tuple(handle, port, cfd);
