@@ -41,8 +41,8 @@ namespace NUClear {
                 
                 std::string name;
                 uint32_t address;
-                int tcpPort;
-                int udpPort;
+                uint16_t tcpPort;
+                uint16_t udpPort;
                 int tcpFD;
                 ReactionHandle handle;
                 std::map<uint16_t, std::pair<clock::time_point, std::vector<std::vector<char>>>> buffer;
@@ -75,9 +75,9 @@ namespace NUClear {
             
             std::string name;
             std::string multicastGroup;
-            int multicastPort;
-            int udpPort;
-            int tcpPort;
+            uint16_t multicastPort;
+            uint16_t udpPort;
+            uint16_t tcpPort;
             
             int udpServerFD;
             int tcpServerFD;

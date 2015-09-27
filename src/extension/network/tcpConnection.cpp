@@ -26,6 +26,10 @@ namespace NUClear {
         
         void NetworkController::tcpConnection(const TCP::Connection& connection) {
             
+            // Turn off SIGPIPE because it's terrible
+            int yes = true;
+            setsockopt(connection.fd, SOL_SOCKET, SO_NOSIGPIPE, &yes, sizeof(yes));
+            
             // Allocate data for our header
             std::vector<char> data(sizeof(network::PacketHeader));
             

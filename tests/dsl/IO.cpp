@@ -42,7 +42,7 @@ namespace {
                 
                 // Read from our FD
                 unsigned char val;
-                int bytes = read(e.fd, &val, 1);
+                ssize_t bytes = ::read(e.fd, &val, 1);
                 
                 // Check the data is correct
                 REQUIRE((e.events & IO::READ) != 0);
@@ -57,7 +57,7 @@ namespace {
                 
                 // Send data into our fd
                 unsigned char val = 0xDE;
-                int bytes = write(e.fd, &val, 1);
+                ssize_t bytes = ::write(e.fd, &val, 1);
                 
                 // Check that our data was sent
                 REQUIRE((e.events & IO::WRITE) != 0);

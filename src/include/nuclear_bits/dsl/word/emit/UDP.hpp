@@ -73,9 +73,13 @@ namespace NUClear {
                         }
                         
                         // This isn't the greatest code, but lets assume our users don't send broadcasts they don't mean to...
-                        int broadcast = 1;
-                        if(setsockopt(fd, SOL_SOCKET, SO_BROADCAST, &broadcast, sizeof(broadcast)) < 0) {
+                        int yes = true;
+                        if(setsockopt(fd, SOL_SOCKET, SO_BROADCAST, &yes, sizeof(yes)) < 0) {
                             throw std::system_error(errno, std::system_category(), "We were unable to enable broadcasting on this socket");
+                        }
+                        // Turn off SIGPIPE because it's terrible
+                        if(setsockopt(fd, SOL_SOCKET, SO_NOSIGPIPE, &yes, sizeof(yes)) < 0) {
+                            throw std::system_error(errno, std::system_category(), "We were unable to turn of SIGPIPE for this socket");
                         }
                         
                         // Serialise the data

@@ -42,7 +42,7 @@ namespace {
                     memset(buff, 0, sizeof(buff));
                     
                     // Read into the buffer
-                    uint len = read(event.fd, buff, testString.size());
+                    ssize_t len = read(event.fd, buff, testString.size());
                     
                     // The connection was closed and the other test finished
                     if (len == 0 && messagesReceived == 2) {
@@ -65,7 +65,7 @@ namespace {
                     memset(buff, 0, sizeof(buff));
                     
                     // Read into the buffer
-                    uint len = read(event.fd, buff, testString.size());
+                    ssize_t len = ::read(event.fd, buff, testString.size());
                     
                     // The connection was closed and the other test finished
                     if (len == 0 && messagesReceived == 2) {

@@ -28,7 +28,7 @@ namespace NUClear {
             std::array<uint64_t, 2> murmurHash3(const void* key, const size_t len) {
                 
                 // Work out how many blocks we are going to use
-                const int nblocks = len / 16;
+                const size_t nblocks = len / 16;
                 
                 // Magic number seeds (NUClear in hex)
                 uint64_t h1 = 0x4e55436c;
@@ -43,7 +43,7 @@ namespace NUClear {
                 const uint8_t* data = static_cast<const uint8_t*>(key);
                 
                 // Perform the hashing for each block
-                for(int i = 0; i < nblocks; ++i)
+                for(size_t i = 0; i < nblocks; ++i)
                 {
                     uint64_t k1 = blocks[i*2+0];
                     uint64_t k2 = blocks[i*2+1];

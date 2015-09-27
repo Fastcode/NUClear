@@ -67,6 +67,12 @@ namespace NUClear {
                         throw std::system_error(errno, std::system_category(), "We were unable to open the TCP socket");
                     }
                     
+                    int yes = true;
+                    // Turn off SIGPIPE because it's terrible
+                    if(setsockopt(fd, SOL_SOCKET, SO_NOSIGPIPE, &yes, sizeof(yes)) < 0) {
+                        throw std::system_error(errno, std::system_category(), "We were unable to turn of SIGPIPE for this socket");
+                    }
+                    
                     // The address we will be binding to
                     sockaddr_in address;
                     memset(&address, 0, sizeof(sockaddr_in));

@@ -112,7 +112,7 @@ namespace NUClear {
             on<Always>().then("IO Controller", [this] {
                 
                 // Poll our file descriptors for events
-                int result = poll(fds.data(), fds.size(), -1);
+                int result = poll(fds.data(), static_cast<nfds_t>(fds.size()), -1);
                 
                 // Check if we had an error on our Poll request
                 if(result < 0) {
@@ -146,7 +146,8 @@ namespace NUClear {
                                 
                                 // There are no reactions for this!
                                 if(range.first == std::end(reactions)) {
-                                    // TODO maybe we should remove this from our set?
+                                    // If this happens then our list is definitely dirty...
+                                    dirty = true;
                                 }
                                 else {
                                     
@@ -182,6 +183,8 @@ namespace NUClear {
                                             
                                             // Reset our value
                                             IO::ThreadEventStore::value = nullptr;
+                                            
+                                            // TODO If we had a close, or error stop listening?
                                         }
                                     }
                                 }

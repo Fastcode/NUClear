@@ -41,66 +41,75 @@ namespace NUClear {
                 int newTCPPort = announce.tcpPort;
                 int newUDPPort = announce.udpPort;
                 
-                // Make sure this is not us
-                if(!(name == newName && tcpPort == newTCPPort && udpPort == newUDPPort)) {
+                // Make sure this packet isn't suspect
+                if (packet.remote.port == newUDPPort) {
                     
-                    // Lock our mutex to make sure we only add one at a time
-                    std::lock_guard<std::mutex> lock(targetMutex);
-                    
-                    // Check we do not already have this client connected
-                    if(udpTarget.find(std::make_pair(packet.remote.address, newUDPPort)) == udpTarget.end()) {
+                    // Make sure this is not us
+                    if(!(name == newName && tcpPort == newTCPPort && udpPort == newUDPPort)) {
                         
-                        sockaddr_in local;
-                        std::memset(&local, 0, sizeof(sockaddr_in));
-                        local.sin_family = AF_INET;
-                        local.sin_port = htons(tcpPort);
-                        local.sin_addr.s_addr = htonl(INADDR_ANY);
+                        // Lock our mutex to make sure we only add one at a time
+                        std::lock_guard<std::mutex> lock(targetMutex);
                         
-                        sockaddr_in remote;
-                        std::memset(&remote, 0, sizeof(sockaddr_in));
-                        remote.sin_family = AF_INET;
-                        remote.sin_port = htons(newTCPPort);
-                        remote.sin_addr.s_addr = htonl(packet.remote.address);
-                        
-                        // Open a TCP connection
-                        util::FileDescriptor tcpFD = ::socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-                        
-                        ::connect(tcpFD, reinterpret_cast<sockaddr*>(&remote), sizeof(sockaddr));
-                        
-                        // Send an announce packet to the remote
-                        network::AnnouncePacket p;
-                        p.type = network::ANNOUNCE;
-                        p.tcpPort = tcpPort;
-                        p.udpPort = udpPort;
-                        
-                        // Length is the size without the header
-                        p.length = sizeof(network::AnnouncePacket) + name.size() - sizeof(network::PacketHeader);
-                        
-                        // Copy our packet data over
-                        ::write(tcpFD, &p, sizeof(p) - 1);
-                        
-                        // Copy our name over
-                        ::write(tcpFD, this->name.c_str(), this->name.size() + 1);
-                        
-                        // Insert our new element
-                        auto it = targets.emplace(targets.end(), newName, packet.remote.address, newTCPPort, newUDPPort, tcpFD.release());
-                        nameTarget.insert(std::make_pair(newName, it));
-                        udpTarget.insert(std::make_pair(std::make_pair(packet.remote.address, newUDPPort), it));
-                        tcpTarget.insert(std::make_pair(it->tcpFD, it));
-                        
-                        // Start our connected handle
-                        it->handle = on<IO>(it->tcpFD, IO::READ | IO::ERROR | IO::CLOSE).then("Network TCP Handler", [this] (const IO::Event& e) {
-                            tcpHandler(e);
-                        });
-                        
-                        // emit a message that says who connected
-                        auto j = std::make_unique<message::NetworkJoin>();
-                        j->name = &announce.name;
-                        j->address = packet.remote.address;
-                        j->tcpPort = announce.tcpPort;
-                        j->udpPort = announce.udpPort;
-                        emit(j);
-                    };
+                        // Check we do not already have this client connected
+                        if(udpTarget.find(std::make_pair(packet.remote.address, newUDPPort)) == udpTarget.end()) {
+                            
+                            sockaddr_in local;
+                            std::memset(&local, 0, sizeof(sockaddr_in));
+                            local.sin_family = AF_INET;
+                            local.sin_port = htons(tcpPort);
+                            local.sin_addr.s_addr = htonl(INADDR_ANY);
+                            
+                            sockaddr_in remote;
+                            std::memset(&remote, 0, sizeof(sockaddr_in));
+                            remote.sin_family = AF_INET;
+                            remote.sin_port = htons(newTCPPort);
+                            remote.sin_addr.s_addr = htonl(packet.remote.address);
+                            
+                            // Open a TCP connection
+                            util::FileDescriptor tcpFD = ::socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+
+                            // Disable SIGPIPE because it's garbage
+                            int yes = 1;
+                            setsockopt(tcpFD, SOL_SOCKET, SO_NOSIGPIPE, &yes, sizeof(yes));
+                            
+                            ::connect(tcpFD, reinterpret_cast<sockaddr*>(&remote), sizeof(sockaddr));
+                            // TODO this might get closed or refused or something else
+                            
+                            // Send an announce packet to the remote
+                            network::AnnouncePacket p;
+                            p.type = network::ANNOUNCE;
+                            p.tcpPort = tcpPort;
+                            p.udpPort = udpPort;
+                            
+                            // Length is the size without the header
+                            p.length = uint32_t(sizeof(network::AnnouncePacket) + name.size() - sizeof(network::PacketHeader));
+                            
+                            // Copy our packet data over
+                            ::write(tcpFD, &p, sizeof(p) - 1);
+                            
+                            // Copy our name over
+                            ::write(tcpFD, this->name.c_str(), this->name.size() + 1);
+                            
+                            // Insert our new element
+                            auto it = targets.emplace(targets.end(), newName, packet.remote.address, newTCPPort, newUDPPort, tcpFD.release());
+                            nameTarget.insert(std::make_pair(newName, it));
+                            udpTarget.insert(std::make_pair(std::make_pair(packet.remote.address, newUDPPort), it));
+                            tcpTarget.insert(std::make_pair(it->tcpFD, it));
+                            
+                            // Start our connected handle
+                            it->handle = on<IO>(it->tcpFD, IO::READ | IO::ERROR | IO::CLOSE).then("Network TCP Handler", [this] (const IO::Event& e) {
+                                tcpHandler(e);
+                            });
+                            
+                            // emit a message that says who connected
+                            auto j = std::make_unique<message::NetworkJoin>();
+                            j->name = &announce.name;
+                            j->address = packet.remote.address;
+                            j->tcpPort = announce.tcpPort;
+                            j->udpPort = announce.udpPort;
+                            emit(j);
+                        }
+                    }
                 }
             }
             else if(header.type == network::DATA) {

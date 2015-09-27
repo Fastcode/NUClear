@@ -37,7 +37,7 @@ namespace NUClear {
             p->udpPort = udpPort;
             
             // Length is the size without the header
-            p->length = sizeof(network::AnnouncePacket) + name.size() - sizeof(network::PacketHeader);
+            p->length = uint32_t(sizeof(network::AnnouncePacket) + name.size() - sizeof(network::PacketHeader));
             
             // Copy our name over
             std::memcpy(packet.data() + sizeof(network::AnnouncePacket) - 1, name.c_str(), name.size() + 1);

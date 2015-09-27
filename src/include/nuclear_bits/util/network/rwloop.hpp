@@ -22,12 +22,12 @@ namespace NUClear {
     namespace util {
         namespace network {
             
-            inline int readAll(int fd, void* data, size_t len) {
-                uint done = 0;
+            inline ssize_t readAll(int fd, void* data, size_t len) {
+                ssize_t done = 0;
                 char* d = reinterpret_cast<char*>(data);
                 
-                while (done < len) {
-                    int r = ::read(fd, d + done, len - done);
+                while (done < ssize_t(len)) {
+                    ssize_t r = ::read(fd, d + done, len - size_t(done));
                     
                     if(r == -1) {
                         return -1;
@@ -41,12 +41,12 @@ namespace NUClear {
                 return done;
             }
             
-            inline int writeAll(int fd, const void* data, size_t len) {
-                uint done = 0;
+            inline ssize_t writeAll(int fd, const void* data, size_t len) {
+                ssize_t done = 0;
                 const char* d = reinterpret_cast<const char*>(data);
                 
-                while (done < len) {
-                    int r = ::write(fd, d + done, len - done);
+                while (done < ssize_t(len)) {
+                    ssize_t r = ::write(fd, d + done, len - size_t(done));
                     
                     if(r == -1) {
                         return -1;

@@ -24,7 +24,7 @@ namespace NUClear {
         struct NetworkConfiguration {
             std::string name;
             std::string multicastGroup;
-            int multicastPort;
+            uint16_t multicastPort;
         };
     }
 }

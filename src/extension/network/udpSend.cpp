@@ -46,8 +46,8 @@ namespace NUClear {
                 p->type         = network::DATA;
                 p->length       = payloadLength + sizeof(network::DataPacket) - sizeof(network::PacketHeader) - 1;
                 p->packetId     = packetID;
-                p->packetNo     = i / MAX_UDP_PAYLOAD_LENGTH;
-                p->packetCount  = (emit.data.size() / MAX_UDP_PAYLOAD_LENGTH) + 1;
+                p->packetNo     = uint16_t(i / MAX_UDP_PAYLOAD_LENGTH);
+                p->packetCount  = uint16_t((emit.data.size() / MAX_UDP_PAYLOAD_LENGTH) + 1);
                 p->multicast    = emit.target.empty();
                 p->hash         = emit.hash;
                 std::memcpy(&p->data, emit.data.data() + i, payloadLength);
