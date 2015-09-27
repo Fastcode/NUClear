@@ -100,6 +100,8 @@ namespace NUClear {
             
             on<Shutdown>().then("Shutdown IO Controller", [this] {
                 
+                // Set shutdown to true so it won't try to poll again
+                shutdown = true;
                 // A byte to send down the pipe
                 char val = 0;
                 
@@ -107,119 +109,125 @@ namespace NUClear {
                 if(write(notifySend, &val, 1) < 0) {
                     throw std::system_error(errno, std::system_category(), "There was an error while writing to the notification pipe");
                 }
+                
             });
             
             on<Always>().then("IO Controller", [this] {
                 
-                // Poll our file descriptors for events
-                int result = poll(fds.data(), static_cast<nfds_t>(fds.size()), -1);
+                // To make sure we don't get caught in a weird loop
+                // shutdown keeps us out here
+                if(!shutdown) {
                 
-                // Check if we had an error on our Poll request
-                if(result < 0) {
-                    throw std::system_error(errno, std::system_category(), "There was an IO error while attempting to poll the file descriptors");
-                }
-                else {
-                    for(auto& fd : fds) {
-                        
-                        // Something happened
-                        if(fd.revents) {
+                    // Poll our file descriptors for events
+                    int result = poll(fds.data(), static_cast<nfds_t>(fds.size()), -1);
+                    
+                    // Check if we had an error on our Poll request
+                    if(result < 0) {
+                        throw std::system_error(errno, std::system_category(), "There was an IO error while attempting to poll the file descriptors");
+                    }
+                    else {
+                        for(auto& fd : fds) {
                             
-                            // It's our notification handle
-                            if(fd.fd == notifyRecv) {
-                                // Read our value to clear it's read status
-                                char val;
-                                if(read(fd.fd, &val, sizeof(char)) < 0) {
-                                    throw std::system_error(errno, std::system_category(), "There was an error reading our notification pipe?");
-                                };
-                            }
-                            // It's a regular handle
-                            else {
+                            // Something happened
+                            if(fd.revents) {
                                 
-                                // Find our relevant reactions
-                                auto range = std::equal_range(std::begin(reactions)
-                                                              , std::end(reactions)
-                                                              , Task { fd.fd, 0, nullptr }
-                                                              , [] (const Task& a, const Task& b) {
-                                                                  return a.fd < b.fd;
-                                                              });
-                                
-                                
-                                // There are no reactions for this!
-                                if(range.first == std::end(reactions)) {
-                                    // If this happens then our list is definitely dirty...
-                                    dirty = true;
+                                // It's our notification handle
+                                if(fd.fd == notifyRecv) {
+                                    // Read our value to clear it's read status
+                                    char val;
+                                    if(read(fd.fd, &val, sizeof(char)) < 0) {
+                                        throw std::system_error(errno, std::system_category(), "There was an error reading our notification pipe?");
+                                    };
                                 }
+                                // It's a regular handle
                                 else {
                                     
-                                    // Loop through our values
-                                    for(auto it = range.first; it != range.second; ++it) {
+                                    // Find our relevant reactions
+                                    auto range = std::equal_range(std::begin(reactions)
+                                                                  , std::end(reactions)
+                                                                  , Task { fd.fd, 0, nullptr }
+                                                                  , [] (const Task& a, const Task& b) {
+                                                                      return a.fd < b.fd;
+                                                                  });
+                                    
+                                    
+                                    // There are no reactions for this!
+                                    if(range.first == std::end(reactions)) {
+                                        // If this happens then our list is definitely dirty...
+                                        dirty = true;
+                                    }
+                                    else {
                                         
-                                        // We should emit if the reaction is interested
-                                        if (it->events & fd.revents) {
+                                        // Loop through our values
+                                        for(auto it = range.first; it != range.second; ++it) {
                                             
-                                            // Make our event to pass through
-                                            IO::Event e;
-                                            e.fd = fd.fd;
-                                            
-                                            // Evaluate and store our set in thread store
-                                            e.events = 0;
-                                            e.events |= fd.revents & POLLIN               ? IO::READ     : 0;
-                                            e.events |= fd.revents & POLLOUT              ? IO::WRITE    : 0;
-                                            e.events |= fd.revents & POLLHUP              ? IO::CLOSE    : 0;
-                                            e.events |= fd.revents & (POLLNVAL | POLLERR) ? IO::ERROR    : 0;
-                                            
-                                            // Store the event in our thread local cache
-                                            IO::ThreadEventStore::value = &e;
-                                            
-                                            // Submit the task (which should run the get)
-                                            try {
-                                                auto task = it->reaction->getTask();
-                                                if(task) {
-                                                    powerplant.submit(std::move(task));
+                                            // We should emit if the reaction is interested
+                                            if (it->events & fd.revents) {
+                                                
+                                                // Make our event to pass through
+                                                IO::Event e;
+                                                e.fd = fd.fd;
+                                                
+                                                // Evaluate and store our set in thread store
+                                                e.events = 0;
+                                                e.events |= fd.revents & POLLIN               ? IO::READ     : 0;
+                                                e.events |= fd.revents & POLLOUT              ? IO::WRITE    : 0;
+                                                e.events |= fd.revents & POLLHUP              ? IO::CLOSE    : 0;
+                                                e.events |= fd.revents & (POLLNVAL | POLLERR) ? IO::ERROR    : 0;
+                                                
+                                                // Store the event in our thread local cache
+                                                IO::ThreadEventStore::value = &e;
+                                                
+                                                // Submit the task (which should run the get)
+                                                try {
+                                                    auto task = it->reaction->getTask();
+                                                    if(task) {
+                                                        powerplant.submit(std::move(task));
+                                                    }
                                                 }
+                                                catch (...) {
+                                                }
+                                                
+                                                // Reset our value
+                                                IO::ThreadEventStore::value = nullptr;
+                                                
+                                                // TODO If we had a close, or error stop listening?
                                             }
-                                            catch (...) {
-                                            }
-                                            
-                                            // Reset our value
-                                            IO::ThreadEventStore::value = nullptr;
-                                            
-                                            // TODO If we had a close, or error stop listening?
                                         }
                                     }
                                 }
-                            }
-                            
-                            // Reset our events
-                            fd.revents = 0;
-                        }
-                    }
-                    
-                    // If our list is dirty
-                    if(dirty) {
-                        // Get the lock so we don't concurrently modify the list
-                        std::lock_guard<std::mutex> lock(reactionMutex);
-                        
-                        // Clear our fds to be rebuilt
-                        fds.clear();
-                        
-                        // Insert our notifyFd
-                        fds.push_back(pollfd { notifyRecv, POLLIN, 0 });
-                        
-                        for (const auto& r : reactions) {
-                            
-                            // If we are the same fd, then add our interest set
-                            if(r.fd == fds.back().fd) {
-                                fds.back().events |= r.events;
-                            }
-                            // Otherwise add a new one
-                            else {
-                                fds.push_back(pollfd { r.fd, r.events, 0 });
+                                
+                                // Reset our events
+                                fd.revents = 0;
                             }
                         }
                         
-                        // We just cleaned the list!
-                        dirty = false;
+                        // If our list is dirty
+                        if(dirty) {
+                            // Get the lock so we don't concurrently modify the list
+                            std::lock_guard<std::mutex> lock(reactionMutex);
+                            
+                            // Clear our fds to be rebuilt
+                            fds.clear();
+                            
+                            // Insert our notifyFd
+                            fds.push_back(pollfd { notifyRecv, POLLIN, 0 });
+                            
+                            for (const auto& r : reactions) {
+                                
+                                // If we are the same fd, then add our interest set
+                                if(r.fd == fds.back().fd) {
+                                    fds.back().events |= r.events;
+                                }
+                                // Otherwise add a new one
+                                else {
+                                    fds.push_back(pollfd { r.fd, r.events, 0 });
+                                }
+                            }
+                            
+                            // We just cleaned the list!
+                            dirty = false;
+                        }
                     }
                 }
             });

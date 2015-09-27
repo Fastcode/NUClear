@@ -48,6 +48,7 @@ namespace NUClear {
             int notifyRecv;
             int notifySend;
             
+            bool shutdown = false;
             bool dirty;
             std::mutex reactionMutex;
             std::vector<pollfd> fds;
