@@ -19,6 +19,7 @@
 
 #include <algorithm>
 #include <cerrno>
+#include <csignal>
 
 namespace NUClear {
     namespace extension {
@@ -26,6 +27,9 @@ namespace NUClear {
         NetworkController::NetworkController(std::unique_ptr<NUClear::Environment> environment)
         : Reactor(std::move(environment))
         , packetIDSource(1) {
+            
+            // Turn off sigpipe...
+            ::signal(SIGPIPE, SIG_IGN);
             
             on<Trigger<dsl::word::NetworkListen>>().then([this] (const dsl::word::NetworkListen& l) {
                 // Lock our reaction mutex

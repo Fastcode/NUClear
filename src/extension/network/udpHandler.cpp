@@ -68,10 +68,6 @@ namespace NUClear {
                             // Open a TCP connection
                             util::FileDescriptor tcpFD = ::socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 
-                            // Disable SIGPIPE because it's garbage
-                            int yes = 1;
-                            setsockopt(tcpFD, SOL_SOCKET, SO_NOSIGPIPE, &yes, sizeof(yes));
-                            
                             ::connect(tcpFD, reinterpret_cast<sockaddr*>(&remote), sizeof(sockaddr));
                             // TODO this might get closed or refused or something else
                             

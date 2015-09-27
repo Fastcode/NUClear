@@ -100,10 +100,6 @@ namespace NUClear {
                     if(setsockopt(fd, IPPROTO_IP, IP_PKTINFO, &yes, sizeof(yes)) < 0) {
                         throw std::system_error(errno, std::system_category(), "We were unable to flag the socket as getting ancillary data");
                     }
-                    // Turn off SIGPIPE because it's terrible
-                    if(setsockopt(fd, SOL_SOCKET, SO_NOSIGPIPE, &yes, sizeof(int)) < 0) {
-                        throw std::system_error(errno, std::system_category(), "We were unable to turn of SIGPIPE for this socket");
-                    }
                     
                     // Get the port we ended up listening on
                     socklen_t len = sizeof(sockaddr_in);
@@ -255,10 +251,6 @@ namespace NUClear {
                             if(setsockopt(fd, SOL_SOCKET, SO_BROADCAST, &yes, sizeof(yes)) < 0) {
                                 throw std::system_error(errno, std::system_category(), "We were unable to set the socket as broadcast");
                             }
-                            // Turn off SIGPIPE because it's terrible
-                            if(setsockopt(fd, SOL_SOCKET, SO_NOSIGPIPE, &yes, sizeof(int)) < 0) {
-                                throw std::system_error(errno, std::system_category(), "We were unable to turn of SIGPIPE for this socket");
-                            }
                             // Set that we reuse the address so more than one application can bind
                             if(setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) < 0) {
                                 throw std::system_error(errno, std::system_category(), "We were unable to set reuse address on the socket");
@@ -335,10 +327,6 @@ namespace NUClear {
                         // Set that we reuse the address so more than one application can bind
                         if(setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) < 0) {
                             throw std::system_error(errno, std::system_category(), "We were unable to set reuse address on the socket");
-                        }
-                        // Turn off SIGPIPE because it's terrible
-                        if(setsockopt(fd, SOL_SOCKET, SO_NOSIGPIPE, &yes, sizeof(int)) < 0) {
-                            throw std::system_error(errno, std::system_category(), "We were unable to turn of SIGPIPE for this socket");
                         }
                         // Include struct in_pktinfo in the message "ancilliary" control data
                         if(setsockopt(fd, IPPROTO_IP, IP_PKTINFO, &yes, sizeof(yes)) < 0) {

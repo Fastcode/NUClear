@@ -77,10 +77,6 @@ namespace NUClear {
                         if(setsockopt(fd, SOL_SOCKET, SO_BROADCAST, &yes, sizeof(yes)) < 0) {
                             throw std::system_error(errno, std::system_category(), "We were unable to enable broadcasting on this socket");
                         }
-                        // Turn off SIGPIPE because it's terrible
-                        if(setsockopt(fd, SOL_SOCKET, SO_NOSIGPIPE, &yes, sizeof(yes)) < 0) {
-                            throw std::system_error(errno, std::system_category(), "We were unable to turn of SIGPIPE for this socket");
-                        }
                         
                         // Serialise the data
                         std::vector<char> data = util::serialise::Serialise<TData>::serialise(*input);
