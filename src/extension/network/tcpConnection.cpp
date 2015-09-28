@@ -69,6 +69,7 @@ namespace NUClear {
             }
             else {
                 // Close the connection that was made, we made one to them faster
+                // And as it was never bound to a callback, it won't show up as an event
                 ::close(connection.fd);
             }
         }

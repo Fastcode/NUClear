@@ -30,8 +30,75 @@ namespace NUClear {
             // Find this connections target
             auto target = tcpTarget.find(e.fd);
             
-            // Check if the connection closed
-            if(e.events & IO::CLOSE || e.events & IO::ERROR) {
+            bool badPacket = false;
+            
+            // If we have data to read
+            if(e.events & IO::READ) {
+                
+                // Allocate data for our header
+                std::vector<char> data(sizeof(network::PacketHeader));
+                
+                // Read our header and check it is valid
+                if(util::network::readAll(e.fd, data.data(), data.size()) == sizeof(network::PacketHeader)) {
+                    
+                    const network::PacketHeader& header = *reinterpret_cast<network::PacketHeader*>(data.data());
+                    
+                    // Add enough space for our remaining packet
+                    data.resize(data.size() + header.length);
+                    
+                    // Read our remaining packet and check it's valid
+                    if(util::network::readAll(e.fd, data.data() + sizeof(network::PacketHeader), header.length) == header.length) {
+                        
+                        const network::DataPacket& packet = *reinterpret_cast<network::DataPacket*>(data.data());
+                        
+                        // Copy our data into a vector
+                        std::vector<char> payload(&packet.data, &packet.data + packet.length - sizeof(network::DataPacket) + sizeof(network::PacketHeader) + 1);
+                        
+                        // Construct our NetworkSource information
+                        dsl::word::NetworkSource src;
+                        src.name = target->second->name;
+                        src.address = target->second->address;
+                        src.port = target->second->udpPort;
+                        src.reliable = true;
+                        src.multicast = packet.multicast;
+                        
+                        // Store in our thread local cache
+                        dsl::store::ThreadStore<std::vector<char>>::value = &payload;
+                        dsl::store::ThreadStore<dsl::word::NetworkSource>::value = &src;
+                        
+                        /* Mutex Scope */ {
+                            // Lock our reaction mutex
+                            std::lock_guard<std::mutex> lock(reactionMutex);
+                            
+                            // Find interested reactions
+                            auto rs = reactions.equal_range(packet.hash);
+                            
+                            // Execute on our interested reactions
+                            for(auto it = rs.first; it != rs.second; ++it) {
+                                auto task = it->second->getTask();
+                                if(task) {
+                                    powerplant.submit(std::move(task));
+                                }
+                            }
+                        }
+                        
+                        // Clear our cache
+                        dsl::store::ThreadStore<std::vector<char>>::value = nullptr;
+                        dsl::store::ThreadStore<dsl::word::NetworkSource>::value = nullptr;
+                    }
+                    else {
+                        // Packet is invalid
+                        badPacket = true;
+                    }
+                }
+                else {
+                    // Packet is invalid
+                    badPacket = true;
+                }
+            }
+            
+            // If the connection closed or errored (or reached an end of file
+            if(badPacket || (e.events & IO::CLOSE) || (e.events & IO::ERROR)) {
                 
                 // Lock our mutex
                 std::lock_guard<std::mutex> lock(targetMutex);
@@ -67,61 +134,6 @@ namespace NUClear {
                 
                 // Remove our TCP target
                 tcpTarget.erase(target);
-                
-                
-                // TODO emit a message that says who disconnected (unless this was a sensible culling)
-            }
-            else if(e.events & IO::READ) {
-                
-                // Allocate data for our header
-                std::vector<char> data(sizeof(network::PacketHeader));
-                
-                // Read our header
-                util::network::readAll(e.fd, data.data(), data.size());
-                const network::PacketHeader& header = *reinterpret_cast<network::PacketHeader*>(data.data());
-                
-                // Add enough space for our remaining packet
-                data.resize(data.size() + header.length);
-                
-                // Read our remaining packet
-                util::network::readAll(e.fd, data.data() + sizeof(network::PacketHeader), header.length);
-
-                const network::DataPacket& packet = *reinterpret_cast<network::DataPacket*>(data.data());
-                
-                // Copy our data into a vector
-                std::vector<char> payload(&packet.data, &packet.data + packet.length - sizeof(network::DataPacket) + sizeof(network::PacketHeader) + 1);
-                
-                // Construct our NetworkSource information
-                dsl::word::NetworkSource src;
-                src.name = target->second->name;
-                src.address = target->second->address;
-                src.port = target->second->udpPort;
-                src.reliable = true;
-                src.multicast = packet.multicast;
-                
-                // Store in our thread local cache
-                dsl::store::ThreadStore<std::vector<char>>::value = &payload;
-                dsl::store::ThreadStore<dsl::word::NetworkSource>::value = &src;
-                
-                /* Mutex Scope */ {
-                    // Lock our reaction mutex
-                    std::lock_guard<std::mutex> lock(reactionMutex);
-                    
-                    // Find interested reactions
-                    auto rs = reactions.equal_range(packet.hash);
-                    
-                    // Execute on our interested reactions
-                    for(auto it = rs.first; it != rs.second; ++it) {
-                        auto task = it->second->getTask();
-                        if(task) {
-                            powerplant.submit(std::move(task));
-                        }
-                    }
-                }
-                
-                // Clear our cache
-                dsl::store::ThreadStore<std::vector<char>>::value = nullptr;
-                dsl::store::ThreadStore<dsl::word::NetworkSource>::value = nullptr;
             }
         }
     }
