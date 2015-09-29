@@ -17,6 +17,8 @@
 
 #include "nuclear_bits/extension/NetworkController.hpp"
 
+#include <sys/utsname.h>
+
 #include <algorithm>
 #include <cerrno>
 #include <csignal>
@@ -85,7 +87,14 @@ namespace NUClear {
                 tcpTarget.clear();
                 
                 // Store our new configuration
-                name = config.name;
+                if(config.name.empty()) {
+                    utsname u;
+                    uname(&u);
+                    name = u.nodename;
+                }
+                else {
+                    name = config.name;
+                }
                 multicastGroup = config.multicastGroup;
                 multicastPort = config.multicastPort;
                 
