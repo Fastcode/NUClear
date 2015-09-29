@@ -50,8 +50,25 @@ namespace NUClear {
             multicastTarget.sin_addr.s_addr = inet_addr(multicastGroup.c_str());
             multicastTarget.sin_port = htons(multicastPort);
             
-            // Send the packet
-            ::sendto(udpServerFD, packet.data(), packet.size(), 0, reinterpret_cast<sockaddr*>(&multicastTarget), sizeof(sockaddr));
+            // Go through our interfaces and announce on each one
+            for(auto iface : util::network::get_interfaces()) {
+                if (iface.flags.multicast) {
+                    
+                    // Store our address
+                    in_addr addr;
+                    addr.s_addr = htonl(iface.ip);
+                    setsockopt(udpServerFD, IPPROTO_IP, IP_MULTICAST_IF, &addr, sizeof(addr));
+                    
+                    // Send the packet
+                    ::sendto(udpServerFD, packet.data(), packet.size(), 0, reinterpret_cast<sockaddr*>(&multicastTarget), sizeof(sockaddr));
+                }
+            }
+            
+            // Reset back to any
+            in_addr addr;
+            addr.s_addr = htonl(INADDR_ANY);
+            setsockopt(udpServerFD, IPPROTO_IP, IP_MULTICAST_IF, &addr, sizeof(addr));
+            
         }
     }
 }
