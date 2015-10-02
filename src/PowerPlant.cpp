@@ -77,15 +77,15 @@ namespace NUClear {
     void PowerPlant::start() {
         
         isRunning = true;
-
-        // Direct emit startup event
-        emit<dsl::word::emit::Direct>(std::make_unique<dsl::word::Startup>());
         
         // Run all our Initialise scope tasks
         for(auto&& func : startupTasks) {
             func();
         }
         startupTasks.clear();
+        
+        // Direct emit startup event
+        emit<dsl::word::emit::Direct>(std::make_unique<dsl::word::Startup>());
         
         // Start all our threads
         for(uint i = 0; i < configuration.threadCount; ++i) {
