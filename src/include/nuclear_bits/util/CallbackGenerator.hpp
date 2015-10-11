@@ -90,15 +90,15 @@ namespace NUClear {
                             task->stats->started = clock::now();
                             
                             // We have to catch any exceptions
-//                            try {
+                            try {
                                 // We call with only the relevant arguments to the passed function
                                 util::apply(c, std::move(data), Meta::Do<util::RelevantArguments<TFunc, Meta::Do<util::DereferenceTuple<decltype(data)>>>>());
-//                            }
-//                            catch(...) {
-//                                
-//                                // Catch our exception if it happens
-//                                task->stats->exception = std::current_exception();
-//                            }
+                            }
+                            catch(...) {
+
+                                // Catch our exception if it happens
+                                task->stats->exception = std::current_exception();
+                            }
                             
                             // Our finish time
                             task->stats->finished = clock::now();
