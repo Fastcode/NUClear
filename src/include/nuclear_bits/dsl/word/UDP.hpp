@@ -353,10 +353,7 @@ namespace NUClear {
                         for(auto& iface : util::network::get_interfaces()) {
                             // We receive on broadcast addresses and we don't want loopback or point to point
                             if(!iface.flags.loopback && !iface.flags.pointtopoint && iface.flags.multicast) {
-                                // Two broadcast ips that are the same are probably on the same network so ignore those
-                                if(std::find(std::begin(addresses), std::end(addresses), iface.broadcast) == std::end(addresses)) {
-                                    addresses.push_back(iface.ip);
-                                }
+                                addresses.push_back(iface.ip);
                             }
                         }
                         
@@ -368,8 +365,7 @@ namespace NUClear {
                             mreq.imr_multiaddr.s_addr = address.sin_addr.s_addr;
                             mreq.imr_interface.s_addr = htonl(ad);
                             
-                            // Join our multicast group but first leave because of stupid things
-                            setsockopt(fd, IPPROTO_IP, IP_DROP_MEMBERSHIP, &mreq, sizeof(ip_mreq));
+                            // Join our multicast group
                             if (setsockopt(fd, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mreq, sizeof(ip_mreq)) < 0) {
                                 throw std::system_error(errno, std::system_category(), "There was an error while attemping to join the multicast group");
                             }

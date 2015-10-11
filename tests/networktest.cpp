@@ -80,7 +80,7 @@ namespace {
                 
                 
                 netConfig->name = prefix + std::to_string(index);
-                netConfig->multicastGroup = "238.158.129.230";
+                netConfig->multicastGroup = "239.226.152.162";
                 netConfig->multicastPort = 7447;
                 
                 std::cout << "Testing network with node " << netConfig->name << std::endl;
