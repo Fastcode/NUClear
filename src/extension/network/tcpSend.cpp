@@ -32,7 +32,7 @@ namespace NUClear {
             p.type = network::DATA;
             p.length = uint32_t((sizeof(network::DataPacket) - 1) - sizeof(network::PacketHeader) + emit.data.size());
             p.packetId = ++packetIDSource;
-            p.packetNo = 1;     // TCP packets always come in one packet
+            p.packetNo = 0;     // TCP packets always come in one packet
             p.packetCount = 1;  // TCP packets always come in one packet
             p.multicast = emit.target.empty();
             p.hash = emit.hash;
