@@ -104,7 +104,7 @@ namespace NUClear {
                     // Get the port we ended up listening on
                     socklen_t len = sizeof(sockaddr_in);
                     if (::getsockname(fd, reinterpret_cast<sockaddr*>(&address), &len) == -1) {
-                        throw std::system_error(errno, std::system_category(), "We were unable to get the port from the TCP socket");
+                        throw std::system_error(errno, std::system_category(), "We were unable to get the port from the UDP socket");
                     }
                     port = ntohs(address.sin_port);
                     
@@ -192,7 +192,7 @@ namespace NUClear {
                     socklen_t len = sizeof(sockaddr_in);
                     sockaddr_in address;
                     if (::getsockname(event.fd, reinterpret_cast<sockaddr*>(&address), &len) == -1) {
-                        throw std::system_error(errno, std::system_category(), "We were unable to get the port from the TCP socket");
+                        throw std::system_error(errno, std::system_category(), "We were unable to get the port from the UDP socket");
                     }
 
                     // if no error
@@ -271,7 +271,7 @@ namespace NUClear {
                             // Set the port variable to whatever was returned (so they all use the same port)
                             socklen_t len = sizeof(sockaddr_in);
                             if (::getsockname(fd, reinterpret_cast<sockaddr*>(&address), &len) == -1) {
-                                throw std::system_error(errno, std::system_category(), "We were unable to get the port from the TCP socket");
+                                throw std::system_error(errno, std::system_category(), "We were unable to get the port from the UDP socket");
                             }
                             port = ntohs(address.sin_port);
                             

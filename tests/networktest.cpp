@@ -32,9 +32,6 @@ namespace {
     public:
         TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
             
-            std::string prefix = std::getenv("NODE_PREFIX");
-            int index = atoi(std::getenv("NODE_INDEX"));
-            
             on<Trigger<NetworkJoin>, Sync<TestReactor>>().then([this] (const NetworkJoin& join) {
                 
                 std::cout << "Connected To" << std::endl;
@@ -46,6 +43,21 @@ namespace {
                 << ((join.address >> 0) & 0xFF) << std::endl;
                 std::cout << "\tTCP Port: " << join.tcpPort << std::endl;
                 std::cout << "\tUDP Port: " << join.udpPort << std::endl;
+                
+                // Send some data to our new friend
+                
+                // Emit short unreliable message
+                emit<Scope::NETWORK>(std::make_unique<std::string>("Test Short Unreliable Target Message"), join.name);
+                
+                // Emit short reliable message
+                emit<Scope::NETWORK>(std::make_unique<std::string>("Test Short Reliable Target Message"), join.name, true);
+                
+                
+                // Emit long unreliable message
+                emit<Scope::NETWORK>(std::make_unique<std::string>(std::numeric_limits<uint16_t>::max(), 'c'), join.name);
+                
+                // Emit long reliable message
+                emit<Scope::NETWORK>(std::make_unique<std::string>(std::numeric_limits<uint16_t>::max(), 'd'), join.name, true);
             });
             
             on<Trigger<NetworkLeave>, Sync<TestReactor>>().then([this] (const NetworkLeave& leave) {
@@ -74,12 +86,11 @@ namespace {
                 
             });
             
-            on<Startup>().then([this, prefix, index] {
+            on<Startup>().then([this] {
                 
                 auto netConfig = std::make_unique<NUClear::message::NetworkConfiguration>();
                 
-                
-                netConfig->name = prefix + std::to_string(index);
+                netConfig->name = ::getenv("NETWORK_NODE") ? std::string(::getenv("NETWORK_NODE")) : "";
                 netConfig->multicastGroup = "239.226.152.162";
                 netConfig->multicastPort = 7447;
                 
@@ -89,7 +100,7 @@ namespace {
                 emit(std::make_unique<PerformEmits>());
             });
             
-            on<Trigger<PerformEmits>>().then([this, prefix, index] {
+            on<Trigger<PerformEmits>>().then([this] {
                 
                 // Sleep for one second to let the network stabalise
                 std::this_thread::sleep_for(std::chrono::seconds(1));
@@ -102,27 +113,11 @@ namespace {
                 // Emit short reliable to all
                 emit<Scope::NETWORK>(std::make_unique<std::string>("Test Short Reliable All Message"), "", true);
                 
-                // Emit short unreliable to our next node and previous node
-                emit<Scope::NETWORK>(std::make_unique<std::string>("Test Short Unreliable Target Message"), prefix + std::to_string(index + 1));
-                emit<Scope::NETWORK>(std::make_unique<std::string>("Test Short Unreliable Target Message"), prefix + std::to_string(index - 1));
-                
-                // Emit short reliable message to our next node and previous node
-                emit<Scope::NETWORK>(std::make_unique<std::string>("Test Short Reliable Target Message"), prefix + std::to_string(index + 1), true);
-                emit<Scope::NETWORK>(std::make_unique<std::string>("Test Short Reliable Target Message"), prefix + std::to_string(index - 1), true);
-                
                 // Emit long unreliable to all
                 emit<Scope::NETWORK>(std::make_unique<std::string>(std::numeric_limits<uint16_t>::max(), 'a'));
                 
                 // Emit long reliable to all
                 emit<Scope::NETWORK>(std::make_unique<std::string>(std::numeric_limits<uint16_t>::max(), 'b'), "", true);
-                
-                // Emit long unreliable to our next node and previous node
-                emit<Scope::NETWORK>(std::make_unique<std::string>(std::numeric_limits<uint16_t>::max(), 'c'), prefix + std::to_string(index + 1));
-                emit<Scope::NETWORK>(std::make_unique<std::string>(std::numeric_limits<uint16_t>::max(), 'c'), prefix + std::to_string(index - 1));
-                
-                // Emit long reliable message to our next node and previous node
-                emit<Scope::NETWORK>(std::make_unique<std::string>(std::numeric_limits<uint16_t>::max(), 'd'), prefix + std::to_string(index + 1), true);
-                emit<Scope::NETWORK>(std::make_unique<std::string>(std::numeric_limits<uint16_t>::max(), 'd'), prefix + std::to_string(index - 1), true);
             });
         }
     };
