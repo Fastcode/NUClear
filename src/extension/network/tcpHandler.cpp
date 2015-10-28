@@ -17,7 +17,6 @@
 
 #include "nuclear_bits/extension/NetworkController.hpp"
 #include "nuclear_bits/extension/network/WireProtocol.hpp"
-#include "nuclear_bits/util/network/rwloop.hpp"
 
 #include <algorithm>
 #include <cerrno>
@@ -39,7 +38,7 @@ namespace NUClear {
                 std::vector<char> data(sizeof(network::PacketHeader));
                 
                 // Read our header and check it is valid
-                if(util::network::readAll(e.fd, data.data(), data.size()) == sizeof(network::PacketHeader)) {
+                if(::recv(e.fd, data.data(), data.size(), MSG_WAITALL) == sizeof(network::PacketHeader)) {
                     
                     const network::PacketHeader& header = *reinterpret_cast<network::PacketHeader*>(data.data());
                     
@@ -47,7 +46,7 @@ namespace NUClear {
                     data.resize(data.size() + header.length);
                     
                     // Read our remaining packet and check it's valid
-                    if(util::network::readAll(e.fd, data.data() + sizeof(network::PacketHeader), header.length) == header.length) {
+                    if(::recv(e.fd, data.data() + sizeof(network::PacketHeader), header.length, MSG_WAITALL) == header.length) {
                         
                         const network::DataPacket& packet = *reinterpret_cast<network::DataPacket*>(data.data());
                         

@@ -27,7 +27,7 @@ namespace NUClear {
         void NetworkController::announce() {
             
             // Make a data vector of the correct size and default values
-            std::vector<char> packet(sizeof(network::AnnouncePacket) + name.size(), '\00');
+            std::vector<char> packet(sizeof(network::AnnouncePacket) + name.size());
             network::AnnouncePacket* p = reinterpret_cast<network::AnnouncePacket*>(packet.data());
             *p = network::AnnouncePacket();
             
@@ -40,7 +40,7 @@ namespace NUClear {
             p->length = uint32_t(sizeof(network::AnnouncePacket) + name.size() - sizeof(network::PacketHeader));
             
             // Copy our name over
-            std::memcpy(packet.data() + sizeof(network::AnnouncePacket) - 1, name.c_str(), name.size() + 1);
+            std::memcpy(&p->name, name.c_str(), name.size() + 1);
             
             // Send a multicast packet announcing ourselves from our UDP port
             sockaddr_in multicastTarget;

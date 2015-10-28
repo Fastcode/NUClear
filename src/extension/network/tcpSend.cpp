@@ -17,7 +17,6 @@
 
 #include "nuclear_bits/extension/NetworkController.hpp"
 #include "nuclear_bits/extension/network/WireProtocol.hpp"
-#include "nuclear_bits/util/network/rwloop.hpp"
 
 #include <algorithm>
 #include <cerrno>
@@ -51,11 +50,10 @@ namespace NUClear {
             }
             
             for (auto it = sendTo.first; it != sendTo.second; ++it) {
-                // Write the header (except the blank "char" value)
-                util::network::writeAll(it->second->tcpFD, &p, sizeof(network::DataPacket) - 1);
-                
-                // Write the packet
-                util::network::writeAll(it->second->tcpFD, emit.data.data(), emit.data.size());
+                // Write the header (except the blank "char" value) and then the packet
+                ::send(it->second->tcpFD, &p, sizeof(network::DataPacket) - 1, 0);
+                ::send(it->second->tcpFD, emit.data.data(), emit.data.size(), 0);
+                // TODO do this as a single send
             }
         }
     }

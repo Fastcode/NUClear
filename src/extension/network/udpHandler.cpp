@@ -71,20 +71,24 @@ namespace NUClear {
                             ::connect(tcpFD, reinterpret_cast<sockaddr*>(&remote), sizeof(sockaddr));
                             // TODO this might get closed or refused or something else
                             
-                            // Send an announce packet to the remote
-                            network::AnnouncePacket p;
-                            p.type = network::ANNOUNCE;
-                            p.tcpPort = tcpPort;
-                            p.udpPort = udpPort;
+                            // Make a data vector of the correct size and default values
+                            std::vector<char> announcePacket(sizeof(network::AnnouncePacket) + name.size());
+                            network::AnnouncePacket* p = reinterpret_cast<network::AnnouncePacket*>(announcePacket.data());
+                            *p = network::AnnouncePacket();
+                            
+                            // Make an announce packet
+                            p->type = network::ANNOUNCE;
+                            p->tcpPort = tcpPort;
+                            p->udpPort = udpPort;
                             
                             // Length is the size without the header
-                            p.length = uint32_t(sizeof(network::AnnouncePacket) + name.size() - sizeof(network::PacketHeader));
-                            
-                            // Copy our packet data over
-                            ::write(tcpFD, &p, sizeof(p) - 1);
+                            p->length = uint32_t(sizeof(network::AnnouncePacket) + name.size() - sizeof(network::PacketHeader));
                             
                             // Copy our name over
-                            ::write(tcpFD, this->name.c_str(), this->name.size() + 1);
+                            std::memcpy(&p->name, name.c_str(), name.size() + 1);
+                            
+                            // Copy our packet data and name over
+                            ::send(tcpFD, announcePacket.data(), announcePacket.size(), 0);
                             
                             // Insert our new element
                             auto it = targets.emplace(targets.end(), newName, packet.remote.address, newTCPPort, newUDPPort, tcpFD.release());
