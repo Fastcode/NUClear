@@ -38,7 +38,7 @@ namespace NUClear {
                 static inline threading::ReactionHandle bind(Reactor& reactor, const std::string& label, TFunc&& callback) {
                     
                     // Get our identifier string
-                    std::vector<std::string> identifier = util::get_identifier<typename DSL::DSL, TFunc>(label);
+                    std::vector<std::string> identifier = util::get_identifier<typename DSL::DSL, TFunc>(label, reactor.reactorName);
                     
                     auto unbinder = [] (threading::Reaction& r) {
                         r.enabled = false;

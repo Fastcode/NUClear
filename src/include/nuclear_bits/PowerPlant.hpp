@@ -33,6 +33,7 @@
 
 // Utilities
 #include "nuclear_bits/util/unpack.hpp"
+#include "nuclear_bits/util/demangle.hpp"
 #include "nuclear_bits/util/FunctionFusion.hpp"
 
 #include "nuclear_bits/threading/TaskScheduler.hpp"

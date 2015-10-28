@@ -117,8 +117,9 @@ namespace NUClear {
         friend class PowerPlant;
         
         Reactor(std::unique_ptr<Environment> environment)
-          : environment(std::move(environment))
-          , powerplant(this->environment->powerplant) {
+          : powerplant(environment->powerplant)
+          , reactorName(environment->reactorName)
+          , logLevel(environment->logLevel) {
         }
         
         ~Reactor() {
@@ -132,14 +133,17 @@ namespace NUClear {
     private:
         std::vector<threading::ReactionHandle> reactionHandles;
         
-    protected:
-        /// @brief Our environment
-        std::unique_ptr<Environment> environment;
-        
     public:
         /// @brief TODO
         PowerPlant& powerplant;
+        
+        /// @brief The demangled string name of this reactor
+        const std::string reactorName;
+        
     protected:
+        
+        /// @brief The level that this reactor logs at
+        LogLevel logLevel;
         
         /***************************************************************************************************************
          * The types here are imported from other contexts so that when extending from the Reactor type in normal      *
@@ -349,7 +353,7 @@ namespace NUClear {
         void log(TArgs&&... args) {
             
             // If the log is above or equal to our log level
-            if (level >= environment->logLevel) {
+            if (level >= logLevel) {
                 powerplant.log<level>(std::forward<TArgs>(args)...);
             }
         }

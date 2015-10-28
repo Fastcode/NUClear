@@ -47,7 +47,7 @@ namespace NUClear {
                     });
                     
                     // Get our identifier string
-                    std::vector<std::string> identifier = util::get_identifier<typename DSL::DSL, TFunc>(label);
+                    std::vector<std::string> identifier = util::get_identifier<typename DSL::DSL, TFunc>(label, reactor.reactorName);
                     
                     auto reaction = std::make_shared<threading::Reaction>(reactor, std::move(identifier), std::forward<TFunc>(callback), std::move(unbinder));
                     threading::ReactionHandle handle(reaction);

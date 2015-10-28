@@ -18,7 +18,7 @@
 #ifndef NUCLEAR_DSL_WORD_PRIORITY_H
 #define NUCLEAR_DSL_WORD_PRIORITY_H
 
-#include "nuclear_bits/dsl/operation/TypeBind.hpp"
+#include "nuclear_bits/threading/Reaction.hpp"
 
 namespace NUClear {
     namespace dsl {

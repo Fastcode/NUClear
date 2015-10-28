@@ -27,14 +27,14 @@ namespace NUClear {
     namespace util {
 
         template <typename TFusion, typename TFunc>
-        std::vector<std::string> get_identifier(std::string usr) {
+        std::vector<std::string> get_identifier(std::string usr, std::string reactor) {
             
-            std::vector<std::string> out;
-            out.reserve(3);
-            
-            out.push_back(usr);
-            out.push_back(demangle(typeid(TFusion).name()));
-            out.push_back(demangle(typeid(TFunc).name()));
+            std::vector<std::string> out = {
+                usr,
+                reactor,
+                demangle(typeid(TFusion).name()),
+                demangle(typeid(TFunc).name())
+            };
             
             return out;
         }

@@ -344,7 +344,7 @@ namespace NUClear {
                         // Store the port variable that was used
                         socklen_t len = sizeof(sockaddr_in);
                         if (::getsockname(fd, reinterpret_cast<sockaddr*>(&address), &len) == -1) {
-                            throw std::system_error(errno, std::system_category(), "We were unable to get the port from the TCP socket");
+                            throw std::system_error(errno, std::system_category(), "We were unable to get the port from the UDP socket");
                         }
                         port = ntohs(address.sin_port);
                         

@@ -29,7 +29,7 @@ namespace NUClear {
         std::unique_ptr<threading::Reaction> generate_reaction(Reactor& reactor, const std::string& label, TFunc&& callback, std::function<void(threading::Reaction&)> unbind = std::function<void(threading::Reaction&)>()) {
             
             // Get our identifier string
-            std::vector<std::string> identifier = util::get_identifier<typename DSL::DSL, TFunc>(label);
+            std::vector<std::string> identifier = util::get_identifier<typename DSL::DSL, TFunc>(label, reactor.reactorName);
             
             // Get our powerplant
             auto& powerplant = reactor.powerplant;
