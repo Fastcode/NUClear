@@ -161,11 +161,7 @@ namespace NUClear {
                                                 e.fd = fd.fd;
                                                 
                                                 // Evaluate and store our set in thread store
-                                                e.events = 0;
-                                                e.events |= fd.revents & POLLIN               ? IO::READ     : 0;
-                                                e.events |= fd.revents & POLLOUT              ? IO::WRITE    : 0;
-                                                e.events |= fd.revents & POLLHUP              ? IO::CLOSE    : 0;
-                                                e.events |= fd.revents & (POLLNVAL | POLLERR) ? IO::ERROR    : 0;
+                                                e.events = fd.revents;
                                                 
                                                 // Store the event in our thread local cache
                                                 IO::ThreadEventStore::value = &e;
