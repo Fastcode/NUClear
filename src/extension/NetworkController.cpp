@@ -33,7 +33,7 @@ namespace NUClear {
             // Turn off sigpipe...
             ::signal(SIGPIPE, SIG_IGN);
             
-            on<Trigger<dsl::word::NetworkListen>>().then([this] (const dsl::word::NetworkListen& l) {
+            on<Trigger<dsl::word::NetworkListen>, Sync<NetworkController>>().then([this] (const dsl::word::NetworkListen& l) {
                 // Lock our reaction mutex
                 std::lock_guard<std::mutex> lock(reactionMutex);
                 
@@ -41,7 +41,7 @@ namespace NUClear {
                 reactions.insert(std::make_pair(l.hash, l.reaction));
             });
             
-            on<Trigger<dsl::operation::Unbind<dsl::word::NetworkListen>>>().then([this] (const dsl::operation::Unbind<dsl::word::NetworkListen>& unbind) {
+            on<Trigger<dsl::operation::Unbind<dsl::word::NetworkListen>>, Sync<NetworkController>>().then([this] (const dsl::operation::Unbind<dsl::word::NetworkListen>& unbind) {
                 
                 // Lock our reaction mutex
                 std::lock_guard<std::mutex> lock(reactionMutex);
@@ -55,7 +55,7 @@ namespace NUClear {
                 }
             });
             
-            on<Trigger<message::NetworkConfiguration>>().then([this] (const message::NetworkConfiguration& config) {
+            on<Trigger<message::NetworkConfiguration>, Sync<NetworkController>>().then([this] (const message::NetworkConfiguration& config) {
                 
                 // Unbind our incoming handles if they exist
                 if (udpHandle) {
@@ -99,23 +99,23 @@ namespace NUClear {
                 multicastPort = config.multicastPort;
                 
                 // Add our new reactions
-                std::tie(udpHandle, udpPort, udpServerFD) = on<UDP>().then([this] (const UDP::Packet& packet) {
+                std::tie(udpHandle, udpPort, udpServerFD) = on<UDP, Sync<NetworkController>>().then([this] (const UDP::Packet& packet) {
                     udpHandler(packet);
                 });
                 
-                std::tie(tcpHandle, tcpPort, tcpServerFD) = on<TCP>().then([this] (const TCP::Connection& connection) {
+                std::tie(tcpHandle, tcpPort, tcpServerFD) = on<TCP, Sync<NetworkController>>().then([this] (const TCP::Connection& connection) {
                     tcpConnection(connection);
                 });
                 
-                std::tie(multicastHandle, std::ignore, std::ignore) = on<UDP::Multicast>(multicastGroup, multicastPort).then([this] (const UDP::Packet& packet) {
+                std::tie(multicastHandle, std::ignore, std::ignore) = on<UDP::Multicast, Sync<NetworkController>>(multicastGroup, multicastPort).then([this] (const UDP::Packet& packet) {
                     udpHandler(packet);
                 });
                 
-                multicastEmitHandle = on<Every<1, std::chrono::seconds>>().then([this] {
+                multicastEmitHandle = on<Every<1, std::chrono::seconds>, Single, Sync<NetworkController>>().then([this] {
                     announce();
                 });
                 
-                networkEmitHandle = on<Trigger<dsl::word::emit::NetworkEmit>>().then([this] (const dsl::word::emit::NetworkEmit& emit) {
+                networkEmitHandle = on<Trigger<dsl::word::emit::NetworkEmit>, Sync<NetworkController>>().then([this] (const dsl::word::emit::NetworkEmit& emit) {
                     // See if this message should be sent reliably
                     if(emit.reliable) {
                         tcpSend(emit);
