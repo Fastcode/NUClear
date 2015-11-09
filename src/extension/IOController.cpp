@@ -51,17 +51,9 @@ namespace NUClear {
                 // Lock our mutex to avoid concurrent modification
                 std::lock_guard<std::mutex> lock(reactionMutex);
                 
-                // Work out our event mask
-                short events = 0;
-                
-                events |= config.events & IO::READ  ? POLLIN             : 0;
-                events |= config.events & IO::WRITE ? POLLOUT            : 0;
-                events |= config.events & IO::CLOSE ? POLLHUP            : 0;
-                events |= config.events & IO::ERROR ? POLLNVAL | POLLERR : 0;
-                
                 reactions.push_back(Task {
                     config.fd,
-                    events,
+                    static_cast<short>(config.events),
                     config.reaction
                 });
                 

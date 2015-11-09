@@ -18,6 +18,8 @@
 #ifndef NUCLEAR_DSL_WORD_IO_H
 #define NUCLEAR_DSL_WORD_IO_H
 
+#include <poll.h>
+
 #include "nuclear_bits/dsl/operation/Unbind.hpp"
 #include "nuclear_bits/dsl/word/emit/Direct.hpp"
 #include "nuclear_bits/dsl/word/Single.hpp"
@@ -38,11 +40,11 @@ namespace NUClear {
             // IO is implicitly single
             struct IO : public Single {
                 
-                enum EventType {
-                    READ = 1,
-                    WRITE = 2,
-                    CLOSE = 4,
-                    ERROR = 8
+                enum EventType : short {
+                    READ = POLLIN,
+                    WRITE = POLLOUT,
+                    CLOSE = POLLHUP,
+                    ERROR = POLLNVAL | POLLERR
                 };
                 
                 struct Event {
