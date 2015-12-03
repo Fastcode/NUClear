@@ -25,27 +25,27 @@
 
 namespace NUClear {
     namespace extension {
-        
+
         NetworkController::NetworkController(std::unique_ptr<NUClear::Environment> environment)
         : Reactor(std::move(environment))
         , packetIDSource(1) {
-            
+
             // Turn off sigpipe...
             ::signal(SIGPIPE, SIG_IGN);
-            
+
             on<Trigger<dsl::word::NetworkListen>, Sync<NetworkController>>().then([this] (const dsl::word::NetworkListen& l) {
                 // Lock our reaction mutex
                 std::lock_guard<std::mutex> lock(reactionMutex);
-                
+
                 // Insert our new reaction
                 reactions.insert(std::make_pair(l.hash, l.reaction));
             });
-            
+
             on<Trigger<dsl::operation::Unbind<dsl::word::NetworkListen>>, Sync<NetworkController>>().then([this] (const dsl::operation::Unbind<dsl::word::NetworkListen>& unbind) {
-                
+
                 // Lock our reaction mutex
                 std::lock_guard<std::mutex> lock(reactionMutex);
-                
+
                 // Find and delete this reaction
                 for (auto it = reactions.begin(); it != reactions.end(); ++it) {
                     if (it->second->reactionId == unbind.reactionId) {
@@ -54,9 +54,9 @@ namespace NUClear {
                     }
                 }
             });
-            
+
             on<Trigger<message::NetworkConfiguration>, Sync<NetworkController>>().then([this] (const message::NetworkConfiguration& config) {
-                
+
                 // Unbind our incoming handles if they exist
                 if (udpHandle) {
                     udpHandle.unbind();
@@ -73,19 +73,19 @@ namespace NUClear {
                 if (networkEmitHandle) {
                     networkEmitHandle.unbind();
                 }
-                
+
                 // Unbind any TCP connections we may have and clear our maps
                 for (auto& target : targets) {
                     target.handle.unbind();
                     ::close(target.tcpFD);
                 }
-                
+
                 // Clear all our maps
                 targets.clear();
                 nameTarget.clear();
                 udpTarget.clear();
                 tcpTarget.clear();
-                
+
                 // Store our new configuration
                 if(config.name.empty()) {
                     utsname u;
@@ -97,24 +97,24 @@ namespace NUClear {
                 }
                 multicastGroup = config.multicastGroup;
                 multicastPort = config.multicastPort;
-                
+
                 // Add our new reactions
                 std::tie(udpHandle, udpPort, udpServerFD) = on<UDP, Sync<NetworkController>>().then([this] (const UDP::Packet& packet) {
                     udpHandler(packet);
                 });
-                
+
                 std::tie(tcpHandle, tcpPort, tcpServerFD) = on<TCP, Sync<NetworkController>>().then([this] (const TCP::Connection& connection) {
                     tcpConnection(connection);
                 });
-                
+
                 std::tie(multicastHandle, std::ignore, std::ignore) = on<UDP::Multicast, Sync<NetworkController>>(multicastGroup, multicastPort).then([this] (const UDP::Packet& packet) {
                     udpHandler(packet);
                 });
-                
+
                 multicastEmitHandle = on<Every<1, std::chrono::seconds>, Single, Sync<NetworkController>>().then([this] {
                     announce();
                 });
-                
+
                 networkEmitHandle = on<Trigger<dsl::word::emit::NetworkEmit>, Sync<NetworkController>>().then([this] (const dsl::word::emit::NetworkEmit& emit) {
                     // See if this message should be sent reliably
                     if(emit.reliable) {

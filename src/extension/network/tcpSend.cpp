@@ -24,7 +24,7 @@
 namespace NUClear {
     namespace extension {
         using dsl::word::emit::NetworkEmit;
-        
+
         void NetworkController::tcpSend(const NetworkEmit& emit) {
 
             // Construct a packet to send
@@ -36,10 +36,10 @@ namespace NUClear {
             p.packetCount = 1;  // TCP packets always come in one packet
             p.multicast = emit.target.empty();
             p.hash = emit.hash;
-            
+
             // Stores who we should send to
             decltype(nameTarget.equal_range(emit.target)) sendTo;
-            
+
             // Send to everyone
             if (emit.target.empty()) {
                 sendTo = std::make_pair(nameTarget.begin(), nameTarget.end());
@@ -48,7 +48,7 @@ namespace NUClear {
             else {
                 sendTo = nameTarget.equal_range(emit.target);
             }
-            
+
             for (auto it = sendTo.first; it != sendTo.second; ++it) {
                 // Write the header (except the blank "char" value) and then the packet
                 ::send(it->second->tcpFD, &p, sizeof(network::DataPacket) - 1, 0);

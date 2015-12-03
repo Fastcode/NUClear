@@ -23,36 +23,36 @@
 
 namespace NUClear {
     namespace extension {
-        
+
         void NetworkController::tcpHandler(const IO::Event& e) {
-            
+
             // Find this connections target
             auto target = tcpTarget.find(e.fd);
-            
+
             bool badPacket = false;
-            
+
             // If we have data to read
             if(e.events & IO::READ) {
-                
+
                 // Allocate data for our header
                 std::vector<char> data(sizeof(network::PacketHeader));
-                
+
                 // Read our header and check it is valid
                 if(::recv(e.fd, data.data(), data.size(), MSG_WAITALL) == sizeof(network::PacketHeader)) {
-                    
+
                     const network::PacketHeader& header = *reinterpret_cast<network::PacketHeader*>(data.data());
-                    
+
                     // Add enough space for our remaining packet
                     data.resize(data.size() + header.length);
-                    
+
                     // Read our remaining packet and check it's valid
                     if(::recv(e.fd, data.data() + sizeof(network::PacketHeader), header.length, MSG_WAITALL) == header.length) {
-                        
+
                         const network::DataPacket& packet = *reinterpret_cast<network::DataPacket*>(data.data());
-                        
+
                         // Copy our data into a vector
                         std::vector<char> payload(&packet.data, &packet.data + packet.length - sizeof(network::DataPacket) + sizeof(network::PacketHeader) + 1);
-                        
+
                         // Construct our NetworkSource information
                         dsl::word::NetworkSource src;
                         src.name = target->second->name;
@@ -60,18 +60,18 @@ namespace NUClear {
                         src.port = target->second->udpPort;
                         src.reliable = true;
                         src.multicast = packet.multicast;
-                        
+
                         // Store in our thread local cache
                         dsl::store::ThreadStore<std::vector<char>>::value = &payload;
                         dsl::store::ThreadStore<dsl::word::NetworkSource>::value = &src;
-                        
+
                         /* Mutex Scope */ {
                             // Lock our reaction mutex
                             std::lock_guard<std::mutex> lock(reactionMutex);
-                            
+
                             // Find interested reactions
                             auto rs = reactions.equal_range(packet.hash);
-                            
+
                             // Execute on our interested reactions
                             for(auto it = rs.first; it != rs.second; ++it) {
                                 auto task = it->second->getTask();
@@ -80,7 +80,7 @@ namespace NUClear {
                                 }
                             }
                         }
-                        
+
                         // Clear our cache
                         dsl::store::ThreadStore<std::vector<char>>::value = nullptr;
                         dsl::store::ThreadStore<dsl::word::NetworkSource>::value = nullptr;
@@ -95,13 +95,13 @@ namespace NUClear {
                     badPacket = true;
                 }
             }
-            
+
             // If the connection closed or errored (or reached an end of file
-            if(badPacket || (e.events & IO::CLOSE) || (e.events & IO::ERROR)) {
-                
+            if(badPacket || (e.events & IO::CLOSE) || (e.events & IO::FAIL)) {
+
                 // Lock our mutex
                 std::lock_guard<std::mutex> lock(targetMutex);
-                
+
                 // emit a message that says who disconnected
                 auto l = std::make_unique<message::NetworkLeave>();
                 l->name = target->second->name;
@@ -109,16 +109,16 @@ namespace NUClear {
                 l->tcpPort = target->second->tcpPort;
                 l->udpPort = target->second->udpPort;
                 emit(l);
-                
+
                 // Unbind our connection
                 target->second->handle.unbind();
-                
+
                 // Close our half of the connection
                 ::close(e.fd);
-                
+
                 // Remove our UDP target
                 udpTarget.erase(udpTarget.find(std::make_pair(target->second->address, target->second->udpPort)));
-                
+
                 // Remove our name target
                 auto range = nameTarget.equal_range(target->second->name);
                 for (auto it = range.first; it != range.second; ++it) {
@@ -127,10 +127,10 @@ namespace NUClear {
                         break;
                     };
                 }
-                
+
                 // Remove our element
                 targets.erase(target->second);
-                
+
                 // Remove our TCP target
                 tcpTarget.erase(target);
             }

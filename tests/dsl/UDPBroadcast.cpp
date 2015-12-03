@@ -31,6 +31,7 @@ namespace {
 
     class TestReactor : public NUClear::Reactor {
     public:
+        int boundPort = 0;
         TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
 
             // Known port
@@ -49,7 +50,6 @@ namespace {
             });
 
             // Unknown port
-            int boundPort;
             std::tie(std::ignore, boundPort) = on<UDP::Broadcast>().then([this](const UDP::Packet& packet) {
 
                 ++countB;
@@ -88,7 +88,7 @@ namespace {
                 }
             });
 
-            on<Trigger<Message>>().then([this, boundPort] {
+            on<Trigger<Message>>().then([this] {
 
                 // Get all the network interfaces
                 auto interfaces = NUClear::util::network::get_interfaces();

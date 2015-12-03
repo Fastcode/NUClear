@@ -27,11 +27,12 @@ namespace {
     class TestReactor : public NUClear::Reactor {
     public:
 
+        int boundPort = 0;
+
         TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
             emit<Scope::INITIALIZE>(std::make_unique<int>(5));
 
-            int boundPort;
-            std::tie(std::ignore, boundPort, std::ignore) = on<UDP>().then([this, &boundPort] (const UDP::Packet& packet) {
+            std::tie(std::ignore, boundPort, std::ignore) = on<UDP>().then([this] (const UDP::Packet& packet) {
                 ++receivedMessages;
 
                 switch(packet.data[0]) {
@@ -60,7 +61,7 @@ namespace {
                 }
             });
 
-            on<Startup>().then([boundPort, this] {
+            on<Startup>().then([this] {
                 // Send using a string
                 emit<Scope::UDP>(std::make_unique<char>('a'), "127.0.0.1", boundPort);
                 emit<Scope::UDP>(std::make_unique<char>('b'), INADDR_LOOPBACK, boundPort);

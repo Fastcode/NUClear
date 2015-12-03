@@ -44,7 +44,7 @@ namespace NUClear {
                     READ = POLLIN,
                     WRITE = POLLOUT,
                     CLOSE = POLLHUP,
-                    ERROR = POLLNVAL | POLLERR
+                    FAIL = POLLNVAL | POLLERR
                 };
 
                 struct Event {

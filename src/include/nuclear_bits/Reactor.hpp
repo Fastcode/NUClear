@@ -249,10 +249,10 @@ namespace NUClear {
             // Do nothing if it's not a reaction handle
             void addReactionHandle(...) {}
 
-            template <int i = 0, typename... Tp>
+            template <size_t i = 0, typename... Tp>
             EnableIf<std::integral_constant<bool, i == sizeof...(Tp)>> addReactionHandles(std::tuple<Tp...>&) {}
 
-            template <int i = 0, typename... Tp>
+            template <size_t i = 0, typename... Tp>
             EnableIf<std::integral_constant<bool, i < sizeof...(Tp)>> addReactionHandles(std::tuple<Tp...>& t) {
                 addReactionHandle(std::get<i>(t));
             }

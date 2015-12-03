@@ -23,18 +23,18 @@
 
 namespace NUClear {
     namespace extension {
-        
+
         ChronoController::ChronoController(std::unique_ptr<NUClear::Environment> environment)
           : Reactor(std::move(environment))
           , steps(0)
           , lock(mutex) {
-              
+
             on<Trigger<dsl::word::EveryConfiguration>>().then("Configure Every Reaction", [this] (const dsl::word::EveryConfiguration& config) {
-                
+
                 auto item = std::find_if(std::begin(steps), std::end(steps), [&config] (const Step& item) {
                     return item.jump == config.jump;
                 });
-                
+
                 // If we haven't got this duration step yet
                 if(item == std::end(steps) ) {
                     steps.push_back(Step {
@@ -47,56 +47,56 @@ namespace NUClear {
                 else {
                     item->reactions.push_back(std::move(config.reaction));
                 }
-                
+
                 // Sort the steps
                 std::sort(std::begin(steps), std::end(steps));
-                
+
                 // Poke the system
                 wait.notify_all();
             });
-              
+
             on<Trigger<dsl::operation::Unbind<Every<>>>>().then("Unbind Every Reaction", [this] (const dsl::operation::Unbind<Every<>>& unbind) {
-              
+
                 // Loop through all of our steps
                 for(auto& step : steps) {
-                    
+
                     // See if this step has the target reaction
                     auto item = std::find_if(std::begin(step.reactions), std::end(step.reactions), [unbind] (const std::shared_ptr<threading::Reaction>& r) {
                         return r->reactionId == unbind.reactionId;
                     });
-                    
+
                     // If we have this item then remove it
                     if(item != std::end(step.reactions)) {
                         step.reactions.erase(item);
                     }
                 }
             });
-              
+
             // When we shutdown we notify so we quit now
             on<Shutdown>().then("Shutdown Chrono Controller", [this] {
                 wait.notify_all();
             });
-            
+
             on<Always>().then("Chrono Controller", [this] {
                 // If we have steps to do
                 if(!steps.empty()) {
-                    
+
                     // Wait until the next event
                     wait.wait_for(lock, steps.front().next - clock::now());
-                    
+
                     // Get the current time
                     clock::time_point now(clock::now());
-                    
+
                     // Busy wait for the time to be right to improve accuracy
                     while (now < steps.front().next) {
                         now = clock::now();
                     };
-                    
+
                     // Check if any intervals are before now and if so execute their callbacks and add their step.
                     for(auto& step : steps) {
                         if((step.next - now).count() <= 0) {
                             for(auto& reaction : step.reactions) {
-                                
+
                                 try {
                                     // submit the reaction to the thread pool
                                     auto task = reaction->getTask();
@@ -114,7 +114,7 @@ namespace NUClear {
                             break;
                         }
                     }
-                    
+
                     // Sort the steps
                     std::sort(std::begin(steps), std::end(steps));
                 }
@@ -123,7 +123,7 @@ namespace NUClear {
                     wait.wait(lock);
                 }
             });
-            
+
         }
     }
 }
