@@ -13,48 +13,18 @@ SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 
 # This directory contains our header files and ipp files
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/src/include)
-# Our protocol buffers are generated in this folder
-INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR}/src)
 
-# Common C++ Flags
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -O3 -fPIC -DNDEBUG")
-
-# XCode support
-IF("${CMAKE_GENERATOR}" MATCHES "Xcode")
-    message("Enabling xcode support")
-    set(CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LIBRARY "libc++")
-    set(CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LANGUAGE_STANDARD "c++0x")
-ENDIF()
-
-IF("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU")
-    SET(GCC_MINIMUM_VERSION 4.8)
-    EXECUTE_PROCESS(
-        COMMAND ${CMAKE_CXX_COMPILER} -dumpversion OUTPUT_VARIABLE GCC_VERSION)
-    IF(GCC_VERSION VERSION_LESS ${GCC_MINIMUM_VERSION})
-        message(FATAL_ERROR "${PROJECT_NAME} requires g++ 4.8 or greater.")
-    ENDIF()
-
-    # Enable colours on g++ 4.9
-    IF(GCC_VERSION VERSION_GREATER "4.9" OR GCC_VERSION VERSION_EQUAL "4.9")
-        SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fdiagnostics-color=always")
-    ENDIF()
-
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -Wall -Wpedantic")
-
-ELSEIF("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -Wpedantic -Wextra")
-ELSE()
-    MESSAGE(FATAL_ERROR "Unsupported compiler!")
-ENDIF()
+# Setup our compiler settings
+INCLUDE(CompilerSetup)
 
 # Add the subdirectories
 ADD_SUBDIRECTORY(src)
 
-# Install the headers and templates that NUClear.h depends on
+# Install the headers and templates that nuclear depends on
 INSTALL(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/src/include/ DESTINATION include PATTERN "*.hpp" PATTERN "*.ipp")
 
 # Optional build supports
-if(BUILD_TESTS)
-    enable_testing()
-    add_subdirectory(tests)
-endif()
+IF(BUILD_TESTS)
+    ENABLE_TESTING()
+    ADD_SUBDIRECTORY(tests)
+ENDIF()
