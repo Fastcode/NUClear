@@ -20,17 +20,17 @@
 
 namespace NUClear {
     namespace threading {
-        
+
         // Initialize our id source
         std::atomic<uint64_t> ReactionTask::taskIdSource(0);
-        
+
         // This here is a hack because for some reason Xcode is broken and doesn't generate the destructors for this class...???!!!
         // TODO once XCode stops being so stupid, you can remove this
         message::ReactionStatistics r;
-        
+
         // Initialize our current task
-        __thread ReactionTask* ReactionTask::currentTask = nullptr;
-        
+        ATTRIBUTE_TLS ReactionTask* ReactionTask::currentTask = nullptr;
+
         ReactionTask::ReactionTask(Reaction& parent, int priority, std::function<std::unique_ptr<ReactionTask> (std::unique_ptr<ReactionTask>&&)> callback)
           : parent(parent)
           , taskId(++taskIdSource)
@@ -47,33 +47,33 @@ namespace NUClear {
               , nullptr
             })
           , callback(callback) {
-        
+
             // There is one new active task
             ++parent.activeTasks;
         }
-        
+
         const ReactionTask* ReactionTask::getCurrentTask() {
             return currentTask;
         }
-        
+
         std::unique_ptr<ReactionTask> ReactionTask::run(std::unique_ptr<ReactionTask>&& us) {
-            
+
             // Update our current task
             auto oldTask = currentTask;
             currentTask = this;
-            
+
             // Run our callback at catch the returned task (to see if it rescheduled itself)
             us = callback(std::move(us));
-            
+
             // If we were not rescheduled then finish off our stats
             if(us) {
                 // There is one less task
                 --parent.activeTasks;
             }
-            
+
             // Reset our task back
             currentTask = oldTask;
-            
+
             // Return our original task
             return std::move(us);
         }

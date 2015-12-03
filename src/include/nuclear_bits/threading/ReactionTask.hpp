@@ -24,6 +24,7 @@
 #include <typeindex>
 #include <memory>
 
+#include "nuclear_bits/util/platform.hpp"
 #include "nuclear_bits/message/ReactionStatistics.hpp"
 
 namespace NUClear {
@@ -46,7 +47,7 @@ namespace NUClear {
             static std::atomic<std::uint64_t> taskIdSource;
 
             /// @brief the current task that is being executed by this thread (or nullptr if none is)
-            static __thread ReactionTask* currentTask;
+            static ATTRIBUTE_TLS ReactionTask* currentTask;
         public:
 
             /**

@@ -21,10 +21,11 @@
 #include "nuclear_bits/message/LogLevel.hpp"
 
 namespace NUClear {
-    
-    // Forward declare reactor
+
+    // Forward declare reactor and powerplant
     class Reactor;
-    
+    class PowerPlant;
+
     /**
      * @brief
      *  Environment defines variables that are passed from the installing PowerPlant context
@@ -42,11 +43,11 @@ namespace NUClear {
           : powerplant(powerplant)
           , logLevel(logLevel)
           , reactorName(reactorName) {}
-        
+
     private:
         friend class PowerPlant;
         friend class Reactor;
-        
+
         /// @brief The PowerPlant to use in this reactor
         PowerPlant& powerplant;
         /// @brief The log level to resepect for this reactor

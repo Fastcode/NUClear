@@ -15,24 +15,16 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_DSL_STORE_THREADSTORE_H
-#define NUCLEAR_DSL_STORE_THREADSTORE_H
+#ifndef NUCLEAR_UTIL_PLATFORM_H
+#define NUCLEAR_UTIL_PLATFORM_H
 
-#include "nuclear_bits/util/platform.hpp"
-
-namespace NUClear {
-    namespace dsl {
-        namespace store {
-
-            template <typename TData, int Index = 0>
-            struct ThreadStore {
-                static ATTRIBUTE_TLS TData* value;
-            };
-
-            template <typename TData, int index>
-            ATTRIBUTE_TLS TData* ThreadStore<TData, index>::value = nullptr;
-        }
-    }
-}
-
+// Shim for thread_local on multiple platforms
+#if defined (__GNUC__)
+    #define ATTRIBUTE_TLS __thread
+#elif defined (_MSC_VER)
+    #define ATTRIBUTE_TLS __declspec(thread)
+#else // !__GNUC__ && !_MSC_VER
+    #error "Define a thread local storage qualifier for your compiler/platform!"
 #endif
+
+#endif  // NUCLEAR_UTIL_PLATFORM_H
