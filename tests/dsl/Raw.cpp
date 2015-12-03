@@ -20,26 +20,26 @@
 #include "nuclear"
 
 namespace {
-    
+
     struct TypeA {
         int x;
     };
-    
+
     struct TypeB {
         int x;
     };
-    
+
     class TestReactor : public NUClear::Reactor {
     private:
         std::vector<std::shared_ptr<const TypeA>> stored;
     public:
-        
+
         TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
-            
+
             // Trigger on TypeA and store the result
             on<Trigger<TypeA>>().then([this] (const std::shared_ptr<const TypeA>& a) {
                 stored.push_back(a);
-                
+
                 // Wait until we have 10 elements
                 if(stored.size() == 10) {
                     emit(std::make_unique<TypeB>(TypeB{ 0 }));
@@ -48,20 +48,20 @@ namespace {
                     emit(std::make_unique<TypeA>(TypeA{ a->x + 1 }));
                 }
             });
-            
+
             on<Trigger<TypeB>>().then([this] (const TypeB&) {
-                
+
                 // Make sure that our type a list has numbers 0 to 9
-                
+
                 REQUIRE(stored.size() == 10);
-                
+
                 for(uint i = 0; i < stored.size(); ++i){
                     REQUIRE(stored[i]->x == i);
                 }
-                
+
                 powerplant.shutdown();
             });
-            
+
             on<Startup>().then([this] {
                 emit(std::make_unique<TypeA>(TypeA{ 0 }));
             });
@@ -70,11 +70,11 @@ namespace {
 }
 
 TEST_CASE("Testing the raw type conversions work properly", "[api][raw]") {
-    
+
     NUClear::PowerPlant::Configuration config;
     config.threadCount = 1;
     NUClear::PowerPlant plant(config);
     plant.install<TestReactor>();
-    
+
     plant.start();
 }

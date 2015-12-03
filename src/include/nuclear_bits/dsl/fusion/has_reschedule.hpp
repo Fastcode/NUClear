@@ -24,16 +24,16 @@
 namespace NUClear {
     namespace dsl {
         namespace fusion {
-            
+
             template<typename T>
             struct has_reschedule {
             private:
                 typedef std::true_type yes;
                 typedef std::false_type no;
-                
+
                 template<typename U> static auto test(int) -> decltype(U::template reschedule<ParsedNoOp>(std::declval<std::unique_ptr<threading::ReactionTask>>()), yes());
                 template<typename> static no test(...);
-                
+
             public:
                 static constexpr bool value = std::is_same<decltype(test<T>(0)),yes>::value;
             };

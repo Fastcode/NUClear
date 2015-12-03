@@ -27,27 +27,27 @@ extern "C" {
 
 namespace NUClear {
     namespace extension {
-        
+
         class IOController : public Reactor {
         private:
-            
+
             struct Task {
                 int fd;
                 short events;
                 std::shared_ptr<threading::Reaction> reaction;
-                
+
                 bool operator< (const Task& other) const {
                     return fd == other.fd ? events < other.events : fd < other.fd;
                 }
             };
-            
+
         public:
             explicit IOController(std::unique_ptr<NUClear::Environment> environment);
-            
+
         private:
             int notifyRecv;
             int notifySend;
-            
+
             bool shutdown = false;
             bool dirty;
             std::mutex reactionMutex;

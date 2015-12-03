@@ -24,7 +24,7 @@
 
 namespace NUClear {
     namespace util {
-        
+
         template <typename TMapID, typename TKey, typename TValue>
         class TypeList {
         private:
@@ -34,9 +34,9 @@ namespace NUClear {
             ~TypeList() = delete;
             /// @brief the data variable where the data is stored for this map key.
             static std::vector<TValue> data;
-            
+
         public:
-            
+
             /**
              * @brief Gets the list that is stored in this type location
              *
@@ -46,7 +46,7 @@ namespace NUClear {
                 return data;
             }
         };
-        
+
         /// Initialize our type list data
         template <typename TMapID, typename TKey, typename TValue>
         std::vector<TValue> TypeList<TMapID, TKey, TValue>::data;

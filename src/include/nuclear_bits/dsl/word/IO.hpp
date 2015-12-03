@@ -30,7 +30,7 @@
 namespace NUClear {
     namespace dsl {
         namespace word {
-            
+
             struct IOConfiguration {
                 int fd;
                 int events;
@@ -39,48 +39,48 @@ namespace NUClear {
 
             // IO is implicitly single
             struct IO : public Single {
-                
+
                 enum EventType : short {
                     READ = POLLIN,
                     WRITE = POLLOUT,
                     CLOSE = POLLHUP,
                     ERROR = POLLNVAL | POLLERR
                 };
-                
+
                 struct Event {
                     int fd;
                     int events;
-                    
+
                     operator bool() const {
                         return fd != 0;
                     }
                 };
-                
+
                 using ThreadEventStore = dsl::store::ThreadStore<Event>;
-                
+
                 template <typename DSL, typename TFunc>
                 static inline threading::ReactionHandle bind(Reactor& reactor, const std::string& label, TFunc&& callback, int fd, int watchSet) {
-                    
+
                     auto reaction = util::generate_reaction<DSL, IO>(reactor, label, std::forward<TFunc>(callback));
-                    
+
                     auto ioConfig = std::make_unique<IOConfiguration>(IOConfiguration {
                         fd,
                         watchSet,
                         std::move(reaction)
                     });
-                    
+
                     threading::ReactionHandle handle(ioConfig->reaction);
-                    
+
                     // Send our configuration out
                     reactor.powerplant.emit<emit::Direct>(ioConfig);
-                    
+
                     // Return our handles
                     return handle;
                 }
-                
+
                 template <typename DSL>
                 static inline Event get(threading::Reaction&) {
-                    
+
                     // If our thread store has a value
                     if(ThreadEventStore::value) {
                         return *ThreadEventStore::value;
@@ -92,7 +92,7 @@ namespace NUClear {
                 }
             };
         }
-        
+
         namespace trait {
             template <>
             struct is_transient<word::IO::Event> : public std::true_type {};

@@ -20,44 +20,44 @@
 #include "nuclear"
 
 namespace {
-    
+
     struct CustomGet : public NUClear::dsl::operation::TypeBind<int> {
-        
+
         template <typename DSL>
         static inline std::shared_ptr<int> get(NUClear::threading::Reaction&) {
             return std::make_shared<int>(5);
-            
+
         }
     };
-    
+
     class TestReactor : public NUClear::Reactor {
     public:
-        
+
         TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
-            
+
             on<CustomGet>().then([this] (const int& x) {
-                
+
                 REQUIRE(x == 5);
-                
+
                 powerplant.shutdown();
             });
-            
+
             on<Startup>().then([this] {
-               
+
                 // Emit from message 4 to 1
                 emit(std::make_unique<int>(10));
-                
+
             });
         }
     };
 }
 
 TEST_CASE("Test a custom reactor that returns a type that needs dereferencing", "[api][custom_get]") {
-    
+
     NUClear::PowerPlant::Configuration config;
     config.threadCount = 1;
     NUClear::PowerPlant plant(config);
     plant.install<TestReactor>();
-    
+
     plant.start();
 }

@@ -23,16 +23,16 @@ namespace {
     struct SimpleMessage {
         int data;
     };
-    
+
     class TestReactor : public NUClear::Reactor {
     public:
         TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
-            
+
             on<Trigger<SimpleMessage>>().then([this](const SimpleMessage& message) {
-                
+
                 // The message we received should have test == 10
                 REQUIRE(message.data == 10);
-                
+
                 // We are finished the test
                 this->powerplant.shutdown();
             });
@@ -42,15 +42,15 @@ namespace {
 
 
 TEST_CASE("A very basic test for Emit and On", "[api][trigger]") {
-    
+
     NUClear::PowerPlant::Configuration config;
     config.threadCount = 1;
     NUClear::PowerPlant plant(config);
     plant.install<TestReactor>();
-    
+
     auto message = std::make_unique<SimpleMessage>(SimpleMessage { 10 });
-    
+
     plant.emit(message);
-    
+
     plant.start();
 }

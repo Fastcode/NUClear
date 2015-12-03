@@ -31,7 +31,7 @@
 
 namespace NUClear {
     namespace threading {
-        
+
         /**
          * @brief This class is responsible for scheduling tasks and distributing them amoungst threads.
          *
@@ -62,29 +62,29 @@ namespace NUClear {
          */
         class TaskScheduler {
         public:
-            
+
             /**
              * @brief This exception is thrown when the task_scheduler has been shut down
              */
             class SchedulerShutdownException {};
-            
+
             /**
              * @brief Constructs a new TaskScheduler instance, and builds the nullptr sync queue.
              */
             TaskScheduler();
-            
+
             /**
              * @brief destructs the TaskScheduler
              */
             ~TaskScheduler();
-            
+
             /**
              * @brief
              *  Shuts down the scheduler, all waiting threads are woken, and any attempt to get a task results in an
              *  exception
              */
             void shutdown();
-            
+
             /**
              * @brief Submit a new task to be executed to the Scheduler.
              *
@@ -96,7 +96,7 @@ namespace NUClear {
              * @param task  the task to be executed
              */
             void submit(std::unique_ptr<ReactionTask>&& task);
-            
+
             /**
              * @brief Get a task object to be executed by a thread.
              *
@@ -117,7 +117,7 @@ namespace NUClear {
             std::mutex mutex;
             /// @brief the condition object that threads wait on if they can't get a task
             std::condition_variable condition;
-            
+
         };
     }
 }

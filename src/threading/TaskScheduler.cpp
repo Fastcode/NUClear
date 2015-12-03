@@ -19,13 +19,13 @@
 
 namespace NUClear {
     namespace threading {
-        
+
         TaskScheduler::TaskScheduler()
           : shutdown_(false) {}
-        
+
         TaskScheduler::~TaskScheduler() {
         }
-        
+
         void TaskScheduler::shutdown() {
             {
                 std::lock_guard<std::mutex> lock(mutex);
@@ -33,32 +33,32 @@ namespace NUClear {
             }
             condition.notify_all();
         }
-        
+
         void TaskScheduler::submit(std::unique_ptr<ReactionTask>&& task) {
-            
+
             // We do not accept new tasks once we are shutdown
             if(!shutdown_) {
-                
+
                 /* Mutex Scope */ {
                     std::lock_guard<std::mutex> lock(mutex);
                     queue.push(std::forward<std::unique_ptr<ReactionTask>>(task));
                 }
             }
-            
+
             // Notify a thread that it can proceed
             condition.notify_one();
         }
-        
+
         std::unique_ptr<ReactionTask> TaskScheduler::getTask() {
-            
+
             //Obtain the lock
             std::unique_lock<std::mutex> lock(mutex);
-            
+
             // How this works in practice is that it will not shut down a thread until all tasks are drained
             while (true) {
                 // If there is nothing in the queue
                 if (queue.empty()) {
-                    
+
                     // And we are shutting down then terminate the requesting thread and tell all other threads to wake up
                     if(shutdown_) {
                         condition.notify_all();
@@ -74,11 +74,11 @@ namespace NUClear {
                     // If you're wondering why all the ridiculousness, it's because priority queue is not as feature complete as it should be
                     std::unique_ptr<ReactionTask> task(std::move(const_cast<std::unique_ptr<ReactionTask>&>(queue.top())));
                     queue.pop();
-                    
+
                     return std::move(task);
                 }
             }
-            
+
         }
     }
 }

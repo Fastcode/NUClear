@@ -22,22 +22,22 @@
 
 namespace NUClear {
     namespace extension {
-        
+
         class ChronoController : public Reactor {
         private:
             struct Step {
                 clock::duration jump;
                 clock::time_point next;
                 std::vector<std::shared_ptr<threading::Reaction>> reactions;
-                
+
                 bool operator< (const Step& other) const {
                     return next < other.next;
                 }
             };
-            
+
         public:
             explicit ChronoController(std::unique_ptr<NUClear::Environment> environment);
-            
+
         private:
             std::vector<Step> steps;
             std::mutex mutex;

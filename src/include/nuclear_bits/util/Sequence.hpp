@@ -22,7 +22,7 @@
 
 namespace NUClear {
     namespace util {
-        
+
         /**
          * @brief This class is used to hold a sequence of integers as a variardic pack
          *
@@ -34,25 +34,25 @@ namespace NUClear {
         struct Sequence {
             static constexpr int length = sizeof...(S);
         };
-        
+
         // Anonymous
         namespace {
-            
+
             /**
              * @brief Generate a sequence of numbers between a start and an end, this is the entry case
              */
             template <int Start, int End, typename Seq = Sequence<>>
             struct GenSequence;
-            
+
             /**
              * Generates sequence
              */
             template <int Start, int End, int... Seq>
             struct GenSequence<Start, End, Sequence<Seq...>>
-            : Meta::If<std::integral_constant<bool, (Start > End)>
+            : If<std::integral_constant<bool, (Start > End)>
             , GenSequence<0, 0> // If we have been given an invalid sequence, just return an empty one
             , GenSequence<Start + 1, End, Sequence<Seq..., Start>>> {};
-            
+
             /**
              * Runs when start and end are the same, terminates
              */
@@ -61,7 +61,7 @@ namespace NUClear {
                 using type = Sequence<Seq...>;
             };
         }
-        
+
         /**
          * @brief Holds a generated integer sequence of numbers as a variardic pack.
          *
@@ -76,7 +76,7 @@ namespace NUClear {
          * @author Trent Houliston
          */
         template <int Start, int End>
-        using GenerateSequence = Meta::Do<GenSequence<Start, End>>;
+        using GenerateSequence = Do<GenSequence<Start, End>>;
     }
 }
 #endif

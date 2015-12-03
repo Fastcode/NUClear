@@ -21,38 +21,38 @@
 namespace NUClear {
     namespace dsl {
         namespace word {
-            
+
             template <typename TData>
             struct OptionalWrapper {
-                
+
                 OptionalWrapper(TData&& d) : d(std::forward<TData>(d)) {}
-                
+
                 TData operator*() const {
                     return std::move(d);
                 }
-                
+
                 operator bool() const {
                     return true;
                 }
-                
+
                 TData d;
             };
 
             template <typename... DSLWords>
             struct Optional : public Fusion<DSLWords...> {
-                
+
             private:
                 template <typename... TData, int... Index>
                 static inline auto wrap(std::tuple<TData...>&& data, util::Sequence<Index...>)
                 -> decltype(std::make_tuple(OptionalWrapper<TData>(std::move(std::get<Index>(data)))...)) {
                     return std::make_tuple(OptionalWrapper<TData>(std::move(std::get<Index>(data)))...);
                 }
-                
+
             public:
                 template <typename DSL>
                 static inline auto get(threading::Reaction& r)
                 -> decltype(wrap(Fusion<DSLWords...>::template get<DSL>(r), util::GenerateSequence<0, std::tuple_size<decltype(Fusion<DSLWords...>::template get<DSL>(r))>::value>())) {
-                    
+
                     // Wrap all of our data in optional wrappers
                     return wrap(Fusion<DSLWords...>::template get<DSL>(r), util::GenerateSequence<0, std::tuple_size<decltype(Fusion<DSLWords...>::template get<DSL>(r))>::value>());
                 }

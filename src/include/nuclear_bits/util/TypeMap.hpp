@@ -24,7 +24,7 @@
 
 namespace NUClear {
     namespace util {
-        
+
         /**
          * @brief The simplest and fastest map format, It stores a single value and returns it when requested later.
          *
@@ -52,10 +52,10 @@ namespace NUClear {
             /// @brief Deleted destructor as this class is a static class.
             ~TypeMap() = delete;
             /// @brief the data variable where the data is stored for this map key.
-            
+
             static std::shared_ptr<TValue> data;
             static std::mutex mutex;
-            
+
         public:
             /**
              * @brief Stores the passed value in this map.
@@ -63,16 +63,16 @@ namespace NUClear {
              * @param d a pointer to the data to be stored (the map takes ownership)
              */
             static void set(std::shared_ptr<TValue> d) {
-                
+
                 // Do this once G++ supports it
                 //std::atomic_store_explicit(&data, d, std::memory_order_relaxed);
-                
+
                 // Lock a mutex and set our data
                 std::lock_guard<std::mutex> lock(mutex);
                 data = d;
-                
+
             }
-            
+
             /**
              * @brief Gets the value that was previously stored.
              *
@@ -81,20 +81,20 @@ namespace NUClear {
              * @throws NoDataException if there is no data that was previously stored
              */
             static std::shared_ptr<TValue> get() {
-                
+
                 // TODO do this when gcc supports it
                 // std::atomic_load_explicit(&data, std::memory_order_relaxed);
-                
+
                 std::shared_ptr<TValue> d;
                 {
                     std::lock_guard<std::mutex> lock(mutex);
                     d = data;
                 }
-                
+
                 return d;
             }
         };
-        
+
         /// Initialize our shared_ptr data
         template <typename TMapID, typename TKey, typename TValue>
         std::shared_ptr<TValue> TypeMap<TMapID, TKey, TValue>::data;

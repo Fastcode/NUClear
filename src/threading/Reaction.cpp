@@ -19,10 +19,10 @@
 
 namespace NUClear {
     namespace threading {
-        
+
         // Initialize our reaction source
         std::atomic<uint64_t> Reaction::reactionIdSource(0);
-        
+
         Reaction::Reaction(Reactor& reactor
                            , std::vector<std::string> identifier
                            , std::function<std::pair<int, std::function<std::unique_ptr<ReactionTask> (std::unique_ptr<ReactionTask>&&)>> (Reaction&)> generator
@@ -35,24 +35,24 @@ namespace NUClear {
           , generator(generator)
           , unbinder(unbinder) {
         }
-        
+
         void Reaction::unbind() {
             // Unbind
             unbinder(*this);
         }
-        
+
         std::unique_ptr<ReactionTask> Reaction::getTask() {
-            
+
             // If we are not enabled, don't run
             if (!enabled) {
                 return std::unique_ptr<ReactionTask>(nullptr);
             }
-            
+
             // Run our generator to get a functor we can run
             int priority;
             std::function<std::unique_ptr<ReactionTask> (std::unique_ptr<ReactionTask>&&)> func;
             std::tie(priority, func) = generator(*this);
-            
+
             // If our generator returns a valid function
             if(func) {
                 return std::unique_ptr<ReactionTask>(new ReactionTask(*this, priority, func));
@@ -62,7 +62,7 @@ namespace NUClear {
                 return std::unique_ptr<ReactionTask>(nullptr);
             }
         }
-        
+
         bool Reaction::isEnabled() {
             return enabled;
         }

@@ -21,23 +21,23 @@
 
 // Anonymous namespace to keep everything file local
 namespace {
-    
+
     volatile bool didShutDown = false;
-    
+
     struct SimpleMessage {};
-    
+
     class TestReactor : public NUClear::Reactor {
     public:
         TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
-            
+
             on<Trigger<SimpleMessage>>().then([this] {
-                
+
                 // Shutdown so we can test shutting down
                 powerplant.shutdown();
             });
-            
+
             on<Shutdown>().then([this] {
-                
+
                 didShutDown = true;
             });
         }
@@ -45,15 +45,15 @@ namespace {
 }
 
 TEST_CASE("A test that a shutdown message is emitted when the system shuts down", "[api][shutdown]") {
-    
+
     NUClear::PowerPlant::Configuration config;
     config.threadCount = 1;
     NUClear::PowerPlant plant(config);
     plant.install<TestReactor>();
-    
+
     plant.emit(std::make_unique<SimpleMessage>());
-    
+
     plant.start();
-    
+
     REQUIRE(didShutDown);
 }

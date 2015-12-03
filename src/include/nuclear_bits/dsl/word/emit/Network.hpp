@@ -26,26 +26,26 @@ namespace NUClear {
     namespace dsl {
         namespace word {
             namespace emit {
-                
+
                 struct NetworkEmit {
                     std::string target;
                     std::array<uint64_t, 2> hash;
                     std::vector<char> data;
                     bool reliable;
                 };
-                
+
                 template <typename TData>
                 struct Network {
-                    
+
                     static void emit(PowerPlant& powerplant, std::shared_ptr<TData> data, std::string s = "", bool reliable = false) {
-                        
+
                         auto e = std::make_unique<NetworkEmit>();
-                        
+
                         e->target = s;
                         e->hash = util::serialise::Serialise<TData>::hash();
                         e->data = util::serialise::Serialise<TData>::serialise(*data);
                         e->reliable = reliable;
-                        
+
                         powerplant.emit<Direct>(e);
                     }
                 };

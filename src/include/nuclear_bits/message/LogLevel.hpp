@@ -19,7 +19,7 @@
 #define NUCLEAR_MESSAGE_LOGLEVEL_H
 
 namespace NUClear {
-    
+
     /**
      * @brief LogLevel defines the different levels log messages can be set to.
      *
@@ -38,9 +38,9 @@ namespace NUClear {
          *  This level is extremely verbose and often has a message per line of code.
          */
         TRACE,
-        
+
         /**
-         * @brief 
+         * @brief
          *  Debug contains messages that represent the inputs and outputs of different
          * computation units.
          *
@@ -51,9 +51,9 @@ namespace NUClear {
          *  different branches.
          */
         DEBUG,
-        
+
         /**
-         * @brief 
+         * @brief
          *  The info level is used to provide high level goal messages such as function start
          *  or successful completion.
          *
@@ -62,7 +62,7 @@ namespace NUClear {
          *  is working without getting into the details.
          */
         INFO,
-        
+
         /**
          * @brief The warning level is used to notify us that everything might not be working perfectly.
          *
@@ -72,18 +72,18 @@ namespace NUClear {
          *  point to a section of the system that needs attention.
          */
         WARN,
-        
+
         /**
-         * @brief 
+         * @brief
          *  The error level is used to report unexpected behavior.
-         
+
          * @details
          *  This level doesn't need to prefix a program-crashing issue but should be used to report major
          *  unexpected branches in logic or other constraint breaking problems such as failed assertions.
          *  All errors should require action from someone and should be addressed immediately.
          */
         ERROR,
-        
+
         /**
          * @brief Fatal is a program destroying error that needs to be addressed immediately.
          *

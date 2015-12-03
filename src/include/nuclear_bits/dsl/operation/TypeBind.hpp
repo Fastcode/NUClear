@@ -30,31 +30,31 @@ namespace NUClear {
 
                 template <typename DSL, typename TFunc>
                 static inline threading::ReactionHandle bind(Reactor& reactor, const std::string& label, TFunc&& callback) {
-                    
+
                     // Our unbinder to remove this reaction
                     std::function<void (threading::Reaction&)> unbinder([] (threading::Reaction& r) {
-                        
+
                         auto& vec = store::TypeCallbackStore<TType>::get();
-                        
+
                         auto item = std::find_if(std::begin(vec), std::end(vec), [&r] (const std::shared_ptr<threading::Reaction>& item) {
                             return item->reactionId == r.reactionId;
                         });
-                        
+
                         // If the item is in the list erase the item
                         if(item != std::end(vec)) {
                             vec.erase(item);
                         }
                     });
-                    
+
                     // Get our identifier string
                     std::vector<std::string> identifier = util::get_identifier<typename DSL::DSL, TFunc>(label, reactor.reactorName);
-                    
+
                     auto reaction = std::make_shared<threading::Reaction>(reactor, std::move(identifier), std::forward<TFunc>(callback), std::move(unbinder));
                     threading::ReactionHandle handle(reaction);
-                    
+
                     // Create our reaction and store it in the TypeCallbackStore
                     store::TypeCallbackStore<TType>::get().push_back(std::move(reaction));
-                    
+
                     // Return our handle
                     return handle;
                 }

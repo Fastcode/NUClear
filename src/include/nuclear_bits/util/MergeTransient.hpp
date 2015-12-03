@@ -20,7 +20,7 @@
 
 namespace NUClear {
     namespace util {
-    
+
         template <typename T>
         struct MergeTransients {
             static inline bool merge(T& t, T& d) {

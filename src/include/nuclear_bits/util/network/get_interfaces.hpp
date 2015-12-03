@@ -31,14 +31,14 @@
 namespace NUClear {
     namespace util {
         namespace network {
-            
+
             struct Interface {
                 std::string name;
-                
+
                 uint32_t ip;
                 uint32_t netmask;
                 uint32_t broadcast;
-                
+
                 struct {
                     bool broadcast;
                     bool loopback;
@@ -46,43 +46,43 @@ namespace NUClear {
                     bool multicast;
                 } flags;
             };
-            
+
             inline std::vector<Interface> get_interfaces() {
-                
+
                 std::vector<Interface> ifaces;
-                
+
                 // Query our interfaces
                 ifaddrs* addrs;
                 if(getifaddrs(&addrs) < 0) {
                     throw std::system_error(errno, std::system_category(), "Unable to query the interfaces on the platform");
                 }
-                
+
                 // Loop through our interfaces
                 for(ifaddrs* cursor = addrs; cursor != nullptr; cursor = cursor->ifa_next) {
-                    
+
                     // We only care about ipv4 addresses (one day this will need to change)
                     if(cursor->ifa_addr->sa_family == AF_INET) {
                         Interface iface;
-                        
+
                         iface.name      = cursor->ifa_name;
                         iface.ip        = ntohl(reinterpret_cast<sockaddr_in*>(cursor->ifa_addr)->sin_addr.s_addr);
                         iface.netmask   = ntohl(reinterpret_cast<sockaddr_in*>(cursor->ifa_netmask)->sin_addr.s_addr);
                         iface.broadcast = ntohl(reinterpret_cast<sockaddr_in*>(cursor->ifa_dstaddr)->sin_addr.s_addr);
-                        
+
                         iface.flags.broadcast    = (cursor->ifa_flags & IFF_BROADCAST) != 0;
                         iface.flags.loopback     = (cursor->ifa_flags & IFF_LOOPBACK) != 0;
                         iface.flags.pointtopoint = (cursor->ifa_flags & IFF_POINTOPOINT) != 0;
                         iface.flags.multicast    = (cursor->ifa_flags & IFF_MULTICAST) != 0;
-                        
+
                         ifaces.push_back(iface);
                     }
                 }
-                
+
                 // Remove duplicates from ifaces
                 ifaces.erase(std::unique(std::begin(ifaces), std::end(ifaces), [] (const Interface& a, const Interface& b) {
                     return a.name == b.name;
                 }), std::end(ifaces));
-                
+
                 return ifaces;
             }
         }

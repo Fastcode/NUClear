@@ -25,31 +25,31 @@ namespace NUClear {
         namespace word {
 
             struct Priority {
-                
+
                 struct HIGH {
                     /// High priority runs with 1000 value
                     static constexpr int value = 1000;
-                    
+
                     template <typename DSL>
                     static inline int priority(threading::Reaction&) {
                         return value;
                     }
                 };
-                
+
                 struct NORMAL {
                     /// Normal priority runs with 500 value
                     static constexpr int value = 500;
-                    
+
                     template <typename DSL>
                     static inline int priority(threading::Reaction&) {
                         return value;
                     }
                 };
-                
+
                 struct LOW {
                     /// Low priority runs with 100 value
                     static constexpr int value = 100;
-                    
+
                     template <typename DSL>
                     static inline int priority(threading::Reaction&) {
                         return value;

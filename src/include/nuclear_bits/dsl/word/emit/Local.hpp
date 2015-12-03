@@ -27,15 +27,15 @@ namespace NUClear {
     namespace dsl {
         namespace word {
             namespace emit {
-                
+
                 template <typename TData>
                 struct Local {
-                    
+
                     static void emit(PowerPlant& powerplant, std::shared_ptr<TData> data) {
-                        
+
                         // Set our data in the store
                         store::DataStore<TData>::set(data);
-                        
+
                         for(auto& reaction : store::TypeCallbackStore<TData>::get()) {
                             try {
                                 auto task = reaction->getTask();

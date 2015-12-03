@@ -21,25 +21,25 @@
 
 // Anonymous namespace to keep everything file local
 namespace {
-    
+
     struct ShutdownNowPlx {};
 
     class TestReactor : public NUClear::Reactor {
     public:
-        
+
         TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
             emit<Scope::INITIALIZE>(std::make_unique<int>(5));
 
             on<Trigger<int>>().then([this](const int& v) {
                 REQUIRE(v == 5);
 
-                // We can't call shutdown here because 
+                // We can't call shutdown here because
                 // we haven't started yet. That's because
                 // emits from Scope::INITIALIZE are not
                 // considered fully "initialized"
                 emit(std::make_unique<ShutdownNowPlx>());
             });
-            
+
             on<Trigger<ShutdownNowPlx>>().then([this] {
                 powerplant.shutdown();
             });
@@ -52,6 +52,6 @@ TEST_CASE("Testing the Initialize scope", "[api][emit][initialize]") {
     config.threadCount = 1;
     NUClear::PowerPlant plant(config);
     plant.install<TestReactor>();
-    
+
     plant.start();
 }

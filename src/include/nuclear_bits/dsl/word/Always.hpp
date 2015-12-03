@@ -33,32 +33,32 @@ namespace NUClear {
              *  until the whole system is told to shut down.
              */
             struct Always {
-                
+
                 template <typename DSL, typename TFunc>
                 static inline threading::ReactionHandle bind(Reactor& reactor, const std::string& label, TFunc&& callback) {
-                    
+
                     // Get our identifier string
                     std::vector<std::string> identifier = util::get_identifier<typename DSL::DSL, TFunc>(label, reactor.reactorName);
-                    
+
                     auto unbinder = [] (threading::Reaction& r) {
                         r.enabled = false;
                     };
-                    
+
                     // Create our reaction and store it in the TypeCallbackStore
                     auto reaction = std::make_shared<threading::Reaction>(reactor, std::move(identifier), std::forward<TFunc>(callback), std::move(unbinder));
                     threading::ReactionHandle handle(reaction);
-                    
+
                     // A labmda that will get a reaction task
                     auto run = [reaction] {
                         // Get a task
                         auto task = reaction->getTask();
-                        
+
                         // If we got a real task back
                         if(task) {
                             task = task->run(std::move(task));
                         }
                     };
-                    
+
                     // This is our function that runs forever until the powerplant exits
                     auto loop = [&reactor, run] {
                         while(reactor.powerplant.running()) {
@@ -69,9 +69,9 @@ namespace NUClear {
                             }
                         }
                     };
-                    
+
                     reactor.powerplant.addThreadTask(loop);
-                    
+
                     // Return our handle
                     return handle;
                 }

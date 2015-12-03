@@ -33,12 +33,12 @@ namespace NUClear {
              */
             template <typename period>
             struct Per;
-            
+
             template <typename Unit, std::intmax_t num, std::intmax_t den>
             struct Per<std::chrono::duration<Unit, std::ratio<num, den>>> : public clock::duration {
                 Per(int ticks) : clock::duration(long(round((double(num) / double(ticks * den)) * (double(clock::period::den) / double(clock::period::num))))) {}
             };
-            
+
             struct EveryConfiguration {
                 clock::duration jump;
                 std::shared_ptr<threading::Reaction> reaction;
@@ -66,49 +66,49 @@ namespace NUClear {
              */
             template <int ticks = 0, class period = NUClear::clock::duration>
             struct Every;
-            
+
             template <>
             struct Every<0, NUClear::clock::duration> {
-                
+
                 template <typename DSL, typename TFunc>
                 static inline threading::ReactionHandle bind(Reactor& reactor, const std::string& label, TFunc&& callback, NUClear::clock::duration jump) {
-                    
+
                     auto reaction = util::generate_reaction<DSL, Every<>>(reactor, label, std::forward<TFunc>(callback));
-                    
+
                     threading::ReactionHandle handle(reaction.get());
-                    
+
                     // Send our configuration out
                     reactor.powerplant.emit<emit::Direct>(std::make_unique<EveryConfiguration>(EveryConfiguration {
                         jump,
                         std::move(reaction)
                     }));
-                    
+
                     // Return our handle
                     return handle;
                 }
             };
-            
+
             template <int ticks, class period>
             struct Every {
-                
+
                 template <typename DSL, typename TFunc>
                 static inline threading::ReactionHandle bind(Reactor& reactor, const std::string& label, TFunc&& callback) {
-                    
+
                     auto reaction = util::generate_reaction<DSL, Every<>>(reactor, label, std::forward<TFunc>(callback));
-                    
+
                     // Work out our Reaction timing
                     clock::duration jump = period(ticks);
-                    
+
                     auto everyConfig = std::make_unique<EveryConfiguration>(EveryConfiguration {
                         jump,
                         std::move(reaction)
                     });
-                    
+
                     threading::ReactionHandle handle(everyConfig->reaction);
-                    
+
                     // Send our configuration out
                     reactor.powerplant.emit<emit::Direct>(everyConfig);
-                    
+
                     // Return our handle
                     return handle;
                 }

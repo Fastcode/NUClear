@@ -23,7 +23,7 @@
 namespace NUClear {
     namespace extension {
         namespace network {
-            
+
 #pragma pack(push, 1)
             enum Type : uint8_t {
                 ANNOUNCE = 1,
@@ -35,13 +35,13 @@ namespace NUClear {
                 Type type;                                 // The type of packet
                 uint32_t length;                           // The length of the remainder of the packet
             };
-            
+
             struct AnnouncePacket : public PacketHeader {
                 uint16_t tcpPort;               // The TCP port it is listening on
                 uint16_t udpPort;               // The UDP port it is listening on
                 char name;                      // A null terminated string name for this node (&name)
             };
-            
+
             struct DataPacket : public PacketHeader  {
                 uint16_t packetId;              // A semiunique identifier for this packet group
                 uint16_t packetNo;              // What packet number this is

@@ -24,16 +24,16 @@
 
 namespace {
     struct PerformEmits {};
-    
+
     using NUClear::message::NetworkJoin;
     using NUClear::message::NetworkLeave;
-    
+
     class TestReactor : public NUClear::Reactor {
     public:
         TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
-            
+
             on<Trigger<NetworkJoin>, Sync<TestReactor>>().then([this] (const NetworkJoin& join) {
-                
+
                 std::cout << "Connected To" << std::endl;
                 std::cout << "\tName: " << join.name << std::endl;
                 std::cout << "\tAddress: "
@@ -43,25 +43,25 @@ namespace {
                 << ((join.address >> 0) & 0xFF) << std::endl;
                 std::cout << "\tTCP Port: " << join.tcpPort << std::endl;
                 std::cout << "\tUDP Port: " << join.udpPort << std::endl;
-                
+
                 // Send some data to our new friend
-                
+
                 // Emit short unreliable message
                 emit<Scope::NETWORK>(std::make_unique<std::string>("Test Short Unreliable Target Message"), join.name);
-                
+
                 // Emit short reliable message
                 emit<Scope::NETWORK>(std::make_unique<std::string>("Test Short Reliable Target Message"), join.name, true);
-                
-                
+
+
                 // Emit long unreliable message
                 emit<Scope::NETWORK>(std::make_unique<std::string>(std::numeric_limits<uint16_t>::max(), 'c'), join.name);
-                
+
                 // Emit long reliable message
                 emit<Scope::NETWORK>(std::make_unique<std::string>(std::numeric_limits<uint16_t>::max(), 'd'), join.name, true);
             });
-            
+
             on<Trigger<NetworkLeave>, Sync<TestReactor>>().then([this] (const NetworkLeave& leave) {
-                
+
                 std::cout << "Disconnected from" << std::endl;
                 std::cout << "\tName: " << leave.name << std::endl;
                 std::cout << "\tAddress: "
@@ -72,50 +72,50 @@ namespace {
                 std::cout << "\tTCP Port: " << leave.tcpPort << std::endl;
                 std::cout << "\tUDP Port: " << leave.udpPort << std::endl;
             });
-            
+
             on<Network<std::string>, Sync<TestReactor>>().then([this] (const NUClear::dsl::word::NetworkSource& source, const std::string& s) {
-                
+
                 std::cout << "Processing a message from " << source.name << std::endl;
-                
+
                 if(s.size() < 100) {
                     std::cout << s << std::endl;
                 }
                 else {
                     std::cout << s[0] << std::endl;
                 }
-                
+
             });
-            
+
             on<Startup>().then([this] {
-                
+
                 auto netConfig = std::make_unique<NUClear::message::NetworkConfiguration>();
-                
+
                 netConfig->name = ::getenv("NETWORK_NODE") ? std::string(::getenv("NETWORK_NODE")) : "";
                 netConfig->multicastGroup = "239.226.152.162";
                 netConfig->multicastPort = 7447;
-                
+
                 std::cout << "Testing network with node " << netConfig->name << std::endl;
-                
+
                 emit<Scope::DIRECT>(netConfig);
                 emit(std::make_unique<PerformEmits>());
             });
-            
+
             on<Trigger<PerformEmits>>().then([this] {
-                
+
                 // Sleep for one second to let the network stabalise
                 std::this_thread::sleep_for(std::chrono::seconds(1));
-                
+
                 // Do a series of network emits from us to test functionality
-                
+
                 // Emit short unreliable to all
                 emit<Scope::NETWORK>(std::make_unique<std::string>("Test Short Unreliable All Message"));
-                
+
                 // Emit short reliable to all
                 emit<Scope::NETWORK>(std::make_unique<std::string>("Test Short Reliable All Message"), "", true);
-                
+
                 // Emit long unreliable to all
                 emit<Scope::NETWORK>(std::make_unique<std::string>(std::numeric_limits<uint16_t>::max(), 'a'));
-                
+
                 // Emit long reliable to all
                 emit<Scope::NETWORK>(std::make_unique<std::string>(std::numeric_limits<uint16_t>::max(), 'b'), "", true);
             });
@@ -125,11 +125,11 @@ namespace {
 
 
 TEST_CASE("Test networking", "[api][networking]") {
-    
+
     NUClear::PowerPlant::Configuration config;
     config.threadCount = 4;
     NUClear::PowerPlant plant(config);
     plant.install<TestReactor>();
-    
+
     plant.start();
 }

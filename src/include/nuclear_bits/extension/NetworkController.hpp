@@ -23,11 +23,11 @@
 
 namespace NUClear {
     namespace extension {
-        
+
         class NetworkController : public Reactor {
         private:
             struct NetworkTarget {
-                
+
                 NetworkTarget(std::string name
                               , uint32_t address
                               , uint16_t tcpPort
@@ -38,7 +38,7 @@ namespace NUClear {
                 , tcpPort(tcpPort)
                 , udpPort(udpPort)
                 , tcpFD(tcpFD) {}
-                
+
                 std::string name;
                 uint32_t address;
                 uint16_t tcpPort;
@@ -48,10 +48,10 @@ namespace NUClear {
                 std::map<uint16_t, std::pair<clock::time_point, std::vector<std::vector<char>>>> buffer;
                 std::mutex bufferMutex;
             };
-            
+
         public:
             explicit NetworkController(std::unique_ptr<NUClear::Environment> environment);
-            
+
         private:
             void tcpConnection(const TCP::Connection& con);
             void tcpHandler(const IO::Event& event);
@@ -59,34 +59,34 @@ namespace NUClear {
             void tcpSend(const dsl::word::emit::NetworkEmit& emit);
             void udpSend(const dsl::word::emit::NetworkEmit& emit);
             void announce();
-            
+
             // Our max UDP size is based of a 1500 MTU
             // Subtract the IP and UPD headers, and our protocol header size
             static constexpr const int MAX_UDP_PAYLOAD_LENGTH = 1500 /*MTU*/ - 20 /*IP header*/ - 8 /*UDP header*/ - sizeof(network::DataPacket) + 1 /*Last char*/;
             static constexpr const int MAX_NUM_UDP_ASSEMBLEY = 5;
-            
+
             std::mutex writeMutex;
-            
+
             ReactionHandle udpHandle;
             ReactionHandle tcpHandle;
             ReactionHandle multicastHandle;
             ReactionHandle multicastEmitHandle;
             ReactionHandle networkEmitHandle;
-            
+
             std::string name;
             std::string multicastGroup;
             uint16_t multicastPort;
             uint16_t udpPort;
             uint16_t tcpPort;
-            
+
             int udpServerFD;
             int tcpServerFD;
-            
+
             std::atomic<uint16_t> packetIDSource;
-            
+
             std::mutex reactionMutex;
             std::multimap<std::array<uint64_t, 2>, std::shared_ptr<threading::Reaction>> reactions;
-            
+
             std::mutex targetMutex;
             std::list<NetworkTarget> targets;
             std::multimap<std::string, std::list<NetworkTarget>::iterator> nameTarget;

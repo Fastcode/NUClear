@@ -51,10 +51,10 @@ namespace std {
 #endif
 
 namespace NUClear {
-    
+
     // Forward declare reactor
     class Reactor;
-    
+
     /**
      * @brief The PowerPlant is the core of a NUClear system. It holds all Reactors in it and manages their communications.
      *
@@ -69,7 +69,7 @@ namespace NUClear {
     class PowerPlant {
         // Reactors and PowerPlants are very tightly linked
         friend class Reactor;
-        
+
     public:
         /**
          * @brief This class holds the configuration for a PowerPlant.
@@ -82,16 +82,16 @@ namespace NUClear {
         struct Configuration {
             /// @brief default to the amount of hardware concurrency (or 2) threads
             Configuration() : threadCount(std::thread::hardware_concurrency() == 0 ? 2 : std::thread::hardware_concurrency()) {}
-            
+
             /// @brief The number of threads the system will use
             unsigned int threadCount;
         };
-        
+
     public:
-        
+
         /// @brief Holds the configuration information for this PowerPlant (such as number of pool threads)
         const Configuration configuration;
-        
+
     public:
         /**
          * @brief
@@ -105,7 +105,7 @@ namespace NUClear {
         PowerPlant(Configuration config = Configuration(), int argc = 0, const char *argv[] = nullptr);
         PowerPlant(const PowerPlant&) = delete;
         ~PowerPlant();
-        
+
         /**
          * @brief Starts up this PowerPlants components in order and begins it running.
          *
@@ -116,28 +116,28 @@ namespace NUClear {
          *  destructed.
          */
         void start();
-        
+
         /**
          * @brief Shuts down the PowerPlant, tells all component threads to terminate,
          *  Then releases the main thread.
          */
         void shutdown();
-        
+
         /**
          * TODO document
          */
         bool running();
-        
+
         /**
          * TODO document
          */
         void onStartup(std::function<void ()>&& func);
-        
+
         /**
          * TODO document
          */
         void addThreadTask(std::function<void ()>&& task);
-        
+
         /**
          * @brief Installs a reactor of a particular type to the system.
          *
@@ -151,14 +151,14 @@ namespace NUClear {
          */
         template <typename TReactor, enum LogLevel level = DEBUG>
         void install();
-        
+
         /**
          * @brief Submits a new task to the ThreadPool to be queued and then executed.
          *
          * @param task The Reaction task to be executed in the thread pool
          */
         void submit(std::unique_ptr<threading::ReactionTask>&& task);
-        
+
         /**
          * @brief Log a message through NUClear's system.
          *
@@ -173,7 +173,7 @@ namespace NUClear {
          */
         template <enum LogLevel level, typename... TArgs>
         static void log(TArgs&&... args);
-        
+
         /**
          * @brief Emits data to the system and routes it to the other systems that use it.
          *
@@ -189,7 +189,7 @@ namespace NUClear {
         void emit(std::unique_ptr<TData>&& data);
         template <typename TData>
         void emit(std::unique_ptr<TData>& data);
-        
+
         /**
          * @brief Emits data to the system and routes it to the other systems that use it.
          *
@@ -205,12 +205,12 @@ namespace NUClear {
         void emit(std::unique_ptr<TData>&& data, TArgs&&... args);
         template <template <typename> class TFirstHandler, template <typename> class... THandlers, typename TData, typename... TArgs>
         void emit(std::unique_ptr<TData>& data, TArgs&&... args);
-        
-        
+
+
     private:
         // There can only be one powerplant, so this is it
         static PowerPlant* powerplant;
-        
+
         /// TODO
         std::vector<std::function<void ()>> tasks;
         /// @brief A vector of the running threads in the system
@@ -219,18 +219,18 @@ namespace NUClear {
         threading::TaskScheduler scheduler;
         /// @brief Our vector of Reactors, will get destructed when this vector is
         std::vector<std::unique_ptr<NUClear::Reactor>> reactors;
-        
-        
+
+
         std::vector<std::function<void ()>> startupTasks;
         volatile bool isRunning = false;
     };
-    
+
     // This free floating log function can be called from anywhere and will use the singleton PowerPlant
     template <enum LogLevel level = NUClear::DEBUG, typename... TArgs>
     void log(TArgs&&... args) {
         PowerPlant::log<level>(std::forward<TArgs>(args)...);
     }
-    
+
 }
 
 // Include our Reactor.h first as the tight coupling between powerplant and reactor requires a specific include order

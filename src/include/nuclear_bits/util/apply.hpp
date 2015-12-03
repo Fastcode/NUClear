@@ -24,7 +24,7 @@
 
 namespace NUClear {
     namespace util {
-            
+
         /**
          * @brief Dereferences and uses the values from the tuple as the arguments for the function call.
          *
@@ -39,12 +39,12 @@ namespace NUClear {
          */
         template<typename TFunc, int... S, typename... TArgs>
         void apply(TFunc& function, const std::tuple<TArgs...>&& args, const Sequence<S...>&) {
-            
+
             // Get each of the values from the tuple, dereference them and call the function with them
             // Also ensure that each value is a const reference
             function(dereference(std::get<S>(args))...);
         }
-        
+
         /**
          * @brief Applies all of the values in the tuple to the function and executes it.
          */

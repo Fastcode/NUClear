@@ -24,16 +24,16 @@ namespace NUClear {
     namespace dsl {
         namespace word {
             namespace emit {
-                
+
                 template <typename TData>
                 struct Initialize {
 
                     static void emit(PowerPlant& powerplant, std::shared_ptr<TData> data) {
-                        
+
                         auto task = [&powerplant, data] {
                             emit::Direct<TData>::emit(powerplant, data);
                         };
-                        
+
                         powerplant.onStartup(task);
                     }
                 };

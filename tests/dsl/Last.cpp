@@ -20,29 +20,29 @@
 #include "nuclear"
 
 namespace {
-    
+
     struct TestMessage {
         int value;
-        
+
         TestMessage(int v) : value(v) {};
     };
-    
+
     int emitCounter = 0;
     int recvCounter = 0;
-    
+
     class TestReactor : public NUClear::Reactor {
     public:
-        
+
         TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
-            
+
             on<Last<5, Trigger<TestMessage>>>().then([this] (std::list<std::shared_ptr<const TestMessage>> messages) {
-                
+
                 // We got another one
                 ++recvCounter;
-                
+
                 // Send out another before we test
                 emit(std::make_unique<TestMessage>(++emitCounter));
-                
+
                 // Finish when we get to 10
                 if (messages.front()->value >= 10) {
                     powerplant.shutdown();
@@ -50,12 +50,12 @@ namespace {
                 else {
                     // Our list must be less than 5 long
                     REQUIRE(messages.size() <= 5);
-                    
+
                     // If our size is less than 5 it should be the size of the front element
                     if(messages.size() < 5) {
                         REQUIRE(messages.size() == messages.back()->value);
                     }
-                    
+
                     // Check that our numbers are decreasing
                     size_t i = messages.front()->value;
                     for(auto& m : messages) {
@@ -63,9 +63,9 @@ namespace {
                         ++i;
                     }
                 }
-                
+
             });
-            
+
             on<Startup>().then([this] {
                 emit(std::make_unique<TestMessage>(++emitCounter));
             });
@@ -74,11 +74,11 @@ namespace {
 }
 
 TEST_CASE("Testing the last n feature", "[api][last]") {
-    
+
     NUClear::PowerPlant::Configuration config;
     config.threadCount = 1;
     NUClear::PowerPlant plant(config);
     plant.install<TestReactor>();
-    
+
     plant.start();
 }

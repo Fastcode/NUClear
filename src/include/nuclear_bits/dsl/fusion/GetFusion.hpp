@@ -27,22 +27,7 @@
 namespace NUClear {
     namespace dsl {
         namespace fusion {
-            
-            template <typename Predecate, typename Then, typename Else>
-            using If = util::Meta::If<Predecate, Then, Else>;
-            
-            template <typename Condition, typename Value>
-            using EnableIf = util::Meta::EnableIf<Condition, Value>;
-            
-            template <typename Condition>
-            using Not = util::Meta::Not<Condition>;
-            
-            template <typename... Conditions>
-            using All = util::Meta::All<Conditions...>;
-            
-            template <typename... Conditions>
-            using Any = util::Meta::Any<Conditions...>;
-            
+
             template <typename...>
             struct GetFusion;
 
@@ -52,15 +37,15 @@ namespace NUClear {
                 /// Returns either the real type or the proxy if the real type does not have a get function
                 template <typename U>
                 using Get = If<has_get<U>, U, operation::DSLProxy<U>>;
-                
+
                 /// Checks if U has a get function, and at least one of the following words do
                 template <typename U>
                 using UsAndChildren = All<has_get<Get<U>>, Any<has_get<Get<TWords>>...>>;
-                
+
                 /// Checks if U has a get function, and none of the following words do
                 template <typename U>
                 using UsNotChildren = All<has_get<Get<U>>, Not<Any<has_get<Get<TWords>>...>>>;
-                
+
                 /// Checks if we do not have a get function, but at least one of the following words do
                 template <typename U>
                 using NotUsChildren = All<Not<has_get<Get<U>>>, Any<has_get<Get<TWords>>...>>;
@@ -70,22 +55,22 @@ namespace NUClear {
                 static inline auto get(threading::Reaction& reaction)
                 -> EnableIf<UsAndChildren<U>, decltype(std::tuple_cat(util::tuplify(Get<U>::template get<DSL>(reaction)), If<UsAndChildren<U>, GetFusion<TWords...>, NoOp>::template get<DSL>(reaction)))> {
                     // Tuplify and return what we need
-                    
+
                     return std::tuple_cat(util::tuplify(Get<U>::template get<DSL>(reaction)), GetFusion<TWords...>::template get<DSL>(reaction));
                 }
-                
+
                 template <typename DSL, typename U = TFirst>
                 static inline auto get(threading::Reaction& reaction)
                 -> EnableIf<UsNotChildren<U>, decltype(util::tuplify(Get<U>::template get<DSL>(reaction)))> {
-                    
+
                     // Tuplify and return our element
                     return util::tuplify(Get<U>::template get<DSL>(reaction));
                 }
-                
+
                 template <typename DSL, typename U = TFirst>
                 static inline auto get(threading::Reaction& reaction)
                 -> EnableIf<NotUsChildren<U>, decltype(If<NotUsChildren<U>, GetFusion<TWords...>, NoOp>::template get<DSL>(reaction))> {
-                    
+
                     // Pass on to the next element
                     return GetFusion<TWords...>::template get<DSL>(reaction);
                 }

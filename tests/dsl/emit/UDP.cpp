@@ -21,19 +21,19 @@
 
 // Anonymous namespace to keep everything file local
 namespace {
-    
+
     int receivedMessages = 0;
-    
+
     class TestReactor : public NUClear::Reactor {
     public:
-        
+
         TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
             emit<Scope::INITIALIZE>(std::make_unique<int>(5));
-            
+
             int boundPort;
             std::tie(std::ignore, boundPort, std::ignore) = on<UDP>().then([this, &boundPort] (const UDP::Packet& packet) {
                 ++receivedMessages;
-                
+
                 switch(packet.data[0]) {
                     case 'a':
                     case 'b':
@@ -54,12 +54,12 @@ namespace {
                         REQUIRE(packet.local.port == boundPort);
                         break;
                 }
-                
+
                 if(receivedMessages == 4) {
                     powerplant.shutdown();
                 }
             });
-            
+
             on<Startup>().then([boundPort, this] {
                 // Send using a string
                 emit<Scope::UDP>(std::make_unique<char>('a'), "127.0.0.1", boundPort);

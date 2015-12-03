@@ -25,10 +25,6 @@
 namespace NUClear {
     namespace util {
 
-        // Import our metaprogramming tools
-        template <typename Predecate, typename Then, typename Else>
-        using If = Meta::If<Predecate, Then, Else>;
-
         /**
          * @brief Applies a single set of function fusion with expanded arguments
          * @details Calls the function held in the template type Function.

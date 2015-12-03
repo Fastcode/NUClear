@@ -25,7 +25,7 @@
 namespace NUClear {
     namespace dsl {
         namespace store {
-            
+
             template <typename TData>
             using DataStore = util::TypeMap<TData, TData, TData>;
         }

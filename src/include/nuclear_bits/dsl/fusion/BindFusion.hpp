@@ -28,16 +28,6 @@ namespace NUClear {
     namespace dsl {
         namespace fusion {
 
-            // Import metaprogramming functions
-            template <typename Condition, typename Value>
-            using EnableIf = util::Meta::EnableIf<Condition, Value>;
-
-            template <typename Predecate, typename Then, typename Else>
-            using If = util::Meta::If<Predecate, Then, Else>;
-
-            template <typename T>
-            using Do = util::Meta::Do<T>;
-
             /**
              * @brief This is our Function Fusion wrapper class that allows it to call bind functions
              *

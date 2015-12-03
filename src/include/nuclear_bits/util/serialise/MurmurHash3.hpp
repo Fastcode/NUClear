@@ -26,7 +26,7 @@
 namespace NUClear {
     namespace util {
         namespace serialise {
-            
+
             /**
              * @brief Constructs a new hash from the passed key (of length bytes)
              *

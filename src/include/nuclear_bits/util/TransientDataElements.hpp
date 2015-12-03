@@ -20,26 +20,26 @@
 
 namespace NUClear {
     namespace util {
-    
+
         template <typename TIn, int Index = 0, typename TOut = std::tuple<>, typename Indicies = Sequence<>>
         struct ExtractTransient;
-        
+
         template <typename TFirst, typename... TIn, int Index, typename... TOut, int... Indicies>
         struct ExtractTransient<std::tuple<TFirst, TIn...>, Index, std::tuple<TOut...>, Sequence<Indicies...>>
-        : Meta::If<dsl::trait::is_transient<TFirst>
+        : If<dsl::trait::is_transient<TFirst>
         , ExtractTransient<std::tuple<TIn...>, Index + 1, std::tuple<TOut..., TFirst>, Sequence<Indicies..., Index>>
         , ExtractTransient<std::tuple<TIn...>, Index + 1, std::tuple<TOut...>, Sequence<Indicies...>>> {};
-        
+
         template <int Index, typename... TOut, int... Indicies>
         struct ExtractTransient<std::tuple<>, Index, std::tuple<TOut...>, Sequence<Indicies...>> {
             using type = std::tuple<TOut...>;
             using index = Sequence<Indicies...>;
             static constexpr const bool value = sizeof...(TOut) > 0;
         };
-        
+
         template <typename DSL>
         struct TransientDataElements : public ExtractTransient<decltype(DSL::get(std::declval<threading::Reaction&>()))> {};
-        
+
     }
 }
 

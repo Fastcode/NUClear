@@ -105,7 +105,7 @@ namespace NUClear {
         std::stringstream outputStream;
         logImpl(outputStream, std::forward<TArgs>(args)...);
         std::string output = outputStream.str();
-        
+
         auto currentTask = threading::ReactionTask::getCurrentTask();
 
         // Direct emit the log message so that any direct loggers can use it

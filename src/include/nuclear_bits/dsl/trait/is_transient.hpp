@@ -21,7 +21,7 @@
 namespace NUClear {
     namespace dsl {
         namespace trait {
-        
+
             template <typename>
             struct is_transient : public std::false_type {};
         }

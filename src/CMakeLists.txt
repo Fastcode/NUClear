@@ -97,7 +97,7 @@ SOURCE_GROUP(util\\network              FILES ${src_util_network})
 SOURCE_GROUP(util\\serialise            FILES ${src_util_serialise})
 
 ADD_LIBRARY(nuclear STATIC
-    ${src} 
+    ${src}
     ${src_threading}
     ${src_extension}
     ${src_extension_network}

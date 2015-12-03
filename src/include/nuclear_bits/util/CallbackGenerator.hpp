@@ -27,19 +27,19 @@
 
 namespace NUClear {
     namespace util {
-        
+
         template <size_t I = 0, typename... TData>
         inline typename std::enable_if<I == sizeof...(TData), bool>::type
         checkData(const std::tuple<TData...>&) {
             return true;
         }
-        
+
         template<size_t I = 0, typename... TData>
         inline typename std::enable_if<I < sizeof...(TData), bool>::type
         checkData(const std::tuple<TData...>& t) {
             return std::get<I>(t) && checkData<I + 1>(t);
         }
-        
+
 
         template <typename DSL, typename TFunc>
         struct CallbackGenerator {
@@ -47,72 +47,72 @@ namespace NUClear {
             CallbackGenerator(TFunc&& callback)
             : callback(std::forward<TFunc>(callback))
             , transients(std::make_shared<typename TransientDataElements<DSL>::type>()) {};
-            
+
             template <typename... TData, int... DIndex, int... TIndex>
             void mergeTransients(std::tuple<TData...>& data, const Sequence<DIndex...>&, const Sequence<TIndex...>&) {
-                
+
                 // Merge our transient data
-                unpack(MergeTransients<Meta::RemoveRef<decltype(std::get<DIndex>(data))>>::merge(std::get<TIndex>(*transients), std::get<DIndex>(data))...);
+                unpack(MergeTransients<RemoveRef<decltype(std::get<DIndex>(data))>>::merge(std::get<TIndex>(*transients), std::get<DIndex>(data))...);
             }
 
             std::pair<int, std::function<std::unique_ptr<threading::ReactionTask> (std::unique_ptr<threading::ReactionTask>&&)>> operator()(threading::Reaction& r) {
-                
+
                 // Check if we should even run
                 if(!DSL::precondition(r)) {
                     // We cancel our execution by returning an empty function
                     return std::make_pair(0, std::function<std::unique_ptr<threading::ReactionTask> (std::unique_ptr<threading::ReactionTask>&&)>());
                 }
                 else {
-                    
+
                     // Bind our data to a variable (this will run in the dispatching thread)
                     auto data = DSL::get(r);
-                    
+
                     // Merge our transient data in
                     mergeTransients(data, typename TransientDataElements<DSL>::index(), GenerateSequence<0, TransientDataElements<DSL>::index::length>());
-                    
+
                     // Check if our data is good (all the data exists) otherwise terminate the call
                     if(!checkData(data)) {
                         // We cancel our execution by returning an empty function
                         return std::make_pair(0, std::function<std::unique_ptr<threading::ReactionTask> (std::unique_ptr<threading::ReactionTask>&&)>());
                     }
-                    
+
                     // We have to make a copy of the callback because the "this" variable can go out of scope
                     auto c = callback;
                     return std::make_pair(DSL::priority(r), [c, data] (std::unique_ptr<threading::ReactionTask>&& task) {
-                        
+
                         // Check if we are going to reschedule
                         task = DSL::reschedule(std::move(task));
-                        
+
                         // If we still control our task
                         if(task) {
-                            
+
                             // Record our start time
                             task->stats->started = clock::now();
-                            
+
                             // We have to catch any exceptions
                             try {
                                 // We call with only the relevant arguments to the passed function
-                                util::apply(c, std::move(data), Meta::Do<util::RelevantArguments<TFunc, Meta::Do<util::DereferenceTuple<decltype(data)>>>>());
+                                util::apply(c, std::move(data), Do<util::RelevantArguments<TFunc, Do<util::DereferenceTuple<decltype(data)>>>>());
                             }
                             catch(...) {
 
                                 // Catch our exception if it happens
                                 task->stats->exception = std::current_exception();
                             }
-                            
+
                             // Our finish time
                             task->stats->finished = clock::now();
-                            
+
                             // Run our postconditions
                             DSL::postcondition(*task);
                         }
-                        
+
                         // Return our task
                         return std::move(task);
                     });
                 }
             }
-            
+
             TFunc callback;
             std::shared_ptr<typename TransientDataElements<DSL>::type> transients;
         };

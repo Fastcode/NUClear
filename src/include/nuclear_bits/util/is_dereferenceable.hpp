@@ -22,39 +22,39 @@
 
 namespace NUClear {
     namespace util {
-        
+
         template<typename T>
         struct is_dereferenceable {
         private:
             typedef std::true_type yes;
             typedef std::false_type no;
-            
+
             template <typename U> static auto test(int) -> decltype(*std::declval<U>(), yes());
             template <typename> static no test(...);
-            
+
         public:
             static constexpr bool value = std::is_same<decltype(test<T>(0)), yes>::value;
         };
-        
+
         template <typename TData>
-        auto dereference(TData&& d) -> Meta::EnableIf<is_dereferenceable<TData>, decltype(*d)> {
+        auto dereference(TData&& d) -> EnableIf<is_dereferenceable<TData>, decltype(*d)> {
             return *d;
         }
-        
+
         template <typename TData>
-        auto dereference(TData&& d) -> Meta::EnableIf<Meta::Not<is_dereferenceable<TData>>, decltype(d)> {
+        auto dereference(TData&& d) -> EnableIf<Not<is_dereferenceable<TData>>, decltype(d)> {
             return d;
         }
-        
-        
+
+
         template <typename T>
         struct DereferenceTuple;
-        
+
         template <typename... Ts>
         struct DereferenceTuple<std::tuple<Ts...>> {
             using type = std::tuple<decltype(dereference(std::declval<Ts>()))...>;
         };
-           
+
     }
 }
 

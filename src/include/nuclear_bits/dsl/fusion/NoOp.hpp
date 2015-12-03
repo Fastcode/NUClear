@@ -23,44 +23,44 @@
 namespace NUClear {
     namespace dsl {
         namespace fusion {
-            
+
             struct NoOp {
-                
+
                 template <typename DSL, typename TFunc, typename... TArgs>
                 static inline std::tuple<> bind(Reactor&, const std::string&, TFunc&&, TArgs...) { return std::tuple<>(); }
-                
+
                 template <typename DSL>
                 static inline std::tuple<> get(threading::Reaction&) { return std::tuple<>(); }
-                
+
                 template <typename DSL>
                 static inline bool precondition(threading::Reaction&) { return true; }
-                
+
                 template <typename DSL>
                 static inline int priority(threading::Reaction&) { return word::Priority::NORMAL::value; }
-                
+
                 template <typename DSL>
                 static inline std::unique_ptr<threading::ReactionTask> reschedule(std::unique_ptr<threading::ReactionTask>&& task) { return std::move(task); }
-                
+
                 template <typename DSL>
                 static inline void postcondition(threading::ReactionTask&) {}
             };
-            
+
             struct ParsedNoOp {
                 struct DSL {};
-                
+
                 template <typename TFunc>
                 static inline std::tuple<> bind(Reactor&, const std::string&, TFunc&&);
-                
+
                 static inline std::tuple<> get(threading::Reaction&);
-                
+
                 static inline bool precondition(threading::Reaction&);
-                
+
                 static inline int priority(threading::Reaction&);
-                
+
                 static inline std::unique_ptr<threading::ReactionTask> reschedule(std::unique_ptr<threading::ReactionTask>&& task);
-                
+
                 static inline void postcondition(threading::ReactionTask&);
-                
+
             };
         }
     }

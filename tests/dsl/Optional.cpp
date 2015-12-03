@@ -20,32 +20,32 @@
 #include "nuclear"
 
 namespace {
-    
+
     int trigger1 = 0;
     int trigger2 = 0;
     int trigger3 = 0;
     int trigger4 = 0;
-    
+
     struct MessageA {};
-    
+
     template <typename R, typename... A>
     auto resolve_function_type(R(*)(A...))
     -> R(*)(A...);
     struct MessageB {};
-    
+
     class TestReactor : public NUClear::Reactor {
     public:
-        
+
         TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
-            
+
             on<Trigger<MessageA>, With<MessageB>>().then([this] (const MessageA&, const MessageB&) {
                 ++trigger1;
                 FAIL("This should never run as MessageB is never emitted");
             });
-            
+
             on<Trigger<MessageA>, Optional<With<MessageB>>>().then([this] (const MessageA&, const std::shared_ptr<const MessageB>& b) {
                 ++trigger2;
-                
+
                 switch(trigger2) {
                     case 1:
                         // On our trigger, b should not exist
@@ -54,11 +54,11 @@ namespace {
                     default:
                         FAIL("Trigger 2 was triggered more than once");
                 }
-                
+
                 // Emit B to start the second set
                 emit(std::make_unique<MessageB>());
             });
-            
+
             on<Trigger<MessageB>, With<MessageA>>().then([this] {
                 // This should run once
                 ++trigger3;
@@ -77,19 +77,19 @@ namespace {
                         // Check that both exist
                         REQUIRE(a);
                         REQUIRE(b);
-                        
+
                         // We should be done now
                         powerplant.shutdown();
                         break;
-                        
+
                     default:
                         FAIL("Trigger 4 should only be triggered twice");
                         break;
                 }
             });
-            
+
             on<Startup>().then([this] {
-                
+
                 // Emit only message A
                 emit(std::make_unique<MessageA>());
             });
@@ -98,14 +98,14 @@ namespace {
 }
 
 TEST_CASE("Testing that optional is able to let data through even if it's invalid", "[api][optional]") {
-    
+
     NUClear::PowerPlant::Configuration config;
     config.threadCount = 1;
     NUClear::PowerPlant plant(config);
     plant.install<TestReactor>();
-    
+
     plant.start();
-    
+
     // Check that it was all as expected
     REQUIRE(trigger1 == 0);
     REQUIRE(trigger2 == 1);

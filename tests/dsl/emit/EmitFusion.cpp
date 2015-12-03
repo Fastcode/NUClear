@@ -57,7 +57,7 @@ namespace {
     public:
 
         TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
-            
+
             // Make some things to emit
             auto t1 = std::make_unique<int>(8);
             auto t2 = std::make_unique<int>(10);

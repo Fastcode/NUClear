@@ -20,14 +20,14 @@
 
 namespace NUClear {
     namespace message {
-        
+
         struct NetworkJoin {
             std::string name;
             uint32_t address;
             uint16_t udpPort;
             uint16_t tcpPort;
         };
-        
+
         struct NetworkLeave {
             std::string name;
             uint32_t address;

@@ -21,7 +21,7 @@
 namespace NUClear {
     namespace dsl {
         namespace operation {
-            
+
             template <typename TType>
             struct Unbind {
                 Unbind(uint64_t reactionId) : reactionId(reactionId) {};

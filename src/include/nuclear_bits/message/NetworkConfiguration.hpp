@@ -20,7 +20,7 @@
 
 namespace NUClear {
     namespace message {
-        
+
         struct NetworkConfiguration {
             std::string name;
             std::string multicastGroup;

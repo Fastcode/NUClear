@@ -18,21 +18,22 @@
 #ifndef NUCLEAR_DSL_FUSION_HASPRECONDITION_H
 #define NUCLEAR_DSL_FUSION_HASPRECONDITION_H
 
+#include "nuclear_bits/threading/Reaction.hpp"
 #include "nuclear_bits/dsl/fusion/NoOp.hpp"
 
 namespace NUClear {
     namespace dsl {
         namespace fusion {
-            
+
             template <typename T>
             struct has_precondition {
             private:
                 typedef std::true_type yes;
                 typedef std::false_type no;
-                
+
                 template<typename U> static auto test(int) -> decltype(U::template precondition<ParsedNoOp>(std::declval<threading::Reaction&>()), yes());
                 template<typename> static no test(...);
-                
+
             public:
                 static constexpr bool value = std::is_same<decltype(test<T>(0)),yes>::value;
             };

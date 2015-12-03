@@ -35,13 +35,13 @@
 namespace NUClear {
     namespace dsl {
         namespace word {
-            
+
             struct UDP {
-                
+
                 struct Packet {
                     /// If the packet is valid (it contains data)
                     bool valid;
-                    
+
                     /// The information about this packet's source
                     struct {
                         /// The address that the packet is from
@@ -49,7 +49,7 @@ namespace NUClear {
                         /// The port that the packet is from
                         uint16_t port;
                     } remote;
-                    
+
                     /// The information about this packet's destination
                     struct {
                         /// The address that the packet is to
@@ -57,84 +57,84 @@ namespace NUClear {
                         /// The port that the packet is to
                         uint16_t port;
                     } local;
-                    
+
                     /// The data to be sent in the packet
                     std::vector<char> data;
-                    
+
                     /// Our validator when returned for if we are a real packet
                     operator bool() const {
                         return valid;
                     }
-                    
+
                     // We can cast ourselves to a reference type so long as
                     // that reference type is plain old data
                     template <typename T>
-                    operator util::Meta::EnableIf<std::is_pod<T>, const T&> () {
+                    operator EnableIf<std::is_pod<T>, const T&> () {
                         return *reinterpret_cast<const T*>(data.data());
                     }
                 };
-                
+
                 template <typename DSL, typename TFunc>
                 static inline std::tuple<threading::ReactionHandle, int, int> bind(Reactor& reactor, const std::string& label, TFunc&& callback, int port = 0) {
-                    
+
                     // Make our socket
                     util::FileDescriptor fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
                     if(fd < 0) {
                         throw std::system_error(errno, std::system_category(), "We were unable to open the UDP socket");
                     }
-                    
+
                     // The address we will be binding to
                     sockaddr_in address;
                     memset(&address, 0, sizeof(sockaddr_in));
                     address.sin_family = AF_INET;
                     address.sin_port = htons(port);
                     address.sin_addr.s_addr = htonl(INADDR_ANY);
-                    
+
                     // Bind to the address, and if we fail throw an error
                     if(::bind(fd, reinterpret_cast<sockaddr*>(&address), sizeof(sockaddr))) {
                         throw std::system_error(errno, std::system_category(), "We were unable to bind the UDP socket to the port");
                     }
-                    
+
                     int yes = 1;
                     // Include struct in_pktinfo in the message "ancilliary" control data
                     if(setsockopt(fd, IPPROTO_IP, IP_PKTINFO, &yes, sizeof(yes)) < 0) {
                         throw std::system_error(errno, std::system_category(), "We were unable to flag the socket as getting ancillary data");
                     }
-                    
+
                     // Get the port we ended up listening on
                     socklen_t len = sizeof(sockaddr_in);
                     if (::getsockname(fd, reinterpret_cast<sockaddr*>(&address), &len) == -1) {
                         throw std::system_error(errno, std::system_category(), "We were unable to get the port from the UDP socket");
                     }
                     port = ntohs(address.sin_port);
-                    
+
                     // Generate a reaction for the IO system that closes on death
                     int cfd = fd;
                     auto reaction = util::generate_reaction<DSL, IO>(reactor, label, std::forward<TFunc>(callback), [cfd] (threading::Reaction&) {
                         ::close(cfd);
                     });
-                    
+
                     auto ioConfig = std::make_unique<IOConfiguration>(IOConfiguration {
                         fd.release(),
                         IO::READ,
                         std::move(reaction)
                     });
-                    
+
                     threading::ReactionHandle handle(ioConfig->reaction);
-                    
+
                     // Send our configuration out
                     reactor.powerplant.emit<emit::Direct>(ioConfig);
-                    
+
                     // Return our handles and our bound port
                     return std::make_tuple(handle, port, cfd);
                 }
-                
+
                 template <typename DSL>
                 static inline Packet get(threading::Reaction& r) {
-                    
+
                     // Get our filedescriptor from the magic cache
                     auto event = IO::get<DSL>(r);
-                    
+
                     // If our get is being run without an fd (something else triggered) then short circuit
                     if (event.fd == 0) {
                         Packet p;
@@ -143,21 +143,21 @@ namespace NUClear {
                         p.valid = false;
                         return p;
                     }
-                    
+
                     // Make a packet with 2k of storage (hopefully packets are smaller then this as most MTUs are around 1500)
                     Packet p;
                     p.remote.address = INADDR_NONE;
                     p.remote.port = 0;
                     p.valid = false;
                     p.data.resize(2048);
-                    
+
                     // Make some variables to hold our message header information
                     char cmbuff[0x100];
                     sockaddr_in from;
                     iovec payload;
                     payload.iov_base = p.data.data();
                     payload.iov_len = p.data.size();
-                    
+
                     // Make our message header to recieve with
                     msghdr mh;
                     mh.msg_name = &from;
@@ -166,11 +166,11 @@ namespace NUClear {
                     mh.msg_controllen = sizeof(cmbuff);
                     mh.msg_iov = &payload;
                     mh.msg_iovlen = 1;
-                    
+
                     // Receive our message
                     ssize_t received = ::recvmsg(event.fd, &mh, 0);
-                    
-                    
+
+
                     // Iterate through control headers to get IP information
                     int ourAddr = 0;
                     for (cmsghdr *cmsg = CMSG_FIRSTHDR(&mh);
@@ -178,16 +178,16 @@ namespace NUClear {
                          cmsg = CMSG_NXTHDR(&mh, cmsg)) {
                         // ignore the control headers that don't match what we want
                         if (cmsg->cmsg_level == IPPROTO_IP && cmsg->cmsg_type == IP_PKTINFO) {
-                            
+
                             // Access the packet header information
                             in_pktinfo* pi = reinterpret_cast<in_pktinfo*>(CMSG_DATA(cmsg));
                             ourAddr = pi->ipi_addr.s_addr;
-                            
+
                             // We are done
                             break;
                         }
                     }
-                    
+
                     // Get the port this socket is listening on
                     socklen_t len = sizeof(sockaddr_in);
                     sockaddr_in address;
@@ -204,26 +204,26 @@ namespace NUClear {
                         p.local.port = ntohs(address.sin_port);
                         p.data.resize(received);
                     }
-                    
+
                     return p;
                 }
-                
+
                 struct Broadcast {
-                    
+
                     template <typename DSL, typename TFunc>
                     static inline std::tuple<threading::ReactionHandle, int> bind(Reactor& reactor, const std::string& label, TFunc&& callback, int port = 0) {
-                       
+
                         // Our list of broadcast file descriptors
                         std::vector<int> fds;
-                        
+
                         // Get all the network interfaces
                         auto interfaces = util::network::get_interfaces();
-                        
+
                         std::vector<uint32_t> addresses;
-                        
+
                         // We should always listen on 255.255.255.255
                         addresses.push_back(htonl(INADDR_BROADCAST));
-                        
+
                         for(auto& iface : interfaces) {
                             // We receive on broadcast addresses and we don't want loopback or point to point
                             if(!iface.flags.loopback && !iface.flags.pointtopoint && iface.flags.broadcast) {
@@ -233,22 +233,22 @@ namespace NUClear {
                                 }
                             }
                         }
-                        
+
                         for(auto& ad : addresses) {
-                            
+
                             // Make our socket
                             util::FileDescriptor fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
                             if(fd < 0) {
                                 throw std::system_error(errno, std::system_category(), "We were unable to open the UDP socket");
                             }
-                            
+
                             // The address we will be binding to (our broadcast address)
                             sockaddr_in address;
                             memset(&address, 0, sizeof(sockaddr_in));
                             address.sin_family = AF_INET;
                             address.sin_port = htons(port);
                             address.sin_addr.s_addr = htonl(ad);
-                            
+
                             int yes = true;
                             // We are a broadcast socket
                             if(setsockopt(fd, SOL_SOCKET, SO_BROADCAST, &yes, sizeof(yes)) < 0) {
@@ -262,22 +262,22 @@ namespace NUClear {
                             if(setsockopt(fd, IPPROTO_IP, IP_PKTINFO, &yes, sizeof(yes)) < 0) {
                                 throw std::system_error(errno, std::system_category(), "We were unable to flag the socket as getting ancillary data");
                             }
-                            
+
                             // Bind to the address, and if we fail throw an error
                             if(::bind(fd, reinterpret_cast<sockaddr*>(&address), sizeof(sockaddr))) {
                                 throw std::system_error(errno, std::system_category(), "We were unable to bind the UDP socket to the port");
                             }
-                            
+
                             // Set the port variable to whatever was returned (so they all use the same port)
                             socklen_t len = sizeof(sockaddr_in);
                             if (::getsockname(fd, reinterpret_cast<sockaddr*>(&address), &len) == -1) {
                                 throw std::system_error(errno, std::system_category(), "We were unable to get the port from the UDP socket");
                             }
                             port = ntohs(address.sin_port);
-                            
+
                             fds.push_back(fd.release());
                         }
-                        
+
                         // Generate a reaction for the IO system that closes on death
                         auto reaction = util::generate_reaction<DSL, IO>(reactor, label, std::forward<TFunc>(callback), [fds] (threading::Reaction&) {
                             // Close all the sockets
@@ -287,7 +287,7 @@ namespace NUClear {
                         });
                         std::shared_ptr<threading::Reaction> r(std::move(reaction));
                         threading::ReactionHandle handle(r);
-                        
+
                         // Send our configuration out for each file descriptor (same reaction)
                         for(auto& fd : fds) {
                             reactor.powerplant.emit<emit::Direct>(std::make_unique<IOConfiguration>(IOConfiguration {
@@ -296,36 +296,36 @@ namespace NUClear {
                                 r
                             }));
                         }
-                        
+
                         // Return our handles
                         return std::make_tuple(handle, port);
                     }
-                    
+
                     template <typename DSL>
                     static inline Packet get(threading::Reaction& r) {
                         return UDP::get<DSL>(r);
                     }
 
                 };
-                
+
                 struct Multicast {
-                    
+
                     template <typename DSL, typename TFunc>
                     static inline std::tuple<threading::ReactionHandle, int, int> bind(Reactor& reactor, const std::string& label, TFunc&& callback, std::string multicastGroup, int port = 0) {
-                        
+
                         // Our multicast group address
                         sockaddr_in address;
                         memset(&address, 0, sizeof(sockaddr_in));
                         address.sin_family = AF_INET;
                         address.sin_addr.s_addr = inet_addr(multicastGroup.c_str());
                         address.sin_port = htons(port);
-                        
+
                         // Make our socket
                         util::FileDescriptor fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
                         if(fd < 0) {
                             throw std::system_error(errno, std::system_category(), "We were unable to open the UDP socket");
                         }
-                        
+
                         int yes = true;
                         // Set that we reuse the address so more than one application can bind
                         if(setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) < 0) {
@@ -335,19 +335,19 @@ namespace NUClear {
                         if(setsockopt(fd, IPPROTO_IP, IP_PKTINFO, &yes, sizeof(yes)) < 0) {
                             throw std::system_error(errno, std::system_category(), "We were unable to flag the socket as getting ancillary data");
                         }
-                        
+
                         // Bind to the address
                         if(::bind(fd, reinterpret_cast<sockaddr*>(&address), sizeof(sockaddr))) {
                             throw std::system_error(errno, std::system_category(), "We were unable to bind the UDP socket to the port");
                         }
-                        
+
                         // Store the port variable that was used
                         socklen_t len = sizeof(sockaddr_in);
                         if (::getsockname(fd, reinterpret_cast<sockaddr*>(&address), &len) == -1) {
                             throw std::system_error(errno, std::system_category(), "We were unable to get the port from the UDP socket");
                         }
                         port = ntohs(address.sin_port);
-                        
+
                         // Get all the network interfaces that support multicast
                         std::vector<uint32_t> addresses;
                         for(auto& iface : util::network::get_interfaces()) {
@@ -356,42 +356,42 @@ namespace NUClear {
                                 addresses.push_back(iface.ip);
                             }
                         }
-                        
+
                         for(auto& ad : addresses) {
-                            
+
                             // Our multicast join request
                             ip_mreq mreq;
                             memset(&mreq, 0, sizeof(mreq));
                             mreq.imr_multiaddr.s_addr = address.sin_addr.s_addr;
                             mreq.imr_interface.s_addr = htonl(ad);
-                            
+
                             // Join our multicast group
                             if (setsockopt(fd, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mreq, sizeof(ip_mreq)) < 0) {
                                 throw std::system_error(errno, std::system_category(), "There was an error while attemping to join the multicast group");
                             }
                         }
-                        
+
                         // Generate a reaction for the IO system that closes on death
                         int cfd = fd;
                         auto reaction = util::generate_reaction<DSL, IO>(reactor, label, std::forward<TFunc>(callback), [cfd] (threading::Reaction&) {
                             // Close all the sockets
                             ::close(cfd);
                         });
-                        
+
                         std::shared_ptr<threading::Reaction> r(std::move(reaction));
                         threading::ReactionHandle handle(r);
-                        
+
                         // Send our configuration out for each file descriptor (same reaction)
                         reactor.powerplant.emit<emit::Direct>(std::make_unique<IOConfiguration>(IOConfiguration {
                             fd.release(),
                             IO::READ,
                             r
                         }));
-                        
+
                         // Return our handles
                         return std::make_tuple(handle, port, cfd);
                     }
-                    
+
                     template <typename DSL>
                     static inline Packet get(threading::Reaction& r) {
                         return UDP::get<DSL>(r);
@@ -399,7 +399,7 @@ namespace NUClear {
                 };
             };
         }
-        
+
         namespace trait {
             template <>
             struct is_transient<word::UDP::Packet> : public std::true_type {};

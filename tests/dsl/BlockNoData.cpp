@@ -21,29 +21,29 @@
 
 namespace {
     struct SimpleMessage {};
-    
+
     struct MessageA {};
     struct MessageB {};
-    
+
     MessageA* a = nullptr;
     MessageB* b = nullptr;
-    
+
     class TestReactor : public NUClear::Reactor {
     public:
         TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
-            
-            
+
+
             on<Trigger<SimpleMessage>>().then([this] {
                 auto data = std::make_unique<MessageA>();
                 a = data.get();
-                
+
                 // Emit required data
                 emit(data);
-                
+
                 // Since the data was emitted before the shutdown call it will be processed before total shutdown
                 powerplant.shutdown();
             });
-            
+
             on<Trigger<MessageA>, With<MessageB>>().then([this] (const MessageA&, const MessageB&) {
                 FAIL("B was never emitted so this should not be possible");
             });
@@ -53,15 +53,15 @@ namespace {
 
 
 TEST_CASE("Testing that when a trigger does not have it's data satisfied it does not run", "[api][nodata]") {
-    
+
     NUClear::PowerPlant::Configuration config;
     config.threadCount = 1;
     NUClear::PowerPlant plant(config);
     plant.install<TestReactor>();
-    
+
     auto message = std::make_unique<SimpleMessage>();
-    
+
     plant.emit(message);
-    
+
     plant.start();
 }

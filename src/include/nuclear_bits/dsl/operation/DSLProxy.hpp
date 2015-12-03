@@ -21,7 +21,7 @@
 namespace NUClear {
     namespace dsl {
         namespace operation {
-            
+
             /**
              * @brief A proxy template to be used to provide NUClear DSL methods without altering the original object
              *

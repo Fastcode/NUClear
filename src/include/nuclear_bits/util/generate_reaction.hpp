@@ -24,16 +24,16 @@
 
 namespace NUClear {
     namespace util {
-        
+
         template <typename DSL, typename TUnbind, typename TFunc>
         std::unique_ptr<threading::Reaction> generate_reaction(Reactor& reactor, const std::string& label, TFunc&& callback, std::function<void(threading::Reaction&)> unbind = std::function<void(threading::Reaction&)>()) {
-            
+
             // Get our identifier string
             std::vector<std::string> identifier = util::get_identifier<typename DSL::DSL, TFunc>(label, reactor.reactorName);
-            
+
             // Get our powerplant
             auto& powerplant = reactor.powerplant;
-            
+
             // Create our unbinder
             auto unbinder = [&powerplant, unbind] (threading::Reaction& r) {
                 powerplant.emit<dsl::word::emit::Direct>(std::make_unique<dsl::operation::Unbind<TUnbind>>(r.reactionId));
@@ -41,7 +41,7 @@ namespace NUClear {
                     unbind(r);
                 }
             };
-                        
+
             // Create our reaction
             return std::make_unique<threading::Reaction>(reactor, std::move(identifier), std::forward<TFunc>(callback), std::move(unbinder));
         }

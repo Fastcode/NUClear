@@ -32,7 +32,7 @@ namespace NUClear {
              *  queue or is still executing, then this new task will be ignored.
              */
             struct Single {
-                
+
                 template <typename DSL>
                 static inline bool precondition(threading::Reaction& reaction) {
                     // We only run if there are no active tasks

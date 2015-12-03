@@ -23,19 +23,19 @@
 
 namespace NUClear {
     namespace threading {
-        
+
         inline std::function<void ()> makeThreadPoolTask(PowerPlant& powerplant, TaskScheduler& scheduler) {
             return [&powerplant, &scheduler] {
                 try {
                     // So long as we are executing
                     while(true) {
-                        
+
                         // Get a task
                         std::unique_ptr<ReactionTask> task(scheduler.getTask());
-                        
+
                         // Run the task
                         task = task->run(std::move(task));
-                        
+
                         // If the task actually ran emit the statistics
                         if(task) {
                             powerplant.emit<dsl::word::emit::Direct>(std::move(task->stats));

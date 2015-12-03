@@ -25,50 +25,35 @@
 namespace NUClear {
     namespace dsl {
         namespace fusion {
-            
-            template <typename Predecate, typename Then, typename Else>
-            using If = util::Meta::If<Predecate, Then, Else>;
-            
-            template <typename Condition, typename Value>
-            using EnableIf = util::Meta::EnableIf<Condition, Value>;
-            
-            template <typename Condition>
-            using Not = util::Meta::Not<Condition>;
-            
-            template <typename... Conditions>
-            using All = util::Meta::All<Conditions...>;
-            
-            template <typename... Conditions>
-            using Any = util::Meta::Any<Conditions...>;
-            
+
             template <typename TFirst, typename... TWords>
             struct PriorityFusion {
             private:
                 /// Returns either the real type or the proxy if the real type does not have a priority function
                 template <typename U>
                 using Priority = If<has_priority<U>, U, operation::DSLProxy<U>>;
-                
+
                 /// Checks if U has a priority function, and none of the following words do
                 template <typename U>
                 using UsNotChildren = All<has_priority<Priority<U>>, Not<Any<has_priority<Priority<TWords>>...>>>;
-                
+
                 /// Checks if we do not have a priority function, but at least one of the following words do
                 template <typename U>
                 using NotUsChildren = All<Not<has_priority<Priority<U>>>, Any<has_priority<Priority<TWords>>...>>;
-            
+
             public:
                 template <typename DSL, typename U = TFirst>
                 static inline auto priority(threading::Reaction& task)
                 -> EnableIf<UsNotChildren<U>, int> {
-                    
+
                     // Return our priority
                     return Priority<U>::template priority<DSL>(task);
                 }
-                
+
                 template <typename DSL, typename U = TFirst>
                 static inline auto priority(threading::Reaction& task)
                 -> EnableIf<NotUsChildren<U>, int> {
-                    
+
                     // Get the priority from the future types
                     return PriorityFusion<TWords...>::template priority<DSL>(task);
                 }

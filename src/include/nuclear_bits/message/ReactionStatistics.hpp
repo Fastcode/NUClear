@@ -25,7 +25,7 @@
 
 namespace NUClear {
     namespace message {
-    
+
         /**
          * @brief Holds details about reactions that are executed.
          *

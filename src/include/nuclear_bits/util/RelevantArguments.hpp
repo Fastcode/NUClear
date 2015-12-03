@@ -50,9 +50,9 @@ namespace NUClear {
         >
         struct RelevantArguments<std::tuple<Required, RList...>, std::tuple<Available, AList...>, Sequence<Used...>, Index>
         : public RelevantArguments<
-        Meta::If<std::is_convertible<Available, Required>, std::tuple<RList...>, std::tuple<Required, RList...>>,
+        If<std::is_convertible<Available, Required>, std::tuple<RList...>, std::tuple<Required, RList...>>,
         std::tuple<AList...>,
-        Meta::If<std::is_convertible<Available, Required>, Sequence<Used..., Index>, Sequence<Used...>>,
+        If<std::is_convertible<Available, Required>, Sequence<Used..., Index>, Sequence<Used...>>,
         Index + 1
         > {};
 

@@ -21,28 +21,18 @@
 namespace NUClear {
     namespace dsl {
         namespace validation {
-            
+
             template <typename... Word>
             struct ValidateDSL {
-                
-                template <typename Condition>
-                using Not = util::Meta::Not<Condition>;
-                
-                template <typename... Conditions>
-                using All = util::Meta::All<Conditions...>;
-                
-                template <typename... Conditions>
-                using Any = util::Meta::Any<Conditions...>;
-                
+
                 // Check that at least one word element has a bind component
                 static_assert(Any<fusion::has_bind<Word>..., fusion::has_bind<operation::DSLProxy<Word>>...>::value, "The provided DSL sentence does not have any components that bind a function");
-                
             };
-            
+
             // TODO Test that the function signature matches the arguments that will be obtained by get
-            
+
             // TODO Test that the function signature uses the correct constness in the arguments
-            
+
             // TODO Test that the function provides at least a bind (otherwise it will never run)
         }
     }

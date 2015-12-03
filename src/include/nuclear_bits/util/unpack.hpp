@@ -20,7 +20,7 @@
 
 namespace NUClear {
     namespace util {
-        
+
         /**
          * @brief Executes a series of function calls from a variardic template pack.
          *

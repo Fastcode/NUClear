@@ -26,12 +26,12 @@
 #include "ReactionTask.hpp"
 
 namespace NUClear {
-    
+
     // Forward declare reactor
     class Reactor;
-    
+
     namespace threading {
-        
+
         /**
          * @brief This class holds the definition of a Reaction (call signature).
          *
@@ -46,7 +46,7 @@ namespace NUClear {
             // Reaction handles are given to user code to enable and disable the reaction
             friend class ReactionHandle;
             friend class ReactionTask;
-            
+
         public:
             /**
              * @brief Constructs a new Reaction with the passed callback generator and options
@@ -60,34 +60,34 @@ namespace NUClear {
                      , std::vector<std::string> identifier
                      , std::function<std::pair<int, std::function<std::unique_ptr<ReactionTask> (std::unique_ptr<ReactionTask>&&)>> (Reaction&)> callback
                      , std::function<void (Reaction&)>&& unbinder);
-            
+
             /**
              * @brief creates a new databound callback task that can be executed.
              *
              * @return a unique_ptr to a Task which has the data for it's call bound into it
              */
             std::unique_ptr<ReactionTask> getTask();
-            
+
             /**
              * @brief returns true if this reaction is currently enabled
              */
             bool isEnabled();
-            
+
             /// @brief the reactor this belongs to
             Reactor& reactor;
-            
+
             /// @brief This holds the demangled name of the On function that is being called
             std::vector<std::string> identifier;
-            
+
             /// @brief the unique identifier for this Reaction object
             const uint64_t reactionId;
-            
+
             /// @brief the number of currently active tasks (existing reaction tasks)
             std::atomic<int> activeTasks;
-            
+
             /// @brief if this reaction object is currently enabled
             std::atomic<bool> enabled;
-            
+
         private:
             /**
              * @brief Unbinds this reaction from it's context

@@ -31,10 +31,10 @@ namespace NUClear {
                 struct Direct {
 
                     static void emit(PowerPlant&, std::shared_ptr<TData> data) {
-                        
+
                         // Set our data in the store
                         store::DataStore<TData>::set(data);
-                        
+
                         for(auto& reaction : store::TypeCallbackStore<TData>::get()) {
                             try {
                                 auto task = reaction->getTask();

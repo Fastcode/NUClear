@@ -35,22 +35,22 @@ namespace NUClear {
              */
             template <typename TSync>
             struct Sync {
-                
+
                 using task_ptr = std::unique_ptr<threading::ReactionTask>;
-                
+
                 /// @brief our queue which sorts tasks by priority
                 static std::priority_queue<task_ptr> queue;
                 /// @brief how many tasks are currently running
                 static volatile bool running;
                 /// @brief a mutex to ensure data consistency
                 static std::mutex mutex;
-                
+
                 template <typename DSL>
                 static inline std::unique_ptr<threading::ReactionTask> reschedule(std::unique_ptr<threading::ReactionTask>&& task) {
-                    
+
                     // Lock our mutex
                     std::lock_guard<std::mutex> lock(mutex);
-                    
+
                     // If we are already running then queue, otherwise return and set running
                     if(running) {
                         queue.push(std::move(task));
@@ -61,33 +61,33 @@ namespace NUClear {
                         return std::move(task);
                     }
                 }
-                
+
                 template <typename DSL>
                 static void postcondition(threading::ReactionTask& task) {
-                    
+
                     // Lock our mutex
                     std::lock_guard<std::mutex> lock(mutex);
-                    
+
                     // We are finished running
                     running = false;
-                    
+
                     // If we have another task, add it
                     if(!queue.empty()) {
                         std::unique_ptr<threading::ReactionTask> nextTask(std::move(const_cast<std::unique_ptr<threading::ReactionTask>&>(queue.top())));
                         queue.pop();
-                        
+
                         // Resubmit this task to the reaction queue
                         task.parent.reactor.powerplant.submit(std::move(nextTask));
                     }
                 }
             };
-            
+
             template <typename TSync>
             std::priority_queue<typename Sync<TSync>::task_ptr> Sync<TSync>::queue;
-            
+
             template <typename TSync>
             volatile bool Sync<TSync>::running = false;
-            
+
             template <typename TSync>
             std::mutex Sync<TSync>::mutex;
         }

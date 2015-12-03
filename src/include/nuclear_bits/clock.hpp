@@ -20,7 +20,7 @@
 #include <chrono>
 
 namespace NUClear {
-    
+
     /// @brief The clock that is used throughout the entire nuclear system
     using clock = std::chrono::high_resolution_clock;
 }

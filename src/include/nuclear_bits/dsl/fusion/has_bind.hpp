@@ -25,20 +25,20 @@
 namespace NUClear {
     namespace dsl {
         namespace fusion {
-            
+
             template <typename T>
             struct has_bind {
             private:
                 typedef std::true_type yes;
                 typedef std::false_type no;
-                
+
                 template <typename R, typename F, typename... A>
                 static yes test_func(R(*)(Reactor&, const std::string&, F, A...));
                 static no test_func(...);
-                
+
                 template <typename U> static auto test(int) -> decltype(test_func(U::template bind<ParsedNoOp, std::function<std::function<void ()>(threading::ReactionTask&)>>));
                 template <typename> static no test(...);
-                
+
             public:
                 static constexpr bool value = std::is_same<decltype(test<T>(0)),yes>::value;
             };
