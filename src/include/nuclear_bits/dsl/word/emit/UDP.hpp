@@ -32,7 +32,7 @@ namespace NUClear {
                 template <typename TData>
                 struct UDP {
 
-                    static inline void emit(PowerPlant&, std::shared_ptr<TData> input, uint toAddr, uint toPort, uint fromAddr, uint fromPort) {
+                    static inline void emit(PowerPlant&, std::shared_ptr<TData> input, uint32_t toAddr, uint16_t toPort, uint32_t fromAddr, uint16_t fromPort) {
 
                         sockaddr_in src;
                         sockaddr_in target;
@@ -52,7 +52,7 @@ namespace NUClear {
                         bool multicast = ((toAddr >> 28) == 14);
 
                         // Open a socket to send the datagram from
-                        util::FileDescriptor fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+                        util::FileDescriptor fd = ::socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
                         if(fd < 0) {
                             throw std::system_error(errno, std::system_category(), "We were unable to open the UDP socket");
                         }
@@ -88,21 +88,21 @@ namespace NUClear {
                     }
 
                     // String ip addresses
-                    static inline void emit(PowerPlant& pp, std::shared_ptr<TData> data, std::string toAddr, uint toPort, std::string fromAddr, uint fromPort) {
+                    static inline void emit(PowerPlant& pp, std::shared_ptr<TData> data, std::string toAddr, uint16_t toPort, std::string fromAddr, uint16_t fromPort) {
                         emit(pp, data, ntohl(inet_addr(toAddr.c_str())), toPort, ntohl(inet_addr(fromAddr.c_str())), fromPort);
                     }
-                    static inline void emit(PowerPlant& pp, std::shared_ptr<TData> data, std::string toAddr, uint toPort, uint fromAddr, uint fromPort) {
+                    static inline void emit(PowerPlant& pp, std::shared_ptr<TData> data, std::string toAddr, uint16_t toPort, uint32_t fromAddr, uint16_t fromPort) {
                         emit(pp, data, ntohl(inet_addr(toAddr.c_str())), toPort, fromAddr, fromPort);
                     }
-                    static inline void emit(PowerPlant& pp, std::shared_ptr<TData> data, uint toAddr, uint toPort, std::string fromAddr, uint fromPort) {
+                    static inline void emit(PowerPlant& pp, std::shared_ptr<TData> data, uint32_t toAddr, uint16_t toPort, std::string fromAddr, uint16_t fromPort) {
                         emit(pp, data, toAddr, toPort, ntohl(inet_addr(fromAddr.c_str())), fromPort);
                     }
 
                     // No from address
-                    static inline void emit(PowerPlant& pp, std::shared_ptr<TData> data, uint toAddr, uint toPort) {
+                    static inline void emit(PowerPlant& pp, std::shared_ptr<TData> data, uint32_t toAddr, uint16_t toPort) {
                         emit(pp, data, toAddr, toPort, INADDR_ANY, 0);
                     }
-                    static inline void emit(PowerPlant& pp, std::shared_ptr<TData> data, std::string toAddr, uint toPort) {
+                    static inline void emit(PowerPlant& pp, std::shared_ptr<TData> data, std::string toAddr, uint16_t toPort) {
                         emit(pp, data, ntohl(inet_addr(toAddr.c_str())), toPort, INADDR_ANY, 0);
                     }
                 };

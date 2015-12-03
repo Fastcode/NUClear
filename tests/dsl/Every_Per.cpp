@@ -28,9 +28,9 @@ namespace {
         // Store our times
         std::vector<NUClear::clock::time_point> times;
 
-        static constexpr uint NUM_LOG_ITEMS = 100;
+        static constexpr size_t NUM_LOG_ITEMS = 100;
 
-        static constexpr uint CYCLES_PER_SECOND = 100;
+        static constexpr size_t CYCLES_PER_SECOND = 100;
 
         TestReactorPer(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
             // Trigger every 10 milliseconds
@@ -45,7 +45,7 @@ namespace {
                     // Build up our difference vector
                     std::vector<double> diff;
 
-                    for(uint i = 0; i < times.size() - 1; ++i) {
+                    for(size_t i = 0; i < times.size() - 1; ++i) {
                         std::chrono::nanoseconds delta = times[i + 1] - times[i];
 
                         // Store our difference in seconds

@@ -84,7 +84,7 @@ namespace NUClear {
             Configuration() : threadCount(std::thread::hardware_concurrency() == 0 ? 2 : std::thread::hardware_concurrency()) {}
 
             /// @brief The number of threads the system will use
-            unsigned int threadCount;
+            size_t threadCount;
         };
 
     public:

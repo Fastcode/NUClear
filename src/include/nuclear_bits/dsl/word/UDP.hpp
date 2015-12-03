@@ -78,7 +78,7 @@ namespace NUClear {
                 static inline std::tuple<threading::ReactionHandle, int, int> bind(Reactor& reactor, const std::string& label, TFunc&& callback, int port = 0) {
 
                     // Make our socket
-                    util::FileDescriptor fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+                    util::FileDescriptor fd = ::socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
                     if(fd < 0) {
                         throw std::system_error(errno, std::system_category(), "We were unable to open the UDP socket");
                     }
@@ -237,7 +237,7 @@ namespace NUClear {
                         for(auto& ad : addresses) {
 
                             // Make our socket
-                            util::FileDescriptor fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+                            util::FileDescriptor fd = ::socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
                             if(fd < 0) {
                                 throw std::system_error(errno, std::system_category(), "We were unable to open the UDP socket");
                             }
@@ -321,7 +321,7 @@ namespace NUClear {
                         address.sin_port = htons(port);
 
                         // Make our socket
-                        util::FileDescriptor fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+                        util::FileDescriptor fd = ::socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
                         if(fd < 0) {
                             throw std::system_error(errno, std::system_category(), "We were unable to open the UDP socket");
                         }

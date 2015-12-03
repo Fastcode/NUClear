@@ -55,7 +55,7 @@ namespace NUClear {
             header.hash = emit.hash;
 
             // Loop through our chunks
-            for (uint i = 0; i < emit.data.size(); i += MAX_UDP_PAYLOAD_LENGTH) {
+            for (size_t i = 0; i < emit.data.size(); i += MAX_UDP_PAYLOAD_LENGTH) {
 
                 // Store our payload information for this chunk
                 base = const_cast<char*>(emit.data.data() + i);

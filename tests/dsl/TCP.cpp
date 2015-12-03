@@ -83,7 +83,7 @@ namespace {
             on<Trigger<Message>>().then([this] {
 
                 // Open a random socket
-                NUClear::util::FileDescriptor fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+                NUClear::util::FileDescriptor fd = ::socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 
                 // Our address to our local connection
                 sockaddr_in address;
@@ -108,7 +108,7 @@ namespace {
             // Send a test message to the freely bound port
             on<Trigger<Message>>().then([this, boundPort] {
                 // Open a random socket
-                NUClear::util::FileDescriptor fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+                NUClear::util::FileDescriptor fd = ::socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 
                 // Our address to our local connection
                 sockaddr_in address;

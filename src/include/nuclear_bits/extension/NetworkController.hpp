@@ -62,8 +62,8 @@ namespace NUClear {
 
             // Our max UDP size is based of a 1500 MTU
             // Subtract the IP and UPD headers, and our protocol header size
-            static constexpr const int MAX_UDP_PAYLOAD_LENGTH = 1500 /*MTU*/ - 20 /*IP header*/ - 8 /*UDP header*/ - sizeof(network::DataPacket) + 1 /*Last char*/;
-            static constexpr const int MAX_NUM_UDP_ASSEMBLEY = 5;
+            static constexpr const size_t MAX_UDP_PAYLOAD_LENGTH = 1500 /*MTU*/ - 20 /*IP header*/ - 8 /*UDP header*/ - sizeof(network::DataPacket) + 1 /*Last char*/;
+            static constexpr const size_t MAX_NUM_UDP_ASSEMBLEY = 5;
 
             std::mutex writeMutex;
 

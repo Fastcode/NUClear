@@ -88,7 +88,7 @@ namespace NUClear {
         emit<dsl::word::emit::Direct>(std::make_unique<dsl::word::Startup>());
 
         // Start all our threads
-        for(uint i = 0; i < configuration.threadCount; ++i) {
+        for(size_t i = 0; i < configuration.threadCount; ++i) {
             tasks.push_back(threading::makeThreadPoolTask(*this, scheduler));
         }
 

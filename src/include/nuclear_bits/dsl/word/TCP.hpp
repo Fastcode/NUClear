@@ -61,7 +61,7 @@ namespace NUClear {
                 static inline std::tuple<threading::ReactionHandle, int, int> bind(Reactor& reactor, const std::string& label, TFunc&& callback, int port = 0) {
 
                     // Make our socket
-                    util::FileDescriptor fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+                    util::FileDescriptor fd = ::socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 
                     if(fd < 0) {
                         throw std::system_error(errno, std::system_category(), "We were unable to open the TCP socket");
