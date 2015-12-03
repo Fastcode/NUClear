@@ -49,7 +49,7 @@ namespace NUClear {
              */
             template <int Start, int End, int... Seq>
             struct GenSequence<Start, End, Sequence<Seq...>>
-            : If<std::integral_constant<bool, (Start > End)>
+            : std::conditional_t<(Start > End)
             , GenSequence<0, 0> // If we have been given an invalid sequence, just return an empty one
             , GenSequence<Start + 1, End, Sequence<Seq..., Start>>> {};
 
@@ -76,7 +76,7 @@ namespace NUClear {
          * @author Trent Houliston
          */
         template <int Start, int End>
-        using GenerateSequence = Do<GenSequence<Start, End>>;
+        using GenerateSequence = typename GenSequence<Start, End>::type;
     }
 }
 #endif

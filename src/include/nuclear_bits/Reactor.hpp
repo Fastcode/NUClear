@@ -250,10 +250,10 @@ namespace NUClear {
             void addReactionHandle(...) {}
 
             template <size_t i = 0, typename... Tp>
-            EnableIf<std::integral_constant<bool, i == sizeof...(Tp)>> addReactionHandles(std::tuple<Tp...>&) {}
+            std::enable_if_t<i == sizeof...(Tp)> addReactionHandles(std::tuple<Tp...>&) {}
 
             template <size_t i = 0, typename... Tp>
-            EnableIf<std::integral_constant<bool, i < sizeof...(Tp)>> addReactionHandles(std::tuple<Tp...>& t) {
+            std::enable_if_t<i < sizeof...(Tp)> addReactionHandles(std::tuple<Tp...>& t) {
                 addReactionHandle(std::get<i>(t));
             }
 

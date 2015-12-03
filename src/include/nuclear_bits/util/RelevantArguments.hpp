@@ -50,9 +50,9 @@ namespace NUClear {
         >
         struct RelevantArguments<std::tuple<Required, RList...>, std::tuple<Available, AList...>, Sequence<Used...>, Index>
         : public RelevantArguments<
-        If<std::is_convertible<Available, Required>, std::tuple<RList...>, std::tuple<Required, RList...>>,
+        std::conditional_t<std::is_convertible<Available, Required>::value, std::tuple<RList...>, std::tuple<Required, RList...>>,
         std::tuple<AList...>,
-        If<std::is_convertible<Available, Required>, Sequence<Used..., Index>, Sequence<Used...>>,
+        std::conditional_t<std::is_convertible<Available, Required>::value, Sequence<Used..., Index>, Sequence<Used...>>,
         Index + 1
         > {};
 
@@ -84,6 +84,9 @@ namespace NUClear {
         struct RelevantArguments<std::tuple<>, std::tuple<>, Sequence<Used...>, Index> {
             using type = Sequence<Used...>;
         };
+
+        template <typename Required, typename Available, typename Used = Sequence<>, int Index = 0>
+        using RelevantArguments_t = typename RelevantArguments<Required, Available, Used, Index>::type;
     }
 }
 #endif

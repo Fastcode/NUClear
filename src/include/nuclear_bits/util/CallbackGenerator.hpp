@@ -52,7 +52,7 @@ namespace NUClear {
             void mergeTransients(std::tuple<TData...>& data, const Sequence<DIndex...>&, const Sequence<TIndex...>&) {
 
                 // Merge our transient data
-                unpack(MergeTransients<RemoveRef<decltype(std::get<DIndex>(data))>>::merge(std::get<TIndex>(*transients), std::get<DIndex>(data))...);
+                unpack(MergeTransients<std::remove_reference_t<decltype(std::get<DIndex>(data))>>::merge(std::get<TIndex>(*transients), std::get<DIndex>(data))...);
             }
 
             std::pair<int, std::function<std::unique_ptr<threading::ReactionTask> (std::unique_ptr<threading::ReactionTask>&&)>> operator()(threading::Reaction& r) {
@@ -92,7 +92,7 @@ namespace NUClear {
                             // We have to catch any exceptions
                             try {
                                 // We call with only the relevant arguments to the passed function
-                                util::apply(c, std::move(data), Do<util::RelevantArguments<TFunc, Do<util::DereferenceTuple<decltype(data)>>>>());
+                                util::apply(c, std::move(data), util::RelevantArguments_t<TFunc, util::DereferenceTuple_t<decltype(data)>>());
                             }
                             catch(...) {
 

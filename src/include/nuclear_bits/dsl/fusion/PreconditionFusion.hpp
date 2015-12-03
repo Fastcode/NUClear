@@ -31,7 +31,7 @@ namespace NUClear {
             private:
                 /// Returns either the real type or the proxy if the real type does not have a precondition function
                 template <typename U>
-                using Precondition = If<has_precondition<U>, U, operation::DSLProxy<U>>;
+                using Precondition = std::conditional_t<has_precondition<U>::value, U, operation::DSLProxy<U>>;
 
                 /// Checks if U has a precondition function, and at least one of the following words do
                 template <typename U>
@@ -48,7 +48,7 @@ namespace NUClear {
             public:
                 template <typename DSL, typename U = TFirst>
                 static inline auto precondition(threading::Reaction& task)
-                -> EnableIf<UsAndChildren<U>, bool> {
+                -> std::enable_if_t<UsAndChildren<U>::value, bool> {
 
                     // Run this precondition
                     if(!Precondition<U>::template precondition<DSL>(task)) {
@@ -62,7 +62,7 @@ namespace NUClear {
 
                 template <typename DSL, typename U = TFirst>
                 static inline auto precondition(threading::Reaction& task)
-                -> EnableIf<UsNotChildren<U>, bool> {
+                -> std::enable_if_t<UsNotChildren<U>::value, bool> {
 
                     // Run this precondition
                     return Precondition<U>::template precondition<DSL>(task);
@@ -70,7 +70,7 @@ namespace NUClear {
 
                 template <typename DSL, typename U = TFirst>
                 static inline auto precondition(threading::Reaction& task)
-                -> EnableIf<NotUsChildren<U>, bool> {
+                -> std::enable_if_t<NotUsChildren<U>::value, bool> {
 
                     // Run future precondition
                     return PreconditionFusion<TWords...>::template precondition<DSL>(task);

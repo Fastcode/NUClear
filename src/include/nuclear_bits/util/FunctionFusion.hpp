@@ -218,13 +218,13 @@ namespace NUClear {
         , std::tuple<ArgumentRanges...>>
         : public
         // Test if we have moved into an invalid range
-        If<std::integral_constant<bool, (Start > End)>,
+        std::conditional_t<(Start > End),
             // We are in an invalid range which makes this path invalid
             /*T*/ std::false_type,
             // Test if we are callable with the current arguments
-            /*F*/ If<is_callable<FunctionWrapper<CurrentFunction, WrapperArgs...>, Shared, Start, End, std::tuple<Arguments...>>,
+            /*F*/ std::conditional_t<is_callable<FunctionWrapper<CurrentFunction, WrapperArgs...>, Shared, Start, End, std::tuple<Arguments...>>::value,
                 // test if our remainder is valid
-                /*T*/ If<FunctionFusion<std::tuple<Functions...>, std::tuple<Arguments...>, FunctionWrapper, std::tuple<WrapperArgs...>, Shared, End, sizeof...(Arguments), std::tuple<ProcessedFunctions..., CurrentFunction>, std::tuple<ArgumentRanges..., Sequence<Start, End>>>,
+                /*T*/ std::conditional_t<FunctionFusion<std::tuple<Functions...>, std::tuple<Arguments...>, FunctionWrapper, std::tuple<WrapperArgs...>, Shared, End, sizeof...(Arguments), std::tuple<ProcessedFunctions..., CurrentFunction>, std::tuple<ArgumentRanges..., Sequence<Start, End>>>::value,
                     // It is valid, extend from the next step
                     /*T*/ FunctionFusion<std::tuple<Functions...>, std::tuple<Arguments...>, FunctionWrapper, std::tuple<WrapperArgs...>, Shared, End, sizeof...(Arguments), std::tuple<ProcessedFunctions..., CurrentFunction>, std::tuple<ArgumentRanges..., Sequence<Start, End>>>,
                     // It is not valid, try with one less argument assigned to us
@@ -262,7 +262,7 @@ namespace NUClear {
         , std::tuple<Ranges...>>
         : public
         // Check if we used up all of our arguments (and not more than all of our arguments)
-        If<std::integral_constant<bool, (Start == End && Start == sizeof...(Arguments))>,
+        std::conditional_t<(Start == End && Start == sizeof...(Arguments)),
             // We have used up the exact right number of arguments (and everything by this point should have been callable)
             /*T*/ FunctionFusionCaller<std::tuple<FunctionWrapper<ProcessedFunctions, WrapperArgs...>...>, Shared, std::tuple<Ranges...>, std::tuple<Arguments...>>,
             // We have the wrong number of arguments left over, this branch is bad

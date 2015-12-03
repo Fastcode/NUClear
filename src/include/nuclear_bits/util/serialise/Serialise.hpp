@@ -43,7 +43,7 @@ namespace NUClear {
 
             // Plain old data
             template <typename T>
-            struct Serialise<T, EnableIf<std::is_trivial<T>, T>> {
+            struct Serialise<T, std::enable_if_t<std::is_trivial<T>::value, T>> {
 
                 static inline std::vector<char> serialise(const T& in) {
 
@@ -69,9 +69,9 @@ namespace NUClear {
 
             // Iterable of pod
             template <typename T>
-            struct Serialise<T, EnableIf<std::is_same<typename std::iterator_traits<decltype(std::declval<T>().begin())>::iterator_category, std::random_access_iterator_tag>, T>> {
+            struct Serialise<T, std::enable_if_t<std::is_same<typename std::iterator_traits<decltype(std::declval<T>().begin())>::iterator_category, std::random_access_iterator_tag>::value, T>> {
 
-                using StoredType = RemoveRef<decltype(*std::declval<T>().begin())>;
+                using StoredType = std::remove_reference_t<decltype(*std::declval<T>().begin())>;
 
                 static inline std::vector<char> serialise(const T& in) {
                     std::vector<char> out;
@@ -106,7 +106,7 @@ namespace NUClear {
 
             // Google protobuf
             template <typename T>
-            struct Serialise<T, EnableIf<std::is_base_of<google::protobuf::Message, T>, T>> {
+            struct Serialise<T, std::enable_if_t<std::is_base_of<google::protobuf::Message, T>::value, T>> {
 
                 static inline std::vector<char> serialise(const T& in) {
                     std::vector<char> output(in.ByteSize());

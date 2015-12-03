@@ -31,7 +31,7 @@ namespace NUClear {
             private:
                 /// Returns either the real type or the proxy if the real type does not have a priority function
                 template <typename U>
-                using Priority = If<has_priority<U>, U, operation::DSLProxy<U>>;
+                using Priority = std::conditional_t<has_priority<U>::value, U, operation::DSLProxy<U>>;
 
                 /// Checks if U has a priority function, and none of the following words do
                 template <typename U>
@@ -44,7 +44,7 @@ namespace NUClear {
             public:
                 template <typename DSL, typename U = TFirst>
                 static inline auto priority(threading::Reaction& task)
-                -> EnableIf<UsNotChildren<U>, int> {
+                -> std::enable_if_t<UsNotChildren<U>::value, int> {
 
                     // Return our priority
                     return Priority<U>::template priority<DSL>(task);
@@ -52,7 +52,7 @@ namespace NUClear {
 
                 template <typename DSL, typename U = TFirst>
                 static inline auto priority(threading::Reaction& task)
-                -> EnableIf<NotUsChildren<U>, int> {
+                -> std::enable_if_t<NotUsChildren<U>::value, int> {
 
                     // Get the priority from the future types
                     return PriorityFusion<TWords...>::template priority<DSL>(task);

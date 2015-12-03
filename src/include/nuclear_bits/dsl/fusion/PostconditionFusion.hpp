@@ -33,7 +33,7 @@ namespace NUClear {
             private:
                 /// Returns either the real type or the proxy if the real type does not have a postcondition function
                 template <typename U>
-                using Postcondition = If<has_postcondition<U>, U, operation::DSLProxy<U>>;
+                using Postcondition = std::conditional_t<has_postcondition<U>::value, U, operation::DSLProxy<U>>;
 
                 /// Checks if U has a postcondition function, and at least one of the following words do
                 template <typename U>
@@ -51,7 +51,7 @@ namespace NUClear {
             public:
                 template <typename DSL, typename U = TFirst>
                 static inline auto postcondition(threading::ReactionTask& task)
-                -> EnableIf<UsAndChildren<U>, void> {
+                -> std::enable_if_t<UsAndChildren<U>::value, void> {
 
                     // Run this postcondition
                     Postcondition<U>::template postcondition<DSL>(task);
@@ -62,7 +62,7 @@ namespace NUClear {
 
                 template <typename DSL, typename U = TFirst>
                 static inline auto postcondition(threading::ReactionTask& task)
-                -> EnableIf<UsNotChildren<U>, void> {
+                -> std::enable_if_t<UsNotChildren<U>::value, void> {
 
                     // Run this postcondition
                     Postcondition<U>::template postcondition<DSL>(task);
@@ -70,7 +70,7 @@ namespace NUClear {
 
                 template <typename DSL, typename U = TFirst>
                 static inline auto postcondition(threading::ReactionTask& task)
-                -> EnableIf<NotUsChildren<U>, void> {
+                -> std::enable_if_t<NotUsChildren<U>::value, void> {
 
                     // Run future postcondition
                     PostconditionFusion<TWords...>::template postcondition<DSL>(task);

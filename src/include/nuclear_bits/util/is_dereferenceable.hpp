@@ -37,12 +37,12 @@ namespace NUClear {
         };
 
         template <typename TData>
-        auto dereference(TData&& d) -> EnableIf<is_dereferenceable<TData>, decltype(*d)> {
+        auto dereference(TData&& d) -> std::enable_if_t<is_dereferenceable<TData>::value, decltype(*d)> {
             return *d;
         }
 
         template <typename TData>
-        auto dereference(TData&& d) -> EnableIf<Not<is_dereferenceable<TData>>, decltype(d)> {
+        auto dereference(TData&& d) -> std::enable_if_t<Not<is_dereferenceable<TData>>::value, decltype(d)> {
             return d;
         }
 
@@ -55,6 +55,8 @@ namespace NUClear {
             using type = std::tuple<decltype(dereference(std::declval<Ts>()))...>;
         };
 
+        template <typename T>
+        using DereferenceTuple_t = typename DereferenceTuple<T>::type;
     }
 }
 

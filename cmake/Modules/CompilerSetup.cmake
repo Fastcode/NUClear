@@ -5,7 +5,7 @@
 # XCode support
 IF(CMAKE_GENERATOR MATCHES Xcode)
     set(CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LIBRARY "libc++")
-    set(CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LANGUAGE_STANDARD "c++0x")
+    set(CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LANGUAGE_STANDARD "c++14")
 ENDIF()
 
 ###############
@@ -25,11 +25,11 @@ IF(CMAKE_CXX_COMPILER_ID MATCHES GNU)
         SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fdiagnostics-color=always")
     ENDIF()
 
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -pthread -Wall -Wpedantic")
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -pthread -Wall -Wpedantic")
 
 # Clang Compiler
 ELSEIF(CMAKE_CXX_COMPILER_ID MATCHES Clang)
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wpedantic -Wextra")
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -Wpedantic -Wextra")
 
 # MSVC Compiler
 ELSEIF(CMAKE_CXX_COMPILER_ID MATCHES MSVC)

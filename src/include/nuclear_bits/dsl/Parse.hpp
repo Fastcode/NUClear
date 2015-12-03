@@ -36,25 +36,25 @@ namespace NUClear {
             }
 
             static inline auto get(threading::Reaction& r)
-            -> decltype(If<fusion::has_get<DSL>, DSL, fusion::NoOp>::template get<Parse<Sentence...>>(r)) {
+            -> decltype(std::conditional_t<fusion::has_get<DSL>::value, DSL, fusion::NoOp>::template get<Parse<Sentence...>>(r)) {
 
-                return If<fusion::has_get<DSL>, DSL, fusion::NoOp>::template get<Parse<Sentence...>>(r);
+                return std::conditional_t<fusion::has_get<DSL>::value, DSL, fusion::NoOp>::template get<Parse<Sentence...>>(r);
             }
 
             static inline bool precondition(threading::Reaction& r) {
-                return If<fusion::has_precondition<DSL>, DSL, fusion::NoOp>::template precondition<Parse<Sentence...>>(r);
+                return std::conditional_t<fusion::has_precondition<DSL>::value, DSL, fusion::NoOp>::template precondition<Parse<Sentence...>>(r);
             }
 
             static inline int priority(threading::Reaction& r) {
-                return If<fusion::has_priority<DSL>, DSL, fusion::NoOp>::template priority<Parse<Sentence...>>(r);
+                return std::conditional_t<fusion::has_priority<DSL>::value, DSL, fusion::NoOp>::template priority<Parse<Sentence...>>(r);
             }
 
             static std::unique_ptr<threading::ReactionTask> reschedule(std::unique_ptr<threading::ReactionTask>&& task) {
-                return If<fusion::has_reschedule<DSL>, DSL, fusion::NoOp>::template reschedule<DSL>(std::move(task));
+                return std::conditional_t<fusion::has_reschedule<DSL>::value, DSL, fusion::NoOp>::template reschedule<DSL>(std::move(task));
             }
 
             static inline void postcondition(threading::ReactionTask& r) {
-                If<fusion::has_postcondition<DSL>, DSL, fusion::NoOp>::template postcondition<Parse<Sentence...>>(r);
+                std::conditional_t<fusion::has_postcondition<DSL>::value, DSL, fusion::NoOp>::template postcondition<Parse<Sentence...>>(r);
             }
         };
     }

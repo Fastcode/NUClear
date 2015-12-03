@@ -36,7 +36,7 @@ namespace NUClear {
             private:
                 /// Returns either the real type or the proxy if the real type does not have a get function
                 template <typename U>
-                using Get = If<has_get<U>, U, operation::DSLProxy<U>>;
+                using Get = std::conditional_t<has_get<U>::value, U, operation::DSLProxy<U>>;
 
                 /// Checks if U has a get function, and at least one of the following words do
                 template <typename U>
@@ -53,7 +53,7 @@ namespace NUClear {
             public:
                 template <typename DSL, typename U = TFirst>
                 static inline auto get(threading::Reaction& reaction)
-                -> EnableIf<UsAndChildren<U>, decltype(std::tuple_cat(util::tuplify(Get<U>::template get<DSL>(reaction)), If<UsAndChildren<U>, GetFusion<TWords...>, NoOp>::template get<DSL>(reaction)))> {
+                -> std::enable_if_t<UsAndChildren<U>::value, decltype(std::tuple_cat(util::tuplify(Get<U>::template get<DSL>(reaction)), std::conditional_t<UsAndChildren<U>::value, GetFusion<TWords...>, NoOp>::template get<DSL>(reaction)))> {
                     // Tuplify and return what we need
 
                     return std::tuple_cat(util::tuplify(Get<U>::template get<DSL>(reaction)), GetFusion<TWords...>::template get<DSL>(reaction));
@@ -61,7 +61,7 @@ namespace NUClear {
 
                 template <typename DSL, typename U = TFirst>
                 static inline auto get(threading::Reaction& reaction)
-                -> EnableIf<UsNotChildren<U>, decltype(util::tuplify(Get<U>::template get<DSL>(reaction)))> {
+                -> std::enable_if_t<UsNotChildren<U>::value, decltype(util::tuplify(Get<U>::template get<DSL>(reaction)))> {
 
                     // Tuplify and return our element
                     return util::tuplify(Get<U>::template get<DSL>(reaction));
@@ -69,7 +69,7 @@ namespace NUClear {
 
                 template <typename DSL, typename U = TFirst>
                 static inline auto get(threading::Reaction& reaction)
-                -> EnableIf<NotUsChildren<U>, decltype(If<NotUsChildren<U>, GetFusion<TWords...>, NoOp>::template get<DSL>(reaction))> {
+                -> std::enable_if_t<NotUsChildren<U>::value, decltype(std::conditional_t<NotUsChildren<U>::value, GetFusion<TWords...>, NoOp>::template get<DSL>(reaction))> {
 
                     // Pass on to the next element
                     return GetFusion<TWords...>::template get<DSL>(reaction);

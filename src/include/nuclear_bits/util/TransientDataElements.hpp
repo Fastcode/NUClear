@@ -26,7 +26,7 @@ namespace NUClear {
 
         template <typename TFirst, typename... TIn, int Index, typename... TOut, int... Indicies>
         struct ExtractTransient<std::tuple<TFirst, TIn...>, Index, std::tuple<TOut...>, Sequence<Indicies...>>
-        : If<dsl::trait::is_transient<TFirst>
+        : std::conditional_t<dsl::trait::is_transient<TFirst>::value
         , ExtractTransient<std::tuple<TIn...>, Index + 1, std::tuple<TOut..., TFirst>, Sequence<Indicies..., Index>>
         , ExtractTransient<std::tuple<TIn...>, Index + 1, std::tuple<TOut...>, Sequence<Indicies...>>> {};
 

@@ -33,7 +33,7 @@ namespace NUClear {
             private:
                 /// Returns either the real type or the proxy if the real type does not have a reschedule function
                 template <typename U>
-                using Reschedule = If<has_reschedule<U>, U, operation::DSLProxy<U>>;
+                using Reschedule = std::conditional_t<has_reschedule<U>::value, U, operation::DSLProxy<U>>;
 
                 /// Checks if U has a reschedule function, and at least one of the following words do
                 template <typename U>
@@ -51,7 +51,7 @@ namespace NUClear {
             public:
                 template <typename DSL, typename U = TFirst>
                 static inline auto reschedule(std::unique_ptr<threading::ReactionTask>&& task)
-                -> EnableIf<UsAndChildren<U>, std::unique_ptr<threading::ReactionTask>> {
+                -> std::enable_if_t<UsAndChildren<U>::value, std::unique_ptr<threading::ReactionTask>> {
 
                     // Run this reschedule
                     auto ptr = Reschedule<U>::template reschedule<DSL>(std::move(task));
@@ -68,7 +68,7 @@ namespace NUClear {
 
                 template <typename DSL, typename U = TFirst>
                 static inline auto reschedule(std::unique_ptr<threading::ReactionTask>&& task)
-                -> EnableIf<UsNotChildren<U>, std::unique_ptr<threading::ReactionTask>> {
+                -> std::enable_if_t<UsNotChildren<U>::value, std::unique_ptr<threading::ReactionTask>> {
 
                     // If we haven't already been rescheduled
                     if(task) {
@@ -83,7 +83,7 @@ namespace NUClear {
 
                 template <typename DSL, typename U = TFirst>
                 static inline auto reschedule(std::unique_ptr<threading::ReactionTask>&& task)
-                -> EnableIf<NotUsChildren<U>, std::unique_ptr<threading::ReactionTask>> {
+                -> std::enable_if_t<NotUsChildren<U>::value, std::unique_ptr<threading::ReactionTask>> {
 
                     // Run future reschedules
                     return RescheduleFusion<TWords...>::template reschedule<DSL>(std::move(task));

@@ -55,7 +55,7 @@ namespace NUClear {
              */
             template <typename TWord, typename... TRemainder, typename... TBindWords>
             struct GetBindWords<std::tuple<TWord, TRemainder...>, std::tuple<TBindWords...>>
-            : public If<has_bind<TWord>,
+            : public std::conditional_t<has_bind<TWord>::value,
                 /*T*/ GetBindWords<std::tuple<TRemainder...>, std::tuple<TBindWords..., TWord>>,
                 /*F*/ GetBindWords<std::tuple<TRemainder...>, std::tuple<TBindWords...>>> {};
 
@@ -68,19 +68,22 @@ namespace NUClear {
             struct GetBindWords<std::tuple<>, std::tuple<TBindWords...>> {
                 using type = std::tuple<TBindWords...>;
             };
+            
+            template <typename... TBindWords>
+            using GetBindWords_t = typename GetBindWords<TBindWords...>::type;
 
             template <typename... TWords>
             struct BindFusion {
 
                 // Get all of the words that have Bind functionality, or the DSL proxy if it has one
-                using BindWords = Do<GetBindWords<std::tuple<If<has_bind<TWords>, TWords, operation::DSLProxy<TWords>>...>>>;
+                using BindWords = GetBindWords_t<std::tuple<std::conditional_t<has_bind<TWords>::value, TWords, operation::DSLProxy<TWords>>...>>;
 
                 // We have a bind function if we have at least one BindWord
-                static constexpr bool has_bind_t = std::tuple_size<BindWords>::value > 0;
+                static constexpr bool has_bind_v = std::tuple_size<BindWords>::value > 0;
 
                 template <typename DSL, typename TFunc, typename... TArgs>
                 static inline auto bind(Reactor& reactor, const std::string& identifier, TFunc&& callback, TArgs&&... args)
-                -> EnableIf<std::integral_constant<bool, has_bind_t>
+                -> std::enable_if_t<has_bind_v
                 , decltype(util::FunctionFusion<BindWords
                            , decltype(std::forward_as_tuple(reactor, identifier, std::forward<TFunc>(callback), std::forward<TArgs>(args)...))
                            , BindCaller
