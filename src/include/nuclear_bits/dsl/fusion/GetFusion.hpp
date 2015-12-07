@@ -28,51 +28,69 @@ namespace NUClear {
     namespace dsl {
         namespace fusion {
 
-            template <typename...>
-            struct GetFusion;
+            /**
+             * @brief This is our Function Fusion wrapper class that allows it to call bind functions
+             *
+             * @tparam Function the bind function that we are wrapping for
+             * @tparam DSL      the DSL that we pass to our bind function
+             */
+            template <typename Function, typename DSL>
+            struct GetCaller {
+                static inline auto call(threading::Reaction& reaction)
+                -> decltype(Function::template get<DSL>(reaction)) {
+                    return Function::template get<DSL>(reaction);
+                }
+            };
+
+            template<typename, typename = std::tuple<>>
+            struct GetWords;
+
+            /**
+             * @brief Metafunction that extracts all of the Words with a get function
+             *
+             * @tparam TWord The word we are looking at
+             * @tparam TRemainder The words we have yet to look at
+             * @tparam TGetWords The words we have found with get functions
+             */
+            template <typename TWord, typename... TRemainder, typename... TGetWords>
+            struct GetWords<std::tuple<TWord, TRemainder...>, std::tuple<TGetWords...>>
+            : public std::conditional_t<has_get<TWord>::value,
+                /*T*/ GetWords<std::tuple<TRemainder...>, std::tuple<TGetWords..., TWord>>,
+                /*F*/ GetWords<std::tuple<TRemainder...>, std::tuple<TGetWords...>>> {};
+
+            /**
+             * @brief Termination case for the GetWords metafunction
+             *
+             * @tparam TGetWords The words we have found with get functions
+             */
+            template <typename... TGetWords>
+            struct GetWords<std::tuple<>, std::tuple<TGetWords...>> {
+                using type = std::tuple<TGetWords...>;
+                static constexpr bool value = sizeof...(TGetWords) > 0;
+            };
 
             template <typename TFirst, typename... TWords>
-            struct GetFusion<TFirst, TWords...> {
-            private:
-                /// Returns either the real type or the proxy if the real type does not have a get function
+            struct GetFusion {
+
+                // Get all of the words that have Get functionality, or the DSL proxy if it has one
                 template <typename U>
                 using Get = std::conditional_t<has_get<U>::value, U, operation::DSLProxy<U>>;
 
-                /// Checks if U has a get function, and at least one of the following words do
-                template <typename U>
-                using UsAndChildren = All<has_get<Get<U>>, Any<has_get<Get<TWords>>...>>;
-
-                /// Checks if U has a get function, and none of the following words do
-                template <typename U>
-                using UsNotChildren = All<has_get<Get<U>>, Not<Any<has_get<Get<TWords>>...>>>;
-
-                /// Checks if we do not have a get function, but at least one of the following words do
-                template <typename U>
-                using NotUsChildren = All<Not<has_get<Get<U>>>, Any<has_get<Get<TWords>>...>>;
-
-            public:
                 template <typename DSL, typename U = TFirst>
                 static inline auto get(threading::Reaction& reaction)
-                -> std::enable_if_t<UsAndChildren<U>::value, decltype(std::tuple_cat(util::tuplify(Get<U>::template get<DSL>(reaction)), std::conditional_t<UsAndChildren<U>::value, GetFusion<TWords...>, NoOp>::template get<DSL>(reaction)))> {
-                    // Tuplify and return what we need
-
-                    return std::tuple_cat(util::tuplify(Get<U>::template get<DSL>(reaction)), GetFusion<TWords...>::template get<DSL>(reaction));
-                }
-
-                template <typename DSL, typename U = TFirst>
-                static inline auto get(threading::Reaction& reaction)
-                -> std::enable_if_t<UsNotChildren<U>::value, decltype(util::tuplify(Get<U>::template get<DSL>(reaction)))> {
-
-                    // Tuplify and return our element
-                    return util::tuplify(Get<U>::template get<DSL>(reaction));
-                }
-
-                template <typename DSL, typename U = TFirst>
-                static inline auto get(threading::Reaction& reaction)
-                -> std::enable_if_t<NotUsChildren<U>::value, decltype(std::conditional_t<NotUsChildren<U>::value, GetFusion<TWords...>, NoOp>::template get<DSL>(reaction))> {
-
-                    // Pass on to the next element
-                    return GetFusion<TWords...>::template get<DSL>(reaction);
+                -> std::enable_if_t<GetWords<std::tuple<Get<U>, Get<TWords>...>>::value
+                , decltype(util::FunctionFusion<typename GetWords<std::tuple<Get<U>, Get<TWords>...>>::type
+                           , decltype(std::forward_as_tuple(reaction))
+                           , GetCaller
+                           , std::tuple<DSL>
+                           , 1>::call(reaction))> {
+                    
+                    // Perform our function fusion
+                    return util::FunctionFusion<typename GetWords<std::tuple<Get<U>, Get<TWords>...>>::type
+                    , decltype(std::forward_as_tuple(reaction))
+                    , GetCaller
+                    , std::tuple<DSL>
+                    , 1>::call(reaction);
                 }
             };
         }

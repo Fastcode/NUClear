@@ -37,7 +37,6 @@ namespace NUClear {
 
             static inline auto get(threading::Reaction& r)
             -> decltype(std::conditional_t<fusion::has_get<DSL>::value, DSL, fusion::NoOp>::template get<Parse<Sentence...>>(r)) {
-
                 return std::conditional_t<fusion::has_get<DSL>::value, DSL, fusion::NoOp>::template get<Parse<Sentence...>>(r);
             }
 

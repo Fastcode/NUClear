@@ -23,21 +23,10 @@
 namespace NUClear {
     namespace util {
 
-        template <typename Required, typename Available, typename Used = Sequence<>, int Index = 0>
-        struct RelevantArguments;
-
-        // We were given a function instead of a tuple of arguments (extract the information)
-        template <
-        typename Callee,
-        typename... Available,
-        int... Used,
-        int Index
-        >
-        struct RelevantArguments<Callee, std::tuple<Available...>, Sequence<Used...>, Index>
-        : public RelevantArguments<
-        typename CallableInfo<Callee>::arguments,
-        std::tuple<Available...>,
-        Sequence<Used...>, Index> {};
+        // If we are passed a function instead of a tuple of arguments, expand
+        template <typename Required, typename Available, typename Used = Sequence<>, size_t Index = 0>
+        struct RelevantArguments
+        : public RelevantArguments<typename CallableInfo<Required>::arguments, Available, Used, Index> {};
 
         // Process our next layer of functions
         template <

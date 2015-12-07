@@ -24,10 +24,10 @@
 namespace NUClear {
     namespace extension {
 
-        ChronoController::ChronoController(std::unique_ptr<NUClear::Environment> environment)
-          : Reactor(std::move(environment))
-          , steps(0)
-          , lock(mutex) {
+		ChronoController::ChronoController(std::unique_ptr<NUClear::Environment> environment)
+			: Reactor(std::move(environment))
+			, steps(0)
+			, lock(mutex) {
 
             on<Trigger<dsl::word::EveryConfiguration>>().then("Configure Every Reaction", [this] (const dsl::word::EveryConfiguration& config) {
 

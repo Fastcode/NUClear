@@ -44,7 +44,7 @@ namespace NUClear {
             };
 
             template<typename, typename = std::tuple<>>
-            struct GetBindWords;
+            struct BindWords;
 
             /**
              * @brief Metafunction that extracts all of the Words with a bind function
@@ -54,44 +54,40 @@ namespace NUClear {
              * @tparam TBindWords The words we have found with bind functions
              */
             template <typename TWord, typename... TRemainder, typename... TBindWords>
-            struct GetBindWords<std::tuple<TWord, TRemainder...>, std::tuple<TBindWords...>>
+            struct BindWords<std::tuple<TWord, TRemainder...>, std::tuple<TBindWords...>>
             : public std::conditional_t<has_bind<TWord>::value,
-                /*T*/ GetBindWords<std::tuple<TRemainder...>, std::tuple<TBindWords..., TWord>>,
-                /*F*/ GetBindWords<std::tuple<TRemainder...>, std::tuple<TBindWords...>>> {};
+                /*T*/ BindWords<std::tuple<TRemainder...>, std::tuple<TBindWords..., TWord>>,
+                /*F*/ BindWords<std::tuple<TRemainder...>, std::tuple<TBindWords...>>> {};
 
             /**
-             * @brief Termination case for the GetBindWords metafunction
+             * @brief Termination case for the BindWords metafunction
              *
              * @tparam TBindWords The words we have found with bind functions
              */
             template <typename... TBindWords>
-            struct GetBindWords<std::tuple<>, std::tuple<TBindWords...>> {
+            struct BindWords<std::tuple<>, std::tuple<TBindWords...>> {
                 using type = std::tuple<TBindWords...>;
+                static constexpr bool value = sizeof...(TBindWords) > 0;
             };
-            
-            template <typename... TBindWords>
-            using GetBindWords_t = typename GetBindWords<TBindWords...>::type;
 
-            template <typename... TWords>
+            template <typename TFirst, typename... TWords>
             struct BindFusion {
 
                 // Get all of the words that have Bind functionality, or the DSL proxy if it has one
-                using BindWords = GetBindWords_t<std::tuple<std::conditional_t<has_bind<TWords>::value, TWords, operation::DSLProxy<TWords>>...>>;
+                template <typename U>
+                using Bind = std::conditional_t<has_bind<U>::value, U, operation::DSLProxy<U>>;
 
-                // We have a bind function if we have at least one BindWord
-                static constexpr bool has_bind_v = std::tuple_size<BindWords>::value > 0;
-
-                template <typename DSL, typename TFunc, typename... TArgs>
+                template <typename DSL, typename TFunc, typename U = TFirst, typename... TArgs>
                 static inline auto bind(Reactor& reactor, const std::string& identifier, TFunc&& callback, TArgs&&... args)
-                -> std::enable_if_t<has_bind_v
-                , decltype(util::FunctionFusion<BindWords
+                -> std::enable_if_t<BindWords<std::tuple<Bind<U>, Bind<TWords>...>>::value
+                , decltype(util::FunctionFusion<typename BindWords<std::tuple<Bind<U>, Bind<TWords>...>>::type
                            , decltype(std::forward_as_tuple(reactor, identifier, std::forward<TFunc>(callback), std::forward<TArgs>(args)...))
                            , BindCaller
                            , std::tuple<DSL>
                            , 3>::call(reactor, identifier, std::forward<TFunc>(callback), std::forward<TArgs>(args)...))> {
 
                     // Perform our function fusion
-                    return util::FunctionFusion<BindWords
+                    return util::FunctionFusion<typename BindWords<std::tuple<Bind<U>, Bind<TWords>...>>::type
                     , decltype(std::forward_as_tuple(reactor, identifier, std::forward<TFunc>(callback), std::forward<TArgs>(args)...))
                     , BindCaller
                     , std::tuple<DSL>
