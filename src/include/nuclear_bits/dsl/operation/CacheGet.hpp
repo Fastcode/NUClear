@@ -25,35 +25,12 @@ namespace NUClear {
     namespace dsl {
         namespace operation {
 
-            template <typename T>
-            struct CachedType {
-            private:
-                std::shared_ptr<T> data;
-
-            public:
-                CachedType(std::shared_ptr<T>&& data) : data(data) {
-                }
-
-                operator std::shared_ptr<const T>() const {
-                    return data;
-                }
-
-                operator const T&() const {
-                    return *data;
-                }
-
-                operator bool() const {
-                    return data.operator bool();
-                }
-            };
-
             template <typename TType>
             struct CacheGet {
 
                 template <typename DSL, typename T = TType>
-                static inline CachedType<T> get(threading::Reaction&) {
-
-                    return CachedType<T>(store::DataStore<TType>::get());
+                static inline std::shared_ptr<const T> get(threading::Reaction&) {
+                    return store::DataStore<TType>::get();
                 }
             };
         }

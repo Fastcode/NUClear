@@ -20,7 +20,8 @@
 
 #include <tuple>
 #include "Sequence.hpp"
-#include "is_dereferenceable.hpp"
+#include "Dereferencer.hpp"
+#include "RelevantArguments.hpp"
 
 namespace NUClear {
     namespace util {
@@ -42,7 +43,7 @@ namespace NUClear {
 
             // Get each of the values from the tuple, dereference them and call the function with them
             // Also ensure that each value is a const reference
-            function(dereference(std::get<S>(args))...);
+            function(Dereferencer<decltype(std::get<S>(args))>(std::get<S>(args))...);
         }
 
         /**
@@ -51,6 +52,13 @@ namespace NUClear {
         template<typename TFunc, typename... TArgs>
         void apply(TFunc&& function, const std::tuple<TArgs...>&& args) {
             apply(std::forward<TFunc>(function), std::forward<const std::tuple<TArgs...>>(args), GenerateSequence<0, sizeof...(TArgs)>());
+        }
+        
+        template <typename TFunc, typename... TArgs>
+        void apply_relevant(TFunc&& function, const std::tuple<TArgs...>&& args) {
+            
+            // Call apply with the relevant arguments
+            apply(std::forward<TFunc>(function), std::move(args), typename RelevantArguments<TFunc, std::tuple<Dereferencer<TArgs>...>>::type());
         }
     }
 }

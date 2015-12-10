@@ -53,7 +53,7 @@ namespace NUClear {
         template <typename T, typename Ret, typename... Args>
         struct CallableInfo<Ret(T::*)(Args..., ...)const volatile> : public function_info<Ret, Args...> {};
         // Types that have ref-qualifiers
-        #if __GNUC__ >= 5 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 9)
+        #if !defined(__GNUC__) || __GNUC__ >= 5 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 9)
         template <typename T, typename Ret, typename... Args>
         struct CallableInfo<Ret(T::*)(Args...) &> : public function_info<Ret, Args...> {};
         template <typename T, typename Ret, typename... Args>
@@ -109,7 +109,7 @@ namespace NUClear {
         template <typename Ret, typename... Args>
         struct CallableInfo<Ret(Args..., ...)const volatile> : public function_info<Ret, Args...> {};
         // Types that have ref-qualifiers
-        #if __GNUC__ >= 5 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 9)
+        #if !defined __GNUC__ || __GNUC__ >= 5 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 9)
         template <typename Ret, typename... Args>
         struct CallableInfo<Ret(Args...) &> : public function_info<Ret, Args...> {};
         template <typename Ret, typename... Args>
@@ -148,9 +148,21 @@ namespace NUClear {
         // Regular
         template <typename Ret, typename... Args>
         struct CallableInfo<Ret(*)(Args...)> : public function_info<Ret(*), Args...> {};
+        template <typename Ret, typename... Args>
+        struct CallableInfo<Ret(*&)(Args...)> : public function_info<Ret(*), Args...> {};
+        template <typename Ret, typename... Args>
+        struct CallableInfo<Ret(*const)(Args...)> : public function_info<Ret(*), Args...> {};
+        template <typename Ret, typename... Args>
+        struct CallableInfo<Ret(*const &)(Args...)> : public function_info<Ret(*), Args...> {};
         // C Variardic
         template <typename Ret, typename... Args>
         struct CallableInfo<Ret(*)(Args..., ...)> : public function_info<Ret(*), Args...> {};
+        template <typename Ret, typename... Args>
+        struct CallableInfo<Ret(*&)(Args..., ...)> : public function_info<Ret(*), Args...> {};
+        template <typename Ret, typename... Args>
+        struct CallableInfo<Ret(*const)(Args..., ...)> : public function_info<Ret(*), Args...> {};
+        template <typename Ret, typename... Args>
+        struct CallableInfo<Ret(*const &)(Args..., ...)> : public function_info<Ret(*), Args...> {};
 
         // Function References
         // Regular

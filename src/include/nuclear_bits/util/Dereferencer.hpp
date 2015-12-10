@@ -15,8 +15,8 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_UTIL_DEREFERENCEABLE_H
-#define NUCLEAR_UTIL_DEREFERENCEABLE_H
+#ifndef NUCLEAR_UTIL_DEREFERENCER_H
+#define NUCLEAR_UTIL_DEREFERENCER_H
 
 #include "MetaProgramming.hpp"
 
@@ -36,27 +36,41 @@ namespace NUClear {
             static constexpr bool value = std::is_same<decltype(test<T>(0)), yes>::value;
         };
 
-        template <typename TData>
-        auto dereference(TData&& d) -> std::enable_if_t<is_dereferenceable<TData>::value, decltype(*d)> {
-            return *d;
-        }
-
-        template <typename TData>
-        auto dereference(TData&& d) -> std::enable_if_t<!is_dereferenceable<TData>::value, decltype(d)> {
-            return d;
-        }
-
-
-        template <typename T>
-        struct DereferenceTuple;
-
-        template <typename... Ts>
-        struct DereferenceTuple<std::tuple<Ts...>> {
-            using type = std::tuple<decltype(dereference(std::declval<Ts>()))...>;
+        template <typename T, bool B = is_dereferenceable<T>::value>
+        struct DereferencedType {
         };
 
         template <typename T>
-        using DereferenceTuple_t = typename DereferenceTuple<T>::type;
+        struct DereferencedType<T, true> {
+            using type = decltype(*std::declval<T>());
+        };
+
+        template <typename T>
+        struct Dereferencer {
+        private:
+            T& value;
+
+        public:
+            Dereferencer(T& value) : value(value) {
+            }
+
+            // We can return the type as normal
+            operator T&() {
+                return value;
+            }
+
+            // We can return the type this dereferences to if dereference operator
+            template <typename U = T>
+            operator typename DereferencedType<U>::type() {
+                return *value;
+            }
+
+            // We also allow converting to anything that the type we are passing is convertable to
+            template <typename U, typename = std::enable_if_t<std::is_convertible<T, U>::value>>
+            operator U() {
+                return value;
+            }
+        };
     }
 }
 
