@@ -92,7 +92,7 @@ namespace NUClear {
                             // We have to catch any exceptions
                             try {
                                 // We call with only the relevant arguments to the passed function
-                                util::apply(c, std::move(data), util::RelevantArguments_t<TFunc, util::DereferenceTuple_t<decltype(data)>>());
+                                util::apply(c, std::move(data), typename util::RelevantArguments<TFunc, util::DereferenceTuple_t<decltype(data)>>::type());
                             }
                             catch(...) {
 

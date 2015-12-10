@@ -66,33 +66,44 @@ namespace NUClear {
             template <typename... TGetWords>
             struct GetWords<std::tuple<>, std::tuple<TGetWords...>> {
                 using type = std::tuple<TGetWords...>;
-                static constexpr bool value = sizeof...(TGetWords) > 0;
             };
 
-            template <typename TFirst, typename... TWords>
-            struct GetFusion {
+            /// Type that redirects types without a bind function to their proxy type
+            template <typename TWord>
+            struct Get {
+                using type = std::conditional_t<has_get<TWord>::value, TWord, operation::DSLProxy<TWord>>;
+            };
 
-                // Get all of the words that have Get functionality, or the DSL proxy if it has one
-                template <typename U>
-                using Get = std::conditional_t<has_get<U>::value, U, operation::DSLProxy<U>>;
+            // Default case where there are no bind words
+            template <typename TWords>
+            struct GetFuser {};
+
+            // Case where there is at least one bind word
+            template <typename TFirst, typename... TWords>
+            struct GetFuser<std::tuple<TFirst, TWords...>> {
 
                 template <typename DSL, typename U = TFirst>
                 static inline auto get(threading::Reaction& reaction)
-                -> std::enable_if_t<GetWords<std::tuple<Get<U>, Get<TWords>...>>::value
-                , decltype(util::FunctionFusion<typename GetWords<std::tuple<Get<U>, Get<TWords>...>>::type
+                -> decltype(util::FunctionFusion<std::tuple<TFirst, TWords...>
                            , decltype(std::forward_as_tuple(reaction))
                            , GetCaller
                            , std::tuple<DSL>
-                           , 1>::call(reaction))> {
-                    
+                           , 1>::call(reaction)) {
+
                     // Perform our function fusion
-                    return util::FunctionFusion<typename GetWords<std::tuple<Get<U>, Get<TWords>...>>::type
+                    return util::FunctionFusion<std::tuple<TFirst, TWords...>
                     , decltype(std::forward_as_tuple(reaction))
                     , GetCaller
                     , std::tuple<DSL>
                     , 1>::call(reaction);
                 }
             };
+
+            template <typename TFirst, typename... TWords>
+            struct GetFusion
+            : public GetFuser<typename GetWords<std::tuple<typename Get<TFirst>::type, typename Get<TWords>::type...>>::type> {
+            };
+
         }
     }
 }

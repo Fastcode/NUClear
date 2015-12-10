@@ -67,32 +67,41 @@ namespace NUClear {
             template <typename... TBindWords>
             struct BindWords<std::tuple<>, std::tuple<TBindWords...>> {
                 using type = std::tuple<TBindWords...>;
-                static constexpr bool value = sizeof...(TBindWords) > 0;
             };
-
+            
+            /// Type that redirects types without a bind function to their proxy type
+            template <typename TWord>
+            struct Bind {
+                using type = std::conditional_t<has_bind<TWord>::value, TWord, operation::DSLProxy<TWord>>;
+            };
+            
+            // Default case where there are no bind words
+            template <typename TWords>
+            struct BindFuser {};
+            
+            // Case where there is at least one bind word
             template <typename TFirst, typename... TWords>
-            struct BindFusion {
-
-                // Get all of the words that have Bind functionality, or the DSL proxy if it has one
-                template <typename U>
-                using Bind = std::conditional_t<has_bind<U>::value, U, operation::DSLProxy<U>>;
-
-                template <typename DSL, typename TFunc, typename U = TFirst, typename... TArgs>
+            struct BindFuser<std::tuple<TFirst, TWords...>> {
+                template <typename DSL, typename TFunc, typename... TArgs>
                 static inline auto bind(Reactor& reactor, const std::string& identifier, TFunc&& callback, TArgs&&... args)
-                -> std::enable_if_t<BindWords<std::tuple<Bind<U>, Bind<TWords>...>>::value
-                , decltype(util::FunctionFusion<typename BindWords<std::tuple<Bind<U>, Bind<TWords>...>>::type
+                -> decltype(util::FunctionFusion<std::tuple<TFirst, TWords...>
                            , decltype(std::forward_as_tuple(reactor, identifier, std::forward<TFunc>(callback), std::forward<TArgs>(args)...))
                            , BindCaller
                            , std::tuple<DSL>
-                           , 3>::call(reactor, identifier, std::forward<TFunc>(callback), std::forward<TArgs>(args)...))> {
-
+                           , 3>::call(reactor, identifier, std::forward<TFunc>(callback), std::forward<TArgs>(args)...)) {
+                    
                     // Perform our function fusion
-                    return util::FunctionFusion<typename BindWords<std::tuple<Bind<U>, Bind<TWords>...>>::type
+                    return util::FunctionFusion<std::tuple<TFirst, TWords...>
                     , decltype(std::forward_as_tuple(reactor, identifier, std::forward<TFunc>(callback), std::forward<TArgs>(args)...))
                     , BindCaller
                     , std::tuple<DSL>
                     , 3>::call(reactor, identifier, std::forward<TFunc>(callback), std::forward<TArgs>(args)...);
                 }
+            };
+            
+            template <typename TFirst, typename... TWords>
+            struct BindFusion
+            : public BindFuser<typename BindWords<std::tuple<typename Bind<TFirst>::type, typename Bind<TWords>::type...>>::type> {
             };
         }
     }

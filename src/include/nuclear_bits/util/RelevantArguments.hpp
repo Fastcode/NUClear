@@ -26,7 +26,8 @@ namespace NUClear {
         // If we are passed a function instead of a tuple of arguments, expand
         template <typename Required, typename Available, typename Used = Sequence<>, size_t Index = 0>
         struct RelevantArguments
-        : public RelevantArguments<typename CallableInfo<Required>::arguments, Available, Used, Index> {};
+        : public RelevantArguments<typename CallableInfo<Required>::arguments, Available, Used, Index> {
+        };
 
         // Process our next layer of functions
         template <
@@ -73,9 +74,6 @@ namespace NUClear {
         struct RelevantArguments<std::tuple<>, std::tuple<>, Sequence<Used...>, Index> {
             using type = Sequence<Used...>;
         };
-
-        template <typename Required, typename Available, typename Used = Sequence<>, int Index = 0>
-        using RelevantArguments_t = typename RelevantArguments<Required, Available, Used, Index>::type;
     }
 }
 #endif

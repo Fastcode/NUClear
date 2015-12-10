@@ -29,7 +29,7 @@ namespace NUClear {
 
         // Given an instance of an object, we have to extract its operator member function
         template <typename T>
-        struct CallableInfo : public CallableInfo<decltype(&T::operator())> {
+        struct CallableInfo : public CallableInfo<decltype(&std::remove_reference_t<T>::operator())> {
         };
 
         // Member functions
