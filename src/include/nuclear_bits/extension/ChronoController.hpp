@@ -41,7 +41,6 @@ namespace NUClear {
         private:
             std::vector<Step> steps;
             std::mutex mutex;
-            std::unique_lock<std::mutex> lock;
             std::condition_variable wait;
         };
     }

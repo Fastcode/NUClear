@@ -29,10 +29,10 @@ namespace NUClear {
         namespace fusion {
 
             /**
-             * @brief This is our Function Fusion wrapper class that allows it to call bind functions
+             * @brief This is our Function Fusion wrapper class that allows it to call get functions
              *
-             * @tparam Function the bind function that we are wrapping for
-             * @tparam DSL      the DSL that we pass to our bind function
+             * @tparam Function the get function that we are wrapping for
+             * @tparam DSL      the DSL that we pass to our get function
              */
             template <typename Function, typename DSL>
             struct GetCaller {
@@ -68,17 +68,17 @@ namespace NUClear {
                 using type = std::tuple<TGetWords...>;
             };
 
-            /// Type that redirects types without a bind function to their proxy type
+            /// Type that redirects types without a get function to their proxy type
             template <typename TWord>
             struct Get {
                 using type = std::conditional_t<has_get<TWord>::value, TWord, operation::DSLProxy<TWord>>;
             };
 
-            // Default case where there are no bind words
+            // Default case where there are no get words
             template <typename TWords>
             struct GetFuser {};
 
-            // Case where there is at least one bind word
+            // Case where there is at least one get word
             template <typename TFirst, typename... TWords>
             struct GetFuser<std::tuple<TFirst, TWords...>> {
 

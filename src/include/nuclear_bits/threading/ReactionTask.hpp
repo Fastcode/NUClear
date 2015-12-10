@@ -97,7 +97,11 @@ namespace NUClear {
          * @return true if a has lower priority than b, false otherwise
          */
         inline bool operator<(const std::unique_ptr<ReactionTask>& a, const std::unique_ptr<ReactionTask>& b) {
-            return a->priority < b->priority;
+
+			// If we ever have a null pointer, we move it to the top of the queue as it is being removed
+			return a == nullptr ? false 
+				 : b == nullptr ? true
+				 : a->priority < b->priority;
         }
     }
 }

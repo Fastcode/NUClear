@@ -43,7 +43,7 @@ namespace NUClear {
                     }
                 }
                 // If this is thrown, it means that we should finish execution
-                catch (TaskScheduler::SchedulerShutdownException) {}
+                catch (TaskScheduler::SchedulerShutdownException&) {}
             };
         }
     }

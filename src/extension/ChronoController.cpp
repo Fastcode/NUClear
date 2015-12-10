@@ -24,10 +24,9 @@
 namespace NUClear {
     namespace extension {
 
-		ChronoController::ChronoController(std::unique_ptr<NUClear::Environment> environment)
-			: Reactor(std::move(environment))
-			, steps(0)
-			, lock(mutex) {
+        ChronoController::ChronoController(std::unique_ptr<NUClear::Environment> environment)
+            : Reactor(std::move(environment))
+            , steps(0) {
 
             on<Trigger<dsl::word::EveryConfiguration>>().then("Configure Every Reaction", [this] (const dsl::word::EveryConfiguration& config) {
 
@@ -78,6 +77,10 @@ namespace NUClear {
             });
 
             on<Always>().then("Chrono Controller", [this] {
+
+                // Aquire the mutex lock so we can wait on it
+                std::unique_lock<std::mutex> lock(mutex);
+
                 // If we have steps to do
                 if(!steps.empty()) {
 

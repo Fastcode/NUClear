@@ -18,6 +18,7 @@
 #ifndef NUCLEAR_DSL_FUSION_PRECONDITIONFUSION_H
 #define NUCLEAR_DSL_FUSION_PRECONDITIONFUSION_H
 
+#include "nuclear_bits/threading/Reaction.hpp"
 #include "nuclear_bits/util/MetaProgramming.hpp"
 #include "nuclear_bits/dsl/operation/DSLProxy.hpp"
 #include "nuclear_bits/dsl/fusion/has_precondition.hpp"
@@ -26,56 +27,73 @@ namespace NUClear {
     namespace dsl {
         namespace fusion {
 
-            template <typename TFirst, typename... TWords>
-            struct PreconditionFusion {
-            private:
-                /// Returns either the real type or the proxy if the real type does not have a precondition function
-                template <typename U>
-                using Precondition = std::conditional_t<has_precondition<U>::value, U, operation::DSLProxy<U>>;
+            /// Type that redirects types without a precondition function to their proxy type
+            template <typename TWord>
+            struct Precondition {
+                using type = std::conditional_t<has_precondition<TWord>::value, TWord, operation::DSLProxy<TWord>>;
+            };
 
-                /// Checks if U has a precondition function, and at least one of the following words do
-                template <typename U>
-                using UsAndChildren = All<has_precondition<Precondition<U>>, Any<has_precondition<Precondition<TWords>>...>>;
+            template<typename, typename = std::tuple<>>
+            struct PreconditionWords;
 
-                /// Checks if U has a precondition function, and none of the following words do
-                template <typename U>
-                using UsNotChildren = All<has_precondition<Precondition<U>>, Not<Any<has_precondition<Precondition<TWords>>...>>>;
+            /**
+             * @brief Metafunction that extracts all of the Words with a precondition function
+             *
+             * @tparam TWord The word we are looking at
+             * @tparam TRemainder The words we have yet to look at
+             * @tparam TPreconditionWords The words we have found with precondition functions
+             */
+            template <typename TWord, typename... TRemainder, typename... TPreconditionWords>
+            struct PreconditionWords<std::tuple<TWord, TRemainder...>, std::tuple<TPreconditionWords...>>
+            : public std::conditional_t<has_precondition<typename Precondition<TWord>::type>::value,
+            /*T*/ PreconditionWords<std::tuple<TRemainder...>, std::tuple<TPreconditionWords..., typename Precondition<TWord>::type>>,
+            /*F*/ PreconditionWords<std::tuple<TRemainder...>, std::tuple<TPreconditionWords...>>> {};
 
-                /// Checks if we do not have a precondition function, but at least one of the following words do
-                template <typename U>
-                using NotUsChildren = All<Not<has_precondition<Precondition<U>>>, Any<has_precondition<Precondition<TWords>>...>>;
+            /**
+             * @brief Termination case for the PreconditionWords metafunction
+             *
+             * @tparam TPreconditionWords The words we have found with precondition functions
+             */
+            template <typename... TPreconditionWords>
+            struct PreconditionWords<std::tuple<>, std::tuple<TPreconditionWords...>> {
+                using type = std::tuple<TPreconditionWords...>;
+            };
 
-            public:
-                template <typename DSL, typename U = TFirst>
-                static inline auto precondition(threading::Reaction& task)
-                -> std::enable_if_t<UsAndChildren<U>::value, bool> {
 
-                    // Run this precondition
-                    if(!Precondition<U>::template precondition<DSL>(task)) {
-                        return false;
-                    }
-                    // Run future preconditions
-                    else {
-                        return PreconditionFusion<TWords...>::template precondition<DSL>(task);
-                    }
-                }
+            // Default case where there are no precondition words
+            template <typename TWords>
+            struct PreconditionFuser {};
 
-                template <typename DSL, typename U = TFirst>
-                static inline auto precondition(threading::Reaction& task)
-                -> std::enable_if_t<UsNotChildren<U>::value, bool> {
+            // Case where there is only a single word remaining
+            template <typename Word>
+            struct PreconditionFuser<std::tuple<Word>> {
 
-                    // Run this precondition
-                    return Precondition<U>::template precondition<DSL>(task);
-                }
-
-                template <typename DSL, typename U = TFirst>
-                static inline auto precondition(threading::Reaction& task)
-                -> std::enable_if_t<NotUsChildren<U>::value, bool> {
-
-                    // Run future precondition
-                    return PreconditionFusion<TWords...>::template precondition<DSL>(task);
+                template <typename DSL>
+                static inline bool precondition(threading::Reaction& reaction) {
+                    return Word::template precondition<DSL>(reaction);
                 }
             };
+
+            // Case where there is more 2 more more words remaining
+            template <typename W1, typename W2, typename... WN>
+            struct PreconditionFuser<std::tuple<W1, W2, WN...>> {
+
+                template <typename DSL>
+                static inline bool precondition(threading::Reaction& reaction) {
+                    if(!W1::template precondition<DSL>(reaction)) {
+                        return false;
+                    }
+                    else {
+                        return PreconditionFuser<std::tuple<W2, WN...>>::template precondition<DSL>(reaction);
+                    }
+                }
+            };
+
+            template <typename W1, typename... WN>
+            struct PreconditionFusion
+            : public PreconditionFuser<typename PreconditionWords<std::tuple<W1, WN...>>::type> {
+            };
+
         }
     }
 }

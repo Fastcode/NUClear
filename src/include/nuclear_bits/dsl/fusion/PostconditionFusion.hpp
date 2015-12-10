@@ -18,9 +18,8 @@
 #ifndef NUCLEAR_DSL_FUSION_POSTCONDITIONFUSION_H
 #define NUCLEAR_DSL_FUSION_POSTCONDITIONFUSION_H
 
-#include "nuclear_bits/util/MetaProgramming.hpp"
-
 #include "nuclear_bits/threading/ReactionTask.hpp"
+#include "nuclear_bits/util/MetaProgramming.hpp"
 #include "nuclear_bits/dsl/operation/DSLProxy.hpp"
 #include "nuclear_bits/dsl/fusion/has_postcondition.hpp"
 
@@ -28,54 +27,75 @@ namespace NUClear {
     namespace dsl {
         namespace fusion {
 
-            template <typename TFirst, typename... TWords>
-            struct PostconditionFusion {
-            private:
-                /// Returns either the real type or the proxy if the real type does not have a postcondition function
-                template <typename U>
-                using Postcondition = std::conditional_t<has_postcondition<U>::value, U, operation::DSLProxy<U>>;
+            /// Type that redirects types without a postcondition function to their proxy type
+            template <typename TWord>
+            struct Postcondition {
+                using type = std::conditional_t<has_postcondition<TWord>::value, TWord, operation::DSLProxy<TWord>>;
+            };
 
-                /// Checks if U has a postcondition function, and at least one of the following words do
-                template <typename U>
-                using UsAndChildren = All<has_postcondition<Postcondition<U>>, Any<has_postcondition<Postcondition<TWords>>...>>;
+            template<typename, typename = std::tuple<>>
+            struct PostconditionWords;
 
-                /// Checks if U has a postcondition function, and none of the following words do
-                template <typename U>
-                using UsNotChildren = All<has_postcondition<Postcondition<U>>, Not<Any<has_postcondition<Postcondition<TWords>>...>>>;
+            /**
+             * @brief Metafunction that extracts all of the Words with a postcondition function
+             *
+             * @tparam TWord The word we are looking at
+             * @tparam TRemainder The words we have yet to look at
+             * @tparam TPostconditionWords The words we have found with postcondition functions
+             */
+            template <typename TWord, typename... TRemainder, typename... TPostconditionWords>
+            struct PostconditionWords<std::tuple<TWord, TRemainder...>, std::tuple<TPostconditionWords...>>
+            : public std::conditional_t<has_postcondition<typename Postcondition<TWord>::type>::value,
+            /*T*/ PostconditionWords<std::tuple<TRemainder...>, std::tuple<TPostconditionWords..., typename Postcondition<TWord>::type>>,
+            /*F*/ PostconditionWords<std::tuple<TRemainder...>, std::tuple<TPostconditionWords...>>> {};
 
-                /// Checks if we do not have a postcondition function, but at least one of the following words do
-                template <typename U>
-                using NotUsChildren = All<Not<has_postcondition<Postcondition<U>>>, Any<has_postcondition<Postcondition<TWords>>...>>;
+            /**
+             * @brief Termination case for the PostconditionWords metafunction
+             *
+             * @tparam TPostconditionWords The words we have found with postcondition functions
+             */
+            template <typename... TPostconditionWords>
+            struct PostconditionWords<std::tuple<>, std::tuple<TPostconditionWords...>> {
+                using type = std::tuple<TPostconditionWords...>;
+            };
 
 
-            public:
-                template <typename DSL, typename U = TFirst>
-                static inline auto postcondition(threading::ReactionTask& task)
-                -> std::enable_if_t<UsAndChildren<U>::value, void> {
+            // Default case where there are no postcondition words
+            template <typename TWords>
+            struct PostconditionFuser {};
 
-                    // Run this postcondition
-                    Postcondition<U>::template postcondition<DSL>(task);
+            // Case where there is only a single word remaining
+            template <typename Word>
+            struct PostconditionFuser<std::tuple<Word>> {
 
-                    // Run future postcondition
-                    PostconditionFusion<TWords...>::template postcondition<DSL>(task);
-                }
+                template <typename DSL>
+                static inline void postcondition(threading::ReactionTask& task) {
 
-                template <typename DSL, typename U = TFirst>
-                static inline auto postcondition(threading::ReactionTask& task)
-                -> std::enable_if_t<UsNotChildren<U>::value, void> {
-
-                    // Run this postcondition
-                    Postcondition<U>::template postcondition<DSL>(task);
-                }
-
-                template <typename DSL, typename U = TFirst>
-                static inline auto postcondition(threading::ReactionTask& task)
-                -> std::enable_if_t<NotUsChildren<U>::value, void> {
-
-                    // Run future postcondition
-                    PostconditionFusion<TWords...>::template postcondition<DSL>(task);
+                    // Run our postcondition
+                    Word::template postcondition<DSL>(task);
                 }
             };
+
+            // Case where there is more 2 more more words remaining
+            template <typename W1, typename W2, typename... WN>
+            struct PostconditionFuser<std::tuple<W1, W2, WN...>> {
+
+                template <typename DSL>
+                static inline void postcondition(threading::ReactionTask& task) {
+
+                    // Run our postcondition
+                    W1::template postcondition<DSL>(task);
+
+                    // Run the rest of our postconditions
+                    PostconditionFuser<std::tuple<W2, WN...>>::template postcondition<DSL>(task);
+                }
+            };
+
+            template <typename W1, typename... WN>
+            struct PostconditionFusion
+            : public PostconditionFuser<typename PostconditionWords<std::tuple<W1, WN...>>::type> {
+            };
+
         }
     }
 }

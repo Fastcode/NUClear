@@ -18,6 +18,7 @@
 #ifndef NUCLEAR_DSL_FUSION_PRIORITYFUSION_H
 #define NUCLEAR_DSL_FUSION_PRIORITYFUSION_H
 
+#include "nuclear_bits/threading/Reaction.hpp"
 #include "nuclear_bits/util/MetaProgramming.hpp"
 #include "nuclear_bits/dsl/operation/DSLProxy.hpp"
 #include "nuclear_bits/dsl/fusion/has_priority.hpp"
@@ -26,38 +27,73 @@ namespace NUClear {
     namespace dsl {
         namespace fusion {
 
-            template <typename TFirst, typename... TWords>
-            struct PriorityFusion {
-            private:
-                /// Returns either the real type or the proxy if the real type does not have a priority function
-                template <typename U>
-                using Priority = std::conditional_t<has_priority<U>::value, U, operation::DSLProxy<U>>;
+            /// Type that redirects types without a priority function to their proxy type
+            template <typename TWord>
+            struct Priority {
+                using type = std::conditional_t<has_priority<TWord>::value, TWord, operation::DSLProxy<TWord>>;
+            };
 
-                /// Checks if U has a priority function, and none of the following words do
-                template <typename U>
-                using UsNotChildren = All<has_priority<Priority<U>>, Not<Any<has_priority<Priority<TWords>>...>>>;
+            template<typename, typename = std::tuple<>>
+            struct PriorityWords;
 
-                /// Checks if we do not have a priority function, but at least one of the following words do
-                template <typename U>
-                using NotUsChildren = All<Not<has_priority<Priority<U>>>, Any<has_priority<Priority<TWords>>...>>;
+            /**
+             * @brief Metafunction that extracts all of the Words with a priority function
+             *
+             * @tparam TWord The word we are looking at
+             * @tparam TRemainder The words we have yet to look at
+             * @tparam TPriorityWords The words we have found with priority functions
+             */
+            template <typename TWord, typename... TRemainder, typename... TPriorityWords>
+            struct PriorityWords<std::tuple<TWord, TRemainder...>, std::tuple<TPriorityWords...>>
+            : public std::conditional_t<has_priority<typename Priority<TWord>::type>::value,
+            /*T*/ PriorityWords<std::tuple<TRemainder...>, std::tuple<TPriorityWords..., typename Priority<TWord>::type>>,
+            /*F*/ PriorityWords<std::tuple<TRemainder...>, std::tuple<TPriorityWords...>>> {};
 
-            public:
-                template <typename DSL, typename U = TFirst>
-                static inline auto priority(threading::Reaction& task)
-                -> std::enable_if_t<UsNotChildren<U>::value, int> {
+            /**
+             * @brief Termination case for the PriorityWords metafunction
+             *
+             * @tparam TPriorityWords The words we have found with priority functions
+             */
+            template <typename... TPriorityWords>
+            struct PriorityWords<std::tuple<>, std::tuple<TPriorityWords...>> {
+                using type = std::tuple<TPriorityWords...>;
+            };
+
+
+            // Default case where there are no priority words
+            template <typename TWords>
+            struct PriorityFuser {};
+
+            // Case where there is only a single word remaining
+            template <typename Word>
+            struct PriorityFuser<std::tuple<Word>> {
+
+                template <typename DSL>
+                static inline int priority(threading::Reaction& reaction) {
 
                     // Return our priority
-                    return Priority<U>::template priority<DSL>(task);
-                }
-
-                template <typename DSL, typename U = TFirst>
-                static inline auto priority(threading::Reaction& task)
-                -> std::enable_if_t<NotUsChildren<U>::value, int> {
-
-                    // Get the priority from the future types
-                    return PriorityFusion<TWords...>::template priority<DSL>(task);
+                    return Word::template priority<DSL>(reaction);
                 }
             };
+
+            // Case where there is more 2 more more words remaining
+            template <typename W1, typename W2, typename... WN>
+            struct PriorityFuser<std::tuple<W1, W2, WN...>> {
+
+                template <typename DSL>
+                static inline int priority(threading::Reaction& reaction) {
+
+                    // Choose our maximum priority
+                    return std::max(W1::template priority<DSL>(reaction),
+                                    PriorityFuser<std::tuple<W2, WN...>>::template priority<DSL>(reaction));
+                }
+            };
+
+            template <typename W1, typename... WN>
+            struct PriorityFusion
+            : public PriorityFuser<typename PriorityWords<std::tuple<W1, WN...>>::type> {
+            };
+
         }
     }
 }

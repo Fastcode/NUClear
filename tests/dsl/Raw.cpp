@@ -55,7 +55,7 @@ namespace {
 
                 REQUIRE(stored.size() == 10);
 
-                for(uint i = 0; i < stored.size(); ++i){
+                for(size_t i = 0; i < stored.size(); ++i) {
                     REQUIRE(stored[i]->x == i);
                 }
 

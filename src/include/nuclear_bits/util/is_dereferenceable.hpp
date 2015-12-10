@@ -42,7 +42,7 @@ namespace NUClear {
         }
 
         template <typename TData>
-        auto dereference(TData&& d) -> std::enable_if_t<Not<is_dereferenceable<TData>>::value, decltype(d)> {
+        auto dereference(TData&& d) -> std::enable_if_t<!is_dereferenceable<TData>::value, decltype(d)> {
             return d;
         }
 
