@@ -24,7 +24,7 @@ namespace NUClear {
     namespace util {
 
         // If we are passed a function instead of a tuple of arguments, expand
-        template <typename Required, typename Available, typename Used = Sequence<>, size_t Index = 0>
+        template <typename Required, typename Available, typename Used = Sequence<>, int Index = 0>
         struct RelevantArguments
         : public RelevantArguments<typename CallableInfo<Required>::arguments, Available, Used, Index> {
         };
