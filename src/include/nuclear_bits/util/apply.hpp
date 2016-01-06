@@ -39,24 +39,16 @@ namespace NUClear {
          * @tparam S the integer pack giving the ordinal position of the tuple value to get
          */
         template<typename TFunc, int... S, typename... TArgs>
-        void apply(TFunc& function, const std::tuple<TArgs...>&& args, const Sequence<S...>&) {
+        void apply(TFunc&& function, const std::tuple<TArgs...>&& args, const Sequence<S...>&) {
 
             // Get each of the values from the tuple, dereference them and call the function with them
             // Also ensure that each value is a const reference
             function(Dereferencer<decltype(std::get<S>(args))>(std::get<S>(args))...);
         }
 
-        /**
-         * @brief Applies all of the values in the tuple to the function and executes it.
-         */
-        template<typename TFunc, typename... TArgs>
-        void apply(TFunc&& function, const std::tuple<TArgs...>&& args) {
-            apply(std::forward<TFunc>(function), std::forward<const std::tuple<TArgs...>>(args), GenerateSequence<0, sizeof...(TArgs)>());
-        }
-        
         template <typename TFunc, typename... TArgs>
         void apply_relevant(TFunc&& function, const std::tuple<TArgs...>&& args) {
-            
+
             // Call apply with the relevant arguments
             apply(std::forward<TFunc>(function), std::move(args), typename RelevantArguments<TFunc, std::tuple<Dereferencer<TArgs>...>>::type());
         }

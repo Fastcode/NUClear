@@ -21,7 +21,7 @@ namespace NUClear {
     namespace threading {
 
         TaskScheduler::TaskScheduler()
-          : shutdown_(false) {}
+          : running(true) {}
 
         TaskScheduler::~TaskScheduler() {
         }
@@ -29,7 +29,7 @@ namespace NUClear {
         void TaskScheduler::shutdown() {
             {
                 std::lock_guard<std::mutex> lock(mutex);
-                shutdown_ = true;
+                running = false;
             }
             condition.notify_all();
         }
@@ -37,7 +37,7 @@ namespace NUClear {
         void TaskScheduler::submit(std::unique_ptr<ReactionTask>&& task) {
 
             // We do not accept new tasks once we are shutdown
-            if(!shutdown_) {
+            if(running) {
 
                 /* Mutex Scope */ {
                     std::lock_guard<std::mutex> lock(mutex);
@@ -50,34 +50,35 @@ namespace NUClear {
         }
 
         std::unique_ptr<ReactionTask> TaskScheduler::getTask() {
-
+            
             //Obtain the lock
             std::unique_lock<std::mutex> lock(mutex);
-
-            // How this works in practice is that it will not shut down a thread until all tasks are drained
-            while (true) {
-                // If there is nothing in the queue
-                if (queue.empty()) {
-
-                    // And we are shutting down then terminate the requesting thread and tell all other threads to wake up
-                    if(shutdown_) {
-                        condition.notify_all();
-                        throw TaskScheduler::SchedulerShutdownException();
-                    }
-                    else {
-                        // Wait for something to happen!
-                        condition.wait(lock);
-                    }
+            
+            // While our queue is empty
+            while (queue.empty()) {
+                
+                // If the queue is empty we either wait or shutdown
+                if(!running) {
+                    
+                    // Notify any other threads that might be waiting on this condition
+                    condition.notify_all();
+                    
+                    // Return a nullptr to signify there is nothing on the queue
+                    return nullptr;
                 }
                 else {
-                    // Return the type
-                    // If you're wondering why all the ridiculousness, it's because priority queue is not as feature complete as it should be
-                    std::unique_ptr<ReactionTask> task(std::move(const_cast<std::unique_ptr<ReactionTask>&>(queue.top())));
-                    queue.pop();
-
-                    return std::move(task);
+                    // Wait for something to happen!
+                    condition.wait(lock);
                 }
             }
+            
+            // Return the type
+            // If you're wondering why all the ridiculousness, it's because priority queue is not as feature complete as it should be
+            // It's 'top' method returns a const reference (which we can't use to move a unique pointer)
+            std::unique_ptr<ReactionTask> task(std::move(const_cast<std::unique_ptr<ReactionTask>&>(queue.top())));
+            queue.pop();
+
+            return std::move(task);
 
         }
     }

@@ -64,11 +64,6 @@ namespace NUClear {
         public:
 
             /**
-             * @brief This exception is thrown when the task_scheduler has been shut down
-             */
-            class SchedulerShutdownException {};
-
-            /**
              * @brief Constructs a new TaskScheduler instance, and builds the nullptr sync queue.
              */
             TaskScheduler();
@@ -110,7 +105,7 @@ namespace NUClear {
             std::unique_ptr<ReactionTask> getTask();
         private:
             /// @brief if the scheduler is running or is shut down
-            volatile bool shutdown_;
+            volatile bool running;
             /// @brief our queue which sorts tasks by priority
             std::priority_queue<std::unique_ptr<ReactionTask>> queue;
             /// @brief the mutex which our threads synchronize their access to this object
