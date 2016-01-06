@@ -25,10 +25,20 @@ namespace NUClear {
         namespace word {
 
             struct Priority {
+                
+                struct REALTIME {
+                    /// Realtime priority runs with 1000 value
+                    static constexpr int value = 1000;
+                    
+                    template <typename DSL>
+                    static inline int priority(threading::Reaction&) {
+                        return value;
+                    }
+                };
 
                 struct HIGH {
-                    /// High priority runs with 1000 value
-                    static constexpr int value = 1000;
+                    /// High priority runs with 750 value
+                    static constexpr int value = 750;
 
                     template <typename DSL>
                     static inline int priority(threading::Reaction&) {
@@ -47,9 +57,19 @@ namespace NUClear {
                 };
 
                 struct LOW {
-                    /// Low priority runs with 100 value
-                    static constexpr int value = 100;
-
+                    /// Low priority runs with 250 value
+                    static constexpr int value = 250;
+                    
+                    template <typename DSL>
+                    static inline int priority(threading::Reaction&) {
+                        return value;
+                    }
+                };
+                
+                struct IDLE {
+                    /// Idle tasks run with 0 priority, they run when there is free time
+                    static constexpr int value = 0;
+                    
                     template <typename DSL>
                     static inline int priority(threading::Reaction&) {
                         return value;

@@ -69,7 +69,7 @@ namespace NUClear {
 
                 // Lock a mutex and set our data
                 std::lock_guard<std::mutex> lock(mutex);
-                data = d;
+                data = std::move(d);
 
             }
 
@@ -77,8 +77,6 @@ namespace NUClear {
              * @brief Gets the value that was previously stored.
              *
              * @return a shared_ptr to the data that was previously stored
-             *
-             * @throws NoDataException if there is no data that was previously stored
              */
             static std::shared_ptr<TValue> get() {
 

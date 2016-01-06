@@ -28,9 +28,9 @@ namespace {
         // Store our times
         std::vector<NUClear::clock::time_point> times;
 
-        static constexpr size_t NUM_LOG_ITEMS = 100;
+        static constexpr size_t NUM_LOG_ITEMS = 1000;
 
-        static constexpr size_t WAIT_LENGTH_MILLIS = 10;
+        static constexpr size_t WAIT_LENGTH_MILLIS = 1;
 
         TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
             // Trigger every 10 milliseconds
@@ -63,16 +63,11 @@ namespace {
                     double variance = std::inner_product(diff.begin(), diff.end(), diff.begin(), 0.0);
                     double stddev = std::sqrt(variance / double(diff.size()));
 
-                    INFO("Sum: " << sum);
-                    INFO("Mean: " << mean);
-                    INFO("Stddev: " << stddev);
-
                     // As time goes on the average wait should be 0 (we accept less then 0.5ms for this test)
                     REQUIRE(fabs(mean) < 0.0005);
 
-                    // Require that 95% (ish) of all results are within 3ms
-                    WARN("This (mean: " + std::to_string(mean * std::micro::den) + "\u00b5s sd: " + std::to_string(stddev * std::micro::den) + "\u00b5s) is far too high error, need to reduce it somehow in the future");
-                    REQUIRE(fabs(mean + stddev * 2) < 0.003);
+                    // Require that 95% (ish) of all results are faster than 1ms
+                    REQUIRE(fabs(mean + stddev * 2) < 0.001);
 
                 }
                 // Once we have more then enough items then we shutdown the powerplant

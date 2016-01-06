@@ -20,12 +20,17 @@
 
 #include "nuclear_bits/PowerPlant.hpp"
 #include "nuclear_bits/threading/TaskScheduler.hpp"
+#include "nuclear_bits/util/update_current_thread_priority.hpp"
 
 namespace NUClear {
     namespace threading {
 
         inline std::function<void ()> makeThreadPoolTask(PowerPlant& powerplant, TaskScheduler& scheduler) {
             return [&powerplant, &scheduler] {
+                
+                // Wait at a high (but not realtime) priority to reduce latency
+                // for picking up a new task
+                update_current_thread_priority(1000);
                 
                 // Run while our scheduler gives us tasks
                 for (std::unique_ptr<ReactionTask> task(scheduler.getTask());
@@ -39,6 +44,9 @@ namespace NUClear {
                     if(task) {
                         powerplant.emit<dsl::word::emit::Direct>(std::move(task->stats));
                     }
+                    
+                    // Back up to realtime while waiting
+                    update_current_thread_priority(1000);
                 }
             };
         }
