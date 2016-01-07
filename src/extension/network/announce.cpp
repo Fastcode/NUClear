@@ -45,9 +45,7 @@ namespace NUClear {
             // Send a multicast packet announcing ourselves from our UDP port
             sockaddr_in multicastTarget;
             std::memset(&multicastTarget, 0, sizeof(sockaddr_in));
-
-            multicastTarget.sin_family = AF_INET;
-            multicastTarget.sin_addr.s_addr = inet_addr(multicastGroup.c_str());
+            inet_pton(AF_INET, multicastGroup.c_str(), &multicastTarget);
             multicastTarget.sin_port = htons(multicastPort);
 
             // Send the packet

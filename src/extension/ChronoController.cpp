@@ -76,7 +76,7 @@ namespace NUClear {
                 wait.notify_all();
             });
 
-            on<Always>().then("Chrono Controller", [this] {
+            on<Always, Priority::REALTIME>().then("Chrono Controller", [this] {
 
                 // Aquire the mutex lock so we can wait on it
                 std::unique_lock<std::mutex> lock(mutex);

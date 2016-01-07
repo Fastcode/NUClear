@@ -23,6 +23,7 @@
 #include "nuclear_bits/util/apply.hpp"
 #include "nuclear_bits/util/TransientDataElements.hpp"
 #include "nuclear_bits/util/MergeTransient.hpp"
+#include "nuclear_bits/util/update_current_thread_priority.hpp"
 
 namespace NUClear {
     namespace util {
@@ -84,6 +85,9 @@ namespace NUClear {
 
                         // If we still control our task
                         if(task) {
+                            
+                            // Update our thread's priority to the correct level
+                            update_current_thread_priority(task->priority);
 
                             // Record our start time
                             task->stats->started = clock::now();
