@@ -69,9 +69,7 @@ namespace NUClear {
 
                     // Multicast address
                     sockaddr_in target;
-                    std::memset(&target, 0, sizeof(sockaddr_in));
-                    target.sin_family = AF_INET;
-                    target.sin_addr.s_addr = inet_addr(multicastGroup.c_str());
+                    inet_pton(AF_INET, multicastGroup.c_str(), &target);
                     target.sin_port = htons(multicastPort);
 
                     message.msg_name = &target;

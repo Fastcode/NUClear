@@ -51,7 +51,7 @@ namespace NUClear {
 
             for (auto it = sendTo.first; it != sendTo.second; ++it) {
                 // Write the header (except the blank "char" value) and then the packet
-                ::send(it->second->tcpFD, &p, sizeof(network::DataPacket) - 1, 0);
+                ::send(it->second->tcpFD, reinterpret_cast<const char*>(&p), sizeof(network::DataPacket) - 1, 0);
                 ::send(it->second->tcpFD, emit.data.data(), emit.data.size(), 0);
                 // TODO do this as a single send
             }

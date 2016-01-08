@@ -42,7 +42,7 @@ namespace {
                     memset(buff, 0, sizeof(buff));
 
                     // Read into the buffer
-                    ssize_t len = read(event.fd, buff, testString.size());
+                    ssize_t len = ::recv(event.fd, buff, testString.size(), 0);
 
                     // The connection was closed and the other test finished
                     if (len == 0 && messagesReceived == 2) {
@@ -65,7 +65,7 @@ namespace {
                     memset(buff, 0, sizeof(buff));
 
                     // Read into the buffer
-                    ssize_t len = ::read(event.fd, buff, testString.size());
+                    ssize_t len = ::recv(event.fd, buff, testString.size(), 0);
 
                     // The connection was closed and the other test finished
                     if (len == 0 && messagesReceived == 2) {
@@ -96,10 +96,10 @@ namespace {
 
                 // Set linger so we ensure sending all data
                 linger l { 1, 2 };
-                REQUIRE(setsockopt(fd, SOL_SOCKET, SO_LINGER, &l, sizeof(linger)) == 0);
+                REQUIRE(setsockopt(fd, SOL_SOCKET, SO_LINGER, reinterpret_cast<char*>(&l), sizeof(linger)) == 0);
 
                 // Write on our socket
-                size_t sent = write(fd, testString.data(), testString.size());
+                size_t sent = ::send(fd, testString.data(), testString.size(), 0);
 
                 // We must have sent the right amount of data
                 REQUIRE(sent == testString.size());
@@ -121,10 +121,10 @@ namespace {
 
                 // Set linger so we ensure sending all data
                 linger l { 1, 2 };
-                REQUIRE(setsockopt(fd, SOL_SOCKET, SO_LINGER, &l, sizeof(linger)) == 0);
+                REQUIRE(setsockopt(fd, SOL_SOCKET, SO_LINGER, reinterpret_cast<char*>(&l), sizeof(linger)) == 0);
 
                 // Write on our socket
-                size_t sent = write(fd, testString.data(), testString.size());
+                size_t sent = ::send(fd, testString.data(), testString.size(), 0);
 
                 // We must have sent the right amount of data
                 REQUIRE(sent == testString.size());
