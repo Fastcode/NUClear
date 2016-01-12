@@ -20,13 +20,19 @@
 
 #include <tuple>
 
+// Include platform specific details
+#include "nuclear_bits/util/platform.hpp"
+
+#ifndef _WIN32
+    #include <unistd.h>
+    #include <ifaddrs.h>
+    #include <sys/ioctl.h>
+    #include <sys/socket.h>
+    #include <net/if.h>
+    #include <netdb.h>
+#endif
+
 #include <cstring>
-#include <unistd.h>
-#include <ifaddrs.h>
-#include <sys/ioctl.h>
-#include <sys/socket.h>
-#include <net/if.h>
-#include <netdb.h>
 
 namespace NUClear {
     namespace util {
@@ -47,6 +53,27 @@ namespace NUClear {
                 } flags;
             };
 
+
+
+            // Windows version
+            #if defined(_WIN32)
+            inline std::vector<Interface> get_interfaces() {
+
+                std::vector<Interface> ifaces;
+
+
+                // TODO WRITE THE WINDOWS VERSION
+
+                // // Allocate a buffer
+
+                // // Get the adaptor addresses
+                // GetAdaptersAddresses(AF_INET, 0, nullptr, buffer, buffersize);
+
+                return ifaces;
+            }
+
+            // Everyone else
+            #else
             inline std::vector<Interface> get_interfaces() {
 
                 std::vector<Interface> ifaces;
@@ -54,7 +81,7 @@ namespace NUClear {
                 // Query our interfaces
                 ifaddrs* addrs;
                 if(getifaddrs(&addrs) < 0) {
-                    throw std::system_error(errno, std::system_category(), "Unable to query the interfaces on the platform");
+                    throw std::system_error(network_errno, std::system_category(), "Unable to query the interfaces on the platform");
                 }
 
                 // Loop through our interfaces
@@ -85,6 +112,7 @@ namespace NUClear {
 
                 return ifaces;
             }
+            #endif
         }
     }
 }

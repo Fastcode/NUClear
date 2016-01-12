@@ -15,13 +15,38 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_EXTENSION_IOCONTROLLER
-#define NUCLEAR_EXTENSION_IOCONTROLLER
+#ifndef NUCLEAR_EXTENSION_IOCONTROLLER_WINDOWS_H
+#define NUCLEAR_EXTENSION_IOCONTROLLER_WINDOWS_H
 
-#ifdef _WIN32
-    #include "IOController_Windows.hpp"
-#else
-    #include "IOController_Posix.hpp"
-#endif
+#include "nuclear"
+#include "nuclear_bits/dsl/word/IO.hpp"
 
-#endif
+#include "nuclear_bits/util/windows_includes.hpp"
+
+namespace NUClear {
+    namespace extension {
+
+        class IOController : public Reactor {
+        public:
+            explicit IOController(std::unique_ptr<NUClear::Environment> environment);
+            ~IOController();
+
+        private:
+
+            struct Event {
+                SOCKET fd;
+                std::shared_ptr<threading::Reaction> reaction;
+                int events;
+            };
+
+            WSAEVENT notifier;
+
+            bool shutdown = false;
+            std::mutex reactionMutex;
+            std::map<WSAEVENT, Event> reactions;
+            std::vector<WSAEVENT> fds;
+        };
+    }
+}
+
+#endif  // NUCLEAR_EXTENSION_IOCONTROLLER_WINDOWS_H

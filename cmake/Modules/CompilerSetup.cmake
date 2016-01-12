@@ -33,9 +33,6 @@ ELSEIF(CMAKE_CXX_COMPILER_ID MATCHES Clang)
 
 # MSVC Compiler
 ELSEIF(CMAKE_CXX_COMPILER_ID MATCHES MSVC)
-    # We need features from Windows >= Vista
-    MESSAGE("WINDOWS!!!")
-
 ELSE()
     MESSAGE(FATAL_ERROR "Unsupported compiler!")
 ENDIF()

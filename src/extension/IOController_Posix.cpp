@@ -15,12 +15,15 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+// Disable this file on windows
+#ifndef _WIN32
+
 #include "nuclear_bits/extension/IOController.hpp"
 
-#include <cerrno>
 #include <algorithm>
 #include <system_error>
 #include <mutex>
+#include "nuclear_bits/dsl/word/IO.hpp"
 
 namespace NUClear {
     namespace extension {
@@ -32,7 +35,7 @@ namespace NUClear {
 
             int i = pipe(vals);
             if(i < 0) {
-                throw std::system_error(errno, std::system_category(), "We were unable to make the notification pipe for IO");
+                throw std::system_error(network_errno, std::system_category(), "We were unable to make the notification pipe for IO");
             }
 
             notifyRecv = vals[0];
@@ -60,7 +63,7 @@ namespace NUClear {
 
                 // Check if there was an error
                 if(write(notifySend, &dirty, 1) < 0) {
-                    throw std::system_error(errno, std::system_category(), "There was an error while writing to the notification pipe");
+                    throw std::system_error(network_errno, std::system_category(), "There was an error while writing to the notification pipe");
                 }
             });
 
@@ -81,7 +84,7 @@ namespace NUClear {
                 // Let the poll command know that stuff happened
                 dirty = true;
                 if(write(notifySend, &dirty, 1) < 0) {
-                    throw std::system_error(errno, std::system_category(), "There was an error while writing to the notification pipe");
+                    throw std::system_error(network_errno, std::system_category(), "There was an error while writing to the notification pipe");
                 }
             });
 
@@ -94,7 +97,7 @@ namespace NUClear {
 
                 // Send a single byte down the pipe
                 if(write(notifySend, &val, 1) < 0) {
-                    throw std::system_error(errno, std::system_category(), "There was an error while writing to the notification pipe");
+                    throw std::system_error(network_errno, std::system_category(), "There was an error while writing to the notification pipe");
                 }
 
             });
@@ -105,12 +108,23 @@ namespace NUClear {
                 // shutdown keeps us out here
                 if(!shutdown) {
 
+
+
+
+
+                    // TODO check for dirty here
+
+
+
+
+
+
                     // Poll our file descriptors for events
                     int result = poll(fds.data(), static_cast<nfds_t>(fds.size()), -1);
 
                     // Check if we had an error on our Poll request
                     if(result < 0) {
-                        throw std::system_error(errno, std::system_category(), "There was an IO error while attempting to poll the file descriptors");
+                        throw std::system_error(network_errno, std::system_category(), "There was an IO error while attempting to poll the file descriptors");
                     }
                     else {
                         for(auto& fd : fds) {
@@ -123,7 +137,7 @@ namespace NUClear {
                                     // Read our value to clear it's read status
                                     char val;
                                     if(read(fd.fd, &val, sizeof(char)) < 0) {
-                                        throw std::system_error(errno, std::system_category(), "There was an error reading our notification pipe?");
+                                        throw std::system_error(network_errno, std::system_category(), "There was an error reading our notification pipe?");
                                     };
                                 }
                                 // It's a regular handle
@@ -144,6 +158,15 @@ namespace NUClear {
                                         dirty = true;
                                     }
                                     else {
+
+
+
+
+                                        // TODO we also want to swap this element to the back of the list and remove it
+                                        // so that it does not fire again
+
+
+
 
                                         // Loop through our values
                                         for(auto it = range.first; it != range.second; ++it) {
@@ -218,3 +241,5 @@ namespace NUClear {
         }
     }
 }
+
+#endif

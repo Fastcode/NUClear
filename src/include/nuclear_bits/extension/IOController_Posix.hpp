@@ -15,13 +15,45 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_EXTENSION_IOCONTROLLER
-#define NUCLEAR_EXTENSION_IOCONTROLLER
+#ifndef NUCLEAR_EXTENSION_IOCONTROLLER_POSIX_H
+#define NUCLEAR_EXTENSION_IOCONTROLLER_POSIX_H
 
-#ifdef _WIN32
-    #include "IOController_Windows.hpp"
-#else
-    #include "IOController_Posix.hpp"
-#endif
+#include "nuclear"
+#include "nuclear_bits/dsl/word/IO.hpp"
 
-#endif
+#include <unistd.h>
+#include <poll.h>
+
+namespace NUClear {
+    namespace extension {
+
+        class IOController : public Reactor {
+        private:
+
+            struct Task {
+                fd_t fd;
+                short events;
+                std::shared_ptr<threading::Reaction> reaction;
+
+                bool operator< (const Task& other) const {
+                    return fd == other.fd ? events < other.events : fd < other.fd;
+                }
+            };
+
+        public:
+            explicit IOController(std::unique_ptr<NUClear::Environment> environment);
+
+        private:
+            fd_t notifyRecv;
+            fd_t notifySend;
+
+            bool shutdown = false;
+            bool dirty = true;
+            std::mutex reactionMutex;
+            std::vector<pollfd> fds;
+            std::vector<Task> reactions;
+        };
+    }
+}
+
+#endif  // NUCLEAR_EXTENSION_IOCONTROLLER_POSIX_H

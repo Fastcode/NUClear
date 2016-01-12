@@ -18,12 +18,16 @@
 #ifndef NUCLEAR_DSL_WORD_TCP_H
 #define NUCLEAR_DSL_WORD_TCP_H
 
-#include <unistd.h>
-#include <sys/socket.h>
-#include <arpa/inet.h>
-#include <netinet/in.h>
+#ifdef _WIN32
+    #include "nuclear_bits/util/windows_includes.hpp"
+#else
+    #include <unistd.h>
+    #include <sys/socket.h>
+    #include <arpa/inet.h>
+    #include <netinet/in.h>
+    #include <net/if.h>
+#endif
 
-#include <net/if.h>
 #include <cstring>
 
 #include "nuclear_bits/PowerPlant.hpp"
@@ -50,7 +54,7 @@ namespace NUClear {
                         uint16_t port;
                     } local;
 
-                    int fd;
+                    fd_t fd;
 
                     operator bool() const {
                         return fd != 0;
@@ -64,7 +68,7 @@ namespace NUClear {
                     util::FileDescriptor fd = ::socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 
                     if(fd < 0) {
-                        throw std::system_error(errno, std::system_category(), "We were unable to open the TCP socket");
+                        throw std::system_error(network_errno, std::system_category(), "We were unable to open the TCP socket");
                     }
 
                     // The address we will be binding to
@@ -76,25 +80,25 @@ namespace NUClear {
 
                     // Bind to the address, and if we fail throw an error
                     if(::bind(fd, reinterpret_cast<sockaddr*>(&address), sizeof(sockaddr))) {
-                        throw std::system_error(errno, std::system_category(), "We were unable to bind the TCP socket to the port");
+                        throw std::system_error(network_errno, std::system_category(), "We were unable to bind the TCP socket to the port");
                     }
 
                     // Listen to the address
                     if(::listen(fd, 1024) < 0) {
-                        throw std::system_error(errno, std::system_category(), "We were unable to listen on the TCP socket");
+                        throw std::system_error(network_errno, std::system_category(), "We were unable to listen on the TCP socket");
                     }
 
                     // Get the port we ended up listening on
                     socklen_t len = sizeof(sockaddr_in);
                     if (::getsockname(fd, reinterpret_cast<sockaddr*>(&address), &len) == -1) {
-                        throw std::system_error(errno, std::system_category(), "We were unable to get the port from the TCP socket");
+                        throw std::system_error(network_errno, std::system_category(), "We were unable to get the port from the TCP socket");
                     }
                     port = ntohs(address.sin_port);
 
                     // Generate a reaction for the IO system that closes on death
                     int cfd = fd;
                     auto reaction = util::generate_reaction<DSL, IO>(reactor, label, std::forward<TFunc>(callback), [cfd] (threading::Reaction&) {
-                        ::close(cfd);
+                        close(cfd);
                     });
 
                     auto ioConfig = std::make_unique<IOConfiguration>(IOConfiguration {

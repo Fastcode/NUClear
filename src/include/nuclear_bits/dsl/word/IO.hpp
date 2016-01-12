@@ -18,7 +18,11 @@
 #ifndef NUCLEAR_DSL_WORD_IO_H
 #define NUCLEAR_DSL_WORD_IO_H
 
-#include <poll.h>
+#ifdef _WIN32
+    #include "nuclear_bits/util/windows_includes.hpp"
+#else
+    #include <poll.h>
+#endif
 
 #include "nuclear_bits/dsl/operation/Unbind.hpp"
 #include "nuclear_bits/dsl/word/emit/Direct.hpp"
@@ -26,13 +30,14 @@
 #include "nuclear_bits/dsl/store/ThreadStore.hpp"
 #include "nuclear_bits/dsl/trait/is_transient.hpp"
 #include "nuclear_bits/util/generate_reaction.hpp"
+#include "nuclear_bits/util/platform.hpp"
 
 namespace NUClear {
     namespace dsl {
         namespace word {
 
             struct IOConfiguration {
-                int fd;
+                fd_t fd;
                 int events;
                 std::shared_ptr<threading::Reaction> reaction;
             };
@@ -40,15 +45,25 @@ namespace NUClear {
             // IO is implicitly single
             struct IO : public Single {
 
+                // On windows we use different wait events
+                #ifdef _WIN32
+                enum EventType : short {
+                    READ = FD_READ | FD_OOB | FD_ACCEPT,
+                    WRITE = FD_WRITE,
+                    CLOSE = FD_CLOSE,
+                    FAIL = 0
+                };
+                #else
                 enum EventType : short {
                     READ = POLLIN,
                     WRITE = POLLOUT,
                     CLOSE = POLLHUP,
                     FAIL = POLLNVAL | POLLERR
                 };
+                #endif
 
                 struct Event {
-                    int fd;
+                    fd_t fd;
                     int events;
 
                     operator bool() const {
@@ -59,7 +74,7 @@ namespace NUClear {
                 using ThreadEventStore = dsl::store::ThreadStore<Event>;
 
                 template <typename DSL, typename TFunc>
-                static inline threading::ReactionHandle bind(Reactor& reactor, const std::string& label, TFunc&& callback, int fd, int watchSet) {
+                static inline threading::ReactionHandle bind(Reactor& reactor, const std::string& label, TFunc&& callback, fd_t fd, int watchSet) {
 
                     auto reaction = util::generate_reaction<DSL, IO>(reactor, label, std::forward<TFunc>(callback));
 
@@ -100,4 +115,4 @@ namespace NUClear {
     }
 }
 
-#endif
+#endif  // NUCLEAR_DSL_WORD_IO_H

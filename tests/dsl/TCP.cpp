@@ -36,46 +36,58 @@ namespace {
             // Bind to a known port
             on<TCP>(port).then([this](const TCP::Connection& connection) {
 
-                on<IO>(connection.fd, IO::READ).then([this] (IO::Event event) {
+                on<IO>(connection.fd, IO::READ | IO::CLOSE).then([this] (IO::Event event) {
 
-                    char buff[1024];
-                    memset(buff, 0, sizeof(buff));
+					// We have data to read
+					if ((event.events & IO::READ) != 0) {
 
-                    // Read into the buffer
-                    ssize_t len = ::recv(event.fd, buff, testString.size(), 0);
+						char buff[1024];
+						memset(buff, 0, sizeof(buff));
 
-                    // The connection was closed and the other test finished
-                    if (len == 0 && messagesReceived == 2) {
-                        powerplant.shutdown();
-                    }
-                    else if (messagesReceived < 2) {
-                        REQUIRE(len == testString.size());
-                        REQUIRE(testString == std::string(buff));
-                        ++messagesReceived;
-                    }
+						// Read into the buffer
+						ssize_t len = ::recv(event.fd, buff, testString.size(), 0);
+
+						// Test the data
+						REQUIRE(len == testString.size());
+						REQUIRE(testString == std::string(buff));
+						++messagesReceived;
+					}
+
+					// The connection was closed and the other test finished
+					if (event.events & IO::CLOSE) {
+						if (messagesReceived == 2) {
+							powerplant.shutdown();
+						}
+					}
                 });
             });
 
             // Bind to an unknown port and get the port number
             int boundPort;
             std::tie(std::ignore, boundPort, std::ignore) = on<TCP>().then([this](const TCP::Connection& connection) {
-                on<IO>(connection.fd, IO::READ).then([this] (IO::Event event) {
+                on<IO>(connection.fd, IO::READ | IO::CLOSE).then([this] (IO::Event event) {
 
-                    char buff[1024];
-                    memset(buff, 0, sizeof(buff));
+					// We have data to read
+					if ((event.events & IO::READ) != 0) {
 
-                    // Read into the buffer
-                    ssize_t len = ::recv(event.fd, buff, testString.size(), 0);
+						char buff[1024];
+						memset(buff, 0, sizeof(buff));
 
-                    // The connection was closed and the other test finished
-                    if (len == 0 && messagesReceived == 2) {
-                        powerplant.shutdown();
-                    }
-                    else if (messagesReceived < 2) {
-                        REQUIRE(len == testString.size());
-                        REQUIRE(testString == std::string(buff));
-                        ++messagesReceived;
-                    }
+						// Read into the buffer
+						ssize_t len = ::recv(event.fd, buff, testString.size(), 0);
+
+						// Test the data
+						REQUIRE(len == testString.size());
+						REQUIRE(testString == std::string(buff));
+						++messagesReceived;
+					}
+
+					// The connection was closed and the other test finished
+					if (event.events & IO::CLOSE) {
+						if (messagesReceived == 2) {
+							powerplant.shutdown();
+						}
+					}
                 });
             });
 
