@@ -113,6 +113,14 @@ namespace NUClear {
 
         return v == 0 ? received : v;
     }
+
+	inline int sendmsg(fd_t fd, msghdr* msg, int flags) {
+
+		DWORD sent = 0;
+		auto v = WSASendMsg(fd, msg, flags, &sent, nullptr, nullptr);
+
+		return v == 0 ? sent : v;
+	}
 }
 
 #else

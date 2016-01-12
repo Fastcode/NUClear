@@ -114,7 +114,7 @@ namespace NUClear {
                 target->second->handle.unbind();
 
                 // Close our half of the connection
-                ::close(e.fd);
+                close(e.fd);
 
                 // Remove our UDP target
                 udpTarget.erase(udpTarget.find(std::make_pair(target->second->address, target->second->udpPort)));

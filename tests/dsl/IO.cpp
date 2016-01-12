@@ -17,9 +17,10 @@
 
 #include <catch.hpp>
 
-extern "C" {
-    #include <unistd.h>
-}
+// Windows can't do this test as it doesn't have file descriptors
+#ifndef _WIN32
+	
+#include <unistd.h>
 
 #include "nuclear"
 
@@ -83,3 +84,5 @@ TEST_CASE("Testing the IO extension", "[api][io]") {
 
     plant.start();
 }
+
+#endif

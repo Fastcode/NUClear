@@ -17,7 +17,11 @@
 
 #include "nuclear_bits/extension/NetworkController.hpp"
 
-#include <sys/utsname.h>
+#ifdef _WIN32
+	#include "nuclear_bits/util/platform.hpp"
+#else
+	#include <sys/utsname.h>
+#endif
 
 #include <algorithm>
 #include <cerrno>
@@ -31,7 +35,9 @@ namespace NUClear {
         , packetIDSource(1) {
 
             // Turn off sigpipe...
-            ::signal(SIGPIPE, SIG_IGN);
+			#ifndef _WIN32
+				::signal(SIGPIPE, SIG_IGN);
+			#endif
 
             on<Trigger<dsl::word::NetworkListen>, Sync<NetworkController>>().then([this] (const dsl::word::NetworkListen& l) {
                 // Lock our reaction mutex
@@ -77,7 +83,7 @@ namespace NUClear {
                 // Unbind any TCP connections we may have and clear our maps
                 for (auto& target : targets) {
                     target.handle.unbind();
-                    ::close(target.tcpFD);
+                    close(target.tcpFD);
                 }
 
                 // Clear all our maps
@@ -88,9 +94,17 @@ namespace NUClear {
 
                 // Store our new configuration
                 if(config.name.empty()) {
-                    utsname u;
-                    uname(&u);
-                    name = u.nodename;
+					// If our config name is empty, use our system name
+					#ifdef _WIN32
+						char n[MAX_COMPUTERNAME_LENGTH];
+						DWORD size = MAX_COMPUTERNAME_LENGTH;
+						GetComputerName(n, &size);
+						name = std::string(n, size);
+					#else
+						utsname u;
+						uname(&u);
+						name = u.nodename;
+					#endif
                 }
                 else {
                     name = config.name;
