@@ -70,7 +70,7 @@ namespace NUClear {
 
                     // Multicast address
                     sockaddr_in target;
-                    inet_pton(AF_INET, multicastGroup.c_str(), &target);
+                    inet_pton(AF_INET, multicastGroup.c_str(), &target.sin_addr);
                     target.sin_port = htons(multicastPort);
 
                     message.msg_name = reinterpret_cast<sockaddr*>(&target);

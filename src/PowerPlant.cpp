@@ -37,9 +37,6 @@ namespace NUClear {
         // Store our static variable
         powerplant = this;
 
-        // State that we are setting up
-        std::cout << "Building the PowerPlant with " << configuration.threadCount << " thread" << (configuration.threadCount != 1 ? "s" : "") << std::endl;
-
         // Install the Chrono reactor
         install<extension::ChronoController>();
         install<extension::IOController>();

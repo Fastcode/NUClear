@@ -69,58 +69,10 @@ namespace NUClear {
     #define msg_controllen  Control.len
     #define msg_flags       flags
 
-    // Go get that WSARecvMsg function from stupid land
-    LPFN_WSARECVMSG inline GetWSARecvMsgFunctionPointer() {
-        LPFN_WSARECVMSG     lpfnWSARecvMsg = NULL;
-        GUID                guidWSARecvMsg = WSAID_WSARECVMSG;
-        SOCKET              sock = INVALID_SOCKET;
-        DWORD               dwBytes = 0;
-
-        sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-
-        if(SOCKET_ERROR == WSAIoctl(sock,
-                                    SIO_GET_EXTENSION_FUNCTION_POINTER,
-                                    &guidWSARecvMsg,
-                                    sizeof(guidWSARecvMsg),
-                                    &lpfnWSARecvMsg,
-                                    sizeof(lpfnWSARecvMsg),
-                                    &dwBytes,
-                                    nullptr,
-                                    nullptr
-                                    )) {
-            return nullptr;
-        }
-
-        closesocket(sock);
-
-        return lpfnWSARecvMsg;
-    }
-
     // Reimplement the recvmsg function
-    inline int recvmsg(fd_t fd, msghdr* msg, int flags) {
-        
-		// Translate to windows speak
-		DWORD received = 0;
-        DWORD f = 0;
-        
-        int v = WSARecvFrom(fd, msg->msg_iov, msg->msg_iovlen, &received, &f, msg->name, &msg->namelen, nullptr, nullptr);
-        
-        //int v = GetWSARecvMsgFunctionPointer()(fd, msg, &received, nullptr, nullptr);
-        
-        std::cout << "Error:" << WSAGetLastError() << std::endl;
-        
-        std::cout << "V:" << v << std::endl;
+	int recvmsg(fd_t fd, msghdr* msg, int flags);
 
-        return v == 0 ? received : v;
-    }
-
-	inline int sendmsg(fd_t fd, msghdr* msg, int flags) {
-
-		DWORD sent = 0;
-		auto v = WSASendMsg(fd, msg, flags, &sent, nullptr, nullptr);
-
-		return v == 0 ? sent : v;
-	}
+	int sendmsg(fd_t fd, msghdr* msg, int flags);
 }
 
 #else

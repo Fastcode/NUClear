@@ -46,11 +46,15 @@ namespace {
 
 						// Read into the buffer
 						ssize_t len = ::recv(event.fd, buff, testString.size(), 0);
-
-						// Test the data
-						REQUIRE(len == testString.size());
-						REQUIRE(testString == std::string(buff));
-						++messagesReceived;
+                        
+                        // 0 indicates orderly shutdown of the socket
+                        if (len != 0) {
+                        
+                            // Test the data
+                            REQUIRE(len == testString.size());
+                            REQUIRE(testString == std::string(buff));
+                            ++messagesReceived;
+                        }
 					}
 
 					// The connection was closed and the other test finished
@@ -76,10 +80,13 @@ namespace {
 						// Read into the buffer
 						ssize_t len = ::recv(event.fd, buff, testString.size(), 0);
 
-						// Test the data
-						REQUIRE(len == testString.size());
-						REQUIRE(testString == std::string(buff));
-						++messagesReceived;
+                        // 0 indicates orderly shutdown of the socket
+                        if(len != 0) {
+                            // Test the data
+                            REQUIRE(len == testString.size());
+                            REQUIRE(testString == std::string(buff));
+                            ++messagesReceived;
+                        }
 					}
 
 					// The connection was closed and the other test finished

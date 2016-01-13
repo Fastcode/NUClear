@@ -162,12 +162,14 @@ namespace NUClear {
                     // Make some variables to hold our message header information
 					char cmbuff[0x100] = { 0 };
                     sockaddr_in from;
+					memset(&from, 0, sizeof(sockaddr_in));
                     iovec payload;
                     payload.iov_base = p.data.data();
                     payload.iov_len = p.data.size();
 
                     // Make our message header to receive with
                     msghdr mh;
+					memset(&mh, 0, sizeof(msghdr));
                     mh.msg_name = reinterpret_cast<sockaddr*>(&from);
                     mh.msg_namelen = sizeof(sockaddr_in);
                     mh.msg_control = cmbuff;
@@ -218,94 +220,66 @@ namespace NUClear {
                 struct Broadcast {
 
                     template <typename DSL, typename TFunc>
-                    static inline std::tuple<threading::ReactionHandle, int> bind(Reactor& reactor, const std::string& label, TFunc&& callback, int port = 0) {
+                    static inline std::tuple<threading::ReactionHandle, int, fd_t> bind(Reactor& reactor, const std::string& label, TFunc&& callback, int port = 0) {
 
-                        // Our list of broadcast file descriptors
-                        std::vector<fd_t> fds;
-
-                        // Get all the network interfaces
-                        auto interfaces = util::network::get_interfaces();
-
-                        std::vector<uint32_t> addresses;
-
-                        // We should always listen on 255.255.255.255
-                        addresses.push_back(htonl(INADDR_BROADCAST));
-
-                        for(auto& iface : interfaces) {
-                            // We receive on broadcast addresses and we don't want loopback or point to point
-                            if(!iface.flags.loopback && !iface.flags.pointtopoint && iface.flags.broadcast) {
-                                // Two broadcast ips that are the same are probably on the same network so ignore those
-                                if(std::find(std::begin(addresses), std::end(addresses), iface.broadcast) == std::end(addresses)) {
-                                    addresses.push_back(iface.broadcast);
-                                }
-                            }
+                        // Make our socket
+                        util::FileDescriptor fd = ::socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+                        if(fd < 0) {
+                            throw std::system_error(network_errno, std::system_category(), "We were unable to open the UDP Broadcast socket");
                         }
-
-                        for(auto& ad : addresses) {
-
-                            // Make our socket
-                            util::FileDescriptor fd = ::socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-                            if(fd < 0) {
-                                throw std::system_error(network_errno, std::system_category(), "We were unable to open the UDP socket");
-                            }
-
-                            // The address we will be binding to (our broadcast address)
-                            sockaddr_in address;
-                            memset(&address, 0, sizeof(sockaddr_in));
-                            address.sin_family = AF_INET;
-                            address.sin_port = htons(port);
-                            address.sin_addr.s_addr = htonl(ad);
-
-                            int yes = true;
-                            // We are a broadcast socket
-                            if(setsockopt(fd, SOL_SOCKET, SO_BROADCAST, reinterpret_cast<char*>(&yes), sizeof(yes)) < 0) {
-                                throw std::system_error(network_errno, std::system_category(), "We were unable to set the socket as broadcast");
-                            }
-                            // Set that we reuse the address so more than one application can bind
-                            if(setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, reinterpret_cast<char*>(&yes), sizeof(yes)) < 0) {
-                                throw std::system_error(network_errno, std::system_category(), "We were unable to set reuse address on the socket");
-                            }
-                            // Include struct in_pktinfo in the message "ancilliary" control data
-                            if(setsockopt(fd, IPPROTO_IP, IP_PKTINFO, reinterpret_cast<char*>(&yes), sizeof(yes)) < 0) {
-                                throw std::system_error(network_errno, std::system_category(), "We were unable to flag the socket as getting ancillary data");
-                            }
-
-                            // Bind to the address, and if we fail throw an error
-                            if(::bind(fd, reinterpret_cast<sockaddr*>(&address), sizeof(sockaddr))) {
-                                throw std::system_error(network_errno, std::system_category(), "We were unable to bind the UDP socket to the port");
-                            }
-
-                            // Set the port variable to whatever was returned (so they all use the same port)
-                            socklen_t len = sizeof(sockaddr_in);
-                            if (::getsockname(fd, reinterpret_cast<sockaddr*>(&address), &len) == -1) {
-                                throw std::system_error(network_errno, std::system_category(), "We were unable to get the port from the UDP socket");
-                            }
-                            port = ntohs(address.sin_port);
-
-                            fds.push_back(fd.release());
+                        
+                        // The address we will be binding to
+                        sockaddr_in address;
+                        memset(&address, 0, sizeof(sockaddr_in));
+                        address.sin_family = AF_INET;
+                        address.sin_port = htons(port);
+                        address.sin_addr.s_addr = htonl(INADDR_ANY);
+                        
+                        int yes = true;
+                        // We are a broadcast socket
+                        if(setsockopt(fd, SOL_SOCKET, SO_BROADCAST, reinterpret_cast<char*>(&yes), sizeof(yes)) < 0) {
+                            throw std::system_error(network_errno, std::system_category(), "We were unable to set the socket as broadcast");
                         }
-
+                        // Set that we reuse the address so more than one application can bind
+                        if(setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, reinterpret_cast<char*>(&yes), sizeof(yes)) < 0) {
+                            throw std::system_error(network_errno, std::system_category(), "We were unable to set reuse address on the socket");
+                        }
+                        // Include struct in_pktinfo in the message "ancilliary" control data
+                        if(setsockopt(fd, IPPROTO_IP, IP_PKTINFO, reinterpret_cast<char*>(&yes), sizeof(yes)) < 0) {
+                            throw std::system_error(network_errno, std::system_category(), "We were unable to flag the socket as getting ancillary data");
+                        }
+                        
+                        // Bind to the address, and if we fail throw an error
+                        if(::bind(fd, reinterpret_cast<sockaddr*>(&address), sizeof(sockaddr))) {
+                            throw std::system_error(network_errno, std::system_category(), "We were unable to bind the UDP socket to the port");
+                        }
+                        
+                        // Get the port we ended up listening on
+                        socklen_t len = sizeof(sockaddr_in);
+                        if (::getsockname(fd, reinterpret_cast<sockaddr*>(&address), &len) == -1) {
+                            throw std::system_error(network_errno, std::system_category(), "We were unable to get the port from the UDP socket");
+                        }
+                        port = ntohs(address.sin_port);
+                        
                         // Generate a reaction for the IO system that closes on death
-                        auto reaction = util::generate_reaction<DSL, IO>(reactor, label, std::forward<TFunc>(callback), [fds] (threading::Reaction&) {
-                            // Close all the sockets
-                            for(auto& fd : fds) {
-                                close(fd);
-                            }
+                        int cfd = fd;
+                        auto reaction = util::generate_reaction<DSL, IO>(reactor, label, std::forward<TFunc>(callback), [cfd] (threading::Reaction&) {
+                            close(cfd);
                         });
-                        std::shared_ptr<threading::Reaction> r(std::move(reaction));
-                        threading::ReactionHandle handle(r);
-
-                        // Send our configuration out for each file descriptor (same reaction)
-                        for(auto& fd : fds) {
-                            reactor.powerplant.emit<emit::Direct>(std::make_unique<IOConfiguration>(IOConfiguration {
-                                fd,
-                                IO::READ,
-                                r
-                            }));
-                        }
-
-                        // Return our handles
-                        return std::make_tuple(handle, port);
+                        
+                        auto ioConfig = std::make_unique<IOConfiguration>(IOConfiguration {
+                            fd.release(),
+                            IO::READ,
+                            std::move(reaction)
+                        });
+                        
+                        threading::ReactionHandle handle(ioConfig->reaction);
+                        
+                        // Send our configuration out
+                        reactor.powerplant.emit<emit::Direct>(ioConfig);
+                        
+                        // Return our handles and our bound port
+                        return std::make_tuple(handle, port, cfd);
                     }
 
                     template <typename DSL>
@@ -322,8 +296,10 @@ namespace NUClear {
 
                         // Our multicast group address
                         sockaddr_in address;
-                        inet_pton(AF_INET, multicastGroup.c_str(), &address);
-                        address.sin_port = htons(port);
+						std::memset(&address, 0, sizeof(address));
+						address.sin_family = AF_INET;
+						address.sin_addr.s_addr = INADDR_ANY;
+						address.sin_port = htons(port);
 
                         // Make our socket
                         util::FileDescriptor fd = ::socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
@@ -367,7 +343,7 @@ namespace NUClear {
                             // Our multicast join request
                             ip_mreq mreq;
                             memset(&mreq, 0, sizeof(mreq));
-                            mreq.imr_multiaddr.s_addr = address.sin_addr.s_addr;
+							inet_pton(AF_INET, multicastGroup.c_str(), &mreq.imr_multiaddr);
                             mreq.imr_interface.s_addr = htonl(ad);
 
                             // Join our multicast group

@@ -15,38 +15,60 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_UTIL_WINDOWS_INCLUDES_H
-#define NUCLEAR_UTIL_WINDOWS_INCLUDES_H
+#include "nuclear_bits/util/platform.hpp"
 
-// Because windows is SUUUUPER dumb and if you include headers in the wrong order
-// Nothing at all works, also if you don't define things in the right order nothing works
-// It's a terrible pile of garbage
-// So we have this header to make sure everything is in the correct order
 #ifdef _WIN32
 
-// Windows has a dumb min/max macro that breaks stuff
-#define NOMINMAX
+LPFN_WSARECVMSG WSARecvMsg = nullptr;
 
-// Without this winsock just doesn't have half the typedefs
-#define INCL_WINSOCK_API_TYPEDEFS 1
+ // Go get that WSARecvMsg function from stupid land
+void initialize_WSARecvMsg() {
+	GUID                guid = WSAID_WSARECVMSG;
+	SOCKET              sock = INVALID_SOCKET;
+	DWORD               dwBytes = 0;
 
-// Winsock must be declared before Windows.h or it won't work
-#include <WinSock2.h>
-#include <Ws2ipdef.h>
-#include <Ws2tcpip.h>
-#include <Mswsock.h>
-#include <Mstcpip.h>
-#include <Iphlpapi.h>
+	sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 
-// This little thingy makes windows link to the winsock library
-#pragma comment(lib, "Ws2_32.lib")
-#pragma comment (lib, "Mswsock.lib")
-#pragma comment(lib, "IPHLPAPI.lib")
+	if (SOCKET_ERROR == WSAIoctl(sock,
+		SIO_GET_EXTENSION_FUNCTION_POINTER,
+		&guid,
+		sizeof(guid),
+		&WSARecvMsg,
+		sizeof(WSARecvMsg),
+		&dwBytes,
+		nullptr,
+		nullptr
+		)) {
+        throw std::runtime_error("We could not get WSARecvMsg from the OS");
+	}
 
-// Include windows.h mega header... no wonder windows compiles so slowly
-#define WIN32_LEAN_AND_MEAN
-#include <Windows.h>
+	closesocket(sock);
+}
 
-#endif  // _WIN32
+namespace NUClear {
+	int recvmsg(fd_t fd, msghdr* msg, int flags) {
 
-#endif  // NUCLEAR_UTIL_PLATFORM_H
+		// If we haven't setup our recvmsg function yet, set it up
+		if (WSARecvMsg == nullptr) {
+			initialize_WSARecvMsg();
+		}
+
+		// Translate to windows speak
+		DWORD received = 0;
+		DWORD f = 0;
+
+		int v = WSARecvMsg(fd, msg, &received, nullptr, nullptr);
+
+		return v == 0 ? received : v;
+	}
+
+	int sendmsg(fd_t fd, msghdr* msg, int flags) {
+
+		DWORD sent = 0;
+		auto v = WSASendMsg(fd, msg, flags, &sent, nullptr, nullptr);
+
+		return v == 0 ? sent : v;
+	}
+}
+
+#endif
