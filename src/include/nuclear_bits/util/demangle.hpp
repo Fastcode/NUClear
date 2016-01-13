@@ -18,44 +18,13 @@
 #ifndef NUCLEAR_UTIL_DEMANGLE_H
 #define NUCLEAR_UTIL_DEMANGLE_H
 
-// Windows symbol demangler
-#ifdef _MSC_VER
-
-namespace NUClear {
-    namespace util {
-        inline std::string demangle(const char* symbol) {
-            return symbol;
-        }
-    }
-}
-
-// GNU/Clang symbol demangler
-#else
-
-#include <cxxabi.h>
+#include <string>
 
 namespace NUClear {
     namespace util {
 
-        /**
-         * @brief Demangles the passed symbol to a string, or returns it if it cannot demangle it
-         *
-         * @param symbol the symbol to demangle
-         *
-         * @return the demangled symbol, or the original string if it could not be demangeld
-         */
-        inline std::string demangle(const char* symbol) {
-
-            int status = -4; // some arbitrary value to eliminate the compiler warning
-            std::unique_ptr<char, void(*)(void*)> res {
-                abi::__cxa_demangle(symbol, nullptr, nullptr, &status),
-                std::free
-            };
-
-            return std::string(status == 0 ? res.get() : symbol);
-        }
+        std::string demangle(const char* symbol);
     }
 }
-#endif  // _MSC_VER
 
 #endif  // NUCLEAR_UTIL_DEMANGLE_H

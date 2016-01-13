@@ -96,8 +96,8 @@ namespace NUClear {
                 if(config.name.empty()) {
 					// If our config name is empty, use our system name
 					#ifdef _WIN32
-						char n[MAX_COMPUTERNAME_LENGTH];
-						DWORD size = MAX_COMPUTERNAME_LENGTH;
+						char n[MAX_COMPUTERNAME_LENGTH + 1];
+						DWORD size = sizeof(n);
 						GetComputerName(n, &size);
 						name = std::string(n, size);
 					#else

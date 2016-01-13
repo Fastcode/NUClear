@@ -15,9 +15,6 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#define CATCH_CONFIG_MAIN
-#include <catch.hpp>
-
 #include "nuclear"
 
 #include <cstdlib>
@@ -54,10 +51,10 @@ namespace {
 
 
                 // Emit long unreliable message
-                emit<Scope::NETWORK>(std::make_unique<std::string>(std::numeric_limits<uint16_t>::max(), 'c'), join.name);
+                emit<Scope::NETWORK>(std::make_unique<std::string>(std::numeric_limits<uint16_t>::max(), 'v'), join.name);
 
                 // Emit long reliable message
-                emit<Scope::NETWORK>(std::make_unique<std::string>(std::numeric_limits<uint16_t>::max(), 'd'), join.name, true);
+                emit<Scope::NETWORK>(std::make_unique<std::string>(std::numeric_limits<uint16_t>::max(), 's'), join.name, true);
             });
 
             on<Trigger<NetworkLeave>, Sync<TestReactor>>().then([this] (const NetworkLeave& leave) {
@@ -114,17 +111,17 @@ namespace {
                 emit<Scope::NETWORK>(std::make_unique<std::string>("Test Short Reliable All Message"), "", true);
 
                 // Emit long unreliable to all
-                emit<Scope::NETWORK>(std::make_unique<std::string>(std::numeric_limits<uint16_t>::max(), 'a'));
+                emit<Scope::NETWORK>(std::make_unique<std::string>(std::numeric_limits<uint16_t>::max(), 'u'));
 
                 // Emit long reliable to all
-                emit<Scope::NETWORK>(std::make_unique<std::string>(std::numeric_limits<uint16_t>::max(), 'b'), "", true);
+                emit<Scope::NETWORK>(std::make_unique<std::string>(std::numeric_limits<uint16_t>::max(), 'r'), "", true);
             });
         }
     };
 }
 
 
-TEST_CASE("Test networking", "[api][networking]") {
+int main() {
 
     NUClear::PowerPlant::Configuration config;
     config.threadCount = 4;

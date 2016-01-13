@@ -43,7 +43,7 @@ namespace NUClear {
                 uint32_t address;
                 uint16_t tcpPort;
                 uint16_t udpPort;
-                int tcpFD;
+                fd_t tcpFD;
                 ReactionHandle handle;
                 std::map<uint16_t, std::pair<clock::time_point, std::vector<std::vector<char>>>> buffer;
                 std::mutex bufferMutex;

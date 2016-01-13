@@ -38,15 +38,14 @@ namespace NUClear {
                 std::vector<char> data(sizeof(network::PacketHeader));
 
                 // Read our header and check it is valid
-                if(::recv(e.fd, data.data(), data.size(), MSG_WAITALL) == sizeof(network::PacketHeader)) {
-
+                if(::recv(e.fd, data.data(), data.size(), 0) == sizeof(network::PacketHeader)) {
                     const network::PacketHeader& header = *reinterpret_cast<network::PacketHeader*>(data.data());
 
                     // Add enough space for our remaining packet
                     data.resize(data.size() + header.length);
 
                     // Read our remaining packet and check it's valid
-                    if(::recv(e.fd, data.data() + sizeof(network::PacketHeader), header.length, MSG_WAITALL) == header.length) {
+                    if(::recv(e.fd, data.data() + sizeof(network::PacketHeader), header.length, 0) == header.length) {
 
                         const network::DataPacket& packet = *reinterpret_cast<network::DataPacket*>(data.data());
 
@@ -96,8 +95,9 @@ namespace NUClear {
                 }
             }
 
-            // If the connection closed or errored (or reached an end of file
-            if(badPacket || (e.events & IO::CLOSE) || (e.events & IO::ERROR)) {
+            // If the connection closed or errored (or reached an end of file)
+			// And we have not already closed this connection
+            if((e.events & IO::CLOSE) || (e.events & IO::ERROR)) {
 
                 // Lock our mutex
                 std::lock_guard<std::mutex> lock(targetMutex);

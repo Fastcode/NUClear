@@ -138,7 +138,7 @@ namespace NUClear {
                         // Get our local address
                         ::getsockname(fd, reinterpret_cast<sockaddr*>(&local), &size);
 
-                        if (fd < 0) {
+                        if (fd == -1) {
                             return Connection { { 0, 0 }, { 0, 0 }, 0 };
                         }
                         else {
@@ -149,9 +149,12 @@ namespace NUClear {
             };
         }
 
+		// Leaving this here as having it as transient is a big problem
+		// It seems like it should be transient, however most reactions that use this will
+		// get an unplesent suprise if they are given the same "new connection" twice.
         namespace trait {
             template <>
-            struct is_transient<word::TCP::Connection> : public std::true_type {};
+            struct is_transient<word::TCP::Connection> : public std::false_type {};
         }
     }
 }

@@ -30,14 +30,17 @@ namespace NUClear {
             std::vector<char> data(sizeof(network::PacketHeader));
 
             // Read our header
-            ::recv(connection.fd, data.data(), data.size(), MSG_WAITALL);
+			::recv(connection.fd, data.data(), data.size(), 0);
             const network::PacketHeader& header = *reinterpret_cast<network::PacketHeader*>(data.data());
 
+			// We have to read this now as after we resize it'll move (maybe)
+			uint32_t length = header.length;
+
             // Add enough space for our remaining packet
-            data.resize(data.size() + header.length);
+			data.resize(data.size() + length);
 
             // Read our remaining packet
-            ::recv(connection.fd, data.data() + sizeof(network::PacketHeader), header.length, MSG_WAITALL);
+			::recv(connection.fd, data.data() + sizeof(network::PacketHeader), length, 0);
             const network::AnnouncePacket& announce = *reinterpret_cast<network::AnnouncePacket*>(data.data());
 
             // Lock our mutex to make sure we only add one at a time

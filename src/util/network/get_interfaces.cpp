@@ -30,6 +30,8 @@
 #endif
 
 #include <system_error>
+#include <cstring>
+#include <algorithm>
 
 namespace NUClear {
     namespace util {
