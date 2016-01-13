@@ -97,7 +97,7 @@ namespace NUClear {
                             tcpTarget.insert(std::make_pair(it->tcpFD, it));
 
                             // Start our connected handle
-                            it->handle = on<IO, Sync<NetworkController>>(it->tcpFD, IO::READ | IO::FAIL | IO::CLOSE).then("Network TCP Handler", [this] (const IO::Event& e) {
+                            it->handle = on<IO, Sync<NetworkController>>(it->tcpFD, IO::READ | IO::ERROR | IO::CLOSE).then("Network TCP Handler", [this] (const IO::Event& e) {
                                 tcpHandler(e);
                             });
 

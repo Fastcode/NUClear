@@ -51,14 +51,14 @@ namespace NUClear {
                     READ = FD_READ | FD_OOB | FD_ACCEPT,
                     WRITE = FD_WRITE,
                     CLOSE = FD_CLOSE,
-                    FAIL = 0
+                    ERROR = 0
                 };
                 #else
                 enum EventType : short {
                     READ = POLLIN,
                     WRITE = POLLOUT,
                     CLOSE = POLLHUP,
-                    FAIL = POLLNVAL | POLLERR
+                    ERROR = POLLNVAL | POLLERR
                 };
                 #endif
 

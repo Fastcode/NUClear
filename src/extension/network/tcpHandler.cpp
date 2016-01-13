@@ -97,7 +97,7 @@ namespace NUClear {
             }
 
             // If the connection closed or errored (or reached an end of file
-            if(badPacket || (e.events & IO::CLOSE) || (e.events & IO::FAIL)) {
+            if(badPacket || (e.events & IO::CLOSE) || (e.events & IO::ERROR)) {
 
                 // Lock our mutex
                 std::lock_guard<std::mutex> lock(targetMutex);

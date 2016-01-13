@@ -47,6 +47,9 @@
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 
+// Whoever thought this was a good idea was a terrible person
+#undef ERROR
+
 #endif  // _WIN32
 
 #endif  // NUCLEAR_UTIL_PLATFORM_H
