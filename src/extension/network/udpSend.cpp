@@ -15,6 +15,7 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+#include "nuclear_bits/util/platform.hpp"
 #include "nuclear_bits/extension/NetworkController.hpp"
 #include "nuclear_bits/extension/network/WireProtocol.hpp"
 
@@ -39,7 +40,7 @@ namespace NUClear {
 
             // The first element in our iovec is the header
             network::DataPacket header;
-            data[0].iov_base = &header;
+            data[0].iov_base = reinterpret_cast<char*>(&header);
             data[0].iov_len = sizeof(network::DataPacket) - 1;
 
             // Some references for easy access to our data memory
@@ -69,14 +70,16 @@ namespace NUClear {
 
                     // Multicast address
                     sockaddr_in target;
-                    inet_pton(AF_INET, multicastGroup.c_str(), &target);
+					std::memset(&target, 0, sizeof(sockaddr_in));
+					target.sin_family = AF_INET;
+                    inet_pton(AF_INET, multicastGroup.c_str(), &target.sin_addr);
                     target.sin_port = htons(multicastPort);
 
-                    message.msg_name = &target;
+                    message.msg_name = reinterpret_cast<sockaddr*>(&target);
                     message.msg_namelen = sizeof(sockaddr_in);
 
                     // Send the packet
-                    ::sendmsg(udpServerFD, &message, 0);
+                    sendmsg(udpServerFD, &message, 0);
                 }
                 // Send unicast
                 else {
@@ -91,11 +94,11 @@ namespace NUClear {
                         target.sin_addr.s_addr = htonl(it->second->address);
                         target.sin_port = htons(it->second->udpPort);
 
-                        message.msg_name = &target;
+                        message.msg_name = reinterpret_cast<sockaddr*>(&target);
                         message.msg_namelen = sizeof(sockaddr_in);
 
                         // Send the packet
-                        ::sendmsg(udpServerFD, &message, 0);
+                        sendmsg(udpServerFD, &message, 0);
                     }
                 }
 

@@ -34,8 +34,7 @@ inline void update_current_thread_priority(int priority) {
 
 #ifdef _WIN32
 
-#include <WinSock2.h>
-#include <Windows.h>
+#include "nuclear_bits/util/windows_includes.hpp"
 
 inline void update_current_thread_priority(int priority) {
     

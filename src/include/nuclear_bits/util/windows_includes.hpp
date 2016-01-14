@@ -15,16 +15,41 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_UTIL_DEMANGLE_H
-#define NUCLEAR_UTIL_DEMANGLE_H
+#ifndef NUCLEAR_UTIL_WINDOWS_INCLUDES_H
+#define NUCLEAR_UTIL_WINDOWS_INCLUDES_H
 
-#include <string>
+// Because windows is SUUUUPER dumb and if you include headers in the wrong order
+// Nothing at all works, also if you don't define things in the right order nothing works
+// It's a terrible pile of garbage
+// So we have this header to make sure everything is in the correct order
+#ifdef _WIN32
 
-namespace NUClear {
-    namespace util {
+// Windows has a dumb min/max macro that breaks stuff
+#define NOMINMAX
 
-        std::string demangle(const char* symbol);
-    }
-}
+// Without this winsock just doesn't have half the typedefs
+#define INCL_WINSOCK_API_TYPEDEFS 1
 
-#endif  // NUCLEAR_UTIL_DEMANGLE_H
+// Winsock must be declared before Windows.h or it won't work
+#include <WinSock2.h>
+#include <Ws2ipdef.h>
+#include <Ws2tcpip.h>
+#include <Mswsock.h>
+#include <Mstcpip.h>
+#include <Iphlpapi.h>
+
+// This little thingy makes windows link to the winsock library
+#pragma comment(lib, "Ws2_32.lib")
+#pragma comment (lib, "Mswsock.lib")
+#pragma comment(lib, "IPHLPAPI.lib")
+
+// Include windows.h mega header... no wonder windows compiles so slowly
+#define WIN32_LEAN_AND_MEAN
+#include <Windows.h>
+
+// Whoever thought this was a good idea was a terrible person
+#undef ERROR
+
+#endif  // _WIN32
+
+#endif  // NUCLEAR_UTIL_PLATFORM_H

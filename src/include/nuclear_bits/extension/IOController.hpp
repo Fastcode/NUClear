@@ -18,43 +18,10 @@
 #ifndef NUCLEAR_EXTENSION_IOCONTROLLER
 #define NUCLEAR_EXTENSION_IOCONTROLLER
 
-#include "nuclear"
-
-extern "C" {
-    #include <unistd.h>
-    #include <poll.h>
-}
-
-namespace NUClear {
-    namespace extension {
-
-        class IOController : public Reactor {
-        private:
-
-            struct Task {
-                int fd;
-                short events;
-                std::shared_ptr<threading::Reaction> reaction;
-
-                bool operator< (const Task& other) const {
-                    return fd == other.fd ? events < other.events : fd < other.fd;
-                }
-            };
-
-        public:
-            explicit IOController(std::unique_ptr<NUClear::Environment> environment);
-
-        private:
-            int notifyRecv;
-            int notifySend;
-
-            bool shutdown = false;
-            bool dirty;
-            std::mutex reactionMutex;
-            std::vector<pollfd> fds;
-            std::vector<Task> reactions;
-        };
-    }
-}
+#ifdef _WIN32
+    #include "IOController_Windows.hpp"
+#else
+    #include "IOController_Posix.hpp"
+#endif
 
 #endif

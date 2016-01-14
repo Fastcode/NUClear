@@ -18,6 +18,8 @@
 #ifndef NUCLEAR_UTIL_FILEDESCRIPTOR_H
 #define NUCLEAR_UTIL_FILEDESCRIPTOR_H
 
+#include "nuclear_bits/util/platform.hpp"
+
 namespace NUClear {
     namespace util {
 
@@ -34,16 +36,25 @@ namespace NUClear {
              *
              * @param fd [description]
              */
-            FileDescriptor(int fd) : fd(fd) {
+            FileDescriptor(fd_t fd) : fd(fd) {
             }
 
             /**
              * @brief Destruct the file descriptor, closes the held FD
              */
             ~FileDescriptor() {
-                if(fd > 0) {
-                    ::close(fd);
+                // On windows it's CLOSE_SOCKET
+                #if defined(_WIN32)
+                if(fd != INVALID_SOCKET) {
+                    close(fd);
                 }
+                // On others we just close
+                #else
+                if(fd > 0) {
+                    close(fd);
+                }
+                #endif
+
             }
 
             /**
@@ -55,8 +66,8 @@ namespace NUClear {
              *          be invalidated.
              * @return the held file descriptor
              */
-            int release() {
-                int temp = fd;
+            fd_t release() {
+                fd_t temp = fd;
                 fd = -1;
                 return temp;
             }
@@ -66,12 +77,12 @@ namespace NUClear {
              *
              * @return the file descriptor
              */
-            operator int() {
+            operator fd_t() {
                 return fd;
             }
 
             /// @brief The held file descriptor
-            int fd;
+            fd_t fd;
         };
     }
 }

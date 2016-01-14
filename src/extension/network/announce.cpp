@@ -44,12 +44,13 @@ namespace NUClear {
 
             // Send a multicast packet announcing ourselves from our UDP port
             sockaddr_in multicastTarget;
-            std::memset(&multicastTarget, 0, sizeof(sockaddr_in));
-            inet_pton(AF_INET, multicastGroup.c_str(), &multicastTarget);
+			std::memset(&multicastTarget, 0, sizeof(sockaddr_in));
+            multicastTarget.sin_family = AF_INET;
+            inet_pton(AF_INET, multicastGroup.c_str(), &multicastTarget.sin_addr);
             multicastTarget.sin_port = htons(multicastPort);
 
             // Send the packet
-            ::sendto(udpServerFD, packet.data(), packet.size(), 0, reinterpret_cast<sockaddr*>(&multicastTarget), sizeof(sockaddr));
+			::sendto(udpServerFD, packet.data(), packet.size(), 0, reinterpret_cast<sockaddr*>(&multicastTarget), sizeof(sockaddr));
         }
     }
 }

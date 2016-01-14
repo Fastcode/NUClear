@@ -30,18 +30,18 @@ namespace NUClear {
             std::vector<char> data(sizeof(network::PacketHeader));
 
             // Read our header
-            ::recv(connection.fd, data.data(), data.size(), MSG_WAITALL);
+			::recv(connection.fd, data.data(), data.size(), 0);
             const network::PacketHeader& header = *reinterpret_cast<network::PacketHeader*>(data.data());
 
+			// We have to read this now as after we resize it'll move (maybe)
+			uint32_t length = header.length;
+
             // Add enough space for our remaining packet
-            data.resize(data.size() + header.length);
+			data.resize(data.size() + length);
 
             // Read our remaining packet
-            ::recv(connection.fd, data.data() + sizeof(network::PacketHeader), header.length, MSG_WAITALL);
+			::recv(connection.fd, data.data() + sizeof(network::PacketHeader), length, 0);
             const network::AnnouncePacket& announce = *reinterpret_cast<network::AnnouncePacket*>(data.data());
-
-            // Lock our mutex to make sure we only add one at a time
-            std::lock_guard<std::mutex> lock(targetMutex);
 
             // See if we can find our network target for this element
             auto udpT = udpTarget.find(std::make_pair(connection.remote.address, announce.udpPort));
@@ -55,7 +55,7 @@ namespace NUClear {
                 tcpTarget.insert(std::make_pair(it->tcpFD, it));
 
                 // Bind our new reaction
-                it->handle = on<IO, Sync<NetworkController>>(it->tcpFD, IO::READ | IO::FAIL | IO::CLOSE).then("Network TCP Handler", [this] (const IO::Event& e) {
+                it->handle = on<IO, Sync<NetworkController>>(it->tcpFD, IO::READ | IO::ERROR | IO::CLOSE).then("Network TCP Handler", [this] (const IO::Event& e) {
                     tcpHandler(e);
                 });
 
@@ -70,7 +70,7 @@ namespace NUClear {
             else {
                 // Close the connection that was made, we made one to them faster
                 // And as it was never bound to a callback, it won't show up as an event
-                ::close(connection.fd);
+                close(connection.fd);
             }
         }
     }

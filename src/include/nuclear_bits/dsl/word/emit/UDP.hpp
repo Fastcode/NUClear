@@ -18,6 +18,17 @@
 #ifndef NUCLEAR_DSL_WORD_EMIT_UDP_H
 #define NUCLEAR_DSL_WORD_EMIT_UDP_H
 
+#ifdef _WIN32
+    #include "nuclear_bits/util/windows_includes.hpp"
+#else
+    #include <unistd.h>
+    #include <sys/socket.h>
+    #include <arpa/inet.h>
+    #include <netinet/in.h>
+    #include <net/if.h>
+    #include <cstring>
+#endif
+
 #include "nuclear_bits/PowerPlant.hpp"
 #include "nuclear_bits/util/FileDescriptor.hpp"
 #include "nuclear_bits/util/serialise/Serialise.hpp"
@@ -90,32 +101,34 @@ namespace NUClear {
                     // String ip addresses
                     static inline void emit(PowerPlant& pp, std::shared_ptr<TData> data, std::string toAddr, uint16_t toPort, std::string fromAddr, uint16_t fromPort) {
                         
-                        sockaddr_in addr;
+						in_addr addr;
                         
                         inet_pton(AF_INET, toAddr.c_str(), &addr);
-                        uint32_t to = ntohl(addr.sin_addr.s_addr);
+                        uint32_t to = ntohl(addr.s_addr);
                         
                         inet_pton(AF_INET, fromAddr.c_str(), &addr);
-                        uint32_t from = ntohl(addr.sin_addr.s_addr);
+                        uint32_t from = ntohl(addr.s_addr);
 
                         emit(pp, data, to, toPort, from, fromPort);
 
                     }
+
                     static inline void emit(PowerPlant& pp, std::shared_ptr<TData> data, std::string toAddr, uint16_t toPort, uint32_t fromAddr, uint16_t fromPort) {
-                        
-                        sockaddr_in addr;
+
+                        in_addr addr;
                         
                         inet_pton(AF_INET, toAddr.c_str(), &addr);
-                        uint32_t to = ntohl(addr.sin_addr.s_addr);
+                        uint32_t to = ntohl(addr.s_addr);
                         
                         emit(pp, data, to, toPort, fromAddr, fromPort);
                     }
+
                     static inline void emit(PowerPlant& pp, std::shared_ptr<TData> data, uint32_t toAddr, uint16_t toPort, std::string fromAddr, uint16_t fromPort) {
                         
-                        sockaddr_in addr;
+						in_addr addr;
                         
                         inet_pton(AF_INET, fromAddr.c_str(), &addr);
-                        uint32_t from = ntohl(addr.sin_addr.s_addr);
+                        uint32_t from = ntohl(addr.s_addr);
                         
                         emit(pp, data, toAddr, toPort, from, fromPort);
                     }
@@ -124,8 +137,15 @@ namespace NUClear {
                     static inline void emit(PowerPlant& pp, std::shared_ptr<TData> data, uint32_t toAddr, uint16_t toPort) {
                         emit(pp, data, toAddr, toPort, INADDR_ANY, 0);
                     }
+
                     static inline void emit(PowerPlant& pp, std::shared_ptr<TData> data, std::string toAddr, uint16_t toPort) {
-                        emit(pp, data, ntohl(inet_addr(toAddr.c_str())), toPort, INADDR_ANY, 0);
+
+						in_addr addr;
+
+						inet_pton(AF_INET, toAddr.c_str(), &addr);
+						uint32_t to = ntohl(addr.s_addr);
+
+                        emit(pp, data, to, toPort, INADDR_ANY, 0);
                     }
                 };
             }

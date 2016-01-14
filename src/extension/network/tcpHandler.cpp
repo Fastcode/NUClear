@@ -24,10 +24,52 @@
 namespace NUClear {
     namespace extension {
 
+		ssize_t recv_all(fd_t fd, char* buff, size_t len) {
+			ssize_t index = 0;
+
+			while (size_t(index) < len) {
+
+				// Receive as much data as we can
+				auto v = recv(fd, buff + index, len - index, 0);
+
+				// Work out what to do based on this v
+				switch (v) {
+					case 0: {
+						// Socket shut down
+						return index;
+					} break;
+					case -1: {
+						// Get our error to see if it's because the socket is non blocking (happens on windows)
+						auto error = network_errno;
+						#ifdef _WIN32
+						if (error == WSAEWOULDBLOCK) { continue; }
+						#else
+						if (error == EAGAIN || error == EWOULDBLOCK) { continue; }
+						#endif
+						return -1;
+
+						// Was an error, we don't care if it's WSAEWOULDBLOCK on windows or EAGAIN/EWOULDBLOCK on other os's
+					}
+					default: {
+						// Otherwise we move on to more bytes
+						index += v;
+					}
+				}
+			}
+
+			return index;
+		}
+
         void NetworkController::tcpHandler(const IO::Event& e) {
 
             // Find this connections target
             auto target = tcpTarget.find(e.fd);
+            
+            // Sometimes, if a tcp event is queued, it can come in before the unbind
+            // Squash it here to prevent errors
+            if (target == tcpTarget.end()) {
+                return;
+            }
 
             bool badPacket = false;
 
@@ -38,15 +80,15 @@ namespace NUClear {
                 std::vector<char> data(sizeof(network::PacketHeader));
 
                 // Read our header and check it is valid
-                if(::recv(e.fd, data.data(), data.size(), MSG_WAITALL) == sizeof(network::PacketHeader)) {
-
+                if(recv_all(e.fd, data.data(), data.size()) == sizeof(network::PacketHeader)) {
                     const network::PacketHeader& header = *reinterpret_cast<network::PacketHeader*>(data.data());
+					uint32_t length = header.length;
 
                     // Add enough space for our remaining packet
-                    data.resize(data.size() + header.length);
+                    data.resize(data.size() + length);
 
                     // Read our remaining packet and check it's valid
-                    if(::recv(e.fd, data.data() + sizeof(network::PacketHeader), header.length, MSG_WAITALL) == header.length) {
+                    if(recv_all(e.fd, data.data() + sizeof(network::PacketHeader), length) == ssize_t(length)) {
 
                         const network::DataPacket& packet = *reinterpret_cast<network::DataPacket*>(data.data());
 
@@ -96,11 +138,9 @@ namespace NUClear {
                 }
             }
 
-            // If the connection closed or errored (or reached an end of file
-            if(badPacket || (e.events & IO::CLOSE) || (e.events & IO::FAIL)) {
-
-                // Lock our mutex
-                std::lock_guard<std::mutex> lock(targetMutex);
+            // If the connection closed or errored (or reached an end of file)
+			// And we have not already closed this connection
+            if((e.events & IO::CLOSE) || (e.events & IO::ERROR) || badPacket) {
 
                 // emit a message that says who disconnected
                 auto l = std::make_unique<message::NetworkLeave>();
@@ -114,7 +154,7 @@ namespace NUClear {
                 target->second->handle.unbind();
 
                 // Close our half of the connection
-                ::close(e.fd);
+                close(e.fd);
 
                 // Remove our UDP target
                 udpTarget.erase(udpTarget.find(std::make_pair(target->second->address, target->second->udpPort)));

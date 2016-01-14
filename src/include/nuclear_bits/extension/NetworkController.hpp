@@ -43,7 +43,7 @@ namespace NUClear {
                 uint32_t address;
                 uint16_t tcpPort;
                 uint16_t udpPort;
-                int tcpFD;
+                fd_t tcpFD;
                 ReactionHandle handle;
                 std::map<uint16_t, std::pair<clock::time_point, std::vector<std::vector<char>>>> buffer;
                 std::mutex bufferMutex;
@@ -87,7 +87,6 @@ namespace NUClear {
             std::mutex reactionMutex;
             std::multimap<std::array<uint64_t, 2>, std::shared_ptr<threading::Reaction>> reactions;
 
-            std::mutex targetMutex;
             std::list<NetworkTarget> targets;
             std::multimap<std::string, std::list<NetworkTarget>::iterator> nameTarget;
             std::map<std::pair<int, int>, std::list<NetworkTarget>::iterator> udpTarget;

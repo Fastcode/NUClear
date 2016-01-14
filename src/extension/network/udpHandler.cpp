@@ -47,9 +47,6 @@ namespace NUClear {
                     // Make sure this is not us
                     if(!(name == newName && tcpPort == newTCPPort && udpPort == newUDPPort)) {
 
-                        // Lock our mutex to make sure we only add one at a time
-                        std::lock_guard<std::mutex> lock(targetMutex);
-
                         // Check we do not already have this client connected
                         if(udpTarget.find(std::make_pair(packet.remote.address, newUDPPort)) == udpTarget.end()) {
 
@@ -97,7 +94,7 @@ namespace NUClear {
                             tcpTarget.insert(std::make_pair(it->tcpFD, it));
 
                             // Start our connected handle
-                            it->handle = on<IO, Sync<NetworkController>>(it->tcpFD, IO::READ | IO::FAIL | IO::CLOSE).then("Network TCP Handler", [this] (const IO::Event& e) {
+                            it->handle = on<IO, Sync<NetworkController>>(it->tcpFD, IO::READ | IO::ERROR | IO::CLOSE).then("Network TCP Handler", [this] (const IO::Event& e) {
                                 tcpHandler(e);
                             });
 
