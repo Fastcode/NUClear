@@ -47,9 +47,6 @@ namespace NUClear {
                     // Make sure this is not us
                     if(!(name == newName && tcpPort == newTCPPort && udpPort == newUDPPort)) {
 
-                        // Lock our mutex to make sure we only add one at a time
-                        std::lock_guard<std::mutex> lock(targetMutex);
-
                         // Check we do not already have this client connected
                         if(udpTarget.find(std::make_pair(packet.remote.address, newUDPPort)) == udpTarget.end()) {
 

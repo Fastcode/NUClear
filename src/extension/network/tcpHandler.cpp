@@ -25,9 +25,9 @@ namespace NUClear {
     namespace extension {
 
 		ssize_t recv_all(fd_t fd, char* buff, size_t len) {
-			int index = 0;
+			ssize_t index = 0;
 
-			while (index < len) {
+			while (size_t(index) < len) {
 
 				// Receive as much data as we can
 				auto v = recv(fd, buff + index, len - index, 0);
@@ -64,6 +64,12 @@ namespace NUClear {
 
             // Find this connections target
             auto target = tcpTarget.find(e.fd);
+            
+            // Sometimes, if a tcp event is queued, it can come in before the unbind
+            // Squash it here to prevent errors
+            if (target == tcpTarget.end()) {
+                return;
+            }
 
             bool badPacket = false;
 
@@ -82,7 +88,7 @@ namespace NUClear {
                     data.resize(data.size() + length);
 
                     // Read our remaining packet and check it's valid
-                    if(recv_all(e.fd, data.data() + sizeof(network::PacketHeader), length) == length) {
+                    if(recv_all(e.fd, data.data() + sizeof(network::PacketHeader), length) == ssize_t(length)) {
 
                         const network::DataPacket& packet = *reinterpret_cast<network::DataPacket*>(data.data());
 
@@ -134,10 +140,7 @@ namespace NUClear {
 
             // If the connection closed or errored (or reached an end of file)
 			// And we have not already closed this connection
-            if((e.events & IO::CLOSE) || (e.events & IO::ERROR)) {
-
-                // Lock our mutex
-                std::lock_guard<std::mutex> lock(targetMutex);
+            if((e.events & IO::CLOSE) || (e.events & IO::ERROR) || badPacket) {
 
                 // emit a message that says who disconnected
                 auto l = std::make_unique<message::NetworkLeave>();

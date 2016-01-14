@@ -43,9 +43,6 @@ namespace NUClear {
 			::recv(connection.fd, data.data() + sizeof(network::PacketHeader), length, 0);
             const network::AnnouncePacket& announce = *reinterpret_cast<network::AnnouncePacket*>(data.data());
 
-            // Lock our mutex to make sure we only add one at a time
-            std::lock_guard<std::mutex> lock(targetMutex);
-
             // See if we can find our network target for this element
             auto udpT = udpTarget.find(std::make_pair(connection.remote.address, announce.udpPort));
 
