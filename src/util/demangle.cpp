@@ -75,6 +75,7 @@ namespace NUClear {
 
 #include <cxxabi.h>
 #include <cstdlib>
+#include <memory>
 
 namespace NUClear {
     namespace util {

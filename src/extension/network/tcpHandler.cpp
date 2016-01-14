@@ -24,6 +24,42 @@
 namespace NUClear {
     namespace extension {
 
+		ssize_t recv_all(fd_t fd, char* buff, size_t len) {
+			int index = 0;
+
+			while (index < len) {
+
+				// Receive as much data as we can
+				auto v = recv(fd, buff + index, len - index, 0);
+
+				// Work out what to do based on this v
+				switch (v) {
+					case 0: {
+						// Socket shut down
+						return index;
+					} break;
+					case -1: {
+						// Get our error to see if it's because the socket is non blocking (happens on windows)
+						auto error = network_errno;
+						#ifdef _WIN32
+						if (error == WSAEWOULDBLOCK) { continue; }
+						#else
+						if (error == EAGAIN || error == EWOULDBLOCK) { continue; }
+						#endif
+						return -1;
+
+						// Was an error, we don't care if it's WSAEWOULDBLOCK on windows or EAGAIN/EWOULDBLOCK on other os's
+					}
+					default: {
+						// Otherwise we move on to more bytes
+						index += v;
+					}
+				}
+			}
+
+			return index;
+		}
+
         void NetworkController::tcpHandler(const IO::Event& e) {
 
             // Find this connections target
@@ -38,14 +74,15 @@ namespace NUClear {
                 std::vector<char> data(sizeof(network::PacketHeader));
 
                 // Read our header and check it is valid
-                if(::recv(e.fd, data.data(), data.size(), 0) == sizeof(network::PacketHeader)) {
+                if(recv_all(e.fd, data.data(), data.size()) == sizeof(network::PacketHeader)) {
                     const network::PacketHeader& header = *reinterpret_cast<network::PacketHeader*>(data.data());
+					uint32_t length = header.length;
 
                     // Add enough space for our remaining packet
-                    data.resize(data.size() + header.length);
+                    data.resize(data.size() + length);
 
                     // Read our remaining packet and check it's valid
-                    if(::recv(e.fd, data.data() + sizeof(network::PacketHeader), header.length, 0) == header.length) {
+                    if(recv_all(e.fd, data.data() + sizeof(network::PacketHeader), length) == length) {
 
                         const network::DataPacket& packet = *reinterpret_cast<network::DataPacket*>(data.data());
 

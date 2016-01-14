@@ -37,7 +37,10 @@ namespace {
             on<TCP>(port).then([this](const TCP::Connection& connection) {
 
                 on<IO>(connection.fd, IO::READ | IO::CLOSE).then([this] (IO::Event event) {
-
+                    
+                    // If we read 0 later it means orderly shutdown
+                    ssize_t len = -1;
+                    
 					// We have data to read
 					if ((event.events & IO::READ) != 0) {
 
@@ -45,7 +48,7 @@ namespace {
 						memset(buff, 0, sizeof(buff));
 
 						// Read into the buffer
-						ssize_t len = ::recv(event.fd, buff, testString.size(), 0);
+						len = ::recv(event.fd, buff, testString.size(), 0);
                         
                         // 0 indicates orderly shutdown of the socket
                         if (len != 0) {
@@ -58,7 +61,7 @@ namespace {
 					}
 
 					// The connection was closed and the other test finished
-					if (event.events & IO::CLOSE) {
+					if (len == 0 || event.events & IO::CLOSE) {
 						if (messagesReceived == 2) {
 							powerplant.shutdown();
 						}
@@ -71,6 +74,9 @@ namespace {
             std::tie(std::ignore, boundPort, std::ignore) = on<TCP>().then([this](const TCP::Connection& connection) {
                 on<IO>(connection.fd, IO::READ | IO::CLOSE).then([this] (IO::Event event) {
 
+                    // If we read 0 later it means orderly shutdown
+                    ssize_t len = -1;
+                    
 					// We have data to read
 					if ((event.events & IO::READ) != 0) {
 
@@ -78,7 +84,7 @@ namespace {
 						memset(buff, 0, sizeof(buff));
 
 						// Read into the buffer
-						ssize_t len = ::recv(event.fd, buff, testString.size(), 0);
+						len = ::recv(event.fd, buff, testString.size(), 0);
 
                         // 0 indicates orderly shutdown of the socket
                         if(len != 0) {
@@ -90,7 +96,7 @@ namespace {
 					}
 
 					// The connection was closed and the other test finished
-					if (event.events & IO::CLOSE) {
+					if (len == 0 || event.events & IO::CLOSE) {
 						if (messagesReceived == 2) {
 							powerplant.shutdown();
 						}
