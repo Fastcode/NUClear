@@ -11,8 +11,6 @@ addons:
       - llvm-toolchain-precise-3.7
     packages:
       - cmake
-      - gcc-4.8
-      - g++-4.8
       - gcc-4.9
       - g++-4.9
       - gcc-5
@@ -20,25 +18,20 @@ addons:
       - clang-3.5
 
 env:
-  - COMPILER="gcc-4.8"
   - COMPILER="gcc-4.9"
-  - COMPILER="gcc-5.1"
+  - COMPILER="gcc-5"
   - COMPILER="clang-3.5"
 
 # Install our required dependencies
 install:
 
-  # gcc-4.8
-  - if [[ "$COMPILER" == "gcc-4.8" ]]; then export CXX="g++-4.8"; fi
-  - if [[ "$COMPILER" == "gcc-4.8" ]]; then export CC="gcc-4.8"; fi
-
   # gcc-4.9
   - if [[ "$COMPILER" == "gcc-4.9" ]]; then export CXX="g++-4.9"; fi
   - if [[ "$COMPILER" == "gcc-4.9" ]]; then export CC="gcc-4.9"; fi
 
-  # gcc-5.1
-  - if [[ "$COMPILER" == "gcc-5.1" ]]; then export CXX="g++-5"; fi
-  - if [[ "$COMPILER" == "gcc-5.1" ]]; then export CC="gcc-5"; fi
+  # gcc-5
+  - if [[ "$COMPILER" == "gcc-5" ]]; then export CXX="g++-5"; fi
+  - if [[ "$COMPILER" == "gcc-5" ]]; then export CC="gcc-5"; fi
 
   # clang 3.4
   - if [[ "$COMPILER" == "clang-3.4" ]]; then export CXX="clang++-3.4"; fi
