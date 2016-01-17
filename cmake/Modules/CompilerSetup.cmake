@@ -29,7 +29,7 @@ IF(CMAKE_CXX_COMPILER_ID MATCHES GNU)
 
 # Clang Compiler
 ELSEIF(CMAKE_CXX_COMPILER_ID MATCHES Clang)
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -ftemplate-backtrace-limit=0 -Wpedantic -Wextra")
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -pthread -ftemplate-backtrace-limit=0 -Wpedantic -Wextra")
 
 # MSVC Compiler
 ELSEIF(CMAKE_CXX_COMPILER_ID MATCHES MSVC)
