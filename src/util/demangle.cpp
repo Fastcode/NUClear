@@ -34,8 +34,7 @@ namespace NUClear {
         std::mutex symbolMutex;
         
         void initSymbols() {
-            
-            DWORD  error;
+           
             HANDLE hProcess;
             
             SymSetOptions(SYMOPT_UNDNAME | SYMOPT_DEFERRED_LOADS);

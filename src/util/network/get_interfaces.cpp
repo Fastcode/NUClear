@@ -54,7 +54,7 @@ namespace NUClear {
 				// Do the real call
 				GetIpAddrTable(table.data(), &size, false);
 
-				for (int i = 0; i < table.front().dwNumEntries; ++i) {
+				for (size_t i = 0; i < table.front().dwNumEntries; ++i) {
 
 					// Storage for the information for this address
 					MIB_IF_ROW2 data;

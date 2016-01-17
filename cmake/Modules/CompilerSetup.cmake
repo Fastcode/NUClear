@@ -16,12 +16,12 @@ ENDIF()
 IF(CMAKE_CXX_COMPILER_ID MATCHES GNU)
 
     # GCC Must be version 4.8 or greater for used features
-    IF(CMAKE_CXX_COMPILER_VERSION VERSION_LESS "4.8")
+    IF(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 4.8)
         MESSAGE(FATAL_ERROR "${PROJECT_NAME} requires g++ 4.8 or greater.")
     ENDIF()
 
     # Enable colours on g++ 4.9 or greater
-    IF(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "4.9" OR GCC_VERSION VERSION_EQUAL "4.9")
+    IF(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 4.9 OR CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL 4.9)
         SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fdiagnostics-color=always")
     ENDIF()
 
@@ -34,5 +34,5 @@ ELSEIF(CMAKE_CXX_COMPILER_ID MATCHES Clang)
 # MSVC Compiler
 ELSEIF(CMAKE_CXX_COMPILER_ID MATCHES MSVC)
 ELSE()
-    MESSAGE(FATAL_ERROR "Unsupported compiler!")
+    MESSAGE(WARNING "You are using an unsupported compiler! Compilation has only been tested with Clang, GCC and MSVC.")
 ENDIF()
