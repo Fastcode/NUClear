@@ -4,6 +4,7 @@ addons:
   apt:
     sources:
       - ubuntu-toolchain-r-test
+      - kalakris-cmake
       - llvm-toolchain-precise
       - llvm-toolchain-precise-3.5
       - llvm-toolchain-precise-3.6
