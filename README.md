@@ -1,22 +1,35 @@
 NUClear
-======
-This is an awesome project
+=======
 
+NUClear is a c++ software framework designed to aid in the development of real time modular systems.
+It is built from a set of template metapgrograms that control the flow of information through the system.
 
-## Directory structure
+It is highly extensible and provides several attachment points to develop new DSL keywords if needed.
 
-    include/ -- Include files that are intended for client use.
-    src/ -- Build files intended for building nuclear. 
-      internal/ -- Internal files
-        magic/ -- Internal template magic files
-    test/ -- Test files using gtest
+These metaprograms reduce the cost of routing messages between modules resulting in a much faster system.
 
-## Project Dependencies (Debian)
-    
-### Build Tools
+For help getting started check the [wiki](https://github.com/Fastcode/NUClear/wiki)
 
-* g++ 4.8 or clang (with c++11 support)
-* cmake 2.8
+## Installing
+NUClear uses CMake as its build tool.
 
-### Libraries
-* Catch Unit Testing Framework
+For the lazy
+```bash
+git clone https://github.com/Fastcode/NUClear.git
+cd NUClear
+mkdir build
+cd build
+cmake .. -DBUILD_TESTS=OFF
+make install
+```
+
+## Project Structure
+
+    src/ -- Source files for the project
+      include/ -- Include files
+    tests/ -- Test files using catch unit testing framework
+
+### Dependencies
+* g++ 4.9, clang (with c++14 support) or Visual Studio 2015
+* cmake 2.8.10
+* [Catch Unit Testing Framework](https://github.com/philsquared/Catch) for building tests
