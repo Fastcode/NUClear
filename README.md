@@ -10,6 +10,8 @@ These metaprograms reduce the cost of routing messages between modules resulting
 
 For help getting started check the [wiki](https://github.com/Fastcode/NUClear/wiki)
 
+If you're starting a new project using NUClear the [NUClear Roles system](https://github.com/Fastcode/NUClearRoles) is highly recommended
+
 ## Installing
 NUClear uses CMake as its build tool.
 
