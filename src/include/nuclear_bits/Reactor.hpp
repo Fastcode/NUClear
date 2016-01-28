@@ -79,8 +79,11 @@ namespace NUClear {
 
             template <typename>
             struct Per;
-
+            
             struct Single;
+            
+            template <int>
+            struct Buffer;
 
             template <typename>
             struct Sync;
@@ -206,9 +209,13 @@ namespace NUClear {
         /// @copydoc dsl::word::Sync
         template <typename TSync>
         using Sync = dsl::word::Sync<TSync>;
-
+        
         /// @copydoc dsl::word::Single
         using Single = dsl::word::Single;
+        
+        /// @copydoc dsl::word::Buffer
+        template <int N>
+        using Buffer = dsl::word::Buffer<N>;
 
         struct Scope {
             /// @copydoc dsl::word::emit::Local
@@ -375,6 +382,7 @@ namespace NUClear {
 #include "nuclear_bits/dsl/word/Last.hpp"
 #include "nuclear_bits/dsl/word/Every.hpp"
 #include "nuclear_bits/dsl/word/Single.hpp"
+#include "nuclear_bits/dsl/word/Buffer.hpp"
 #include "nuclear_bits/dsl/word/Sync.hpp"
 #include "nuclear_bits/dsl/word/emit/Local.hpp"
 #include "nuclear_bits/dsl/word/emit/Initialize.hpp"

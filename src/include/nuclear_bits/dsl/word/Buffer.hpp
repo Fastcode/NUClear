@@ -15,10 +15,8 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_DSL_WORD_SINGLE_H
-#define NUCLEAR_DSL_WORD_SINGLE_H
-
-#include "Buffer.hpp"
+#ifndef NUCLEAR_DSL_WORD_BUFFER_H
+#define NUCLEAR_DSL_WORD_BUFFER_H
 
 namespace NUClear {
     namespace dsl {
@@ -26,14 +24,22 @@ namespace NUClear {
 
             /**
              * @ingroup Options
-             * @brief This option sets the Single instance status of the task
+             * @brief This option sets the number of tasks to buffer before dropping tasks
              *
              * @details
-             *  If a task is declared as being Single, then that means that only a single instance of the task can be
-             *  in the system at any one time. If the task is triggered again while an existing task is either in the
+             *  If a task has a limited buffer size, then that means that N instances of the task can be
+             *  in the system at any one time. If the task is triggered again while N existing tasks are in the
              *  queue or is still executing, then this new task will be ignored.
              */
-            struct Single : public Buffer<1> {};
+            template <int N>
+            struct Buffer {
+
+                template <typename DSL>
+                static inline bool precondition(threading::Reaction& reaction) {
+                    // We only run if there are less than the target number of active tasks
+                    return reaction.activeTasks < N;
+                }
+            };
         }
     }
 }
