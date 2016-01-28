@@ -25,6 +25,7 @@ namespace {
     const std::string testString = "Hello UDP Broadcast World!";
     int countA = 0;
     int countB = 0;
+    int numAddresses = 0;
 
     struct Message {
     };
@@ -80,6 +81,8 @@ namespace {
                         }
                     }
                 }
+                
+                numAddresses = addresses.size();
 
                 for(auto& ad : addresses) {
 
@@ -104,6 +107,8 @@ namespace {
                         }
                     }
                 }
+                
+                numAddresses = addresses.size();
 
                 for(auto& ad : addresses) {
 
@@ -130,7 +135,7 @@ TEST_CASE("Testing sending and receiving of UDP Broadcast messages", "[api][netw
 
     plant.start();
 
-    REQUIRE(countA == 1);
-    REQUIRE(countB == 1);
+    REQUIRE(countA == numAddresses);
+    REQUIRE(countB == numAddresses);
 }
 
