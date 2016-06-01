@@ -40,16 +40,6 @@
 #include "nuclear_bits/message/LogLevel.hpp"
 #include "nuclear_bits/message/LogMessage.hpp"
 
-// Patch for std::make_unique in c++11 (should be fixed in c++14)
-#if __cplusplus == 201103L
-namespace std {
-    template<typename T, typename... Args>
-    std::unique_ptr<T> make_unique(Args&&... args) {
-        return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
-    }
-}
-#endif
-
 namespace NUClear {
 
     // Forward declare reactor
@@ -245,6 +235,9 @@ namespace NUClear {
 #include "nuclear_bits/message/CommandLineArguments.hpp"
 #include "nuclear_bits/message/NetworkConfiguration.hpp"
 #include "nuclear_bits/message/NetworkEvent.hpp"
+
+// Header which stops reaction statisitcs messages from including themselves
+#include "nuclear_bits/message/ReactionStatisticsDeloop.hpp"
 
 // Include all of our implementation files (which use the previously included reactor.h)
 #include "nuclear_bits/PowerPlant.ipp"

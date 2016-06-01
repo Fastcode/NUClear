@@ -18,6 +18,7 @@
 #ifndef NUCLEAR_UTIL_GENERATE_CALLBACK_H
 #define NUCLEAR_UTIL_GENERATE_CALLBACK_H
 
+#include "nuclear_bits/dsl/word/emit/Direct.hpp"
 #include "nuclear_bits/dsl/trait/is_transient.hpp"
 #include "nuclear_bits/util/demangle.hpp"
 #include "nuclear_bits/util/apply.hpp"
@@ -108,6 +109,9 @@ namespace NUClear {
 
                             // Run our postconditions
                             DSL::postcondition(*task);
+                            
+                            // Emit our reaction statistics
+                            PowerPlant::powerplant->emit<dsl::word::emit::Direct>(task->stats);
                         }
 
                         // Return our task

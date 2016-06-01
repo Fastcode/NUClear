@@ -78,7 +78,7 @@ namespace NUClear {
             std::unique_ptr<ReactionTask> task(std::move(const_cast<std::unique_ptr<ReactionTask>&>(queue.top())));
             queue.pop();
 
-            return std::move(task);
+            return task;
 
         }
     }

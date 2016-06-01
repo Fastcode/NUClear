@@ -15,33 +15,27 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_THREADING_THREADPOOLTASK_H
-#define NUCLEAR_THREADING_THREADPOOLTASK_H
-
-#include "nuclear_bits/PowerPlant.hpp"
-#include "nuclear_bits/threading/TaskScheduler.hpp"
-#include "nuclear_bits/util/update_current_thread_priority.hpp"
+#ifndef NUCLEAR_MESSAGE_REACTIONSTATISTICSDELOOP_H
+#define NUCLEAR_MESSAGE_REACTIONSTATISTICSDELOOP_H
 
 namespace NUClear {
-    namespace threading {
-
-        inline std::function<void ()> makeThreadPoolTask(PowerPlant& powerplant, TaskScheduler& scheduler) {
-            return [&powerplant, &scheduler] {
+    namespace dsl {
+        namespace operation {
+            
+            template <>
+            struct CacheGet<message::ReactionStatistics> {
                 
-                // Wait at a high (but not realtime) priority to reduce latency
-                // for picking up a new task
-                update_current_thread_priority(1000);
-                
-                // Run while our scheduler gives us tasks
-                for (std::unique_ptr<ReactionTask> task(scheduler.getTask());
-                     task;
-                     task = scheduler.getTask()) {
-
-                    // Run the task
-                    task = task->run(std::move(task));
+                template <typename DSL>
+                static inline std::shared_ptr<const message::ReactionStatistics> get(threading::Reaction& r) {
                     
-                    // Back up to realtime while waiting
-                    update_current_thread_priority(1000);
+                    // Check if we are triggering ourselves, and if so stop it!
+                    auto* current = threading::ReactionTask::getCurrentTask();
+                    if (current && r.reactionId == current->parent.reactionId) {
+                        return nullptr;
+                    }
+                    else {
+                        return store::DataStore<message::ReactionStatistics>::get();
+                    }
                 }
             };
         }
