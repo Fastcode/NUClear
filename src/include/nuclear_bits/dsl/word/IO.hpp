@@ -67,7 +67,7 @@ namespace NUClear {
                     int events;
 
                     operator bool() const {
-                        return fd != 0;
+                        return fd != -1;
                     }
                 };
 
@@ -100,9 +100,9 @@ namespace NUClear {
                     if(ThreadEventStore::value) {
                         return *ThreadEventStore::value;
                     }
-                    // Otherwise return an empty event
+                    // Otherwise return an invalid event
                     else {
-                        return Event { 0, 0 };
+                        return Event { -1, 0 };
                     }
                 }
             };
