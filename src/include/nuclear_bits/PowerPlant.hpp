@@ -77,12 +77,13 @@ namespace NUClear {
             size_t threadCount;
         };
 
-    public:
-
         /// @brief Holds the configuration information for this PowerPlant (such as number of pool threads)
         const Configuration configuration;
+        
+        
+        // There can only be one powerplant, so this is it
+        static PowerPlant* powerplant;
 
-    public:
         /**
          * @brief
          *  Constructs a PowerPlant with the given configuration and provides access
@@ -198,8 +199,6 @@ namespace NUClear {
 
 
     private:
-        // There can only be one powerplant, so this is it
-        static PowerPlant* powerplant;
 
         /// TODO
         std::vector<std::function<void ()>> tasks;
