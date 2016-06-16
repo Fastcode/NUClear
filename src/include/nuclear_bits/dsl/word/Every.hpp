@@ -18,6 +18,7 @@
 #ifndef NUCLEAR_DSL_WORD_EVERY_H
 #define NUCLEAR_DSL_WORD_EVERY_H
 
+#include <cmath>
 #include "nuclear_bits/dsl/operation/Unbind.hpp"
 #include "nuclear_bits/dsl/word/emit/Direct.hpp"
 #include "nuclear_bits/util/generate_reaction.hpp"
@@ -36,7 +37,7 @@ namespace NUClear {
 
             template <typename Unit, std::intmax_t num, std::intmax_t den>
             struct Per<std::chrono::duration<Unit, std::ratio<num, den>>> : public clock::duration {
-                Per(int ticks) : clock::duration(long(round((double(num) / double(ticks * den)) * (double(clock::period::den) / double(clock::period::num))))) {}
+                Per(int ticks) : clock::duration(std::lround((double(num) / double(ticks * den)) * (double(clock::period::den) / double(clock::period::num)))) {}
             };
 
             struct EveryConfiguration {
