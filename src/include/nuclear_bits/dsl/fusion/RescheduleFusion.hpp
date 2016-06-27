@@ -84,7 +84,7 @@ namespace NUClear {
                 static inline std::unique_ptr<threading::ReactionTask> reschedule(std::unique_ptr<threading::ReactionTask>&& task) {
 
                     // Pass our task to see if it gets rescheduled
-                    auto ptr = W1::template rescheudle<DSL>(std::move(task));
+                    auto ptr = W1::template reschedule<DSL>(std::move(task));
 
                     // If it was not rescheduled pass to the next rescheduler
                     if(ptr) {
