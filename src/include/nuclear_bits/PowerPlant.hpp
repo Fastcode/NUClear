@@ -79,8 +79,8 @@ namespace NUClear {
 
         /// @brief Holds the configuration information for this PowerPlant (such as number of pool threads)
         const Configuration configuration;
-        
-        
+
+
         // There can only be one powerplant, so this is it
         static PowerPlant* powerplant;
 
@@ -90,7 +90,7 @@ namespace NUClear {
          *  to argv for all reactors.
          *
          * @details
-         *  If PowerPlant is constructed with argv and argv then a CommandLineArguments
+         *  If PowerPlant is constructed with argc and argv then a CommandLineArguments
          *  message will be emitted and available to all reactors.
          */
         PowerPlant(Configuration config = Configuration(), int argc = 0, const char *argv[] = nullptr);

@@ -37,7 +37,10 @@ namespace NUClear {
                 , address(address)
                 , tcpPort(tcpPort)
                 , udpPort(udpPort)
-                , tcpFD(tcpFD) {}
+                , tcpFD(tcpFD)
+                , handle()
+                , buffer()
+                , bufferMutex() {}
 
                 std::string name;
                 uint32_t address;

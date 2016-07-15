@@ -79,9 +79,9 @@ namespace NUClear {
 
             template <typename>
             struct Per;
-            
+
             struct Single;
-            
+
             template <int>
             struct Buffer;
 
@@ -120,7 +120,8 @@ namespace NUClear {
         friend class PowerPlant;
 
         Reactor(std::unique_ptr<Environment> environment)
-          : powerplant(environment->powerplant)
+          : reactionHandles()
+          , powerplant(environment->powerplant)
           , reactorName(environment->reactorName)
           , logLevel(environment->logLevel) {
         }
@@ -209,10 +210,10 @@ namespace NUClear {
         /// @copydoc dsl::word::Sync
         template <typename TSync>
         using Sync = dsl::word::Sync<TSync>;
-        
+
         /// @copydoc dsl::word::Single
         using Single = dsl::word::Single;
-        
+
         /// @copydoc dsl::word::Buffer
         template <int N>
         using Buffer = dsl::word::Buffer<N>;

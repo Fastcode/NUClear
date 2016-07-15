@@ -32,7 +32,10 @@ namespace {
 
         static constexpr size_t WAIT_LENGTH_MILLIS = 1;
 
-        TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
+        TestReactor(std::unique_ptr<NUClear::Environment> environment)
+            : Reactor(std::move(environment))
+            , times() {
+
             // Trigger every 10 milliseconds
             on<Every<WAIT_LENGTH_MILLIS, std::chrono::milliseconds>>().then([this] {
 

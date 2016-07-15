@@ -32,6 +32,8 @@ namespace NUClear {
             };
 
             struct NetworkSource {
+                NetworkSource() : name(""), address(0), port(0), reliable(false), multicast(false) {}
+
                 std::string name;
                 int address;
                 int port;
@@ -40,6 +42,8 @@ namespace NUClear {
             };
 
             struct NetworkListen {
+                NetworkListen() : hash(), reaction() {}
+
                 std::array<uint64_t, 2> hash;
                 std::shared_ptr<threading::Reaction> reaction;
             };

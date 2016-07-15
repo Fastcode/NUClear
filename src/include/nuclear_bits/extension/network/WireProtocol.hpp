@@ -30,6 +30,8 @@ namespace NUClear {
                 DATA = 2
             };
             struct PacketHeader {
+                PacketHeader() : type(), length(0) {}
+
                 uint8_t header[3] = { 0xE2, 0x98, 0xA2 };  // Radioactive symbol in UTF8
                 uint8_t version   = 0x01;                  // The NUClear networking version
                 Type type;                                 // The type of packet
@@ -37,12 +39,16 @@ namespace NUClear {
             };
 
             struct AnnouncePacket : public PacketHeader {
+                AnnouncePacket() : tcpPort(0), udpPort(0), name(0) {}
+
                 uint16_t tcpPort;               // The TCP port it is listening on
                 uint16_t udpPort;               // The UDP port it is listening on
                 char name;                      // A null terminated string name for this node (&name)
             };
 
             struct DataPacket : public PacketHeader  {
+                DataPacket() : packetId(0), packetNo(0), packetCount(0), multicast(false), hash(), data(0) {}
+
                 uint16_t packetId;              // A semiunique identifier for this packet group
                 uint16_t packetNo;              // What packet number this is
                 uint16_t packetCount;           // How many packets there are

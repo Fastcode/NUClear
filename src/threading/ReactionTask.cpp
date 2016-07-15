@@ -52,8 +52,8 @@ namespace NUClear {
             ++parent.activeTasks;
         }
 
-        const ReactionTask* ReactionTask::getCurrentTask() {
-            return currentTask;
+        const std::shared_ptr<ReactionTask> ReactionTask::getCurrentTask() {
+            return std::shared_ptr<ReactionTask>(currentTask);
         }
 
         std::unique_ptr<ReactionTask> ReactionTask::run(std::unique_ptr<ReactionTask>&& us) {

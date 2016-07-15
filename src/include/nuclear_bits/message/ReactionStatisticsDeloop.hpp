@@ -21,15 +21,15 @@
 namespace NUClear {
     namespace dsl {
         namespace operation {
-            
+
             template <>
             struct CacheGet<message::ReactionStatistics> {
-                
+
                 template <typename DSL>
                 static inline std::shared_ptr<const message::ReactionStatistics> get(threading::Reaction& r) {
-                    
+
                     // Check if we are triggering ourselves, and if so stop it!
-                    auto* current = threading::ReactionTask::getCurrentTask();
+                    auto current = threading::ReactionTask::getCurrentTask();
                     if (current && r.reactionId == current->parent.reactionId) {
                         return nullptr;
                     }

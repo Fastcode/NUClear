@@ -28,6 +28,8 @@ namespace NUClear {
             namespace emit {
 
                 struct NetworkEmit {
+                    NetworkEmit() : target(""), hash(), data(), reliable(false) {}
+
                     std::string target;
                     std::array<uint64_t, 2> hash;
                     std::vector<char> data;

@@ -26,7 +26,9 @@ namespace NUClear {
 
         ChronoController::ChronoController(std::unique_ptr<NUClear::Environment> environment)
             : Reactor(std::move(environment))
-            , steps(0) {
+            , steps(0)
+            , mutex()
+            , wait() {
 
             on<Trigger<dsl::word::EveryConfiguration>>().then("Configure Every Reaction", [this] (const dsl::word::EveryConfiguration& config) {
 

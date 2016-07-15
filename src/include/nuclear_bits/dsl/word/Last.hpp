@@ -28,11 +28,10 @@ namespace NUClear {
 
             template<size_t len, typename TData>
             struct LastItemStorage {
-
                 // The items we are storing
                 std::list<TData> list;
 
-                LastItemStorage() {
+                LastItemStorage() : list() {
                 }
 
                 LastItemStorage(TData&& data) : list({data}) {
