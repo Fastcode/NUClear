@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ * Copyright (C) 2013-2016 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -15,8 +15,8 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_DSL_WORD_MAINTHREAD_H
-#define NUCLEAR_DSL_WORD_MAINTHREAD_H
+#ifndef NUCLEAR_DSL_WORD_MAINTHREAD_HPP
+#define NUCLEAR_DSL_WORD_MAINTHREAD_HPP
 
 #include "nuclear_bits/util/main_thread_id.hpp"
 
@@ -34,13 +34,13 @@ namespace NUClear {
 
                 template <typename DSL>
                 static inline std::unique_ptr<threading::ReactionTask> reschedule(std::unique_ptr<threading::ReactionTask>&& task) {
-                    
+
                     // If we are not the main thread, move us to the main thread
                     if(std::this_thread::get_id() != util::main_thread_id) {
-                        
+
                         // Submit to the main thread scheduler
                         task->parent.reactor.powerplant.submitMain(std::move(task));
-                        
+
                         // We took the task away so return null
                         return std::unique_ptr<threading::ReactionTask>(nullptr);
                     }
@@ -50,8 +50,9 @@ namespace NUClear {
                     }
                 }
             };
-        }
-    }
-}
 
-#endif  // NUCLEAR_DSL_WORD_MAINTHREAD_H
+        }  // namespace word
+    }  // namespace dsl
+}  // namespace NUClear
+
+#endif  // NUCLEAR_DSL_WORD_MAINTHREAD_HPP

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ * Copyright (C) 2013-2016 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -23,52 +23,52 @@ LPFN_WSARECVMSG WSARecvMsg = nullptr;
 
  // Go get that WSARecvMsg function from stupid land
 void initialize_WSARecvMsg() {
-	GUID                guid = WSAID_WSARECVMSG;
-	SOCKET              sock = INVALID_SOCKET;
-	DWORD               dwBytes = 0;
+    GUID                guid = WSAID_WSARECVMSG;
+    SOCKET              sock = INVALID_SOCKET;
+    DWORD               dwBytes = 0;
 
-	sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+    sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 
-	if (SOCKET_ERROR == WSAIoctl(sock,
-		SIO_GET_EXTENSION_FUNCTION_POINTER,
-		&guid,
-		sizeof(guid),
-		&WSARecvMsg,
-		sizeof(WSARecvMsg),
-		&dwBytes,
-		nullptr,
-		nullptr
-		)) {
+    if (SOCKET_ERROR == WSAIoctl(sock,
+        SIO_GET_EXTENSION_FUNCTION_POINTER,
+        &guid,
+        sizeof(guid),
+        &WSARecvMsg,
+        sizeof(WSARecvMsg),
+        &dwBytes,
+        nullptr,
+        nullptr
+        )) {
         throw std::runtime_error("We could not get WSARecvMsg from the OS");
-	}
+    }
 
-	closesocket(sock);
+    closesocket(sock);
 }
 
 namespace NUClear {
-	int recvmsg(fd_t fd, msghdr* msg, int flags) {
+    int recvmsg(fd_t fd, msghdr* msg, int flags) {
 
-		// If we haven't setup our recvmsg function yet, set it up
-		if (WSARecvMsg == nullptr) {
-			initialize_WSARecvMsg();
-		}
+        // If we haven't setup our recvmsg function yet, set it up
+        if (WSARecvMsg == nullptr) {
+            initialize_WSARecvMsg();
+        }
 
-		// Translate to windows speak
-		DWORD received = 0;
-		DWORD f = 0;
+        // Translate to windows speak
+        DWORD received = 0;
+        DWORD f = 0;
 
-		int v = WSARecvMsg(fd, msg, &received, nullptr, nullptr);
+        int v = WSARecvMsg(fd, msg, &received, nullptr, nullptr);
 
-		return v == 0 ? received : v;
-	}
+        return v == 0 ? received : v;
+    }
 
-	int sendmsg(fd_t fd, msghdr* msg, int flags) {
+    int sendmsg(fd_t fd, msghdr* msg, int flags) {
 
-		DWORD sent = 0;
-		auto v = WSASendMsg(fd, msg, flags, &sent, nullptr, nullptr);
+        DWORD sent = 0;
+        auto v = WSASendMsg(fd, msg, flags, &sent, nullptr, nullptr);
 
-		return v == 0 ? sent : v;
-	}
+        return v == 0 ? sent : v;
+    }
 }
 
 #endif

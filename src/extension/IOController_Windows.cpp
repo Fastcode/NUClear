@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ * Copyright (C) 2013-2016 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -100,25 +100,25 @@ namespace NUClear {
                         if(event == WSA_WAIT_EVENT_0) {
                             WSAResetEvent(notifier);
                         }
-						else {
-							// Get our event
-							auto& e = fds[event - WSA_WAIT_EVENT_0];
+                        else {
+                            // Get our event
+                            auto& e = fds[event - WSA_WAIT_EVENT_0];
 
-							// Get our associated Event object (if it exists)
-							auto r = reactions.find(e);
-							if (r != reactions.end()) {
-                                
+                            // Get our associated Event object (if it exists)
+                            auto r = reactions.find(e);
+                            if (r != reactions.end()) {
+
                                 // Enum the events to work out which ones fired
                                 WSANETWORKEVENTS wsae;
                                 WSAEnumNetworkEvents(r->second.fd, e, &wsae);
-                                
+
                                 // Make our event to pass through
                                 IO::Event e;
                                 e.fd = r->second.fd;
-                                
+
                                 // Our events are what we got from the enum events call
                                 e.events = wsae.lNetworkEvents;
-                                
+
                                 // Store the event in our thread local cache
                                 IO::ThreadEventStore::value = &e;
 
@@ -131,12 +131,12 @@ namespace NUClear {
                                 }
                                 catch (...) {
                                 }
-                                
+
                                 // Reset our value
                                 IO::ThreadEventStore::value = nullptr;
 
-							}
-						}
+                            }
+                        }
                     }
                 }
 

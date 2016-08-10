@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ * Copyright (C) 2013-2016 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -15,10 +15,10 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_MESSAGE_LOGMESSAGE_H
-#define NUCLEAR_MESSAGE_LOGMESSAGE_H
+#ifndef NUCLEAR_MESSAGE_LOGMESSAGE_HPP
+#define NUCLEAR_MESSAGE_LOGMESSAGE_HPP
 
-#include "LogLevel.hpp"
+#include "nuclear_bits/LogLevel.hpp"
 
 namespace NUClear {
     namespace message {
@@ -37,20 +37,9 @@ namespace NUClear {
 
             /// @brief The currently executing task that made this message
             const ReactionStatistics* task;
-
-            /**
-             * @brief Constructs a new LogMessage.
-             *
-             * @param level the logging level to set.
-             * @param message the message to set.
-             */
-            LogMessage(const LogLevel& level
-                       , const std::string& message
-                       , const ReactionStatistics* task)
-            : level(level)
-            , message(message)
-            , task(task) {}
         };
-    }
-}
-#endif
+
+    }  // namespace message
+ }  // namespace NUClear
+
+#endif  // NUCLEAR_MESSAGE_LOGMESSAGE_HPP

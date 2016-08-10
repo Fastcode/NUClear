@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ * Copyright (C) 2013-2016 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -24,7 +24,7 @@ namespace {
 
     template <int id>
     struct Message {};
-    
+
     bool seenMessage0 = false;
     bool seenMessageStartup = false;
 
@@ -33,7 +33,7 @@ namespace {
 
 
         TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
-            
+
             on<Trigger<NUClear::message::ReactionStatistics>>().then("Reaction Stats Handler", [this] (const NUClear::message::ReactionStatistics& stats) {
 
                 // Flag if we have seen the message handler
@@ -44,7 +44,7 @@ namespace {
                 else if (stats.identifier[0] == "Startup Handler") {
                     seenMessageStartup = true;
                 }
-                
+
                 // Ensure exceptions are passed through correctly in the exception handler
                 if (stats.exception) {
                     REQUIRE(stats.identifier[0] == "Exception Handler");
@@ -53,21 +53,21 @@ namespace {
                     }
                     catch (const std::exception& e) {
                         REQUIRE(std::string(e.what()) == std::string("Exceptions happened"));
-                        
+
                         // We are done
                         powerplant.shutdown();
                     }
                 }
             });
-            
+
             on<Trigger<Message<0>>>().then("Message Handler", [this] {
                 emit(std::make_unique<Message<1>>());
             });
-            
+
             on<Trigger<Message<1>>>().then("Exception Handler", [this] {
                 throw std::runtime_error("Exceptions happened");
             });
-            
+
             on<Startup>().then("Startup", [this] {
                 emit(std::make_unique<Message<0>>());
             });

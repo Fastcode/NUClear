@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ * Copyright (C) 2013-2016 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -37,35 +37,35 @@ namespace {
             on<TCP>(port).then([this](const TCP::Connection& connection) {
 
                 on<IO>(connection.fd, IO::READ | IO::CLOSE).then([this] (IO::Event event) {
-                    
+
                     // If we read 0 later it means orderly shutdown
                     ssize_t len = -1;
-                    
-					// We have data to read
-					if ((event.events & IO::READ) != 0) {
 
-						char buff[1024];
-						memset(buff, 0, sizeof(buff));
+                    // We have data to read
+                    if ((event.events & IO::READ) != 0) {
 
-						// Read into the buffer
-						len = ::recv(event.fd, buff, testString.size(), 0);
-                        
+                        char buff[1024];
+                        memset(buff, 0, sizeof(buff));
+
+                        // Read into the buffer
+                        len = ::recv(event.fd, buff, testString.size(), 0);
+
                         // 0 indicates orderly shutdown of the socket
                         if (len != 0) {
-                        
+
                             // Test the data
                             REQUIRE(len == testString.size());
                             REQUIRE(testString == std::string(buff));
                             ++messagesReceived;
                         }
-					}
+                    }
 
-					// The connection was closed and the other test finished
-					if (len == 0 || event.events & IO::CLOSE) {
-						if (messagesReceived == 2) {
-							powerplant.shutdown();
-						}
-					}
+                    // The connection was closed and the other test finished
+                    if (len == 0 || event.events & IO::CLOSE) {
+                        if (messagesReceived == 2) {
+                            powerplant.shutdown();
+                        }
+                    }
                 });
             });
 
@@ -76,15 +76,15 @@ namespace {
 
                     // If we read 0 later it means orderly shutdown
                     ssize_t len = -1;
-                    
-					// We have data to read
-					if ((event.events & IO::READ) != 0) {
 
-						char buff[1024];
-						memset(buff, 0, sizeof(buff));
+                    // We have data to read
+                    if ((event.events & IO::READ) != 0) {
 
-						// Read into the buffer
-						len = ::recv(event.fd, buff, testString.size(), 0);
+                        char buff[1024];
+                        memset(buff, 0, sizeof(buff));
+
+                        // Read into the buffer
+                        len = ::recv(event.fd, buff, testString.size(), 0);
 
                         // 0 indicates orderly shutdown of the socket
                         if(len != 0) {
@@ -93,14 +93,14 @@ namespace {
                             REQUIRE(testString == std::string(buff));
                             ++messagesReceived;
                         }
-					}
+                    }
 
-					// The connection was closed and the other test finished
-					if (len == 0 || event.events & IO::CLOSE) {
-						if (messagesReceived == 2) {
-							powerplant.shutdown();
-						}
-					}
+                    // The connection was closed and the other test finished
+                    if (len == 0 || event.events & IO::CLOSE) {
+                        if (messagesReceived == 2) {
+                            powerplant.shutdown();
+                        }
+                    }
                 });
             });
 
@@ -124,7 +124,7 @@ namespace {
                 REQUIRE(setsockopt(fd, SOL_SOCKET, SO_LINGER, reinterpret_cast<char*>(&l), sizeof(linger)) == 0);
 
                 // Write on our socket
-                size_t sent = ::send(fd, testString.data(), testString.size(), 0);
+                ssize_t sent = ::send(fd, testString.data(), testString.size(), 0);
 
                 // We must have sent the right amount of data
                 REQUIRE(sent == testString.size());
@@ -149,7 +149,7 @@ namespace {
                 REQUIRE(setsockopt(fd, SOL_SOCKET, SO_LINGER, reinterpret_cast<char*>(&l), sizeof(linger)) == 0);
 
                 // Write on our socket
-                size_t sent = ::send(fd, testString.data(), testString.size(), 0);
+                ssize_t sent = ::send(fd, testString.data(), testString.size(), 0);
 
                 // We must have sent the right amount of data
                 REQUIRE(sent == testString.size());

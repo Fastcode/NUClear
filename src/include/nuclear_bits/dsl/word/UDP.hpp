@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ * Copyright (C) 2013-2016 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -15,12 +15,12 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_DSL_WORD_UDP_H
-#define NUCLEAR_DSL_WORD_UDP_H
+#ifndef NUCLEAR_DSL_WORD_UDP_HPP
+#define NUCLEAR_DSL_WORD_UDP_HPP
 
 #ifdef _WIN32
     #include "nuclear_bits/util/windows_includes.hpp"
-	#include "nuclear_bits/util/platform.hpp"
+    #include "nuclear_bits/util/platform.hpp"
 #else
     #include <unistd.h>
     #include <sys/socket.h>
@@ -87,7 +87,7 @@ namespace NUClear {
                 };
 
                 template <typename DSL, typename TFunc>
-                static inline std::tuple<threading::ReactionHandle, int, fd_t> bind(Reactor& reactor, const std::string& label, TFunc&& callback, int port = 0) {
+                static inline std::tuple<threading::ReactionHandle, in_port_t, fd_t> bind(Reactor& reactor, const std::string& label, TFunc&& callback, int port = 0) {
 
                     // Make our socket
                     util::FileDescriptor fd = ::socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
@@ -168,16 +168,16 @@ namespace NUClear {
                     p.data.resize(2048);
 
                     // Make some variables to hold our message header information
-					char cmbuff[0x100] = { 0 };
+                    char cmbuff[0x100] = { 0 };
                     sockaddr_in from;
-					memset(&from, 0, sizeof(sockaddr_in));
+                    memset(&from, 0, sizeof(sockaddr_in));
                     iovec payload;
                     payload.iov_base = p.data.data();
                     payload.iov_len = p.data.size();
 
                     // Make our message header to receive with
                     msghdr mh;
-					memset(&mh, 0, sizeof(msghdr));
+                    memset(&mh, 0, sizeof(msghdr));
                     mh.msg_name = reinterpret_cast<sockaddr*>(&from);
                     mh.msg_namelen = sizeof(sockaddr_in);
                     mh.msg_control = cmbuff;
@@ -189,7 +189,7 @@ namespace NUClear {
                     ssize_t received = recvmsg(event.fd, &mh, 0);
 
                     // Iterate through control headers to get IP information
-                    int ourAddr = 0;
+                    in_addr_t ourAddr = 0;
                     for (cmsghdr *cmsg = CMSG_FIRSTHDR(&mh);
                          cmsg != nullptr;
                          cmsg = CMSG_NXTHDR(&mh, cmsg)) {
@@ -219,7 +219,7 @@ namespace NUClear {
                         p.remote.port = ntohs(from.sin_port);
                         p.local.address = ntohl(ourAddr);
                         p.local.port = ntohs(address.sin_port);
-                        p.data.resize(received);
+                        p.data.resize(size_t(received));
                     }
 
                     return p;
@@ -228,7 +228,7 @@ namespace NUClear {
                 struct Broadcast {
 
                     template <typename DSL, typename TFunc>
-                    static inline std::tuple<threading::ReactionHandle, int, fd_t> bind(Reactor& reactor, const std::string& label, TFunc&& callback, int port = 0) {
+                    static inline std::tuple<threading::ReactionHandle, in_port_t, fd_t> bind(Reactor& reactor, const std::string& label, TFunc&& callback, int port = 0) {
 
                         // Make our socket
                         util::FileDescriptor fd = ::socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
@@ -300,14 +300,14 @@ namespace NUClear {
                 struct Multicast {
 
                     template <typename DSL, typename TFunc>
-                    static inline std::tuple<threading::ReactionHandle, int, fd_t> bind(Reactor& reactor, const std::string& label, TFunc&& callback, std::string multicastGroup, int port = 0) {
+                    static inline std::tuple<threading::ReactionHandle, in_port_t, fd_t> bind(Reactor& reactor, const std::string& label, TFunc&& callback, std::string multicastGroup, int port = 0) {
 
                         // Our multicast group address
                         sockaddr_in address;
-						std::memset(&address, 0, sizeof(address));
-						address.sin_family = AF_INET;
-						address.sin_addr.s_addr = INADDR_ANY;
-						address.sin_port = htons(port);
+                        std::memset(&address, 0, sizeof(address));
+                        address.sin_family = AF_INET;
+                        address.sin_addr.s_addr = INADDR_ANY;
+                        address.sin_port = htons(port);
 
                         // Make our socket
                         util::FileDescriptor fd = ::socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
@@ -351,12 +351,12 @@ namespace NUClear {
                             // Our multicast join request
                             ip_mreq mreq;
                             memset(&mreq, 0, sizeof(mreq));
-							inet_pton(AF_INET, multicastGroup.c_str(), &mreq.imr_multiaddr);
+                            inet_pton(AF_INET, multicastGroup.c_str(), &mreq.imr_multiaddr);
                             mreq.imr_interface.s_addr = htonl(ad);
 
                             // Join our multicast group
                             if (setsockopt(fd, IPPROTO_IP, IP_ADD_MEMBERSHIP, reinterpret_cast<char*>(&mreq), sizeof(ip_mreq)) < 0) {
-                                throw std::system_error(network_errno, std::system_category(), "There was an error while attemping to join the multicast group");
+                                throw std::system_error(network_errno, std::system_category(), "There was an error while attempting to join the multicast group");
                             }
                         }
 
@@ -390,10 +390,12 @@ namespace NUClear {
         }
 
         namespace trait {
+
             template <>
             struct is_transient<word::UDP::Packet> : public std::true_type {};
-        }
-    }
-}
 
-#endif
+        }  // namespace trait
+    }  // namespace dsl
+}  // namespace NUClear
+
+#endif  // NUCLEAR_DSL_WORD_UDP_HPP

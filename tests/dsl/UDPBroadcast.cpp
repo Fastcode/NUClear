@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ * Copyright (C) 2013-2016 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -25,14 +25,14 @@ namespace {
     const std::string testString = "Hello UDP Broadcast World!";
     int countA = 0;
     int countB = 0;
-    int numAddresses = 0;
+    std::size_t numAddresses = 0;
 
     struct Message {
     };
 
     class TestReactor : public NUClear::Reactor {
     public:
-        int boundPort = 0;
+        in_port_t boundPort = 0;
         TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
 
             // Known port
@@ -81,7 +81,7 @@ namespace {
                         }
                     }
                 }
-                
+
                 numAddresses = addresses.size();
 
                 for(auto& ad : addresses) {
@@ -107,7 +107,7 @@ namespace {
                         }
                     }
                 }
-                
+
                 numAddresses = addresses.size();
 
                 for(auto& ad : addresses) {

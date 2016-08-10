@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ * Copyright (C) 2013-2016 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -15,10 +15,12 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_ENVIRONMENT_H
-#define NUCLEAR_ENVIRONMENT_H
+#ifndef NUCLEAR_ENVIRONMENT_HPP
+#define NUCLEAR_ENVIRONMENT_HPP
 
-#include "nuclear_bits/message/LogLevel.hpp"
+#include <string>
+
+#include "nuclear_bits/LogLevel.hpp"
 
 namespace NUClear {
 
@@ -55,5 +57,7 @@ namespace NUClear {
         /// @brief The name of the reactor
         std::string reactorName;
     };
-}
-#endif
+
+}  // namespace NUClear
+
+#endif  // NUCLEAR_ENVIRONMENT_HPP

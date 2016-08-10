@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ * Copyright (C) 2013-2016 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -24,47 +24,47 @@
 namespace NUClear {
     namespace extension {
 
-		ssize_t recv_all(fd_t fd, char* buff, size_t len) {
-			ssize_t index = 0;
+        ssize_t recv_all(fd_t fd, char* buff, size_t len) {
+            ssize_t index = 0;
 
-			while (size_t(index) < len) {
+            while (size_t(index) < len) {
 
-				// Receive as much data as we can
-				auto v = recv(fd, buff + index, len - index, 0);
+                // Receive as much data as we can
+                auto v = recv(fd, buff + index, len - size_t(index), 0);
 
-				// Work out what to do based on this v
-				switch (v) {
-					case 0: {
-						// Socket shut down
-						return index;
-					} break;
-					case -1: {
-						// Get our error to see if it's because the socket is non blocking (happens on windows)
-						auto error = network_errno;
-						#ifdef _WIN32
-						if (error == WSAEWOULDBLOCK) { continue; }
-						#else
-						if (error == EAGAIN || error == EWOULDBLOCK) { continue; }
-						#endif
-						return -1;
+                // Work out what to do based on this v
+                switch (v) {
+                    case 0: {
+                        // Socket shut down
+                        return index;
+                    }
+                    case -1: {
+                        // Get our error to see if it's because the socket is non blocking (happens on windows)
+                        auto error = network_errno;
+                        #ifdef _WIN32
+                        if (error == WSAEWOULDBLOCK) { continue; }
+                        #else
+                        if (error == EAGAIN || error == EWOULDBLOCK) { continue; }
+                        #endif
+                        return -1;
 
-						// Was an error, we don't care if it's WSAEWOULDBLOCK on windows or EAGAIN/EWOULDBLOCK on other os's
-					}
-					default: {
-						// Otherwise we move on to more bytes
-						index += v;
-					}
-				}
-			}
+                        // Was an error, we don't care if it's WSAEWOULDBLOCK on windows or EAGAIN/EWOULDBLOCK on other os's
+                    }
+                    default: {
+                        // Otherwise we move on to more bytes
+                        index += v;
+                    }
+                }
+            }
 
-			return index;
-		}
+            return index;
+        }
 
         void NetworkController::tcpHandler(const IO::Event& e) {
 
             // Find this connections target
             auto target = tcpTarget.find(e.fd);
-            
+
             // Sometimes, if a tcp event is queued, it can come in before the unbind
             // Squash it here to prevent errors
             if (target == tcpTarget.end()) {
@@ -82,7 +82,7 @@ namespace NUClear {
                 // Read our header and check it is valid
                 if(recv_all(e.fd, data.data(), data.size()) == sizeof(network::PacketHeader)) {
                     const network::PacketHeader& header = *reinterpret_cast<network::PacketHeader*>(data.data());
-					uint32_t length = header.length;
+                    uint32_t length = header.length;
 
                     // Add enough space for our remaining packet
                     data.resize(data.size() + length);
@@ -139,7 +139,7 @@ namespace NUClear {
             }
 
             // If the connection closed or errored (or reached an end of file)
-			// And we have not already closed this connection
+            // And we have not already closed this connection
             if((e.events & IO::CLOSE) || (e.events & IO::ERROR) || badPacket) {
 
                 // emit a message that says who disconnected

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ * Copyright (C) 2013-2016 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -15,8 +15,8 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_DSL_WORD_OPTIONAL_H
-#define NUCLEAR_DSL_WORD_OPTIONAL_H
+#ifndef NUCLEAR_DSL_WORD_OPTIONAL_HPP
+#define NUCLEAR_DSL_WORD_OPTIONAL_HPP
 
 namespace NUClear {
     namespace dsl {
@@ -57,8 +57,9 @@ namespace NUClear {
                     return wrap(Fusion<DSLWords...>::template get<DSL>(r), util::GenerateSequence<0, std::tuple_size<decltype(Fusion<DSLWords...>::template get<DSL>(r))>::value>());
                 }
             };
-        }
-    }
-}
 
-#endif
+        }  // namespace word
+    }  // namespace dsl
+}  // namespace NUClear
+
+#endif  // NUCLEAR_DSL_WORD_OPTIONAL_HPP

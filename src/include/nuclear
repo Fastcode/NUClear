@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ * Copyright (C) 2013-2016 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -15,32 +15,10 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_H
-#define NUCLEAR_H
+#ifndef NUCLEAR
+#define NUCLEAR
 
 #include "nuclear_bits/PowerPlant.hpp"
 #include "nuclear_bits/Reactor.hpp"
 
-/**
- * @namespace NUClear
- *
- * @brief This namespace holds all of the Classes which are available in the public NUClear API.
- *
- * @details
- *  This namespace holds all of the classes which a user which is writing a program
- */
-
-/**
- * @namespace NUClear::Internal
- *
- * @brief This namespace holds all of the internal functionality of NUClear, if you are using this API and you are
- *        using something from this namespace, you are probably doing it wrong.
- */
-
-/**
- * @namespace NUClear::Internal::Magic
- *
- * @brief This namespace holds template tricks and other c++ exploitation used throughout the system
- */
-
-#endif
+#endif  // NUCLEAR

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ * Copyright (C) 2013-2016 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -26,8 +26,7 @@ namespace {
 
     class TestReactor : public NUClear::Reactor {
     public:
-
-        int boundPort = 0;
+        in_port_t boundPort = 0;
 
         TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
             emit<Scope::INITIALIZE>(std::make_unique<int>(5));
@@ -65,8 +64,8 @@ namespace {
                 // Send using a string
                 emit<Scope::UDP>(std::make_unique<char>('a'), "127.0.0.1", boundPort);
                 emit<Scope::UDP>(std::make_unique<char>('b'), INADDR_LOOPBACK, boundPort);
-                emit<Scope::UDP>(std::make_unique<char>('c'), "127.0.0.1", boundPort, INADDR_ANY, 12345);
-                emit<Scope::UDP>(std::make_unique<char>('d'), INADDR_LOOPBACK, boundPort, INADDR_ANY, 54321);
+                emit<Scope::UDP>(std::make_unique<char>('c'), "127.0.0.1", boundPort, INADDR_ANY, in_port_t(12345));
+                emit<Scope::UDP>(std::make_unique<char>('d'), INADDR_LOOPBACK, boundPort, INADDR_ANY, in_port_t(54321));
             });
         }
     };

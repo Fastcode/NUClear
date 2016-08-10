@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ * Copyright (C) 2013-2016 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -15,8 +15,8 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_UTIL_SERIALISE_MURMURHASH3_H
-#define NUCLEAR_UTIL_SERIALISE_MURMURHASH3_H
+#ifndef NUCLEAR_UTIL_SERIALISE_MURMURHASH3_HPP
+#define NUCLEAR_UTIL_SERIALISE_MURMURHASH3_HPP
 
 #include <cstdint>
 #include <array>
@@ -38,8 +38,9 @@ namespace NUClear {
              * @param len the number of bytes in the key
              */
             std::array<uint64_t, 2> murmurHash3(const void* key, const size_t len);
-        }
-    }
-}
 
-#endif
+        }  // namespace serialise
+    }  // namespace util
+}  //  namespace NUClear
+
+#endif  // NUCLEAR_UTIL_SERIALISE_MURMURHASH3_HPP

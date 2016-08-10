@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ * Copyright (C) 2013-2016 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -27,7 +27,13 @@ namespace NUClear {
     PowerPlant* PowerPlant::powerplant = nullptr;
 
     PowerPlant::PowerPlant(Configuration config, int argc, const char *argv[])
-      : configuration(config), tasks(), threads(), scheduler(), reactors(), startupTasks() {
+    : configuration(config)
+    , tasks()
+    , threads()
+    , scheduler()
+    , mainThreadScheduler()
+    , reactors()
+    , startupTasks() {
 
         // Stop people from making more then one powerplant
         if(powerplant) {
@@ -72,7 +78,7 @@ namespace NUClear {
     }
 
     void PowerPlant::start() {
-        
+
         // We are now running
         isRunning = true;
 
@@ -97,7 +103,7 @@ namespace NUClear {
 
         // Start our main thread using our main task scheduler
         threading::makeThreadPoolTask(*this, mainThreadScheduler)();
-        
+
         // Now wait for all the threads to finish executing
         for(auto& thread : threads) {
             try {
@@ -111,11 +117,11 @@ namespace NUClear {
             }
         }
     }
-    
+
     void PowerPlant::submit(std::unique_ptr<threading::ReactionTask>&& task) {
         scheduler.submit(std::forward<std::unique_ptr<threading::ReactionTask>>(task));
     }
-    
+
     void PowerPlant::submitMain(std::unique_ptr<threading::ReactionTask>&& task) {
         mainThreadScheduler.submit(std::forward<std::unique_ptr<threading::ReactionTask>>(task));
     }
@@ -129,7 +135,7 @@ namespace NUClear {
 
         // Shutdown the scheduler
         scheduler.shutdown();
-        
+
         // Shutdown the main threads scheduler
         mainThreadScheduler.shutdown();
 

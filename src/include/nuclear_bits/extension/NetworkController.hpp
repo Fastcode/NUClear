@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ * Copyright (C) 2013-2016 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -15,8 +15,8 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_EXTENSION_NETWORKCONTROLLER
-#define NUCLEAR_EXTENSION_NETWORKCONTROLLER
+#ifndef NUCLEAR_EXTENSION_NETWORKCONTROLLER_HPP
+#define NUCLEAR_EXTENSION_NETWORKCONTROLLER_HPP
 
 #include "nuclear"
 #include "nuclear_bits/extension/network/WireProtocol.hpp"
@@ -29,9 +29,9 @@ namespace NUClear {
             struct NetworkTarget {
 
                 NetworkTarget(std::string name
-                              , uint32_t address
-                              , uint16_t tcpPort
-                              , uint16_t udpPort
+                              , in_addr_t address
+                              , in_port_t tcpPort
+                              , in_port_t udpPort
                               , int tcpFD)
                 : name(name)
                 , address(address)
@@ -43,12 +43,12 @@ namespace NUClear {
                 , bufferMutex() {}
 
                 std::string name;
-                uint32_t address;
-                uint16_t tcpPort;
-                uint16_t udpPort;
+                in_addr_t address;
+                in_port_t tcpPort;
+                in_port_t udpPort;
                 fd_t tcpFD;
                 ReactionHandle handle;
-                std::map<uint16_t, std::pair<clock::time_point, std::vector<std::vector<char>>>> buffer;
+                std::map<in_port_t, std::pair<clock::time_point, std::vector<std::vector<char>>>> buffer;
                 std::mutex bufferMutex;
             };
 
@@ -78,9 +78,9 @@ namespace NUClear {
 
             std::string name;
             std::string multicastGroup;
-            uint16_t multicastPort;
-            uint16_t udpPort;
-            uint16_t tcpPort;
+            in_port_t multicastPort;
+            in_port_t udpPort;
+            in_port_t tcpPort;
 
             int udpServerFD;
             int tcpServerFD;
@@ -95,7 +95,8 @@ namespace NUClear {
             std::map<std::pair<int, int>, std::list<NetworkTarget>::iterator> udpTarget;
             std::map<int, std::list<NetworkTarget>::iterator> tcpTarget;
         };
-    }
-}
 
-#endif
+    }  // namespace extension
+}  // namespace NUClear
+
+#endif  // NUCLEAR_EXTENSION_NETWORKCONTROLLER_HPP

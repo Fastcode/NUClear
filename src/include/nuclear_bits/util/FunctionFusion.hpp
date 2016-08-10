@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ * Copyright (C) 2013-2016 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -15,8 +15,8 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_UTIL_FUNCTIONFUSION_H
-#define NUCLEAR_UTIL_FUNCTIONFUSION_H
+#ifndef NUCLEAR_UTIL_FUNCTIONFUSION_HPP
+#define NUCLEAR_UTIL_FUNCTIONFUSION_HPP
 
 #include "nuclear_bits/util/Sequence.hpp"
 #include "nuclear_bits/util/tuplify.hpp"
@@ -267,7 +267,8 @@ namespace NUClear {
             /*T*/ FunctionFusionCaller<std::tuple<FunctionWrapper<ProcessedFunctions, WrapperArgs...>...>, Shared, std::tuple<Ranges...>, std::tuple<Arguments...>>,
             // We have the wrong number of arguments left over, this branch is bad
             /*F*/ std::false_type> {};
-    }
-}
 
-#endif
+    }  // namespace util
+}  //  namespace NUClear
+
+#endif  // NUCLEAR_UTIL_FUNCTIONFUSION_HPP

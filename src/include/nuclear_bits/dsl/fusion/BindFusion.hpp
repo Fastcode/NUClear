@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ * Copyright (C) 2013-2016 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -15,8 +15,8 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_DSL_FUSION_BINDFUSION_H
-#define NUCLEAR_DSL_FUSION_BINDFUSION_H
+#ifndef NUCLEAR_DSL_FUSION_BINDFUSION_HPP
+#define NUCLEAR_DSL_FUSION_BINDFUSION_HPP
 
 #include "nuclear_bits/util/MetaProgramming.hpp"
 #include "nuclear_bits/util/tuplify.hpp"
@@ -68,17 +68,17 @@ namespace NUClear {
             struct BindWords<std::tuple<>, std::tuple<TBindWords...>> {
                 using type = std::tuple<TBindWords...>;
             };
-            
+
             /// Type that redirects types without a bind function to their proxy type
             template <typename TWord>
             struct Bind {
                 using type = std::conditional_t<has_bind<TWord>::value, TWord, operation::DSLProxy<TWord>>;
             };
-            
+
             // Default case where there are no bind words
             template <typename TWords>
             struct BindFuser {};
-            
+
             // Case where there is at least one bind word
             template <typename TFirst, typename... TWords>
             struct BindFuser<std::tuple<TFirst, TWords...>> {
@@ -89,7 +89,7 @@ namespace NUClear {
                            , BindCaller
                            , std::tuple<DSL>
                            , 3>::call(reactor, identifier, std::forward<TFunc>(callback), std::forward<TArgs>(args)...)) {
-                    
+
                     // Perform our function fusion
                     return util::FunctionFusion<std::tuple<TFirst, TWords...>
                     , decltype(std::forward_as_tuple(reactor, identifier, std::forward<TFunc>(callback), std::forward<TArgs>(args)...))
@@ -98,13 +98,14 @@ namespace NUClear {
                     , 3>::call(reactor, identifier, std::forward<TFunc>(callback), std::forward<TArgs>(args)...);
                 }
             };
-            
+
             template <typename TFirst, typename... TWords>
             struct BindFusion
             : public BindFuser<typename BindWords<std::tuple<typename Bind<TFirst>::type, typename Bind<TWords>::type...>>::type> {
             };
-        }
-    }
-}
 
-#endif
+        }  // namespace fusion
+    }  // namespace dsl
+}  // namespace NUClear
+
+#endif  // NUCLEAR_DSL_FUSION_BINDFUSION_HPP

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ * Copyright (C) 2013-2016 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -15,8 +15,8 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_UTIL_TYPEMAP_H
-#define NUCLEAR_UTIL_TYPEMAP_H
+#ifndef NUCLEAR_UTIL_TYPEMAP_HPP
+#define NUCLEAR_UTIL_TYPEMAP_HPP
 
 #include <mutex>
 #include <memory>
@@ -98,7 +98,8 @@ namespace NUClear {
         std::shared_ptr<TValue> TypeMap<TMapID, TKey, TValue>::data;
         template <typename TMapID, typename TKey, typename TValue>
         std::mutex TypeMap<TMapID, TKey, TValue>::mutex;
-    }
-}
 
-#endif
+    }  // namespace util
+}  //  namespace NUClear
+
+#endif  // NUCLEAR_UTIL_TYPEMAP_HPP

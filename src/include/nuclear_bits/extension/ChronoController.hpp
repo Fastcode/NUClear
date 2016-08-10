@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ * Copyright (C) 2013-2016 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -27,11 +27,11 @@ namespace NUClear {
         private:
             struct Step {
                 Step() : jump(), next(), reactions() {}
-                Step(const clock::duration& jump, const clock::time_point& next,
-                     const std::vector<std::shared_ptr<threading::Reaction>>& reactions)
-                    : jump(jump)
-                    , next(next)
-                    , reactions(reactions) {}
+                Step(const clock::duration& jump, const clock::time_point& next
+                    , const std::vector<std::shared_ptr<threading::Reaction>>& reactions)
+                : jump(jump)
+                , next(next)
+                , reactions(reactions) {}
 
                 clock::duration jump;
                 clock::time_point next;
@@ -50,7 +50,8 @@ namespace NUClear {
             std::mutex mutex;
             std::condition_variable wait;
         };
-    }
-}
 
-#endif
+    }  // namespace extension
+}  // namespace NUClear
+
+#endif  // NUCLEAR_EXTENSION_CHRONOCONTROLLER

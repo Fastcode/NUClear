@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ * Copyright (C) 2013-2016 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -30,17 +30,17 @@ namespace NUClear {
             std::vector<char> data(sizeof(network::PacketHeader));
 
             // Read our header
-			::recv(connection.fd, data.data(), data.size(), 0);
+            ::recv(connection.fd, data.data(), data.size(), 0);
             const network::PacketHeader& header = *reinterpret_cast<network::PacketHeader*>(data.data());
 
-			// We have to read this now as after we resize it'll move (maybe)
-			uint32_t length = header.length;
+            // We have to read this now as after we resize it'll move (maybe)
+            uint32_t length = header.length;
 
             // Add enough space for our remaining packet
-			data.resize(data.size() + length);
+            data.resize(data.size() + length);
 
             // Read our remaining packet
-			::recv(connection.fd, data.data() + sizeof(network::PacketHeader), length, 0);
+            ::recv(connection.fd, data.data() + sizeof(network::PacketHeader), length, 0);
             const network::AnnouncePacket& announce = *reinterpret_cast<network::AnnouncePacket*>(data.data());
 
             // See if we can find our network target for this element

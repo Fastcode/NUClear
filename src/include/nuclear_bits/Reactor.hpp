@@ -15,8 +15,8 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_REACTOR_H
-#define NUCLEAR_REACTOR_H
+#ifndef NUCLEAR_REACTOR_HPP
+#define NUCLEAR_REACTOR_HPP
 
 #include <string>
 #include <sstream>
@@ -35,7 +35,7 @@
 
 #include "nuclear_bits/threading/Reaction.hpp"
 #include "nuclear_bits/threading/ReactionHandle.hpp"
-#include "nuclear_bits/message/LogLevel.hpp"
+#include "nuclear_bits/LogLevel.hpp"
 
 namespace NUClear {
 
@@ -58,7 +58,7 @@ namespace NUClear {
 
             template <size_t, typename...>
             struct Last;
-            
+
             struct MainThread;
 
             template <typename>
@@ -183,11 +183,11 @@ namespace NUClear {
         /// @copydoc dsl::word::Optional
         template <typename... TDSL>
         using Optional = dsl::word::Optional<TDSL...>;
-        
+
         /// @copydoc dsl::word::Last
         template <size_t len, typename... TDSL>
         using Last = dsl::word::Last<len, TDSL...>;
-        
+
         /// @copydoc dsl::word::MainThread
         using MainThread = dsl::word::MainThread;
 
@@ -312,7 +312,7 @@ namespace NUClear {
          *  template parameters, this function can modify how and when this reaction runs.
          *
          * @tparam TDSL     The NUClear domain specific language information
-         * @tparam TFunc    The type of the function passed in
+         * @tparam TArgs    The types of the arguments passed into the function
          *
          * @param args      The arguments that will be passed to each of the binding DSL words in order
          *
@@ -371,7 +371,8 @@ namespace NUClear {
             }
         }
     };
-}
+
+}  // namespace NUClear
 
 // Domain Specific Language
 #include "nuclear_bits/dsl/word/Always.hpp"
@@ -397,4 +398,4 @@ namespace NUClear {
 #include "nuclear_bits/dsl/word/emit/Network.hpp"
 #include "nuclear_bits/dsl/word/emit/UDP.hpp"
 
-#endif
+#endif  // NUCLEAR_REACTOR_HPP

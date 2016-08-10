@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ * Copyright (C) 2013-2016 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -15,8 +15,8 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_DSL_WORD_TRIGGER_H
-#define NUCLEAR_DSL_WORD_TRIGGER_H
+#ifndef NUCLEAR_DSL_WORD_TRIGGER_HPP
+#define NUCLEAR_DSL_WORD_TRIGGER_HPP
 
 #include "nuclear_bits/dsl/operation/CacheGet.hpp"
 #include "nuclear_bits/dsl/operation/TypeBind.hpp"
@@ -36,12 +36,13 @@ namespace NUClear {
              *
              * @tparam TTriggers the datatypes to trigger a callback on
              */
-            template <typename TType>
+            template <typename TTriggers>
             struct Trigger
-            : public operation::TypeBind<TType>
-            , public operation::CacheGet<TType> {};
-        }
-    }
-}
+            : public operation::TypeBind<TTriggers>
+            , public operation::CacheGet<TTriggers> {};
 
-#endif
+        }  // namespace word
+    }  // namespace dsl
+}  // namespace NUClear
+
+#endif  // NUCLEAR_DSL_WORD_TRIGGER_HPP

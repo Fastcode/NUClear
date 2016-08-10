@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ * Copyright (C) 2013-2016 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -15,8 +15,8 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_DSL_WORD_NETWORK_H
-#define NUCLEAR_DSL_WORD_NETWORK_H
+#ifndef NUCLEAR_DSL_WORD_NETWORK_HPP
+#define NUCLEAR_DSL_WORD_NETWORK_HPP
 
 #include "nuclear_bits/dsl/trait/is_transient.hpp"
 #include "nuclear_bits/dsl/store/ThreadStore.hpp"
@@ -35,8 +35,8 @@ namespace NUClear {
                 NetworkSource() : name(""), address(0), port(0), reliable(false), multicast(false) {}
 
                 std::string name;
-                int address;
-                int port;
+                in_addr_t address;
+                in_port_t port;
                 bool reliable;
                 bool multicast;
             };
@@ -84,16 +84,19 @@ namespace NUClear {
                     }
                 }
             };
-        }
+
+        }  // namespace word
 
         namespace trait {
+
             template <typename T>
             struct is_transient<typename word::NetworkData<T>> : public std::true_type {};
 
             template <>
             struct is_transient<typename std::shared_ptr<word::NetworkSource>> : public std::true_type {};
-        }
-    }
-}
 
-#endif
+        }  // namespace trait
+    }  // namespace dsl
+}  // namespace NUClear
+
+#endif  // NUCLEAR_DSL_WORD_NETWORK_HPP

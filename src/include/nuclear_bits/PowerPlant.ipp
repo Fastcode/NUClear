@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ * Copyright (C) 2013-2016 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -110,8 +110,9 @@ namespace NUClear {
         auto task = currentTask ? currentTask->stats.get() : nullptr;
 
         // Direct emit the log message so that any direct loggers can use it
-        powerplant->emit<dsl::word::emit::Direct>(std::make_unique<message::LogMessage>(level
+        powerplant->emit<dsl::word::emit::Direct>(std::make_unique<message::LogMessage>(message::LogMessage{level
               , output
-              , task));
+            , task}));
     }
-}
+
+}  // namespace NUClear

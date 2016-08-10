@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ * Copyright (C) 2013-2016 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -15,8 +15,8 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_UTIL_PLATFORM_H
-#define NUCLEAR_UTIL_PLATFORM_H
+#ifndef NUCLEAR_UTIL_PLATFORM_HPP
+#define NUCLEAR_UTIL_PLATFORM_HPP
 
 /*******************************************
  *      SHIM FOR THREAD LOCAL STORAGE      *
@@ -41,18 +41,18 @@ using ssize_t = SSIZE_T;
 
 namespace NUClear {
 
-	// For us file descriptors will just be sockets
+    // For us file descriptors will just be sockets
     using fd_t = SOCKET;
 
-	using socklen_t = int;
+    using socklen_t = int;
 
     // This is defined here rather than in the global namespace so it doesn't get in the way
     inline int close(fd_t fd) {
         return ::closesocket(fd);
     }
 
-	// Network errors come from WSAGetLastError()
-	#define network_errno WSAGetLastError()
+    // Network errors come from WSAGetLastError()
+    #define network_errno WSAGetLastError()
 
     // Make iovec into a windows WSABUF
     #define iovec WSABUF
@@ -70,10 +70,10 @@ namespace NUClear {
     #define msg_flags       flags
 
     // Reimplement the recvmsg function
-	int recvmsg(fd_t fd, msghdr* msg, int flags);
+    int recvmsg(fd_t fd, msghdr* msg, int flags);
 
-	int sendmsg(fd_t fd, msghdr* msg, int flags);
-}
+    int sendmsg(fd_t fd, msghdr* msg, int flags);
+}  // namespace NUClear
 
 #else
 
@@ -83,8 +83,8 @@ namespace NUClear {
 namespace NUClear {
 
     using fd_t = int;
-}
+}  // namespace NUClear
 
 #endif
 
-#endif  // NUCLEAR_UTIL_PLATFORM_H
+#endif  // NUCLEAR_UTIL_PLATFORM_HPP

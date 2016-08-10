@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ * Copyright (C) 2013-2016 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -15,8 +15,8 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_DSL_WORD_PRIORITY_H
-#define NUCLEAR_DSL_WORD_PRIORITY_H
+#ifndef NUCLEAR_DSL_WORD_PRIORITY_HPP
+#define NUCLEAR_DSL_WORD_PRIORITY_HPP
 
 #include "nuclear_bits/threading/Reaction.hpp"
 
@@ -25,11 +25,11 @@ namespace NUClear {
         namespace word {
 
             struct Priority {
-                
+
                 struct REALTIME {
                     /// Realtime priority runs with 1000 value
                     static constexpr int value = 1000;
-                    
+
                     template <typename DSL>
                     static inline int priority(threading::Reaction&) {
                         return value;
@@ -59,25 +59,26 @@ namespace NUClear {
                 struct LOW {
                     /// Low priority runs with 250 value
                     static constexpr int value = 250;
-                    
+
                     template <typename DSL>
                     static inline int priority(threading::Reaction&) {
                         return value;
                     }
                 };
-                
+
                 struct IDLE {
                     /// Idle tasks run with 0 priority, they run when there is free time
                     static constexpr int value = 0;
-                    
+
                     template <typename DSL>
                     static inline int priority(threading::Reaction&) {
                         return value;
                     }
                 };
             };
-        }
-    }
-}
 
-#endif
+        }  // namespace word
+    }  // namespace dsl
+}  // namespace NUClear
+
+#endif  // NUCLEAR_DSL_WORD_PRIORITY_HPP

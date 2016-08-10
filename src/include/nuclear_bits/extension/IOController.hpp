@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ * Copyright (C) 2013-2016 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -22,6 +22,6 @@
     #include "IOController_Windows.hpp"
 #else
     #include "IOController_Posix.hpp"
-#endif
+#endif  // _WIN32
 
-#endif
+#endif  // NUCLEAR_EXTENSION_IOCONTROLLER

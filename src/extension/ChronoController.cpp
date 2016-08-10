@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ * Copyright (C) 2013-2016 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -25,10 +25,10 @@ namespace NUClear {
     namespace extension {
 
         ChronoController::ChronoController(std::unique_ptr<NUClear::Environment> environment)
-            : Reactor(std::move(environment))
-            , steps(0)
-            , mutex()
-            , wait() {
+        : Reactor(std::move(environment))
+        , steps(0)
+        , mutex()
+        , wait() {
 
             on<Trigger<dsl::word::EveryConfiguration>>().then("Configure Every Reaction", [this] (const dsl::word::EveryConfiguration& config) {
 

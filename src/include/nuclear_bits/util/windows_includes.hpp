@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ * Copyright (C) 2013-2016 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -15,8 +15,8 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_UTIL_WINDOWS_INCLUDES_H
-#define NUCLEAR_UTIL_WINDOWS_INCLUDES_H
+#ifndef NUCLEAR_UTIL_WINDOWS_INCLUDES_HPP
+#define NUCLEAR_UTIL_WINDOWS_INCLUDES_HPP
 
 // Because windows is SUUUUPER dumb and if you include headers in the wrong order
 // Nothing at all works, also if you don't define things in the right order nothing works
@@ -40,7 +40,7 @@
 
 // This little thingy makes windows link to the winsock library
 #pragma comment(lib, "Ws2_32.lib")
-#pragma comment (lib, "Mswsock.lib")
+#pragma comment(lib, "Mswsock.lib")
 #pragma comment(lib, "IPHLPAPI.lib")
 
 // Include windows.h mega header... no wonder windows compiles so slowly
@@ -52,4 +52,4 @@
 
 #endif  // _WIN32
 
-#endif  // NUCLEAR_UTIL_PLATFORM_H
+#endif  // NUCLEAR_UTIL_WINDOWS_INCLUDES_HPP

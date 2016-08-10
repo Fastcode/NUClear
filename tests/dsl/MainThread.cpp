@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ * Copyright (C) 2013-2016 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -24,22 +24,22 @@ namespace {
     class TestReactor : public NUClear::Reactor {
     public:
         TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
-            
+
             // Run a task without MainThread to make sure it isn't on the main thread
             on<Trigger<int>>().then([this] {
-                
+
                 // We shouldn't be on the main thread
                 REQUIRE(NUClear::util::main_thread_id != std::this_thread::get_id());
-                
+
                 emit(std::make_unique<double>(1.1));
             });
-            
+
             // Run a task with MainTHread and ensure that it is on the main thread
             on<Trigger<double>, MainThread>().then([this] {
-                
+
                 // We should be on the main thread
                 REQUIRE(NUClear::util::main_thread_id == std::this_thread::get_id());
-                
+
                 powerplant.shutdown();
             });
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ * Copyright (C) 2013-2016 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -15,8 +15,8 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_UTIL_GENERATE_CALLBACK_H
-#define NUCLEAR_UTIL_GENERATE_CALLBACK_H
+#ifndef NUCLEAR_UTIL_CALLBACKGENERATOR_HPP
+#define NUCLEAR_UTIL_CALLBACKGENERATOR_HPP
 
 #include "nuclear_bits/dsl/word/emit/Direct.hpp"
 #include "nuclear_bits/dsl/trait/is_transient.hpp"
@@ -86,7 +86,7 @@ namespace NUClear {
 
                         // If we still control our task
                         if(task) {
-                            
+
                             // Update our thread's priority to the correct level
                             update_current_thread_priority(task->priority);
 
@@ -109,7 +109,7 @@ namespace NUClear {
 
                             // Run our postconditions
                             DSL::postcondition(*task);
-                            
+
                             // Emit our reaction statistics
                             PowerPlant::powerplant->emit<dsl::word::emit::Direct>(task->stats);
                         }
@@ -123,7 +123,8 @@ namespace NUClear {
             TFunc callback;
             std::shared_ptr<typename TransientDataElements<DSL>::type> transients;
         };
-    }
-}
 
-#endif
+    }  // namespace util
+}  //  namespace NUClear
+
+#endif  // NUCLEAR_UTIL_CALLBACKGENERATOR_HPP

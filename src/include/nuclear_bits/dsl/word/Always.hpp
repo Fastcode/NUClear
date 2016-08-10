@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ * Copyright (C) 2013-2016 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -15,8 +15,8 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_DSL_WORD_ALWAYS_H
-#define NUCLEAR_DSL_WORD_ALWAYS_H
+#ifndef NUCLEAR_DSL_WORD_ALWAYS_HPP
+#define NUCLEAR_DSL_WORD_ALWAYS_HPP
 
 #include "nuclear_bits/util/get_identifier.hpp"
 
@@ -48,7 +48,7 @@ namespace NUClear {
                     auto reaction = std::make_shared<threading::Reaction>(reactor, std::move(identifier), std::forward<TFunc>(callback), std::move(unbinder));
                     threading::ReactionHandle handle(reaction);
 
-                    // A labmda that will get a reaction task
+                    // A lambda that will get a reaction task
                     auto run = [reaction] {
                         // Get a task
                         auto task = reaction->getTask();
@@ -76,8 +76,9 @@ namespace NUClear {
                     return handle;
                 }
             };
-        }
-    }
-}
 
-#endif
+        }  // namespace word
+    }  // namespace dsl
+}  // namespace NUClear
+
+#endif  // NUCLEAR_DSL_WORD_ALWAYS_HPP

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ * Copyright (C) 2013-2016 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -70,8 +70,8 @@ namespace NUClear {
 
                     // Multicast address
                     sockaddr_in target;
-					std::memset(&target, 0, sizeof(sockaddr_in));
-					target.sin_family = AF_INET;
+                    std::memset(&target, 0, sizeof(sockaddr_in));
+                    target.sin_family = AF_INET;
                     inet_pton(AF_INET, multicastGroup.c_str(), &target.sin_addr);
                     target.sin_port = htons(multicastPort);
 

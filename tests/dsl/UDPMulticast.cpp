@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ * Copyright (C) 2013-2016 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -21,12 +21,12 @@
 
 namespace {
 
-    constexpr unsigned short port = 40002;
+    constexpr in_port_t port = 40002;
     const std::string testString = "Hello UDP Multicast World!";
     const std::string multicastAddress = "230.12.3.21";
     int countA = 0;
     int countB = 0;
-    int numAddresses = 0;
+    std::size_t numAddresses = 0;
 
     struct Message {
     };
@@ -49,7 +49,7 @@ namespace {
             });
 
             // Unknown port
-            int boundPort;
+            in_port_t boundPort;
             std::tie(std::ignore, boundPort, std::ignore) = on<UDP::Multicast>(multicastAddress).then([this](const UDP::Packet& packet) {
                 ++countB;
                 // Check that the data we received is correct
@@ -79,13 +79,13 @@ namespace {
                         }
                     }
                 }
-                
+
                 numAddresses = addresses.size();
 
                 for(auto& ad : addresses) {
 
                     // Send our message to that broadcast address
-                    emit<Scope::UDP>(std::make_unique<std::string>(testString), multicastAddress, port, ad, 0);
+                    emit<Scope::UDP>(std::make_unique<std::string>(testString), multicastAddress, port, ad, in_port_t(0));
                 }
             });
 
@@ -106,13 +106,13 @@ namespace {
                         }
                     }
                 }
-                
+
                 numAddresses = addresses.size();
 
                 for(auto& ad : addresses) {
 
                     // Send our message to that broadcast address
-                    emit<Scope::UDP>(std::make_unique<std::string>(testString), multicastAddress, boundPort, ad, 0);
+                    emit<Scope::UDP>(std::make_unique<std::string>(testString), multicastAddress, boundPort, ad, in_port_t(0));
                 }
             });
 

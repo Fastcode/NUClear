@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ * Copyright (C) 2013-2016 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -15,8 +15,8 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_DSL_FUSION_HASRESCHEDULE_H
-#define NUCLEAR_DSL_FUSION_HASRESCHEDULE_H
+#ifndef NUCLEAR_DSL_FUSION_HAS_RESCHEDULE_HPP
+#define NUCLEAR_DSL_FUSION_HAS_RESCHEDULE_HPP
 
 #include "nuclear_bits/threading/ReactionTask.hpp"
 #include "nuclear_bits/dsl/fusion/NoOp.hpp"
@@ -37,8 +37,9 @@ namespace NUClear {
             public:
                 static constexpr bool value = std::is_same<decltype(test<T>(0)),yes>::value;
             };
-        }
-    }
-}
 
-#endif
+        }  // namespace fusion
+    }  // namespace dsl
+}  // namespace NUClear
+
+#endif  // NUCLEAR_DSL_FUSION_HAS_RESCHEDULE_HPP

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ * Copyright (C) 2013-2016 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -15,8 +15,8 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_POWERPLANT_H
-#define NUCLEAR_POWERPLANT_H
+#ifndef NUCLEAR_POWERPLANT_HPP
+#define NUCLEAR_POWERPLANT_HPP
 
 #include <memory>
 #include <set>
@@ -26,7 +26,6 @@
 #include <typeindex>
 #include <mutex>
 #include <map>
-#include <unordered_map>
 #include <iostream>
 #include <string>
 #include <sstream>
@@ -36,8 +35,8 @@
 #include "nuclear_bits/util/demangle.hpp"
 #include "nuclear_bits/util/FunctionFusion.hpp"
 
+#include "nuclear_bits/LogLevel.hpp"
 #include "nuclear_bits/threading/TaskScheduler.hpp"
-#include "nuclear_bits/message/LogLevel.hpp"
 #include "nuclear_bits/message/LogMessage.hpp"
 
 namespace NUClear {
@@ -142,14 +141,14 @@ namespace NUClear {
          */
         template <typename TReactor, enum LogLevel level = DEBUG>
         void install();
-        
+
         /**
          * @brief Submits a new task to the ThreadPool to be queued and then executed.
          *
          * @param task The Reaction task to be executed in the thread pool
          */
         void submit(std::unique_ptr<threading::ReactionTask>&& task);
-        
+
         /**
          * @brief Submits a new task to the main threads thread pool to be queued and then executed.
          *
@@ -178,8 +177,7 @@ namespace NUClear {
          * @details
          *  TODO
          *
-         * @tparam THandlers    The handlers to use for this emit
-         * @tparam TData        The type of the data that we are emitting
+         * @tparam TData    The type of the data that we are emitting
          *
          * @param data The data we are emitting
          */
@@ -194,8 +192,10 @@ namespace NUClear {
          * @details
          *  TODO
          *
-         * @tparam THandlers    The handlers to use for this emit
-         * @tparam TData        The type of the data that we are emitting
+         * @tparam THandlers        the first handler to use for this emit
+         * @tparam TFirstHandler    the remaining handlers to use for this emit
+         * @tparam TData            the type of the data that we are emitting
+         * @tparam TArgs            the additional arguments that will be provided to the handlers
          *
          * @param data The data we are emitting
          */
@@ -204,10 +204,8 @@ namespace NUClear {
         template <template <typename> class TFirstHandler, template <typename> class... THandlers, typename TData, typename... TArgs>
         void emit(std::unique_ptr<TData>& data, TArgs&&... args);
 
-
     private:
-
-        /// TODO
+        /// @brief A list of tasks that must be run when the powerplant starts up
         std::vector<std::function<void ()>> tasks;
         /// @brief A vector of the running threads in the system
         std::vector<std::unique_ptr<std::thread>> threads;
@@ -229,7 +227,7 @@ namespace NUClear {
         PowerPlant::log<level>(std::forward<TArgs>(args)...);
     }
 
-}
+}  // namespace NUClear
 
 // Include our Reactor.h first as the tight coupling between powerplant and reactor requires a specific include order
 #include "nuclear_bits/Reactor.hpp"
@@ -244,10 +242,10 @@ namespace NUClear {
 #include "nuclear_bits/message/NetworkConfiguration.hpp"
 #include "nuclear_bits/message/NetworkEvent.hpp"
 
-// Header which stops reaction statisitcs messages from including themselves
-#include "nuclear_bits/message/ReactionStatisticsDeloop.hpp"
+// Header which stops reaction statisitcs messages from triggering themselves
+#include "nuclear_bits/dsl/operation/ReactionStatisticsDeloop.hpp"
 
 // Include all of our implementation files (which use the previously included reactor.h)
 #include "nuclear_bits/PowerPlant.ipp"
 
-#endif
+#endif  // NUCLEAR_POWERPLANT_HPP

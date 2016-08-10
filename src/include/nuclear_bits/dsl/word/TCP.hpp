@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ * Copyright (C) 2013-2016 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -15,8 +15,8 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_DSL_WORD_TCP_H
-#define NUCLEAR_DSL_WORD_TCP_H
+#ifndef NUCLEAR_DSL_WORD_TCP_HPP
+#define NUCLEAR_DSL_WORD_TCP_HPP
 
 #ifdef _WIN32
     #include "nuclear_bits/util/windows_includes.hpp"
@@ -147,16 +147,19 @@ namespace NUClear {
                     }
                 }
             };
-        }
 
-		// Leaving this here as having it as transient is a big problem
-		// It seems like it should be transient, however most reactions that use this will
-		// get an unplesent suprise if they are given the same "new connection" twice.
+        }  // namespace word
+
+        // Leaving this here as having it as transient is a big problem
+        // It seems like it should be transient, however most reactions that use this will
+        // get an unpleasant surprise if they are given the same "new connection" twice.
         namespace trait {
+
             template <>
             struct is_transient<word::TCP::Connection> : public std::false_type {};
-        }
-    }
-}
 
-#endif
+        }  // namespace trait
+    }  // namespace dsl
+}  // namespace NUClear
+
+#endif  // NUCLEAR_DSL_WORD_TCP_HPP

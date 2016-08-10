@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ * Copyright (C) 2013-2016 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -15,8 +15,8 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_UTIL_METAPROGRAMMING_H
-#define NUCLEAR_UTIL_METAPROGRAMMING_H
+#ifndef NUCLEAR_UTIL_METAPROGRAMMING_HPP
+#define NUCLEAR_UTIL_METAPROGRAMMING_HPP
 
 #include <type_traits>
 
@@ -53,7 +53,7 @@ namespace NUClear {
     /**
      * @brief Becomes the inverse to the boolean type passed.
      *
-     * @tparam T the type to attempt to inverse.
+     * @tparam Condition the type to attempt to inverse.
      *
      * @return true_type if T is false_type, false_type if T is true_type.
      */
@@ -62,4 +62,4 @@ namespace NUClear {
 
 }  // namespace NUClear
 
-#endif
+#endif  // NUCLEAR_UTIL_METAPROGRAMMING_HPP

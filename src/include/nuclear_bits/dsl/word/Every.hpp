@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ * Copyright (C) 2013-2016 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -15,8 +15,8 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_DSL_WORD_EVERY_H
-#define NUCLEAR_DSL_WORD_EVERY_H
+#ifndef NUCLEAR_DSL_WORD_EVERY_HPP
+#define NUCLEAR_DSL_WORD_EVERY_HPP
 
 #include <cmath>
 #include "nuclear_bits/dsl/operation/Unbind.hpp"
@@ -62,8 +62,6 @@ namespace NUClear {
              * @tparam ticks the number of ticks of a paticular type to wait
              * @tparam period a type of duration (e.g. std::chrono::seconds) to measure the ticks in, defaults to clock duration.
              *                  This paramter may also be wrapped in a Per<> template in order to write a frequency rather then a period.
-             *
-             * @return nothing
              */
             template <int ticks = 0, class period = NUClear::clock::duration>
             struct Every;
@@ -114,8 +112,9 @@ namespace NUClear {
                     return handle;
                 }
             };
-        }
-    }
-}
 
-#endif
+        }  // namespace word
+    }  // namespace dsl
+}  // namespace NUClear
+
+#endif  // NUCLEAR_DSL_WORD_EVERY_HPP

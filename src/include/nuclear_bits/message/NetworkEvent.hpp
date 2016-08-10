@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ * Copyright (C) 2013-2016 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -15,8 +15,8 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_MESSAGE_NETWORKEVENT_H
-#define NUCLEAR_MESSAGE_NETWORKEVENT_H
+#ifndef NUCLEAR_MESSAGE_NETWORKEVENT_HPP
+#define NUCLEAR_MESSAGE_NETWORKEVENT_HPP
 
 namespace NUClear {
     namespace message {
@@ -25,19 +25,21 @@ namespace NUClear {
             NetworkJoin() : name(""), address(0), udpPort(0), tcpPort(0) {}
 
             std::string name;
-            uint32_t address;
-            uint16_t udpPort;
-            uint16_t tcpPort;
+            in_addr_t address;
+            in_port_t udpPort;
+            in_port_t tcpPort;
         };
 
         struct NetworkLeave {
             NetworkLeave() : name(""), address(0), udpPort(0), tcpPort(0) {}
 
             std::string name;
-            uint32_t address;
-            uint16_t udpPort;
-            uint16_t tcpPort;
+            in_addr_t address;
+            in_port_t udpPort;
+            in_port_t tcpPort;
         };
-    }
-}
-#endif
+
+    }  // namespace message
+ }  // namespace NUClear
+
+#endif  // NUCLEAR_MESSAGE_NETWORKEVENT_HPP

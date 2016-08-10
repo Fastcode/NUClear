@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ * Copyright (C) 2013-2016 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -15,8 +15,8 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_THREADING_REACTIONTASK_H
-#define NUCLEAR_THREADING_REACTIONTASK_H
+#ifndef NUCLEAR_THREADING_REACTIONTASK_HPP
+#define NUCLEAR_THREADING_REACTIONTASK_HPP
 
 #include <functional>
 #include <atomic>
@@ -61,7 +61,8 @@ namespace NUClear {
              * @brief Creates a new ReactionTask object bound with the parent Reaction object (that created it) and task.
              *
              * @param parent    the Reaction object that spawned this ReactionTask.
-             * @param task      the data bound callback to be executed in the threadpool.
+             * @param priority  the priority to use when executing this task.
+             * @param callback  the data bound callback to be executed in the threadpool.
              */
             ReactionTask(Reaction& parent, int priority, std::function<std::unique_ptr<ReactionTask> (std::unique_ptr<ReactionTask>&&)> callback);
 
@@ -98,11 +99,13 @@ namespace NUClear {
          */
         inline bool operator<(const std::unique_ptr<ReactionTask>& a, const std::unique_ptr<ReactionTask>& b) {
 
-			// If we ever have a null pointer, we move it to the top of the queue as it is being removed
-			return a == nullptr ? false
-				 : b == nullptr ? true
-				 : a->priority < b->priority;
+            // If we ever have a null pointer, we move it to the top of the queue as it is being removed
+            return a == nullptr ? false
+                 : b == nullptr ? true
+                 : a->priority < b->priority;
         }
-    }
-}
-#endif
+
+    }  // namespace threading
+ }  // namespace NUClear
+
+#endif  // NUCLEAR_THREADING_REACTIONTASK_HPP

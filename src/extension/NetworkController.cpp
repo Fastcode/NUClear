@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ * Copyright (C) 2013-2016 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -18,9 +18,9 @@
 #include "nuclear_bits/extension/NetworkController.hpp"
 
 #ifdef _WIN32
-	#include "nuclear_bits/util/platform.hpp"
+    #include "nuclear_bits/util/platform.hpp"
 #else
-	#include <sys/utsname.h>
+    #include <sys/utsname.h>
 #endif
 
 #include <algorithm>
@@ -54,9 +54,9 @@ namespace NUClear {
         , tcpTarget() {
 
             // Turn off sigpipe...
-			#ifndef _WIN32
-				::signal(SIGPIPE, SIG_IGN);
-			#endif
+            #ifndef _WIN32
+                ::signal(SIGPIPE, SIG_IGN);
+            #endif
 
             on<Trigger<dsl::word::NetworkListen>, Sync<NetworkController>>().then([this] (const dsl::word::NetworkListen& l) {
                 // Lock our reaction mutex
@@ -113,17 +113,17 @@ namespace NUClear {
 
                 // Store our new configuration
                 if(config.name.empty()) {
-					// If our config name is empty, use our system name
-					#ifdef _WIN32
-						char n[MAX_COMPUTERNAME_LENGTH + 1];
-						DWORD size = sizeof(n);
-						GetComputerName(n, &size);
-						name = std::string(n, size);
-					#else
-						utsname u;
-						uname(&u);
-						name = u.nodename;
-					#endif
+                    // If our config name is empty, use our system name
+                    #ifdef _WIN32
+                        char n[MAX_COMPUTERNAME_LENGTH + 1];
+                        DWORD size = sizeof(n);
+                        GetComputerName(n, &size);
+                        name = std::string(n, size);
+                    #else
+                        utsname u;
+                        uname(&u);
+                        name = u.nodename;
+                    #endif
                 }
                 else {
                     name = config.name;
