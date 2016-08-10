@@ -22,6 +22,8 @@ namespace NUClear {
     namespace message {
 
         struct NetworkJoin {
+            NetworkJoin() : name(""), address(0), udpPort(0), tcpPort(0) {}
+
             std::string name;
             uint32_t address;
             uint16_t udpPort;
@@ -29,6 +31,8 @@ namespace NUClear {
         };
 
         struct NetworkLeave {
+            NetworkLeave() : name(""), address(0), udpPort(0), tcpPort(0) {}
+
             std::string name;
             uint32_t address;
             uint16_t udpPort;

@@ -107,10 +107,11 @@ namespace NUClear {
         std::string output = outputStream.str();
 
         auto currentTask = threading::ReactionTask::getCurrentTask();
+        auto task = currentTask ? currentTask->stats.get() : nullptr;
 
         // Direct emit the log message so that any direct loggers can use it
         powerplant->emit<dsl::word::emit::Direct>(std::make_unique<message::LogMessage>(level
               , output
-              , currentTask ? currentTask->stats.get() : nullptr));
+              , task));
     }
 }

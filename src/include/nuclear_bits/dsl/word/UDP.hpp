@@ -43,11 +43,16 @@ namespace NUClear {
             struct UDP {
 
                 struct Packet {
+                    Packet() : valid(false), remote(), local(), data() {}
+
                     /// If the packet is valid (it contains data)
                     bool valid;
 
                     /// The information about this packet's source
-                    struct {
+                    struct Remote {
+                        Remote() : address(0), port(0) {}
+                        Remote(uint32_t addr, uint16_t port) : address(addr), port(port) {}
+
                         /// The address that the packet is from
                         uint32_t address;
                         /// The port that the packet is from
@@ -55,7 +60,10 @@ namespace NUClear {
                     } remote;
 
                     /// The information about this packet's destination
-                    struct {
+                    struct Local {
+                        Local() : address(0), port(0) {}
+                        Local(uint32_t addr, uint16_t port) : address(addr), port(port) {}
+
                         /// The address that the packet is to
                         uint32_t address;
                         /// The port that the packet is to
@@ -227,14 +235,14 @@ namespace NUClear {
                         if(fd < 0) {
                             throw std::system_error(network_errno, std::system_category(), "We were unable to open the UDP Broadcast socket");
                         }
-                        
+
                         // The address we will be binding to
                         sockaddr_in address;
                         memset(&address, 0, sizeof(sockaddr_in));
                         address.sin_family = AF_INET;
                         address.sin_port = htons(port);
                         address.sin_addr.s_addr = htonl(INADDR_ANY);
-                        
+
                         int yes = true;
                         // We are a broadcast socket
                         if(setsockopt(fd, SOL_SOCKET, SO_BROADCAST, reinterpret_cast<char*>(&yes), sizeof(yes)) < 0) {
@@ -248,36 +256,36 @@ namespace NUClear {
                         if(setsockopt(fd, IPPROTO_IP, IP_PKTINFO, reinterpret_cast<char*>(&yes), sizeof(yes)) < 0) {
                             throw std::system_error(network_errno, std::system_category(), "We were unable to flag the socket as getting ancillary data");
                         }
-                        
+
                         // Bind to the address, and if we fail throw an error
                         if(::bind(fd, reinterpret_cast<sockaddr*>(&address), sizeof(sockaddr))) {
                             throw std::system_error(network_errno, std::system_category(), "We were unable to bind the UDP socket to the port");
                         }
-                        
+
                         // Get the port we ended up listening on
                         socklen_t len = sizeof(sockaddr_in);
                         if (::getsockname(fd, reinterpret_cast<sockaddr*>(&address), &len) == -1) {
                             throw std::system_error(network_errno, std::system_category(), "We were unable to get the port from the UDP socket");
                         }
                         port = ntohs(address.sin_port);
-                        
+
                         // Generate a reaction for the IO system that closes on death
                         int cfd = fd;
                         auto reaction = util::generate_reaction<DSL, IO>(reactor, label, std::forward<TFunc>(callback), [cfd] (threading::Reaction&) {
                             close(cfd);
                         });
-                        
+
                         auto ioConfig = std::make_unique<IOConfiguration>(IOConfiguration {
                             fd.release(),
                             IO::READ,
                             std::move(reaction)
                         });
-                        
+
                         threading::ReactionHandle handle(ioConfig->reaction);
-                        
+
                         // Send our configuration out
                         reactor.powerplant.emit<emit::Direct>(ioConfig);
-                        
+
                         // Return our handles and our bound port
                         return std::make_tuple(handle, port, cfd);
                     }

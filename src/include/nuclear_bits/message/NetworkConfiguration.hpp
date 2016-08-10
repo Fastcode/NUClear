@@ -22,6 +22,10 @@ namespace NUClear {
     namespace message {
 
         struct NetworkConfiguration {
+            NetworkConfiguration() : name(""), multicastGroup(""), multicastPort(0) {}
+            NetworkConfiguration(const std::string& name, const std::string& group, uint16_t port)
+                : name(name), multicastGroup(group), multicastPort(port) {}
+
             std::string name;
             std::string multicastGroup;
             uint16_t multicastPort;

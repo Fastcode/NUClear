@@ -29,7 +29,12 @@ namespace NUClear {
     namespace extension {
 
         IOController::IOController(std::unique_ptr<NUClear::Environment> environment)
-        : Reactor(std::move(environment)) {
+        : Reactor(std::move(environment))
+        , notifyRecv()
+        , notifySend()
+        , reactionMutex()
+        , fds()
+        , reactions() {
 
             int vals[2];
 

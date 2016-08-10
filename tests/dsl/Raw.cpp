@@ -22,10 +22,16 @@
 namespace {
 
     struct TypeA {
+        TypeA() : x(0) {}
+        TypeA(int x) : x(x) {}
+
         int x;
     };
 
     struct TypeB {
+        TypeB() : x(0) {}
+        TypeB(int x) : x(x) {}
+
         int x;
     };
 
@@ -34,7 +40,9 @@ namespace {
         std::vector<std::shared_ptr<const TypeA>> stored;
     public:
 
-        TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
+        TestReactor(std::unique_ptr<NUClear::Environment> environment)
+            : Reactor(std::move(environment))
+            , stored() {
 
             // Trigger on TypeA and store the result
             on<Trigger<TypeA>>().then([this] (const std::shared_ptr<const TypeA>& a) {

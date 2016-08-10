@@ -19,7 +19,7 @@
 
 // Windows can't do this test as it doesn't have file descriptors
 #ifndef _WIN32
-	
+
 #include <unistd.h>
 
 #include "nuclear"
@@ -28,7 +28,11 @@ namespace {
 
     class TestReactor : public NUClear::Reactor {
     public:
-        TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
+        TestReactor(std::unique_ptr<NUClear::Environment> environment)
+            : Reactor(std::move(environment))
+            , in(0)
+            , out(0)
+            , writer() {
 
             int fds[2];
 

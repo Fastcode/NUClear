@@ -21,7 +21,7 @@ namespace NUClear {
     namespace threading {
 
         TaskScheduler::TaskScheduler()
-          : running(true) {}
+          : running(true), queue(), mutex(), condition() {}
 
         TaskScheduler::~TaskScheduler() {
         }
@@ -50,19 +50,19 @@ namespace NUClear {
         }
 
         std::unique_ptr<ReactionTask> TaskScheduler::getTask() {
-            
+
             //Obtain the lock
             std::unique_lock<std::mutex> lock(mutex);
-            
+
             // While our queue is empty
             while (queue.empty()) {
-                
+
                 // If the queue is empty we either wait or shutdown
                 if(!running) {
-                    
+
                     // Notify any other threads that might be waiting on this condition
                     condition.notify_all();
-                    
+
                     // Return a nullptr to signify there is nothing on the queue
                     return nullptr;
                 }
@@ -71,7 +71,7 @@ namespace NUClear {
                     condition.wait(lock);
                 }
             }
-            
+
             // Return the type
             // If you're wondering why all the ridiculousness, it's because priority queue is not as feature complete as it should be
             // It's 'top' method returns a const reference (which we can't use to move a unique pointer)

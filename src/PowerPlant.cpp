@@ -27,7 +27,7 @@ namespace NUClear {
     PowerPlant* PowerPlant::powerplant = nullptr;
 
     PowerPlant::PowerPlant(Configuration config, int argc, const char *argv[])
-      : configuration(config) {
+      : configuration(config), tasks(), threads(), scheduler(), reactors(), startupTasks() {
 
         // Stop people from making more then one powerplant
         if(powerplant) {

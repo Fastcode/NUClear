@@ -26,20 +26,24 @@ namespace NUClear {
         namespace network {
 
             struct Interface {
+                Interface() : name(""), ip(0), netmask(0), broadcast(0), flags() {}
+
                 std::string name;
 
                 uint32_t ip;
                 uint32_t netmask;
                 uint32_t broadcast;
 
-                struct {
+                struct Flags {
+                    Flags() : broadcast(false), loopback(false), pointtopoint(false), multicast(false) {}
+
                     bool broadcast;
                     bool loopback;
                     bool pointtopoint;
                     bool multicast;
                 } flags;
             };
-            
+
             std::vector<Interface> get_interfaces();
         }
     }

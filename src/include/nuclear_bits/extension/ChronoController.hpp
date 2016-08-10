@@ -26,6 +26,13 @@ namespace NUClear {
         class ChronoController : public Reactor {
         private:
             struct Step {
+                Step() : jump(), next(), reactions() {}
+                Step(const clock::duration& jump, const clock::time_point& next,
+                     const std::vector<std::shared_ptr<threading::Reaction>>& reactions)
+                    : jump(jump)
+                    , next(next)
+                    , reactions(reactions) {}
+
                 clock::duration jump;
                 clock::time_point next;
                 std::vector<std::shared_ptr<threading::Reaction>> reactions;

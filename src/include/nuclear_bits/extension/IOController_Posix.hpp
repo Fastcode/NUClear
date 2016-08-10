@@ -31,6 +31,10 @@ namespace NUClear {
         private:
 
             struct Task {
+                Task() : fd(), events(0), reaction() {}
+                Task(const fd_t& fd, short events, const std::shared_ptr<threading::Reaction>& reaction)
+                    : fd(fd), events(events), reaction(reaction) {}
+
                 fd_t fd;
                 short events;
                 std::shared_ptr<threading::Reaction> reaction;

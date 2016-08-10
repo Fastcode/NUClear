@@ -32,7 +32,26 @@ namespace NUClear {
 
         NetworkController::NetworkController(std::unique_ptr<NUClear::Environment> environment)
         : Reactor(std::move(environment))
-        , packetIDSource(1) {
+        , writeMutex()
+        , udpHandle()
+        , tcpHandle()
+        , multicastHandle()
+        , multicastEmitHandle()
+        , networkEmitHandle()
+        , name("")
+        , multicastGroup("")
+        , multicastPort(0)
+        , udpPort(0)
+        , tcpPort(0)
+        , udpServerFD(0)
+        , tcpServerFD(0)
+        , packetIDSource(1)
+        , reactionMutex()
+        , reactions()
+        , targets()
+        , nameTarget()
+        , udpTarget()
+        , tcpTarget() {
 
             // Turn off sigpipe...
 			#ifndef _WIN32
