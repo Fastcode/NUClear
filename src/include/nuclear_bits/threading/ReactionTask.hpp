@@ -55,7 +55,7 @@ namespace NUClear {
              *
              * @return the current executing task or nullptr if there isn't one
              */
-            static const std::shared_ptr<ReactionTask> getCurrentTask();
+            static const ReactionTask* getCurrentTask();
 
             /**
              * @brief Creates a new ReactionTask object bound with the parent Reaction object (that created it) and task.

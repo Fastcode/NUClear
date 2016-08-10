@@ -36,7 +36,7 @@ namespace NUClear {
             std::string message;
 
             /// @brief The currently executing task that made this message
-            const std::shared_ptr<ReactionStatistics> task;
+            const ReactionStatistics* task;
 
             /**
              * @brief Constructs a new LogMessage.
@@ -46,7 +46,7 @@ namespace NUClear {
              */
             LogMessage(const LogLevel& level
                        , const std::string& message
-                       , ReactionStatistics* task)
+                       , const ReactionStatistics* task)
             : level(level)
             , message(message)
             , task(task) {}
