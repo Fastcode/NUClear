@@ -142,13 +142,20 @@ namespace NUClear {
          */
         template <typename TReactor, enum LogLevel level = DEBUG>
         void install();
-
+        
         /**
          * @brief Submits a new task to the ThreadPool to be queued and then executed.
          *
          * @param task The Reaction task to be executed in the thread pool
          */
         void submit(std::unique_ptr<threading::ReactionTask>&& task);
+        
+        /**
+         * @brief Submits a new task to the main threads thread pool to be queued and then executed.
+         *
+         * @param task The Reaction task to be executed in the thread pool
+         */
+        void submitMain(std::unique_ptr<threading::ReactionTask>&& task);
 
         /**
          * @brief Log a message through NUClear's system.
@@ -206,6 +213,8 @@ namespace NUClear {
         std::vector<std::unique_ptr<std::thread>> threads;
         /// @brief Our TaskScheduler that handles distributing task to the pool threads
         threading::TaskScheduler scheduler;
+        /// @brief Our TaskScheduler that handles distributing tasks to the main thread
+        threading::TaskScheduler mainThreadScheduler;
         /// @brief Our vector of Reactors, will get destructed when this vector is
         std::vector<std::unique_ptr<NUClear::Reactor>> reactors;
 

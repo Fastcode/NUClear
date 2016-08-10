@@ -72,7 +72,8 @@ namespace NUClear {
     }
 
     void PowerPlant::start() {
-
+        
+        // We are now running
         isRunning = true;
 
         // Run all our Initialise scope tasks
@@ -94,6 +95,9 @@ namespace NUClear {
             threads.push_back(std::make_unique<std::thread>(task));
         }
 
+        // Start our main thread using our main task scheduler
+        threading::makeThreadPoolTask(*this, mainThreadScheduler)();
+        
         // Now wait for all the threads to finish executing
         for(auto& thread : threads) {
             try {
@@ -106,11 +110,14 @@ namespace NUClear {
             catch(std::system_error()) {
             }
         }
-
     }
-
+    
     void PowerPlant::submit(std::unique_ptr<threading::ReactionTask>&& task) {
         scheduler.submit(std::forward<std::unique_ptr<threading::ReactionTask>>(task));
+    }
+    
+    void PowerPlant::submitMain(std::unique_ptr<threading::ReactionTask>&& task) {
+        mainThreadScheduler.submit(std::forward<std::unique_ptr<threading::ReactionTask>>(task));
     }
 
     void PowerPlant::shutdown() {
@@ -122,6 +129,9 @@ namespace NUClear {
 
         // Shutdown the scheduler
         scheduler.shutdown();
+        
+        // Shutdown the main threads scheduler
+        mainThreadScheduler.shutdown();
 
         // Bye bye powerplant
         powerplant = nullptr;
