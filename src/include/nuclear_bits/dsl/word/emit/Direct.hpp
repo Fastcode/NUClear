@@ -48,9 +48,10 @@ namespace NUClear {
                         }
                     }
                 };
-            }
-        }
-    }
-}
+
+            }  // namespace emit
+        }  // namespace word
+    }  // namespace dsl
+}  // namespace NUClear
 
 #endif  // NUCLEAR_DSL_WORD_EMIT_DIRECT_HPP
