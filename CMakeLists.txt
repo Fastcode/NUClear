@@ -28,3 +28,6 @@ IF(BUILD_TESTS)
     ENABLE_TESTING()
     ADD_SUBDIRECTORY(tests)
 ENDIF()
+
+# Add the documentation subdirectory
+ADD_SUBDIRECTORY(doc)
