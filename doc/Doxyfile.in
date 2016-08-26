@@ -3,6 +3,7 @@ PROJECT_NUMBER         = @VERSION_MAJOR@.@VERSION_MINOR@.@VERSION_PATCH@
 STRIP_FROM_PATH        = @PROJECT_SOURCE_DIR@ \
                          @PROJECT_BINARY_DIR@
 INPUT                  = @PROJECT_SOURCE_DIR@/src
+OUTPUT_DIRECTORY       = @CMAKE_CURRENT_BINARY_DIR@
 FILE_PATTERNS          = nuclear \
                          *.h \
                          *.cc \

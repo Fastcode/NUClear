@@ -16,12 +16,13 @@ IF(BUILD_DOCUMENTATION)
         COMMAND ${DOXYGEN_EXECUTABLE} ${doxyfile}
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
         COMMENT "Generating documentation XML using doxygen"
+        DEPENDS ${doxyfile}
     )
 
     FIND_PACKAGE(Sphinx)
     IF(Sphinx_FOUND)
         ADD_CUSTOM_TARGET(sphinx
-            COMMAND ${Sphinx_BINARY} ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR}
+            COMMAND ${Sphinx_BINARY} -a ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR}
             WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
             COMMENT "Generating documentation pages using sphinx"
             DEPENDS doxygen
