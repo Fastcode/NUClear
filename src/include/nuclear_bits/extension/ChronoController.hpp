@@ -47,8 +47,11 @@ namespace NUClear {
 
         private:
             std::vector<Step> steps;
+            std::vector<std::shared_ptr<const dsl::word::emit::DelayEmit>> delayEmits;
             std::mutex mutex;
             std::condition_variable wait;
+            
+            NUClear::clock::duration waitOffset;
         };
 
     }  // namespace extension
