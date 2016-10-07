@@ -39,14 +39,13 @@ namespace NUClear {
                 template <typename TData>
                 struct Delay {
 
-                    template <typename Rep>
-                    static void emit(PowerPlant& powerplant, std::shared_ptr<TData> data, std::chrono::duration<Rep> delay) {
+                    static void emit(PowerPlant& powerplant, std::shared_ptr<TData> data, NUClear::clock::duration delay) {
 
                         auto msg = std::make_shared<DelayEmit>([&powerplant, data] {
                             emit::Local<TData>::emit(powerplant, data);
                         }, NUClear::clock::now() + delay);
                         
-                        emit::Direct<DelayEmit>(powerplant, msg);
+                        emit::Direct<DelayEmit>::emit(powerplant, msg);
                     }
                 };
 
