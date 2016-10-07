@@ -96,6 +96,8 @@ namespace NUClear {
                 template <typename TData>
                 struct Direct;
                 template <typename TData>
+                struct Delay;
+                template <typename TData>
                 struct Initialize;
                 template <typename TData>
                 struct Network;
@@ -227,10 +229,14 @@ namespace NUClear {
             /// @copydoc dsl::word::emit::Local
             template <typename TData>
             using LOCAL = dsl::word::emit::Local<TData>;
-
+            
             /// @copydoc dsl::word::emit::Direct
             template <typename TData>
             using DIRECT = dsl::word::emit::Direct<TData>;
+            
+            /// @copydoc dsl::word::emit::Direct
+            template <typename TData>
+            using DELAY = dsl::word::emit::Delay<TData>;
 
             /// @copydoc dsl::word::emit::Initialize
             template <typename TData>
@@ -393,8 +399,9 @@ namespace NUClear {
 #include "nuclear_bits/dsl/word/Buffer.hpp"
 #include "nuclear_bits/dsl/word/Sync.hpp"
 #include "nuclear_bits/dsl/word/emit/Local.hpp"
-#include "nuclear_bits/dsl/word/emit/Initialize.hpp"
 #include "nuclear_bits/dsl/word/emit/Direct.hpp"
+#include "nuclear_bits/dsl/word/emit/Delay.hpp"
+#include "nuclear_bits/dsl/word/emit/Initialize.hpp"
 #include "nuclear_bits/dsl/word/emit/Network.hpp"
 #include "nuclear_bits/dsl/word/emit/UDP.hpp"
 
