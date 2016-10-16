@@ -19,33 +19,30 @@
 #define NUCLEAR_DSL_WORD_EMIT_DELAY_HPP
 
 #include "Direct.hpp"
+#include "nuclear_bits/dsl/operation/ChronoTask.hpp"
 
 namespace NUClear {
     namespace dsl {
         namespace word {
             namespace emit {
-
-                struct DelayEmit {
-                    
-                    DelayEmit(std::function<void ()>&& function, NUClear::clock::time_point time)
-                    : emit(function)
-                    , time(time) {
-                    }
-                    
-                    std::function<void ()> emit;
-                    NUClear::clock::time_point time;
-                };
                 
                 template <typename TData>
                 struct Delay {
 
                     static void emit(PowerPlant& powerplant, std::shared_ptr<TData> data, NUClear::clock::duration delay) {
-
-                        auto msg = std::make_shared<DelayEmit>([&powerplant, data] {
-                            emit::Local<TData>::emit(powerplant, data);
-                        }, NUClear::clock::now() + delay);
                         
-                        emit::Direct<DelayEmit>::emit(powerplant, msg);
+                        // Our chrono task is just to do a normal emit in the amount of time
+                        auto msg = std::make_shared<operation::ChronoTask>([&powerplant, data] (NUClear::clock::time_point&) {
+                            
+                            // Do the emit
+                            emit::Local<TData>::emit(powerplant, data);
+                            
+                            // We don't renew, remove us
+                            return false;
+                        }, NUClear::clock::now() + delay, -1);
+                        
+                        // Send this straight to the chrono controller
+                        emit::Direct<operation::ChronoTask>::emit(powerplant, msg);
                     }
                 };
 

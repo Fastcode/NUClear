@@ -20,6 +20,7 @@
 
 #include <cmath>
 #include "nuclear_bits/dsl/operation/Unbind.hpp"
+#include "nuclear_bits/dsl/operation/ChronoTask.hpp"
 #include "nuclear_bits/dsl/word/emit/Direct.hpp"
 #include "nuclear_bits/util/generate_reaction.hpp"
 
@@ -38,11 +39,6 @@ namespace NUClear {
             template <typename Unit, std::intmax_t num, std::intmax_t den>
             struct Per<std::chrono::duration<Unit, std::ratio<num, den>>> : public clock::duration {
                 Per(int ticks) : clock::duration(std::lround((double(num) / double(ticks * den)) * (double(clock::period::den) / double(clock::period::num)))) {}
-            };
-
-            struct EveryConfiguration {
-                clock::duration jump;
-                std::shared_ptr<threading::Reaction> reaction;
             };
 
             /**
@@ -72,15 +68,27 @@ namespace NUClear {
                 template <typename DSL, typename TFunc>
                 static inline threading::ReactionHandle bind(Reactor& reactor, const std::string& label, TFunc&& callback, NUClear::clock::duration jump) {
 
-                    auto reaction = util::generate_reaction<DSL, Every<>>(reactor, label, std::forward<TFunc>(callback));
+                    auto reaction = std::shared_ptr<threading::Reaction>(util::generate_reaction<DSL, operation::ChronoTask>(reactor, label, std::forward<TFunc>(callback)));
 
-                    threading::ReactionHandle handle(reaction.get());
-
+                    threading::ReactionHandle handle(reaction);
+                    
                     // Send our configuration out
-                    reactor.powerplant.emit<emit::Direct>(std::make_unique<EveryConfiguration>(EveryConfiguration {
-                        jump,
-                        std::move(reaction)
-                    }));
+                    reactor.powerplant.emit<emit::Direct>(std::make_unique<operation::ChronoTask>([&reactor, jump, reaction] (NUClear::clock::time_point& time) {
+                        
+                        try {
+                            // submit the reaction to the thread pool
+                            auto task = reaction->getTask();
+                            if(task) {
+                                reactor.powerplant.submit(std::move(task));
+                            }
+                        }
+                        catch(...) {
+                        }
+
+                        time += jump;
+                        
+                        return true;
+                    }, NUClear::clock::now() + jump, reaction->reactionId));
 
                     // Return our handle
                     return handle;
@@ -93,21 +101,31 @@ namespace NUClear {
                 template <typename DSL, typename TFunc>
                 static inline threading::ReactionHandle bind(Reactor& reactor, const std::string& label, TFunc&& callback) {
 
-                    auto reaction = util::generate_reaction<DSL, Every<>>(reactor, label, std::forward<TFunc>(callback));
-
                     // Work out our Reaction timing
                     clock::duration jump = period(ticks);
-
-                    auto everyConfig = std::make_unique<EveryConfiguration>(EveryConfiguration {
-                        jump,
-                        std::move(reaction)
-                    });
-
-                    threading::ReactionHandle handle(everyConfig->reaction);
-
+                    
+                    auto reaction = std::shared_ptr<threading::Reaction>(util::generate_reaction<DSL, operation::ChronoTask>(reactor, label, std::forward<TFunc>(callback)));
+                    
+                    threading::ReactionHandle handle(reaction);
+                    
                     // Send our configuration out
-                    reactor.powerplant.emit<emit::Direct>(everyConfig);
-
+                    reactor.powerplant.emit<emit::Direct>(std::make_unique<operation::ChronoTask>([&reactor, jump, reaction] (NUClear::clock::time_point& time) {
+                        
+                        try {
+                            // submit the reaction to the thread pool
+                            auto task = reaction->getTask();
+                            if(task) {
+                                reactor.powerplant.submit(std::move(task));
+                            }
+                        }
+                        catch(...) {
+                        }
+                        
+                        time += jump;
+                        
+                        return true;
+                    }, NUClear::clock::now() + jump, reaction->reactionId));
+                    
                     // Return our handle
                     return handle;
                 }

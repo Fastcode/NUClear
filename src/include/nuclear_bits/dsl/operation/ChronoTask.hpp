@@ -15,27 +15,38 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_EXTENSION_CHRONOCONTROLLER
-#define NUCLEAR_EXTENSION_CHRONOCONTROLLER
+#ifndef NUCLEAR_DSL_OPERATION_CHRONOTASK_HPP
+#define NUCLEAR_DSL_OPERATION_CHRONOTASK_HPP
 
-#include "nuclear"
+#include "nuclear_bits/clock.hpp"
 
 namespace NUClear {
-    namespace extension {
+    namespace dsl {
+        namespace operation {
 
-        class ChronoController : public Reactor {
-        public:
-            explicit ChronoController(std::unique_ptr<NUClear::Environment> environment);
+            struct ChronoTask {
+                
+                ChronoTask(std::function<bool(NUClear::clock::time_point&)>&& task, NUClear::clock::time_point time, uint64_t id)
+                : task(task)
+                , time(time)
+                , id(id) {
+                }
+                
+                inline bool operator() () {
+                    return task(time);
+                }
+                
+                inline bool operator< (const ChronoTask& other) const {
+                    return time > other.time;
+                }
+                
+                std::function<bool(NUClear::clock::time_point&)> task;
+                NUClear::clock::time_point time;
+                uint64_t id;
+            };
 
-        private:
-            std::vector<dsl::operation::ChronoTask> tasks;
-            std::mutex mutex;
-            std::condition_variable wait;
-            
-            NUClear::clock::duration waitOffset;
-        };
-
-    }  // namespace extension
+        }  // namespace operation
+    }  // namespace dsl
 }  // namespace NUClear
 
-#endif  // NUCLEAR_EXTENSION_CHRONOCONTROLLER
+#endif  // NUCLEAR_DSL_OPERATION_TYPEBIND_HPP
