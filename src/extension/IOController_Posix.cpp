@@ -219,7 +219,7 @@ namespace NUClear {
                             std::lock_guard<std::mutex> lock(reactionMutex);
 
                             // Clear our fds to be rebuilt
-                            fds.clear();
+                            fds.resize(0);
 
                             // Insert our notifyFd
                             fds.push_back(pollfd { notifyRecv, POLLIN, 0 });
