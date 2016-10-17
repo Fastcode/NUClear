@@ -50,7 +50,7 @@ namespace NUClear {
                         auto service_time = store::DataStore<message::ServiceWatchdog<TWatchdog>>::get()->time;
                         
                         // Check if our watchdog has timed out
-                        if (time > (service_time + period(ticks))) {
+                        if (NUClear::clock::now() > (service_time + period(ticks))) {
                             try {
                                 // Submit the reaction to the thread pool
                                 auto task = reaction->getTask();
