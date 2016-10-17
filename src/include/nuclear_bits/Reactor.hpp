@@ -75,9 +75,12 @@ namespace NUClear {
             struct Startup;
 
             struct Shutdown;
-
+            
             template <int, typename>
             struct Every;
+            
+            template <typename, int, typename>
+            struct Watchdog;
 
             template <typename>
             struct Per;
@@ -205,10 +208,14 @@ namespace NUClear {
 
         /// @copydoc dsl::word::Shutdown
         using Shutdown = dsl::word::Shutdown;
-
+        
         /// @copydoc dsl::word::Every
         template <int ticks = 0, class period = std::chrono::milliseconds>
         using Every = dsl::word::Every<ticks, period>;
+        
+        /// @copydoc dsl::word::Every
+        template <typename TWatchdog, int ticks, class period = std::chrono::milliseconds>
+        using Watchdog = dsl::word::Watchdog<TWatchdog, ticks, period>;
 
         /// @copydoc dsl::word::Per
         template <class period>
@@ -397,6 +404,7 @@ namespace NUClear {
 #include "nuclear_bits/dsl/word/Every.hpp"
 #include "nuclear_bits/dsl/word/Single.hpp"
 #include "nuclear_bits/dsl/word/Buffer.hpp"
+#include "nuclear_bits/dsl/word/Watchdog.hpp"
 #include "nuclear_bits/dsl/word/Sync.hpp"
 #include "nuclear_bits/dsl/word/emit/Local.hpp"
 #include "nuclear_bits/dsl/word/emit/Direct.hpp"
