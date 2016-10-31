@@ -102,7 +102,7 @@ namespace NUClear {
                     }
                     // Otherwise return an invalid event
                     else {
-                        return Event { -1, 0 };
+                        return Event { INVALID_SOCKET, 0 };
                     }
                 }
             };
