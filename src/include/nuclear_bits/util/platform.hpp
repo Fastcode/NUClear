@@ -38,6 +38,8 @@
 #include <iostream>
 
 using ssize_t = SSIZE_T;
+using in_port_t = uint16_t;
+using in_addr_t = uint32_t;
 
 namespace NUClear {
 
@@ -79,6 +81,7 @@ namespace NUClear {
 
 // Move errno so it can be used in windows
 #define network_errno errno
+#define INVALID_SOCKET -1
 
 namespace NUClear {
 
