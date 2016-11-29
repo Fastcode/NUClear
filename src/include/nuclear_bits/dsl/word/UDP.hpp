@@ -341,7 +341,7 @@ namespace NUClear {
                         std::vector<uint32_t> addresses;
                         for(auto& iface : util::network::get_interfaces()) {
                             // We receive on broadcast addresses and we don't want loopback or point to point
-                            if(!iface.flags.loopback && !iface.flags.pointtopoint && iface.flags.multicast) {
+                            if(iface.flags.multicast) {
                                 addresses.push_back(iface.ip);
                             }
                         }

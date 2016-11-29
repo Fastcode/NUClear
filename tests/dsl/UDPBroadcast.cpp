@@ -74,7 +74,7 @@ namespace {
 
                 for(auto& iface : interfaces) {
                     // We send on broadcast addresses and we don't want loopback or point to point
-                    if(!iface.flags.loopback && !iface.flags.pointtopoint && iface.flags.broadcast) {
+                    if(iface.flags.broadcast) {
                         // Two broadcast ips that are the same are probably on the same network so ignore those
                         if(std::find(std::begin(addresses), std::end(addresses), iface.broadcast) == std::end(addresses)) {
                             addresses.push_back(iface.broadcast);
@@ -100,7 +100,7 @@ namespace {
 
                 for(auto& iface : interfaces) {
                     // We send on broadcast addresses and we don't want loopback or point to point
-                    if(!iface.flags.loopback && !iface.flags.pointtopoint && iface.flags.broadcast) {
+                    if(iface.flags.broadcast) {
                         // Two broadcast ips that are the same are probably on the same network so ignore those
                         if(std::find(std::begin(addresses), std::end(addresses), iface.broadcast) == std::end(addresses)) {
                             addresses.push_back(iface.broadcast);
