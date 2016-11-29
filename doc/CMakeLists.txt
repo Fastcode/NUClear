@@ -1,33 +1,36 @@
 # add a target to generate API documentation with Doxygen
 FIND_PACKAGE(Doxygen)
-OPTION(BUILD_DOCUMENTATION "Create and install the HTML based API documentation (requires Doxygen)" ${DOXYGEN_FOUND})
+FIND_PACKAGE(Sphinx)
 
-IF(BUILD_DOCUMENTATION)
-    IF(NOT DOXYGEN_FOUND)
-        MESSAGE(FATAL_ERROR "Doxygen is needed to build the documentation.")
-    ENDIF()
+IF(DOXYGEN_FOUND AND Sphinx_FOUND)
 
-    SET(doxyfile_in ${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in)
-    SET(doxyfile ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile)
+    OPTION(BUILD_DOCUMENTATION "Create and install the HTML based API documentation (requires Doxygen)" FALSE)
 
-    CONFIGURE_FILE(${doxyfile_in} ${doxyfile} @ONLY)
+    IF(BUILD_DOCUMENTATION)
+        IF(NOT DOXYGEN_FOUND)
+            MESSAGE(FATAL_ERROR "Doxygen is needed to build the documentation.")
+        ENDIF()
 
-    ADD_CUSTOM_TARGET(doxygen
-        COMMAND ${DOXYGEN_EXECUTABLE} ${doxyfile}
-        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-        COMMENT "Generating documentation XML using doxygen"
-        DEPENDS ${doxyfile}
-    )
+        SET(doxyfile_in ${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in)
+        SET(doxyfile ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile)
 
-    FIND_PACKAGE(Sphinx)
-    IF(Sphinx_FOUND)
-        ADD_CUSTOM_TARGET(sphinx
+        CONFIGURE_FILE(${doxyfile_in} ${doxyfile} @ONLY)
+
+        ADD_CUSTOM_TARGET(doxygen
+            COMMAND ${DOXYGEN_EXECUTABLE} ${doxyfile}
+            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+            COMMENT "Generating documentation XML using doxygen"
+            DEPENDS ${doxyfile}
+        )
+
+        ADD_CUSTOM_TARGET(docs
             COMMAND ${Sphinx_BINARY} -a ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR}
             WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
             COMMENT "Generating documentation pages using sphinx"
             DEPENDS doxygen
         )
-    ENDIF()
 
-    INSTALL(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/html DESTINATION share/doc)
-endif()
+        INSTALL(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/html DESTINATION share/doc)
+
+    ENDIF(BUILD_DOCUMENTATION)
+ENDIF(DOXYGEN_FOUND AND Sphinx_FOUND)

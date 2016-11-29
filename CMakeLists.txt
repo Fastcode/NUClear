@@ -5,9 +5,6 @@ SET(VERSION_MAJOR 0)
 SET(VERSION_MINOR 2)
 SET(VERSION_PATCH 0)
 
-# Supported options:
-OPTION(BUILD_TESTS "Builds all of the NUClear unit tests." ON)
-
 # We use additional modules that cmake needs to know about
 SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 
@@ -23,11 +20,8 @@ ADD_SUBDIRECTORY(src)
 # Install the headers and templates that nuclear depends on
 INSTALL(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/src/include/ DESTINATION include PATTERN "*.hpp" PATTERN "*.ipp")
 
-# Optional build supports
-IF(BUILD_TESTS)
-    ENABLE_TESTING()
-    ADD_SUBDIRECTORY(tests)
-ENDIF()
+# Add the tests directory
+ADD_SUBDIRECTORY(tests)
 
 # Add the documentation subdirectory
 ADD_SUBDIRECTORY(doc)

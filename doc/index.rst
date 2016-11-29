@@ -7,6 +7,7 @@ Contents:
     :maxdepth: 2
 
     overview
+    quick_start
     dsl
     managing_reactions
     startup

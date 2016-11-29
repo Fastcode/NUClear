@@ -1,7 +1,7 @@
 NUClear [![Build Status](https://travis-ci.org/Fastcode/NUClear.svg?branch=develop)](https://travis-ci.org/Fastcode/NUClear)
 =======
 
-NUClear is a c++ software framework designed to aid in the development of real time modular systems.
+NUClear is a C++ software framework designed to aid in the development of real time modular systems.
 It is built from a set of template metapgrograms that control the flow of information through the system.
 
 It is highly extensible and provides several attachment points to develop new DSL keywords if needed.
@@ -24,12 +24,6 @@ cd build
 cmake .. -DBUILD_TESTS=OFF
 make install
 ```
-
-## Project Structure
-
-    src/ -- Source files for the project
-      include/ -- Include files
-    tests/ -- Test files using catch unit testing framework
 
 ### Dependencies
 * g++ 4.9, clang (with c++14 support) or Visual Studio 2015
