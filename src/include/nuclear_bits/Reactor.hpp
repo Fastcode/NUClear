@@ -261,6 +261,7 @@ namespace NUClear {
         /// @brief This provides functions to modify how an on statement runs after it has been created
         using ReactionHandle = threading::ReactionHandle;
 
+    public:
         template <typename DSL, typename... TArgs>
         struct Binder {
         private:
