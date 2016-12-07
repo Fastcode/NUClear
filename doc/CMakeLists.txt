@@ -1,36 +1,33 @@
-# add a target to generate API documentation with Doxygen
-FIND_PACKAGE(Doxygen)
-FIND_PACKAGE(Sphinx)
+OPTION(BUILD_DOCUMENTATION "Create and install the HTML based API documentation (requires Doxygen)" FALSE)
 
-IF(DOXYGEN_FOUND AND Sphinx_FOUND)
+IF(BUILD_DOCUMENTATION)
 
-    OPTION(BUILD_DOCUMENTATION "Create and install the HTML based API documentation (requires Doxygen)" FALSE)
+    FIND_PACKAGE(Doxygen REQUIRED)
+    FIND_PACKAGE(Sphinx REQUIRED)
 
-    IF(BUILD_DOCUMENTATION)
-        IF(NOT DOXYGEN_FOUND)
-            MESSAGE(FATAL_ERROR "Doxygen is needed to build the documentation.")
-        ENDIF()
+    IF(NOT DOXYGEN_FOUND)
+        MESSAGE(FATAL_ERROR "Doxygen is needed to build the documentation.")
+    ENDIF()
 
-        SET(doxyfile_in ${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in)
-        SET(doxyfile ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile)
+    SET(doxyfile_in ${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in)
+    SET(doxyfile ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile)
 
-        CONFIGURE_FILE(${doxyfile_in} ${doxyfile} @ONLY)
+    CONFIGURE_FILE(${doxyfile_in} ${doxyfile} @ONLY)
 
-        ADD_CUSTOM_TARGET(doxygen
-            COMMAND ${DOXYGEN_EXECUTABLE} ${doxyfile}
-            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-            COMMENT "Generating documentation XML using doxygen"
-            DEPENDS ${doxyfile}
-        )
+    ADD_CUSTOM_TARGET(doxygen_xml
+        COMMAND ${DOXYGEN_EXECUTABLE} ${doxyfile}
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+        COMMENT "Generating documentation XML using doxygen"
+        DEPENDS ${doxyfile}
+    )
 
-        ADD_CUSTOM_TARGET(docs
-            COMMAND ${Sphinx_BINARY} -a ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR}
-            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-            COMMENT "Generating documentation pages using sphinx"
-            DEPENDS doxygen
-        )
+    ADD_CUSTOM_TARGET(docs
+        COMMAND ${Sphinx_BINARY} -a ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR}
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+        COMMENT "Generating documentation pages using sphinx"
+        DEPENDS doxygen_xml
+    )
 
-        INSTALL(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/html DESTINATION share/doc)
+    INSTALL(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/html DESTINATION share/doc)
 
-    ENDIF(BUILD_DOCUMENTATION)
-ENDIF(DOXYGEN_FOUND AND Sphinx_FOUND)
+ENDIF(BUILD_DOCUMENTATION)
