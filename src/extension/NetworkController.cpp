@@ -18,9 +18,9 @@
 #include "nuclear_bits/extension/NetworkController.hpp"
 
 #ifdef _WIN32
-    #include "nuclear_bits/util/platform.hpp"
+#include "nuclear_bits/util/platform.hpp"
 #else
-    #include <sys/utsname.h>
+#include <sys/utsname.h>
 #endif
 
 #include <algorithm>
@@ -28,136 +28,137 @@
 #include <csignal>
 
 namespace NUClear {
-    namespace extension {
+namespace extension {
 
-        NetworkController::NetworkController(std::unique_ptr<NUClear::Environment> environment)
-        : Reactor(std::move(environment))
-        , writeMutex()
-        , udpHandle()
-        , tcpHandle()
-        , multicastHandle()
-        , multicastEmitHandle()
-        , networkEmitHandle()
-        , name("")
-        , multicastGroup("")
-        , multicastPort(0)
-        , udpPort(0)
-        , tcpPort(0)
-        , udpServerFD(0)
-        , tcpServerFD(0)
-        , packetIDSource(1)
-        , reactionMutex()
-        , reactions()
-        , targets()
-        , nameTarget()
-        , udpTarget()
-        , tcpTarget() {
+	NetworkController::NetworkController(std::unique_ptr<NUClear::Environment> environment)
+		: Reactor(std::move(environment))
+		, writeMutex()
+		, udpHandle()
+		, tcpHandle()
+		, multicastHandle()
+		, multicastEmitHandle()
+		, networkEmitHandle()
+		, name("")
+		, multicastGroup("")
+		, multicastPort(0)
+		, udpPort(0)
+		, tcpPort(0)
+		, udpServerFD(0)
+		, tcpServerFD(0)
+		, packetIDSource(1)
+		, reactionMutex()
+		, reactions()
+		, targets()
+		, nameTarget()
+		, udpTarget()
+		, tcpTarget() {
 
-            // Turn off sigpipe...
-            #ifndef _WIN32
-                ::signal(SIGPIPE, SIG_IGN);
-            #endif
+// Turn off sigpipe...
+#ifndef _WIN32
+		::signal(SIGPIPE, SIG_IGN);
+#endif
 
-            on<Trigger<dsl::word::NetworkListen>, Sync<NetworkController>>().then([this] (const dsl::word::NetworkListen& l) {
-                // Lock our reaction mutex
-                std::lock_guard<std::mutex> lock(reactionMutex);
+		on<Trigger<dsl::word::NetworkListen>, Sync<NetworkController>>().then(
+			[this](const dsl::word::NetworkListen& l) {
+				// Lock our reaction mutex
+				std::lock_guard<std::mutex> lock(reactionMutex);
 
-                // Insert our new reaction
-                reactions.insert(std::make_pair(l.hash, l.reaction));
-            });
+				// Insert our new reaction
+				reactions.insert(std::make_pair(l.hash, l.reaction));
+			});
 
-            on<Trigger<dsl::operation::Unbind<dsl::word::NetworkListen>>, Sync<NetworkController>>().then([this] (const dsl::operation::Unbind<dsl::word::NetworkListen>& unbind) {
+		on<Trigger<dsl::operation::Unbind<dsl::word::NetworkListen>>, Sync<NetworkController>>().then(
+			[this](const dsl::operation::Unbind<dsl::word::NetworkListen>& unbind) {
 
-                // Lock our reaction mutex
-                std::lock_guard<std::mutex> lock(reactionMutex);
+				// Lock our reaction mutex
+				std::lock_guard<std::mutex> lock(reactionMutex);
 
-                // Find and delete this reaction
-                for (auto it = reactions.begin(); it != reactions.end(); ++it) {
-                    if (it->second->reactionId == unbind.id) {
-                        reactions.erase(it);
-                        break;
-                    }
-                }
-            });
+				// Find and delete this reaction
+				for (auto it = reactions.begin(); it != reactions.end(); ++it) {
+					if (it->second->reactionId == unbind.id) {
+						reactions.erase(it);
+						break;
+					}
+				}
+			});
 
-            on<Trigger<message::NetworkConfiguration>, Sync<NetworkController>>().then([this] (const message::NetworkConfiguration& config) {
+		on<Trigger<message::NetworkConfiguration>, Sync<NetworkController>>().then(
+			[this](const message::NetworkConfiguration& config) {
 
-                // Unbind our incoming handles if they exist
-                if (udpHandle) {
-                    udpHandle.unbind();
-                }
-                if (tcpHandle) {
-                    tcpHandle.unbind();
-                }
-                if (multicastHandle) {
-                    multicastHandle.unbind();
-                }
-                if (multicastEmitHandle) {
-                    multicastEmitHandle.unbind();
-                }
-                if (networkEmitHandle) {
-                    networkEmitHandle.unbind();
-                }
+				// Unbind our incoming handles if they exist
+				if (udpHandle) {
+					udpHandle.unbind();
+				}
+				if (tcpHandle) {
+					tcpHandle.unbind();
+				}
+				if (multicastHandle) {
+					multicastHandle.unbind();
+				}
+				if (multicastEmitHandle) {
+					multicastEmitHandle.unbind();
+				}
+				if (networkEmitHandle) {
+					networkEmitHandle.unbind();
+				}
 
-                // Unbind any TCP connections we may have and clear our maps
-                for (auto& target : targets) {
-                    target.handle.unbind();
-                    close(target.tcpFD);
-                }
+				// Unbind any TCP connections we may have and clear our maps
+				for (auto& target : targets) {
+					target.handle.unbind();
+					close(target.tcpFD);
+				}
 
-                // Clear all our maps
-                targets.clear();
-                nameTarget.clear();
-                udpTarget.clear();
-                tcpTarget.clear();
+				// Clear all our maps
+				targets.clear();
+				nameTarget.clear();
+				udpTarget.clear();
+				tcpTarget.clear();
 
-                // Store our new configuration
-                if (config.name.empty()) {
-                    // If our config name is empty, use our system name
-                    #ifdef _WIN32
-                        char n[MAX_COMPUTERNAME_LENGTH + 1];
-                        DWORD size = sizeof(n);
-                        GetComputerName(n, &size);
-                        name = std::string(n, size);
-                    #else
-                        utsname u;
-                        uname(&u);
-                        name = u.nodename;
-                    #endif
-                }
-                else {
-                    name = config.name;
-                }
-                multicastGroup = config.multicastGroup;
-                multicastPort = config.multicastPort;
+				// Store our new configuration
+				if (config.name.empty()) {
+// If our config name is empty, use our system name
+#ifdef _WIN32
+					char n[MAX_COMPUTERNAME_LENGTH + 1];
+					DWORD size = sizeof(n);
+					GetComputerName(n, &size);
+					name = std::string(n, size);
+#else
+					utsname u;
+					uname(&u);
+					name = u.nodename;
+#endif
+				}
+				else {
+					name = config.name;
+				}
+				multicastGroup = config.multicastGroup;
+				multicastPort  = config.multicastPort;
 
-                // Add our new reactions
-                std::tie(udpHandle, udpPort, udpServerFD) = on<UDP, Sync<NetworkController>>().then([this] (const UDP::Packet& packet) {
-                    udpHandler(packet);
-                });
+				// Add our new reactions
+				std::tie(udpHandle, udpPort, udpServerFD) =
+					on<UDP, Sync<NetworkController>>().then([this](const UDP::Packet& packet) { udpHandler(packet); });
 
-                std::tie(tcpHandle, tcpPort, tcpServerFD) = on<TCP, Sync<NetworkController>>().then([this] (const TCP::Connection& connection) {
-                    tcpConnection(connection);
-                });
+				std::tie(tcpHandle, tcpPort, tcpServerFD) = on<TCP, Sync<NetworkController>>().then(
+					[this](const TCP::Connection& connection) { tcpConnection(connection); });
 
-                std::tie(multicastHandle, std::ignore, std::ignore) = on<UDP::Multicast, Sync<NetworkController>>(multicastGroup, multicastPort).then([this] (const UDP::Packet& packet) {
-                    udpHandler(packet);
-                });
+				std::tie(multicastHandle, std::ignore, std::ignore) =
+					on<UDP::Multicast, Sync<NetworkController>>(multicastGroup, multicastPort)
+						.then([this](const UDP::Packet& packet) { udpHandler(packet); });
 
-                multicastEmitHandle = on<Every<1, std::chrono::seconds>, Single, Sync<NetworkController>>().then([this] {
-                    announce();
-                });
+				multicastEmitHandle =
+					on<Every<1, std::chrono::seconds>, Single, Sync<NetworkController>>().then([this] { announce(); });
 
-                networkEmitHandle = on<Trigger<dsl::word::emit::NetworkEmit>, Sync<NetworkController>>().then([this] (const dsl::word::emit::NetworkEmit& emit) {
-                    // See if this message should be sent reliably
-                    if (emit.reliable) {
-                        tcpSend(emit);
-                    }
-                    else {
-                        udpSend(emit);
-                    }
-                });
-            });
-        }
-    }
+				networkEmitHandle = on<Trigger<dsl::word::emit::NetworkEmit>, Sync<NetworkController>>().then(
+					[this](const dsl::word::emit::NetworkEmit& emit) {
+						// See if this message should be sent reliably
+						if (emit.reliable) {
+							tcpSend(emit);
+						}
+						else {
+							udpSend(emit);
+						}
+					});
+			});
+	}
+}
 }

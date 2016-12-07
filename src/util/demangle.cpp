@@ -28,45 +28,45 @@
 #pragma comment(lib, "Dbghelp.lib")
 
 namespace NUClear {
-    namespace util {
+namespace util {
 
-        bool symInitialised = false;
-        std::mutex symbolMutex;
+	bool symInitialised = false;
+	std::mutex symbolMutex;
 
-        void initSymbols() {
+	void initSymbols() {
 
-            HANDLE hProcess;
+		HANDLE hProcess;
 
-            SymSetOptions(SYMOPT_UNDNAME | SYMOPT_DEFERRED_LOADS);
+		SymSetOptions(SYMOPT_UNDNAME | SYMOPT_DEFERRED_LOADS);
 
-            hProcess = GetCurrentProcess();
+		hProcess = GetCurrentProcess();
 
-            if (!SymInitialize(hProcess, nullptr, true)) {
-                // SymInitialize failed
-                throw std::system_error(GetLastError(), std::system_category(), "SymInitialise failed");
-            }
+		if (!SymInitialize(hProcess, nullptr, true)) {
+			// SymInitialize failed
+			throw std::system_error(GetLastError(), std::system_category(), "SymInitialise failed");
+		}
 
-            symInitialised = true;
-        }
+		symInitialised = true;
+	}
 
-        std::string demangle(const char* symbol) {
-            std::lock_guard<std::mutex> lock(symbolMutex);
+	std::string demangle(const char* symbol) {
+		std::lock_guard<std::mutex> lock(symbolMutex);
 
-            // Initialise the symbols if we have to
-            if (!symInitialised) {
-                initSymbols();
-            }
+		// Initialise the symbols if we have to
+		if (!symInitialised) {
+			initSymbols();
+		}
 
-            char name[256];
+		char name[256];
 
-            if (int len = UnDecorateSymbolName(symbol, name, sizeof(name), 0)) {
-                return std::string(name, len);
-            }
-            else {
-                return symbol;
-            }
-        }
-    }
+		if (int len = UnDecorateSymbolName(symbol, name, sizeof(name), 0)) {
+			return std::string(name, len);
+		}
+		else {
+			return symbol;
+		}
+	}
+}
 }
 
 // GNU/Clang symbol demangler
@@ -77,25 +77,22 @@ namespace NUClear {
 #include <memory>
 
 namespace NUClear {
-    namespace util {
+namespace util {
 
-        /**
-         * @brief Demangles the passed symbol to a string, or returns it if it cannot demangle it
-         *
-         * @param symbol the symbol to demangle
-         *
-         * @return the demangled symbol, or the original string if it could not be demangeld
-         */
-        std::string demangle(const char* symbol) {
+	/**
+	 * @brief Demangles the passed symbol to a string, or returns it if it cannot demangle it
+	 *
+	 * @param symbol the symbol to demangle
+	 *
+	 * @return the demangled symbol, or the original string if it could not be demangeld
+	 */
+	std::string demangle(const char* symbol) {
 
-            int status = -4; // some arbitrary value to eliminate the compiler warning
-            std::unique_ptr<char, void(*)(void*)> res {
-                abi::__cxa_demangle(symbol, nullptr, nullptr, &status),
-                std::free
-            };
+		int status = -4;  // some arbitrary value to eliminate the compiler warning
+		std::unique_ptr<char, void (*)(void*)> res{abi::__cxa_demangle(symbol, nullptr, nullptr, &status), std::free};
 
-            return std::string(status == 0 ? res.get() : symbol);
-        }
-    }
+		return std::string(status == 0 ? res.get() : symbol);
+	}
+}
 }
 #endif  // _MSC_VER

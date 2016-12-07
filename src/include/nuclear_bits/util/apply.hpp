@@ -24,36 +24,38 @@
 #include "RelevantArguments.hpp"
 
 namespace NUClear {
-    namespace util {
+namespace util {
 
-        /**
-         * @brief Dereferences and uses the values from the tuple as the arguments for the function call.
-         *
-         * @details
-         *  This function uses the values which are stored in the tuple and dereferences them as parameters in
-         *  the callback function. It does this using the generated sequence of integers for this tuple. These
-         *  values are then used to extract the function parameters in order.
-         *
-         * @param s the Sequence object which is passed in holding the int template pack
-         *
-         * @tparam S the integer pack giving the ordinal position of the tuple value to get
-         */
-        template<typename TFunc, int... S, typename... TArgs>
-        void apply(TFunc&& function, const std::tuple<TArgs...>&& args, const Sequence<S...>&) {
+	/**
+	 * @brief Dereferences and uses the values from the tuple as the arguments for the function call.
+	 *
+	 * @details
+	 *  This function uses the values which are stored in the tuple and dereferences them as parameters in
+	 *  the callback function. It does this using the generated sequence of integers for this tuple. These
+	 *  values are then used to extract the function parameters in order.
+	 *
+	 * @param s the Sequence object which is passed in holding the int template pack
+	 *
+	 * @tparam S the integer pack giving the ordinal position of the tuple value to get
+	 */
+	template <typename TFunc, int... S, typename... TArgs>
+	void apply(TFunc&& function, const std::tuple<TArgs...>&& args, const Sequence<S...>&) {
 
-            // Get each of the values from the tuple, dereference them and call the function with them
-            // Also ensure that each value is a const reference
-            function(Dereferencer<decltype(std::get<S>(args))>(std::get<S>(args))...);
-        }
+		// Get each of the values from the tuple, dereference them and call the function with them
+		// Also ensure that each value is a const reference
+		function(Dereferencer<decltype(std::get<S>(args))>(std::get<S>(args))...);
+	}
 
-        template <typename TFunc, typename... TArgs>
-        void apply_relevant(TFunc&& function, const std::tuple<TArgs...>&& args) {
+	template <typename TFunc, typename... TArgs>
+	void apply_relevant(TFunc&& function, const std::tuple<TArgs...>&& args) {
 
-            // Call apply with the relevant arguments
-            apply(std::forward<TFunc>(function), std::move(args), typename RelevantArguments<TFunc, std::tuple<Dereferencer<TArgs>...>>::type());
-        }
+		// Call apply with the relevant arguments
+		apply(std::forward<TFunc>(function),
+			  std::move(args),
+			  typename RelevantArguments<TFunc, std::tuple<Dereferencer<TArgs>...>>::type());
+	}
 
-    }  // namespace util
+}  // namespace util
 }  //  namespace NUClear
 
 #endif  // NUCLEAR_UTIL_APPLY_HPP

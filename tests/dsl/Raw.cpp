@@ -1,3 +1,4 @@
+
 /*
  * Copyright (C) 2013-2016 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
  *
@@ -21,68 +22,64 @@
 
 namespace {
 
-    struct TypeA {
-        TypeA() : x(0) {}
-        TypeA(int x) : x(x) {}
+struct TypeA {
+	TypeA() : x(0) {}
+	TypeA(int x) : x(x) {}
 
-        int x;
-    };
+	int x;
+};
 
-    struct TypeB {
-        TypeB() : x(0) {}
-        TypeB(int x) : x(x) {}
+struct TypeB {
+	TypeB() : x(0) {}
+	TypeB(int x) : x(x) {}
 
-        int x;
-    };
+	int x;
+};
 
-    class TestReactor : public NUClear::Reactor {
-    private:
-        std::vector<std::shared_ptr<const TypeA>> stored;
-    public:
+class TestReactor : public NUClear::Reactor {
+private:
+	std::vector<std::shared_ptr<const TypeA>> stored;
 
-        TestReactor(std::unique_ptr<NUClear::Environment> environment)
-            : Reactor(std::move(environment))
-            , stored() {
+public:
+	TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)), stored() {
 
-            // Trigger on TypeA and store the result
-            on<Trigger<TypeA>>().then([this] (const std::shared_ptr<const TypeA>& a) {
-                stored.push_back(a);
+		// Trigger on TypeA and store the result
+		on<Trigger<TypeA>>().then([this](const std::shared_ptr<const TypeA>& a) {
+			stored.push_back(a);
 
-                // Wait until we have 10 elements
-                if (stored.size() == 10) {
-                    emit(std::make_unique<TypeB>(TypeB{ 0 }));
-                }
-                else {
-                    emit(std::make_unique<TypeA>(TypeA{ a->x + 1 }));
-                }
-            });
+			// Wait until we have 10 elements
+			if (stored.size() == 10) {
+				emit(std::make_unique<TypeB>(TypeB{0}));
+			}
+			else {
+				emit(std::make_unique<TypeA>(TypeA{a->x + 1}));
+			}
+		});
 
-            on<Trigger<TypeB>>().then([this] (const TypeB&) {
+		on<Trigger<TypeB>>().then([this](const TypeB&) {
 
-                // Make sure that our type a list has numbers 0 to 9
+			// Make sure that our type a list has numbers 0 to 9
 
-                REQUIRE(stored.size() == 10);
+			REQUIRE(stored.size() == 10);
 
-                for (size_t i = 0; i < stored.size(); ++i) {
-                    REQUIRE(stored[i]->x == i);
-                }
+			for (size_t i = 0; i < stored.size(); ++i) {
+				REQUIRE(stored[i]->x == i);
+			}
 
-                powerplant.shutdown();
-            });
+			powerplant.shutdown();
+		});
 
-            on<Startup>().then([this] {
-                emit(std::make_unique<TypeA>(TypeA{ 0 }));
-            });
-        }
-    };
+		on<Startup>().then([this] { emit(std::make_unique<TypeA>(TypeA{0})); });
+	}
+};
 }
 
 TEST_CASE("Testing the raw type conversions work properly", "[api][raw]") {
 
-    NUClear::PowerPlant::Configuration config;
-    config.threadCount = 1;
-    NUClear::PowerPlant plant(config);
-    plant.install<TestReactor>();
+	NUClear::PowerPlant::Configuration config;
+	config.threadCount = 1;
+	NUClear::PowerPlant plant(config);
+	plant.install<TestReactor>();
 
-    plant.start();
+	plant.start();
 }

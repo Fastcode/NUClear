@@ -18,61 +18,59 @@
 #ifndef NUCLEAR_UTIL_DEREFERENCER_HPP
 #define NUCLEAR_UTIL_DEREFERENCER_HPP
 
-#include "MetaProgramming.hpp"
-
 namespace NUClear {
-    namespace util {
+namespace util {
 
-        template<typename T>
-        struct is_dereferenceable {
-        private:
-            typedef std::true_type yes;
-            typedef std::false_type no;
+	template <typename T>
+	struct is_dereferenceable {
+	private:
+		typedef std::true_type yes;
+		typedef std::false_type no;
 
-            template <typename U> static auto test(int) -> decltype(*std::declval<U>(), yes());
-            template <typename> static no test(...);
+		template <typename U>
+		static auto test(int) -> decltype(*std::declval<U>(), yes());
+		template <typename>
+		static no test(...);
 
-        public:
-            static constexpr bool value = std::is_same<decltype(test<T>(0)), yes>::value;
-        };
+	public:
+		static constexpr bool value = std::is_same<decltype(test<T>(0)), yes>::value;
+	};
 
-        template <typename T, bool B = is_dereferenceable<T>::value>
-        struct DereferencedType {
-        };
+	template <typename T, bool B = is_dereferenceable<T>::value>
+	struct DereferencedType {};
 
-        template <typename T>
-        struct DereferencedType<T, true> {
-            using type = decltype(*std::declval<T>());
-        };
+	template <typename T>
+	struct DereferencedType<T, true> {
+		using type = decltype(*std::declval<T>());
+	};
 
-        template <typename T>
-        struct Dereferencer {
-        private:
-            T& value;
+	template <typename T>
+	struct Dereferencer {
+	private:
+		T& value;
 
-        public:
-            Dereferencer(T& value) : value(value) {
-            }
+	public:
+		Dereferencer(T& value) : value(value) {}
 
-            // We can return the type as normal
-            operator T&() {
-                return value;
-            }
+		// We can return the type as normal
+		operator T&() {
+			return value;
+		}
 
-            // We can return the type this dereferences to if dereference operator
-            template <typename U = T>
-            operator typename DereferencedType<U>::type() {
-                return *value;
-            }
+		// We can return the type this dereferences to if dereference operator
+		template <typename U = T>
+		operator typename DereferencedType<U>::type() {
+			return *value;
+		}
 
-            // We also allow converting to anything that the type we are passing is convertable to
-            template <typename U, typename = std::enable_if_t<std::is_convertible<T, U>::value>>
-            operator U() {
-                return value;
-            }
-        };
+		// We also allow converting to anything that the type we are passing is convertable to
+		template <typename U, typename = std::enable_if_t<std::is_convertible<T, U>::value>>
+		operator U() {
+			return value;
+		}
+	};
 
-    }  // namespace util
+}  // namespace util
 }  //  namespace NUClear
 
 #endif  // NUCLEAR_UTIL_DEREFERENCER_HPP

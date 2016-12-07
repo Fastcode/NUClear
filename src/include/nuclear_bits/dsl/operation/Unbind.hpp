@@ -19,28 +19,28 @@
 #define NUCLEAR_DSL_OPERATION_UNBIND_HPP
 
 namespace NUClear {
-    namespace dsl {
-        namespace operation {
+namespace dsl {
+	namespace operation {
 
-            /**
-             * @brief Signals that the reaction with this id servicing this type should be unbound and its resources
-             *  cleaned up
-             *
-             * @details When a reaction is finished and won't be run again, this type should be emitted along with the
-             * original DSL word that created it. This signals to its handler to clean it up and not run it again.
-             *
-             * @tparam Word the DSL word that created this binding (or another helper type)
-             */
-            template <typename Word>
-            struct Unbind {
-                Unbind(uint64_t id) : id(id) {};
+		/**
+		 * @brief Signals that the reaction with this id servicing this type should be unbound and its resources
+		 *  cleaned up
+		 *
+		 * @details When a reaction is finished and won't be run again, this type should be emitted along with the
+		 * original DSL word that created it. This signals to its handler to clean it up and not run it again.
+		 *
+		 * @tparam Word the DSL word that created this binding (or another helper type)
+		 */
+		template <typename Word>
+		struct Unbind {
+			Unbind(uint64_t id) : id(id){};
 
-                /// The id of the task to unbind
-                const uint64_t id;
-            };
+			/// The id of the task to unbind
+			const uint64_t id;
+		};
 
-        }  // namespace operation
-    }  // namespace dsl
+	}  // namespace operation
+}  // namespace dsl
 }  // namespace NUClear
 
 #endif  // NUCLEAR_DSL_OPERATION_UNBIND_HPP

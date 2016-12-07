@@ -23,79 +23,78 @@
 #include <vector>
 
 namespace NUClear {
-    namespace util {
+namespace util {
 
-        /**
-         * @brief The simplest and fastest map format, It stores a single value and returns it when requested later.
-         *
-         * @details
-         *  This map stores a single value in it's store when the set function is called, and when get is later called
-         *  this object will be returned. This map is accessed by template paramters, because of this when the compiler
-         *  compiles this map. It can resolve each of the map accesses into a direct function call. This allows the map to
-         *  be looked up at compile time and optimized to very efficent code. There are several variations of the Map
-         *  provided through the MapType parameter the operation of each of these is described in their individual
-         *  documentation.
-         *
-         * @attention
-         *  Note that because this is an entirely static class, if two maps with the same TMapID are used, they access the
-         *  same map
-         */
-        template <typename TMapID, typename TKey, typename TValue>
-        class TypeMap {
-        private:
-            /// @brief Deleted constructor as this class is a static class.
-            TypeMap() = delete;
-            /// @brief Deleted destructor as this class is a static class.
-            ~TypeMap() = delete;
-            /// @brief the data variable where the data is stored for this map key.
+	/**
+	 * @brief The simplest and fastest map format, It stores a single value and returns it when requested later.
+	 *
+	 * @details
+	 *  This map stores a single value in it's store when the set function is called, and when get is later called
+	 *  this object will be returned. This map is accessed by template paramters, because of this when the compiler
+	 *  compiles this map. It can resolve each of the map accesses into a direct function call. This allows the map to
+	 *  be looked up at compile time and optimized to very efficent code. There are several variations of the Map
+	 *  provided through the MapType parameter the operation of each of these is described in their individual
+	 *  documentation.
+	 *
+	 * @attention
+	 *  Note that because this is an entirely static class, if two maps with the same TMapID are used, they access the
+	 *  same map
+	 */
+	template <typename TMapID, typename TKey, typename TValue>
+	class TypeMap {
+	private:
+		/// @brief Deleted constructor as this class is a static class.
+		TypeMap() = delete;
+		/// @brief Deleted destructor as this class is a static class.
+		~TypeMap() = delete;
+		/// @brief the data variable where the data is stored for this map key.
 
-            static std::shared_ptr<TValue> data;
-            static std::mutex mutex;
+		static std::shared_ptr<TValue> data;
+		static std::mutex mutex;
 
-        public:
-            /**
-             * @brief Stores the passed value in this map.
-             *
-             * @param d a pointer to the data to be stored (the map takes ownership)
-             */
-            static void set(std::shared_ptr<TValue> d) {
+	public:
+		/**
+		 * @brief Stores the passed value in this map.
+		 *
+		 * @param d a pointer to the data to be stored (the map takes ownership)
+		 */
+		static void set(std::shared_ptr<TValue> d) {
 
-                // Do this once G++ supports it
-                //std::atomic_store_explicit(&data, d, std::memory_order_relaxed);
+			// Do this once G++ supports it
+			// std::atomic_store_explicit(&data, d, std::memory_order_relaxed);
 
-                // Lock a mutex and set our data
-                std::lock_guard<std::mutex> lock(mutex);
-                data = std::move(d);
+			// Lock a mutex and set our data
+			std::lock_guard<std::mutex> lock(mutex);
+			data = std::move(d);
+		}
 
-            }
+		/**
+		 * @brief Gets the value that was previously stored.
+		 *
+		 * @return a shared_ptr to the data that was previously stored
+		 */
+		static std::shared_ptr<TValue> get() {
 
-            /**
-             * @brief Gets the value that was previously stored.
-             *
-             * @return a shared_ptr to the data that was previously stored
-             */
-            static std::shared_ptr<TValue> get() {
+			// TODO do this when gcc supports it
+			// std::atomic_load_explicit(&data, std::memory_order_relaxed);
 
-                // TODO do this when gcc supports it
-                // std::atomic_load_explicit(&data, std::memory_order_relaxed);
+			std::shared_ptr<TValue> d;
+			{
+				std::lock_guard<std::mutex> lock(mutex);
+				d = data;
+			}
 
-                std::shared_ptr<TValue> d;
-                {
-                    std::lock_guard<std::mutex> lock(mutex);
-                    d = data;
-                }
+			return d;
+		}
+	};
 
-                return d;
-            }
-        };
+	/// Initialize our shared_ptr data
+	template <typename TMapID, typename TKey, typename TValue>
+	std::shared_ptr<TValue> TypeMap<TMapID, TKey, TValue>::data;
+	template <typename TMapID, typename TKey, typename TValue>
+	std::mutex TypeMap<TMapID, TKey, TValue>::mutex;
 
-        /// Initialize our shared_ptr data
-        template <typename TMapID, typename TKey, typename TValue>
-        std::shared_ptr<TValue> TypeMap<TMapID, TKey, TValue>::data;
-        template <typename TMapID, typename TKey, typename TValue>
-        std::mutex TypeMap<TMapID, TKey, TValue>::mutex;
-
-    }  // namespace util
+}  // namespace util
 }  //  namespace NUClear
 
 #endif  // NUCLEAR_UTIL_TYPEMAP_HPP

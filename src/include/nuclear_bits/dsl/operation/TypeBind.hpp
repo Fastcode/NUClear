@@ -22,56 +22,59 @@
 #include "nuclear_bits/util/get_identifier.hpp"
 
 namespace NUClear {
-    namespace dsl {
-        namespace operation {
+namespace dsl {
+	namespace operation {
 
-            /**
-             * @brief Binds a function to execute when a specific type is emitted
-             *
-             * @details A common pattern in NUClear is to execute a function when a paticular type is emitted.
-             *          This utility class is used to simplify executing a function when a type is emitted.
-             *          To use this utility inherit from this type with the DataType to listen for.
-             *          If the callback also needs the data emitted you should also extend from CacheGet
-             *
-             * @tparam DataType the data type that will be bound to
-             */
-            template <typename DataType>
-            struct TypeBind {
+		/**
+		 * @brief Binds a function to execute when a specific type is emitted
+		 *
+		 * @details A common pattern in NUClear is to execute a function when a paticular type is emitted.
+		 *          This utility class is used to simplify executing a function when a type is emitted.
+		 *          To use this utility inherit from this type with the DataType to listen for.
+		 *          If the callback also needs the data emitted you should also extend from CacheGet
+		 *
+		 * @tparam DataType the data type that will be bound to
+		 */
+		template <typename DataType>
+		struct TypeBind {
 
-                template <typename DSL, typename TFunc>
-                static inline threading::ReactionHandle bind(Reactor& reactor, const std::string& label, TFunc&& callback) {
+			template <typename DSL, typename TFunc>
+			static inline threading::ReactionHandle bind(Reactor& reactor, const std::string& label, TFunc&& callback) {
 
-                    // Our unbinder to remove this reaction
-                    std::function<void (threading::Reaction&)> unbinder([] (threading::Reaction& r) {
+				// Our unbinder to remove this reaction
+				std::function<void(threading::Reaction&)> unbinder([](threading::Reaction& r) {
 
-                        auto& vec = store::TypeCallbackStore<DataType>::get();
+					auto& vec = store::TypeCallbackStore<DataType>::get();
 
-                        auto item = std::find_if(std::begin(vec), std::end(vec), [&r] (const std::shared_ptr<threading::Reaction>& item) {
-                            return item->reactionId == r.reactionId;
-                        });
+					auto item = std::find_if(
+						std::begin(vec), std::end(vec), [&r](const std::shared_ptr<threading::Reaction>& item) {
+							return item->reactionId == r.reactionId;
+						});
 
-                        // If the item is in the list erase the item
-                        if (item != std::end(vec)) {
-                            vec.erase(item);
-                        }
-                    });
+					// If the item is in the list erase the item
+					if (item != std::end(vec)) {
+						vec.erase(item);
+					}
+				});
 
-                    // Get our identifier string
-                    std::vector<std::string> identifier = util::get_identifier<typename DSL::DSL, TFunc>(label, reactor.reactorName);
+				// Get our identifier string
+				std::vector<std::string> identifier =
+					util::get_identifier<typename DSL::DSL, TFunc>(label, reactor.reactorName);
 
-                    auto reaction = std::make_shared<threading::Reaction>(reactor, std::move(identifier), std::forward<TFunc>(callback), std::move(unbinder));
-                    threading::ReactionHandle handle(reaction);
+				auto reaction = std::make_shared<threading::Reaction>(
+					reactor, std::move(identifier), std::forward<TFunc>(callback), std::move(unbinder));
+				threading::ReactionHandle handle(reaction);
 
-                    // Create our reaction and store it in the TypeCallbackStore
-                    store::TypeCallbackStore<DataType>::get().push_back(std::move(reaction));
+				// Create our reaction and store it in the TypeCallbackStore
+				store::TypeCallbackStore<DataType>::get().push_back(std::move(reaction));
 
-                    // Return our handle
-                    return handle;
-                }
-            };
+				// Return our handle
+				return handle;
+			}
+		};
 
-        }  // namespace operation
-    }  // namespace dsl
+	}  // namespace operation
+}  // namespace dsl
 }  // namespace NUClear
 
 #endif  // NUCLEAR_DSL_OPERATION_TYPEBIND_HPP

@@ -21,71 +21,69 @@
 #include "nuclear_bits/util/platform.hpp"
 
 namespace NUClear {
-    namespace util {
+namespace util {
 
-        /**
-         * @brief An RAII file descriptor.
-         * @details This class represents an RAII file descriptor.
-         *          It will close the file descriptor it holds on
-         *          destruction.
-         */
-        struct FileDescriptor {
+	/**
+	 * @brief An RAII file descriptor.
+	 * @details This class represents an RAII file descriptor.
+	 *          It will close the file descriptor it holds on
+	 *          destruction.
+	 */
+	struct FileDescriptor {
 
-            /**
-             * @brief Constructs a new RAII file descriptor.
-             *
-             * @param fd [description]
-             */
-            FileDescriptor(fd_t fd) : fd(fd) {
-            }
+		/**
+		 * @brief Constructs a new RAII file descriptor.
+		 *
+		 * @param fd [description]
+		 */
+		FileDescriptor(fd_t fd) : fd(fd) {}
 
-            /**
-             * @brief Destruct the file descriptor, closes the held FD
-             */
-            ~FileDescriptor() {
-                // On windows it's CLOSE_SOCKET
-                #if defined(_WIN32)
-                if (fd != INVALID_SOCKET) {
-                    close(fd);
-                }
-                // On others we just close
-                #else
-                if (fd > 0) {
-                    close(fd);
-                }
-                #endif
+		/**
+		 * @brief Destruct the file descriptor, closes the held FD
+		 */
+		~FileDescriptor() {
+// On windows it's CLOSE_SOCKET
+#if defined(_WIN32)
+			if (fd != INVALID_SOCKET) {
+				close(fd);
+			}
+// On others we just close
+#else
+			if (fd > 0) {
+				close(fd);
+			}
+#endif
+		}
 
-            }
+		/**
+		 * @brief Releases the file descriptor from RAII.
+		 * @details This releases and returns the file descriptor
+		 *          it holds. This allows it to no longer be
+		 *          subject to closure on deletion.
+		 *          After this this FileDescriptor object will
+		 *          be invalidated.
+		 * @return the held file descriptor
+		 */
+		fd_t release() {
+			fd_t temp = fd;
+			fd		  = -1;
+			return temp;
+		}
 
-            /**
-             * @brief Releases the file descriptor from RAII.
-             * @details This releases and returns the file descriptor
-             *          it holds. This allows it to no longer be
-             *          subject to closure on deletion.
-             *          After this this FileDescriptor object will
-             *          be invalidated.
-             * @return the held file descriptor
-             */
-            fd_t release() {
-                fd_t temp = fd;
-                fd = -1;
-                return temp;
-            }
+		/**
+		 * @brief Casts this to the held file descriptor
+		 *
+		 * @return the file descriptor
+		 */
+		operator fd_t() {
+			return fd;
+		}
 
-            /**
-             * @brief Casts this to the held file descriptor
-             *
-             * @return the file descriptor
-             */
-            operator fd_t() {
-                return fd;
-            }
+		/// @brief The held file descriptor
+		fd_t fd;
+	};
 
-            /// @brief The held file descriptor
-            fd_t fd;
-        };
-
-    }  // namespace util
+}  // namespace util
 }  //  namespace NUClear
 
 #endif  // NUCLEAR_UTIL_FILEDESCRIPTOR_HPP

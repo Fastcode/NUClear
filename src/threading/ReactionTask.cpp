@@ -19,63 +19,64 @@
 #include "nuclear_bits/threading/Reaction.hpp"
 
 namespace NUClear {
-    namespace threading {
+namespace threading {
 
-        // Initialize our id source
-        std::atomic<uint64_t> ReactionTask::taskIdSource(0);
+	// Initialize our id source
+	std::atomic<uint64_t> ReactionTask::taskIdSource(0);
 
-        // This here is a hack because for some reason Xcode is broken and doesn't generate the destructors for this class...???!!!
-        // TODO once XCode stops being so stupid, you can remove this
-        message::ReactionStatistics r;
+	// This here is a hack because for some reason Xcode is broken and doesn't generate the destructors for this
+	// class...???!!!
+	// TODO once XCode stops being so stupid, you can remove this
+	message::ReactionStatistics r;
 
-        // Initialize our current task
-        ATTRIBUTE_TLS ReactionTask* ReactionTask::currentTask = nullptr;
+	// Initialize our current task
+	ATTRIBUTE_TLS ReactionTask* ReactionTask::currentTask = nullptr;
 
-        ReactionTask::ReactionTask(Reaction& parent, int priority, std::function<std::unique_ptr<ReactionTask> (std::unique_ptr<ReactionTask>&&)> callback)
-          : parent(parent)
-          , taskId(++taskIdSource)
-          , priority(priority)
-          , stats(new message::ReactionStatistics {
-                parent.identifier
-              , parent.reactionId
-              , taskId
-              , currentTask ? currentTask->parent.reactionId : 0
-              , currentTask ? currentTask->taskId : 0
-              , clock::now()
-              , clock::time_point(std::chrono::seconds(0))
-              , clock::time_point(std::chrono::seconds(0))
-              , nullptr
-            })
-          , callback(callback) {
+	ReactionTask::ReactionTask(Reaction& parent,
+							   int priority,
+							   std::function<std::unique_ptr<ReactionTask>(std::unique_ptr<ReactionTask>&&)> callback)
+		: parent(parent)
+		, taskId(++taskIdSource)
+		, priority(priority)
+		, stats(new message::ReactionStatistics{parent.identifier,
+												parent.reactionId,
+												taskId,
+												currentTask ? currentTask->parent.reactionId : 0,
+												currentTask ? currentTask->taskId : 0,
+												clock::now(),
+												clock::time_point(std::chrono::seconds(0)),
+												clock::time_point(std::chrono::seconds(0)),
+												nullptr})
+		, callback(callback) {
 
-            // There is one new active task
-            ++parent.activeTasks;
-        }
+		// There is one new active task
+		++parent.activeTasks;
+	}
 
-        const ReactionTask* ReactionTask::getCurrentTask() {
-            return currentTask;
-        }
+	const ReactionTask* ReactionTask::getCurrentTask() {
+		return currentTask;
+	}
 
-        std::unique_ptr<ReactionTask> ReactionTask::run(std::unique_ptr<ReactionTask>&& us) {
+	std::unique_ptr<ReactionTask> ReactionTask::run(std::unique_ptr<ReactionTask>&& us) {
 
-            // Update our current task
-            auto oldTask = currentTask;
-            currentTask = this;
+		// Update our current task
+		auto oldTask = currentTask;
+		currentTask  = this;
 
-            // Run our callback at catch the returned task (to see if it rescheduled itself)
-            us = callback(std::move(us));
+		// Run our callback at catch the returned task (to see if it rescheduled itself)
+		us = callback(std::move(us));
 
-            // If we were not rescheduled then finish off our stats
-            if (us) {
-                // There is one less task
-                --parent.activeTasks;
-            }
+		// If we were not rescheduled then finish off our stats
+		if (us) {
+			// There is one less task
+			--parent.activeTasks;
+		}
 
-            // Reset our task back
-            currentTask = oldTask;
+		// Reset our task back
+		currentTask = oldTask;
 
-            // Return our original task
-            return std::move(us);
-        }
-    }
+		// Return our original task
+		return std::move(us);
+	}
+}
 }

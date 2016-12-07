@@ -18,68 +18,66 @@
 #include "nuclear_bits/threading/TaskScheduler.hpp"
 
 namespace NUClear {
-    namespace threading {
+namespace threading {
 
-        TaskScheduler::TaskScheduler()
-          : running(true), queue(), mutex(), condition() {}
+	TaskScheduler::TaskScheduler() : running(true), queue(), mutex(), condition() {}
 
-        TaskScheduler::~TaskScheduler() {
-        }
+	TaskScheduler::~TaskScheduler() {}
 
-        void TaskScheduler::shutdown() {
-            {
-                std::lock_guard<std::mutex> lock(mutex);
-                running = false;
-            }
-            condition.notify_all();
-        }
+	void TaskScheduler::shutdown() {
+		{
+			std::lock_guard<std::mutex> lock(mutex);
+			running = false;
+		}
+		condition.notify_all();
+	}
 
-        void TaskScheduler::submit(std::unique_ptr<ReactionTask>&& task) {
+	void TaskScheduler::submit(std::unique_ptr<ReactionTask>&& task) {
 
-            // We do not accept new tasks once we are shutdown
-            if (running) {
+		// We do not accept new tasks once we are shutdown
+		if (running) {
 
-                /* Mutex Scope */ {
-                    std::lock_guard<std::mutex> lock(mutex);
-                    queue.push(std::forward<std::unique_ptr<ReactionTask>>(task));
-                }
-            }
+			/* Mutex Scope */ {
+				std::lock_guard<std::mutex> lock(mutex);
+				queue.push(std::forward<std::unique_ptr<ReactionTask>>(task));
+			}
+		}
 
-            // Notify a thread that it can proceed
-            condition.notify_one();
-        }
+		// Notify a thread that it can proceed
+		condition.notify_one();
+	}
 
-        std::unique_ptr<ReactionTask> TaskScheduler::getTask() {
+	std::unique_ptr<ReactionTask> TaskScheduler::getTask() {
 
-            //Obtain the lock
-            std::unique_lock<std::mutex> lock(mutex);
+		// Obtain the lock
+		std::unique_lock<std::mutex> lock(mutex);
 
-            // While our queue is empty
-            while (queue.empty()) {
+		// While our queue is empty
+		while (queue.empty()) {
 
-                // If the queue is empty we either wait or shutdown
-                if (!running) {
+			// If the queue is empty we either wait or shutdown
+			if (!running) {
 
-                    // Notify any other threads that might be waiting on this condition
-                    condition.notify_all();
+				// Notify any other threads that might be waiting on this condition
+				condition.notify_all();
 
-                    // Return a nullptr to signify there is nothing on the queue
-                    return nullptr;
-                }
-                else {
-                    // Wait for something to happen!
-                    condition.wait(lock);
-                }
-            }
+				// Return a nullptr to signify there is nothing on the queue
+				return nullptr;
+			}
+			else {
+				// Wait for something to happen!
+				condition.wait(lock);
+			}
+		}
 
-            // Return the type
-            // If you're wondering why all the ridiculousness, it's because priority queue is not as feature complete as it should be
-            // It's 'top' method returns a const reference (which we can't use to move a unique pointer)
-            std::unique_ptr<ReactionTask> task(std::move(const_cast<std::unique_ptr<ReactionTask>&>(queue.top())));
-            queue.pop();
+		// Return the type
+		// If you're wondering why all the ridiculousness, it's because priority queue is not as feature complete as it
+		// should be
+		// It's 'top' method returns a const reference (which we can't use to move a unique pointer)
+		std::unique_ptr<ReactionTask> task(std::move(const_cast<std::unique_ptr<ReactionTask>&>(queue.top())));
+		queue.pop();
 
-            return task;
-
-        }
-    }
+		return task;
+	}
+}
 }

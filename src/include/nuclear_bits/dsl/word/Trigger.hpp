@@ -22,26 +22,24 @@
 #include "nuclear_bits/dsl/operation/TypeBind.hpp"
 
 namespace NUClear {
-    namespace dsl {
-        namespace word {
+namespace dsl {
+	namespace word {
 
-            /**
-             * @brief This is a wrapper class which is used to list the data types to trigger a callback on.
-             *
-             * @details
-             *  This class is used in the on binding to specify which data types are to be used trigger a callback. It
-             *  works under and logic for multiple types. When all of the types have been emitted at least once since
-             *  the last time this event was triggered, this event is triggered again.
-             *
-             * @tparam T the datatypes to trigger a callback on
-             */
-            template <typename T>
-            struct Trigger
-            : public operation::TypeBind<T>
-            , public operation::CacheGet<T> {};
+		/**
+		 * @brief This is a wrapper class which is used to list the data types to trigger a callback on.
+		 *
+		 * @details
+		 *  This class is used in the on binding to specify which data types are to be used trigger a callback. It
+		 *  works under and logic for multiple types. When all of the types have been emitted at least once since
+		 *  the last time this event was triggered, this event is triggered again.
+		 *
+		 * @tparam T the datatypes to trigger a callback on
+		 */
+		template <typename T>
+		struct Trigger : public operation::TypeBind<T>, public operation::CacheGet<T> {};
 
-        }  // namespace word
-    }  // namespace dsl
+	}  // namespace word
+}  // namespace dsl
 }  // namespace NUClear
 
 #endif  // NUCLEAR_DSL_WORD_TRIGGER_HPP

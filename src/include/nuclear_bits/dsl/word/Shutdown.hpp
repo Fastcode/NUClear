@@ -21,21 +21,21 @@
 #include "nuclear_bits/dsl/operation/TypeBind.hpp"
 
 namespace NUClear {
-    namespace dsl {
-        namespace word {
+namespace dsl {
+	namespace word {
 
-            /**
-             * @brief This type is emitted when the system starts shutting down.
-             *
-             * @details
-             *  Once this type is emitted, all existing tasks within the system are completed including the shutdown
-             *  tasks, Any new emit events will not be processed and all new tasks will be ignored. Once all tasks are
-             *  finish the system will terminate.
-             */
-            struct Shutdown : public operation::TypeBind<Shutdown> {};
+		/**
+		 * @brief This type is emitted when the system starts shutting down.
+		 *
+		 * @details
+		 *  Once this type is emitted, all existing tasks within the system are completed including the shutdown
+		 *  tasks, Any new emit events will not be processed and all new tasks will be ignored. Once all tasks are
+		 *  finish the system will terminate.
+		 */
+		struct Shutdown : public operation::TypeBind<Shutdown> {};
 
-        }  // namespace word
-    }  // namespace dsl
+	}  // namespace word
+}  // namespace dsl
 }  // namespace NUClear
 
 #endif  // NUCLEAR_DSL_WORD_SHUTDOWN_HPP

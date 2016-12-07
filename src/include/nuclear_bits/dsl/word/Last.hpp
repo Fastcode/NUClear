@@ -23,102 +23,106 @@
 #include "nuclear_bits/util/MergeTransient.hpp"
 
 namespace NUClear {
-    namespace dsl {
-        namespace word {
+namespace dsl {
+	namespace word {
 
-            template<size_t len, typename TData>
-            struct LastItemStorage {
-                // The items we are storing
-                std::list<TData> list;
+		template <size_t len, typename TData>
+		struct LastItemStorage {
+			// The items we are storing
+			std::list<TData> list;
 
-                LastItemStorage() : list() {
-                }
+			LastItemStorage() : list() {}
 
-                LastItemStorage(TData&& data) : list({data}) {
-                }
+			LastItemStorage(TData&& data) : list({data}) {}
 
-                template <typename TOutput>
-                operator std::list<TOutput>() const {
+			template <typename TOutput>
+			operator std::list<TOutput>() const {
 
-                    std::list<TOutput> out;
+				std::list<TOutput> out;
 
-                    for (const TData& item : list) {
-                        out.push_back(TOutput(item));
-                    }
+				for (const TData& item : list) {
+					out.push_back(TOutput(item));
+				}
 
-                    return out;
-                }
+				return out;
+			}
 
-                template <typename TOutput>
-                operator std::vector<TOutput>() const {
+			template <typename TOutput>
+			operator std::vector<TOutput>() const {
 
-                    std::vector<TOutput> out;
+				std::vector<TOutput> out;
 
-                    for (const TData& item : list) {
-                        out.push_back(TOutput(item));
-                    }
+				for (const TData& item : list) {
+					out.push_back(TOutput(item));
+				}
 
-                    return out;
-                }
+				return out;
+			}
 
-                operator bool() const {
-                    return !list.empty();
-                }
-            };
+			operator bool() const {
+				return !list.empty();
+			}
+		};
 
-            template <size_t len, typename... DSLWords>
-            struct Last : public Fusion<DSLWords...> {
+		template <size_t len, typename... DSLWords>
+		struct Last : public Fusion<DSLWords...> {
 
-            private:
-                template <typename... TData, int... Index>
-                static inline auto wrap(std::tuple<TData...>&& data, util::Sequence<Index...>)
-                -> decltype(std::make_tuple(LastItemStorage<len, TData>(std::move(std::get<Index>(data)))...)) {
-                    return std::make_tuple(LastItemStorage<len, TData>(std::move(std::get<Index>(data)))...);
-                }
+		private:
+			template <typename... TData, int... Index>
+			static inline auto wrap(std::tuple<TData...>&& data, util::Sequence<Index...>)
+				-> decltype(std::make_tuple(LastItemStorage<len, TData>(std::move(std::get<Index>(data)))...)) {
+				return std::make_tuple(LastItemStorage<len, TData>(std::move(std::get<Index>(data)))...);
+			}
 
-            public:
-                template <typename DSL>
-                static inline auto get(threading::Reaction& r)
-                -> decltype(wrap(Fusion<DSLWords...>::template get<DSL>(r), util::GenerateSequence<0, std::tuple_size<decltype(Fusion<DSLWords...>::template get<DSL>(r))>::value>())) {
+		public:
+			template <typename DSL>
+			static inline auto get(threading::Reaction& r)
+				-> decltype(wrap(Fusion<DSLWords...>::template get<DSL>(r),
+								 util::GenerateSequence<0,
+														std::tuple_size<decltype(
+															Fusion<DSLWords...>::template get<DSL>(r))>::value>())) {
 
-                    // Wrap all of our data in last list wrappers
-                    return wrap(Fusion<DSLWords...>::template get<DSL>(r), util::GenerateSequence<0, std::tuple_size<decltype(Fusion<DSLWords...>::template get<DSL>(r))>::value>());
-                }
-            };
+				// Wrap all of our data in last list wrappers
+				return wrap(Fusion<DSLWords...>::template get<DSL>(r),
+							util::GenerateSequence<0,
+												   std::tuple_size<decltype(
+													   Fusion<DSLWords...>::template get<DSL>(r))>::value>());
+			}
+		};
 
-        }  // namespace word
+	}  // namespace word
 
-        namespace trait {
+	namespace trait {
 
-            template <size_t len, typename TData>
-            struct is_transient<word::LastItemStorage<len, TData>> : public std::true_type {};
+		template <size_t len, typename TData>
+		struct is_transient<word::LastItemStorage<len, TData>> : public std::true_type {};
 
-        }  // namespace trait
-    }  // namespace dsl
+	}  // namespace trait
+}  // namespace dsl
 
-    namespace util {
+namespace util {
 
-        template <size_t len, typename T>
-        struct MergeTransients<dsl::word::LastItemStorage<len, T>> {
-            static inline bool merge(dsl::word::LastItemStorage<len, T>& t, dsl::word::LastItemStorage<len, T>& d) {
+	template <size_t len, typename T>
+	struct MergeTransients<dsl::word::LastItemStorage<len, T>> {
+		static inline bool merge(dsl::word::LastItemStorage<len, T>& t, dsl::word::LastItemStorage<len, T>& d) {
 
-                // We put the contents from data into the transient storage list
-                t.list.insert(t.list.end(), d.list.begin(), d.list.end());
+			// We put the contents from data into the transient storage list
+			t.list.insert(t.list.end(), d.list.begin(), d.list.end());
 
-                // Then truncate the old transient data
-                if (t.list.size() > len) {
-                    t.list.erase(t.list.begin(), std::next(t.list.begin(), t.list.size() - len));
-                }
+			// Then truncate the old transient data
+			if (t.list.size() > len) {
+				t.list.erase(t.list.begin(), std::next(t.list.begin(), t.list.size() - len));
+			}
 
-                // Finally clear the data list and put the transient list in it
-                d.list.clear();
-                d.list.insert(d.list.begin(), t.list.begin(), t.list.end());
+			// Finally clear the data list and put the transient list in it
+			d.list.clear();
+			d.list.insert(d.list.begin(), t.list.begin(), t.list.end());
 
-                return true;
-            };
-        };
+			return true;
+		};
+	};
 
-    }  // namespace util
+}  // namespace util
 }  // namespace NUClear
 
 #endif  // NUCLEAR_DSL_WORD_LAST_HPP

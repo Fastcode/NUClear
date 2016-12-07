@@ -30,90 +30,92 @@
 #include "Reaction.hpp"
 
 namespace NUClear {
-    namespace threading {
+namespace threading {
 
-        /**
-         * @brief This class is responsible for scheduling tasks and distributing them amoungst threads.
-         *
-         * @details
-         *  This task scheduler uses the options from each of the tasks to decide when to execute them in a thread. The rules
-         *  are applied to the tasks in the following order.
-         *
-         *  @em Priority
-         *  @code Priority<P> @endcode
-         *  When a priority is encountered, the task will be scheduled to execute based on this. If one of the three normal
-         *  options are specified (HIGH, DEFAULT and LOW), then within the specified Sync group, it will run before, normally
-         *  or after other reactions.
-         *  @attention Note that if Priority<REALTIME> is specified, the Sync type is ignored (Single is not).
-         *
-         *  @em Sync
-         *  @code Sync<TSync> @endcode
-         *  When a Sync type is encounterd, the system uses this as a compile time mutex flag. It will not allow two callbacks
-         *  with the same Sync type to execute at the same time. It will effectivly ensure that all of the callbacks with
-         *  this type run in sequence with eachother, rather then in parallell. It is also important to note again, that if
-         *  the priority of a task is realtime, it will ignore Sync groups.
-         *
-         *  @em Single
-         *  @code Single @endcode
-         *  If single is encountered while processing the function, and a Task object for this Reaction is already running
-         *  in a thread, or waiting in the Queue, then this task is ignored and dropped from the system.
-         */
-        class TaskScheduler {
-        public:
+	/**
+	 * @brief This class is responsible for scheduling tasks and distributing them amoungst threads.
+	 *
+	 * @details
+	 *  This task scheduler uses the options from each of the tasks to decide when to execute them in a thread. The
+	 * rules
+	 *  are applied to the tasks in the following order.
+	 *
+	 *  @em Priority
+	 *  @code Priority<P> @endcode
+	 *  When a priority is encountered, the task will be scheduled to execute based on this. If one of the three normal
+	 *  options are specified (HIGH, DEFAULT and LOW), then within the specified Sync group, it will run before,
+	 * normally
+	 *  or after other reactions.
+	 *  @attention Note that if Priority<REALTIME> is specified, the Sync type is ignored (Single is not).
+	 *
+	 *  @em Sync
+	 *  @code Sync<TSync> @endcode
+	 *  When a Sync type is encounterd, the system uses this as a compile time mutex flag. It will not allow two
+	 * callbacks
+	 *  with the same Sync type to execute at the same time. It will effectivly ensure that all of the callbacks with
+	 *  this type run in sequence with eachother, rather then in parallell. It is also important to note again, that if
+	 *  the priority of a task is realtime, it will ignore Sync groups.
+	 *
+	 *  @em Single
+	 *  @code Single @endcode
+	 *  If single is encountered while processing the function, and a Task object for this Reaction is already running
+	 *  in a thread, or waiting in the Queue, then this task is ignored and dropped from the system.
+	 */
+	class TaskScheduler {
+	public:
+		/**
+		 * @brief Constructs a new TaskScheduler instance, and builds the nullptr sync queue.
+		 */
+		TaskScheduler();
 
-            /**
-             * @brief Constructs a new TaskScheduler instance, and builds the nullptr sync queue.
-             */
-            TaskScheduler();
+		/**
+		 * @brief destructs the TaskScheduler
+		 */
+		~TaskScheduler();
 
-            /**
-             * @brief destructs the TaskScheduler
-             */
-            ~TaskScheduler();
+		/**
+		 * @brief
+		 *  Shuts down the scheduler, all waiting threads are woken, and any attempt to get a task results in an
+		 *  exception
+		 */
+		void shutdown();
 
-            /**
-             * @brief
-             *  Shuts down the scheduler, all waiting threads are woken, and any attempt to get a task results in an
-             *  exception
-             */
-            void shutdown();
+		/**
+		 * @brief Submit a new task to be executed to the Scheduler.
+		 *
+		 * @details
+		 *  This method submits a new task to the scheduler. This task will then be sorted into the appropriate
+		 *  queue based on it's sync type and priority. It will then wait there until it is removed by a thread to
+		 *  be processed.
+		 *
+		 * @param task  the task to be executed
+		 */
+		void submit(std::unique_ptr<ReactionTask>&& task);
 
-            /**
-             * @brief Submit a new task to be executed to the Scheduler.
-             *
-             * @details
-             *  This method submits a new task to the scheduler. This task will then be sorted into the appropriate
-             *  queue based on it's sync type and priority. It will then wait there until it is removed by a thread to
-             *  be processed.
-             *
-             * @param task  the task to be executed
-             */
-            void submit(std::unique_ptr<ReactionTask>&& task);
+		/**
+		 * @brief Get a task object to be executed by a thread.
+		 *
+		 * @details
+		 *  This method will get a task object to be executed from the queue. It will block until such a time as a
+		 *  task is available to be executed. For example, if a task with a paticular sync type was out, then this
+		 *  thread would block until that sync type was no longer out, and then it would take a task.
+		 *
+		 * @return the task which has been given to be executed
+		 */
+		std::unique_ptr<ReactionTask> getTask();
 
-            /**
-             * @brief Get a task object to be executed by a thread.
-             *
-             * @details
-             *  This method will get a task object to be executed from the queue. It will block until such a time as a
-             *  task is available to be executed. For example, if a task with a paticular sync type was out, then this
-             *  thread would block until that sync type was no longer out, and then it would take a task.
-             *
-             * @return the task which has been given to be executed
-             */
-            std::unique_ptr<ReactionTask> getTask();
-        private:
-            /// @brief if the scheduler is running or is shut down
-            volatile bool running;
-            /// @brief our queue which sorts tasks by priority
-            std::priority_queue<std::unique_ptr<ReactionTask>> queue;
-            /// @brief the mutex which our threads synchronize their access to this object
-            std::mutex mutex;
-            /// @brief the condition object that threads wait on if they can't get a task
-            std::condition_variable condition;
+	private:
+		/// @brief if the scheduler is running or is shut down
+		volatile bool running;
+		/// @brief our queue which sorts tasks by priority
+		std::priority_queue<std::unique_ptr<ReactionTask>> queue;
+		/// @brief the mutex which our threads synchronize their access to this object
+		std::mutex mutex;
+		/// @brief the condition object that threads wait on if they can't get a task
+		std::condition_variable condition;
+	};
 
-        };
-
-    }  // namespace threading
- }  // namespace NUClear
+}  // namespace threading
+}  // namespace NUClear
 
 #endif  // NUCLEAR_THREADING_TASKSCHEDULER_HPP

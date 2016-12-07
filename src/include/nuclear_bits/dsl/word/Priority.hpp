@@ -21,64 +21,64 @@
 #include "nuclear_bits/threading/Reaction.hpp"
 
 namespace NUClear {
-    namespace dsl {
-        namespace word {
+namespace dsl {
+	namespace word {
 
-            struct Priority {
+		struct Priority {
 
-                struct REALTIME {
-                    /// Realtime priority runs with 1000 value
-                    static constexpr int value = 1000;
+			struct REALTIME {
+				/// Realtime priority runs with 1000 value
+				static constexpr int value = 1000;
 
-                    template <typename DSL>
-                    static inline int priority(threading::Reaction&) {
-                        return value;
-                    }
-                };
+				template <typename DSL>
+				static inline int priority(threading::Reaction&) {
+					return value;
+				}
+			};
 
-                struct HIGH {
-                    /// High priority runs with 750 value
-                    static constexpr int value = 750;
+			struct HIGH {
+				/// High priority runs with 750 value
+				static constexpr int value = 750;
 
-                    template <typename DSL>
-                    static inline int priority(threading::Reaction&) {
-                        return value;
-                    }
-                };
+				template <typename DSL>
+				static inline int priority(threading::Reaction&) {
+					return value;
+				}
+			};
 
-                struct NORMAL {
-                    /// Normal priority runs with 500 value
-                    static constexpr int value = 500;
+			struct NORMAL {
+				/// Normal priority runs with 500 value
+				static constexpr int value = 500;
 
-                    template <typename DSL>
-                    static inline int priority(threading::Reaction&) {
-                        return value;
-                    }
-                };
+				template <typename DSL>
+				static inline int priority(threading::Reaction&) {
+					return value;
+				}
+			};
 
-                struct LOW {
-                    /// Low priority runs with 250 value
-                    static constexpr int value = 250;
+			struct LOW {
+				/// Low priority runs with 250 value
+				static constexpr int value = 250;
 
-                    template <typename DSL>
-                    static inline int priority(threading::Reaction&) {
-                        return value;
-                    }
-                };
+				template <typename DSL>
+				static inline int priority(threading::Reaction&) {
+					return value;
+				}
+			};
 
-                struct IDLE {
-                    /// Idle tasks run with 0 priority, they run when there is free time
-                    static constexpr int value = 0;
+			struct IDLE {
+				/// Idle tasks run with 0 priority, they run when there is free time
+				static constexpr int value = 0;
 
-                    template <typename DSL>
-                    static inline int priority(threading::Reaction&) {
-                        return value;
-                    }
-                };
-            };
+				template <typename DSL>
+				static inline int priority(threading::Reaction&) {
+					return value;
+				}
+			};
+		};
 
-        }  // namespace word
-    }  // namespace dsl
+	}  // namespace word
+}  // namespace dsl
 }  // namespace NUClear
 
 #endif  // NUCLEAR_DSL_WORD_PRIORITY_HPP

@@ -25,116 +25,133 @@
 #include "nuclear_bits/util/generate_reaction.hpp"
 
 namespace NUClear {
-    namespace dsl {
-        namespace word {
+namespace dsl {
+	namespace word {
 
-            /**
-             * @brief This type is used within an every in order to measure a frequency rather then a period.
-             */
-            template <typename period>
-            struct Per;
+		/**
+		 * @brief This type is used within an every in order to measure a frequency rather then a period.
+		 */
+		template <typename period>
+		struct Per;
 
-            template <typename Unit, std::intmax_t num, std::intmax_t den>
-            struct Per<std::chrono::duration<Unit, std::ratio<num, den>>> : public clock::duration {
-                Per(int ticks) : clock::duration(std::lround((double(num) / double(ticks * den)) * (double(clock::period::den) / double(clock::period::num)))) {}
-            };
+		template <typename Unit, std::intmax_t num, std::intmax_t den>
+		struct Per<std::chrono::duration<Unit, std::ratio<num, den>>> : public clock::duration {
+			Per(int ticks)
+				: clock::duration(std::lround((double(num) / double(ticks* den))
+											  * (double(clock::period::den) / double(clock::period::num)))) {}
+		};
 
-            /**
-             * @brief A special flag type which specifies that this reaction should trigger at the given rate
-             *
-             * @details
-             *  This type is used in a dsl statement to specify that the given reaction should trigger at the rate
-             *  set by this type. For instance, if the type was specified as shown in the following example
-             *  @code on<Every<2, std::chrono::seconds> @endcode
-             *  then the callback would execute every 2 seconds. This type simply needs to exist in the trigger for the
-             *  correct timing to be called.
-             *
-             * @attention Note that the period which is used to measure the ticks in must be greater than or equal to
-             *  clock::duration or the program will not compile
-             *
-             * @tparam ticks the number of ticks of a paticular type to wait
-             * @tparam period a type of duration (e.g. std::chrono::seconds) to measure the ticks in, defaults to clock duration.
-             *                  This paramter may also be wrapped in a Per<> template in order to write a frequency rather then a period.
-             */
-            template <int ticks = 0, class period = NUClear::clock::duration>
-            struct Every;
+		/**
+		 * @brief A special flag type which specifies that this reaction should trigger at the given rate
+		 *
+		 * @details
+		 *  This type is used in a dsl statement to specify that the given reaction should trigger at the rate
+		 *  set by this type. For instance, if the type was specified as shown in the following example
+		 *  @code on<Every<2, std::chrono::seconds> @endcode
+		 *  then the callback would execute every 2 seconds. This type simply needs to exist in the trigger for the
+		 *  correct timing to be called.
+		 *
+		 * @attention Note that the period which is used to measure the ticks in must be greater than or equal to
+		 *  clock::duration or the program will not compile
+		 *
+		 * @tparam ticks the number of ticks of a paticular type to wait
+		 * @tparam period a type of duration (e.g. std::chrono::seconds) to measure the ticks in, defaults to clock
+		 * duration.
+		 *                  This paramter may also be wrapped in a Per<> template in order to write a frequency rather
+		 * then a period.
+		 */
+		template <int ticks = 0, class period = NUClear::clock::duration>
+		struct Every;
 
-            template <>
-            struct Every<0, NUClear::clock::duration> {
+		template <>
+		struct Every<0, NUClear::clock::duration> {
 
-                template <typename DSL, typename TFunc>
-                static inline threading::ReactionHandle bind(Reactor& reactor, const std::string& label, TFunc&& callback, NUClear::clock::duration jump) {
+			template <typename DSL, typename TFunc>
+			static inline threading::ReactionHandle bind(Reactor& reactor,
+														 const std::string& label,
+														 TFunc&& callback,
+														 NUClear::clock::duration jump) {
 
-                    auto reaction = std::shared_ptr<threading::Reaction>(util::generate_reaction<DSL, operation::ChronoTask>(reactor, label, std::forward<TFunc>(callback)));
+				auto reaction = std::shared_ptr<threading::Reaction>(
+					util::generate_reaction<DSL, operation::ChronoTask>(reactor, label, std::forward<TFunc>(callback)));
 
-                    threading::ReactionHandle handle(reaction);
+				threading::ReactionHandle handle(reaction);
 
-                    // Send our configuration out
-                    reactor.powerplant.emit<emit::Direct>(std::make_unique<operation::ChronoTask>([&reactor, jump, reaction] (NUClear::clock::time_point& time) {
+				// Send our configuration out
+				reactor.powerplant.emit<emit::Direct>(std::make_unique<operation::ChronoTask>(
+					[&reactor, jump, reaction](NUClear::clock::time_point& time) {
 
-                        try {
-                            // submit the reaction to the thread pool
-                            auto task = reaction->getTask();
-                            if (task) {
-                                reactor.powerplant.submit(std::move(task));
-                            }
-                        }
-                        // If there is an exception while generating a reaction print it here, this shouldn't happen
-                        catch (const std::exception& ex) {
-                            reactor.powerplant.log<NUClear::ERROR>("There was an exception while generating a reaction", ex.what());
-                        }
-                        catch (...) {
-                            reactor.powerplant.log<NUClear::ERROR>("There was an unknown exception while generating a reaction");
-                        }
+						try {
+							// submit the reaction to the thread pool
+							auto task = reaction->getTask();
+							if (task) {
+								reactor.powerplant.submit(std::move(task));
+							}
+						}
+						// If there is an exception while generating a reaction print it here, this shouldn't happen
+						catch (const std::exception& ex) {
+							reactor.powerplant.log<NUClear::ERROR>("There was an exception while generating a reaction",
+																   ex.what());
+						}
+						catch (...) {
+							reactor.powerplant.log<NUClear::ERROR>(
+								"There was an unknown exception while generating a reaction");
+						}
 
-                        time += jump;
+						time += jump;
 
-                        return true;
-                    }, NUClear::clock::now() + jump, reaction->reactionId));
+						return true;
+					},
+					NUClear::clock::now() + jump,
+					reaction->reactionId));
 
-                    // Return our handle
-                    return handle;
-                }
-            };
+				// Return our handle
+				return handle;
+			}
+		};
 
-            template <int ticks, class period>
-            struct Every {
+		template <int ticks, class period>
+		struct Every {
 
-                template <typename DSL, typename TFunc>
-                static inline threading::ReactionHandle bind(Reactor& reactor, const std::string& label, TFunc&& callback) {
+			template <typename DSL, typename TFunc>
+			static inline threading::ReactionHandle bind(Reactor& reactor, const std::string& label, TFunc&& callback) {
 
-                    // Work out our Reaction timing
-                    clock::duration jump = period(ticks);
+				// Work out our Reaction timing
+				clock::duration jump = period(ticks);
 
-                    auto reaction = std::shared_ptr<threading::Reaction>(util::generate_reaction<DSL, operation::ChronoTask>(reactor, label, std::forward<TFunc>(callback)));
+				auto reaction = std::shared_ptr<threading::Reaction>(
+					util::generate_reaction<DSL, operation::ChronoTask>(reactor, label, std::forward<TFunc>(callback)));
 
-                    threading::ReactionHandle handle(reaction);
+				threading::ReactionHandle handle(reaction);
 
-                    // Send our configuration out
-                    reactor.powerplant.emit<emit::Direct>(std::make_unique<operation::ChronoTask>([&reactor, jump, reaction] (NUClear::clock::time_point& time) {
+				// Send our configuration out
+				reactor.powerplant.emit<emit::Direct>(std::make_unique<operation::ChronoTask>(
+					[&reactor, jump, reaction](NUClear::clock::time_point& time) {
 
-                        try {
-                            // submit the reaction to the thread pool
-                            auto task = reaction->getTask();
-                            if (task) {
-                                reactor.powerplant.submit(std::move(task));
-                            }
-                        }
-                        catch (...) {
-                        }
+						try {
+							// submit the reaction to the thread pool
+							auto task = reaction->getTask();
+							if (task) {
+								reactor.powerplant.submit(std::move(task));
+							}
+						}
+						catch (...) {
+						}
 
-                        time += jump;
+						time += jump;
 
-                        return true;
-                    }, NUClear::clock::now() + jump, reaction->reactionId));
+						return true;
+					},
+					NUClear::clock::now() + jump,
+					reaction->reactionId));
 
-                    // Return our handle
-                    return handle;
-                }
-            };
+				// Return our handle
+				return handle;
+			}
+		};
 
-        }  // namespace word
-    }  // namespace dsl
+	}  // namespace word
+}  // namespace dsl
 }  // namespace NUClear
 
 #endif  // NUCLEAR_DSL_WORD_EVERY_HPP

@@ -21,66 +21,64 @@
 
 namespace {
 
-    std::atomic<int> runCount1(0);
-    std::atomic<int> runCount2(0);
+std::atomic<int> runCount1(0);
+std::atomic<int> runCount2(0);
 
-    struct SimpleMessage1 {
-        int data;
-    };
+struct SimpleMessage1 {
+	int data;
+};
 
-    struct SimpleMessage2 {
-        int data;
-    };
+struct SimpleMessage2 {
+	int data;
+};
 
-    class TestReactor : public NUClear::Reactor {
-    public:
-        TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
+class TestReactor : public NUClear::Reactor {
+public:
+	TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
 
-            on<Trigger<SimpleMessage1>, Single>().then([this](const SimpleMessage1&) {
+		on<Trigger<SimpleMessage1>, Single>().then([this](const SimpleMessage1&) {
 
-                // Increment our run count
-                ++runCount1;
+			// Increment our run count
+			++runCount1;
 
-                // Emit a message 2
-                emit(std::make_unique<SimpleMessage2>());
+			// Emit a message 2
+			emit(std::make_unique<SimpleMessage2>());
 
-                // Wait for 10 ms
-                std::this_thread::sleep_for(std::chrono::milliseconds(10));
+			// Wait for 10 ms
+			std::this_thread::sleep_for(std::chrono::milliseconds(10));
 
-                // Emit another message 2
-                emit(std::make_unique<SimpleMessage2>());
+			// Emit another message 2
+			emit(std::make_unique<SimpleMessage2>());
 
-                // We are finished the test
-                powerplant.shutdown();
-            });
+			// We are finished the test
+			powerplant.shutdown();
+		});
 
-            on<Trigger<SimpleMessage2>, Single>().then([this](const SimpleMessage2&) {
-                ++runCount2;
-            });
+		on<Trigger<SimpleMessage2>, Single>().then([this](const SimpleMessage2&) { ++runCount2; });
 
-            on<Startup>().then([this]() {
+		on<Startup>().then([this]() {
 
-                // Emit two events, only one should run
-                emit(std::make_unique<SimpleMessage1>());
-                emit(std::make_unique<SimpleMessage1>());
-            });
-        }
-    };
+			// Emit two events, only one should run
+			emit(std::make_unique<SimpleMessage1>());
+			emit(std::make_unique<SimpleMessage1>());
+		});
+	}
+};
 }
 
 TEST_CASE("Test that single prevents a second call while one is executing", "[api][precondition][single]") {
 
-    NUClear::PowerPlant::Configuration config;
-    // Unless there are at least 2 threads here single makes no sense ;)
-    config.threadCount = 2;
-    NUClear::PowerPlant plant(config);
-    plant.install<TestReactor>();
+	NUClear::PowerPlant::Configuration config;
+	// Unless there are at least 2 threads here single makes no sense ;)
+	config.threadCount = 2;
+	NUClear::PowerPlant plant(config);
+	plant.install<TestReactor>();
 
-    plant.start();
+	plant.start();
 
-    // Require that only 1 run has happened on message 1
-    REQUIRE(runCount1 == 1);
+	// Require that only 1 run has happened on message 1
+	REQUIRE(runCount1 == 1);
 
-    // Require that 2 runs have happened on message 2
-    REQUIRE(runCount2 == 2);
+	// Require that 2 runs have happened on message 2
+	REQUIRE(runCount2 == 2);
 }

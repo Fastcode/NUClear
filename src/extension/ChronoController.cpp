@@ -22,105 +22,96 @@
 #include "nuclear_bits/dsl/word/Every.hpp"
 
 namespace NUClear {
-    namespace extension {
+namespace extension {
 
-        using NUClear::dsl::operation::ChronoTask;
+	using NUClear::dsl::operation::ChronoTask;
 
-        ChronoController::ChronoController(std::unique_ptr<NUClear::Environment> environment)
-        : Reactor(std::move(environment))
-        , tasks()
-        , mutex()
-        , wait()
-        , waitOffset(std::chrono::milliseconds(0)) {
+	ChronoController::ChronoController(std::unique_ptr<NUClear::Environment> environment)
+		: Reactor(std::move(environment)), tasks(), mutex(), wait(), waitOffset(std::chrono::milliseconds(0)) {
 
-            on<Trigger<ChronoTask>>().then("Add Chrono task", [this] (std::shared_ptr<const ChronoTask> task) {
+		on<Trigger<ChronoTask>>().then("Add Chrono task", [this](std::shared_ptr<const ChronoTask> task) {
 
-                // Lock the mutex while we're doing stuff
-                {
-                    std::lock_guard<std::mutex> lock(mutex);
+			// Lock the mutex while we're doing stuff
+			{
+				std::lock_guard<std::mutex> lock(mutex);
 
-                    // Add our new task to the heap
-                    tasks.push_back(*task);
-                }
+				// Add our new task to the heap
+				tasks.push_back(*task);
+			}
 
-                // Poke the system
-                wait.notify_all();
-            });
+			// Poke the system
+			wait.notify_all();
+		});
 
-            on<Trigger<dsl::operation::Unbind<ChronoTask>>>().then("Unbind Chrono Task", [this] (const dsl::operation::Unbind<ChronoTask>& unbind) {
+		on<Trigger<dsl::operation::Unbind<ChronoTask>>>().then(
+			"Unbind Chrono Task", [this](const dsl::operation::Unbind<ChronoTask>& unbind) {
 
-                // Lock the mutex while we're doing stuff
-                {
-                    std::lock_guard<std::mutex> lock(mutex);
+				// Lock the mutex while we're doing stuff
+				{
+					std::lock_guard<std::mutex> lock(mutex);
 
-                    // Find the task
-                    auto it = std::find_if(tasks.begin(), tasks.end(), [&] (const ChronoTask& task) {
-                        return task.id == unbind.id;
-                    });
+					// Find the task
+					auto it = std::find_if(
+						tasks.begin(), tasks.end(), [&](const ChronoTask& task) { return task.id == unbind.id; });
 
-                    // Remove if if it exists
-                    if (it != tasks.end()) {
-                        tasks.erase(it);
-                    }
-                }
+					// Remove if if it exists
+					if (it != tasks.end()) {
+						tasks.erase(it);
+					}
+				}
 
-                // Poke the system to make sure it's not waiting on something that's gone
-                wait.notify_all();
-            });
+				// Poke the system to make sure it's not waiting on something that's gone
+				wait.notify_all();
+			});
 
-            // When we shutdown we notify so we quit now
-            on<Shutdown>().then("Shutdown Chrono Controller", [this] {
-                wait.notify_all();
-            });
+		// When we shutdown we notify so we quit now
+		on<Shutdown>().then("Shutdown Chrono Controller", [this] { wait.notify_all(); });
 
-            on<Always, Priority::REALTIME>().then("Chrono Controller", [this] {
+		on<Always, Priority::REALTIME>().then("Chrono Controller", [this] {
 
-                // Aquire the mutex lock so we can wait on it
-                std::unique_lock<std::mutex> lock(mutex);
+			// Aquire the mutex lock so we can wait on it
+			std::unique_lock<std::mutex> lock(mutex);
 
-                // If we have tasks to do
-                if (!tasks.empty()) {
+			// If we have tasks to do
+			if (!tasks.empty()) {
 
-                    // Make the list into a heap so we can remove the soonest ones
-                    std::make_heap(tasks.begin(), tasks.end(), std::greater<ChronoTask>());
+				// Make the list into a heap so we can remove the soonest ones
+				std::make_heap(tasks.begin(), tasks.end(), std::greater<ChronoTask>());
 
-                    // If we are within the wait offset of the time, spinlock until we get there for greater accuracy
-                    if (NUClear::clock::now() + waitOffset > tasks.front().time) {
+				// If we are within the wait offset of the time, spinlock until we get there for greater accuracy
+				if (NUClear::clock::now() + waitOffset > tasks.front().time) {
 
-                        // Spinlock!
-                        while (NUClear::clock::now() < tasks.front().time);
+					// Spinlock!
+					while (NUClear::clock::now() < tasks.front().time) {
+					};
 
-                        NUClear::clock::time_point now = NUClear::clock::now();
+					NUClear::clock::time_point now = NUClear::clock::now();
 
-                        // Move back from the end poping the heap
-                        for (auto end = tasks.end();
-                             end != tasks.begin() && tasks.front().time < now;
-                             --end) {
+					// Move back from the end poping the heap
+					for (auto end = tasks.end(); end != tasks.begin() && tasks.front().time < now; --end) {
 
-                            // Run our task and if it returns false remove it
-                            bool renew = tasks.front()();
+						// Run our task and if it returns false remove it
+						bool renew = tasks.front()();
 
-                            // Move this to the back of the list
-                            std::pop_heap(tasks.begin(), end);
+						// Move this to the back of the list
+						std::pop_heap(tasks.begin(), end);
 
-                            if (!renew) {
-                                tasks.pop_back();
-                            }
-
-                        }
-                    }
-                    // Otherwise we wait for the next event using a wait_for (with a small offset for greater accuracy)
-                    // Either that or until we get interrupted with a new event
-                    else {
-                        wait.wait_until(lock, tasks.front().time - waitOffset);
-                    }
-                }
-                // Otherwise we wait for something to happen
-                else {
-                    wait.wait(lock);
-                }
-            });
-
-        }
-    }
+						if (!renew) {
+							tasks.pop_back();
+						}
+					}
+				}
+				// Otherwise we wait for the next event using a wait_for (with a small offset for greater accuracy)
+				// Either that or until we get interrupted with a new event
+				else {
+					wait.wait_until(lock, tasks.front().time - waitOffset);
+				}
+			}
+			// Otherwise we wait for something to happen
+			else {
+				wait.wait(lock);
+			}
+		});
+	}
+}
 }

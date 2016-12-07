@@ -20,51 +20,48 @@
 #include "nuclear"
 
 namespace NUClear {
-    namespace dsl {
-        namespace operation {
-            template <>
-            struct DSLProxy<int>
-            : public NUClear::dsl::operation::TypeBind<int>
-            , public NUClear::dsl::operation::CacheGet<double>
-            , public NUClear::dsl::word::Single {
-
-            };
-        }
-    }
+namespace dsl {
+	namespace operation {
+		template <>
+		struct DSLProxy<int> : public NUClear::dsl::operation::TypeBind<int>,
+							   public NUClear::dsl::operation::CacheGet<double>,
+							   public NUClear::dsl::word::Single {};
+	}
+}
 }
 
 namespace {
 
-    class TestReactor : public NUClear::Reactor {
-    public:
-        TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
+class TestReactor : public NUClear::Reactor {
+public:
+	TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
 
-            on<int>().then([this](const double& d) {
+		on<int>().then([this](const double& d) {
 
-                // The message we received should have test == 10
-                REQUIRE(d == 4.4);
+			// The message we received should have test == 10
+			REQUIRE(d == 4.4);
 
-                // We are finished the test
-                powerplant.shutdown();
-            });
+			// We are finished the test
+			powerplant.shutdown();
+		});
 
-            on<Startup>().then([this]() {
-                // Emit a double we can get
-                emit(std::make_unique<double>(4.4));
+		on<Startup>().then([this]() {
+			// Emit a double we can get
+			emit(std::make_unique<double>(4.4));
 
-                // Emit an integer to trigger the reaction
-                emit(std::make_unique<int>());
-            });
-        }
-    };
+			// Emit an integer to trigger the reaction
+			emit(std::make_unique<int>());
+		});
+	}
+};
 }
 
 TEST_CASE("Testing that the DSL proxy works as expected for binding unmodifyable types", "[api][dsl][proxy]") {
 
-    NUClear::PowerPlant::Configuration config;
-    config.threadCount = 1;
-    NUClear::PowerPlant plant(config);
-    plant.install<TestReactor>();
+	NUClear::PowerPlant::Configuration config;
+	config.threadCount = 1;
+	NUClear::PowerPlant plant(config);
+	plant.install<TestReactor>();
 
-    plant.start();
+	plant.start();
 }

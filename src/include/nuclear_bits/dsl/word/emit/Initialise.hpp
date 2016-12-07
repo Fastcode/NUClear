@@ -21,39 +21,37 @@
 #include "Direct.hpp"
 
 namespace NUClear {
-    namespace dsl {
-        namespace word {
-            namespace emit {
+namespace dsl {
+	namespace word {
+		namespace emit {
 
-                /**
-                 * @brief Emit an object as the system starts up.
-                 *
-                 * @details Initialise emits can only be done before in the main phase of execution. Tasks that are
-                 *          emitted using this will be executed just before the system starts into the main phase.
-                 *          This can be useful for cases when a Reactor wants to emit to all other reactors but they may
-                 *          not yet be installed. Using this allows the message to wait until all Reactors are installed
-                 *          and then emit.
-                 *
-                 * @param data the data to emit
-                 *
-                 * @tparam DataType the type of the data to be emitted
-                 */
-                template <typename DataType>
-                struct Initialise {
+			/**
+			 * @brief Emit an object as the system starts up.
+			 *
+			 * @details Initialise emits can only be done before in the main phase of execution. Tasks that are
+			 *          emitted using this will be executed just before the system starts into the main phase.
+			 *          This can be useful for cases when a Reactor wants to emit to all other reactors but they may
+			 *          not yet be installed. Using this allows the message to wait until all Reactors are installed
+			 *          and then emit.
+			 *
+			 * @param data the data to emit
+			 *
+			 * @tparam DataType the type of the data to be emitted
+			 */
+			template <typename DataType>
+			struct Initialise {
 
-                    static void emit(PowerPlant& powerplant, std::shared_ptr<DataType> data) {
+				static void emit(PowerPlant& powerplant, std::shared_ptr<DataType> data) {
 
-                        auto task = [&powerplant, data] {
-                            emit::Direct<DataType>::emit(powerplant, data);
-                        };
+					auto task = [&powerplant, data] { emit::Direct<DataType>::emit(powerplant, data); };
 
-                        powerplant.onStartup(task);
-                    }
-                };
+					powerplant.onStartup(task);
+				}
+			};
 
-            }  // namespace emit
-        }  // namespace word
-    }  // namespace dsl
+		}  // namespace emit
+	}	  // namespace word
+}  // namespace dsl
 }  // namespace NUClear
 
 #endif  // NUCLEAR_DSL_WORD_EMIT_INITIALISE_HPP

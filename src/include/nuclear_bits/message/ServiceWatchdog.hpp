@@ -19,21 +19,19 @@
 #define NUCLEAR_MESSAGE_SERVICEWATCHDOG_HPP
 
 namespace NUClear {
-    namespace message {
+namespace message {
 
-        /**
-         * @brief This type is a NUClear message type that holds command line arguments
-         */
-        template <typename TWatchdog>
-        struct ServiceWatchdog {
-            ServiceWatchdog()
-            : time(NUClear::clock::now()) {
-            };
-            
-            const NUClear::clock::time_point time;
-        };
+	/**
+	 * @brief This type is a NUClear message type that holds command line arguments
+	 */
+	template <typename TWatchdog>
+	struct ServiceWatchdog {
+		ServiceWatchdog() : time(NUClear::clock::now()){};
 
-    }  // namespace message
- }  // namespace NUClear
+		const NUClear::clock::time_point time;
+	};
+
+}  // namespace message
+}  // namespace NUClear
 
 #endif  // NUCLEAR_MESSAGE_SERVICEWATCHDOG_HPP

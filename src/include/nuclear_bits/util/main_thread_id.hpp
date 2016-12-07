@@ -21,11 +21,11 @@
 #include <thread>
 
 namespace NUClear {
-    namespace util {
+namespace util {
 
-        extern std::thread::id main_thread_id;
+	extern std::thread::id main_thread_id;
 
-    }  // namespace util
+}  // namespace util
 }  //  namespace NUClear
 
 #endif  // NUCLEAR_UTIL_MAIN_THREAD_ID_HPP

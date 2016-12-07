@@ -24,22 +24,17 @@
 #include "nuclear_bits/util/demangle.hpp"
 
 namespace NUClear {
-    namespace util {
+namespace util {
 
-        template <typename TFusion, typename TFunc>
-        std::vector<std::string> get_identifier(std::string usr, std::string reactor) {
+	template <typename TFusion, typename TFunc>
+	std::vector<std::string> get_identifier(std::string usr, std::string reactor) {
 
-            std::vector<std::string> out = {
-                usr,
-                reactor,
-                demangle(typeid(TFusion).name()),
-                demangle(typeid(TFunc).name())
-            };
+		std::vector<std::string> out = {usr, reactor, demangle(typeid(TFusion).name()), demangle(typeid(TFunc).name())};
 
-            return out;
-        }
+		return out;
+	}
 
-    }  // namespace util
+}  // namespace util
 }  //  namespace NUClear
 
 #endif  // NUCLEAR_UTIL_GET_IDENTIFIER_HPP

@@ -19,29 +19,29 @@
 #define NUCLEAR_DSL_WORD_BUFFER_HPP
 
 namespace NUClear {
-    namespace dsl {
-        namespace word {
+namespace dsl {
+	namespace word {
 
-            /**
-             * @brief Sets the number of tasks to buffer before dropping tasks.
-             *
-             * @details
-             *  If a task has a limited buffer size, then that means that N instances of the task can be
-             *  in the system at any one time. If the task is triggered again while N existing tasks are in the
-             *  queue or is still executing, then this new task will be ignored.
-             */
-            template <int N>
-            struct Buffer {
+		/**
+		 * @brief Sets the number of tasks to buffer before dropping tasks.
+		 *
+		 * @details
+		 *  If a task has a limited buffer size, then that means that N instances of the task can be
+		 *  in the system at any one time. If the task is triggered again while N existing tasks are in the
+		 *  queue or is still executing, then this new task will be ignored.
+		 */
+		template <int N>
+		struct Buffer {
 
-                template <typename DSL>
-                static inline bool precondition(threading::Reaction& reaction) {
-                    // We only run if there are less than the target number of active tasks
-                    return reaction.activeTasks < N;
-                }
-            };
+			template <typename DSL>
+			static inline bool precondition(threading::Reaction& reaction) {
+				// We only run if there are less than the target number of active tasks
+				return reaction.activeTasks < N;
+			}
+		};
 
-        }  // namespace word
-    }  // namespace dsl
+	}  // namespace word
+}  // namespace dsl
 }  // namespace NUClear
 
 #endif  // NUCLEAR_DSL_WORD_BUFFER_HPP

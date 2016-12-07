@@ -22,81 +22,78 @@
 #include "nuclear_bits/extension/network/WireProtocol.hpp"
 
 namespace NUClear {
-    namespace extension {
+namespace extension {
 
-        class NetworkController : public Reactor {
-        private:
-            struct NetworkTarget {
+	class NetworkController : public Reactor {
+	private:
+		struct NetworkTarget {
 
-                NetworkTarget(std::string name
-                              , in_addr_t address
-                              , in_port_t tcpPort
-                              , in_port_t udpPort
-                              , int tcpFD)
-                : name(name)
-                , address(address)
-                , tcpPort(tcpPort)
-                , udpPort(udpPort)
-                , tcpFD(tcpFD)
-                , handle()
-                , buffer()
-                , bufferMutex() {}
+			NetworkTarget(std::string name, in_addr_t address, in_port_t tcpPort, in_port_t udpPort, int tcpFD)
+				: name(name)
+				, address(address)
+				, tcpPort(tcpPort)
+				, udpPort(udpPort)
+				, tcpFD(tcpFD)
+				, handle()
+				, buffer()
+				, bufferMutex() {}
 
-                std::string name;
-                in_addr_t address;
-                in_port_t tcpPort;
-                in_port_t udpPort;
-                fd_t tcpFD;
-                ReactionHandle handle;
-                std::map<in_port_t, std::pair<clock::time_point, std::vector<std::vector<char>>>> buffer;
-                std::mutex bufferMutex;
-            };
+			std::string name;
+			in_addr_t address;
+			in_port_t tcpPort;
+			in_port_t udpPort;
+			fd_t tcpFD;
+			ReactionHandle handle;
+			std::map<in_port_t, std::pair<clock::time_point, std::vector<std::vector<char>>>> buffer;
+			std::mutex bufferMutex;
+		};
 
-        public:
-            explicit NetworkController(std::unique_ptr<NUClear::Environment> environment);
+	public:
+		explicit NetworkController(std::unique_ptr<NUClear::Environment> environment);
 
-        private:
-            void tcpConnection(const TCP::Connection& con);
-            void tcpHandler(const IO::Event& event);
-            void udpHandler(const UDP::Packet& packet);
-            void tcpSend(const dsl::word::emit::NetworkEmit& emit);
-            void udpSend(const dsl::word::emit::NetworkEmit& emit);
-            void announce();
+	private:
+		void tcpConnection(const TCP::Connection& con);
+		void tcpHandler(const IO::Event& event);
+		void udpHandler(const UDP::Packet& packet);
+		void tcpSend(const dsl::word::emit::NetworkEmit& emit);
+		void udpSend(const dsl::word::emit::NetworkEmit& emit);
+		void announce();
 
-            // Our max UDP size is based of a 1500 MTU
-            // Subtract the IP and UPD headers, and our protocol header size
-            static constexpr const size_t MAX_UDP_PAYLOAD_LENGTH = 1500 /*MTU*/ - 20 /*IP header*/ - 8 /*UDP header*/ - sizeof(network::DataPacket) + 1 /*Last char*/;
-            static constexpr const size_t MAX_NUM_UDP_ASSEMBLEY = 5;
+		// Our max UDP size is based of a 1500 MTU
+		// Subtract the IP and UPD headers, and our protocol header size
+		static constexpr const size_t MAX_UDP_PAYLOAD_LENGTH =
+			1500 /*MTU*/ - 20 /*IP header*/ - 8 /*UDP header*/ - sizeof(network::DataPacket) + 1 /*Last char*/;
+		static constexpr const size_t MAX_NUM_UDP_ASSEMBLEY = 5;
 
-            std::mutex writeMutex;
+		std::mutex writeMutex;
 
-            ReactionHandle udpHandle;
-            ReactionHandle tcpHandle;
-            ReactionHandle multicastHandle;
-            ReactionHandle multicastEmitHandle;
-            ReactionHandle networkEmitHandle;
+		ReactionHandle udpHandle;
+		ReactionHandle tcpHandle;
+		ReactionHandle multicastHandle;
+		ReactionHandle multicastEmitHandle;
+		ReactionHandle networkEmitHandle;
 
-            std::string name;
-            std::string multicastGroup;
-            in_port_t multicastPort;
-            in_port_t udpPort;
-            in_port_t tcpPort;
+		std::string name;
+		std::string multicastGroup;
+		in_port_t multicastPort;
+		in_port_t udpPort;
+		in_port_t tcpPort;
 
-            int udpServerFD;
-            int tcpServerFD;
+		int udpServerFD;
+		int tcpServerFD;
 
-            std::atomic<uint16_t> packetIDSource;
+		std::atomic<uint16_t> packetIDSource;
 
-            std::mutex reactionMutex;
-            std::multimap<std::array<uint64_t, 2>, std::shared_ptr<threading::Reaction>> reactions;
+		std::mutex reactionMutex;
+		std::multimap<std::array<uint64_t, 2>, std::shared_ptr<threading::Reaction>> reactions;
 
-            std::list<NetworkTarget> targets;
-            std::multimap<std::string, std::list<NetworkTarget>::iterator> nameTarget;
-            std::map<std::pair<int, int>, std::list<NetworkTarget>::iterator> udpTarget;
-            std::map<int, std::list<NetworkTarget>::iterator> tcpTarget;
-        };
+		std::list<NetworkTarget> targets;
+		std::multimap<std::string, std::list<NetworkTarget>::iterator> nameTarget;
+		std::map<std::pair<int, int>, std::list<NetworkTarget>::iterator> udpTarget;
+		std::map<int, std::list<NetworkTarget>::iterator> tcpTarget;
+	};
 
-    }  // namespace extension
+}  // namespace extension
 }  // namespace NUClear
 
 #endif  // NUCLEAR_EXTENSION_NETWORKCONTROLLER_HPP
