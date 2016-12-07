@@ -33,14 +33,14 @@ namespace dsl {
 			 * @details This data struct is used by the NetworkController to send data over the network.
 			 */
 			struct NetworkEmit {
-				NetworkEmit() : target(""), hash(), data(), reliable(false) {}
+				NetworkEmit() : target(""), hash(), payload(), reliable(false) {}
 
 				/// The target to send this serialised packet to
 				std::string target;
 				/// The hash identifying the type of object
 				std::array<uint64_t, 2> hash;
 				/// The serialised data
-				std::vector<char> data;
+				std::vector<char> payload;
 				/// If the message should be sent reliably
 				bool reliable;
 			};
@@ -74,7 +74,7 @@ namespace dsl {
 
 					e->target   = target;
 					e->hash		= util::serialise::Serialise<DataType>::hash();
-					e->data		= util::serialise::Serialise<DataType>::serialise(*data);
+					e->payload		= util::serialise::Serialise<DataType>::serialise(*data);
 					e->reliable = reliable;
 
 					powerplant.emit<Direct>(e);

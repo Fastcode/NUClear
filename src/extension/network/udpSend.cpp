@@ -51,17 +51,17 @@ namespace extension {
 		header.type		   = network::DATA;
 		header.packetId	= ++packetIDSource;
 		header.packetNo	= 0;
-		header.packetCount = uint16_t((emit.data.size() / MAX_UDP_PAYLOAD_LENGTH) + 1);
+		header.packetCount = uint16_t((emit.payload.size() / MAX_UDP_PAYLOAD_LENGTH) + 1);
 		header.multicast   = emit.target.empty();
 		header.hash		   = emit.hash;
 
 		// Loop through our chunks
-		for (size_t i = 0; i < emit.data.size(); i += MAX_UDP_PAYLOAD_LENGTH) {
+		for (size_t i = 0; i < emit.payload.size(); i += MAX_UDP_PAYLOAD_LENGTH) {
 
 			// Store our payload information for this chunk
-			base = const_cast<char*>(emit.data.data() + i);
-			len  = (i + MAX_UDP_PAYLOAD_LENGTH) < emit.data.size() ? MAX_UDP_PAYLOAD_LENGTH
-																  : emit.data.size() % MAX_UDP_PAYLOAD_LENGTH;
+			base = const_cast<char*>(emit.payload.data() + i);
+			len  = (i + MAX_UDP_PAYLOAD_LENGTH) < emit.payload.size() ? MAX_UDP_PAYLOAD_LENGTH
+																	 : emit.payload.size() % MAX_UDP_PAYLOAD_LENGTH;
 
 			// Work out our header length
 			header.length = uint32_t(len + sizeof(network::DataPacket) - sizeof(network::PacketHeader) - 1);

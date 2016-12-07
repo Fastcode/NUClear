@@ -81,20 +81,20 @@ namespace extension {
 		if (e.events & IO::READ) {
 
 			// Allocate data for our header
-			std::vector<char> data(sizeof(network::PacketHeader));
+			std::vector<char> payload(sizeof(network::PacketHeader));
 
 			// Read our header and check it is valid
-			if (recv_all(e.fd, data.data(), data.size()) == sizeof(network::PacketHeader)) {
-				const network::PacketHeader& header = *reinterpret_cast<network::PacketHeader*>(data.data());
+			if (recv_all(e.fd, payload.data(), payload.size()) == sizeof(network::PacketHeader)) {
+				const network::PacketHeader& header = *reinterpret_cast<network::PacketHeader*>(payload.data());
 				uint32_t length						= header.length;
 
 				// Add enough space for our remaining packet
-				data.resize(data.size() + length);
+				payload.resize(payload.size() + length);
 
 				// Read our remaining packet and check it's valid
-				if (recv_all(e.fd, data.data() + sizeof(network::PacketHeader), length) == ssize_t(length)) {
+				if (recv_all(e.fd, payload.data() + sizeof(network::PacketHeader), length) == ssize_t(length)) {
 
-					const network::DataPacket& packet = *reinterpret_cast<network::DataPacket*>(data.data());
+					const network::DataPacket& packet = *reinterpret_cast<network::DataPacket*>(payload.data());
 
 					// Copy our data into a vector
 					std::vector<char> payload(

@@ -27,21 +27,21 @@ namespace extension {
 	void NetworkController::tcpConnection(const TCP::Connection& connection) {
 
 		// Allocate data for our header
-		std::vector<char> data(sizeof(network::PacketHeader));
+		std::vector<char> payload(sizeof(network::PacketHeader));
 
 		// Read our header
-		::recv(connection.fd, data.data(), data.size(), 0);
-		const network::PacketHeader& header = *reinterpret_cast<network::PacketHeader*>(data.data());
+		::recv(connection.fd, payload.data(), payload.size(), 0);
+		const network::PacketHeader& header = *reinterpret_cast<network::PacketHeader*>(payload.data());
 
 		// We have to read this now as after we resize it'll move (maybe)
 		uint32_t length = header.length;
 
 		// Add enough space for our remaining packet
-		data.resize(data.size() + length);
+		payload.resize(payload.size() + length);
 
 		// Read our remaining packet
-		::recv(connection.fd, data.data() + sizeof(network::PacketHeader), length, 0);
-		const network::AnnouncePacket& announce = *reinterpret_cast<network::AnnouncePacket*>(data.data());
+		::recv(connection.fd, payload.data() + sizeof(network::PacketHeader), length, 0);
+		const network::AnnouncePacket& announce = *reinterpret_cast<network::AnnouncePacket*>(payload.data());
 
 		// See if we can find our network target for this element
 		auto udpT = udpTarget.find(std::make_pair(connection.remote.address, announce.udpPort));

@@ -30,7 +30,7 @@ namespace extension {
 		// Construct a packet to send
 		network::DataPacket p;
 		p.type		  = network::DATA;
-		p.length	  = uint32_t((sizeof(network::DataPacket) - 1) - sizeof(network::PacketHeader) + emit.data.size());
+		p.length	  = uint32_t((sizeof(network::DataPacket) - 1) - sizeof(network::PacketHeader) + emit.payload.size());
 		p.packetId	= ++packetIDSource;
 		p.packetNo	= 0;  // TCP packets always come in one packet
 		p.packetCount = 1;  // TCP packets always come in one packet
@@ -52,7 +52,7 @@ namespace extension {
 		for (auto it = sendTo.first; it != sendTo.second; ++it) {
 			// Write the header (except the blank "char" value) and then the packet
 			::send(it->second->tcpFD, reinterpret_cast<const char*>(&p), sizeof(network::DataPacket) - 1, 0);
-			::send(it->second->tcpFD, emit.data.data(), emit.data.size(), 0);
+			::send(it->second->tcpFD, emit.payload.data(), emit.payload.size(), 0);
 			// TODO do this as a single send
 		}
 	}
