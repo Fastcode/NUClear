@@ -49,49 +49,50 @@ namespace NUClear {
             /**
              * @brief Metafunction that extracts all of the Words with a bind function
              *
-             * @tparam TWord The word we are looking at
-             * @tparam TRemainder The words we have yet to look at
-             * @tparam TBindWords The words we have found with bind functions
+             * @tparam Word1        The word we are looking at
+             * @tparam WordN        The words we have yet to look at
+             * @tparam FoundWords   The words we have found with bind functions
              */
-            template <typename TWord, typename... TRemainder, typename... TBindWords>
-            struct BindWords<std::tuple<TWord, TRemainder...>, std::tuple<TBindWords...>>
-            : public std::conditional_t<has_bind<TWord>::value,
-                /*T*/ BindWords<std::tuple<TRemainder...>, std::tuple<TBindWords..., TWord>>,
-                /*F*/ BindWords<std::tuple<TRemainder...>, std::tuple<TBindWords...>>> {};
+            template <typename Word1, typename... WordN, typename... FoundWords>
+            struct BindWords<std::tuple<Word1, WordN...>, std::tuple<FoundWords...>>
+            : public std::conditional_t<has_bind<Word1>::value,
+                /*T*/ BindWords<std::tuple<WordN...>, std::tuple<FoundWords..., Word1>>,
+                /*F*/ BindWords<std::tuple<WordN...>, std::tuple<FoundWords...>>> {};
 
             /**
              * @brief Termination case for the BindWords metafunction
              *
-             * @tparam TBindWords The words we have found with bind functions
+             * @tparam FoundWords The words we have found with bind functions
              */
-            template <typename... TBindWords>
-            struct BindWords<std::tuple<>, std::tuple<TBindWords...>> {
-                using type = std::tuple<TBindWords...>;
+            template <typename... FoundWords>
+            struct BindWords<std::tuple<>, std::tuple<FoundWords...>> {
+                using type = std::tuple<FoundWords...>;
             };
 
             /// Type that redirects types without a bind function to their proxy type
-            template <typename TWord>
+            template <typename Word>
             struct Bind {
-                using type = std::conditional_t<has_bind<TWord>::value, TWord, operation::DSLProxy<TWord>>;
+                using type = std::conditional_t<has_bind<Word>::value, Word, operation::DSLProxy<Word>>;
             };
 
             // Default case where there are no bind words
-            template <typename TWords>
+            template <typename Words>
             struct BindFuser {};
 
             // Case where there is at least one bind word
-            template <typename TFirst, typename... TWords>
-            struct BindFuser<std::tuple<TFirst, TWords...>> {
+            template <typename Word1, typename... WordN>
+            struct BindFuser<std::tuple<Word1, WordN...>> {
+
                 template <typename DSL, typename TFunc, typename... TArgs>
                 static inline auto bind(Reactor& reactor, const std::string& identifier, TFunc&& callback, TArgs&&... args)
-                -> decltype(util::FunctionFusion<std::tuple<TFirst, TWords...>
+                -> decltype(util::FunctionFusion<std::tuple<Word1, WordN...>
                            , decltype(std::forward_as_tuple(reactor, identifier, std::forward<TFunc>(callback), std::forward<TArgs>(args)...))
                            , BindCaller
                            , std::tuple<DSL>
                            , 3>::call(reactor, identifier, std::forward<TFunc>(callback), std::forward<TArgs>(args)...)) {
 
                     // Perform our function fusion
-                    return util::FunctionFusion<std::tuple<TFirst, TWords...>
+                    return util::FunctionFusion<std::tuple<Word1, WordN...>
                     , decltype(std::forward_as_tuple(reactor, identifier, std::forward<TFunc>(callback), std::forward<TArgs>(args)...))
                     , BindCaller
                     , std::tuple<DSL>
@@ -99,9 +100,9 @@ namespace NUClear {
                 }
             };
 
-            template <typename TFirst, typename... TWords>
+            template <typename Word1, typename... WordN>
             struct BindFusion
-            : public BindFuser<typename BindWords<std::tuple<typename Bind<TFirst>::type, typename Bind<TWords>::type...>>::type> {
+            : public BindFuser<typename BindWords<std::tuple<typename Bind<Word1>::type, typename Bind<WordN>::type...>>::type> {
             };
 
         }  // namespace fusion

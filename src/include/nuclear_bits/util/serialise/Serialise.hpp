@@ -77,7 +77,7 @@ namespace NUClear {
                     std::vector<char> out;
                     out.reserve(std::size_t(std::distance(in.begin(), in.end())));
 
-                    for(const StoredType& item : in) {
+                    for (const StoredType& item : in) {
                         const char* i = reinterpret_cast<const char*>(&item);
                         out.insert(out.end(), i, i + sizeof(decltype(item)));
                     }

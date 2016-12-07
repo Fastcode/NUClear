@@ -32,7 +32,7 @@ namespace {
                 ++i;
 
                 // Run until it's 11 then shutdown
-                if(i > 10) {
+                if (i > 10) {
                     powerplant.shutdown();
                 }
             });

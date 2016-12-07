@@ -45,10 +45,10 @@ namespace NUClear {
                 if (packet.remote.port == newUDPPort) {
 
                     // Make sure this is not us
-                    if(!(name == newName && tcpPort == newTCPPort && udpPort == newUDPPort)) {
+                    if (!(name == newName && tcpPort == newTCPPort && udpPort == newUDPPort)) {
 
                         // Check we do not already have this client connected
-                        if(udpTarget.find(std::make_pair(packet.remote.address, newUDPPort)) == udpTarget.end()) {
+                        if (udpTarget.find(std::make_pair(packet.remote.address, newUDPPort)) == udpTarget.end()) {
 
                             sockaddr_in local;
                             std::memset(&local, 0, sizeof(sockaddr_in));
@@ -109,13 +109,13 @@ namespace NUClear {
                     }
                 }
             }
-            else if(header.type == network::DATA) {
+            else if (header.type == network::DATA) {
 
                 // Work out who our remote is
                 auto remote = udpTarget.find(std::make_pair(packet.remote.address, packet.remote.port));
 
                 // Check if we know who this is and if we don't know them, ignore
-                if(remote != udpTarget.end()) {
+                if (remote != udpTarget.end()) {
 
                     const network::DataPacket& p = *reinterpret_cast<const network::DataPacket*>(packet.data.data());
 
@@ -145,9 +145,9 @@ namespace NUClear {
                             auto rs = reactions.equal_range(p.hash);
 
                             // Execute on our interested reactions
-                            for(auto it = rs.first; it != rs.second; ++it) {
+                            for (auto it = rs.first; it != rs.second; ++it) {
                                 auto task = it->second->getTask();
-                                if(task) {
+                                if (task) {
                                     powerplant.submit(std::move(task));
                                 }
                             }
@@ -164,7 +164,7 @@ namespace NUClear {
                         auto& buffer = remote->second->buffer;
 
                         // Check if we have too many packets
-                        if(buffer.size() > MAX_NUM_UDP_ASSEMBLEY) {
+                        if (buffer.size() > MAX_NUM_UDP_ASSEMBLEY) {
                             // Remove the oldest assembly target
                             auto oldest = buffer.begin();
 
@@ -184,7 +184,7 @@ namespace NUClear {
                         set.second.push_back(packet.data);
 
                         // If we are finished assemble and emit
-                        if(set.second.size() == p.packetCount) {
+                        if (set.second.size() == p.packetCount) {
 
                             // Our final payload
                             std::vector<char> payload;
@@ -221,9 +221,9 @@ namespace NUClear {
                                 auto rs = reactions.equal_range(p.hash);
 
                                 // Execute on our interested reactions
-                                for(auto it = rs.first; it != rs.second; ++it) {
+                                for (auto it = rs.first; it != rs.second; ++it) {
                                     auto task = it->second->getTask();
-                                    if(task) {
+                                    if (task) {
                                         powerplant.submit(std::move(task));
                                     }
                                 }

@@ -40,10 +40,28 @@ namespace NUClear {
         namespace word {
             namespace emit {
 
-                template <typename TData>
+                /**
+                 * @brief Emit a UDP packet over the network
+                 *
+                 * @details Emits a UDP packet over the network. The target of this packet can be can be a unicast,
+                 *          broadcast or multicast address specified as either a host endian int, or as a string.
+                 *          Additionally the address and port on the local machine can be specified using a string or
+                 *          host endian int.
+                 *
+                 * @param data      the data to emit
+                 * @param toAddr    a string or host endian integer specifying the ip to send the packet to
+                 * @param toPort    the port to send this packet to in host endian
+                 * @param fromAddr  a string or host endian integer specifying the local ip to send the packet from.
+                 *                  Defaults to INADDR_ANY. Optional.
+                 * @param fromPort  the port to send this from to in host endian or 0 to automatically choose a port.
+                 *                  Defaults to 0. Optional.
+                 *
+                 * @tparam DataType the datatype of the object to emit
+                 */
+                template <typename DataType>
                 struct UDP {
 
-                    static inline void emit(PowerPlant&, std::shared_ptr<TData> input, in_addr_t toAddr, in_port_t toPort, in_addr_t fromAddr, in_port_t fromPort) {
+                    static inline void emit(PowerPlant&, std::shared_ptr<DataType> data, in_addr_t toAddr, in_port_t toPort, in_addr_t fromAddr, in_port_t fromPort) {
 
                         sockaddr_in src;
                         sockaddr_in target;
@@ -64,42 +82,42 @@ namespace NUClear {
 
                         // Open a socket to send the datagram from
                         util::FileDescriptor fd = ::socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-                        if(fd < 0) {
+                        if (fd < 0) {
                             throw std::system_error(network_errno, std::system_category(), "We were unable to open the UDP socket");
                         }
 
                         // If we need to, bind to a port on our end
-                        if(fromAddr != 0 || fromPort != 0) {
-                            if(::bind(fd, reinterpret_cast<sockaddr*>(&src), sizeof(sockaddr))) {
+                        if (fromAddr != 0 || fromPort != 0) {
+                            if (::bind(fd, reinterpret_cast<sockaddr*>(&src), sizeof(sockaddr))) {
                                 throw std::system_error(network_errno, std::system_category(), "We were unable to bind the UDP socket to the port");
                             }
                         }
 
                         // If we are using multicast and we have a specific fromAddr we need to tell the system to use it
-                        if(multicast && fromAddr != 0) {
+                        if (multicast && fromAddr != 0) {
                             // Set our transmission interface for the multicast socket
-                            if(setsockopt(fd, IPPROTO_IP, IP_MULTICAST_IF, reinterpret_cast<const char*>(&src.sin_addr), sizeof(src.sin_addr)) < 0) {
+                            if (setsockopt(fd, IPPROTO_IP, IP_MULTICAST_IF, reinterpret_cast<const char*>(&src.sin_addr), sizeof(src.sin_addr)) < 0) {
                                 throw std::system_error(network_errno, std::system_category(), "We were unable to use the requested interface for multicast");
                             }
                         }
 
                         // This isn't the greatest code, but lets assume our users don't send broadcasts they don't mean to...
                         int yes = true;
-                        if(setsockopt(fd, SOL_SOCKET, SO_BROADCAST, reinterpret_cast<const char*>(&yes), sizeof(yes)) < 0) {
+                        if (setsockopt(fd, SOL_SOCKET, SO_BROADCAST, reinterpret_cast<const char*>(&yes), sizeof(yes)) < 0) {
                             throw std::system_error(network_errno, std::system_category(), "We were unable to enable broadcasting on this socket");
                         }
 
-                        // Serialise the data
-                        std::vector<char> data = util::serialise::Serialise<TData>::serialise(*input);
+                        // Serialise to our payload
+                        std::vector<char> payload = util::serialise::Serialise<DataType>::serialise(*data);
 
-                        // Try to send our data
-                        if(::sendto(fd, data.data(), data.size(), 0, reinterpret_cast<sockaddr*>(&target), sizeof(sockaddr_in)) < 0) {
+                        // Try to send our payload
+                        if (::sendto(fd, payload.data(), data.size(), 0, reinterpret_cast<sockaddr*>(&target), sizeof(sockaddr_in)) < 0) {
                             throw std::system_error(network_errno, std::system_category(), "We were unable to send the UDP message");
                         }
                     }
 
                     // String ip addresses
-                    static inline void emit(PowerPlant& pp, std::shared_ptr<TData> data, std::string toAddr, in_port_t toPort, std::string fromAddr, in_port_t fromPort) {
+                    static inline void emit(PowerPlant& pp, std::shared_ptr<DataType> data, std::string toAddr, in_port_t toPort, std::string fromAddr, in_port_t fromPort) {
 
                         in_addr addr;
 
@@ -113,7 +131,7 @@ namespace NUClear {
 
                     }
 
-                    static inline void emit(PowerPlant& pp, std::shared_ptr<TData> data, std::string toAddr, in_port_t toPort, in_addr_t fromAddr, in_port_t fromPort) {
+                    static inline void emit(PowerPlant& pp, std::shared_ptr<DataType> data, std::string toAddr, in_port_t toPort, in_addr_t fromAddr, in_port_t fromPort) {
 
                         in_addr addr;
 
@@ -123,7 +141,7 @@ namespace NUClear {
                         emit(pp, data, to, toPort, fromAddr, fromPort);
                     }
 
-                    static inline void emit(PowerPlant& pp, std::shared_ptr<TData> data, in_addr_t toAddr, in_port_t toPort, std::string fromAddr, in_port_t fromPort) {
+                    static inline void emit(PowerPlant& pp, std::shared_ptr<DataType> data, in_addr_t toAddr, in_port_t toPort, std::string fromAddr, in_port_t fromPort) {
 
                         in_addr addr;
 
@@ -134,11 +152,11 @@ namespace NUClear {
                     }
 
                     // No from address
-                    static inline void emit(PowerPlant& pp, std::shared_ptr<TData> data, in_addr_t toAddr, in_port_t toPort) {
+                    static inline void emit(PowerPlant& pp, std::shared_ptr<DataType> data, in_addr_t toAddr, in_port_t toPort) {
                         emit(pp, data, toAddr, toPort, INADDR_ANY, in_port_t(0));
                     }
 
-                    static inline void emit(PowerPlant& pp, std::shared_ptr<TData> data, std::string toAddr, in_port_t toPort) {
+                    static inline void emit(PowerPlant& pp, std::shared_ptr<DataType> data, std::string toAddr, in_port_t toPort) {
 
                         in_addr addr;
 

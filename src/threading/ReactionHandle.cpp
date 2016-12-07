@@ -30,7 +30,7 @@ namespace NUClear {
 
         ReactionHandle& ReactionHandle::enable() {
             auto c = context.lock();
-            if(c) {
+            if (c) {
                 c->enabled = true;
             }
             return *this;
@@ -38,7 +38,7 @@ namespace NUClear {
 
         ReactionHandle& ReactionHandle::enable(bool set) {
             auto c = context.lock();
-            if(c) {
+            if (c) {
                 c->enabled = set;
             }
             return *this;
@@ -46,7 +46,7 @@ namespace NUClear {
 
         ReactionHandle& ReactionHandle::disable() {
             auto c = context.lock();
-            if(c) {
+            if (c) {
                 c->enabled = false;
             }
             return *this;
@@ -54,7 +54,7 @@ namespace NUClear {
 
         void ReactionHandle::unbind() {
             auto c = context.lock();
-            if(c) {
+            if (c) {
                 c->unbind();
             }
         }

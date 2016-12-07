@@ -75,10 +75,10 @@ namespace NUClear {
             struct Startup;
 
             struct Shutdown;
-            
+
             template <int, typename>
             struct Every;
-            
+
             template <typename, int, typename>
             struct Watchdog;
 
@@ -101,7 +101,7 @@ namespace NUClear {
                 template <typename TData>
                 struct Delay;
                 template <typename TData>
-                struct Initialize;
+                struct Initialise;
                 template <typename TData>
                 struct Network;
                 template <typename TData>
@@ -116,11 +116,6 @@ namespace NUClear {
      * @details
      *  Provides functionality for binding callbacks to incoming data events. Callbacks are executed
      *  in a transparent, multithreaded manner. TODO needs to be expanded and updated
-     *
-     * @author Jake Woods
-     * @author Trent Houliston
-     * @version 1.1
-     * @date 2-Apr-2013
      */
     class Reactor {
     public:
@@ -208,11 +203,11 @@ namespace NUClear {
 
         /// @copydoc dsl::word::Shutdown
         using Shutdown = dsl::word::Shutdown;
-        
+
         /// @copydoc dsl::word::Every
         template <int ticks = 0, class period = std::chrono::milliseconds>
         using Every = dsl::word::Every<ticks, period>;
-        
+
         /// @copydoc dsl::word::Every
         template <typename TWatchdog, int ticks, class period = std::chrono::milliseconds>
         using Watchdog = dsl::word::Watchdog<TWatchdog, ticks, period>;
@@ -236,18 +231,18 @@ namespace NUClear {
             /// @copydoc dsl::word::emit::Local
             template <typename TData>
             using LOCAL = dsl::word::emit::Local<TData>;
-            
+
             /// @copydoc dsl::word::emit::Direct
             template <typename TData>
             using DIRECT = dsl::word::emit::Direct<TData>;
-            
+
             /// @copydoc dsl::word::emit::Direct
             template <typename TData>
             using DELAY = dsl::word::emit::Delay<TData>;
 
             /// @copydoc dsl::word::emit::Initialize
             template <typename TData>
-            using INITIALIZE = dsl::word::emit::Initialize<TData>;
+            using INITIALIZE = dsl::word::emit::Initialise<TData>;
 
             /// @copydoc dsl::word::emit::Network
             template <typename TData>
@@ -410,7 +405,7 @@ namespace NUClear {
 #include "nuclear_bits/dsl/word/emit/Local.hpp"
 #include "nuclear_bits/dsl/word/emit/Direct.hpp"
 #include "nuclear_bits/dsl/word/emit/Delay.hpp"
-#include "nuclear_bits/dsl/word/emit/Initialize.hpp"
+#include "nuclear_bits/dsl/word/emit/Initialise.hpp"
 #include "nuclear_bits/dsl/word/emit/Network.hpp"
 #include "nuclear_bits/dsl/word/emit/UDP.hpp"
 

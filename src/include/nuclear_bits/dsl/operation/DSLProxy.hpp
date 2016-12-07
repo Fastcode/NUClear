@@ -26,11 +26,9 @@ namespace NUClear {
              * @brief A proxy template to be used to provide NUClear DSL methods without altering the original object
              *
              * @details
-             *      Sometimes you want to make a type part of the DSL but cannot (or don't want to) alter the original object
-             *      In this case you are able to partially specialise this type and it will be used instead (if the original
-             *      does not have the functions needed.
-             *
-             * @author Trent Houliston
+             *      Sometimes you want to make a type part of the DSL but cannot (or don't want to) alter the original
+             *      object. In this case you are able to partially specialise this type and it will be used instead
+             *      if the original does not have the functions needed.
              */
             template <typename TType>
             struct DSLProxy {};

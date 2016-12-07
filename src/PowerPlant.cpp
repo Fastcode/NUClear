@@ -36,7 +36,7 @@ namespace NUClear {
     , startupTasks() {
 
         // Stop people from making more then one powerplant
-        if(powerplant) {
+        if (powerplant) {
             throw std::runtime_error("There is already a powerplant in existence (There should be a single PowerPlant)");
         }
 
@@ -55,7 +55,7 @@ namespace NUClear {
             args->emplace_back(argv[i]);
         }
 
-        emit<dsl::word::emit::Initialize>(std::move(args));
+        emit<dsl::word::emit::Initialise>(std::move(args));
     }
 
     PowerPlant::~PowerPlant() {
@@ -83,7 +83,7 @@ namespace NUClear {
         isRunning = true;
 
         // Run all our Initialise scope tasks
-        for(auto&& func : startupTasks) {
+        for (auto&& func : startupTasks) {
             func();
         }
         startupTasks.clear();
@@ -92,7 +92,7 @@ namespace NUClear {
         emit<dsl::word::emit::Direct>(std::make_unique<dsl::word::Startup>());
 
         // Start all our threads
-        for(size_t i = 0; i < configuration.threadCount; ++i) {
+        for (size_t i = 0; i < configuration.threadCount; ++i) {
             tasks.push_back(threading::makeThreadPoolTask(*this, scheduler));
         }
 
@@ -105,7 +105,7 @@ namespace NUClear {
         threading::makeThreadPoolTask(*this, mainThreadScheduler)();
 
         // Now wait for all the threads to finish executing
-        for(auto& thread : threads) {
+        for (auto& thread : threads) {
             try {
                 if (thread->joinable()) {
                     thread->join();
@@ -113,7 +113,7 @@ namespace NUClear {
             }
             // This gets thrown some time if between checking if joinable and joining
             // the thread is no longer joinable
-            catch(std::system_error()) {
+            catch (const std::system_error&) {
             }
         }
     }

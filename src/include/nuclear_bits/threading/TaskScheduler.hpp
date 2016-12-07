@@ -57,8 +57,6 @@ namespace NUClear {
          *  @code Single @endcode
          *  If single is encountered while processing the function, and a Task object for this Reaction is already running
          *  in a thread, or waiting in the Queue, then this task is ignored and dropped from the system.
-         *
-         * @author Trent Houliston
          */
         class TaskScheduler {
         public:

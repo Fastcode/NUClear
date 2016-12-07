@@ -59,7 +59,7 @@ namespace NUClear {
             std::pair<int, std::function<std::unique_ptr<threading::ReactionTask> (std::unique_ptr<threading::ReactionTask>&&)>> operator()(threading::Reaction& r) {
 
                 // Check if we should even run
-                if(!DSL::precondition(r)) {
+                if (!DSL::precondition(r)) {
                     // We cancel our execution by returning an empty function
                     return std::make_pair(0, std::function<std::unique_ptr<threading::ReactionTask> (std::unique_ptr<threading::ReactionTask>&&)>());
                 }
@@ -72,7 +72,7 @@ namespace NUClear {
                     mergeTransients(data, typename TransientDataElements<DSL>::index(), GenerateSequence<0, TransientDataElements<DSL>::index::length>());
 
                     // Check if our data is good (all the data exists) otherwise terminate the call
-                    if(!checkData(data)) {
+                    if (!checkData(data)) {
                         // We cancel our execution by returning an empty function
                         return std::make_pair(0, std::function<std::unique_ptr<threading::ReactionTask> (std::unique_ptr<threading::ReactionTask>&&)>());
                     }
@@ -85,7 +85,7 @@ namespace NUClear {
                         task = DSL::reschedule(std::move(task));
 
                         // If we still control our task
-                        if(task) {
+                        if (task) {
 
                             // Update our thread's priority to the correct level
                             update_current_thread_priority(task->priority);
@@ -98,7 +98,7 @@ namespace NUClear {
                                 // We call with only the relevant arguments to the passed function
                                 util::apply_relevant(c, std::move(data));
                             }
-                            catch(...) {
+                            catch (...) {
 
                                 // Catch our exception if it happens
                                 task->stats->exception = std::current_exception();

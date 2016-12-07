@@ -93,7 +93,7 @@ namespace {
 
                 // This should execute our function resulting in the pair 30,5
                 emit(std::make_unique<int>(0));
-                // TODO techincally the thing that triggered this resulted in invalid data but used old data, do we want to stop this?
+                // TODO technically the thing that triggered this resulted in invalid data but used old data, do we want to stop this?
                 // TODO This would result in two states, invalid data, and non existant data
 
                 // We are finished the test

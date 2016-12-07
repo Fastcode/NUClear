@@ -97,7 +97,7 @@ namespace NUClear {
                 static inline Event get(threading::Reaction&) {
 
                     // If our thread store has a value
-                    if(ThreadEventStore::value) {
+                    if (ThreadEventStore::value) {
                         return *ThreadEventStore::value;
                     }
                     // Otherwise return an invalid event

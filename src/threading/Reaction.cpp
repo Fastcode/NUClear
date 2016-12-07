@@ -54,7 +54,7 @@ namespace NUClear {
             std::tie(priority, func) = generator(*this);
 
             // If our generator returns a valid function
-            if(func) {
+            if (func) {
                 return std::unique_ptr<ReactionTask>(new ReactionTask(*this, priority, func));
             }
             // Otherwise we return a null pointer

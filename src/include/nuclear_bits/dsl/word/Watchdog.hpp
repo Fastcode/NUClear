@@ -27,13 +27,13 @@
 namespace NUClear {
     namespace dsl {
         namespace word {
-            
+
             template <typename TWatchdog, int ticks, class period>
             struct Watchdog {
 
                 template <typename DSL, typename TFunc>
                 static inline threading::ReactionHandle bind(Reactor& reactor, const std::string& label, TFunc&& callback) {
-                    
+
                     // If this is the first time we have used this watchdog service it
                     if (!store::DataStore<message::ServiceWatchdog<TWatchdog>>::get()) {
                         reactor.powerplant.emit(std::make_unique<message::ServiceWatchdog<TWatchdog>>());
@@ -42,37 +42,37 @@ namespace NUClear {
                     // Build our reaction
                     auto reaction = std::shared_ptr<threading::Reaction>(util::generate_reaction<DSL, operation::ChronoTask>(reactor, label, std::forward<TFunc>(callback)));
                     threading::ReactionHandle handle(reaction);
-                    
+
                     // Send our configuration out
                     reactor.powerplant.emit<emit::Direct>(std::make_unique<operation::ChronoTask>([&reactor, reaction] (NUClear::clock::time_point& time) {
-                        
+
                         // Get the latest time the watchdog was serviced
                         auto service_time = store::DataStore<message::ServiceWatchdog<TWatchdog>>::get()->time;
-                        
+
                         // Check if our watchdog has timed out
                         if (NUClear::clock::now() > (service_time + period(ticks))) {
                             try {
                                 // Submit the reaction to the thread pool
                                 auto task = reaction->getTask();
-                                if(task) {
+                                if (task) {
                                     reactor.powerplant.submit(std::move(task));
                                 }
                             }
-                            catch(...) {
+                            catch (...) {
                             }
-                            
+
                             time = NUClear::clock::now() + period(ticks);
                         }
                         // Change our wait time to our new watchdog time
                         else {
                             time = service_time + period(ticks);
                         }
-                        
+
                         // We renew!
                         return true;
-                        
+
                     }, NUClear::clock::now() + period(ticks), reaction->reactionId));
-                    
+
                     // Return our handle
                     return handle;
                 }

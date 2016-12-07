@@ -67,7 +67,7 @@ namespace NUClear {
                     // Make our socket
                     util::FileDescriptor fd = ::socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 
-                    if(fd < 0) {
+                    if (fd < 0) {
                         throw std::system_error(network_errno, std::system_category(), "We were unable to open the TCP socket");
                     }
 
@@ -79,12 +79,12 @@ namespace NUClear {
                     address.sin_addr.s_addr = htonl(INADDR_ANY);
 
                     // Bind to the address, and if we fail throw an error
-                    if(::bind(fd, reinterpret_cast<sockaddr*>(&address), sizeof(sockaddr))) {
+                    if (::bind(fd, reinterpret_cast<sockaddr*>(&address), sizeof(sockaddr))) {
                         throw std::system_error(network_errno, std::system_category(), "We were unable to bind the TCP socket to the port");
                     }
 
                     // Listen to the address
-                    if(::listen(fd, 1024) < 0) {
+                    if (::listen(fd, 1024) < 0) {
                         throw std::system_error(network_errno, std::system_category(), "We were unable to listen on the TCP socket");
                     }
 

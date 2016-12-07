@@ -42,7 +42,7 @@ namespace {
                 REQUIRE(std::memcmp(packet.data.data(), testString.data(), testString.size()) == 0);
 
                 receivedA = true;
-                if(receivedA && receivedB) {
+                if (receivedA && receivedB) {
                     // Shutdown we are done with the test
                     powerplant.shutdown();
                 }
@@ -58,7 +58,7 @@ namespace {
                 REQUIRE(std::memcmp(packet.data.data(), testString.data(), testString.size()) == 0);
 
                 receivedB = true;
-                if(receivedA && receivedB) {
+                if (receivedA && receivedB) {
                     // Shutdown we are done with the test
                     powerplant.shutdown();
                 }

@@ -51,9 +51,6 @@ namespace NUClear {
      *  At the centre of every NUClear system is a PowerPlant. A PowerPlant contains all of the reactors that are
      *  used within the system and sets up their reactions. It is also responsible for storing information between
      *  reactions and ensuring that all threading is handled appropriately.
-     *
-     * @author Trent Houliston
-     * @author Jake Woods
      */
     class PowerPlant {
         // Reactors and PowerPlants are very tightly linked
@@ -65,8 +62,6 @@ namespace NUClear {
          *
          * @details
          *  It configures the number of threads that will be in the PowerPlants thread pool
-         *
-         * @author Trent Houliston
          */
         struct Configuration {
             /// @brief default to the amount of hardware concurrency (or 2) threads
@@ -237,7 +232,7 @@ namespace NUClear {
 // Emit types
 #include "nuclear_bits/dsl/word/emit/Local.hpp"
 #include "nuclear_bits/dsl/word/emit/Direct.hpp"
-#include "nuclear_bits/dsl/word/emit/Initialize.hpp"
+#include "nuclear_bits/dsl/word/emit/Initialise.hpp"
 
 // Built in smart types
 #include "nuclear_bits/message/CommandLineArguments.hpp"

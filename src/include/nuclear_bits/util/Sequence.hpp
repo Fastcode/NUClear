@@ -27,8 +27,6 @@ namespace NUClear {
          * @brief This class is used to hold a sequence of integers as a variardic pack
          *
          * @tparam S the variardic pack containing the sequence
-         *
-         * @author Trent Houliston
          */
         template<int... S>
         struct Sequence {
@@ -72,8 +70,6 @@ namespace NUClear {
          *
          * @tparam Start  the number to start counting from
          * @tparam End     the number to finish counting at (non inclusive)
-         *
-         * @author Trent Houliston
          */
         template <int Start, int End>
         using GenerateSequence = typename GenSequence<Start, End>::type;

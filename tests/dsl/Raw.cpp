@@ -49,7 +49,7 @@ namespace {
                 stored.push_back(a);
 
                 // Wait until we have 10 elements
-                if(stored.size() == 10) {
+                if (stored.size() == 10) {
                     emit(std::make_unique<TypeB>(TypeB{ 0 }));
                 }
                 else {
@@ -63,7 +63,7 @@ namespace {
 
                 REQUIRE(stored.size() == 10);
 
-                for(size_t i = 0; i < stored.size(); ++i) {
+                for (size_t i = 0; i < stored.size(); ++i) {
                     REQUIRE(stored[i]->x == i);
                 }
 

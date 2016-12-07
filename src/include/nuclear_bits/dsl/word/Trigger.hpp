@@ -26,7 +26,6 @@ namespace NUClear {
         namespace word {
 
             /**
-             * @ingroup Wrappers
              * @brief This is a wrapper class which is used to list the data types to trigger a callback on.
              *
              * @details
@@ -34,12 +33,12 @@ namespace NUClear {
              *  works under and logic for multiple types. When all of the types have been emitted at least once since
              *  the last time this event was triggered, this event is triggered again.
              *
-             * @tparam TTriggers the datatypes to trigger a callback on
+             * @tparam T the datatypes to trigger a callback on
              */
-            template <typename TTriggers>
+            template <typename T>
             struct Trigger
-            : public operation::TypeBind<TTriggers>
-            , public operation::CacheGet<TTriggers> {};
+            : public operation::TypeBind<T>
+            , public operation::CacheGet<T> {};
 
         }  // namespace word
     }  // namespace dsl

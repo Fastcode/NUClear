@@ -45,12 +45,12 @@ namespace NUClear {
             ~FileDescriptor() {
                 // On windows it's CLOSE_SOCKET
                 #if defined(_WIN32)
-                if(fd != INVALID_SOCKET) {
+                if (fd != INVALID_SOCKET) {
                     close(fd);
                 }
                 // On others we just close
                 #else
-                if(fd > 0) {
+                if (fd > 0) {
                     close(fd);
                 }
                 #endif

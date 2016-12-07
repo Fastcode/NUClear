@@ -25,7 +25,13 @@ namespace NUClear {
     namespace dsl {
         namespace fusion {
 
-            template<typename T>
+            /**
+             * @brief SFINAE struct to test if the passed class has a reschedule function that conforms to the
+             *        NUClear DSL
+             *
+             * @tparam T the class to check
+             */
+            template <typename T>
             struct has_reschedule {
             private:
                 typedef std::true_type yes;

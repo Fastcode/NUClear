@@ -23,8 +23,7 @@ namespace NUClear {
         namespace word {
 
             /**
-             * @ingroup Options
-             * @brief This option sets the number of tasks to buffer before dropping tasks
+             * @brief Sets the number of tasks to buffer before dropping tasks.
              *
              * @details
              *  If a task has a limited buffer size, then that means that N instances of the task can be

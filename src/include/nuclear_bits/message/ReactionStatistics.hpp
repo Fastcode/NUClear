@@ -28,8 +28,6 @@ namespace NUClear {
 
         /**
          * @brief Holds details about reactions that are executed.
-         *
-         * @author Trent Houliston
          */
         struct ReactionStatistics {
             ReactionStatistics() : identifier(), reactionId(0), taskId(0), causeReactionId(0), causeTaskId(0),

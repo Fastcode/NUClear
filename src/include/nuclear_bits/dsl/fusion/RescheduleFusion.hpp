@@ -28,9 +28,9 @@ namespace NUClear {
         namespace fusion {
 
             /// Type that redirects types without a reschedule function to their proxy type
-            template <typename TWord>
+            template <typename Word>
             struct Reschedule {
-                using type = std::conditional_t<has_reschedule<TWord>::value, TWord, operation::DSLProxy<TWord>>;
+                using type = std::conditional_t<has_reschedule<Word>::value, Word, operation::DSLProxy<Word>>;
             };
 
             template<typename, typename = std::tuple<>>
@@ -39,29 +39,29 @@ namespace NUClear {
             /**
              * @brief Metafunction that extracts all of the Words with a reschedule function
              *
-             * @tparam TWord The word we are looking at
-             * @tparam TRemainder The words we have yet to look at
-             * @tparam TRescheduleWords The words we have found with reschedule functions
+             * @tparam Word1        The word we are looking at
+             * @tparam WordN        The words we have yet to look at
+             * @tparam FoundWords   The words we have found with reschedule functions
              */
-            template <typename TWord, typename... TRemainder, typename... TRescheduleWords>
-            struct RescheduleWords<std::tuple<TWord, TRemainder...>, std::tuple<TRescheduleWords...>>
-            : public std::conditional_t<has_reschedule<typename Reschedule<TWord>::type>::value,
-            /*T*/ RescheduleWords<std::tuple<TRemainder...>, std::tuple<TRescheduleWords..., typename Reschedule<TWord>::type>>,
-            /*F*/ RescheduleWords<std::tuple<TRemainder...>, std::tuple<TRescheduleWords...>>> {};
+            template <typename Word1, typename... WordN, typename... FoundWords>
+            struct RescheduleWords<std::tuple<Word1, WordN...>, std::tuple<FoundWords...>>
+            : public std::conditional_t<has_reschedule<typename Reschedule<Word1>::type>::value,
+            /*T*/ RescheduleWords<std::tuple<WordN...>, std::tuple<FoundWords..., typename Reschedule<Word1>::type>>,
+            /*F*/ RescheduleWords<std::tuple<WordN...>, std::tuple<FoundWords...>>> {};
 
             /**
              * @brief Termination case for the RescheduleWords metafunction
              *
-             * @tparam TRescheduleWords The words we have found with reschedule functions
+             * @tparam FoundWords The words we have found with reschedule functions
              */
-            template <typename... TRescheduleWords>
-            struct RescheduleWords<std::tuple<>, std::tuple<TRescheduleWords...>> {
-                using type = std::tuple<TRescheduleWords...>;
+            template <typename... FoundWords>
+            struct RescheduleWords<std::tuple<>, std::tuple<FoundWords...>> {
+                using type = std::tuple<FoundWords...>;
             };
 
 
             // Default case where there are no reschedule words
-            template <typename TWords>
+            template <typename Words>
             struct RescheduleFuser {};
 
             // Case where there is only a single word remaining
@@ -77,18 +77,18 @@ namespace NUClear {
             };
 
             // Case where there is more 2 more more words remaining
-            template <typename W1, typename W2, typename... WN>
-            struct RescheduleFuser<std::tuple<W1, W2, WN...>> {
+            template <typename Word1, typename Word2, typename... WordN>
+            struct RescheduleFuser<std::tuple<Word1, Word2, WordN...>> {
 
                 template <typename DSL>
                 static inline std::unique_ptr<threading::ReactionTask> reschedule(std::unique_ptr<threading::ReactionTask>&& task) {
 
                     // Pass our task to see if it gets rescheduled
-                    auto ptr = W1::template reschedule<DSL>(std::move(task));
+                    auto ptr = Word1::template reschedule<DSL>(std::move(task));
 
                     // If it was not rescheduled pass to the next rescheduler
-                    if(ptr) {
-                        return RescheduleFuser<std::tuple<W2, WN...>>::template reschedule<DSL>(std::move(ptr));
+                    if (ptr) {
+                        return RescheduleFuser<std::tuple<Word2, WordN...>>::template reschedule<DSL>(std::move(ptr));
                     }
                     else {
                         return ptr;
@@ -96,9 +96,9 @@ namespace NUClear {
                 }
             };
 
-            template <typename W1, typename... WN>
+            template <typename Word1, typename... WordN>
             struct RescheduleFusion
-            : public RescheduleFuser<typename RescheduleWords<std::tuple<W1, WN...>>::type> {
+            : public RescheduleFuser<typename RescheduleWords<std::tuple<Word1, WordN...>>::type> {
             };
 
         }  // namespace fusion

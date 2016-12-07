@@ -22,6 +22,15 @@ namespace NUClear {
     namespace dsl {
         namespace operation {
 
+            /**
+             * @brief Prevent recursive looping when using the ReactionStatistics system
+             *
+             * @details When utilising the ReactionStatistics system there exists an issue in that the reaction that
+             *          uses the reaction statistics system will itself generate reaction statistics. This causes an
+             *          infinite loop in the system that will eventually cause a stack overflow and crash. To avoid this
+             *          this type overloads the method and prevents reactions that use ReactionStatistics from creating
+             *          them.
+             */
             template <>
             struct CacheGet<message::ReactionStatistics> {
 

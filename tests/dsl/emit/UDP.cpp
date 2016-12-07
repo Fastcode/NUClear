@@ -55,7 +55,7 @@ namespace {
                         break;
                 }
 
-                if(receivedMessages == 4) {
+                if (receivedMessages == 4) {
                     powerplant.shutdown();
                 }
             });

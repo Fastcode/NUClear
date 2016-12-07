@@ -25,7 +25,6 @@ namespace NUClear {
         namespace word {
 
             /**
-             * @ingroup Options
              * @brief This option requires that this task executes using the main thread (usually for graphics related tasks)
              */
             struct MainThread {
@@ -36,7 +35,7 @@ namespace NUClear {
                 static inline std::unique_ptr<threading::ReactionTask> reschedule(std::unique_ptr<threading::ReactionTask>&& task) {
 
                     // If we are not the main thread, move us to the main thread
-                    if(std::this_thread::get_id() != util::main_thread_id) {
+                    if (std::this_thread::get_id() != util::main_thread_id) {
 
                         // Submit to the main thread scheduler
                         task->parent.reactor.powerplant.submitMain(std::move(task));

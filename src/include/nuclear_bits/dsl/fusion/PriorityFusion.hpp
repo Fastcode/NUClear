@@ -28,9 +28,9 @@ namespace NUClear {
         namespace fusion {
 
             /// Type that redirects types without a priority function to their proxy type
-            template <typename TWord>
+            template <typename Word>
             struct Priority {
-                using type = std::conditional_t<has_priority<TWord>::value, TWord, operation::DSLProxy<TWord>>;
+                using type = std::conditional_t<has_priority<Word>::value, Word, operation::DSLProxy<Word>>;
             };
 
             template<typename, typename = std::tuple<>>
@@ -39,29 +39,29 @@ namespace NUClear {
             /**
              * @brief Metafunction that extracts all of the Words with a priority function
              *
-             * @tparam TWord The word we are looking at
-             * @tparam TRemainder The words we have yet to look at
-             * @tparam TPriorityWords The words we have found with priority functions
+             * @tparam Word1        The word we are looking at
+             * @tparam WordN        The words we have yet to look at
+             * @tparam FoundWords   The words we have found with priority functions
              */
-            template <typename TWord, typename... TRemainder, typename... TPriorityWords>
-            struct PriorityWords<std::tuple<TWord, TRemainder...>, std::tuple<TPriorityWords...>>
-            : public std::conditional_t<has_priority<typename Priority<TWord>::type>::value,
-            /*T*/ PriorityWords<std::tuple<TRemainder...>, std::tuple<TPriorityWords..., typename Priority<TWord>::type>>,
-            /*F*/ PriorityWords<std::tuple<TRemainder...>, std::tuple<TPriorityWords...>>> {};
+            template <typename Word1, typename... WordN, typename... FoundWords>
+            struct PriorityWords<std::tuple<Word1, WordN...>, std::tuple<FoundWords...>>
+            : public std::conditional_t<has_priority<typename Priority<Word1>::type>::value,
+            /*T*/ PriorityWords<std::tuple<WordN...>, std::tuple<FoundWords..., typename Priority<Word1>::type>>,
+            /*F*/ PriorityWords<std::tuple<WordN...>, std::tuple<FoundWords...>>> {};
 
             /**
              * @brief Termination case for the PriorityWords metafunction
              *
-             * @tparam TPriorityWords The words we have found with priority functions
+             * @tparam FoundWords The words we have found with priority functions
              */
-            template <typename... TPriorityWords>
-            struct PriorityWords<std::tuple<>, std::tuple<TPriorityWords...>> {
-                using type = std::tuple<TPriorityWords...>;
+            template <typename... FoundWords>
+            struct PriorityWords<std::tuple<>, std::tuple<FoundWords...>> {
+                using type = std::tuple<FoundWords...>;
             };
 
 
             // Default case where there are no priority words
-            template <typename TWords>
+            template <typename Words>
             struct PriorityFuser {};
 
             // Case where there is only a single word remaining
@@ -77,21 +77,21 @@ namespace NUClear {
             };
 
             // Case where there is more 2 more more words remaining
-            template <typename W1, typename W2, typename... WN>
-            struct PriorityFuser<std::tuple<W1, W2, WN...>> {
+            template <typename Word1, typename Word2, typename... WordN>
+            struct PriorityFuser<std::tuple<Word1, Word2, WordN...>> {
 
                 template <typename DSL>
                 static inline int priority(threading::Reaction& reaction) {
 
                     // Choose our maximum priority
-                    return std::max(W1::template priority<DSL>(reaction),
-                                    PriorityFuser<std::tuple<W2, WN...>>::template priority<DSL>(reaction));
+                    return std::max(Word1::template priority<DSL>(reaction),
+                                    PriorityFuser<std::tuple<Word2, WordN...>>::template priority<DSL>(reaction));
                 }
             };
 
-            template <typename W1, typename... WN>
+            template <typename Word1, typename... WordN>
             struct PriorityFusion
-            : public PriorityFuser<typename PriorityWords<std::tuple<W1, WN...>>::type> {
+            : public PriorityFuser<typename PriorityWords<std::tuple<Word1, WordN...>>::type> {
             };
 
         }  // namespace fusion

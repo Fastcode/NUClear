@@ -25,12 +25,17 @@ namespace NUClear {
         namespace word {
 
             /**
-             * @ingroup SmartTypes
-             * @brief This type is used to make a task that will continually run until shutdown.
+             * @brief Run the given task continously until shutdown.
              *
-             * @details
-             *  This will start up when the system starts up and continue to execute continually
-             *  until the whole system is told to shut down.
+             * @details This task will start when the system starts up and continue to execute continually until the
+             *          whole system is told to shut down. The task will execute in its own unique thread rather than
+             *          the thread pool. However, if a task that it tries to execute is rescheduled such as with a Sync
+             *          the task will then be moved into the thread pool. When using this keyword you should endeavor
+             *          not to keep the system in a loop. Instead of putting a while(true) or similar loop in this
+             *          reaction, instead let it finish and restart itself. This allows it to terminate properly when
+             *          the system is shutdown. If it does not the system will hang when trying to terminate.
+             *          If this function is performing a blocking operation, try to make it interruptable with an
+             *          on<Shutdown> reaction so that the program can be cleanly terminated.
              */
             struct Always {
 
@@ -54,18 +59,18 @@ namespace NUClear {
                         auto task = reaction->getTask();
 
                         // If we got a real task back
-                        if(task) {
+                        if (task) {
                             task = task->run(std::move(task));
                         }
                     };
 
                     // This is our function that runs forever until the powerplant exits
                     auto loop = [&reactor, run] {
-                        while(reactor.powerplant.running()) {
+                        while (reactor.powerplant.running()) {
                             try {
                                 run();
                             }
-                            catch(...) {
+                            catch (...) {
                             }
                         }
                     };

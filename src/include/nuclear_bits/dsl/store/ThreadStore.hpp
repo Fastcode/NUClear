@@ -24,13 +24,28 @@ namespace NUClear {
     namespace dsl {
         namespace store {
 
-            template <typename TData, int Index = 0>
+            /**
+             * @brief Thread local datastore used for out of band communication.
+             *
+             * @details In NUClear, there is a disjoint that must exist between reactions which are opaque and the
+             *          internals of these reactions which are strongly typed to ensure speed. This creates a problem
+             *          where handlers for reactions want to pass data to them but cannot directly access them. This
+             *          datastore is used in this case to provide thread local storage that is typed. Using this
+             *          variable a handler can store a stack variable it has and when it generates a ReactionTask as
+             *          that happens on the same thread, the get functions inside can access this same variable to
+             *          bypass the opaque barrier between the handler and the reaction.
+             *
+             * @tparam DataType the datatype that is to be stored
+             * @tparam Index    an optional index that can be used in the event that multiple variables of the same type
+             *                  are needed
+             */
+            template <typename DataType, int Index = 0>
             struct ThreadStore {
-                static ATTRIBUTE_TLS TData* value;
+                static ATTRIBUTE_TLS DataType* value;
             };
 
-            template <typename TData, int index>
-            ATTRIBUTE_TLS TData* ThreadStore<TData, index>::value = nullptr;
+            template <typename DataType, int index>
+            ATTRIBUTE_TLS DataType* ThreadStore<DataType, index>::value = nullptr;
 
         }  // namespace store
     }  // namespace dsl

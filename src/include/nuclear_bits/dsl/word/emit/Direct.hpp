@@ -27,23 +27,38 @@ namespace NUClear {
         namespace word {
             namespace emit {
 
-                template <typename TData>
+                /**
+                 * @brief Direct emits execute the tasks created by emitting this type immediately.
+                 *
+                 * @details When data is emitted directly, the currently executing taks is paused and the tasks that
+                 *          are created by this emit are execued one at a time sequentially using the current thread.
+                 *          This type of emit will always work even when the system is in Shutdown or before the system
+                 *          has started up to the main phase.
+                 *
+                 * @param data the data to emit
+                 *
+                 * @tparam DataType the datatype that is being emitted
+                 */
+                template <typename DataType>
                 struct Direct {
 
-                    static void emit(PowerPlant&, std::shared_ptr<TData> data) {
+                    static void emit(PowerPlant& powerplant, std::shared_ptr<DataType> data) {
 
                         // Set our data in the store
-                        store::DataStore<TData>::set(data);
+                        store::DataStore<DataType>::set(data);
 
-                        for(auto& reaction : store::TypeCallbackStore<TData>::get()) {
+                        for (auto& reaction : store::TypeCallbackStore<DataType>::get()) {
                             try {
                                 auto task = reaction->getTask();
-                                if(task) {
+                                if (task) {
                                     task = task->run(std::move(task));
                                 }
                             }
-                            catch(...) {
-                                // TODO should something happen here?
+                            catch (const std::exception& ex) {
+                                powerplant.log<NUClear::ERROR>("There was an exception while generating a reaction", ex.what());
+                            }
+                            catch (...) {
+                                powerplant.log<NUClear::ERROR>("There was an unknown exception while generating a reaction");
                             }
                         }
                     }

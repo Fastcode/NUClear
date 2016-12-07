@@ -72,7 +72,7 @@ namespace NUClear {
                     auto data = store::ThreadStore<std::vector<char>>::value;
                     auto source = store::ThreadStore<NetworkSource>::value;
 
-                    if(data && source) {
+                    if (data && source) {
 
                         // Return our deserialised data
                         return std::make_tuple(std::make_shared<NetworkSource>(*source), std::make_shared<TData>(util::serialise::Serialise<TData>::deserialise(*data)));

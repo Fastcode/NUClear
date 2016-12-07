@@ -38,7 +38,7 @@ namespace NUClear {
                 // Lock the mutex while we're doing stuff
                 {
                     std::lock_guard<std::mutex> lock(mutex);
-                    
+
                     // Add our new task to the heap
                     tasks.push_back(*task);
                 }
@@ -52,12 +52,12 @@ namespace NUClear {
                 // Lock the mutex while we're doing stuff
                 {
                     std::lock_guard<std::mutex> lock(mutex);
-                    
+
                     // Find the task
                     auto it = std::find_if(tasks.begin(), tasks.end(), [&] (const ChronoTask& task) {
-                        return task.id == unbind.reactionId;
+                        return task.id == unbind.id;
                     });
-                    
+
                     // Remove if if it exists
                     if (it != tasks.end()) {
                         tasks.erase(it);
@@ -79,34 +79,34 @@ namespace NUClear {
                 std::unique_lock<std::mutex> lock(mutex);
 
                 // If we have tasks to do
-                if(!tasks.empty()) {
+                if (!tasks.empty()) {
 
                     // Make the list into a heap so we can remove the soonest ones
-                    std::make_heap(tasks.begin(), tasks.end());
-                    
+                    std::make_heap(tasks.begin(), tasks.end(), std::greater<ChronoTask>());
+
                     // If we are within the wait offset of the time, spinlock until we get there for greater accuracy
                     if (NUClear::clock::now() + waitOffset > tasks.front().time) {
-                        
+
                         // Spinlock!
                         while (NUClear::clock::now() < tasks.front().time);
 
                         NUClear::clock::time_point now = NUClear::clock::now();
-                        
+
                         // Move back from the end poping the heap
                         for (auto end = tasks.end();
                              end != tasks.begin() && tasks.front().time < now;
                              --end) {
-                            
+
                             // Run our task and if it returns false remove it
                             bool renew = tasks.front()();
-                            
+
                             // Move this to the back of the list
                             std::pop_heap(tasks.begin(), end);
-                            
+
                             if (!renew) {
                                 tasks.pop_back();
                             }
-                            
+
                         }
                     }
                     // Otherwise we wait for the next event using a wait_for (with a small offset for greater accuracy)

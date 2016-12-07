@@ -25,7 +25,17 @@ namespace NUClear {
     namespace dsl {
         namespace operation {
 
-            template <typename TType>
+            /**
+             * @brief Binds a function to execute when a specific type is emitted
+             *
+             * @details A common pattern in NUClear is to execute a function when a paticular type is emitted.
+             *          This utility class is used to simplify executing a function when a type is emitted.
+             *          To use this utility inherit from this type with the DataType to listen for.
+             *          If the callback also needs the data emitted you should also extend from CacheGet
+             *
+             * @tparam DataType the data type that will be bound to
+             */
+            template <typename DataType>
             struct TypeBind {
 
                 template <typename DSL, typename TFunc>
@@ -34,14 +44,14 @@ namespace NUClear {
                     // Our unbinder to remove this reaction
                     std::function<void (threading::Reaction&)> unbinder([] (threading::Reaction& r) {
 
-                        auto& vec = store::TypeCallbackStore<TType>::get();
+                        auto& vec = store::TypeCallbackStore<DataType>::get();
 
                         auto item = std::find_if(std::begin(vec), std::end(vec), [&r] (const std::shared_ptr<threading::Reaction>& item) {
                             return item->reactionId == r.reactionId;
                         });
 
                         // If the item is in the list erase the item
-                        if(item != std::end(vec)) {
+                        if (item != std::end(vec)) {
                             vec.erase(item);
                         }
                     });
@@ -53,7 +63,7 @@ namespace NUClear {
                     threading::ReactionHandle handle(reaction);
 
                     // Create our reaction and store it in the TypeCallbackStore
-                    store::TypeCallbackStore<TType>::get().push_back(std::move(reaction));
+                    store::TypeCallbackStore<DataType>::get().push_back(std::move(reaction));
 
                     // Return our handle
                     return handle;

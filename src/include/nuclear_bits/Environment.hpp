@@ -36,8 +36,6 @@ namespace NUClear {
      * @details
      *  The Environment is used to provide information from the PowerPlant to Reactors.
      *  Each Reactor owns it's own environment and can use it to access useful information.
-     *
-     * @author Jake Woods
      */
     class Environment {
     public:

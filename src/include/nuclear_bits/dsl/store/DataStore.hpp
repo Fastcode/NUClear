@@ -26,8 +26,17 @@ namespace NUClear {
     namespace dsl {
         namespace store {
 
-            template <typename TData>
-            using DataStore = util::TypeMap<TData, TData, TData>;
+            /**
+             * @brief The main datastore used in the system.
+             *
+             * @details This datastore is the main one used by the system. When data is emitted it is stored in this
+             *          typed datastore. This allows constant time access to any datatype without having to look it up.
+             *          This is possible as the exact location of the store is known at compile time.
+             *
+             * @tparam DataType the type of data stored in this paticular datastore location
+             */
+            template <typename DataType>
+            using DataStore = util::TypeMap<DataType, DataType, DataType>;
 
         }  // namespace store
     }  // namespace dsl

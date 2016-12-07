@@ -48,50 +48,50 @@ namespace NUClear {
             /**
              * @brief Metafunction that extracts all of the Words with a get function
              *
-             * @tparam TWord The word we are looking at
-             * @tparam TRemainder The words we have yet to look at
-             * @tparam TGetWords The words we have found with get functions
+             * @tparam Word1    the word we are looking at
+             * @tparam WordN    the words we have yet to look at
+             * @tparam GetWords the words we have found with get functions
              */
-            template <typename TWord, typename... TRemainder, typename... TGetWords>
-            struct GetWords<std::tuple<TWord, TRemainder...>, std::tuple<TGetWords...>>
-            : public std::conditional_t<has_get<TWord>::value,
-                /*T*/ GetWords<std::tuple<TRemainder...>, std::tuple<TGetWords..., TWord>>,
-                /*F*/ GetWords<std::tuple<TRemainder...>, std::tuple<TGetWords...>>> {};
+            template <typename Word1, typename... WordN, typename... FoundWords>
+            struct GetWords<std::tuple<Word1, WordN...>, std::tuple<FoundWords...>>
+            : public std::conditional_t<has_get<Word1>::value,
+                /*T*/ GetWords<std::tuple<WordN...>, std::tuple<FoundWords..., Word1>>,
+                /*F*/ GetWords<std::tuple<WordN...>, std::tuple<FoundWords...>>> {};
 
             /**
              * @brief Termination case for the GetWords metafunction
              *
-             * @tparam TGetWords The words we have found with get functions
+             * @tparam GetWords The words we have found with get functions
              */
-            template <typename... TGetWords>
-            struct GetWords<std::tuple<>, std::tuple<TGetWords...>> {
-                using type = std::tuple<TGetWords...>;
+            template <typename... FoundWords>
+            struct GetWords<std::tuple<>, std::tuple<FoundWords...>> {
+                using type = std::tuple<FoundWords...>;
             };
 
             /// Type that redirects types without a get function to their proxy type
-            template <typename TWord>
+            template <typename Word>
             struct Get {
-                using type = std::conditional_t<has_get<TWord>::value, TWord, operation::DSLProxy<TWord>>;
+                using type = std::conditional_t<has_get<Word>::value, Word, operation::DSLProxy<Word>>;
             };
 
             // Default case where there are no get words
-            template <typename TWords>
+            template <typename Words>
             struct GetFuser {};
 
             // Case where there is at least one get word
-            template <typename TFirst, typename... TWords>
-            struct GetFuser<std::tuple<TFirst, TWords...>> {
+            template <typename Word1, typename... WordN>
+            struct GetFuser<std::tuple<Word1, WordN...>> {
 
-                template <typename DSL, typename U = TFirst>
+                template <typename DSL, typename U = Word1>
                 static inline auto get(threading::Reaction& reaction)
-                -> decltype(util::FunctionFusion<std::tuple<TFirst, TWords...>
+                -> decltype(util::FunctionFusion<std::tuple<Word1, WordN...>
                            , decltype(std::forward_as_tuple(reaction))
                            , GetCaller
                            , std::tuple<DSL>
                            , 1>::call(reaction)) {
 
                     // Perform our function fusion
-                    return util::FunctionFusion<std::tuple<TFirst, TWords...>
+                    return util::FunctionFusion<std::tuple<Word1, WordN...>
                     , decltype(std::forward_as_tuple(reaction))
                     , GetCaller
                     , std::tuple<DSL>
@@ -99,9 +99,9 @@ namespace NUClear {
                 }
             };
 
-            template <typename TFirst, typename... TWords>
+            template <typename Word1, typename... WordN>
             struct GetFusion
-            : public GetFuser<typename GetWords<std::tuple<typename Get<TFirst>::type, typename Get<TWords>::type...>>::type> {
+            : public GetFuser<typename GetWords<std::tuple<typename Get<Word1>::type, typename Get<WordN>::type...>>::type> {
             };
 
         }  // namespace fusion

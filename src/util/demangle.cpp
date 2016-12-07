@@ -59,7 +59,7 @@ namespace NUClear {
 
             char name[256];
 
-            if(int len = UnDecorateSymbolName(symbol, name, sizeof(name), 0)) {
+            if (int len = UnDecorateSymbolName(symbol, name, sizeof(name), 0)) {
                 return std::string(name, len);
             }
             else {

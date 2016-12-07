@@ -25,7 +25,6 @@ namespace NUClear {
         namespace word {
 
             /**
-             * @ingroup Options
              * @brief This option sets the Single instance status of the task
              *
              * @details

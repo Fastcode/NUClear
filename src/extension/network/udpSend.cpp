@@ -85,7 +85,7 @@ namespace NUClear {
                 else {
                     auto sendTo = nameTarget.equal_range(emit.target);
 
-                    for(auto it = sendTo.first; it != sendTo.second; ++it) {
+                    for (auto it = sendTo.first; it != sendTo.second; ++it) {
 
                         // Unicast address
                         sockaddr_in target;

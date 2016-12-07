@@ -27,7 +27,6 @@ namespace NUClear {
         namespace word {
 
             /**
-             * @ingroup Wrappers
              * @brief This is a wrapper class which is used to list the data types to use in addtion on a callback.
              *
              * @details

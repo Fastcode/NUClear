@@ -24,10 +24,14 @@ namespace NUClear {
     namespace dsl {
         namespace fusion {
 
+            /**
+             * @brief Struct to act as a DSL word that does nothing. Used as a placeholder to satisfy some dead template
+             *        branches that are required for the code to compile.
+             */
             struct NoOp {
 
-                template <typename DSL, typename TFunc, typename... TArgs>
-                static inline std::tuple<> bind(Reactor&, const std::string&, TFunc&&, TArgs...) { return std::tuple<>(); }
+                template <typename DSL, typename Function, typename... Args>
+                static inline std::tuple<> bind(Reactor&, const std::string&, Function&&, Args...) { return std::tuple<>(); }
 
                 template <typename DSL>
                 static inline std::tuple<> get(threading::Reaction&) { return std::tuple<>(); }
@@ -45,11 +49,15 @@ namespace NUClear {
                 static inline void postcondition(threading::ReactionTask&) {}
             };
 
+            /**
+             * @brief Struct to act as Parsed DSL statement that does nothing. Used as a placeholder to satisfy some
+             *        dead template branches that are required for the code to compile.
+             */
             struct ParsedNoOp {
                 struct DSL {};
 
-                template <typename TFunc>
-                static inline std::tuple<> bind(Reactor&, const std::string&, TFunc&&);
+                template <typename Function>
+                static inline std::tuple<> bind(Reactor&, const std::string&, Function&&);
 
                 static inline std::tuple<> get(threading::Reaction&);
 

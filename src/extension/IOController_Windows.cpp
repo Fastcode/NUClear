@@ -88,7 +88,7 @@ namespace NUClear {
 
             on<Always>().then("IO Controller", [this] {
 
-                if(!shutdown) {
+                if (!shutdown) {
 
                     // Wait for events
                     auto event = WSAWaitForMultipleEvents(fds.size(), fds.data(), false, WSA_INFINITE, false);
@@ -97,7 +97,7 @@ namespace NUClear {
                     if (event >= WSA_WAIT_EVENT_0 && event < WSA_WAIT_EVENT_0 + fds.size()) {
 
                         // Check for notification event
-                        if(event == WSA_WAIT_EVENT_0) {
+                        if (event == WSA_WAIT_EVENT_0) {
                             WSAResetEvent(notifier);
                         }
                         else {
@@ -125,7 +125,7 @@ namespace NUClear {
                                 // Submit the task (which should run the get)
                                 try {
                                     auto task = r->second.reaction->getTask();
-                                    if(task) {
+                                    if (task) {
                                         powerplant.submit(std::move(task));
                                     }
                                 }

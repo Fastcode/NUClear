@@ -23,7 +23,6 @@ namespace NUClear {
         namespace word {
 
             /**
-             * @ingroup Options
              * @brief This option sets the Synchronization group of the task
              *
              * @details
@@ -52,7 +51,7 @@ namespace NUClear {
                     std::lock_guard<std::mutex> lock(mutex);
 
                     // If we are already running then queue, otherwise return and set running
-                    if(running) {
+                    if (running) {
                         queue.push(std::move(task));
                         return std::unique_ptr<threading::ReactionTask>(nullptr);
                     }
@@ -72,7 +71,7 @@ namespace NUClear {
                     running = false;
 
                     // If we have another task, add it
-                    if(!queue.empty()) {
+                    if (!queue.empty()) {
                         std::unique_ptr<threading::ReactionTask> nextTask(std::move(const_cast<std::unique_ptr<threading::ReactionTask>&>(queue.top())));
                         queue.pop();
 

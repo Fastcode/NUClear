@@ -66,7 +66,7 @@ namespace NUClear {
             us = callback(std::move(us));
 
             // If we were not rescheduled then finish off our stats
-            if(us) {
+            if (us) {
                 // There is one less task
                 --parent.activeTasks;
             }

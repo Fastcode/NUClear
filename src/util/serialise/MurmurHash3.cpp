@@ -43,7 +43,7 @@ namespace NUClear {
                 const uint8_t* data = static_cast<const uint8_t*>(key);
 
                 // Perform the hashing for each block
-                for(size_t i = 0; i < nblocks; ++i)
+                for (size_t i = 0; i < nblocks; ++i)
                 {
                     uint64_t k1 = blocks[i*2+0];
                     uint64_t k2 = blocks[i*2+1];

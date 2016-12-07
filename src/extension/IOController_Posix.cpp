@@ -39,7 +39,7 @@ namespace NUClear {
             int vals[2];
 
             int i = pipe(vals);
-            if(i < 0) {
+            if (i < 0) {
                 throw std::system_error(network_errno, std::system_category(), "We were unable to make the notification pipe for IO");
             }
 
@@ -67,7 +67,7 @@ namespace NUClear {
                 dirty = true;
 
                 // Check if there was an error
-                if(write(notifySend, &dirty, 1) < 0) {
+                if (write(notifySend, &dirty, 1) < 0) {
                     throw std::system_error(network_errno, std::system_category(), "There was an error while writing to the notification pipe");
                 }
             });
@@ -79,16 +79,16 @@ namespace NUClear {
 
                 // Find our reaction
                 auto reaction = std::find_if(std::begin(reactions), std::end(reactions), [&unbind] (const Task& t) {
-                    return t.reaction->reactionId == unbind.reactionId;
+                    return t.reaction->reactionId == unbind.id;
                 });
 
-                if(reaction != std::end(reactions)) {
+                if (reaction != std::end(reactions)) {
                     reactions.erase(reaction);
                 }
 
                 // Let the poll command know that stuff happened
                 dirty = true;
-                if(write(notifySend, &dirty, 1) < 0) {
+                if (write(notifySend, &dirty, 1) < 0) {
                     throw std::system_error(network_errno, std::system_category(), "There was an error while writing to the notification pipe");
                 }
             });
@@ -101,7 +101,7 @@ namespace NUClear {
                 char val = 0;
 
                 // Send a single byte down the pipe
-                if(write(notifySend, &val, 1) < 0) {
+                if (write(notifySend, &val, 1) < 0) {
                     throw std::system_error(network_errno, std::system_category(), "There was an error while writing to the notification pipe");
                 }
 
@@ -111,7 +111,7 @@ namespace NUClear {
 
                 // To make sure we don't get caught in a weird loop
                 // shutdown keeps us out here
-                if(!shutdown) {
+                if (!shutdown) {
 
 
 
@@ -128,20 +128,20 @@ namespace NUClear {
                     int result = poll(fds.data(), static_cast<nfds_t>(fds.size()), -1);
 
                     // Check if we had an error on our Poll request
-                    if(result < 0) {
+                    if (result < 0) {
                         throw std::system_error(network_errno, std::system_category(), "There was an IO error while attempting to poll the file descriptors");
                     }
                     else {
-                        for(auto& fd : fds) {
+                        for (auto& fd : fds) {
 
                             // Something happened
-                            if(fd.revents) {
+                            if (fd.revents) {
 
                                 // It's our notification handle
-                                if(fd.fd == notifyRecv) {
+                                if (fd.fd == notifyRecv) {
                                     // Read our value to clear it's read status
                                     char val;
-                                    if(read(fd.fd, &val, sizeof(char)) < 0) {
+                                    if (read(fd.fd, &val, sizeof(char)) < 0) {
                                         throw std::system_error(network_errno, std::system_category(), "There was an error reading our notification pipe?");
                                     };
                                 }
@@ -158,7 +158,7 @@ namespace NUClear {
 
 
                                     // There are no reactions for this!
-                                    if(range.first == std::end(reactions)) {
+                                    if (range.first == std::end(reactions)) {
                                         // If this happens then our list is definitely dirty...
                                         dirty = true;
                                     }
@@ -174,7 +174,7 @@ namespace NUClear {
 
 
                                         // Loop through our values
-                                        for(auto it = range.first; it != range.second; ++it) {
+                                        for (auto it = range.first; it != range.second; ++it) {
 
                                             // We should emit if the reaction is interested
                                             if (it->events & fd.revents) {
@@ -192,7 +192,7 @@ namespace NUClear {
                                                 // Submit the task (which should run the get)
                                                 try {
                                                     auto task = it->reaction->getTask();
-                                                    if(task) {
+                                                    if (task) {
                                                         powerplant.submit(std::move(task));
                                                     }
                                                 }
@@ -214,7 +214,7 @@ namespace NUClear {
                         }
 
                         // If our list is dirty
-                        if(dirty) {
+                        if (dirty) {
                             // Get the lock so we don't concurrently modify the list
                             std::lock_guard<std::mutex> lock(reactionMutex);
 
@@ -227,7 +227,7 @@ namespace NUClear {
                             for (const auto& r : reactions) {
 
                                 // If we are the same fd, then add our interest set
-                                if(r.fd == fds.back().fd) {
+                                if (r.fd == fds.back().fd) {
                                     fds.back().events |= r.events;
                                 }
                                 // Otherwise add a new one

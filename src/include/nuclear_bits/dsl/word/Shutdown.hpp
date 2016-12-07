@@ -25,7 +25,6 @@ namespace NUClear {
         namespace word {
 
             /**
-             * @ingroup SmartTypes
              * @brief This type is emitted when the system starts shutting down.
              *
              * @details

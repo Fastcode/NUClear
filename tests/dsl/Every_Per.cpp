@@ -48,7 +48,7 @@ namespace {
                     // Build up our difference vector
                     std::vector<double> diff;
 
-                    for(size_t i = 0; i < times.size() - 1; ++i) {
+                    for (size_t i = 0; i < times.size() - 1; ++i) {
                         std::chrono::nanoseconds delta = times[i + 1] - times[i];
 
                         // Store our difference in seconds
@@ -56,7 +56,7 @@ namespace {
                     }
 
                     // Normalize our differences to jitter
-                    for(double& d : diff) {
+                    for (double& d : diff) {
                         d -= 1.0/double(CYCLES_PER_SECOND);
                     }
 
@@ -73,7 +73,7 @@ namespace {
                     REQUIRE(fabs(mean + stddev * 2) < 0.001);
                 }
                 // Once we have more then enough items then we shutdown the powerplant
-                else if(times.size() > NUM_LOG_ITEMS) {
+                else if (times.size() > NUM_LOG_ITEMS) {
                     // We are finished the test
                     this->powerplant.shutdown();
                 }

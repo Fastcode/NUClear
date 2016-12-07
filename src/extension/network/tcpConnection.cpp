@@ -47,7 +47,7 @@ namespace NUClear {
             auto udpT = udpTarget.find(std::make_pair(connection.remote.address, announce.udpPort));
 
             // If it does not already exist, insert it
-            if(udpT == udpTarget.end()) {
+            if (udpT == udpTarget.end()) {
 
                 auto it = targets.emplace(targets.end(), std::string(&announce.name), connection.remote.address, announce.tcpPort, announce.udpPort, connection.fd);
                 nameTarget.insert(std::make_pair(std::string(&announce.name), it));

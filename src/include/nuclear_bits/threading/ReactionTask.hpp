@@ -38,8 +38,6 @@ namespace NUClear {
          * @details
          *  This class holds a reaction that is ready to be executed. It is a Reaction object which has had it's callback
          *  parameters bound with data. This can then be executed as a function to run the call inside it.
-         *
-         * @author Trent Houliston
          */
         class ReactionTask {
         private:

@@ -74,7 +74,7 @@ namespace {
 
                 std::cout << "Processing a message from " << source.name << std::endl;
 
-                if(s.size() < 100) {
+                if (s.size() < 100) {
                     std::cout << s << std::endl;
                 }
                 else {
@@ -108,13 +108,13 @@ namespace {
                 emit<Scope::NETWORK>(std::make_unique<std::string>("Test Short Unreliable All Message"));
 
                 // Emit short reliable to all
-                emit<Scope::NETWORK>(std::make_unique<std::string>("Test Short Reliable All Message"), "", true);
+                emit<Scope::NETWORK>(std::make_unique<std::string>("Test Short Reliable All Message"), true);
 
                 // Emit long unreliable to all
                 emit<Scope::NETWORK>(std::make_unique<std::string>(std::numeric_limits<uint16_t>::max(), 'u'));
 
                 // Emit long reliable to all
-                emit<Scope::NETWORK>(std::make_unique<std::string>(std::numeric_limits<uint16_t>::max(), 'r'), "", true);
+                emit<Scope::NETWORK>(std::make_unique<std::string>(std::numeric_limits<uint16_t>::max(), 'r'), true);
             });
         }
     };

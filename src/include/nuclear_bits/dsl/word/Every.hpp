@@ -30,8 +30,6 @@ namespace NUClear {
 
             /**
              * @brief This type is used within an every in order to measure a frequency rather then a period.
-             *
-             * @author Trent Houliston
              */
             template <typename period>
             struct Per;
@@ -42,7 +40,6 @@ namespace NUClear {
             };
 
             /**
-             * @ingroup SmartTypes
              * @brief A special flag type which specifies that this reaction should trigger at the given rate
              *
              * @details
@@ -71,22 +68,27 @@ namespace NUClear {
                     auto reaction = std::shared_ptr<threading::Reaction>(util::generate_reaction<DSL, operation::ChronoTask>(reactor, label, std::forward<TFunc>(callback)));
 
                     threading::ReactionHandle handle(reaction);
-                    
+
                     // Send our configuration out
                     reactor.powerplant.emit<emit::Direct>(std::make_unique<operation::ChronoTask>([&reactor, jump, reaction] (NUClear::clock::time_point& time) {
-                        
+
                         try {
                             // submit the reaction to the thread pool
                             auto task = reaction->getTask();
-                            if(task) {
+                            if (task) {
                                 reactor.powerplant.submit(std::move(task));
                             }
                         }
-                        catch(...) {
+                        // If there is an exception while generating a reaction print it here, this shouldn't happen
+                        catch (const std::exception& ex) {
+                            reactor.powerplant.log<NUClear::ERROR>("There was an exception while generating a reaction", ex.what());
+                        }
+                        catch (...) {
+                            reactor.powerplant.log<NUClear::ERROR>("There was an unknown exception while generating a reaction");
                         }
 
                         time += jump;
-                        
+
                         return true;
                     }, NUClear::clock::now() + jump, reaction->reactionId));
 
@@ -103,29 +105,29 @@ namespace NUClear {
 
                     // Work out our Reaction timing
                     clock::duration jump = period(ticks);
-                    
+
                     auto reaction = std::shared_ptr<threading::Reaction>(util::generate_reaction<DSL, operation::ChronoTask>(reactor, label, std::forward<TFunc>(callback)));
-                    
+
                     threading::ReactionHandle handle(reaction);
-                    
+
                     // Send our configuration out
                     reactor.powerplant.emit<emit::Direct>(std::make_unique<operation::ChronoTask>([&reactor, jump, reaction] (NUClear::clock::time_point& time) {
-                        
+
                         try {
                             // submit the reaction to the thread pool
                             auto task = reaction->getTask();
-                            if(task) {
+                            if (task) {
                                 reactor.powerplant.submit(std::move(task));
                             }
                         }
-                        catch(...) {
+                        catch (...) {
                         }
-                        
+
                         time += jump;
-                        
+
                         return true;
                     }, NUClear::clock::now() + jump, reaction->reactionId));
-                    
+
                     // Return our handle
                     return handle;
                 }

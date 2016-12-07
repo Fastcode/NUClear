@@ -87,7 +87,7 @@ namespace {
                         len = ::recv(event.fd, buff, testString.size(), 0);
 
                         // 0 indicates orderly shutdown of the socket
-                        if(len != 0) {
+                        if (len != 0) {
                             // Test the data
                             REQUIRE(len == testString.size());
                             REQUIRE(testString == std::string(buff));

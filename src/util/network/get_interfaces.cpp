@@ -91,15 +91,15 @@ namespace NUClear {
 
                 // Query our interfaces
                 ifaddrs* addrs;
-                if(getifaddrs(&addrs) < 0) {
+                if (getifaddrs(&addrs) < 0) {
                     throw std::system_error(network_errno, std::system_category(), "Unable to query the interfaces on the platform");
                 }
 
                 // Loop through our interfaces
-                for(ifaddrs* cursor = addrs; cursor != nullptr; cursor = cursor->ifa_next) {
+                for (ifaddrs* cursor = addrs; cursor != nullptr; cursor = cursor->ifa_next) {
 
                     // We only care about ipv4 addresses (one day this will need to change)
-                    if(cursor->ifa_addr->sa_family == AF_INET) {
+                    if (cursor->ifa_addr->sa_family == AF_INET) {
                         Interface iface;
 
                         iface.name      = cursor->ifa_name;

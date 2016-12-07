@@ -39,8 +39,6 @@ namespace NUClear {
          *  A reaction holds the information about a callback. It holds the options as to how to process it in the scheduler.
          *  It also holds a function which is used to generate databound Task objects (callback with the function arguments
          *  already loaded and ready to run).
-         *
-         * @author Trent Houliston
          */
         class Reaction {
             // Reaction handles are given to user code to enable and disable the reaction

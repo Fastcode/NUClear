@@ -25,7 +25,6 @@ namespace NUClear {
         namespace word {
 
             /**
-             * @ingroup SmartTypes
              * @brief This type is emitted when the system is first started up.
              *
              * @details

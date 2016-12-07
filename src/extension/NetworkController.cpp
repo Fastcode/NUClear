@@ -73,7 +73,7 @@ namespace NUClear {
 
                 // Find and delete this reaction
                 for (auto it = reactions.begin(); it != reactions.end(); ++it) {
-                    if (it->second->reactionId == unbind.reactionId) {
+                    if (it->second->reactionId == unbind.id) {
                         reactions.erase(it);
                         break;
                     }
@@ -112,7 +112,7 @@ namespace NUClear {
                 tcpTarget.clear();
 
                 // Store our new configuration
-                if(config.name.empty()) {
+                if (config.name.empty()) {
                     // If our config name is empty, use our system name
                     #ifdef _WIN32
                         char n[MAX_COMPUTERNAME_LENGTH + 1];
@@ -150,7 +150,7 @@ namespace NUClear {
 
                 networkEmitHandle = on<Trigger<dsl::word::emit::NetworkEmit>, Sync<NetworkController>>().then([this] (const dsl::word::emit::NetworkEmit& emit) {
                     // See if this message should be sent reliably
-                    if(emit.reliable) {
+                    if (emit.reliable) {
                         tcpSend(emit);
                     }
                     else {

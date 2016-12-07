@@ -37,7 +37,7 @@ namespace NUClear {
             // Create our unbinder
             auto unbinder = [&powerplant, unbind] (threading::Reaction& r) {
                 powerplant.emit<dsl::word::emit::Direct>(std::make_unique<dsl::operation::Unbind<TUnbind>>(r.reactionId));
-                if(unbind) {
+                if (unbind) {
                     unbind(r);
                 }
             };

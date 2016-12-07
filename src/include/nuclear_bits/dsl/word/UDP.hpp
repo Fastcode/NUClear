@@ -91,7 +91,7 @@ namespace NUClear {
 
                     // Make our socket
                     util::FileDescriptor fd = ::socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-                    if(fd < 0) {
+                    if (fd < 0) {
                         throw std::system_error(network_errno, std::system_category(), "We were unable to open the UDP socket");
                     }
 
@@ -103,13 +103,13 @@ namespace NUClear {
                     address.sin_addr.s_addr = htonl(INADDR_ANY);
 
                     // Bind to the address, and if we fail throw an error
-                    if(::bind(fd, reinterpret_cast<sockaddr*>(&address), sizeof(sockaddr))) {
+                    if (::bind(fd, reinterpret_cast<sockaddr*>(&address), sizeof(sockaddr))) {
                         throw std::system_error(network_errno, std::system_category(), "We were unable to bind the UDP socket to the port");
                     }
 
                     int yes = 1;
                     // Include struct in_pktinfo in the message "ancilliary" control data
-                    if(setsockopt(fd, IPPROTO_IP, IP_PKTINFO, reinterpret_cast<const char*>(&yes), sizeof(yes)) < 0) {
+                    if (setsockopt(fd, IPPROTO_IP, IP_PKTINFO, reinterpret_cast<const char*>(&yes), sizeof(yes)) < 0) {
                         throw std::system_error(network_errno, std::system_category(), "We were unable to flag the socket as getting ancillary data");
                     }
 
@@ -213,7 +213,7 @@ namespace NUClear {
                     }
 
                     // if no error
-                    if(received > 0) {
+                    if (received > 0) {
                         p.valid = true;
                         p.remote.address = ntohl(from.sin_addr.s_addr);
                         p.remote.port = ntohs(from.sin_port);
@@ -232,7 +232,7 @@ namespace NUClear {
 
                         // Make our socket
                         util::FileDescriptor fd = ::socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-                        if(fd < 0) {
+                        if (fd < 0) {
                             throw std::system_error(network_errno, std::system_category(), "We were unable to open the UDP Broadcast socket");
                         }
 
@@ -245,20 +245,20 @@ namespace NUClear {
 
                         int yes = true;
                         // We are a broadcast socket
-                        if(setsockopt(fd, SOL_SOCKET, SO_BROADCAST, reinterpret_cast<char*>(&yes), sizeof(yes)) < 0) {
+                        if (setsockopt(fd, SOL_SOCKET, SO_BROADCAST, reinterpret_cast<char*>(&yes), sizeof(yes)) < 0) {
                             throw std::system_error(network_errno, std::system_category(), "We were unable to set the socket as broadcast");
                         }
                         // Set that we reuse the address so more than one application can bind
-                        if(setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, reinterpret_cast<char*>(&yes), sizeof(yes)) < 0) {
+                        if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, reinterpret_cast<char*>(&yes), sizeof(yes)) < 0) {
                             throw std::system_error(network_errno, std::system_category(), "We were unable to set reuse address on the socket");
                         }
                         // Include struct in_pktinfo in the message "ancilliary" control data
-                        if(setsockopt(fd, IPPROTO_IP, IP_PKTINFO, reinterpret_cast<char*>(&yes), sizeof(yes)) < 0) {
+                        if (setsockopt(fd, IPPROTO_IP, IP_PKTINFO, reinterpret_cast<char*>(&yes), sizeof(yes)) < 0) {
                             throw std::system_error(network_errno, std::system_category(), "We were unable to flag the socket as getting ancillary data");
                         }
 
                         // Bind to the address, and if we fail throw an error
-                        if(::bind(fd, reinterpret_cast<sockaddr*>(&address), sizeof(sockaddr))) {
+                        if (::bind(fd, reinterpret_cast<sockaddr*>(&address), sizeof(sockaddr))) {
                             throw std::system_error(network_errno, std::system_category(), "We were unable to bind the UDP socket to the port");
                         }
 
@@ -311,22 +311,22 @@ namespace NUClear {
 
                         // Make our socket
                         util::FileDescriptor fd = ::socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-                        if(fd < 0) {
+                        if (fd < 0) {
                             throw std::system_error(network_errno, std::system_category(), "We were unable to open the UDP socket");
                         }
 
                         int yes = true;
                         // Set that we reuse the address so more than one application can bind
-                        if(setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, reinterpret_cast<char*>(&yes), sizeof(yes)) < 0) {
+                        if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, reinterpret_cast<char*>(&yes), sizeof(yes)) < 0) {
                             throw std::system_error(network_errno, std::system_category(), "We were unable to set reuse address on the socket");
                         }
                         // Include struct in_pktinfo in the message "ancilliary" control data
-                        if(setsockopt(fd, IPPROTO_IP, IP_PKTINFO, reinterpret_cast<char*>(&yes), sizeof(yes)) < 0) {
+                        if (setsockopt(fd, IPPROTO_IP, IP_PKTINFO, reinterpret_cast<char*>(&yes), sizeof(yes)) < 0) {
                             throw std::system_error(network_errno, std::system_category(), "We were unable to flag the socket as getting ancillary data");
                         }
 
                         // Bind to the address
-                        if(::bind(fd, reinterpret_cast<sockaddr*>(&address), sizeof(sockaddr))) {
+                        if (::bind(fd, reinterpret_cast<sockaddr*>(&address), sizeof(sockaddr))) {
                             throw std::system_error(network_errno, std::system_category(), "We were unable to bind the UDP socket to the port");
                         }
 
@@ -339,14 +339,14 @@ namespace NUClear {
 
                         // Get all the network interfaces that support multicast
                         std::vector<uint32_t> addresses;
-                        for(auto& iface : util::network::get_interfaces()) {
+                        for (auto& iface : util::network::get_interfaces()) {
                             // We receive on broadcast addresses and we don't want loopback or point to point
-                            if(iface.flags.multicast) {
+                            if (iface.flags.multicast) {
                                 addresses.push_back(iface.ip);
                             }
                         }
 
-                        for(auto& ad : addresses) {
+                        for (auto& ad : addresses) {
 
                             // Our multicast join request
                             ip_mreq mreq;

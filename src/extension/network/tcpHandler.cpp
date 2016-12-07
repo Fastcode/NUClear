@@ -74,13 +74,13 @@ namespace NUClear {
             bool badPacket = false;
 
             // If we have data to read
-            if(e.events & IO::READ) {
+            if (e.events & IO::READ) {
 
                 // Allocate data for our header
                 std::vector<char> data(sizeof(network::PacketHeader));
 
                 // Read our header and check it is valid
-                if(recv_all(e.fd, data.data(), data.size()) == sizeof(network::PacketHeader)) {
+                if (recv_all(e.fd, data.data(), data.size()) == sizeof(network::PacketHeader)) {
                     const network::PacketHeader& header = *reinterpret_cast<network::PacketHeader*>(data.data());
                     uint32_t length = header.length;
 
@@ -88,7 +88,7 @@ namespace NUClear {
                     data.resize(data.size() + length);
 
                     // Read our remaining packet and check it's valid
-                    if(recv_all(e.fd, data.data() + sizeof(network::PacketHeader), length) == ssize_t(length)) {
+                    if (recv_all(e.fd, data.data() + sizeof(network::PacketHeader), length) == ssize_t(length)) {
 
                         const network::DataPacket& packet = *reinterpret_cast<network::DataPacket*>(data.data());
 
@@ -115,9 +115,9 @@ namespace NUClear {
                             auto rs = reactions.equal_range(packet.hash);
 
                             // Execute on our interested reactions
-                            for(auto it = rs.first; it != rs.second; ++it) {
+                            for (auto it = rs.first; it != rs.second; ++it) {
                                 auto task = it->second->getTask();
-                                if(task) {
+                                if (task) {
                                     powerplant.submit(std::move(task));
                                 }
                             }
@@ -140,7 +140,7 @@ namespace NUClear {
 
             // If the connection closed or errored (or reached an end of file)
             // And we have not already closed this connection
-            if((e.events & IO::CLOSE) || (e.events & IO::ERROR) || badPacket) {
+            if ((e.events & IO::CLOSE) || (e.events & IO::ERROR) || badPacket) {
 
                 // emit a message that says who disconnected
                 auto l = std::make_unique<message::NetworkLeave>();
@@ -162,7 +162,7 @@ namespace NUClear {
                 // Remove our name target
                 auto range = nameTarget.equal_range(target->second->name);
                 for (auto it = range.first; it != range.second; ++it) {
-                    if(it->second->address == target->second->address && it->second->udpPort == target->second->udpPort) {
+                    if (it->second->address == target->second->address && it->second->udpPort == target->second->udpPort) {
                         nameTarget.erase(it);
                         break;
                     };

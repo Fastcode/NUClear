@@ -104,7 +104,7 @@ namespace {
                 // Decrement our semaphore
                 --semaphore;
 
-                if(++finished == 2) {
+                if (++finished == 2) {
                     powerplant.shutdown();
                 }
             });

@@ -27,28 +27,58 @@ namespace NUClear {
         namespace word {
             namespace emit {
 
+                /**
+                 * @brief Holds a serialised packet to be sent over the network
+                 *
+                 * @details This data struct is used by the NetworkController to send data over the network.
+                 */
                 struct NetworkEmit {
                     NetworkEmit() : target(""), hash(), data(), reliable(false) {}
 
+                    /// The target to send this serialised packet to
                     std::string target;
+                    /// The hash identifying the type of object
                     std::array<uint64_t, 2> hash;
+                    /// The serialised data
                     std::vector<char> data;
+                    /// If the message should be sent reliably
                     bool reliable;
                 };
 
-                template <typename TData>
+                /**
+                 * @brief Emit over the NUClear network.
+                 *
+                 * @details Network emit uses the NUClear network in order to send messages to other NUClear systems.
+                 *          The data can be sent by name to other systems or to all systems connected to the NUClear
+                 *          network. These messages can be sent using either an unreliable protocol that does not
+                 *          guarantee delivery, or using a reliable protocol that does. Note that if the target system
+                 *          is not connected to the network, the send will be ignored even reliable is enabled.
+                 *
+                 * @param data      the data to emit
+                 * @param target    the name of the system to send to, or empty for all systems. defaults to all.
+                 *                  (an empty string). Optional
+                 * @param reliable  true if the delivery of the message should be guaranteed. defaults to false.
+                 *                  Optional
+                 *
+                 * @tparam DataType the type of the data to send
+                 */
+                template <typename DataType>
                 struct Network {
 
-                    static void emit(PowerPlant& powerplant, std::shared_ptr<TData> data, std::string s = "", bool reliable = false) {
+                    static void emit(PowerPlant& powerplant, std::shared_ptr<DataType> data, std::string target = "", bool reliable = false) {
 
                         auto e = std::make_unique<NetworkEmit>();
 
-                        e->target = s;
-                        e->hash = util::serialise::Serialise<TData>::hash();
-                        e->data = util::serialise::Serialise<TData>::serialise(*data);
+                        e->target = target;
+                        e->hash = util::serialise::Serialise<DataType>::hash();
+                        e->data = util::serialise::Serialise<DataType>::serialise(*data);
                         e->reliable = reliable;
 
                         powerplant.emit<Direct>(e);
+                    }
+
+                    static void emit(PowerPlant& powerplant, std::shared_ptr<DataType> data, bool reliable) {
+                        emit(powerplant, data, "", reliable);
                     }
                 };
 

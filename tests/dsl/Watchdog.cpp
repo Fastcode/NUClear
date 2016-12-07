@@ -22,32 +22,32 @@
 #include "nuclear"
 
 namespace {
-    
+
     NUClear::clock::time_point start;
     NUClear::clock::time_point end;
     int count = 0;
-    
+
     class TestReactor : public NUClear::Reactor {
     public:
-        
+
         TestReactor(std::unique_ptr<NUClear::Environment> environment)
         : Reactor(std::move(environment)) {
-            
+
             start = NUClear::clock::now();
-            
+
             // Trigger every 10 milliseconds
             on<Watchdog<TestReactor, 10, std::chrono::milliseconds>>().then([this] {
-                
+
                 end = NUClear::clock::now();
-                
+
                 // When our watchdog eventually triggers, shutdown
                 powerplant.shutdown();
             });
-            
+
             on<Every<5, std::chrono::milliseconds>>().then([this] {
-                
+
                 // Until we get to a count of 10, service the watchdog
-                if(++count < 20) {
+                if (++count < 20) {
                     emit(std::make_unique<NUClear::message::ServiceWatchdog<TestReactor>>());
                 }
             });
@@ -56,14 +56,14 @@ namespace {
 }
 
 TEST_CASE("Testing the Watchdog Smart Type", "[api][watchdog]") {
-    
+
     NUClear::PowerPlant::Configuration config;
     config.threadCount = 1;
     NUClear::PowerPlant plant(config);
     plant.install<TestReactor>();
-    
+
     plant.start();
-    
+
     // Require that at least 100ms has passed (since 20 * 5ms gives 100, and we should be longer than that)
     REQUIRE(end - start > std::chrono::milliseconds(100));
 }

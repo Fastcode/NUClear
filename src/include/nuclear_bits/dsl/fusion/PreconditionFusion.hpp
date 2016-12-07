@@ -28,9 +28,9 @@ namespace NUClear {
         namespace fusion {
 
             /// Type that redirects types without a precondition function to their proxy type
-            template <typename TWord>
+            template <typename Word>
             struct Precondition {
-                using type = std::conditional_t<has_precondition<TWord>::value, TWord, operation::DSLProxy<TWord>>;
+                using type = std::conditional_t<has_precondition<Word>::value, Word, operation::DSLProxy<Word>>;
             };
 
             template<typename, typename = std::tuple<>>
@@ -39,29 +39,29 @@ namespace NUClear {
             /**
              * @brief Metafunction that extracts all of the Words with a precondition function
              *
-             * @tparam TWord The word we are looking at
-             * @tparam TRemainder The words we have yet to look at
-             * @tparam TPreconditionWords The words we have found with precondition functions
+             * @tparam Word1        The word we are looking at
+             * @tparam WordN        The words we have yet to look at
+             * @tparam FoundWords   The words we have found with precondition functions
              */
-            template <typename TWord, typename... TRemainder, typename... TPreconditionWords>
-            struct PreconditionWords<std::tuple<TWord, TRemainder...>, std::tuple<TPreconditionWords...>>
-            : public std::conditional_t<has_precondition<typename Precondition<TWord>::type>::value,
-            /*T*/ PreconditionWords<std::tuple<TRemainder...>, std::tuple<TPreconditionWords..., typename Precondition<TWord>::type>>,
-            /*F*/ PreconditionWords<std::tuple<TRemainder...>, std::tuple<TPreconditionWords...>>> {};
+            template <typename Word1, typename... WordN, typename... FoundWords>
+            struct PreconditionWords<std::tuple<Word1, WordN...>, std::tuple<FoundWords...>>
+            : public std::conditional_t<has_precondition<typename Precondition<Word1>::type>::value,
+            /*T*/ PreconditionWords<std::tuple<WordN...>, std::tuple<FoundWords..., typename Precondition<Word1>::type>>,
+            /*F*/ PreconditionWords<std::tuple<WordN...>, std::tuple<FoundWords...>>> {};
 
             /**
              * @brief Termination case for the PreconditionWords metafunction
              *
-             * @tparam TPreconditionWords The words we have found with precondition functions
+             * @tparam FoundWords The words we have found with precondition functions
              */
-            template <typename... TPreconditionWords>
-            struct PreconditionWords<std::tuple<>, std::tuple<TPreconditionWords...>> {
-                using type = std::tuple<TPreconditionWords...>;
+            template <typename... FoundWords>
+            struct PreconditionWords<std::tuple<>, std::tuple<FoundWords...>> {
+                using type = std::tuple<FoundWords...>;
             };
 
 
             // Default case where there are no precondition words
-            template <typename TWords>
+            template <typename Words>
             struct PreconditionFuser {};
 
             // Case where there is only a single word remaining
@@ -70,28 +70,28 @@ namespace NUClear {
 
                 template <typename DSL>
                 static inline bool precondition(threading::Reaction& reaction) {
+
+                    // Run our remaining precondition
                     return Word::template precondition<DSL>(reaction);
                 }
             };
 
             // Case where there is more 2 more more words remaining
-            template <typename W1, typename W2, typename... WN>
-            struct PreconditionFuser<std::tuple<W1, W2, WN...>> {
+            template <typename Word1, typename Word2, typename... WordN>
+            struct PreconditionFuser<std::tuple<Word1, Word2, WordN...>> {
 
                 template <typename DSL>
                 static inline bool precondition(threading::Reaction& reaction) {
-                    if(!W1::template precondition<DSL>(reaction)) {
-                        return false;
-                    }
-                    else {
-                        return PreconditionFuser<std::tuple<W2, WN...>>::template precondition<DSL>(reaction);
-                    }
+
+                    // Perform a recursive and operation ending with the first false
+                    return Word1::template precondition<DSL>(reaction)
+                    && PreconditionFuser<std::tuple<Word2, WordN...>>::template precondition<DSL>(reaction);
                 }
             };
 
-            template <typename W1, typename... WN>
+            template <typename Word1, typename... WordN>
             struct PreconditionFusion
-            : public PreconditionFuser<typename PreconditionWords<std::tuple<W1, WN...>>::type> {
+            : public PreconditionFuser<typename PreconditionWords<std::tuple<Word1, WordN...>>::type> {
             };
 
         }  // namespace fusion

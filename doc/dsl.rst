@@ -108,9 +108,9 @@ Scope::DIRECT
 `````````````
 .. doxygenstruct:: NUClear::dsl::word::emit::Direct
 
-Scope::Initialize
+Scope::Initialise
 `````````````````
-.. doxygenstruct:: NUClear::dsl::word::emit::Initialize
+.. doxygenstruct:: NUClear::dsl::word::emit::Initialise
 
 Network Emitting
 ----------------

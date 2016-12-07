@@ -37,8 +37,6 @@ namespace NUClear {
          *  This object is given to user code when they create a reaction.
          *  It contains functions which allow changing of the reaction after it has
          *  been created such as enabling and disabling its execution.
-         *
-         * @author Trent Houliston
          */
         class ReactionHandle {
         public:

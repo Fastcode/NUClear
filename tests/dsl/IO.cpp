@@ -36,7 +36,7 @@ namespace {
 
             int fds[2];
 
-            if(pipe(fds) < 0) {
+            if (pipe(fds) < 0) {
                 FAIL("We couldn't make the pipe for the test");
             }
 

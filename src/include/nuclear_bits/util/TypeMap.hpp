@@ -39,10 +39,6 @@ namespace NUClear {
          * @attention
          *  Note that because this is an entirely static class, if two maps with the same TMapID are used, they access the
          *  same map
-         *
-         * @author Trent Houliston
-         *
-         * @see CompiledMap
          */
         template <typename TMapID, typename TKey, typename TValue>
         class TypeMap {

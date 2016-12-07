@@ -52,13 +52,13 @@ namespace {
                     REQUIRE(messages.size() <= 5);
 
                     // If our size is less than 5 it should be the size of the front element
-                    if(messages.size() < 5) {
+                    if (messages.size() < 5) {
                         REQUIRE(messages.size() == messages.back()->value);
                     }
 
                     // Check that our numbers are decreasing
                     int i = messages.front()->value;
-                    for(auto& m : messages) {
+                    for (auto& m : messages) {
                         REQUIRE(m->value == i);
                         ++i;
                     }

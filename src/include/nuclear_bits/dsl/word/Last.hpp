@@ -42,7 +42,7 @@ namespace NUClear {
 
                     std::list<TOutput> out;
 
-                    for(const TData& item : list) {
+                    for (const TData& item : list) {
                         out.push_back(TOutput(item));
                     }
 
@@ -54,7 +54,7 @@ namespace NUClear {
 
                     std::vector<TOutput> out;
 
-                    for(const TData& item : list) {
+                    for (const TData& item : list) {
                         out.push_back(TOutput(item));
                     }
 
@@ -106,7 +106,7 @@ namespace NUClear {
                 t.list.insert(t.list.end(), d.list.begin(), d.list.end());
 
                 // Then truncate the old transient data
-                if(t.list.size() > len) {
+                if (t.list.size() > len) {
                     t.list.erase(t.list.begin(), std::next(t.list.begin(), t.list.size() - len));
                 }
 

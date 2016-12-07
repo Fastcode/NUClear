@@ -45,7 +45,7 @@ namespace {
                 REQUIRE(std::memcmp(packet.data.data(), testString.data(), testString.size()) == 0);
 
                 // Shutdown we are done with the test
-                if(countA >= 1 && countB >= 1) {
+                if (countA >= 1 && countB >= 1) {
                     powerplant.shutdown();
                 }
             });
@@ -60,7 +60,7 @@ namespace {
                 REQUIRE(std::memcmp(packet.data.data(), testString.data(), testString.size()) == 0);
 
                 // Shutdown we are done with the test
-                if(countA >= 1 && countB >= 1) {
+                if (countA >= 1 && countB >= 1) {
                     powerplant.shutdown();
                 }
             });
@@ -72,11 +72,11 @@ namespace {
 
                 std::vector<uint32_t> addresses;
 
-                for(auto& iface : interfaces) {
+                for (auto& iface : interfaces) {
                     // We send on broadcast addresses and we don't want loopback or point to point
-                    if(iface.flags.broadcast) {
+                    if (iface.flags.broadcast) {
                         // Two broadcast ips that are the same are probably on the same network so ignore those
-                        if(std::find(std::begin(addresses), std::end(addresses), iface.broadcast) == std::end(addresses)) {
+                        if (std::find(std::begin(addresses), std::end(addresses), iface.broadcast) == std::end(addresses)) {
                             addresses.push_back(iface.broadcast);
                         }
                     }
@@ -84,7 +84,7 @@ namespace {
 
                 numAddresses = addresses.size();
 
-                for(auto& ad : addresses) {
+                for (auto& ad : addresses) {
 
                     // Send our message to that broadcast address
                     emit<Scope::UDP>(std::make_unique<std::string>(testString), ad, port);
@@ -98,11 +98,11 @@ namespace {
 
                 std::vector<uint32_t> addresses;
 
-                for(auto& iface : interfaces) {
+                for (auto& iface : interfaces) {
                     // We send on broadcast addresses and we don't want loopback or point to point
-                    if(iface.flags.broadcast) {
+                    if (iface.flags.broadcast) {
                         // Two broadcast ips that are the same are probably on the same network so ignore those
-                        if(std::find(std::begin(addresses), std::end(addresses), iface.broadcast) == std::end(addresses)) {
+                        if (std::find(std::begin(addresses), std::end(addresses), iface.broadcast) == std::end(addresses)) {
                             addresses.push_back(iface.broadcast);
                         }
                     }
@@ -110,7 +110,7 @@ namespace {
 
                 numAddresses = addresses.size();
 
-                for(auto& ad : addresses) {
+                for (auto& ad : addresses) {
 
                     // Send our message to that broadcast address
                     emit<Scope::UDP>(std::make_unique<std::string>(testString), ad, boundPort);

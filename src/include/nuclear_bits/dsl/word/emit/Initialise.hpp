@@ -15,8 +15,8 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_DSL_WORD_EMIT_INITIALIZE_HPP
-#define NUCLEAR_DSL_WORD_EMIT_INITIALIZE_HPP
+#ifndef NUCLEAR_DSL_WORD_EMIT_INITIALISE_HPP
+#define NUCLEAR_DSL_WORD_EMIT_INITIALISE_HPP
 
 #include "Direct.hpp"
 
@@ -25,13 +25,26 @@ namespace NUClear {
         namespace word {
             namespace emit {
 
-                template <typename TData>
-                struct Initialize {
+                /**
+                 * @brief Emit an object as the system starts up.
+                 *
+                 * @details Initialise emits can only be done before in the main phase of execution. Tasks that are
+                 *          emitted using this will be executed just before the system starts into the main phase.
+                 *          This can be useful for cases when a Reactor wants to emit to all other reactors but they may
+                 *          not yet be installed. Using this allows the message to wait until all Reactors are installed
+                 *          and then emit.
+                 *
+                 * @param data the data to emit
+                 *
+                 * @tparam DataType the type of the data to be emitted
+                 */
+                template <typename DataType>
+                struct Initialise {
 
-                    static void emit(PowerPlant& powerplant, std::shared_ptr<TData> data) {
+                    static void emit(PowerPlant& powerplant, std::shared_ptr<DataType> data) {
 
                         auto task = [&powerplant, data] {
-                            emit::Direct<TData>::emit(powerplant, data);
+                            emit::Direct<DataType>::emit(powerplant, data);
                         };
 
                         powerplant.onStartup(task);
@@ -43,4 +56,4 @@ namespace NUClear {
     }  // namespace dsl
 }  // namespace NUClear
 
-#endif  // NUCLEAR_DSL_WORD_EMIT_INITIALIZE_HPP
+#endif  // NUCLEAR_DSL_WORD_EMIT_INITIALISE_HPP

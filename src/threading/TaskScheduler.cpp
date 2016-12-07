@@ -37,7 +37,7 @@ namespace NUClear {
         void TaskScheduler::submit(std::unique_ptr<ReactionTask>&& task) {
 
             // We do not accept new tasks once we are shutdown
-            if(running) {
+            if (running) {
 
                 /* Mutex Scope */ {
                     std::lock_guard<std::mutex> lock(mutex);
@@ -58,7 +58,7 @@ namespace NUClear {
             while (queue.empty()) {
 
                 // If the queue is empty we either wait or shutdown
-                if(!running) {
+                if (!running) {
 
                     // Notify any other threads that might be waiting on this condition
                     condition.notify_all();

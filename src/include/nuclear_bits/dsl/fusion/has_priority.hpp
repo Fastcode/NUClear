@@ -18,12 +18,18 @@
 #ifndef NUCLEAR_DSL_FUSION_HAS_PRIORITY_HPP
 #define NUCLEAR_DSL_FUSION_HAS_PRIORITY_HPP
 
+#include "nuclear_bits/threading/Reaction.hpp"
 #include "nuclear_bits/dsl/fusion/NoOp.hpp"
 
 namespace NUClear {
     namespace dsl {
         namespace fusion {
 
+            /**
+             * @brief SFINAE struct to test if the passed class has a priority function that conforms to the NUClear DSL
+             *
+             * @tparam T the class to check
+             */
             template <typename T>
             struct has_priority {
             private:
