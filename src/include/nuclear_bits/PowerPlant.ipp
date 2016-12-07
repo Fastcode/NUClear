@@ -65,11 +65,10 @@ namespace NUClear {
     };
 
     // Global emit handlers
-    template <template <typename> class TFirstHandler, template <typename> class... THandlers, typename TData,  typename... TArgs>
-    void PowerPlant::emit(std::unique_ptr<TData>&& data, TArgs&&... args) {
 
-        // Release our data from the pointer and wrap it in a shared_ptr
-        std::shared_ptr<TData> ptr = std::shared_ptr<TData>(std::move(data));
+
+    template <template <typename> class TFirstHandler, template <typename> class... THandlers, typename TData,  typename... TArgs>
+    void PowerPlant::emit_shared(std::shared_ptr<TData>&& ptr, TArgs&&... args) {
 
         using Functions = std::tuple<TFirstHandler<TData>, THandlers<TData>...>;
         using Arguments = decltype(std::forward_as_tuple(*this, ptr, std::forward<TArgs>(args)...));
@@ -82,6 +81,13 @@ namespace NUClear {
 
         // Fuse our emit handlers and call the fused function
         FusionFunction::call(*this, ptr, std::forward<TArgs>(args)...);
+    }
+
+    template <template <typename> class TFirstHandler, template <typename> class... THandlers, typename TData,  typename... TArgs>
+    void PowerPlant::emit(std::unique_ptr<TData>&& data, TArgs&&... args) {
+
+        // Release our data from the pointer and wrap it in a shared_ptr
+        emit_shared<TFirstHandler, THandlers...>(std::shared_ptr<TData>(std::move(data)), std::forward<TArgs>(args)...);
     }
 
     // Anonymous metafunction that concatenates everything into a single string

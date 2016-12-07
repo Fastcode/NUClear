@@ -200,6 +200,8 @@ namespace NUClear {
          * @param data The data we are emitting
          */
         template <template <typename> class TFirstHandler, template <typename> class... THandlers, typename TData, typename... TArgs>
+        void emit_shared(std::shared_ptr<TData>&& data, TArgs&&... args);
+        template <template <typename> class TFirstHandler, template <typename> class... THandlers, typename TData, typename... TArgs>
         void emit(std::unique_ptr<TData>&& data, TArgs&&... args);
         template <template <typename> class TFirstHandler, template <typename> class... THandlers, typename TData, typename... TArgs>
         void emit(std::unique_ptr<TData>& data, TArgs&&... args);
