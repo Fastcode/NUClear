@@ -36,13 +36,13 @@ namespace threading {
 							   int priority,
 							   std::function<std::unique_ptr<ReactionTask>(std::unique_ptr<ReactionTask>&&)> callback)
 		: parent(parent)
-		, taskId(++taskIdSource)
+		, id(++taskIdSource)
 		, priority(priority)
 		, stats(new message::ReactionStatistics{parent.identifier,
-												parent.reactionId,
-												taskId,
-												currentTask ? currentTask->parent.reactionId : 0,
-												currentTask ? currentTask->taskId : 0,
+												parent.id,
+												id,
+												currentTask ? currentTask->parent.id : 0,
+												currentTask ? currentTask->id : 0,
 												clock::now(),
 												clock::time_point(std::chrono::seconds(0)),
 												clock::time_point(std::chrono::seconds(0)),

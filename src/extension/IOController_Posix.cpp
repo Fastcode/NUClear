@@ -75,7 +75,7 @@ namespace extension {
 
 				// Find our reaction
 				auto reaction = std::find_if(std::begin(reactions), std::end(reactions), [&unbind](const Task& t) {
-					return t.reaction->reactionId == unbind.id;
+					return t.reaction->id == unbind.id;
 				});
 
 				if (reaction != std::end(reactions)) {

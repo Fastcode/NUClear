@@ -41,7 +41,7 @@ namespace util {
 
 		// Create our unbinder
 		auto unbinder = [&powerplant, unbind](threading::Reaction& r) {
-			powerplant.emit<dsl::word::emit::Direct>(std::make_unique<dsl::operation::Unbind<TUnbind>>(r.reactionId));
+			powerplant.emit<dsl::word::emit::Direct>(std::make_unique<dsl::operation::Unbind<TUnbind>>(r.id));
 			if (unbind) {
 				unbind(r);
 			}

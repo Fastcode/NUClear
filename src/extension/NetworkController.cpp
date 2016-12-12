@@ -75,7 +75,7 @@ namespace extension {
 
 				// Find and delete this reaction
 				for (auto it = reactions.begin(); it != reactions.end(); ++it) {
-					if (it->second->reactionId == unbind.id) {
+					if (it->second->id == unbind.id) {
 						reactions.erase(it);
 						break;
 					}

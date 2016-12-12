@@ -48,7 +48,7 @@ namespace dsl {
 
 					auto item = std::find_if(
 						std::begin(vec), std::end(vec), [&r](const std::shared_ptr<threading::Reaction>& item) {
-							return item->reactionId == r.reactionId;
+							return item->id == r.id;
 						});
 
 					// If the item is in the list erase the item

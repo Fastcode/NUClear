@@ -75,7 +75,7 @@ namespace dsl {
 
 					},
 					NUClear::clock::now() + period(ticks),
-					reaction->reactionId));
+					reaction->id));
 
 				// Return our handle
 				return handle;

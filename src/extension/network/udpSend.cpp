@@ -49,8 +49,8 @@ namespace extension {
 
 		// Set some common information for the header
 		header.type		   = network::DATA;
-		header.packetId	= ++packetIDSource;
-		header.packetNo	= 0;
+		header.packetId	   = ++packetIDSource;
+		header.packetNo	   = 0;
 		header.packetCount = uint16_t((emit.payload.size() / MAX_UDP_PAYLOAD_LENGTH) + 1);
 		header.multicast   = emit.target.empty();
 		header.hash		   = emit.hash;

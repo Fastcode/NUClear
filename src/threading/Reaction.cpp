@@ -29,7 +29,7 @@ namespace threading {
 					   std::function<void(Reaction&)>&& unbinder)
 		: reactor(reactor)
 		, identifier(identifier)
-		, reactionId(++reactionIdSource)
+		, id(++reactionIdSource)
 		, activeTasks(0)
 		, enabled(true)
 		, generator(generator)

@@ -80,7 +80,7 @@ namespace threading {
 		/// @brief the parent Reaction object which spawned this
 		Reaction& parent;
 		/// @brief the taskId of this task (the sequence number of this paticular task)
-		uint64_t taskId;
+		uint64_t id;
 		/// @brief the priority to run this task at
 		int priority;
 		/// @brief the statistics object that persists after this for information and debugging

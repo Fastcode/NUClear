@@ -82,7 +82,7 @@ namespace threading {
 		std::vector<std::string> identifier;
 
 		/// @brief the unique identifier for this Reaction object
-		const uint64_t reactionId;
+		const uint64_t id;
 
 		/// @brief the number of currently active tasks (existing reaction tasks)
 		std::atomic<int> activeTasks;

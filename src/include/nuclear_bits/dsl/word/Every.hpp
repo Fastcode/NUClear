@@ -103,7 +103,7 @@ namespace dsl {
 						return true;
 					},
 					NUClear::clock::now() + jump,
-					reaction->reactionId));
+					reaction->id));
 
 				// Return our handle
 				return handle;
@@ -143,7 +143,7 @@ namespace dsl {
 						return true;
 					},
 					NUClear::clock::now() + jump,
-					reaction->reactionId));
+					reaction->id));
 
 				// Return our handle
 				return handle;
