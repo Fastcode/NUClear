@@ -32,6 +32,7 @@
 extensions = [
     'breathe',
     'sphinx.ext.githubpages',
+    'sphinx.ext.autosectionlabel'
 ]
 
 breathe_projects = { "NUClear": "../build/doc/xml" }

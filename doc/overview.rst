@@ -1,8 +1,11 @@
+========
 Overview
 ========
 
-NUClear is a C++ software framework designed to aid in the development of real time modular systems.
-It is built from a set of template metapgrograms that control the flow of information through the system.
+NUClear is a software framework designed to aid in the development of real time modular systems.
+It is built from a set of :ref:`C++ template metapgrograms` which control the flow of information through the system.
+It has been designed to incorporate the beneifits of both :ref:`blackboard robot systems`, and :ref:`message-passing robot systems`.
+
 These metaprograms reduce the cost of routing messages between modules resulting in a much faster system.
 It is highly extensible and provides several attachment points to develop new DSL keywords if needed.
 
