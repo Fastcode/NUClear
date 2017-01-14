@@ -23,35 +23,52 @@
 #include "nuclear_bits/dsl/store/TypeCallbackStore.hpp"
 
 namespace NUClear {
-    namespace dsl {
-        namespace word {
-            namespace emit {
+namespace dsl {
+	namespace word {
+		namespace emit {
 
-                template <typename TData>
-                struct Direct {
+			/**
+			 * @brief Direct emits execute the tasks created by emitting this type immediately.
+			 *
+			 * @details When data is emitted directly, the currently executing taks is paused and the tasks that
+			 *          are created by this emit are execued one at a time sequentially using the current thread.
+			 *          This type of emit will always work even when the system is in Shutdown or before the system
+			 *          has started up to the main phase.
+			 *
+			 * @param data the data to emit
+			 *
+			 * @tparam DataType the datatype that is being emitted
+			 */
+			template <typename DataType>
+			struct Direct {
 
-                    static void emit(PowerPlant&, std::shared_ptr<TData> data) {
+				static void emit(PowerPlant& powerplant, std::shared_ptr<DataType> data) {
 
-                        // Set our data in the store
-                        store::DataStore<TData>::set(data);
+					// Set our data in the store
+					store::DataStore<DataType>::set(data);
 
-                        for(auto& reaction : store::TypeCallbackStore<TData>::get()) {
-                            try {
-                                auto task = reaction->getTask();
-                                if(task) {
-                                    task = task->run(std::move(task));
-                                }
-                            }
-                            catch(...) {
-                                // TODO should something happen here?
-                            }
-                        }
-                    }
-                };
+					for (auto& reaction : store::TypeCallbackStore<DataType>::get()) {
+						try {
+							auto task = reaction->getTask();
+							if (task) {
+								task = task->run(std::move(task));
+							}
+						}
+						catch (const std::exception& ex) {
+							powerplant.log<NUClear::ERROR>("There was an exception while generating a reaction",
+														   ex.what());
+						}
+						catch (...) {
+							powerplant.log<NUClear::ERROR>(
+								"There was an unknown exception while generating a reaction");
+						}
+					}
+				}
+			};
 
-            }  // namespace emit
-        }  // namespace word
-    }  // namespace dsl
+		}  // namespace emit
+	}	  // namespace word
+}  // namespace dsl
 }  // namespace NUClear
 
 #endif  // NUCLEAR_DSL_WORD_EMIT_DIRECT_HPP

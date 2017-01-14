@@ -21,121 +21,119 @@
 
 namespace {
 
-    constexpr unsigned short port = 40001;
-    const std::string testString = "Hello UDP Broadcast World!";
-    int countA = 0;
-    int countB = 0;
-    std::size_t numAddresses = 0;
+constexpr unsigned short port = 40001;
+const std::string testString  = "Hello UDP Broadcast World!";
+int countA					  = 0;
+int countB					  = 0;
+std::size_t numAddresses	  = 0;
 
-    struct Message {
-    };
+struct Message {};
 
-    class TestReactor : public NUClear::Reactor {
-    public:
-        in_port_t boundPort = 0;
-        TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
+class TestReactor : public NUClear::Reactor {
+public:
+	in_port_t boundPort = 0;
+	TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
 
-            // Known port
-            on<UDP::Broadcast>(port).then([this](const UDP::Packet& packet) {
+		// Known port
+		on<UDP::Broadcast>(port).then([this](const UDP::Packet& packet) {
 
-                ++countA;
+			++countA;
 
-                // Check that the data we received is correct
-                REQUIRE(packet.data.size() == testString.size());
-                REQUIRE(std::memcmp(packet.data.data(), testString.data(), testString.size()) == 0);
+			// Check that the data we received is correct
+			REQUIRE(packet.payload.size() == testString.size());
+			REQUIRE(std::memcmp(packet.payload.data(), testString.data(), testString.size()) == 0);
 
-                // Shutdown we are done with the test
-                if(countA >= 1 && countB >= 1) {
-                    powerplant.shutdown();
-                }
-            });
+			// Shutdown we are done with the test
+			if (countA >= 1 && countB >= 1) {
+				powerplant.shutdown();
+			}
+		});
 
-            // Unknown port
-            std::tie(std::ignore, boundPort, std::ignore) = on<UDP::Broadcast>().then([this](const UDP::Packet& packet) {
+		// Unknown port
+		std::tie(std::ignore, boundPort, std::ignore) = on<UDP::Broadcast>().then([this](const UDP::Packet& packet) {
 
-                ++countB;
+			++countB;
 
-                // Check that the data we received is correct
-                REQUIRE(packet.data.size() == testString.size());
-                REQUIRE(std::memcmp(packet.data.data(), testString.data(), testString.size()) == 0);
+			// Check that the data we received is correct
+			REQUIRE(packet.payload.size() == testString.size());
+			REQUIRE(std::memcmp(packet.payload.data(), testString.data(), testString.size()) == 0);
 
-                // Shutdown we are done with the test
-                if(countA >= 1 && countB >= 1) {
-                    powerplant.shutdown();
-                }
-            });
+			// Shutdown we are done with the test
+			if (countA >= 1 && countB >= 1) {
+				powerplant.shutdown();
+			}
+		});
 
-            on<Trigger<Message>>().then([this] {
+		on<Trigger<Message>>().then([this] {
 
-                // Get all the network interfaces
-                auto interfaces = NUClear::util::network::get_interfaces();
+			// Get all the network interfaces
+			auto interfaces = NUClear::util::network::get_interfaces();
 
-                std::vector<uint32_t> addresses;
+			std::vector<uint32_t> addresses;
 
-                for(auto& iface : interfaces) {
-                    // We send on broadcast addresses and we don't want loopback or point to point
-                    if(iface.flags.broadcast) {
-                        // Two broadcast ips that are the same are probably on the same network so ignore those
-                        if(std::find(std::begin(addresses), std::end(addresses), iface.broadcast) == std::end(addresses)) {
-                            addresses.push_back(iface.broadcast);
-                        }
-                    }
-                }
+			for (auto& iface : interfaces) {
+				// We send on broadcast addresses and we don't want loopback or point to point
+				if (iface.flags.broadcast) {
+					// Two broadcast ips that are the same are probably on the same network so ignore those
+					if (std::find(std::begin(addresses), std::end(addresses), iface.broadcast) == std::end(addresses)) {
+						addresses.push_back(iface.broadcast);
+					}
+				}
+			}
 
-                numAddresses = addresses.size();
+			numAddresses = addresses.size();
 
-                for(auto& ad : addresses) {
+			for (auto& ad : addresses) {
 
-                    // Send our message to that broadcast address
-                    emit<Scope::UDP>(std::make_unique<std::string>(testString), ad, port);
-                }
-            });
+				// Send our message to that broadcast address
+				emit<Scope::UDP>(std::make_unique<std::string>(testString), ad, port);
+			}
+		});
 
-            on<Trigger<Message>>().then([this] {
+		on<Trigger<Message>>().then([this] {
 
-                // Get all the network interfaces
-                auto interfaces = NUClear::util::network::get_interfaces();
+			// Get all the network interfaces
+			auto interfaces = NUClear::util::network::get_interfaces();
 
-                std::vector<uint32_t> addresses;
+			std::vector<uint32_t> addresses;
 
-                for(auto& iface : interfaces) {
-                    // We send on broadcast addresses and we don't want loopback or point to point
-                    if(iface.flags.broadcast) {
-                        // Two broadcast ips that are the same are probably on the same network so ignore those
-                        if(std::find(std::begin(addresses), std::end(addresses), iface.broadcast) == std::end(addresses)) {
-                            addresses.push_back(iface.broadcast);
-                        }
-                    }
-                }
+			for (auto& iface : interfaces) {
+				// We send on broadcast addresses and we don't want loopback or point to point
+				if (iface.flags.broadcast) {
+					// Two broadcast ips that are the same are probably on the same network so ignore those
+					if (std::find(std::begin(addresses), std::end(addresses), iface.broadcast) == std::end(addresses)) {
+						addresses.push_back(iface.broadcast);
+					}
+				}
+			}
 
-                numAddresses = addresses.size();
+			numAddresses = addresses.size();
 
-                for(auto& ad : addresses) {
+			for (auto& ad : addresses) {
 
-                    // Send our message to that broadcast address
-                    emit<Scope::UDP>(std::make_unique<std::string>(testString), ad, boundPort);
-                }
-            });
+				// Send our message to that broadcast address
+				emit<Scope::UDP>(std::make_unique<std::string>(testString), ad, boundPort);
+			}
+		});
 
-            on<Startup>().then([this] {
+		on<Startup>().then([this] {
 
-                // Emit a message just so it will be when everything is running
-                emit(std::make_unique<Message>());
-            });
-        }
-    };
+			// Emit a message just so it will be when everything is running
+			emit(std::make_unique<Message>());
+		});
+	}
+};
 }
 
 TEST_CASE("Testing sending and receiving of UDP Broadcast messages", "[api][network][udp][broadcast]") {
 
-    NUClear::PowerPlant::Configuration config;
-    config.threadCount = 1;
-    NUClear::PowerPlant plant(config);
-    plant.install<TestReactor>();
+	NUClear::PowerPlant::Configuration config;
+	config.threadCount = 1;
+	NUClear::PowerPlant plant(config);
+	plant.install<TestReactor>();
 
-    plant.start();
+	plant.start();
 
-    REQUIRE(countA == numAddresses);
-    REQUIRE(countB == numAddresses);
+	REQUIRE(countA == numAddresses);
+	REQUIRE(countB == numAddresses);
 }
-

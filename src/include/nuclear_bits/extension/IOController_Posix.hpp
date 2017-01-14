@@ -25,40 +25,39 @@
 #include <poll.h>
 
 namespace NUClear {
-    namespace extension {
+namespace extension {
 
-        class IOController : public Reactor {
-        private:
+	class IOController : public Reactor {
+	private:
+		struct Task {
+			Task() : fd(), events(0), reaction() {}
+			Task(const fd_t& fd, short events, const std::shared_ptr<threading::Reaction>& reaction)
+				: fd(fd), events(events), reaction(reaction) {}
 
-            struct Task {
-                Task() : fd(), events(0), reaction() {}
-                Task(const fd_t& fd, short events, const std::shared_ptr<threading::Reaction>& reaction)
-                    : fd(fd), events(events), reaction(reaction) {}
+			fd_t fd;
+			short events;
+			std::shared_ptr<threading::Reaction> reaction;
 
-                fd_t fd;
-                short events;
-                std::shared_ptr<threading::Reaction> reaction;
+			bool operator<(const Task& other) const {
+				return fd == other.fd ? events < other.events : fd < other.fd;
+			}
+		};
 
-                bool operator< (const Task& other) const {
-                    return fd == other.fd ? events < other.events : fd < other.fd;
-                }
-            };
+	public:
+		explicit IOController(std::unique_ptr<NUClear::Environment> environment);
 
-        public:
-            explicit IOController(std::unique_ptr<NUClear::Environment> environment);
+	private:
+		fd_t notifyRecv;
+		fd_t notifySend;
 
-        private:
-            fd_t notifyRecv;
-            fd_t notifySend;
+		bool shutdown = false;
+		bool dirty	= true;
+		std::mutex reactionMutex;
+		std::vector<pollfd> fds;
+		std::vector<Task> reactions;
+	};
 
-            bool shutdown = false;
-            bool dirty = true;
-            std::mutex reactionMutex;
-            std::vector<pollfd> fds;
-            std::vector<Task> reactions;
-        };
-
-    }  // namespace extension
+}  // namespace extension
 }  // namespace NUClear
 
 #endif  // NUCLEAR_EXTENSION_IOCONTROLLER_POSIX_HPP

@@ -22,43 +22,44 @@
 
 /**
  * These classes are put in the global namespace rather than utility
- * This is so they can be used without any preamble (which would defeat the point of having them to shorten metaprogramming)
+ * This is so they can be used without any preamble (which would defeat the point of having them to shorten
+ * metaprogramming)
  */
 namespace NUClear {
 
-    /**
-     * @brief Becomes true_type if all of the predicates pass, and false_type if any fail.
-     *
-     * @tparam T the set of condtions to check.
-     *
-     * @return true_type if all of the conditions evaluate to true, false_type otherwise.
-     */
-    template <typename... T>
-    struct All : std::true_type {};
-    template <typename Head, typename... Tail>
-    struct All<Head, Tail...> : std::conditional_t<Head::value, All<Tail...>, std::false_type> {};
+/**
+ * @brief Becomes true_type if all of the predicates pass, and false_type if any fail.
+ *
+ * @tparam T the set of condtions to check.
+ *
+ * @return true_type if all of the conditions evaluate to true, false_type otherwise.
+ */
+template <typename... T>
+struct All : std::true_type {};
+template <typename Head, typename... Tail>
+struct All<Head, Tail...> : std::conditional_t<Head::value, All<Tail...>, std::false_type> {};
 
-    /**
-     * @brief Becomes true_type if any of the predicates pass, and false_type they all fail.
-     *
-     * @tparam T the set of condtions to check.
-     *
-     * @return true_type if any of the conditions evaluate to true, false_type otherwise.
-     */
-    template <typename... T>
-    struct Any : std::false_type {};
-    template <typename Head, typename... Tail>
-    struct Any<Head, Tail...> : std::conditional_t<Head::value, std::true_type, Any<Tail...>> {};
+/**
+ * @brief Becomes true_type if any of the predicates pass, and false_type they all fail.
+ *
+ * @tparam T the set of condtions to check.
+ *
+ * @return true_type if any of the conditions evaluate to true, false_type otherwise.
+ */
+template <typename... T>
+struct Any : std::false_type {};
+template <typename Head, typename... Tail>
+struct Any<Head, Tail...> : std::conditional_t<Head::value, std::true_type, Any<Tail...>> {};
 
-    /**
-     * @brief Becomes the inverse to the boolean type passed.
-     *
-     * @tparam Condition the type to attempt to inverse.
-     *
-     * @return true_type if T is false_type, false_type if T is true_type.
-     */
-    template <typename Condition>
-    using Not = std::conditional_t<Condition::value, std::false_type, std::true_type>;
+/**
+ * @brief Becomes the inverse to the boolean type passed.
+ *
+ * @tparam Condition the type to attempt to inverse.
+ *
+ * @return true_type if T is false_type, false_type if T is true_type.
+ */
+template <typename Condition>
+using Not = std::conditional_t<Condition::value, std::false_type, std::true_type>;
 
 }  // namespace NUClear
 

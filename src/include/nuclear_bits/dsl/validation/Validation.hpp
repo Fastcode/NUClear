@@ -18,25 +18,37 @@
 #ifndef NUCLEAR_DSL_VALIDATION_VALIDATION_HPP
 #define NUCLEAR_DSL_VALIDATION_VALIDATION_HPP
 
+#include "nuclear_bits/util/MetaProgramming.hpp"
+
 namespace NUClear {
-    namespace dsl {
-        namespace validation {
+namespace dsl {
+	namespace validation {
 
-            template <typename... Word>
-            struct ValidateDSL {
+		/**
+		 * @brief Validates the provided DSL is able to be used by the system and give a more sensible error
+		 *
+		 * @details This is where checks to see if the DSL words that were provided make sense and are useable.
+		 *          For example, it will check to make sure there is at least one bind function there. If there is
+		 *          not a bind function, there is no way the provided callback will ever run.
+		 *
+		 * @tparam Words the DSL words to be validated
+		 */
+		template <typename... Words>
+		struct ValidateDSL {
 
-                // Check that at least one word element has a bind component
-                static_assert(Any<fusion::has_bind<Word>..., fusion::has_bind<operation::DSLProxy<Word>>...>::value, "The provided DSL sentence does not have any components that bind a function");
-            };
+			// Check that at least one word element has a bind component
+			static_assert(Any<fusion::has_bind<Words>..., fusion::has_bind<operation::DSLProxy<Words>>...>::value,
+						  "The provided DSL sentence does not have any components that bind a function");
+		};
 
-            // TODO Test that the function signature matches the arguments that will be obtained by get
+		// TODO Test that the function signature matches the arguments that will be obtained by get
 
-            // TODO Test that the function signature uses the correct constness in the arguments
+		// TODO Test that the function signature uses the correct constness in the arguments
 
-            // TODO Test that the function provides at least a bind (otherwise it will never run)
+		// TODO Test that the function provides at least a bind (otherwise it will never run)
 
-        }  // namespace validation
-    }  // namespace dsl
+	}  // namespace validation
+}  // namespace dsl
 }  // namespace NUClear
 
 #endif  // NUCLEAR_DSL_VALIDATION_VALIDATION_HPP

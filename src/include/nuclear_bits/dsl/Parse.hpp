@@ -22,42 +22,47 @@
 #include "nuclear_bits/dsl/validation/Validation.hpp"
 
 namespace NUClear {
-    namespace dsl {
+namespace dsl {
 
-        template <typename... Sentence>
-        struct Parse {
+	template <typename... Sentence>
+	struct Parse {
 
-            using DSL = Fusion<Sentence...>;
+		using DSL = Fusion<Sentence...>;
 
-            template <typename TFunc, typename... TArgs>
-            static inline auto bind(Reactor& r, const std::string& label, TFunc callback, TArgs... args)
-            -> decltype(DSL::template bind<Parse<Sentence...>>(r, label, callback, std::forward<TArgs>(args)...)) {
-                return DSL::template bind<Parse<Sentence...>>(r, label, callback, std::forward<TArgs>(args)...);
-            }
+		template <typename TFunc, typename... TArgs>
+		static inline auto bind(Reactor& r, const std::string& label, TFunc callback, TArgs... args)
+			-> decltype(DSL::template bind<Parse<Sentence...>>(r, label, callback, std::forward<TArgs>(args)...)) {
+			return DSL::template bind<Parse<Sentence...>>(r, label, callback, std::forward<TArgs>(args)...);
+		}
 
-            static inline auto get(threading::Reaction& r)
-            -> decltype(std::conditional_t<fusion::has_get<DSL>::value, DSL, fusion::NoOp>::template get<Parse<Sentence...>>(r)) {
-                return std::conditional_t<fusion::has_get<DSL>::value, DSL, fusion::NoOp>::template get<Parse<Sentence...>>(r);
-            }
+		static inline auto get(threading::Reaction& r) -> decltype(
+			std::conditional_t<fusion::has_get<DSL>::value, DSL, fusion::NoOp>::template get<Parse<Sentence...>>(r)) {
+			return std::conditional_t<fusion::has_get<DSL>::value, DSL, fusion::NoOp>::template get<Parse<Sentence...>>(
+				r);
+		}
 
-            static inline bool precondition(threading::Reaction& r) {
-                return std::conditional_t<fusion::has_precondition<DSL>::value, DSL, fusion::NoOp>::template precondition<Parse<Sentence...>>(r);
-            }
+		static inline bool precondition(threading::Reaction& r) {
+			return std::conditional_t<fusion::has_precondition<DSL>::value, DSL, fusion::NoOp>::
+				template precondition<Parse<Sentence...>>(r);
+		}
 
-            static inline int priority(threading::Reaction& r) {
-                return std::conditional_t<fusion::has_priority<DSL>::value, DSL, fusion::NoOp>::template priority<Parse<Sentence...>>(r);
-            }
+		static inline int priority(threading::Reaction& r) {
+			return std::conditional_t<fusion::has_priority<DSL>::value, DSL, fusion::NoOp>::
+				template priority<Parse<Sentence...>>(r);
+		}
 
-            static std::unique_ptr<threading::ReactionTask> reschedule(std::unique_ptr<threading::ReactionTask>&& task) {
-                return std::conditional_t<fusion::has_reschedule<DSL>::value, DSL, fusion::NoOp>::template reschedule<DSL>(std::move(task));
-            }
+		static std::unique_ptr<threading::ReactionTask> reschedule(std::unique_ptr<threading::ReactionTask>&& task) {
+			return std::conditional_t<fusion::has_reschedule<DSL>::value, DSL, fusion::NoOp>::template reschedule<DSL>(
+				std::move(task));
+		}
 
-            static inline void postcondition(threading::ReactionTask& r) {
-                std::conditional_t<fusion::has_postcondition<DSL>::value, DSL, fusion::NoOp>::template postcondition<Parse<Sentence...>>(r);
-            }
-        };
+		static inline void postcondition(threading::ReactionTask& r) {
+			std::conditional_t<fusion::has_postcondition<DSL>::value, DSL, fusion::NoOp>::
+				template postcondition<Parse<Sentence...>>(r);
+		}
+	};
 
-    }  // namespace dsl
+}  // namespace dsl
 }  // namespace NUClear
 
 #endif  // NUCLEAR_DSL_PARSE_HPP

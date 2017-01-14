@@ -18,24 +18,32 @@
 #ifndef NUCLEAR_DSL_OPERATION_CACHEGET_HPP
 #define NUCLEAR_DSL_OPERATION_CACHEGET_HPP
 
-#include "nuclear_bits/util/MetaProgramming.hpp"
 #include "nuclear_bits/dsl/store/DataStore.hpp"
 
 namespace NUClear {
-    namespace dsl {
-        namespace operation {
+namespace dsl {
+	namespace operation {
 
-            template <typename TType>
-            struct CacheGet {
+		/**
+		 * @brief Accesses a variable from the shared data cache when used.
+		 *
+		 * @details NUClear maintains a datastore of the latest data emitted of each type in the system.
+		 *          This utility type accesses this shared cache and accesses the latest data using get.
+		 *          To use this utility inherit from this type with the DataType to listen for.
+		 *
+		 * @tparam DataType the data type that will be accessed from the cache
+		 */
+		template <typename DataType>
+		struct CacheGet {
 
-                template <typename DSL, typename T = TType>
-                static inline std::shared_ptr<const T> get(threading::Reaction&) {
-                    return store::DataStore<TType>::get();
-                }
-            };
+			template <typename DSL, typename T = DataType>
+			static inline std::shared_ptr<const T> get(threading::Reaction&) {
+				return store::DataStore<DataType>::get();
+			}
+		};
 
-        }  // namespace operation
-    }  // namespace dsl
+	}  // namespace operation
+}  // namespace dsl
 }  // namespace NUClear
 
 #endif  // NUCLEAR_DSL_OPERATION_CACHEGET_HPP

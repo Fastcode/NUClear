@@ -22,47 +22,44 @@
 // Anonymous namespace to keep everything file local
 namespace {
 
-    struct DelayMessage {};
-    struct NormalMessage {};
-    
-    NUClear::clock::time_point sent;
-    NUClear::clock::time_point normal_received;
-    NUClear::clock::time_point delay_received;
+struct DelayMessage {};
+struct NormalMessage {};
 
-    class TestReactor : public NUClear::Reactor {
-    public:
+NUClear::clock::time_point sent;
+NUClear::clock::time_point normal_received;
+NUClear::clock::time_point delay_received;
 
-        TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
-            emit<Scope::INITIALIZE>(std::make_unique<int>(5));
+class TestReactor : public NUClear::Reactor {
+public:
+	TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
+		emit<Scope::INITIALIZE>(std::make_unique<int>(5));
 
-            // This message should come in 500ms later
-            on<Trigger<DelayMessage>>().then([this] {
-                delay_received = NUClear::clock::now();
-                
-                powerplant.shutdown();
-            });
-            
-            on<Trigger<NormalMessage>>().then([this] {
-                normal_received = NUClear::clock::now();
-            });
-            
-            on<Startup>().then([this] {
-                sent = NUClear::clock::now();
-                emit(std::make_unique<NormalMessage>());
-                emit<Scope::DELAY>(std::make_unique<DelayMessage>(), std::chrono::milliseconds(200));
-            });
-        }
-    };
+		// This message should come in 500ms later
+		on<Trigger<DelayMessage>>().then([this] {
+			delay_received = NUClear::clock::now();
+
+			powerplant.shutdown();
+		});
+
+		on<Trigger<NormalMessage>>().then([this] { normal_received = NUClear::clock::now(); });
+
+		on<Startup>().then([this] {
+			sent = NUClear::clock::now();
+			emit(std::make_unique<NormalMessage>());
+			emit<Scope::DELAY>(std::make_unique<DelayMessage>(), std::chrono::milliseconds(200));
+		});
+	}
+};
 }
 
 TEST_CASE("Testing the delay emit", "[api][emit][delay]") {
-    NUClear::PowerPlant::Configuration config;
-    config.threadCount = 1;
-    NUClear::PowerPlant plant(config);
-    plant.install<TestReactor>();
+	NUClear::PowerPlant::Configuration config;
+	config.threadCount = 1;
+	NUClear::PowerPlant plant(config);
+	plant.install<TestReactor>();
 
-    plant.start();
-    
-    // Ensure the delayed message is about 200ms
-    REQUIRE(std::chrono::duration_cast<std::chrono::milliseconds>(delay_received - sent).count() > 180);
+	plant.start();
+
+	// Ensure the delayed message is about 200ms
+	REQUIRE(std::chrono::duration_cast<std::chrono::milliseconds>(delay_received - sent).count() > 180);
 }

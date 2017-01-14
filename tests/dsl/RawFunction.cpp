@@ -21,36 +21,32 @@
 
 namespace {
 
-    bool ran = false;
+bool ran = false;
 
-    double doAmazingThing() {
-        ran = true;
-        return 5.0;
-    }
+double doAmazingThing() {
+	ran = true;
+	return 5.0;
+}
 
-    class TestReactor : public NUClear::Reactor {
-    public:
+class TestReactor : public NUClear::Reactor {
+public:
+	TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
 
-        TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
+		on<Startup>().then(doAmazingThing);
 
-            on<Startup>().then(doAmazingThing);
-
-            on<Startup>().then([this] {
-
-                powerplant.shutdown();
-            });
-        }
-    };
+		on<Startup>().then([this] { powerplant.shutdown(); });
+	}
+};
 }
 
 TEST_CASE("Test reaction can take a raw function instead of just a lambda", "[api][raw_function]") {
 
-    NUClear::PowerPlant::Configuration config;
-    config.threadCount = 1;
-    NUClear::PowerPlant plant(config);
-    plant.install<TestReactor>();
+	NUClear::PowerPlant::Configuration config;
+	config.threadCount = 1;
+	NUClear::PowerPlant plant(config);
+	plant.install<TestReactor>();
 
-    plant.start();
+	plant.start();
 
-    REQUIRE(ran);
+	REQUIRE(ran);
 }

@@ -24,14 +24,25 @@
 #include "nuclear_bits/threading/Reaction.hpp"
 
 namespace NUClear {
-    namespace dsl {
-        namespace store {
+namespace dsl {
+	namespace store {
 
-            template <typename TKey>
-            using TypeCallbackStore = util::TypeList<TKey, TKey, std::shared_ptr<threading::Reaction>>;
+		/**
+		 * @biref The main callback store for reactions that are executed when a paticular type is emitted.
+		 *
+		 * @details This store is the main location that callbacks that are executed on type are stored.
+		 *          This method of storing is how the system realises compile time message dispatch. By storing each
+		 *          differnt type of message user in its own location the system knows exactly which reactions to
+		 *          execuing without having to do an expensive lookup. This reduces the latency and computational
+		 *          power invovled in spawning a new reaction when a type is emitted.
+		 *
+		 * @tparam TriggeringType the type that when emitted will start this function
+		 */
+		template <typename TriggeringType>
+		using TypeCallbackStore = util::TypeList<TriggeringType, TriggeringType, std::shared_ptr<threading::Reaction>>;
 
-        }  // namespace store
-    }  // namespace dsl
+	}  // namespace store
+}  // namespace dsl
 }  // namespace NUClear
 
 #endif  // NUCLEAR_DSL_STORE_TYPECALLBACKSTORE_HPP

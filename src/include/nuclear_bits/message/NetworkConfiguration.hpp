@@ -19,21 +19,21 @@
 #define NUCLEAR_MESSAGE_NETWORKCONFIGURATION_HPP
 
 namespace NUClear {
-    namespace message {
+namespace message {
 
-        struct NetworkConfiguration {
-            NetworkConfiguration() : name(""), multicastGroup(""), multicastPort(0) {}
-            NetworkConfiguration(const std::string& name, const std::string& group, uint16_t port)
-            : name(name)
-            , multicastGroup(group)
-            , multicastPort(port) {}
+	struct NetworkConfiguration {
+        
+		NetworkConfiguration() : name(""), multicastGroup(""), multicastPort(0) {}
+        
+		NetworkConfiguration(const std::string& name, const std::string& group, uint16_t port)
+			: name(name), multicastGroup(group), multicastPort(port) {}
 
-            std::string name;
-            std::string multicastGroup;
-            uint16_t multicastPort;
-        };
+		std::string name;
+		std::string multicastGroup;
+		uint16_t multicastPort;
+	};
 
-    }  // namespace message
- }  // namespace NUClear
+}  // namespace message
+}  // namespace NUClear
 
 #endif  // NUCLEAR_MESSAGE_NETWORKCONFIGURATION_HPP

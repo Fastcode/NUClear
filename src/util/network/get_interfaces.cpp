@@ -21,10 +21,10 @@
 #include "nuclear_bits/util/platform.hpp"
 
 #ifndef _WIN32
-    #include <ifaddrs.h>
-    #include <sys/socket.h>
-    #include <net/if.h>
-    #include <netdb.h>
+#include <ifaddrs.h>
+#include <sys/socket.h>
+#include <net/if.h>
+#include <netdb.h>
 #endif
 
 #include <cstring>
@@ -32,99 +32,101 @@
 #include <algorithm>
 
 namespace NUClear {
-    namespace util {
-        namespace network {
+namespace util {
+	namespace network {
 
-            // Windows version
-            #ifdef _WIN32
-            std::vector<Interface> get_interfaces() {
+// Windows version
+#ifdef _WIN32
+		std::vector<Interface> get_interfaces() {
 
-                std::vector<Interface> ifaces;
+			std::vector<Interface> ifaces;
 
-                DWORD size = 0;
+			DWORD size = 0;
 
-                // Do an initial call to work out how much space we need
-                GetIpAddrTable(nullptr, &size, false);
+			// Do an initial call to work out how much space we need
+			GetIpAddrTable(nullptr, &size, false);
 
-                // Allocate enough space for the real call
-                std::vector<MIB_IPADDRTABLE> table((size / sizeof(MIB_IPADDRTABLE)) + 1);
+			// Allocate enough space for the real call
+			std::vector<MIB_IPADDRTABLE> table((size / sizeof(MIB_IPADDRTABLE)) + 1);
 
-                // Do the real call
-                GetIpAddrTable(table.data(), &size, false);
+			// Do the real call
+			GetIpAddrTable(table.data(), &size, false);
 
-                for (size_t i = 0; i < table.front().dwNumEntries; ++i) {
+			for (size_t i = 0; i < table.front().dwNumEntries; ++i) {
 
-                    // Storage for the information for this address
-                    MIB_IF_ROW2 data;
-                    memset(&data, 0, sizeof(data));
-                    data.InterfaceIndex = table[i].table->dwIndex;
-                    if (GetIfEntry2(&data) != NO_ERROR) {
-                        continue;
-                    };
+				// Storage for the information for this address
+				MIB_IF_ROW2 data;
+				memset(&data, 0, sizeof(data));
+				data.InterfaceIndex = table[i].table->dwIndex;
+				if (GetIfEntry2(&data) != NO_ERROR) {
+					continue;
+				};
 
-                    Interface iface;
-                    auto n = std::wstring(data.Alias);
-                    iface.name = std::string(n.begin(), n.end());
-                    iface.ip = htonl(table[i].table->dwAddr);
-                    iface.netmask = htonl(table[i].table->dwMask);
-                    iface.broadcast = iface.ip | ~iface.netmask;
-                    iface.flags.broadcast = data.AccessType == NET_IF_ACCESS_BROADCAST;
-                    iface.flags.loopback = data.AccessType == NET_IF_ACCESS_LOOPBACK;
-                    iface.flags.multicast = data.AccessType == NET_IF_ACCESS_BROADCAST;
-                    iface.flags.pointtopoint = data.AccessType == NET_IF_ACCESS_LOOPBACK || data.AccessType == NET_IF_ACCESS_POINT_TO_POINT;
+				Interface iface;
+				auto n				  = std::wstring(data.Alias);
+				iface.name			  = std::string(n.begin(), n.end());
+				iface.ip			  = htonl(table[i].table->dwAddr);
+				iface.netmask		  = htonl(table[i].table->dwMask);
+				iface.broadcast		  = iface.ip | ~iface.netmask;
+				iface.flags.broadcast = data.AccessType == NET_IF_ACCESS_BROADCAST;
+				iface.flags.loopback  = data.AccessType == NET_IF_ACCESS_LOOPBACK;
+				iface.flags.multicast = data.AccessType == NET_IF_ACCESS_BROADCAST;
+				iface.flags.pointtopoint =
+					data.AccessType == NET_IF_ACCESS_LOOPBACK || data.AccessType == NET_IF_ACCESS_POINT_TO_POINT;
 
-                    ifaces.push_back(iface);
-                }
+				ifaces.push_back(iface);
+			}
 
-                return ifaces;
-            }
+			return ifaces;
+		}
 
-            // Everyone else
-            #else
-            std::vector<Interface> get_interfaces() {
+// Everyone else
+#else
+		std::vector<Interface> get_interfaces() {
 
-                std::vector<Interface> ifaces;
+			std::vector<Interface> ifaces;
 
-                addrinfo hints;
-                std::memset(&hints, 0, sizeof(hints));
-                hints.ai_family = AF_INET;
+			addrinfo hints;
+			std::memset(&hints, 0, sizeof(hints));
+			hints.ai_family = AF_INET;
 
-                // Query our interfaces
-                ifaddrs* addrs;
-                if(getifaddrs(&addrs) < 0) {
-                    throw std::system_error(network_errno, std::system_category(), "Unable to query the interfaces on the platform");
-                }
+			// Query our interfaces
+			ifaddrs* addrs;
+			if (getifaddrs(&addrs) < 0) {
+				throw std::system_error(
+					network_errno, std::system_category(), "Unable to query the interfaces on the platform");
+			}
 
-                // Loop through our interfaces
-                for(ifaddrs* cursor = addrs; cursor != nullptr; cursor = cursor->ifa_next) {
+			// Loop through our interfaces
+			for (ifaddrs* cursor = addrs; cursor != nullptr; cursor = cursor->ifa_next) {
 
-                    // We only care about ipv4 addresses (one day this will need to change)
-                    if(cursor->ifa_addr->sa_family == AF_INET) {
-                        Interface iface;
+				// We only care about ipv4 addresses (one day this will need to change)
+				if (cursor->ifa_addr->sa_family == AF_INET) {
+					Interface iface;
 
-                        iface.name      = cursor->ifa_name;
-                        iface.ip        = ntohl(reinterpret_cast<sockaddr_in*>(cursor->ifa_addr)->sin_addr.s_addr);
-                        iface.netmask   = ntohl(reinterpret_cast<sockaddr_in*>(cursor->ifa_netmask)->sin_addr.s_addr);
-                        iface.broadcast = ntohl(reinterpret_cast<sockaddr_in*>(cursor->ifa_dstaddr)->sin_addr.s_addr);
+					iface.name		= cursor->ifa_name;
+					iface.ip		= ntohl(reinterpret_cast<sockaddr_in*>(cursor->ifa_addr)->sin_addr.s_addr);
+					iface.netmask   = ntohl(reinterpret_cast<sockaddr_in*>(cursor->ifa_netmask)->sin_addr.s_addr);
+					iface.broadcast = ntohl(reinterpret_cast<sockaddr_in*>(cursor->ifa_dstaddr)->sin_addr.s_addr);
 
-                        iface.flags.broadcast    = (cursor->ifa_flags & IFF_BROADCAST) != 0;
-                        iface.flags.loopback     = (cursor->ifa_flags & IFF_LOOPBACK) != 0;
-                        iface.flags.pointtopoint = (cursor->ifa_flags & IFF_POINTOPOINT) != 0;
-                        iface.flags.multicast    = (cursor->ifa_flags & IFF_MULTICAST) != 0;
+					iface.flags.broadcast	= (cursor->ifa_flags & IFF_BROADCAST) != 0;
+					iface.flags.loopback	 = (cursor->ifa_flags & IFF_LOOPBACK) != 0;
+					iface.flags.pointtopoint = (cursor->ifa_flags & IFF_POINTOPOINT) != 0;
+					iface.flags.multicast	= (cursor->ifa_flags & IFF_MULTICAST) != 0;
 
-                        ifaces.push_back(iface);
-                    }
-                }
+					ifaces.push_back(iface);
+				}
+			}
 
-                // Remove duplicates from ifaces
-                ifaces.erase(std::unique(std::begin(ifaces), std::end(ifaces), [] (const Interface& a, const Interface& b) {
-                    return a.name == b.name;
-                }), std::end(ifaces));
+			// Remove duplicates from ifaces
+			ifaces.erase(std::unique(std::begin(ifaces),
+									 std::end(ifaces),
+									 [](const Interface& a, const Interface& b) { return a.name == b.name; }),
+						 std::end(ifaces));
 
-                return ifaces;
-            }
-            #endif
-
-        }
-    }
+			return ifaces;
+		}
+#endif
+	}
+}
 }

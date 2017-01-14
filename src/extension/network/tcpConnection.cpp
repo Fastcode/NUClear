@@ -22,56 +22,60 @@
 #include <cerrno>
 
 namespace NUClear {
-    namespace extension {
+namespace extension {
 
-        void NetworkController::tcpConnection(const TCP::Connection& connection) {
+	void NetworkController::tcpConnection(const TCP::Connection& connection) {
 
-            // Allocate data for our header
-            std::vector<char> data(sizeof(network::PacketHeader));
+		// Allocate data for our header
+		std::vector<char> payload(sizeof(network::PacketHeader));
 
-            // Read our header
-            ::recv(connection.fd, data.data(), data.size(), 0);
-            const network::PacketHeader& header = *reinterpret_cast<network::PacketHeader*>(data.data());
+		// Read our header
+		::recv(connection.fd, payload.data(), payload.size(), 0);
+		const network::PacketHeader& header = *reinterpret_cast<network::PacketHeader*>(payload.data());
 
-            // We have to read this now as after we resize it'll move (maybe)
-            uint32_t length = header.length;
+		// We have to read this now as after we resize it'll move (maybe)
+		uint32_t length = header.length;
 
-            // Add enough space for our remaining packet
-            data.resize(data.size() + length);
+		// Add enough space for our remaining packet
+		payload.resize(payload.size() + length);
 
-            // Read our remaining packet
-            ::recv(connection.fd, data.data() + sizeof(network::PacketHeader), length, 0);
-            const network::AnnouncePacket& announce = *reinterpret_cast<network::AnnouncePacket*>(data.data());
+		// Read our remaining packet
+		::recv(connection.fd, payload.data() + sizeof(network::PacketHeader), length, 0);
+		const network::AnnouncePacket& announce = *reinterpret_cast<network::AnnouncePacket*>(payload.data());
 
-            // See if we can find our network target for this element
-            auto udpT = udpTarget.find(std::make_pair(connection.remote.address, announce.udpPort));
+		// See if we can find our network target for this element
+		auto udpT = udpTarget.find(std::make_pair(connection.remote.address, announce.udpPort));
 
-            // If it does not already exist, insert it
-            if(udpT == udpTarget.end()) {
+		// If it does not already exist, insert it
+		if (udpT == udpTarget.end()) {
 
-                auto it = targets.emplace(targets.end(), std::string(&announce.name), connection.remote.address, announce.tcpPort, announce.udpPort, connection.fd);
-                nameTarget.insert(std::make_pair(std::string(&announce.name), it));
-                udpTarget.insert(std::make_pair(std::make_pair(connection.remote.address, announce.udpPort), it));
-                tcpTarget.insert(std::make_pair(it->tcpFD, it));
+			auto it = targets.emplace(targets.end(),
+									  std::string(&announce.name),
+									  connection.remote.address,
+									  announce.tcpPort,
+									  announce.udpPort,
+									  connection.fd);
+			nameTarget.insert(std::make_pair(std::string(&announce.name), it));
+			udpTarget.insert(std::make_pair(std::make_pair(connection.remote.address, announce.udpPort), it));
+			tcpTarget.insert(std::make_pair(it->tcpFD, it));
 
-                // Bind our new reaction
-                it->handle = on<IO, Sync<NetworkController>>(it->tcpFD, IO::READ | IO::ERROR | IO::CLOSE).then("Network TCP Handler", [this] (const IO::Event& e) {
-                    tcpHandler(e);
-                });
+			// Bind our new reaction
+			it->handle = on<IO, Sync<NetworkController>>(it->tcpFD, IO::READ | IO::ERROR | IO::CLOSE)
+							 .then("Network TCP Handler", [this](const IO::Event& e) { tcpHandler(e); });
 
-                // emit a message that says who connected
-                auto j = std::make_unique<message::NetworkJoin>();
-                j->name = &announce.name;
-                j->address = connection.remote.address;
-                j->tcpPort = announce.tcpPort;
-                j->udpPort = announce.udpPort;
-                emit(j);
-            }
-            else {
-                // Close the connection that was made, we made one to them faster
-                // And as it was never bound to a callback, it won't show up as an event
-                close(connection.fd);
-            }
-        }
-    }
+			// emit a message that says who connected
+			auto j	 = std::make_unique<message::NetworkJoin>();
+			j->name	= &announce.name;
+			j->address = connection.remote.address;
+			j->tcpPort = announce.tcpPort;
+			j->udpPort = announce.udpPort;
+			emit(j);
+		}
+		else {
+			// Close the connection that was made, we made one to them faster
+			// And as it was never bound to a callback, it won't show up as an event
+			close(connection.fd);
+		}
+	}
+}
 }

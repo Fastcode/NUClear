@@ -22,41 +22,34 @@
 // Anonymous namespace to keep everything file local
 namespace {
 
-    template <int id>
-    struct Message {};
+template <int id>
+struct Message {};
 
-    class TestReactor : public NUClear::Reactor {
-    public:
+class TestReactor : public NUClear::Reactor {
+public:
+	TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
 
+		// Make an always disabled reaction
+		ReactionHandle a =
+			on<Trigger<Message<0>>, Priority::HIGH>().then([this] { FAIL("This reaction is disabled always"); });
+		a.disable();
 
-        TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
+		ReactionHandle b = on<Trigger<Message<0>>>().then([this] { powerplant.shutdown(); });
 
-            // Make an always disabled reaction
-            ReactionHandle a = on<Trigger<Message<0>>, Priority::HIGH>().then([this] {
-                FAIL("This reaction is disabled always");
-            });
-            a.disable();
-
-            ReactionHandle b = on<Trigger<Message<0>>>().then([this] {
-                powerplant.shutdown();
-            });
-
-            // Start our test
-            on<Startup>().then([this] {
-                emit(std::make_unique<Message<0>>());
-            });
-        }
-    };
+		// Start our test
+		on<Startup>().then([this] { emit(std::make_unique<Message<0>>()); });
+	}
+};
 }
 
 TEST_CASE("Testing reaction handle functionality", "[api][reactionhandle]") {
 
-    NUClear::PowerPlant::Configuration config;
-    config.threadCount = 1;
-    NUClear::PowerPlant plant(config);
+	NUClear::PowerPlant::Configuration config;
+	config.threadCount = 1;
+	NUClear::PowerPlant plant(config);
 
-    // We are installing with an initial log level of debug
-    plant.install<TestReactor>();
+	// We are installing with an initial log level of debug
+	plant.install<TestReactor>();
 
-    plant.start();
+	plant.start();
 }

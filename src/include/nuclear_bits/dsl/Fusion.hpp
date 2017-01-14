@@ -27,18 +27,17 @@
 #include "nuclear_bits/dsl/fusion/PostconditionFusion.hpp"
 
 namespace NUClear {
-    namespace dsl {
+namespace dsl {
 
-        template <typename... TWords>
-        struct Fusion
-        : public fusion::BindFusion<TWords...>
-        , public fusion::GetFusion<TWords...>
-        , public fusion::PreconditionFusion<TWords...>
-        , public fusion::PriorityFusion<TWords...>
-        , public fusion::RescheduleFusion<TWords...>
-        , public fusion::PostconditionFusion<TWords...> {};
+	template <typename... TWords>
+	struct Fusion : public fusion::BindFusion<TWords...>,
+					public fusion::GetFusion<TWords...>,
+					public fusion::PreconditionFusion<TWords...>,
+					public fusion::PriorityFusion<TWords...>,
+					public fusion::RescheduleFusion<TWords...>,
+					public fusion::PostconditionFusion<TWords...> {};
 
-    }  // namespace dsl
+}  // namespace dsl
 }  // namespace NUClear
 
 #endif  // NUCLEAR_DSL_FUSION_HPP

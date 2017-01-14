@@ -24,39 +24,35 @@
 
 namespace NUClear {
 
-    // Forward declare reactor and powerplant
-    class Reactor;
-    class PowerPlant;
+// Forward declare reactor and powerplant
+class Reactor;
+class PowerPlant;
 
-    /**
-     * @brief
-     *  Environment defines variables that are passed from the installing PowerPlant context
-     *  into a Reactor.
-     *
-     * @details
-     *  The Environment is used to provide information from the PowerPlant to Reactors.
-     *  Each Reactor owns it's own environment and can use it to access useful information.
-     *
-     * @author Jake Woods
-     */
-    class Environment {
-    public:
-        Environment(PowerPlant& powerplant, std::string&& reactorName, LogLevel logLevel)
-          : powerplant(powerplant)
-          , logLevel(logLevel)
-          , reactorName(reactorName) {}
+/**
+ * @brief
+ *  Environment defines variables that are passed from the installing PowerPlant context
+ *  into a Reactor.
+ *
+ * @details
+ *  The Environment is used to provide information from the PowerPlant to Reactors.
+ *  Each Reactor owns it's own environment and can use it to access useful information.
+ */
+class Environment {
+public:
+	Environment(PowerPlant& powerplant, std::string&& reactorName, LogLevel logLevel)
+		: powerplant(powerplant), logLevel(logLevel), reactorName(reactorName) {}
 
-    private:
-        friend class PowerPlant;
-        friend class Reactor;
+private:
+	friend class PowerPlant;
+	friend class Reactor;
 
-        /// @brief The PowerPlant to use in this reactor
-        PowerPlant& powerplant;
-        /// @brief The log level to resepect for this reactor
-        LogLevel logLevel;
-        /// @brief The name of the reactor
-        std::string reactorName;
-    };
+	/// @brief The PowerPlant to use in this reactor
+	PowerPlant& powerplant;
+	/// @brief The log level to resepect for this reactor
+	LogLevel logLevel;
+	/// @brief The name of the reactor
+	std::string reactorName;
+};
 
 }  // namespace NUClear
 

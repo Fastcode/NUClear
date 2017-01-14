@@ -21,11 +21,11 @@
 #include <string>
 
 namespace NUClear {
-    namespace util {
+namespace util {
 
-        std::string demangle(const char* symbol);
+	std::string demangle(const char* symbol);
 
-    }  // namespace util
+}  // namespace util
 }  //  namespace NUClear
 
 #endif  // NUCLEAR_UTIL_DEMANGLE_HPP

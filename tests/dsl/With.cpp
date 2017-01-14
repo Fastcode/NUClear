@@ -21,37 +21,42 @@
 
 namespace {
 
-    struct DifferentOrderingMessage1 { int a; };
-    struct DifferentOrderingMessage2 { int a; };
-    struct DifferentOrderingMessage3 { int a; };
+struct DifferentOrderingMessage1 {
+	int a;
+};
+struct DifferentOrderingMessage2 {
+	int a;
+};
+struct DifferentOrderingMessage3 {
+	int a;
+};
 
-    class DifferentOrderingReactor : public NUClear::Reactor {
-    public:
-        DifferentOrderingReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
-            // Check that the lists are combined, and that the function args are in order
-            on<With<DifferentOrderingMessage1>, Trigger<DifferentOrderingMessage3>, With<DifferentOrderingMessage2>>
-            ().then([this](const DifferentOrderingMessage1&, const DifferentOrderingMessage3&, const DifferentOrderingMessage2&) {
+class DifferentOrderingReactor : public NUClear::Reactor {
+public:
+	DifferentOrderingReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
+		// Check that the lists are combined, and that the function args are in order
+		on<With<DifferentOrderingMessage1>, Trigger<DifferentOrderingMessage3>, With<DifferentOrderingMessage2>>().then(
+			[this](const DifferentOrderingMessage1&,
+				   const DifferentOrderingMessage3&,
+				   const DifferentOrderingMessage2&) { this->powerplant.shutdown(); });
 
-                this->powerplant.shutdown();
-            });
-
-            // Make sure we can pass an empty function in here
-            on<Trigger<DifferentOrderingMessage1>, With<DifferentOrderingMessage1, DifferentOrderingMessage2>>().then([this] {
-            });
-        }
-    };
+		// Make sure we can pass an empty function in here
+		on<Trigger<DifferentOrderingMessage1>, With<DifferentOrderingMessage1, DifferentOrderingMessage2>>().then(
+			[this] {});
+	}
+};
 }
 
 TEST_CASE("Testing poorly ordered on arguments", "[api][with]") {
 
-    NUClear::PowerPlant::Configuration config;
-    config.threadCount = 1;
-    NUClear::PowerPlant plant(config);
-    plant.install<DifferentOrderingReactor>();
+	NUClear::PowerPlant::Configuration config;
+	config.threadCount = 1;
+	NUClear::PowerPlant plant(config);
+	plant.install<DifferentOrderingReactor>();
 
-    plant.emit(std::make_unique<DifferentOrderingMessage1>());
-    plant.emit(std::make_unique<DifferentOrderingMessage2>());
-    plant.emit(std::make_unique<DifferentOrderingMessage3>());
+	plant.emit(std::make_unique<DifferentOrderingMessage1>());
+	plant.emit(std::make_unique<DifferentOrderingMessage2>());
+	plant.emit(std::make_unique<DifferentOrderingMessage3>());
 
-    plant.start();
+	plant.start();
 }

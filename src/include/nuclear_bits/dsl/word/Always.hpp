@@ -21,64 +21,69 @@
 #include "nuclear_bits/util/get_identifier.hpp"
 
 namespace NUClear {
-    namespace dsl {
-        namespace word {
+namespace dsl {
+	namespace word {
 
-            /**
-             * @ingroup SmartTypes
-             * @brief This type is used to make a task that will continually run until shutdown.
-             *
-             * @details
-             *  This will start up when the system starts up and continue to execute continually
-             *  until the whole system is told to shut down.
-             */
-            struct Always {
+		/**
+		 * @brief Run the given task continously until shutdown.
+		 *
+		 * @details This task will start when the system starts up and continue to execute continually until the
+		 *          whole system is told to shut down. The task will execute in its own unique thread rather than
+		 *          the thread pool. However, if a task that it tries to execute is rescheduled such as with a Sync
+		 *          the task will then be moved into the thread pool. When using this keyword you should endeavor
+		 *          not to keep the system in a loop. Instead of putting a while(true) or similar loop in this
+		 *          reaction, instead let it finish and restart itself. This allows it to terminate properly when
+		 *          the system is shutdown. If it does not the system will hang when trying to terminate.
+		 *          If this function is performing a blocking operation, try to make it interruptable with an
+		 *          on<Shutdown> reaction so that the program can be cleanly terminated.
+		 */
+		struct Always {
 
-                template <typename DSL, typename TFunc>
-                static inline threading::ReactionHandle bind(Reactor& reactor, const std::string& label, TFunc&& callback) {
+			template <typename DSL, typename TFunc>
+			static inline threading::ReactionHandle bind(Reactor& reactor, const std::string& label, TFunc&& callback) {
 
-                    // Get our identifier string
-                    std::vector<std::string> identifier = util::get_identifier<typename DSL::DSL, TFunc>(label, reactor.reactorName);
+				// Get our identifier string
+				std::vector<std::string> identifier =
+					util::get_identifier<typename DSL::DSL, TFunc>(label, reactor.reactorName);
 
-                    auto unbinder = [] (threading::Reaction& r) {
-                        r.enabled = false;
-                    };
+				auto unbinder = [](threading::Reaction& r) { r.enabled = false; };
 
-                    // Create our reaction and store it in the TypeCallbackStore
-                    auto reaction = std::make_shared<threading::Reaction>(reactor, std::move(identifier), std::forward<TFunc>(callback), std::move(unbinder));
-                    threading::ReactionHandle handle(reaction);
+				// Create our reaction and store it in the TypeCallbackStore
+				auto reaction = std::make_shared<threading::Reaction>(
+					reactor, std::move(identifier), std::forward<TFunc>(callback), std::move(unbinder));
+				threading::ReactionHandle handle(reaction);
 
-                    // A lambda that will get a reaction task
-                    auto run = [reaction] {
-                        // Get a task
-                        auto task = reaction->getTask();
+				// A lambda that will get a reaction task
+				auto run = [reaction] {
+					// Get a task
+					auto task = reaction->getTask();
 
-                        // If we got a real task back
-                        if(task) {
-                            task = task->run(std::move(task));
-                        }
-                    };
+					// If we got a real task back
+					if (task) {
+						task = task->run(std::move(task));
+					}
+				};
 
-                    // This is our function that runs forever until the powerplant exits
-                    auto loop = [&reactor, run] {
-                        while(reactor.powerplant.running()) {
-                            try {
-                                run();
-                            }
-                            catch(...) {
-                            }
-                        }
-                    };
+				// This is our function that runs forever until the powerplant exits
+				auto loop = [&reactor, run] {
+					while (reactor.powerplant.running()) {
+						try {
+							run();
+						}
+						catch (...) {
+						}
+					}
+				};
 
-                    reactor.powerplant.addThreadTask(loop);
+				reactor.powerplant.addThreadTask(loop);
 
-                    // Return our handle
-                    return handle;
-                }
-            };
+				// Return our handle
+				return handle;
+			}
+		};
 
-        }  // namespace word
-    }  // namespace dsl
+	}  // namespace word
+}  // namespace dsl
 }  // namespace NUClear
 
 #endif  // NUCLEAR_DSL_WORD_ALWAYS_HPP

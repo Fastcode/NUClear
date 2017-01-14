@@ -21,22 +21,21 @@
 #include "Buffer.hpp"
 
 namespace NUClear {
-    namespace dsl {
-        namespace word {
+namespace dsl {
+	namespace word {
 
-            /**
-             * @ingroup Options
-             * @brief This option sets the Single instance status of the task
-             *
-             * @details
-             *  If a task is declared as being Single, then that means that only a single instance of the task can be
-             *  in the system at any one time. If the task is triggered again while an existing task is either in the
-             *  queue or is still executing, then this new task will be ignored.
-             */
-            struct Single : public Buffer<1> {};
+		/**
+		 * @brief This option sets the Single instance status of the task
+		 *
+		 * @details
+		 *  If a task is declared as being Single, then that means that only a single instance of the task can be
+		 *  in the system at any one time. If the task is triggered again while an existing task is either in the
+		 *  queue or is still executing, then this new task will be ignored.
+		 */
+		struct Single : public Buffer<1> {};
 
-        }  // namespace word
-    }  // namespace dsl
+	}  // namespace word
+}  // namespace dsl
 }  // namespace NUClear
 
 #endif  // NUCLEAR_DSL_WORD_SINGLE_HPP

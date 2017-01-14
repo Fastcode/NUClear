@@ -21,12 +21,12 @@
 /*******************************************
  *      SHIM FOR THREAD LOCAL STORAGE      *
  *******************************************/
-#if defined (__GNUC__)
-    #define ATTRIBUTE_TLS __thread
-#elif defined (_WIN32)
-    #define ATTRIBUTE_TLS __declspec(thread)
-#else // !__GNUC__ && !_MSC_VER
-    #error "Define a thread local storage qualifier for your compiler/platform!"
+#if defined(__GNUC__)
+#define ATTRIBUTE_TLS __thread
+#elif defined(_WIN32)
+#define ATTRIBUTE_TLS __declspec(thread)
+#else  // !__GNUC__ && !_MSC_VER
+#error "Define a thread local storage qualifier for your compiler/platform!"
 #endif
 
 /*******************************************
@@ -37,44 +37,44 @@
 #include "nuclear_bits/util/windows_includes.hpp"
 #include <iostream>
 
-using ssize_t = SSIZE_T;
+using ssize_t   = SSIZE_T;
 using in_port_t = uint16_t;
 using in_addr_t = uint32_t;
 
 namespace NUClear {
 
-    // For us file descriptors will just be sockets
-    using fd_t = SOCKET;
+// For us file descriptors will just be sockets
+using fd_t = SOCKET;
 
-    using socklen_t = int;
+using socklen_t = int;
 
-    // This is defined here rather than in the global namespace so it doesn't get in the way
-    inline int close(fd_t fd) {
-        return ::closesocket(fd);
-    }
+// This is defined here rather than in the global namespace so it doesn't get in the way
+inline int close(fd_t fd) {
+	return ::closesocket(fd);
+}
 
-    // Network errors come from WSAGetLastError()
-    #define network_errno WSAGetLastError()
+// Network errors come from WSAGetLastError()
+#define network_errno WSAGetLastError()
 
-    // Make iovec into a windows WSABUF
-    #define iovec WSABUF
-    #define iov_base buf
-    #define iov_len len
+// Make iovec into a windows WSABUF
+#define iovec WSABUF
+#define iov_base buf
+#define iov_len len
 
-    // Make msghdr into WSAMSG
-    #define msghdr WSAMSG
-    #define msg_name        name
-    #define msg_namelen     namelen
-    #define msg_iov         lpBuffers
-    #define msg_iovlen      dwBufferCount
-    #define msg_control     Control.buf
-    #define msg_controllen  Control.len
-    #define msg_flags       flags
+// Make msghdr into WSAMSG
+#define msghdr WSAMSG
+#define msg_name name
+#define msg_namelen namelen
+#define msg_iov lpBuffers
+#define msg_iovlen dwBufferCount
+#define msg_control Control.buf
+#define msg_controllen Control.len
+#define msg_flags flags
 
-    // Reimplement the recvmsg function
-    int recvmsg(fd_t fd, msghdr* msg, int flags);
+// Reimplement the recvmsg function
+int recvmsg(fd_t fd, msghdr* msg, int flags);
 
-    int sendmsg(fd_t fd, msghdr* msg, int flags);
+int sendmsg(fd_t fd, msghdr* msg, int flags);
 }  // namespace NUClear
 
 #else
@@ -85,7 +85,7 @@ namespace NUClear {
 
 namespace NUClear {
 
-    using fd_t = int;
+using fd_t = int;
 }  // namespace NUClear
 
 #endif

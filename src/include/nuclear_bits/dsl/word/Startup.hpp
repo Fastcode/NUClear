@@ -21,21 +21,20 @@
 #include "nuclear_bits/dsl/operation/TypeBind.hpp"
 
 namespace NUClear {
-    namespace dsl {
-        namespace word {
+namespace dsl {
+	namespace word {
 
-            /**
-             * @ingroup SmartTypes
-             * @brief This type is emitted when the system is first started up.
-             *
-             * @details
-             *  This type is emitted when the system first starts up, after reactors have been installed. This is
-             *  used if a reactor needs to use information provided by other reactors constructors.
-             */
-            struct Startup : public operation::TypeBind<Startup> {};
+		/**
+		 * @brief This type is emitted when the system is first started up.
+		 *
+		 * @details
+		 *  This type is emitted when the system first starts up, after reactors have been installed. This is
+		 *  used if a reactor needs to use information provided by other reactors constructors.
+		 */
+		struct Startup : public operation::TypeBind<Startup> {};
 
-        }  // namespace word
-    }  // namespace dsl
+	}  // namespace word
+}  // namespace dsl
 }  // namespace NUClear
 
 #endif  // NUCLEAR_DSL_WORD_STARTUP_HPP

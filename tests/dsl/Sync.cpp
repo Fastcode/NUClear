@@ -21,107 +21,104 @@
 
 namespace {
 
-    template<int i>
-    struct Message {
-        int val;
-        Message(int val) : val(val) {};
-    };
+template <int i>
+struct Message {
+	int val;
+	Message(int val) : val(val){};
+};
 
 
-    std::atomic<int> semaphore(0);
-    int finished = 0;
+std::atomic<int> semaphore(0);
+int finished = 0;
 
-    class TestReactor : public NUClear::Reactor {
-    public:
+class TestReactor : public NUClear::Reactor {
+public:
+	TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
 
-        TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
+		on<Trigger<Message<0>>, Sync<TestReactor>>().then([this](const Message<0>& m) {
 
-            on<Trigger<Message<0>>, Sync<TestReactor>>().then([this] (const Message<0>& m) {
+			// Increment our semaphore
+			++semaphore;
 
-                // Increment our semaphore
-                ++semaphore;
+			// Sleep for 1ms to be safe
+			std::this_thread::sleep_for(std::chrono::milliseconds(1));
 
-                // Sleep for 1ms to be safe
-                std::this_thread::sleep_for(std::chrono::milliseconds(1));
+			// Check we got the right message
+			REQUIRE(m.val == 123);
 
-                // Check we got the right message
-                REQUIRE(m.val == 123);
+			// Require our semaphore is 1
+			REQUIRE(semaphore == 1);
 
-                // Require our semaphore is 1
-                REQUIRE(semaphore == 1);
+			// Emit a message 1 here, it should not run yet
+			emit(std::make_unique<Message<1>>(10));
 
-                // Emit a message 1 here, it should not run yet
-                emit(std::make_unique<Message<1>>(10));
+			// Sleep for 1ms again
+			std::this_thread::sleep_for(std::chrono::milliseconds(1));
 
-                // Sleep for 1ms again
-                std::this_thread::sleep_for(std::chrono::milliseconds(1));
+			// Decrement our semaphore
+			--semaphore;
+		});
 
-                // Decrement our semaphore
-                --semaphore;
-            });
+		on<Trigger<Message<0>>, Sync<TestReactor>>().then([this](const Message<0>& m) {
 
-            on<Trigger<Message<0>>, Sync<TestReactor>>().then([this] (const Message<0>& m) {
+			// Increment our semaphore
+			++semaphore;
 
-                // Increment our semaphore
-                ++semaphore;
+			// Sleep for 1ms to be safe
+			std::this_thread::sleep_for(std::chrono::milliseconds(1));
 
-                // Sleep for 1ms to be safe
-                std::this_thread::sleep_for(std::chrono::milliseconds(1));
+			// Check we got the right message
+			REQUIRE(m.val == 123);
 
-                // Check we got the right message
-                REQUIRE(m.val == 123);
+			// Require our semaphore is 1
+			REQUIRE(semaphore == 1);
 
-                // Require our semaphore is 1
-                REQUIRE(semaphore == 1);
+			// Emit a message 1 here, it should not run yet
+			emit(std::make_unique<Message<1>>(10));
 
-                // Emit a message 1 here, it should not run yet
-                emit(std::make_unique<Message<1>>(10));
+			// Sleep for 1ms again
+			std::this_thread::sleep_for(std::chrono::milliseconds(1));
 
-                // Sleep for 1ms again
-                std::this_thread::sleep_for(std::chrono::milliseconds(1));
+			// Decrement our semaphore
+			--semaphore;
+		});
 
-                // Decrement our semaphore
-                --semaphore;
-            });
+		on<Trigger<Message<1>>, Sync<TestReactor>>().then([this](const Message<1>& m) {
 
-            on<Trigger<Message<1>>, Sync<TestReactor>>().then([this] (const Message<1>& m) {
+			// Increment our semaphore
+			++semaphore;
 
-                // Increment our semaphore
-                ++semaphore;
+			// Sleep for 1ms to be safe
+			std::this_thread::sleep_for(std::chrono::milliseconds(1));
 
-                // Sleep for 1ms to be safe
-                std::this_thread::sleep_for(std::chrono::milliseconds(1));
+			// Check we got the right message
+			REQUIRE(m.val == 10);
 
-                // Check we got the right message
-                REQUIRE(m.val == 10);
+			// Require our semaphore is 1
+			REQUIRE(semaphore == 1);
 
-                // Require our semaphore is 1
-                REQUIRE(semaphore == 1);
+			// Sleep for 1ms again
+			std::this_thread::sleep_for(std::chrono::milliseconds(1));
 
-                // Sleep for 1ms again
-                std::this_thread::sleep_for(std::chrono::milliseconds(1));
+			// Decrement our semaphore
+			--semaphore;
 
-                // Decrement our semaphore
-                --semaphore;
+			if (++finished == 2) {
+				powerplant.shutdown();
+			}
+		});
 
-                if(++finished == 2) {
-                    powerplant.shutdown();
-                }
-            });
-
-            on<Startup>().then([this] {
-                emit(std::make_unique<Message<0>>(123));
-            });
-        }
-    };
+		on<Startup>().then([this] { emit(std::make_unique<Message<0>>(123)); });
+	}
+};
 }
 
 TEST_CASE("Testing that the Sync word works correctly", "[api][sync]") {
 
-    NUClear::PowerPlant::Configuration config;
-    config.threadCount = 4;
-    NUClear::PowerPlant plant(config);
-    plant.install<TestReactor>();
+	NUClear::PowerPlant::Configuration config;
+	config.threadCount = 4;
+	NUClear::PowerPlant plant(config);
+	plant.install<TestReactor>();
 
-    plant.start();
+	plant.start();
 }

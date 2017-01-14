@@ -22,33 +22,50 @@
 #include "nuclear_bits/dsl/operation/ChronoTask.hpp"
 
 namespace NUClear {
-    namespace dsl {
-        namespace word {
-            namespace emit {
-                
-                template <typename TData>
-                struct Delay {
+namespace dsl {
+	namespace word {
+		namespace emit {
 
-                    static void emit(PowerPlant& powerplant, std::shared_ptr<TData> data, NUClear::clock::duration delay) {
-                        
-                        // Our chrono task is just to do a normal emit in the amount of time
-                        auto msg = std::make_shared<operation::ChronoTask>([&powerplant, data] (NUClear::clock::time_point&) {
-                            
-                            // Do the emit
-                            emit::Local<TData>::emit(powerplant, data);
-                            
-                            // We don't renew, remove us
-                            return false;
-                        }, NUClear::clock::now() + delay, -1);
-                        
-                        // Send this straight to the chrono controller
-                        emit::Direct<operation::ChronoTask>::emit(powerplant, msg);
-                    }
-                };
+			/**
+			 * @brief Emits the passed object after the provided delay.
+			 *
+			 * @details Delay emits will wait the provided time delay and then emit the object utilising a normal
+			 *          local emit.
+			 *
+			 * @param data  the data to emit
+			 * @param delay the amount of time to wait before emitting this object
+			 *
+			 * @tparam DataType the datatype of the object to emit
+			 */
+			template <typename DataType>
+			struct Delay {
 
-            }  // namespace emit
-        }  // namespace word
-    }  // namespace dsl
+				static void emit(PowerPlant& powerplant,
+								 std::shared_ptr<DataType> data,
+								 NUClear::clock::duration delay) {
+
+					// Our chrono task is just to do a normal emit in the amount of time
+					auto msg = std::make_shared<operation::ChronoTask>(
+						[&powerplant, data](NUClear::clock::time_point&) {
+
+							// Do the emit
+							emit::Local<DataType>::emit(powerplant, data);
+
+							// We don't renew, remove us
+							return false;
+
+						},
+						NUClear::clock::now() + delay,
+						-1);  // Our ID is -1 as we will remove ourselves
+
+					// Send this straight to the chrono controller
+					emit::Direct<operation::ChronoTask>::emit(powerplant, msg);
+				}
+			};
+
+		}  // namespace emit
+	}	  // namespace word
+}  // namespace dsl
 }  // namespace NUClear
 
 #endif  // NUCLEAR_DSL_WORD_EMIT_DELAY_HPP

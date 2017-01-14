@@ -19,85 +19,85 @@
 #define NUCLEAR_DSL_FUSION_POSTCONDITIONFUSION_HPP
 
 #include "nuclear_bits/threading/ReactionTask.hpp"
-#include "nuclear_bits/util/MetaProgramming.hpp"
 #include "nuclear_bits/dsl/operation/DSLProxy.hpp"
 #include "nuclear_bits/dsl/fusion/has_postcondition.hpp"
 
 namespace NUClear {
-    namespace dsl {
-        namespace fusion {
+namespace dsl {
+	namespace fusion {
 
-            /// Type that redirects types without a postcondition function to their proxy type
-            template <typename TWord>
-            struct Postcondition {
-                using type = std::conditional_t<has_postcondition<TWord>::value, TWord, operation::DSLProxy<TWord>>;
-            };
+		/// Type that redirects types without a postcondition function to their proxy type
+		template <typename Word>
+		struct Postcondition {
+			using type = std::conditional_t<has_postcondition<Word>::value, Word, operation::DSLProxy<Word>>;
+		};
 
-            template<typename, typename = std::tuple<>>
-            struct PostconditionWords;
+		template <typename, typename = std::tuple<>>
+		struct PostconditionWords;
 
-            /**
-             * @brief Metafunction that extracts all of the Words with a postcondition function
-             *
-             * @tparam TWord The word we are looking at
-             * @tparam TRemainder The words we have yet to look at
-             * @tparam TPostconditionWords The words we have found with postcondition functions
-             */
-            template <typename TWord, typename... TRemainder, typename... TPostconditionWords>
-            struct PostconditionWords<std::tuple<TWord, TRemainder...>, std::tuple<TPostconditionWords...>>
-            : public std::conditional_t<has_postcondition<typename Postcondition<TWord>::type>::value,
-            /*T*/ PostconditionWords<std::tuple<TRemainder...>, std::tuple<TPostconditionWords..., typename Postcondition<TWord>::type>>,
-            /*F*/ PostconditionWords<std::tuple<TRemainder...>, std::tuple<TPostconditionWords...>>> {};
+		/**
+		 * @brief Metafunction that extracts all of the Words with a postcondition function
+		 *
+		 * @tparam Word1        The word we are looking at
+		 * @tparam WordN        The words we have yet to look at
+		 * @tparam FoundWords   The words we have found with postcondition functions
+		 */
+		template <typename Word1, typename... WordN, typename... FoundWords>
+		struct PostconditionWords<std::tuple<Word1, WordN...>, std::tuple<FoundWords...>>
+			: public std::conditional_t<has_postcondition<typename Postcondition<Word1>::type>::value,
+										/*T*/ PostconditionWords<std::tuple<WordN...>,
+																 std::tuple<FoundWords...,
+																			typename Postcondition<Word1>::type>>,
+										/*F*/ PostconditionWords<std::tuple<WordN...>, std::tuple<FoundWords...>>> {};
 
-            /**
-             * @brief Termination case for the PostconditionWords metafunction
-             *
-             * @tparam TPostconditionWords The words we have found with postcondition functions
-             */
-            template <typename... TPostconditionWords>
-            struct PostconditionWords<std::tuple<>, std::tuple<TPostconditionWords...>> {
-                using type = std::tuple<TPostconditionWords...>;
-            };
+		/**
+		 * @brief Termination case for the PostconditionWords metafunction
+		 *
+		 * @tparam PostconditionWords The words we have found with postcondition functions
+		 */
+		template <typename... FoundWords>
+		struct PostconditionWords<std::tuple<>, std::tuple<FoundWords...>> {
+			using type = std::tuple<FoundWords...>;
+		};
 
 
-            // Default case where there are no postcondition words
-            template <typename TWords>
-            struct PostconditionFuser {};
+		// Default case where there are no postcondition words
+		template <typename Words>
+		struct PostconditionFuser {};
 
-            // Case where there is only a single word remaining
-            template <typename Word>
-            struct PostconditionFuser<std::tuple<Word>> {
+		// Case where there is only a single word remaining
+		template <typename Word>
+		struct PostconditionFuser<std::tuple<Word>> {
 
-                template <typename DSL>
-                static inline void postcondition(threading::ReactionTask& task) {
+			template <typename DSL>
+			static inline void postcondition(threading::ReactionTask& task) {
 
-                    // Run our postcondition
-                    Word::template postcondition<DSL>(task);
-                }
-            };
+				// Run our remaining postcondition
+				Word::template postcondition<DSL>(task);
+			}
+		};
 
-            // Case where there is more 2 more more words remaining
-            template <typename W1, typename W2, typename... WN>
-            struct PostconditionFuser<std::tuple<W1, W2, WN...>> {
+		// Case where there is more 2 more more words remaining
+		template <typename Word1, typename Word2, typename... WordN>
+		struct PostconditionFuser<std::tuple<Word1, Word2, WordN...>> {
 
-                template <typename DSL>
-                static inline void postcondition(threading::ReactionTask& task) {
+			template <typename DSL>
+			static inline void postcondition(threading::ReactionTask& task) {
 
-                    // Run our postcondition
-                    W1::template postcondition<DSL>(task);
+				// Run our postcondition
+				Word1::template postcondition<DSL>(task);
 
-                    // Run the rest of our postconditions
-                    PostconditionFuser<std::tuple<W2, WN...>>::template postcondition<DSL>(task);
-                }
-            };
+				// Run the rest of our postconditions
+				PostconditionFuser<std::tuple<Word2, WordN...>>::template postcondition<DSL>(task);
+			}
+		};
 
-            template <typename W1, typename... WN>
-            struct PostconditionFusion
-            : public PostconditionFuser<typename PostconditionWords<std::tuple<W1, WN...>>::type> {
-            };
+		template <typename Word1, typename... WordN>
+		struct PostconditionFusion
+			: public PostconditionFuser<typename PostconditionWords<std::tuple<Word1, WordN...>>::type> {};
 
-        }  // namespace fusion
-    }  // namespace dsl
+	}  // namespace fusion
+}  // namespace dsl
 }  // namespace NUClear
 
 #endif  // NUCLEAR_DSL_FUSION_POSTCONDITIONFUSION_HPP

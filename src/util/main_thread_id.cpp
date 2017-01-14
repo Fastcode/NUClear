@@ -18,7 +18,7 @@
 #include "nuclear_bits/util/main_thread_id.hpp"
 
 namespace NUClear {
-    namespace util {
-        std::thread::id main_thread_id = std::this_thread::get_id();
-    }
+namespace util {
+	std::thread::id main_thread_id = std::this_thread::get_id();
+}
 }

@@ -19,28 +19,37 @@
 #define NUCLEAR_DSL_OPERATION_REACTIONSTATISTICSDELOOP_HPP
 
 namespace NUClear {
-    namespace dsl {
-        namespace operation {
+namespace dsl {
+	namespace operation {
 
-            template <>
-            struct CacheGet<message::ReactionStatistics> {
+		/**
+		 * @brief Prevent recursive looping when using the ReactionStatistics system
+		 *
+		 * @details When utilising the ReactionStatistics system there exists an issue in that the reaction that
+		 *          uses the reaction statistics system will itself generate reaction statistics. This causes an
+		 *          infinite loop in the system that will eventually cause a stack overflow and crash. To avoid this
+		 *          this type overloads the method and prevents reactions that use ReactionStatistics from creating
+		 *          them.
+		 */
+		template <>
+		struct CacheGet<message::ReactionStatistics> {
 
-                template <typename DSL>
-                static inline std::shared_ptr<const message::ReactionStatistics> get(threading::Reaction& r) {
+			template <typename DSL>
+			static inline std::shared_ptr<const message::ReactionStatistics> get(threading::Reaction& r) {
 
-                    // Check if we are triggering ourselves, and if so stop it!
-                    auto current = threading::ReactionTask::getCurrentTask();
-                    if (current && r.reactionId == current->parent.reactionId) {
-                        return nullptr;
-                    }
-                    else {
-                        return store::DataStore<message::ReactionStatistics>::get();
-                    }
-                }
-            };
-        }
+				// Check if we are triggering ourselves, and if so stop it!
+				auto current = threading::ReactionTask::getCurrentTask();
+				if (current && r.id == current->parent.id) {
+					return nullptr;
+				}
+				else {
+					return store::DataStore<message::ReactionStatistics>::get();
+				}
+			}
+		};
+	}
 
-    }  // namespace message
- }  // namespace NUClear
+}  // namespace message
+}  // namespace NUClear
 
 #endif  // NUCLEAR_DSL_OPERATION_REACTIONSTATISTICSDELOOP_HPP

@@ -24,30 +24,29 @@
 #include "nuclear_bits/util/windows_includes.hpp"
 
 namespace NUClear {
-    namespace extension {
+namespace extension {
 
-        class IOController : public Reactor {
-        public:
-            explicit IOController(std::unique_ptr<NUClear::Environment> environment);
-            ~IOController();
+	class IOController : public Reactor {
+	public:
+		explicit IOController(std::unique_ptr<NUClear::Environment> environment);
+		~IOController();
 
-        private:
+	private:
+		struct Event {
+			SOCKET fd;
+			std::shared_ptr<threading::Reaction> reaction;
+			int events;
+		};
 
-            struct Event {
-                SOCKET fd;
-                std::shared_ptr<threading::Reaction> reaction;
-                int events;
-            };
+		WSAEVENT notifier;
 
-            WSAEVENT notifier;
+		bool shutdown = false;
+		std::mutex reactionMutex;
+		std::map<WSAEVENT, Event> reactions;
+		std::vector<WSAEVENT> fds;
+	};
 
-            bool shutdown = false;
-            std::mutex reactionMutex;
-            std::map<WSAEVENT, Event> reactions;
-            std::vector<WSAEVENT> fds;
-        };
-
-    }  // namespace extension
+}  // namespace extension
 }  // namespace NUClear
 
 #endif  // NUCLEAR_EXTENSION_IOCONTROLLER_WINDOWS_HPP

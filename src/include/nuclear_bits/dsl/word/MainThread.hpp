@@ -21,38 +21,39 @@
 #include "nuclear_bits/util/main_thread_id.hpp"
 
 namespace NUClear {
-    namespace dsl {
-        namespace word {
+namespace dsl {
+	namespace word {
 
-            /**
-             * @ingroup Options
-             * @brief This option requires that this task executes using the main thread (usually for graphics related tasks)
-             */
-            struct MainThread {
+		/**
+		 * @brief This option requires that this task executes using the main thread (usually for graphics related
+		 * tasks)
+		 */
+		struct MainThread {
 
-                using task_ptr = std::unique_ptr<threading::ReactionTask>;
+			using task_ptr = std::unique_ptr<threading::ReactionTask>;
 
-                template <typename DSL>
-                static inline std::unique_ptr<threading::ReactionTask> reschedule(std::unique_ptr<threading::ReactionTask>&& task) {
+			template <typename DSL>
+			static inline std::unique_ptr<threading::ReactionTask> reschedule(
+				std::unique_ptr<threading::ReactionTask>&& task) {
 
-                    // If we are not the main thread, move us to the main thread
-                    if(std::this_thread::get_id() != util::main_thread_id) {
+				// If we are not the main thread, move us to the main thread
+				if (std::this_thread::get_id() != util::main_thread_id) {
 
-                        // Submit to the main thread scheduler
-                        task->parent.reactor.powerplant.submitMain(std::move(task));
+					// Submit to the main thread scheduler
+					task->parent.reactor.powerplant.submitMain(std::move(task));
 
-                        // We took the task away so return null
-                        return std::unique_ptr<threading::ReactionTask>(nullptr);
-                    }
-                    // Otherwise run!
-                    else {
-                        return std::move(task);
-                    }
-                }
-            };
+					// We took the task away so return null
+					return std::unique_ptr<threading::ReactionTask>(nullptr);
+				}
+				// Otherwise run!
+				else {
+					return std::move(task);
+				}
+			}
+		};
 
-        }  // namespace word
-    }  // namespace dsl
+	}  // namespace word
+}  // namespace dsl
 }  // namespace NUClear
 
 #endif  // NUCLEAR_DSL_WORD_MAINTHREAD_HPP

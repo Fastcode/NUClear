@@ -19,47 +19,53 @@
 #define NUCLEAR_DSL_WORD_OPTIONAL_HPP
 
 namespace NUClear {
-    namespace dsl {
-        namespace word {
+namespace dsl {
+	namespace word {
 
-            template <typename TData>
-            struct OptionalWrapper {
+		template <typename TData>
+		struct OptionalWrapper {
 
-                OptionalWrapper(TData&& d) : d(std::forward<TData>(d)) {}
+			OptionalWrapper(TData&& d) : d(std::forward<TData>(d)) {}
 
-                TData operator*() const {
-                    return std::move(d);
-                }
+			TData operator*() const {
+				return std::move(d);
+			}
 
-                operator bool() const {
-                    return true;
-                }
+			operator bool() const {
+				return true;
+			}
 
-                TData d;
-            };
+			TData d;
+		};
 
-            template <typename... DSLWords>
-            struct Optional : public Fusion<DSLWords...> {
+		template <typename... DSLWords>
+		struct Optional : public Fusion<DSLWords...> {
 
-            private:
-                template <typename... TData, int... Index>
-                static inline auto wrap(std::tuple<TData...>&& data, util::Sequence<Index...>)
-                -> decltype(std::make_tuple(OptionalWrapper<TData>(std::move(std::get<Index>(data)))...)) {
-                    return std::make_tuple(OptionalWrapper<TData>(std::move(std::get<Index>(data)))...);
-                }
+		private:
+			template <typename... TData, int... Index>
+			static inline auto wrap(std::tuple<TData...>&& data, util::Sequence<Index...>)
+				-> decltype(std::make_tuple(OptionalWrapper<TData>(std::move(std::get<Index>(data)))...)) {
+				return std::make_tuple(OptionalWrapper<TData>(std::move(std::get<Index>(data)))...);
+			}
 
-            public:
-                template <typename DSL>
-                static inline auto get(threading::Reaction& r)
-                -> decltype(wrap(Fusion<DSLWords...>::template get<DSL>(r), util::GenerateSequence<0, std::tuple_size<decltype(Fusion<DSLWords...>::template get<DSL>(r))>::value>())) {
+		public:
+			template <typename DSL>
+			static inline auto get(threading::Reaction& r)
+				-> decltype(wrap(Fusion<DSLWords...>::template get<DSL>(r),
+								 util::GenerateSequence<0,
+														std::tuple_size<decltype(
+															Fusion<DSLWords...>::template get<DSL>(r))>::value>())) {
 
-                    // Wrap all of our data in optional wrappers
-                    return wrap(Fusion<DSLWords...>::template get<DSL>(r), util::GenerateSequence<0, std::tuple_size<decltype(Fusion<DSLWords...>::template get<DSL>(r))>::value>());
-                }
-            };
+				// Wrap all of our data in optional wrappers
+				return wrap(Fusion<DSLWords...>::template get<DSL>(r),
+							util::GenerateSequence<0,
+												   std::tuple_size<decltype(
+													   Fusion<DSLWords...>::template get<DSL>(r))>::value>());
+			}
+		};
 
-        }  // namespace word
-    }  // namespace dsl
+	}  // namespace word
+}  // namespace dsl
 }  // namespace NUClear
 
 #endif  // NUCLEAR_DSL_WORD_OPTIONAL_HPP

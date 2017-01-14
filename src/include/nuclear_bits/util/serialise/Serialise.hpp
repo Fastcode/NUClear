@@ -23,118 +23,121 @@
 
 #include "nuclear_bits/util/demangle.hpp"
 #include "nuclear_bits/util/serialise/MurmurHash3.hpp"
-#include "nuclear_bits/util/MetaProgramming.hpp"
 
 // Forward declare google protocol buffers
 // We don't actually use or require them, but if
 // Anyone ever does in their code this will work
 namespace google {
-    namespace protobuf {
-        class Message;
-    }
+namespace protobuf {
+	class Message;
+}
 }
 
 namespace NUClear {
-    namespace util {
-        namespace serialise {
+namespace util {
+	namespace serialise {
 
-            template <typename T, typename Check = T>
-            struct Serialise;
+		template <typename T, typename Check = T>
+		struct Serialise;
 
-            // Plain old data
-            template <typename T>
-            struct Serialise<T, std::enable_if_t<std::is_trivial<T>::value, T>> {
+		// Plain old data
+		template <typename T>
+		struct Serialise<T, std::enable_if_t<std::is_trivial<T>::value, T>> {
 
-                static inline std::vector<char> serialise(const T& in) {
+			static inline std::vector<char> serialise(const T& in) {
 
-                    // Copy the bytes into an array
-                    const char* dataptr = reinterpret_cast<const char*>(&in);
-                    return std::vector<char>(dataptr, dataptr + sizeof(T));
-                }
+				// Copy the bytes into an array
+				const char* dataptr = reinterpret_cast<const char*>(&in);
+				return std::vector<char>(dataptr, dataptr + sizeof(T));
+			}
 
-                static inline T deserialise(const std::vector<char>& in) {
+			static inline T deserialise(const std::vector<char>& in) {
 
-                    // Copy the data into an object of the correct type
-                    T ret = *reinterpret_cast<T*>(in.data());
-                    return ret;
-                }
+				// Copy the data into an object of the correct type
+				T ret = *reinterpret_cast<T*>(in.data());
+				return ret;
+			}
 
-                static inline std::array<uint64_t, 2> hash() {
+			static inline std::array<uint64_t, 2> hash() {
 
-                    // Serialise based on the demangled class name
-                    std::string typeName = demangle(typeid(T).name());
-                    return murmurHash3(typeName.c_str(), typeName.size());
-                }
-            };
+				// Serialise based on the demangled class name
+				std::string typeName = demangle(typeid(T).name());
+				return murmurHash3(typeName.c_str(), typeName.size());
+			}
+		};
 
-            // Iterable of pod
-            template <typename T>
-            struct Serialise<T, std::enable_if_t<std::is_same<typename std::iterator_traits<decltype(std::declval<T>().begin())>::iterator_category, std::random_access_iterator_tag>::value, T>> {
+		// Iterable of pod
+		template <typename T>
+		struct Serialise<T,
+						 std::enable_if_t<std::is_same<typename std::iterator_traits<decltype(
+														   std::declval<T>().begin())>::iterator_category,
+													   std::random_access_iterator_tag>::value,
+										  T>> {
 
-                using StoredType = std::remove_reference_t<decltype(*std::declval<T>().begin())>;
+			using StoredType = std::remove_reference_t<decltype(*std::declval<T>().begin())>;
 
-                static inline std::vector<char> serialise(const T& in) {
-                    std::vector<char> out;
-                    out.reserve(std::size_t(std::distance(in.begin(), in.end())));
+			static inline std::vector<char> serialise(const T& in) {
+				std::vector<char> out;
+				out.reserve(std::size_t(std::distance(in.begin(), in.end())));
 
-                    for(const StoredType& item : in) {
-                        const char* i = reinterpret_cast<const char*>(&item);
-                        out.insert(out.end(), i, i + sizeof(decltype(item)));
-                    }
+				for (const StoredType& item : in) {
+					const char* i = reinterpret_cast<const char*>(&item);
+					out.insert(out.end(), i, i + sizeof(decltype(item)));
+				}
 
-                    return out;
-                }
+				return out;
+			}
 
-                static inline T deserialise(const std::vector<char>& in) {
+			static inline T deserialise(const std::vector<char>& in) {
 
-                    T out;
+				T out;
 
-                    const StoredType* data = reinterpret_cast<const StoredType*>(in.data());
+				const StoredType* data = reinterpret_cast<const StoredType*>(in.data());
 
-                    out.insert(out.end(), data, data + (in.size() / sizeof(StoredType)));
+				out.insert(out.end(), data, data + (in.size() / sizeof(StoredType)));
 
-                   return out;
-                }
+				return out;
+			}
 
-                static inline std::array<uint64_t, 2> hash() {
+			static inline std::array<uint64_t, 2> hash() {
 
-                    // Serialise based on the demangled class name
-                    std::string typeName = demangle(typeid(T).name());
-                    return murmurHash3(typeName.c_str(), typeName.size());
-                }
-            };
+				// Serialise based on the demangled class name
+				std::string typeName = demangle(typeid(T).name());
+				return murmurHash3(typeName.c_str(), typeName.size());
+			}
+		};
 
-            // Google protobuf
-            template <typename T>
-            struct Serialise<T, std::enable_if_t<std::is_base_of<google::protobuf::Message, T>::value, T>> {
+		// Google protobuf
+		template <typename T>
+		struct Serialise<T, std::enable_if_t<std::is_base_of<google::protobuf::Message, T>::value, T>> {
 
-                static inline std::vector<char> serialise(const T& in) {
-                    std::vector<char> output(in.ByteSize());
-                    in.SerializeToArray(output.data(), output.size());
+			static inline std::vector<char> serialise(const T& in) {
+				std::vector<char> output(in.ByteSize());
+				in.SerializeToArray(output.data(), output.size());
 
-                    return output;
-                }
+				return output;
+			}
 
-                static inline T deserialise(const std::vector<char>& in) {
-                    // Make a buffer
-                    T out;
+			static inline T deserialise(const std::vector<char>& in) {
+				// Make a buffer
+				T out;
 
-                    // Deserialize it
-                    out.ParseFromArray(in.data(), in.size());
-                    return out;
-                }
+				// Deserialize it
+				out.ParseFromArray(in.data(), in.size());
+				return out;
+			}
 
-                static inline std::array<uint64_t, 2> hash() {
+			static inline std::array<uint64_t, 2> hash() {
 
-                    // We have to construct an instance to call the reflection functions
-                    T type;
-                    // We base the hash on the name of the protocol buffer
-                    return murmurHash3(type.GetTypeName().c_str(), type.GetTypeName().size());
-                }
-            };
+				// We have to construct an instance to call the reflection functions
+				T type;
+				// We base the hash on the name of the protocol buffer
+				return murmurHash3(type.GetTypeName().c_str(), type.GetTypeName().size());
+			}
+		};
 
-        }  // namespace serialise
-    }  // namespace util
+	}  // namespace serialise
+}  // namespace util
 }  //  namespace NUClear
 
 #endif  // NUCLEAR_UTIL_SERIALISE_SERIALISE_HPP

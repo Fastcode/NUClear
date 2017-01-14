@@ -21,21 +21,21 @@
 #include "nuclear"
 
 namespace NUClear {
-    namespace extension {
+namespace extension {
 
-        class ChronoController : public Reactor {
-        public:
-            explicit ChronoController(std::unique_ptr<NUClear::Environment> environment);
+	class ChronoController : public Reactor {
+	public:
+		explicit ChronoController(std::unique_ptr<NUClear::Environment> environment);
 
-        private:
-            std::vector<dsl::operation::ChronoTask> tasks;
-            std::mutex mutex;
-            std::condition_variable wait;
-            
-            NUClear::clock::duration waitOffset;
-        };
+	private:
+		std::vector<dsl::operation::ChronoTask> tasks;
+		std::mutex mutex;
+		std::condition_variable wait;
 
-    }  // namespace extension
+		NUClear::clock::duration waitOffset;
+	};
+
+}  // namespace extension
 }  // namespace NUClear
 
 #endif  // NUCLEAR_EXTENSION_CHRONOCONTROLLER
