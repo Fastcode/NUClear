@@ -8,6 +8,8 @@ On Statements
 *************
 
 TODO explain what an on statement is, and break it down into it's parts (the DSL request, the runtime arguments, and the callback)
+anatomy of an on statement
+
 TODO explain how fission works for argument selection and how the type of arguments can be deduced as needed (for const references vs shared_ptrs and udp autodeserialisation)
 
 Data Gathering
@@ -98,6 +100,8 @@ Network
 
 Emit Statements
 ***************
+
+
 
 Local Emitting
 --------------

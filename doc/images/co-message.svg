@@ -1,0 +1,364 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:xhtml="http://www.w3.org/1999/xhtml"
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="365px"
+   height="258px"
+   version="1.1"
+   content="&lt;mxfile userAgent=&quot;Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36&quot; version=&quot;6.0.2.10&quot; editor=&quot;www.draw.io&quot; type=&quot;google&quot;&gt;&lt;diagram name=&quot;Page-1&quot;&gt;1Vhdk5sgFP01Pm4H1KD72E2z7UN3ptM8tHkkStSWSAYxH/31xXjRGNY0s60x3ZeF40XgnHPxEsebrvcfJd2kLyJm3HFRvHe8D47rYt8l+l+FHGokQI81kMgshqAWmGe/GIAI0DKLWdEJVEJwlW26YCTynEWqg1Epxa4bthK8O+uGJswC5hHlNvoti1Vao6HZVoV/YlmSmpkxgf0tafQzkaLMYT7H9VbHv/rxmpp3wUaLlMZidwJ5M8ebSiFU3Vrvp4xX3Bra6nHPPU+bdUuWq2sGkChEPqKPOIqjwAvJgw8bKdTBkMFizQ10hVSpSERO+axFn6JSbln1Rqw7qVpzaLJ9pr7rNoL2wuC5kofjg3cT011AXKGoVO8rDTWQi5wZ7DnjHGJ+MKUO4BpaKqGhdmGfhdjAPPVWqvX30gNQIUoZQRTBoR8gQlZeFEUhXT6A6noRCVM9MRg36umsYGLN9J70IMk4Vdm2uwAK9kyauFYi3QCVehTrWd2W8hJm0flYal0sHTnX+VPxuUszxeYbetzxTqdwV7ZelrZMKrY/gez9wlMPBfWQg0ls8NXuJJ0gB9KTTPLRAAx5yKLIIqdK2s31G2+OHro0b0AXCQnCDh+uOxmPD+zewDL9KvzZRKOYBFuk3NwkxhRgEjJizvijWOT6c2YUiwTjWwRPSPdgxeN5xKbjFh4JeqjspeyGWXReTXn2x9lxCddTPi11I6kaL6woqnLURV9FqZg0AXqyJubtjK501TQVXMi2muq1omXYfhfi7ueM2C7EQWCTjINBvmf20X0HJZA76Z7mrrk9jGLEQcr6unp/rbBvOosm7g4Le3DoxcLef13kf1/XWzcxNIBk+EywOxTlbwmHoV9EpmdtTyz/LBu9s1fUJoBRZ7I1y3ijkmRgJU+u0c11++6Tz9xCLmYfGS37wtsemP+HZtccmANJprvtz2J1Vra/PXqz3w==&lt;/diagram&gt;&lt;/mxfile&gt;"
+   style="background-color: rgb(255, 255, 255);"
+   id="svg2"
+   inkscape:version="0.48.4 r9939"
+   sodipodi:docname="co-message.svg">
+  <metadata
+     id="metadata90">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <sodipodi:namedview
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="1146"
+     inkscape:window-height="748"
+     id="namedview88"
+     showgrid="false"
+     inkscape:zoom="1.8294574"
+     inkscape:cx="174.26436"
+     inkscape:cy="147.23781"
+     inkscape:window-x="424"
+     inkscape:window-y="232"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="g6" />
+  <defs
+     id="defs4" />
+  <g
+     transform="translate(0.5,0.5)"
+     id="g6">
+    <ellipse
+       cx="183"
+       cy="136"
+       rx="88.5"
+       ry="85"
+       fill="none"
+       stroke="#000000"
+       pointer-events="none"
+       id="ellipse52"
+       d="m 271.5,136 c 0,46.9442 -39.6228,85 -88.5,85 -48.8772,0 -88.5,-38.0558 -88.5,-85 0,-46.944204 39.6228,-85 88.5,-85 48.8772,0 88.5,38.055796 88.5,85 z" />
+    <g
+       transform="translate(138.05932,171.38983)"
+       id="g54">
+      <switch
+         id="switch56">
+        <foreignObject
+           pointer-events="all"
+           width="93"
+           height="12"
+           requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"
+           id="foreignObject58">
+          <xhtml:div
+             style="display: inline-block; font-size: 12px; font-family: Helvetica; color: rgb(0, 0, 0); line-height: 1.2; vertical-align: top; width: 93px; white-space: nowrap; word-wrap: normal; text-align: center;">
+            <xhtml:div
+               style="display:inline-block;text-align:inherit;text-decoration:inherit;">
+              <xhtml:b>Message Router</xhtml:b>
+            </xhtml:div>
+          </xhtml:div>
+        </foreignObject>
+        <text
+           x="47.546612"
+           y="-32.275425"
+           font-size="12px"
+           id="text60"
+           style="font-size:12px;text-anchor:middle;fill:#000000;font-family:Helvetica">
+          <tspan
+             style="font-weight:bold"
+             id="tspan3067">NUClear</tspan>
+        </text>
+      </switch>
+    </g>
+    <path
+       d="M 142.01695,98.94068 C 110.31356,89.837574 97.6883,102.50424 75.170847,83.372882"
+       stroke-miterlimit="10"
+       pointer-events="none"
+       id="path72"
+       inkscape:connector-curvature="0"
+       style="fill:none;stroke:#000000;stroke-miterlimit:10"
+       sodipodi:nodetypes="cc" />
+    <path
+       d="m 280.78678,135.91102 -7,3.5 1.75,-3.5 -1.75,-3.5 z"
+       stroke-miterlimit="10"
+       pointer-events="none"
+       id="path82"
+       inkscape:connector-curvature="0"
+       style="fill:#000000;stroke:#000000;stroke-miterlimit:10"
+       sodipodi:nodetypes="ccccc" />
+    <path
+       d="m 91.902544,194.05084 c 73.792376,0.072 125.346996,-51.5466 188.553726,-59.19915"
+       stroke-miterlimit="10"
+       pointer-events="none"
+       id="path84"
+       inkscape:connector-curvature="0"
+       style="fill:none;stroke:#000000;stroke-miterlimit:10"
+       sodipodi:nodetypes="cc" />
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="130.63983"
+       y="79.805084"
+       id="text3177"
+       sodipodi:linespacing="125%"
+       transform="translate(-0.5,-0.5)"><tspan
+         sodipodi:role="line"
+         id="tspan3179"
+         x="130.63983"
+         y="79.805084"
+         style="font-size:6px" /></text>
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="212.74214"
+       y="79.268013"
+       id="text3177-6"
+       sodipodi:linespacing="125%"><tspan
+         sodipodi:role="line"
+         id="tspan3179-2"
+         x="212.74214"
+         y="79.268013"
+         style="font-size:6px" /></text>
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="168.08113"
+       y="184.56462"
+       id="text3177-2"
+       sodipodi:linespacing="125%"><tspan
+         sodipodi:role="line"
+         id="tspan3179-7"
+         x="168.08113"
+         y="184.56462"
+         style="font-size:6px">primary data</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="241.50993"
+       y="-37.380966"
+       id="text3177-0"
+       sodipodi:linespacing="125%"
+       transform="matrix(0.854746,0.5190465,-0.5190465,0.854746,0,0)"
+       inkscape:transform-center-y="-5.4661016"><tspan
+         sodipodi:role="line"
+         id="tspan3179-9"
+         x="241.50993"
+         y="-37.380966"
+         style="font-size:6px">secondary data</tspan></text>
+    <ellipse
+       cx="41"
+       cy="79"
+       rx="40"
+       ry="20"
+       pointer-events="none"
+       id="ellipse32"
+       d="M 81,79 C 81,90.045695 63.09139,99 41,99 18.90861,99 1,90.045695 1,79 1,67.954305 18.90861,59 41,59 c 22.09139,0 40,8.954305 40,20 z"
+       sodipodi:cx="41"
+       sodipodi:cy="79"
+       sodipodi:rx="40"
+       sodipodi:ry="20"
+       transform="translate(10.427965,115.63983)"
+       style="fill:#ffffff;stroke:#000000" />
+    <g
+       transform="translate(30.927965,185.31949)"
+       id="g34">
+      <switch
+         id="switch36">
+        <foreignObject
+           pointer-events="all"
+           width="40"
+           height="12"
+           requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"
+           id="foreignObject38">
+          <xhtml:div
+             style="display: inline-block; font-size: 12px; font-family: Helvetica; color: rgb(0, 0, 0); line-height: 1.2; vertical-align: top; width: 40px; white-space: nowrap; word-wrap: normal; text-align: center;">
+            <xhtml:div
+               style="display:inline-block;text-align:inherit;text-decoration:inherit;">Module</xhtml:div>
+          </xhtml:div>
+        </foreignObject>
+        <text
+           x="20"
+           y="12"
+           font-size="12px"
+           id="text40"
+           style="font-size:12px;text-anchor:middle;fill:#000000;font-family:Helvetica">Module</text>
+      </switch>
+    </g>
+    <ellipse
+       cx="41"
+       cy="79"
+       rx="40"
+       ry="20"
+       pointer-events="none"
+       id="ellipse32-6"
+       d="M 81,79 C 81,90.045695 63.09139,99 41,99 18.90861,99 1,90.045695 1,79 1,67.954305 18.90861,59 41,59 c 22.09139,0 40,8.954305 40,20 z"
+       sodipodi:cx="41"
+       sodipodi:cy="79"
+       sodipodi:rx="40"
+       sodipodi:ry="20"
+       transform="translate(10.974575,-9.45339)"
+       style="fill:#ffffff;stroke:#000000" />
+    <g
+       transform="translate(31.474575,60.22627)"
+       id="g34-7">
+      <switch
+         id="switch36-5">
+        <foreignObject
+           pointer-events="all"
+           width="40"
+           height="12"
+           requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"
+           id="foreignObject38-3">
+          <xhtml:div
+             style="display: inline-block; font-size: 12px; font-family: Helvetica; color: rgb(0, 0, 0); line-height: 1.2; vertical-align: top; width: 40px; white-space: nowrap; word-wrap: normal; text-align: center;">
+            <xhtml:div
+               style="display:inline-block;text-align:inherit;text-decoration:inherit;">Module</xhtml:div>
+          </xhtml:div>
+        </foreignObject>
+        <text
+           x="20"
+           y="12"
+           font-size="12px"
+           id="text40-5"
+           style="font-size:12px;text-anchor:middle;fill:#000000;font-family:Helvetica">Module</text>
+      </switch>
+    </g>
+    <ellipse
+       cx="41"
+       cy="79"
+       rx="40"
+       ry="20"
+       pointer-events="none"
+       id="ellipse32-62"
+       d="M 81,79 C 81,90.045695 63.09139,99 41,99 18.90861,99 1,90.045695 1,79 1,67.954305 18.90861,59 41,59 c 22.09139,0 40,8.954305 40,20 z"
+       sodipodi:cx="41"
+       sodipodi:cy="79"
+       sodipodi:rx="40"
+       sodipodi:ry="20"
+       transform="translate(280.99999,55.872884)"
+       style="fill:#ffffff;stroke:#000000" />
+    <g
+       transform="translate(301.49999,125.55254)"
+       id="g34-9">
+      <switch
+         id="switch36-1">
+        <foreignObject
+           pointer-events="all"
+           width="40"
+           height="12"
+           requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"
+           id="foreignObject38-2">
+          <xhtml:div
+             style="display: inline-block; font-size: 12px; font-family: Helvetica; color: rgb(0, 0, 0); line-height: 1.2; vertical-align: top; width: 40px; white-space: nowrap; word-wrap: normal; text-align: center;">
+            <xhtml:div
+               style="display:inline-block;text-align:inherit;text-decoration:inherit;">Module</xhtml:div>
+          </xhtml:div>
+        </foreignObject>
+        <text
+           x="20"
+           y="12"
+           font-size="12px"
+           id="text40-7"
+           style="font-size:12px;text-anchor:middle;fill:#000000;font-family:Helvetica">Module</text>
+      </switch>
+    </g>
+    <g
+       transform="translate(105.81356,25.162715)"
+       id="g34-7-9">
+      <switch
+         id="switch36-5-3">
+        <foreignObject
+           pointer-events="all"
+           width="40"
+           height="12"
+           requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"
+           id="foreignObject38-3-6">
+          <xhtml:div
+             style="display: inline-block; font-size: 12px; font-family: Helvetica; color: rgb(0, 0, 0); line-height: 1.2; vertical-align: top; width: 40px; white-space: nowrap; word-wrap: normal; text-align: center;">
+            <xhtml:div
+               style="display:inline-block;text-align:inherit;text-decoration:inherit;">Module</xhtml:div>
+          </xhtml:div>
+        </foreignObject>
+      </switch>
+    </g>
+    <ellipse
+       cx="41"
+       cy="79"
+       rx="40"
+       ry="20"
+       pointer-events="none"
+       id="ellipse32-6-6"
+       d="M 81,79 C 81,90.045695 63.09139,99 41,99 18.90861,99 1,90.045695 1,79 1,67.954305 18.90861,59 41,59 c 22.09139,0 40,8.954305 40,20 z"
+       sodipodi:cx="41"
+       sodipodi:cy="79"
+       sodipodi:rx="40"
+       sodipodi:ry="20"
+       transform="translate(143.62711,19.622885)"
+       style="fill:#ffffff;stroke:#000000" />
+    <g
+       transform="translate(110.55932,32.455088)"
+       id="g34-7-2">
+      <switch
+         id="switch36-5-6">
+        <foreignObject
+           pointer-events="all"
+           width="40"
+           height="12"
+           requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"
+           id="foreignObject38-3-1">
+          <xhtml:div
+             style="display: inline-block; font-size: 12px; font-family: Helvetica; color: rgb(0, 0, 0); line-height: 1.2; vertical-align: top; width: 40px; white-space: nowrap; word-wrap: normal; text-align: center;">
+            <xhtml:div
+               style="display:inline-block;text-align:inherit;text-decoration:inherit;">Module</xhtml:div>
+          </xhtml:div>
+        </foreignObject>
+        <text
+           x="73.567795"
+           y="68.847458"
+           font-size="12px"
+           id="text40-5-8"
+           style="font-size:12px;text-anchor:middle;fill:#000000;font-family:Helvetica">co-message</text>
+      </switch>
+    </g>
+    <path
+       d="m 144.57203,98.610173 -7,3.499997 1.75,-3.499997 -1.75,-3.5 z"
+       stroke-miterlimit="10"
+       pointer-events="none"
+       id="path82-7"
+       inkscape:connector-curvature="0"
+       style="fill:#000000;stroke:#000000;stroke-miterlimit:10"
+       sodipodi:nodetypes="ccccc" />
+    <path
+       d="m 281.08406,135.19069 c -42.31614,3.57628 -16.61387,-33.45104 -55.9139,-35.792381"
+       stroke-miterlimit="10"
+       pointer-events="none"
+       id="path72-9"
+       inkscape:connector-curvature="0"
+       style="fill:none;stroke:#000000;stroke-miterlimit:10"
+       sodipodi:nodetypes="cc" />
+  </g>
+</svg>
