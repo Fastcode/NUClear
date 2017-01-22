@@ -19,7 +19,7 @@ Blackboard systems are considered easy to implement and provide low computationa
 Issues are also apparent when used in a multi-threaded environment.  If individual components are not aware when new and relevant data becomes available, modules may miss data updates, read the same data twice, or read a partially written data element.
 
 
-C++ template metaprograms
+C++ template metapgrograms
 **************************
 Template metaprogramming is a technique where templates are used by a compiler to generate temporary source code which will be used at the time of compilation.  That is, the generated source code is merged by the compiler with the rest of the source code and then compiled.  NUClear uses C++ template metaprogramming to establish message routes at compile time.
 
@@ -64,4 +64,4 @@ Message passing systems treat each module as a producer/consumer.  Data produced
     :width: 500px
     :align: center
 
-Generally, message-passing systems will keep data :ref:`loosly coupled`, but there are several disadvantages in these systems which are not present in :ref:`blackboard systems`.  For example, a message-passing system must either provide a copy of the data for each subscriber of a message, or make all access read only which results in a performance penalty within the system.  Messaging also means that there is no central data store which can be used; if a module requires information from more than one message, it must handle the storage of this data itself to access it, which adds extra load on the modules, making development harder and reducing the systems performance.
+Generally, message-passing systems will keep data loosly coupled, but there are several disadvantages in these systems which are not present in :ref:`blackboard systems`.  For example, a message-passing system must either provide a copy of the data for each subscriber of a message, or make all access read only which results in a performance penalty within the system.  Messaging also means that there is no central data store which can be used; if a module requires information from more than one message, it must handle the storage of this data itself to access it, which adds extra load on the modules, making development harder and reducing the systems performance.

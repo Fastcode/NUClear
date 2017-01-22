@@ -9,12 +9,3 @@ NUClear utilises a system called :ref:`co-messaging` to allow simple event callb
 NUClear has been successfully applied in several projects for robotics and virtual reality.
 
 If you are starting a new project using NUClear the `NUClear Roles system <https://github.com/Fastcode/NUClearRoles>`_ is highly recommended as it wraps much of the complexity of managing modules.
-
-Why NUClear?
-************
-
-The primary advantages offered by NUClear are those of high data availability in a loosely coupled architecture. The result from these design goals is an extensible system with :ref:`faster communication` than other similar systems.
-
-
-//TODO:
-Ask Trent if he wanted this to go more indepth
