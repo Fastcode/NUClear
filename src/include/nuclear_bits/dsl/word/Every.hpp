@@ -46,11 +46,11 @@ namespace dsl {
 		 *
 		 * @details		This is designed to be used as a DSL request for an on statement:
 		 *						@code on<Every<ticks, period>() @endcode
-	 	 *
 		 *  					It will enact the execution a task at a periodic rate.  The
 		 *						desired period simply needs to be specified for the correct
 		 *						timing to be called.  For instance, if the request was specified
 		 *						as shown in the following example:
+		 *
 		 *  					@code on<Every<2, std::chrono::seconds>() @endcode
 		 *  					A callback to initialise a task would execute every 2 seconds.
 		 *
@@ -63,7 +63,6 @@ namespace dsl {
 		 *						the ticks in, defaults to clock duration.  This function can
 		 *						accept any of the std::chrono helper types (nanoseconds,
 		 *						microseconds, milliseconds, seconds, minutes, hours).
-		 *
 		 *						Note that this paramter may also be wrapped in a Per<>
 		 *						template in order to write a frequency rather then a period.
 		 */
