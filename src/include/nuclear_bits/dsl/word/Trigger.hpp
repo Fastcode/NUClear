@@ -26,14 +26,22 @@ namespace dsl {
 	namespace word {
 
 		/**
-		 * @brief This is a wrapper class which is used to list the data types to trigger a callback on.
+		 * @brief		Used to request any data dependent reactions in the system.
 		 *
-		 * @details
-		 *  This class is used in the on binding to specify which data types are to be used trigger a callback. It
-		 *  works under and logic for multiple types. When all of the types have been emitted at least once since
-		 *  the last time this event was triggered, this event is triggered again.
+		 * @details	This is designed to be used as a DSL request for an on statement:
+		 * 					@code	on<Trigger<T, ...>>() @endcode
+		 *					It will enact the execution a task whenever T is emitted into the
+		 *					system.  When this occurs, read-only access to T will be provided
+		 *					to the triggering unit via a callback.
 		 *
-		 * @tparam T the datatypes to trigger a callback on
+		 *					The request can handle multiple types.  Note that when used for
+		 *					multiple types, the reaction will only be triggered once
+		 *					<b>all</b> of the types have been emitted (at least once) since the
+		 *					last occurence of the event.
+		 *
+		 * @tparam 	T the datatypes on which a reaction callback will be triggered.
+		 *					These will be flagged as <b>primary</b> datatype/s for the
+		 *					subscribing reaction.
 		 */
 		template <typename T>
 		struct Trigger : public operation::TypeBind<T>, public operation::CacheGet<T> {};

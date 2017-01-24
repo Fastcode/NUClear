@@ -27,14 +27,24 @@ namespace dsl {
 	namespace word {
 
 		/**
-		 * @brief This is a wrapper class which is used to list the data types to use in addtion on a callback.
+		 * @brief			Used to define any secondary data which should be provided to
+		 *						a subscribing a reaction.
 		 *
-		 * @details
-		 *  This class is used in the on binding to specify additional data which is used in a call, but does not
-		 *  trigger the call to run. When the call is run, the latest version of the data available will be obtained.
-		 *  from the cache, and used as a paramter in this function call.
+		 * @details		This is designed to be used in conjunction with the DSL request
+		 *						for an on statement:
+		 *						@code on<Trigger<T, ...>, With<TWiths, ...>>() @endcode
+		 * 						When TWiths is emitted into the system, it will <b>not</b>
+		 *						trigger a callback to the triggering unit. When T is emitted
+		 *						into the system, read-only access to the most recent copy of
+		 *						both T and TWiths will be provided via a callback to the
+		 *						triggering unit.
 		 *
-		 * @tparam TWiths the datatypes to get from the cache and use in the callback.
+		 * @attention QForTRENT:  --what if a copy of the data is not present at the
+		 *						time of the required callback?  Does this stop the Task from
+		 *						running?  Does this also work with Every and Always?
+		 *
+		 * @tparam 		TWiths the datatypes which will be retreived from the cache and
+		 *						used in the reaction callback.
 		 */
 		template <typename... TWiths>
 		struct With : public Fusion<operation::CacheGet<TWiths>...> {};

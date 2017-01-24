@@ -1,14 +1,36 @@
-===========
+include .special.rst
+
 NUClear DSL
 ===========
-
-TODO go through all the DSL words and explain what they do/used for and an example
 
 On Statements
 *************
 
-TODO explain what an on statement is, and break it down into it's parts (the DSL request, the runtime arguments, and the callback)
+The On statement is used by :ref:`Reactors` to make subscriptions to the :ref:`PowerPlant`.  Using this statement, developers can set the conditions under which desired :ref:`Reactions` will run.
+
 anatomy of an on statement
+--------------------------
+.. image:: images/on_statement.svg
+
+The on statement can be seen as containing three main parts.  The DSL Request, the Runtime Arguments, and the Callback.
+
+.. raw:: html
+
+    <font color="blue">DSL Request</font><br />
+
+This defines the kind of reaction which is being requested. The keyword "on" makes the request, while the specified types will define the kind of reaction desired.  For more information please see: :ref:`Trigger`, :ref:`With`, :ref:`Every` and :ref:`Always`,
+
+.. raw:: html
+
+    <font color="red">runtime arguments</font>
+
+TODO
+
+.. raw:: html
+
+    <font color="green">callback</font>
+
+TODO
 
 TODO explain how fission works for argument selection and how the type of arguments can be deduced as needed (for const references vs shared_ptrs and udp autodeserialisation)
 

@@ -42,23 +42,30 @@ namespace dsl {
 		};
 
 		/**
-		 * @brief A special flag type which specifies that this reaction should trigger at the given rate
+		 * @brief			Used to request any periodic reactions in the system.
 		 *
-		 * @details
-		 *  This type is used in a dsl statement to specify that the given reaction should trigger at the rate
-		 *  set by this type. For instance, if the type was specified as shown in the following example
-		 *  @code on<Every<2, std::chrono::seconds> @endcode
-		 *  then the callback would execute every 2 seconds. This type simply needs to exist in the trigger for the
-		 *  correct timing to be called.
+		 * @details		This is designed to be used as a DSL request for an on statement:
+		 *						@code on<Every<ticks, period>() @endcode
+	 	 *
+		 *  					It will enact the execution a task at a periodic rate.  The
+		 *						desired period simply needs to be specified for the correct
+		 *						timing to be called.  For instance, if the request was specified
+		 *						as shown in the following example:
+		 *  					@code on<Every<2, std::chrono::seconds>() @endcode
+		 *  					A callback to initialise a task would execute every 2 seconds.
 		 *
-		 * @attention Note that the period which is used to measure the ticks in must be greater than or equal to
-		 *  clock::duration or the program will not compile
+		 * @attention	Note that the period which is used to measure the ticks must be
+		 *						greater than or equal to clock::duration or the program will not
+		 *						compile
 		 *
-		 * @tparam ticks the number of ticks of a paticular type to wait
-		 * @tparam period a type of duration (e.g. std::chrono::seconds) to measure the ticks in, defaults to clock
-		 * duration.
-		 *                  This paramter may also be wrapped in a Per<> template in order to write a frequency rather
-		 * then a period.
+		 * @tparam 		ticks the number of ticks of a paticular type to wait
+		 * @tparam 		period a type of duration (e.g. std::chrono::seconds) to measure
+		 *						the ticks in, defaults to clock duration.  This function can
+		 *						accept any of the std::chrono helper types (nanoseconds,
+		 *						microseconds, milliseconds, seconds, minutes, hours).
+		 *
+		 *						Note that this paramter may also be wrapped in a Per<>
+		 *						template in order to write a frequency rather then a period.
 		 */
 		template <int ticks = 0, class period = NUClear::clock::duration>
 		struct Every;
