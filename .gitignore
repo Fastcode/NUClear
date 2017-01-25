@@ -24,3 +24,4 @@ install_manifest.txt
 tags
 *.swp
 .idea
+docs/doxygen

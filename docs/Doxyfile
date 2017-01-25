@@ -1,0 +1,12 @@
+PROJECT_NAME        = "NUClear"
+XML_OUTPUT          = doxygen
+CASE_SENSE_NAMES    = NO
+INPUT               = ../src
+RECURSIVE           = YES
+QUIET               = YES
+JAVADOC_AUTOBRIEF   = YES
+GENERATE_LATEX      = NO
+GENERATE_MAN        = NO
+GENERATE_RTF        = NO
+GENERATE_HTML       = NO
+GENERATE_XML        = YES

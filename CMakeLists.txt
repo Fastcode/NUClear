@@ -24,4 +24,4 @@ INSTALL(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/src/include/ DESTINATION include P
 ADD_SUBDIRECTORY(tests)
 
 # Add the documentation subdirectory
-ADD_SUBDIRECTORY(doc)
+ADD_SUBDIRECTORY(docs)

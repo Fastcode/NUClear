@@ -16,9 +16,13 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
-# import os
-# import sys
+import os
+import sys
 # sys.path.insert(0, os.path.abspath('.'))
+
+# Run doxygen for breathe
+from subprocess import call
+call('doxygen')
 
 # -- General configuration ------------------------------------------------
 
@@ -35,7 +39,7 @@ extensions = [
     'sphinx.ext.autosectionlabel'
 ]
 
-breathe_projects = { "NUClear": "../build/doc/xml" }
+breathe_projects = { "NUClear": "doxygen" }
 breathe_default_project = "NUClear"
 
 # Add any paths that contain templates here, relative to this directory.
