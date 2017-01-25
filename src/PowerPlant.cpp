@@ -43,13 +43,14 @@ PowerPlant::PowerPlant(Configuration config, int argc, const char* argv[])
 	install<extension::NetworkController>();
 
 	// Emit our arguments if any.
-	auto args = std::make_unique<message::CommandLineArguments>();
-
-	for (int i = 0; i < argc; ++i) {
-		args->emplace_back(argv[i]);
-	}
-
-	emit<dsl::word::emit::Initialise>(std::move(args));
+    message::CommandLineArguments args;
+    for (int i = 0; i < argc; ++i) {
+        args.emplace_back(argv[i]);
+    }
+   
+    // We emit this twice, so the data is available for extensions
+    emit(std::make_unique<message::CommandLineArguments>(args));
+    emit<dsl::word::emit::Initialise>(std::make_unique<message::CommandLineArguments>(args));
 }
 
 PowerPlant::~PowerPlant() {
