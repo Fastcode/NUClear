@@ -22,46 +22,46 @@
 
 namespace NUClear {
 namespace dsl {
-	namespace word {
+    namespace word {
 
-		/**
-		 * @brief
-		 *  This is used to specifiy that the Task will need to execute using the main thread
-		 *
-		 * @details
-		 *  This will most likely be used with Graphics related tasks.  For best use, this word should be fused with at
-		 *  least one other binding DSL word.  For example:
-		 * 	@code	on<Trigger<T, ...>, MainThred>() @endcode
-		 *
-		 * @par Implements
-		 *  Precondition
-		 *
-		 */
-		struct MainThread {
+        /**
+         * @brief
+         *  This is used to specifiy that the Task will need to execute using the main thread
+         *
+         * @details
+         *  This will most likely be used with Graphics related tasks. For best use, this word should be fused with at
+         *  least one other binding DSL word.  For example:
+         *  @code on<Trigger<T, ...>, MainThred>() @endcode
+         *
+         * @par Implements
+         *  Precondition
+         *
+         */
+        struct MainThread {
 
-			using task_ptr = std::unique_ptr<threading::ReactionTask>;
+            using task_ptr = std::unique_ptr<threading::ReactionTask>;
 
-			template <typename DSL>
-			static inline std::unique_ptr<threading::ReactionTask> reschedule(
-				std::unique_ptr<threading::ReactionTask>&& task) {
+            template <typename DSL>
+            static inline std::unique_ptr<threading::ReactionTask> reschedule(
+                std::unique_ptr<threading::ReactionTask>&& task) {
 
-				// If we are not the main thread, move us to the main thread
-				if (std::this_thread::get_id() != util::main_thread_id) {
+                // If we are not the main thread, move us to the main thread
+                if (std::this_thread::get_id() != util::main_thread_id) {
 
-					// Submit to the main thread scheduler
-					task->parent.reactor.powerplant.submitMain(std::move(task));
+                    // Submit to the main thread scheduler
+                    task->parent.reactor.powerplant.submitMain(std::move(task));
 
-					// We took the task away so return null
-					return std::unique_ptr<threading::ReactionTask>(nullptr);
-				}
-				// Otherwise run!
-				else {
-					return std::move(task);
-				}
-			}
-		};
+                    // We took the task away so return null
+                    return std::unique_ptr<threading::ReactionTask>(nullptr);
+                }
+                // Otherwise run!
+                else {
+                    return std::move(task);
+                }
+            }
+        };
 
-	}  // namespace word
+    }  // namespace word
 }  // namespace dsl
 }  // namespace NUClear
 

@@ -22,21 +22,20 @@
 
 namespace NUClear {
 namespace dsl {
-	namespace word {
+    namespace word {
 
-		/**
-		 * @brief Used to specify reactions which should occur at startup
-		 *
-		 * @details This can specify any reactions which need to run directly after
-		 *					all reactors have been installed into the PowerPlant.
-		 *					@code on<Startup>()@endcode
-		 *					It will most commonly be used when a reactor needs to use information
-		 *					provided by another reactors constructor.
-		 *
-		 */
-		struct Startup : public operation::TypeBind<Startup> {};
+        /**
+         * @brief Used to specify reactions which should occur at startup
+         *
+         * @details
+         *  This can specify any reactions which need to run directly after all reactors have been installed
+         *  into the PowerPlant. @code on<Startup>() @endcode It will most commonly be used when a reactor needs to use
+         *  information provided by another reactors constructor.
+         *
+         */
+        struct Startup : public operation::TypeBind<Startup> {};
 
-	}  // namespace word
+    }  // namespace word
 }  // namespace dsl
 }  // namespace NUClear
 

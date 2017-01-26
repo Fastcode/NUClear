@@ -21,15 +21,15 @@
 namespace NUClear {
 namespace util {
 
-	template <typename T>
-	struct MergeTransients {
-		static inline bool merge(T& t, T& d) {
-			d = t = d ? d : t;
-			return true;
-		};
-	};
+    template <typename T>
+    struct MergeTransients {
+        static inline bool merge(T& t, T& d) {
+            d = t = d ? d : t;
+            return true;
+        };
+    };
 
 }  // namespace util
-}  //  namespace NUClear
+}  // namespace NUClear
 
 #endif  // NUCLEAR_UTIL_MERGETRANSIENT_HPP

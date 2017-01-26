@@ -23,41 +23,41 @@ namespace {
 
 class TestReactor : public NUClear::Reactor {
 public:
-	TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
+    TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
 
-		// Run a task without MainThread to make sure it isn't on the main thread
-		on<Trigger<int>>().then([this] {
+        // Run a task without MainThread to make sure it isn't on the main thread
+        on<Trigger<int>>().then([this] {
 
-			// We shouldn't be on the main thread
-			REQUIRE(NUClear::util::main_thread_id != std::this_thread::get_id());
+            // We shouldn't be on the main thread
+            REQUIRE(NUClear::util::main_thread_id != std::this_thread::get_id());
 
-			emit(std::make_unique<double>(1.1));
-		});
+            emit(std::make_unique<double>(1.1));
+        });
 
-		// Run a task with MainTHread and ensure that it is on the main thread
-		on<Trigger<double>, MainThread>().then([this] {
+        // Run a task with MainTHread and ensure that it is on the main thread
+        on<Trigger<double>, MainThread>().then([this] {
 
-			// We should be on the main thread
-			REQUIRE(NUClear::util::main_thread_id == std::this_thread::get_id());
+            // We should be on the main thread
+            REQUIRE(NUClear::util::main_thread_id == std::this_thread::get_id());
 
-			powerplant.shutdown();
-		});
+            powerplant.shutdown();
+        });
 
-		on<Startup>().then([this]() {
+        on<Startup>().then([this]() {
 
-			// Emit an integer to trigger the reaction
-			emit(std::make_unique<int>());
-		});
-	}
+            // Emit an integer to trigger the reaction
+            emit(std::make_unique<int>());
+        });
+    }
 };
 }
 
 TEST_CASE("Testing that the MainThread keyword runs tasks on the main thread", "[api][dsl][main_thread]") {
 
-	NUClear::PowerPlant::Configuration config;
-	config.threadCount = 1;
-	NUClear::PowerPlant plant(config);
-	plant.install<TestReactor>();
+    NUClear::PowerPlant::Configuration config;
+    config.threadCount = 1;
+    NUClear::PowerPlant plant(config);
+    plant.install<TestReactor>();
 
-	plant.start();
+    plant.start();
 }

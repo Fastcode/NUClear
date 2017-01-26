@@ -25,33 +25,33 @@ int i = 0;
 
 class TestReactor : public NUClear::Reactor {
 public:
-	TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
+    TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
 
-		on<Always>().then([this] {
+        on<Always>().then([this] {
 
-			++i;
+            ++i;
 
-			// Run until it's 11 then shutdown
-			if (i > 10) {
-				powerplant.shutdown();
-			}
-		});
-	}
+            // Run until it's 11 then shutdown
+            if (i > 10) {
+                powerplant.shutdown();
+            }
+        });
+    }
 };
 }
 
 TEST_CASE("Testing on<Always> functionality (permanant run)", "[api][always]") {
 
-	NUClear::PowerPlant::Configuration config;
-	config.threadCount = 1;
-	NUClear::PowerPlant plant(config);
+    NUClear::PowerPlant::Configuration config;
+    config.threadCount = 1;
+    NUClear::PowerPlant plant(config);
 
-	// We are installing with an initial log level of debug
-	plant.install<TestReactor, NUClear::DEBUG>();
+    // We are installing with an initial log level of debug
+    plant.install<TestReactor, NUClear::DEBUG>();
 
-	plant.emit(std::make_unique<int>(5));
+    plant.emit(std::make_unique<int>(5));
 
-	plant.start();
+    plant.start();
 
-	REQUIRE(i == 11);
+    REQUIRE(i == 11);
 }

@@ -25,94 +25,94 @@
 #endif
 
 #include "nuclear_bits/dsl/operation/Unbind.hpp"
-#include "nuclear_bits/dsl/word/emit/Direct.hpp"
-#include "nuclear_bits/dsl/word/Single.hpp"
 #include "nuclear_bits/dsl/store/ThreadStore.hpp"
 #include "nuclear_bits/dsl/trait/is_transient.hpp"
+#include "nuclear_bits/dsl/word/Single.hpp"
+#include "nuclear_bits/dsl/word/emit/Direct.hpp"
 #include "nuclear_bits/util/generate_reaction.hpp"
 #include "nuclear_bits/util/platform.hpp"
 
 namespace NUClear {
 namespace dsl {
-	namespace word {
+    namespace word {
 
-		struct IOConfiguration {
-			fd_t fd;
-			int events;
-			std::shared_ptr<threading::Reaction> reaction;
-		};
+        struct IOConfiguration {
+            fd_t fd;
+            int events;
+            std::shared_ptr<threading::Reaction> reaction;
+        };
 
-		/**
-		 * @brief Used for communicating with serial devices and notwork ports
-		 *
-		 * @details Use this to interact with file descriptors and execute when they
-		 *					are read/writeable.
-		 *					@code on<IO>(file_descriptor)@endcode
-		 *
-		 */
-		// IO is implicitly single
-		struct IO : public Single {
+        /**
+         * @brief Used for communicating with serial devices and notwork ports
+         *
+         * @details
+         *  Use this to interact with file descriptors and execute when they are read/writeable.
+         *  @code on<IO>(file_descriptor)@endcode
+         *
+         */
+        // IO is implicitly single
+        struct IO : public Single {
 
 // On windows we use different wait events
 #ifdef _WIN32
-			enum EventType : short{READ = FD_READ | FD_OOB | FD_ACCEPT, WRITE = FD_WRITE, CLOSE = FD_CLOSE, ERROR = 0};
+            enum EventType : short{READ = FD_READ | FD_OOB | FD_ACCEPT, WRITE = FD_WRITE, CLOSE = FD_CLOSE, ERROR = 0};
 #else
-			enum EventType : short { READ = POLLIN, WRITE = POLLOUT, CLOSE = POLLHUP, ERROR = POLLNVAL | POLLERR };
+            enum EventType : short { READ = POLLIN, WRITE = POLLOUT, CLOSE = POLLHUP, ERROR = POLLNVAL | POLLERR };
 #endif
 
-			struct Event {
-				fd_t fd;
-				int events;
+            struct Event {
+                fd_t fd;
+                int events;
 
-				operator bool() const {
-					return fd != -1;
-				}
-			};
+                operator bool() const {
+                    return fd != -1;
+                }
+            };
 
-			using ThreadEventStore = dsl::store::ThreadStore<Event>;
+            using ThreadEventStore = dsl::store::ThreadStore<Event>;
 
-			template <typename DSL, typename Function>
-			static inline threading::ReactionHandle bind(Reactor& reactor,
-														 const std::string& label,
-														 Function&& callback,
-														 fd_t fd,
-														 int watchSet) {
+            template <typename DSL, typename Function>
+            static inline threading::ReactionHandle bind(Reactor& reactor,
+                                                         const std::string& label,
+                                                         Function&& callback,
+                                                         fd_t fd,
+                                                         int watchSet) {
 
-				auto reaction = util::generate_reaction<DSL, IO>(reactor, label, std::forward<Function>(callback));
+                auto reaction = util::generate_reaction<DSL, IO>(reactor, label, std::forward<Function>(callback));
 
-				auto ioConfig = std::make_unique<IOConfiguration>(IOConfiguration{fd, watchSet, std::move(reaction)});
+                auto ioConfig = std::make_unique<IOConfiguration>(IOConfiguration{fd, watchSet, std::move(reaction)});
 
-				threading::ReactionHandle handle(ioConfig->reaction);
+                threading::ReactionHandle handle(ioConfig->reaction);
 
-				// Send our configuration out
-				reactor.powerplant.emit<emit::Direct>(ioConfig);
+                // Send our configuration out
+                reactor.powerplant.emit<emit::Direct>(ioConfig);
 
-				// Return our handles
-				return handle;
-			}
+                // Return our handles
+                return handle;
+            }
 
-			template <typename DSL>
-			static inline Event get(threading::Reaction&) {
+            template <typename DSL>
+            static inline Event get(threading::Reaction&) {
 
-				// If our thread store has a value
-				if (ThreadEventStore::value) {
-					return *ThreadEventStore::value;
-				}
-				// Otherwise return an invalid event
-				else {
-					return Event{INVALID_SOCKET, 0};
-				}
-			}
-		};
+                // If our thread store has a value
+                if (ThreadEventStore::value) {
+                    return *ThreadEventStore::value;
+                }
+                // Otherwise return an invalid event
+                else {
+                    return Event{INVALID_SOCKET, 0};
+                }
+            }
+        };
 
-	}  // namespace word
+    }  // namespace word
 
-	namespace trait {
+    namespace trait {
 
-		template <>
-		struct is_transient<word::IO::Event> : public std::true_type {};
+        template <>
+        struct is_transient<word::IO::Event> : public std::true_type {};
 
-	}  // namespace trait
+    }  // namespace trait
 }  // namespace dsl
 }  // namespace NUClear
 

@@ -18,29 +18,29 @@
 #ifndef NUCLEAR_UTIL_SERIALISE_MURMURHASH3_HPP
 #define NUCLEAR_UTIL_SERIALISE_MURMURHASH3_HPP
 
-#include <cstdint>
 #include <array>
+#include <cstdint>
 
 #include <functional>
 
 namespace NUClear {
 namespace util {
-	namespace serialise {
+    namespace serialise {
 
-		/**
-		 * @brief Constructs a new hash from the passed key (of length bytes)
-		 *
-		 * @details Gets the hash digest of the passed bytes using the MurmurHash3
-		 *  hashing function. Specifically the x64 128 bit version using the seed
-		 *  0x4e55436c
-		 *
-		 * @param key a pointer to the data for the key
-		 * @param len the number of bytes in the key
-		 */
-		std::array<uint64_t, 2> murmurHash3(const void* key, const size_t len);
+        /**
+         * @brief Constructs a new hash from the passed key (of length bytes)
+         *
+         * @details Gets the hash digest of the passed bytes using the MurmurHash3
+         *  hashing function. Specifically the x64 128 bit version using the seed
+         *  0x4e55436c
+         *
+         * @param key a pointer to the data for the key
+         * @param len the number of bytes in the key
+         */
+        std::array<uint64_t, 2> murmurHash3(const void* key, const size_t len);
 
-	}  // namespace serialise
+    }  // namespace serialise
 }  // namespace util
-}  //  namespace NUClear
+}  // namespace NUClear
 
 #endif  // NUCLEAR_UTIL_SERIALISE_MURMURHASH3_HPP

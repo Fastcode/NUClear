@@ -30,57 +30,57 @@ MessageB* b = nullptr;
 
 class TestReactor : public NUClear::Reactor {
 public:
-	TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
+    TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
 
 
-		on<Trigger<SimpleMessage>>().then([this] {
-			auto data = std::make_unique<MessageA>();
-			a		  = data.get();
+        on<Trigger<SimpleMessage>>().then([this] {
+            auto data = std::make_unique<MessageA>();
+            a         = data.get();
 
-			// Emit the first half of the requred data
-			emit(data);
-		});
+            // Emit the first half of the requred data
+            emit(data);
+        });
 
-		on<Trigger<MessageA>>().then([this] {
-			// Check a has been emitted
-			REQUIRE(a != nullptr);
+        on<Trigger<MessageA>>().then([this] {
+            // Check a has been emitted
+            REQUIRE(a != nullptr);
 
-			auto data = std::make_unique<MessageB>();
-			b		  = data.get();
+            auto data = std::make_unique<MessageB>();
+            b         = data.get();
 
-			// Emit the 2nd half
-			emit(data);
+            // Emit the 2nd half
+            emit(data);
 
-			// We can shutdown now, the other reactions will process before termination
-			powerplant.shutdown();
-		});
+            // We can shutdown now, the other reactions will process before termination
+            powerplant.shutdown();
+        });
 
-		on<Trigger<MessageB>>().then([this] {
-			// Check b has been emitted
-			REQUIRE(b != nullptr);
-		});
+        on<Trigger<MessageB>>().then([this] {
+            // Check b has been emitted
+            REQUIRE(b != nullptr);
+        });
 
-		// We make this high priority to ensure it runs first (will check for more errors)
-		on<Trigger<MessageA>, With<MessageB>, Priority::HIGH>().then([this](const MessageA&, const MessageB&) {
-			// Check A and B have been emitted
-			REQUIRE(a != nullptr);
-			REQUIRE(b != nullptr);
-		});
-	}
+        // We make this high priority to ensure it runs first (will check for more errors)
+        on<Trigger<MessageA>, With<MessageB>, Priority::HIGH>().then([this](const MessageA&, const MessageB&) {
+            // Check A and B have been emitted
+            REQUIRE(a != nullptr);
+            REQUIRE(b != nullptr);
+        });
+    }
 };
 }
 
 
 TEST_CASE("Testing emitting types that are flag types (Have no contents)", "[api][flag]") {
 
-	NUClear::PowerPlant::Configuration config;
-	config.threadCount = 1;
-	NUClear::PowerPlant plant(config);
-	plant.install<TestReactor>();
+    NUClear::PowerPlant::Configuration config;
+    config.threadCount = 1;
+    NUClear::PowerPlant plant(config);
+    plant.install<TestReactor>();
 
-	auto message = std::make_unique<SimpleMessage>();
+    auto message = std::make_unique<SimpleMessage>();
 
-	plant.emit(message);
+    plant.emit(message);
 
-	plant.start();
+    plant.start();
 }

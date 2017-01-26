@@ -25,34 +25,34 @@
 namespace NUClear {
 namespace util {
 
-	template <typename DSL, typename BindType, typename Function>
-	std::unique_ptr<threading::Reaction> generate_reaction(
-		Reactor& reactor,
-		const std::string& label,
-		Function&& callback,
-		std::function<void(threading::Reaction&)> unbind = std::function<void(threading::Reaction&)>()) {
+    template <typename DSL, typename BindType, typename Function>
+    std::unique_ptr<threading::Reaction> generate_reaction(
+        Reactor& reactor,
+        const std::string& label,
+        Function&& callback,
+        std::function<void(threading::Reaction&)> unbind = std::function<void(threading::Reaction&)>()) {
 
-		// Get our identifier string
-		std::vector<std::string> identifier =
-			util::get_identifier<typename DSL::DSL, Function>(label, reactor.reactorName);
+        // Get our identifier string
+        std::vector<std::string> identifier =
+            util::get_identifier<typename DSL::DSL, Function>(label, reactor.reactorName);
 
-		// Get our powerplant
-		auto& powerplant = reactor.powerplant;
+        // Get our powerplant
+        auto& powerplant = reactor.powerplant;
 
-		// Create our unbinder
-		auto unbinder = [&powerplant, unbind](threading::Reaction& r) {
-			powerplant.emit<dsl::word::emit::Direct>(std::make_unique<dsl::operation::Unbind<BindType>>(r.id));
-			if (unbind) {
-				unbind(r);
-			}
-		};
+        // Create our unbinder
+        auto unbinder = [&powerplant, unbind](threading::Reaction& r) {
+            powerplant.emit<dsl::word::emit::Direct>(std::make_unique<dsl::operation::Unbind<BindType>>(r.id));
+            if (unbind) {
+                unbind(r);
+            }
+        };
 
-		// Create our reaction
-		return std::make_unique<threading::Reaction>(
-			reactor, std::move(identifier), std::forward<Function>(callback), std::move(unbinder));
-	}
+        // Create our reaction
+        return std::make_unique<threading::Reaction>(
+            reactor, std::move(identifier), std::forward<Function>(callback), std::move(unbinder));
+    }
 
 }  // namespace util
-}  //  namespace NUClear
+}  // namespace NUClear
 
 #endif  // NUCLEAR_UTIL_GENERATE_REACTION_HPP

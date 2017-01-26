@@ -20,66 +20,66 @@
 
 namespace NUClear {
 namespace dsl {
-	namespace word {
+    namespace word {
 
-		template <typename T>
-		struct OptionalWrapper {
+        template <typename T>
+        struct OptionalWrapper {
 
-			OptionalWrapper(T&& d) : d(std::forward<T>(d)) {}
+            OptionalWrapper(T&& d) : d(std::forward<T>(d)) {}
 
-			T operator*() const {
-				return std::move(d);
-			}
+            T operator*() const {
+                return std::move(d);
+            }
 
-			operator bool() const {
-				return true;
-			}
+            operator bool() const {
+                return true;
+            }
 
-			T d;
-		};
+            T d;
+        };
 
-		/**
-		 * @brief
-		 *  This is used to signify any optional requirements in the DSL request.
-		 *
-		 * @details
-		 *  During runtime, optional data does not need to be present when triggering a reaction within the system. This
-		 *  word should be fused with any other Get DSL word.
-		 *  For example:
-		 *	@code	on<Trigger<T1>, Optional<With<T2>() @endcode
-		 *
-		 *@par Implements
-		 *  Fusion
-		 *
-		 * @tparam 	DSLWords The activity this request will be applied to
-		 */
-		template <typename... DSLWords>
-		struct Optional : public Fusion<DSLWords...> {
+        /**
+         * @brief
+         *  This is used to signify any optional requirements in the DSL request.
+         *
+         * @details
+         *  During runtime, optional data does not need to be present when triggering a reaction within the system. This
+         *  word should be fused with any other Get DSL word.
+         *  For example:
+         *  @code on<Trigger<T1>, Optional<With<T2>() @endcode
+         *
+         *@par Implements
+         *  Fusion
+         *
+         * @tparam DSLWords The activity this request will be applied to
+         */
+        template <typename... DSLWords>
+        struct Optional : public Fusion<DSLWords...> {
 
-		private:
-			template <typename... T, int... Index>
-			static inline auto wrap(std::tuple<T...>&& data, util::Sequence<Index...>)
-				-> decltype(std::make_tuple(OptionalWrapper<T>(std::move(std::get<Index>(data)))...)) {
-				return std::make_tuple(OptionalWrapper<T>(std::move(std::get<Index>(data)))...);
-			}
+        private:
+            template <typename... T, int... Index>
+            static inline auto wrap(std::tuple<T...>&& data, util::Sequence<Index...>)
+                -> decltype(std::make_tuple(OptionalWrapper<T>(std::move(std::get<Index>(data)))...)) {
+                return std::make_tuple(OptionalWrapper<T>(std::move(std::get<Index>(data)))...);
+            }
 
-		public:
-			template <typename DSL>
-			static inline auto get(threading::Reaction& r)
-				-> decltype(wrap(Fusion<DSLWords...>::template get<DSL>(r),
-								 util::GenerateSequence<0,
-														std::tuple_size<decltype(
-															Fusion<DSLWords...>::template get<DSL>(r))>::value>())) {
+        public:
+            template <typename DSL>
+            static inline auto get(threading::Reaction& r)
+                -> decltype(wrap(Fusion<DSLWords...>::template get<DSL>(r),
+                                 util::GenerateSequence<0,
+                                                        std::tuple_size<decltype(
+                                                            Fusion<DSLWords...>::template get<DSL>(r))>::value>())) {
 
-				// Wrap all of our data in optional wrappers
-				return wrap(Fusion<DSLWords...>::template get<DSL>(r),
-							util::GenerateSequence<0,
-												   std::tuple_size<decltype(
-													   Fusion<DSLWords...>::template get<DSL>(r))>::value>());
-			}
-		};
+                // Wrap all of our data in optional wrappers
+                return wrap(Fusion<DSLWords...>::template get<DSL>(r),
+                            util::GenerateSequence<0,
+                                                   std::tuple_size<decltype(
+                                                       Fusion<DSLWords...>::template get<DSL>(r))>::value>());
+            }
+        };
 
-	}  // namespace word
+    }  // namespace word
 }  // namespace dsl
 }  // namespace NUClear
 

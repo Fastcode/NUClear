@@ -22,72 +22,72 @@
 
 namespace NUClear {
 namespace dsl {
-	namespace word {
+    namespace word {
 
-		/**
-		 * @brief Used to control the priority of the response of the callback
-		 *
-		 * @details	This is designed to assign priority and determin the scheduling
-		 *					order in the threadpool and also the prority of the thread
-		 *	 				@code	on<Trigger<T, ...>, Priority::HIGH>() @endcode
-		 *
-		 * @par TRENT????
-		 *  Flagged for more discussion. I am getting to this - I just skipped over this particiular one today. 
-		 */
-		struct Priority {
+        /**
+         * @brief Used to control the priority of the response of the callback
+         *
+         * @details
+         *  This is designed to assign priority and determine the scheduling order in the threadpool and also the
+         *  prority of the thread @code on<Trigger<T, ...>, Priority::HIGH>() @endcode
+         *
+         * @par TRENT????
+         *  Flagged for more discussion. I am getting to this - I just skipped over this particiular one today.
+         */
+        struct Priority {
 
-			struct REALTIME {
-				/// Realtime priority runs with 1000 value
-				static constexpr int value = 1000;
+            struct REALTIME {
+                /// Realtime priority runs with 1000 value
+                static constexpr int value = 1000;
 
-				template <typename DSL>
-				static inline int priority(threading::Reaction&) {
-					return value;
-				}
-			};
+                template <typename DSL>
+                static inline int priority(threading::Reaction&) {
+                    return value;
+                }
+            };
 
-			struct HIGH {
-				/// High priority runs with 750 value
-				static constexpr int value = 750;
+            struct HIGH {
+                /// High priority runs with 750 value
+                static constexpr int value = 750;
 
-				template <typename DSL>
-				static inline int priority(threading::Reaction&) {
-					return value;
-				}
-			};
+                template <typename DSL>
+                static inline int priority(threading::Reaction&) {
+                    return value;
+                }
+            };
 
-			struct NORMAL {
-				/// Normal priority runs with 500 value
-				static constexpr int value = 500;
+            struct NORMAL {
+                /// Normal priority runs with 500 value
+                static constexpr int value = 500;
 
-				template <typename DSL>
-				static inline int priority(threading::Reaction&) {
-					return value;
-				}
-			};
+                template <typename DSL>
+                static inline int priority(threading::Reaction&) {
+                    return value;
+                }
+            };
 
-			struct LOW {
-				/// Low priority runs with 250 value
-				static constexpr int value = 250;
+            struct LOW {
+                /// Low priority runs with 250 value
+                static constexpr int value = 250;
 
-				template <typename DSL>
-				static inline int priority(threading::Reaction&) {
-					return value;
-				}
-			};
+                template <typename DSL>
+                static inline int priority(threading::Reaction&) {
+                    return value;
+                }
+            };
 
-			struct IDLE {
-				/// Idle tasks run with 0 priority, they run when there is free time
-				static constexpr int value = 0;
+            struct IDLE {
+                /// Idle tasks run with 0 priority, they run when there is free time
+                static constexpr int value = 0;
 
-				template <typename DSL>
-				static inline int priority(threading::Reaction&) {
-					return value;
-				}
-			};
-		};
+                template <typename DSL>
+                static inline int priority(threading::Reaction&) {
+                    return value;
+                }
+            };
+        };
 
-	}  // namespace word
+    }  // namespace word
 }  // namespace dsl
 }  // namespace NUClear
 

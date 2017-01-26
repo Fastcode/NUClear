@@ -28,62 +28,62 @@ namespace {
 
 class TestReactor : public NUClear::Reactor {
 public:
-	TestReactor(std::unique_ptr<NUClear::Environment> environment)
-		: Reactor(std::move(environment)), in(0), out(0), writer() {
+    TestReactor(std::unique_ptr<NUClear::Environment> environment)
+        : Reactor(std::move(environment)), in(0), out(0), writer() {
 
-		int fds[2];
+        int fds[2];
 
-		if (pipe(fds) < 0) {
-			FAIL("We couldn't make the pipe for the test");
-		}
+        if (pipe(fds) < 0) {
+            FAIL("We couldn't make the pipe for the test");
+        }
 
-		in  = fds[0];
-		out = fds[1];
+        in  = fds[0];
+        out = fds[1];
 
-		on<IO>(in, IO::READ).then([this](const IO::Event& e) {
+        on<IO>(in, IO::READ).then([this](const IO::Event& e) {
 
-			// Read from our FD
-			unsigned char val;
-			ssize_t bytes = ::read(e.fd, &val, 1);
+            // Read from our FD
+            unsigned char val;
+            ssize_t bytes = ::read(e.fd, &val, 1);
 
-			// Check the data is correct
-			REQUIRE((e.events & IO::READ) != 0);
-			REQUIRE(bytes == 1);
-			REQUIRE(val == 0xDE);
+            // Check the data is correct
+            REQUIRE((e.events & IO::READ) != 0);
+            REQUIRE(bytes == 1);
+            REQUIRE(val == 0xDE);
 
-			// Shutdown
-			powerplant.shutdown();
-		});
+            // Shutdown
+            powerplant.shutdown();
+        });
 
-		writer = on<IO>(out, IO::WRITE).then([this](const IO::Event& e) {
+        writer = on<IO>(out, IO::WRITE).then([this](const IO::Event& e) {
 
-			// Send data into our fd
-			unsigned char val = 0xDE;
-			ssize_t bytes	 = ::write(e.fd, &val, 1);
+            // Send data into our fd
+            unsigned char val = 0xDE;
+            ssize_t bytes     = ::write(e.fd, &val, 1);
 
-			// Check that our data was sent
-			REQUIRE((e.events & IO::WRITE) != 0);
-			REQUIRE(bytes == 1);
+            // Check that our data was sent
+            REQUIRE((e.events & IO::WRITE) != 0);
+            REQUIRE(bytes == 1);
 
-			// Unbind ourselves
-			writer.unbind();
-		});
-	}
+            // Unbind ourselves
+            writer.unbind();
+        });
+    }
 
-	int in;
-	int out;
-	ReactionHandle writer;
+    int in;
+    int out;
+    ReactionHandle writer;
 };
 }
 
 TEST_CASE("Testing the IO extension", "[api][io]") {
 
-	NUClear::PowerPlant::Configuration config;
-	config.threadCount = 1;
-	NUClear::PowerPlant plant(config);
-	plant.install<TestReactor>();
+    NUClear::PowerPlant::Configuration config;
+    config.threadCount = 1;
+    NUClear::PowerPlant plant(config);
+    plant.install<TestReactor>();
 
-	plant.start();
+    plant.start();
 }
 
 #endif

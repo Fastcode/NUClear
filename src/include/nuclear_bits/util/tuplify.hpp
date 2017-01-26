@@ -34,8 +34,7 @@ namespace util {
     }
 
     template <typename First, typename Second, typename... Remainder>
-    static inline std::tuple<First, Second, Remainder...> detuplify(
-        std::tuple<First, Second, Remainder...>&& tuple) {
+    static inline std::tuple<First, Second, Remainder...> detuplify(std::tuple<First, Second, Remainder...>&& tuple) {
         return tuple;
     }
 

@@ -23,17 +23,17 @@
 namespace NUClear {
 namespace extension {
 
-	class ChronoController : public Reactor {
-	public:
-		explicit ChronoController(std::unique_ptr<NUClear::Environment> environment);
+    class ChronoController : public Reactor {
+    public:
+        explicit ChronoController(std::unique_ptr<NUClear::Environment> environment);
 
-	private:
-		std::vector<dsl::operation::ChronoTask> tasks;
-		std::mutex mutex;
-		std::condition_variable wait;
+    private:
+        std::vector<dsl::operation::ChronoTask> tasks;
+        std::mutex mutex;
+        std::condition_variable wait;
 
-		NUClear::clock::duration waitOffset;
-	};
+        NUClear::clock::duration waitOffset;
+    };
 
 }  // namespace extension
 }  // namespace NUClear

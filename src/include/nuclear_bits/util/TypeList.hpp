@@ -18,39 +18,39 @@
 #ifndef NUCLEAR_UTIL_TYPELIST_HPP
 #define NUCLEAR_UTIL_TYPELIST_HPP
 
-#include <mutex>
 #include <memory>
+#include <mutex>
 #include <vector>
 
 namespace NUClear {
 namespace util {
 
-	template <typename MapID, typename Key, typename Value>
-	class TypeList {
-	private:
-		/// @brief Deleted constructor as this class is a static class.
-		TypeList() = delete;
-		/// @brief Deleted destructor as this class is a static class.
-		~TypeList() = delete;
-		/// @brief the data variable where the data is stored for this map key.
-		static std::vector<Value> data;
+    template <typename MapID, typename Key, typename Value>
+    class TypeList {
+    private:
+        /// @brief Deleted constructor as this class is a static class.
+        TypeList() = delete;
+        /// @brief Deleted destructor as this class is a static class.
+        ~TypeList() = delete;
+        /// @brief the data variable where the data is stored for this map key.
+        static std::vector<Value> data;
 
-	public:
-		/**
-		 * @brief Gets the list that is stored in this type location
-		 *
-		 * @return A reference to the vector stored in this location
-		 */
-		static std::vector<Value>& get() {
-			return data;
-		}
-	};
+    public:
+        /**
+         * @brief Gets the list that is stored in this type location
+         *
+         * @return A reference to the vector stored in this location
+         */
+        static std::vector<Value>& get() {
+            return data;
+        }
+    };
 
-	/// Initialize our type list data
-	template <typename MapID, typename Key, typename Value>
-	std::vector<Value> TypeList<MapID, Key, Value>::data;
+    /// Initialize our type list data
+    template <typename MapID, typename Key, typename Value>
+    std::vector<Value> TypeList<MapID, Key, Value>::data;
 
 }  // namespace util
-}  //  namespace NUClear
+}  // namespace NUClear
 
 #endif  // NUCLEAR_UTIL_TYPELIST_HPP

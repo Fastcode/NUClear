@@ -23,32 +23,33 @@
 
 namespace NUClear {
 namespace dsl {
-	namespace word {
+    namespace word {
 
-		/**
-		 * @brief
-		 *  This is used to request any data dependent reactions in the system.
-		 *
-		 * @details
-		 *  @code on<Trigger<T>>() @endcode
-		 *	This will enact the execution of a task whenever T is emitted into the system.  When this occurs, read-only
-		 *  access to T will be provided to the triggering unit via a callback.
-		 *
-		 * @attention
-		 * 	This request can handle multiple types.  Note that when used for multiple types, the reaction will only be
-		 *  triggered once <b>all</b> of the types have been emitted (at least once) since the last occurence of the event.
-		 *
-		 * @par Implements
-		 *  Bind, Get
-		 *
-		 * @tparam 	T
-		 *  the datatypes on which a reaction callback will be triggered. These will be flagged as <b>primary</b>
-		 *  datatype/s for the subscribing reaction.
-		 */
-		template <typename T>
-		struct Trigger : public operation::TypeBind<T>, public operation::CacheGet<T> {};
+        /**
+         * @brief
+         *  This is used to request any data dependent reactions in the system.
+         *
+         * @details
+         *  @code on<Trigger<T>>() @endcode
+         *  This will enact the execution of a task whenever T is emitted into the system. When this occurs, read-only
+         *  access to T will be provided to the triggering unit via a callback.
+         *
+         * @attention
+         *  This request can handle multiple types. Note that when used for multiple types, the reaction will only be
+         *  triggered once <b>all</b> of the types have been emitted (at least once) since the last occurence of the
+         *  event.
+         *
+         * @par Implements
+         *  Bind, Get
+         *
+         * @tparam T
+         *  the datatypes on which a reaction callback will be triggered. These will be flagged as <b>primary</b>
+         *  datatype/s for the subscribing reaction.
+         */
+        template <typename T>
+        struct Trigger : public operation::TypeBind<T>, public operation::CacheGet<T> {};
 
-	}  // namespace word
+    }  // namespace word
 }  // namespace dsl
 }  // namespace NUClear
 

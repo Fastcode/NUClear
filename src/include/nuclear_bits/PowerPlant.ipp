@@ -20,35 +20,32 @@ namespace NUClear {
 template <typename T, enum LogLevel level>
 void PowerPlant::install() {
 
-	// Make sure that the class that we received is a reactor
-	static_assert(std::is_base_of<Reactor, T>::value, "You must install Reactors");
+    // Make sure that the class that we received is a reactor
+    static_assert(std::is_base_of<Reactor, T>::value, "You must install Reactors");
 
-	// The reactor constructor should handle subscribing to events
-	reactors.push_back(std::make_unique<T>(
-		std::make_unique<Environment>(*this, util::demangle(typeid(T).name()), level)));
+    // The reactor constructor should handle subscribing to events
+    reactors.push_back(
+        std::make_unique<T>(std::make_unique<Environment>(*this, util::demangle(typeid(T).name()), level)));
 }
 
 // Default emit with no types
 template <typename T>
 void PowerPlant::emit(std::unique_ptr<T>&& data) {
 
-	emit<dsl::word::emit::Local>(std::forward<std::unique_ptr<T>>(data));
+    emit<dsl::word::emit::Local>(std::forward<std::unique_ptr<T>>(data));
 }
 // Default emit with no types
 template <typename T>
 void PowerPlant::emit(std::unique_ptr<T>& data) {
 
-	emit<dsl::word::emit::Local>(std::move(data));
+    emit<dsl::word::emit::Local>(std::move(data));
 }
 
 // Default emit with no types
-template <template <typename> class First,
-		  template <typename> class... Remainder,
-		  typename T,
-		  typename... Arguments>
+template <template <typename> class First, template <typename> class... Remainder, typename T, typename... Arguments>
 void PowerPlant::emit(std::unique_ptr<T>& data, Arguments&&... args) {
 
-	emit<First, Remainder...>(std::move(data), std::forward<Arguments>(args)...);
+    emit<First, Remainder...>(std::move(data), std::forward<Arguments>(args)...);
 }
 
 /**
@@ -58,77 +55,71 @@ void PowerPlant::emit(std::unique_ptr<T>& data, Arguments&&... args) {
  */
 template <typename Handler>
 struct EmitCaller {
-	template <typename... Arguments>
-	static inline auto call(Arguments&&... args)
-		// THIS IS VERY IMPORTANT, the return type must be dependent on the function call
-		// otherwise it won't check it's valid in SFINAE
-		-> decltype(Handler::emit(std::forward<Arguments>(args)...), true) {
-		Handler::emit(std::forward<Arguments>(args)...);
-		return true;
-	}
+    template <typename... Arguments>
+    static inline auto call(Arguments&&... args)
+        // THIS IS VERY IMPORTANT, the return type must be dependent on the function call
+        // otherwise it won't check it's valid in SFINAE
+        -> decltype(Handler::emit(std::forward<Arguments>(args)...), true) {
+        Handler::emit(std::forward<Arguments>(args)...);
+        return true;
+    }
 };
 
 // Global emit handlers
 
 
-template <template <typename> class First,
-		  template <typename> class... Remainder,
-		  typename T,
-		  typename... Arguments>
+template <template <typename> class First, template <typename> class... Remainder, typename T, typename... Arguments>
 void PowerPlant::emit_shared(std::shared_ptr<T>&& ptr, Arguments&&... args) {
 
-	using Functions      = std::tuple<First<T>, Remainder<T>...>;
-	using ArgumentPack   = decltype(std::forward_as_tuple(*this, ptr, std::forward<Arguments>(args)...));
-	using CallerArgs	 = std::tuple<>;
-	using FusionFunction = util::FunctionFusion<Functions, ArgumentPack, EmitCaller, CallerArgs, 2>;
+    using Functions      = std::tuple<First<T>, Remainder<T>...>;
+    using ArgumentPack   = decltype(std::forward_as_tuple(*this, ptr, std::forward<Arguments>(args)...));
+    using CallerArgs     = std::tuple<>;
+    using FusionFunction = util::FunctionFusion<Functions, ArgumentPack, EmitCaller, CallerArgs, 2>;
 
-	// Provide a check to make sure they are passing us the right stuff
-	static_assert(FusionFunction::value,
-				  "There was an error with the arguments for the emit function, Check that your scope and arguments "
-				  "match what you are trying to do.");
+    // Provide a check to make sure they are passing us the right stuff
+    static_assert(FusionFunction::value,
+                  "There was an error with the arguments for the emit function, Check that your scope and arguments "
+                  "match what you are trying to do.");
 
-	// Fuse our emit handlers and call the fused function
-	FusionFunction::call(*this, ptr, std::forward<Arguments>(args)...);
+    // Fuse our emit handlers and call the fused function
+    FusionFunction::call(*this, ptr, std::forward<Arguments>(args)...);
 }
 
-template <template <typename> class First,
-		  template <typename> class... Remainder,
-		  typename T,
-		  typename... Arguments>
+template <template <typename> class First, template <typename> class... Remainder, typename T, typename... Arguments>
 void PowerPlant::emit(std::unique_ptr<T>&& data, Arguments&&... args) {
 
-	// Release our data from the pointer and wrap it in a shared_ptr
-	emit_shared<First, Remainder...>(std::shared_ptr<T>(std::move(data)), std::forward<Arguments>(args)...);
+    // Release our data from the pointer and wrap it in a shared_ptr
+    emit_shared<First, Remainder...>(std::shared_ptr<T>(std::move(data)), std::forward<Arguments>(args)...);
 }
 
 // Anonymous metafunction that concatenates everything into a single string
 namespace {
-	template <typename T>
-	inline void logImpl(std::stringstream& output, T&& first) {
-		output << first;
-	}
+    template <typename T>
+    inline void logImpl(std::stringstream& output, T&& first) {
+        output << first;
+    }
 
-	template <typename First, typename... Remainder>
-	inline void logImpl(std::stringstream& output, First&& first, Remainder&&... args) {
-		output << first << " ";
-		logImpl(output, std::forward<Remainder>(args)...);
-	}
+    template <typename First, typename... Remainder>
+    inline void logImpl(std::stringstream& output, First&& first, Remainder&&... args) {
+        output << first << " ";
+        logImpl(output, std::forward<Remainder>(args)...);
+    }
 }
 
 template <enum LogLevel level, typename... Arguments>
 void PowerPlant::log(Arguments&&... args) {
 
-	// Build our log message by concatenating everything to a stream
-	std::stringstream outputStream;
-	logImpl(outputStream, std::forward<Arguments>(args)...);
-	std::string output = outputStream.str();
+    // Build our log message by concatenating everything to a stream
+    std::stringstream outputStream;
+    logImpl(outputStream, std::forward<Arguments>(args)...);
+    std::string output = outputStream.str();
 
-	auto currentTask = threading::ReactionTask::getCurrentTask();
-	auto task		 = currentTask ? currentTask->stats.get() : nullptr;
+    auto currentTask = threading::ReactionTask::getCurrentTask();
+    auto task        = currentTask ? currentTask->stats.get() : nullptr;
 
-	// Direct emit the log message so that any direct loggers can use it
-	powerplant->emit<dsl::word::emit::Direct>(
-		std::make_unique<message::LogMessage>(message::LogMessage{level, output, task}));
+    // Direct emit the log message so that any direct loggers can use it
+    powerplant->emit<dsl::word::emit::Direct>(
+        std::make_unique<message::LogMessage>(message::LogMessage{level, output, task}));
 }
 
 }  // namespace NUClear

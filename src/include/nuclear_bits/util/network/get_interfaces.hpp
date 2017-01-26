@@ -23,31 +23,31 @@
 
 namespace NUClear {
 namespace util {
-	namespace network {
+    namespace network {
 
-		struct Interface {
-			Interface() : name(""), ip(0), netmask(0), broadcast(0), flags() {}
+        struct Interface {
+            Interface() : name(""), ip(0), netmask(0), broadcast(0), flags() {}
 
-			std::string name;
+            std::string name;
 
-			uint32_t ip;
-			uint32_t netmask;
-			uint32_t broadcast;
+            uint32_t ip;
+            uint32_t netmask;
+            uint32_t broadcast;
 
-			struct Flags {
-				Flags() : broadcast(false), loopback(false), pointtopoint(false), multicast(false) {}
+            struct Flags {
+                Flags() : broadcast(false), loopback(false), pointtopoint(false), multicast(false) {}
 
-				bool broadcast;
-				bool loopback;
-				bool pointtopoint;
-				bool multicast;
-			} flags;
-		};
+                bool broadcast;
+                bool loopback;
+                bool pointtopoint;
+                bool multicast;
+            } flags;
+        };
 
-		std::vector<Interface> get_interfaces();
+        std::vector<Interface> get_interfaces();
 
-	}  // namespace network
+    }  // namespace network
 }  // namespace util
-}  //  namespace NUClear
+}  // namespace NUClear
 
 #endif  // NUCLEAR_UTIL_NETWORK_GET_INTERFACES_HPP

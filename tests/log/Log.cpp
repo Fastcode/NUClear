@@ -24,58 +24,58 @@ namespace {
 
 class TestReactor : public NUClear::Reactor {
 public:
-	int testVal = 1337;
+    int testVal = 1337;
 
-	TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
+    TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
 
-		// Testing that the log message gets through
-		on<Trigger<NUClear::message::LogMessage>>().then([this](const NUClear::message::LogMessage& logMessage) {
+        // Testing that the log message gets through
+        on<Trigger<NUClear::message::LogMessage>>().then([this](const NUClear::message::LogMessage& logMessage) {
 
-			REQUIRE(logMessage.message == "Got int: 5");
-			REQUIRE(logMessage.level == NUClear::DEBUG);
+            REQUIRE(logMessage.message == "Got int: 5");
+            REQUIRE(logMessage.level == NUClear::DEBUG);
 
 
-			std::this_thread::sleep_for(std::chrono::milliseconds(10));
-			++testVal = 1338;
-		});
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+            ++testVal = 1338;
+        });
 
-		// Testing that the log messages are handled before continuing
+        // Testing that the log messages are handled before continuing
 
-		// Testing that the log level gets through
+        // Testing that the log level gets through
 
-		on<Trigger<int>>().then([this](const int& v) {
+        on<Trigger<int>>().then([this](const int& v) {
 
-			// Our test val is 1337 to start with
-			REQUIRE(testVal == 1337);
+            // Our test val is 1337 to start with
+            REQUIRE(testVal == 1337);
 
-			// This should pause for 10ms making the second check fail if it does not wait
-			log<NUClear::DEBUG>("Got int:", v);
+            // This should pause for 10ms making the second check fail if it does not wait
+            log<NUClear::DEBUG>("Got int:", v);
 
-			// It should now be 1338
-			REQUIRE(testVal == 1338);
+            // It should now be 1338
+            REQUIRE(testVal == 1338);
 
-			// We now try to log a trace (which is below the configured level)
-			log<NUClear::TRACE>("Should not log");
+            // We now try to log a trace (which is below the configured level)
+            log<NUClear::TRACE>("Should not log");
 
-			// It should still be 1338 (log shouldn't have run)
-			REQUIRE(testVal == 1338);
+            // It should still be 1338 (log shouldn't have run)
+            REQUIRE(testVal == 1338);
 
-			powerplant.shutdown();
-		});
-	}
+            powerplant.shutdown();
+        });
+    }
 };
 }
 
 TEST_CASE("Testing the Log<>() function", "[api][log]") {
 
-	NUClear::PowerPlant::Configuration config;
-	config.threadCount = 1;
-	NUClear::PowerPlant plant(config);
+    NUClear::PowerPlant::Configuration config;
+    config.threadCount = 1;
+    NUClear::PowerPlant plant(config);
 
-	// We are installing with an initial log level of debug
-	plant.install<TestReactor, NUClear::DEBUG>();
+    // We are installing with an initial log level of debug
+    plant.install<TestReactor, NUClear::DEBUG>();
 
-	plant.emit(std::make_unique<int>(5));
+    plant.emit(std::make_unique<int>(5));
 
-	plant.start();
+    plant.start();
 }

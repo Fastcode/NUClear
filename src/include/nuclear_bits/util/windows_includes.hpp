@@ -32,10 +32,13 @@
 
 // Winsock must be declared before Windows.h or it won't work
 #include <WinSock2.h>
+
 #include <Ws2ipdef.h>
 #include <Ws2tcpip.h>
-#include <Mswsock.h>
+
 #include <Mstcpip.h>
+#include <Mswsock.h>
+
 #include <Iphlpapi.h>
 
 // This little thingy makes windows link to the winsock library

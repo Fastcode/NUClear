@@ -34,8 +34,8 @@
  *******************************************/
 #ifdef _WIN32
 
-#include "nuclear_bits/util/windows_includes.hpp"
 #include <iostream>
+#include "nuclear_bits/util/windows_includes.hpp"
 
 using ssize_t   = SSIZE_T;
 using in_port_t = uint16_t;
@@ -50,7 +50,7 @@ using socklen_t = int;
 
 // This is defined here rather than in the global namespace so it doesn't get in the way
 inline int close(fd_t fd) {
-	return ::closesocket(fd);
+    return ::closesocket(fd);
 }
 
 // Network errors come from WSAGetLastError()

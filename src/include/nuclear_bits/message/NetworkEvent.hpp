@@ -21,23 +21,23 @@
 namespace NUClear {
 namespace message {
 
-	struct NetworkJoin {
-		NetworkJoin() : name(""), address(0), udpPort(0), tcpPort(0) {}
+    struct NetworkJoin {
+        NetworkJoin() : name(""), address(0), udpPort(0), tcpPort(0) {}
 
-		std::string name;
-		in_addr_t address;
-		in_port_t udpPort;
-		in_port_t tcpPort;
-	};
+        std::string name;
+        in_addr_t address;
+        in_port_t udpPort;
+        in_port_t tcpPort;
+    };
 
-	struct NetworkLeave {
-		NetworkLeave() : name(""), address(0), udpPort(0), tcpPort(0) {}
+    struct NetworkLeave {
+        NetworkLeave() : name(""), address(0), udpPort(0), tcpPort(0) {}
 
-		std::string name;
-		in_addr_t address;
-		in_port_t udpPort;
-		in_port_t tcpPort;
-	};
+        std::string name;
+        in_addr_t address;
+        in_port_t udpPort;
+        in_port_t tcpPort;
+    };
 
 }  // namespace message
 }  // namespace NUClear

@@ -20,22 +20,22 @@
 
 namespace NUClear {
 namespace dsl {
-	namespace operation {
+    namespace operation {
 
-		/**
-		 * @brief A proxy template to be used to provide NUClear DSL methods without altering the original object
-		 *
-		 * @details
-		 *      Sometimes you want to make a type part of the DSL but cannot (or don't want to) alter the original
-		 *      object. In this case you are able to partially specialise this type and it will be used instead
-		 *      if the original does not have the functions needed.
+        /**
+         * @brief A proxy template to be used to provide NUClear DSL methods without altering the original object
+         *
+         * @details
+         *      Sometimes you want to make a type part of the DSL but cannot (or don't want to) alter the original
+         *      object. In this case you are able to partially specialise this type and it will be used instead
+         *      if the original does not have the functions needed.
          *
          * @tparam Word the type that will act as the DSL word
-		 */
-		template <typename Word>
-		struct DSLProxy {};
+         */
+        template <typename Word>
+        struct DSLProxy {};
 
-	}  // namespace operation
+    }  // namespace operation
 }  // namespace dsl
 }  // namespace NUClear
 

@@ -24,38 +24,38 @@
 namespace NUClear {
 namespace extension {
 
-	void NetworkController::announce() {
+    void NetworkController::announce() {
 
-		// Make a data vector of the correct size and default values
-		std::vector<char> packet(sizeof(network::AnnouncePacket) + name.size());
-		network::AnnouncePacket* p = reinterpret_cast<network::AnnouncePacket*>(packet.data());
-		*p = network::AnnouncePacket();
+        // Make a data vector of the correct size and default values
+        std::vector<char> packet(sizeof(network::AnnouncePacket) + name.size());
+        network::AnnouncePacket* p = reinterpret_cast<network::AnnouncePacket*>(packet.data());
+        *p                         = network::AnnouncePacket();
 
-		// Make an announce packet
-		p->type	= network::ANNOUNCE;
-		p->tcpPort = tcpPort;
-		p->udpPort = udpPort;
+        // Make an announce packet
+        p->type    = network::ANNOUNCE;
+        p->tcpPort = tcpPort;
+        p->udpPort = udpPort;
 
-		// Length is the size without the header
-		p->length = uint32_t(sizeof(network::AnnouncePacket) + name.size() - sizeof(network::PacketHeader));
+        // Length is the size without the header
+        p->length = uint32_t(sizeof(network::AnnouncePacket) + name.size() - sizeof(network::PacketHeader));
 
-		// Copy our name over
-		std::memcpy(&p->name, name.c_str(), name.size() + 1);
+        // Copy our name over
+        std::memcpy(&p->name, name.c_str(), name.size() + 1);
 
-		// Send a multicast packet announcing ourselves from our UDP port
-		sockaddr_in multicastTarget;
-		std::memset(&multicastTarget, 0, sizeof(sockaddr_in));
-		multicastTarget.sin_family = AF_INET;
-		inet_pton(AF_INET, multicastGroup.c_str(), &multicastTarget.sin_addr);
-		multicastTarget.sin_port = htons(multicastPort);
+        // Send a multicast packet announcing ourselves from our UDP port
+        sockaddr_in multicastTarget;
+        std::memset(&multicastTarget, 0, sizeof(sockaddr_in));
+        multicastTarget.sin_family = AF_INET;
+        inet_pton(AF_INET, multicastGroup.c_str(), &multicastTarget.sin_addr);
+        multicastTarget.sin_port = htons(multicastPort);
 
-		// Send the packet
-		::sendto(udpServerFD,
-				 packet.data(),
-				 packet.size(),
-				 0,
-				 reinterpret_cast<sockaddr*>(&multicastTarget),
-				 sizeof(sockaddr));
-	}
+        // Send the packet
+        ::sendto(udpServerFD,
+                 packet.data(),
+                 packet.size(),
+                 0,
+                 reinterpret_cast<sockaddr*>(&multicastTarget),
+                 sizeof(sockaddr));
+    }
 }
 }

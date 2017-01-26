@@ -23,43 +23,43 @@
 namespace NUClear {
 namespace util {
 
-	// If we are passed a function instead of a tuple of arguments, expand
-	template <typename Required, typename Available, typename Used = Sequence<>, int Index = 0>
-	struct RelevantArguments
-		: public RelevantArguments<typename CallableInfo<Required>::arguments, Available, Used, Index> {};
+    // If we are passed a function instead of a tuple of arguments, expand
+    template <typename Required, typename Available, typename Used = Sequence<>, int Index = 0>
+    struct RelevantArguments
+        : public RelevantArguments<typename CallableInfo<Required>::arguments, Available, Used, Index> {};
 
-	// Process our next layer of functions
-	template <typename Required, typename... RList, typename Available, typename... AList, int... Used, int Index>
-	struct RelevantArguments<std::tuple<Required, RList...>, std::tuple<Available, AList...>, Sequence<Used...>, Index>
-		: public RelevantArguments<std::conditional_t<std::is_convertible<Available, Required>::value,
-													  /*T*/ std::tuple<RList...>,
-													  /*F*/ std::tuple<Required, RList...>>,
-								   std::tuple<AList...>,
-								   std::conditional_t<std::is_convertible<Available, Required>::value,
-													  /*T*/ Sequence<Used..., Index>,
-													  /*F*/ Sequence<Used...>>,
-								   Index + 1> {};
+    // Process our next layer of functions
+    template <typename Required, typename... RList, typename Available, typename... AList, int... Used, int Index>
+    struct RelevantArguments<std::tuple<Required, RList...>, std::tuple<Available, AList...>, Sequence<Used...>, Index>
+        : public RelevantArguments<std::conditional_t<std::is_convertible<Available, Required>::value,
+                                                      /*T*/ std::tuple<RList...>,
+                                                      /*F*/ std::tuple<Required, RList...>>,
+                                   std::tuple<AList...>,
+                                   std::conditional_t<std::is_convertible<Available, Required>::value,
+                                                      /*T*/ Sequence<Used..., Index>,
+                                                      /*F*/ Sequence<Used...>>,
+                                   Index + 1> {};
 
-	// Fail, we ran out of arguments before we filled the requirements
-	template <typename... Required, int... Used, int Index>
-	struct RelevantArguments<std::tuple<Required...>, std::tuple<>, Sequence<Used...>, Index> {
-		static_assert(sizeof...(Required) == 0,
-					  "There are not enough arguments of the correct type to satisfy this function");
-	};
+    // Fail, we ran out of arguments before we filled the requirements
+    template <typename... Required, int... Used, int Index>
+    struct RelevantArguments<std::tuple<Required...>, std::tuple<>, Sequence<Used...>, Index> {
+        static_assert(sizeof...(Required) == 0,
+                      "There are not enough arguments of the correct type to satisfy this function");
+    };
 
-	// We found a match (and have some args left over)
-	template <typename... Available, int... Used, int Index>
-	struct RelevantArguments<std::tuple<>, std::tuple<Available...>, Sequence<Used...>, Index> {
-		using type = Sequence<Used...>;
-	};
+    // We found a match (and have some args left over)
+    template <typename... Available, int... Used, int Index>
+    struct RelevantArguments<std::tuple<>, std::tuple<Available...>, Sequence<Used...>, Index> {
+        using type = Sequence<Used...>;
+    };
 
-	// We found a match (no args left over)
-	template <int... Used, int Index>
-	struct RelevantArguments<std::tuple<>, std::tuple<>, Sequence<Used...>, Index> {
-		using type = Sequence<Used...>;
-	};
+    // We found a match (no args left over)
+    template <int... Used, int Index>
+    struct RelevantArguments<std::tuple<>, std::tuple<>, Sequence<Used...>, Index> {
+        using type = Sequence<Used...>;
+    };
 
 }  // namespace util
-}  //  namespace NUClear
+}  // namespace NUClear
 
 #endif  // NUCLEAR_UTIL_RELEVANTARGUMENTS_HPP

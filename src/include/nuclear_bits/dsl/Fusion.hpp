@@ -18,24 +18,24 @@
 #ifndef NUCLEAR_DSL_FUSION_HPP
 #define NUCLEAR_DSL_FUSION_HPP
 
-#include "nuclear_bits/threading/ReactionHandle.hpp"
 #include "nuclear_bits/dsl/fusion/BindFusion.hpp"
 #include "nuclear_bits/dsl/fusion/GetFusion.hpp"
+#include "nuclear_bits/dsl/fusion/PostconditionFusion.hpp"
 #include "nuclear_bits/dsl/fusion/PreconditionFusion.hpp"
 #include "nuclear_bits/dsl/fusion/PriorityFusion.hpp"
 #include "nuclear_bits/dsl/fusion/RescheduleFusion.hpp"
-#include "nuclear_bits/dsl/fusion/PostconditionFusion.hpp"
+#include "nuclear_bits/threading/ReactionHandle.hpp"
 
 namespace NUClear {
 namespace dsl {
 
-	template <typename... Words>
-	struct Fusion : public fusion::BindFusion<Words...>,
-					public fusion::GetFusion<Words...>,
-					public fusion::PreconditionFusion<Words...>,
-					public fusion::PriorityFusion<Words...>,
-					public fusion::RescheduleFusion<Words...>,
-					public fusion::PostconditionFusion<Words...> {};
+    template <typename... Words>
+    struct Fusion : public fusion::BindFusion<Words...>,
+                    public fusion::GetFusion<Words...>,
+                    public fusion::PreconditionFusion<Words...>,
+                    public fusion::PriorityFusion<Words...>,
+                    public fusion::RescheduleFusion<Words...>,
+                    public fusion::PostconditionFusion<Words...> {};
 
 }  // namespace dsl
 }  // namespace NUClear

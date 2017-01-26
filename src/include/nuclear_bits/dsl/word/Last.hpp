@@ -18,128 +18,130 @@
 #ifndef NUCLEAR_DSL_WORD_LAST_HPP
 #define NUCLEAR_DSL_WORD_LAST_HPP
 
-#include <type_traits>
 #include <list>
+#include <type_traits>
 #include "nuclear_bits/util/MergeTransient.hpp"
 
 namespace NUClear {
 namespace dsl {
-	namespace word {
+    namespace word {
 
-		template <size_t n, typename T>
-		struct LastItemStorage {
-			// The items we are storing
-			std::list<T> list;
+        template <size_t n, typename T>
+        struct LastItemStorage {
+            // The items we are storing
+            std::list<T> list;
 
-			LastItemStorage() : list() {}
+            LastItemStorage() : list() {}
 
-			LastItemStorage(T&& data) : list({data}) {}
+            LastItemStorage(T&& data) : list({data}) {}
 
-			template <typename Output>
-			operator std::list<Output>() const {
+            template <typename Output>
+            operator std::list<Output>() const {
 
-				std::list<Output> out;
+                std::list<Output> out;
 
-				for (const T& item : list) {
-					out.push_back(Output(item));
-				}
+                for (const T& item : list) {
+                    out.push_back(Output(item));
+                }
 
-				return out;
-			}
+                return out;
+            }
 
-			template <typename Output>
-			operator std::vector<Output>() const {
+            template <typename Output>
+            operator std::vector<Output>() const {
 
-				std::vector<Output> out;
+                std::vector<Output> out;
 
-				for (const T& item : list) {
-					out.push_back(Output(item));
-				}
+                for (const T& item : list) {
+                    out.push_back(Output(item));
+                }
 
-				return out;
-			}
+                return out;
+            }
 
-			operator bool() const {
-				return !list.empty();
-			}
-		};
+            operator bool() const {
+                return !list.empty();
+            }
+        };
 
-		/**
-		 * @brief
-		 *  This insturcts NUClear to store the last <i>n</i> messages that were emitted to the cache.
-		 *
-		 * @details
-		 *  During runtime, the last <i>n</i> emisions of the data will be kept in the cache. This word should be fused with
-		 *  any other Get DSL word.  For example:
-		 *  @code	on<Last<n, Trigger<T, ...>>() @endcode
-		 *
-		 * @attention
-		 *  Should the emitted message currently have less than <i>n</i> records in the cache, any callback associated with
-		 *  this message will provide access to the current data.
-		 *
-		 * @par Implements
-		 *  Fusion
-		 *
-		 * @tparam 	n the number of records to be stored in the cache
-		 * @tparam 	DSLWords The activity this request will be applied to
-		 */
-		template <size_t n, typename... DSLWords>
-		struct Last : public Fusion<DSLWords...> {
+        /**
+         * @brief
+         *  This insturcts NUClear to store the last <i>n</i> messages that were emitted to the cache.
+         *
+         * @details
+         *  During runtime, the last <i>n</i> emisions of the data will be kept in the cache. This word should be fused
+         * with
+         *  any other Get DSL word. For example:
+         *  @code on<Last<n, Trigger<T, ...>>() @endcode
+         *
+         * @attention
+         *  Should the emitted message currently have less than <i>n</i> records in the cache, any callback associated
+         * with
+         *  this message will provide access to the current data.
+         *
+         * @par Implements
+         *  Fusion
+         *
+         * @tparam  n the number of records to be stored in the cache
+         * @tparam  DSLWords The activity this request will be applied to
+         */
+        template <size_t n, typename... DSLWords>
+        struct Last : public Fusion<DSLWords...> {
 
-		private:
-			template <typename... T, int... Index>
-			static inline auto wrap(std::tuple<T...>&& data, util::Sequence<Index...>)
-				-> decltype(std::make_tuple(LastItemStorage<n, T>(std::move(std::get<Index>(data)))...)) {
-				return std::make_tuple(LastItemStorage<n, T>(std::move(std::get<Index>(data)))...);
-			}
+        private:
+            template <typename... T, int... Index>
+            static inline auto wrap(std::tuple<T...>&& data, util::Sequence<Index...>)
+                -> decltype(std::make_tuple(LastItemStorage<n, T>(std::move(std::get<Index>(data)))...)) {
+                return std::make_tuple(LastItemStorage<n, T>(std::move(std::get<Index>(data)))...);
+            }
 
-		public:
-			template <typename DSL>
-			static inline auto get(threading::Reaction& r)
-				-> decltype(wrap(Fusion<DSLWords...>::template get<DSL>(r),
-								 util::GenerateSequence<0,
-														std::tuple_size<decltype(
-															Fusion<DSLWords...>::template get<DSL>(r))>::value>())) {
+        public:
+            template <typename DSL>
+            static inline auto get(threading::Reaction& r)
+                -> decltype(wrap(Fusion<DSLWords...>::template get<DSL>(r),
+                                 util::GenerateSequence<0,
+                                                        std::tuple_size<decltype(
+                                                            Fusion<DSLWords...>::template get<DSL>(r))>::value>())) {
 
-				// Wrap all of our data in last list wrappers
-				return wrap(Fusion<DSLWords...>::template get<DSL>(r),
-							util::GenerateSequence<0,
-												   std::tuple_size<decltype(
-													   Fusion<DSLWords...>::template get<DSL>(r))>::value>());
-			}
-		};
+                // Wrap all of our data in last list wrappers
+                return wrap(Fusion<DSLWords...>::template get<DSL>(r),
+                            util::GenerateSequence<0,
+                                                   std::tuple_size<decltype(
+                                                       Fusion<DSLWords...>::template get<DSL>(r))>::value>());
+            }
+        };
 
-	}  // namespace word
+    }  // namespace word
 
-	namespace trait {
+    namespace trait {
 
-		template <size_t n, typename T>
-		struct is_transient<word::LastItemStorage<n, T>> : public std::true_type {};
+        template <size_t n, typename T>
+        struct is_transient<word::LastItemStorage<n, T>> : public std::true_type {};
 
-	}  // namespace trait
+    }  // namespace trait
 }  // namespace dsl
 
 namespace util {
 
-	template <size_t n, typename T>
-	struct MergeTransients<dsl::word::LastItemStorage<n, T>> {
-		static inline bool merge(dsl::word::LastItemStorage<n, T>& t, dsl::word::LastItemStorage<n, T>& d) {
+    template <size_t n, typename T>
+    struct MergeTransients<dsl::word::LastItemStorage<n, T>> {
+        static inline bool merge(dsl::word::LastItemStorage<n, T>& t, dsl::word::LastItemStorage<n, T>& d) {
 
-			// We put the contents from data into the transient storage list
-			t.list.insert(t.list.end(), d.list.begin(), d.list.end());
+            // We put the contents from data into the transient storage list
+            t.list.insert(t.list.end(), d.list.begin(), d.list.end());
 
-			// Then truncate the old transient data
-			if (t.list.size() > n) {
-				t.list.erase(t.list.begin(), std::next(t.list.begin(), t.list.size() - n));
-			}
+            // Then truncate the old transient data
+            if (t.list.size() > n) {
+                t.list.erase(t.list.begin(), std::next(t.list.begin(), t.list.size() - n));
+            }
 
-			// Finally clear the data list and put the transient list in it
-			d.list.clear();
-			d.list.insert(d.list.begin(), t.list.begin(), t.list.end());
+            // Finally clear the data list and put the transient list in it
+            d.list.clear();
+            d.list.insert(d.list.begin(), t.list.begin(), t.list.end());
 
-			return true;
-		};
-	};
+            return true;
+        };
+    };
 
 }  // namespace util
 }  // namespace NUClear

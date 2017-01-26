@@ -24,69 +24,69 @@
 
 namespace NUClear {
 namespace dsl {
-	namespace word {
-		namespace emit {
+    namespace word {
+        namespace emit {
 
-			/**
-			 * @brief Holds a serialised packet to be sent over the network
-			 *
-			 * @details This data struct is used by the NetworkController to send data over the network.
-			 */
-			struct NetworkEmit {
-				NetworkEmit() : target(""), hash(), payload(), reliable(false) {}
+            /**
+             * @brief Holds a serialised packet to be sent over the network
+             *
+             * @details This data struct is used by the NetworkController to send data over the network.
+             */
+            struct NetworkEmit {
+                NetworkEmit() : target(""), hash(), payload(), reliable(false) {}
 
-				/// The target to send this serialised packet to
-				std::string target;
-				/// The hash identifying the type of object
-				std::array<uint64_t, 2> hash;
-				/// The serialised data
-				std::vector<char> payload;
-				/// If the message should be sent reliably
-				bool reliable;
-			};
+                /// The target to send this serialised packet to
+                std::string target;
+                /// The hash identifying the type of object
+                std::array<uint64_t, 2> hash;
+                /// The serialised data
+                std::vector<char> payload;
+                /// If the message should be sent reliably
+                bool reliable;
+            };
 
-			/**
-			 * @brief Emit over the NUClear network.
-			 *
-			 * @details Network emit uses the NUClear network in order to send messages to other NUClear systems.
-			 *          The data can be sent by name to other systems or to all systems connected to the NUClear
-			 *          network. These messages can be sent using either an unreliable protocol that does not
-			 *          guarantee delivery, or using a reliable protocol that does. Note that if the target system
-			 *          is not connected to the network, the send will be ignored even reliable is enabled.
-			 *
-			 * @param data      the data to emit
-			 * @param target    the name of the system to send to, or empty for all systems. defaults to all.
-			 *                  (an empty string). Optional
-			 * @param reliable  true if the delivery of the message should be guaranteed. defaults to false.
-			 *                  Optional
-			 *
-			 * @tparam DataType the type of the data to send
-			 */
-			template <typename DataType>
-			struct Network {
+            /**
+             * @brief Emit over the NUClear network.
+             *
+             * @details Network emit uses the NUClear network in order to send messages to other NUClear systems.
+             *          The data can be sent by name to other systems or to all systems connected to the NUClear
+             *          network. These messages can be sent using either an unreliable protocol that does not
+             *          guarantee delivery, or using a reliable protocol that does. Note that if the target system
+             *          is not connected to the network, the send will be ignored even reliable is enabled.
+             *
+             * @param data      the data to emit
+             * @param target    the name of the system to send to, or empty for all systems. defaults to all.
+             *                  (an empty string). Optional
+             * @param reliable  true if the delivery of the message should be guaranteed. defaults to false.
+             *                  Optional
+             *
+             * @tparam DataType the type of the data to send
+             */
+            template <typename DataType>
+            struct Network {
 
-				static void emit(PowerPlant& powerplant,
-								 std::shared_ptr<DataType> data,
-								 std::string target = "",
-								 bool reliable		= false) {
+                static void emit(PowerPlant& powerplant,
+                                 std::shared_ptr<DataType> data,
+                                 std::string target = "",
+                                 bool reliable      = false) {
 
-					auto e = std::make_unique<NetworkEmit>();
+                    auto e = std::make_unique<NetworkEmit>();
 
-					e->target   = target;
-					e->hash		= util::serialise::Serialise<DataType>::hash();
-					e->payload		= util::serialise::Serialise<DataType>::serialise(*data);
-					e->reliable = reliable;
+                    e->target   = target;
+                    e->hash     = util::serialise::Serialise<DataType>::hash();
+                    e->payload  = util::serialise::Serialise<DataType>::serialise(*data);
+                    e->reliable = reliable;
 
-					powerplant.emit<Direct>(e);
-				}
+                    powerplant.emit<Direct>(e);
+                }
 
-				static void emit(PowerPlant& powerplant, std::shared_ptr<DataType> data, bool reliable) {
-					emit(powerplant, data, "", reliable);
-				}
-			};
+                static void emit(PowerPlant& powerplant, std::shared_ptr<DataType> data, bool reliable) {
+                    emit(powerplant, data, "", reliable);
+                }
+            };
 
-		}  // namespace emit
-	}	  // namespace word
+        }  // namespace emit
+    }      // namespace word
 }  // namespace dsl
 }  // namespace NUClear
 

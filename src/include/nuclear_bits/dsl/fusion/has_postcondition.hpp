@@ -18,36 +18,36 @@
 #ifndef NUCLEAR_DSL_FUSION_HAS_POSTCONDITION_HPP
 #define NUCLEAR_DSL_FUSION_HAS_POSTCONDITION_HPP
 
-#include "nuclear_bits/threading/ReactionTask.hpp"
 #include "nuclear_bits/dsl/fusion/NoOp.hpp"
+#include "nuclear_bits/threading/ReactionTask.hpp"
 
 namespace NUClear {
 namespace dsl {
-	namespace fusion {
+    namespace fusion {
 
-		/**
-		 * @brief SFINAE struct to test if the passed class has a postcondition function that conforms to the
-		 *        NUClear DSL
-		 *
-		 * @tparam T the class to check
-		 */
-		template <typename T>
-		struct has_postcondition {
-		private:
-			typedef std::true_type yes;
-			typedef std::false_type no;
+        /**
+         * @brief SFINAE struct to test if the passed class has a postcondition function that conforms to the
+         *        NUClear DSL
+         *
+         * @tparam T the class to check
+         */
+        template <typename T>
+        struct has_postcondition {
+        private:
+            typedef std::true_type yes;
+            typedef std::false_type no;
 
-			template <typename U>
-			static auto test(int)
-				-> decltype(U::template postcondition<ParsedNoOp>(std::declval<threading::ReactionTask&>()), yes());
-			template <typename>
-			static no test(...);
+            template <typename U>
+            static auto test(int)
+                -> decltype(U::template postcondition<ParsedNoOp>(std::declval<threading::ReactionTask&>()), yes());
+            template <typename>
+            static no test(...);
 
-		public:
-			static constexpr bool value = std::is_same<decltype(test<T>(0)), yes>::value;
-		};
+        public:
+            static constexpr bool value = std::is_same<decltype(test<T>(0)), yes>::value;
+        };
 
-	}  // namespace fusion
+    }  // namespace fusion
 }  // namespace dsl
 }  // namespace NUClear
 

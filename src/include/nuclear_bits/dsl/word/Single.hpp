@@ -22,24 +22,24 @@
 
 namespace NUClear {
 namespace dsl {
-	namespace word {
+    namespace word {
 
-		/**
-		 * @brief
-		 *  This is used to specify that only Single instances of the associated reaction can execute during runtime
-		 *
-		 * @details
-		 *  For best use, this word should be fused with at least one other binding DSL word.  For example:
-		 *	@code	on<Trigger<T, ...>, Single>() @endcode
-		 *	When this keyword is used, if the subscribing reaction is triggered while an existing task for this reaction is
-		 *  either in the queue or still executing, then this new task request will be ignored.
-		 *
-		 * @par Implements
-		 *  Precondition, Fusion
-		 */
-		struct Single : public Buffer<1> {};
+        /**
+         * @brief
+         *  This is used to specify that only Single instances of the associated reaction can execute during runtime
+         *
+         * @details
+         *  For best use, this word should be fused with at least one other binding DSL word. For example:
+         *  @code on<Trigger<T, ...>, Single>() @endcode
+         *  When this keyword is used, if the subscribing reaction is triggered while an existing task for this reaction
+         *  is either in the queue or still executing, then this new task request will be ignored.
+         *
+         * @par Implements
+         *  Precondition, Fusion
+         */
+        struct Single : public Buffer<1> {};
 
-	}  // namespace word
+    }  // namespace word
 }  // namespace dsl
 }  // namespace NUClear
 

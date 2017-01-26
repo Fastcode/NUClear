@@ -27,102 +27,102 @@ using NUClear::message::NetworkLeave;
 
 class TestReactor : public NUClear::Reactor {
 public:
-	TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
+    TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
 
-		on<Trigger<NetworkJoin>, Sync<TestReactor>>().then([this](const NetworkJoin& join) {
+        on<Trigger<NetworkJoin>, Sync<TestReactor>>().then([this](const NetworkJoin& join) {
 
-			std::cout << "Connected To" << std::endl;
-			std::cout << "\tName: " << join.name << std::endl;
-			std::cout << "\tAddress: " << ((join.address >> 24) & 0xFF) << "." << ((join.address >> 16) & 0xFF) << "."
-					  << ((join.address >> 8) & 0xFF) << "." << ((join.address >> 0) & 0xFF) << std::endl;
-			std::cout << "\tTCP Port: " << join.tcpPort << std::endl;
-			std::cout << "\tUDP Port: " << join.udpPort << std::endl;
+            std::cout << "Connected To" << std::endl;
+            std::cout << "\tName: " << join.name << std::endl;
+            std::cout << "\tAddress: " << ((join.address >> 24) & 0xFF) << "." << ((join.address >> 16) & 0xFF) << "."
+                      << ((join.address >> 8) & 0xFF) << "." << ((join.address >> 0) & 0xFF) << std::endl;
+            std::cout << "\tTCP Port: " << join.tcpPort << std::endl;
+            std::cout << "\tUDP Port: " << join.udpPort << std::endl;
 
-			// Send some data to our new friend
+            // Send some data to our new friend
 
-			// Emit short unreliable message
-			emit<Scope::NETWORK>(std::make_unique<std::string>("Test Short Unreliable Target Message"), join.name);
+            // Emit short unreliable message
+            emit<Scope::NETWORK>(std::make_unique<std::string>("Test Short Unreliable Target Message"), join.name);
 
-			// Emit short reliable message
-			emit<Scope::NETWORK>(std::make_unique<std::string>("Test Short Reliable Target Message"), join.name, true);
+            // Emit short reliable message
+            emit<Scope::NETWORK>(std::make_unique<std::string>("Test Short Reliable Target Message"), join.name, true);
 
 
-			// Emit long unreliable message
-			emit<Scope::NETWORK>(std::make_unique<std::string>(std::numeric_limits<uint16_t>::max(), 'v'), join.name);
+            // Emit long unreliable message
+            emit<Scope::NETWORK>(std::make_unique<std::string>(std::numeric_limits<uint16_t>::max(), 'v'), join.name);
 
-			// Emit long reliable message
-			emit<Scope::NETWORK>(
-				std::make_unique<std::string>(std::numeric_limits<uint16_t>::max(), 's'), join.name, true);
-		});
+            // Emit long reliable message
+            emit<Scope::NETWORK>(
+                std::make_unique<std::string>(std::numeric_limits<uint16_t>::max(), 's'), join.name, true);
+        });
 
-		on<Trigger<NetworkLeave>, Sync<TestReactor>>().then([this](const NetworkLeave& leave) {
+        on<Trigger<NetworkLeave>, Sync<TestReactor>>().then([this](const NetworkLeave& leave) {
 
-			std::cout << "Disconnected from" << std::endl;
-			std::cout << "\tName: " << leave.name << std::endl;
-			std::cout << "\tAddress: " << ((leave.address >> 24) & 0xFF) << "." << ((leave.address >> 16) & 0xFF) << "."
-					  << ((leave.address >> 8) & 0xFF) << "." << ((leave.address >> 0) & 0xFF) << std::endl;
-			std::cout << "\tTCP Port: " << leave.tcpPort << std::endl;
-			std::cout << "\tUDP Port: " << leave.udpPort << std::endl;
-		});
+            std::cout << "Disconnected from" << std::endl;
+            std::cout << "\tName: " << leave.name << std::endl;
+            std::cout << "\tAddress: " << ((leave.address >> 24) & 0xFF) << "." << ((leave.address >> 16) & 0xFF) << "."
+                      << ((leave.address >> 8) & 0xFF) << "." << ((leave.address >> 0) & 0xFF) << std::endl;
+            std::cout << "\tTCP Port: " << leave.tcpPort << std::endl;
+            std::cout << "\tUDP Port: " << leave.udpPort << std::endl;
+        });
 
-		on<Network<std::string>, Sync<TestReactor>>().then(
-			[this](const NUClear::dsl::word::NetworkSource& source, const std::string& s) {
+        on<Network<std::string>, Sync<TestReactor>>().then(
+            [this](const NUClear::dsl::word::NetworkSource& source, const std::string& s) {
 
-				std::cout << "Processing a message from " << source.name << std::endl;
+                std::cout << "Processing a message from " << source.name << std::endl;
 
-				if (s.size() < 100) {
-					std::cout << s << std::endl;
-				}
-				else {
-					std::cout << s[0] << std::endl;
-				}
+                if (s.size() < 100) {
+                    std::cout << s << std::endl;
+                }
+                else {
+                    std::cout << s[0] << std::endl;
+                }
 
-			});
+            });
 
-		on<Startup>().then([this] {
+        on<Startup>().then([this] {
 
-			auto netConfig = std::make_unique<NUClear::message::NetworkConfiguration>();
+            auto netConfig = std::make_unique<NUClear::message::NetworkConfiguration>();
 
-			netConfig->name			  = ::getenv("NETWORK_NODE") ? std::string(::getenv("NETWORK_NODE")) : "";
-			netConfig->multicastGroup = "239.226.152.162";
-			netConfig->multicastPort  = 7447;
+            netConfig->name           = ::getenv("NETWORK_NODE") ? std::string(::getenv("NETWORK_NODE")) : "";
+            netConfig->multicastGroup = "239.226.152.162";
+            netConfig->multicastPort  = 7447;
 
-			std::cout << "Testing network with node " << netConfig->name << std::endl;
+            std::cout << "Testing network with node " << netConfig->name << std::endl;
 
-			emit<Scope::DIRECT>(netConfig);
-			emit(std::make_unique<PerformEmits>());
-		});
+            emit<Scope::DIRECT>(netConfig);
+            emit(std::make_unique<PerformEmits>());
+        });
 
-		on<Trigger<PerformEmits>>().then([this] {
+        on<Trigger<PerformEmits>>().then([this] {
 
-			// Sleep for one second to let the network stabalise
-			std::this_thread::sleep_for(std::chrono::seconds(1));
+            // Sleep for one second to let the network stabalise
+            std::this_thread::sleep_for(std::chrono::seconds(1));
 
-			// Do a series of network emits from us to test functionality
+            // Do a series of network emits from us to test functionality
 
-			// Emit short unreliable to all
-			emit<Scope::NETWORK>(std::make_unique<std::string>("Test Short Unreliable All Message"));
+            // Emit short unreliable to all
+            emit<Scope::NETWORK>(std::make_unique<std::string>("Test Short Unreliable All Message"));
 
-			// Emit short reliable to all
-			emit<Scope::NETWORK>(std::make_unique<std::string>("Test Short Reliable All Message"), true);
+            // Emit short reliable to all
+            emit<Scope::NETWORK>(std::make_unique<std::string>("Test Short Reliable All Message"), true);
 
-			// Emit long unreliable to all
-			emit<Scope::NETWORK>(std::make_unique<std::string>(std::numeric_limits<uint16_t>::max(), 'u'));
+            // Emit long unreliable to all
+            emit<Scope::NETWORK>(std::make_unique<std::string>(std::numeric_limits<uint16_t>::max(), 'u'));
 
-			// Emit long reliable to all
-			emit<Scope::NETWORK>(std::make_unique<std::string>(std::numeric_limits<uint16_t>::max(), 'r'), true);
-		});
-	}
+            // Emit long reliable to all
+            emit<Scope::NETWORK>(std::make_unique<std::string>(std::numeric_limits<uint16_t>::max(), 'r'), true);
+        });
+    }
 };
 }
 
 
 int main() {
 
-	NUClear::PowerPlant::Configuration config;
-	config.threadCount = 4;
-	NUClear::PowerPlant plant(config);
-	plant.install<TestReactor>();
+    NUClear::PowerPlant::Configuration config;
+    config.threadCount = 4;
+    NUClear::PowerPlant plant(config);
+    plant.install<TestReactor>();
 
-	plant.start();
+    plant.start();
 }

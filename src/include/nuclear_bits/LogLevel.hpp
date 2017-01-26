@@ -28,69 +28,69 @@ namespace NUClear {
  *  The logging level of a reactor can be changed by setting it in the install function.
  */
 enum LogLevel {
-	/**
-	 * @brief
-	 *  The Trace level contains messages that are used to trace the exact flow of execution.
-	 *
-	 * @details
-	 *  This level is extremely verbose and often has a message per line of code.
-	 */
-	TRACE,
+    /**
+     * @brief
+     *  The Trace level contains messages that are used to trace the exact flow of execution.
+     *
+     * @details
+     *  This level is extremely verbose and often has a message per line of code.
+     */
+    TRACE,
 
-	/**
-	 * @brief
-	 *  Debug contains messages that represent the inputs and outputs of different
-	 * computation units.
-	 *
-	 * @details
-	 *  If you have a function that performs three steps to do something
-	 *  then it's likely that you will have a message for the input and output of those
-	 *  three steps. Additionally you would likely have messages that check if it hit
-	 *  different branches.
-	 */
-	DEBUG,
+    /**
+     * @brief
+     *  Debug contains messages that represent the inputs and outputs of different
+     * computation units.
+     *
+     * @details
+     *  If you have a function that performs three steps to do something
+     *  then it's likely that you will have a message for the input and output of those
+     *  three steps. Additionally you would likely have messages that check if it hit
+     *  different branches.
+     */
+    DEBUG,
 
-	/**
-	 * @brief
-	 *  The info level is used to provide high level goal messages such as function start
-	 *  or successful completion.
-	 *
-	 * @details
-	 *  This shows when key user-facing functionality is executed and tells us that everything
-	 *  is working without getting into the details.
-	 */
-	INFO,
+    /**
+     * @brief
+     *  The info level is used to provide high level goal messages such as function start
+     *  or successful completion.
+     *
+     * @details
+     *  This shows when key user-facing functionality is executed and tells us that everything
+     *  is working without getting into the details.
+     */
+    INFO,
 
-	/**
-	 * @brief The warning level is used to notify us that everything might not be working perfectly.
-	 *
-	 * @details
-	 *  Warnings are errors or inconsistencies that aren't fatal and generally do not completely
-	 *  break the system. However a warning message should require action from someone and should
-	 *  point to a section of the system that needs attention.
-	 */
-	WARN,
+    /**
+     * @brief The warning level is used to notify us that everything might not be working perfectly.
+     *
+     * @details
+     *  Warnings are errors or inconsistencies that aren't fatal and generally do not completely
+     *  break the system. However a warning message should require action from someone and should
+     *  point to a section of the system that needs attention.
+     */
+    WARN,
 
-	/**
-	 * @brief
-	 *  The error level is used to report unexpected behavior.
+    /**
+     * @brief
+     *  The error level is used to report unexpected behavior.
 
-	 * @details
-	 *  This level doesn't need to prefix a program-crashing issue but should be used to report major
-	 *  unexpected branches in logic or other constraint breaking problems such as failed assertions.
-	 *  All errors should require action from someone and should be addressed immediately.
-	 */
-	ERROR,
+     * @details
+     *  This level doesn't need to prefix a program-crashing issue but should be used to report major
+     *  unexpected branches in logic or other constraint breaking problems such as failed assertions.
+     *  All errors should require action from someone and should be addressed immediately.
+     */
+    ERROR,
 
-	/**
-	 * @brief Fatal is a program destroying error that needs to be addressed immediately.
-	 *
-	 * @details
-	 *  If a fatal message is sent it should point to something that should never ever happen and
-	 *  ideally provide as much information as possible as to why it crashed. Fatal messages
-	 *  require action immediately and should always be addressed.
-	 */
-	FATAL
+    /**
+     * @brief Fatal is a program destroying error that needs to be addressed immediately.
+     *
+     * @details
+     *  If a fatal message is sent it should point to something that should never ever happen and
+     *  ideally provide as much information as possible as to why it crashed. Fatal messages
+     *  require action immediately and should always be addressed.
+     */
+    FATAL
 };
 
 }  // namespace NUClear

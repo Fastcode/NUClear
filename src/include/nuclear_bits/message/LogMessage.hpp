@@ -19,25 +19,26 @@
 #define NUCLEAR_MESSAGE_LOGMESSAGE_HPP
 
 #include "nuclear_bits/LogLevel.hpp"
+#include "nuclear_bits/message/ReactionStatistics.hpp"
 
 namespace NUClear {
 namespace message {
 
-	/**
-	 * @brief This type is a NUClear message type that holds a log message.
-	 */
-	struct LogMessage {
+    /**
+     * @brief This type is a NUClear message type that holds a log message.
+     */
+    struct LogMessage {
 
 
-		/// @brief The logging level of the log.
-		LogLevel level;
+        /// @brief The logging level of the log.
+        LogLevel level;
 
-		/// @brief The string contents of the message.
-		std::string message;
+        /// @brief The string contents of the message.
+        std::string message;
 
-		/// @brief The currently executing task that made this message
-		const ReactionStatistics* task;
-	};
+        /// @brief The currently executing task that made this message
+        const ReactionStatistics* task;
+    };
 
 }  // namespace message
 }  // namespace NUClear

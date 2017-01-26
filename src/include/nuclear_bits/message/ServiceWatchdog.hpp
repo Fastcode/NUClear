@@ -21,12 +21,12 @@
 namespace NUClear {
 namespace message {
 
-	template <typename TWatchdog>
-	struct ServiceWatchdog {
-		ServiceWatchdog() : time(NUClear::clock::now()){};
+    template <typename TWatchdog>
+    struct ServiceWatchdog {
+        ServiceWatchdog() : time(NUClear::clock::now()){};
 
-		const NUClear::clock::time_point time;
-	};
+        const NUClear::clock::time_point time;
+    };
 
 }  // namespace message
 }  // namespace NUClear

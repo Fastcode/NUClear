@@ -20,34 +20,34 @@
 
 namespace NUClear {
 namespace dsl {
-	namespace word {
+    namespace word {
 
-		/**
-		 * @brief
-		 *  This is used to specify the number of instances the associated reaction can execute during runtime.
-		 *
-		 * @details
-		 *  For best use, this word should be fused with at least one other binding DSL word.  For example:
-		 *  @code	on<Trigger<T, ...>, Buffer<n>>>() @endcode
-		 * 	When this keyword is used, if the subscribing reaction is triggered while <i>n</i> existing tasks for this
-		 *  reaction are either in the queue or still executing, then this new task request will be ignored.
-		 *
-		 * @par Implements
-		 *  Precondition, Fusion
-		 *
-		 * @tparam 	n the number of tasks (instances of the subscribing reaction) which can be running at a given time.
-		 */
-		template <int n>
-		struct Buffer {
+        /**
+         * @brief
+         *  This is used to specify the number of instances the associated reaction can execute during runtime.
+         *
+         * @details
+         *  For best use, this word should be fused with at least one other binding DSL word. For example:
+         *  @code on<Trigger<T, ...>, Buffer<n>>>() @endcode
+         *  When this keyword is used, if the subscribing reaction is triggered while <i>n</i> existing tasks for this
+         *  reaction are either in the queue or still executing, then this new task request will be ignored.
+         *
+         * @par Implements
+         *  Precondition, Fusion
+         *
+         * @tparam n the number of tasks (instances of the subscribing reaction) which can be running at a given time.
+         */
+        template <int n>
+        struct Buffer {
 
-			template <typename DSL>
-			static inline bool precondition(threading::Reaction& reaction) {
-				// We only run if there are less than the target number of active tasks
-				return reaction.activeTasks < n;
-			}
-		};
+            template <typename DSL>
+            static inline bool precondition(threading::Reaction& reaction) {
+                // We only run if there are less than the target number of active tasks
+                return reaction.activeTasks < n;
+            }
+        };
 
-	}  // namespace word
+    }  // namespace word
 }  // namespace dsl
 }  // namespace NUClear
 

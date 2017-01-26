@@ -21,32 +21,32 @@
 namespace NUClear {
 namespace util {
 
-	template <typename Input, int Index = 0, typename Output = std::tuple<>, typename Indicies = Sequence<>>
-	struct ExtractTransient;
+    template <typename Input, int Index = 0, typename Output = std::tuple<>, typename Indicies = Sequence<>>
+    struct ExtractTransient;
 
-	template <typename First, typename... Input, int Index, typename... Output, int... Indicies>
-	struct ExtractTransient<std::tuple<First, Input...>, Index, std::tuple<Output...>, Sequence<Indicies...>>
-		: std::conditional_t<dsl::trait::is_transient<First>::value,
-							 /*T*/ ExtractTransient<std::tuple<Input...>,
-													Index + 1,
-													std::tuple<Output..., First>,
-													Sequence<Indicies..., Index>>,
-							 /*F*/ ExtractTransient<std::tuple<Input...>,
-													Index + 1,
-													std::tuple<Output...>,
-													Sequence<Indicies...>>> {};
+    template <typename First, typename... Input, int Index, typename... Output, int... Indicies>
+    struct ExtractTransient<std::tuple<First, Input...>, Index, std::tuple<Output...>, Sequence<Indicies...>>
+        : std::conditional_t<dsl::trait::is_transient<First>::value,
+                             /*T*/ ExtractTransient<std::tuple<Input...>,
+                                                    Index + 1,
+                                                    std::tuple<Output..., First>,
+                                                    Sequence<Indicies..., Index>>,
+                             /*F*/ ExtractTransient<std::tuple<Input...>,
+                                                    Index + 1,
+                                                    std::tuple<Output...>,
+                                                    Sequence<Indicies...>>> {};
 
-	template <int Index, typename... Output, int... Indicies>
-	struct ExtractTransient<std::tuple<>, Index, std::tuple<Output...>, Sequence<Indicies...>> {
-		using type						  = std::tuple<Output...>;
-		using index						  = Sequence<Indicies...>;
-		static constexpr const bool value = sizeof...(Output) > 0;
-	};
+    template <int Index, typename... Output, int... Indicies>
+    struct ExtractTransient<std::tuple<>, Index, std::tuple<Output...>, Sequence<Indicies...>> {
+        using type                        = std::tuple<Output...>;
+        using index                       = Sequence<Indicies...>;
+        static constexpr const bool value = sizeof...(Output) > 0;
+    };
 
-	template <typename DSL>
-	struct TransientDataElements : public ExtractTransient<decltype(DSL::get(std::declval<threading::Reaction&>()))> {};
+    template <typename DSL>
+    struct TransientDataElements : public ExtractTransient<decltype(DSL::get(std::declval<threading::Reaction&>()))> {};
 
 }  // namespace util
-}  //  namespace NUClear
+}  // namespace NUClear
 
 #endif  // NUCLEAR_UTIL_TRANSIENTDATAELEMENTS_HPP

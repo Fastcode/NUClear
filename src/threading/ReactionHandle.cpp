@@ -20,46 +20,46 @@
 namespace NUClear {
 namespace threading {
 
-	ReactionHandle::ReactionHandle(std::shared_ptr<Reaction> context) : context(context) {}
+    ReactionHandle::ReactionHandle(std::shared_ptr<Reaction> context) : context(context) {}
 
-	bool ReactionHandle::enabled() {
-		auto c = context.lock();
-		return c ? bool(c->enabled) : false;
-	}
+    bool ReactionHandle::enabled() {
+        auto c = context.lock();
+        return c ? bool(c->enabled) : false;
+    }
 
-	ReactionHandle& ReactionHandle::enable() {
-		auto c = context.lock();
-		if (c) {
-			c->enabled = true;
-		}
-		return *this;
-	}
+    ReactionHandle& ReactionHandle::enable() {
+        auto c = context.lock();
+        if (c) {
+            c->enabled = true;
+        }
+        return *this;
+    }
 
-	ReactionHandle& ReactionHandle::enable(bool set) {
-		auto c = context.lock();
-		if (c) {
-			c->enabled = set;
-		}
-		return *this;
-	}
+    ReactionHandle& ReactionHandle::enable(bool set) {
+        auto c = context.lock();
+        if (c) {
+            c->enabled = set;
+        }
+        return *this;
+    }
 
-	ReactionHandle& ReactionHandle::disable() {
-		auto c = context.lock();
-		if (c) {
-			c->enabled = false;
-		}
-		return *this;
-	}
+    ReactionHandle& ReactionHandle::disable() {
+        auto c = context.lock();
+        if (c) {
+            c->enabled = false;
+        }
+        return *this;
+    }
 
-	void ReactionHandle::unbind() {
-		auto c = context.lock();
-		if (c) {
-			c->unbind();
-		}
-	}
+    void ReactionHandle::unbind() {
+        auto c = context.lock();
+        if (c) {
+            c->unbind();
+        }
+    }
 
-	ReactionHandle::operator bool() const {
-		return bool(context.lock());
-	}
+    ReactionHandle::operator bool() const {
+        return bool(context.lock());
+    }
 }
 }

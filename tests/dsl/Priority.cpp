@@ -31,60 +31,60 @@ bool high = false;
 
 class TestReactor : public NUClear::Reactor {
 public:
-	TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
+    TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
 
-		on<Trigger<Message3>, Priority::HIGH>().then("High", [this] {
+        on<Trigger<Message3>, Priority::HIGH>().then("High", [this] {
 
-			// We should be the first to run
-			REQUIRE(!low);
-			REQUIRE(!med);
-			REQUIRE(!high);
+            // We should be the first to run
+            REQUIRE(!low);
+            REQUIRE(!med);
+            REQUIRE(!high);
 
-			high = true;
-		});
+            high = true;
+        });
 
-		on<Trigger<Message2>, Priority::NORMAL>().then("Normal", [this] {
-			// We should be the second to run
-			REQUIRE(!low);
-			REQUIRE(!med);
-			REQUIRE(high);
+        on<Trigger<Message2>, Priority::NORMAL>().then("Normal", [this] {
+            // We should be the second to run
+            REQUIRE(!low);
+            REQUIRE(!med);
+            REQUIRE(high);
 
-			med = true;
-		});
+            med = true;
+        });
 
-		on<Trigger<Message1>, Priority::LOW>().then("Low", [this] {
-			// We should be the final one to run
-			REQUIRE(!low);
-			REQUIRE(med);
-			REQUIRE(high);
+        on<Trigger<Message1>, Priority::LOW>().then("Low", [this] {
+            // We should be the final one to run
+            REQUIRE(!low);
+            REQUIRE(med);
+            REQUIRE(high);
 
-			low = true;
+            low = true;
 
-			// We're done
-			powerplant.shutdown();
-		});
-	}
+            // We're done
+            powerplant.shutdown();
+        });
+    }
 };
 }
 
 
 TEST_CASE("Tests that priority orders the tasks appropriately", "[api][priority]") {
 
-	NUClear::PowerPlant::Configuration config;
-	config.threadCount = 1;
-	NUClear::PowerPlant plant(config);
-	plant.install<TestReactor>();
+    NUClear::PowerPlant::Configuration config;
+    config.threadCount = 1;
+    NUClear::PowerPlant plant(config);
+    plant.install<TestReactor>();
 
-	// Emit message 2, then 1 then 3 (totally wrong order)
-	// Should require the priority queue to sort it out
-	plant.emit(std::make_unique<Message2>());
-	plant.emit(std::make_unique<Message1>());
-	plant.emit(std::make_unique<Message3>());
+    // Emit message 2, then 1 then 3 (totally wrong order)
+    // Should require the priority queue to sort it out
+    plant.emit(std::make_unique<Message2>());
+    plant.emit(std::make_unique<Message1>());
+    plant.emit(std::make_unique<Message3>());
 
-	plant.start();
+    plant.start();
 
-	// Make sure everything ran
-	REQUIRE(low);
-	REQUIRE(med);
-	REQUIRE(high);
+    // Make sure everything ran
+    REQUIRE(low);
+    REQUIRE(med);
+    REQUIRE(high);
 }

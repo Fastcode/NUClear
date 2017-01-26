@@ -21,33 +21,33 @@
 
 namespace {
 struct SimpleMessage {
-	int data;
+    int data;
 };
 
 class TestReactor : public NUClear::Reactor {
 public:
-	TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
+    TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
 
-		on<Trigger<SimpleMessage>>().then([this](const SimpleMessage& message) {
+        on<Trigger<SimpleMessage>>().then([this](const SimpleMessage& message) {
 
-			// The message we received should have test == 10
-			REQUIRE(message.data == 10);
+            // The message we received should have test == 10
+            REQUIRE(message.data == 10);
 
-			// We are finished the test
-			powerplant.shutdown();
-		});
+            // We are finished the test
+            powerplant.shutdown();
+        });
 
-		on<Startup>().then([this]() { emit(std::unique_ptr<SimpleMessage>(new SimpleMessage{10})); });
-	}
+        on<Startup>().then([this]() { emit(std::unique_ptr<SimpleMessage>(new SimpleMessage{10})); });
+    }
 };
 }
 
 TEST_CASE("Testing the startup event is emitted at the start of the program", "[api][startup]") {
 
-	NUClear::PowerPlant::Configuration config;
-	config.threadCount = 1;
-	NUClear::PowerPlant plant(config);
-	plant.install<TestReactor>();
+    NUClear::PowerPlant::Configuration config;
+    config.threadCount = 1;
+    NUClear::PowerPlant plant(config);
+    plant.install<TestReactor>();
 
-	plant.start();
+    plant.start();
 }

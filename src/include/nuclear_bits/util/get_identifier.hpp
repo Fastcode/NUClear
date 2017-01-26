@@ -26,15 +26,15 @@
 namespace NUClear {
 namespace util {
 
-	template <typename DSL, typename Function>
-	std::vector<std::string> get_identifier(std::string usr, std::string reactor) {
+    template <typename DSL, typename Function>
+    std::vector<std::string> get_identifier(std::string usr, std::string reactor) {
 
-		std::vector<std::string> out = {usr, reactor, demangle(typeid(DSL).name()), demangle(typeid(Function).name())};
+        std::vector<std::string> out = {usr, reactor, demangle(typeid(DSL).name()), demangle(typeid(Function).name())};
 
-		return out;
-	}
+        return out;
+    }
 
 }  // namespace util
-}  //  namespace NUClear
+}  // namespace NUClear
 
 #endif  // NUCLEAR_UTIL_GET_IDENTIFIER_HPP

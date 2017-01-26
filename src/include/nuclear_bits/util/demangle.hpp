@@ -23,9 +23,9 @@
 namespace NUClear {
 namespace util {
 
-	std::string demangle(const char* symbol);
+    std::string demangle(const char* symbol);
 
 }  // namespace util
-}  //  namespace NUClear
+}  // namespace NUClear
 
 #endif  // NUCLEAR_UTIL_DEMANGLE_HPP

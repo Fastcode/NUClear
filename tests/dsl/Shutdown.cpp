@@ -28,29 +28,29 @@ struct SimpleMessage {};
 
 class TestReactor : public NUClear::Reactor {
 public:
-	TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
+    TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
 
-		on<Trigger<SimpleMessage>>().then([this] {
+        on<Trigger<SimpleMessage>>().then([this] {
 
-			// Shutdown so we can test shutting down
-			powerplant.shutdown();
-		});
+            // Shutdown so we can test shutting down
+            powerplant.shutdown();
+        });
 
-		on<Shutdown>().then([this] { didShutDown = true; });
-	}
+        on<Shutdown>().then([this] { didShutDown = true; });
+    }
 };
 }
 
 TEST_CASE("A test that a shutdown message is emitted when the system shuts down", "[api][shutdown]") {
 
-	NUClear::PowerPlant::Configuration config;
-	config.threadCount = 1;
-	NUClear::PowerPlant plant(config);
-	plant.install<TestReactor>();
+    NUClear::PowerPlant::Configuration config;
+    config.threadCount = 1;
+    NUClear::PowerPlant plant(config);
+    plant.install<TestReactor>();
 
-	plant.emit(std::make_unique<SimpleMessage>());
+    plant.emit(std::make_unique<SimpleMessage>());
 
-	plant.start();
+    plant.start();
 
-	REQUIRE(didShutDown);
+    REQUIRE(didShutDown);
 }

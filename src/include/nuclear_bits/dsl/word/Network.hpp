@@ -18,87 +18,88 @@
 #ifndef NUCLEAR_DSL_WORD_NETWORK_HPP
 #define NUCLEAR_DSL_WORD_NETWORK_HPP
 
-#include "nuclear_bits/dsl/trait/is_transient.hpp"
 #include "nuclear_bits/dsl/store/ThreadStore.hpp"
+#include "nuclear_bits/dsl/trait/is_transient.hpp"
 #include "nuclear_bits/util/serialise/Serialise.hpp"
 
 namespace NUClear {
 namespace dsl {
-	namespace word {
+    namespace word {
 
-		template <typename T>
-		struct NetworkData : public std::shared_ptr<T> {
-			using std::shared_ptr<T>::shared_ptr;
-		};
+        template <typename T>
+        struct NetworkData : public std::shared_ptr<T> {
+            using std::shared_ptr<T>::shared_ptr;
+        };
 
-		struct NetworkSource {
-			NetworkSource() : name(""), address(0), port(0), reliable(false), multicast(false) {}
+        struct NetworkSource {
+            NetworkSource() : name(""), address(0), port(0), reliable(false), multicast(false) {}
 
-			std::string name;
-			in_addr_t address;
-			in_port_t port;
-			bool reliable;
-			bool multicast;
-		};
+            std::string name;
+            in_addr_t address;
+            in_port_t port;
+            bool reliable;
+            bool multicast;
+        };
 
-		struct NetworkListen {
-			NetworkListen() : hash(), reaction() {}
+        struct NetworkListen {
+            NetworkListen() : hash(), reaction() {}
 
-			std::array<uint64_t, 2> hash;
-			std::shared_ptr<threading::Reaction> reaction;
-		};
+            std::array<uint64_t, 2> hash;
+            std::shared_ptr<threading::Reaction> reaction;
+        };
 
-		template <typename T>
-		struct Network {
+        template <typename T>
+        struct Network {
 
-			template <typename DSL, typename Function>
-			static inline threading::ReactionHandle bind(Reactor& reactor, const std::string& label, Function&& callback) {
+            template <typename DSL, typename Function>
+            static inline threading::ReactionHandle bind(Reactor& reactor,
+                                                         const std::string& label,
+                                                         Function&& callback) {
 
-				auto task = std::make_unique<NetworkListen>();
+                auto task = std::make_unique<NetworkListen>();
 
-				task->hash = util::serialise::Serialise<T>::hash();
-				task->reaction =
-					util::generate_reaction<DSL, NetworkListen>(reactor, label, std::forward<Function>(callback));
+                task->hash = util::serialise::Serialise<T>::hash();
+                task->reaction =
+                    util::generate_reaction<DSL, NetworkListen>(reactor, label, std::forward<Function>(callback));
 
-				threading::ReactionHandle handle(task->reaction);
+                threading::ReactionHandle handle(task->reaction);
 
-				reactor.powerplant.emit<emit::Direct>(task);
+                reactor.powerplant.emit<emit::Direct>(task);
 
-				return handle;
-			}
+                return handle;
+            }
 
-			template <typename DSL>
-			static inline std::tuple<std::shared_ptr<NetworkSource>, NetworkData<T>> get(threading::Reaction&) {
+            template <typename DSL>
+            static inline std::tuple<std::shared_ptr<NetworkSource>, NetworkData<T>> get(threading::Reaction&) {
 
-				auto data   = store::ThreadStore<std::vector<char>>::value;
-				auto source = store::ThreadStore<NetworkSource>::value;
+                auto data   = store::ThreadStore<std::vector<char>>::value;
+                auto source = store::ThreadStore<NetworkSource>::value;
 
-				if (data && source) {
+                if (data && source) {
 
-					// Return our deserialised data
-					return std::make_tuple(
-						std::make_shared<NetworkSource>(*source),
-						std::make_shared<T>(util::serialise::Serialise<T>::deserialise(*data)));
-				}
-				else {
+                    // Return our deserialised data
+                    return std::make_tuple(std::make_shared<NetworkSource>(*source),
+                                           std::make_shared<T>(util::serialise::Serialise<T>::deserialise(*data)));
+                }
+                else {
 
-					// Return invalid data
-					return std::make_tuple(std::shared_ptr<NetworkSource>(nullptr), std::shared_ptr<T>(nullptr));
-				}
-			}
-		};
+                    // Return invalid data
+                    return std::make_tuple(std::shared_ptr<NetworkSource>(nullptr), std::shared_ptr<T>(nullptr));
+                }
+            }
+        };
 
-	}  // namespace word
+    }  // namespace word
 
-	namespace trait {
+    namespace trait {
 
-		template <typename T>
-		struct is_transient<typename word::NetworkData<T>> : public std::true_type {};
+        template <typename T>
+        struct is_transient<typename word::NetworkData<T>> : public std::true_type {};
 
-		template <>
-		struct is_transient<typename std::shared_ptr<word::NetworkSource>> : public std::true_type {};
+        template <>
+        struct is_transient<typename std::shared_ptr<word::NetworkSource>> : public std::true_type {};
 
-	}  // namespace trait
+    }  // namespace trait
 }  // namespace dsl
 }  // namespace NUClear
 

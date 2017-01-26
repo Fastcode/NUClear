@@ -18,74 +18,74 @@
 #ifndef NUCLEAR_THREADING_REACTIONHANDLE_HPP
 #define NUCLEAR_THREADING_REACTIONHANDLE_HPP
 
-#include <typeindex>
-#include <queue>
-#include <vector>
-#include <mutex>
 #include <memory>
+#include <mutex>
+#include <queue>
 #include <string>
+#include <typeindex>
+#include <vector>
 
 #include "Reaction.hpp"
 
 namespace NUClear {
 namespace threading {
 
-	/**
-	 * @brief Gives user code access to control the reaction object.
-	 *
-	 * @details
-	 *  This object is given to user code when they create a reaction.
-	 *  It contains functions which allow changing of the reaction after it has
-	 *  been created such as enabling and disabling its execution.
-	 */
-	class ReactionHandle {
-	public:
-		/// @brief the reaction that we are managing
-		std::weak_ptr<Reaction> context;
+    /**
+     * @brief Gives user code access to control the reaction object.
+     *
+     * @details
+     *  This object is given to user code when they create a reaction.
+     *  It contains functions which allow changing of the reaction after it has
+     *  been created such as enabling and disabling its execution.
+     */
+    class ReactionHandle {
+    public:
+        /// @brief the reaction that we are managing
+        std::weak_ptr<Reaction> context;
 
-		/**
-		 * @brief Creates a new ReactionHandle for the reaction that is passed in.
-		 *
-		 * @param context the reaction that we are interacting with.
-		 */
-		ReactionHandle(std::shared_ptr<Reaction> context = nullptr);
+        /**
+         * @brief Creates a new ReactionHandle for the reaction that is passed in.
+         *
+         * @param context the reaction that we are interacting with.
+         */
+        ReactionHandle(std::shared_ptr<Reaction> context = nullptr);
 
-		/**
-		 * @brief Enables the reaction and allows it to run.
-		 */
-		ReactionHandle& enable();
+        /**
+         * @brief Enables the reaction and allows it to run.
+         */
+        ReactionHandle& enable();
 
-		/**
-		 * @brief Disables the reaction, preventing it from running.
-		 */
-		ReactionHandle& disable();
+        /**
+         * @brief Disables the reaction, preventing it from running.
+         */
+        ReactionHandle& disable();
 
-		/**
-		 * @brief Sets the enable status to the passed boolean.
-		 *
-		 * @param set the run status of the handle handle to be of the boolean
-		 */
-		ReactionHandle& enable(bool set);
+        /**
+         * @brief Sets the enable status to the passed boolean.
+         *
+         * @param set the run status of the handle handle to be of the boolean
+         */
+        ReactionHandle& enable(bool set);
 
-		/**
-		 * @brief Returns if this reaction is currently enabled.
-		 *
-		 * @return true if the reaction is enabled, false otherwise.
-		 */
-		bool enabled();
+        /**
+         * @brief Returns if this reaction is currently enabled.
+         *
+         * @return true if the reaction is enabled, false otherwise.
+         */
+        bool enabled();
 
-		/**
-		 * @brief Unbinds the reaction and cleans up so it will never run again
-		 */
-		void unbind();
+        /**
+         * @brief Unbinds the reaction and cleans up so it will never run again
+         */
+        void unbind();
 
-		/**
-		 * @brief Returns if this reaction handle holds a valid pointer (may be already unbound)
-		 *
-		 * @return true if the reaction held in this is not a nullptr
-		 */
-		operator bool() const;
-	};
+        /**
+         * @brief Returns if this reaction handle holds a valid pointer (may be already unbound)
+         *
+         * @return true if the reaction held in this is not a nullptr
+         */
+        operator bool() const;
+    };
 
 }  // namespace threading
 }  // namespace NUClear

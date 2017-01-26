@@ -22,19 +22,19 @@
 
 namespace NUClear {
 namespace dsl {
-	namespace word {
+    namespace word {
 
-		/**
-		 * @brief Used to specify reactions which should occur at shutdown.
-		 *
-		 * @details
-		 *  Once this type is emitted, all existing tasks within the system are completed including the shutdown
-		 *  tasks, Any new emit events will not be processed and all new tasks will be ignored. Once all tasks are
-		 *  finish the system will terminate.
-		 */
-		struct Shutdown : public operation::TypeBind<Shutdown> {};
+        /**
+         * @brief Used to specify reactions which should occur at shutdown.
+         *
+         * @details
+         *  Once this type is emitted, all existing tasks within the system are completed including the shutdown
+         *  tasks, Any new emit events will not be processed and all new tasks will be ignored. Once all tasks are
+         *  finish the system will terminate.
+         */
+        struct Shutdown : public operation::TypeBind<Shutdown> {};
 
-	}  // namespace word
+    }  // namespace word
 }  // namespace dsl
 }  // namespace NUClear
 
