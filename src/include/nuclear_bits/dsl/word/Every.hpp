@@ -42,29 +42,35 @@ namespace dsl {
 		};
 
 		/**
-		 * @brief			Used to request any periodic reactions in the system.
+		 * @brief
+		 *  This is used to request any periodic reactions in the system.
 		 *
-		 * @details		This is designed to be used as a DSL request for an on statement:
-		 *						@code on<Every<ticks, period>() @endcode
-		 *  					It will enact the execution a task at a periodic rate.  The
-		 *						desired period simply needs to be specified for the correct
-		 *						timing to be called.  For instance, if the request was specified
-		 *						as shown in the following example:
+		 * @details
+		 *  @code on<Every<ticks, period>() @endcode
+		 *  This request will enact the execution a task at a periodic rate.  The desired period simply needs to be
+		 *  specified for the correct timing to be called.  For instance, if the request was specified as shown in the
+		 *  following example:
+		 *  @code on<Every<2, std::chrono::seconds>() @endcode
+		 *  A callback to initialise a task would execute every 2 seconds.
 		 *
-		 *  					@code on<Every<2, std::chrono::seconds>() @endcode
-		 *  					A callback to initialise a task would execute every 2 seconds.
+		 *	Note that this paramter may also be wrapped in a Per<> template in order to write the inverse relation (or
+		 *  frequency) rather then a period.  For example:
+		 *  @code on<Every<2, Per<std::chrono::seconds>>() @endcode
+		 *  In the case above, 2 callbacks to initialise a task would execute every second.
 		 *
-		 * @attention	Note that the period which is used to measure the ticks must be
-		 *						greater than or equal to clock::duration or the program will not
-		 *						compile
+		 * @attention
+		 *  Note that the period which is used to measure the ticks must be greater than or equal to clock::duration or the
+		 *  program will not compile
 		 *
-		 * @tparam 		ticks the number of ticks of a paticular type to wait
-		 * @tparam 		period a type of duration (e.g. std::chrono::seconds) to measure
-		 *						the ticks in, defaults to clock duration.  This function can
-		 *						accept any of the std::chrono helper types (nanoseconds,
-		 *						microseconds, milliseconds, seconds, minutes, hours).
-		 *						Note that this paramter may also be wrapped in a Per<>
-		 *						template in order to write a frequency rather then a period.
+		 * @par Implements
+		 *  Bind
+		 *
+		 * @tparam 		ticks
+		 *    the number of ticks of a paticular type to wait
+		 * @tparam 		period
+		 *  a type of duration (e.g. std::chrono::seconds) to measure the ticks in, defaults to clock duration.  This
+		 *  function can accept any of the std::chrono helper types (nanoseconds, microseconds, milliseconds, seconds,
+		 *  minutes, hours).
 		 */
 		template <int ticks = 0, class period = NUClear::clock::duration>
 		struct Every;

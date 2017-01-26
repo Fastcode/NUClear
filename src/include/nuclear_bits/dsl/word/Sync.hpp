@@ -23,14 +23,27 @@ namespace dsl {
 	namespace word {
 
 		/**
-		 * @brief This option sets the Synchronization group of the task
+		 * @brief
+		 *  This option sets the synchronisation for a group of tasks.
 		 *
 		 * @details
-		 *  The synchronization group of a task is a compile time mutex which will allow only a single task from
-		 *  each distinct execution task to execute at a time. For example, if two tasks both had Sync<int> then only
-		 *  one of those tasks would execute at a time.
+		 *  When a group of tasks has been synchronised, only one task from that group will be allowed to execute at a given
+		 *  time.  Should another task from this group be scheduled/requested (during execution of the current task), it
+		 *  will be sidelined in a priority queue.  Upon completion of the currently executing task, the queue will be
+		 *  polled to allow excution of the next task in this group.
+		 *  Tasks in the priority queue will be ordered based on their priority level, then their emission timestamp.
 		 *
-		 * @tparam TSync the type with which to synchronize on
+		 *  For best use, this word should be fused with at least one other binding DSL word.  For example:
+		 * 	@code	on<Trigger<T, ...>, Sync<Group>>() @endcode
+		 *
+		 * @par Implements
+		 *  Precondition, Postcondition
+		 *
+		 * @par TRENT????
+		 *  Flagged for more discussion.  Example:  can you sync on more than one type?  how does it work if the tasks are
+		 *  from multiple on  (reaction) requests?
+		 *
+		 * @tparam TSync the type/group to synchronize on
 		 */
 		template <typename TSync>
 		struct Sync {

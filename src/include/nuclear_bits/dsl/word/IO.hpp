@@ -42,6 +42,14 @@ namespace dsl {
 			std::shared_ptr<threading::Reaction> reaction;
 		};
 
+		/**
+		 * @brief Used for communicating with serial devices and notwork ports
+		 *
+		 * @details Use this to interact with file descriptors and execute when they
+		 *					are read/writeable.
+		 *					@code on<IO>(file_descriptor)@endcode
+		 *
+		 */
 		// IO is implicitly single
 		struct IO : public Single {
 

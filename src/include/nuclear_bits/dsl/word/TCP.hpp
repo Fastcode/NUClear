@@ -40,6 +40,13 @@ namespace NUClear {
 namespace dsl {
 	namespace word {
 
+		/**
+		 * @brief asdf
+		 *
+		 * @details asdf
+		 *					@code on<TCP>(port) @endcode
+		 *
+		 */
 		struct TCP {
 
 			struct Connection {

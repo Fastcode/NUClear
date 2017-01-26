@@ -27,24 +27,27 @@ namespace dsl {
 	namespace word {
 
 		/**
-		 * @brief			Used to define any secondary data which should be provided to
-		 *						a subscribing a reaction.
+		 * @brief
+		 *  This is used to define any secondary data which should be provided to a subscribing a reaction.
 		 *
-		 * @details		This is designed to be used in conjunction with the DSL request
-		 *						for an on statement:
-		 *						@code on<Trigger<T, ...>, With<TWiths, ...>>() @endcode
-		 * 						When TWiths is emitted into the system, it will <b>not</b>
-		 *						trigger a callback to the triggering unit. When T is emitted
-		 *						into the system, read-only access to the most recent copy of
-		 *						both T and TWiths will be provided via a callback to the
-		 *						triggering unit.
+		 * @details
+		 *  During runtime, the emision of secondary data will not trigger a reaction within the system. For best use, this
+		 *  word should be fused with at least one other binding DSL word.  For example:
+		 *	@code on<Trigger<T, ...>, With<TWiths, ...>>() @endcode
+		 *	When TWiths is emitted into the system, it will <b>not</b> trigger a callback to the triggering unit. Yet when T
+		 *  is emitted into the system, read-only access to the most recent copy of both T and TWiths will be provided via a
+		 *  callback to the	triggering unit.
 		 *
-		 * @attention QForTRENT:  --what if a copy of the data is not present at the
-		 *						time of the required callback?  Does this stop the Task from
-		 *						running?  Does this also work with Every and Always?
+		 * @attention
+		 *  If a copy of TWiths is not present at the time of task creation, the task will be dropped (i.e the reaction will
+	 	 *  not run).  To overwrite this functionality, include the DSL keyword "Optional" in the request.  For example:
+		 *  @code on<Trigger<T, ...>, Optional<With<TWiths, ...>>>() @endcode
 		 *
-		 * @tparam 		TWiths the datatypes which will be retreived from the cache and
-		 *						used in the reaction callback.
+		 * @par Implements
+		 *  Get
+		 *
+		 * @tparam
+		 *  TWiths the datatypes which will be retreived from the cache and used in the reaction callback.
 		 */
 		template <typename... TWiths>
 		struct With : public Fusion<operation::CacheGet<TWiths>...> {};

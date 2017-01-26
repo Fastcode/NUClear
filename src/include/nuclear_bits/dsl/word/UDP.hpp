@@ -40,6 +40,13 @@ namespace NUClear {
 namespace dsl {
 	namespace word {
 
+		/**
+		 * @brief asdf
+		 *
+		 * @details asdf
+		 *					@code on<UDP>(port) @endcode
+		 *
+		 */
 		struct UDP {
 
 			struct Packet {

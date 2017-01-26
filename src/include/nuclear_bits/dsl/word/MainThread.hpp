@@ -25,8 +25,17 @@ namespace dsl {
 	namespace word {
 
 		/**
-		 * @brief This option requires that this task executes using the main thread (usually for graphics related
-		 * tasks)
+		 * @brief
+		 *  This is used to specifiy that the Task will need to execute using the main thread
+		 *
+		 * @details
+		 *  This will most likely be used with Graphics related tasks.  For best use, this word should be fused with at
+		 *  least one other binding DSL word.  For example:
+		 * 	@code	on<Trigger<T, ...>, MainThred>() @endcode
+		 *
+		 * @par Implements
+		 *  Precondition
+		 *
 		 */
 		struct MainThread {
 

@@ -38,6 +38,21 @@ namespace dsl {
 			TData d;
 		};
 
+		/**
+		 * @brief
+		 *  This is used to signify any optional requirements in the DSL request.
+		 *
+		 * @details
+		 *  During runtime, optional data does not need to be present when triggering a reaction within the system. This
+		 *  word should be fused with any other Get DSL word.
+		 *  For example:
+		 *	@code	on<Trigger<T, ...>, Optional<With<TWiths, ...>() @endcode
+		 *
+		 *@par Implements
+		 *  Fusion
+		 *
+		 * @tparam 	DSLWords The activity this request will be applied to
+		 */
 		template <typename... DSLWords>
 		struct Optional : public Fusion<DSLWords...> {
 

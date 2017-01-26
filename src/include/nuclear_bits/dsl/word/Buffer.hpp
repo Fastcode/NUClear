@@ -23,20 +23,27 @@ namespace dsl {
 	namespace word {
 
 		/**
-		 * @brief Sets the number of tasks to buffer before dropping tasks.
+		 * @brief
+		 *  This is used to specify the number of instances the associated reaction can execute during runtime.
 		 *
 		 * @details
-		 *  If a task has a limited buffer size, then that means that N instances of the task can be
-		 *  in the system at any one time. If the task is triggered again while N existing tasks are in the
-		 *  queue or is still executing, then this new task will be ignored.
+		 *  For best use, this word should be fused with at least one other binding DSL word.  For example:
+		 *  @code	on<Trigger<T, ...>, Buffer<n>>>() @endcode
+		 * 	When this keyword is used, if the subscribing reaction is triggered while <i>n</i> existing tasks for this
+		 *  reaction are either in the queue or still executing, then this new task request will be ignored.
+		 *
+		 * @par Implements
+		 *  Precondition, Fusion
+		 *
+		 * @tparam 	n the number of tasks (instances of the subscribing reaction) which can be running at a given time.
 		 */
-		template <int N>
+		template <int n>
 		struct Buffer {
 
 			template <typename DSL>
 			static inline bool precondition(threading::Reaction& reaction) {
 				// We only run if there are less than the target number of active tasks
-				return reaction.activeTasks < N;
+				return reaction.activeTasks < n;
 			}
 		};
 

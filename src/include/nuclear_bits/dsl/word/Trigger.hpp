@@ -26,22 +26,24 @@ namespace dsl {
 	namespace word {
 
 		/**
-		 * @brief		Used to request any data dependent reactions in the system.
+		 * @brief
+		 *  This is used to request any data dependent reactions in the system.
 		 *
-		 * @details	This is designed to be used as a DSL request for an on statement:
-		 * 					@code	on<Trigger<T, ...>>() @endcode
-		 *					It will enact the execution a task whenever T is emitted into the
-		 *					system.  When this occurs, read-only access to T will be provided
-		 *					to the triggering unit via a callback.
+		 * @details
+		 *  @code	on<Trigger<T, ...>>() @endcode
+		 *	This will enact the execution of a task whenever T is emitted into the system.  When this occurs, read-only
+		 *  access to T will be provided to the triggering unit via a callback.
 		 *
-		 *					The request can handle multiple types.  Note that when used for
-		 *					multiple types, the reaction will only be triggered once
-		 *					<b>all</b> of the types have been emitted (at least once) since the
-		 *					last occurence of the event.
+		 *@attention
+		 * 	This request can handle multiple types.  Note that when used for multiple types, the reaction will only be
+		 *  triggered once <b>all</b> of the types have been emitted (at least once) since the last occurence of the event.
 		 *
-		 * @tparam 	T the datatypes on which a reaction callback will be triggered.
-		 *					These will be flagged as <b>primary</b> datatype/s for the
-		 *					subscribing reaction.
+		 * @par Implements
+		 *  Bind, Get
+		 *
+		 * @tparam 	T
+		 *  the datatypes on which a reaction callback will be triggered. These will be flagged as <b>primary</b>
+		 *  datatype/s for the subscribing reaction.
 		 */
 		template <typename T>
 		struct Trigger : public operation::TypeBind<T>, public operation::CacheGet<T> {};

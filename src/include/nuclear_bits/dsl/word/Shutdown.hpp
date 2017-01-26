@@ -25,7 +25,7 @@ namespace dsl {
 	namespace word {
 
 		/**
-		 * @brief This type is emitted when the system starts shutting down.
+		 * @brief Used to specify reactions which should occur at shutdown.
 		 *
 		 * @details
 		 *  Once this type is emitted, all existing tasks within the system are completed including the shutdown

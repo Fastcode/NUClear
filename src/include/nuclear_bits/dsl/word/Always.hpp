@@ -25,27 +25,29 @@ namespace dsl {
 	namespace word {
 
 		/**
-		 * @brief 	Used to request any continuous reactions in the system.
+		 * @brief
+		*   This is used to request any continuous reactions in the system.
 		 *
-		 * @details This is designed to be used as a DSL request for an on statement:
-		 *					@code on<Always>  @endcode
-		 *		 			Any reactions requested using this keyword will start when the
-		 * 					system starts up and execute continually until the whole system
-		 *          is told to shut down.
-		 *					Note that a task spawned from this request will execute in its
-		 *					own unique thread rather than the thread pool. However, if the task
-		 *				  is rescheduled (such as with Sync), it will then be moved into
-		 *					the thread pool.
+		 * @details
+		 *  @code on<Always>  @endcode
+		 *  Any reactions requested using this keyword will start when the system starts up and execute continually until
+		 *  the whole system is told to shut down.  Note that a task spawned from this request will execute in its own
+		 *  unique thread rather than the thread pool. However, if the task is rescheduled (such as with Sync), it will
+		 *  then be moved into the thread pool.
 		 *
-		 *@attention Use of this keyworkd is preferred to keeing the system in a loop.
-		 *					It is not recommended to use a while(true) or similar loop in
-		 *					a reaction.  Instead, use this keyword to let the task finish
-		 *					and restart itself. This allows the reaction to terminate properly
-		 *				 	when the system is shutdown. If a reaction is not terminated
-		 *			 		correctly during shut down, the system will hang.
-		 *          If the requested reaction is performing a blocking operation,
-		 * 					try to make it interruptable with an on<Shutdown> reaction so
-		 *          that the program can be cleanly terminated.
+		 *@attention
+		 *  Use of this keyworkd is preferred to keeing the system in a loop. It is not recommended to use a while(true) or
+		 *  similar loop in a reaction.  Instead, use this keyword to let the task finish and restart itself. This allows
+		 *  the reaction to terminate properly when the system is shutdown. If a reaction is not terminated correctly during
+		 *  shut down, the system will hang.  If the requested reaction is performing a blocking operation, try to make it
+		 *  interruptable with an on<Shutdown> reaction so that the program can be cleanly terminated.
+		 *
+		 * @TRENT????
+		 *  Can we discuss more at the next meeting?
+		 *
+		 * @par (Implements)
+		 *  Bind
+		 *
 		 */
 		struct Always {
 

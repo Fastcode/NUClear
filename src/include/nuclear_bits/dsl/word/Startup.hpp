@@ -25,11 +25,14 @@ namespace dsl {
 	namespace word {
 
 		/**
-		 * @brief This type is emitted when the system is first started up.
+		 * @brief Used to specify reactions which should occur at startup
 		 *
-		 * @details
-		 *  This type is emitted when the system first starts up, after reactors have been installed. This is
-		 *  used if a reactor needs to use information provided by other reactors constructors.
+		 * @details This can specify any reactions which need to run directly after
+		 *					all reactors have been installed into the PowerPlant.
+		 *					@code on<Startup>()@endcode
+		 *					It will most commonly be used when a reactor needs to use information
+		 *					provided by another reactors constructor.
+		 *
 		 */
 		struct Startup : public operation::TypeBind<Startup> {};
 

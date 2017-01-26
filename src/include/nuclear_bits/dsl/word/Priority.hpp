@@ -24,6 +24,16 @@ namespace NUClear {
 namespace dsl {
 	namespace word {
 
+		/**
+		 * @brief Used to control the priority of the response of the callback
+		 *
+		 * @details	This is designed to assign priority and determin the scheduling
+		 *					order in the threadpool and also the prority of the thread
+		 *	 				@code	on<Trigger<T, ...>, Priority::HIGH>() @endcode
+		 *
+		 * @par TRENT????
+		 *  Flagged for more discussion. I am getting to this - I just skipped over this particiular one today. 
+		 */
 		struct Priority {
 
 			struct REALTIME {
