@@ -38,21 +38,21 @@ namespace util {
 	 *
 	 * @tparam S the integer pack giving the ordinal position of the tuple value to get
 	 */
-	template <typename TFunc, int... S, typename... TArgs>
-	void apply(TFunc&& function, const std::tuple<TArgs...>&& args, const Sequence<S...>&) {
+	template <typename Function, int... S, typename... Arguments>
+	void apply(Function&& function, const std::tuple<Arguments...>&& args, const Sequence<S...>&) {
 
 		// Get each of the values from the tuple, dereference them and call the function with them
 		// Also ensure that each value is a const reference
 		function(Dereferencer<decltype(std::get<S>(args))>(std::get<S>(args))...);
 	}
 
-	template <typename TFunc, typename... TArgs>
-	void apply_relevant(TFunc&& function, const std::tuple<TArgs...>&& args) {
+	template <typename Function, typename... Arguments>
+	void apply_relevant(Function&& function, const std::tuple<Arguments...>&& args) {
 
 		// Call apply with the relevant arguments
-		apply(std::forward<TFunc>(function),
+		apply(std::forward<Function>(function),
 			  std::move(args),
-			  typename RelevantArguments<TFunc, std::tuple<Dereferencer<TArgs>...>>::type());
+			  typename RelevantArguments<Function, std::tuple<Dereferencer<Arguments>...>>::type());
 	}
 
 }  // namespace util

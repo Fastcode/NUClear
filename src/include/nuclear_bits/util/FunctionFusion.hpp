@@ -38,12 +38,12 @@ namespace util {
 	 * @tparam Function the struct that holds the call function wrapper to be called
 	 * @tparam Shared   the index list of shared arguments at the start of the argument pack to use
 	 * @tparam Selected the index list of selected arguments in the argument pack to use
-	 * @tparam TArgs    the types of the arguments passed into the function
+	 * @tparam Arguments    the types of the arguments passed into the function
 	 *
 	 * @return the object returned by the called subfunction
 	 */
-	template <typename Function, int... Shared, int... Selected, typename... TArgs>
-	auto apply_function_fusion_call(std::tuple<TArgs...>&& args,
+	template <typename Function, int... Shared, int... Selected, typename... Arguments>
+	auto apply_function_fusion_call(std::tuple<Arguments...>&& args,
 									const Sequence<Shared...>&,
 									const Sequence<Selected...>&)
 		-> decltype(Function::call(std::get<Shared>(args)..., std::get<Selected>(args)...)) {
@@ -63,17 +63,17 @@ namespace util {
 	 * @tparam Shared   the number of paramters (from 0) to use in the call
 	 * @tparam Start    the index of the first argument to pass to the function
 	 * @tparam End      the index of the element after the last argument to pass to the function
-	 * @tparam TArgs    the types of the arguments passed into the function
+	 * @tparam Arguments    the types of the arguments passed into the function
 	 *
 	 * @return the object returned by the called subfunction
 	 */
-	template <typename Function, int Shared, int Start, int End, typename... TArgs>
-	auto apply_function_fusion_call(std::tuple<TArgs...>&& args)
-		-> decltype(apply_function_fusion_call<Function>(std::forward<std::tuple<TArgs...>>(args),
+	template <typename Function, int Shared, int Start, int End, typename... Arguments>
+	auto apply_function_fusion_call(std::tuple<Arguments...>&& args)
+		-> decltype(apply_function_fusion_call<Function>(std::forward<std::tuple<Arguments...>>(args),
 														 GenerateSequence<0, Shared>(),
 														 GenerateSequence<Start, End>())) {
 		return apply_function_fusion_call<Function>(
-			std::forward<std::tuple<TArgs...>>(args), GenerateSequence<0, Shared>(), GenerateSequence<Start, End>());
+			std::forward<std::tuple<Arguments...>>(args), GenerateSequence<0, Shared>(), GenerateSequence<Start, End>());
 	}
 
 	template <typename Functions, int Shared, typename Ranges, typename Arguments>

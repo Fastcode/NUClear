@@ -29,30 +29,30 @@
 namespace NUClear {
 namespace util {
 
-	template <size_t I = 0, typename... TData>
-	inline typename std::enable_if<I == sizeof...(TData), bool>::type checkData(const std::tuple<TData...>&) {
+	template <size_t I = 0, typename... T>
+	inline typename std::enable_if<I == sizeof...(T), bool>::type checkData(const std::tuple<T...>&) {
 		return true;
 	}
 
-	template <size_t I = 0, typename... TData>
-		inline typename std::enable_if < I<sizeof...(TData), bool>::type checkData(const std::tuple<TData...>& t) {
+	template <size_t I = 0, typename... T>
+		inline typename std::enable_if < I<sizeof...(T), bool>::type checkData(const std::tuple<T...>& t) {
 		return std::get<I>(t) && checkData<I + 1>(t);
 	}
 
 
-	template <typename DSL, typename TFunc>
+	template <typename DSL, typename Function>
 	struct CallbackGenerator {
 
-		CallbackGenerator(TFunc&& callback)
-			: callback(std::forward<TFunc>(callback))
+		CallbackGenerator(Function&& callback)
+			: callback(std::forward<Function>(callback))
 			, transients(std::make_shared<typename TransientDataElements<DSL>::type>()){};
 
-		template <typename... TData, int... DIndex, int... TIndex>
-		void mergeTransients(std::tuple<TData...>& data, const Sequence<DIndex...>&, const Sequence<TIndex...>&) {
+		template <typename... T, int... DIndex, int... Index>
+		void mergeTransients(std::tuple<T...>& data, const Sequence<DIndex...>&, const Sequence<Index...>&) {
 
 			// Merge our transient data
 			unpack(MergeTransients<std::remove_reference_t<decltype(std::get<DIndex>(data))>>::merge(
-				std::get<TIndex>(*transients), std::get<DIndex>(data))...);
+				std::get<Index>(*transients), std::get<DIndex>(data))...);
 		}
 
 
@@ -122,7 +122,7 @@ namespace util {
 			}
 		}
 
-		TFunc callback;
+		Function callback;
 		std::shared_ptr<typename TransientDataElements<DSL>::type> transients;
 	};
 

@@ -30,11 +30,11 @@ namespace dsl {
 		 *  This is used to request any data dependent reactions in the system.
 		 *
 		 * @details
-		 *  @code	on<Trigger<T, ...>>() @endcode
+		 *  @code on<Trigger<T>>() @endcode
 		 *	This will enact the execution of a task whenever T is emitted into the system.  When this occurs, read-only
 		 *  access to T will be provided to the triggering unit via a callback.
 		 *
-		 *@attention
+		 * @attention
 		 * 	This request can handle multiple types.  Note that when used for multiple types, the reaction will only be
 		 *  triggered once <b>all</b> of the types have been emitted (at least once) since the last occurence of the event.
 		 *

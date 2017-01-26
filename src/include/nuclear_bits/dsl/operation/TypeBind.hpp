@@ -38,8 +38,8 @@ namespace dsl {
 		template <typename DataType>
 		struct TypeBind {
 
-			template <typename DSL, typename TFunc>
-			static inline threading::ReactionHandle bind(Reactor& reactor, const std::string& label, TFunc&& callback) {
+			template <typename DSL, typename Function>
+			static inline threading::ReactionHandle bind(Reactor& reactor, const std::string& label, Function&& callback) {
 
 				// Our unbinder to remove this reaction
 				std::function<void(threading::Reaction&)> unbinder([](threading::Reaction& r) {
@@ -59,10 +59,10 @@ namespace dsl {
 
 				// Get our identifier string
 				std::vector<std::string> identifier =
-					util::get_identifier<typename DSL::DSL, TFunc>(label, reactor.reactorName);
+					util::get_identifier<typename DSL::DSL, Function>(label, reactor.reactorName);
 
 				auto reaction = std::make_shared<threading::Reaction>(
-					reactor, std::move(identifier), std::forward<TFunc>(callback), std::move(unbinder));
+					reactor, std::move(identifier), std::forward<Function>(callback), std::move(unbinder));
 				threading::ReactionHandle handle(reaction);
 
 				// Create our reaction and store it in the TypeCallbackStore

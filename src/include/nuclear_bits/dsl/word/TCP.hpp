@@ -68,10 +68,10 @@ namespace dsl {
 				}
 			};
 
-			template <typename DSL, typename TFunc>
+			template <typename DSL, typename Function>
 			static inline std::tuple<threading::ReactionHandle, int, int> bind(Reactor& reactor,
 																			   const std::string& label,
-																			   TFunc&& callback,
+																			   Function&& callback,
 																			   int port = 0) {
 
 				// Make our socket
@@ -112,7 +112,7 @@ namespace dsl {
 				// Generate a reaction for the IO system that closes on death
 				int cfd		  = fd;
 				auto reaction = util::generate_reaction<DSL, IO>(
-					reactor, label, std::forward<TFunc>(callback), [cfd](threading::Reaction&) { close(cfd); });
+					reactor, label, std::forward<Function>(callback), [cfd](threading::Reaction&) { close(cfd); });
 
 				auto ioConfig =
 					std::make_unique<IOConfiguration>(IOConfiguration{fd.release(), IO::READ, std::move(reaction)});

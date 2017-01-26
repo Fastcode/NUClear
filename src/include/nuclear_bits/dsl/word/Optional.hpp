@@ -22,12 +22,12 @@ namespace NUClear {
 namespace dsl {
 	namespace word {
 
-		template <typename TData>
+		template <typename T>
 		struct OptionalWrapper {
 
-			OptionalWrapper(TData&& d) : d(std::forward<TData>(d)) {}
+			OptionalWrapper(T&& d) : d(std::forward<T>(d)) {}
 
-			TData operator*() const {
+			T operator*() const {
 				return std::move(d);
 			}
 
@@ -35,7 +35,7 @@ namespace dsl {
 				return true;
 			}
 
-			TData d;
+			T d;
 		};
 
 		/**
@@ -46,7 +46,7 @@ namespace dsl {
 		 *  During runtime, optional data does not need to be present when triggering a reaction within the system. This
 		 *  word should be fused with any other Get DSL word.
 		 *  For example:
-		 *	@code	on<Trigger<T, ...>, Optional<With<TWiths, ...>() @endcode
+		 *	@code	on<Trigger<T1>, Optional<With<T2>() @endcode
 		 *
 		 *@par Implements
 		 *  Fusion
@@ -57,10 +57,10 @@ namespace dsl {
 		struct Optional : public Fusion<DSLWords...> {
 
 		private:
-			template <typename... TData, int... Index>
-			static inline auto wrap(std::tuple<TData...>&& data, util::Sequence<Index...>)
-				-> decltype(std::make_tuple(OptionalWrapper<TData>(std::move(std::get<Index>(data)))...)) {
-				return std::make_tuple(OptionalWrapper<TData>(std::move(std::get<Index>(data)))...);
+			template <typename... T, int... Index>
+			static inline auto wrap(std::tuple<T...>&& data, util::Sequence<Index...>)
+				-> decltype(std::make_tuple(OptionalWrapper<T>(std::move(std::get<Index>(data)))...)) {
+				return std::make_tuple(OptionalWrapper<T>(std::move(std::get<Index>(data)))...);
 			}
 
 		public:

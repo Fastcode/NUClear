@@ -93,10 +93,10 @@ namespace dsl {
 				}
 			};
 
-			template <typename DSL, typename TFunc>
+			template <typename DSL, typename Function>
 			static inline std::tuple<threading::ReactionHandle, in_port_t, fd_t> bind(Reactor& reactor,
 																					  const std::string& label,
-																					  TFunc&& callback,
+																					  Function&& callback,
 																					  int port = 0) {
 
 				// Make our socket
@@ -138,7 +138,7 @@ namespace dsl {
 				// Generate a reaction for the IO system that closes on death
 				int cfd		  = fd;
 				auto reaction = util::generate_reaction<DSL, IO>(
-					reactor, label, std::forward<TFunc>(callback), [cfd](threading::Reaction&) { close(cfd); });
+					reactor, label, std::forward<Function>(callback), [cfd](threading::Reaction&) { close(cfd); });
 
 				auto ioConfig =
 					std::make_unique<IOConfiguration>(IOConfiguration{fd.release(), IO::READ, std::move(reaction)});
@@ -238,10 +238,10 @@ namespace dsl {
 
 			struct Broadcast {
 
-				template <typename DSL, typename TFunc>
+				template <typename DSL, typename Function>
 				static inline std::tuple<threading::ReactionHandle, in_port_t, fd_t> bind(Reactor& reactor,
 																						  const std::string& label,
-																						  TFunc&& callback,
+																						  Function&& callback,
 																						  int port = 0) {
 
 					// Make our socket
@@ -294,7 +294,7 @@ namespace dsl {
 					// Generate a reaction for the IO system that closes on death
 					int cfd		  = fd;
 					auto reaction = util::generate_reaction<DSL, IO>(
-						reactor, label, std::forward<TFunc>(callback), [cfd](threading::Reaction&) { close(cfd); });
+						reactor, label, std::forward<Function>(callback), [cfd](threading::Reaction&) { close(cfd); });
 
 					auto ioConfig =
 						std::make_unique<IOConfiguration>(IOConfiguration{fd.release(), IO::READ, std::move(reaction)});
@@ -316,10 +316,10 @@ namespace dsl {
 
 			struct Multicast {
 
-				template <typename DSL, typename TFunc>
+				template <typename DSL, typename Function>
 				static inline std::tuple<threading::ReactionHandle, in_port_t, fd_t> bind(Reactor& reactor,
 																						  const std::string& label,
-																						  TFunc&& callback,
+																						  Function&& callback,
 																						  std::string multicastGroup,
 																						  int port = 0) {
 
@@ -395,7 +395,7 @@ namespace dsl {
 					// Generate a reaction for the IO system that closes on death
 					int cfd		  = fd;
 					auto reaction = util::generate_reaction<DSL, IO>(
-						reactor, label, std::forward<TFunc>(callback), [cfd](threading::Reaction&) {
+						reactor, label, std::forward<Function>(callback), [cfd](threading::Reaction&) {
 							// Close all the sockets
 							close(cfd);
 						});

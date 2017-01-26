@@ -35,14 +35,14 @@ namespace dsl {
 		 */
 		template <typename Function, typename DSL>
 		struct BindCaller {
-			template <typename TFunc, typename... TArgs>
-			static inline auto call(Reactor& reactor, const std::string& identifier, TFunc&& callback, TArgs&&... args)
+			template <typename Callback, typename... Arguments>
+			static inline auto call(Reactor& reactor, const std::string& identifier, Callback&& callback, Arguments&&... args)
 				-> decltype(Function::template bind<DSL>(reactor,
 														 identifier,
-														 std::forward<TFunc>(callback),
-														 std::forward<TArgs>(args)...)) {
+														 std::forward<Callback>(callback),
+														 std::forward<Arguments>(args)...)) {
 				return Function::template bind<DSL>(
-					reactor, identifier, std::forward<TFunc>(callback), std::forward<TArgs>(args)...);
+					reactor, identifier, std::forward<Callback>(callback), std::forward<Arguments>(args)...);
 			}
 		};
 
@@ -86,32 +86,32 @@ namespace dsl {
 		template <typename Word1, typename... WordN>
 		struct BindFuser<std::tuple<Word1, WordN...>> {
 
-			template <typename DSL, typename TFunc, typename... TArgs>
-			static inline auto bind(Reactor& reactor, const std::string& identifier, TFunc&& callback, TArgs&&... args)
+			template <typename DSL, typename Function, typename... Arguments>
+			static inline auto bind(Reactor& reactor, const std::string& identifier, Function&& callback, Arguments&&... args)
 				-> decltype(util::FunctionFusion<std::tuple<Word1, WordN...>,
 												 decltype(std::forward_as_tuple(reactor,
 																				identifier,
-																				std::forward<TFunc>(callback),
-																				std::forward<TArgs>(args)...)),
+																				std::forward<Function>(callback),
+																				std::forward<Arguments>(args)...)),
 												 BindCaller,
 												 std::tuple<DSL>,
 												 3>::call(reactor,
 														  identifier,
-														  std::forward<TFunc>(callback),
-														  std::forward<TArgs>(args)...)) {
+														  std::forward<Function>(callback),
+														  std::forward<Arguments>(args)...)) {
 
 				// Perform our function fusion
 				return util::FunctionFusion<std::tuple<Word1, WordN...>,
 											decltype(std::forward_as_tuple(reactor,
 																		   identifier,
-																		   std::forward<TFunc>(callback),
-																		   std::forward<TArgs>(args)...)),
+																		   std::forward<Function>(callback),
+																		   std::forward<Arguments>(args)...)),
 											BindCaller,
 											std::tuple<DSL>,
 											3>::call(reactor,
 													 identifier,
-													 std::forward<TFunc>(callback),
-													 std::forward<TArgs>(args)...);
+													 std::forward<Function>(callback),
+													 std::forward<Arguments>(args)...);
 			}
 		};
 

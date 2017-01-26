@@ -37,10 +37,10 @@ namespace util {
 	 *  documentation.
 	 *
 	 * @attention
-	 *  Note that because this is an entirely static class, if two maps with the same TMapID are used, they access the
+	 *  Note that because this is an entirely static class, if two maps with the same MapID are used, they access the
 	 *  same map
 	 */
-	template <typename TMapID, typename TKey, typename TValue>
+	template <typename MapID, typename Key, typename Value>
 	class TypeMap {
 	private:
 		/// @brief Deleted constructor as this class is a static class.
@@ -49,7 +49,7 @@ namespace util {
 		~TypeMap() = delete;
 		/// @brief the data variable where the data is stored for this map key.
 
-		static std::shared_ptr<TValue> data;
+		static std::shared_ptr<Value> data;
 		static std::mutex mutex;
 
 	public:
@@ -58,7 +58,7 @@ namespace util {
 		 *
 		 * @param d a pointer to the data to be stored (the map takes ownership)
 		 */
-		static void set(std::shared_ptr<TValue> d) {
+		static void set(std::shared_ptr<Value> d) {
 
 			// Do this once G++ supports it
 			// std::atomic_store_explicit(&data, d, std::memory_order_relaxed);
@@ -73,12 +73,12 @@ namespace util {
 		 *
 		 * @return a shared_ptr to the data that was previously stored
 		 */
-		static std::shared_ptr<TValue> get() {
+		static std::shared_ptr<Value> get() {
 
 			// TODO do this when gcc supports it
 			// std::atomic_load_explicit(&data, std::memory_order_relaxed);
 
-			std::shared_ptr<TValue> d;
+			std::shared_ptr<Value> d;
 			{
 				std::lock_guard<std::mutex> lock(mutex);
 				d = data;
@@ -89,10 +89,10 @@ namespace util {
 	};
 
 	/// Initialize our shared_ptr data
-	template <typename TMapID, typename TKey, typename TValue>
-	std::shared_ptr<TValue> TypeMap<TMapID, TKey, TValue>::data;
-	template <typename TMapID, typename TKey, typename TValue>
-	std::mutex TypeMap<TMapID, TKey, TValue>::mutex;
+	template <typename MapID, typename Key, typename Value>
+	std::shared_ptr<Value> TypeMap<MapID, Key, Value>::data;
+	template <typename MapID, typename Key, typename Value>
+	std::mutex TypeMap<MapID, Key, Value>::mutex;
 
 }  // namespace util
 }  //  namespace NUClear

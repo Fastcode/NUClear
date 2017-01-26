@@ -71,14 +71,14 @@ namespace dsl {
 
 			using ThreadEventStore = dsl::store::ThreadStore<Event>;
 
-			template <typename DSL, typename TFunc>
+			template <typename DSL, typename Function>
 			static inline threading::ReactionHandle bind(Reactor& reactor,
 														 const std::string& label,
-														 TFunc&& callback,
+														 Function&& callback,
 														 fd_t fd,
 														 int watchSet) {
 
-				auto reaction = util::generate_reaction<DSL, IO>(reactor, label, std::forward<TFunc>(callback));
+				auto reaction = util::generate_reaction<DSL, IO>(reactor, label, std::forward<Function>(callback));
 
 				auto ioConfig = std::make_unique<IOConfiguration>(IOConfiguration{fd, watchSet, std::move(reaction)});
 

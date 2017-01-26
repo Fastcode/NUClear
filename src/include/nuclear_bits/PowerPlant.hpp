@@ -1,5 +1,3 @@
-  
-	
 /*
  * Copyright (C) 2013-2016 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
  *
@@ -130,14 +128,14 @@ public:
 	 * @brief Installs a reactor of a particular type to the system.
 	 *
 	 * @details
-	 *  This function creates a new Reactor of the type that is passed in
-	 *  TReactor and constructs it. It passes through the specified LogLevel
+	 *  This function constructs a new Reactor of the template type.
+	 *  It passes through the specified LogLevel
 	 *  in the environment of that reactor so that it can be used to filter logs.
 	 *
-	 * @tparam TReactor The type of the reactor to build and install
-	 * @tparam level    The Logging level for this reactor to use
+	 * @tparam T		The type of the reactor to build and install
+	 * @tparam level    The initial logging level for this reactor to use
 	 */
-	template <typename TReactor, enum LogLevel level = DEBUG>
+	template <typename T, enum LogLevel level = DEBUG>
 	void install();
 
 	/**
@@ -161,13 +159,13 @@ public:
 	 *  Logs a message through the system so the various log handlers
 	 *  can access it.
 	 *
-	 * @tparam level The level to log at (defaults to DEBUG)
-	 * @tparam TArgs The types of the arguments we are logging
+	 * @tparam level     The level to log at (defaults to DEBUG)
+	 * @tparam Arguments The types of the arguments we are logging
 	 *
 	 * @param args The arguments we are logging
 	 */
-	template <enum LogLevel level, typename... TArgs>
-	static void log(TArgs&&... args);
+	template <enum LogLevel level, typename... Arguments>
+	static void log(Arguments&&... args);
 
 	/**
 	 * @brief Emits data to the system and routes it to the other systems that use it.
@@ -175,14 +173,14 @@ public:
 	 * @details
 	 *  TODO
 	 *
-	 * @tparam TData    The type of the data that we are emitting
+	 * @tparam T    The type of the data that we are emitting
 	 *
 	 * @param data The data we are emitting
 	 */
-	template <typename TData>
-	void emit(std::unique_ptr<TData>&& data);
-	template <typename TData>
-	void emit(std::unique_ptr<TData>& data);
+	template <typename T>
+	void emit(std::unique_ptr<T>&& data);
+	template <typename T>
+	void emit(std::unique_ptr<T>& data);
 
 	/**
 	 * @brief Emits data to the system and routes it to the other systems that use it.
@@ -190,30 +188,30 @@ public:
 	 * @details
 	 *  TODO
 	 *
-	 * @tparam THandlers        the first handler to use for this emit
-	 * @tparam TFirstHandler    the remaining handlers to use for this emit
-	 * @tparam TData            the type of the data that we are emitting
-	 * @tparam TArgs            the additional arguments that will be provided to the handlers
+	 * @tparam First        the first handler to use for this emit
+	 * @tparam Remainder    the remaining handlers to use for this emit
+	 * @tparam T            the type of the data that we are emitting
+	 * @tparam Arguments        the additional arguments that will be provided to the handlers
 	 *
 	 * @param data The data we are emitting
 	 */
-	template <template <typename> class TFirstHandler,
-			  template <typename> class... THandlers,
-			  typename TData,
-			  typename... TArgs>
-	void emit_shared(std::shared_ptr<TData>&& data, TArgs&&... args);
+	template <template <typename> class First,
+			  template <typename> class... Remainder,
+			  typename T,
+			  typename... Arguments>
+	void emit_shared(std::shared_ptr<T>&& data, Arguments&&... args);
 
-	template <template <typename> class TFirstHandler,
-			  template <typename> class... THandlers,
-			  typename TData,
-			  typename... TArgs>
-	void emit(std::unique_ptr<TData>&& data, TArgs&&... args);
+	template <template <typename> class First,
+			  template <typename> class... Remainder,
+			  typename T,
+			  typename... Arguments>
+	void emit(std::unique_ptr<T>&& data, Arguments&&... args);
 
-	template <template <typename> class TFirstHandler,
-			  template <typename> class... THandlers,
-			  typename TData,
-			  typename... TArgs>
-	void emit(std::unique_ptr<TData>& data, TArgs&&... args);
+	template <template <typename> class First,
+			  template <typename> class... Remainder,
+			  typename T,
+			  typename... Arguments>
+	void emit(std::unique_ptr<T>& data, Arguments&&... args);
 
 private:
 	/// @brief A list of tasks that must be run when the powerplant starts up
@@ -233,9 +231,9 @@ private:
 };
 
 // This free floating log function can be called from anywhere and will use the singleton PowerPlant
-template <enum LogLevel level = NUClear::DEBUG, typename... TArgs>
-void log(TArgs&&... args) {
-	PowerPlant::log<level>(std::forward<TArgs>(args)...);
+template <enum LogLevel level = NUClear::DEBUG, typename... Arguments>
+void log(Arguments&&... args) {
+	PowerPlant::log<level>(std::forward<Arguments>(args)...);
 }
 
 }  // namespace NUClear

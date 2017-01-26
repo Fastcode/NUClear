@@ -30,23 +30,23 @@ std::string storedB = "";
 double storedC		= 0;
 double storedD		= 0;
 
-template <typename TData>
+template <typename T>
 struct EmitTester1 {
-	static inline void emit(NUClear::PowerPlant&, std::shared_ptr<TData> p, int a, std::string b) {
+	static inline void emit(NUClear::PowerPlant&, std::shared_ptr<T> p, int a, std::string b) {
 		v1		= *p;
 		storedA = a;
 		storedB = b;
 	}
 
-	static inline void emit(NUClear::PowerPlant&, std::shared_ptr<TData> p, double c) {
+	static inline void emit(NUClear::PowerPlant&, std::shared_ptr<T> p, double c) {
 		v2		= *p;
 		storedC = c;
 	}
 };
 
-template <typename TData>
+template <typename T>
 struct EmitTester2 {
-	static inline void emit(NUClear::PowerPlant&, std::shared_ptr<TData> p, double d) {
+	static inline void emit(NUClear::PowerPlant&, std::shared_ptr<T> p, double d) {
 		v3		= *p;
 		storedD = d;
 	}

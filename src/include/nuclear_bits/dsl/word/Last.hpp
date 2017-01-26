@@ -26,34 +26,34 @@ namespace NUClear {
 namespace dsl {
 	namespace word {
 
-		template <size_t n, typename TData>
+		template <size_t n, typename T>
 		struct LastItemStorage {
 			// The items we are storing
-			std::list<TData> list;
+			std::list<T> list;
 
 			LastItemStorage() : list() {}
 
-			LastItemStorage(TData&& data) : list({data}) {}
+			LastItemStorage(T&& data) : list({data}) {}
 
-			template <typename TOutput>
-			operator std::list<TOutput>() const {
+			template <typename Output>
+			operator std::list<Output>() const {
 
-				std::list<TOutput> out;
+				std::list<Output> out;
 
-				for (const TData& item : list) {
-					out.push_back(TOutput(item));
+				for (const T& item : list) {
+					out.push_back(Output(item));
 				}
 
 				return out;
 			}
 
-			template <typename TOutput>
-			operator std::vector<TOutput>() const {
+			template <typename Output>
+			operator std::vector<Output>() const {
 
-				std::vector<TOutput> out;
+				std::vector<Output> out;
 
-				for (const TData& item : list) {
-					out.push_back(TOutput(item));
+				for (const T& item : list) {
+					out.push_back(Output(item));
 				}
 
 				return out;
@@ -87,10 +87,10 @@ namespace dsl {
 		struct Last : public Fusion<DSLWords...> {
 
 		private:
-			template <typename... TData, int... Index>
-			static inline auto wrap(std::tuple<TData...>&& data, util::Sequence<Index...>)
-				-> decltype(std::make_tuple(LastItemStorage<n, TData>(std::move(std::get<Index>(data)))...)) {
-				return std::make_tuple(LastItemStorage<n, TData>(std::move(std::get<Index>(data)))...);
+			template <typename... T, int... Index>
+			static inline auto wrap(std::tuple<T...>&& data, util::Sequence<Index...>)
+				-> decltype(std::make_tuple(LastItemStorage<n, T>(std::move(std::get<Index>(data)))...)) {
+				return std::make_tuple(LastItemStorage<n, T>(std::move(std::get<Index>(data)))...);
 			}
 
 		public:
@@ -113,8 +113,8 @@ namespace dsl {
 
 	namespace trait {
 
-		template <size_t n, typename TData>
-		struct is_transient<word::LastItemStorage<n, TData>> : public std::true_type {};
+		template <size_t n, typename T>
+		struct is_transient<word::LastItemStorage<n, T>> : public std::true_type {};
 
 	}  // namespace trait
 }  // namespace dsl

@@ -94,7 +94,7 @@ namespace dsl {
 			std::function<bool(NUClear::clock::time_point&)> task;
 			/// The time this task should be executed
 			NUClear::clock::time_point time;
-			/// THe unique identifier for this task so it can be unbound
+			/// The unique identifier for this task so it can be unbound
 			uint64_t id;
 		};
 

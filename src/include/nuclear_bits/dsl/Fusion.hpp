@@ -29,13 +29,13 @@
 namespace NUClear {
 namespace dsl {
 
-	template <typename... TWords>
-	struct Fusion : public fusion::BindFusion<TWords...>,
-					public fusion::GetFusion<TWords...>,
-					public fusion::PreconditionFusion<TWords...>,
-					public fusion::PriorityFusion<TWords...>,
-					public fusion::RescheduleFusion<TWords...>,
-					public fusion::PostconditionFusion<TWords...> {};
+	template <typename... Words>
+	struct Fusion : public fusion::BindFusion<Words...>,
+					public fusion::GetFusion<Words...>,
+					public fusion::PreconditionFusion<Words...>,
+					public fusion::PriorityFusion<Words...>,
+					public fusion::RescheduleFusion<Words...>,
+					public fusion::PostconditionFusion<Words...> {};
 
 }  // namespace dsl
 }  // namespace NUClear

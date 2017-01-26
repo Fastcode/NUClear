@@ -25,8 +25,8 @@ struct BindExtensionTest1 {
 	static int val1;
 	static double val2;
 
-	template <typename DSL, typename TFunc>
-	static inline int bind(NUClear::Reactor&, const std::string&, TFunc&&, int v1, double v2) {
+	template <typename DSL, typename Function>
+	static inline int bind(NUClear::Reactor&, const std::string&, Function&&, int v1, double v2) {
 
 		val1 = v1;
 		val2 = v2;
@@ -43,10 +43,10 @@ struct BindExtensionTest2 {
 	static std::string val1;
 	static std::chrono::nanoseconds val2;
 
-	template <typename DSL, typename TFunc>
+	template <typename DSL, typename Function>
 	static inline double bind(NUClear::Reactor&,
 							  const std::string&,
-							  TFunc&&,
+							  Function&&,
 							  std::string v1,
 							  std::chrono::nanoseconds v2) {
 
@@ -66,10 +66,10 @@ struct BindExtensionTest3 {
 	static int val2;
 	static int val3;
 
-	template <typename DSL, typename TFunc>
+	template <typename DSL, typename Function>
 	static inline NUClear::threading::ReactionHandle bind(NUClear::Reactor&,
 														  const std::string&,
-														  TFunc&&,
+														  Function&&,
 														  int v1,
 														  int v2,
 														  int v3) {

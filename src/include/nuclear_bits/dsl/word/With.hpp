@@ -33,24 +33,24 @@ namespace dsl {
 		 * @details
 		 *  During runtime, the emision of secondary data will not trigger a reaction within the system. For best use, this
 		 *  word should be fused with at least one other binding DSL word.  For example:
-		 *	@code on<Trigger<T, ...>, With<TWiths, ...>>() @endcode
-		 *	When TWiths is emitted into the system, it will <b>not</b> trigger a callback to the triggering unit. Yet when T
-		 *  is emitted into the system, read-only access to the most recent copy of both T and TWiths will be provided via a
+		 *	@code on<Trigger<T1>, With<T2>>() @endcode
+		 *	When T2 is emitted into the system, it will <b>not</b> trigger a callback to the triggering unit. Yet when T1
+		 *  is emitted into the system, read-only access to the most recent copy of both T1 and T2 will be provided via a
 		 *  callback to the	triggering unit.
 		 *
 		 * @attention
-		 *  If a copy of TWiths is not present at the time of task creation, the task will be dropped (i.e the reaction will
-	 	 *  not run).  To overwrite this functionality, include the DSL keyword "Optional" in the request.  For example:
-		 *  @code on<Trigger<T, ...>, Optional<With<TWiths, ...>>>() @endcode
+		 *  If a copy of T2 is not present at the time of task creation, the task will be dropped (i.e the reaction will
+	 	 *  not run). To override this functionality, include the DSL keyword "Optional" in the request.  For example:
+		 *  @code on<Trigger<T1>, Optional<With<T2>>>() @endcode
 		 *
 		 * @par Implements
 		 *  Get
 		 *
 		 * @tparam
-		 *  TWiths the datatypes which will be retreived from the cache and used in the reaction callback.
+		 *  T the datatypes which will be retreived from the cache and used in the reaction callback.
 		 */
-		template <typename... TWiths>
-		struct With : public Fusion<operation::CacheGet<TWiths>...> {};
+		template <typename... T>
+		struct With : public Fusion<operation::CacheGet<T>...> {};
 
 	}  // namespace word
 }  // namespace dsl

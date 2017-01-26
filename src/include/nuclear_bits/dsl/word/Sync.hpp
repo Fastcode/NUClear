@@ -43,9 +43,9 @@ namespace dsl {
 		 *  Flagged for more discussion.  Example:  can you sync on more than one type?  how does it work if the tasks are
 		 *  from multiple on  (reaction) requests?
 		 *
-		 * @tparam TSync the type/group to synchronize on
+		 * @tparam SyncGroup the type/group to synchronize on
 		 */
-		template <typename TSync>
+		template <typename SyncGroup>
 		struct Sync {
 
 			using task_ptr = std::unique_ptr<threading::ReactionTask>;
@@ -96,14 +96,14 @@ namespace dsl {
 			}
 		};
 
-		template <typename TSync>
-		std::priority_queue<typename Sync<TSync>::task_ptr> Sync<TSync>::queue;
+		template <typename SyncGroup>
+		std::priority_queue<typename Sync<SyncGroup>::task_ptr> Sync<SyncGroup>::queue;
 
-		template <typename TSync>
-		volatile bool Sync<TSync>::running = false;
+		template <typename SyncGroup>
+		volatile bool Sync<SyncGroup>::running = false;
 
-		template <typename TSync>
-		std::mutex Sync<TSync>::mutex;
+		template <typename SyncGroup>
+		std::mutex Sync<SyncGroup>::mutex;
 
 	}  // namespace word
 }  // namespace dsl

@@ -78,14 +78,14 @@ namespace dsl {
 		template <>
 		struct Every<0, NUClear::clock::duration> {
 
-			template <typename DSL, typename TFunc>
+			template <typename DSL, typename Function>
 			static inline threading::ReactionHandle bind(Reactor& reactor,
 														 const std::string& label,
-														 TFunc&& callback,
+														 Function&& callback,
 														 NUClear::clock::duration jump) {
 
 				auto reaction = std::shared_ptr<threading::Reaction>(
-					util::generate_reaction<DSL, operation::ChronoTask>(reactor, label, std::forward<TFunc>(callback)));
+					util::generate_reaction<DSL, operation::ChronoTask>(reactor, label, std::forward<Function>(callback)));
 
 				threading::ReactionHandle handle(reaction);
 
@@ -125,14 +125,14 @@ namespace dsl {
 		template <int ticks, class period>
 		struct Every {
 
-			template <typename DSL, typename TFunc>
-			static inline threading::ReactionHandle bind(Reactor& reactor, const std::string& label, TFunc&& callback) {
+			template <typename DSL, typename Function>
+			static inline threading::ReactionHandle bind(Reactor& reactor, const std::string& label, Function&& callback) {
 
 				// Work out our Reaction timing
 				clock::duration jump = period(ticks);
 
 				auto reaction = std::shared_ptr<threading::Reaction>(
-					util::generate_reaction<DSL, operation::ChronoTask>(reactor, label, std::forward<TFunc>(callback)));
+					util::generate_reaction<DSL, operation::ChronoTask>(reactor, label, std::forward<Function>(callback)));
 
 				threading::ReactionHandle handle(reaction);
 

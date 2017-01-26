@@ -31,8 +31,8 @@ namespace dsl {
 		template <typename TWatchdog, int ticks, class period>
 		struct Watchdog {
 
-			template <typename DSL, typename TFunc>
-			static inline threading::ReactionHandle bind(Reactor& reactor, const std::string& label, TFunc&& callback) {
+			template <typename DSL, typename Function>
+			static inline threading::ReactionHandle bind(Reactor& reactor, const std::string& label, Function&& callback) {
 
 				// If this is the first time we have used this watchdog service it
 				if (!store::DataStore<message::ServiceWatchdog<TWatchdog>>::get()) {
@@ -41,7 +41,7 @@ namespace dsl {
 
 				// Build our reaction
 				auto reaction = std::shared_ptr<threading::Reaction>(
-					util::generate_reaction<DSL, operation::ChronoTask>(reactor, label, std::forward<TFunc>(callback)));
+					util::generate_reaction<DSL, operation::ChronoTask>(reactor, label, std::forward<Function>(callback)));
 				threading::ReactionHandle handle(reaction);
 
 				// Send our configuration out

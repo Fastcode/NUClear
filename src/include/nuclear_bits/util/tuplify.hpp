@@ -23,28 +23,28 @@
 namespace NUClear {
 namespace util {
 
-	template <typename TData>
-	static inline std::tuple<TData> tuplify(TData&& data) {
-		return std::make_tuple(std::move(data));
-	}
+    template <typename T>
+    static inline std::tuple<T> tuplify(T&& data) {
+        return std::make_tuple(std::move(data));
+    }
 
-	template <typename... TElements>
-	static inline std::tuple<TElements...> tuplify(std::tuple<TElements...>&& tuple) {
-		return tuple;
-	}
+    template <typename... Ts>
+    static inline std::tuple<Ts...> tuplify(std::tuple<Ts...>&& tuple) {
+        return tuple;
+    }
 
-	template <typename TFirst, typename TSecond, typename... TElements>
-	static inline std::tuple<TFirst, TSecond, TElements...> detuplify(
-		std::tuple<TFirst, TSecond, TElements...>&& tuple) {
-		return tuple;
-	}
+    template <typename First, typename Second, typename... Remainder>
+    static inline std::tuple<First, Second, Remainder...> detuplify(
+        std::tuple<First, Second, Remainder...>&& tuple) {
+        return tuple;
+    }
 
-	template <typename TData>
-	static inline TData detuplify(std::tuple<TData>&& tuple) {
-		return std::move(std::get<0>(tuple));
-	}
+    template <typename T>
+    static inline T detuplify(std::tuple<T>&& tuple) {
+        return std::move(std::get<0>(tuple));
+    }
 
 }  // namespace util
-}  //  namespace NUClear
+}  // namespace NUClear
 
 #endif  // NUCLEAR_UTIL_TUPLIFY_HPP

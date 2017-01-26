@@ -29,10 +29,10 @@ namespace dsl {
 
 		using DSL = Fusion<Sentence...>;
 
-		template <typename TFunc, typename... TArgs>
-		static inline auto bind(Reactor& r, const std::string& label, TFunc callback, TArgs... args)
-			-> decltype(DSL::template bind<Parse<Sentence...>>(r, label, callback, std::forward<TArgs>(args)...)) {
-			return DSL::template bind<Parse<Sentence...>>(r, label, callback, std::forward<TArgs>(args)...);
+		template <typename Function, typename... Arguments>
+		static inline auto bind(Reactor& r, const std::string& label, Function callback, Arguments... args)
+			-> decltype(DSL::template bind<Parse<Sentence...>>(r, label, callback, std::forward<Arguments>(args)...)) {
+			return DSL::template bind<Parse<Sentence...>>(r, label, callback, std::forward<Arguments>(args)...);
 		}
 
 		static inline auto get(threading::Reaction& r) -> decltype(

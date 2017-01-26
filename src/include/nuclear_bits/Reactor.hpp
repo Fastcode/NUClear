@@ -94,17 +94,17 @@ namespace dsl {
 		struct Sync;
 
 		namespace emit {
-			template <typename TData>
+			template <typename T>
 			struct Local;
-			template <typename TData>
+			template <typename T>
 			struct Direct;
-			template <typename TData>
+			template <typename T>
 			struct Delay;
-			template <typename TData>
+			template <typename T>
 			struct Initialise;
-			template <typename TData>
+			template <typename T>
 			struct Network;
-			template <typename TData>
+			template <typename T>
 			struct UDP;
 		}
 	}
@@ -156,8 +156,8 @@ protected:
 	 **************************************************************************************************************/
 
 	/// @copydoc dsl::word::Trigger
-	template <typename... TTriggers>
-	using Trigger = dsl::word::Trigger<TTriggers...>;
+	template <typename T>
+	using Trigger = dsl::word::Trigger<T>;
 
 	/// @copydoc dsl::word::Priority
 	using Priority = dsl::word::Priority;
@@ -175,16 +175,16 @@ protected:
 	using TCP = dsl::word::TCP;
 
 	/// @copydoc dsl::word::With
-	template <typename... TWiths>
-	using With = dsl::word::With<TWiths...>;
+	template <typename... Ts>
+	using With = dsl::word::With<Ts...>;
 
 	/// @copydoc dsl::word::Optional
-	template <typename... TDSL>
-	using Optional = dsl::word::Optional<TDSL...>;
+	template <typename... DSL>
+	using Optional = dsl::word::Optional<DSL...>;
 
 	/// @copydoc dsl::word::Last
-	template <size_t len, typename... TDSL>
-	using Last = dsl::word::Last<len, TDSL...>;
+	template <size_t len, typename... DSL>
+	using Last = dsl::word::Last<len, DSL...>;
 
 	/// @copydoc dsl::word::MainThread
 	using MainThread = dsl::word::MainThread;
@@ -193,8 +193,8 @@ protected:
 	using Startup = dsl::word::Startup;
 
 	/// @copydoc dsl::word::Network
-	template <typename TData>
-	using Network = dsl::word::Network<TData>;
+	template <typename T>
+	using Network = dsl::word::Network<T>;
 
 	/// @copydoc dsl::word::Network
 	using NetworkSource = dsl::word::NetworkSource;
@@ -215,8 +215,8 @@ protected:
 	using Per = dsl::word::Per<period>;
 
 	/// @copydoc dsl::word::Sync
-	template <typename TSync>
-	using Sync = dsl::word::Sync<TSync>;
+	template <typename SyncGroup>
+	using Sync = dsl::word::Sync<SyncGroup>;
 
 	/// @copydoc dsl::word::Single
 	using Single = dsl::word::Single;
@@ -227,39 +227,39 @@ protected:
 
 	struct Scope {
 		/// @copydoc dsl::word::emit::Local
-		template <typename TData>
-		using LOCAL = dsl::word::emit::Local<TData>;
+		template <typename T>
+		using LOCAL = dsl::word::emit::Local<T>;
 
 		/// @copydoc dsl::word::emit::Direct
-		template <typename TData>
-		using DIRECT = dsl::word::emit::Direct<TData>;
+		template <typename T>
+		using DIRECT = dsl::word::emit::Direct<T>;
 
 		/// @copydoc dsl::word::emit::Direct
-		template <typename TData>
-		using DELAY = dsl::word::emit::Delay<TData>;
+		template <typename T>
+		using DELAY = dsl::word::emit::Delay<T>;
 
 		/// @copydoc dsl::word::emit::Initialize
-		template <typename TData>
-		using INITIALIZE = dsl::word::emit::Initialise<TData>;
+		template <typename T>
+		using INITIALIZE = dsl::word::emit::Initialise<T>;
 
 		/// @copydoc dsl::word::emit::Network
-		template <typename TData>
-		using NETWORK = dsl::word::emit::Network<TData>;
+		template <typename T>
+		using NETWORK = dsl::word::emit::Network<T>;
 
 		/// @copydoc dsl::word::emit::Network
-		template <typename TData>
-		using UDP = dsl::word::emit::UDP<TData>;
+		template <typename T>
+		using UDP = dsl::word::emit::UDP<T>;
 	};
 
 	/// @brief This provides functions to modify how an on statement runs after it has been created
 	using ReactionHandle = threading::ReactionHandle;
 
 public:
-	template <typename DSL, typename... TArgs>
+	template <typename DSL, typename... Arguments>
 	struct Binder {
 	private:
 		Reactor& reactor;
-		std::tuple<TArgs...> args;
+		std::tuple<Arguments...> args;
 
 		// On a reaction handle add it to our list
 		void addReactionHandle(ReactionHandle& r) {
@@ -277,14 +277,14 @@ public:
 			addReactionHandle(std::get<i>(t));
 		}
 
-		template <typename TFunc, int... Index>
-		auto then(const std::string& label, TFunc&& callback, const util::Sequence<Index...>&) -> decltype(
-			util::detuplify(DSL::bind(reactor, label, std::forward<TFunc>(callback), std::get<Index>(args)...))) {
+		template <typename Function, int... Index>
+		auto then(const std::string& label, Function&& callback, const util::Sequence<Index...>&) -> decltype(
+			util::detuplify(DSL::bind(reactor, label, std::forward<Function>(callback), std::get<Index>(args)...))) {
 
 			// Get our tuple from binding our reaction
 			auto tuple = DSL::bind(reactor,
 								   label,
-								   util::CallbackGenerator<DSL, TFunc>(std::forward<TFunc>(callback)),
+								   util::CallbackGenerator<DSL, Function>(std::forward<Function>(callback)),
 								   std::get<Index>(args)...);
 
 			// Get all reaction handles from the tuple and put them into our global list so we can debind them on
@@ -297,22 +297,22 @@ public:
 		}
 
 	public:
-		Binder(Reactor& r, TArgs&&... args) : reactor(r), args(args...) {}
+		Binder(Reactor& r, Arguments&&... args) : reactor(r), args(args...) {}
 
-		template <typename TLabel, typename TFunc>
-		auto then(TLabel&& label, TFunc&& callback)
+		template <typename Label, typename Function>
+		auto then(Label&& label, Function&& callback)
 			-> decltype(std::declval<Binder>().then(label,
-													std::forward<TFunc>(callback),
-													util::GenerateSequence<0, sizeof...(TArgs)>())) {
-			return then(std::forward<TLabel>(label),
-						std::forward<TFunc>(callback),
-						util::GenerateSequence<0, sizeof...(TArgs)>());
+													std::forward<Function>(callback),
+													util::GenerateSequence<0, sizeof...(Arguments)>())) {
+			return then(std::forward<Label>(label),
+						std::forward<Function>(callback),
+						util::GenerateSequence<0, sizeof...(Arguments)>());
 		}
 
-		template <typename TFunc>
-		auto then(TFunc&& callback)
-			-> decltype(std::declval<Binder>().then(std::declval<std::string>(), std::forward<TFunc>(callback))) {
-			return then("", std::forward<TFunc>(callback));
+		template <typename Function>
+		auto then(Function&& callback)
+			-> decltype(std::declval<Binder>().then(std::declval<std::string>(), std::forward<Function>(callback))) {
+			return then("", std::forward<Function>(callback));
 		}
 	};
 
@@ -325,20 +325,20 @@ public:
 	 *  This function is used to create a Reaction in the system. By providing the correct
 	 *  template parameters, this function can modify how and when this reaction runs.
 	 *
-	 * @tparam TDSL     The NUClear domain specific language information
-	 * @tparam TArgs    The types of the arguments passed into the function
+	 * @tparam DSL     The NUClear domain specific language information
+	 * @tparam Arguments    The types of the arguments passed into the function
 	 *
 	 * @param args      The arguments that will be passed to each of the binding DSL words in order
 	 *
 	 * @return A Binder object that can be used to bind callbacks to this DSL statement
 	 */
-	template <typename... TDSL, typename... TArgs>
-	Binder<dsl::Parse<TDSL...>, TArgs...> on(TArgs&&... args) {
+	template <typename... DSL, typename... Arguments>
+	Binder<dsl::Parse<DSL...>, Arguments...> on(Arguments&&... args) {
 
 		// There must be some parameters
-		static_assert(sizeof...(TDSL) > 0, "You must have at least one parameter in an on");
+		static_assert(sizeof...(DSL) > 0, "You must have at least one parameter in an on");
 
-		return Binder<dsl::Parse<TDSL...>, TArgs...>(*this, std::forward<TArgs>(args)...);
+		return Binder<dsl::Parse<DSL...>, Arguments...>(*this, std::forward<Arguments>(args)...);
 	}
 
 	/**
@@ -350,18 +350,18 @@ public:
 	 *  any reaction that is set to be triggered on this data type.
 	 *
 	 *
-	 * @tparam THandlers    The handlers for this emit (e.g. LOCAL, NETWORK etc)
-	 * @tparam TData        The type of the data we are emitting
+	 * @tparam Handlers	The handlers for this emit (e.g. LOCAL, NETWORK etc)
+	 * @tparam T        The type of the data we are emitting
 	 *
 	 * @param data The data to emit
 	 */
-	template <template <typename> class... THandlers, typename TData, typename... TArgs>
-	void emit(std::unique_ptr<TData>&& data, TArgs&&... args) {
-		powerplant.emit<THandlers...>(std::forward<std::unique_ptr<TData>>(data), std::forward<TArgs>(args)...);
+	template <template <typename> class... Handlers, typename T, typename... Arguments>
+	void emit(std::unique_ptr<T>&& data, Arguments&&... args) {
+		powerplant.emit<Handlers...>(std::forward<std::unique_ptr<T>>(data), std::forward<Arguments>(args)...);
 	}
-	template <template <typename> class... THandlers, typename TData, typename... TArgs>
-	void emit(std::unique_ptr<TData>& data, TArgs&&... args) {
-		powerplant.emit<THandlers...>(std::forward<std::unique_ptr<TData>>(data), std::forward<TArgs>(args)...);
+	template <template <typename> class... Handlers, typename T, typename... Arguments>
+	void emit(std::unique_ptr<T>& data, Arguments&&... args) {
+		powerplant.emit<Handlers...>(std::forward<std::unique_ptr<T>>(data), std::forward<Arguments>(args)...);
 	}
 
 	/**
@@ -372,16 +372,16 @@ public:
 	 *  can access it.
 	 *
 	 * @tparam level The level to log at (defaults to DEBUG)
-	 * @tparam TArgs The types of the arguments we are logging
+	 * @tparam Arguments The types of the arguments we are logging
 	 *
 	 * @param args The arguments we are logging
 	 */
-	template <enum LogLevel level = DEBUG, typename... TArgs>
-	void log(TArgs&&... args) {
+	template <enum LogLevel level = DEBUG, typename... Arguments>
+	void log(Arguments&&... args) {
 
 		// If the log is above or equal to our log level
 		if (level >= logLevel) {
-			powerplant.log<level>(std::forward<TArgs>(args)...);
+			powerplant.log<level>(std::forward<Arguments>(args)...);
 		}
 	}
 };

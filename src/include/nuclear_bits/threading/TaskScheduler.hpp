@@ -49,7 +49,7 @@ namespace threading {
 	 *  @attention Note that if Priority<REALTIME> is specified, the Sync type is ignored (Single is not).
 	 *
 	 *  @em Sync
-	 *  @code Sync<TSync> @endcode
+	 *  @code Sync<SyncGroup> @endcode
 	 *  When a Sync type is encounterd, the system uses this as a compile time mutex flag. It will not allow two
 	 * callbacks
 	 *  with the same Sync type to execute at the same time. It will effectivly ensure that all of the callbacks with

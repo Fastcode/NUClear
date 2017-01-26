@@ -51,18 +51,18 @@ namespace dsl {
 		 */
 		struct Always {
 
-			template <typename DSL, typename TFunc>
-			static inline threading::ReactionHandle bind(Reactor& reactor, const std::string& label, TFunc&& callback) {
+			template <typename DSL, typename Function>
+			static inline threading::ReactionHandle bind(Reactor& reactor, const std::string& label, Function&& callback) {
 
 				// Get our identifier string
 				std::vector<std::string> identifier =
-					util::get_identifier<typename DSL::DSL, TFunc>(label, reactor.reactorName);
+					util::get_identifier<typename DSL::DSL, Function>(label, reactor.reactorName);
 
 				auto unbinder = [](threading::Reaction& r) { r.enabled = false; };
 
 				// Create our reaction and store it in the TypeCallbackStore
 				auto reaction = std::make_shared<threading::Reaction>(
-					reactor, std::move(identifier), std::forward<TFunc>(callback), std::move(unbinder));
+					reactor, std::move(identifier), std::forward<Function>(callback), std::move(unbinder));
 				threading::ReactionHandle handle(reaction);
 
 				// A lambda that will get a reaction task

@@ -26,9 +26,9 @@ namespace NUClear {
 namespace dsl {
 	namespace word {
 
-		template <typename TData>
-		struct NetworkData : public std::shared_ptr<TData> {
-			using std::shared_ptr<TData>::shared_ptr;
+		template <typename T>
+		struct NetworkData : public std::shared_ptr<T> {
+			using std::shared_ptr<T>::shared_ptr;
 		};
 
 		struct NetworkSource {
@@ -48,17 +48,17 @@ namespace dsl {
 			std::shared_ptr<threading::Reaction> reaction;
 		};
 
-		template <typename TData>
+		template <typename T>
 		struct Network {
 
-			template <typename DSL, typename TFunc>
-			static inline threading::ReactionHandle bind(Reactor& reactor, const std::string& label, TFunc&& callback) {
+			template <typename DSL, typename Function>
+			static inline threading::ReactionHandle bind(Reactor& reactor, const std::string& label, Function&& callback) {
 
 				auto task = std::make_unique<NetworkListen>();
 
-				task->hash = util::serialise::Serialise<TData>::hash();
+				task->hash = util::serialise::Serialise<T>::hash();
 				task->reaction =
-					util::generate_reaction<DSL, NetworkListen>(reactor, label, std::forward<TFunc>(callback));
+					util::generate_reaction<DSL, NetworkListen>(reactor, label, std::forward<Function>(callback));
 
 				threading::ReactionHandle handle(task->reaction);
 
@@ -68,7 +68,7 @@ namespace dsl {
 			}
 
 			template <typename DSL>
-			static inline std::tuple<std::shared_ptr<NetworkSource>, NetworkData<TData>> get(threading::Reaction&) {
+			static inline std::tuple<std::shared_ptr<NetworkSource>, NetworkData<T>> get(threading::Reaction&) {
 
 				auto data   = store::ThreadStore<std::vector<char>>::value;
 				auto source = store::ThreadStore<NetworkSource>::value;
@@ -78,12 +78,12 @@ namespace dsl {
 					// Return our deserialised data
 					return std::make_tuple(
 						std::make_shared<NetworkSource>(*source),
-						std::make_shared<TData>(util::serialise::Serialise<TData>::deserialise(*data)));
+						std::make_shared<T>(util::serialise::Serialise<T>::deserialise(*data)));
 				}
 				else {
 
 					// Return invalid data
-					return std::make_tuple(std::shared_ptr<NetworkSource>(nullptr), std::shared_ptr<TData>(nullptr));
+					return std::make_tuple(std::shared_ptr<NetworkSource>(nullptr), std::shared_ptr<T>(nullptr));
 				}
 			}
 		};

@@ -25,7 +25,7 @@
 namespace NUClear {
 namespace util {
 
-	template <typename TMapID, typename TKey, typename TValue>
+	template <typename MapID, typename Key, typename Value>
 	class TypeList {
 	private:
 		/// @brief Deleted constructor as this class is a static class.
@@ -33,7 +33,7 @@ namespace util {
 		/// @brief Deleted destructor as this class is a static class.
 		~TypeList() = delete;
 		/// @brief the data variable where the data is stored for this map key.
-		static std::vector<TValue> data;
+		static std::vector<Value> data;
 
 	public:
 		/**
@@ -41,14 +41,14 @@ namespace util {
 		 *
 		 * @return A reference to the vector stored in this location
 		 */
-		static std::vector<TValue>& get() {
+		static std::vector<Value>& get() {
 			return data;
 		}
 	};
 
 	/// Initialize our type list data
-	template <typename TMapID, typename TKey, typename TValue>
-	std::vector<TValue> TypeList<TMapID, TKey, TValue>::data;
+	template <typename MapID, typename Key, typename Value>
+	std::vector<Value> TypeList<MapID, Key, Value>::data;
 
 }  // namespace util
 }  //  namespace NUClear
