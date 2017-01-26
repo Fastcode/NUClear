@@ -25,3 +25,4 @@ tags
 *.swp
 .idea
 docs/doxygen
+*.sublime-workspace
