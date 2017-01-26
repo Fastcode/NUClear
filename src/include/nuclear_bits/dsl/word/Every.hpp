@@ -96,7 +96,7 @@ namespace dsl {
 
                         try {
                             // submit the reaction to the thread pool
-                            auto task = reaction->getTask();
+                            auto task = reaction->get_task();
                             if (task) {
                                 reactor.powerplant.submit(std::move(task));
                             }
@@ -146,7 +146,7 @@ namespace dsl {
 
                         try {
                             // submit the reaction to the thread pool
-                            auto task = reaction->getTask();
+                            auto task = reaction->get_task();
                             if (task) {
                                 reactor.powerplant.submit(std::move(task));
                             }

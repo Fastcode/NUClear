@@ -66,10 +66,10 @@ public:
     struct Configuration {
         /// @brief default to the amount of hardware concurrency (or 2) threads
         Configuration()
-            : threadCount(std::thread::hardware_concurrency() == 0 ? 2 : std::thread::hardware_concurrency()) {}
+            : thread_count(std::thread::hardware_concurrency() == 0 ? 2 : std::thread::hardware_concurrency()) {}
 
         /// @brief The number of threads the system will use
-        size_t threadCount;
+        size_t thread_count;
     };
 
     /// @brief Holds the configuration information for this PowerPlant (such as number of pool threads)
@@ -117,12 +117,12 @@ public:
     /**
      * TODO document
      */
-    void onStartup(std::function<void()>&& func);
+    void on_startup(std::function<void()>&& func);
 
     /**
      * TODO document
      */
-    void addThreadTask(std::function<void()>&& task);
+    void add_thread_task(std::function<void()>&& task);
 
     /**
      * @brief Installs a reactor of a particular type to the system.
@@ -150,7 +150,7 @@ public:
      *
      * @param task The Reaction task to be executed in the thread pool
      */
-    void submitMain(std::unique_ptr<threading::ReactionTask>&& task);
+    void submit_main(std::unique_ptr<threading::ReactionTask>&& task);
 
     /**
      * @brief Log a message through NUClear's system.
@@ -221,13 +221,13 @@ private:
     /// @brief Our TaskScheduler that handles distributing task to the pool threads
     threading::TaskScheduler scheduler;
     /// @brief Our TaskScheduler that handles distributing tasks to the main thread
-    threading::TaskScheduler mainThreadScheduler;
+    threading::TaskScheduler main_thread_scheduler;
     /// @brief Our vector of Reactors, will get destructed when this vector is
     std::vector<std::unique_ptr<NUClear::Reactor>> reactors;
-
-
-    std::vector<std::function<void()>> startupTasks;
-    volatile bool isRunning = false;
+    /// @brief Tasks that will be run during the startup process
+    std::vector<std::function<void()>> startup_tasks;
+    /// @brief True if the powerplant is running
+    volatile bool is_running = false;
 };
 
 // This free floating log function can be called from anywhere and will use the singleton PowerPlant

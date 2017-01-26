@@ -47,12 +47,12 @@ namespace extension {
         explicit IOController(std::unique_ptr<NUClear::Environment> environment);
 
     private:
-        fd_t notifyRecv;
-        fd_t notifySend;
+        fd_t notify_recv;
+        fd_t notify_send;
 
         bool shutdown = false;
         bool dirty    = true;
-        std::mutex reactionMutex;
+        std::mutex reaction_mutex;
         std::vector<pollfd> fds;
         std::vector<Task> reactions;
     };

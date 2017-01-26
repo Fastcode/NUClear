@@ -24,19 +24,19 @@ namespace {
 
 class TestReactor : public NUClear::Reactor {
 public:
-    int testVal = 1337;
+    int test_val = 1337;
 
     TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
 
         // Testing that the log message gets through
-        on<Trigger<NUClear::message::LogMessage>>().then([this](const NUClear::message::LogMessage& logMessage) {
+        on<Trigger<NUClear::message::LogMessage>>().then([this](const NUClear::message::LogMessage& log_message) {
 
-            REQUIRE(logMessage.message == "Got int: 5");
-            REQUIRE(logMessage.level == NUClear::DEBUG);
+            REQUIRE(log_message.message == "Got int: 5");
+            REQUIRE(log_message.level == NUClear::DEBUG);
 
 
             std::this_thread::sleep_for(std::chrono::milliseconds(10));
-            ++testVal = 1338;
+            ++test_val = 1338;
         });
 
         // Testing that the log messages are handled before continuing
@@ -46,19 +46,19 @@ public:
         on<Trigger<int>>().then([this](const int& v) {
 
             // Our test val is 1337 to start with
-            REQUIRE(testVal == 1337);
+            REQUIRE(test_val == 1337);
 
             // This should pause for 10ms making the second check fail if it does not wait
             log<NUClear::DEBUG>("Got int:", v);
 
             // It should now be 1338
-            REQUIRE(testVal == 1338);
+            REQUIRE(test_val == 1338);
 
             // We now try to log a trace (which is below the configured level)
             log<NUClear::TRACE>("Should not log");
 
             // It should still be 1338 (log shouldn't have run)
-            REQUIRE(testVal == 1338);
+            REQUIRE(test_val == 1338);
 
             powerplant.shutdown();
         });
@@ -69,7 +69,7 @@ public:
 TEST_CASE("Testing the Log<>() function", "[api][log]") {
 
     NUClear::PowerPlant::Configuration config;
-    config.threadCount = 1;
+    config.thread_count = 1;
     NUClear::PowerPlant plant(config);
 
     // We are installing with an initial log level of debug

@@ -35,8 +35,8 @@ public:
             std::cout << "\tName: " << join.name << std::endl;
             std::cout << "\tAddress: " << ((join.address >> 24) & 0xFF) << "." << ((join.address >> 16) & 0xFF) << "."
                       << ((join.address >> 8) & 0xFF) << "." << ((join.address >> 0) & 0xFF) << std::endl;
-            std::cout << "\tTCP Port: " << join.tcpPort << std::endl;
-            std::cout << "\tUDP Port: " << join.udpPort << std::endl;
+            std::cout << "\tTCP Port: " << join.tcp_port << std::endl;
+            std::cout << "\tUDP Port: " << join.udp_port << std::endl;
 
             // Send some data to our new friend
 
@@ -61,8 +61,8 @@ public:
             std::cout << "\tName: " << leave.name << std::endl;
             std::cout << "\tAddress: " << ((leave.address >> 24) & 0xFF) << "." << ((leave.address >> 16) & 0xFF) << "."
                       << ((leave.address >> 8) & 0xFF) << "." << ((leave.address >> 0) & 0xFF) << std::endl;
-            std::cout << "\tTCP Port: " << leave.tcpPort << std::endl;
-            std::cout << "\tUDP Port: " << leave.udpPort << std::endl;
+            std::cout << "\tTCP Port: " << leave.tcp_port << std::endl;
+            std::cout << "\tUDP Port: " << leave.udp_port << std::endl;
         });
 
         on<Network<std::string>, Sync<TestReactor>>().then(
@@ -81,15 +81,15 @@ public:
 
         on<Startup>().then([this] {
 
-            auto netConfig = std::make_unique<NUClear::message::NetworkConfiguration>();
+            auto net_config = std::make_unique<NUClear::message::NetworkConfiguration>();
 
-            netConfig->name           = ::getenv("NETWORK_NODE") ? std::string(::getenv("NETWORK_NODE")) : "";
-            netConfig->multicastGroup = "239.226.152.162";
-            netConfig->multicastPort  = 7447;
+            net_config->name            = ::getenv("NETWORK_NODE") ? std::string(::getenv("NETWORK_NODE")) : "";
+            net_config->multicast_group = "239.226.152.162";
+            net_config->multicast_port  = 7447;
 
-            std::cout << "Testing network with node " << netConfig->name << std::endl;
+            std::cout << "Testing network with node " << net_config->name << std::endl;
 
-            emit<Scope::DIRECT>(netConfig);
+            emit<Scope::DIRECT>(net_config);
             emit(std::make_unique<PerformEmits>());
         });
 
@@ -120,7 +120,7 @@ public:
 int main() {
 
     NUClear::PowerPlant::Configuration config;
-    config.threadCount = 4;
+    config.thread_count = 4;
     NUClear::PowerPlant plant(config);
     plant.install<TestReactor>();
 

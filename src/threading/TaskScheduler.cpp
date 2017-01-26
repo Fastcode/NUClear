@@ -47,7 +47,7 @@ namespace threading {
         condition.notify_one();
     }
 
-    std::unique_ptr<ReactionTask> TaskScheduler::getTask() {
+    std::unique_ptr<ReactionTask> TaskScheduler::get_task() {
 
         // Obtain the lock
         std::unique_lock<std::mutex> lock(mutex);

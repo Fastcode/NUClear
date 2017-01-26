@@ -59,7 +59,7 @@ public:
 TEST_CASE("Testing that the DSL proxy works as expected for binding unmodifyable types", "[api][dsl][proxy]") {
 
     NUClear::PowerPlant::Configuration config;
-    config.threadCount = 1;
+    config.thread_count = 1;
     NUClear::PowerPlant plant(config);
     plant.install<TestReactor>();
 

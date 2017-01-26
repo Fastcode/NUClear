@@ -97,7 +97,7 @@ public:
 TEST_CASE("Testing that optional is able to let data through even if it's invalid", "[api][optional]") {
 
     NUClear::PowerPlant::Configuration config;
-    config.threadCount = 1;
+    config.thread_count = 1;
     NUClear::PowerPlant plant(config);
     plant.install<TestReactor>();
 

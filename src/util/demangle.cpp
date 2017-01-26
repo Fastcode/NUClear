@@ -30,31 +30,31 @@
 namespace NUClear {
 namespace util {
 
-    bool symInitialised = false;
-    std::mutex symbolMutex;
+    bool sym_initialised = false;
+    std::mutex symbol_mutex;
 
-    void initSymbols() {
+    void init_symbols() {
 
-        HANDLE hProcess;
+        HANDLE h_process;
 
         SymSetOptions(SYMOPT_UNDNAME | SYMOPT_DEFERRED_LOADS);
 
-        hProcess = GetCurrentProcess();
+        h_process = GetCurrentProcess();
 
-        if (!SymInitialize(hProcess, nullptr, true)) {
+        if (!SymInitialize(h_process, nullptr, true)) {
             // SymInitialize failed
             throw std::system_error(GetLastError(), std::system_category(), "SymInitialise failed");
         }
 
-        symInitialised = true;
+        sym_initialised = true;
     }
 
     std::string demangle(const char* symbol) {
-        std::lock_guard<std::mutex> lock(symbolMutex);
+        std::lock_guard<std::mutex> lock(symbol_mutex);
 
         // Initialise the symbols if we have to
-        if (!symInitialised) {
-            initSymbols();
+        if (!sym_initialised) {
+            init_symbols();
         }
 
         char name[256];

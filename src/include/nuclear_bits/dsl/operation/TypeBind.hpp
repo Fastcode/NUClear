@@ -28,7 +28,7 @@ namespace dsl {
         /**
          * @brief Binds a function to execute when a specific type is emitted
          *
-         * @details A common pattern in NUClear is to execute a function when a paticular type is emitted.
+         * @details A common pattern in NUClear is to execute a function when a particular type is emitted.
          *          This utility class is used to simplify executing a function when a type is emitted.
          *          To use this utility inherit from this type with the DataType to listen for.
          *          If the callback also needs the data emitted you should also extend from CacheGet
@@ -61,7 +61,7 @@ namespace dsl {
 
                 // Get our identifier string
                 std::vector<std::string> identifier =
-                    util::get_identifier<typename DSL::DSL, Function>(label, reactor.reactorName);
+                    util::get_identifier<typename DSL::DSL, Function>(label, reactor.reactor_name);
 
                 auto reaction = std::make_shared<threading::Reaction>(
                     reactor, std::move(identifier), std::forward<Function>(callback), std::move(unbinder));

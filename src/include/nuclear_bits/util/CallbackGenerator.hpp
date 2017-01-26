@@ -30,13 +30,13 @@ namespace NUClear {
 namespace util {
 
     template <size_t I = 0, typename... T>
-    inline typename std::enable_if<I == sizeof...(T), bool>::type checkData(const std::tuple<T...>&) {
+    inline typename std::enable_if<I == sizeof...(T), bool>::type check_data(const std::tuple<T...>&) {
         return true;
     }
 
     template <size_t I = 0, typename... T>
-        inline typename std::enable_if < I<sizeof...(T), bool>::type checkData(const std::tuple<T...>& t) {
-        return std::get<I>(t) && checkData<I + 1>(t);
+        inline typename std::enable_if < I<sizeof...(T), bool>::type check_data(const std::tuple<T...>& t) {
+        return std::get<I>(t) && check_data<I + 1>(t);
     }
 
 
@@ -48,7 +48,7 @@ namespace util {
             , transients(std::make_shared<typename TransientDataElements<DSL>::type>()){};
 
         template <typename... T, int... DIndex, int... Index>
-        void mergeTransients(std::tuple<T...>& data, const Sequence<DIndex...>&, const Sequence<Index...>&) {
+        void merge_transients(std::tuple<T...>& data, const Sequence<DIndex...>&, const Sequence<Index...>&) {
 
             // Merge our transient data
             unpack(MergeTransients<std::remove_reference_t<decltype(std::get<DIndex>(data))>>::merge(
@@ -69,12 +69,12 @@ namespace util {
                 auto data = DSL::get(r);
 
                 // Merge our transient data in
-                mergeTransients(data,
-                                typename TransientDataElements<DSL>::index(),
-                                GenerateSequence<0, TransientDataElements<DSL>::index::length>());
+                merge_transients(data,
+                                 typename TransientDataElements<DSL>::index(),
+                                 GenerateSequence<0, TransientDataElements<DSL>::index::length>());
 
                 // Check if our data is good (all the data exists) otherwise terminate the call
-                if (!checkData(data)) {
+                if (!check_data(data)) {
                     // We cancel our execution by returning an empty function
                     return std::make_pair(0, threading::ReactionTask::TaskFunction());
                 }

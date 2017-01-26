@@ -49,7 +49,7 @@ namespace dsl {
                 if (std::this_thread::get_id() != util::main_thread_id) {
 
                     // Submit to the main thread scheduler
-                    task->parent.reactor.powerplant.submitMain(std::move(task));
+                    task->parent.reactor.powerplant.submit_main(std::move(task));
 
                     // We took the task away so return null
                     return std::unique_ptr<threading::ReactionTask>(nullptr);

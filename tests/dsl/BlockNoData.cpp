@@ -54,7 +54,7 @@ public:
 TEST_CASE("Testing that when a trigger does not have it's data satisfied it does not run", "[api][nodata]") {
 
     NUClear::PowerPlant::Configuration config;
-    config.threadCount = 1;
+    config.thread_count = 1;
     NUClear::PowerPlant plant(config);
     plant.install<TestReactor>();
 

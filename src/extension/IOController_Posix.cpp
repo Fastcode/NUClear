@@ -29,7 +29,7 @@ namespace NUClear {
 namespace extension {
 
     IOController::IOController(std::unique_ptr<NUClear::Environment> environment)
-        : Reactor(std::move(environment)), notifyRecv(), notifySend(), reactionMutex(), fds(), reactions() {
+        : Reactor(std::move(environment)), notify_recv(), notify_send(), reaction_mutex(), fds(), reactions() {
 
         int vals[2];
 
@@ -39,17 +39,17 @@ namespace extension {
                 network_errno, std::system_category(), "We were unable to make the notification pipe for IO");
         }
 
-        notifyRecv = vals[0];
-        notifySend = vals[1];
+        notify_recv = vals[0];
+        notify_send = vals[1];
 
         // Add our notification pipe to our list of fds
-        fds.push_back(pollfd{notifyRecv, POLLIN, 0});
+        fds.push_back(pollfd{notify_recv, POLLIN, 0});
 
         on<Trigger<dsl::word::IOConfiguration>>().then(
             "Configure IO Reaction", [this](const dsl::word::IOConfiguration& config) {
 
                 // Lock our mutex to avoid concurrent modification
-                std::lock_guard<std::mutex> lock(reactionMutex);
+                std::lock_guard<std::mutex> lock(reaction_mutex);
 
                 reactions.push_back(Task{config.fd, static_cast<short>(config.events), config.reaction});
 
@@ -60,7 +60,7 @@ namespace extension {
                 dirty = true;
 
                 // Check if there was an error
-                if (write(notifySend, &dirty, 1) < 0) {
+                if (write(notify_send, &dirty, 1) < 0) {
                     throw std::system_error(network_errno,
                                             std::system_category(),
                                             "There was an error while writing to the notification pipe");
@@ -71,7 +71,7 @@ namespace extension {
             "Unbind IO Reaction", [this](const dsl::operation::Unbind<IO>& unbind) {
 
                 // Lock our mutex to avoid concurrent modification
-                std::lock_guard<std::mutex> lock(reactionMutex);
+                std::lock_guard<std::mutex> lock(reaction_mutex);
 
                 // Find our reaction
                 auto reaction = std::find_if(std::begin(reactions), std::end(reactions), [&unbind](const Task& t) {
@@ -84,7 +84,7 @@ namespace extension {
 
                 // Let the poll command know that stuff happened
                 dirty = true;
-                if (write(notifySend, &dirty, 1) < 0) {
+                if (write(notify_send, &dirty, 1) < 0) {
                     throw std::system_error(network_errno,
                                             std::system_category(),
                                             "There was an error while writing to the notification pipe");
@@ -99,7 +99,7 @@ namespace extension {
             char val = 0;
 
             // Send a single byte down the pipe
-            if (write(notifySend, &val, 1) < 0) {
+            if (write(notify_send, &val, 1) < 0) {
                 throw std::system_error(
                     network_errno, std::system_category(), "There was an error while writing to the notification pipe");
             }
@@ -132,7 +132,7 @@ namespace extension {
                         if (fd.revents) {
 
                             // It's our notification handle
-                            if (fd.fd == notifyRecv) {
+                            if (fd.fd == notify_recv) {
                                 // Read our value to clear it's read status
                                 char val;
                                 if (read(fd.fd, &val, sizeof(char)) < 0) {
@@ -181,7 +181,7 @@ namespace extension {
 
                                             // Submit the task (which should run the get)
                                             try {
-                                                auto task = it->reaction->getTask();
+                                                auto task = it->reaction->get_task();
                                                 if (task) {
                                                     powerplant.submit(std::move(task));
                                                 }
@@ -206,13 +206,13 @@ namespace extension {
                     // If our list is dirty
                     if (dirty) {
                         // Get the lock so we don't concurrently modify the list
-                        std::lock_guard<std::mutex> lock(reactionMutex);
+                        std::lock_guard<std::mutex> lock(reaction_mutex);
 
                         // Clear our fds to be rebuilt
                         fds.resize(0);
 
-                        // Insert our notifyFd
-                        fds.push_back(pollfd{notifyRecv, POLLIN, 0});
+                        // Insert our notify fd
+                        fds.push_back(pollfd{notify_recv, POLLIN, 0});
 
                         for (const auto& r : reactions) {
 

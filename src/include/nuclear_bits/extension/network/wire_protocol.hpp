@@ -15,8 +15,8 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_EXTENSION_NETWORK_WIREPROTOCOL_HPP
-#define NUCLEAR_EXTENSION_NETWORK_WIREPROTOCOL_HPP
+#ifndef NUCLEAR_EXTENSION_NETWORK_WIRE_PROTOCOL_HPP
+#define NUCLEAR_EXTENSION_NETWORK_WIRE_PROTOCOL_HPP
 
 #include "nuclear"
 
@@ -37,19 +37,19 @@ namespace extension {
         };
 
         struct AnnouncePacket : public PacketHeader {
-            AnnouncePacket() : tcpPort(0), udpPort(0), name(0) {}
+            AnnouncePacket() : tcp_port(0), udp_port(0), name(0) {}
 
-            uint16_t tcpPort;  // The TCP port it is listening on
-            uint16_t udpPort;  // The UDP port it is listening on
-            char name;         // A null terminated string name for this node (&name)
+            uint16_t tcp_port;  // The TCP port it is listening on
+            uint16_t udp_port;  // The UDP port it is listening on
+            char name;          // A null terminated string name for this node (&name)
         };
 
         struct DataPacket : public PacketHeader {
-            DataPacket() : packetId(0), packetNo(0), packetCount(0), multicast(false), hash(), data(0) {}
+            DataPacket() : packet_id(0), packet_no(0), packet_count(0), multicast(false), hash(), data(0) {}
 
-            uint16_t packetId;             // A semiunique identifier for this packet group
-            uint16_t packetNo;             // What packet number this is
-            uint16_t packetCount;          // How many packets there are
+            uint16_t packet_id;            // A semiunique identifier for this packet group
+            uint16_t packet_no;            // What packet number this is
+            uint16_t packet_count;         // How many packets there are
             bool multicast;                // If this packet is targeted
             std::array<uint64_t, 2> hash;  // The 128 bit hash to identify the data type
             char data;                     // The data (&data)
@@ -60,4 +60,4 @@ namespace extension {
 }  // namespace extension
 }  // namespace NUClear
 
-#endif  // NUCLEAR_EXTENSION_NETWORK_WIREPROTOCOL_HPP
+#endif  // NUCLEAR_EXTENSION_NETWORK_WIRE_PROTOCOL_HPP

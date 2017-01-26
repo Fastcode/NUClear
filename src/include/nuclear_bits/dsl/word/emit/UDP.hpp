@@ -50,11 +50,11 @@ namespace dsl {
              *          host endian int.
              *
              * @param data      the data to emit
-             * @param toAddr    a string or host endian integer specifying the ip to send the packet to
-             * @param toPort    the port to send this packet to in host endian
-             * @param fromAddr  a string or host endian integer specifying the local ip to send the packet from.
+             * @param to_addr    a string or host endian integer specifying the ip to send the packet to
+             * @param to_port    the port to send this packet to in host endian
+             * @param from_addr  a string or host endian integer specifying the local ip to send the packet from.
              *                  Defaults to INADDR_ANY. Optional.
-             * @param fromPort  the port to send this from to in host endian or 0 to automatically choose a port.
+             * @param from_port  the port to send this from to in host endian or 0 to automatically choose a port.
              *                  Defaults to 0. Optional.
              *
              * @tparam DataType the datatype of the object to emit
@@ -64,10 +64,10 @@ namespace dsl {
 
                 static inline void emit(PowerPlant&,
                                         std::shared_ptr<DataType> data,
-                                        in_addr_t toAddr,
-                                        in_port_t toPort,
-                                        in_addr_t fromAddr,
-                                        in_port_t fromPort) {
+                                        in_addr_t to_addr,
+                                        in_port_t to_port,
+                                        in_addr_t from_addr,
+                                        in_port_t from_port) {
 
                     sockaddr_in src;
                     sockaddr_in target;
@@ -76,15 +76,15 @@ namespace dsl {
 
                     // Get socket addresses for our source and target
                     src.sin_family      = AF_INET;
-                    src.sin_addr.s_addr = htonl(fromAddr);
-                    src.sin_port        = htons(fromPort);
+                    src.sin_addr.s_addr = htonl(from_addr);
+                    src.sin_port        = htons(from_port);
 
                     target.sin_family      = AF_INET;
-                    target.sin_addr.s_addr = htonl(toAddr);
-                    target.sin_port        = htons(toPort);
+                    target.sin_addr.s_addr = htonl(to_addr);
+                    target.sin_port        = htons(to_port);
 
                     // Work out if we are sending to a multicast address
-                    bool multicast = ((toAddr >> 28) == 14);
+                    bool multicast = ((to_addr >> 28) == 14);
 
                     // Open a socket to send the datagram from
                     util::FileDescriptor fd = ::socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
@@ -94,7 +94,7 @@ namespace dsl {
                     }
 
                     // If we need to, bind to a port on our end
-                    if (fromAddr != 0 || fromPort != 0) {
+                    if (from_addr != 0 || from_port != 0) {
                         if (::bind(fd, reinterpret_cast<sockaddr*>(&src), sizeof(sockaddr))) {
                             throw std::system_error(network_errno,
                                                     std::system_category(),
@@ -102,8 +102,8 @@ namespace dsl {
                         }
                     }
 
-                    // If we are using multicast and we have a specific fromAddr we need to tell the system to use it
-                    if (multicast && fromAddr != 0) {
+                    // If we are using multicast and we have a specific from_addr we need to tell the system to use it
+                    if (multicast && from_addr != 0) {
                         // Set our transmission interface for the multicast socket
                         if (setsockopt(fd,
                                        IPPROTO_IP,
@@ -146,71 +146,71 @@ namespace dsl {
                 // String ip addresses
                 static inline void emit(PowerPlant& pp,
                                         std::shared_ptr<DataType> data,
-                                        std::string toAddr,
-                                        in_port_t toPort,
-                                        std::string fromAddr,
-                                        in_port_t fromPort) {
+                                        std::string to_addr,
+                                        in_port_t to_port,
+                                        std::string from_addr,
+                                        in_port_t from_port) {
 
                     in_addr addr;
 
-                    inet_pton(AF_INET, toAddr.c_str(), &addr);
+                    inet_pton(AF_INET, to_addr.c_str(), &addr);
                     in_addr_t to = ntohl(addr.s_addr);
 
-                    inet_pton(AF_INET, fromAddr.c_str(), &addr);
+                    inet_pton(AF_INET, from_addr.c_str(), &addr);
                     in_addr_t from = ntohl(addr.s_addr);
 
-                    emit(pp, data, to, toPort, from, fromPort);
+                    emit(pp, data, to, to_port, from, from_port);
                 }
 
                 static inline void emit(PowerPlant& pp,
                                         std::shared_ptr<DataType> data,
-                                        std::string toAddr,
-                                        in_port_t toPort,
-                                        in_addr_t fromAddr,
-                                        in_port_t fromPort) {
+                                        std::string to_addr,
+                                        in_port_t to_port,
+                                        in_addr_t from_addr,
+                                        in_port_t from_port) {
 
                     in_addr addr;
 
-                    inet_pton(AF_INET, toAddr.c_str(), &addr);
+                    inet_pton(AF_INET, to_addr.c_str(), &addr);
                     in_addr_t to = ntohl(addr.s_addr);
 
-                    emit(pp, data, to, toPort, fromAddr, fromPort);
+                    emit(pp, data, to, to_port, from_addr, from_port);
                 }
 
                 static inline void emit(PowerPlant& pp,
                                         std::shared_ptr<DataType> data,
-                                        in_addr_t toAddr,
-                                        in_port_t toPort,
-                                        std::string fromAddr,
-                                        in_port_t fromPort) {
+                                        in_addr_t to_addr,
+                                        in_port_t to_port,
+                                        std::string from_addr,
+                                        in_port_t from_port) {
 
                     in_addr addr;
 
-                    inet_pton(AF_INET, fromAddr.c_str(), &addr);
+                    inet_pton(AF_INET, from_addr.c_str(), &addr);
                     in_addr_t from = ntohl(addr.s_addr);
 
-                    emit(pp, data, toAddr, toPort, from, fromPort);
+                    emit(pp, data, to_addr, to_port, from, from_port);
                 }
 
                 // No from address
                 static inline void emit(PowerPlant& pp,
                                         std::shared_ptr<DataType> data,
-                                        in_addr_t toAddr,
-                                        in_port_t toPort) {
-                    emit(pp, data, toAddr, toPort, INADDR_ANY, in_port_t(0));
+                                        in_addr_t to_addr,
+                                        in_port_t to_port) {
+                    emit(pp, data, to_addr, to_port, INADDR_ANY, in_port_t(0));
                 }
 
                 static inline void emit(PowerPlant& pp,
                                         std::shared_ptr<DataType> data,
-                                        std::string toAddr,
-                                        in_port_t toPort) {
+                                        std::string to_addr,
+                                        in_port_t to_port) {
 
                     in_addr addr;
 
-                    inet_pton(AF_INET, toAddr.c_str(), &addr);
+                    inet_pton(AF_INET, to_addr.c_str(), &addr);
                     in_addr_t to = ntohl(addr.s_addr);
 
-                    emit(pp, data, to, toPort, INADDR_ANY, in_port_t(0));
+                    emit(pp, data, to, to_port, INADDR_ANY, in_port_t(0));
                 }
             };
 

@@ -33,29 +33,29 @@ namespace message {
 
         ReactionStatistics()
             : identifier()
-            , reactionId(0)
-            , taskId(0)
-            , causeReactionId(0)
-            , causeTaskId(0)
+            , reaction_id(0)
+            , task_id(0)
+            , cause_reaction_id(0)
+            , cause_task_id(0)
             , emitted()
             , started()
             , finished()
             , exception() {}
 
-        ReactionStatistics(const std::vector<std::string> ident,
-                           std::uint64_t rId,
-                           std::uint64_t tId,
-                           std::uint64_t causerId,
-                           std::uint64_t causetId,
+        ReactionStatistics(const std::vector<std::string> identifier,
+                           std::uint64_t reaction_id,
+                           std::uint64_t task_id,
+                           std::uint64_t cause_reaction_id,
+                           std::uint64_t cause_task_id,
                            const clock::time_point& emitted,
                            const clock::time_point& start,
                            const clock::time_point& finish,
                            const std::exception_ptr& exception)
-            : identifier(ident)
-            , reactionId(rId)
-            , taskId(tId)
-            , causeReactionId(causerId)
-            , causeTaskId(causetId)
+            : identifier(identifier)
+            , reaction_id(reaction_id)
+            , task_id(task_id)
+            , cause_reaction_id(cause_reaction_id)
+            , cause_task_id(cause_task_id)
             , emitted(emitted)
             , started(start)
             , finished(finish)
@@ -64,13 +64,13 @@ namespace message {
         /// @brief A string containing the username/on arguments/and callback name of the reaction.
         std::vector<std::string> identifier;
         /// @brief The id of this reaction.
-        std::uint64_t reactionId;
+        std::uint64_t reaction_id;
         /// @brief The task id of this reaction.
-        std::uint64_t taskId;
+        std::uint64_t task_id;
         /// @brief The reaction id of the reaction that caused this one or 0 if there was not one
-        std::uint64_t causeReactionId;
+        std::uint64_t cause_reaction_id;
         /// @brief The reaction id of the task that caused this task or 0 if there was not one
-        std::uint64_t causeTaskId;
+        std::uint64_t cause_task_id;
         /// @brief The time that this reaction was emitted to the thread pool
         clock::time_point emitted;
         /// @brief The time that execution started on this reaction

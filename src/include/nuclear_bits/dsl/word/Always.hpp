@@ -59,7 +59,7 @@ namespace dsl {
 
                 // Get our identifier string
                 std::vector<std::string> identifier =
-                    util::get_identifier<typename DSL::DSL, Function>(label, reactor.reactorName);
+                    util::get_identifier<typename DSL::DSL, Function>(label, reactor.reactor_name);
 
                 auto unbinder = [](threading::Reaction& r) { r.enabled = false; };
 
@@ -71,7 +71,7 @@ namespace dsl {
                 // A lambda that will get a reaction task
                 auto run = [reaction] {
                     // Get a task
-                    auto task = reaction->getTask();
+                    auto task = reaction->get_task();
 
                     // If we got a real task back
                     if (task) {
@@ -90,7 +90,7 @@ namespace dsl {
                     }
                 };
 
-                reactor.powerplant.addThreadTask(loop);
+                reactor.powerplant.add_thread_task(loop);
 
                 // Return our handle
                 return handle;

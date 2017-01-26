@@ -50,7 +50,7 @@ public:
 TEST_CASE("Testing poorly ordered on arguments", "[api][with]") {
 
     NUClear::PowerPlant::Configuration config;
-    config.threadCount = 1;
+    config.thread_count = 1;
     NUClear::PowerPlant plant(config);
     plant.install<DifferentOrderingReactor>();
 

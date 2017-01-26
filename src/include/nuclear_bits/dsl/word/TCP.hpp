@@ -114,13 +114,13 @@ namespace dsl {
                 auto reaction = util::generate_reaction<DSL, IO>(
                     reactor, label, std::forward<Function>(callback), [cfd](threading::Reaction&) { close(cfd); });
 
-                auto ioConfig =
+                auto io_config =
                     std::make_unique<IOConfiguration>(IOConfiguration{fd.release(), IO::READ, std::move(reaction)});
 
-                threading::ReactionHandle handle(ioConfig->reaction);
+                threading::ReactionHandle handle(io_config->reaction);
 
                 // Send our configuration out
-                reactor.powerplant.emit<emit::Direct>(ioConfig);
+                reactor.powerplant.emit<emit::Direct>(io_config);
 
                 // Return our handles
                 return std::make_tuple(handle, port, cfd);

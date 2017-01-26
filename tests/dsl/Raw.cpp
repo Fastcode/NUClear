@@ -77,7 +77,7 @@ public:
 TEST_CASE("Testing the raw type conversions work properly", "[api][raw]") {
 
     NUClear::PowerPlant::Configuration config;
-    config.threadCount = 1;
+    config.thread_count = 1;
     NUClear::PowerPlant plant(config);
     plant.install<TestReactor>();
 

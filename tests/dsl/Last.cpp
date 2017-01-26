@@ -27,8 +27,8 @@ struct TestMessage {
     TestMessage(int v) : value(v){};
 };
 
-int emitCounter = 0;
-int recvCounter = 0;
+int emit_counter = 0;
+int recv_counter = 0;
 
 class TestReactor : public NUClear::Reactor {
 public:
@@ -37,10 +37,10 @@ public:
         on<Last<5, Trigger<TestMessage>>>().then([this](std::list<std::shared_ptr<const TestMessage>> messages) {
 
             // We got another one
-            ++recvCounter;
+            ++recv_counter;
 
             // Send out another before we test
-            emit(std::make_unique<TestMessage>(++emitCounter));
+            emit(std::make_unique<TestMessage>(++emit_counter));
 
             // Finish when we get to 10
             if (messages.front()->value >= 10) {
@@ -65,7 +65,7 @@ public:
 
         });
 
-        on<Startup>().then([this] { emit(std::make_unique<TestMessage>(++emitCounter)); });
+        on<Startup>().then([this] { emit(std::make_unique<TestMessage>(++emit_counter)); });
     }
 };
 }
@@ -73,7 +73,7 @@ public:
 TEST_CASE("Testing the last n feature", "[api][last]") {
 
     NUClear::PowerPlant::Configuration config;
-    config.threadCount = 1;
+    config.thread_count = 1;
     NUClear::PowerPlant plant(config);
     plant.install<TestReactor>();
 

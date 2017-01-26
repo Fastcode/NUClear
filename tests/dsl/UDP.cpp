@@ -22,9 +22,9 @@
 namespace {
 
 constexpr unsigned short port = 40000;
-const std::string testString  = "Hello UDP World!";
-bool receivedA                = false;
-bool receivedB                = false;
+const std::string test_string = "Hello UDP World!";
+bool received_a               = false;
+bool received_b               = false;
 
 struct Message {};
 
@@ -37,27 +37,27 @@ public:
 
             // Check that the data we received is correct
             REQUIRE(packet.remote.address == INADDR_LOOPBACK);
-            REQUIRE(packet.payload.size() == testString.size());
-            REQUIRE(std::memcmp(packet.payload.data(), testString.data(), testString.size()) == 0);
+            REQUIRE(packet.payload.size() == test_string.size());
+            REQUIRE(std::memcmp(packet.payload.data(), test_string.data(), test_string.size()) == 0);
 
-            receivedA = true;
-            if (receivedA && receivedB) {
+            received_a = true;
+            if (received_a && received_b) {
                 // Shutdown we are done with the test
                 powerplant.shutdown();
             }
         });
 
         // Unknown port
-        in_port_t boundPort;
-        std::tie(std::ignore, boundPort, std::ignore) = on<UDP>().then([this](const UDP::Packet& packet) {
+        in_port_t bound_port;
+        std::tie(std::ignore, bound_port, std::ignore) = on<UDP>().then([this](const UDP::Packet& packet) {
 
             // Check that the data we received is correct
             REQUIRE(packet.remote.address == INADDR_LOOPBACK);
-            REQUIRE(packet.payload.size() == testString.size());
-            REQUIRE(std::memcmp(packet.payload.data(), testString.data(), testString.size()) == 0);
+            REQUIRE(packet.payload.size() == test_string.size());
+            REQUIRE(std::memcmp(packet.payload.data(), test_string.data(), test_string.size()) == 0);
 
-            receivedB = true;
-            if (receivedA && receivedB) {
+            received_b = true;
+            if (received_a && received_b) {
                 // Shutdown we are done with the test
                 powerplant.shutdown();
             }
@@ -65,14 +65,14 @@ public:
 
         // Send a test for a known port
         on<Trigger<Message>>().then(
-            [this] { emit<Scope::UDP>(std::make_unique<std::string>(testString), INADDR_LOOPBACK, port); });
+            [this] { emit<Scope::UDP>(std::make_unique<std::string>(test_string), INADDR_LOOPBACK, port); });
 
 
         // Send a test for an unknown port
-        on<Trigger<Message>>().then([this, boundPort] {
+        on<Trigger<Message>>().then([this, bound_port] {
 
             // Emit our UDP message
-            emit<Scope::UDP>(std::make_unique<std::string>(testString), INADDR_LOOPBACK, boundPort);
+            emit<Scope::UDP>(std::make_unique<std::string>(test_string), INADDR_LOOPBACK, bound_port);
         });
 
         on<Startup>().then([this] {
@@ -87,7 +87,7 @@ public:
 TEST_CASE("Testing sending and receiving of UDP messages", "[api][network][udp]") {
 
     NUClear::PowerPlant::Configuration config;
-    config.threadCount = 1;
+    config.thread_count = 1;
     NUClear::PowerPlant plant(config);
     plant.install<TestReactor>();
 

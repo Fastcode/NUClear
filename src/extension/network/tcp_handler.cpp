@@ -16,7 +16,7 @@
  */
 
 #include "nuclear_bits/extension/NetworkController.hpp"
-#include "nuclear_bits/extension/network/WireProtocol.hpp"
+#include "nuclear_bits/extension/network/wire_protocol.hpp"
 
 #include <algorithm>
 #include <cerrno>
@@ -64,18 +64,18 @@ namespace extension {
         return index;
     }
 
-    void NetworkController::tcpHandler(const IO::Event& e) {
+    void NetworkController::tcp_handler(const IO::Event& e) {
 
         // Find this connections target
-        auto target = tcpTarget.find(e.fd);
+        auto target = tcp_target.find(e.fd);
 
         // Sometimes, if a tcp event is queued, it can come in before the unbind
         // Squash it here to prevent errors
-        if (target == tcpTarget.end()) {
+        if (target == tcp_target.end()) {
             return;
         }
 
-        bool badPacket = false;
+        bool bad_packet = false;
 
         // If we have data to read
         if (e.events & IO::READ) {
@@ -105,7 +105,7 @@ namespace extension {
                     dsl::word::NetworkSource src;
                     src.name      = target->second->name;
                     src.address   = target->second->address;
-                    src.port      = target->second->udpPort;
+                    src.port      = target->second->udp_port;
                     src.reliable  = true;
                     src.multicast = packet.multicast;
 
@@ -115,14 +115,14 @@ namespace extension {
 
                     /* Mutex Scope */ {
                         // Lock our reaction mutex
-                        std::lock_guard<std::mutex> lock(reactionMutex);
+                        std::lock_guard<std::mutex> lock(reaction_mutex);
 
                         // Find interested reactions
                         auto rs = reactions.equal_range(packet.hash);
 
                         // Execute on our interested reactions
                         for (auto it = rs.first; it != rs.second; ++it) {
-                            auto task = it->second->getTask();
+                            auto task = it->second->get_task();
                             if (task) {
                                 powerplant.submit(std::move(task));
                             }
@@ -135,25 +135,25 @@ namespace extension {
                 }
                 else {
                     // Packet is invalid
-                    badPacket = true;
+                    bad_packet = true;
                 }
             }
             else {
                 // Packet is invalid
-                badPacket = true;
+                bad_packet = true;
             }
         }
 
         // If the connection closed or errored (or reached an end of file)
         // And we have not already closed this connection
-        if ((e.events & IO::CLOSE) || (e.events & IO::ERROR) || badPacket) {
+        if ((e.events & IO::CLOSE) || (e.events & IO::ERROR) || bad_packet) {
 
             // emit a message that says who disconnected
-            auto l     = std::make_unique<message::NetworkLeave>();
-            l->name    = target->second->name;
-            l->address = target->second->address;
-            l->tcpPort = target->second->tcpPort;
-            l->udpPort = target->second->udpPort;
+            auto l      = std::make_unique<message::NetworkLeave>();
+            l->name     = target->second->name;
+            l->address  = target->second->address;
+            l->tcp_port = target->second->tcp_port;
+            l->udp_port = target->second->udp_port;
             emit(l);
 
             // Unbind our connection
@@ -163,13 +163,14 @@ namespace extension {
             close(e.fd);
 
             // Remove our UDP target
-            udpTarget.erase(udpTarget.find(std::make_pair(target->second->address, target->second->udpPort)));
+            udp_target.erase(udp_target.find(std::make_pair(target->second->address, target->second->udp_port)));
 
             // Remove our name target
-            auto range = nameTarget.equal_range(target->second->name);
+            auto range = name_target.equal_range(target->second->name);
             for (auto it = range.first; it != range.second; ++it) {
-                if (it->second->address == target->second->address && it->second->udpPort == target->second->udpPort) {
-                    nameTarget.erase(it);
+                if (it->second->address == target->second->address
+                    && it->second->udp_port == target->second->udp_port) {
+                    name_target.erase(it);
                     break;
                 };
             }
@@ -178,7 +179,7 @@ namespace extension {
             targets.erase(target->second);
 
             // Remove our TCP target
-            tcpTarget.erase(target);
+            tcp_target.erase(target);
         }
     }
 }

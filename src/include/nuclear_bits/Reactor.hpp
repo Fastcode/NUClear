@@ -122,32 +122,32 @@ public:
     friend class PowerPlant;
 
     Reactor(std::unique_ptr<Environment> environment)
-        : reactionHandles()
+        : reaction_handles()
         , powerplant(environment->powerplant)
-        , reactorName(environment->reactorName)
-        , logLevel(environment->logLevel) {}
+        , reactor_name(environment->reactor_name)
+        , log_level(environment->log_level) {}
 
     ~Reactor() {
 
         // Unbind everything when we destroy the reactor
-        for (auto& handle : reactionHandles) {
+        for (auto& handle : reaction_handles) {
             handle.unbind();
         }
     }
 
 private:
-    std::vector<threading::ReactionHandle> reactionHandles;
+    std::vector<threading::ReactionHandle> reaction_handles;
 
 public:
     /// @brief TODO
     PowerPlant& powerplant;
 
     /// @brief The demangled string name of this reactor
-    const std::string reactorName;
+    const std::string reactor_name;
 
 protected:
     /// @brief The level that this reactor logs at
-    LogLevel logLevel;
+    LogLevel log_level;
 
     /***************************************************************************************************************
      * The types here are imported from other contexts so that when extending from the Reactor type in normal      *
@@ -262,19 +262,19 @@ public:
         std::tuple<Arguments...> args;
 
         // On a reaction handle add it to our list
-        void addReactionHandle(ReactionHandle& r) {
-            reactor.reactionHandles.push_back(r);
+        void add_reaction_handle(ReactionHandle& r) {
+            reactor.reaction_handles.push_back(r);
         }
 
         // Do nothing if it's not a reaction handle
-        void addReactionHandle(...) {}
+        void add_reaction_handle(...) {}
 
         template <size_t i = 0, typename... Tp>
-        std::enable_if_t<i == sizeof...(Tp)> addReactionHandles(std::tuple<Tp...>&) {}
+        std::enable_if_t<i == sizeof...(Tp)> add_reaction_handles(std::tuple<Tp...>&) {}
 
         template <size_t i = 0, typename... Tp>
-            std::enable_if_t < i<sizeof...(Tp)> addReactionHandles(std::tuple<Tp...>& t) {
-            addReactionHandle(std::get<i>(t));
+            std::enable_if_t < i<sizeof...(Tp)> add_reaction_handles(std::tuple<Tp...>& t) {
+            add_reaction_handle(std::get<i>(t));
         }
 
         template <typename Function, int... Index>
@@ -289,7 +289,7 @@ public:
 
             // Get all reaction handles from the tuple and put them into our global list so we can debind them on
             // destruction
-            addReactionHandles(tuple);
+            add_reaction_handles(tuple);
 
             // Return the arguments to the user (if there is only 1 we unwrap it for them since this is the most common
             // case)
@@ -380,7 +380,7 @@ public:
     void log(Arguments&&... args) {
 
         // If the log is above or equal to our log level
-        if (level >= logLevel) {
+        if (level >= log_level) {
             powerplant.log<level>(std::forward<Arguments>(args)...);
         }
     }

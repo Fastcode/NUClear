@@ -34,7 +34,7 @@ namespace util {
 
         // Get our identifier string
         std::vector<std::string> identifier =
-            util::get_identifier<typename DSL::DSL, Function>(label, reactor.reactorName);
+            util::get_identifier<typename DSL::DSL, Function>(label, reactor.reactor_name);
 
         // Get our powerplant
         auto& powerplant = reactor.powerplant;

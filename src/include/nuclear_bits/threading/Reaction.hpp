@@ -68,12 +68,12 @@ namespace threading {
          *
          * @return a unique_ptr to a Task which has the data for it's call bound into it
          */
-        std::unique_ptr<ReactionTask> getTask();
+        std::unique_ptr<ReactionTask> get_task();
 
         /**
          * @brief returns true if this reaction is currently enabled
          */
-        bool isEnabled();
+        bool is_enabled();
 
         /// @brief the reactor this belongs to
         Reactor& reactor;
@@ -85,7 +85,7 @@ namespace threading {
         const uint64_t id;
 
         /// @brief the number of currently active tasks (existing reaction tasks)
-        std::atomic<int> activeTasks;
+        std::atomic<int> active_tasks;
 
         /// @brief if this reaction object is currently enabled
         std::atomic<bool> enabled;
@@ -96,8 +96,8 @@ namespace threading {
          */
         void unbind();
 
-        /// @brief a source for reactionIds, atomically creates longs
-        static std::atomic<uint64_t> reactionIdSource;
+        /// @brief a source for reaction_ids, atomically creates longs
+        static std::atomic<uint64_t> reaction_id_source;
         /// @brief the callback generator function (creates databound callbacks)
         TaskGenerator generator;
         /// @brief unbinds the reaction and cleans up

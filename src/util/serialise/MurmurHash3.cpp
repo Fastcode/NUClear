@@ -15,7 +15,7 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include "nuclear_bits/util/serialise/MurmurHash3.hpp"
+#include "nuclear_bits/util/serialise/murmurhash3.hpp"
 
 namespace NUClear {
 namespace util {
@@ -25,7 +25,7 @@ namespace util {
             return (x << r) | (x >> (64 - r));
         }
 
-        std::array<uint64_t, 2> murmurHash3(const void* key, const size_t len) {
+        std::array<uint64_t, 2> murmurhash3(const void* key, const size_t len) {
 
             // Work out how many blocks we are going to use
             const size_t nblocks = len / 16;

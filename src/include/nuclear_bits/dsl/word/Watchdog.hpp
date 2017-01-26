@@ -58,7 +58,7 @@ namespace dsl {
                         if (NUClear::clock::now() > (service_time + period(ticks))) {
                             try {
                                 // Submit the reaction to the thread pool
-                                auto task = reaction->getTask();
+                                auto task = reaction->get_task();
                                 if (task) {
                                     reactor.powerplant.submit(std::move(task));
                                 }

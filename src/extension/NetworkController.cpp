@@ -32,26 +32,26 @@ namespace extension {
 
     NetworkController::NetworkController(std::unique_ptr<NUClear::Environment> environment)
         : Reactor(std::move(environment))
-        , writeMutex()
-        , udpHandle()
-        , tcpHandle()
-        , multicastHandle()
-        , multicastEmitHandle()
-        , networkEmitHandle()
+        , write_mutex()
+        , udp_handle()
+        , tcp_handle()
+        , multicast_handle()
+        , multicast_emit_handle()
+        , network_emit_handle()
         , name("")
-        , multicastGroup("")
-        , multicastPort(0)
-        , udpPort(0)
-        , tcpPort(0)
-        , udpServerFD(0)
-        , tcpServerFD(0)
-        , packetIDSource(1)
-        , reactionMutex()
+        , multicast_group("")
+        , multicast_port(0)
+        , udp_port(0)
+        , tcp_port(0)
+        , udp_server_fd(0)
+        , tcp_server_fd(0)
+        , packet_id_source(1)
+        , reaction_mutex()
         , reactions()
         , targets()
-        , nameTarget()
-        , udpTarget()
-        , tcpTarget() {
+        , name_target()
+        , udp_target()
+        , tcp_target() {
 
 // Turn off sigpipe...
 #ifndef _WIN32
@@ -61,7 +61,7 @@ namespace extension {
         on<Trigger<dsl::word::NetworkListen>, Sync<NetworkController>>().then(
             [this](const dsl::word::NetworkListen& l) {
                 // Lock our reaction mutex
-                std::lock_guard<std::mutex> lock(reactionMutex);
+                std::lock_guard<std::mutex> lock(reaction_mutex);
 
                 // Insert our new reaction
                 reactions.insert(std::make_pair(l.hash, l.reaction));
@@ -71,7 +71,7 @@ namespace extension {
             [this](const dsl::operation::Unbind<dsl::word::NetworkListen>& unbind) {
 
                 // Lock our reaction mutex
-                std::lock_guard<std::mutex> lock(reactionMutex);
+                std::lock_guard<std::mutex> lock(reaction_mutex);
 
                 // Find and delete this reaction
                 for (auto it = reactions.begin(); it != reactions.end(); ++it) {
@@ -86,33 +86,33 @@ namespace extension {
             [this](const message::NetworkConfiguration& config) {
 
                 // Unbind our incoming handles if they exist
-                if (udpHandle) {
-                    udpHandle.unbind();
+                if (udp_handle) {
+                    udp_handle.unbind();
                 }
-                if (tcpHandle) {
-                    tcpHandle.unbind();
+                if (tcp_handle) {
+                    tcp_handle.unbind();
                 }
-                if (multicastHandle) {
-                    multicastHandle.unbind();
+                if (multicast_handle) {
+                    multicast_handle.unbind();
                 }
-                if (multicastEmitHandle) {
-                    multicastEmitHandle.unbind();
+                if (multicast_emit_handle) {
+                    multicast_emit_handle.unbind();
                 }
-                if (networkEmitHandle) {
-                    networkEmitHandle.unbind();
+                if (network_emit_handle) {
+                    network_emit_handle.unbind();
                 }
 
                 // Unbind any TCP connections we may have and clear our maps
                 for (auto& target : targets) {
                     target.handle.unbind();
-                    close(target.tcpFD);
+                    close(target.tcp_fd);
                 }
 
                 // Clear all our maps
                 targets.clear();
-                nameTarget.clear();
-                udpTarget.clear();
-                tcpTarget.clear();
+                name_target.clear();
+                udp_target.clear();
+                tcp_target.clear();
 
                 // Store our new configuration
                 if (config.name.empty()) {
@@ -131,31 +131,31 @@ namespace extension {
                 else {
                     name = config.name;
                 }
-                multicastGroup = config.multicastGroup;
-                multicastPort  = config.multicastPort;
+                multicast_group = config.multicast_group;
+                multicast_port  = config.multicast_port;
 
                 // Add our new reactions
-                std::tie(udpHandle, udpPort, udpServerFD) =
-                    on<UDP, Sync<NetworkController>>().then([this](const UDP::Packet& packet) { udpHandler(packet); });
+                std::tie(udp_handle, udp_port, udp_server_fd) =
+                    on<UDP, Sync<NetworkController>>().then([this](const UDP::Packet& packet) { udp_handler(packet); });
 
-                std::tie(tcpHandle, tcpPort, tcpServerFD) = on<TCP, Sync<NetworkController>>().then(
-                    [this](const TCP::Connection& connection) { tcpConnection(connection); });
+                std::tie(tcp_handle, tcp_port, tcp_server_fd) = on<TCP, Sync<NetworkController>>().then(
+                    [this](const TCP::Connection& connection) { tcp_connection(connection); });
 
-                std::tie(multicastHandle, std::ignore, std::ignore) =
-                    on<UDP::Multicast, Sync<NetworkController>>(multicastGroup, multicastPort)
-                        .then([this](const UDP::Packet& packet) { udpHandler(packet); });
+                std::tie(multicast_handle, std::ignore, std::ignore) =
+                    on<UDP::Multicast, Sync<NetworkController>>(multicast_group, multicast_port)
+                        .then([this](const UDP::Packet& packet) { udp_handler(packet); });
 
-                multicastEmitHandle =
+                multicast_emit_handle =
                     on<Every<1, std::chrono::seconds>, Single, Sync<NetworkController>>().then([this] { announce(); });
 
-                networkEmitHandle = on<Trigger<dsl::word::emit::NetworkEmit>, Sync<NetworkController>>().then(
+                network_emit_handle = on<Trigger<dsl::word::emit::NetworkEmit>, Sync<NetworkController>>().then(
                     [this](const dsl::word::emit::NetworkEmit& emit) {
                         // See if this message should be sent reliably
                         if (emit.reliable) {
-                            tcpSend(emit);
+                            tcp_send(emit);
                         }
                         else {
-                            udpSend(emit);
+                            udp_send(emit);
                         }
                     });
             });

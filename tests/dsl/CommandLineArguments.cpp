@@ -48,7 +48,7 @@ TEST_CASE("Testing the Command Line argument capturing", "[api][command_line_arg
     const char* argv[] = {"Hello", "World"};
 
     NUClear::PowerPlant::Configuration config;
-    config.threadCount = 1;
+    config.thread_count = 1;
     NUClear::PowerPlant plant(config, argc, argv);
     plant.install<TestReactor>();
 

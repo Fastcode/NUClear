@@ -38,7 +38,7 @@ namespace dsl {
             static inline std::shared_ptr<const message::ReactionStatistics> get(threading::Reaction& r) {
 
                 // Check if we are triggering ourselves, and if so stop it!
-                auto current = threading::ReactionTask::getCurrentTask();
+                auto current = threading::ReactionTask::get_current_task();
                 if (current && r.id == current->parent.id) {
                     return nullptr;
                 }

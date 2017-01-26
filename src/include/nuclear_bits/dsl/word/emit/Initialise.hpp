@@ -45,7 +45,7 @@ namespace dsl {
 
                     auto task = [&powerplant, data] { emit::Direct<DataType>::emit(powerplant, data); };
 
-                    powerplant.onStartup(task);
+                    powerplant.on_startup(task);
                 }
             };
 

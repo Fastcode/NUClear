@@ -21,12 +21,12 @@
 
 namespace {
 
-constexpr in_port_t port           = 40002;
-const std::string testString       = "Hello UDP Multicast World!";
-const std::string multicastAddress = "230.12.3.21";
-int countA                         = 0;
-int countB                         = 0;
-std::size_t numAddresses           = 0;
+constexpr in_port_t port            = 40002;
+const std::string test_string       = "Hello UDP Multicast World!";
+const std::string multicast_address = "230.12.3.21";
+int count_a                         = 0;
+int count_b                         = 0;
+std::size_t num_addresses           = 0;
 
 struct Message {};
 
@@ -35,29 +35,29 @@ public:
     TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
 
         // Known port
-        on<UDP::Multicast>(multicastAddress, port).then([this](const UDP::Packet& packet) {
-            ++countA;
+        on<UDP::Multicast>(multicast_address, port).then([this](const UDP::Packet& packet) {
+            ++count_a;
             // Check that the data we received is correct
-            REQUIRE(packet.payload.size() == testString.size());
-            REQUIRE(std::memcmp(packet.payload.data(), testString.data(), testString.size()) == 0);
+            REQUIRE(packet.payload.size() == test_string.size());
+            REQUIRE(std::memcmp(packet.payload.data(), test_string.data(), test_string.size()) == 0);
 
             // Shutdown we are done with the test
-            if (countA >= 1 && countB >= 1) {
+            if (count_a >= 1 && count_b >= 1) {
                 powerplant.shutdown();
             }
         });
 
         // Unknown port
-        in_port_t boundPort;
-        std::tie(std::ignore, boundPort, std::ignore) =
-            on<UDP::Multicast>(multicastAddress).then([this](const UDP::Packet& packet) {
-                ++countB;
+        in_port_t bound_port;
+        std::tie(std::ignore, bound_port, std::ignore) =
+            on<UDP::Multicast>(multicast_address).then([this](const UDP::Packet& packet) {
+                ++count_b;
                 // Check that the data we received is correct
-                REQUIRE(packet.payload.size() == testString.size());
-                REQUIRE(std::memcmp(packet.payload.data(), testString.data(), testString.size()) == 0);
+                REQUIRE(packet.payload.size() == test_string.size());
+                REQUIRE(std::memcmp(packet.payload.data(), test_string.data(), test_string.size()) == 0);
 
                 // Shutdown we are done with the test
-                if (countA >= 1 && countB >= 1) {
+                if (count_a >= 1 && count_b >= 1) {
                     powerplant.shutdown();
                 }
             });
@@ -80,17 +80,17 @@ public:
                 }
             }
 
-            numAddresses = addresses.size();
+            num_addresses = addresses.size();
 
             for (auto& ad : addresses) {
 
                 // Send our message to that broadcast address
-                emit<Scope::UDP>(std::make_unique<std::string>(testString), multicastAddress, port, ad, in_port_t(0));
+                emit<Scope::UDP>(std::make_unique<std::string>(test_string), multicast_address, port, ad, in_port_t(0));
             }
         });
 
         // Test an unknown port
-        on<Trigger<Message>>().then([this, boundPort] {
+        on<Trigger<Message>>().then([this, bound_port] {
 
             // Get all the network interfaces
             auto interfaces = NUClear::util::network::get_interfaces();
@@ -107,13 +107,13 @@ public:
                 }
             }
 
-            numAddresses = addresses.size();
+            num_addresses = addresses.size();
 
             for (auto& ad : addresses) {
 
                 // Send our message to that broadcast address
                 emit<Scope::UDP>(
-                    std::make_unique<std::string>(testString), multicastAddress, boundPort, ad, in_port_t(0));
+                    std::make_unique<std::string>(test_string), multicast_address, bound_port, ad, in_port_t(0));
             }
         });
 
@@ -129,12 +129,12 @@ public:
 TEST_CASE("Testing sending and receiving of UDP Multicast messages", "[api][network][udp][multicast]") {
 
     NUClear::PowerPlant::Configuration config;
-    config.threadCount = 1;
+    config.thread_count = 1;
     NUClear::PowerPlant plant(config);
     plant.install<TestReactor>();
 
     plant.start();
 
-    REQUIRE(countA == numAddresses);
-    REQUIRE(countB == numAddresses);
+    REQUIRE(count_a == num_addresses);
+    REQUIRE(count_b == num_addresses);
 }

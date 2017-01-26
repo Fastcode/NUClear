@@ -39,8 +39,8 @@ class PowerPlant;
  */
 class Environment {
 public:
-    Environment(PowerPlant& powerplant, std::string&& reactorName, LogLevel logLevel)
-        : powerplant(powerplant), logLevel(logLevel), reactorName(reactorName) {}
+    Environment(PowerPlant& powerplant, std::string&& reactor_name, LogLevel log_level)
+        : powerplant(powerplant), log_level(log_level), reactor_name(reactor_name) {}
 
 private:
     friend class PowerPlant;
@@ -49,9 +49,9 @@ private:
     /// @brief The PowerPlant to use in this reactor
     PowerPlant& powerplant;
     /// @brief The log level to resepect for this reactor
-    LogLevel logLevel;
+    LogLevel log_level;
     /// @brief The name of the reactor
-    std::string reactorName;
+    std::string reactor_name;
 };
 
 }  // namespace NUClear

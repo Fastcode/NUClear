@@ -43,7 +43,7 @@ public:
 TEST_CASE("Testing on<Always> functionality (permanant run)", "[api][always]") {
 
     NUClear::PowerPlant::Configuration config;
-    config.threadCount = 1;
+    config.thread_count = 1;
     NUClear::PowerPlant plant(config);
 
     // We are installing with an initial log level of debug

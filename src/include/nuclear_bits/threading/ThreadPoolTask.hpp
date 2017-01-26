@@ -25,7 +25,7 @@
 namespace NUClear {
 namespace threading {
 
-    inline std::function<void()> makeThreadPoolTask(PowerPlant& powerplant, TaskScheduler& scheduler) {
+    inline std::function<void()> make_thread_pool_task(PowerPlant& powerplant, TaskScheduler& scheduler) {
         return [&powerplant, &scheduler] {
 
             // Wait at a high (but not realtime) priority to reduce latency
@@ -33,7 +33,7 @@ namespace threading {
             update_current_thread_priority(1000);
 
             // Run while our scheduler gives us tasks
-            for (std::unique_ptr<ReactionTask> task(scheduler.getTask()); task; task = scheduler.getTask()) {
+            for (std::unique_ptr<ReactionTask> task(scheduler.get_task()); task; task = scheduler.get_task()) {
 
                 // Run the task
                 task = task->run(std::move(task));

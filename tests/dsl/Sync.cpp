@@ -116,7 +116,7 @@ public:
 TEST_CASE("Testing that the Sync word works correctly", "[api][sync]") {
 
     NUClear::PowerPlant::Configuration config;
-    config.threadCount = 4;
+    config.thread_count = 4;
     NUClear::PowerPlant plant(config);
     plant.install<TestReactor>();
 

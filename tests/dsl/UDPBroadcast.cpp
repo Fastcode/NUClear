@@ -22,44 +22,44 @@
 namespace {
 
 constexpr unsigned short port = 40001;
-const std::string testString  = "Hello UDP Broadcast World!";
-int countA                    = 0;
-int countB                    = 0;
-std::size_t numAddresses      = 0;
+const std::string test_string = "Hello UDP Broadcast World!";
+int count_a                   = 0;
+int count_b                   = 0;
+std::size_t num_addresses     = 0;
 
 struct Message {};
 
 class TestReactor : public NUClear::Reactor {
 public:
-    in_port_t boundPort = 0;
+    in_port_t bound_port = 0;
     TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
 
         // Known port
         on<UDP::Broadcast>(port).then([this](const UDP::Packet& packet) {
 
-            ++countA;
+            ++count_a;
 
             // Check that the data we received is correct
-            REQUIRE(packet.payload.size() == testString.size());
-            REQUIRE(std::memcmp(packet.payload.data(), testString.data(), testString.size()) == 0);
+            REQUIRE(packet.payload.size() == test_string.size());
+            REQUIRE(std::memcmp(packet.payload.data(), test_string.data(), test_string.size()) == 0);
 
             // Shutdown we are done with the test
-            if (countA >= 1 && countB >= 1) {
+            if (count_a >= 1 && count_b >= 1) {
                 powerplant.shutdown();
             }
         });
 
         // Unknown port
-        std::tie(std::ignore, boundPort, std::ignore) = on<UDP::Broadcast>().then([this](const UDP::Packet& packet) {
+        std::tie(std::ignore, bound_port, std::ignore) = on<UDP::Broadcast>().then([this](const UDP::Packet& packet) {
 
-            ++countB;
+            ++count_b;
 
             // Check that the data we received is correct
-            REQUIRE(packet.payload.size() == testString.size());
-            REQUIRE(std::memcmp(packet.payload.data(), testString.data(), testString.size()) == 0);
+            REQUIRE(packet.payload.size() == test_string.size());
+            REQUIRE(std::memcmp(packet.payload.data(), test_string.data(), test_string.size()) == 0);
 
             // Shutdown we are done with the test
-            if (countA >= 1 && countB >= 1) {
+            if (count_a >= 1 && count_b >= 1) {
                 powerplant.shutdown();
             }
         });
@@ -81,12 +81,12 @@ public:
                 }
             }
 
-            numAddresses = addresses.size();
+            num_addresses = addresses.size();
 
             for (auto& ad : addresses) {
 
                 // Send our message to that broadcast address
-                emit<Scope::UDP>(std::make_unique<std::string>(testString), ad, port);
+                emit<Scope::UDP>(std::make_unique<std::string>(test_string), ad, port);
             }
         });
 
@@ -107,12 +107,12 @@ public:
                 }
             }
 
-            numAddresses = addresses.size();
+            num_addresses = addresses.size();
 
             for (auto& ad : addresses) {
 
                 // Send our message to that broadcast address
-                emit<Scope::UDP>(std::make_unique<std::string>(testString), ad, boundPort);
+                emit<Scope::UDP>(std::make_unique<std::string>(test_string), ad, bound_port);
             }
         });
 
@@ -128,12 +128,12 @@ public:
 TEST_CASE("Testing sending and receiving of UDP Broadcast messages", "[api][network][udp][broadcast]") {
 
     NUClear::PowerPlant::Configuration config;
-    config.threadCount = 1;
+    config.thread_count = 1;
     NUClear::PowerPlant plant(config);
     plant.install<TestReactor>();
 
     plant.start();
 
-    REQUIRE(countA == numAddresses);
-    REQUIRE(countB == numAddresses);
+    REQUIRE(count_a == num_addresses);
+    REQUIRE(count_b == num_addresses);
 }

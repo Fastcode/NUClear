@@ -25,8 +25,8 @@ namespace {
 template <int id>
 struct Message {};
 
-bool seenMessage0       = false;
-bool seenMessageStartup = false;
+bool seen_message0        = false;
+bool seen_message_startup = false;
 
 class TestReactor : public NUClear::Reactor {
 public:
@@ -37,11 +37,11 @@ public:
 
                 // Flag if we have seen the message handler
                 if (stats.identifier[0] == "Message Handler") {
-                    seenMessage0 = true;
+                    seen_message0 = true;
                 }
                 // Flag if we have seen the startup handler
                 else if (stats.identifier[0] == "Startup Handler") {
-                    seenMessageStartup = true;
+                    seen_message_startup = true;
                 }
 
                 // Ensure exceptions are passed through correctly in the exception handler
@@ -72,7 +72,7 @@ public:
 TEST_CASE("Testing reaction statistics functionality", "[api][reactionstatistics]") {
 
     NUClear::PowerPlant::Configuration config;
-    config.threadCount = 1;
+    config.thread_count = 1;
     NUClear::PowerPlant plant(config);
 
     // We are installing with an initial log level of debug

@@ -22,7 +22,7 @@
 namespace {
 
 int value = 0;
-std::vector<std::pair<int, int>> valuePairs;
+std::vector<std::pair<int, int>> value_pairs;
 
 struct DataType {
     int value;
@@ -53,7 +53,7 @@ public:
     TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
 
         on<TransientTypeGetter, Trigger<SimpleMessage>>().then([this](const DataType& d, const SimpleMessage& m) {
-            valuePairs.push_back(std::make_pair(m.value, d.value));
+            value_pairs.push_back(std::make_pair(m.value, d.value));
         });
 
         on<Startup>().then([this] {
@@ -112,20 +112,20 @@ namespace dsl {
 TEST_CASE("Testing whether getters that return transient data can cache between calls", "[api][transient]") {
 
     NUClear::PowerPlant::Configuration config;
-    config.threadCount = 1;
+    config.thread_count = 1;
     NUClear::PowerPlant plant(config);
     plant.install<TestReactor>();
 
     plant.start();
 
     // Now we validate the list (which may be in a different order due to NUClear scheduling)
-    std::sort(std::begin(valuePairs), std::end(valuePairs));
+    std::sort(std::begin(value_pairs), std::end(value_pairs));
 
     // Check that it was all as expected
-    REQUIRE(valuePairs.size() == 5);
-    REQUIRE(valuePairs[0] == std::make_pair(10, 1));
-    REQUIRE(valuePairs[1] == std::make_pair(20, 1));
-    REQUIRE(valuePairs[2] == std::make_pair(30, 5));
-    REQUIRE(valuePairs[3] == std::make_pair(30, 5));
-    REQUIRE(valuePairs[4] == std::make_pair(30, 5));
+    REQUIRE(value_pairs.size() == 5);
+    REQUIRE(value_pairs[0] == std::make_pair(10, 1));
+    REQUIRE(value_pairs[1] == std::make_pair(20, 1));
+    REQUIRE(value_pairs[2] == std::make_pair(30, 5));
+    REQUIRE(value_pairs[3] == std::make_pair(30, 5));
+    REQUIRE(value_pairs[4] == std::make_pair(30, 5));
 }

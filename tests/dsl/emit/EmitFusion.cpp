@@ -22,33 +22,33 @@
 // Anonymous namespace to keep everything file local
 namespace {
 
-int v1              = 0;
-int v2              = 0;
-int v3              = 0;
-int storedA         = 0;
-std::string storedB = "";
-double storedC      = 0;
-double storedD      = 0;
+int v1               = 0;
+int v2               = 0;
+int v3               = 0;
+int stored_a         = 0;
+std::string stored_b = "";
+double stored_c      = 0;
+double stored_d      = 0;
 
 template <typename T>
 struct EmitTester1 {
     static inline void emit(NUClear::PowerPlant&, std::shared_ptr<T> p, int a, std::string b) {
-        v1      = *p;
-        storedA = a;
-        storedB = b;
+        v1       = *p;
+        stored_a = a;
+        stored_b = b;
     }
 
     static inline void emit(NUClear::PowerPlant&, std::shared_ptr<T> p, double c) {
-        v2      = *p;
-        storedC = c;
+        v2       = *p;
+        stored_c = c;
     }
 };
 
 template <typename T>
 struct EmitTester2 {
     static inline void emit(NUClear::PowerPlant&, std::shared_ptr<T> p, double d) {
-        v3      = *p;
-        storedD = d;
+        v3       = *p;
+        stored_d = d;
     }
 };
 
@@ -68,11 +68,11 @@ public:
         REQUIRE(v2 == 8);
         v2 = 0;
         REQUIRE(v3 == 0);
-        REQUIRE(storedA == 0);
-        REQUIRE(storedB == "");
-        REQUIRE(storedC == 7.2);
-        storedC = 0;
-        REQUIRE(storedD == 0);
+        REQUIRE(stored_a == 0);
+        REQUIRE(stored_b == "");
+        REQUIRE(stored_c == 7.2);
+        stored_c = 0;
+        REQUIRE(stored_d == 0);
 
         // Test using the first overload
         emit<EmitTester1>(t2, 1337, "This is text");
@@ -80,12 +80,12 @@ public:
         v1 = 0;
         REQUIRE(v2 == 0);
         REQUIRE(v3 == 0);
-        REQUIRE(storedA == 1337);
-        storedA = 0;
-        REQUIRE(storedB == "This is text");
-        storedB = "";
-        REQUIRE(storedC == 0);
-        REQUIRE(storedD == 0);
+        REQUIRE(stored_a == 1337);
+        stored_a = 0;
+        REQUIRE(stored_b == "This is text");
+        stored_b = "";
+        REQUIRE(stored_c == 0);
+        REQUIRE(stored_d == 0);
 
         // Test multiple functions
         emit<EmitTester1, EmitTester2>(t3, 15, 8.3);
@@ -94,22 +94,22 @@ public:
         v2 = 0;
         REQUIRE(v3 == 52);
         v3 = 0;
-        REQUIRE(storedA == 0);
-        REQUIRE(storedB == "");
-        REQUIRE(storedC == 15);
-        storedC = 0;
-        REQUIRE(storedD == 8.3);
-        storedD = 0;
+        REQUIRE(stored_a == 0);
+        REQUIRE(stored_b == "");
+        REQUIRE(stored_c == 15);
+        stored_c = 0;
+        REQUIRE(stored_d == 8.3);
+        stored_d = 0;
 
         // Test even more multiple functions
         emit<EmitTester1, EmitTester2, EmitTester1>(t4, 2, "Hello World", 9.2, 5);
         REQUIRE(v1 == 100);
         REQUIRE(v2 == 100);
         REQUIRE(v3 == 100);
-        REQUIRE(storedA == 2);
-        REQUIRE(storedB == "Hello World");
-        REQUIRE(storedC == 5);
-        REQUIRE(storedD == 9.2);
+        REQUIRE(stored_a == 2);
+        REQUIRE(stored_b == "Hello World");
+        REQUIRE(stored_c == 5);
+        REQUIRE(stored_d == 9.2);
 
         on<Startup>().then([this] { powerplant.shutdown(); });
     }
@@ -118,7 +118,7 @@ public:
 
 TEST_CASE("Testing emit function fusion", "[api][emit][fusion]") {
     NUClear::PowerPlant::Configuration config;
-    config.threadCount = 1;
+    config.thread_count = 1;
     NUClear::PowerPlant plant(config);
     plant.install<TestReactor>();
 

@@ -22,7 +22,7 @@
 // Anonymous namespace to keep everything file local
 namespace {
 
-volatile bool didShutDown = false;
+volatile bool did_shutdown = false;
 
 struct SimpleMessage {};
 
@@ -36,7 +36,7 @@ public:
             powerplant.shutdown();
         });
 
-        on<Shutdown>().then([this] { didShutDown = true; });
+        on<Shutdown>().then([this] { did_shutdown = true; });
     }
 };
 }
@@ -44,7 +44,7 @@ public:
 TEST_CASE("A test that a shutdown message is emitted when the system shuts down", "[api][shutdown]") {
 
     NUClear::PowerPlant::Configuration config;
-    config.threadCount = 1;
+    config.thread_count = 1;
     NUClear::PowerPlant plant(config);
     plant.install<TestReactor>();
 
@@ -52,5 +52,5 @@ TEST_CASE("A test that a shutdown message is emitted when the system shuts down"
 
     plant.start();
 
-    REQUIRE(didShutDown);
+    REQUIRE(did_shutdown);
 }

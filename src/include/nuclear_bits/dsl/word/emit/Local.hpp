@@ -49,7 +49,7 @@ namespace dsl {
 
                     for (auto& reaction : store::TypeCallbackStore<DataType>::get()) {
                         try {
-                            auto task = reaction->getTask();
+                            auto task = reaction->get_task();
                             if (task) {
                                 powerplant.submit(std::move(task));
                             }

@@ -42,11 +42,11 @@ namespace threading {
      */
     class ReactionTask {
     private:
-        /// @brief a source for reactionIds, atomically creates longs
-        static std::atomic<std::uint64_t> taskIdSource;
+        /// @brief a source for task ids, atomically creates longs
+        static std::atomic<std::uint64_t> task_id_source;
 
         /// @brief the current task that is being executed by this thread (or nullptr if none is)
-        static ATTRIBUTE_TLS ReactionTask* currentTask;
+        static ATTRIBUTE_TLS ReactionTask* current_task;
 
     public:
         /// Type of the functions that ReactionTasks execute
@@ -57,7 +57,7 @@ namespace threading {
          *
          * @return the current executing task or nullptr if there isn't one
          */
-        static const ReactionTask* getCurrentTask();
+        static const ReactionTask* get_current_task();
 
         /**
          * @brief Creates a new ReactionTask object bound with the parent Reaction object (that created it) and task.
@@ -79,7 +79,7 @@ namespace threading {
 
         /// @brief the parent Reaction object which spawned this
         Reaction& parent;
-        /// @brief the taskId of this task (the sequence number of this paticular task)
+        /// @brief the task id of this task (the sequence number of this particular task)
         uint64_t id;
         /// @brief the priority to run this task at
         int priority;

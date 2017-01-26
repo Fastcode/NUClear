@@ -108,7 +108,7 @@ namespace util {
          * @return the result of calling this specific function
          */
         template <typename Function, int Start, int End>
-        static inline auto callOne(const Sequence<Start, End>&, Arguments&&... args)
+        static inline auto call_one(const Sequence<Start, End>&, Arguments&&... args)
             -> decltype(apply_function_fusion_call<Function, Shared, Start, End>(std::forward_as_tuple(args...))) {
 
             return apply_function_fusion_call<Function, Shared, Start, End>(std::forward_as_tuple(args...));
@@ -124,7 +124,7 @@ namespace util {
          * @return ignore
          */
         template <typename>
-        static inline bool callOne(...);
+        static inline bool call_one(...);
 
     public:
         /**
@@ -135,10 +135,10 @@ namespace util {
          * @return A tuple of the returned values, or if the return value was a tuple fuse it
          */
         static inline auto call(Arguments&&... args)
-            -> decltype(std::tuple_cat(tuplify(callOne<Functions>(Ranges(), std::forward<Arguments>(args)...))...)) {
+            -> decltype(std::tuple_cat(tuplify(call_one<Functions>(Ranges(), std::forward<Arguments>(args)...))...)) {
 
             // Now to call all of the sets with their arguments
-            return std::tuple_cat(tuplify(callOne<Functions>(Ranges(), std::forward<Arguments>(args)...))...);
+            return std::tuple_cat(tuplify(call_one<Functions>(Ranges(), std::forward<Arguments>(args)...))...);
         }
     };
 

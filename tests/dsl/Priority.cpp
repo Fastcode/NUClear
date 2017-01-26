@@ -71,7 +71,7 @@ public:
 TEST_CASE("Tests that priority orders the tasks appropriately", "[api][priority]") {
 
     NUClear::PowerPlant::Configuration config;
-    config.threadCount = 1;
+    config.thread_count = 1;
     NUClear::PowerPlant plant(config);
     plant.install<TestReactor>();
 

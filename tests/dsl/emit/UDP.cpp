@@ -22,50 +22,50 @@
 // Anonymous namespace to keep everything file local
 namespace {
 
-int receivedMessages = 0;
+int received_messages = 0;
 
 class TestReactor : public NUClear::Reactor {
 public:
-    in_port_t boundPort = 0;
+    in_port_t bound_port = 0;
 
     TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
         emit<Scope::INITIALIZE>(std::make_unique<int>(5));
 
-        std::tie(std::ignore, boundPort, std::ignore) = on<UDP>().then([this](const UDP::Packet& packet) {
-            ++receivedMessages;
+        std::tie(std::ignore, bound_port, std::ignore) = on<UDP>().then([this](const UDP::Packet& packet) {
+            ++received_messages;
 
             switch (packet.payload.front()) {
                 case 'a':
                 case 'b':
                     REQUIRE(packet.remote.address == INADDR_LOOPBACK);
                     REQUIRE(packet.local.address == INADDR_LOOPBACK);
-                    REQUIRE(packet.local.port == boundPort);
+                    REQUIRE(packet.local.port == bound_port);
                     break;
                 case 'c':
                     REQUIRE(packet.remote.address == INADDR_LOOPBACK);
                     REQUIRE(packet.remote.port == 12345);
                     REQUIRE(packet.local.address == INADDR_LOOPBACK);
-                    REQUIRE(packet.local.port == boundPort);
+                    REQUIRE(packet.local.port == bound_port);
                     break;
                 case 'd':
                     REQUIRE(packet.remote.address == INADDR_LOOPBACK);
                     REQUIRE(packet.remote.port == 54321);
                     REQUIRE(packet.local.address == INADDR_LOOPBACK);
-                    REQUIRE(packet.local.port == boundPort);
+                    REQUIRE(packet.local.port == bound_port);
                     break;
             }
 
-            if (receivedMessages == 4) {
+            if (received_messages == 4) {
                 powerplant.shutdown();
             }
         });
 
         on<Startup>().then([this] {
             // Send using a string
-            emit<Scope::UDP>(std::make_unique<char>('a'), "127.0.0.1", boundPort);
-            emit<Scope::UDP>(std::make_unique<char>('b'), INADDR_LOOPBACK, boundPort);
-            emit<Scope::UDP>(std::make_unique<char>('c'), "127.0.0.1", boundPort, INADDR_ANY, in_port_t(12345));
-            emit<Scope::UDP>(std::make_unique<char>('d'), INADDR_LOOPBACK, boundPort, INADDR_ANY, in_port_t(54321));
+            emit<Scope::UDP>(std::make_unique<char>('a'), "127.0.0.1", bound_port);
+            emit<Scope::UDP>(std::make_unique<char>('b'), INADDR_LOOPBACK, bound_port);
+            emit<Scope::UDP>(std::make_unique<char>('c'), "127.0.0.1", bound_port, INADDR_ANY, in_port_t(12345));
+            emit<Scope::UDP>(std::make_unique<char>('d'), INADDR_LOOPBACK, bound_port, INADDR_ANY, in_port_t(54321));
         });
     }
 };
@@ -73,7 +73,7 @@ public:
 
 TEST_CASE("Testing UDP emits work correctly", "[api][emit][udp]") {
     NUClear::PowerPlant::Configuration config;
-    config.threadCount = 1;
+    config.thread_count = 1;
     NUClear::PowerPlant plant(config);
     plant.install<TestReactor>();
 

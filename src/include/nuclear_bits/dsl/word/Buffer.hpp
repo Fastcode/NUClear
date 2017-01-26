@@ -43,7 +43,7 @@ namespace dsl {
             template <typename DSL>
             static inline bool precondition(threading::Reaction& reaction) {
                 // We only run if there are less than the target number of active tasks
-                return reaction.activeTasks < n;
+                return reaction.active_tasks < n;
             }
         };
 

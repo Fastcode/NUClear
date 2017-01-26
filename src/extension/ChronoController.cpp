@@ -27,7 +27,7 @@ namespace extension {
     using NUClear::dsl::operation::ChronoTask;
 
     ChronoController::ChronoController(std::unique_ptr<NUClear::Environment> environment)
-        : Reactor(std::move(environment)), tasks(), mutex(), wait(), waitOffset(std::chrono::milliseconds(0)) {
+        : Reactor(std::move(environment)), tasks(), mutex(), wait(), wait_offset(std::chrono::milliseconds(0)) {
 
         on<Trigger<ChronoTask>>().then("Add Chrono task", [this](std::shared_ptr<const ChronoTask> task) {
 
@@ -69,7 +69,7 @@ namespace extension {
 
         on<Always, Priority::REALTIME>().then("Chrono Controller", [this] {
 
-            // Aquire the mutex lock so we can wait on it
+            // Acquire the mutex lock so we can wait on it
             std::unique_lock<std::mutex> lock(mutex);
 
             // If we have tasks to do
@@ -79,11 +79,11 @@ namespace extension {
                 std::make_heap(tasks.begin(), tasks.end(), std::greater<ChronoTask>());
 
                 // If we are within the wait offset of the time, spinlock until we get there for greater accuracy
-                if (NUClear::clock::now() + waitOffset > tasks.front().time) {
+                if (NUClear::clock::now() + wait_offset > tasks.front().time) {
 
                     // Spinlock!
                     while (NUClear::clock::now() < tasks.front().time) {
-                    };
+                    }
 
                     NUClear::clock::time_point now = NUClear::clock::now();
 
@@ -104,7 +104,7 @@ namespace extension {
                 // Otherwise we wait for the next event using a wait_for (with a small offset for greater accuracy)
                 // Either that or until we get interrupted with a new event
                 else {
-                    wait.wait_until(lock, tasks.front().time - waitOffset);
+                    wait.wait_until(lock, tasks.front().time - wait_offset);
                 }
             }
             // Otherwise we wait for something to happen

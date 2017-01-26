@@ -22,7 +22,7 @@ namespace NUClear {
 namespace threading {
 
     // Initialize our id source
-    std::atomic<uint64_t> ReactionTask::taskIdSource(0);
+    std::atomic<uint64_t> ReactionTask::task_id_source(0);
 
     // This here is a hack because for some reason Xcode is broken and doesn't generate the destructors for this
     // class...???!!!
@@ -30,19 +30,19 @@ namespace threading {
     message::ReactionStatistics r;
 
     // Initialize our current task
-    ATTRIBUTE_TLS ReactionTask* ReactionTask::currentTask = nullptr;
+    ATTRIBUTE_TLS ReactionTask* ReactionTask::current_task = nullptr;
 
     ReactionTask::ReactionTask(Reaction& parent,
                                int priority,
                                std::function<std::unique_ptr<ReactionTask>(std::unique_ptr<ReactionTask>&&)> callback)
         : parent(parent)
-        , id(++taskIdSource)
+        , id(++task_id_source)
         , priority(priority)
         , stats(new message::ReactionStatistics{parent.identifier,
                                                 parent.id,
                                                 id,
-                                                currentTask ? currentTask->parent.id : 0,
-                                                currentTask ? currentTask->id : 0,
+                                                current_task ? current_task->parent.id : 0,
+                                                current_task ? current_task->id : 0,
                                                 clock::now(),
                                                 clock::time_point(std::chrono::seconds(0)),
                                                 clock::time_point(std::chrono::seconds(0)),
@@ -50,18 +50,18 @@ namespace threading {
         , callback(callback) {
 
         // There is one new active task
-        ++parent.activeTasks;
+        ++parent.active_tasks;
     }
 
-    const ReactionTask* ReactionTask::getCurrentTask() {
-        return currentTask;
+    const ReactionTask* ReactionTask::get_current_task() {
+        return current_task;
     }
 
     std::unique_ptr<ReactionTask> ReactionTask::run(std::unique_ptr<ReactionTask>&& us) {
 
         // Update our current task
-        auto oldTask = currentTask;
-        currentTask  = this;
+        auto old_task = current_task;
+        current_task  = this;
 
         // Run our callback at catch the returned task (to see if it rescheduled itself)
         us = callback(std::move(us));
@@ -69,11 +69,11 @@ namespace threading {
         // If we were not rescheduled then finish off our stats
         if (us) {
             // There is one less task
-            --parent.activeTasks;
+            --parent.active_tasks;
         }
 
         // Reset our task back
-        currentTask = oldTask;
+        current_task = old_task;
 
         // Return our original task
         return std::move(us);

@@ -30,7 +30,7 @@ namespace dsl {
          *  When a group of tasks has been synchronised, only one task from that group will be allowed to execute at a
          *  given time.  Should another task from this group be scheduled/requested (during execution of the current
          *  task), it will be sidelined in a priority queue. Upon completion of the currently executing task, the queue
-         *  will be polled to allow excution of the next task in this group.
+         *  will be polled to allow execution of the next task in this group.
          *  Tasks in the priority queue will be ordered based on their priority level, then their emission timestamp.
          *
          *  For best use, this word should be fused with at least one other binding DSL word. For example:
@@ -86,12 +86,12 @@ namespace dsl {
 
                 // If we have another task, add it
                 if (!queue.empty()) {
-                    std::unique_ptr<threading::ReactionTask> nextTask(
+                    std::unique_ptr<threading::ReactionTask> next_task(
                         std::move(const_cast<std::unique_ptr<threading::ReactionTask>&>(queue.top())));
                     queue.pop();
 
                     // Resubmit this task to the reaction queue
-                    task.parent.reactor.powerplant.submit(std::move(nextTask));
+                    task.parent.reactor.powerplant.submit(std::move(next_task));
                 }
             }
         };

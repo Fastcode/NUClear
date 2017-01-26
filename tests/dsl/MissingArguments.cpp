@@ -56,7 +56,7 @@ public:
 TEST_CASE("Testing that when arguments missing from the call it can still run", "[api][missing_arguments]") {
 
     NUClear::PowerPlant::Configuration config;
-    config.threadCount = 1;
+    config.thread_count = 1;
     NUClear::PowerPlant plant(config);
     plant.install<TestReactor>();
 

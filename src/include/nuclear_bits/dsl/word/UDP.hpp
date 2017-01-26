@@ -140,13 +140,13 @@ namespace dsl {
                 auto reaction = util::generate_reaction<DSL, IO>(
                     reactor, label, std::forward<Function>(callback), [cfd](threading::Reaction&) { close(cfd); });
 
-                auto ioConfig =
+                auto io_config =
                     std::make_unique<IOConfiguration>(IOConfiguration{fd.release(), IO::READ, std::move(reaction)});
 
-                threading::ReactionHandle handle(ioConfig->reaction);
+                threading::ReactionHandle handle(io_config->reaction);
 
                 // Send our configuration out
-                reactor.powerplant.emit<emit::Direct>(ioConfig);
+                reactor.powerplant.emit<emit::Direct>(io_config);
 
                 // Return our handles and our bound port
                 return std::make_tuple(handle, port, cfd);
@@ -201,14 +201,14 @@ namespace dsl {
                 ssize_t received = recvmsg(event.fd, &mh, 0);
 
                 // Iterate through control headers to get IP information
-                in_addr_t ourAddr = 0;
+                in_addr_t our_addr = 0;
                 for (cmsghdr* cmsg = CMSG_FIRSTHDR(&mh); cmsg != nullptr; cmsg = CMSG_NXTHDR(&mh, cmsg)) {
                     // ignore the control headers that don't match what we want
                     if (cmsg->cmsg_level == IPPROTO_IP && cmsg->cmsg_type == IP_PKTINFO) {
 
                         // Access the packet header information
                         in_pktinfo* pi = reinterpret_cast<in_pktinfo*>(reinterpret_cast<char*>(cmsg) + sizeof(*cmsg));
-                        ourAddr        = pi->ipi_addr.s_addr;
+                        our_addr       = pi->ipi_addr.s_addr;
 
                         // We are done
                         break;
@@ -228,7 +228,7 @@ namespace dsl {
                     p.valid          = true;
                     p.remote.address = ntohl(from.sin_addr.s_addr);
                     p.remote.port    = ntohs(from.sin_port);
-                    p.local.address  = ntohl(ourAddr);
+                    p.local.address  = ntohl(our_addr);
                     p.local.port     = ntohs(address.sin_port);
                     p.payload.resize(size_t(received));
                 }
@@ -296,13 +296,13 @@ namespace dsl {
                     auto reaction = util::generate_reaction<DSL, IO>(
                         reactor, label, std::forward<Function>(callback), [cfd](threading::Reaction&) { close(cfd); });
 
-                    auto ioConfig =
+                    auto io_config =
                         std::make_unique<IOConfiguration>(IOConfiguration{fd.release(), IO::READ, std::move(reaction)});
 
-                    threading::ReactionHandle handle(ioConfig->reaction);
+                    threading::ReactionHandle handle(io_config->reaction);
 
                     // Send our configuration out
-                    reactor.powerplant.emit<emit::Direct>(ioConfig);
+                    reactor.powerplant.emit<emit::Direct>(io_config);
 
                     // Return our handles and our bound port
                     return std::make_tuple(handle, port, cfd);
@@ -320,7 +320,7 @@ namespace dsl {
                 static inline std::tuple<threading::ReactionHandle, in_port_t, fd_t> bind(Reactor& reactor,
                                                                                           const std::string& label,
                                                                                           Function&& callback,
-                                                                                          std::string multicastGroup,
+                                                                                          std::string multicast_group,
                                                                                           int port = 0) {
 
                     // Our multicast group address
@@ -379,7 +379,7 @@ namespace dsl {
                         // Our multicast join request
                         ip_mreq mreq;
                         memset(&mreq, 0, sizeof(mreq));
-                        inet_pton(AF_INET, multicastGroup.c_str(), &mreq.imr_multiaddr);
+                        inet_pton(AF_INET, multicast_group.c_str(), &mreq.imr_multiaddr);
                         mreq.imr_interface.s_addr = htonl(ad);
 
                         // Join our multicast group

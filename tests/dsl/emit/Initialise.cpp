@@ -46,7 +46,7 @@ public:
 
 TEST_CASE("Testing the Initialize scope", "[api][emit][initialize]") {
     NUClear::PowerPlant::Configuration config;
-    config.threadCount = 1;
+    config.thread_count = 1;
     NUClear::PowerPlant plant(config);
     plant.install<TestReactor>();
 

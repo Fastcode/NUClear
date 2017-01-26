@@ -27,8 +27,8 @@ namespace extension {
 
         // Startup WSA for IO
         WORD version = MAKEWORD(2, 2);
-        WSADATA wsaData;
-        WSAStartup(version, &wsaData);
+        WSADATA wsa_data;
+        WSAStartup(version, &wsa_data);
 
         // Reserve 1024 event slots
         // Hopefully we won't have more events than that
@@ -45,7 +45,7 @@ namespace extension {
             "Configure IO Reaction", [this](const dsl::word::IOConfiguration& config) {
 
                 // Lock our mutex
-                std::lock_guard<std::mutex> lock(reactionMutex);
+                std::lock_guard<std::mutex> lock(reaction_mutex);
 
                 // Make an event for this SOCKET
                 auto event = WSACreateEvent();
@@ -125,7 +125,7 @@ namespace extension {
 
                             // Submit the task (which should run the get)
                             try {
-                                auto task = r->second.reaction->getTask();
+                                auto task = r->second.reaction->get_task();
                                 if (task) {
                                     powerplant.submit(std::move(task));
                                 }

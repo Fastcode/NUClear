@@ -102,7 +102,7 @@ namespace threading {
          *
          * @return the task which has been given to be executed
          */
-        std::unique_ptr<ReactionTask> getTask();
+        std::unique_ptr<ReactionTask> get_task();
 
     private:
         /// @brief if the scheduler is running or is shut down

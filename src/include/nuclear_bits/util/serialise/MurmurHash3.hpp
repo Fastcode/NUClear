@@ -37,7 +37,7 @@ namespace util {
          * @param key a pointer to the data for the key
          * @param len the number of bytes in the key
          */
-        std::array<uint64_t, 2> murmurHash3(const void* key, const size_t len);
+        std::array<uint64_t, 2> murmurhash3(const void* key, const size_t len);
 
     }  // namespace serialise
 }  // namespace util

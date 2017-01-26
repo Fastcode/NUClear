@@ -45,7 +45,7 @@ public:
 TEST_CASE("Testing reaction handle functionality", "[api][reactionhandle]") {
 
     NUClear::PowerPlant::Configuration config;
-    config.threadCount = 1;
+    config.thread_count = 1;
     NUClear::PowerPlant plant(config);
 
     // We are installing with an initial log level of debug

@@ -76,16 +76,16 @@ namespace dsl {
                                                          const std::string& label,
                                                          Function&& callback,
                                                          fd_t fd,
-                                                         int watchSet) {
+                                                         int watch_set) {
 
                 auto reaction = util::generate_reaction<DSL, IO>(reactor, label, std::forward<Function>(callback));
 
-                auto ioConfig = std::make_unique<IOConfiguration>(IOConfiguration{fd, watchSet, std::move(reaction)});
+                auto io_config = std::make_unique<IOConfiguration>(IOConfiguration{fd, watch_set, std::move(reaction)});
 
-                threading::ReactionHandle handle(ioConfig->reaction);
+                threading::ReactionHandle handle(io_config->reaction);
 
                 // Send our configuration out
-                reactor.powerplant.emit<emit::Direct>(ioConfig);
+                reactor.powerplant.emit<emit::Direct>(io_config);
 
                 // Return our handles
                 return handle;

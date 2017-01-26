@@ -19,7 +19,7 @@
 #define NUCLEAR_EXTENSION_NETWORKCONTROLLER_HPP
 
 #include "nuclear"
-#include "nuclear_bits/extension/network/WireProtocol.hpp"
+#include "nuclear_bits/extension/network/wire_protocol.hpp"
 
 namespace NUClear {
 namespace extension {
@@ -28,69 +28,69 @@ namespace extension {
     private:
         struct NetworkTarget {
 
-            NetworkTarget(std::string name, in_addr_t address, in_port_t tcpPort, in_port_t udpPort, int tcpFD)
+            NetworkTarget(std::string name, in_addr_t address, in_port_t tcp_port, in_port_t udp_port, int tcp_fd)
                 : name(name)
                 , address(address)
-                , tcpPort(tcpPort)
-                , udpPort(udpPort)
-                , tcpFD(tcpFD)
+                , tcp_port(tcp_port)
+                , udp_port(udp_port)
+                , tcp_fd(tcp_fd)
                 , handle()
                 , buffer()
-                , bufferMutex() {}
+                , buffer_mutex() {}
 
             std::string name;
             in_addr_t address;
-            in_port_t tcpPort;
-            in_port_t udpPort;
-            fd_t tcpFD;
+            in_port_t tcp_port;
+            in_port_t udp_port;
+            fd_t tcp_fd;
             ReactionHandle handle;
             std::map<in_port_t, std::pair<clock::time_point, std::vector<std::vector<char>>>> buffer;
-            std::mutex bufferMutex;
+            std::mutex buffer_mutex;
         };
 
     public:
         explicit NetworkController(std::unique_ptr<NUClear::Environment> environment);
 
     private:
-        void tcpConnection(const TCP::Connection& con);
-        void tcpHandler(const IO::Event& event);
-        void udpHandler(const UDP::Packet& packet);
-        void tcpSend(const dsl::word::emit::NetworkEmit& emit);
-        void udpSend(const dsl::word::emit::NetworkEmit& emit);
+        void tcp_connection(const TCP::Connection& con);
+        void tcp_handler(const IO::Event& event);
+        void udp_handler(const UDP::Packet& packet);
+        void tcp_send(const dsl::word::emit::NetworkEmit& emit);
+        void udp_send(const dsl::word::emit::NetworkEmit& emit);
         void announce();
 
         // Our max UDP size is based of a 1500 MTU
         // Subtract the IP and UPD headers, and our protocol header size
         static constexpr const size_t MAX_UDP_PAYLOAD_LENGTH =
             1500 /*MTU*/ - 20 /*IP header*/ - 8 /*UDP header*/ - sizeof(network::DataPacket) + 1 /*Last char*/;
-        static constexpr const size_t MAX_NUM_UDP_ASSEMBLEY = 5;
+        static constexpr const size_t MAX_NUM_UDP_ASSEMBLY = 5;
 
-        std::mutex writeMutex;
+        std::mutex write_mutex;
 
-        ReactionHandle udpHandle;
-        ReactionHandle tcpHandle;
-        ReactionHandle multicastHandle;
-        ReactionHandle multicastEmitHandle;
-        ReactionHandle networkEmitHandle;
+        ReactionHandle udp_handle;
+        ReactionHandle tcp_handle;
+        ReactionHandle multicast_handle;
+        ReactionHandle multicast_emit_handle;
+        ReactionHandle network_emit_handle;
 
         std::string name;
-        std::string multicastGroup;
-        in_port_t multicastPort;
-        in_port_t udpPort;
-        in_port_t tcpPort;
+        std::string multicast_group;
+        in_port_t multicast_port;
+        in_port_t udp_port;
+        in_port_t tcp_port;
 
-        int udpServerFD;
-        int tcpServerFD;
+        int udp_server_fd;
+        int tcp_server_fd;
 
-        std::atomic<uint16_t> packetIDSource;
+        std::atomic<uint16_t> packet_id_source;
 
-        std::mutex reactionMutex;
+        std::mutex reaction_mutex;
         std::multimap<std::array<uint64_t, 2>, std::shared_ptr<threading::Reaction>> reactions;
 
         std::list<NetworkTarget> targets;
-        std::multimap<std::string, std::list<NetworkTarget>::iterator> nameTarget;
-        std::map<std::pair<int, int>, std::list<NetworkTarget>::iterator> udpTarget;
-        std::map<int, std::list<NetworkTarget>::iterator> tcpTarget;
+        std::multimap<std::string, std::list<NetworkTarget>::iterator> name_target;
+        std::map<std::pair<int, int>, std::list<NetworkTarget>::iterator> udp_target;
+        std::map<int, std::list<NetworkTarget>::iterator> tcp_target;
     };
 
 }  // namespace extension

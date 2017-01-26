@@ -95,14 +95,14 @@ void PowerPlant::emit(std::unique_ptr<T>&& data, Arguments&&... args) {
 // Anonymous metafunction that concatenates everything into a single string
 namespace {
     template <typename T>
-    inline void logImpl(std::stringstream& output, T&& first) {
+    inline void log_impl(std::stringstream& output, T&& first) {
         output << first;
     }
 
     template <typename First, typename... Remainder>
-    inline void logImpl(std::stringstream& output, First&& first, Remainder&&... args) {
+    inline void log_impl(std::stringstream& output, First&& first, Remainder&&... args) {
         output << first << " ";
-        logImpl(output, std::forward<Remainder>(args)...);
+        log_impl(output, std::forward<Remainder>(args)...);
     }
 }
 
@@ -110,12 +110,12 @@ template <enum LogLevel level, typename... Arguments>
 void PowerPlant::log(Arguments&&... args) {
 
     // Build our log message by concatenating everything to a stream
-    std::stringstream outputStream;
-    logImpl(outputStream, std::forward<Arguments>(args)...);
-    std::string output = outputStream.str();
+    std::stringstream output_stream;
+    log_impl(output_stream, std::forward<Arguments>(args)...);
+    std::string output = output_stream.str();
 
-    auto currentTask = threading::ReactionTask::getCurrentTask();
-    auto task        = currentTask ? currentTask->stats.get() : nullptr;
+    auto current_task = threading::ReactionTask::get_current_task();
+    auto task         = current_task ? current_task->stats.get() : nullptr;
 
     // Direct emit the log message so that any direct loggers can use it
     powerplant->emit<dsl::word::emit::Direct>(

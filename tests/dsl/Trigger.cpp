@@ -44,7 +44,7 @@ public:
 TEST_CASE("A very basic test for Emit and On", "[api][trigger]") {
 
     NUClear::PowerPlant::Configuration config;
-    config.threadCount = 1;
+    config.thread_count = 1;
     NUClear::PowerPlant plant(config);
     plant.install<TestReactor>();
 

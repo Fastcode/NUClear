@@ -41,7 +41,7 @@ namespace extension {
         WSAEVENT notifier;
 
         bool shutdown = false;
-        std::mutex reactionMutex;
+        std::mutex reaction_mutex;
         std::map<WSAEVENT, Event> reactions;
         std::vector<WSAEVENT> fds;
     };

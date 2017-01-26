@@ -21,7 +21,7 @@ namespace NUClear {
 namespace threading {
 
     // Initialize our reaction source
-    std::atomic<uint64_t> Reaction::reactionIdSource(0);
+    std::atomic<uint64_t> Reaction::reaction_id_source(0);
 
     Reaction::Reaction(Reactor& reactor,
                        std::vector<std::string> identifier,
@@ -29,8 +29,8 @@ namespace threading {
                        std::function<void(Reaction&)>&& unbinder)
         : reactor(reactor)
         , identifier(identifier)
-        , id(++reactionIdSource)
-        , activeTasks(0)
+        , id(++reaction_id_source)
+        , active_tasks(0)
         , enabled(true)
         , generator(generator)
         , unbinder(unbinder) {}
@@ -40,7 +40,7 @@ namespace threading {
         unbinder(*this);
     }
 
-    std::unique_ptr<ReactionTask> Reaction::getTask() {
+    std::unique_ptr<ReactionTask> Reaction::get_task() {
 
         // If we are not enabled, don't run
         if (!enabled) {
@@ -62,7 +62,7 @@ namespace threading {
         }
     }
 
-    bool Reaction::isEnabled() {
+    bool Reaction::is_enabled() {
         return enabled;
     }
 }

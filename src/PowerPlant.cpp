@@ -27,7 +27,7 @@ namespace NUClear {
 PowerPlant* PowerPlant::powerplant = nullptr;
 
 PowerPlant::PowerPlant(Configuration config, int argc, const char* argv[])
-    : configuration(config), tasks(), threads(), scheduler(), mainThreadScheduler(), reactors(), startupTasks() {
+    : configuration(config), tasks(), threads(), scheduler(), main_thread_scheduler(), reactors(), startup_tasks() {
 
     // Stop people from making more then one powerplant
     if (powerplant) {
@@ -59,36 +59,36 @@ PowerPlant::~PowerPlant() {
     powerplant = nullptr;
 }
 
-void PowerPlant::onStartup(std::function<void()>&& func) {
-    if (isRunning) {
-        throw std::runtime_error("Unable to do onStartup as the PowerPlant has already started");
+void PowerPlant::on_startup(std::function<void()>&& func) {
+    if (is_running) {
+        throw std::runtime_error("Unable to do on_startup as the PowerPlant has already started");
     }
     else {
-        startupTasks.push_back(func);
+        startup_tasks.push_back(func);
     }
 }
 
-void PowerPlant::addThreadTask(std::function<void()>&& task) {
+void PowerPlant::add_thread_task(std::function<void()>&& task) {
     tasks.push_back(std::forward<std::function<void()>>(task));
 }
 
 void PowerPlant::start() {
 
     // We are now running
-    isRunning = true;
+    is_running = true;
 
     // Run all our Initialise scope tasks
-    for (auto&& func : startupTasks) {
+    for (auto&& func : startup_tasks) {
         func();
     }
-    startupTasks.clear();
+    startup_tasks.clear();
 
     // Direct emit startup event
     emit<dsl::word::emit::Direct>(std::make_unique<dsl::word::Startup>());
 
     // Start all our threads
-    for (size_t i = 0; i < configuration.threadCount; ++i) {
-        tasks.push_back(threading::makeThreadPoolTask(*this, scheduler));
+    for (size_t i = 0; i < configuration.thread_count; ++i) {
+        tasks.push_back(threading::make_thread_pool_task(*this, scheduler));
     }
 
     // Start all our tasks
@@ -97,7 +97,7 @@ void PowerPlant::start() {
     }
 
     // Start our main thread using our main task scheduler
-    threading::makeThreadPoolTask(*this, mainThreadScheduler)();
+    threading::make_thread_pool_task(*this, main_thread_scheduler)();
 
     // Now wait for all the threads to finish executing
     for (auto& thread : threads) {
@@ -117,8 +117,8 @@ void PowerPlant::submit(std::unique_ptr<threading::ReactionTask>&& task) {
     scheduler.submit(std::forward<std::unique_ptr<threading::ReactionTask>>(task));
 }
 
-void PowerPlant::submitMain(std::unique_ptr<threading::ReactionTask>&& task) {
-    mainThreadScheduler.submit(std::forward<std::unique_ptr<threading::ReactionTask>>(task));
+void PowerPlant::submit_main(std::unique_ptr<threading::ReactionTask>&& task) {
+    main_thread_scheduler.submit(std::forward<std::unique_ptr<threading::ReactionTask>>(task));
 }
 
 void PowerPlant::shutdown() {
@@ -126,19 +126,19 @@ void PowerPlant::shutdown() {
     // Emit our shutdown event
     emit(std::make_unique<dsl::word::Shutdown>());
 
-    isRunning = false;
+    is_running = false;
 
     // Shutdown the scheduler
     scheduler.shutdown();
 
     // Shutdown the main threads scheduler
-    mainThreadScheduler.shutdown();
+    main_thread_scheduler.shutdown();
 
     // Bye bye powerplant
     powerplant = nullptr;
 }
 
 bool PowerPlant::running() {
-    return isRunning;
+    return is_running;
 }
 }

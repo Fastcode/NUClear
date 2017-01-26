@@ -23,7 +23,7 @@ namespace {
 
 bool ran = false;
 
-double doAmazingThing() {
+double do_amazing_thing() {
     ran = true;
     return 5.0;
 }
@@ -32,7 +32,7 @@ class TestReactor : public NUClear::Reactor {
 public:
     TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
 
-        on<Startup>().then(doAmazingThing);
+        on<Startup>().then(do_amazing_thing);
 
         on<Startup>().then([this] { powerplant.shutdown(); });
     }
@@ -42,7 +42,7 @@ public:
 TEST_CASE("Test reaction can take a raw function instead of just a lambda", "[api][raw_function]") {
 
     NUClear::PowerPlant::Configuration config;
-    config.threadCount = 1;
+    config.thread_count = 1;
     NUClear::PowerPlant plant(config);
     plant.install<TestReactor>();
 

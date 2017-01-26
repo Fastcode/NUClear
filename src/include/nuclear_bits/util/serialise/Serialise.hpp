@@ -22,7 +22,7 @@
 #include <type_traits>
 
 #include "nuclear_bits/util/demangle.hpp"
-#include "nuclear_bits/util/serialise/MurmurHash3.hpp"
+#include "nuclear_bits/util/serialise/murmurhash3.hpp"
 
 // Forward declare google protocol buffers
 // We don't actually use or require them, but if
@@ -61,8 +61,8 @@ namespace util {
             static inline std::array<uint64_t, 2> hash() {
 
                 // Serialise based on the demangled class name
-                std::string typeName = demangle(typeid(T).name());
-                return murmurHash3(typeName.c_str(), typeName.size());
+                std::string type_name = demangle(typeid(T).name());
+                return murmurhash3(type_name.c_str(), type_name.size());
             }
         };
 
@@ -102,8 +102,8 @@ namespace util {
             static inline std::array<uint64_t, 2> hash() {
 
                 // Serialise based on the demangled class name
-                std::string typeName = demangle(typeid(T).name());
-                return murmurHash3(typeName.c_str(), typeName.size());
+                std::string type_name = demangle(typeid(T).name());
+                return murmurhash3(type_name.c_str(), type_name.size());
             }
         };
 
@@ -132,7 +132,7 @@ namespace util {
                 // We have to construct an instance to call the reflection functions
                 T type;
                 // We base the hash on the name of the protocol buffer
-                return murmurHash3(type.GetTypeName().c_str(), type.GetTypeName().size());
+                return murmurhash3(type.GetTypeName().c_str(), type.GetTypeName().size());
             }
         };
 

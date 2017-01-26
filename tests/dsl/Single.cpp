@@ -21,8 +21,8 @@
 
 namespace {
 
-std::atomic<int> runCount1(0);
-std::atomic<int> runCount2(0);
+std::atomic<int> runcount1(0);
+std::atomic<int> runcount2(0);
 
 struct SimpleMessage1 {
     int data;
@@ -39,7 +39,7 @@ public:
         on<Trigger<SimpleMessage1>, Single>().then([this](const SimpleMessage1&) {
 
             // Increment our run count
-            ++runCount1;
+            ++runcount1;
 
             // Emit a message 2
             emit(std::make_unique<SimpleMessage2>());
@@ -54,7 +54,7 @@ public:
             powerplant.shutdown();
         });
 
-        on<Trigger<SimpleMessage2>, Single>().then([this](const SimpleMessage2&) { ++runCount2; });
+        on<Trigger<SimpleMessage2>, Single>().then([this](const SimpleMessage2&) { ++runcount2; });
 
         on<Startup>().then([this]() {
 
@@ -70,15 +70,15 @@ TEST_CASE("Test that single prevents a second call while one is executing", "[ap
 
     NUClear::PowerPlant::Configuration config;
     // Unless there are at least 2 threads here single makes no sense ;)
-    config.threadCount = 2;
+    config.thread_count = 2;
     NUClear::PowerPlant plant(config);
     plant.install<TestReactor>();
 
     plant.start();
 
     // Require that only 1 run has happened on message 1
-    REQUIRE(runCount1 == 1);
+    REQUIRE(runcount1 == 1);
 
     // Require that 2 runs have happened on message 2
-    REQUIRE(runCount2 == 2);
+    REQUIRE(runcount2 == 2);
 }

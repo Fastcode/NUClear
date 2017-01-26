@@ -16,7 +16,7 @@
  */
 
 #include "nuclear_bits/extension/NetworkController.hpp"
-#include "nuclear_bits/extension/network/WireProtocol.hpp"
+#include "nuclear_bits/extension/network/wire_protocol.hpp"
 #include "nuclear_bits/util/platform.hpp"
 
 #include <algorithm>
@@ -27,7 +27,7 @@ namespace extension {
 
     using dsl::word::emit::NetworkEmit;
 
-    void NetworkController::udpSend(const NetworkEmit& emit) {
+    void NetworkController::udp_send(const NetworkEmit& emit) {
 
         // Make our message struct
         msghdr message;
@@ -48,12 +48,12 @@ namespace extension {
         auto& len  = data[1].iov_len;
 
         // Set some common information for the header
-        header.type        = network::DATA;
-        header.packetId    = ++packetIDSource;
-        header.packetNo    = 0;
-        header.packetCount = uint16_t((emit.payload.size() / MAX_UDP_PAYLOAD_LENGTH) + 1);
-        header.multicast   = emit.target.empty();
-        header.hash        = emit.hash;
+        header.type         = network::DATA;
+        header.packet_id    = ++packet_id_source;
+        header.packet_no    = 0;
+        header.packet_count = uint16_t((emit.payload.size() / MAX_UDP_PAYLOAD_LENGTH) + 1);
+        header.multicast    = emit.target.empty();
+        header.hash         = emit.hash;
 
         // Loop through our chunks
         for (size_t i = 0; i < emit.payload.size(); i += MAX_UDP_PAYLOAD_LENGTH) {
@@ -73,38 +73,38 @@ namespace extension {
                 sockaddr_in target;
                 std::memset(&target, 0, sizeof(sockaddr_in));
                 target.sin_family = AF_INET;
-                inet_pton(AF_INET, multicastGroup.c_str(), &target.sin_addr);
-                target.sin_port = htons(multicastPort);
+                inet_pton(AF_INET, multicast_group.c_str(), &target.sin_addr);
+                target.sin_port = htons(multicast_port);
 
                 message.msg_name    = reinterpret_cast<sockaddr*>(&target);
                 message.msg_namelen = sizeof(sockaddr_in);
 
                 // Send the packet
-                sendmsg(udpServerFD, &message, 0);
+                sendmsg(udp_server_fd, &message, 0);
             }
             // Send unicast
             else {
-                auto sendTo = nameTarget.equal_range(emit.target);
+                auto send_to = name_target.equal_range(emit.target);
 
-                for (auto it = sendTo.first; it != sendTo.second; ++it) {
+                for (auto it = send_to.first; it != send_to.second; ++it) {
 
                     // Unicast address
                     sockaddr_in target;
                     std::memset(&target, 0, sizeof(sockaddr_in));
                     target.sin_family      = AF_INET;
                     target.sin_addr.s_addr = htonl(it->second->address);
-                    target.sin_port        = htons(it->second->udpPort);
+                    target.sin_port        = htons(it->second->udp_port);
 
                     message.msg_name    = reinterpret_cast<sockaddr*>(&target);
                     message.msg_namelen = sizeof(sockaddr_in);
 
                     // Send the packet
-                    sendmsg(udpServerFD, &message, 0);
+                    sendmsg(udp_server_fd, &message, 0);
                 }
             }
 
             // Increment to send the next packet
-            ++header.packetNo;
+            ++header.packet_no;
         }
     }
 }

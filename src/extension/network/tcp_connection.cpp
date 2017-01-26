@@ -16,7 +16,7 @@
  */
 
 #include "nuclear_bits/extension/NetworkController.hpp"
-#include "nuclear_bits/extension/network/WireProtocol.hpp"
+#include "nuclear_bits/extension/network/wire_protocol.hpp"
 
 #include <algorithm>
 #include <cerrno>
@@ -24,7 +24,7 @@
 namespace NUClear {
 namespace extension {
 
-    void NetworkController::tcpConnection(const TCP::Connection& connection) {
+    void NetworkController::tcp_connection(const TCP::Connection& connection) {
 
         // Allocate data for our header
         std::vector<char> payload(sizeof(network::PacketHeader));
@@ -44,31 +44,31 @@ namespace extension {
         const network::AnnouncePacket& announce = *reinterpret_cast<network::AnnouncePacket*>(payload.data());
 
         // See if we can find our network target for this element
-        auto udpT = udpTarget.find(std::make_pair(connection.remote.address, announce.udpPort));
+        auto target = udp_target.find(std::make_pair(connection.remote.address, announce.udp_port));
 
         // If it does not already exist, insert it
-        if (udpT == udpTarget.end()) {
+        if (target == udp_target.end()) {
 
             auto it = targets.emplace(targets.end(),
                                       std::string(&announce.name),
                                       connection.remote.address,
-                                      announce.tcpPort,
-                                      announce.udpPort,
+                                      announce.tcp_port,
+                                      announce.udp_port,
                                       connection.fd);
-            nameTarget.insert(std::make_pair(std::string(&announce.name), it));
-            udpTarget.insert(std::make_pair(std::make_pair(connection.remote.address, announce.udpPort), it));
-            tcpTarget.insert(std::make_pair(it->tcpFD, it));
+            name_target.insert(std::make_pair(std::string(&announce.name), it));
+            udp_target.insert(std::make_pair(std::make_pair(connection.remote.address, announce.udp_port), it));
+            tcp_target.insert(std::make_pair(it->tcp_fd, it));
 
             // Bind our new reaction
-            it->handle = on<IO, Sync<NetworkController>>(it->tcpFD, IO::READ | IO::ERROR | IO::CLOSE)
-                             .then("Network TCP Handler", [this](const IO::Event& e) { tcpHandler(e); });
+            it->handle = on<IO, Sync<NetworkController>>(it->tcp_fd, IO::READ | IO::ERROR | IO::CLOSE)
+                             .then("Network TCP Handler", [this](const IO::Event& e) { tcp_handler(e); });
 
             // emit a message that says who connected
-            auto j     = std::make_unique<message::NetworkJoin>();
-            j->name    = &announce.name;
-            j->address = connection.remote.address;
-            j->tcpPort = announce.tcpPort;
-            j->udpPort = announce.udpPort;
+            auto j      = std::make_unique<message::NetworkJoin>();
+            j->name     = &announce.name;
+            j->address  = connection.remote.address;
+            j->tcp_port = announce.tcp_port;
+            j->udp_port = announce.udp_port;
             emit(j);
         }
         else {

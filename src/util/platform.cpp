@@ -23,9 +23,9 @@ LPFN_WSARECVMSG WSARecvMsg = nullptr;
 
 // Go get that WSARecvMsg function from stupid land
 void initialize_WSARecvMsg() {
-    GUID guid     = WSAID_WSARECVMSG;
-    SOCKET sock   = INVALID_SOCKET;
-    DWORD dwBytes = 0;
+    GUID guid      = WSAID_WSARECVMSG;
+    SOCKET sock    = INVALID_SOCKET;
+    DWORD dw_bytes = 0;
 
     sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 
@@ -35,7 +35,7 @@ void initialize_WSARecvMsg() {
                                  sizeof(guid),
                                  &WSARecvMsg,
                                  sizeof(WSARecvMsg),
-                                 &dwBytes,
+                                 &dw_bytes,
                                  nullptr,
                                  nullptr)) {
         throw std::runtime_error("We could not get WSARecvMsg from the OS");

@@ -32,7 +32,7 @@ namespace extension {
         std::mutex mutex;
         std::condition_variable wait;
 
-        NUClear::clock::duration waitOffset;
+        NUClear::clock::duration wait_offset;
     };
 
 }  // namespace extension

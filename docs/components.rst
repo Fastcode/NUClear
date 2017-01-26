@@ -52,13 +52,13 @@ A task is the current execution of a defined reaction within the system.  For de
 
 identifier
 
-reactionId
+reaction_id
 
-taskId
+task_id
 
-causeReactionId
+cause_reaction_id
 
-causeTaskId
+cause_task_id
 
 emitted()
 

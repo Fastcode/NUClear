@@ -16,7 +16,7 @@
  */
 
 #include "nuclear_bits/extension/NetworkController.hpp"
-#include "nuclear_bits/extension/network/WireProtocol.hpp"
+#include "nuclear_bits/extension/network/wire_protocol.hpp"
 
 #include <algorithm>
 #include <cerrno>
@@ -32,9 +32,9 @@ namespace extension {
         *p                         = network::AnnouncePacket();
 
         // Make an announce packet
-        p->type    = network::ANNOUNCE;
-        p->tcpPort = tcpPort;
-        p->udpPort = udpPort;
+        p->type     = network::ANNOUNCE;
+        p->tcp_port = tcp_port;
+        p->udp_port = udp_port;
 
         // Length is the size without the header
         p->length = uint32_t(sizeof(network::AnnouncePacket) + name.size() - sizeof(network::PacketHeader));
@@ -43,18 +43,18 @@ namespace extension {
         std::memcpy(&p->name, name.c_str(), name.size() + 1);
 
         // Send a multicast packet announcing ourselves from our UDP port
-        sockaddr_in multicastTarget;
-        std::memset(&multicastTarget, 0, sizeof(sockaddr_in));
-        multicastTarget.sin_family = AF_INET;
-        inet_pton(AF_INET, multicastGroup.c_str(), &multicastTarget.sin_addr);
-        multicastTarget.sin_port = htons(multicastPort);
+        sockaddr_in multicast_target;
+        std::memset(&multicast_target, 0, sizeof(sockaddr_in));
+        multicast_target.sin_family = AF_INET;
+        inet_pton(AF_INET, multicast_group.c_str(), &multicast_target.sin_addr);
+        multicast_target.sin_port = htons(multicast_port);
 
         // Send the packet
-        ::sendto(udpServerFD,
+        ::sendto(udp_server_fd,
                  packet.data(),
                  packet.size(),
                  0,
-                 reinterpret_cast<sockaddr*>(&multicastTarget),
+                 reinterpret_cast<sockaddr*>(&multicast_target),
                  sizeof(sockaddr));
     }
 }
