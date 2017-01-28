@@ -33,13 +33,10 @@ namespace dsl {
         };
 
         struct NetworkSource {
-            NetworkSource() : name(""), address(0), port(0), reliable(false), multicast(false) {}
+            NetworkSource() : name(""), address() {}
 
             std::string name;
-            in_addr_t address;
-            in_port_t port;
-            bool reliable;
-            bool multicast;
+            sockaddr address;
         };
 
         struct NetworkListen {

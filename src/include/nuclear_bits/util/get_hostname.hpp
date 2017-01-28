@@ -15,35 +15,34 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_EXTENSION_NETWORKCONTROLLER_HPP
-#define NUCLEAR_EXTENSION_NETWORKCONTROLLER_HPP
+#ifndef NUCLEAR_UTIL_GET_HOSTNAME_HPP
+#define NUCLEAR_UTIL_GET_HOSTNAME_HPP
 
-#include "nuclear"
-#include "nuclear_bits/extension/network/NUClearNetwork.hpp"
+#ifdef _WIN32
+#include "nuclear_bits/util/platform.hpp"
+#else
+#include <sys/utsname.h>
+#endif
 
 namespace NUClear {
-namespace extension {
+namespace util {
 
-    class NetworkController : public Reactor {
-    public:
-        explicit NetworkController(std::unique_ptr<NUClear::Environment> environment);
+    inline std::string get_hostname() {
 
-    private:
-        /// Our NUClearNetwork object that handles the networking
-        network::NUClearNetwork network;
+// If our config name is empty, use our system name
+#ifdef _WIN32
+        char n[MAX_COMPUTERNAME_LENGTH + 1];
+        DWORD size = sizeof(n);
+        GetComputerName(n, &size);
+        return std::string(n, size);
+#else
+        utsname u;
+        uname(&u);
+        return std::string(u.nodename);
+#endif
+    }
 
-        /// The reaction that is doing our periodic announcement
-        ReactionHandle announce_handle;
-        /// The reactions that listen for io
-        std::vector<ReactionHandle> listen_handles;
-
-        /// Mutex to guard the list of reactions
-        std::mutex reaction_mutex;
-        /// Map of type hashes to reactions that are interested in them
-        std::multimap<std::array<uint64_t, 2>, std::shared_ptr<threading::Reaction>> reactions;
-    };
-
-}  // namespace extension
+}  // namespace util
 }  // namespace NUClear
 
-#endif  // NUCLEAR_EXTENSION_NETWORKCONTROLLER_HPP
+#endif  // NUCLEAR_UTIL_GET_HOSTNAME_HPP

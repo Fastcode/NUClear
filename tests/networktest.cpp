@@ -18,12 +18,14 @@
 #include "nuclear"
 
 #include <cstdlib>
+#include <csignal>
 
 namespace {
 struct PerformEmits {};
 
 using NUClear::message::NetworkJoin;
 using NUClear::message::NetworkLeave;
+using NUClear::message::CommandLineArguments;
 
 class TestReactor : public NUClear::Reactor {
 public:
@@ -31,12 +33,15 @@ public:
 
         on<Trigger<NetworkJoin>, Sync<TestReactor>>().then([this](const NetworkJoin& join) {
 
+            const sockaddr_in& sock = *reinterpret_cast<const sockaddr_in*>(&join.address);
+            in_addr_t ip            = ntohl(sock.sin_addr.s_addr);
+            in_port_t port          = ntohs(sock.sin_port);
+
             std::cout << "Connected To" << std::endl;
             std::cout << "\tName: " << join.name << std::endl;
-            std::cout << "\tAddress: " << ((join.address >> 24) & 0xFF) << "." << ((join.address >> 16) & 0xFF) << "."
-                      << ((join.address >> 8) & 0xFF) << "." << ((join.address >> 0) & 0xFF) << std::endl;
-            std::cout << "\tTCP Port: " << join.tcp_port << std::endl;
-            std::cout << "\tUDP Port: " << join.udp_port << std::endl;
+            std::cout << "\tAddress: " << ((ip >> 24) & 0xFF) << "." << ((ip >> 16) & 0xFF) << "." << ((ip >> 8) & 0xFF)
+                      << "." << ((ip >> 0) & 0xFF) << std::endl;
+            std::cout << "\tPort: " << port << std::endl;
 
             // Send some data to our new friend
 
@@ -57,12 +62,15 @@ public:
 
         on<Trigger<NetworkLeave>, Sync<TestReactor>>().then([this](const NetworkLeave& leave) {
 
+            const sockaddr_in& sock = *reinterpret_cast<const sockaddr_in*>(&leave.address);
+            in_addr_t ip            = ntohl(sock.sin_addr.s_addr);
+            in_port_t port          = ntohs(sock.sin_port);
+
             std::cout << "Disconnected from" << std::endl;
             std::cout << "\tName: " << leave.name << std::endl;
-            std::cout << "\tAddress: " << ((leave.address >> 24) & 0xFF) << "." << ((leave.address >> 16) & 0xFF) << "."
-                      << ((leave.address >> 8) & 0xFF) << "." << ((leave.address >> 0) & 0xFF) << std::endl;
-            std::cout << "\tTCP Port: " << leave.tcp_port << std::endl;
-            std::cout << "\tUDP Port: " << leave.udp_port << std::endl;
+            std::cout << "\tAddress: " << ((ip >> 24) & 0xFF) << "." << ((ip >> 16) & 0xFF) << "." << ((ip >> 8) & 0xFF)
+                      << "." << ((ip >> 0) & 0xFF) << std::endl;
+            std::cout << "\tPort: " << port << std::endl;
         });
 
         on<Network<std::string>, Sync<TestReactor>>().then(
@@ -79,11 +87,12 @@ public:
 
             });
 
-        on<Startup>().then([this] {
+        on<Startup, With<CommandLineArguments>>().then([this](const CommandLineArguments& args) {
 
             auto net_config = std::make_unique<NUClear::message::NetworkConfiguration>();
 
-            net_config->name            = ::getenv("NETWORK_NODE") ? std::string(::getenv("NETWORK_NODE")) : "";
+            net_config->name = args.size() > 1 ? args[1] : args[0];
+            ;
             net_config->multicast_group = "239.226.152.162";
             net_config->multicast_port  = 7447;
 
@@ -117,11 +126,12 @@ public:
 }
 
 
-int main() {
+int main(int argc, const char* argv[]) {
+    signal(SIGINT, [] (int) { NUClear::PowerPlant::powerplant->shutdown(); });
 
     NUClear::PowerPlant::Configuration config;
     config.thread_count = 4;
-    NUClear::PowerPlant plant(config);
+    NUClear::PowerPlant plant(config, argc, argv);
     plant.install<TestReactor>();
 
     plant.start();
