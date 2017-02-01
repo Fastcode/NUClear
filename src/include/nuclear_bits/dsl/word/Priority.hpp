@@ -25,11 +25,24 @@ namespace dsl {
     namespace word {
 
         /**
-         * @brief Used to control the priority of the response of the callback
+         * @brief
+         *  This is used to control the priority of the response of the callback
          *
          * @details
          *  This is designed to assign priority and determine the scheduling order in the threadpool and also the
-         *  prority of the thread @code on<Trigger<T, ...>, Priority::HIGH>() @endcode
+         *  prority of the threadpool.
+         *
+         *  For best used, this word should be fused with at least one other binding DSL word.
+         *
+         * @par Priority Settings
+         *  the available priority settings are:
+         *  REALTIME
+         *  HIGH
+         *  NORMAL
+         *  LOW
+         *  IDLE
+         *  These settings can be used in the following manner.
+         *  @code on<Trigger<T, ...>, Priority::HIGH>() @endcode
          *
          * @par TRENT????
          *  Flagged for more discussion. I am getting to this - I just skipped over this particiular one today.

@@ -25,13 +25,19 @@ namespace dsl {
     namespace word {
 
         /**
-         * @brief Used to specify reactions which should occur at startup
+         * @brief
+         *  This is used to specify reactions which should occur at startup
          *
          * @details
-         *  This can specify any reactions which need to run directly after all reactors have been installed
-         *  into the PowerPlant. @code on<Startup>() @endcode It will most commonly be used when a reactor needs to use
-         *  information provided by another reactors constructor.
+         *  Any reactions listed with they keyword will run directly after all reactors have been installed
+         *  into the PowerPlant.  While it can be fused with any other keywords, it is not necessary for its use. For
+         *  example:
+         *  @code on<Startup>() @endcode
+         *  It will most commonly be used when a reactor needs to use information provided by another reactor's
+         *  constructor.
          *
+         * @par Implements
+         *  Bind
          */
         struct Startup : public operation::TypeBind<Startup> {};
 

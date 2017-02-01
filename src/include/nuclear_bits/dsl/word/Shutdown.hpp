@@ -25,12 +25,32 @@ namespace dsl {
     namespace word {
 
         /**
-         * @brief Used to specify reactions which should occur at shutdown.
+         * @brief
+         *  This is used to specify any reactions/tasks which should occur at shutdown.
          *
          * @details
-         *  Once this type is emitted, all existing tasks within the system are completed including the shutdown
-         *  tasks, Any new emit events will not be processed and all new tasks will be ignored. Once all tasks are
-         *  finish the system will terminate.
+         *  Once the shudown command is emitted to the PowerPlant, all existing tasks within the system will complete
+         *  their processing as per their current place in the queue.
+         *
+         *  Any reactions listed with this keyword will then be queued and processed.
+         *  @code  on<Shutdown>() @endcode
+         *
+         *  Note that after the shutdown event is triggered, any other reactions/events which would normally occur
+         *  based on system emissions will not be processed.  I.e; all tasks, baring the shutdown tasks will be ignored.
+         *
+         *  Once all tasks have finished processing, the system will terminate.
+         *
+         * @par Implements
+         *  Bind
+         *
+         * @par TRENT????
+         *  Normal Use:
+         *  @code  on<Shutdown>() @endcode
+         *  Is what I have written correct? If shutdown doesnt have a <type T> associated with it, what is the code to
+         *  allow the system to know when to shutdonw?
+         *  @code on<Trigger<T>, Shutdown>>() @endcode
+         *  How many reactions can a specify for shutdown?  Can each reactor have thier own on<Shutdown> process?
+         *  This page also requires aan example of it being used.
          */
         struct Shutdown : public operation::TypeBind<Shutdown> {};
 

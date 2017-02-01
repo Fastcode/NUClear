@@ -29,7 +29,7 @@ namespace dsl {
          * @details
          *  When a group of tasks has been synchronised, only one task from that group will be allowed to execute at a
          *  given time.  Should another task from this group be scheduled/requested (during execution of the current
-         *  task), it will be sidelined in a priority queue. Upon completion of the currently executing task, the queue
+         *  task), it will be sidelined into a priority queue. Upon completion of the currently executing task, the queue
          *  will be polled to allow execution of the next task in this group.
          *  Tasks in the priority queue will be ordered based on their priority level, then their emission timestamp.
          *
@@ -41,7 +41,7 @@ namespace dsl {
          *
          * @par TRENT????
          *  Flagged for more discussion.  Example:  can you sync on more than one type? how does it work if the tasks
-         *  are from multiple on  (reaction) requests?
+         *  are from multiple "on" (reaction) requests?
          *
          * @tparam SyncGroup the type/group to synchronize on
          */

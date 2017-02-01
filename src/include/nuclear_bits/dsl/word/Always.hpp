@@ -26,7 +26,7 @@ namespace dsl {
 
         /**
          * @brief
-        *   This is used to request any continuous reactions in the system.
+         *  This is used to request any continuous reactions in the system.
          *
          * @details
          *  @code on<Always> @endcode
@@ -43,10 +43,10 @@ namespace dsl {
          *  operation, try to make it interruptable with an on<Shutdown> reaction so that the program can be cleanly
          *  terminated.
          *
-         * @TRENT????
+         * @par TRENT????
          *  Can we discuss more at the next meeting?
          *
-         * @par (Implements)
+         * @par Implements
          *  Bind
          *
          */

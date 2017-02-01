@@ -70,14 +70,12 @@ namespace dsl {
          *
          * @details
          *  During runtime, the last <i>n</i> emisions of the data will be kept in the cache. This word should be fused
-         * with
-         *  any other Get DSL word. For example:
+         *  with any other Get DSL word. For example:
          *  @code on<Last<n, Trigger<T, ...>>() @endcode
          *
          * @attention
          *  Should the emitted message currently have less than <i>n</i> records in the cache, any callback associated
-         * with
-         *  this message will provide access to the current data.
+         *  with this message will provide access to the current data.
          *
          * @par Implements
          *  Fusion

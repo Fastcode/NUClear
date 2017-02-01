@@ -29,7 +29,8 @@ namespace dsl {
     namespace word {
 
         /**
-         * @brief This type is used within an every in order to measure a frequency rather then a period.
+         * @brief
+         *  This type is used within an every in order to measure a frequency rather then a period.
          */
         template <typename period>
         struct Per;
@@ -115,7 +116,6 @@ namespace dsl {
 
                         return true;
                     },
-                    NUClear::clock::now() + jump,
                     reaction->id));
 
                 // Return our handle
