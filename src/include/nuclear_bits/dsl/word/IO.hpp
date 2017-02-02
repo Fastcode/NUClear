@@ -51,7 +51,7 @@ namespace dsl {
          *  @code on<IO>(file_descriptor) @endcode
          *  For file reading, use:
          *  @code  on<IO>(in, IO::READ) @endcode
-         *  for file writing use:
+         *  For file writing use:
          *  @code on<IO>(out, IO::WRITE) @endcode
          *
          * @par Implements

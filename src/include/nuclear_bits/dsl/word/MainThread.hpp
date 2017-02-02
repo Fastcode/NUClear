@@ -29,7 +29,7 @@ namespace dsl {
          *  This is used to specify that the associated task will need to execute using the main thread.
          *
          * @details
-         *  This will most likely be used with Graphics related tasks. For best use, this word should be fused with at
+         *  This will most likely be used with graphics related tasks. For best use, this word should be fused with at
          *  least one other binding DSL word.  For example:
          *  @code on<Trigger<T, ...>, MainThread>() @endcode
          *

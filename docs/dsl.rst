@@ -22,7 +22,8 @@ the kind of reaction which is being requested (for example, :ref:`Trigger` will 
 a required data type is emitted, while :ref:`Every` will define periodic reactions).
 
 For reactions to occur, at least one Binding DSL word should be present in the DSL Request. From the provided DSL words,
-those which are binding are: :ref:`Trigger`, :ref:`With`, :ref:`Every`, :ref:`Always`, :ref:`Startup`, :ref:`Shutdown`.
+those which are binding are: :ref:`Trigger`, :ref:`With`, :ref:`Every`, :ref:`Always`, :ref:`Startup`, :ref:`Shutdown`,
+:ref:`TCP`, :ref:`UDP` and :ref:`Network`
 
 .. raw:: html
 
@@ -56,7 +57,7 @@ as mandatory.  Yet the callback function lists arguments for both dataType A and
 Lets say that dataType B is emitted to the PowerPlant, but at this time, dataType A does not have any data associated
 with it.
 
-Since dataType A was listed as optional, the Task associated with this Reaction can be scheduled.  However, when
+Since dataType A was listed as optional, the task associated with this reaction can be scheduled.  However, when
 executing the callback, NUClear will identify that dataType A is not present, and will remove reference to this data
 type from the callback, so that the task is only run for dataType B, effectively restructuring this callback as per
 the following example.
@@ -69,6 +70,13 @@ the following example.
 
 //TODO explain how fission works for argument selection and how the type of arguments can be deduced as needed (for const
 references vs shared_ptrs and udp autodeserialisation)
+
+DSL WORDS
+----------
+
+The following words are available in the DSL.  Reactors can fuse together their instructions and requests to the
+PowerPlant from any combination of these words.  Developers wishing to add their own DSL words to the system can do so
+at any time.  Please see:  :ref:`Extension`
 
 Data Gathering
 --------------

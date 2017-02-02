@@ -26,7 +26,7 @@ namespace dsl {
 
         /**
          * @brief
-         *  This is used to specify that only Single instances of the associated reaction can execute during runtime.
+         *  This is used to specify that only one instance of the associated reaction can execute during runtime.
          *
          * @details
          *  For best use, this word should be fused with at least one other binding DSL word. For example:

@@ -49,19 +49,18 @@ namespace dsl {
          * @details
          *  @code on<Every<ticks, period>>() @endcode
          *  This request will enact the execution a task at a periodic rate. To set the timing, the desired period
-         *  simply needs to be specified with the request.  For instance, if the request was specified as shown in the
-         *  following example:
+         *  simply needs to be specified with the request.  For instance, to execute a callback to initialise the
+         *  associated task every two seconds, then the following request would be used:
          *  @code on<Every<2, std::chrono::seconds>() @endcode
-         *  A callback to initialise the associated task would execute every 2 seconds.
          *
-         *  Note that the period argument may also be wrapped in a Per<> template in order to request the inverse
-         *  relation (or frequency) rather then a period. For example:
+         *  Note that the period argument may also be wrapped in a Per<> template so that the inverse relation
+         *  can be invoked.  For instance, to execute a callback to initialise two tasks every second, the the following
+         *  request would be used:
          *  @code on<Every<2, Per<std::chrono::seconds>>() @endcode
-         *  In the case above, 2 callbacks to initialize a task would execute every second.
          *
          * @attention
          *  The period which is used to measure the ticks must be greater than or equal to clock::duration or the
-         *  program will not compile
+         *  program will not compile.
          *
          * @par Implements
          *  Bind

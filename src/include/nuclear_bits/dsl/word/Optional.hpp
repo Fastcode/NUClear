@@ -55,8 +55,8 @@ namespace dsl {
          *  Fusion
          *
          * @par TRENT????
-         *  Can this only be fused with Get words.  I get that all DSL words "work" together, but the only use I can
-         *  see for this work is to fuse it with a "Get" word.
+         *  Can this only be fused with Get words? I know that all DSL words fuse together, but the only use I can
+         *  see for this is to fuse it with a "Get" word.
          *
          * @tparam DSLWords The activity this request will be applied to
          */
