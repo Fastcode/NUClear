@@ -43,11 +43,23 @@ namespace dsl {
         };
 
         /**
-         * @brief Used for communicating with serial devices and notwork ports
+         * @brief
+         *  This is used for communication with serial devices and network ports
          *
          * @details
          *  Use this to interact with file descriptors and execute when they are read/writeable.
-         *  @code on<IO>(file_descriptor)@endcode
+         *  @code on<IO>(file_descriptor) @endcode
+         *  For file reading, use:
+         *  @code  on<IO>(in, IO::READ) @endcode
+         *  for file writing use:
+         *  @code on<IO>(out, IO::WRITE) @endcode
+         *
+         * @par Implements
+         *  Bind
+         *
+         * @par TRENT????
+         *  I need to start recording our meetings.  I know we went over I/O, but I didn't take good notes on this one.
+         *  Can we go through this one again?  When is the event triggered on these ones?
          *
          */
         // IO is implicitly single

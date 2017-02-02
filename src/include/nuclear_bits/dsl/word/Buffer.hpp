@@ -24,13 +24,16 @@ namespace dsl {
 
         /**
          * @brief
-         *  This is used to specify the number of instances the associated reaction can execute during runtime.
+         *  This is used to specify the number of instances (tasks) the associated reaction can execute (or place in
+         *  the queue) during runtime.
          *
          * @details
          *  For best use, this word should be fused with at least one other binding DSL word. For example:
          *  @code on<Trigger<T, ...>, Buffer<n>>>() @endcode
-         *  When this keyword is used, if the subscribing reaction is triggered while <i>n</i> existing tasks for this
-         *  reaction are either in the queue or still executing, then this new task request will be ignored.
+         *
+         *  In the case above, when the subscribing reaction is triggered, should there be less than <i>n</i> existing
+         *  tasks (either executing or in the queue), a new Task will be created and scheduled.  However, should
+         *  <i>n</i> tasks already be allocated, then this new task request will be ignored.
          *
          * @par Implements
          *  Precondition, Fusion

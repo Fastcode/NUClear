@@ -66,19 +66,28 @@ namespace dsl {
 
         /**
          * @brief
-         *  This insturcts NUClear to store the last <i>n</i> messages that were emitted to the cache.
+         *  This instructs the PowerPlant to store the last <i>n</i> emitted messages (of the associated type) to the
+         *  cache and provide read-only access of all <i>n</i> instances to the subscribing reaction.
          *
          * @details
-         *  During runtime, the last <i>n</i> emisions of the data will be kept in the cache. This word should be fused
-         *  with any other Get DSL word. For example:
+         *  That is, during runtime, [0-<i>n</i>] emissions of this data will be kept in the cache.  Once <i>n</i>
+         *  messages are stored in the case, the addition of each new instance will case the oldest copy to be dropped.
+         *  When the task is triggered, access to any messages currently in the cache will be provided to the
+         *  subscribing reaction.
+         *
+         *  For best use, this word should be fused with another binding DSL word. For example:
          *  @code on<Last<n, Trigger<T, ...>>() @endcode
+         *
+         * @par TRENT????
+         *  Should this be fused with binding DSL words?  Can it be fused with Get as well???
+         *  Does this implement pre-condition and post-condition as well?
          *
          * @attention
          *  Should the emitted message currently have less than <i>n</i> records in the cache, any callback associated
          *  with this message will provide access to the current data.
          *
          * @par Implements
-         *  Fusion
+         *  Fusion, Get
          *
          * @tparam  n the number of records to be stored in the cache
          * @tparam  DSLWords The activity this request will be applied to

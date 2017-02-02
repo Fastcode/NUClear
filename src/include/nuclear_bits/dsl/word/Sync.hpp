@@ -27,21 +27,25 @@ namespace dsl {
          *  This option sets the synchronisation for a group of tasks.
          *
          * @details
-         *  When a group of tasks has been synchronised, only one task from that group will be allowed to execute at a
-         *  given time.  Should another task from this group be scheduled/requested (during execution of the current
-         *  task), it will be sidelined into a priority queue. Upon completion of the currently executing task, the queue
-         *  will be polled to allow execution of the next task in this group.
-         *  Tasks in the priority queue will be ordered based on their priority level, then their emission timestamp.
+         *  When a group of tasks has been synchronised, only one task from that group will execute at a given time.
+         *  Should another task from this group be scheduled/requested (during execution of the current task), it will
+         *  be sidelined into a priority queue. Upon completion of the currently executing task, the queue will be
+         *  polled to allow execution of the next task in this group.
+         *  Tasks in the priority queue are ordered based on their priority level, then their emission timestamp.
          *
          *  For best use, this word should be fused with at least one other binding DSL word. For example:
          *  @code on<Trigger<T, ...>, Sync<Group>>() @endcode
          *
+         *  Note that when syncing on a group of tasks, they tasks would ideally be from the same reactor.
+         *
          * @par Implements
-         *  Precondition, Postcondition
+         *  Pre-condition, Post-condition
          *
          * @par TRENT????
-         *  Flagged for more discussion.  Example:  can you sync on more than one type? how does it work if the tasks
-         *  are from multiple "on" (reaction) requests?
+         *  Does this need to be fused with a binding DSL word, or can you just send it?
+         *  Can I get a few more examples of this in use.  I'm still not 100% on how you use it.
+         *  What makes a group?  What is allowable?  A Type?  A reaction?  How do you define the group?  What is the
+         *  code sample for that?  How do you specify something is a member of a group?
          *
          * @tparam SyncGroup the type/group to synchronize on
          */

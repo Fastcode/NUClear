@@ -36,7 +36,7 @@ namespace dsl {
          *
          * @attention
          *  This request can handle multiple types. Note that when used for multiple types, the reaction will only be
-         *  triggered once <b>all</b> of the types have been emitted (at least once) since the last occurence of the
+         *  triggered once <b>all</b> of the types have been emitted (at least once) since the last occurrence of the
          *  event.
          *
          * @par Implements

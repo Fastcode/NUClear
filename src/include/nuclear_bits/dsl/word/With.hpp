@@ -31,7 +31,7 @@ namespace dsl {
          *  This is used to define any secondary data which should be provided to a subscribing a reaction.
          *
          * @details
-         *  During runtime, the emision of secondary data will not trigger a reaction within the system. For best use,
+         *  During runtime, the emission of secondary data will not trigger a reaction within the system. For best use,
          *  this word should be fused with at least one other binding DSL word. For example:
          *  @code on<Trigger<T1>, With<T2>>() @endcode
          *  When T2 is emitted into the system, it will <b>not</b> trigger a callback to the triggering unit. Yet when
@@ -47,7 +47,7 @@ namespace dsl {
          *  Get
          *
          * @tparam
-         *  T the datatypes which will be retreived from the cache and used in the reaction callback.
+         *  T the datatypes which will be retrieved from the cache and used in the reaction callback.
          */
         template <typename... T>
         struct With : public Fusion<operation::CacheGet<T>...> {};
