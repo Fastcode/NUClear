@@ -280,7 +280,7 @@ namespace extension {
         }
 
 
-        void NUClearNetwork::reset(std::string name, std::string group, in_port_t port) {
+        void NUClearNetwork::reset(std::string name, std::string group, in_port_t port, uint16_t network_mtu) {
 
             // Close our existing FDs if they exist
             shutdown();
@@ -355,6 +355,14 @@ namespace extension {
                 throw std::runtime_error(std::string("The network address provided (") + group
                                          + ") was not a valid multicast address");
             }
+
+            // Work out our MTU for udp packets
+            packet_data_mtu = network_mtu;              // Start with the total mtu
+            packet_data_mtu -= sizeof(DataPacket) - 1;  // Now remove data packet header size
+            packet_data_mtu -= 40;                      // Remove size of an IPv4 header or IPv6 header
+            // IPv6 headers are always 40 bytes, and IPv4 can be 20-60
+            // but if we assume 40 for all cases it should be safe enough
+            packet_data_mtu -= 8;  // Size of a UDP packet header
 
             // Build our announce packet
             announce_packet.resize(sizeof(AnnouncePacket) + name.size(), 0);
@@ -745,17 +753,16 @@ namespace extension {
             header.type         = DATA;
             header.packet_id    = ++packet_id_source;
             header.packet_no    = 0;
-            header.packet_count = uint16_t((payload.size() / MAX_UDP_PAYLOAD_LENGTH) + 1);
+            header.packet_count = uint16_t((payload.size() / packet_data_mtu) + 1);
             header.reliable     = reliable;
             header.hash         = hash;
 
             // Loop through our chunks
-            for (size_t i = 0; i < payload.size(); i += MAX_UDP_PAYLOAD_LENGTH) {
+            for (size_t i = 0; i < payload.size(); i += packet_data_mtu) {
 
                 // Store our payload information for this chunk
                 base = const_cast<char*>(payload.data() + i);
-                len  = (i + MAX_UDP_PAYLOAD_LENGTH) < payload.size() ? MAX_UDP_PAYLOAD_LENGTH
-                                                                    : payload.size() % MAX_UDP_PAYLOAD_LENGTH;
+                len  = (i + packet_data_mtu) < payload.size() ? packet_data_mtu : payload.size() % packet_data_mtu;
 
                 // Send multicast
                 if (target.empty()) {

@@ -63,21 +63,10 @@ namespace extension {
             uint16_t packet_count;  // How many packets there are in the group
             uint8_t packets;        // A bitset of which packets we have received (&packets)
         };
-        
-        struct NACKPacket : public ACKPacket {
-        };
+
+        struct NACKPacket : public ACKPacket {};
 
 #pragma pack(pop)
-
-        /// The largest packet we will transmit is based on an MTU of 1500 which should be safe for most uses
-        static constexpr const size_t NUCLEAR_PACKET_MTU = 1500;
-
-        // Our max amount of data is based on the MTU size
-        // Subtract the IP and UDP headers, and our protocol header size
-        static constexpr const size_t MAX_UDP_PAYLOAD_LENGTH =
-            NUCLEAR_PACKET_MTU /*MTU*/ - 20 /*IP header*/ - 8 /*UDP header*/ - sizeof(network::DataPacket)
-            + 1 /*Last char*/;
-
 
     }  // namespace network
 }  // namespace extension

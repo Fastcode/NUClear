@@ -108,11 +108,12 @@ namespace extension {
              *  Resets the networking system to use the new mutlicast information and name.
              *  If the network was already joined, it will first leave and then rejoin.
              *
-             * @param name  the name of this node in the network
-             * @param group the multicast group to announce on
-             * @param port  the multicast port to use
+             * @param name          the name of this node in the network
+             * @param group         the multicast group to announce on
+             * @param port          the multicast port to use
+             * @param network_mtu   the mtu of the network we operate on
              */
-            void reset(std::string name, std::string group, in_port_t port);
+            void reset(std::string name, std::string group, in_port_t port, uint16_t network_mtu = 1500);
 
             /**
              * @brief Process waiting data in the UDP sockets and send them to the callback if they are relevant.
@@ -194,6 +195,9 @@ namespace extension {
             int unicast_fd;
             /// The file descriptor for the socket we use to receive multicast data
             int multicast_fd;
+
+            /// The largest packet of data we will transmit, based on our IP version and MTU
+            uint16_t packet_data_mtu;
 
             // Our announce packet
             std::vector<char> announce_packet;

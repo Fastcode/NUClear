@@ -23,14 +23,15 @@ namespace message {
 
     struct NetworkConfiguration {
 
-        NetworkConfiguration() : name(""), multicast_group(""), multicast_port(0) {}
+        NetworkConfiguration() : name(""), multicast_group(""), multicast_port(0), mtu(1500) {}
 
-        NetworkConfiguration(const std::string& name, const std::string& group, uint16_t port)
-            : name(name), multicast_group(group), multicast_port(port) {}
+        NetworkConfiguration(const std::string& name, const std::string& group, uint16_t port, uint16_t mtu = 1500)
+            : name(name), multicast_group(group), multicast_port(port), mtu(mtu) {}
 
         std::string name;
         std::string multicast_group;
         uint16_t multicast_port;
+        uint16_t mtu;
     };
 
 }  // namespace message
