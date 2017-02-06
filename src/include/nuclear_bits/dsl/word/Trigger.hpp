@@ -36,18 +36,18 @@ namespace dsl {
          *
          * @attention
          *  This request can handle multiple types. Note that when used for multiple types, the reaction will only be
-         *  triggered once <b>all</b> of the types have been emitted (at least once) since the last occurence of the
+         *  triggered once <b>all</b> of the types have been emitted (at least once) since the last occurrence of the
          *  event.
          *
          * @par Implements
          *  Bind, Get
          *
-         * @tparam T
+         * @tparam Ts
          *  the datatypes on which a reaction callback will be triggered. These will be flagged as <b>primary</b>
          *  datatype/s for the subscribing reaction.
          */
-        template <typename T>
-        struct Trigger : public operation::TypeBind<T>, public operation::CacheGet<T> {};
+        template <typename... Ts>
+        struct Trigger : public Fusion<operation::TypeBind<Ts>..., operation::CacheGet<Ts>...> {};
 
     }  // namespace word
 }  // namespace dsl

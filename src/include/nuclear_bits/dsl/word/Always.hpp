@@ -26,27 +26,35 @@ namespace dsl {
 
         /**
          * @brief
-        *   This is used to request any continuous reactions in the system.
+         *  This is used to request any continuous reactions in the system.
          *
          * @details
          *  @code on<Always> @endcode
-         *  Any reactions requested using this keyword will start when the system starts up and execute continually
-         *  until the whole system is told to shut down. Note that a task spawned from this request will execute in its
-         *  own unique thread rather than the thread pool. However, if the task is rescheduled (such as with Sync), it
-         *  will then be moved into the thread pool.
+         *  When using this word, a single instance of the associated reaction will run.  Upon each task completion, a
+         *  new instance of the task will spawn.
          *
-         *@attention
-         *  Use of this keyworkd is preferred to keeing the system in a loop. It is not recommended to use a while(true)
-         *  or similar loop in a reaction. Instead, use this keyword to let the task finish and restart itself. This
-         *  allows the reaction to terminate properly when the system is shutdown. If a reaction is not terminated
-         *  correctly during shut down, the system will hang. If the requested reaction is performing a blocking
-         *  operation, try to make it interruptable with an on<Shutdown> reaction so that the program can be cleanly
-         *  terminated.
+         *  Any reactions requested using this keyword will initialise upon system start-up and execute continually
+         *  until system shut-down.
          *
-         * @TRENT????
-         *  Can we discuss more at the next meeting?
+         *  Note that a task spawned from this request will execute in its own unique thread rather than the threadpool.
+         *  However, if the task is rescheduled (such as with Sync), it will then be moved into the thread pool.
          *
-         * @par (Implements)
+         * @attention
+         *  Where possible, developers should use this word in place of any reactions they would normally put in an
+         *  infinite loop. That is, it is not recommended to use a while(true) (or similar loop) in a reaction.
+         *  Instead, use this DSL word to let the task finish and restart itself. Using this DSL word allows the
+         *  task to terminate properly when the system is shutdown.  Note that tasks which do not terminate correctly
+         *  during shut down will cause the system to hang.
+         *
+         * @attention
+         *  If the reaction associated with this task is performing a blocking operation, developers should make the
+         *  the reaction interruptible with an on<Shutdown> reaction.  This will enforce a clean shutdown in the system.
+         *
+         * @par TRENT????
+         *  Second attention note:  Can you give me some code/example of this kind of scenario.  I'm a little hazy
+         *  on the implementation of this.
+         *
+         * @par Implements
          *  Bind
          *
          */

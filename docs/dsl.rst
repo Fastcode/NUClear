@@ -1,5 +1,3 @@
-include .special.rst
-
 NUClear DSL
 ===========
 
@@ -13,35 +11,36 @@ anatomy of an on statement
 --------------------------
 The on statement can be seen as containing three main parts.  The DSL Request, the Runtime Arguments, and the Callback.
 
-.. image:: images/on_statement.svg
-
 .. raw:: html
 
+    <font color="blue">On<...></font><font color="red">(Runtime, ... )</font><font color="green">.then(function);</font>
+    <br /><br />
     <font color="blue">DSL Request</font><br />
 
 The DSL request can be fused together through any combination of DSL words.  The combination of these words will define
 the kind of reaction which is being requested (for example, :ref:`Trigger` will define a reaction that should occur when
-a required data type is emitted, while :ref:`Every` will define periodic reactions). For reactions to occur, at least
-one Binding DSL word should be present in the DSL Request. For more information please see :ref:`Trigger`, :ref:`With`,
-:ref:`Every` and :ref:`Always`,
+a required data type is emitted, while :ref:`Every` will define periodic reactions).
 
-//add to this list - any other binding DSL words
+For reactions to occur, at least one Binding DSL word should be present in the DSL Request. From the provided DSL words,
+those which are binding are: :ref:`Trigger`, :ref:`With`, :ref:`Every`, :ref:`Always`, :ref:`Startup`, :ref:`Shutdown`,
+:ref:`TCP`, :ref:`UDP` and :ref:`Network`
 
 .. raw:: html
 
     <font color="red">Runtime Arguments</font>
 
 Some DSL words will provide the ability to make changes to the system during runtime.  This means that NUClear avoids
-the need for a system restart should a configuration, port number, or file need to be changed while the system is running.
-For more information please see:
-//add the list of current DSL keywords which take a runtime argument.
+the need for a system restart should a configuration, port number, or file need to be changed while the system is
+running.
+
+From the provided DSL words, those which take runtime arguments are: :ref:`IO`, :ref:`TCP`, and :ref:`UDP`
 
 .. raw:: html
 
     <font color="green">Callback</font>
 
 Finally, the developer can define the callback which will execute when the reaction is triggered during runtime.  The
-callback can be defined using a c++ lambda function.
+callback can be defined using a C++ lambda function.
 
 During system runtime, the argument selection for the callback works on the principle of fission, in that the arguments
 provided with the callback can be deduced as needed.  For example:
@@ -58,9 +57,9 @@ as mandatory.  Yet the callback function lists arguments for both dataType A and
 Lets say that dataType B is emitted to the PowerPlant, but at this time, dataType A does not have any data associated
 with it.
 
-Since dataType A was listed as optional, the Task associated with this Reaction can be scheduled.  However, when
+Since dataType A was listed as optional, the task associated with this reaction can be scheduled.  However, when
 executing the callback, NUClear will identify that dataType A is not present, and will remove reference to this data
-type from the callback, so that the task is only run for dataType B, effectivley restructuruing this callback as per
+type from the callback, so that the task is only run for dataType B, effectively restructuring this callback as per
 the following example.
 
 .. code-block:: C++
@@ -71,6 +70,13 @@ the following example.
 
 //TODO explain how fission works for argument selection and how the type of arguments can be deduced as needed (for const
 references vs shared_ptrs and udp autodeserialisation)
+
+DSL WORDS
+----------
+
+The following words are available in the DSL.  Reactors can fuse together their instructions and requests to the
+PowerPlant from any combination of these words.  Developers wishing to add their own DSL words to the system can do so
+at any time.  Please see:  :ref:`Extension`
 
 Data Gathering
 --------------

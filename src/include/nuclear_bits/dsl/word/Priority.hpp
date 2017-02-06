@@ -25,14 +25,43 @@ namespace dsl {
     namespace word {
 
         /**
-         * @brief Used to control the priority of the response of the callback
+         * @brief
+         *  The task priority can be controlled using an assigned setting.
          *
          * @details
-         *  This is designed to assign priority and determine the scheduling order in the threadpool and also the
-         *  prority of the thread @code on<Trigger<T, ...>, Priority::HIGH>() @endcode
+         *  This will be used by the PowerPlant to determine the scheduling order in the threadpool, as well as assign
+         *  a priority to the threadpool.
+         *
+         *  For best use, this word should be fused with at least one other binding DSL word.  For example:
+         *  @code on<Trigger<T, ...>, Priority::HIGH>() @endcode
+         *
+         *  The available priority settings are:
+         *
+         *  \li REALTIME:    Tasks assigned with this will be queued with all other REALTIME tasks
+         *  \li HIGH:        Tasks assigned with this will be queued with all other HIGH tasks.  They will only be
+         *                   scheduled for execution when there are no REALTIME tasks in the queue.
+         *  \li NORMAL:      Tasks assigned with this will be queued with all other NORMAL tasks.  They will only be
+         *                   scheduled for execution when there are no REALTIME or HIGHPRIORIY tasks in the queue.
+         *  \li LOW:         Tasks assigned with this will be queued with all other LOW tasks.  They will only be
+         *                   scheduled for execution when there are no REALTIME, HIGHPRIORIY or NORMAL tasks in the
+         *                   queue.
+         *  \li IDLE:        Tasks assigned with this priority will be queued with all other IDLE tasks.  They will only
+         *                   be scheduled for execution when there are no other tasks running in the system.
+         *
+         *
+         * @attention
+         *  When working with priorities higher than NORMAL, developers need to ensure that the runtime environment's
+         *  operating system will allow thread scheduling in this manner.
          *
          * @par TRENT????
-         *  Flagged for more discussion. I am getting to this - I just skipped over this particiular one today.
+         *  1.  If priority is not assigned, this will default to NORMAL right?
+         *
+         *  2.  I'm trying to find more information on the OS restrictions.  Can you give me some links/pointers to the
+         *  best places?
+         *
+         *
+         * @par Implements
+         *  Fusion
          */
         struct Priority {
 

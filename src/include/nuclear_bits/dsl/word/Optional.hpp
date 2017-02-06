@@ -40,16 +40,23 @@ namespace dsl {
 
         /**
          * @brief
-         *  This is used to signify any optional requirements in the DSL request.
+         *  This is used to signify any optional properties in the DSL request.
          *
          * @details
-         *  During runtime, optional data does not need to be present when triggering a reaction within the system. This
-         *  word should be fused with any other Get DSL word.
-         *  For example:
+         *  During runtime, optional data does not need to be present when initialising a reaction within the system.
+         *
+         *  Note that for correct use, this word must be fused with another Get DSL word.  For example:
          *  @code on<Trigger<T1>, Optional<With<T2>() @endcode
+         *  In the case above, when T1 is emitted to the system, the associated task will be queued for execution.
+         *  Should T2 be available, read-only access to the most recent emission of T2 will be made available.  However,
+         *  should T2 not be present, the task can still run without a reference to this data.
          *
          *@par Implements
          *  Fusion
+         *
+         * @par TRENT????
+         *  Can this only be fused with Get words? I know that all DSL words fuse together, but the only use I can
+         *  see for this is to fuse it with a "Get" word.
          *
          * @tparam DSLWords The activity this request will be applied to
          */
