@@ -638,7 +638,7 @@ namespace extension {
                                         ::sendto(unicast_fd, &response, sizeof(response), 0, &to.sock, socket_size(to));
                                 }
 
-                                packet_callback(*remote->second, packet.hash, std::move(out));
+                                packet_callback(*remote, packet.hash, std::move(out));
                             }
                             else {
                                 std::lock_guard<std::mutex> lock(remote->assemblers_mutex);
