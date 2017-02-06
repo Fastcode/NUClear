@@ -25,7 +25,7 @@
 #include <cerrno>
 
 #warning "This drop percentage needs to be removed"
-#define DROP_PERCENT 80
+#define DROP_PERCENT 40
 
 namespace NUClear {
 namespace extension {
@@ -40,8 +40,7 @@ namespace extension {
         }
 
         NUClearNetwork::NUClearNetwork()
-            : name("")
-            , multicast_target()
+            : multicast_target()
             , unicast_fd(-1)
             , multicast_fd(-1)
             , announce_packet()
@@ -97,17 +96,17 @@ namespace extension {
         }
 
 
-        std::list<std::shared_ptr<NUClearNetwork::NetworkTarget>>::iterator NUClearNetwork::remove_target(
-            std::list<std::shared_ptr<NetworkTarget>>::iterator target) {
+        void NUClearNetwork::remove_target(const std::shared_ptr<NetworkTarget>& target) {
 
-            auto key = udp_key((*target)->target);
 
-            // Erase them
+            // Erase udp
+            auto key = udp_key(target->target);
             if (udp_target.find(key) != udp_target.end()) {
                 udp_target.erase(udp_target.find(key));
             }
 
-            auto range = name_target.equal_range(name);
+            // Erase name
+            auto range = name_target.equal_range(target->name);
             for (auto it = range.first; it != range.second; ++it) {
                 if (it->second == target) {
                     name_target.erase(it);
@@ -115,7 +114,11 @@ namespace extension {
                 }
             }
 
-            return targets.erase(target);
+            // Erase target
+            auto t = std::find(targets.begin(), targets.end(), target);
+            if (t != targets.end()) {
+                targets.erase(t);
+            }
         }
 
 
@@ -295,9 +298,6 @@ namespace extension {
                 multicast_fd = -1;
             }
 
-            // Store our name
-            this->name = name;
-
             // Setup some hints for what our address is
             addrinfo hints;
             memset(&hints, 0, sizeof hints);  // make sure the struct is empty
@@ -436,14 +436,79 @@ namespace extension {
                 std::lock_guard<std::mutex> lock(target_mutex);
                 auto now = std::chrono::steady_clock::now();
                 for (auto it = targets.begin(); it != targets.end();) {
-                    if (now - (*it)->last_update > std::chrono::seconds(2)) {
+
+                    auto ptr = *it;
+                    ++it;
+
+                    if (now - ptr->last_update > std::chrono::seconds(2)) {
 
                         // Remove this, it timed out
-                        leave_callback(**it);
-                        it = remove_target(it);
+                        leave_callback(*ptr);
+                        remove_target(ptr);
+                    }
+                }
+
+                for (auto qit = send_queue.begin(); qit != send_queue.end();) {
+                    for (auto it = qit->second.targets.begin(); it != qit->second.targets.end();) {
+
+                        // Get the pointer to our target
+                        auto ptr = it->target.lock();
+
+                        // If our pointer is valid (they haven't disconnected)
+                        if (ptr) {
+
+                            // Check if we should have expected an ack by now for some packets
+                            if (it->last_send + (2 * ptr->round_trip_time) < std::chrono::steady_clock::now()) {
+                                
+                                // Resend this packet via unicast
+                                msghdr message;
+                                std::memset(&message, 0, sizeof(msghdr));
+                                
+                                iovec data[2];
+                                message.msg_iov    = data;
+                                message.msg_iovlen = 2;
+                                
+                                // The first element in our iovec is the header
+                                DataPacket header = qit->second.header;
+                                data[0].iov_base = reinterpret_cast<char*>(&header);
+                                data[0].iov_len  = sizeof(DataPacket) - 1;
+                                
+                                // Some references for easy access to our data memory
+                                auto& base = data[1].iov_base;
+                                auto& len  = data[1].iov_len;
+                                
+                                
+                                // Work out which packets to resend
+                                for (int i = 0; i < qit->second.header.packet_count; ++i) {
+                                    if((it->acked[i / 8] & uint8_t(1 << (i % 8))) == 0) {
+                                        
+                                        // Fill in our packet data
+                                        header.packet_no = i;
+                                        
+                                        base = qit->second.payload.data() + packet_data_mtu * i;
+                                        len = i + 1 < header.packet_count ? packet_data_mtu : qit->second.payload.size() % packet_data_mtu;
+                                        
+                                        message.msg_name    = &ptr->target;
+                                        message.msg_namelen = socket_size(ptr->target);
+                                        
+                                        ::sendmsg(unicast_fd, &message, 0);
+                                    }
+                                }
+                            }
+
+                            ++it;
+                        }
+                        // Remove them from the list
+                        else {
+                            it = qit->second.targets.erase(it);
+                        }
+                    }
+
+                    if (qit->second.targets.empty()) {
+                        qit = send_queue.erase(qit);
                     }
                     else {
-                        ++it;
+                        ++qit;
                     }
                 }
             }
@@ -489,24 +554,24 @@ namespace extension {
                             std::string name(&announce.name, payload.size() - sizeof(AnnouncePacket));
 
                             // Add them into our list
-                            targets.push_front(std::make_shared<NetworkTarget>(name, std::move(address)));
-                            auto it = targets.begin();
-                            udp_target.insert(std::make_pair(key, it));
-                            name_target.insert(std::make_pair(name, it));
-                            
+                            auto ptr = std::make_shared<NetworkTarget>(name, std::move(address));
+                            targets.push_front(ptr);
+                            udp_target.insert(std::make_pair(key, ptr));
+                            name_target.insert(std::make_pair(name, ptr));
+
                             // Say hi back!
                             ::sendto(unicast_fd,
                                      announce_packet.data(),
                                      announce_packet.size(),
                                      0,
-                                     &(*it)->target.sock,
-                                     socket_size((*it)->target));
+                                     &ptr->target.sock,
+                                     socket_size(ptr->target));
 
-                            join_callback(**it);
+                            join_callback(*ptr);
                         }
                         // They're old but at least they're not timing out
                         else {
-                            (*remote->second)->last_update = std::chrono::steady_clock::now();
+                            remote->second->last_update = std::chrono::steady_clock::now();
                         }
                     } break;
                     case LEAVE: {
@@ -515,7 +580,7 @@ namespace extension {
                         if (remote != udp_target.end()) {
 
                             // Need to call leave before they actually go because otherwise we delete their information
-                            leave_callback(**remote->second);
+                            leave_callback(*remote->second);
 
                             remove_target(remote->second);
                         }
@@ -538,7 +603,7 @@ namespace extension {
                         if (remote != udp_target.end()) {
 
                             // We got a packet from them recently
-                            (*remote->second)->last_update = std::chrono::steady_clock::now();
+                            remote->second->last_update = std::chrono::steady_clock::now();
 
                             // If this is a solo packet (in a single chunk)
                             if (packet.packet_count == 1) {
@@ -553,23 +618,24 @@ namespace extension {
                                     ACKPacket response;
                                     response.type         = ACK;
                                     response.packet_id    = packet.packet_id;
+                                    response.packet_no    = packet.packet_no;
                                     response.packet_count = packet.packet_count;
                                     response.packets      = 1;
 
                                     // Make who we are sending it to into a useable address
-                                    sock_t& to = (*remote->second)->target;
+                                    sock_t& to = remote->second->target;
 
-                                    if ((rand() % 100) > DROP_PERCENT)  // TODO TEMP 10% packet loss
+                                    if ((rand() % 100) >= DROP_PERCENT)  // TODO TEMP 10% packet loss
                                         ::sendto(unicast_fd, &response, sizeof(response), 0, &to.sock, socket_size(to));
                                 }
 
-                                packet_callback(**remote->second, packet.hash, std::move(out));
+                                packet_callback(*remote->second, packet.hash, std::move(out));
                             }
                             else {
-                                std::lock_guard<std::mutex> lock((*remote->second)->assemblers_mutex);
+                                std::lock_guard<std::mutex> lock(remote->second->assemblers_mutex);
 
                                 // Grab the payload and put it in our list of assemblers targets
-                                auto& assemblers = (*remote->second)->assemblers;
+                                auto& assemblers = remote->second->assemblers;
                                 auto& assembler  = assemblers[packet.packet_id];
 
                                 // First check that our cache isn't super corrupted by ensuring that our last packet in
@@ -602,10 +668,10 @@ namespace extension {
                                             ~uint8_t(1 << (packet.packet_no % 8));
 
                                         // Make who we are sending it to into a useable address
-                                        sock_t& to = (*remote->second)->target;
+                                        sock_t& to = remote->second->target;
 
                                         // Send the packet
-                                        if ((rand() % 100) > DROP_PERCENT)  // TODO TEMP 10% packet loss
+                                        if ((rand() % 100) >= DROP_PERCENT)  // TODO TEMP 10% packet loss
                                             ::sendto(unicast_fd, r.data(), r.size(), 0, &to.sock, socket_size(to));
                                     }
 
@@ -624,6 +690,7 @@ namespace extension {
                                     response              = ACKPacket();
                                     response.type         = ACK;
                                     response.packet_id    = packet.packet_id;
+                                    response.packet_no    = packet.packet_no;
                                     response.packet_count = packet.packet_count;
 
                                     // Set the bits for the packets we have received
@@ -632,10 +699,10 @@ namespace extension {
                                     }
 
                                     // Make who we are sending it to into a useable address
-                                    sock_t& to = (*remote->second)->target;
+                                    sock_t& to = remote->second->target;
 
                                     // Send the packet
-                                    if ((rand() % 100) > DROP_PERCENT)  // TODO TEMP 10% packet loss
+                                    if ((rand() % 100) >= DROP_PERCENT)  // TODO TEMP 10% packet loss
                                         ::sendto(unicast_fd, r.data(), r.size(), 0, &to.sock, socket_size(to));
                                 }
 
@@ -666,7 +733,7 @@ namespace extension {
                                     }
 
                                     // Send our assembled data packet
-                                    packet_callback(**remote->second, packet.hash, std::move(out));
+                                    packet_callback(*remote->second, packet.hash, std::move(out));
 
                                     // We have completed this packet, discard the data
                                     assemblers.erase(assemblers.find(packet.packet_id));
@@ -685,18 +752,71 @@ namespace extension {
                         if (remote != udp_target.end()) {
 
                             // We got a packet from them recently
-                            (*remote->second)->last_update = std::chrono::steady_clock::now();
+                            remote->second->last_update = std::chrono::steady_clock::now();
 
-                            std::cout << (*remote->second)->name << " ACK Packet: " << packet.packet_id << " ";
-                            for (int i = 0; i < packet.packet_count; ++i) {
-                                std::cout << (((&packet.packets)[i / 8] & uint8_t(1 << (i % 8))) != 0);
+                            // Check for our packet id in the send queue
+                            if (send_queue.count(packet.packet_id) > 0) {
+
+                                auto& queue = send_queue[packet.packet_id];
+
+                                // Find this target in the send queue
+                                auto s = std::find_if(queue.targets.begin(),
+                                                      queue.targets.end(),
+                                                      [&](const PacketQueue::PacketTarget& target) {
+                                                          return target.target.lock() == remote->second;
+                                                      });
+
+                                // We know who this is
+                                if (s != queue.targets.end()) {
+
+                                    // Now we need to validate that the ack is relevant and valid
+                                    if (packet.packet_count != queue.header.packet_count
+                                        || payload.size() < (sizeof(ACKPacket) + (queue.header.packet_count / 8))) {
+
+                                        // TODO this is an invalid ack we should handle it somehow!
+                                    }
+                                    else {
+                                        // Work out about how long our round trip time is
+                                        auto now        = std::chrono::steady_clock::now();
+                                        auto round_trip = now - s->last_send;
+
+                                        // Approximate how long the round trip is to this remote so we can work out how
+                                        // long before retransmitting
+                                        // We use a baby kalman filter to help smooth out jitter
+                                        remote->second->measure_round_trip(round_trip);
+
+                                        // Update our acks
+                                        bool all_acked = true;
+                                        for (unsigned i = 0; i < s->acked.size(); ++i) {
+
+                                            // Update our bitset
+                                            s->acked[i] |= (&packet.packets)[i];
+
+                                            // Work out what a "fully acked" packet would look like
+                                            uint8_t expected = i + 1 < s->acked.size() || packet.packet_count % 8 == 0
+                                                                   ? 0xFF
+                                                                   : 0xFF >> (8 - (packet.packet_count % 8));
+
+                                            all_acked &= (s->acked[i] & expected) == expected;
+                                        }
+
+                                        // The remote has received this entire packet we can erase our one
+                                        if (all_acked) {
+                                            queue.targets.erase(s);
+
+                                            // If we're all done remove the whole thing
+                                            if (queue.targets.empty()) {
+                                                send_queue.erase(packet.packet_id);
+                                            }
+                                        }
+                                    }
+                                }
+                                // Someone else is ACKing that we didn't expect
+                                else {
+                                    // TODO should we add and start sending to them?
+                                }
                             }
-                            std::cout << std::endl;
                         }
-
-
-                        // TODO Store the updated ack status in our outoging reliable message queue for this host and if
-                        // it's totally sent, we can drop the queue item
                     } break;
 
                     // Packet requesting a retransmission of some corrupt data
@@ -708,16 +828,78 @@ namespace extension {
                         if (remote != udp_target.end()) {
 
                             // We got a packet from them recently
-                            (*remote->second)->last_update = std::chrono::steady_clock::now();
+                            remote->second->last_update = std::chrono::steady_clock::now();
 
                             // Find this packet in our sending queue
 
-                            // Resend the packets that are NACKed
-                            std::cout << (*remote->second)->name << " NACK Packet: " << packet.packet_id << " ";
-                            for (int i = 0; i < packet.packet_count; ++i) {
-                                std::cout << (((&packet.packets)[i / 8] & uint8_t(1 << (i % 8))) != 0);
+                            // Check for our packet id in the send queue
+                            if (send_queue.count(packet.packet_id) > 0) {
+
+                                auto& queue = send_queue[packet.packet_id];
+
+                                // Find this target in the send queue
+                                auto s = std::find_if(queue.targets.begin(),
+                                                      queue.targets.end(),
+                                                      [&](const PacketQueue::PacketTarget& target) {
+                                                          return target.target.lock() == remote->second;
+                                                      });
+
+                                // We know who this is
+                                if (s != queue.targets.end()) {
+
+                                    // Now we need to validate that the ack is relevant and valid
+                                    if (packet.packet_count != queue.header.packet_count
+                                        || payload.size() < (sizeof(NACKPacket) + (queue.header.packet_count / 8))) {
+
+                                        // TODO this is an invalid nack we should handle it somehow!
+                                    }
+                                    else {
+                                        // Store the time as we are now sending new packets
+                                        s->last_send = std::chrono::steady_clock::now();
+
+                                        // Update our acks with the nacked data
+                                        for (unsigned i = 0; i < s->acked.size(); ++i) {
+
+                                            // Update our bitset
+                                            s->acked[i] &= ~(&packet.packets)[i];
+                                        }
+
+                                        // Now we have to retransmit the nacked packets
+                                        for (int i = 0; i < packet.packet_count * 8; ++i) {
+
+                                            // Check if this packet needs to be sent
+                                            uint8_t bit = 1 << (i % 8);
+                                            if (((&packet.packets)[i] & bit) == bit) {
+
+                                                // TODO resend this packet
+                                            }
+                                        }
+                                    }
+                                }
+                                // Someone else is NACKing that we didn't expect
+                                else {
+                                    // TODO should we add and start sending to them?
+                                }
+
+                                // Resend the packets that are NACKed
+                                std::cout << remote->second->name << " NACK Packet: " << packet.packet_id << " ";
+                                for (int i = 0; i < packet.packet_count; ++i) {
+                                    std::cout << (((&packet.packets)[i / 8] & uint8_t(1 << (i % 8))) != 0);
+                                }
+                                std::cout << std::endl;
                             }
-                            std::cout << std::endl;
+
+
+                            // Lookup our send queue for this packet id
+
+                            // TODO if this packet is not in the list should we send back a packet to say it's never
+                            // coming?
+
+                            // Lookup this client as the recipient
+
+                            // NAND in the packets that have been received
+
+                            // Explicitly resend all of the packets that were in the NACK
                         }
                     }
                 }
@@ -753,12 +935,39 @@ namespace extension {
             auto& len  = data[1].iov_len;
 
             // Set some common information for the header
-            header.type         = DATA;
-            header.packet_id    = ++packet_id_source;
+            header.type = DATA;
+            // For the packet id we ensure that it's not currently used for retransmission
+            while (send_queue.count(header.packet_id = ++packet_id_source) > 0)
+                ;
             header.packet_no    = 0;
             header.packet_count = uint16_t((payload.size() / packet_data_mtu) + 1);
             header.reliable     = reliable;
             header.hash         = hash;
+
+            // If this was a reliable packet we need to cache it in case it needs to be resent
+            if (reliable) {
+
+                std::lock_guard<std::mutex> lock(target_mutex);
+
+                auto& queue = send_queue[header.packet_id];
+
+                queue.header  = header;
+                queue.payload = std::move(payload);
+                std::vector<uint8_t> acks((header.packet_count / 8) + 1, 0);
+
+                // Find interested parties or if multicast it's everyone we are connected to
+                auto range = target.empty() ? std::make_pair(name_target.begin(), name_target.end())
+                                            : name_target.equal_range(target);
+                for (auto it = range.first; it != range.second; ++it) {
+
+                    // Add this guy to the queue
+                    PacketQueue::PacketTarget target;
+                    target.last_send = std::chrono::steady_clock::now();
+                    target.acked     = acks;
+                    target.target    = it->second;
+                    queue.targets.push_back(target);
+                }
+            }
 
             // Loop through our chunks
             for (size_t i = 0; i < payload.size(); i += packet_data_mtu) {
@@ -773,7 +982,7 @@ namespace extension {
                     message.msg_namelen = socket_size(multicast_target);
 
                     // Send the packet
-                    if ((rand() % 100) > DROP_PERCENT)  // TODO TEMP 10% packet loss
+                    if ((rand() % 100) >= DROP_PERCENT)  // TODO TEMP 10% packet loss
                         ::sendmsg(unicast_fd, &message, 0);
                 }
                 // Send unicast
@@ -783,11 +992,11 @@ namespace extension {
 
                     for (auto it = send_to.first; it != send_to.second; ++it) {
 
-                        message.msg_name    = &(*it->second)->target;
-                        message.msg_namelen = socket_size((*it->second)->target);
+                        message.msg_name    = &it->second->target;
+                        message.msg_namelen = socket_size(it->second->target);
 
                         // Send the packet
-                        if ((rand() % 100) > DROP_PERCENT)  // TODO TEMP 10% packet loss
+                        if ((rand() % 100) >= DROP_PERCENT)  // TODO TEMP 10% packet loss
                             ::sendmsg(unicast_fd, &message, 0);
                     }
                 }

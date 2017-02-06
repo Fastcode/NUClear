@@ -57,14 +57,22 @@ namespace extension {
         };
 
         struct ACKPacket : public PacketHeader {
-            ACKPacket() : packet_id(0), packet_count(1), packets(0) {}
+            ACKPacket() : packet_id(0), packet_no(0), packet_count(1), packets(0) {}
+
+            uint16_t packet_id;     // The packet group identifier we are acknowledging
+            uint16_t packet_no;     // The index of the packet we are acknowledging
+            uint16_t packet_count;  // How many packets there are in the group
+            uint8_t packets;        // A bitset of which packets we have received (&packets)
+        };
+
+        struct NACKPacket : public PacketHeader {
+
+            NACKPacket() : packet_id(0), packet_count(1), packets(0) {}
 
             uint16_t packet_id;     // The packet group identifier we are acknowledging
             uint16_t packet_count;  // How many packets there are in the group
             uint8_t packets;        // A bitset of which packets we have received (&packets)
         };
-
-        struct NACKPacket : public ACKPacket {};
 
 #pragma pack(pop)
 

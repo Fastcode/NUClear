@@ -142,7 +142,7 @@ namespace extension {
             std::string name            = config.name.empty() ? util::get_hostname() : config.name;
             std::string multicast_group = config.multicast_group;
             in_port_t multicast_port    = config.multicast_port;
-            uint16_t mtu = config.mtu;
+            uint16_t mtu                = config.mtu;
 
             // Reset our network using this configuration
             network.reset(name, multicast_group, multicast_port);

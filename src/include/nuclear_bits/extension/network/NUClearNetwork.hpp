@@ -42,7 +42,13 @@ namespace extension {
                 NetworkTarget(std::string name,
                               sock_t target,
                               std::chrono::steady_clock::time_point last_update = std::chrono::steady_clock::now())
-                    : name(name), target(target), last_update(last_update), assemblers_mutex(), assemblers() {}
+                    : name(name)
+                    , target(target)
+                    , last_update(last_update)
+                    , assemblers_mutex()
+                    , assemblers()
+                    , round_trip_kf()
+                    , round_trip_time(std::chrono::seconds(1)) {}
 
                 /// The name of the remote target
                 std::string name;
@@ -56,6 +62,40 @@ namespace extension {
                 std::map<uint16_t,
                          std::pair<std::chrono::steady_clock::time_point, std::map<uint16_t, std::vector<char>>>>
                     assemblers;
+
+                /// A little kalman filter for estimating round trip time
+                struct RoundTripKF {
+                    float process_noise     = 1e-6;
+                    float measurement_noise = 1e-1;
+                    float variance          = 1.0;
+                    float mean              = 1.0;
+                } round_trip_kf;
+
+                std::chrono::steady_clock::duration round_trip_time;
+
+                inline void measure_round_trip(std::chrono::steady_clock::duration time) {
+
+                    // Make our measurement into a float seconds type
+                    std::chrono::duration<float, std::ratio<1>> m =
+                        std::chrono::duration_cast<std::chrono::duration<float, std::ratio<1>>>(time);
+
+                    // Alias variables
+                    auto& Q = round_trip_kf.process_noise;
+                    auto& R = round_trip_kf.measurement_noise;
+                    auto& P = round_trip_kf.variance;
+                    auto& X = round_trip_kf.mean;
+
+                    // Calculate our kalman gain
+                    double K = (P + Q) / (P + Q + R);
+
+                    // Do filter
+                    P = R * (P + Q) / (R + P + Q);
+                    X = X + (m.count() - X) * K;
+
+                    // Put result into our variable
+                    round_trip_time = std::chrono::duration_cast<std::chrono::steady_clock::duration>(
+                        std::chrono::duration<float, std::ratio<1>>(X));
+                }
             };
 
             explicit NUClearNetwork();
@@ -140,14 +180,17 @@ namespace extension {
                     std::weak_ptr<NetworkTarget> target;
 
                     /// The bitset of the packets that have been acked
-                    std::vector<char> acked;
+                    std::vector<uint8_t> acked;
 
-                    /// When we last got an ack from this target
-                    std::chrono::steady_clock::time_point last_ack;
+                    /// When we last sent data to this client
+                    std::chrono::steady_clock::time_point last_send;
                 };
 
                 /// The remote targets that want this packet
-                std::vector<PacketTarget> targets;
+                std::list<PacketTarget> targets;
+
+                /// The header of the packet to send
+                DataPacket header;
 
                 /// The data to send
                 std::vector<char> payload;
@@ -193,21 +236,8 @@ namespace extension {
              * @brief Remove a target from our list of targets
              *
              * @param t the target to remove
-             *
-             * @return the next target in the list
              */
-            std::list<std::shared_ptr<NetworkTarget>>::iterator remove_target(
-                std::list<std::shared_ptr<NetworkTarget>>::iterator target);
-
-            /**
-             * @brief Sends the passed data packet using the NUClearNetwork
-             *
-             * @param emit the data to emit
-             */
-            // void send(const dsl::word::emit::NetworkEmit& emit);
-
-            /// The name of this node in the mesh
-            std::string name;
+            void remove_target(const std::shared_ptr<NetworkTarget>& target);
 
             /// The socket address to send multicast packets to (must be an array since we don't know how big the object
             /// could be)
@@ -245,10 +275,10 @@ namespace extension {
             std::list<std::shared_ptr<NetworkTarget>> targets;
 
             /// A map of string names to targets with that name
-            std::multimap<std::string, std::list<std::shared_ptr<NetworkTarget>>::iterator> name_target;
+            std::multimap<std::string, std::shared_ptr<NetworkTarget>> name_target;
 
             /// A map of ip/port pairs to the network target they belong to
-            std::map<std::array<uint16_t, 9>, std::list<std::shared_ptr<NetworkTarget>>::iterator> udp_target;
+            std::map<std::array<uint16_t, 9>, std::shared_ptr<NetworkTarget>> udp_target;
         };
 
     }  // namespace network
