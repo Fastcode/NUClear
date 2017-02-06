@@ -25,14 +25,14 @@ namespace message {
         NetworkJoin() : name(""), address() {}
 
         std::string name;
-        sockaddr address;
+        sockaddr_storage address;
     };
 
     struct NetworkLeave {
         NetworkLeave() : name(""), address() {}
 
         std::string name;
-        sockaddr address;
+        sockaddr_storage address;
     };
 
 }  // namespace message

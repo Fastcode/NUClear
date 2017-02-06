@@ -36,7 +36,7 @@ namespace dsl {
             NetworkSource() : name(""), address() {}
 
             std::string name;
-            sockaddr address;
+            sockaddr_storage address;
         };
 
         struct NetworkListen {

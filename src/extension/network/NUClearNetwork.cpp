@@ -17,7 +17,10 @@
 
 #include "nuclear_bits/extension/network/NUClearNetwork.hpp"
 
+#include <netdb.h>
 #include <sys/ioctl.h>
+#include <sys/socket.h>
+#include <sys/types.h>
 #include <algorithm>
 #include <cerrno>
 
@@ -25,9 +28,23 @@ namespace NUClear {
 namespace extension {
     namespace network {
 
+        size_t socket_size(const sockaddr_storage& s) {
+            switch (s.ss_family) {
+                case AF_INET: return sizeof(sockaddr_in);
+                case AF_INET6: return sizeof(sockaddr_in6);
+                default: return -1;
+            }
+        }
+        size_t socket_size(const sockaddr& s) {
+            switch (s.sa_family) {
+                case AF_INET: return sizeof(sockaddr_in);
+                case AF_INET6: return sizeof(sockaddr_in6);
+                default: return -1;
+            }
+        }
+
         NUClearNetwork::NUClearNetwork()
             : name("")
-            , udp_port(-1)
             , multicast_target()
             , unicast_fd(-1)
             , multicast_fd(-1)
@@ -51,12 +68,12 @@ namespace extension {
         }
 
 
-        void NUClearNetwork::set_join_callback(std::function<void(std::string, sockaddr)> f) {
+        void NUClearNetwork::set_join_callback(std::function<void(const NetworkTarget&)> f) {
             join_callback = f;
         }
 
 
-        void NUClearNetwork::set_leave_callback(std::function<void(std::string, sockaddr)> f) {
+        void NUClearNetwork::set_leave_callback(std::function<void(const NetworkTarget&)> f) {
             leave_callback = f;
         }
 
@@ -87,45 +104,58 @@ namespace extension {
 
 
         void NUClearNetwork::open_unicast() {
-            unicast_fd = ::socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+
+            // Create the "join any" address for this address family
+            sockaddr_storage address = multicast_target;
+
+            // IPv4
+            if (multicast_target.ss_family == AF_INET) {
+                auto& a           = *reinterpret_cast<sockaddr_in*>(&address);
+                a.sin_family      = AF_INET;
+                a.sin_addr.s_addr = htonl(INADDR_ANY);
+                a.sin_port        = 0;
+            }
+            // IPv6
+            else if (multicast_target.ss_family == AF_INET6) {
+                auto& a       = *reinterpret_cast<sockaddr_in6*>(&address);
+                a.sin6_family = AF_INET6;
+                a.sin6_addr   = IN6ADDR_ANY_INIT;
+                a.sin6_port   = 0;
+            }
+
+            // Open a socket with the same family as our multicast target
+            unicast_fd = ::socket(multicast_target.ss_family, SOCK_DGRAM, IPPROTO_UDP);
             if (unicast_fd < 0) {
                 throw std::system_error(network_errno, std::system_category(), "Unable to open the UDP socket");
             }
 
-            // The address we bind to has port 0 (find a free port)
-            sockaddr_in address;
-            memset(&address, 0, sizeof(sockaddr_in));
-            address.sin_family      = AF_INET;
-            address.sin_addr.s_addr = htonl(INADDR_ANY);
-            address.sin_port        = 0;
-
             // Bind to the address, and if we fail throw an error
-            if (::bind(unicast_fd, reinterpret_cast<sockaddr*>(&address), sizeof(sockaddr))) {
+            if (::bind(unicast_fd, reinterpret_cast<sockaddr*>(&address), socket_size(address))) {
                 throw std::system_error(
                     network_errno, std::system_category(), "Unable to bind the UDP socket to the port");
             }
-
-            // Get the port we ended up listening on
-            socklen_t len = sizeof(sockaddr_in);
-            if (::getsockname(unicast_fd, reinterpret_cast<sockaddr*>(&address), &len) == -1) {
-                throw std::system_error(
-                    network_errno, std::system_category(), "Unable to get the port from the UDP socket");
-            }
-            udp_port = ntohs(address.sin_port);
         }
 
 
         void NUClearNetwork::open_multicast() {
 
-            // Our multicast group address
-            sockaddr_in address;
-            std::memset(&address, 0, sizeof(address));
-            address.sin_family      = AF_INET;
-            address.sin_addr.s_addr = htonl(INADDR_ANY);
-            address.sin_port        = reinterpret_cast<sockaddr_in*>(&multicast_target)->sin_port;
+            // Rather than listen on the multicast address directly, we join everything so
+            // our traffic isn't filtered allowing us to get multicast traffic from multiple devices
+            sockaddr_storage address = multicast_target;
+
+            // IPv4
+            if (address.ss_family == AF_INET) {
+                auto& a           = *reinterpret_cast<sockaddr_in*>(&address);
+                a.sin_addr.s_addr = htonl(INADDR_ANY);
+            }
+            // IPv6
+            else if (address.ss_family == AF_INET6) {
+                auto& a     = *reinterpret_cast<sockaddr_in6*>(&address);
+                a.sin6_addr = IN6ADDR_ANY_INIT;
+            }
 
             // Make our socket
-            multicast_fd = ::socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+            multicast_fd = ::socket(multicast_target.ss_family, SOCK_DGRAM, IPPROTO_UDP);
             if (multicast_fd < 0) {
                 throw std::system_error(network_errno, std::system_category(), "Unable to open the UDP socket");
             }
@@ -144,34 +174,64 @@ namespace extension {
 #endif
 
             // Bind to the address
-            if (::bind(multicast_fd, reinterpret_cast<sockaddr*>(&address), sizeof(sockaddr))) {
+            if (::bind(multicast_fd, reinterpret_cast<sockaddr*>(&address), socket_size(address))) {
                 throw std::system_error(network_errno, std::system_category(), "Unable to bind the UDP socket");
             }
 
-            // Our multicast join request
-            ip_mreq mreq;
-            memset(&mreq, 0, sizeof(mreq));
-            mreq.imr_multiaddr = reinterpret_cast<sockaddr_in*>(&multicast_target)->sin_addr;
+            // Our multicast join request will depend on protocol version
+            if (multicast_target.ss_family == AF_INET) {
+                ip_mreq mreq;
 
-            // Join the multicast group on all the interfaces that support it
-            for (auto& iface : util::network::get_interfaces()) {
+                auto& mt           = *reinterpret_cast<sockaddr_in*>(&multicast_target);
+                mreq.imr_multiaddr = mt.sin_addr;
 
-                // If it is a multicast address
-                if (iface.flags.multicast) {
+                // Join the multicast group on all the interfaces that support it
+                for (auto& iface : util::network::get_interfaces()) {
 
-                    // Set the interface
-                    mreq.imr_interface.s_addr = htonl(iface.ip);
+                    if (iface.ip.ss_family == AF_INET && iface.flags.multicast) {
 
-                    // Join our multicast group
-                    if (::setsockopt(multicast_fd,
-                                     IPPROTO_IP,
-                                     IP_ADD_MEMBERSHIP,
-                                     reinterpret_cast<char*>(&mreq),
-                                     sizeof(ip_mreq))
-                        < 0) {
-                        throw std::system_error(network_errno,
-                                                std::system_category(),
-                                                "There was an error while attempting to join the multicast group");
+                        // Set our interface address
+                        mreq.imr_interface = reinterpret_cast<sockaddr_in*>(&iface.ip)->sin_addr;
+
+                        // Join our multicast group
+                        if (::setsockopt(multicast_fd,
+                                         IPPROTO_IP,
+                                         IP_ADD_MEMBERSHIP,
+                                         reinterpret_cast<char*>(&mreq),
+                                         sizeof(ip_mreq))
+                            < 0) {
+                            throw std::system_error(network_errno,
+                                                    std::system_category(),
+                                                    "There was an error while attempting to join the multicast group");
+                        }
+                    }
+                }
+            }
+            else if (multicast_target.ss_family == AF_INET6) {
+                ipv6_mreq mreq;
+
+                auto& mt              = *reinterpret_cast<sockaddr_in6*>(&multicast_target);
+                mreq.ipv6mr_multiaddr = mt.sin6_addr;
+
+                // Join the multicast group on all the interfaces that support it
+                for (auto& iface : util::network::get_interfaces()) {
+
+                    if (iface.ip.ss_family == AF_INET && iface.flags.multicast) {
+
+                        // Get the interface for this
+                        mreq.ipv6mr_interface = if_nametoindex(iface.name.c_str());
+
+                        // Join our multicast group
+                        if (::setsockopt(multicast_fd,
+                                         IPPROTO_IPV6,
+                                         IPV6_JOIN_GROUP,
+                                         reinterpret_cast<char*>(&mreq),
+                                         sizeof(ipv6_mreq))
+                            < 0) {
+                            throw std::system_error(network_errno,
+                                                    std::system_category(),
+                                                    "There was an error while attempting to join the multicast group");
+                        }
                     }
                 }
             }
@@ -187,7 +247,12 @@ namespace extension {
                 packet.type = LEAVE;
 
                 // Send the packet
-                ::sendto(unicast_fd, &packet, sizeof(packet), 0, &multicast_target, sizeof(sockaddr));
+                ::sendto(unicast_fd,
+                         &packet,
+                         sizeof(packet),
+                         0,
+                         reinterpret_cast<sockaddr*>(&multicast_target),
+                         socket_size(multicast_target));
             }
 
             // Close our existing FDs if they exist
@@ -204,8 +269,8 @@ namespace extension {
 
         void NUClearNetwork::reset(std::string name, std::string group, in_port_t port) {
 
-            shutdown();
             // Close our existing FDs if they exist
+            shutdown();
             if (unicast_fd > 0) {
                 ::close(unicast_fd);
                 unicast_fd = -1;
@@ -218,13 +283,65 @@ namespace extension {
             // Store our name
             this->name = name;
 
-            // Work out our multicast address
-            sockaddr_in target;
-            std::memset(&target, 0, sizeof(sockaddr_in));
-            target.sin_family = AF_INET;
-            inet_pton(AF_INET, group.c_str(), &target.sin_addr);
-            target.sin_port  = htons(port);
-            multicast_target = *reinterpret_cast<sockaddr*>(&target);
+            // Setup some hints for what our address is
+            addrinfo hints;
+            memset(&hints, 0, sizeof hints);  // make sure the struct is empty
+            hints.ai_family   = AF_UNSPEC;    // don't care about IPv4 or IPv6
+            hints.ai_socktype = SOCK_DGRAM;   // using udp datagrams
+
+            // Get our info on this address
+            addrinfo* servinfo;
+            ::getaddrinfo(group.c_str(), std::to_string(port).c_str(), &hints, &servinfo);
+
+            // Check if we have any addresses to work with
+            if (servinfo == nullptr) {
+                throw std::runtime_error(std::string("The multicast address provided (") + group + ") was invalid");
+            }
+
+            // Clear our struct
+            std::memset(&multicast_target, 0, sizeof(multicast_target));
+
+            // The list is actually a linked list of valid addresses
+            // The address we choose is in the following priority, IPv4, IPv6, Other
+            for (addrinfo* p = servinfo; p != nullptr; p = p->ai_next) {
+
+                // If we find an IPv4 address, prefer that
+                if (servinfo->ai_family == AF_INET) {
+                    auto& addr = *reinterpret_cast<const sockaddr_in*>(servinfo->ai_addr);
+
+                    // Check this address is multicast in the Administratively-scoped group
+                    // (starts with 1110 1111)
+                    if ((htonl(addr.sin_addr.s_addr) & 0xEF000000) == 0xEF000000) {
+
+                        // Clear and set our struct
+                        std::memset(&multicast_target, 0, sizeof(multicast_target));
+                        std::memcpy(&multicast_target, servinfo->ai_addr, servinfo->ai_addrlen);
+
+                        // We prefer IPv4 so use it and stop looking
+                        break;
+                    }
+                }
+                // If we find an IPv6 address now we just use that
+                else if (servinfo->ai_family == AF_INET6) {
+                    auto& addr = *reinterpret_cast<const sockaddr_in6*>(servinfo->ai_addr);
+
+                    // Check the address is multicast (starts with 0xFF)
+                    if (addr.sin6_addr.s6_addr[0] == 0xFF) {
+
+                        // Clear and set our struct
+                        std::memset(&multicast_target, 0, sizeof(multicast_target));
+                        std::memcpy(&multicast_target, servinfo->ai_addr, servinfo->ai_addrlen);
+                    }
+                }
+            }
+
+            ::freeaddrinfo(servinfo);
+
+            // If we couldn't find a useable address die
+            if (multicast_target.ss_family != AF_INET && multicast_target.ss_family != AF_INET6) {
+                throw std::runtime_error(std::string("The network address provided (") + group
+                                         + ") was not a valid multicast address");
+            }
 
             // Build our announce packet
             announce_packet.resize(sizeof(AnnouncePacket) + name.size(), 0);
@@ -235,16 +352,11 @@ namespace extension {
 
             // Open our unicast socket and then our multicast one
             open_unicast();
-            try {
-                open_multicast();
-            }
-            catch (std::exception& e) {
-                std::cout << e.what() << std::endl;
-            }
+            open_multicast();
         }
 
 
-        std::pair<sockaddr, std::vector<char>> NUClearNetwork::read_socket(int fd) {
+        std::pair<sockaddr_storage, std::vector<char>> NUClearNetwork::read_socket(int fd) {
 
             // Allocate a vector that can hold a datagram
             std::vector<char> payload(1500);
@@ -254,10 +366,10 @@ namespace extension {
 
             // Setup our message header to receive
             msghdr mh;
-            sockaddr from;
+            sockaddr_storage from;
             memset(&mh, 0, sizeof(msghdr));
             mh.msg_name    = &from;
-            mh.msg_namelen = sizeof(sockaddr);
+            mh.msg_namelen = sizeof(from);
             mh.msg_iov     = &iov;
             mh.msg_iovlen  = 1;
 
@@ -301,7 +413,7 @@ namespace extension {
                     if (now - it->last_update > std::chrono::seconds(2)) {
 
                         // Remove this, it timed out
-                        leave_callback(it->name, it->target);
+                        leave_callback(*it);
                         it = remove_target(it);
                     }
                     else {
@@ -311,14 +423,22 @@ namespace extension {
             }
 
             // Send the packet
-            ::sendto(
-                unicast_fd, announce_packet.data(), announce_packet.size(), 0, &multicast_target, sizeof(sockaddr));
+            if (::sendto(unicast_fd,
+                         announce_packet.data(),
+                         announce_packet.size(),
+                         0,
+                         reinterpret_cast<sockaddr*>(&multicast_target),
+                         socket_size(multicast_target))
+                < 0) {
+                throw std::system_error(
+                    network_errno, std::system_category(), "Network error when sending the announce packet");
+            }
         }
 
 
-        void NUClearNetwork::process_packet(sockaddr&& address, std::vector<char>&& payload) {
+        void NUClearNetwork::process_packet(sockaddr_storage&& address, std::vector<char>&& payload) {
 
-            // First validate this is a NUClear network packet we can read
+            // First validate this is a NUClear network packet we can read (a version 2 NUClear packet)
             if (payload[0] == '\xE2' && payload[1] == '\x98' && payload[2] == '\xA2' && payload[3] == 0x02) {
 
                 // This is a real packet! get our header information
@@ -333,6 +453,8 @@ namespace extension {
                 auto remote = udp_target.find(udp_key);
 
                 switch (header.type) {
+
+                    // A packet announcing that a user is on the network
                     case ANNOUNCE: {
                         // This is an announce packet!
                         const AnnouncePacket& announce = *reinterpret_cast<const AnnouncePacket*>(payload.data());
@@ -341,20 +463,19 @@ namespace extension {
                         if (remote == udp_target.end()) {
                             std::string name(&announce.name, payload.size() - sizeof(AnnouncePacket));
 
+                            // Make who we are sending it to into a useable address
+                            sockaddr* to = reinterpret_cast<sockaddr*>(&remote->second->target);
+
                             // Say hi back!
-                            ::sendto(unicast_fd,
-                                     announce_packet.data(),
-                                     announce_packet.size(),
-                                     0,
-                                     &address,
-                                     sizeof(sockaddr));
+                            ::sendto(
+                                unicast_fd, announce_packet.data(), announce_packet.size(), 0, to, socket_size(*to));
 
                             targets.emplace_front(name, address);
                             auto it = targets.begin();
                             udp_target.insert(std::make_pair(udp_key, it));
                             name_target.insert(std::make_pair(name, it));
 
-                            join_callback(name, address);
+                            join_callback(*it);
                         }
                         // They're old but at least they're not timing out
                         else {
@@ -367,16 +488,24 @@ namespace extension {
                         if (remote != udp_target.end()) {
 
                             // Need to call leave before they actually go because otherwise we delete their information
-                            leave_callback(remote->second->name, remote->second->target);
+                            leave_callback(*remote->second);
 
                             remove_target(remote->second);
                         }
 
                     } break;
+
+                    // A packet containing data
                     case DATA: {
 
                         // It's a data packet
                         const DataPacket& packet = *reinterpret_cast<const DataPacket*>(payload.data());
+
+                        // If the packet is obviously corrupt, drop it and since we didn't ack it it'll be resent if
+                        // it's important
+                        if (packet.packet_no > packet.packet_count) {
+                            return;
+                        }
 
                         // Check if we know who this is and if we don't know them, ignore
                         if (remote != udp_target.end()) {
@@ -399,24 +528,100 @@ namespace extension {
                                     response.packet_id    = packet.packet_id;
                                     response.packet_count = packet.packet_count;
                                     response.packets      = 1;
-                                    ::sendto(unicast_fd,
-                                             &response,
-                                             sizeof(response),
-                                             0,
-                                             &remote->second->target,
-                                             sizeof(sockaddr));
+
+                                    // Make who we are sending it to into a useable address
+                                    sockaddr* to = reinterpret_cast<sockaddr*>(&remote->second->target);
+
+                                    ::sendto(unicast_fd, &response, sizeof(response), 0, to, socket_size(*to));
                                 }
 
                                 packet_callback(*remote->second, packet.hash, std::move(out));
                             }
                             else {
-                                std::lock_guard<std::mutex> lock(remote->second->assembly_mutex);
+                                std::lock_guard<std::mutex> lock(remote->second->assemblers_mutex);
 
-                                // Grab the payload and put it in our list of assembly targets
-                                auto& assembly                     = remote->second->assembly;
-                                auto& assembler                    = assembly[packet.packet_id];
+                                // Grab the payload and put it in our list of assemblers targets
+                                auto& assemblers = remote->second->assemblers;
+                                auto& assembler  = assemblers[packet.packet_id];
+
+                                // First check that our cache isn't super corrupted by ensuring that our last packet in
+                                // our list isn't after the number of packets we have
+                                if (!assembler.second.empty()
+                                    && std::next(assembler.second.end(), -1)->first >= packet.packet_count) {
+
+                                    // If so, we need to purge our cache and if this was a reliable packet, send a NACK
+                                    // back for all the packets we thought we had
+                                    // We don't know if we have any packets except the one we just got
+                                    if (packet.reliable) {
+
+                                        // A basic ack has room for 8 packets and we need 1 extra byte for each 8
+                                        // additional
+                                        // packets
+                                        std::vector<char> r(sizeof(NACKPacket) + (packet.packet_count / 8), 0);
+                                        NACKPacket& response  = *reinterpret_cast<NACKPacket*>(r.data());
+                                        response              = NACKPacket();
+                                        response.type         = NACK;
+                                        response.packet_id    = packet.packet_id;
+                                        response.packet_count = packet.packet_count;
+
+                                        // Set the bits for the packets we thought we received
+                                        for (auto& p : assembler.second) {
+                                            (&response.packets)[p.first / 8] |= uint8_t(1 << (p.first % 8));
+                                        }
+
+                                        // Ensure the bit for this packet isn't NACKed
+                                        (&response.packets)[packet.packet_no / 8] &=
+                                            ~uint8_t(1 << (packet.packet_no % 8));
+
+                                        // Make who we are sending it to into a useable address
+                                        sockaddr* to = reinterpret_cast<sockaddr*>(&remote->second->target);
+
+                                        // Send the packet
+                                        ::sendto(unicast_fd, r.data(), r.size(), 0, to, socket_size(*to));
+                                    }
+
+                                    assembler.second.clear();
+                                }
+
                                 assembler.first                    = std::chrono::steady_clock::now();
                                 assembler.second[packet.packet_no] = std::move(payload);
+
+                                // Check to see if we have enough to assemble the whole thing
+                                if (assembler.second.size() == packet.packet_count) {
+
+                                    // Work out exactly how much data we will need first so we only need one allocation
+                                    size_t payload_size = 0;
+                                    int packet_index    = 0;
+                                    for (auto& packet : assembler.second) {
+                                        if (packet.first != packet_index++) {
+                                            // TODO this data was bad, erase it or something
+                                            return;
+                                        }
+                                        else {
+                                            payload_size += packet.second.size() - sizeof(DataPacket) + 1;
+                                        }
+                                    }
+
+                                    // Read in our data
+                                    std::vector<char> out;
+                                    out.reserve(payload_size);
+                                    for (auto& packet : assembler.second) {
+                                        const DataPacket& p = *reinterpret_cast<DataPacket*>(packet.second.data());
+                                        out.insert(out.end(),
+                                                   &p.data,
+                                                   &p.data + packet.second.size() - sizeof(DataPacket) + 1);
+                                    }
+
+                                    // Send our assembled data packet
+                                    packet_callback(*remote->second, packet.hash, std::move(out));
+
+                                    // We have completed this packet, discard the data
+                                    assemblers.erase(assemblers.find(packet.packet_id));
+                                }
+                                else if (assembler.second.size() > packet.packet_count) {
+                                    // TODO THIS IS A CORRUPTED PACKET IT LOOPED OR SOMETHING!!
+                                    // ALSO THERE IS A POSSIBLITY THAT WE ACKED INCORRECTLY EARLIER
+                                }
 
                                 // Create and send our ACK packet if this is a reliable transmission
                                 if (packet.reliable) {
@@ -434,46 +639,19 @@ namespace extension {
                                         (&response.packets)[p.first / 8] |= uint8_t(1 << (p.first % 8));
                                     }
 
+                                    // Make who we are sending it to into a useable address
+                                    sockaddr* to = reinterpret_cast<sockaddr*>(&remote->second->target);
+
                                     // Send the packet
-                                    ::sendto(
-                                        unicast_fd, r.data(), r.size(), 0, &remote->second->target, sizeof(sockaddr));
+                                    ::sendto(unicast_fd, r.data(), r.size(), 0, to, socket_size(*to));
                                 }
 
-                                // Check to see if we have enough to assemble the whole thing
-                                if (assembler.second.size() == packet.packet_count) {
-                                    // We know the data is at least over 1500
-                                    std::vector<char> out;
-                                    out.reserve(4096);
-
-                                    int i = 0;
-                                    for (auto& packet : assembler.second) {
-                                        if (packet.first != i++) {
-                                            // TODO THIS IS A CORRUPTED PACKET
-                                            // TODO you should keep track of the sequence number from the remote and purge stuff you know is bad
-                                            break;
-                                        }
-                                        else {
-                                            const DataPacket& p = *reinterpret_cast<DataPacket*>(packet.second.data());
-                                            out.insert(
-                                                out.end(),
-                                                &p.data,
-                                                &p.data + packet.second.size() - sizeof(DataPacket) + 1);
-                                        }
-                                    }
-                                    
-                                    packet_callback(*remote->second, packet.hash, std::move(out));
-                                    
-                                    // We have completed this packet, discard the data
-                                    assembly.erase(assembly.find(packet.packet_id));
-                                }
-                                else if (assembler.second.size() > packet.packet_count) {
-                                    // TODO THIS IS A CORRUPTED PACKET
-                                }
-
-                                // TODO cleanup old packet assembly here to free memory
+                                // TODO cleanup old packet assemblers here to free memory
                             }
                         }
                     } break;
+
+                    // Packet acknowledging the receipt of a packet of data
                     case ACK: {
 
                         // It's an ack packet
@@ -494,8 +672,27 @@ namespace extension {
 
 
                         // TODO Store the updated ack status in our outoging reliable message queue for this host and if
-                        // it's totally sent, we can drop the queue
+                        // it's totally sent, we can drop the queue item
                     } break;
+
+                    // Packet requesting a retransmission of some corrupt data
+                    case NACK: {
+                        // It's a nack packet
+                        const NACKPacket& packet = *reinterpret_cast<const NACKPacket*>(payload.data());
+
+                        // Check if we know who this is and if we don't know them, ignore
+                        if (remote != udp_target.end()) {
+
+                            // We got a packet from them recently
+                            remote->second->last_update = std::chrono::steady_clock::now();
+
+                            std::cout << remote->second->name << " NACK Packet: " << packet.packet_id << " ";
+                            for (int i = 0; i < packet.packet_count; ++i) {
+                                std::cout << (((&packet.packets)[i / 8] & uint8_t(1 << (i % 8))) != 0);
+                            }
+                            std::cout << std::endl;
+                        }
+                    }
                 }
             }
         }
@@ -536,8 +733,6 @@ namespace extension {
             header.reliable     = reliable;
             header.hash         = hash;
 
-            // TODO if reliable is true we need to make sure we can retransmit on request
-
             // Loop through our chunks
             for (size_t i = 0; i < payload.size(); i += MAX_UDP_PAYLOAD_LENGTH) {
 
@@ -549,7 +744,7 @@ namespace extension {
                 // Send multicast
                 if (target.empty()) {
                     message.msg_name    = &multicast_target;
-                    message.msg_namelen = sizeof(sockaddr);
+                    message.msg_namelen = socket_size(multicast_target);
 
                     // Send the packet
                     sendmsg(unicast_fd, &message, 0);
@@ -562,7 +757,7 @@ namespace extension {
                     for (auto it = send_to.first; it != send_to.second; ++it) {
 
                         message.msg_name    = &it->second->target;
-                        message.msg_namelen = sizeof(sockaddr);
+                        message.msg_namelen = socket_size(it->second->target);
 
                         // Send the packet
                         sendmsg(unicast_fd, &message, 0);
@@ -573,297 +768,6 @@ namespace extension {
                 ++header.packet_no;
             }
         }
-        // void NetworkController::udp_send(const NetworkEmit& emit) {
-
-        //     // Make our message struct
-        //     msghdr message;
-        //     std::memset(&message, 0, sizeof(msghdr));
-
-        //     // Create our iovec
-        //     iovec data[2];
-        //     message.msg_iov    = data;
-        //     message.msg_iovlen = 2;
-
-        //     // The first element in our iovec is the header
-        //     DataPacket header;
-        //     data[0].iov_base = reinterpret_cast<char*>(&header);
-        //     data[0].iov_len  = sizeof(DataPacket) - 1;
-
-        //     // Some references for easy access to our data memory
-        //     auto& base = data[1].iov_base;
-        //     auto& len  = data[1].iov_len;
-
-        //     // Set some common information for the header
-        //     header.type         = DATA;
-        //     header.packet_id    = ++packet_id_source;
-        //     header.packet_no    = 0;
-        //     header.packet_count = uint16_t((emit.payload.size() / MAX_UDP_PAYLOAD_LENGTH) + 1);
-        //     header.multicast    = emit.target.empty();
-        //     header.hash         = emit.hash;
-
-        //     // Loop through our chunks
-        //     for (size_t i = 0; i < emit.payload.size(); i += MAX_UDP_PAYLOAD_LENGTH) {
-
-        //         // Store our payload information for this chunk
-        //         base = const_cast<char*>(emit.payload.data() + i);
-        //         len  = (i + MAX_UDP_PAYLOAD_LENGTH) < emit.payload.size() ? MAX_UDP_PAYLOAD_LENGTH
-        //                                                                  : emit.payload.size() %
-        //                                                                  MAX_UDP_PAYLOAD_LENGTH;
-
-        //         // Work out our header length
-        //         header.length = uint32_t(len + sizeof(DataPacket) - sizeof(PacketHeader) - 1);
-
-        //         // Send multicast
-        //         if (emit.target.empty()) {
-
-        //             // Multicast address
-        //             sockaddr_in target;
-        //             std::memset(&target, 0, sizeof(sockaddr_in));
-        //             target.sin_family = AF_INET;
-        //             inet_pton(AF_INET, multicast_group.c_str(), &target.sin_addr);
-        //             target.sin_port = htons(multicast_port);
-
-        //             message.msg_name    = reinterpret_cast<sockaddr*>(&target);
-        //             message.msg_namelen = sizeof(sockaddr_in);
-
-        //             // Send the packet
-        //             sendmsg(unicast_fd, &message, 0);
-        //         }
-        //         // Send unicast
-        //         else {
-        //             auto send_to = name_target.equal_range(emit.target);
-
-        //             for (auto it = send_to.first; it != send_to.second; ++it) {
-
-        //                 // Unicast address
-        //                 sockaddr_in target;
-        //                 std::memset(&target, 0, sizeof(sockaddr_in));
-        //                 target.sin_family      = AF_INET;
-        //                 target.sin_addr.s_addr = htonl(it->second->address);
-        //                 target.sin_port        = htons(it->second->udp_port);
-
-        //                 message.msg_name    = reinterpret_cast<sockaddr*>(&target);
-        //                 message.msg_namelen = sizeof(sockaddr_in);
-
-        //                 // Send the packet
-        //                 sendmsg(unicast_fd, &message, 0);
-        //             }
-        //         }
-
-        //         // Increment to send the next packet
-        //         ++header.packet_no;
-        //     }
-        // }
-
-
-        // void NUClearNetwork::packet_handler(const UDP::Packet& packet) {
-
-        //     // TODO work out if this is us sending multicast to ourselves and if so return
-        //     // Indicators, udp_port = our_udp_port
-        //     // packet.remote.address == ours (? but how do we know our address?)
-
-        //     // Work out what type of packet this is
-        //     const PacketHeader& header =
-        //         *reinterpret_cast<const PacketHeader*>(packet.payload.data());
-
-        //     if (header.type == ANNOUNCE) {
-
-        //         const AnnouncePacket& announce =
-        //             *reinterpret_cast<const AnnouncePacket*>(packet.payload.data());
-
-        //         std::string new_name = &announce.name;
-        //         int new_tcp_port     = announce.tcp_port;
-        //         int new_udp_port     = announce.udp_port;
-
-        //         // Make sure this packet isn't suspect
-        //         if (packet.remote.port == new_udp_port) {
-
-        //             // Make sure this is not us
-        //             if (!(name == new_name && tcp_port == new_tcp_port && udp_port == new_udp_port)) {
-
-        //                 // Check we do not already have this client connected
-        //                 if (udp_target.find(std::make_pair(packet.remote.address, new_udp_port)) ==
-        //                 udp_target.end())
-        //                 {
-
-        //                     sockaddr_in local;
-        //                     std::memset(&local, 0, sizeof(sockaddr_in));
-        //                     local.sin_family      = AF_INET;
-        //                     local.sin_port        = htons(tcp_port);
-        //                     local.sin_addr.s_addr = htonl(INADDR_ANY);
-
-        //                     sockaddr_in remote;
-        //                     std::memset(&remote, 0, sizeof(sockaddr_in));
-        //                     remote.sin_family      = AF_INET;
-        //                     remote.sin_port        = htons(new_tcp_port);
-        //                     remote.sin_addr.s_addr = htonl(packet.remote.address);
-
-        //                     // Open a TCP connection
-        //                     util::FileDescriptor tcp_fd = ::socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-
-        //                     ::connect(tcp_fd, reinterpret_cast<sockaddr*>(&remote), sizeof(sockaddr));
-        //                     // TODO this might get closed or refused or something else
-
-        //                     // Make a data vector of the correct size and default values
-        //                     std::vector<char> announce_packet(sizeof(AnnouncePacket) + name.size());
-        //                     AnnouncePacket* p =
-        //                         reinterpret_cast<AnnouncePacket*>(announce_packet.data());
-        //                     *p = AnnouncePacket();
-
-        //                     // Make an announce packet
-        //                     p->type     = ANNOUNCE;
-        //                     p->tcp_port = tcp_port;
-        //                     p->udp_port = udp_port;
-
-        //                     // Length is the size without the header
-        //                     p->length =
-        //                         uint32_t(sizeof(AnnouncePacket) + name.size() -
-        //                         sizeof(PacketHeader));
-
-        //                     // Copy our name over
-        //                     std::memcpy(&p->name, name.c_str(), name.size() + 1);
-
-        //                     // Copy our packet data and name over
-        //                     ::send(tcp_fd, announce_packet.data(), announce_packet.size(), 0);
-
-        //                     // Insert our new element
-        //                     auto it = targets.emplace(targets.end(),
-        //                                               new_name,
-        //                                               packet.remote.address,
-        //                                               new_tcp_port,
-        //                                               new_udp_port,
-        //                                               tcp_fd.release());
-        //                     name_target.insert(std::make_pair(new_name, it));
-        //                     udp_target.insert(std::make_pair(std::make_pair(packet.remote.address, new_udp_port),
-        //                     it));
-        //                     tcp_target.insert(std::make_pair(it->tcp_fd, it));
-
-        //                     // Start our connected handle
-        //                     it->handle =
-        //                         on<IO, Sync<NetworkController>>(it->tcp_fd, IO::READ | IO::ERROR | IO::CLOSE)
-        //                             .then("Network TCP Handler", [this](const IO::Event& e) { tcp_handler(e); });
-
-        //                     // emit a message that says who connected
-        //                     auto j      = std::make_unique<message::NetworkJoin>();
-        //                     j->name     = &announce.name;
-        //                     j->address  = packet.remote.address;
-        //                     j->tcp_port = announce.tcp_port;
-        //                     j->udp_port = announce.udp_port;
-        //                     emit(j);
-        //                 }
-        //             }
-        //         }
-        //     }
-        //     else if (header.type == DATA) {
-
-        //         // Work out who our remote is
-        //         auto remote = udp_target.find(std::make_pair(packet.remote.address, packet.remote.port));
-
-        //         // Check if we know who this is and if we don't know them, ignore
-        //         if (remote != udp_target.end()) {
-
-        //             const DataPacket& p = *reinterpret_cast<const
-        //             DataPacket*>(packet.payload.data());
-
-        //             // If this is a solo packet (in a single chunk)
-        //             if (p.packet_no == 0 && p.packet_count == 1) {
-
-        //                 // Copy our data into a vector
-        //                 std::vector<char> payload(
-        //                     &p.data,
-        //                     &p.data + p.length - sizeof(DataPacket) + sizeof(PacketHeader) +
-        //                     1);
-
-        //                 // Construct our NetworkSource information
-        //                 dsl::word::NetworkSource src;
-        //                 src.name      = remote->second->name;
-        //                 src.address   = remote->second->address;
-        //                 src.port      = remote->second->udp_port;
-        //                 src.reliable  = true;
-        //                 src.multicast = p.multicast;
-
-        //                 // Store in our thread local cache
-        //                 dsl::store::ThreadStore<std::vector<char>>::value        = &payload;
-        //                 dsl::store::ThreadStore<dsl::word::NetworkSource>::value = &src;
-
-        //                 /* Mutex Scope */ {
-        //                     // Lock our reaction mutex
-        //                     std::lock_guard<std::mutex> lock(reaction_mutex);
-
-        //                     // Find interested reactions
-        //                     auto rs = reactions.equal_range(p.hash);
-
-        //                     // Execute on our interested reactions
-        //                     for (auto it = rs.first; it != rs.second; ++it) {
-        //                         auto task = it->second->get_task();
-        //                         if (task) {
-        //                             powerplant.submit(std::move(task));
-        //                         }
-        //                     }
-        //                 }
-
-        //                 // Clear our cache
-        //                 dsl::store::ThreadStore<std::vector<char>>::value        = nullptr;
-        //                 dsl::store::ThreadStore<dsl::word::NetworkSource>::value = nullptr;
-        //             }
-        //             else {
-        //                 std::lock_guard<std::mutex> lock(remote->second->buffer_mutex);
-
-        //                 // Get our buffer
-        //                 auto& buffer = remote->second->buffer;
-
-        //                 // Check if we have too many packets
-        //                 if (buffer.size() > MAX_NUM_UDP_ASSEMBLY) {
-        //                     // Remove the oldest assembly target
-        //                     auto oldest = buffer.begin();
-
-        //                     for (auto it = buffer.begin(); it != buffer.end(); ++it) {
-        //                         if (it->second.first < oldest->second.first) {
-        //                             oldest = it;
-        //                         }
-        //                     }
-
-        //                     buffer.erase(oldest);
-        //                 }
-
-        //                 auto& set = buffer[p.packet_id];
-        //                 set.first = clock::now();
-
-        //                 // Add our packet
-        //                 set.second.push_back(packet.payload);
-
-        //                 // If we are finished assemble and emit
-        //                 if (set.second.size() == p.packet_count) {
-
-        //                     // Our final payload
-        //                     std::vector<char> payload;
-
-        //                     // Sort the list
-        //                     std::sort(set.second.begin(),
-        //                               set.second.end(),
-        //                               [](const std::vector<char>& a, const std::vector<char>& b) {
-        //                                   const DataPacket& p_a =
-        //                                       *reinterpret_cast<const DataPacket*>(a.data());
-        //                                   const DataPacket& p_b =
-        //                                       *reinterpret_cast<const DataPacket*>(b.data());
-        //                                   return p_a.packet_no < p_b.packet_no;
-        //                               });
-
-        //                     // Copy the data across
-        //                     for (auto& v : set.second) {
-        //                         payload.insert(payload.end(), v.begin() + sizeof(DataPacket) - 1,
-        //                         v.end());
-        //                     }
-
-        //                     // TODO send the packet via callback
-
-        //                     // Erase this from the list
-        //                     buffer.erase(buffer.find(p.packet_id));
-        //                 }
-        //             }
-        //         }
-        //     }
-        // }
 
     }  // namespace network
 }  // namespace extension

@@ -68,14 +68,17 @@ public:
             // Get all the network interfaces
             auto interfaces = NUClear::util::network::get_interfaces();
 
-            std::vector<uint32_t> addresses;
+            std::vector<in_addr_t> addresses;
 
             for (auto& iface : interfaces) {
-                // We send on broadcast addresses and we don't want loopback or point to point
-                if (iface.flags.multicast) {
+                // We send on multicast capable addresses
+                if (iface.broadcast.ss_family == AF_INET && iface.flags.multicast) {
+                    auto& i = *reinterpret_cast<sockaddr_in*>(&iface.ip);
+                    auto& b = *reinterpret_cast<sockaddr_in*>(&iface.broadcast);
+                    
                     // Two broadcast ips that are the same are probably on the same network so ignore those
-                    if (std::find(std::begin(addresses), std::end(addresses), iface.broadcast) == std::end(addresses)) {
-                        addresses.push_back(iface.ip);
+                    if (std::find(std::begin(addresses), std::end(addresses), ntohl(b.sin_addr.s_addr)) == std::end(addresses)) {
+                        addresses.push_back(ntohl(i.sin_addr.s_addr));
                     }
                 }
             }
@@ -95,14 +98,17 @@ public:
             // Get all the network interfaces
             auto interfaces = NUClear::util::network::get_interfaces();
 
-            std::vector<uint32_t> addresses;
+            std::vector<in_addr_t> addresses;
 
             for (auto& iface : interfaces) {
-                // We send on broadcast addresses and we don't want loopback or point to point
-                if (iface.flags.multicast) {
+                // We send on multicast capable addresses
+                if (iface.broadcast.ss_family == AF_INET && iface.flags.multicast) {
+                    auto& i = *reinterpret_cast<sockaddr_in*>(&iface.ip);
+                    auto& b = *reinterpret_cast<sockaddr_in*>(&iface.broadcast);
+                    
                     // Two broadcast ips that are the same are probably on the same network so ignore those
-                    if (std::find(std::begin(addresses), std::end(addresses), iface.broadcast) == std::end(addresses)) {
-                        addresses.push_back(iface.ip);
+                    if (std::find(std::begin(addresses), std::end(addresses), ntohl(b.sin_addr.s_addr)) == std::end(addresses)) {
+                        addresses.push_back(ntohl(i.sin_addr.s_addr));
                     }
                 }
             }

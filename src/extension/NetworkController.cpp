@@ -76,18 +76,18 @@ namespace extension {
         });
 
         // Set our join callback
-        network.set_join_callback([this](std::string name, sockaddr address) {
+        network.set_join_callback([this](const network::NUClearNetwork::NetworkTarget& remote) {
             auto l     = std::make_unique<message::NetworkJoin>();
-            l->name    = name;
-            l->address = address;
+            l->name    = remote.name;
+            l->address = remote.target;
             emit(l);
         });
 
         // Set our leave callback
-        network.set_leave_callback([this](std::string name, sockaddr address) {
+        network.set_leave_callback([this](const network::NUClearNetwork::NetworkTarget& remote) {
             auto l     = std::make_unique<message::NetworkLeave>();
-            l->name    = name;
-            l->address = address;
+            l->name    = remote.name;
+            l->address = remote.target;
             emit(l);
         });
 

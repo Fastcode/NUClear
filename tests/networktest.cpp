@@ -17,8 +17,8 @@
 
 #include "nuclear"
 
-#include <cstdlib>
 #include <csignal>
+#include <cstdlib>
 
 namespace {
 struct PerformEmits {};
@@ -91,10 +91,11 @@ public:
 
             auto net_config = std::make_unique<NUClear::message::NetworkConfiguration>();
 
-            net_config->name = args.size() > 1 ? args[1] : args[0];
-            ;
+            net_config->name = args.size() > 1 ? args[1] : "";
+            // net_config->multicast_group = "ff02::98a2";
             net_config->multicast_group = "239.226.152.162";
-            net_config->multicast_port  = 7447;
+            // net_config->multicast_group = "::1";
+            net_config->multicast_port = 7447;
 
             std::cout << "Testing network with node " << net_config->name << std::endl;
 
@@ -127,7 +128,7 @@ public:
 
 
 int main(int argc, const char* argv[]) {
-    signal(SIGINT, [] (int) { NUClear::PowerPlant::powerplant->shutdown(); });
+    signal(SIGINT, [](int) { NUClear::PowerPlant::powerplant->shutdown(); });
 
     NUClear::PowerPlant::Configuration config;
     config.thread_count = 4;

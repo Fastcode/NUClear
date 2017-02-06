@@ -25,7 +25,7 @@ namespace extension {
     namespace network {
 
 #pragma pack(push, 1)
-        enum Type : uint8_t { ANNOUNCE = 1, LEAVE = 2, DATA = 3, ACK = 4 };
+        enum Type : uint8_t { ANNOUNCE = 1, LEAVE = 2, DATA = 3, ACK = 4, NACK = 5 };
 
         struct PacketHeader {
             PacketHeader() : type() {}
@@ -62,6 +62,9 @@ namespace extension {
             uint16_t packet_id;     // The packet group identifier we are acknowledging
             uint16_t packet_count;  // How many packets there are in the group
             uint8_t packets;        // A bitset of which packets we have received (&packets)
+        };
+        
+        struct NACKPacket : public ACKPacket {
         };
 
 #pragma pack(pop)

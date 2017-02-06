@@ -36,22 +36,22 @@ namespace extension {
             struct NetworkTarget {
 
                 NetworkTarget(std::string name,
-                              sockaddr target,
+                              sockaddr_storage target,
                               std::chrono::steady_clock::time_point last_update = std::chrono::steady_clock::now())
-                    : name(name), target(target), last_update(last_update), assembly_mutex(), assembly() {}
+                    : name(name), target(target), last_update(last_update), assemblers_mutex(), assemblers() {}
 
                 /// The name of the remote target
                 std::string name;
                 /// The socket address for the remote target
-                sockaddr target;
+                sockaddr_storage target;
                 /// When we last received data from the remote target
                 std::chrono::steady_clock::time_point last_update;
                 /// Mutex to protect the fragmented packet storage
-                std::mutex assembly_mutex;
+                std::mutex assemblers_mutex;
                 /// Storage for fragmented packets while we build them
                 std::map<uint16_t,
                          std::pair<std::chrono::steady_clock::time_point, std::map<uint16_t, std::vector<char>>>>
-                    assembly;
+                    assemblers;
             };
 
             explicit NUClearNetwork();
@@ -83,14 +83,14 @@ namespace extension {
              *
              * @param f the callback function
              */
-            void set_join_callback(std::function<void(std::string, sockaddr)> f);
+            void set_join_callback(std::function<void(const NetworkTarget&)> f);
 
             /**
              * @brief Set the callback to use when a node leaves the network
              *
              * @param f the callback function
              */
-            void set_leave_callback(std::function<void(std::string, sockaddr)> f);
+            void set_leave_callback(std::function<void(const NetworkTarget&)> f);
 
             /**
              * @brief Leave the NUClear network
@@ -145,7 +145,7 @@ namespace extension {
              *
              * @return the data and who it was sent from
              */
-            std::pair<sockaddr, std::vector<char>> read_socket(int fd);
+            std::pair<sockaddr_storage, std::vector<char>> read_socket(int fd);
 
             /**
              * @brief Processes the given packet and calls the callback if a packet was completed
@@ -153,7 +153,7 @@ namespace extension {
              * @param address   who the packet came from
              * @param data      the data that was sent in this packet
              */
-            void process_packet(sockaddr&& address, std::vector<char>&& payload);
+            void process_packet(sockaddr_storage&& address, std::vector<char>&& payload);
 
             /**
              * @brief Remove a target from our list of targets
@@ -173,11 +173,10 @@ namespace extension {
 
             /// The name of this node in the mesh
             std::string name;
-            /// The UDP port that we are listening on
-            in_port_t udp_port;
 
-            /// The socket address to send multicast packets to
-            sockaddr multicast_target;
+            /// The socket address to send multicast packets to (must be an array since we don't know how big the object
+            /// could be)
+            sockaddr_storage multicast_target;
             /// The file descriptor for the socket we use to send data and receive unicast data
             int unicast_fd;
             /// The file descriptor for the socket we use to receive multicast data
@@ -194,9 +193,9 @@ namespace extension {
                 packet_callback;
 
             /// The callback to execute when a node joins the network
-            std::function<void(std::string, sockaddr)> join_callback;
+            std::function<void(const NetworkTarget&)> join_callback;
             /// The callback to execute when a node leaves the network
-            std::function<void(std::string, sockaddr)> leave_callback;
+            std::function<void(const NetworkTarget&)> leave_callback;
 
             /// A mutex to guard modifications to the target lists
             std::mutex target_mutex;
