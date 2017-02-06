@@ -33,15 +33,29 @@ public:
 
         on<Trigger<NetworkJoin>, Sync<TestReactor>>().then([this](const NetworkJoin& join) {
 
-            const sockaddr_in& sock = *reinterpret_cast<const sockaddr_in*>(&join.address);
-            in_addr_t ip            = ntohl(sock.sin_addr.s_addr);
-            in_port_t port          = ntohs(sock.sin_port);
-
             std::cout << "Connected To" << std::endl;
             std::cout << "\tName: " << join.name << std::endl;
-            std::cout << "\tAddress: " << ((ip >> 24) & 0xFF) << "." << ((ip >> 16) & 0xFF) << "." << ((ip >> 8) & 0xFF)
-                      << "." << ((ip >> 0) & 0xFF) << std::endl;
-            std::cout << "\tPort: " << port << std::endl;
+
+            char c[255];
+            std::memset(c, 0, sizeof(c));
+
+            switch (join.address.sock.sa_family) {
+                case AF_INET:
+
+                    std::cout << "\tAddress: "
+                              << inet_ntop(join.address.sock.sa_family, &join.address.ipv4.sin_addr, c, sizeof(c))
+                              << std::endl;
+                    std::cout << "\tPort: " << ntohs(join.address.ipv4.sin_port) << std::endl;
+                    break;
+
+                case AF_INET6:
+                    std::cout << "\tAddress: "
+                              << inet_ntop(join.address.sock.sa_family, &join.address.ipv6.sin6_addr, c, sizeof(c))
+                              << std::endl;
+                    std::cout << "\tPort: " << ntohs(join.address.ipv6.sin6_port) << std::endl;
+                    break;
+            }
+
 
             // Send some data to our new friend
 
@@ -62,15 +76,28 @@ public:
 
         on<Trigger<NetworkLeave>, Sync<TestReactor>>().then([this](const NetworkLeave& leave) {
 
-            const sockaddr_in& sock = *reinterpret_cast<const sockaddr_in*>(&leave.address);
-            in_addr_t ip            = ntohl(sock.sin_addr.s_addr);
-            in_port_t port          = ntohs(sock.sin_port);
-
             std::cout << "Disconnected from" << std::endl;
             std::cout << "\tName: " << leave.name << std::endl;
-            std::cout << "\tAddress: " << ((ip >> 24) & 0xFF) << "." << ((ip >> 16) & 0xFF) << "." << ((ip >> 8) & 0xFF)
-                      << "." << ((ip >> 0) & 0xFF) << std::endl;
-            std::cout << "\tPort: " << port << std::endl;
+
+            char c[255];
+            std::memset(c, 0, sizeof(c));
+
+            switch (leave.address.sock.sa_family) {
+                case AF_INET:
+
+                    std::cout << "\tAddress: "
+                              << inet_ntop(leave.address.sock.sa_family, &leave.address.ipv4.sin_addr, c, sizeof(c))
+                              << std::endl;
+                    std::cout << "\tPort: " << ntohs(leave.address.ipv4.sin_port) << std::endl;
+                    break;
+
+                case AF_INET6:
+                    std::cout << "\tAddress: "
+                              << inet_ntop(leave.address.sock.sa_family, &leave.address.ipv6.sin6_addr, c, sizeof(c))
+                              << std::endl;
+                    std::cout << "\tPort: " << ntohs(leave.address.ipv6.sin6_port) << std::endl;
+                    break;
+            }
         });
 
         on<Network<std::string>, Sync<TestReactor>>().then(
