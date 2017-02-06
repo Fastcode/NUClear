@@ -133,6 +133,26 @@ namespace extension {
             std::vector<int> listen_fds();
 
         private:
+            struct PacketQueue {
+
+                struct PacketTarget {
+                    /// The target we are sending this packet to
+                    std::weak_ptr<NetworkTarget> target;
+
+                    /// The bitset of the packets that have been acked
+                    std::vector<char> acked;
+
+                    /// When we last got an ack from this target
+                    std::chrono::steady_clock::time_point last_ack;
+                };
+
+                /// The remote targets that want this packet
+                std::vector<PacketTarget> targets;
+
+                /// The data to send
+                std::vector<char> payload;
+            };
+
             /**
              * @brief Open our unicast udp socket
              */
@@ -176,7 +196,8 @@ namespace extension {
              *
              * @return the next target in the list
              */
-            std::list<NetworkTarget>::iterator remove_target(std::list<NetworkTarget>::iterator target);
+            std::list<std::shared_ptr<NetworkTarget>>::iterator remove_target(
+                std::list<std::shared_ptr<NetworkTarget>>::iterator target);
 
             /**
              * @brief Sends the passed data packet using the NUClearNetwork
@@ -217,14 +238,17 @@ namespace extension {
             /// A mutex to guard modifications to the target lists
             std::mutex target_mutex;
 
+            /// A map from packet_id to allow resending reliable data
+            std::map<uint16_t, PacketQueue> send_queue;
+
             /// A list of targets that we are connected to on the network
-            std::list<NetworkTarget> targets;
+            std::list<std::shared_ptr<NetworkTarget>> targets;
 
             /// A map of string names to targets with that name
-            std::multimap<std::string, std::list<NetworkTarget>::iterator> name_target;
+            std::multimap<std::string, std::list<std::shared_ptr<NetworkTarget>>::iterator> name_target;
 
             /// A map of ip/port pairs to the network target they belong to
-            std::map<std::array<uint16_t, 9>, std::list<NetworkTarget>::iterator> udp_target;
+            std::map<std::array<uint16_t, 9>, std::list<std::shared_ptr<NetworkTarget>>::iterator> udp_target;
         };
 
     }  // namespace network

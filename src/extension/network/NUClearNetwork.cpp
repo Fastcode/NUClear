@@ -24,6 +24,9 @@
 #include <algorithm>
 #include <cerrno>
 
+#warning "This drop percentage needs to be removed"
+#define DROP_PERCENT 80
+
 namespace NUClear {
 namespace extension {
     namespace network {
@@ -94,11 +97,10 @@ namespace extension {
         }
 
 
-        std::list<NUClearNetwork::NetworkTarget>::iterator NUClearNetwork::remove_target(
-            std::list<NetworkTarget>::iterator target) {
+        std::list<std::shared_ptr<NUClearNetwork::NetworkTarget>>::iterator NUClearNetwork::remove_target(
+            std::list<std::shared_ptr<NetworkTarget>>::iterator target) {
 
-            auto key = udp_key(target->target);
-
+            auto key = udp_key((*target)->target);
 
             // Erase them
             if (udp_target.find(key) != udp_target.end()) {
@@ -434,10 +436,10 @@ namespace extension {
                 std::lock_guard<std::mutex> lock(target_mutex);
                 auto now = std::chrono::steady_clock::now();
                 for (auto it = targets.begin(); it != targets.end();) {
-                    if (now - it->last_update > std::chrono::seconds(2)) {
+                    if (now - (*it)->last_update > std::chrono::seconds(2)) {
 
                         // Remove this, it timed out
-                        leave_callback(*it);
+                        leave_callback(**it);
                         it = remove_target(it);
                     }
                     else {
@@ -486,27 +488,25 @@ namespace extension {
                         if (remote == udp_target.end()) {
                             std::string name(&announce.name, payload.size() - sizeof(AnnouncePacket));
 
-                            // Make who we are sending it to into a useable address
-                            sock_t& to = remote->second->target;
-
+                            // Add them into our list
+                            targets.push_front(std::make_shared<NetworkTarget>(name, std::move(address)));
+                            auto it = targets.begin();
+                            udp_target.insert(std::make_pair(key, it));
+                            name_target.insert(std::make_pair(name, it));
+                            
                             // Say hi back!
                             ::sendto(unicast_fd,
                                      announce_packet.data(),
                                      announce_packet.size(),
                                      0,
-                                     &to.sock,
-                                     socket_size(to));
+                                     &(*it)->target.sock,
+                                     socket_size((*it)->target));
 
-                            targets.emplace_front(name, address);
-                            auto it = targets.begin();
-                            udp_target.insert(std::make_pair(key, it));
-                            name_target.insert(std::make_pair(name, it));
-
-                            join_callback(*it);
+                            join_callback(**it);
                         }
                         // They're old but at least they're not timing out
                         else {
-                            remote->second->last_update = std::chrono::steady_clock::now();
+                            (*remote->second)->last_update = std::chrono::steady_clock::now();
                         }
                     } break;
                     case LEAVE: {
@@ -515,7 +515,7 @@ namespace extension {
                         if (remote != udp_target.end()) {
 
                             // Need to call leave before they actually go because otherwise we delete their information
-                            leave_callback(*remote->second);
+                            leave_callback(**remote->second);
 
                             remove_target(remote->second);
                         }
@@ -538,7 +538,7 @@ namespace extension {
                         if (remote != udp_target.end()) {
 
                             // We got a packet from them recently
-                            remote->second->last_update = std::chrono::steady_clock::now();
+                            (*remote->second)->last_update = std::chrono::steady_clock::now();
 
                             // If this is a solo packet (in a single chunk)
                             if (packet.packet_count == 1) {
@@ -557,18 +557,19 @@ namespace extension {
                                     response.packets      = 1;
 
                                     // Make who we are sending it to into a useable address
-                                    sock_t& to = remote->second->target;
+                                    sock_t& to = (*remote->second)->target;
 
-                                    ::sendto(unicast_fd, &response, sizeof(response), 0, &to.sock, socket_size(to));
+                                    if ((rand() % 100) > DROP_PERCENT)  // TODO TEMP 10% packet loss
+                                        ::sendto(unicast_fd, &response, sizeof(response), 0, &to.sock, socket_size(to));
                                 }
 
-                                packet_callback(*remote->second, packet.hash, std::move(out));
+                                packet_callback(**remote->second, packet.hash, std::move(out));
                             }
                             else {
-                                std::lock_guard<std::mutex> lock(remote->second->assemblers_mutex);
+                                std::lock_guard<std::mutex> lock((*remote->second)->assemblers_mutex);
 
                                 // Grab the payload and put it in our list of assemblers targets
-                                auto& assemblers = remote->second->assemblers;
+                                auto& assemblers = (*remote->second)->assemblers;
                                 auto& assembler  = assemblers[packet.packet_id];
 
                                 // First check that our cache isn't super corrupted by ensuring that our last packet in
@@ -601,10 +602,11 @@ namespace extension {
                                             ~uint8_t(1 << (packet.packet_no % 8));
 
                                         // Make who we are sending it to into a useable address
-                                        sock_t& to = remote->second->target;
+                                        sock_t& to = (*remote->second)->target;
 
                                         // Send the packet
-                                        ::sendto(unicast_fd, r.data(), r.size(), 0, &to.sock, socket_size(to));
+                                        if ((rand() % 100) > DROP_PERCENT)  // TODO TEMP 10% packet loss
+                                            ::sendto(unicast_fd, r.data(), r.size(), 0, &to.sock, socket_size(to));
                                     }
 
                                     assembler.second.clear();
@@ -630,10 +632,11 @@ namespace extension {
                                     }
 
                                     // Make who we are sending it to into a useable address
-                                    sock_t& to = remote->second->target;
+                                    sock_t& to = (*remote->second)->target;
 
                                     // Send the packet
-                                    ::sendto(unicast_fd, r.data(), r.size(), 0, &to.sock, socket_size(to));
+                                    if ((rand() % 100) > DROP_PERCENT)  // TODO TEMP 10% packet loss
+                                        ::sendto(unicast_fd, r.data(), r.size(), 0, &to.sock, socket_size(to));
                                 }
 
                                 // Check to see if we have enough to assemble the whole thing
@@ -663,7 +666,7 @@ namespace extension {
                                     }
 
                                     // Send our assembled data packet
-                                    packet_callback(*remote->second, packet.hash, std::move(out));
+                                    packet_callback(**remote->second, packet.hash, std::move(out));
 
                                     // We have completed this packet, discard the data
                                     assemblers.erase(assemblers.find(packet.packet_id));
@@ -682,9 +685,9 @@ namespace extension {
                         if (remote != udp_target.end()) {
 
                             // We got a packet from them recently
-                            remote->second->last_update = std::chrono::steady_clock::now();
+                            (*remote->second)->last_update = std::chrono::steady_clock::now();
 
-                            std::cout << remote->second->name << " ACK Packet: " << packet.packet_id << " ";
+                            std::cout << (*remote->second)->name << " ACK Packet: " << packet.packet_id << " ";
                             for (int i = 0; i < packet.packet_count; ++i) {
                                 std::cout << (((&packet.packets)[i / 8] & uint8_t(1 << (i % 8))) != 0);
                             }
@@ -705,12 +708,12 @@ namespace extension {
                         if (remote != udp_target.end()) {
 
                             // We got a packet from them recently
-                            remote->second->last_update = std::chrono::steady_clock::now();
+                            (*remote->second)->last_update = std::chrono::steady_clock::now();
 
                             // Find this packet in our sending queue
 
                             // Resend the packets that are NACKed
-                            std::cout << remote->second->name << " NACK Packet: " << packet.packet_id << " ";
+                            std::cout << (*remote->second)->name << " NACK Packet: " << packet.packet_id << " ";
                             for (int i = 0; i < packet.packet_count; ++i) {
                                 std::cout << (((&packet.packets)[i / 8] & uint8_t(1 << (i % 8))) != 0);
                             }
@@ -770,7 +773,8 @@ namespace extension {
                     message.msg_namelen = socket_size(multicast_target);
 
                     // Send the packet
-                    sendmsg(unicast_fd, &message, 0);
+                    if ((rand() % 100) > DROP_PERCENT)  // TODO TEMP 10% packet loss
+                        ::sendmsg(unicast_fd, &message, 0);
                 }
                 // Send unicast
                 else {
@@ -779,11 +783,12 @@ namespace extension {
 
                     for (auto it = send_to.first; it != send_to.second; ++it) {
 
-                        message.msg_name    = &it->second->target;
-                        message.msg_namelen = socket_size(it->second->target);
+                        message.msg_name    = &(*it->second)->target;
+                        message.msg_namelen = socket_size((*it->second)->target);
 
                         // Send the packet
-                        sendmsg(unicast_fd, &message, 0);
+                        if ((rand() % 100) > DROP_PERCENT)  // TODO TEMP 10% packet loss
+                            ::sendmsg(unicast_fd, &message, 0);
                     }
                 }
 
