@@ -223,24 +223,32 @@ namespace extension {
                 ipv6_mreq mreq;
                 mreq.ipv6mr_multiaddr = multicast_target.ipv6.sin6_addr;
 
+                std::set<unsigned int> added_interfaces;
+
                 // Join the multicast group on all the interfaces that support it
                 for (auto& iface : util::network::get_interfaces()) {
 
-                    if (iface.ip.sock.sa_family == AF_INET && iface.flags.multicast) {
+                    if (iface.ip.sock.sa_family == AF_INET6 && iface.flags.multicast) {
 
                         // Get the interface for this
                         mreq.ipv6mr_interface = if_nametoindex(iface.name.c_str());
 
-                        // Join our multicast group
-                        if (::setsockopt(multicast_fd,
-                                         IPPROTO_IPV6,
-                                         IPV6_JOIN_GROUP,
-                                         reinterpret_cast<char*>(&mreq),
-                                         sizeof(ipv6_mreq))
-                            < 0) {
-                            throw std::system_error(network_errno,
-                                                    std::system_category(),
-                                                    "There was an error while attempting to join the multicast group");
+                        // Only add each interface index once
+                        if (added_interfaces.find(mreq.ipv6mr_interface) == added_interfaces.end()) {
+                            added_interfaces.insert(mreq.ipv6mr_interface);
+
+                            // Join our multicast group
+                            if (::setsockopt(multicast_fd,
+                                             IPPROTO_IPV6,
+                                             IPV6_JOIN_GROUP,
+                                             reinterpret_cast<char*>(&mreq),
+                                             sizeof(ipv6_mreq))
+                                < 0) {
+                                throw std::system_error(
+                                    network_errno,
+                                    std::system_category(),
+                                    "There was an error while attempting to join the multicast group");
+                            }
                         }
                     }
                 }
