@@ -35,7 +35,7 @@ namespace extension {
         class NUClearNetwork {
         private:
             using sock_t = util::network::sock_t;
-            
+
         public:
             struct NetworkTarget {
 
@@ -160,6 +160,15 @@ namespace extension {
             void process_packet(sock_t&& address, std::vector<char>&& payload);
 
             /**
+             * @brief Get the map key for this socket address
+             *
+             * @param address   who the packet came from
+             *
+             * @return the map key for this socket
+             */
+            static std::array<uint16_t, 9> udp_key(const sock_t& address);
+
+            /**
              * @brief Remove a target from our list of targets
              *
              * @param t the target to remove
@@ -211,7 +220,7 @@ namespace extension {
             std::multimap<std::string, std::list<NetworkTarget>::iterator> name_target;
 
             /// A map of ip/port pairs to the network target they belong to
-            std::map<std::pair<in_addr_t, in_port_t>, std::list<NetworkTarget>::iterator> udp_target;
+            std::map<std::array<uint16_t, 9>, std::list<NetworkTarget>::iterator> udp_target;
         };
 
     }  // namespace network

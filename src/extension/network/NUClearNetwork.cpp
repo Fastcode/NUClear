@@ -70,18 +70,39 @@ namespace extension {
             leave_callback = f;
         }
 
+        std::array<uint16_t, 9> NUClearNetwork::udp_key(const sock_t& address) {
+
+            // Get our keys for our maps, it will be the ip and then port
+            std::array<uint16_t, 9> key;
+            key.fill(0);
+
+            switch (address.sock.sa_family) {
+                case AF_INET:
+                    // The first chars are 0 (ipv6) and after that is our address and then port
+                    std::memcpy(&key[6], &address.ipv4.sin_addr, sizeof(address.ipv4.sin_addr));
+                    key[8] = address.ipv4.sin_port;
+                    break;
+
+                case AF_INET6:
+                    // IPv6 address then port
+                    std::memcpy(key.data(), &address.ipv6.sin6_addr, sizeof(address.ipv6.sin6_addr));
+                    key[8] = address.ipv6.sin6_port;
+                    break;
+            }
+
+            return key;
+        }
+
 
         std::list<NUClearNetwork::NetworkTarget>::iterator NUClearNetwork::remove_target(
             std::list<NetworkTarget>::iterator target) {
 
-            // Get our keys for our maps
-            const sockaddr_in& addr = *reinterpret_cast<const sockaddr_in*>(&target->target);
-            std::string str_key     = target->name;
-            auto udp_key            = std::make_pair(addr.sin_addr.s_addr, addr.sin_port);
+            auto key = udp_key(target->target);
+
 
             // Erase them
-            if (udp_target.find(udp_key) != udp_target.end()) {
-                udp_target.erase(udp_target.find(udp_key));
+            if (udp_target.find(key) != udp_target.end()) {
+                udp_target.erase(udp_target.find(key));
             }
 
             auto range = name_target.equal_range(name);
@@ -431,16 +452,12 @@ namespace extension {
                 // This is a real packet! get our header information
                 const PacketHeader& header = *reinterpret_cast<const PacketHeader*>(payload.data());
 
-                // Work out our key for this target based on their address
-                // TODO CURRENTLY STUCK ON IPV4 ONLY
-
-                // Cast into an IPV4, hopefully one day we will handle both
-                const sockaddr_in& ipv4 = *reinterpret_cast<const sockaddr_in*>(&address);
-                auto udp_key            = std::make_pair(ipv4.sin_addr.s_addr, ipv4.sin_port);
+                // Get the map key for this device
+                auto key = udp_key(address);
 
                 // From here on, we are doing things with our target lists that if changed would make us sad
                 std::lock_guard<std::mutex> target_lock(target_mutex);
-                auto remote = udp_target.find(udp_key);
+                auto remote = udp_target.find(key);
 
                 switch (header.type) {
 
@@ -466,7 +483,7 @@ namespace extension {
 
                             targets.emplace_front(name, address);
                             auto it = targets.begin();
-                            udp_target.insert(std::make_pair(udp_key, it));
+                            udp_target.insert(std::make_pair(key, it));
                             name_target.insert(std::make_pair(name, it));
 
                             join_callback(*it);
@@ -590,19 +607,19 @@ namespace extension {
                                     response.type         = ACK;
                                     response.packet_id    = packet.packet_id;
                                     response.packet_count = packet.packet_count;
-                                    
+
                                     // Set the bits for the packets we have received
                                     for (auto& p : assembler.second) {
                                         (&response.packets)[p.first / 8] |= uint8_t(1 << (p.first % 8));
                                     }
-                                    
+
                                     // Make who we are sending it to into a useable address
                                     sock_t& to = remote->second->target;
-                                    
+
                                     // Send the packet
                                     ::sendto(unicast_fd, r.data(), r.size(), 0, &to.sock, socket_size(to));
                                 }
-                                
+
                                 // Check to see if we have enough to assemble the whole thing
                                 if (assembler.second.size() == packet.packet_count) {
 
@@ -635,12 +652,6 @@ namespace extension {
                                     // We have completed this packet, discard the data
                                     assemblers.erase(assemblers.find(packet.packet_id));
                                 }
-                                else if (assembler.second.size() > packet.packet_count) {
-                                    // TODO THIS IS A CORRUPTED PACKET IT LOOPED OR SOMETHING!!
-                                    // ALSO THERE IS A POSSIBLITY THAT WE ACKED INCORRECTLY EARLIER
-                                }
-
-                                // TODO cleanup old packet assemblers here to free memory
                             }
                         }
                     } break;
