@@ -66,7 +66,7 @@ namespace dsl {
 
         struct NetworkSource;
 
-        template <typename>
+        template <typename...>
         struct Trigger;
 
         template <typename...>
@@ -156,8 +156,8 @@ protected:
      **************************************************************************************************************/
 
     /// @copydoc dsl::word::Trigger
-    template <typename T>
-    using Trigger = dsl::word::Trigger<T>;
+    template <typename... Ts>
+    using Trigger = dsl::word::Trigger<Ts...>;
 
     /// @copydoc dsl::word::Priority
     using Priority = dsl::word::Priority;

@@ -42,12 +42,12 @@ namespace dsl {
          * @par Implements
          *  Bind, Get
          *
-         * @tparam T
+         * @tparam Ts
          *  the datatypes on which a reaction callback will be triggered. These will be flagged as <b>primary</b>
          *  datatype/s for the subscribing reaction.
          */
-        template <typename T>
-        struct Trigger : public operation::TypeBind<T>, public operation::CacheGet<T> {};
+        template <typename... Ts>
+        struct Trigger : public Fusion<operation::TypeBind<Ts>..., operation::CacheGet<Ts>...> {};
 
     }  // namespace word
 }  // namespace dsl
