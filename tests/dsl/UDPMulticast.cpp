@@ -72,7 +72,7 @@ public:
 
             for (auto& iface : interfaces) {
                 // We send on multicast capable addresses
-                if (iface.broadcast.ss_family == AF_INET && iface.flags.multicast) {
+                if (iface.broadcast.sock.sa_family == AF_INET && iface.flags.multicast) {
                     auto& i = *reinterpret_cast<sockaddr_in*>(&iface.ip);
                     auto& b = *reinterpret_cast<sockaddr_in*>(&iface.broadcast);
                     
@@ -102,7 +102,7 @@ public:
 
             for (auto& iface : interfaces) {
                 // We send on multicast capable addresses
-                if (iface.broadcast.ss_family == AF_INET && iface.flags.multicast) {
+                if (iface.broadcast.sock.sa_family == AF_INET && iface.flags.multicast) {
                     auto& i = *reinterpret_cast<sockaddr_in*>(&iface.ip);
                     auto& b = *reinterpret_cast<sockaddr_in*>(&iface.broadcast);
                     

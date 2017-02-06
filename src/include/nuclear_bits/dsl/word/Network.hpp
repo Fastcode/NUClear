@@ -22,6 +22,7 @@
 #include "nuclear_bits/dsl/store/ThreadStore.hpp"
 #include "nuclear_bits/dsl/trait/is_transient.hpp"
 #include "nuclear_bits/util/serialise/Serialise.hpp"
+#include "nuclear_bits/util/network/sock_t.hpp"
 
 namespace NUClear {
 namespace dsl {
@@ -36,7 +37,7 @@ namespace dsl {
             NetworkSource() : name(""), address() {}
 
             std::string name;
-            sockaddr_storage address;
+            util::network::sock_t address;
         };
 
         struct NetworkListen {

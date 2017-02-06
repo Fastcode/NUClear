@@ -20,7 +20,7 @@
 
 #include <string>
 #include <vector>
-#include <sys/socket.h>
+#include "nuclear_bits/util/network/sock_t.hpp"
 
 namespace NUClear {
 namespace util {
@@ -31,9 +31,9 @@ namespace util {
 
             std::string name;
 
-            sockaddr_storage ip;
-            sockaddr_storage netmask;
-            sockaddr_storage broadcast;
+            sock_t ip;
+            sock_t netmask;
+            sock_t broadcast;
 
             struct Flags {
                 Flags() : broadcast(false), loopback(false), pointtopoint(false), multicast(false) {}

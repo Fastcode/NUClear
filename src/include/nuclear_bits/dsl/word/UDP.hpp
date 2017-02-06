@@ -386,7 +386,7 @@ namespace dsl {
                     std::vector<uint32_t> addresses;
                     for (auto& iface : util::network::get_interfaces()) {
                         // We receive on broadcast addresses and we don't want loopback or point to point
-                        if (iface.flags.multicast && iface.ip.ss_family == AF_INET) {
+                        if (iface.flags.multicast && iface.ip.sock.sa_family == AF_INET) {
                             auto& i = *reinterpret_cast<const sockaddr_in*>(&iface.ip);
                             addresses.push_back(i.sin_addr.s_addr);
                         }

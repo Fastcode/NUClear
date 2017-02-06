@@ -25,6 +25,7 @@
 #include <list>
 #include <map>
 #include <vector>
+#include "nuclear_bits/util/network/sock_t.hpp"
 #include "wire_protocol.hpp"
 
 namespace NUClear {
@@ -32,18 +33,21 @@ namespace extension {
     namespace network {
 
         class NUClearNetwork {
+        private:
+            using sock_t = util::network::sock_t;
+            
         public:
             struct NetworkTarget {
 
                 NetworkTarget(std::string name,
-                              sockaddr_storage target,
+                              sock_t target,
                               std::chrono::steady_clock::time_point last_update = std::chrono::steady_clock::now())
                     : name(name), target(target), last_update(last_update), assemblers_mutex(), assemblers() {}
 
                 /// The name of the remote target
                 std::string name;
                 /// The socket address for the remote target
-                sockaddr_storage target;
+                sock_t target;
                 /// When we last received data from the remote target
                 std::chrono::steady_clock::time_point last_update;
                 /// Mutex to protect the fragmented packet storage
@@ -145,7 +149,7 @@ namespace extension {
              *
              * @return the data and who it was sent from
              */
-            std::pair<sockaddr_storage, std::vector<char>> read_socket(int fd);
+            std::pair<sock_t, std::vector<char>> read_socket(int fd);
 
             /**
              * @brief Processes the given packet and calls the callback if a packet was completed
@@ -153,7 +157,7 @@ namespace extension {
              * @param address   who the packet came from
              * @param data      the data that was sent in this packet
              */
-            void process_packet(sockaddr_storage&& address, std::vector<char>&& payload);
+            void process_packet(sock_t&& address, std::vector<char>&& payload);
 
             /**
              * @brief Remove a target from our list of targets
@@ -176,7 +180,7 @@ namespace extension {
 
             /// The socket address to send multicast packets to (must be an array since we don't know how big the object
             /// could be)
-            sockaddr_storage multicast_target;
+            sock_t multicast_target;
             /// The file descriptor for the socket we use to send data and receive unicast data
             int unicast_fd;
             /// The file descriptor for the socket we use to receive multicast data

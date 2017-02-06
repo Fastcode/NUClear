@@ -15,29 +15,27 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_MESSAGE_NETWORKEVENT_HPP
-#define NUCLEAR_MESSAGE_NETWORKEVENT_HPP
+#ifndef NUCLEAR_UTIL_NETWORK_SOCK_T_HPP
+#define NUCLEAR_UTIL_NETWORK_SOCK_T_HPP
 
-#include "nuclear_bits/util/network/sock_t.hpp"
+#include <arpa/inet.h>
+#include <sys/socket.h>
 
 namespace NUClear {
-namespace message {
+namespace util {
+    namespace network {
 
-    struct NetworkJoin {
-        NetworkJoin() : name(""), address() {}
+        struct sock_t {
+            union {
+                sockaddr_storage storage;
+                sockaddr sock;
+                sockaddr_in ipv4;
+                sockaddr_in6 ipv6;
+            };
+        };
 
-        std::string name;
-        util::network::sock_t address;
-    };
-
-    struct NetworkLeave {
-        NetworkLeave() : name(""), address() {}
-
-        std::string name;
-        util::network::sock_t address;
-    };
-
-}  // namespace message
+    }  // namespace network
+}  // namespace util
 }  // namespace NUClear
 
-#endif  // NUCLEAR_MESSAGE_NETWORKEVENT_HPP
+#endif  // NUCLEAR_UTIL_NETWORK_SOCK_T_HPP
