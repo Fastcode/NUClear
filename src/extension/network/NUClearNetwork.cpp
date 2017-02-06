@@ -25,7 +25,7 @@
 #include <cerrno>
 
 #warning "This drop percentage needs to be removed"
-#define DROP_PERCENT 40
+#define DROP_PERCENT 0
 
 namespace NUClear {
 namespace extension {
@@ -98,7 +98,9 @@ namespace extension {
 
         void NUClearNetwork::remove_target(const std::shared_ptr<NetworkTarget>& target) {
 
-
+            // Lock our mutex
+            std::lock_guard<std::mutex> lock(target_mutex);
+            
             // Erase udp
             auto key = udp_key(target->target);
             if (udp_target.find(key) != udp_target.end()) {
@@ -539,8 +541,12 @@ namespace extension {
                 auto key = udp_key(address);
 
                 // From here on, we are doing things with our target lists that if changed would make us sad
-                std::lock_guard<std::mutex> target_lock(target_mutex);
-                auto remote = udp_target.find(key);
+                std::shared_ptr<NetworkTarget> remote;
+                /* Mutex scope */ {
+                    std::lock_guard<std::mutex> lock(target_mutex);
+                    auto r = udp_target.find(key);
+                    remote = r == udp_target.end() ? nullptr : r->second;
+                }
 
                 switch (header.type) {
 
@@ -550,14 +556,18 @@ namespace extension {
                         const AnnouncePacket& announce = *reinterpret_cast<const AnnouncePacket*>(payload.data());
 
                         // They're new!
-                        if (remote == udp_target.end()) {
+                        if (!remote) {
                             std::string name(&announce.name, payload.size() - sizeof(AnnouncePacket));
 
                             // Add them into our list
                             auto ptr = std::make_shared<NetworkTarget>(name, std::move(address));
+                            
+                            /* Mutex scope */ {
+                                std::lock_guard<std::mutex> lock(target_mutex);
                             targets.push_front(ptr);
                             udp_target.insert(std::make_pair(key, ptr));
                             name_target.insert(std::make_pair(name, ptr));
+                            }
 
                             // Say hi back!
                             ::sendto(unicast_fd,
@@ -571,18 +581,17 @@ namespace extension {
                         }
                         // They're old but at least they're not timing out
                         else {
-                            remote->second->last_update = std::chrono::steady_clock::now();
+                            remote->last_update = std::chrono::steady_clock::now();
                         }
                     } break;
                     case LEAVE: {
 
                         // Goodbye!
-                        if (remote != udp_target.end()) {
+                        if (remote) {
 
-                            // Need to call leave before they actually go because otherwise we delete their information
-                            leave_callback(*remote->second);
-
-                            remove_target(remote->second);
+                            // Remove from our list
+                            remove_target(remote);
+                            leave_callback(*remote);
                         }
 
                     } break;
@@ -600,10 +609,10 @@ namespace extension {
                         }
 
                         // Check if we know who this is and if we don't know them, ignore
-                        if (remote != udp_target.end()) {
+                        if (remote) {
 
                             // We got a packet from them recently
-                            remote->second->last_update = std::chrono::steady_clock::now();
+                            remote->last_update = std::chrono::steady_clock::now();
 
                             // If this is a solo packet (in a single chunk)
                             if (packet.packet_count == 1) {
@@ -623,7 +632,7 @@ namespace extension {
                                     response.packets      = 1;
 
                                     // Make who we are sending it to into a useable address
-                                    sock_t& to = remote->second->target;
+                                    sock_t& to = remote->target;
 
                                     if ((rand() % 100) >= DROP_PERCENT)  // TODO TEMP 10% packet loss
                                         ::sendto(unicast_fd, &response, sizeof(response), 0, &to.sock, socket_size(to));
@@ -632,10 +641,10 @@ namespace extension {
                                 packet_callback(*remote->second, packet.hash, std::move(out));
                             }
                             else {
-                                std::lock_guard<std::mutex> lock(remote->second->assemblers_mutex);
+                                std::lock_guard<std::mutex> lock(remote->assemblers_mutex);
 
                                 // Grab the payload and put it in our list of assemblers targets
-                                auto& assemblers = remote->second->assemblers;
+                                auto& assemblers = remote->assemblers;
                                 auto& assembler  = assemblers[packet.packet_id];
 
                                 // First check that our cache isn't super corrupted by ensuring that our last packet in
@@ -668,7 +677,7 @@ namespace extension {
                                             ~uint8_t(1 << (packet.packet_no % 8));
 
                                         // Make who we are sending it to into a useable address
-                                        sock_t& to = remote->second->target;
+                                        sock_t& to = remote->target;
 
                                         // Send the packet
                                         if ((rand() % 100) >= DROP_PERCENT)  // TODO TEMP 10% packet loss
@@ -699,7 +708,7 @@ namespace extension {
                                     }
 
                                     // Make who we are sending it to into a useable address
-                                    sock_t& to = remote->second->target;
+                                    sock_t& to = remote->target;
 
                                     // Send the packet
                                     if ((rand() % 100) >= DROP_PERCENT)  // TODO TEMP 10% packet loss
@@ -733,7 +742,7 @@ namespace extension {
                                     }
 
                                     // Send our assembled data packet
-                                    packet_callback(*remote->second, packet.hash, std::move(out));
+                                    packet_callback(*remote, packet.hash, std::move(out));
 
                                     // We have completed this packet, discard the data
                                     assemblers.erase(assemblers.find(packet.packet_id));
@@ -749,21 +758,22 @@ namespace extension {
                         const ACKPacket& packet = *reinterpret_cast<const ACKPacket*>(payload.data());
 
                         // Check if we know who this is and if we don't know them, ignore
-                        if (remote != udp_target.end()) {
+                        if (remote) {
 
                             // We got a packet from them recently
-                            remote->second->last_update = std::chrono::steady_clock::now();
+                            remote->last_update = std::chrono::steady_clock::now();
 
                             // Check for our packet id in the send queue
                             if (send_queue.count(packet.packet_id) > 0) {
-
+                                // TODO LOCK A MUTEX!!
+                                
                                 auto& queue = send_queue[packet.packet_id];
 
                                 // Find this target in the send queue
                                 auto s = std::find_if(queue.targets.begin(),
                                                       queue.targets.end(),
                                                       [&](const PacketQueue::PacketTarget& target) {
-                                                          return target.target.lock() == remote->second;
+                                                          return target.target.lock() == remote;
                                                       });
 
                                 // We know who this is
@@ -783,7 +793,7 @@ namespace extension {
                                         // Approximate how long the round trip is to this remote so we can work out how
                                         // long before retransmitting
                                         // We use a baby kalman filter to help smooth out jitter
-                                        remote->second->measure_round_trip(round_trip);
+                                        remote->measure_round_trip(round_trip);
 
                                         // Update our acks
                                         bool all_acked = true;
@@ -825,10 +835,10 @@ namespace extension {
                         const NACKPacket& packet = *reinterpret_cast<const NACKPacket*>(payload.data());
 
                         // Check if we know who this is and if we don't know them, ignore
-                        if (remote != udp_target.end()) {
+                        if (remote) {
 
                             // We got a packet from them recently
-                            remote->second->last_update = std::chrono::steady_clock::now();
+                            remote->last_update = std::chrono::steady_clock::now();
 
                             // Find this packet in our sending queue
 
@@ -841,7 +851,7 @@ namespace extension {
                                 auto s = std::find_if(queue.targets.begin(),
                                                       queue.targets.end(),
                                                       [&](const PacketQueue::PacketTarget& target) {
-                                                          return target.target.lock() == remote->second;
+                                                          return target.target.lock() == remote;
                                                       });
 
                                 // We know who this is
@@ -882,7 +892,7 @@ namespace extension {
                                 }
 
                                 // Resend the packets that are NACKed
-                                std::cout << remote->second->name << " NACK Packet: " << packet.packet_id << " ";
+                                std::cout << remote->name << " NACK Packet: " << packet.packet_id << " ";
                                 for (int i = 0; i < packet.packet_count; ++i) {
                                     std::cout << (((&packet.packets)[i / 8] & uint8_t(1 << (i % 8))) != 0);
                                 }
