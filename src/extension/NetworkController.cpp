@@ -145,7 +145,7 @@ namespace extension {
             uint16_t mtu                = config.mtu;
 
             // Reset our network using this configuration
-            network.reset(name, multicast_group, multicast_port);
+            network.reset(name, multicast_group, multicast_port, mtu);
 
             // Announce handle
             announce_handle =

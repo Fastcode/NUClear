@@ -307,7 +307,7 @@ namespace extension {
             hints.ai_socktype = SOCK_DGRAM;   // using udp datagrams
 
             // Get our info on this address
-            addrinfo* servinfo;
+            addrinfo* servinfo = nullptr;
             ::getaddrinfo(group.c_str(), std::to_string(port).c_str(), &hints, &servinfo);
 
             // Check if we have any addresses to work with
