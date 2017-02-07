@@ -48,6 +48,8 @@ namespace extension {
             , packet_callback()
             , join_callback()
             , leave_callback()
+            , target_mutex()
+            , send_queue()
             , targets()
             , name_target()
             , udp_target() {}
@@ -100,7 +102,7 @@ namespace extension {
 
             // Lock our mutex
             std::lock_guard<std::mutex> lock(target_mutex);
-            
+
             // Erase udp
             auto key = udp_key(target->target);
             if (udp_target.find(key) != udp_target.end()) {
@@ -461,38 +463,40 @@ namespace extension {
 
                             // Check if we should have expected an ack by now for some packets
                             if (it->last_send + (2 * ptr->round_trip_time) < std::chrono::steady_clock::now()) {
-                                
+
                                 // Resend this packet via unicast
                                 msghdr message;
                                 std::memset(&message, 0, sizeof(msghdr));
-                                
+
                                 iovec data[2];
                                 message.msg_iov    = data;
                                 message.msg_iovlen = 2;
-                                
+
                                 // The first element in our iovec is the header
                                 DataPacket header = qit->second.header;
-                                data[0].iov_base = reinterpret_cast<char*>(&header);
-                                data[0].iov_len  = sizeof(DataPacket) - 1;
-                                
+                                data[0].iov_base  = reinterpret_cast<char*>(&header);
+                                data[0].iov_len   = sizeof(DataPacket) - 1;
+
                                 // Some references for easy access to our data memory
                                 auto& base = data[1].iov_base;
                                 auto& len  = data[1].iov_len;
-                                
-                                
+
+
                                 // Work out which packets to resend
                                 for (int i = 0; i < qit->second.header.packet_count; ++i) {
-                                    if((it->acked[i / 8] & uint8_t(1 << (i % 8))) == 0) {
-                                        
+                                    if ((it->acked[i / 8] & uint8_t(1 << (i % 8))) == 0) {
+
                                         // Fill in our packet data
                                         header.packet_no = i;
-                                        
+
                                         base = qit->second.payload.data() + packet_data_mtu * i;
-                                        len = i + 1 < header.packet_count ? packet_data_mtu : qit->second.payload.size() % packet_data_mtu;
-                                        
+                                        len  = i + 1 < header.packet_count
+                                                  ? packet_data_mtu
+                                                  : qit->second.payload.size() % packet_data_mtu;
+
                                         message.msg_name    = &ptr->target;
                                         message.msg_namelen = socket_size(ptr->target);
-                                        
+
                                         ::sendmsg(unicast_fd, &message, 0);
                                     }
                                 }
@@ -561,12 +565,12 @@ namespace extension {
 
                             // Add them into our list
                             auto ptr = std::make_shared<NetworkTarget>(name, std::move(address));
-                            
+
                             /* Mutex scope */ {
                                 std::lock_guard<std::mutex> lock(target_mutex);
-                            targets.push_front(ptr);
-                            udp_target.insert(std::make_pair(key, ptr));
-                            name_target.insert(std::make_pair(name, ptr));
+                                targets.push_front(ptr);
+                                udp_target.insert(std::make_pair(key, ptr));
+                                name_target.insert(std::make_pair(name, ptr));
                             }
 
                             // Say hi back!
@@ -766,7 +770,7 @@ namespace extension {
                             // Check for our packet id in the send queue
                             if (send_queue.count(packet.packet_id) > 0) {
                                 // TODO LOCK A MUTEX!!
-                                
+
                                 auto& queue = send_queue[packet.packet_id];
 
                                 // Find this target in the send queue
