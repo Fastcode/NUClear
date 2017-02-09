@@ -48,17 +48,17 @@ namespace dsl {
          *  \li IDLE:        Tasks assigned with this priority will be queued with all other IDLE tasks.  They will only
          *                   be scheduled for execution when there are no other tasks running in the system.
          *
+         * @attention
+         *  When the priority is not assigned, it will default to NORMAL.
          *
          * @attention
-         *  When working with priorities higher than NORMAL, developers need to ensure that the runtime environment's
-         *  operating system will allow thread scheduling in this manner.
-         *
-         * @par TRENT????
-         *  1.  If priority is not assigned, this will default to NORMAL right?
-         *
-         *  2.  I'm trying to find more information on the OS restrictions.  Can you give me some links/pointers to the
-         *  best places?
-         *
+         *  How the feature behaves depends on the runtime environments OS scheduling settings.
+         *  If the OS does not allow the user to set thread priorities, the executing tasks in NUCLEAR will be
+         *  ordered based on their priority setting, but the process will never be given more priority than that which
+         *  has already been assigned to the process by the OS.
+         *  If the developer wishes to execute more control over process priority, the it is recommended to run
+         *  NUCLEAR in a unix environment.  Note that super-users can execute process control using the commands "nice"
+         *  and "renice".
          *
          * @par Implements
          *  Fusion
