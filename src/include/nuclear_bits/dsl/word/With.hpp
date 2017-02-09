@@ -28,11 +28,11 @@ namespace dsl {
 
         /**
          * @brief
-         *  This is used to define any secondary data which should be provided to a subscribing a reaction.
+         *  This is used to define any other data which should be provided to a subscribing a reaction.
          *
          * @details
-         *  During runtime, the emission of secondary data will not trigger a reaction within the system. For best use,
-         *  this word should be fused with at least one other binding DSL word. For example:
+         *  During runtime, the emission of data using this work will not trigger a reaction within the system.
+         *  For best use, this word should be fused with at least one other binding DSL word. For example:
          *  @code on<Trigger<T1>, With<T2>>() @endcode
          *  When T2 is emitted into the system, it will <b>not</b> trigger a callback to the triggering unit. Yet when
          *  T1 is emitted into the system, read-only access to the most recent copy of both T1 and T2 will be provided
