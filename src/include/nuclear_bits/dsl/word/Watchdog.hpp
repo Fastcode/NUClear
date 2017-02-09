@@ -29,6 +29,38 @@ namespace dsl {
     namespace word {
 
         template <typename TWatchdog, int ticks, class period>
+
+        /**
+         * @brief
+         *  This is used to monitor a type/group of tasks.  If the monitored tasks have not occurred within a desired
+         *  timeframe, the watchdog can be serviced to trigger a specified reaction.
+         *
+         * @details
+         *  This is a useful technique for anything in the system which might stall, and needs to be kick-started.  The
+         *  watchdog can be instructed to watch either a single task, or group of tasks, over a period of time. If no
+         *  activity is detected within that timeframe, the reaction associated with the watchdog will be triggered.
+         * @code on<Watchdog<SampleReactor, 10, std::chrono::milliseconds>>() @endcode
+         *  In the example above, all reactions from the SampleReactor will be monitored.  If a task associated with the
+         *  SampleReactor has not occurred for 10 milliseconds,  the watchdog will be serviced.  When the watchdog is
+         *  serviced, the timer re-sets.
+         *
+         * @par Implements
+         *  Bind, Get
+         *
+         * @par TRENT????
+         *  3 questions:  would you say this one implements Pre-condition???
+         *  Can we discuss the unit test for the watch dog?  I'm unsure of the why for some it.
+         *  Also:  can we discuss the emit ServiceWatchdog message a little bit more?
+         *
+         * @tparam TWatchdog
+         *  the type/group of tasks the watchdog will track
+         * @tparam ticks
+         *  the number of ticks of a particular type to wait
+         * @tparam period
+         *  a type of duration (e.g. std::chrono::seconds) to measure the ticks in, defaults to clock duration. This
+         *  function can accept any of the std::chrono helper types (nanoseconds, microseconds, milliseconds, seconds,
+         *  minutes, hours).
+         */
         struct Watchdog {
 
             template <typename DSL, typename Function>

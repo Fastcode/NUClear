@@ -133,6 +133,11 @@ Always
 ``````
 .. doxygenstruct:: NUClear::dsl::word::Always
 
+Watchdog
+`````````
+.. doxygenstruct:: NUClear::dsl::word::Watchdog
+
+
 Event Keywords
 --------------
 
