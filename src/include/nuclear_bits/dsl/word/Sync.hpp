@@ -42,7 +42,6 @@ namespace dsl {
          *  Pre-condition, Post-condition
          *
          * @par TRENT????
-         *  Does this need to be fused with a binding DSL word, or can you just send it?
          *  Can I get a few more examples of this in use?
          *  What makes a group?  i.e; How do you define the group?  What is the code sample for that?
          *  Lets say its a group of reactions, how do you specify the reaction is a member of that group?
