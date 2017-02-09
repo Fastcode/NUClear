@@ -36,7 +36,7 @@ namespace dsl {
          *  timeframe, the watchdog can be serviced to trigger a specified reaction.
          *
          * @details
-         *  This is a useful technique for anything in the system which might stall, and needs to be kick-started.  The
+         *  This is a useful tool for anything in the system which might stall, and needs to be kick-started.  The
          *  watchdog can be instructed to watch either a single task, or group of tasks, over a period of time. If no
          *  activity is detected within that timeframe, the reaction associated with the watchdog will be triggered.
          * @code on<Watchdog<SampleReactor, 10, std::chrono::milliseconds>>() @endcode
@@ -44,22 +44,31 @@ namespace dsl {
          *  SampleReactor has not occurred for 10 milliseconds,  the watchdog will be serviced.  When the watchdog is
          *  serviced, the timer re-sets.
          *
-         * @par Implements
-         *  Bind, Get
+         * @attention
+         *  When working with watchdog, it needs to be serviced by a watchdog service emission:
+         *  @code  emit(std::make_unique<NUClear::message::ServiceWatchdog<SampleReactor>>()) @endcode
+         *
+         * @attention
+         *  The period which is used to measure the ticks must be greater than or equal to clock::duration or the
+         *  program will not compile.
          *
          * @par TRENT????
-         *  3 questions:  would you say this one implements Pre-condition???
+         *  3 questions:
+         *  Would you say this one implements Pre-condition???
          *  Can we discuss the unit test for the watch dog?  I'm unsure of the why for some it.
-         *  Also:  can we discuss the emit ServiceWatchdog message a little bit more?
+         *  Also:  I might need to discuss the emit ServiceWatchdog message a little bit more.
+         *
+         * @par Implements
+         *  Bind, Get
          *
          * @tparam TWatchdog
          *  the type/group of tasks the watchdog will track
          * @tparam ticks
          *  the number of ticks of a particular type to wait
          * @tparam period
-         *  a type of duration (e.g. std::chrono::seconds) to measure the ticks in, defaults to clock duration. This
-         *  function can accept any of the std::chrono helper types (nanoseconds, microseconds, milliseconds, seconds,
-         *  minutes, hours).
+         *  a type of duration (e.g. std::chrono::seconds) to measure the ticks in.  This will default to clock
+         *  duration, but can accept any of the std::chrono helper types (nanoseconds, microseconds, milliseconds,
+         *  seconds, minutes,
          */
         struct Watchdog {
 

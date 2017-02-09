@@ -68,9 +68,9 @@ namespace dsl {
          * @tparam ticks
          *  the number of ticks of a particular type to wait
          * @tparam period
-         *  a type of duration (e.g. std::chrono::seconds) to measure the ticks in, defaults to clock duration. This
-         *  function can accept any of the std::chrono helper types (nanoseconds, microseconds, milliseconds, seconds,
-         *  minutes, hours).
+         *  a type of duration (e.g. std::chrono::seconds) to measure the ticks in.  This will default to clock
+         *  duration, but can accept any of the std::chrono helper types (nanoseconds, microseconds, milliseconds,
+         *  seconds, minutes, hours).
          */
         template <int ticks = 0, class period = NUClear::clock::duration>
         struct Every;

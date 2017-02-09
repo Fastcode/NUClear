@@ -71,26 +71,28 @@ namespace dsl {
          *
          * @details
          *  That is, during runtime, [0-<i>n</i>] emissions of this data will be kept in the cache.  Once <i>n</i>
-         *  messages are stored in the case, the addition of each new instance will case the oldest copy to be dropped.
+         *  messages are stored, the addition of each new instance will case the oldest copy to be dropped.
          *  When the task is triggered, access to any messages currently in the cache will be provided to the
          *  subscribing reaction.
          *
-         *  For best use, this word should be fused with another binding DSL word. For example:
+         *  This word is a modifier, and should  be used to modify any other "Get" DSL word. For example:
          *  @code on<Last<n, Trigger<T, ...>>() @endcode
-         *
-         * @par TRENT????
-         *  Should this be fused with binding DSL words?  Can it be fused with Get as well???
-         *  Does this implement pre-condition and post-condition as well?
          *
          * @attention
          *  Should the emitted message currently have less than <i>n</i> records in the cache, any callback associated
          *  with this message will provide access to the current data.
          *
-         * @par Implements
-         *  Fusion, Get
+         * @par TRENT???
+         *  we said to come back to this one at the last meeting.  When applying last to multiple get statements, it
+         *  will return a list for each type?  or a set of tuples?
          *
-         * @tparam  n the number of records to be stored in the cache
-         * @tparam  DSLWords The activity this request will be applied to
+         * @par Implements
+         *  Modification
+         *
+         * @tparam  n
+         *  The number of records to be stored in the cache
+         * @tparam  DSLWords
+         *  The DSL word/activity being modified
          */
         template <size_t n, typename... DSLWords>
         struct Last : public Fusion<DSLWords...> {
