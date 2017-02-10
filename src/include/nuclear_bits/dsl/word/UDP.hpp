@@ -42,12 +42,12 @@ namespace dsl {
 
       /**
        * @brief
-       *  This allows a reaction to be triggered based on UDP activity.  When the UDP activity is detected, the
-       *  callback for the associated reaction will be triggered.
+       *  This allows a reaction to be triggered based on UDP activity.  When UDP activity is detected on a bound port,
+       *  the callback for the associated reaction will be triggered.
        *
        * @details
-       *  The request for a UDP based reaction can use a runtime argument to reference the port on which the system will
-       *  listen.  The port reference can be changed during system run-time.
+       *  The request for a UDP based reaction can use a runtime argument to reference a specific port.  Note that the
+       *  port reference can be changed during system run-time.
        *  @code on<UDP>(port) @endcode
        *
        *  Should the port number not be provided, then the system will bind to a currently unassigned port.
@@ -56,13 +56,16 @@ namespace dsl {
        *  Note that a reaction can be triggered via activity on more than one port.  For example:
        *  @code on<UDP, UDP>(port, port)  @endcode
        *
+       * @attention
+       *  on<UDP> can listen for specific activity such as broadcast, multicast and packets.
+       *
+       * @par TRENT???
+       *  I want to expand on the Broadcast, multicast and packets.  I did a grep and I cant see all of these used, and
+       *  I'm not 100% following always.  Do you mind if we read through the unit test, and if you explain a few points
+       *  for me (very sorry!)
+       *
        * @par Implements
        *  Bind
-       *
-       * @par TRENT????
-       *  Can I get more info on what happens on this one?  Does it trigger an event for any activity on the port? OR
-       *  just specific activity?  When binding to an unassigned port - how does it choose the port to use?  Is it
-       *  just the first unassigned that it comes across?
        */
         struct UDP {
 
