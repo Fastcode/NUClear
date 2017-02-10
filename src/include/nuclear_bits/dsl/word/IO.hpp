@@ -70,11 +70,7 @@ namespace dsl {
 				 *
          * @par Implements
          *  Bind
-				 *
-				 * @par TRENT????
-				 *  Just want to check this works with pipes and streams???  or is it just pipes
          */
-				 // IO is implicitly single
         struct IO : public Single {
 
 // On windows we use different wait events

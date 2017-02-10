@@ -58,8 +58,8 @@ namespace dsl {
          *
          * @attention
          *  on<TCP> should be used to define the reaction which will run when the connection has been established.
-         *  This will often be an on<IO> request.  This request will further define the reaction to run when activity
-         *  is detected.  For example:
+         *  Because TCP communications are stream based, the associated reaction will often be an on<IO> request.  This
+         *  request will further define the reaction to run when activity on the stream is detected.  For example:
          *  @code on<TCP>(port).then([this](const TCP::Connection& connection){
          *    on<IO>(connection.fd, IO::READ | IO::CLOSE).then([this](IO::Event event)
          *  } @endcode
