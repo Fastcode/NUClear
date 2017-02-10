@@ -44,25 +44,37 @@ namespace dsl {
 
         /**
          * @brief
-         *  This is used for communication with serial devices and network ports
+         *  This is used to trigger reactions based on standard I/O operations using file descriptors. The associated
+				 *  reaction is triggered when the pipe/stream is in a state matching the descriptor.
          *
          * @details
-         *  Use this to interact with file descriptors and execute when they are read/writeable.
+				 *  For best use, runtime arguments should be provided, which describe the pipe/stream as well as the desired
+				 *  file descriptor.  The generic form of this reaction is:
          *  @code on<IO>(file_descriptor) @endcode
-         *  For file reading, use:
-         *  @code  on<IO>(in, IO::READ) @endcode
-         *  For file writing use:
-         *  @code on<IO>(out, IO::WRITE) @endcode
-         *
+				 *
+				 *  When used, it will likely match one of the following:
+				 *  File reading:  triggers a reaction when the pipe/stream has data available to read.
+         *  @code  on<IO>(pipe, IO::READ) @endcode
+				 *
+				 *  File writing:  triggers a reaction when the pipe/stream has data to be written.
+         *  @code on<IO>(pipe, IO::WRITE) @endcode
+				 *
+				 *  File close:  triggers a reaction when the pipe/stream is closed.
+				 *  @code on<IO>(pipe, IO::CLOSE) @endcode
+				 *
+				 *  File close:  triggers a reaction when the pipe/stream reports an error.
+         *  @code on<IO>(pipe, IO::ERROR) @endcode
+				 *
+				 * @attention
+				 *  Note that any reactions caused by on<IO> are implicitly single.
+				 *
          * @par Implements
          *  Bind
-         *
-         * @par TRENT????
-         *  I need to start recording our meetings.  I know we went over I/O, but I didn't take good notes on this one.
-         *  Can we go through this one again?  When is the event triggered on these ones?
-         *
+				 *
+				 * @par TRENT????
+				 *  Just want to check this works with pipes and streams???  or is it just pipes
          */
-        // IO is implicitly single
+				 // IO is implicitly single
         struct IO : public Single {
 
 // On windows we use different wait events
