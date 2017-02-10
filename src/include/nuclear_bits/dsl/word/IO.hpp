@@ -50,20 +50,20 @@ namespace dsl {
          * @details
 				 *  For best use, runtime arguments should be provided, which describe the pipe/stream as well as the desired
 				 *  file descriptor.  The generic form of this reaction is:
-         *  @code on<IO>(file_descriptor) @endcode
+         *  @code on<IO>(pipe/stream, file_descriptor) @endcode
 				 *
 				 *  When used, it will likely match one of the following:
 				 *  File reading:  triggers a reaction when the pipe/stream has data available to read.
-         *  @code  on<IO>(pipe, IO::READ) @endcode
+         *  @code on<IO>(pipe/stream, IO::READ) @endcode
 				 *
 				 *  File writing:  triggers a reaction when the pipe/stream has data to be written.
-         *  @code on<IO>(pipe, IO::WRITE) @endcode
+         *  @code on<IO>(pipe/stream, IO::WRITE) @endcode
 				 *
 				 *  File close:  triggers a reaction when the pipe/stream is closed.
-				 *  @code on<IO>(pipe, IO::CLOSE) @endcode
+				 *  @code on<IO>(pipe/stream, IO::CLOSE) @endcode
 				 *
 				 *  File close:  triggers a reaction when the pipe/stream reports an error.
-         *  @code on<IO>(pipe, IO::ERROR) @endcode
+         *  @code on<IO>(pipe/stream, IO::ERROR) @endcode
 				 *
 				 * @attention
 				 *  Note that any reactions caused by on<IO> are implicitly single.
