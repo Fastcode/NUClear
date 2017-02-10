@@ -42,27 +42,25 @@ namespace dsl {
 
         /**
          * @brief
-         *  This allows a reaction to be triggered based on TCP activity.  When the TCP activity is detected, the
-         *  callback for the associated reaction will be triggered.
+         *  This allows a reaction to be triggered based on TCP activity.  When a connection is identified on the
+         *  assigned port, the associated reaction will be triggered.
          *
          * @details
-         *  The request for a TCP based reaction can use a runtime argument to reference the port on which the system
-         *  will listen.  The port reference can be changed during system run-time.
+         *  The request for a TCP based reaction can use a runtime argument to reference a specific port.  Note that the
+         *  port reference can be changed during system run-time.
          *  @code on<TCP>(port) @endcode
          *
          *  Should the port number not be provided, then the system will bind to a currently unassigned port.
          *  @code on<TCP>() @endcode
          *
-         *  Note that a reaction can be triggered via activity on more than one port.  For example:
+         *  Note that a reaction can be triggered via connectivity for more than one port.  For example:
          *  @code on<TCP, TCP>(port, port)  @endcode
+         *
+         * @attention
+         *  To trigger a reaction based on activity, fuse on<TCP> with an IO request.
          *
          * @par Implements
          *  Bind
-         *
-         * @par TRENT????
-         *  Can I get more info on what happens on this one?  Does it trigger an event for any activity on the port? OR
-         *  just specific activity?  When binding to an unassigned port - how does it choose the port to use?  Is it
-         *  just the first unassigned that it comes across?
          */
         struct TCP {
 
