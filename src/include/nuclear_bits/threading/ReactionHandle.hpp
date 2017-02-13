@@ -62,7 +62,7 @@ namespace threading {
         /**
          * @brief Sets the enable status to the passed boolean.
          *
-         * @param set the run status of the handle handle to be of the boolean
+         * @param set the run status of the handle to be of the boolean
          */
         ReactionHandle& enable(bool set);
 
