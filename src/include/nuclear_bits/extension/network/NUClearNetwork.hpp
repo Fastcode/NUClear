@@ -109,7 +109,7 @@ namespace extension {
              * @param target        who we are sending to (blank means everyone)
              * @param reliable      if the delivery of the data should be ensured
              */
-            void send(const std::array<uint64_t, 2>& hash,
+            void send(const uint64_t& hash,
                       const std::vector<char>& payload,
                       const std::string& target,
                       bool reliable);
@@ -120,7 +120,7 @@ namespace extension {
              * @param f the callback function
              */
             void set_packet_callback(
-                std::function<void(const NetworkTarget&, const std::array<uint64_t, 2>&, std::vector<char>&&)> f);
+                std::function<void(const NetworkTarget&, const uint64_t&, std::vector<char>&&)> f);
 
             /**
              * @brief Set the callback to use when a node joins the network
@@ -257,7 +257,7 @@ namespace extension {
             std::atomic<uint16_t> packet_id_source;
 
             /// The callback to execute when a data packet is completed
-            std::function<void(const NetworkTarget&, const std::array<uint64_t, 2>&, std::vector<char>&&)>
+            std::function<void(const NetworkTarget&, const uint64_t&, std::vector<char>&&)>
                 packet_callback;
 
             /// The callback to execute when a node joins the network

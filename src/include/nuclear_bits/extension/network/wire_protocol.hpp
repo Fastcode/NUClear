@@ -52,7 +52,7 @@ namespace extension {
             uint16_t packet_no;            // What packet number this is within the group
             uint16_t packet_count;         // How many packets there are in the group
             bool reliable;                 // If this packet is reliable and should be acked
-            std::array<uint64_t, 2> hash;  // The 128 bit hash to identify the data type
+            uint64_t hash;                 // The 64 bit hash to identify the data type
             char data;                     // The data (&data)
         };
 

@@ -60,7 +60,7 @@ namespace extension {
         }
 
         void NUClearNetwork::set_packet_callback(
-            std::function<void(const NetworkTarget&, const std::array<uint64_t, 2>&, std::vector<char>&&)> f) {
+            std::function<void(const NetworkTarget&, const uint64_t&, std::vector<char>&&)> f) {
             packet_callback = f;
         }
 
@@ -926,7 +926,7 @@ namespace extension {
         }
 
 
-        void NUClearNetwork::send(const std::array<uint64_t, 2>& hash,
+        void NUClearNetwork::send(const uint64_t& hash,
                                   const std::vector<char>& payload,
                                   const std::string& target,
                                   bool reliable) {

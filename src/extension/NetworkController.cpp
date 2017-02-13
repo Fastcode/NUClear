@@ -41,7 +41,7 @@ namespace extension {
 
         // Set our function callback
         network.set_packet_callback([this](const network::NUClearNetwork::NetworkTarget& remote,
-                                           const std::array<uint64_t, 2>& hash,
+                                           const uint64_t& hash,
                                            std::vector<char>&& payload) {
 
             // Construct our NetworkSource information

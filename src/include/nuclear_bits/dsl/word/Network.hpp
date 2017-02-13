@@ -43,7 +43,7 @@ namespace dsl {
         struct NetworkListen {
             NetworkListen() : hash(), reaction() {}
 
-            std::array<uint64_t, 2> hash;
+            uint64_t hash;
             std::shared_ptr<threading::Reaction> reaction;
         };
 
