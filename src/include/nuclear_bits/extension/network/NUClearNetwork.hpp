@@ -267,6 +267,9 @@ namespace extension {
 
             /// A mutex to guard modifications to the target lists
             std::mutex target_mutex;
+            
+            /// A mutex to guard modifications to the send queue
+            std::mutex send_queue_mutex;
 
             /// A map from packet_id to allow resending reliable data
             std::map<uint16_t, PacketQueue> send_queue;

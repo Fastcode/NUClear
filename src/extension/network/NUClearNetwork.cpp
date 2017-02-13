@@ -767,9 +767,11 @@ namespace extension {
                             // We got a packet from them recently
                             remote->last_update = std::chrono::steady_clock::now();
 
+                            // lock the send queue mutex
+                            std::lock_guard<std::mutex> send_lock(send_queue_mutex);
+                            
                             // Check for our packet id in the send queue
                             if (send_queue.count(packet.packet_id) > 0) {
-                                // TODO LOCK A MUTEX!!
 
                                 auto& queue = send_queue[packet.packet_id];
 
