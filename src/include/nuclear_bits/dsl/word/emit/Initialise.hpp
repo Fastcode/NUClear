@@ -26,17 +26,26 @@ namespace dsl {
         namespace emit {
 
             /**
-             * @brief Emit an object as the system starts up.
+             * @brief
+             *  This scope emits data as the system starts up.
              *
-             * @details Initialise emits can only be done before in the main phase of execution. Tasks that are
-             *          emitted using this will be executed just before the system starts into the main phase.
-             *          This can be useful for cases when a Reactor wants to emit to all other reactors but they may
-             *          not yet be installed. Using this allows the message to wait until all Reactors are installed
-             *          and then emit.
+             * @details
+             *  @code emit<Scope::INITIALISE>(data, dataType); @endcode
+             *  This kind of emission should be used to emit any data required during system start up.  This can be
+             *  useful for cases when a Reactor wants to emit to all other reactors but they may not yet be installed.
+             *  Using this scope, the message will wait until all Reactors are installed into the PowerPlant.  Once
+             *  installed, the data will be emitted to the system.
              *
-             * @param data the data to emit
+             * @attention
+             *  Tasks executed based on data emitted under this scope will be executed while the system is in the
+             *  initialisation phase. These tasks are the final activity which occur before the system shifts into the
+             *  execution phase. For more information, please see the notes regarding system startup.
              *
-             * @tparam DataType the type of the data to be emitted
+             * @param data
+             *  The data to emit
+             *
+             * @tparam DataType
+             *  The type of the data to be emitted
              */
             template <typename DataType>
             struct Initialise {

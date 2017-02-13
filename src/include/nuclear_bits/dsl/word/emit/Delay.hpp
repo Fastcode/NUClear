@@ -27,15 +27,28 @@ namespace dsl {
         namespace emit {
 
             /**
-             * @brief Emits the passed object after the provided delay.
+             * @brief
+             *  This will emit data, after the provided delay.
              *
-             * @details Delay emits will wait the provided time delay and then emit the object utilising a normal
-             *          local emit.
+             * @details
+             *  @code emit<Scope::DELAY>(data, delay(ticks), dataType); @endcode
+             *  Delay emits will wait the provided time delay and then emit the object utilising a local emit (normal
+             *  Threadpool distribution).
              *
-             * @param data  the data to emit
-             * @param delay the amount of time to wait before emitting this object
              *
-             * @tparam DataType the datatype of the object to emit
+             * @par TRENT????
+             *  can this be fussed with delay/direct or one of the networking scopes, if you want that kind of
+             *  behaviour?
+             *
+             * @param data
+             *  the data to emit
+             * @param delay(ticks)
+             *  The time to wait before emitting this object. Use delay to specify the unit in which to measure the
+             *  ticks, this will default to clock duration, but can accept any of the std::chrono helper types
+             *  (nanoseconds, microseconds, milliseconds, seconds, minutes, hours).  Use an int to specify the number
+             *  of ticks to wait.
+             * @tparam DataType
+             *  the datatype of the object to emit
              */
             template <typename DataType>
             struct Delay {

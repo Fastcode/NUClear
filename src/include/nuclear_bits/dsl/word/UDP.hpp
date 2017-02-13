@@ -46,8 +46,8 @@ namespace dsl {
        *  the callback for the associated reaction will be triggered.
        *
        * @details
-       *  The request for a UDP based reaction can use a runtime argument to reference a specific port.  Note that the
-       *  port reference can be changed during system run-time.
+       *  The request for a UDP based reaction can use a runtime argument to reference a specific port, i.e; the port
+       *  reference can be changed during system run-time.
        *  @code on<UDP>(port) @endcode
        *
        *  Should the port number not be provided, then the system will bind to a currently unassigned port.
@@ -60,9 +60,8 @@ namespace dsl {
        *  on<UDP> can listen for specific activity such as broadcast, multicast and packets.
        *
        * @par TRENT???
-       *  I want to expand on the Broadcast, multicast and packets.  I did a grep and I cant see all of these used, and
-       *  I'm not 100% following always.  Do you mind if we read through the unit test, and if you explain a few points
-       *  for me (very sorry!)
+       *  I want to expand on the Broadcast, multicast and packets.  I did a grep and I cant see all of these used. Do
+       *  you mind if we read through the unit test, and if you explain a few points for me (very sorry!)
        *
        * @par Implements
        *  Bind

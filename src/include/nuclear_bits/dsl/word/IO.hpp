@@ -53,7 +53,7 @@ namespace dsl {
          *  @code on<IO>(pipe/stream, file_descriptor) @endcode
 				 *
 				 *  When used, it will likely match one of the following:
-				 *  File reading:  triggers a reaction when the pipe/stream has data available to read.
+         *  File reading:  triggers a reaction when the pipe/stream has data available to read.
          *  @code on<IO>(pipe/stream, IO::READ) @endcode
 				 *
 				 *  File writing:  triggers a reaction when the pipe/stream has data to be written.
