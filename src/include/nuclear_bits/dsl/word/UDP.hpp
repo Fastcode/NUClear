@@ -57,7 +57,8 @@ namespace dsl {
        *  @code on<UDP, UDP>(port, port)  @endcode
        *
        * @attention
-       *  on<UDP> can listen for specific activity such as broadcast, multicast and packets.
+       *  on<UDP> can listen for specific activity such as broadcast, multicast and packets.  Currently supports IPv4
+       *  addressing.
        *
        * @par TRENT???
        *  I want to expand on the Broadcast, multicast and packets.  I did a grep and I cant see all of these used. Do
