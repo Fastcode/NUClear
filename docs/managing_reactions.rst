@@ -10,7 +10,7 @@ The reaction handle provides the following functions for managing a reaction:
 
 enable
 ```````
-.. doxygenstruct:: NUClear::threading::ReactionHandle::enable
+.. doxygenstruct:: NUClear::threading::ReactionHandle
 
 
 Keep LOOKING INTO!!!!???
