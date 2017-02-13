@@ -18,6 +18,7 @@
 #ifndef NUCLEAR_DSL_WORD_TRIGGER_HPP
 #define NUCLEAR_DSL_WORD_TRIGGER_HPP
 
+#include "nuclear_bits/dsl/Fusion.hpp"
 #include "nuclear_bits/dsl/operation/CacheGet.hpp"
 #include "nuclear_bits/dsl/operation/TypeBind.hpp"
 
@@ -47,11 +48,11 @@ namespace dsl {
          *  if you update this so that it would become:  @code on<Trigger<T1, T2, ... >>() @endcode and I will change
          *  the note back.
          *
-         * @tparam T
+         * @tparam Ts
          *  The datatype on which a reaction callback will be triggered.
          */
-        template <typename T>
-        struct Trigger : public operation::TypeBind<T>, public operation::CacheGet<T> {};
+        template <typename... Ts>
+        struct Trigger : public Fusion<operation::TypeBind<Ts>..., operation::CacheGet<Ts>...> {};
 
     }  // namespace word
 }  // namespace dsl
