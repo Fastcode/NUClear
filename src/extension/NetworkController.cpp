@@ -34,7 +34,7 @@ namespace extension {
     NetworkController::NetworkController(std::unique_ptr<NUClear::Environment> environment)
         : Reactor(std::move(environment))
         , network()
-        , announce_handle()
+        , timed_handle()
         , listen_handles()
         , reaction_mutex()
         , reactions() {
@@ -126,8 +126,8 @@ namespace extension {
         on<Trigger<NetworkConfiguration>>().then([this](const NetworkConfiguration& config) {
 
             // Unbind our announce handle
-            if (announce_handle) {
-                announce_handle.unbind();
+            if (timed_handle) {
+                timed_handle.unbind();
             }
 
             // Unbind all our listen handles
@@ -148,8 +148,9 @@ namespace extension {
             network.reset(name, multicast_group, multicast_port, mtu);
 
             // Announce handle
-            announce_handle =
-                on<Every<2, Per<std::chrono::seconds>>, Single>().then("Announce", [this] { network.announce(); });
+            timed_handle = on<Watchdog<NetworkController, 500, std::chrono::milliseconds>>().then("Network processing", [this] {
+                network.process();
+            });
 
             for (auto& fd : network.listen_fds()) {
                 listen_handles.push_back(on<IO>(fd, IO::READ).then("Packet", [this] { network.process(); }));

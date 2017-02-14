@@ -135,6 +135,13 @@ namespace extension {
              * @param f the callback function
              */
             void set_leave_callback(std::function<void(const NetworkTarget&)> f);
+            
+            /**
+             * @brief Set the callback to use when the system want's to notify when it next needs attention
+             *
+             * @param f the callback function
+             */
+            void set_next_event_callback(std::function<void(std::chrono::steady_clock::time_point)> f);
 
             /**
              * @brief Leave the NUClear network
@@ -159,11 +166,6 @@ namespace extension {
              * @brief Process waiting data in the UDP sockets and send them to the callback if they are relevant.
              */
             void process();
-
-            /**
-             * @brief Send an announce packet over UDP multicast
-             */
-            void announce();
 
             /**
              * @brief Get the file descriptors that the network listens on
@@ -222,6 +224,26 @@ namespace extension {
              * @param data      the data that was sent in this packet
              */
             void process_packet(sock_t&& address, std::vector<char>&& payload);
+            
+            /**
+             * @brief Send an announce packet over UDP multicast
+             */
+            void announce();
+            
+            /**
+             * @brief Retransmit waiting packets that failed to send
+             */
+            void retransmit();
+
+            /**
+             * @brief Send an individual packet to an individual target
+             *
+             * @param target    the target to send the packet to
+             * @param header    the header for this packet
+             * @param packet_no the packet number we are sending
+             * @param payload   the data bytes for the entire packet
+             */
+            void send_packet(const sock_t& target, DataPacket header, uint16_t packet_no, const std::vector<char>& payload);
 
             /**
              * @brief Get the map key for this socket address
@@ -259,15 +281,20 @@ namespace extension {
             /// The callback to execute when a data packet is completed
             std::function<void(const NetworkTarget&, const uint64_t&, std::vector<char>&&)>
                 packet_callback;
-
             /// The callback to execute when a node joins the network
             std::function<void(const NetworkTarget&)> join_callback;
             /// The callback to execute when a node leaves the network
             std::function<void(const NetworkTarget&)> leave_callback;
-
-            /// A mutex to guard modifications to the target lists
-            std::mutex target_mutex;
+            /// The callback to execute when a node leaves the network
+            std::function<void(std::chrono::steady_clock::time_point)> next_event_callback;
             
+            /// When we are next due to send an announce packet
+            std::chrono::steady_clock::time_point last_announce;
+            /// When the next timed event is due
+            std::chrono::steady_clock::time_point next_event;
+
+            /// A mutex to guard modifications to the target lists NOTE: mutex lock order must always be this order to avoid deadlocks
+            std::mutex target_mutex;
             /// A mutex to guard modifications to the send queue
             std::mutex send_queue_mutex;
 

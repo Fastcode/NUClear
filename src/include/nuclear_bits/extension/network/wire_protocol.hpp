@@ -25,10 +25,10 @@ namespace extension {
     namespace network {
 
 #pragma pack(push, 1)
-        enum Type : uint8_t { ANNOUNCE = 1, LEAVE = 2, DATA = 3, ACK = 4, NACK = 5 };
+        enum Type : uint8_t { ANNOUNCE = 1, LEAVE = 2, DATA = 3, DATA_RETRANSMISSION = 4, ACK = 5, NACK = 6 };
 
         struct PacketHeader {
-            PacketHeader() : type() {}
+            PacketHeader(const Type& t) : type(t) {}
 
             uint8_t header[3] = {0xE2, 0x98, 0xA2};  // Radioactive symbol in UTF8
             uint8_t version   = 0x02;                // The NUClear networking version
@@ -36,17 +36,17 @@ namespace extension {
         };
 
         struct AnnouncePacket : public PacketHeader {
-            AnnouncePacket() : name(0) {}
+            AnnouncePacket() : PacketHeader(ANNOUNCE), name(0) {}
 
             char name;  // A null terminated string name for this node (&name)
         };
 
         struct LeavePacket : public PacketHeader {
-            LeavePacket() {}
+            LeavePacket() : PacketHeader(LEAVE) {}
         };
 
         struct DataPacket : public PacketHeader {
-            DataPacket() : packet_id(0), packet_no(0), packet_count(1), reliable(false), hash(), data(0) {}
+            DataPacket() : PacketHeader(DATA), packet_id(0), packet_no(0), packet_count(1), reliable(false), hash(), data(0) {}
 
             uint16_t packet_id;            // A semiunique identifier for this packet group
             uint16_t packet_no;            // What packet number this is within the group
@@ -57,7 +57,7 @@ namespace extension {
         };
 
         struct ACKPacket : public PacketHeader {
-            ACKPacket() : packet_id(0), packet_no(0), packet_count(1), packets(0) {}
+            ACKPacket() : PacketHeader(ACK), packet_id(0), packet_no(0), packet_count(1), packets(0) {}
 
             uint16_t packet_id;     // The packet group identifier we are acknowledging
             uint16_t packet_no;     // The index of the packet we are acknowledging
@@ -67,7 +67,7 @@ namespace extension {
 
         struct NACKPacket : public PacketHeader {
 
-            NACKPacket() : packet_id(0), packet_count(1), packets(0) {}
+            NACKPacket() : PacketHeader(NACK), packet_id(0), packet_count(1), packets(0) {}
 
             uint16_t packet_id;     // The packet group identifier we are acknowledging
             uint16_t packet_count;  // How many packets there are in the group

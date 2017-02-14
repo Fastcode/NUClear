@@ -33,7 +33,7 @@ namespace extension {
         network::NUClearNetwork network;
 
         /// The reaction that is doing our periodic announcement
-        ReactionHandle announce_handle;
+        ReactionHandle timed_handle;
         /// The reactions that listen for io
         std::vector<ReactionHandle> listen_handles;
 
