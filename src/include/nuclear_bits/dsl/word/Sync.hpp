@@ -37,18 +37,22 @@ namespace dsl {
          *  @code on<Trigger<T, ...>, Sync<Group>>() @endcode
          *
          * @attention
-         *  Note that when syncing on a group of tasks, they tasks would generally be from the same reactor.  For
-         *  example, consider a reactor, which uses a Kalman filter to produce estimates of unknown variables. Suppose
-         *  the reactor contains a number of a reactions to make its predictions, and modify its state.  In this case,
-         *  it would be unwise to allow the reactions to run concurrently, so it is recommended that any reaction which
+         *  Use of this feature is preferred to use of a mutex in your reactor.  In the case of a mutex, threads will
+         *  run and then would block.  This would lead to wasted resources on a number of waiting threads.  Using the
+         *  synchronisation feature, NUClear has greater task and thread control, so that resources can be efficiently
+         *  managed.  When using this system, developers should not have to worry about the use of devices such as a
+         *  mutex.
+         *
+         * @par Example
+         *  Consider a reactor, which uses a Kalman filter to produce estimates of unknown variables. Suppose the
+         *  reactor contains a number of a reactions to make its predictions, and modify its state.  In this case, it
+         *  would be unwise to allow the reactions to run concurrently, so it is recommended that any reaction which
          *  would modify the state of the reactor be synced,
          *
          * @par Implements
          *  Pre-condition, Post-condition
          *
          * @par TRENT????
-         *  Why don't we want a mutex?  is it just because we want All threading logic centralized and handled by
-         *  NUClear- So this is as deep as a developer should have to go?
          *  Lets say its a group of reactions?  I basically specify the reaction is part of the group it applies to by
          *  using:
          *  on< ..., Sync<Group>.then...
