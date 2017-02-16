@@ -93,7 +93,9 @@ namespace util {
                         update_current_thread_priority(task->priority);
 
                         // Record our start time
+#ifdef HIGH_PERFORMANCE_MODE
                         task->stats->started = clock::now();
+#endif
 
                         // We have to catch any exceptions
                         try {
@@ -103,17 +105,23 @@ namespace util {
                         catch (...) {
 
                             // Catch our exception if it happens
+#ifdef HIGH_PERFORMANCE_MODE
                             task->stats->exception = std::current_exception();
+#endif
                         }
 
                         // Our finish time
+#ifdef HIGH_PERFORMANCE_MODE
                         task->stats->finished = clock::now();
+#endif
 
                         // Run our postconditions
                         DSL::postcondition(*task);
-
+                        
+#ifdef HIGH_PERFORMANCE_MODE
                         // Emit our reaction statistics
                         PowerPlant::powerplant->emit<dsl::word::emit::Direct>(task->stats);
+#endif
                     }
 
                     // Return our task

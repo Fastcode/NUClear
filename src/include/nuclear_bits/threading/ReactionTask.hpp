@@ -83,8 +83,10 @@ namespace threading {
         uint64_t id;
         /// @brief the priority to run this task at
         int priority;
+#ifdef HIGH_PERFORMANCE_MODE
         /// @brief the statistics object that persists after this for information and debugging
         std::unique_ptr<message::ReactionStatistics> stats;
+#endif
 
         /// @brief the data bound callback to be executed
         /// @attention note this must be last in the list as the this pointer is passed to the callback generator
@@ -103,9 +105,13 @@ namespace threading {
 
         // If we ever have a null pointer, we move it to the top of the queue as it is being removed
         return a == nullptr ? false
-                            : b == nullptr ? true
-                                           : a->priority == b->priority ? a->stats->emitted > b->stats->emitted
-                                                                        : a->priority < b->priority;
+             : b == nullptr ? true
+#ifdef HIGH_PERFORMANCE_MODE
+             : a->priority != b->priority ? a->priority < b->priority
+             : a->stats->emitted > b->stats->emitted;
+#else
+            : a->priority < b->priority;
+#endif
     }
 
 }  // namespace threading

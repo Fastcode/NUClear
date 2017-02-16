@@ -27,7 +27,9 @@ namespace threading {
     // This here is a hack because for some reason Xcode is broken and doesn't generate the destructors for this
     // class...???!!!
     // TODO once XCode stops being so stupid, you can remove this
+#ifdef HIGH_PERFORMANCE_MODE
     message::ReactionStatistics r;
+#endif
 
     // Initialize our current task
     ATTRIBUTE_TLS ReactionTask* ReactionTask::current_task = nullptr;
@@ -38,6 +40,7 @@ namespace threading {
         : parent(parent)
         , id(++task_id_source)
         , priority(priority)
+#ifdef HIGH_PERFORMANCE_MODE
         , stats(new message::ReactionStatistics{parent.identifier,
                                                 parent.id,
                                                 id,
@@ -47,6 +50,7 @@ namespace threading {
                                                 clock::time_point(std::chrono::seconds(0)),
                                                 clock::time_point(std::chrono::seconds(0)),
                                                 nullptr})
+#endif
         , callback(callback) {
 
         // There is one new active task

@@ -36,8 +36,10 @@ namespace message {
         /// @brief The string contents of the message.
         std::string message;
 
+#ifdef HIGH_PERFORMANCE_MODE
         /// @brief The currently executing task that made this message
         const ReactionStatistics* task;
+#endif
     };
 
 }  // namespace message

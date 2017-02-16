@@ -19,6 +19,7 @@
 
 #include "nuclear"
 
+#ifdef HIGH_PERFORMANCE_MODE
 // Anonymous namespace to keep everything file local
 namespace {
 
@@ -27,7 +28,6 @@ struct Message {};
 
 bool seen_message0        = false;
 bool seen_message_startup = false;
-
 class TestReactor : public NUClear::Reactor {
 public:
     TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
@@ -80,3 +80,4 @@ TEST_CASE("Testing reaction statistics functionality", "[api][reactionstatistics
 
     plant.start();
 }
+#endif

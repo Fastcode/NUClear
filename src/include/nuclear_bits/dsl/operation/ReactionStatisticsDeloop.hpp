@@ -22,6 +22,7 @@ namespace NUClear {
 namespace dsl {
     namespace operation {
 
+#ifdef HIGH_PERFORMANCE_MODE
         /**
          * @brief Prevent recursive looping when using the ReactionStatistics system
          *
@@ -47,8 +48,10 @@ namespace dsl {
                 }
             }
         };
-    }
-
+        
+#endif
+        
+    }  // namespace operation
 }  // namespace message
 }  // namespace NUClear
 

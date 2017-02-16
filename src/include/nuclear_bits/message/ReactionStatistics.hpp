@@ -25,6 +25,8 @@
 
 namespace NUClear {
 namespace message {
+    
+#ifdef HIGH_PERFORMANCE_MODE
 
     /**
      * @brief Holds details about reactions that are executed.
@@ -80,6 +82,8 @@ namespace message {
         /// @brief An exception pointer that can be rethrown (if the reaction threw an exception)
         std::exception_ptr exception;
     };
+    
+#endif
 
 }  // namespace message
 }  // namespace NUClear

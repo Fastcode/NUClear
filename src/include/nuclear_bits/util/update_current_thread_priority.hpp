@@ -24,6 +24,9 @@
 
 inline void update_current_thread_priority(int priority) {
 
+#ifndef HIGH_PERFORMANCE_MODE
+    return;
+#endif
 
     // TODO SCHED_NORMAL for normal threads
     // TODO SCHED_FIFO for realtime threads
