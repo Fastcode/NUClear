@@ -34,9 +34,11 @@ unbound, it is no longer available for further use.  This is most commonly used 
 configuration before attempting to re-set during runtime.
 
 
-Keep LOOKING INTO!!!!???
-How is the reaction handle provided to the reactor to use?  Review and see if you can describe
-Note:  How do I get doxygen reaction handle comments into here?  have tried:
-.. doxygenstruct:: NUClear::threading::ReactionHandle
-and
-.. doxygenstruct:: NUClear::threading::ReactionHandle::enable
+.. todo::
+
+  Keep LOOKING INTO!!!!???
+  How is the reaction handle provided to the reactor to use?  Review and see if you can describe
+  Note:  How do I get doxygen reaction handle comments into here?  have tried:
+  .. doxygenstruct:: NUClear::threading::ReactionHandle
+  and
+  .. doxygenstruct:: NUClear::threading::ReactionHandle::enable
