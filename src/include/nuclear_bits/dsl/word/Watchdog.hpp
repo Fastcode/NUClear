@@ -48,13 +48,12 @@ namespace dsl {
          * @attention
          *  When working with watchdog, it needs to be serviced by a watchdog service emission:
          *  @code  emit(std::make_unique<NUClear::message::ServiceWatchdog<SampleReactor>>()) @endcode
+         *  This emission should use the same template type as the watchdog.  Each time this emission occurs, the
+         *  watchdog timer will be reset.
          *
          * @attention
          *  The period which is used to measure the ticks must be greater than or equal to clock::duration or the
          *  program will not compile.
-         *
-         * @par TRENT????
-         *  I still need to go through the unit test more. Not enough pennies dropping.
          *
          * @par Implements
          *  Bind, Get
