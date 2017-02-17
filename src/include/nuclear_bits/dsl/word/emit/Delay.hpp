@@ -43,10 +43,11 @@ namespace dsl {
              * @param data
              *  the data to emit
              * @param delay(ticks)
-             *  The time to wait before emitting this object. Use delay to specify the unit in which to measure the
-             *  ticks, this will default to clock duration, but can accept any of the std::chrono helper types
-             *  (nanoseconds, microseconds, milliseconds, seconds, minutes, hours).  Use an int to specify the number
-             *  of ticks to wait.
+             *  the time to wait before emitting this object. Use delay to specify the unit in which to measure the
+             *  ticks, this will default to clock duration, but can accept any of the defined std::chrono durations
+             *  (nanoseconds, microseconds, milliseconds, seconds, minutes, hours). Note that you can also define your
+             *  own unit:  See http://en.cppreference.com/w/cpp/chrono/duration Use an int to specify the number of
+             *  ticks to wait.
              * @tparam DataType
              *  the datatype of the object to emit
              */
