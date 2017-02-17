@@ -588,7 +588,7 @@ namespace extension {
                         if (!remote) {
                             std::string name(&announce.name, payload.size() - sizeof(AnnouncePacket));
 
-                            // If they sent us an empty name ignore that's reserved for multicast
+                            // If they sent us an empty name ignore that's reserved for multicast transmissions
                             if (!name.empty()) {
                                 // Add them into our list
                                 auto ptr = std::make_shared<NetworkTarget>(name, std::move(address));
@@ -620,10 +620,9 @@ namespace extension {
 
                         // Goodbye!
                         if (remote) {
-
-                            std::lock_guard<std::mutex> lock(target_mutex);
-
+                            
                             // Remove from our list
+                            std::lock_guard<std::mutex> lock(target_mutex);
                             remove_target(remote);
                             leave_callback(*remote);
                         }
@@ -651,6 +650,11 @@ namespace extension {
 
                             // If this is a solo packet (in a single chunk)
                             if (packet.packet_count == 1) {
+                                
+                                if (header.type == DATA_RETRANSMISSION) {
+                                    // TODO we might have acked this packet already, and the ack was just dropped. We don't want to process it twice
+                                    // TODO we will need a method to know which packets we have recently procesed to know if this one is invalid
+                                }
 
                                 // Copy our data into a vector
                                 std::vector<char> out(&packet.data,
@@ -683,14 +687,12 @@ namespace extension {
                                 auto& assembler = assemblers[packet.packet_id];
 
                                 // First check that our cache isn't super corrupted by ensuring that our last packet
-                                // in
-                                // our list isn't after the number of packets we have
+                                // in our list isn't after the number of packets we have
                                 if (!assembler.second.empty()
                                     && std::next(assembler.second.end(), -1)->first >= packet.packet_count) {
 
                                     // If so, we need to purge our cache and if this was a reliable packet, send a
-                                    // NACK
-                                    // back for all the packets we thought we had
+                                    // NACK back for all the packets we thought we had
                                     // We don't know if we have any packets except the one we just got
                                     if (packet.reliable) {
 
@@ -720,9 +722,11 @@ namespace extension {
                                             ::sendto(unicast_fd, r.data(), r.size(), 0, &to.sock, socket_size(to));
                                     }
 
+                                    // Clear our packets here (the one we just got will be added right after this)
                                     assembler.second.clear();
                                 }
 
+                                // Add our packet to our list of assemblers
                                 assembler.first                    = std::chrono::steady_clock::now();
                                 assembler.second[packet.packet_no] = std::move(payload);
 
@@ -757,15 +761,8 @@ namespace extension {
                                     // Work out exactly how much data we will need first so we only need one
                                     // allocation
                                     size_t payload_size = 0;
-                                    int packet_index    = 0;
                                     for (auto& packet : assembler.second) {
-                                        if (packet.first != packet_index++) {
-                                            // TODO this data was bad, erase it or something
-                                            return;
-                                        }
-                                        else {
-                                            payload_size += packet.second.size() - sizeof(DataPacket) + 1;
-                                        }
+                                        payload_size += packet.second.size() - sizeof(DataPacket) + 1;
                                     }
 
                                     // Read in our data
@@ -814,55 +811,55 @@ namespace extension {
                                                       [&](const PacketQueue::PacketTarget& target) {
                                                           return target.target.lock() == remote;
                                                       });
-
-                                // We know who this is
-                                if (s != queue.targets.end()) {
-
-                                    // Now we need to validate that the ack is relevant and valid
-                                    if (packet.packet_count != queue.header.packet_count
-                                        || payload.size() < (sizeof(ACKPacket) + (queue.header.packet_count / 8))) {
-
-                                        // TODO this is an invalid ack we should handle it somehow!
-                                    }
-                                    else {
-                                        // Work out about how long our round trip time is
-                                        auto now        = std::chrono::steady_clock::now();
-                                        auto round_trip = now - s->last_send;
-
-                                        // Approximate how long the round trip is to this remote so we can work out how
-                                        // long before retransmitting
-                                        // We use a baby kalman filter to help smooth out jitter
-                                        remote->measure_round_trip(round_trip);
-
-                                        // Update our acks
-                                        bool all_acked = true;
-                                        for (unsigned i = 0; i < s->acked.size(); ++i) {
-
-                                            // Update our bitset
-                                            s->acked[i] |= (&packet.packets)[i];
-
-                                            // Work out what a "fully acked" packet would look like
-                                            uint8_t expected = i + 1 < s->acked.size() || packet.packet_count % 8 == 0
-                                                                   ? 0xFF
-                                                                   : 0xFF >> (8 - (packet.packet_count % 8));
-
-                                            all_acked &= (s->acked[i] & expected) == expected;
-                                        }
-
-                                        // The remote has received this entire packet we can erase our one
-                                        if (all_acked) {
-                                            queue.targets.erase(s);
-
-                                            // If we're all done remove the whole thing
-                                            if (queue.targets.empty()) {
-                                                send_queue.erase(packet.packet_id);
-                                            }
-                                        }
-                                    }
+                                
+                                // We have no idea who this is, but they seem to want this packet
+                                // The most likely scenario is it was a broadcast message we sent was received by someone
+                                // who we didn't know at the time but we do know now. We have the choice here of ignoring them
+                                // or sending a new fresh packet
+                                if (s == queue.targets.end()) {
+                                    // TODO implement this logic and set s equal to the new guy
                                 }
-                                // Someone else is ACKing that we didn't expect
+
+                                // Now we need to validate that the ack is relevant and valid
+                                if (packet.packet_count != queue.header.packet_count
+                                    || payload.size() < (sizeof(ACKPacket) + (queue.header.packet_count / 8))) {
+
+                                    // TODO this is an invalid ack we should handle it somehow!
+                                }
                                 else {
-                                    // TODO should we add and start sending to them?
+                                    // Work out about how long our round trip time is
+                                    auto now        = std::chrono::steady_clock::now();
+                                    auto round_trip = now - s->last_send;
+
+                                    // Approximate how long the round trip is to this remote so we can work out how
+                                    // long before retransmitting
+                                    // We use a baby kalman filter to help smooth out jitter
+                                    remote->measure_round_trip(round_trip);
+
+                                    // Update our acks
+                                    bool all_acked = true;
+                                    for (unsigned i = 0; i < s->acked.size(); ++i) {
+
+                                        // Update our bitset
+                                        s->acked[i] |= (&packet.packets)[i];
+
+                                        // Work out what a "fully acked" packet would look like
+                                        uint8_t expected = i + 1 < s->acked.size() || packet.packet_count % 8 == 0
+                                                               ? 0xFF
+                                                               : 0xFF >> (8 - (packet.packet_count % 8));
+
+                                        all_acked &= (s->acked[i] & expected) == expected;
+                                    }
+
+                                    // The remote has received this entire packet we can erase our one
+                                    if (all_acked) {
+                                        queue.targets.erase(s);
+
+                                        // If we're all done remove the whole thing
+                                        if (queue.targets.empty()) {
+                                            send_queue.erase(packet.packet_id);
+                                        }
+                                    }
                                 }
                             }
                         }
