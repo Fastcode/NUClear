@@ -32,13 +32,14 @@ namespace dsl {
 
         /**
          * @brief
-         *  This is used to monitor a type/group of tasks.  If the monitored tasks have not occurred within a desired
+         *  This is used to monitor a type/group of task/s.  If the monitored task/s have not occurred within a desired
          *  timeframe, the watchdog can be serviced to trigger a specified reaction.
          *
          * @details
          *  This is a useful tool for anything in the system which might stall, and needs to be kick-started.  The
          *  watchdog can be instructed to watch either a single task, or group of tasks, over a period of time. If no
-         *  activity is detected within that timeframe, the reaction associated with the watchdog will be triggered.
+         *  activity is detected after the specified timeframe, the reaction associated with the watchdog will be
+         *  triggered.
          * @code on<Watchdog<SampleReactor, 10, std::chrono::milliseconds>>() @endcode
          *  In the example above, all reactions from the SampleReactor will be monitored.  If a task associated with the
          *  SampleReactor has not occurred for 10 milliseconds,  the watchdog will be serviced.  When the watchdog is
@@ -53,10 +54,7 @@ namespace dsl {
          *  program will not compile.
          *
          * @par TRENT????
-         *  3 questions:
-         *  Would you say this one implements Pre-condition???
-         *  Can we discuss the unit test for the watch dog?  I'm unsure of the why for some it.
-         *  Also:  I might need to discuss the emit ServiceWatchdog message a little bit more.
+         *  I still need to go through the unit test more. Not enough pennies dropping.
          *
          * @par Implements
          *  Bind, Get
@@ -66,9 +64,10 @@ namespace dsl {
          * @tparam ticks
          *  the number of ticks of a particular type to wait
          * @tparam period
-         *  a type of duration (e.g. std::chrono::seconds) to measure the ticks in.  This will default to clock
-         *  duration, but can accept any of the std::chrono helper types (nanoseconds, microseconds, milliseconds,
-         *  seconds, minutes,
+         *  A type of duration (e.g. std::chrono::seconds) to measure the ticks in.  This will default to clock
+         *  duration, but can accept any of the defined std::chrono durations (nanoseconds, microseconds, milliseconds,
+         *  seconds, minutes, hours).  Note that you can also define your own unit:  See
+         *  http://en.cppreference.com/w/cpp/chrono/duration
          */
         struct Watchdog {
 
