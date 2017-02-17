@@ -38,7 +38,7 @@ namespace dsl {
          *
          * @attention
          *  Use of this feature is preferred to use of a mutex in your reactor.  In the case of a mutex, threads will
-         *  run and then would block.  This would lead to wasted resources on a number of waiting threads.  Using the
+         *  run and then would block.  This would lead to wasted resources on a number of inactive threads.  Using this
          *  synchronisation feature, NUClear has greater task and thread control, so that resources can be efficiently
          *  managed.  When using this system, developers should not have to worry about the use of devices such as a
          *  mutex.
