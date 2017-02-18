@@ -20,6 +20,7 @@
 
 #include "nuclear_bits/PowerPlant.hpp"
 #include "nuclear_bits/dsl/store/DataStore.hpp"
+#include "nuclear_bits/dsl/store/ThreadStore.hpp"
 #include "nuclear_bits/dsl/store/TypeCallbackStore.hpp"
 
 namespace NUClear {
@@ -53,11 +54,13 @@ namespace dsl {
 
                 static void emit(PowerPlant& powerplant, std::shared_ptr<DataType> data) {
 
-                    // Set our data in the store
-                    store::DataStore<DataType>::set(data);
-
+                    // Run all our reactions that are interested
                     for (auto& reaction : store::TypeCallbackStore<DataType>::get()) {
                         try {
+                            
+                            // Set our thread local store data each time (as during direct it can be overwritten)
+                            store::ThreadStore<std::shared_ptr<DataType>>::value = &data;
+                            
                             auto task = reaction->get_task();
                             if (task) {
                                 task = task->run(std::move(task));
@@ -72,6 +75,12 @@ namespace dsl {
                                 "There was an unknown exception while generating a reaction");
                         }
                     }
+
+                    // Unset our thread local store data
+                    store::ThreadStore<std::shared_ptr<DataType>>::value = nullptr;
+
+                    // Set the data into the global store
+                    store::DataStore<DataType>::set(data);
                 }
             };
 

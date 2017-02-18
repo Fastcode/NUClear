@@ -43,7 +43,9 @@ namespace dsl {
                     return nullptr;
                 }
                 else {
-                    return store::DataStore<message::ReactionStatistics>::get();
+                    return store::ThreadStore<std::shared_ptr<message::ReactionStatistics>>::value == nullptr
+                               ? store::DataStore<message::ReactionStatistics>::get()
+                               : *store::ThreadStore<std::shared_ptr<message::ReactionStatistics>>::value;
                 }
             }
         };
