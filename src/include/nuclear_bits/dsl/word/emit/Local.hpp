@@ -19,8 +19,8 @@
 #define NUCLEAR_DSL_WORD_EMIT_LOCAL_HPP
 
 #include "nuclear_bits/PowerPlant.hpp"
-
 #include "nuclear_bits/dsl/store/DataStore.hpp"
+#include "nuclear_bits/dsl/store/ThreadStore.hpp"
 #include "nuclear_bits/dsl/store/TypeCallbackStore.hpp"
 
 namespace NUClear {
@@ -48,9 +48,10 @@ namespace dsl {
 
                 static void emit(PowerPlant& powerplant, std::shared_ptr<DataType> data) {
 
-                    // Set our data in the store
-                    store::DataStore<DataType>::set(data);
+                    // Set our thread local store data
+                    store::ThreadStore<std::shared_ptr<DataType>>::value = &data;
 
+                    // Run all our reactions that are interested
                     for (auto& reaction : store::TypeCallbackStore<DataType>::get()) {
                         try {
                             auto task = reaction->get_task();
@@ -68,6 +69,12 @@ namespace dsl {
                                 "There was an unknown exception while generating a reaction");
                         }
                     }
+
+                    // Unset our thread local store data
+                    store::ThreadStore<std::shared_ptr<DataType>>::value = nullptr;
+
+                    // Set the data into the global store
+                    store::DataStore<DataType>::set(data);
                 }
             };
 

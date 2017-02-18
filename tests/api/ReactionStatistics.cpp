@@ -51,6 +51,8 @@ public:
                         std::rethrow_exception(stats.exception);
                     }
                     catch (const std::exception& e) {
+                        REQUIRE(seen_message0);
+                        REQUIRE(seen_message_startup);
                         REQUIRE(std::string(e.what()) == std::string("Exceptions happened"));
 
                         // We are done
@@ -64,7 +66,7 @@ public:
         on<Trigger<Message<1>>>().then("Exception Handler",
                                        [this] { throw std::runtime_error("Exceptions happened"); });
 
-        on<Startup>().then("Startup", [this] { emit(std::make_unique<Message<0>>()); });
+        on<Startup>().then("Startup Handler", [this] { emit(std::make_unique<Message<0>>()); });
     }
 };
 }

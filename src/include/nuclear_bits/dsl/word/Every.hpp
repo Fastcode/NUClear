@@ -54,8 +54,8 @@ namespace dsl {
          *  @code on<Every<2, std::chrono::seconds>() @endcode
          *
          *  Note that the period argument may also be wrapped in a Per<> template so that the inverse relation
-         *  can be invoked.  For instance, to execute a callback to initialise two tasks every second, the the following
-         *  request would be used:
+         *  can be invoked.  For instance, to execute a callback to initialise two tasks every second, then the
+         *  following request would be used:
          *  @code on<Every<2, Per<std::chrono::seconds>>() @endcode
          *
          * @attention
@@ -68,9 +68,10 @@ namespace dsl {
          * @tparam ticks
          *  the number of ticks of a particular type to wait
          * @tparam period
-         *  a type of duration (e.g. std::chrono::seconds) to measure the ticks in.  This will default to clock
-         *  duration, but can accept any of the std::chrono helper types (nanoseconds, microseconds, milliseconds,
-         *  seconds, minutes, hours).
+         *  A type of duration (e.g. std::chrono::seconds) to measure the ticks in.  This will default to clock
+         *  duration, but can accept any of the defined std::chrono durations (nanoseconds, microseconds, milliseconds,
+         *  seconds, minutes, hours).  Note that you can also define your own unit:  See
+         *  http://en.cppreference.com/w/cpp/chrono/duration
          */
         template <int ticks = 0, class period = NUClear::clock::duration>
         struct Every;

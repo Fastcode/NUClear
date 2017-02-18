@@ -38,7 +38,10 @@ namespace dsl {
 
             template <typename DSL, typename T = DataType>
             static inline std::shared_ptr<const T> get(threading::Reaction&) {
-                return store::DataStore<DataType>::get();
+
+                return store::ThreadStore<std::shared_ptr<T>>::value == nullptr
+                           ? store::DataStore<DataType>::get()
+                           : *store::ThreadStore<std::shared_ptr<T>>::value;
             }
         };
 

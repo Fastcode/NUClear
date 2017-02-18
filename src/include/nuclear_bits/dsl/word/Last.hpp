@@ -76,15 +76,21 @@ namespace dsl {
          *  subscribing reaction.
          *
          *  This word is a modifier, and should  be used to modify any other "Get" DSL word. For example:
-         *  @code on<Last<n, Trigger<T, ...>>() @endcode
+         *  @code on<Last<n, Trigger<T, ...>>>() @endcode
          *
          * @attention
          *  Should the emitted message currently have less than <i>n</i> records in the cache, any callback associated
          *  with this message will provide access to the current data.
          *
-         * @par TRENT???
-         *  we said to come back to this one at the last meeting.  When applying last to multiple get statements, it
-         *  will return a list for each type?  or a set of tuples?
+         * @attention
+         *  When applying this modifier to multiple get statements, a list will be returned for each get statement. For
+         *  example:
+         *  @code on<Last<n, Trigger<T>, With<T>>() @endcode
+         *  When working with a DSL word that returns more than one item, a list for each item will be returned.  For
+         *  example:
+         *  @code on<Last<n, Network<T>>>() @endcode
+         *  In the case above, the Network request will return a list of up to <i>n</i> port addresses, and another
+         *  list of up to <i>n</i> <T>'s.
          *
          * @par Implements
          *  Modification
