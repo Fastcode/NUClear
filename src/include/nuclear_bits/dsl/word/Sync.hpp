@@ -39,15 +39,14 @@ namespace dsl {
          * @attention
          *  Use of this feature is preferred to use of a mutex in your reactor.  In the case of a mutex, threads will
          *  run and then would block.  This would lead to wasted resources on a number of inactive threads.  Using this
-         *  synchronisation feature, NUClear has greater task and thread control, so that resources can be efficiently
-         *  managed.  When using this system, developers should not have to worry about the use of devices such as a
-         *  mutex.
+         *  synchronisation feature, NUClear has greater task and thread control, so that system resources can be
+         *  efficiently managed.  When using this system, developers should not have to worry about the use of devices
+         *  such as a mutex.
          *
          * @par Example
-         *  Consider a reactor, which uses a Kalman filter to produce estimates of unknown variables. Suppose the
-         *  reactor contains a number of a reactions to make its predictions, and modify its state.  In this case, it
-         *  would be unwise to allow the reactions to run concurrently, so it is recommended that any reaction which
-         *  would modify the state of the reactor be synced,
+         *  Consider a reactor, which contains a number of a reactions to make its predictions, and modify its state.
+         *  It would be unwise to allow the reactions to run concurrently. To avoid race conditions, it is recommended
+         *  that any reaction from the reactor which modifies the state be synced.
          *
          * @par Implements
          *  Pre-condition, Post-condition
