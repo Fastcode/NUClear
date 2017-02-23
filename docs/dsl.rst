@@ -211,3 +211,8 @@ Scope::UDP
 Scope::Network
 ``````````````
 .. doxygenstruct:: NUClear::dsl::word::emit::Network
+
+Emissions Scope Table
+---------------------
+
+**Still in Development**
