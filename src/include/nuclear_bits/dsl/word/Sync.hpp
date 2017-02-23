@@ -43,7 +43,7 @@ namespace dsl {
          *  efficiently managed.  When using this system, developers should not have to worry about the use of devices
          *  such as a mutex.
          *
-         * @par Example
+         * @par Example of Use
          *  Consider a reactor, which contains a number of a reactions to make its predictions, and modify its state.
          *  It would be unwise to allow the reactions to run concurrently. To avoid race conditions, it is recommended
          *  that any reaction from the reactor which modifies the state be synced.
@@ -51,16 +51,10 @@ namespace dsl {
          * @par Implements
          *  Pre-condition, Post-condition
          *
-         * @par TRENT????
-         *  Lets say its a group of reactions?  I basically specify the reaction is part of the group it applies to by
-         *  using:
-         *  on< ..., Sync<Group>.then...
-         *  on< ..., Sync<Group>.then...
-         *  on< ..., Sync<Group>.then...
-         *  i,e;  i.e; the precence of Sync<Group> in the request acts as the declaration that the reaction is a member
-         *  of the group.
-         *
-         * @tparam SyncGroup the type/group to synchronize on
+         * @tparam SyncGroup the type/group to synchronize on.  This needs to be a declared type within the system.  A
+         *  common use is to simply use the reactors name (if the reactor is only syncing with one group).  Should more
+         *  types be required, the developer can declare a struct within the system which can be used as a group, though
+         *  any type will work.
          */
         template <typename SyncGroup>
         struct Sync {
