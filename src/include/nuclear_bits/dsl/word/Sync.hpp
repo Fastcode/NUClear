@@ -54,7 +54,7 @@ namespace dsl {
          * @tparam SyncGroup the type/group to synchronize on.  This needs to be a declared type within the system.  A
          *  common use is to simply use the reactors name (if the reactor is only syncing with one group).  Should more
          *  types be required, the developer can declare a struct within the system which can be used as a group, though
-         *  any type will work.
+         *  any declared type will work.
          */
         template <typename SyncGroup>
         struct Sync {

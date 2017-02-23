@@ -35,11 +35,6 @@ namespace dsl {
              *  Delay emits will wait the provided time delay and then emit the object utilising a local emit (normal
              *  Threadpool distribution).
              *
-             *
-             * @par TRENT????
-             *  can this be fussed with delay/direct or one of the networking scopes, if you want that kind of
-             *  behaviour?
-             *
              * @param data
              *  the data to emit
              * @param delay(ticks)
