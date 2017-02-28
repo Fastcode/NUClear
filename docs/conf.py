@@ -36,7 +36,8 @@ call('doxygen')
 extensions = [
     'breathe',
     'sphinx.ext.githubpages',
-    'sphinx.ext.autosectionlabel'
+    'sphinx.ext.autosectionlabel',
+	'sphinx.ext.todo'
 ]
 
 breathe_projects = { "NUClear": "doxygen" }

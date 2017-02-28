@@ -61,8 +61,8 @@ namespace dsl {
        *  addressing.
        *
        * @par TRENT???
-       *  I want to expand on the Broadcast, multicast and packets.  I did a grep and I cant see all of these used. Do
-       *  you mind if we read through the unit test, and if you explain a few points for me (very sorry!)
+       *  Note for Lauren:  Listen to audio 3, and update this in line with what Trent said.  Check the UDP unit tests
+       *  and ensure you understood.  Any specific or follow up questions to go here.
        *
        * @par Implements
        *  Bind

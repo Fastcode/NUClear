@@ -36,17 +36,13 @@ namespace dsl {
          *  access to T will be provided to the triggering unit via a callback.
          *
          * @attention
-         *  A DSL request can handle multiple triggers. Note that when used for multiple triggers on the one request,
-         *  the reaction will only be triggered once <b>all</b> of the trigger types have been emitted (at least once)
-         *  since the last occurrence of the event.
+         *  A DSL request can handle triggers on multiple types.
+         *  @code on<Trigger<T1, T2, ... >>() @endcode
+         *  Note that when using multiple types in the one request, the reaction will only be triggered once <b>all</b>
+         *  of the trigger types have been emitted (at least once) since the last occurrence of the event.
          *
          * @par Implements
          *  Bind, Get
-         *
-         * @par TRENT???
-         *  I updated the attention note here. So that it can handle multiple triggers in a DSL statement.  let me know
-         *  if you update this so that it would become:  @code on<Trigger<T1, T2, ... >>() @endcode and I will change
-         *  the note back.
          *
          * @tparam Ts
          *  The datatype on which a reaction callback will be triggered.

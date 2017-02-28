@@ -34,21 +34,13 @@ To setup a reaction, a reactor can use the functionality provided by NUClear::Re
 
 Subscriptions to the :ref:`PowerPlant` are made using DSL :ref:`On Statements`.  The conditions for the request are then further defined using the keywords :ref:`Trigger`, :ref:`With`, :ref:`Every` and :ref:`Always`.
 
-Developers can execute further control over reactions in the system with the following handlers:
-
-enable()
-
-disable()
-
-enabled()
-
-unbind()
-
-//TODO:  Update the above list so that it is trigged by Doxygen and brings in the comments
+Developers can execute further control over reactions in the system with the tools provided for :ref:`Managing
+Reactions`.
 
 Tasks
 *****
-A task is the current execution of a defined reaction within the system.  For debugging purposes, all tasks will track the following information:
+A task is the current execution of a defined reaction within the system.  For debugging purposes, all tasks will track
+the following information:
 
 identifier
 
@@ -69,4 +61,6 @@ finished()
 exception()
 
 
-//TODO:  Update the above list so that it is trigged by Doxygen and brings in the comments
+.. todo::
+
+  Update the above list so that it is trigged by Doxygen and brings in the comments...

@@ -68,8 +68,10 @@ the following example.
 
     });
 
-//TODO explain how fission works for argument selection and how the type of arguments can be deduced as needed (for const
-references vs shared_ptrs and udp autodeserialisation)
+.. todo::
+
+    explain how fission works for argument selection and how the type of arguments can be deduced as needed (for const
+    references vs shared_ptrs and udp autodeserialisation)
 
 DSL WORDS
 ----------
@@ -193,7 +195,7 @@ Scope::DIRECT
 .. doxygenstruct:: NUClear::dsl::word::emit::Direct
 
 Scope::Initialise
-`````````````````
+``````````````````
 .. doxygenstruct:: NUClear::dsl::word::emit::Initialise
 
 Scope::DELAY
@@ -211,3 +213,8 @@ Scope::UDP
 Scope::Network
 ``````````````
 .. doxygenstruct:: NUClear::dsl::word::emit::Network
+
+Emissions Scope Table
+---------------------
+
+**Still in Development**

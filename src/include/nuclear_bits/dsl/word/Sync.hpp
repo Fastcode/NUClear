@@ -36,32 +36,25 @@ namespace dsl {
          *  For best use, this word should be fused with at least one other binding DSL word. For example:
          *  @code on<Trigger<T, ...>, Sync<Group>>() @endcode
          *
+         * @par Example of Use
+         *  Consider a reactor, containing a number of a reactions which modify its state.  It would be unwise to allow
+         *  the reactions to run concurrently. To avoid race conditions, it is recommended that any reaction from the
+         *  reactor which modifies the state be synced.
+         *
          * @attention
          *  Use of this feature is preferred to use of a mutex in your reactor.  In the case of a mutex, threads will
-         *  run and then would block.  This would lead to wasted resources on a number of inactive threads.  Using this
-         *  synchronisation feature, NUClear has greater task and thread control, so that resources can be efficiently
-         *  managed.  When using this system, developers should not have to worry about the use of devices such as a
-         *  mutex.
-         *
-         * @par Example
-         *  Consider a reactor, which uses a Kalman filter to produce estimates of unknown variables. Suppose the
-         *  reactor contains a number of a reactions to make its predictions, and modify its state.  In this case, it
-         *  would be unwise to allow the reactions to run concurrently, so it is recommended that any reaction which
-         *  would modify the state of the reactor be synced,
+         *  run and then block.  This would lead to wasted resources on a number of inactive threads.  Using this
+         *  synchronisation feature, NUClear has greater task and thread control, so that system resources can be
+         *  efficiently managed.  When using NUClear, developers should not have to worry about the use of devices
+         *  such as a mutex.
          *
          * @par Implements
          *  Pre-condition, Post-condition
          *
-         * @par TRENT????
-         *  Lets say its a group of reactions?  I basically specify the reaction is part of the group it applies to by
-         *  using:
-         *  on< ..., Sync<Group>.then...
-         *  on< ..., Sync<Group>.then...
-         *  on< ..., Sync<Group>.then...
-         *  i,e;  i.e; the precence of Sync<Group> in the request acts as the declaration that the reaction is a member
-         *  of the group.
-         *
-         * @tparam SyncGroup the type/group to synchronize on
+         * @tparam SyncGroup the type/group to synchronize on.  This needs to be a declared type within the system.  A
+         *  common use is to simply use the reactors name (if the reactor is only syncing with one group).  Should more
+         *  types be required, the developer can declare a struct within the system which can be used as a group, though
+         *  any declared type will work.
          */
         template <typename SyncGroup>
         struct Sync {
