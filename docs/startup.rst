@@ -30,6 +30,7 @@ Install Reactors
 Once the plant is installed, the reactors can be loaded.
 
 .. code-block:: C++
+
     plant.install<Reactor1, Reactor2, ... >();
 
 This command will run the reactors constructors, and install them into the PowerPlant. In typical applications, it is
@@ -39,27 +40,31 @@ should consider:*
 
 - As the system is single threaded at this time, the order in which reactors are installed is significantly important.
   **Any reactors which emit initialization data during construction should be installed AFTER any reactors/reactions
-  which are triggered by that data.**  *Issues can occur if data is emitted under a :ref:`Scope::LOCAL` **BEFORE** the
+  which are triggered by that data.**  Issues can occur if data is emitted under a :ref:`Scope::LOCAL` **BEFORE** the
   subscribing reactors/reactions have been installed. Consider the case where Reactor1 emits initialization data, for
   which Reactor2 has an on<Trigger> request. The trigger cannot be bound for Reactor1's first emission because the
   callback associated with task creation did not exist at the time of data emission.  As such, an associated task for
-  Reactor2's on<Trigger> request cannot be made at this point*
-  - **So is there a better way?**   Absolutely!  If a reactor needs to emit data during this phase, it is recommended to
-    use :ref:`Scope::Initialise`.  This will put a hold on the data emission, until the next step in the process
-    :ref:`Initialise Scope Reactions`, ensuring that any reactions subscribed to the emission will run.
-  - **Anything else?**  Emissions during the construction of reactors using :ref:`Scope::DIRECT`, :ref:`Scope::UDP` and
-    :ref:`Scope::Network` will trigger any reactions (which have already been defined - before the data emission) and
-    force any associated tasks to run inline.
-  - **Feeling confused?** Its actually really simple.  Checkout the :ref:`Emissions Scope Table` for clarity.
+  Reactor2's on<Trigger> request cannot be made at this point.
+
+  **So is there a better way?**   Absolutely!  If a reactor needs to emit data during this phase, it is recommended
+  to use :ref:`Scope::Initialise`.  This will put a hold on the data emission, until the next step in the process
+  :ref:`Initialise Scope Tasks`, ensuring that any reactions subscribed to the emission will run.
+
+  **Anything else?**  Emissions during the construction of reactors using :ref:`Scope::DIRECT`, :ref:`Scope::UDP` and
+  :ref:`Scope::Network` will trigger any reactions (which have already been defined - before the data emission) and
+  force any associated tasks to run inline.
+
+  **Feeling confused?** Its actually really simple.  Checkout the :ref:`Emissions Scope Table` for clarity.
+
 - Most of the :ref:`On Statements` which run during a reactor's construction will setup the binding requests under which
   :ref:`Tasks` will be created.  Any tasks created as a result of local data emission for these reactions will be queued,
   and will not run until the :ref:`Execution Phase (multithreaded)`.  Note that this is the standard behaviour, and
   recommended practice.  **However, there are exceptions to this behaviour which developers will find useful.**
   For example:
   - on<Configuration>:  This is part of the `NUClear Roles system <https://github.com/Fastcode/NUClearRoles>`_ and can
-    be used during a reactors constructor.  This request will run immediately, as an in-line binding reaction.
+  be used during a reactors constructor.  This request will run immediately, as an in-line binding reaction.
   - on<fileWatcher>:  This is part of the `NUClear Roles system <https://github.com/Fastcode/NUClearRoles>`_ and can
-    be used during a reactors constructor.  This request will run immediately, as an in-line binding reaction.
+  be used during a reactors constructor.  This request will run immediately, as an in-line binding reaction.
 
 Start the PowerPlant
 --------------------
