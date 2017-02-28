@@ -44,7 +44,7 @@ public:
 
         on<Every<5, std::chrono::milliseconds>>().then([this] {
 
-            // Until we get to a count of 10, service the watchdog
+            // service the watchdog
             if (++count < 20) {
                 emit(std::make_unique<NUClear::message::ServiceWatchdog<TestReactor>>());
             }

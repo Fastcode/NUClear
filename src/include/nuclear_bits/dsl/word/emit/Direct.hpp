@@ -20,6 +20,7 @@
 
 #include "nuclear_bits/PowerPlant.hpp"
 #include "nuclear_bits/dsl/store/DataStore.hpp"
+#include "nuclear_bits/dsl/store/ThreadStore.hpp"
 #include "nuclear_bits/dsl/store/TypeCallbackStore.hpp"
 
 namespace NUClear {
@@ -28,27 +29,38 @@ namespace dsl {
         namespace emit {
 
             /**
-             * @brief Direct emits execute the tasks created by emitting this type immediately.
+             * @brief
+             *  When emitting data under this scope, the tasks created as a result of this emission will bypass the
+             *  threadpool, and be executed immediately.
              *
-             * @details When data is emitted directly, the currently executing taks is paused and the tasks that
-             *          are created by this emit are execued one at a time sequentially using the current thread.
-             *          This type of emit will always work even when the system is in Shutdown or before the system
-             *          has started up to the main phase.
+             * @details
+             *  @code emit<Scope::DIRECT>(data, dataType); @endcode
+             *  When data is emitted via this scope, the task which is currently executing will be paused, while the
+             *  tasks that are created by this emission are executed one at a time sequentially, using the current
+             *  thread.  This type of emit will always work even when the system is in Shutdown or before the system
+             *  has started up to the main phase.
              *
-             * @param data the data to emit
+             * @attention
+             *  This scope is useful for reactors which emit data to themselves.
              *
-             * @tparam DataType the datatype that is being emitted
+             * @param data
+             *  the data to emit
+             *
+             * @tparam DataType
+             *  the datatype that is being emitted
              */
             template <typename DataType>
             struct Direct {
 
                 static void emit(PowerPlant& powerplant, std::shared_ptr<DataType> data) {
 
-                    // Set our data in the store
-                    store::DataStore<DataType>::set(data);
-
+                    // Run all our reactions that are interested
                     for (auto& reaction : store::TypeCallbackStore<DataType>::get()) {
                         try {
+                            
+                            // Set our thread local store data each time (as during direct it can be overwritten)
+                            store::ThreadStore<std::shared_ptr<DataType>>::value = &data;
+                            
                             auto task = reaction->get_task();
                             if (task) {
                                 task = task->run(std::move(task));
@@ -63,6 +75,12 @@ namespace dsl {
                                 "There was an unknown exception while generating a reaction");
                         }
                     }
+
+                    // Unset our thread local store data
+                    store::ThreadStore<std::shared_ptr<DataType>>::value = nullptr;
+
+                    // Set the data into the global store
+                    store::DataStore<DataType>::set(data);
                 }
             };
 

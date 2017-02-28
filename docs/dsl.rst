@@ -4,7 +4,7 @@ NUClear DSL
 On Statements
 *************
 
-The On statement is used by :ref:`Reactors` to make subscriptions to the :ref:`PowerPlant`.  Using this statement,
+On statements are used by :ref:`Reactors` wishing to make subscriptions to the :ref:`PowerPlant`.  Using this statement,
 developers can set the conditions under which desired :ref:`Reactions` will run.
 
 anatomy of an on statement
@@ -68,8 +68,9 @@ the following example.
 
     });
 
-//TODO explain how fission works for argument selection and how the type of arguments can be deduced as needed (for const
-references vs shared_ptrs and udp autodeserialisation)
+.. TODO::
+    explain how fission works for argument selection and how the type of arguments can be deduced as needed (for const
+    references vs shared_ptrs and udp autodeserialisation)
 
 DSL WORDS
 ----------
@@ -133,6 +134,11 @@ Always
 ``````
 .. doxygenstruct:: NUClear::dsl::word::Always
 
+Watchdog
+`````````
+.. doxygenstruct:: NUClear::dsl::word::Watchdog
+
+
 Event Keywords
 --------------
 
@@ -167,7 +173,15 @@ Network
 Emit Statements
 ***************
 
+Emit statements are used by :ref:`Reactors` wishing to emit data to the :ref:`PowerPlant`. Using this statement,
+developers can specify when data will be emitted to the system.  Data will most likely be emitted during a reaction,
+but emissions can also occur during reactor construction, or in some cases (such as a third party library which does
+not have a reactor), from within the PowerPlant itself.
 
+Any data emitted to the PowerPlant will be sent with a unique pointer.  The PowerPlant will take ownership of this
+pointer.  Upon data emission, any necessary callbacks to trigger reactions (create tasks) will run.
+
+Note that data can be emitted under varying scopes.
 
 Local Emitting
 --------------
@@ -183,6 +197,11 @@ Scope::Initialise
 `````````````````
 .. doxygenstruct:: NUClear::dsl::word::emit::Initialise
 
+Scope::DELAY
+`````````````
+.. doxygenstruct:: NUClear::dsl::word::emit::Delay
+
+
 Network Emitting
 ----------------
 
@@ -193,3 +212,8 @@ Scope::UDP
 Scope::Network
 ``````````````
 .. doxygenstruct:: NUClear::dsl::word::emit::Network
+
+Emissions Scope Table
+---------------------
+
+**Still in Development**

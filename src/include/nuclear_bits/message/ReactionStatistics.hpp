@@ -40,7 +40,7 @@ namespace message {
             , emitted()
             , started()
             , finished()
-            , exception() {}
+            , exception(nullptr) {}
 
         ReactionStatistics(const std::vector<std::string> identifier,
                            std::uint64_t reaction_id,

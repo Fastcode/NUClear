@@ -40,8 +40,8 @@ public:
             // Increment our semaphore
             ++semaphore;
 
-            // Sleep for 1ms to be safe
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+            // Sleep for some time to be safe
+            std::this_thread::sleep_for(std::chrono::milliseconds(5));
 
             // Check we got the right message
             REQUIRE(m.val == 123);
@@ -52,8 +52,8 @@ public:
             // Emit a message 1 here, it should not run yet
             emit(std::make_unique<Message<1>>(10));
 
-            // Sleep for 1ms again
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+            // Sleep for some time again
+            std::this_thread::sleep_for(std::chrono::milliseconds(5));
 
             // Decrement our semaphore
             --semaphore;
@@ -64,8 +64,8 @@ public:
             // Increment our semaphore
             ++semaphore;
 
-            // Sleep for 1ms to be safe
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+            // Sleep for some time to be safe
+            std::this_thread::sleep_for(std::chrono::milliseconds(5));
 
             // Check we got the right message
             REQUIRE(m.val == 123);
@@ -76,8 +76,8 @@ public:
             // Emit a message 1 here, it should not run yet
             emit(std::make_unique<Message<1>>(10));
 
-            // Sleep for 1ms again
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+            // Sleep for some time again
+            std::this_thread::sleep_for(std::chrono::milliseconds(5));
 
             // Decrement our semaphore
             --semaphore;
@@ -88,8 +88,8 @@ public:
             // Increment our semaphore
             ++semaphore;
 
-            // Sleep for 1ms to be safe
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+            // Sleep for some time to be safe
+            std::this_thread::sleep_for(std::chrono::milliseconds(5));
 
             // Check we got the right message
             REQUIRE(m.val == 10);
@@ -97,8 +97,8 @@ public:
             // Require our semaphore is 1
             REQUIRE(semaphore == 1);
 
-            // Sleep for 1ms again
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+            // Sleep for some time again
+            std::this_thread::sleep_for(std::chrono::milliseconds(5));
 
             // Decrement our semaphore
             --semaphore;

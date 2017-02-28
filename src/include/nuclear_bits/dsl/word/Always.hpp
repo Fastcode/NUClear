@@ -31,28 +31,31 @@ namespace dsl {
          * @details
          *  @code on<Always> @endcode
          *  When using this word, a single instance of the associated reaction will run.  Upon each task completion, a
-         *  new instance of the task will spawn.
-         *
-         *  Any reactions requested using this keyword will initialise upon system start-up and execute continually
-         *  until system shut-down.
+         *  new instance of the task will spawn. Any reactions requested using this keyword will initialise upon system
+         *  start-up and execute continually until system shut-down.
          *
          *  Note that a task spawned from this request will execute in its own unique thread rather than the threadpool.
          *  However, if the task is rescheduled (such as with Sync), it will then be moved into the thread pool.
          *
          * @attention
-         *  Where possible, developers should use this word in place of any reactions they would normally put in an
-         *  infinite loop. That is, it is not recommended to use a while(true) (or similar loop) in a reaction.
-         *  Instead, use this DSL word to let the task finish and restart itself. Using this DSL word allows the
-         *  task to terminate properly when the system is shutdown.  Note that tasks which do not terminate correctly
+         *  Where possible, developers should avoid use of this keyword.  It has been provided for times when this is
+         *  the only way to schedule the reaction. When tempted to use this keyword, it is advised to review other
+         *  options, such as on<IO> before resorting to this function.
+         *
+         * @attention
+         *  This word should be used in place of any reactions they would normally put in an infinite loop. That is, it
+         *  is not recommended to use a while(true) (or similar loop) in a reaction.
+         *  Using this work allows the task cleanly finish and restart itself, consequently allowing the task to
+         *  terminate properly when the system is shutdown.  Note that tasks which do not terminate correctly
          *  during shut down will cause the system to hang.
          *
          * @attention
          *  If the reaction associated with this task is performing a blocking operation, developers should make the
          *  the reaction interruptible with an on<Shutdown> reaction.  This will enforce a clean shutdown in the system.
          *
-         * @par TRENT????
-         *  Second attention note:  Can you give me some code/example of this kind of scenario.  I'm a little hazy
-         *  on the implementation of this.
+         * @par TUTORIAL????
+         *  This might be flagged for a tutorial about always.  Look at
+         *  \NUClearExample-master\NUClearExample-master\module\extension\FileWatcher\src\FileWatcher.cpp
          *
          * @par Implements
          *  Bind

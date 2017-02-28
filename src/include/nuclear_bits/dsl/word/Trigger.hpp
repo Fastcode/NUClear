@@ -18,6 +18,7 @@
 #ifndef NUCLEAR_DSL_WORD_TRIGGER_HPP
 #define NUCLEAR_DSL_WORD_TRIGGER_HPP
 
+#include "nuclear_bits/dsl/Fusion.hpp"
 #include "nuclear_bits/dsl/operation/CacheGet.hpp"
 #include "nuclear_bits/dsl/operation/TypeBind.hpp"
 
@@ -35,16 +36,16 @@ namespace dsl {
          *  access to T will be provided to the triggering unit via a callback.
          *
          * @attention
-         *  This request can handle multiple types. Note that when used for multiple types, the reaction will only be
-         *  triggered once <b>all</b> of the types have been emitted (at least once) since the last occurrence of the
-         *  event.
+         *  A DSL request can handle triggers on multiple types.
+         *  @code on<Trigger<T1, T2, ... >>() @endcode
+         *  Note that when using multiple types in the one request, the reaction will only be triggered once <b>all</b>
+         *  of the trigger types have been emitted (at least once) since the last occurrence of the event.
          *
          * @par Implements
          *  Bind, Get
          *
          * @tparam Ts
-         *  the datatypes on which a reaction callback will be triggered. These will be flagged as <b>primary</b>
-         *  datatype/s for the subscribing reaction.
+         *  The datatype on which a reaction callback will be triggered.
          */
         template <typename... Ts>
         struct Trigger : public Fusion<operation::TypeBind<Ts>..., operation::CacheGet<Ts>...> {};

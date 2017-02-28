@@ -44,25 +44,38 @@ namespace dsl {
 
         /**
          * @brief
-         *  This is used for communication with serial devices and network ports
+         *  This is used to trigger reactions based on standard I/O operations.  This will work for any I/O
+         *  communication which uses a file descriptor. The associated reaction is triggered when the communication
+         *  line matches the descriptor.
          *
          * @details
-         *  Use this to interact with file descriptors and execute when they are read/writeable.
+				 *  For best use, runtime arguments should be provided, which specify the file descriptor. The generic form of
+         *  this reaction is:
          *  @code on<IO>(file_descriptor) @endcode
-         *  For file reading, use:
-         *  @code  on<IO>(in, IO::READ) @endcode
-         *  For file writing use:
-         *  @code on<IO>(out, IO::WRITE) @endcode
+				 *
+				 *  When used, it will likely match one of the following:
+         *  File reading:  triggers a reaction when the pipe/stream/communication line has data available to read.
+         *  @code on<IO>(pipe/stream/comms, IO::READ) @endcode
+				 *
+				 *  File writing:  triggers a reaction when the pipe/stream/communication line has data to be written.
+         *  @code on<IO>(pipe/stream/comms, IO::WRITE) @endcode
+				 *
+				 *  File close:  triggers a reaction when the pipe/stream/communication line is closed.
+				 *  @code on<IO>(pipe/stream/comms, IO::CLOSE) @endcode
+				 *
+				 *  File error:  triggers a reaction when the pipe/stream/communication line reports an error.
+         *  @code on<IO>(pipe/stream/comms, IO::ERROR) @endcode
+         *
+         *  Multiple states:  triggers a reaction when the pipe/stream/communication line matches multiple states.  For
+         *  example:
+         *  on<IO>(pipe/stream/comms, IO::READ | IO::CLOSE)
+				 *
+				 * @attention
+				 *  Note that any reactions caused by on<IO> are implicitly single.
          *
          * @par Implements
          *  Bind
-         *
-         * @par TRENT????
-         *  I need to start recording our meetings.  I know we went over I/O, but I didn't take good notes on this one.
-         *  Can we go through this one again?  When is the event triggered on these ones?
-         *
          */
-        // IO is implicitly single
         struct IO : public Single {
 
 // On windows we use different wait events

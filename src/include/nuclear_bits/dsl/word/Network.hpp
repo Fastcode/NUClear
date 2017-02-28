@@ -58,24 +58,19 @@ namespace dsl {
          *  A network DSL request would be made in the following way:
          *  @code on<Network<T>> @endcode
          *
-         *  In the case above, when T is emitted to the system using the emission Scope::NETWORK, the event will be
-         *  triggered.   Note that should T be emitted to the system under any other scope, this reaction will not be
-         *  triggered.
-         *
          *  When the reaction is triggered, read-only access to T will be provided to the triggering unit via a
          *  callback.
+         *
+         * @attention
+         *  When using an on<Network<T>> request, the associated reaction will only be triggered when T is emitted to
+         *  the system using the emission Scope::NETWORK.  Should T be emitted to the system under any other scope, this
+         *  reaction will not be triggered.
          *
          * @par Implements
          *  Bind, Get
          *
-         * @par TRENT????
-         *  Can this work with multiple T's?  as with Trigger?
-         *  Since this is triggering, I assume T here is a primary data-type?  Y/N?
-         *  Can you please check this one is clear enough?
-         *
          * @tparam T
-         *  the datatypes on which the reaction callback will be triggered. These will be flagged as <b>primary</b>
-         *  datatype/s for the subscribing reaction.
+         *  the datatype on which the reaction callback will be triggered.
          */
         template <typename T>
         struct Network {
