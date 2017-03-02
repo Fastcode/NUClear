@@ -47,24 +47,25 @@ provided with the callback can be deduced as needed.  For example:
 
 .. code-block:: C++
 
-    on<Optional<Trigger<A>>, Trigger<B>>().then([](const A& a, const B& b) {
+    on<<Trigger<A>, Optional<Trigger<B>>().then([](const A& a, const B& b) {
 
     });
 
-In the above request, the Trigger on dataType A has been listed as optional, while the Trigger for dataType B is listed
+In the above request, the Trigger on dataType B has been listed as optional, while the Trigger for dataType A is listed
 as mandatory.  Yet the callback function lists arguments for both dataType A and dataType B.
 
-Lets say that dataType B is emitted to the PowerPlant, but at this time, dataType A does not have any data associated
+Lets say that dataType A is emitted to the PowerPlant, but at this time, dataType B does not have any data associated
 with it.
 
-Since dataType A was listed as optional, the task associated with this reaction can be scheduled.  However, when
-executing the callback, NUClear will identify that dataType A is not present, and will remove reference to this data
-type from the callback, so that the task is only run for dataType B, effectively restructuring this callback as per
-the following example.
+Since dataType B was listed as optional, the task associated with this reaction can be scheduled.  However, when
+executing the callback for this reaction, NUClear will identify that dataType B is not present, and will remove
+reference to this data type from the callback, so that the task is only run for dataType A.
+
+Effectively, through the application of fission, the callback is restructured as per the following example.
 
 .. code-block:: C++
 
-    .then([](const B& b){
+    .then([](const A& a){
 
     });
 
