@@ -66,39 +66,37 @@ namespace dsl {
 
         /**
          * @brief
-         *  This instructs the PowerPlant to store the last <i>n</i> emitted messages (of the associated type) to the
-         *  cache and provide read-only access of all <i>n</i> instances to the subscribing reaction.
+         *  This instructs the PowerPlant to store the last n emitted messages (of the associated type) to the
+         *  cache and provide read-only access of all n instances to the subscribing reaction.
          *
          * @details
-         *  That is, during runtime, [0-<i>n</i>] emissions of this data will be kept in the cache.  Once <i>n</i>
-         *  messages are stored, the addition of each new instance will cause the oldest copy to be dropped.
-         *  When the task is triggered, access to any messages currently in the cache will be provided to the
+         *  @code on<Last<n, Trigger<T, ...>>>() @endcode
+         *  During system runtime, the powerplant will keep a record of the last [0-n] emissions of this type. Once
+         *  n emissions are stored, the emission of each new instance will cause the oldest copy to be dropped.
+         *  When the task is triggered, read-only access to any messages currently in the cache will be provided to the
          *  subscribing reaction.
          *
-         *  This word is a modifier, and should  be used to modify any other "Get" DSL word. For example:
-         *  @code on<Last<n, Trigger<T, ...>>>() @endcode
+         *  Note that this word is a modifier, and should only be used to modify any other "Get" DSL word.
          *
          * @attention
-         *  Should the emitted message currently have less than <i>n</i> records in the cache, any callback associated
-         *  with this message will provide access to the current data.
+         *  @code on<Last<n, Trigger<T1>, With<T2>>() @endcode
+         *  When applying this modifier to multiple get statements, a list will be returned for each get statement. In
+         *  this example, a list of up to n references for T1 and another list of up to n references for T2 will be
+         *  returned.
          *
          * @attention
-         *  When applying this modifier to multiple get statements, a list will be returned for each get statement. For
-         *  example:
-         *  @code on<Last<n, Trigger<T>, With<T>>() @endcode
-         *  When working with a DSL word that returns more than one item, a list for each item will be returned.  For
-         *  example:
          *  @code on<Last<n, Network<T>>>() @endcode
-         *  In the case above, the Network request will return a list of up to <i>n</i> port addresses, and another
-         *  list of up to <i>n</i> <T>'s.
+         *  When working with a DSL word that returns more than one item, a list for each item will be returned. In
+         *  this example, a list of up to n references for port addresses, and another list of up to n references
+         *  for T will be returned.
          *
          * @par Implements
          *  Modification
          *
          * @tparam  n
-         *  The number of records to be stored in the cache
+         *  the number of records to be stored in the cache
          * @tparam  DSLWords
-         *  The DSL word/activity being modified
+         *  the DSL word/activity being modified
          */
         template <size_t n, typename... DSLWords>
         struct Last : public Fusion<DSLWords...> {

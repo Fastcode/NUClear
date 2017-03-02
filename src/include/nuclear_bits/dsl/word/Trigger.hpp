@@ -44,7 +44,8 @@ namespace dsl {
          *  Bind, Get
          *
          * @tparam Ts
-         *  The datatype on which a reaction callback will be triggered.
+         *  The datatype on which a reaction callback will be triggered.  Emission of this datatype into the system
+         *  will trigger the subscribing reaction.
          */
         template <typename... Ts>
         struct Trigger : public Fusion<operation::TypeBind<Ts>..., operation::CacheGet<Ts>...> {};
