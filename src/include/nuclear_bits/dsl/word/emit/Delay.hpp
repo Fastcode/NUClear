@@ -32,8 +32,8 @@ namespace dsl {
              *
              * @details
              *  @code emit<Scope::DELAY>(data, delay(ticks), dataType); @endcode
-             *  Delay emits will wait the provided time delay and then emit the object utilising a local emit (normal
-             *  Threadpool distribution).
+             *  Delay emits will wait the provided time delay and then emit the object utilising a local emit (i.e;
+             *  normal threadpool distribution).
              *
              * @param data
              *  the data to emit
@@ -41,7 +41,7 @@ namespace dsl {
              *  the time to wait before emitting this object. Use delay to specify the unit in which to measure the
              *  ticks, this will default to clock duration, but can accept any of the defined std::chrono durations
              *  (nanoseconds, microseconds, milliseconds, seconds, minutes, hours). Note that you can also define your
-             *  own unit:  See http://en.cppreference.com/w/cpp/chrono/duration Use an int to specify the number of
+             *  own unit:  See http://en.cppreference.com/w/cpp/chrono/duration. Use an int to specify the number of
              *  ticks to wait.
              * @tparam DataType
              *  the datatype of the object to emit
