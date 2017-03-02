@@ -51,17 +51,16 @@ namespace dsl {
              *  a host endian int, or as a string. Additionally the address and port on the local machine can be
              *  specified using a string or host endian int.
              *
-             * @par TRENT???
-             *  Listen to audio 3 and make sure you update this.  Any specific questions go here.
+             * @attention
+             *  Anything emitted over the UDP network must be serialisable.
              *
              * @param data      the data to emit
              * @param to_addr   a string or host endian integer specifying the ip to send the packet to
              * @param to_port   the port to send this packet to in host endian
-             * @param from_addr Optional.  A string or host endian integer specifying the local ip to send the packet from.
-             *                  Defaults to INADDR_ANY.
-             * @param from_port Optional.  The port to send this from to in host endian or 0 to automatically choose a port.
-             *                  Defaults to 0.
-             *
+             * @param from_addr Optional.  A string or host endian integer specifying the local ip to send the packet
+             *                  from.  Defaults to INADDR_ANY.
+             * @param from_port Optional.  The port to send this from to in host endian or 0 to automatically choose a
+             *                  port. Defaults to 0.
              * @tparam DataType the datatype of the object to emit
              */
             template <typename DataType>
