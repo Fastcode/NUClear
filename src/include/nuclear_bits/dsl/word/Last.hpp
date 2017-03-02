@@ -71,7 +71,7 @@ namespace dsl {
          *
          * @details
          *  That is, during runtime, [0-<i>n</i>] emissions of this data will be kept in the cache.  Once <i>n</i>
-         *  messages are stored, the addition of each new instance will case the oldest copy to be dropped.
+         *  messages are stored, the addition of each new instance will cause the oldest copy to be dropped.
          *  When the task is triggered, access to any messages currently in the cache will be provided to the
          *  subscribing reaction.
          *
