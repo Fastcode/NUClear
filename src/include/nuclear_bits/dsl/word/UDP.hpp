@@ -42,27 +42,24 @@ namespace dsl {
 
       /**
        * @brief
-       *  This allows a reaction to be triggered based on UDP activity.  When UDP activity is detected on a bound port,
-       *  the callback for the associated reaction will be triggered.
+       *  This allows a reaction to be triggered based on UDP activity.  The activity can be triggered based on UDP
+       *  communications from external sources, or UDP emissions within the system.
        *
        * @details
-       *  The request for a UDP based reaction can use a runtime argument to reference a specific port, i.e; the port
-       *  reference can be changed during system run-time.
        *  @code on<UDP>(port) @endcode
-       *
-       *  Should the port number not be provided, then the system will bind to a currently unassigned port.
-       *  @code on<UDP>() @endcode
-       *
-       *  Note that a reaction can be triggered via activity on more than one port.  For example:
+       *  Requests a reaction to be triggered when UDP activity is detected on a specific port.  The port is provided as
+       *  a runtime argument and can be changed during the execution phase of the system.
        *  @code on<UDP, UDP>(port, port)  @endcode
+       *  A reaction can also be triggered via activity on more than one port.
+       *  @code on<UDP:Broadcast>(port)
+       *        on<UDP:Multicast>(multicast_address, port) @endcode
+       *  If needed, this trigger can also listen for UDP activity such as broadcast and multicast.
+       *  @code on<UDP>() @endcode
+       *  In any UDP request, should the port be omitted, then the request will be randomly bound to a currently
+       *  unassigned port.
        *
        * @attention
-       *  on<UDP> can listen for specific activity such as broadcast, multicast and packets.  Currently supports IPv4
-       *  addressing.
-       *
-       * @par TRENT???
-       *  Note for Lauren:  Listen to audio 3, and update this in line with what Trent said.  Check the UDP unit tests
-       *  and ensure you understood.  Any specific or follow up questions to go here.
+       *  on<UDP> currently supports IPv4 addressing.
        *
        * @par Implements
        *  Bind
