@@ -23,6 +23,3 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
-
-
-What if I add something miscellaneous to test the line endings.
