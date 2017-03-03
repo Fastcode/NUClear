@@ -40,10 +40,9 @@ namespace dsl {
          *  triggering reaction. Yet when T1 is emitted into the system, read-only access to the most recent copy of
          *  both T1 and T2 will be provided via a callback to the reaction.
          *
-         * @attention
-         *  In the example above, if a copy of T2 is not present when T1 is emitted into the system, the task will be
-         *  dropped (i.e the reaction will not run). To override this functionality, include the DSL keyword "Optional"
-         *  in the request.  For example:
+         *  If a copy of T2 is not present when T1 is emitted into the system, the task will be dropped (i.e the
+         *  reaction will not run). To override this functionality, include the DSL keyword "Optional" in the request.
+         *  For example:
          *  @code on<Trigger<T1>, Optional<With<T2>>>() @endcode
          *
          * @par Implements
