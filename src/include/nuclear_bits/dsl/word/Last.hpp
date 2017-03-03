@@ -66,29 +66,34 @@ namespace dsl {
 
         /**
          * @brief
-         *  This instructs the PowerPlant to store the last n emitted messages (of the associated type) to the
-         *  cache and provide read-only access of all n instances to the subscribing reaction.
+         *  This instructs the powerplant to store the last n messages (of the associated type) to the cache and
+         *  provide read-only access to the subscribing reaction.
          *
          * @details
          *  @code on<Last<n, Trigger<T, ...>>>() @endcode
-         *  During system runtime, the powerplant will keep a record of the last [0-n] emissions of this type. Once
-         *  n emissions are stored, the emission of each new instance will cause the oldest copy to be dropped.
-         *  When the task is triggered, read-only access to any messages currently in the cache will be provided to the
-         *  subscribing reaction.
+         *  During system runtime, the powerplant will keep a record of the last [0-n] messages which were provided to
+         *  the subscribing reaction. Once n messages are stored, the trigger of a new reaction task will cause the
+         *  oldest copy to be dropped.
          *
          *  Note that this word is a modifier, and should only be used to modify any other "Get" DSL word.
          *
-         * @attention
+         * @par Multiple Statements
          *  @code on<Last<n, Trigger<T1>, With<T2>>() @endcode
-         *  When applying this modifier to multiple get statements, a list will be returned for each get statement. In
+         *  When applying this modifier to multiple get statements, a list will be returned for each statement. In
          *  this example, a list of up to n references for T1 and another list of up to n references for T2 will be
-         *  returned.
+         *  provided to the subscribing reaction.
          *
-         * @attention
+         * @par Get Statements
+         *  When applying this modifier to pure "Get" statements (such as a With statement), the data in the list will
+         *  reference that which was available whenever the reaction was triggered. That is, the list may not represent
+         *  the last n emissions of the data, but rather, only the data which was available at the time of generating
+         *  the last n tasks.
+         *
+         * @par IO Keywords
          *  @code on<Last<n, Network<T>>>() @endcode
-         *  When working with a DSL word that returns more than one item, a list for each item will be returned. In
-         *  this example, a list of up to n references for port addresses, and another list of up to n references
-         *  for T will be returned.
+         *  When working with a DSL word that returns more than one item (such as the I/O Keywords), a list for each
+         *  item will be returned. In the example above, a list of up to n references for port addresses, and another
+         *  list of up to n references for T will be returned.
          *
          * @par Implements
          *  Modification
