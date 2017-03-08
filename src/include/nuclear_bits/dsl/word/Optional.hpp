@@ -56,7 +56,7 @@ namespace dsl {
          *  Modification
          *
          * @tparam  DSLWords
-         *  the DSL word/activity being modified
+         *  the DSL word/activity being modified.
          */
         template <typename... DSLWords>
         struct Optional : public Fusion<DSLWords...> {

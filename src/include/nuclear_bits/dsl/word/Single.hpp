@@ -29,10 +29,11 @@ namespace dsl {
          *  This is used to specify that only one instance of the associated reaction can execute during runtime.
          *
          * @details
-         *  For best use, this word should be fused with at least one other binding DSL word. For example:
          *  @code on<Trigger<T, ...>, Single>() @endcode
          *  When this keyword is used, if the subscribing reaction is triggered while an existing task for this reaction
-         *  is either in the queue or still executing, then this new task request will be ignored/dropped.
+         *  is either in the queue or still executing, then the new task request will be ignored/dropped.
+         *
+         *  For best use, this word should be fused with at least one other binding DSL word.
          *
          * @par Implements
          *  Precondition

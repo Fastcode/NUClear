@@ -99,9 +99,9 @@ namespace dsl {
          *  Modification
          *
          * @tparam  n
-         *  the number of records to be stored in the cache
+         *  the number of records to be stored in the cache.
          * @tparam  DSLWords
-         *  the DSL word/activity being modified
+         *  the DSL word/activity being modified.
          */
         template <size_t n, typename... DSLWords>
         struct Last : public Fusion<DSLWords...> {

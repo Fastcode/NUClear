@@ -26,30 +26,37 @@ namespace dsl {
 
         /**
          * @brief
-         *  The task priority can be controlled using an assigned setting.
+         *  Task priority can be controlled using an assigned setting.
          *
          * @details
-         *  This will be used by the PowerPlant to determine the scheduling order in the threadpool, as well as assign
-         *  a priority to the threadpool.
-         *
-         *  For best use, this word should be fused with at least one other binding DSL word.  For example:
          *  @code on<Trigger<T, ...>, Priority::HIGH>() @endcode
+         *  The PowerPlant uses this setting to determine the scheduling order (for the associated task) in the
+         *  threadpool.
          *
          *  The available priority settings are:
          *
-         *  \li REALTIME:    Tasks assigned with this will be queued with all other REALTIME tasks
-         *  \li HIGH:        Tasks assigned with this will be queued with all other HIGH tasks.  They will only be
-         *                   scheduled for execution when there are no REALTIME tasks in the queue.
-         *  \li NORMAL:      Tasks assigned with this will be queued with all other NORMAL tasks.  They will only be
-         *                   scheduled for execution when there are no REALTIME or HIGHPRIORIY tasks in the queue.
-         *  \li LOW:         Tasks assigned with this will be queued with all other LOW tasks.  They will only be
-         *                   scheduled for execution when there are no REALTIME, HIGHPRIORIY or NORMAL tasks in the
-         *                   queue.
-         *  \li IDLE:        Tasks assigned with this priority will be queued with all other IDLE tasks.  They will only
-         *                   be scheduled for execution when there are no other tasks running in the system.
+         *  REALTIME
+         *  Tasks assigned with this will be queued with all other REALTIME tasks.
          *
-         * @attention
-         *  When the priority is not assigned, it will default to NORMAL.
+         *  HIGH
+         *  Tasks assigned with this will be queued with all other HIGH tasks.  They will be scheduled for
+         *  execution when there are no REALTIME tasks in the queue.
+         *
+         *  NORMAL
+         *  Tasks assigned with this will be queued with all other NORMAL tasks.  They will be scheduled for
+         *  execution when there are no REALTIME or HIGH tasks in the queue.
+         *
+         *  LOW
+         *  Tasks assigned with this will be queued with all other LOW tasks.  They will be scheduled for
+         *  execution when there are no REALTIME, HIGH or NORMAL tasks in the queue
+         *
+         *  IDLE
+         *  Tasks assigned with this priority will be queued with all other IDLE tasks.  They will be
+         *  scheduled for execution when there are no other tasks running in the system.
+         *
+         * @par Default Behaviour
+         *  @code on<Trigger<T>>() @endcode
+         *  When the priority is not assigned, tasks will be generated using the default setting; NORMAL.
          *
          * @attention
          *  How the feature behaves depends on the runtime environments OS scheduling settings.
@@ -59,6 +66,17 @@ namespace dsl {
          *  If the developer wishes to execute more control over process priority, the it is recommended to run
          *  NUCLEAR in a unix environment.  Note that super-users can execute process control using the commands "nice"
          *  and "renice".
+         *
+         *  For best use, this word should be fused with at least one other binding DSL word.
+         *
+         * @par Trent??? -
+         *  I dont like the attention blurb.
+         *  Can I get a small recording on this again and how you are setting the priority on the threadpool?.
+         *  "as well as assign a priority to the threadpool"-- I removed this string from the opening para - it seems to
+         *  me we are discussing 2 distinct things, so I want to break it out --- and update the attention blurb properly.
+         *  I think that string is talking about the priority setting on the threadpool, i.e; within the OS.
+         *  I'd like to re-write this section - i think I understand nice and re-nice a bit more, but want to spend a
+         *  bit more time going over your input.
          *
          * @par Implements
          *  Fusion
