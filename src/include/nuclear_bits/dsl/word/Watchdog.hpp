@@ -36,7 +36,7 @@ namespace dsl {
          *  timeframe, the watchdog can be serviced to trigger a specified reaction.
          *
          * @details
-         *  @code on<Watchdog<group, ticks, period>>() @endcode
+         *  @code on<Watchdog<TWatchdog, ticks, period>>() @endcode
          *  This is a useful tool for anything in the system which might stall, and needs to be kick-started.
          *
          *  The watchdog can monitor a single task, or group of tasks, over a period of time. If no activity is
