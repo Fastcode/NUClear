@@ -48,14 +48,15 @@ namespace dsl {
          *
          * @details
          *  @code on<Every<ticks, period>>() @endcode
-         *  This request will enact the execution a task at a periodic rate. To set the timing, the desired period
-         *  simply needs to be specified with the request.  For instance, to execute a callback to initialise the
-         *  associated task every two seconds, then the following request would be used:
+         *  This request will enact the execution of a task at a periodic rate. To set the timing, simply specify the
+         *  desired period with the request.  For example, to run a task every two seconds, the following request would
+         *  be used:
+         *
          *  @code on<Every<2, std::chrono::seconds>() @endcode
          *
-         *  Note that the period argument may also be wrapped in a Per<> template so that the inverse relation
+         *  Note that the period argument can also be wrapped in a Per<> template so that the inverse relation
          *  can be invoked.  For instance, to execute a callback to initialise two tasks every second, then the
-         *  following request would be used:
+         *  request would be used:
          *  @code on<Every<2, Per<std::chrono::seconds>>() @endcode
          *
          * @attention
@@ -68,7 +69,7 @@ namespace dsl {
          * @tparam ticks
          *  the number of ticks of a particular type to wait
          * @tparam period
-         *  A type of duration (e.g. std::chrono::seconds) to measure the ticks in.  This will default to clock
+         *  a type of duration (e.g. std::chrono::seconds) to measure the ticks in.  This will default to clock
          *  duration, but can accept any of the defined std::chrono durations (nanoseconds, microseconds, milliseconds,
          *  seconds, minutes, hours).  Note that you can also define your own unit:  See
          *  http://en.cppreference.com/w/cpp/chrono/duration

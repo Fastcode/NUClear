@@ -75,7 +75,7 @@ namespace dsl {
          *  the subscribing reaction. Once n messages are stored, the trigger of a new reaction task will cause the
          *  oldest copy to be dropped.
          *
-         *  Note that this word is a modifier, and should only be used to modify any other "Get" DSL word.
+         *  This word is a modifier, and should  be used to modify any "Get" DSL word.
          *
          * @par Multiple Statements
          *  @code on<Last<n, Trigger<T1>, With<T2>>() @endcode
@@ -84,10 +84,11 @@ namespace dsl {
          *  provided to the subscribing reaction.
          *
          * @par Get Statements
-         *  When applying this modifier to pure "Get" statements (such as a With statement), the data in the list will
-         *  reference that which was available whenever the reaction was triggered. That is, the list may not represent
-         *  the last n emissions of the data, but rather, only the data which was available at the time of generating
-         *  the last n tasks.
+         *  @code on<Last<n, Trigger<T1>, With<T2>>() @endcode
+         *  When applied to a request containing a pure "Get" statement (such as the With statement), the data in the
+         *  associated list will reference that which was available whenever the reaction was triggered. That is, the
+         *  list for T2 may not represent the last n emissions of the data, but rather, only the data which was
+         *  available at the time of generating the last n tasks.
          *
          * @par IO Keywords
          *  @code on<Last<n, Network<T>>>() @endcode

@@ -36,17 +36,27 @@ namespace dsl {
          *  timeframe, the watchdog can be serviced to trigger a specified reaction.
          *
          * @details
-         *  This is a useful tool for anything in the system which might stall, and needs to be kick-started.  The
-         *  watchdog can be instructed to watch either a single task, or group of tasks, over a period of time. If no
-         *  activity is detected after the specified timeframe, the reaction associated with the watchdog will be
-         *  triggered.
-         * @code on<Watchdog<SampleReactor, 10, std::chrono::milliseconds>>() @endcode
-         *  In the example above, all reactions from the SampleReactor will be monitored.  If a task associated with the
-         *  SampleReactor has not occurred for 10 milliseconds,  the watchdog will be serviced.  When the watchdog is
-         *  serviced, the timer re-sets.
+         *  @code on<Watchdog<group, ticks, period>>() @endcode
+         *  This is a useful tool for anything in the system which might stall, and needs to be kick-started.
          *
-         * @attention
-         *  When working with watchdog, it needs to be serviced by a watchdog service emission:
+         *  The watchdog can monitor a single task, or group of tasks, over a period of time. If no activity is
+         *  detected after the specified timeframe, the watchdog will be serviced.  When the watchdog is serviced, the
+         *  timer re-sets.
+         *
+         * @par Single Reaction
+         *  @code on<Watchdog<SampleReaction, 10, std::chrono::milliseconds>>() @endcode
+         *  In the example above, a SampleReaction will be monitored.  If the reactions does not occur within 10
+         *  milliseconds, the watchdog will be serviced.
+         *
+         * @par Group of Reactions
+         *  @code on<Watchdog<SampleReactor, 10, std::chrono::milliseconds>>() @endcode
+         *  In the example above, all reactions from the SampleReactor will be monitored.  If a task associated with the
+         *  SampleReactor has not occurred for 10 milliseconds,  the watchdog will be serviced.
+         *
+         * @par Service the Watcdog
+         *  When working with watchdog, it will need to be serviced by a watchdog service emission:
+         *  @code  emit(std::make_unique<NUClear::message::ServiceWatchdog<SampleReaction>>()) @endcode
+         *  or
          *  @code  emit(std::make_unique<NUClear::message::ServiceWatchdog<SampleReactor>>()) @endcode
          *  This emission should use the same template type as the watchdog.  Each time this emission occurs, the
          *  watchdog timer will be reset.
@@ -59,11 +69,12 @@ namespace dsl {
          *  Bind, Get
          *
          * @tparam TWatchdog
-         *  the type/group of tasks the watchdog will track
+         *  the type/group of tasks the watchdog will track.   This needs to be a declared type within the system (be it
+         *  a reactor, reaction, or other type).
          * @tparam ticks
          *  the number of ticks of a particular type to wait
          * @tparam period
-         *  A type of duration (e.g. std::chrono::seconds) to measure the ticks in.  This will default to clock
+         *  a type of duration (e.g. std::chrono::seconds) to measure the ticks in.  This will default to clock
          *  duration, but can accept any of the defined std::chrono durations (nanoseconds, microseconds, milliseconds,
          *  seconds, minutes, hours).  Note that you can also define your own unit:  See
          *  http://en.cppreference.com/w/cpp/chrono/duration

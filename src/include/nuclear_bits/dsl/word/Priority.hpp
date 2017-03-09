@@ -31,52 +31,33 @@ namespace dsl {
          * @details
          *  @code on<Trigger<T, ...>, Priority::HIGH>() @endcode
          *  The PowerPlant uses this setting to determine the scheduling order (for the associated task) in the
-         *  threadpool.
+         *  threadpool, as well as assign a priority to the thread.
          *
          *  The available priority settings are:
          *
-         *  REALTIME
-         *  Tasks assigned with this will be queued with all other REALTIME tasks.
+         *  <b>REALTIME:</b>  Tasks assigned with this will be queued with all other REALTIME tasks.
          *
-         *  HIGH
-         *  Tasks assigned with this will be queued with all other HIGH tasks.  They will be scheduled for
+         *  <b>HIGH:</b>  Tasks assigned with this will be queued with all other HIGH tasks.  They will be scheduled for
          *  execution when there are no REALTIME tasks in the queue.
          *
-         *  NORMAL
-         *  Tasks assigned with this will be queued with all other NORMAL tasks.  They will be scheduled for
-         *  execution when there are no REALTIME or HIGH tasks in the queue.
+         *  <b>NORMAL:</b> Tasks assigned with this will be queued with all other NORMAL tasks.  They will be scheduled
+         *  for execution when there are no REALTIME and HIGH tasks in the queue.
          *
-         *  LOW
-         *  Tasks assigned with this will be queued with all other LOW tasks.  They will be scheduled for
-         *  execution when there are no REALTIME, HIGH or NORMAL tasks in the queue
+         *  <b>LOW:</b>  Tasks assigned with this will be queued with all other LOW tasks.  They will be scheduled for
+         *  execution when there are no REALTIME, HIGH and NORMAL tasks in the queue.
          *
-         *  IDLE
-         *  Tasks assigned with this priority will be queued with all other IDLE tasks.  They will be
+         *  <b>IDLE:</b>  Tasks assigned with this priority will be queued with all other IDLE tasks.  They will be
          *  scheduled for execution when there are no other tasks running in the system.
-         *
-         * @par Default Behaviour
-         *  @code on<Trigger<T>>() @endcode
-         *  When the priority is not assigned, tasks will be generated using the default setting; NORMAL.
-         *
-         * @attention
-         *  How the feature behaves depends on the runtime environments OS scheduling settings.
-         *  If the OS does not allow the user to set thread priorities, the executing tasks in NUCLEAR will be
-         *  ordered based on their priority setting, but the process will never be given more priority than that which
-         *  has already been assigned to the process by the OS.
-         *  If the developer wishes to execute more control over process priority, the it is recommended to run
-         *  NUCLEAR in a unix environment.  Note that super-users can execute process control using the commands "nice"
-         *  and "renice".
          *
          *  For best use, this word should be fused with at least one other binding DSL word.
          *
-         * @par Trent??? -
-         *  I dont like the attention blurb.
-         *  Can I get a small recording on this again and how you are setting the priority on the threadpool?.
-         *  "as well as assign a priority to the threadpool"-- I removed this string from the opening para - it seems to
-         *  me we are discussing 2 distinct things, so I want to break it out --- and update the attention blurb properly.
-         *  I think that string is talking about the priority setting on the threadpool, i.e; within the OS.
-         *  I'd like to re-write this section - i think I understand nice and re-nice a bit more, but want to spend a
-         *  bit more time going over your input.
+         * @par Default Behaviour
+         *  @code on<Trigger<T>>() @endcode
+         *  When the priority is not specified, tasks will be assigned a default setting; NORMAL.
+         *
+         * @attention
+         *  If the OS allows the user to set thread priority, this word can also be used to assign the priority of the
+         *  thread in its runtime environment.
          *
          * @par Implements
          *  Fusion
