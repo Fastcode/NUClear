@@ -32,8 +32,8 @@ namespace dsl {
 
         /**
          * @brief
-         *  This is used to monitor a type/group of task/s.  If the monitored task/s have not occurred within a desired
-         *  timeframe, the watchdog can be serviced to trigger a specified reaction.
+         *  This can be used to monitor tasks/s; if the monitored task/s have not occurred within a desired timeframe,
+         *  the watchdog can be serviced to trigger a specified reaction.
          *
          * @details
          *  @code on<Watchdog<TWatchdog, ticks, period>>() @endcode
@@ -54,12 +54,11 @@ namespace dsl {
          *  SampleReactor has not occurred for 10 milliseconds,  the watchdog will be serviced.
          *
          * @par Service the Watcdog
-         *  When working with watchdog, it will need to be serviced by a watchdog service emission:
          *  @code  emit(std::make_unique<NUClear::message::ServiceWatchdog<SampleReaction>>()) @endcode
          *  or
          *  @code  emit(std::make_unique<NUClear::message::ServiceWatchdog<SampleReactor>>()) @endcode
-         *  This emission should use the same template type as the watchdog.  Each time this emission occurs, the
-         *  watchdog timer will be reset.
+         *  The watchdog will need to be serviced by a watchdog service emission. The emission must use the same
+         *  template type as the watchdog.  Each time this emission occurs, the watchdog timer will be reset.
          *
          * @attention
          *  The period which is used to measure the ticks must be greater than or equal to clock::duration or the
