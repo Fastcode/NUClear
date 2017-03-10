@@ -71,9 +71,10 @@ namespace dsl {
          *
          * @details
          *  @code on<Last<n, Trigger<T, ...>>>() @endcode
-         *  During system runtime, the powerplant will keep a record of the last [0-n] messages which were provided to
-         *  the subscribing reaction. Once n messages are stored, the trigger of a new reaction task will cause the
-         *  oldest copy to be dropped.
+         *  During system runtime, the PowerPlant will keep a record of the last [0-n] messages which were provided to
+         *  the subscribing reaction. This list is ordered such that the oldest element is first, and the newest
+         *  element is last.  Once n messages are stored, the trigger of a new reaction task will cause the
+         *  newest copy to be appended to the list, and the oldest copy to be dropped.
          *
          *  This word is a modifier, and should  be used to modify any "Get" DSL word.
          *
