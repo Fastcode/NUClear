@@ -54,11 +54,9 @@ namespace dsl {
          *  NUClear provides a networking protocol to send messages to other devices on the network.
          *
          * @details
-         *  This can be used to make a multi-processed NUClear instance, or communicate with other programs running
-         *  NUClear.  Note that the serialization and deserialization is handled by NUClear.
-         *
-         *  A network DSL request would be made in the following way:
-         *  @code on<Network<T>> @endcode
+         *  @code on<Network<T>>() @endcode
+         *  This request can be used to make a multi-processed NUClear instance, or communicate with other programs
+         *  running NUClear.  Note that the serialization and deserialization is handled by NUClear.
          *
          *  When the reaction is triggered, read-only access to T will be provided to the triggering unit via a
          *  callback.

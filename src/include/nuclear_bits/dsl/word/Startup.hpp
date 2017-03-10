@@ -29,14 +29,13 @@ namespace dsl {
          *  This is used to specify reactions which should occur at startup.
          *
          * @details
-         *  Any reactions listed with this DSL word will run directly after all reactors have been installed into the
-         *  PowerPlant.  While this request can be fused with any other DSL words, it is not necessary for its use. For
-         *  example:
-         *  
          *  @code on<Startup>() @endcode
+         *  Any reactions listed with this DSL word will run directly after all reactors have been installed into the
+         *  PowerPlant but before the system starts the main execution phase.  This is the only time these reactions
+         *  will run.
          *
-         *  Note that this word is generally used when a reactor requires information provided by another reactor's
-         *  constructor.
+         *  Note that this request is generally used by reactor's which require information provided by another
+         *  reactor's constructor.
          *
          * @par Implements
          *  Bind

@@ -44,34 +44,31 @@ namespace dsl {
 
         /**
          * @brief
-         *  This is used to trigger reactions based on standard I/O operations.  This will work for any I/O
-         *  communication which uses a file descriptor. The associated reaction is triggered when the communication
-         *  line matches the descriptor.
+         *  This is used to trigger reactions based on standard I/O operations using file descriptors.
          *
          * @details
-				 *  For best use, runtime arguments should be provided, which specify the file descriptor. The generic form of
-         *  this reaction is:
          *  @code on<IO>(file_descriptor) @endcode
-				 *
-				 *  When used, it will likely match one of the following:
-         *  File reading:  triggers a reaction when the pipe/stream/communication line has data available to read.
-         *  @code on<IO>(pipe/stream/comms, IO::READ) @endcode
-				 *
-				 *  File writing:  triggers a reaction when the pipe/stream/communication line has data to be written.
-         *  @code on<IO>(pipe/stream/comms, IO::WRITE) @endcode
-				 *
-				 *  File close:  triggers a reaction when the pipe/stream/communication line is closed.
-				 *  @code on<IO>(pipe/stream/comms, IO::CLOSE) @endcode
-				 *
-				 *  File error:  triggers a reaction when the pipe/stream/communication line reports an error.
-         *  @code on<IO>(pipe/stream/comms, IO::ERROR) @endcode
+				 *  This function works for any I/O communication which uses a file descriptor. The associated reaction is
+         *  triggered when the communication line matches the descriptor.
          *
-         *  Multiple states:  triggers a reaction when the pipe/stream/communication line matches multiple states.  For
-         *  example:
-         *  on<IO>(pipe/stream/comms, IO::READ | IO::CLOSE)
-				 *
-				 * @attention
-				 *  Note that any reactions caused by on<IO> are implicitly single.
+         *  When using this feature, runtime arguments should be provided, to specify the file descriptor.
+         *
+         *  <b>Example Use</b>
+         *
+         *  <b>File reading:</b> triggers a reaction when the pipe/stream/communication line has data available to read.
+         *  @code on<IO>(pipe/stream/comms, IO::READ) @endcode
+         *  <b>File writing:</b> triggers a reaction when the pipe/stream/communication line has data to be written.
+         *  @code on<IO>(pipe/stream/comms, IO::WRITE) @endcode
+         *  <b>File close:</b> triggers a reaction when the pipe/stream/communication line is closed.
+				 *  @code on<IO>(pipe/stream/comms, IO::CLOSE) @endcode
+         *  <b>File error:</b> triggers a reaction when the pipe/stream/communication line reports an error.
+         *  @code on<IO>(pipe/stream/comms, IO::CLOSE) @endcode
+         *  <b>Multiple states:</b> this feature can trigger a reaction when the pipe/stream/communication line
+         *  matches multiple states.  For example;
+         *  @code on<IO>(pipe/stream/comms, IO::READ | IO::ERROR) @endcode
+         *
+         * @attention
+         *  Note that reactions triggered by an on<IO> request are implicitly single.
          *
          * @par Implements
          *  Bind

@@ -42,24 +42,26 @@ namespace dsl {
 
       /**
        * @brief
-       *  This allows a reaction to be triggered based on UDP activity.  The activity can be triggered based on UDP
-       *  communications from external sources, or UDP emissions within the system.
+       *  This allows a reaction to be triggered based on UDP activity originating from external sources, or UDP
+       *  emissions within the system.
        *
        * @details
        *  @code on<UDP>(port) @endcode
-       *  Requests a reaction to be triggered when UDP activity is detected on a specific port.  The port is provided as
-       *  a runtime argument and can be changed during the execution phase of the system.
+       *  When a connection is identified on the assigned port, the associated reaction will be triggered.  The
+       *  request for a UDP based reaction can use a runtime argument to reference a specific port.  Note that the
+       *  port reference can be changed during the systems execution phase.
+       *
+       *  @code on<UDP>() @endcode
+       *  Should the port reference be omitted, then the system will bind to a currently unassigned port.
+       *
        *  @code on<UDP, UDP>(port, port)  @endcode
        *  A reaction can also be triggered via activity on more than one port.
-       *  @code on<UDP:Broadcast>(port)
-       *        on<UDP:Multicast>(multicast_address, port) @endcode
-       *  If needed, this trigger can also listen for UDP activity such as broadcast and multicast.
-       *  @code on<UDP>() @endcode
-       *  In any UDP request, should the port be omitted, then the request will be randomly bound to a currently
-       *  unassigned port.
        *
-       * @attention
-       *  on<UDP> currently supports IPv4 addressing.
+       *  @code on<UDP:Broadcast>(port)
+       *  on<UDP:Multicast>(multicast_address, port) @endcode
+       *  If needed, this trigger can also listen for UDP activity such as broadcast and multicast.
+       *
+       *  These requests currently support IPv4 addressing.
        *
        * @par Implements
        *  Bind
