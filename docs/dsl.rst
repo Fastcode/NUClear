@@ -176,17 +176,28 @@ Emit Statements
 ***************
 
 Emit statements are used by :ref:`Reactors` wishing to emit data to the :ref:`PowerPlant`. Using this statement,
-developers can specify when data will be emitted to the system.  Data will most likely be emitted during a reaction,
-but emissions can also occur during reactor construction, or in some cases (such as a third party library which does
-not have a reactor), from within the PowerPlant itself.
+developers can specify when data will be emitted to the system.
+
+When using NUClear, data will most likely be emitted during a reaction.  However, where necessary, emissions can also
+occur during reactor construction (where it is recommended to use :ref:`Scope::Initialise`), or in some cases from
+within the PowerPlant itself (for example, when using a third party library which does not have a reactor).
 
 Any data emitted to the PowerPlant will be sent with a unique pointer.  The PowerPlant will take ownership of this
-pointer.  Upon data emission, any necessary callbacks to trigger reactions (create tasks) will run.
+pointer and run any necessary callbacks to trigger reactions (create tasks).
 
-Note that data can be emitted under varying scopes.
+Note that data can be emitted under varying scopes:
 
 Local Emitting
 --------------
+.. todo::
+
+    Trent - what is the difference between local emitting and network emitting.  I just want a Quick definition of
+    both. something like:  Local emitting are those which are emitted through the PowerPlant environment.  network
+    emissions are for those that rely on network based emissions.  (but I want the idea to be correct.)
+
+    Trent - I need to decide and get consistent on what we will call the powerPlant.  Should it be PowerPlant or
+    powerPlant - what will you prefer
+
 Scope::LOCAL
 ````````````
 .. doxygenstruct:: NUClear::dsl::word::emit::Local

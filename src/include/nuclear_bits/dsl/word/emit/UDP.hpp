@@ -47,9 +47,10 @@ namespace dsl {
              *
              * @details
              *  @code emit<Scope::UDP>(data, to_addr, to_port); @endcode
-             *  The target of this packet can be can be a unicast, broadcast or multicast address, specified as either
-             *  a host endian int, or as a string. Additionally the address and port on the local machine can be
-             *  specified using a string or host endian int.
+             *  Emissions under this scope are useful for communicating with third parties. The target of the packet
+             *  can be can be a unicast, broadcast or multicast address, specified as either a host endian int, or as a
+             *  string. Additionally the address and port on the local machine can be specified using a string or host
+             *  endian int.
              *
              * @attention
              *  Anything emitted over the UDP network must be serialisable.

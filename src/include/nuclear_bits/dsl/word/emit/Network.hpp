@@ -32,8 +32,9 @@ namespace dsl {
              *  When emitting data under this scope, the NetworkController is used to send data over the network.
              *
              * @details
-             *  Data emitted under this scope is serialized, with the associated data packets sent over the network.
-             *  The serialization and deserialization of the object is handled by NUClear.
+             *  @code emit<Scope::NETWORK>(data, dataType); @endcode
+             *  Data emitted under this scope is serialized, with the associated data packets sent over the NUClear
+             *  network. The serialization and deserialization of the object is handled by NUClear.
              *  Note that data sent under the scope will only trigger reactions (create tasks) for any associated
              *  network requests of this datatype.  For example:
              *  @code on<Network<T>> @endcode

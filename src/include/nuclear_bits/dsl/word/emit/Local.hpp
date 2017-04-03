@@ -30,11 +30,12 @@ namespace dsl {
 
             /**
              * @brief
-             *  When emitting data under this scope, tasks are distributed normally via the thread pool for execution.
+             *  When emitting data under this scope, tasks are distributed via the thread pool for execution.
              *
              * @details
              *  @code emit<Scope::LOCAL>(data, dataType); @endcode
              *
+             * @attention
              *  Note that this type of emission is the default behaviour when emitting without a specified scope.
              *  @code emit(data, dataType); @endcode
              *
