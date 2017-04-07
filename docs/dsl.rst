@@ -189,11 +189,11 @@ Note that data can be emitted under varying scopes:
 
 Local Emitting
 --------------
-.. todo::
 
-    Trent - what is the difference between local emitting and network emitting.  I just want a Quick definition of
-    both. something like:  Local emitting are those which are emitted through the PowerPlant environment.  network
-    emissions are for those that rely on network based emissions.  (but I want the idea to be correct.)
+These emissions send data to the local instance of the NUClear powerplant.  There are a number of scopes under which
+these emissions can take place:
+
+.. todo::
 
     Trent - I need to decide and get consistent on what we will call the powerPlant.  Should it be PowerPlant or
     powerPlant - what will you prefer
@@ -214,9 +214,10 @@ Scope::DELAY
 `````````````
 .. doxygenstruct:: NUClear::dsl::word::emit::Delay
 
-
 Network Emitting
 ----------------
+
+Network emissions can be used to send data through the network on which the current system is running.
 
 Scope::UDP
 ``````````
@@ -225,8 +226,3 @@ Scope::UDP
 Scope::Network
 ``````````````
 .. doxygenstruct:: NUClear::dsl::word::emit::Network
-
-Emissions Scope Table
----------------------
-
-**Still in Development**
