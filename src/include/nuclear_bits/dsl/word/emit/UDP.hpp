@@ -43,7 +43,7 @@ namespace dsl {
 
             /**
              * @brief
-             *  When emitting data under this scope, a UDP packet will be sent over the network.
+             *  Emits data as a UDP packet over the network.
              *
              * @details
              *  @code emit<Scope::UDP>(data, to_addr, to_port); @endcode
