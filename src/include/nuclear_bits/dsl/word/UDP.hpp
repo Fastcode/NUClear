@@ -42,27 +42,26 @@ namespace dsl {
 
       /**
        * @brief
-       *  This allows a reaction to be triggered based on UDP activity.  When UDP activity is detected on a bound port,
-       *  the callback for the associated reaction will be triggered.
+       *  This allows a reaction to be triggered based on UDP activity originating from external sources, or UDP
+       *  emissions within the system.
        *
        * @details
-       *  The request for a UDP based reaction can use a runtime argument to reference a specific port, i.e; the port
-       *  reference can be changed during system run-time.
        *  @code on<UDP>(port) @endcode
+       *  When a connection is identified on the assigned port, the associated reaction will be triggered.  The
+       *  request for a UDP based reaction can use a runtime argument to reference a specific port.  Note that the
+       *  port reference can be changed during the systems execution phase.
        *
-       *  Should the port number not be provided, then the system will bind to a currently unassigned port.
        *  @code on<UDP>() @endcode
+       *  Should the port reference be omitted, then the system will bind to a currently unassigned port.
        *
-       *  Note that a reaction can be triggered via activity on more than one port.  For example:
        *  @code on<UDP, UDP>(port, port)  @endcode
+       *  A reaction can also be triggered via activity on more than one port.
        *
-       * @attention
-       *  on<UDP> can listen for specific activity such as broadcast, multicast and packets.  Currently supports IPv4
-       *  addressing.
+       *  @code on<UDP:Broadcast>(port)
+       *  on<UDP:Multicast>(multicast_address, port) @endcode
+       *  If needed, this trigger can also listen for UDP activity such as broadcast and multicast.
        *
-       * @par TRENT???
-       *  Note for Lauren:  Listen to audio 3, and update this in line with what Trent said.  Check the UDP unit tests
-       *  and ensure you understood.  Any specific or follow up questions to go here.
+       *  These requests currently support IPv4 addressing.
        *
        * @par Implements
        *  Bind

@@ -64,11 +64,14 @@ public:
         });
 
         // Send a test for a known port
+        // does not need to include the port in the lambda capture.  This is a global variable to the unit test, so
+        // the function will have access to it.
         on<Trigger<Message>>().then(
             [this] { emit<Scope::UDP>(std::make_unique<std::string>(test_string), INADDR_LOOPBACK, port); });
 
 
         // Send a test for an unknown port
+        // needs to include the bound_port in the lambda capture, so that the function will have access to bound_port.
         on<Trigger<Message>>().then([this, bound_port] {
 
             // Emit our UDP message

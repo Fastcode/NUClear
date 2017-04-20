@@ -30,36 +30,33 @@ namespace dsl {
          *
          * @details
          *  @code on<Always> @endcode
-         *  When using this word, a single instance of the associated reaction will run.  Upon each task completion, a
-         *  new instance of the task will spawn. Any reactions requested using this keyword will initialise upon system
-         *  start-up and execute continually until system shut-down.
+         *  This request will ensure a single instance of the associated reaction is running at all times.
+         *  That is, as one instance is completed, a new instance of the task will spawn.
+         *
+         *  Any reactions requested using this keyword will initialise upon system start-up and execute continually
+         *  until system shut-down.
          *
          *  Note that a task spawned from this request will execute in its own unique thread rather than the threadpool.
-         *  However, if the task is rescheduled (such as with Sync), it will then be moved into the thread pool.
+         *  However, if the task is rescheduled (such as with Sync), it will then be moved into the threadpool.
          *
-         * @attention
-         *  Where possible, developers should avoid use of this keyword.  It has been provided for times when this is
-         *  the only way to schedule the reaction. When tempted to use this keyword, it is advised to review other
-         *  options, such as on<IO> before resorting to this function.
-         *
-         * @attention
-         *  This word should be used in place of any reactions they would normally put in an infinite loop. That is, it
-         *  is not recommended to use a while(true) (or similar loop) in a reaction.
-         *  Using this work allows the task cleanly finish and restart itself, consequently allowing the task to
+         * @par Infinite Loops
+         *  This word should be used in place of any reactions which would contain an infinite loop. That is,
+         *  <b>it is not recommended to use a while(true) loop (or equivalent) in a reaction</b>.
+         *  Using this word allows the task to (cleanly) finish and restart itself, allowing the task to
          *  terminate properly when the system is shutdown.  Note that tasks which do not terminate correctly
-         *  during shut down will cause the system to hang.
+         *  at system shutdown will cause the system to hang.
          *
-         * @attention
+         * @par Ensure Clean Shutdown
          *  If the reaction associated with this task is performing a blocking operation, developers should make the
          *  the reaction interruptible with an on<Shutdown> reaction.  This will enforce a clean shutdown in the system.
          *
-         * @par TUTORIAL????
-         *  This might be flagged for a tutorial about always.  Look at
-         *  \NUClearExample-master\NUClearExample-master\module\extension\FileWatcher\src\FileWatcher.cpp
+         * @attention
+         *  Where possible, developers should <b>avoid using this keyword</b>.  It has been provided, but should only be
+         *  used when there is no other way to scheduled the reaction.  If a developer is tempted to use this keyword,
+         *  it is advised to review other options, such as on<IO> before resorting to this feature.
          *
          * @par Implements
          *  Bind
-         *
          */
         struct Always {
 

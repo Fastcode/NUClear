@@ -43,45 +43,61 @@ namespace threading {
         std::weak_ptr<Reaction> context;
 
         /**
-         * @brief Creates a new ReactionHandle for the reaction that is passed in.
+         * @brief
+         *  Creates a new ReactionHandle for the reaction that is passed in.
          *
-         * @param context the reaction that we are interacting with.
+         * @param
+         *  context the reaction that we are interacting with.
          */
         ReactionHandle(std::shared_ptr<Reaction> context = nullptr);
 
         /**
-         * @brief Enables the reaction and allows it to run.
+         * @brief
+         *  Enables the reaction so that associated tasks will be scheduled and queued when the reaction is triggered.
          */
         ReactionHandle& enable();
 
         /**
-         * @brief Disables the reaction, preventing it from running.
+         * @brief
+         *  Disables the reaction.
+         *  When disabled, any associated tasks will not be created if triggered.  All reaction configuration is still
+         *  available, so that the reaction can be enabled when required.
+         *  Note that a reaction which has been bound by an on<Always> request should not be disabled.
          */
         ReactionHandle& disable();
 
         /**
-         * @brief Sets the enable status to the passed boolean.
-         *
-         * @param set the run status of the handle to be of the boolean
+         * @brief
+         *  Sets the run status of the reaction handle.
+         * @param set
+         *  true for enable, false for disable
          */
         ReactionHandle& enable(bool set);
 
         /**
-         * @brief Returns if this reaction is currently enabled.
+         * @brief
+         *  Informs if the reaction is currently enabled.
          *
-         * @return true if the reaction is enabled, false otherwise.
+         * @return
+         *  true if enabled, false if disabled
          */
         bool enabled();
 
         /**
-         * @brief Unbinds the reaction and cleans up so it will never run again
+         * @brief
+         *  Removes a reaction request from the runtime environment.  This action is not reversible, once a reaction has
+         *  been unbound, it is no longer available for further use during the instance of runtime.
+         *  This is most commonly used for the unbinding of network configuration before attempting to re-set
+         *  configuration details during runtime.
          */
         void unbind();
 
         /**
-         * @brief Returns if this reaction handle holds a valid pointer (may be already unbound)
+         * @brief
+         *  Returns if this reaction handle holds a valid pointer (may be already unbound)
          *
-         * @return true if the reaction held in this is not a nullptr
+         * @return
+         *  true if the reaction held in this is not a nullptr
          */
         operator bool() const;
     };

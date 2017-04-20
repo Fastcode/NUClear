@@ -43,25 +43,25 @@ namespace dsl {
 
             /**
              * @brief
-             *  When emitting data under this scope, a UDP packet will be sent over the network.
+             *  Emits data as a UDP packet over the network.
              *
              * @details
              *  @code emit<Scope::UDP>(data, to_addr, to_port); @endcode
-             *  The target of this packet can be can be a unicast, broadcast or multicast address, specified as either
-             *  a host endian int, or as a string. Additionally the address and port on the local machine can be
-             *  specified using a string or host endian int.
+             *  Emissions under this scope are useful for communicating with third parties. The target of the packet
+             *  can be can be a unicast, broadcast or multicast address, specified as either a host endian int, or as a
+             *  string. Additionally the address and port on the local machine can be specified using a string or host
+             *  endian int.
              *
-             * @par TRENT???
-             *  Listen to audio 3 and make sure you update this.  Any specific questions go here.
+             * @attention
+             *  Anything emitted over the UDP network must be serialisable.
              *
              * @param data      the data to emit
              * @param to_addr   a string or host endian integer specifying the ip to send the packet to
              * @param to_port   the port to send this packet to in host endian
-             * @param from_addr Optional.  A string or host endian integer specifying the local ip to send the packet from.
-             *                  Defaults to INADDR_ANY.
-             * @param from_port Optional.  The port to send this from to in host endian or 0 to automatically choose a port.
-             *                  Defaults to 0.
-             *
+             * @param from_addr Optional.  A string or host endian integer specifying the local ip to send the packet
+             *                  from.  Defaults to INADDR_ANY.
+             * @param from_port Optional.  The port to send this from to in host endian or 0 to automatically choose a
+             *                  port. Defaults to 0.
              * @tparam DataType the datatype of the object to emit
              */
             template <typename DataType>

@@ -43,19 +43,20 @@ namespace dsl {
          *  This is used to signify any optional properties in the DSL request.
          *
          * @details
-         *  During runtime, optional data does not need to be present when initialising a reaction within the system.
-         *
-         *  This word is a modifier, and should  be used to modify any other "Get" DSL word. For example:
          *  @code on<Trigger<T1>, Optional<With<T2>() @endcode
-         *  In the case above, when T1 is emitted to the system, the associated task will be queued for execution.
-         *  Should T2 be available, read-only access to the most recent emission of T2 will be made available.  However,
-         *  should T2 not be present, the task can still run without a reference to this data.
+         *  During system runtime, optional data does not need to be present when initialising a reaction within the
+         *  system.  In the case above, when T1 is emitted to the system, the associated task will be queued for
+         *  execution. Should T2 be available, read-only access to the most recent emission of T2 will be provided to
+         *  the subscribing reaction.  However, should T2 not be present, the task will run without a reference to
+         *  this data.
+         *
+         *  This word is a modifier, and should  be used to modify any "Get" DSL word.
          *
          *@par Implements
          *  Modification
          *
          * @tparam  DSLWords
-         *  The DSL word/activity being modified
+         *  the DSL word/activity being modified.
          */
         template <typename... DSLWords>
         struct Optional : public Fusion<DSLWords...> {

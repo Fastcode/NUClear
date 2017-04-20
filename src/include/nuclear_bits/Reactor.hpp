@@ -238,7 +238,7 @@ protected:
         template <typename T>
         using DELAY = dsl::word::emit::Delay<T>;
 
-        /// @copydoc dsl::word::emit::Initialize
+        /// @copydoc dsl::word::emit::Initialise
         template <typename T>
         using INITIALIZE = dsl::word::emit::Initialise<T>;
 

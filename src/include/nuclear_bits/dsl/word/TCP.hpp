@@ -42,24 +42,24 @@ namespace dsl {
 
         /**
          * @brief
-         *  This allows a reaction to be triggered based on TCP activity.  When a connection is identified on the
-         *  assigned port, the associated reaction will be triggered.
+         *  This allows a reaction to be triggered based on TCP activity.
          *
          * @details
-         *  The request for a TCP based reaction can use a runtime argument to reference a specific port.  Note that the
-         *  port reference can be changed during system run-time.
          *  @code on<TCP>(port) @endcode
+         *  When a connection is identified on the assigned port, the associated reaction will be triggered.  The
+         *  request for a TCP based reaction can use a runtime argument to reference a specific port.  Note that the
+         *  port reference can be changed during the systems execution phase.
          *
-         *  Should the port number not be provided, then the system will bind to a currently unassigned port.
          *  @code on<TCP>() @endcode
+         *  Should the port reference be omitted, then the system will bind to a currently unassigned port.
          *
-         *  Note that a reaction can be triggered via connectivity for more than one port.  For example:
          *  @code on<TCP, TCP>(port, port)  @endcode
+         *  A reaction can also be triggered via connectivity on more than one port.
          *
          * @attention
-         *  on<TCP> should be used to define the reaction which will run when the connection has been established.
-         *  Because TCP communications are stream based, the associated reaction will often be an on<IO> request.  This
-         *  request will further define the reaction to run when activity on the stream is detected.  For example:
+         *  Because TCP communications are stream based, the on< TCP >() request will often require an on< IO >()
+         *  request also be specified within its definition. It is the later request which will define the reaction to
+         *  run when activity on the stream is detected.  For example:
          *  @code on<TCP>(port).then([this](const TCP::Connection& connection){
          *    on<IO>(connection.fd, IO::READ | IO::CLOSE).then([this](IO::Event event)
          *  } @endcode

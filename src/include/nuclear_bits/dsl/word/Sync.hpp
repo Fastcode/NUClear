@@ -27,34 +27,37 @@ namespace dsl {
          *  This option sets the synchronisation for a group of tasks.
          *
          * @details
-         *  When a group of tasks has been synchronised, only one task from that group will execute at a given time.
-         *  Should another task from this group be scheduled/requested (during execution of the current task), it will
-         *  be sidelined into a priority queue. Upon completion of the currently executing task, the queue will be
-         *  polled to allow execution of the next task in this group.
-         *  Tasks in the priority queue are ordered based on their priority level, then their emission timestamp.
-         *
-         *  For best use, this word should be fused with at least one other binding DSL word. For example:
          *  @code on<Trigger<T, ...>, Sync<Group>>() @endcode
+         *  When a group of tasks has been synchronised, only one task from the group will execute at a given time.
          *
-         * @par Example of Use
-         *  Consider a reactor, containing a number of a reactions which modify its state.  It would be unwise to allow
-         *  the reactions to run concurrently. To avoid race conditions, it is recommended that any reaction from the
-         *  reactor which modifies the state be synced.
+         *  Should another task from this group be scheduled/requested (during execution of the current task), it will
+         *  be sidelined into a priority queue.
+         *
+         *  Upon completion of the currently executing task, the queue will be polled to allow execution of the next
+         *  task in this group.
+         *
+         *  Tasks in the synchronization queue are ordered based on their priority level, then their emission timestamp.
+         *
+         *  For best use, this word should be fused with at least one other binding DSL word.
+         *
+         * @par When should I use Sync
+         *  Consider a reactor with a number of a reactions which modify its state.  It would be unwise to allow the
+         *  reactions to run concurrently. To avoid race conditions, it is recommended that any reactions which modify
+         *  the state be synced.
          *
          * @attention
-         *  Use of this feature is preferred to use of a mutex in your reactor.  In the case of a mutex, threads will
-         *  run and then block.  This would lead to wasted resources on a number of inactive threads.  Using this
-         *  synchronisation feature, NUClear has greater task and thread control, so that system resources can be
-         *  efficiently managed.  When using NUClear, developers should not have to worry about the use of devices
-         *  such as a mutex.
+         *  When using NUClear, developers should not make use of devices like a mutex. In the case of a mutex, threads
+         *  will run and then block (leading to wasted resources on a number of inactive threads).  By using Sync,
+         *  NUClear will have task and thread control so that system resources can be efficiently managed.
          *
          * @par Implements
          *  Pre-condition, Post-condition
          *
-         * @tparam SyncGroup the type/group to synchronize on.  This needs to be a declared type within the system.  A
-         *  common use is to simply use the reactors name (if the reactor is only syncing with one group).  Should more
-         *  types be required, the developer can declare a struct within the system which can be used as a group, though
-         *  any declared type will work.
+         * @tparam SyncGroup
+         *  the type/group to synchronize on.  This needs to be a declared type within the system.  It is common to
+         *  simply use the reactors name (i.e; if the reactor is only syncing with one group).  Should more than one
+         *  group be required, the developer can declare structs within the system, to act as a group reference.
+         *  Note that the developer is not limited to the use of a struct; any declared type will work.
          */
         template <typename SyncGroup>
         struct Sync {

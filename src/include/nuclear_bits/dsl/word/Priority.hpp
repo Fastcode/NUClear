@@ -26,39 +26,38 @@ namespace dsl {
 
         /**
          * @brief
-         *  The task priority can be controlled using an assigned setting.
+         *  Task priority can be controlled using an assigned setting.
          *
          * @details
-         *  This will be used by the PowerPlant to determine the scheduling order in the threadpool, as well as assign
-         *  a priority to the threadpool.
-         *
-         *  For best use, this word should be fused with at least one other binding DSL word.  For example:
          *  @code on<Trigger<T, ...>, Priority::HIGH>() @endcode
+         *  The PowerPlant uses this setting to determine the scheduling order (for the associated task) in the
+         *  threadpool, as well as assign a priority to the thread.
          *
          *  The available priority settings are:
          *
-         *  \li REALTIME:    Tasks assigned with this will be queued with all other REALTIME tasks
-         *  \li HIGH:        Tasks assigned with this will be queued with all other HIGH tasks.  They will only be
-         *                   scheduled for execution when there are no REALTIME tasks in the queue.
-         *  \li NORMAL:      Tasks assigned with this will be queued with all other NORMAL tasks.  They will only be
-         *                   scheduled for execution when there are no REALTIME or HIGHPRIORIY tasks in the queue.
-         *  \li LOW:         Tasks assigned with this will be queued with all other LOW tasks.  They will only be
-         *                   scheduled for execution when there are no REALTIME, HIGHPRIORIY or NORMAL tasks in the
-         *                   queue.
-         *  \li IDLE:        Tasks assigned with this priority will be queued with all other IDLE tasks.  They will only
-         *                   be scheduled for execution when there are no other tasks running in the system.
+         *  <b>REALTIME:</b>  Tasks assigned with this will be queued with all other REALTIME tasks.
+         *
+         *  <b>HIGH:</b>  Tasks assigned with this will be queued with all other HIGH tasks.  They will be scheduled for
+         *  execution when there are no REALTIME tasks in the queue.
+         *
+         *  <b>NORMAL:</b> Tasks assigned with this will be queued with all other NORMAL tasks.  They will be scheduled
+         *  for execution when there are no REALTIME and HIGH tasks in the queue.
+         *
+         *  <b>LOW:</b>  Tasks assigned with this will be queued with all other LOW tasks.  They will be scheduled for
+         *  execution when there are no REALTIME, HIGH and NORMAL tasks in the queue.
+         *
+         *  <b>IDLE:</b>  Tasks assigned with this priority will be queued with all other IDLE tasks.  They will be
+         *  scheduled for execution when there are no other tasks running in the system.
+         *
+         *  For best use, this word should be fused with at least one other binding DSL word.
+         *
+         * @par Default Behaviour
+         *  @code on<Trigger<T>>() @endcode
+         *  When the priority is not specified, tasks will be assigned a default setting; NORMAL.
          *
          * @attention
-         *  When the priority is not assigned, it will default to NORMAL.
-         *
-         * @attention
-         *  How the feature behaves depends on the runtime environments OS scheduling settings.
-         *  If the OS does not allow the user to set thread priorities, the executing tasks in NUCLEAR will be
-         *  ordered based on their priority setting, but the process will never be given more priority than that which
-         *  has already been assigned to the process by the OS.
-         *  If the developer wishes to execute more control over process priority, the it is recommended to run
-         *  NUCLEAR in a unix environment.  Note that super-users can execute process control using the commands "nice"
-         *  and "renice".
+         *  If the OS allows the user to set thread priority, this word can also be used to assign the priority of the
+         *  thread in its runtime environment.
          *
          * @par Implements
          *  Fusion
