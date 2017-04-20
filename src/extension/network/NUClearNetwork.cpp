@@ -292,14 +292,14 @@ namespace extension {
 
 
         void NUClearNetwork::reset(std::string name, std::string group, in_port_t port, uint16_t network_mtu) {
-            
+
             // Close our existing FDs if they exist
             shutdown();
-            
+
             // Lock all mutexes
             std::lock_guard<std::mutex> target_lock(target_mutex);
             std::lock_guard<std::mutex> send_lock(send_queue_mutex);
-            
+
             // Clear all our data structures
             send_queue.clear();
             name_target.clear();
@@ -366,7 +366,7 @@ namespace extension {
                 throw std::runtime_error(std::string("The network address provided (") + group
                                          + ") was not a valid multicast address");
             }
-            
+
             // Add the target for our multicast packets
             auto all_target = std::make_shared<NetworkTarget>("", multicast_target);
             targets.push_front(all_target);
@@ -499,16 +499,16 @@ namespace extension {
 
                     // If our pointer is valid (they haven't disconnected)
                     if (ptr) {
-                        
-                        auto now = std::chrono::steady_clock::now();
+
+                        auto now     = std::chrono::steady_clock::now();
                         auto timeout = it->last_send + ptr->round_trip_time;
 
                         // Check if we should have expected an ack by now for some packets
                         if (timeout < now) {
-                            
+
                             // We last sent now
                             it->last_send = now;
-                            
+
                             // The next time we should check for a timeout
                             auto next_timeout = now + ptr->round_trip_time;
                             if (next_timeout < next_event) {
@@ -620,7 +620,7 @@ namespace extension {
 
                         // Goodbye!
                         if (remote) {
-                            
+
                             // Remove from our list
                             std::lock_guard<std::mutex> lock(target_mutex);
                             remove_target(remote);
@@ -650,10 +650,12 @@ namespace extension {
 
                             // If this is a solo packet (in a single chunk)
                             if (packet.packet_count == 1) {
-                                
+
                                 if (header.type == DATA_RETRANSMISSION) {
-                                    // TODO we might have acked this packet already, and the ack was just dropped. We don't want to process it twice
-                                    // TODO we will need a method to know which packets we have recently procesed to know if this one is invalid
+                                    // TODO we might have acked this packet already, and the ack was just dropped. We
+                                    // don't want to process it twice
+                                    // TODO we will need a method to know which packets we have recently procesed to
+                                    // know if this one is invalid
                                 }
 
                                 // Copy our data into a vector
@@ -811,10 +813,12 @@ namespace extension {
                                                       [&](const PacketQueue::PacketTarget& target) {
                                                           return target.target.lock() == remote;
                                                       });
-                                
+
                                 // We have no idea who this is, but they seem to want this packet
-                                // The most likely scenario is it was a broadcast message we sent was received by someone
-                                // who we didn't know at the time but we do know now. We have the choice here of ignoring them
+                                // The most likely scenario is it was a broadcast message we sent was received by
+                                // someone
+                                // who we didn't know at the time but we do know now. We have the choice here of
+                                // ignoring them
                                 // or sending a new fresh packet
                                 if (s == queue.targets.end()) {
                                     // TODO implement this logic and set s equal to the new guy
@@ -902,7 +906,7 @@ namespace extension {
                                     else {
                                         // Store the time as we are now sending new packets
                                         s->last_send = std::chrono::steady_clock::now();
-                                        
+
                                         // The next time we should check for a timeout
                                         auto next_timeout = std::chrono::steady_clock::now() + remote->round_trip_time;
                                         if (next_timeout < next_event) {
@@ -1042,7 +1046,7 @@ namespace extension {
                     target.acked     = acks;
                     target.target    = it->second;
                     queue.targets.push_back(target);
-                    
+
                     // The next time we should check for a timeout
                     auto next_timeout = std::chrono::steady_clock::now() + it->second->round_trip_time;
                     if (next_timeout < next_event) {

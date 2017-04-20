@@ -84,7 +84,6 @@ int sendmsg(fd_t fd, msghdr* msg, int flags);
 #define INVALID_SOCKET -1
 
 namespace NUClear {
-
 using fd_t = int;
 }  // namespace NUClear
 
