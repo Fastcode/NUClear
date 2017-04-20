@@ -1,3 +1,6 @@
+include .special.rst
+
+
 NUClear DSL
 ===========
 
@@ -16,6 +19,8 @@ The on statement can be seen as containing three main parts.  The DSL Request, t
     <font color="blue">On<...></font><font color="red">(Runtime, ... )</font><font color="green">.then(function);</font>
     <br /><br />
     <font color="blue">DSL Request</font><br />
+
+This is :red:`red !` And :blue:`this part is blue`.
 
 The DSL request can be fused together through any combination of DSL words.  The combination of these words will define
 the kind of reaction which is being requested (for example, :ref:`Trigger` will define a reaction that should occur when
