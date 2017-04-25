@@ -334,7 +334,7 @@ namespace extension {
 
                     // Check this address is multicast in the Administratively-scoped group
                     // (starts with 1110 1111)
-                    if ((htonl(addr.sin_addr.s_addr) & 0xEF000000) == 0xEF000000) {
+                    if ((ntohl(addr.sin_addr.s_addr) & 0xEF000000) == 0xEF000000) {
 
                         // Clear and set our struct
                         std::memset(&multicast_target, 0, sizeof(multicast_target));
@@ -423,9 +423,6 @@ namespace extension {
 
         void NUClearNetwork::process() {
 
-            // Used for storing how many bytes are available on a socket
-            int count = 0;
-
             // Record the time
             auto now = std::chrono::steady_clock::now();
 
@@ -464,9 +461,12 @@ namespace extension {
             }
 
             // Check if we have packets to resend and if so resend
-            if (next_event < now) {
+            if (!send_queue.empty()) {
                 retransmit();
             }
+
+            // Used for storing how many bytes are available on a socket
+            int count = 0;
 
             // Read packets from the multicast socket while there is data available
             ioctl(multicast_fd, FIONREAD, &(count = 0));
@@ -481,7 +481,7 @@ namespace extension {
             while (count > 0) {
                 auto packet = read_socket(unicast_fd);
                 process_packet(std::move(packet.first), std::move(packet.second));
-                ioctl(multicast_fd, FIONREAD, &(count = 0));
+                ioctl(unicast_fd, FIONREAD, &(count = 0));
             }
         }
 
@@ -519,7 +519,7 @@ namespace extension {
                             // Work out which packets to resend and resend them
                             for (int i = 0; i < qit->second.header.packet_count; ++i) {
                                 if ((it->acked[i / 8] & uint8_t(1 << (i % 8))) == 0) {
-                                    send_packet(ptr->target, qit->second.header, i, qit->second.payload);
+                                    send_packet(ptr->target, qit->second.header, i, qit->second.payload, true);
                                 }
                             }
                         }
@@ -561,7 +561,9 @@ namespace extension {
         void NUClearNetwork::process_packet(sock_t&& address, std::vector<char>&& payload) {
 
             // First validate this is a NUClear network packet we can read (a version 2 NUClear packet)
-            if (payload[0] == '\xE2' && payload[1] == '\x98' && payload[2] == '\xA2' && payload[3] == 0x02) {
+            if (payload.size() >= sizeof(PacketHeader) && payload[0] == '\xE2' && payload[1] == '\x98'
+                && payload[2] == '\xA2'
+                && payload[3] == 0x02) {
 
                 // This is a real packet! get our header information
                 const PacketHeader& header = *reinterpret_cast<const PacketHeader*>(payload.data());
@@ -595,20 +597,25 @@ namespace extension {
 
                                 /* Mutex scope */ {
                                     std::lock_guard<std::mutex> lock(target_mutex);
-                                    targets.push_back(ptr);
-                                    udp_target.insert(std::make_pair(key, ptr));
-                                    name_target.insert(std::make_pair(name, ptr));
+
+                                    // Double check they are new
+                                    if (udp_target.count(key) == 0) {
+                                        targets.push_back(ptr);
+                                        udp_target.insert(std::make_pair(key, ptr));
+                                        name_target.insert(std::make_pair(name, ptr));
+
+
+                                        // Say hi back!
+                                        ::sendto(unicast_fd,
+                                                 announce_packet.data(),
+                                                 announce_packet.size(),
+                                                 0,
+                                                 &ptr->target.sock,
+                                                 socket_size(ptr->target));
+
+                                        join_callback(*ptr);
+                                    }
                                 }
-
-                                // Say hi back!
-                                ::sendto(unicast_fd,
-                                         announce_packet.data(),
-                                         announce_packet.size(),
-                                         0,
-                                         &ptr->target.sock,
-                                         socket_size(ptr->target));
-
-                                join_callback(*ptr);
                             }
                         }
                         // They're old but at least they're not timing out
@@ -623,8 +630,12 @@ namespace extension {
 
                             // Remove from our list
                             std::lock_guard<std::mutex> lock(target_mutex);
-                            remove_target(remote);
-                            leave_callback(*remote);
+
+                            // Double check they are gone after locking before removal
+                            if (udp_target.count(key) > 0) {
+                                remove_target(remote);
+                                leave_callback(*remote);
+                            }
                         }
 
                     } break;
@@ -648,15 +659,44 @@ namespace extension {
                             // We got a packet from them recently
                             remote->last_update = std::chrono::steady_clock::now();
 
+                            // Check if this packet is a retransmission of data
+                            if (header.type == DATA_RETRANSMISSION) {
+
+                                // See if we recently processed this packet
+                                auto it = std::find(
+                                    remote->recent_packets.begin(), remote->recent_packets.end(), packet.packet_id);
+
+                                // We recently processed this packet, this is just a failed ack
+                                // Send the ack again if it was reliable
+                                if (it != remote->recent_packets.end() && packet.reliable) {
+
+                                    // Allocate room for the whole ack packet
+                                    std::vector<char> r(sizeof(ACKPacket) + (packet.packet_count / 8), 0);
+                                    ACKPacket& response   = *reinterpret_cast<ACKPacket*>(r.data());
+                                    response              = ACKPacket();
+                                    response.packet_id    = packet.packet_id;
+                                    response.packet_no    = packet.packet_no;
+                                    response.packet_count = packet.packet_count;
+
+                                    // Set the bits for all packets (we got the whole thing)
+                                    for (int i = 0; i < packet.packet_count; ++i) {
+                                        (&response.packets)[i / 8] |= uint8_t(1 << (i % 8));
+                                    }
+
+                                    // Make who we are sending it to into a useable address
+                                    sock_t& to = remote->target;
+
+                                    // Send the packet
+                                    if ((rand() % 100) >= DROP_PERCENT)
+                                        ::sendto(unicast_fd, r.data(), r.size(), 0, &to.sock, socket_size(to));
+
+                                    // We don't need to process this packet we already did
+                                    return;
+                                }
+                            }
+
                             // If this is a solo packet (in a single chunk)
                             if (packet.packet_count == 1) {
-
-                                if (header.type == DATA_RETRANSMISSION) {
-                                    // TODO we might have acked this packet already, and the ack was just dropped. We
-                                    // don't want to process it twice
-                                    // TODO we will need a method to know which packets we have recently procesed to
-                                    // know if this one is invalid
-                                }
 
                                 // Copy our data into a vector
                                 std::vector<char> out(&packet.data,
@@ -674,8 +714,11 @@ namespace extension {
                                     // Make who we are sending it to into a useable address
                                     sock_t& to = remote->target;
 
-                                    if ((rand() % 100) >= DROP_PERCENT)  // TODO TEMP 10% packet loss
+                                    if ((rand() % 100) >= DROP_PERCENT)
                                         ::sendto(unicast_fd, &response, sizeof(response), 0, &to.sock, socket_size(to));
+
+                                    // Set this packet to have been recently received
+                                    remote->recent_packets[++remote->recent_packets_index] = packet.packet_id;
                                 }
 
                                 packet_callback(*remote, packet.hash, std::move(out));
@@ -699,8 +742,7 @@ namespace extension {
                                     if (packet.reliable) {
 
                                         // A basic ack has room for 8 packets and we need 1 extra byte for each 8
-                                        // additional
-                                        // packets
+                                        // additional packets
                                         std::vector<char> r(sizeof(NACKPacket) + (packet.packet_count / 8), 0);
                                         NACKPacket& response  = *reinterpret_cast<NACKPacket*>(r.data());
                                         response              = NACKPacket();
@@ -720,7 +762,7 @@ namespace extension {
                                         sock_t& to = remote->target;
 
                                         // Send the packet
-                                        if ((rand() % 100) >= DROP_PERCENT)  // TODO TEMP 10% packet loss
+                                        if ((rand() % 100) >= DROP_PERCENT)
                                             ::sendto(unicast_fd, r.data(), r.size(), 0, &to.sock, socket_size(to));
                                     }
 
@@ -735,8 +777,7 @@ namespace extension {
                                 // Create and send our ACK packet if this is a reliable transmission
                                 if (packet.reliable) {
                                     // A basic ack has room for 8 packets and we need 1 extra byte for each 8
-                                    // additional
-                                    // packets
+                                    // additional packets
                                     std::vector<char> r(sizeof(ACKPacket) + (packet.packet_count / 8), 0);
                                     ACKPacket& response   = *reinterpret_cast<ACKPacket*>(r.data());
                                     response              = ACKPacket();
@@ -753,7 +794,7 @@ namespace extension {
                                     sock_t& to = remote->target;
 
                                     // Send the packet
-                                    if ((rand() % 100) >= DROP_PERCENT)  // TODO TEMP 10% packet loss
+                                    if ((rand() % 100) >= DROP_PERCENT)
                                         ::sendto(unicast_fd, r.data(), r.size(), 0, &to.sock, socket_size(to));
                                 }
 
@@ -779,6 +820,12 @@ namespace extension {
 
                                     // Send our assembled data packet
                                     packet_callback(*remote, packet.hash, std::move(out));
+
+                                    // If the packet was reliable add that it was recently received
+                                    if (packet.reliable) {
+                                        // Set this packet to have been recently received
+                                        remote->recent_packets[++remote->recent_packets_index] = packet.packet_id;
+                                    }
 
                                     // We have completed this packet, discard the data
                                     assemblers.erase(assemblers.find(packet.packet_id));
@@ -814,23 +861,14 @@ namespace extension {
                                                           return target.target.lock() == remote;
                                                       });
 
-                                // We have no idea who this is, but they seem to want this packet
-                                // The most likely scenario is it was a broadcast message we sent was received by
-                                // someone
-                                // who we didn't know at the time but we do know now. We have the choice here of
-                                // ignoring them
-                                // or sending a new fresh packet
-                                if (s == queue.targets.end()) {
-                                    // TODO implement this logic and set s equal to the new guy
-                                }
+                                // Check for all the ways this ACK could be invalid:
+                                // From an unknown person
+                                if (s != queue.targets.end()
+                                    // Wrong packet
+                                    && packet.packet_count == queue.header.packet_count
+                                    // Truncated packet
+                                    && payload.size() == (sizeof(ACKPacket) + (queue.header.packet_count / 8))) {
 
-                                // Now we need to validate that the ack is relevant and valid
-                                if (packet.packet_count != queue.header.packet_count
-                                    || payload.size() < (sizeof(ACKPacket) + (queue.header.packet_count / 8))) {
-
-                                    // TODO this is an invalid ack we should handle it somehow!
-                                }
-                                else {
                                     // Work out about how long our round trip time is
                                     auto now        = std::chrono::steady_clock::now();
                                     auto round_trip = now - s->last_send;
@@ -855,7 +893,7 @@ namespace extension {
                                         all_acked &= (s->acked[i] & expected) == expected;
                                     }
 
-                                    // The remote has received this entire packet we can erase our one
+                                    // The remote has received this entire packet we can erase our sender
                                     if (all_acked) {
                                         queue.targets.erase(s);
 
@@ -880,11 +918,10 @@ namespace extension {
                             // We got a packet from them recently
                             remote->last_update = std::chrono::steady_clock::now();
 
-                            // Find this packet in our sending queue
-
                             // Check for our packet id in the send queue
                             if (send_queue.count(packet.packet_id) > 0) {
 
+                                // Find this packet in our sending queue
                                 auto& queue = send_queue[packet.packet_id];
 
                                 // Find this target in the send queue
@@ -894,68 +931,42 @@ namespace extension {
                                                           return target.target.lock() == remote;
                                                       });
 
-                                // We know who this is
-                                if (s != queue.targets.end()) {
+                                // Validate that the nack is relevant and valid
+                                // We know who it is
+                                if (s != queue.targets.end()
+                                    // It's not corrupted
+                                    && packet.packet_count == queue.header.packet_count
+                                    // It's not truncated
+                                    && payload.size() == (sizeof(NACKPacket) + (queue.header.packet_count / 8))) {
 
-                                    // Now we need to validate that the ack is relevant and valid
-                                    if (packet.packet_count != queue.header.packet_count
-                                        || payload.size() < (sizeof(NACKPacket) + (queue.header.packet_count / 8))) {
+                                    // Store the time as we are now sending new packets
+                                    s->last_send = std::chrono::steady_clock::now();
 
-                                        // TODO this is an invalid nack we should handle it somehow!
+                                    // The next time we should check for a timeout
+                                    auto next_timeout = std::chrono::steady_clock::now() + remote->round_trip_time;
+                                    if (next_timeout < next_event) {
+                                        next_event = next_timeout;
+                                        next_event_callback(next_event);
                                     }
-                                    else {
-                                        // Store the time as we are now sending new packets
-                                        s->last_send = std::chrono::steady_clock::now();
 
-                                        // The next time we should check for a timeout
-                                        auto next_timeout = std::chrono::steady_clock::now() + remote->round_trip_time;
-                                        if (next_timeout < next_event) {
-                                            next_event = next_timeout;
-                                            next_event_callback(next_event);
-                                        }
+                                    // Update our acks with the nacked data
+                                    for (unsigned i = 0; i < s->acked.size(); ++i) {
 
-                                        // Update our acks with the nacked data
-                                        for (unsigned i = 0; i < s->acked.size(); ++i) {
+                                        // Update our bitset
+                                        s->acked[i] &= ~(&packet.packets)[i];
+                                    }
 
-                                            // Update our bitset
-                                            s->acked[i] &= ~(&packet.packets)[i];
-                                        }
+                                    // Now we have to retransmit the nacked packets
+                                    for (int i = 0; i < packet.packet_count * 8; ++i) {
 
-                                        // Now we have to retransmit the nacked packets
-                                        for (int i = 0; i < packet.packet_count * 8; ++i) {
-
-                                            // Check if this packet needs to be sent
-                                            uint8_t bit = 1 << (i % 8);
-                                            if (((&packet.packets)[i] & bit) == bit) {
-                                                send_packet(remote->target, queue.header, i, queue.payload);
-                                            }
+                                        // Check if this packet needs to be sent
+                                        uint8_t bit = 1 << (i % 8);
+                                        if (((&packet.packets)[i] & bit) == bit) {
+                                            send_packet(remote->target, queue.header, i, queue.payload, true);
                                         }
                                     }
                                 }
-                                // Someone else is NACKing that we didn't expect
-                                else {
-                                    // TODO should we add and start sending to them?
-                                }
-
-                                // Resend the packets that are NACKed
-                                std::cout << remote->name << " NACK Packet: " << packet.packet_id << " ";
-                                for (int i = 0; i < packet.packet_count; ++i) {
-                                    std::cout << (((&packet.packets)[i / 8] & uint8_t(1 << (i % 8))) != 0);
-                                }
-                                std::cout << std::endl;
                             }
-
-
-                            // Lookup our send queue for this packet id
-
-                            // TODO if this packet is not in the list should we send back a packet to say it's never
-                            // coming?
-
-                            // Lookup this client as the recipient
-
-                            // NAND in the packets that have been received
-
-                            // Explicitly resend all of the packets that were in the NACK
                         }
                     }
                 }
@@ -970,7 +981,8 @@ namespace extension {
         void NUClearNetwork::send_packet(const sock_t& target,
                                          NUClear::extension::network::DataPacket header,
                                          uint16_t packet_no,
-                                         const std::vector<char>& payload) {
+                                         const std::vector<char>& payload,
+                                         const bool& reliable) {
 
             // Our packet we are sending
             msghdr message;
@@ -994,6 +1006,8 @@ namespace extension {
             message.msg_namelen = socket_size(target);
 
             if ((rand() % 100) >= DROP_PERCENT)  // TODO TEMP 10% packet loss
+                // TODO if reliable, run select first to see if this socket is writeable
+                // If it is not reliable just don't send the message instead of blocking
                 ::sendmsg(unicast_fd, &message, 0);
         }
 
@@ -1030,8 +1044,7 @@ namespace extension {
                 // Store the header, but update it's type to be a retransmission so it can be ignored if overtransmitted
                 queue.header      = header;
                 queue.header.type = DATA_RETRANSMISSION;
-                // TODO MOVING THIS HERE IS DANGEROUS AS WE USE IT RIGHT AFTER HOWEVER IT MUST EXIST HERE FOR ACKS
-                queue.payload = std::move(payload);
+                queue.payload     = payload;  // TODO there might be some better memory management that can happen here
                 std::vector<uint8_t> acks((header.packet_count / 8) + 1, 0);
 
                 // Find interested parties or if multicast it's everyone we are connected to
@@ -1063,7 +1076,7 @@ namespace extension {
                 auto send_to = name_target.equal_range(target);
                 for (size_t i = 0; i < header.packet_count; ++i) {
                     for (auto s = send_to.first; s != send_to.second; ++s) {
-                        send_packet(s->second->target, header, i, payload);
+                        send_packet(s->second->target, header, i, payload, reliable);
                     }
                 }
             }
