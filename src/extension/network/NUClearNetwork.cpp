@@ -943,7 +943,7 @@ namespace extension {
                                     s->last_send = std::chrono::steady_clock::now();
 
                                     // The next time we should check for a timeout
-                                    auto next_timeout = std::chrono::steady_clock::now() + remote->round_trip_time;
+                                    auto next_timeout = s->last_send + remote->round_trip_time;
                                     if (next_timeout < next_event) {
                                         next_event = next_timeout;
                                         next_event_callback(next_event);

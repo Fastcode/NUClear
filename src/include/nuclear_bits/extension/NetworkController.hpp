@@ -32,8 +32,8 @@ namespace extension {
         /// Our NUClearNetwork object that handles the networking
         network::NUClearNetwork network;
 
-        /// The reaction that is doing our periodic announcement
-        ReactionHandle timed_handle;
+        /// The reaction that handles timed events from the network
+        ReactionHandle process_handle;
         /// The reactions that listen for io
         std::vector<ReactionHandle> listen_handles;
 

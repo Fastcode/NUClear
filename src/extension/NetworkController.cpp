@@ -29,12 +29,13 @@ namespace extension {
     using dsl::word::NetworkListen;
     using dsl::word::emit::NetworkEmit;
     using Unbind = dsl::operation::Unbind<dsl::word::NetworkListen>;
+    struct ProcessNetwork {};
 
 
     NetworkController::NetworkController(std::unique_ptr<NUClear::Environment> environment)
         : Reactor(std::move(environment))
         , network()
-        , timed_handle()
+        , process_handle()
         , listen_handles()
         , reaction_mutex()
         , reactions() {
@@ -90,6 +91,11 @@ namespace extension {
             l->address = remote.target;
             emit(l);
         });
+            
+        // Set our event timer callback
+        network.set_next_event_callback([this](std::chrono::steady_clock::time_point t) {
+            emit<Scope::DELAY>(std::make_unique<ProcessNetwork>(), t - std::chrono::steady_clock::now());
+        });
 
         // Start listening for a new network type
         on<Trigger<NetworkListen>>().then("Network Bind", [this](const NetworkListen& l) {
@@ -126,8 +132,8 @@ namespace extension {
         on<Trigger<NetworkConfiguration>>().then([this](const NetworkConfiguration& config) {
 
             // Unbind our announce handle
-            if (timed_handle) {
-                timed_handle.unbind();
+            if (process_handle) {
+                process_handle.unbind();
             }
 
             // Unbind all our listen handles
@@ -147,8 +153,8 @@ namespace extension {
             // Reset our network using this configuration
             network.reset(name, multicast_group, multicast_port, mtu);
 
-            // Announce handle
-            timed_handle = on<Watchdog<NetworkController, 500, std::chrono::milliseconds>>().then("Network processing", [this] {
+            // Execution handle
+            process_handle = on<Trigger<ProcessNetwork>>().then("Network processing", [this] {
                 network.process();
             });
 
