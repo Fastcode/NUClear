@@ -19,12 +19,18 @@
 #define NUCLEAR_EXTENSION_NETWORK_NUCLEARNETWORK_HPP
 
 #include <arpa/inet.h>
+
+#include <limits>
+#include <chrono>
+#include <string>
+#include <thread>
 #include <array>
 #include <atomic>
 #include <functional>
 #include <list>
 #include <map>
 #include <vector>
+
 #include "nuclear_bits/util/network/sock_t.hpp"
 #include "wire_protocol.hpp"
 

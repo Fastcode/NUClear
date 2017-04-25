@@ -17,15 +17,17 @@
 
 #include "nuclear_bits/extension/network/NUClearNetwork.hpp"
 
-#include <netdb.h>
-#include <sys/ioctl.h>
-#include <sys/socket.h>
-#include <sys/types.h>
+#include "nuclear_bits/util/platform.hpp"
+#include "nuclear_bits/util/network/get_interfaces.hpp"
+
+#include <cstring>
+#include <set>
 #include <algorithm>
 #include <cerrno>
 
 #warning "This drop percentage needs to be removed"
 #define DROP_PERCENT 0
+#include <cstdlib>
 
 namespace NUClear {
 namespace extension {

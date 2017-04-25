@@ -18,8 +18,6 @@
 #ifndef NUCLEAR_EXTENSION_NETWORK_WIRE_PROTOCOL_HPP
 #define NUCLEAR_EXTENSION_NETWORK_WIRE_PROTOCOL_HPP
 
-#include "nuclear"
-
 namespace NUClear {
 namespace extension {
     namespace network {

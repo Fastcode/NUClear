@@ -20,13 +20,6 @@
 // Include platform specific details
 #include "nuclear_bits/util/platform.hpp"
 
-#ifndef _WIN32
-#include <ifaddrs.h>
-#include <net/if.h>
-#include <netdb.h>
-#include <sys/socket.h>
-#endif
-
 #include <algorithm>
 #include <cstring>
 #include <system_error>

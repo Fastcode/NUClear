@@ -18,8 +18,7 @@
 #ifndef NUCLEAR_UTIL_NETWORK_SOCK_T_HPP
 #define NUCLEAR_UTIL_NETWORK_SOCK_T_HPP
 
-#include <arpa/inet.h>
-#include <sys/socket.h>
+#include "nuclear_bits/util/platform.hpp"
 
 namespace NUClear {
 namespace util {

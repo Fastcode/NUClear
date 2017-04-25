@@ -19,16 +19,7 @@
 #ifndef NUCLEAR_DSL_WORD_EMIT_UDP_HPP
 #define NUCLEAR_DSL_WORD_EMIT_UDP_HPP
 
-#ifdef _WIN32
-#include "nuclear_bits/util/windows_includes.hpp"
-#else
-#include <arpa/inet.h>
-#include <net/if.h>
-#include <netinet/in.h>
-#include <sys/socket.h>
-#include <unistd.h>
-#include <cstring>
-#endif
+#include "nuclear_bits/util/platform.hpp"
 
 #include "nuclear_bits/PowerPlant.hpp"
 #include "nuclear_bits/dsl/store/DataStore.hpp"

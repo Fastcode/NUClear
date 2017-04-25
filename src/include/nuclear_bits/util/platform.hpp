@@ -19,6 +19,46 @@
 #define NUCLEAR_UTIL_PLATFORM_HPP
 
 /*******************************************
+ *   MANAGE WINDOWS CRAZY INCLUDE SYSTEM   *
+ *******************************************/
+// Because windows is SUUUUPER dumb and if you include headers in the wrong order
+// Nothing at all works, also if you don't define things in the right order nothing works
+// It's a terrible pile of garbage
+// So we have this header to make sure everything is in the correct order
+#ifdef _WIN32
+
+// Windows has a dumb min/max macro that breaks stuff
+#define NOMINMAX
+
+// Without this winsock just doesn't have half the typedefs
+#define INCL_WINSOCK_API_TYPEDEFS 1
+
+// Winsock must be declared before Windows.h or it won't work
+#include <WinSock2.h>
+
+#include <Ws2ipdef.h>
+#include <Ws2tcpip.h>
+
+#include <Mstcpip.h>
+#include <Mswsock.h>
+
+#include <Iphlpapi.h>
+
+// This little thingy makes windows link to the winsock library
+#pragma comment(lib, "Ws2_32.lib")
+#pragma comment(lib, "Mswsock.lib")
+#pragma comment(lib, "IPHLPAPI.lib")
+
+// Include windows.h mega header... no wonder windows compiles so slowly
+#define WIN32_LEAN_AND_MEAN
+#include <Windows.h>
+
+// Whoever thought this was a good idea was a terrible person
+#undef ERROR
+
+#endif  // _WIN32
+
+/*******************************************
  *      SHIM FOR THREAD LOCAL STORAGE      *
  *******************************************/
 #if defined(__GNUC__)
@@ -33,9 +73,6 @@
  *           SHIM FOR NETWORKING           *
  *******************************************/
 #ifdef _WIN32
-
-#include <iostream>
-#include "nuclear_bits/util/windows_includes.hpp"
 
 using ssize_t   = SSIZE_T;
 using in_port_t = uint16_t;
@@ -78,6 +115,18 @@ int sendmsg(fd_t fd, msghdr* msg, int flags);
 }  // namespace NUClear
 
 #else
+
+// Include real networking stuff
+#include <arpa/inet.h>
+#include <net/if.h>
+#include <netinet/in.h>
+#include <sys/socket.h>
+#include <sys/ioctl.h>
+#include <sys/types.h>
+#include <netdb.h>
+#include <unistd.h>
+#include <ifaddrs.h>
+#include <poll.h>
 
 // Move errno so it can be used in windows
 #define network_errno errno
