@@ -18,8 +18,6 @@
 #ifndef NUCLEAR_EXTENSION_NETWORK_NUCLEARNETWORK_HPP
 #define NUCLEAR_EXTENSION_NETWORK_NUCLEARNETWORK_HPP
 
-#include <arpa/inet.h>
-
 #include <limits>
 #include <chrono>
 #include <string>
@@ -31,6 +29,7 @@
 #include <map>
 #include <vector>
 
+#include "nuclear_bits/util/platform.hpp"
 #include "nuclear_bits/util/network/sock_t.hpp"
 #include "wire_protocol.hpp"
 

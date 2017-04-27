@@ -74,6 +74,7 @@
  *******************************************/
 #ifdef _WIN32
 
+#include <cstdint>
 using ssize_t   = SSIZE_T;
 using in_port_t = uint16_t;
 using in_addr_t = uint32_t;
