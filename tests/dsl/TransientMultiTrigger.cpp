@@ -32,7 +32,18 @@ struct DataType {
         return good;
     }
 };
+}
 
+namespace NUClear {
+namespace dsl {
+    namespace trait {
+        template <>
+        struct is_transient<DataType> : public std::true_type {};
+    }
+}
+}
+
+namespace {
 struct SimpleMessage {
     SimpleMessage(int value) : value(value){};
     int value;
@@ -98,15 +109,6 @@ public:
         });
     }
 };
-}
-
-namespace NUClear {
-namespace dsl {
-    namespace trait {
-        template <>
-        struct is_transient<DataType> : public std::true_type {};
-    }
-}
 }
 
 TEST_CASE("Testing whether getters that return transient data can cache between calls", "[api][transient]") {

@@ -29,7 +29,6 @@
 #include "nuclear_bits/dsl/trait/is_transient.hpp"
 #include "nuclear_bits/dsl/word/Single.hpp"
 #include "nuclear_bits/dsl/word/emit/Direct.hpp"
-#include "nuclear_bits/util/generate_reaction.hpp"
 #include "nuclear_bits/util/platform.hpp"
 
 namespace NUClear {
@@ -93,24 +92,17 @@ namespace dsl {
 
             using ThreadEventStore = dsl::store::ThreadStore<Event>;
 
-            template <typename DSL, typename Function>
-            static inline threading::ReactionHandle bind(Reactor& reactor,
-                                                         const std::string& label,
-                                                         Function&& callback,
-                                                         fd_t fd,
-                                                         int watch_set) {
+            template <typename DSL>
+            static inline void bind(const std::shared_ptr<threading::Reaction>& reaction, fd_t fd, int watch_set) {
 
-                auto reaction = util::generate_reaction<DSL, IO>(reactor, label, std::forward<Function>(callback));
+                reaction->unbinders.push_back([](const threading::Reaction& r) {
+                    r.reactor.emit<emit::Direct>(std::make_unique<operation::Unbind<IO>>(r.id));
+                });
 
-                auto io_config = std::make_unique<IOConfiguration>(IOConfiguration{fd, watch_set, std::move(reaction)});
-
-                threading::ReactionHandle handle(io_config->reaction);
+                auto io_config = std::make_unique<IOConfiguration>(IOConfiguration{fd, watch_set, reaction});
 
                 // Send our configuration out
-                reactor.powerplant.emit<emit::Direct>(io_config);
-
-                // Return our handles
-                return handle;
+                reaction->reactor.emit<emit::Direct>(io_config);
             }
 
             template <typename DSL>

@@ -261,57 +261,42 @@ public:
         Reactor& reactor;
         std::tuple<Arguments...> args;
 
-        // On a reaction handle add it to our list
-        void add_reaction_handle(ReactionHandle& r) {
-            reactor.reaction_handles.push_back(r);
-        }
-
-        // Do nothing if it's not a reaction handle
-        void add_reaction_handle(...) {}
-
-        template <size_t i = 0, typename... Tp>
-        std::enable_if_t<i == sizeof...(Tp)> add_reaction_handles(std::tuple<Tp...>&) {}
-
-        template <size_t i = 0, typename... Tp>
-            std::enable_if_t < i<sizeof...(Tp)> add_reaction_handles(std::tuple<Tp...>& t) {
-            add_reaction_handle(std::get<i>(t));
-        }
-
         template <typename Function, int... Index>
-        auto then(const std::string& label, Function&& callback, const util::Sequence<Index...>&) -> decltype(
-            util::detuplify(DSL::bind(reactor, label, std::forward<Function>(callback), std::get<Index>(args)...))) {
+        auto then(const std::string& label, Function&& callback, const util::Sequence<Index...>&) {
+
+            // Generate the identifer
+            std::vector<std::string> identifier = {label,
+                                                   reactor.reactor_name,
+                                                   util::demangle(typeid(DSL).name()),
+                                                   util::demangle(typeid(Function).name())};
+
+            // Generate the reaction
+            auto reaction = std::make_shared<threading::Reaction>(
+                reactor, identifier, util::CallbackGenerator<DSL, Function>(std::forward<Function>(callback)));
 
             // Get our tuple from binding our reaction
-            auto tuple = DSL::bind(reactor,
-                                   label,
-                                   util::CallbackGenerator<DSL, Function>(std::forward<Function>(callback)),
-                                   std::get<Index>(args)...);
+            auto tuple = DSL::bind(reaction, std::get<Index>(args)...);
 
-            // Get all reaction handles from the tuple and put them into our global list so we can debind them on
-            // destruction
-            add_reaction_handles(tuple);
+            auto handle = threading::ReactionHandle(reaction);
+            reactor.reaction_handles.push_back(handle);
 
             // Return the arguments to the user (if there is only 1 we unwrap it for them since this is the most common
             // case)
-            return util::detuplify(std::move(tuple));
+            return util::detuplify(std::tuple_cat(std::make_tuple(handle), tuple));
         }
 
     public:
         Binder(Reactor& r, Arguments&&... args) : reactor(r), args(args...) {}
 
         template <typename Label, typename Function>
-        auto then(Label&& label, Function&& callback)
-            -> decltype(std::declval<Binder>().then(label,
-                                                    std::forward<Function>(callback),
-                                                    util::GenerateSequence<0, sizeof...(Arguments)>())) {
+        auto then(Label&& label, Function&& callback) {
             return then(std::forward<Label>(label),
                         std::forward<Function>(callback),
                         util::GenerateSequence<0, sizeof...(Arguments)>());
         }
 
         template <typename Function>
-        auto then(Function&& callback)
-            -> decltype(std::declval<Binder>().then(std::declval<std::string>(), std::forward<Function>(callback))) {
+        auto then(Function&& callback) {
             return then("", std::forward<Function>(callback));
         }
     };

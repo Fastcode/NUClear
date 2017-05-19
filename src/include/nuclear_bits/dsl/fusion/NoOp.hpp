@@ -30,10 +30,8 @@ namespace dsl {
          */
         struct NoOp {
 
-            template <typename DSL, typename Function, typename... Args>
-            static inline std::tuple<> bind(Reactor&, const std::string&, Function&&, Args...) {
-                return std::tuple<>();
-            }
+            template <typename DSL, typename... Args>
+            static inline void bind(const std::shared_ptr<threading::Reaction>&, Args...) {}
 
             template <typename DSL>
             static inline std::tuple<> get(threading::Reaction&) {
@@ -67,8 +65,7 @@ namespace dsl {
         struct ParsedNoOp {
             struct DSL {};
 
-            template <typename Function>
-            static inline std::tuple<> bind(Reactor&, const std::string&, Function&&);
+            static inline std::tuple<> bind(const std::shared_ptr<threading::Reaction>&);
 
             static inline std::tuple<> get(threading::Reaction&);
 

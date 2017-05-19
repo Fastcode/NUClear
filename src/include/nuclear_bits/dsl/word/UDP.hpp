@@ -33,7 +33,6 @@
 #include "nuclear_bits/PowerPlant.hpp"
 #include "nuclear_bits/dsl/word/IO.hpp"
 #include "nuclear_bits/util/FileDescriptor.hpp"
-#include "nuclear_bits/util/generate_reaction.hpp"
 #include "nuclear_bits/util/network/get_interfaces.hpp"
 
 namespace NUClear {
@@ -112,11 +111,10 @@ namespace dsl {
                 }
             };
 
-            template <typename DSL, typename Function>
-            static inline std::tuple<threading::ReactionHandle, in_port_t, fd_t> bind(Reactor& reactor,
-                                                                                      const std::string& label,
-                                                                                      Function&& callback,
-                                                                                      int port = 0) {
+            template <typename DSL>
+            static inline std::tuple<in_port_t, fd_t> bind(
+                const std::shared_ptr<threading::Reaction>& reaction,
+                int port = 0) {
 
                 // Make our socket
                 util::FileDescriptor fd = ::socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
@@ -155,20 +153,20 @@ namespace dsl {
                 port = ntohs(address.sin_port);
 
                 // Generate a reaction for the IO system that closes on death
-                int cfd       = fd;
-                auto reaction = util::generate_reaction<DSL, IO>(
-                    reactor, label, std::forward<Function>(callback), [cfd](threading::Reaction&) { close(cfd); });
+                int cfd = fd;
+                reaction->unbinders.push_back([](const threading::Reaction& r) {
+                    r.reactor.emit<emit::Direct>(std::make_unique<operation::Unbind<IO>>(r.id));
+                });
+                reaction->unbinders.push_back([cfd](const threading::Reaction&) { close(cfd); });
 
                 auto io_config =
                     std::make_unique<IOConfiguration>(IOConfiguration{fd.release(), IO::READ, std::move(reaction)});
 
-                threading::ReactionHandle handle(io_config->reaction);
-
                 // Send our configuration out
-                reactor.powerplant.emit<emit::Direct>(io_config);
+                reaction->reactor.emit<emit::Direct>(io_config);
 
                 // Return our handles and our bound port
-                return std::make_tuple(handle, port, cfd);
+                return std::make_tuple(port, cfd);
             }
 
             template <typename DSL>
@@ -257,11 +255,10 @@ namespace dsl {
 
             struct Broadcast {
 
-                template <typename DSL, typename Function>
-                static inline std::tuple<threading::ReactionHandle, in_port_t, fd_t> bind(Reactor& reactor,
-                                                                                          const std::string& label,
-                                                                                          Function&& callback,
-                                                                                          int port = 0) {
+                template <typename DSL>
+                static inline std::tuple<in_port_t, fd_t> bind(
+                    const std::shared_ptr<threading::Reaction>& reaction,
+                    int port = 0) {
 
                     // Make our socket
                     util::FileDescriptor fd = ::socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
@@ -311,20 +308,20 @@ namespace dsl {
                     port = ntohs(address.sin_port);
 
                     // Generate a reaction for the IO system that closes on death
-                    int cfd       = fd;
-                    auto reaction = util::generate_reaction<DSL, IO>(
-                        reactor, label, std::forward<Function>(callback), [cfd](threading::Reaction&) { close(cfd); });
+                    int cfd = fd;
+                    reaction->unbinders.push_back([](const threading::Reaction& r) {
+                        r.reactor.emit<emit::Direct>(std::make_unique<operation::Unbind<IO>>(r.id));
+                    });
+                    reaction->unbinders.push_back([cfd](const threading::Reaction&) { close(cfd); });
 
                     auto io_config =
                         std::make_unique<IOConfiguration>(IOConfiguration{fd.release(), IO::READ, std::move(reaction)});
 
-                    threading::ReactionHandle handle(io_config->reaction);
-
                     // Send our configuration out
-                    reactor.powerplant.emit<emit::Direct>(io_config);
+                    reaction->reactor.emit<emit::Direct>(io_config);
 
                     // Return our handles and our bound port
-                    return std::make_tuple(handle, port, cfd);
+                    return std::make_tuple(port, cfd);
                 }
 
                 template <typename DSL>
@@ -335,12 +332,9 @@ namespace dsl {
 
             struct Multicast {
 
-                template <typename DSL, typename Function>
-                static inline std::tuple<threading::ReactionHandle, in_port_t, fd_t> bind(Reactor& reactor,
-                                                                                          const std::string& label,
-                                                                                          Function&& callback,
-                                                                                          std::string multicast_group,
-                                                                                          int port = 0) {
+                template <typename DSL>
+                static inline std::tuple<in_port_t, fd_t>
+                bind(const std::shared_ptr<threading::Reaction>& reaction, std::string multicast_group, int port = 0) {
 
                     // Our multicast group address
                     sockaddr_in address;
@@ -412,22 +406,20 @@ namespace dsl {
                     }
 
                     // Generate a reaction for the IO system that closes on death
-                    int cfd       = fd;
-                    auto reaction = util::generate_reaction<DSL, IO>(
-                        reactor, label, std::forward<Function>(callback), [cfd](threading::Reaction&) {
-                            // Close all the sockets
-                            close(cfd);
-                        });
+                    int cfd = fd;
+                    reaction->unbinders.push_back([](const threading::Reaction& r) {
+                        r.reactor.emit<emit::Direct>(std::make_unique<operation::Unbind<IO>>(r.id));
+                    });
+                    reaction->unbinders.push_back([cfd](const threading::Reaction&) { close(cfd); });
 
-                    std::shared_ptr<threading::Reaction> r(std::move(reaction));
-                    threading::ReactionHandle handle(r);
+                    auto io_config =
+                        std::make_unique<IOConfiguration>(IOConfiguration{fd.release(), IO::READ, std::move(reaction)});
 
                     // Send our configuration out for each file descriptor (same reaction)
-                    reactor.powerplant.emit<emit::Direct>(
-                        std::make_unique<IOConfiguration>(IOConfiguration{fd.release(), IO::READ, r}));
+                    reaction->reactor.emit<emit::Direct>(io_config);
 
                     // Return our handles
-                    return std::make_tuple(handle, port, cfd);
+                    return std::make_tuple(port, cfd);
                 }
 
                 template <typename DSL>
