@@ -25,7 +25,6 @@
 #include "nuclear_bits/PowerPlant.hpp"
 #include "nuclear_bits/dsl/word/IO.hpp"
 #include "nuclear_bits/util/FileDescriptor.hpp"
-#include "nuclear_bits/util/generate_reaction.hpp"
 
 
 namespace NUClear {
@@ -80,10 +79,8 @@ namespace dsl {
                 }
             };
 
-            template <typename DSL, typename Function>
-            static inline std::tuple<threading::ReactionHandle, int, int> bind(Reactor& reactor,
-                                                                               const std::string& label,
-                                                                               Function&& callback,
+            template <typename DSL>
+            static inline std::tuple<int, int> bind(const std::shared_ptr<threading::Reaction>& reaction,
                                                                                int port = 0) {
 
                 // Make our socket
@@ -123,19 +120,21 @@ namespace dsl {
 
                 // Generate a reaction for the IO system that closes on death
                 int cfd       = fd;
-                auto reaction = util::generate_reaction<DSL, IO>(
-                    reactor, label, std::forward<Function>(callback), [cfd](threading::Reaction&) { close(cfd); });
+                reaction->unbinders.push_back([] (const threading::Reaction& r) {
+                    r.reactor.emit<emit::Direct>(std::make_unique<operation::Unbind<IO>>(r.id));
+                });
+                reaction->unbinders.push_back([cfd] (const threading::Reaction&) {
+                    close(cfd);
+                });
 
                 auto io_config =
-                    std::make_unique<IOConfiguration>(IOConfiguration{fd.release(), IO::READ, std::move(reaction)});
-
-                threading::ReactionHandle handle(io_config->reaction);
+                    std::make_unique<IOConfiguration>(IOConfiguration{fd.release(), IO::READ, reaction});
 
                 // Send our configuration out
-                reactor.powerplant.emit<emit::Direct>(io_config);
+                reaction->reactor.emit<emit::Direct>(io_config);
 
                 // Return our handles
-                return std::make_tuple(handle, port, cfd);
+                return std::make_tuple(port, cfd);
             }
 
             template <typename DSL>

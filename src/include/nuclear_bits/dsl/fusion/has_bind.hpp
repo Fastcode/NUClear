@@ -36,13 +36,12 @@ namespace dsl {
             typedef std::true_type yes;
             typedef std::false_type no;
 
-            template <typename R, typename F, typename... A>
-            static yes test_func(R (*)(Reactor&, const std::string&, F, A...));
+            template <typename R, typename... A>
+            static yes test_func(R (*)(const std::shared_ptr<threading::Reaction>&, A...));
             static no test_func(...);
 
             template <typename U>
-            static auto test(int) -> decltype(test_func(
-                U::template bind<ParsedNoOp, std::function<std::function<void()>(threading::ReactionTask&)>>));
+            static auto test(int) -> decltype(test_func(U::template bind<ParsedNoOp>));
             template <typename>
             static no test(...);
 

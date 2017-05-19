@@ -21,7 +21,7 @@
 namespace NUClear {
 namespace message {
 
-    template <typename TWatchdog>
+    template <typename WatchdogGroup>
     struct ServiceWatchdog {
         ServiceWatchdog() : time(NUClear::clock::now()){};
 

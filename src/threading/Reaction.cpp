@@ -23,21 +23,20 @@ namespace threading {
     // Initialize our reaction source
     std::atomic<uint64_t> Reaction::reaction_id_source(0);
 
-    Reaction::Reaction(Reactor& reactor,
-                       std::vector<std::string> identifier,
-                       TaskGenerator generator,
-                       std::function<void(Reaction&)>&& unbinder)
+    Reaction::Reaction(Reactor& reactor, std::vector<std::string> identifier, TaskGenerator generator)
         : reactor(reactor)
         , identifier(identifier)
         , id(++reaction_id_source)
         , active_tasks(0)
         , enabled(true)
-        , generator(generator)
-        , unbinder(unbinder) {}
+        , unbinders()
+        , generator(generator) {}
 
     void Reaction::unbind() {
         // Unbind
-        unbinder(*this);
+        for (auto& u : unbinders) {
+            u(*this);
+        }
     }
 
     std::unique_ptr<ReactionTask> Reaction::get_task() {

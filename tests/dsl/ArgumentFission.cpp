@@ -25,8 +25,8 @@ struct BindExtensionTest1 {
     static int val1;
     static double val2;
 
-    template <typename DSL, typename Function>
-    static inline int bind(NUClear::Reactor&, const std::string&, Function&&, int v1, double v2) {
+    template <typename DSL>
+    static inline int bind(const std::shared_ptr<NUClear::threading::Reaction>&, int v1, double v2) {
 
         val1 = v1;
         val2 = v2;
@@ -43,10 +43,8 @@ struct BindExtensionTest2 {
     static std::string val1;
     static std::chrono::nanoseconds val2;
 
-    template <typename DSL, typename Function>
-    static inline double bind(NUClear::Reactor&,
-                              const std::string&,
-                              Function&&,
+    template <typename DSL>
+    static inline double bind(const std::shared_ptr<NUClear::threading::Reaction>&,
                               std::string v1,
                               std::chrono::nanoseconds v2) {
 
@@ -66,10 +64,8 @@ struct BindExtensionTest3 {
     static int val2;
     static int val3;
 
-    template <typename DSL, typename Function>
-    static inline NUClear::threading::ReactionHandle bind(NUClear::Reactor&,
-                                                          const std::string&,
-                                                          Function&&,
+    template <typename DSL>
+    static inline NUClear::threading::ReactionHandle bind(const std::shared_ptr<NUClear::threading::Reaction>&,
                                                           int v1,
                                                           int v2,
                                                           int v3) {
@@ -95,7 +91,7 @@ public:
         double b;
 
         // Run all three of our extension tests
-        std::tie(a, b, std::ignore) = on<BindExtensionTest1, BindExtensionTest2, BindExtensionTest3>(
+        std::tie(std::ignore, a, b, std::ignore) = on<BindExtensionTest1, BindExtensionTest2, BindExtensionTest3>(
                                           5, 7.9, "Hello", std::chrono::seconds(2), 9, 10, 11)
                                           .then([] {});
 

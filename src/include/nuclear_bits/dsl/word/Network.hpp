@@ -72,22 +72,19 @@ namespace dsl {
         template <typename T>
         struct Network {
 
-            template <typename DSL, typename Function>
-            static inline threading::ReactionHandle bind(Reactor& reactor,
-                                                         const std::string& label,
-                                                         Function&& callback) {
+            template <typename DSL>
+            static inline void bind(const std::shared_ptr<threading::Reaction>& reaction) {
 
                 auto task = std::make_unique<NetworkListen>();
 
                 task->hash = util::serialise::Serialise<T>::hash();
-                task->reaction =
-                    util::generate_reaction<DSL, NetworkListen>(reactor, label, std::forward<Function>(callback));
+                reaction->unbinders.push_back([](const threading::Reaction& r) {
+                    r.reactor.emit<emit::Direct>(std::make_unique<operation::Unbind<NetworkListen>>(r.id));
+                });
 
-                threading::ReactionHandle handle(task->reaction);
+                task->reaction = reaction;
 
-                reactor.powerplant.emit<emit::Direct>(task);
-
-                return handle;
+                reaction->reactor.emit<emit::Direct>(task);
             }
 
             template <typename DSL>

@@ -18,8 +18,6 @@
 #ifndef NUCLEAR_DSL_WORD_ALWAYS_HPP
 #define NUCLEAR_DSL_WORD_ALWAYS_HPP
 
-#include "nuclear_bits/util/get_identifier.hpp"
-
 namespace NUClear {
 namespace dsl {
     namespace word {
@@ -60,48 +58,27 @@ namespace dsl {
          */
         struct Always {
 
-            template <typename DSL, typename Function>
-            static inline threading::ReactionHandle bind(Reactor& reactor,
-                                                         const std::string& label,
-                                                         Function&& callback) {
+            template <typename DSL>
+            static inline void bind(const std::shared_ptr<threading::Reaction>& reaction) {
 
-                // Get our identifier string
-                std::vector<std::string> identifier =
-                    util::get_identifier<typename DSL::DSL, Function>(label, reactor.reactor_name);
-
-                auto unbinder = [](threading::Reaction& r) { r.enabled = false; };
-
-                // Create our reaction and store it in the TypeCallbackStore
-                auto reaction = std::make_shared<threading::Reaction>(
-                    reactor, std::move(identifier), std::forward<Function>(callback), std::move(unbinder));
-                threading::ReactionHandle handle(reaction);
-
-                // A lambda that will get a reaction task
-                auto run = [reaction] {
-                    // Get a task
-                    auto task = reaction->get_task();
-
-                    // If we got a real task back
-                    if (task) {
-                        task = task->run(std::move(task));
-                    }
-                };
+                reaction->unbinders.push_back([](threading::Reaction& r) { r.enabled = false; });
 
                 // This is our function that runs forever until the powerplant exits
-                auto loop = [&reactor, run] {
-                    while (reactor.powerplant.running()) {
+                reaction->reactor.powerplant.add_thread_task([reaction] {
+                    while (reaction->reactor.powerplant.running()) {
                         try {
-                            run();
+                            // Get a task
+                            auto task = reaction->get_task();
+
+                            // If we got a real task back
+                            if (task) {
+                                task = task->run(std::move(task));
+                            }
                         }
                         catch (...) {
                         }
                     }
-                };
-
-                reactor.powerplant.add_thread_task(loop);
-
-                // Return our handle
-                return handle;
+                });
             }
         };
 

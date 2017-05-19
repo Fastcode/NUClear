@@ -22,7 +22,6 @@
 #include "nuclear_bits/dsl/operation/ChronoTask.hpp"
 #include "nuclear_bits/dsl/operation/Unbind.hpp"
 #include "nuclear_bits/dsl/word/emit/Direct.hpp"
-#include "nuclear_bits/util/generate_reaction.hpp"
 
 namespace NUClear {
 namespace dsl {
@@ -80,79 +79,33 @@ namespace dsl {
         template <>
         struct Every<0, NUClear::clock::duration> {
 
-            template <typename DSL, typename Function>
-            static inline threading::ReactionHandle bind(Reactor& reactor,
-                                                         const std::string& label,
-                                                         Function&& callback,
-                                                         NUClear::clock::duration jump) {
+            template <typename DSL>
+            static inline void bind(const std::shared_ptr<threading::Reaction>& reaction,
+                                    NUClear::clock::duration jump) {
 
-                auto reaction =
-                    std::shared_ptr<threading::Reaction>(util::generate_reaction<DSL, operation::ChronoTask>(
-                        reactor, label, std::forward<Function>(callback)));
-
-                threading::ReactionHandle handle(reaction);
+                reaction->unbinders.push_back([](const threading::Reaction& r) {
+                    r.reactor.emit<emit::Direct>(std::make_unique<operation::Unbind<operation::ChronoTask>>(r.id));
+                });
 
                 // Send our configuration out
-                reactor.powerplant.emit<emit::Direct>(std::make_unique<operation::ChronoTask>(
-                    [&reactor, jump, reaction](NUClear::clock::time_point& time) {
+                reaction->reactor.emit<emit::Direct>(std::make_unique<operation::ChronoTask>(
+                    [reaction, jump](NUClear::clock::time_point& time) {
 
                         try {
                             // submit the reaction to the thread pool
                             auto task = reaction->get_task();
                             if (task) {
-                                reactor.powerplant.submit(std::move(task));
+                                reaction->reactor.powerplant.submit(std::move(task));
                             }
                         }
                         // If there is an exception while generating a reaction print it here, this shouldn't happen
                         catch (const std::exception& ex) {
-                            reactor.powerplant.log<NUClear::ERROR>("There was an exception while generating a reaction",
-                                                                   ex.what());
+                            reaction->reactor.log<NUClear::ERROR>("There was an exception while generating a reaction",
+                                                                  ex.what());
                         }
                         catch (...) {
-                            reactor.powerplant.log<NUClear::ERROR>(
+                            reaction->reactor.log<NUClear::ERROR>(
                                 "There was an unknown exception while generating a reaction");
-                        }
-
-                        time += jump;
-
-                        return true;
-                    },
-                    reaction->id));
-
-                // Return our handle
-                return handle;
-            }
-        };
-
-        template <int ticks, class period>
-        struct Every {
-
-            template <typename DSL, typename Function>
-            static inline threading::ReactionHandle bind(Reactor& reactor,
-                                                         const std::string& label,
-                                                         Function&& callback) {
-
-                // Work out our Reaction timing
-                clock::duration jump = period(ticks);
-
-                auto reaction =
-                    std::shared_ptr<threading::Reaction>(util::generate_reaction<DSL, operation::ChronoTask>(
-                        reactor, label, std::forward<Function>(callback)));
-
-                threading::ReactionHandle handle(reaction);
-
-                // Send our configuration out
-                reactor.powerplant.emit<emit::Direct>(std::make_unique<operation::ChronoTask>(
-                    [&reactor, jump, reaction](NUClear::clock::time_point& time) {
-
-                        try {
-                            // submit the reaction to the thread pool
-                            auto task = reaction->get_task();
-                            if (task) {
-                                reactor.powerplant.submit(std::move(task));
-                            }
-                        }
-                        catch (...) {
                         }
 
                         time += jump;
@@ -161,9 +114,15 @@ namespace dsl {
                     },
                     NUClear::clock::now() + jump,
                     reaction->id));
+            }
+        };
 
-                // Return our handle
-                return handle;
+        template <int ticks, class period>
+        struct Every {
+
+            template <typename DSL>
+            static inline void bind(const std::shared_ptr<threading::Reaction>& reaction) {
+                Every<>::bind<DSL>(reaction, period(ticks));
             }
         };
 
