@@ -28,15 +28,13 @@ namespace NUClear {
 namespace dsl {
     namespace word {
 
-        template <typename TWatchdog, int ticks, class period>
-
         /**
          * @brief
          *  This can be used to monitor tasks/s; if the monitored task/s have not occurred within a desired timeframe,
          *  the watchdog can be serviced to trigger a specified reaction.
          *
          * @details
-         *  @code on<Watchdog<TWatchdog, ticks, period>>() @endcode
+         *  @code on<Watchdog<WatchdogGroup, ticks, period>>() @endcode
          *  This is a useful tool for anything in the system which might stall, and needs to be kick-started.
          *
          *  The watchdog can monitor a single task, or group of tasks, over a period of time. If no activity is
@@ -67,7 +65,7 @@ namespace dsl {
          * @par Implements
          *  Bind, Get
          *
-         * @tparam TWatchdog
+         * @tparam WatchdogGroup
          *  the type/group of tasks the watchdog will track.   This needs to be a declared type within the system (be it
          *  a reactor, reaction, or other type).
          * @tparam ticks
@@ -78,6 +76,7 @@ namespace dsl {
          *  seconds, minutes, hours).  Note that you can also define your own unit:  See
          *  http://en.cppreference.com/w/cpp/chrono/duration
          */
+        template <typename WatchdogGroup, int ticks, class period>
         struct Watchdog {
 
             template <typename DSL, typename Function>
@@ -86,8 +85,8 @@ namespace dsl {
                                                          Function&& callback) {
 
                 // If this is the first time we have used this watchdog service it
-                if (!store::DataStore<message::ServiceWatchdog<TWatchdog>>::get()) {
-                    reactor.powerplant.emit(std::make_unique<message::ServiceWatchdog<TWatchdog>>());
+                if (!store::DataStore<message::ServiceWatchdog<WatchdogGroup>>::get()) {
+                    reactor.powerplant.emit(std::make_unique<message::ServiceWatchdog<WatchdogGroup>>());
                 }
 
                 // Build our reaction
@@ -101,7 +100,7 @@ namespace dsl {
                     [&reactor, reaction](NUClear::clock::time_point& time) {
 
                         // Get the latest time the watchdog was serviced
-                        auto service_time = store::DataStore<message::ServiceWatchdog<TWatchdog>>::get()->time;
+                        auto service_time = store::DataStore<message::ServiceWatchdog<WatchdogGroup>>::get()->time;
 
                         // Check if our watchdog has timed out
                         if (NUClear::clock::now() > (service_time + period(ticks))) {

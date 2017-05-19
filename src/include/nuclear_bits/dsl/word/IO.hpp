@@ -48,7 +48,7 @@ namespace dsl {
          *
          * @details
          *  @code on<IO>(file_descriptor) @endcode
-				 *  This function works for any I/O communication which uses a file descriptor. The associated reaction is
+         *  This function works for any I/O communication which uses a file descriptor. The associated reaction is
          *  triggered when the communication line matches the descriptor.
          *
          *  When using this feature, runtime arguments should be provided, to specify the file descriptor.
@@ -60,7 +60,7 @@ namespace dsl {
          *  <b>File writing:</b> triggers a reaction when the pipe/stream/communication line has data to be written.
          *  @code on<IO>(pipe/stream/comms, IO::WRITE) @endcode
          *  <b>File close:</b> triggers a reaction when the pipe/stream/communication line is closed.
-				 *  @code on<IO>(pipe/stream/comms, IO::CLOSE) @endcode
+         *  @code on<IO>(pipe/stream/comms, IO::CLOSE) @endcode
          *  <b>File error:</b> triggers a reaction when the pipe/stream/communication line reports an error.
          *  @code on<IO>(pipe/stream/comms, IO::CLOSE) @endcode
          *  <b>Multiple states:</b> this feature can trigger a reaction when the pipe/stream/communication line

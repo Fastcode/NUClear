@@ -40,32 +40,32 @@ namespace NUClear {
 namespace dsl {
     namespace word {
 
-      /**
-       * @brief
-       *  This allows a reaction to be triggered based on UDP activity originating from external sources, or UDP
-       *  emissions within the system.
-       *
-       * @details
-       *  @code on<UDP>(port) @endcode
-       *  When a connection is identified on the assigned port, the associated reaction will be triggered.  The
-       *  request for a UDP based reaction can use a runtime argument to reference a specific port.  Note that the
-       *  port reference can be changed during the systems execution phase.
-       *
-       *  @code on<UDP>() @endcode
-       *  Should the port reference be omitted, then the system will bind to a currently unassigned port.
-       *
-       *  @code on<UDP, UDP>(port, port)  @endcode
-       *  A reaction can also be triggered via activity on more than one port.
-       *
-       *  @code on<UDP:Broadcast>(port)
-       *  on<UDP:Multicast>(multicast_address, port) @endcode
-       *  If needed, this trigger can also listen for UDP activity such as broadcast and multicast.
-       *
-       *  These requests currently support IPv4 addressing.
-       *
-       * @par Implements
-       *  Bind
-       */
+        /**
+         * @brief
+         *  This allows a reaction to be triggered based on UDP activity originating from external sources, or UDP
+         *  emissions within the system.
+         *
+         * @details
+         *  @code on<UDP>(port) @endcode
+         *  When a connection is identified on the assigned port, the associated reaction will be triggered.  The
+         *  request for a UDP based reaction can use a runtime argument to reference a specific port.  Note that the
+         *  port reference can be changed during the systems execution phase.
+         *
+         *  @code on<UDP>() @endcode
+         *  Should the port reference be omitted, then the system will bind to a currently unassigned port.
+         *
+         *  @code on<UDP, UDP>(port, port)  @endcode
+         *  A reaction can also be triggered via activity on more than one port.
+         *
+         *  @code on<UDP:Broadcast>(port)
+         *  on<UDP:Multicast>(multicast_address, port) @endcode
+         *  If needed, this trigger can also listen for UDP activity such as broadcast and multicast.
+         *
+         *  These requests currently support IPv4 addressing.
+         *
+         * @par Implements
+         *  Bind
+         */
         struct UDP {
 
             struct Packet {
