@@ -18,19 +18,20 @@
 #ifndef NUCLEAR_EXTENSION_NETWORK_NUCLEARNETWORK_HPP
 #define NUCLEAR_EXTENSION_NETWORK_NUCLEARNETWORK_HPP
 
-#include <limits>
-#include <chrono>
-#include <string>
-#include <thread>
 #include <array>
 #include <atomic>
+#include <chrono>
 #include <functional>
+#include <limits>
 #include <list>
 #include <map>
+#include <mutex>
+#include <string>
+#include <thread>
 #include <vector>
 
-#include "nuclear_bits/util/platform.hpp"
 #include "nuclear_bits/util/network/sock_t.hpp"
+#include "nuclear_bits/util/platform.hpp"
 #include "wire_protocol.hpp"
 
 namespace NUClear {
@@ -80,10 +81,10 @@ namespace extension {
 
                 /// A little kalman filter for estimating round trip time
                 struct RoundTripKF {
-                    float process_noise     = 1e-6;
-                    float measurement_noise = 1e-1;
-                    float variance          = 1.0;
-                    float mean              = 1.0;
+                    float process_noise     = 1e-6f;
+                    float measurement_noise = 1e-1f;
+                    float variance          = 1.0f;
+                    float mean              = 1.0f;
                 } round_trip_kf;
 
                 std::chrono::steady_clock::duration round_trip_time;
@@ -101,7 +102,7 @@ namespace extension {
                     auto& X = round_trip_kf.mean;
 
                     // Calculate our kalman gain
-                    double K = (P + Q) / (P + Q + R);
+                    float K = (P + Q) / (P + Q + R);
 
                     // Do filter
                     P = R * (P + Q) / (R + P + Q);
@@ -183,7 +184,7 @@ namespace extension {
              *
              * @return a list of file descriptors that the system listens on
              */
-            std::vector<int> listen_fds();
+            std::vector<fd_t> listen_fds();
 
         private:
             struct PacketQueue {
@@ -226,7 +227,7 @@ namespace extension {
              *
              * @return the data and who it was sent from
              */
-            std::pair<sock_t, std::vector<char>> read_socket(int fd);
+            std::pair<sock_t, std::vector<char>> read_socket(fd_t fd);
 
             /**
              * @brief Processes the given packet and calls the callback if a packet was completed
@@ -281,9 +282,9 @@ namespace extension {
             /// could be)
             sock_t multicast_target;
             /// The file descriptor for the socket we use to send data and receive unicast data
-            int unicast_fd;
+            fd_t unicast_fd;
             /// The file descriptor for the socket we use to receive multicast data
-            int multicast_fd;
+            fd_t multicast_fd;
 
             /// The largest packet of data we will transmit, based on our IP version and MTU
             uint16_t packet_data_mtu;
@@ -308,8 +309,8 @@ namespace extension {
             /// When the next timed event is due
             std::chrono::steady_clock::time_point next_event;
 
-            /// A mutex to guard modifications to the target lists NOTE: mutex lock order must always be this order to
-            /// avoid deadlocks
+            /// A mutex to guard modifications to the target lists
+            /// NOTE: mutex lock order must always be this order to avoid deadlocks
             std::mutex target_mutex;
             /// A mutex to guard modifications to the send queue
             std::mutex send_queue_mutex;

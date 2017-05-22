@@ -17,17 +17,13 @@
 
 #include "nuclear_bits/extension/network/NUClearNetwork.hpp"
 
-#include "nuclear_bits/util/platform.hpp"
 #include "nuclear_bits/util/network/get_interfaces.hpp"
+#include "nuclear_bits/util/platform.hpp"
 
-#include <cstring>
-#include <set>
 #include <algorithm>
 #include <cerrno>
-
-#warning "This drop percentage needs to be removed"
-#define DROP_PERCENT 0
-#include <cstdlib>
+#include <cstring>
+#include <set>
 
 namespace NUClear {
 namespace extension {
@@ -278,16 +274,21 @@ namespace extension {
                 LeavePacket packet;
 
                 // Send the packet
-                ::sendto(unicast_fd, &packet, sizeof(packet), 0, &multicast_target.sock, socket_size(multicast_target));
+                sendto(unicast_fd,
+                       reinterpret_cast<const char*>(&packet),
+                       sizeof(packet),
+                       0,
+                       &multicast_target.sock,
+                       socket_size(multicast_target));
             }
 
             // Close our existing FDs if they exist
             if (unicast_fd > 0) {
-                ::close(unicast_fd);
+                close(unicast_fd);
                 unicast_fd = -1;
             }
             if (multicast_fd > 0) {
-                ::close(multicast_fd);
+                close(multicast_fd);
                 multicast_fd = -1;
             }
         }
@@ -395,7 +396,7 @@ namespace extension {
         }
 
 
-        std::pair<util::network::sock_t, std::vector<char>> NUClearNetwork::read_socket(int fd) {
+        std::pair<util::network::sock_t, std::vector<char>> NUClearNetwork::read_socket(fd_t fd) {
 
             // Allocate a vector that can hold a datagram
             std::vector<char> payload(1500);
@@ -410,7 +411,7 @@ namespace extension {
             // Setup our message header to receive
             msghdr mh;
             memset(&mh, 0, sizeof(msghdr));
-            mh.msg_name    = &from;
+            mh.msg_name    = &from.sock;
             mh.msg_namelen = sizeof(from);
             mh.msg_iov     = &iov;
             mh.msg_iovlen  = 1;
@@ -468,7 +469,7 @@ namespace extension {
             }
 
             // Used for storing how many bytes are available on a socket
-            int count = 0;
+            unsigned long count = 0;
 
             // Read packets from the multicast socket while there is data available
             ioctl(multicast_fd, FIONREAD, &(count = 0));
@@ -689,8 +690,7 @@ namespace extension {
                                     sock_t& to = remote->target;
 
                                     // Send the packet
-                                    if ((rand() % 100) >= DROP_PERCENT)
-                                        ::sendto(unicast_fd, r.data(), r.size(), 0, &to.sock, socket_size(to));
+                                    ::sendto(unicast_fd, r.data(), r.size(), 0, &to.sock, socket_size(to));
 
                                     // We don't need to process this packet we already did
                                     return;
@@ -716,8 +716,12 @@ namespace extension {
                                     // Make who we are sending it to into a useable address
                                     sock_t& to = remote->target;
 
-                                    if ((rand() % 100) >= DROP_PERCENT)
-                                        ::sendto(unicast_fd, &response, sizeof(response), 0, &to.sock, socket_size(to));
+                                    sendto(unicast_fd,
+                                           reinterpret_cast<const char*>(&response),
+                                           sizeof(response),
+                                           0,
+                                           &to.sock,
+                                           socket_size(to));
 
                                     // Set this packet to have been recently received
                                     remote->recent_packets[++remote->recent_packets_index] = packet.packet_id;
@@ -764,8 +768,7 @@ namespace extension {
                                         sock_t& to = remote->target;
 
                                         // Send the packet
-                                        if ((rand() % 100) >= DROP_PERCENT)
-                                            ::sendto(unicast_fd, r.data(), r.size(), 0, &to.sock, socket_size(to));
+                                        ::sendto(unicast_fd, r.data(), r.size(), 0, &to.sock, socket_size(to));
                                     }
 
                                     // Clear our packets here (the one we just got will be added right after this)
@@ -796,8 +799,7 @@ namespace extension {
                                     sock_t& to = remote->target;
 
                                     // Send the packet
-                                    if ((rand() % 100) >= DROP_PERCENT)
-                                        ::sendto(unicast_fd, r.data(), r.size(), 0, &to.sock, socket_size(to));
+                                    ::sendto(unicast_fd, r.data(), r.size(), 0, &to.sock, socket_size(to));
                                 }
 
                                 // Check to see if we have enough to assemble the whole thing
@@ -976,8 +978,8 @@ namespace extension {
         }
 
 
-        std::vector<int> NUClearNetwork::listen_fds() {
-            return std::vector<int>({unicast_fd, multicast_fd});
+        std::vector<fd_t> NUClearNetwork::listen_fds() {
+            return std::vector<fd_t>({unicast_fd, multicast_fd});
         }
 
         void NUClearNetwork::send_packet(const sock_t& target,
@@ -1004,13 +1006,12 @@ namespace extension {
             data[1].iov_len  = packet_no + 1 < header.packet_count ? packet_data_mtu : payload.size() % packet_data_mtu;
 
             // Set our target and send (once again const cast is fine)
-            message.msg_name    = const_cast<sock_t*>(&target);
+            message.msg_name    = const_cast<sockaddr*>(&target.sock);
             message.msg_namelen = socket_size(target);
 
-            if ((rand() % 100) >= DROP_PERCENT)  // TODO TEMP 10% packet loss
-                // TODO if reliable, run select first to see if this socket is writeable
-                // If it is not reliable just don't send the message instead of blocking
-                ::sendmsg(unicast_fd, &message, 0);
+            // TODO if reliable, run select first to see if this socket is writeable
+            // If it is not reliable just don't send the message instead of blocking
+            sendmsg(unicast_fd, &message, 0);
         }
 
 

@@ -27,11 +27,30 @@
 // So we have this header to make sure everything is in the correct order
 #ifdef _WIN32
 
-// Windows has a dumb min/max macro that breaks stuff
-#define NOMINMAX
+#include <SdkDdkver.h>
+
+// We need at least windows vista so functions like inet_ntop exist
+#ifndef NTDDI_VERSION
+#define NTDDI_VERSION NTDDI_VISTA
+#endif
+
+#ifndef WINVER
+#define WINVER _WIN32_WINNT_VISTA
+#endif
+
+#ifndef _WIN32_WINNT
+#define _WIN32_WINNT _WIN32_WINNT_VISTA
+#endif
 
 // Without this winsock just doesn't have half the typedefs
+#ifndef INCL_WINSOCK_API_TYPEDEFS
 #define INCL_WINSOCK_API_TYPEDEFS 1
+#endif
+
+// Windows has a dumb min/max macro that breaks stuff
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
 
 // Winsock must be declared before Windows.h or it won't work
 #include <WinSock2.h>
@@ -91,6 +110,10 @@ inline int close(fd_t fd) {
     return ::closesocket(fd);
 }
 
+inline int ioctl(SOCKET s, long cmd, u_long* argp) {
+    return ioctlsocket(s, cmd, argp);
+}
+
 // Network errors come from WSAGetLastError()
 #define network_errno WSAGetLastError()
 
@@ -119,15 +142,15 @@ int sendmsg(fd_t fd, msghdr* msg, int flags);
 
 // Include real networking stuff
 #include <arpa/inet.h>
-#include <net/if.h>
-#include <netinet/in.h>
-#include <sys/socket.h>
-#include <sys/ioctl.h>
-#include <sys/types.h>
-#include <netdb.h>
-#include <unistd.h>
 #include <ifaddrs.h>
+#include <net/if.h>
+#include <netdb.h>
+#include <netinet/in.h>
 #include <poll.h>
+#include <sys/ioctl.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 // Move errno so it can be used in windows
 #define network_errno errno

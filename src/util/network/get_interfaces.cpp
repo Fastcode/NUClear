@@ -36,12 +36,12 @@ namespace util {
 
             // First call with null to work out how much memory we need
             ULONG size = 0;
-            if (GetAdaptersAddresses(AF_UNSPEC, 0, nullptr, ptr, &size) != ERROR_BUFFER_OVERFLOW) {
+            if (GetAdaptersAddresses(AF_UNSPEC, 0, nullptr, nullptr, &size) != ERROR_BUFFER_OVERFLOW) {
                 throw std::runtime_error("Unable to query the list of network interfaces");
             }
             else {
                 // Allocate some memory now and call again
-                PIP_ADAPTER_ADDRESSES addrs = std::malloc(size);
+                PIP_ADAPTER_ADDRESSES addrs = reinterpret_cast<PIP_ADAPTER_ADDRESSES>(std::malloc(size));
                 auto rv =
                     GetAdaptersAddresses(AF_UNSPEC,
                                          GAA_FLAG_SKIP_ANYCAST | GAA_FLAG_SKIP_MULTICAST | GAA_FLAG_SKIP_DNS_SERVER
@@ -54,27 +54,26 @@ namespace util {
                     throw std::runtime_error("Unable to query the list of network interfaces");
                 }
 
-                for (PIP_ADAPTER_ADDRESSES addr = addrs; addr != nullptr; addr = addr->next) {
+                for (PIP_ADAPTER_ADDRESSES addr = addrs; addr != nullptr; addr = addr->Next) {
 
-                    for (auto uaddr = addr->FirstUnicastAddress; uaddr != nullptr; uaddr = uaddr->next) {
+                    for (auto uaddr = addr->FirstUnicastAddress; uaddr != nullptr; uaddr = uaddr->Next) {
 
                         Interface iface;
                         std::memset(&iface, 0, sizeof(iface));
 
-                        iface.name = AdapterName;
+                        iface.name = addr->AdapterName;
 
                         // Copy across the IP address
                         std::memcpy(&iface.ip, uaddr->Address.lpSockaddr, uaddr->Address.iSockaddrLength);
 
-                        switch (iface.ip.sa_family) {
+                        switch (iface.ip.sock.sa_family) {
                             case AF_INET: {
                                 // IPv4 address
-                                auto& ipv4      = *reinterpret_cast<socaddr_in*>(&iface.ip);
-                                auto& netmask   = *reinterpret_cast<socaddr_in*>(&iface.netmask);
-                                auto& broadcast = *reinterpret_cast<socaddr_in*>(&iface.broadcast);
+                                auto& ipv4      = *reinterpret_cast<sockaddr_in*>(&iface.ip);
+                                auto& netmask   = *reinterpret_cast<sockaddr_in*>(&iface.netmask);
+                                auto& broadcast = *reinterpret_cast<sockaddr_in*>(&iface.broadcast);
 
                                 // Fill in the netmask
-                                auto& netmask      = *reinterpret_cast<socaddr_in*>(&iface.netmask);
                                 netmask.sin_family = AF_INET;
                                 ConvertLengthToIpv4Mask(uaddr->OnLinkPrefixLength, &netmask.sin_addr.s_addr);
                                 netmask.sin_addr.s_addr = htonl(netmask.sin_addr.s_addr);
@@ -82,22 +81,22 @@ namespace util {
                                 // Fill in the broadcast
                                 broadcast.sin_family = AF_INET;
                                 broadcast.sin_addr.s_addr =
-                                    (ipv4.sin_addr.s_addr | ~netmask.sin_addr.s_addr)&& netmask.sin_addr
-                                        .s_addr
+                                    (ipv4.sin_addr.s_addr | ~netmask.sin_addr.s_addr) && netmask.sin_addr.s_addr;
 
-                                    // Loopback if the ip address starts with 127
-                                    iface.loopback = (ipv4.sin_addr.s_addr & htonl(0x7F000000)) == htonl(0x7F000000);
+                                // Loopback if the ip address starts with 127
+                                iface.flags.loopback = (ipv4.sin_addr.s_addr & htonl(0x7F000000)) == htonl(0x7F000000);
                                 // Point to point if the netmask is all 1s
-                                iface.pointtopoint = (netmask.sin_addr.s_addr & 0xFFFFFFFF) == 0xFFFFFFFF;
+                                iface.flags.pointtopoint = (netmask.sin_addr.s_addr & 0xFFFFFFFF) == 0xFFFFFFFF;
                                 // Broadcast if not point to point
-                                iface.broadcast = !iface.pointtopoint;
+                                iface.flags.broadcast = !iface.flags.pointtopoint;
                                 // Multicast if broadcast
-                                iface.multicast = iface.broadcast;
-                            }
+                                iface.flags.multicast = iface.flags.broadcast;
+
+                            } break;
                             case AF_INET6: {
                                 // IPv6 address
-                                auto& ipv6    = *reinterpret_cast<socaddr_in6*>(&iface.ip);
-                                auto& netmask = *reinterpret_cast<socaddr_in6*>(&iface.netmask);
+                                auto& ipv6    = *reinterpret_cast<sockaddr_in6*>(&iface.ip);
+                                auto& netmask = *reinterpret_cast<sockaddr_in6*>(&iface.netmask);
 
                                 // Fill in the netmask
                                 netmask.sin6_family = AF_INET6;
@@ -110,22 +109,23 @@ namespace util {
                                 // IPv6 doesn't have broadcast
 
                                 // Loopback if the ip address is ::1
-                                iface.loopback = ipv6.sin6_addr.s6_addr[15] == 0x01;
+                                iface.flags.loopback = ipv6.sin6_addr.s6_addr[15] == 0x01;
                                 for (int i = 0; i < 15; ++i) {
-                                    iface.loopback &= ipv6.sin6_addr.s6_addr[i] == 0;
+                                    iface.flags.loopback &= ipv6.sin6_addr.s6_addr[i] == 0;
                                 }
 
                                 // Point to point if the netmask is all 1s
-                                iface.pointtopoint = true;
+                                iface.flags.pointtopoint = true;
                                 for (int i = 0; i < 16; ++i) {
-                                    iface.pointtopoint &= netmask.sin6_addr.s6_addr[i] == 0xFF;
+                                    iface.flags.pointtopoint &= netmask.sin6_addr.s6_addr[i] == 0xFF;
                                 }
 
                                 // No broadcast on IPv6
-                                iface.broadcast = false;
+                                iface.flags.broadcast = false;
                                 // IPv6 is always multicast
-                                iface.multicast = true;
-                            }
+                                iface.flags.multicast = true;
+
+                            } break;
                         }
 
                         ifaces.push_back(iface);
