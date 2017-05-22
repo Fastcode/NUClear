@@ -444,6 +444,9 @@ namespace extension {
                 }
             }
 
+            // We need to make this list outside mutex scope in case the callback needs the mutex
+            std::vector<std::shared_ptr<NetworkTarget>> leavers;
+
             // Check if any of our existing connections have timed out
             /* Mutex Scope */ {
                 std::lock_guard<std::mutex> lock(target_mutex);
@@ -457,10 +460,15 @@ namespace extension {
                     if (now - ptr->last_update > std::chrono::seconds(2)) {
 
                         // Remove this, it timed out
-                        leave_callback(*ptr);
+                        leavers.push_back(ptr);
                         remove_target(ptr);
                     }
                 }
+            }
+
+            // Run the callback for anyone that left
+            for (auto& l : leavers) {
+                leave_callback(*l);
             }
 
             // Check if we have packets to resend and if so resend
@@ -596,17 +604,17 @@ namespace extension {
                             // If they sent us an empty name ignore that's reserved for multicast transmissions
                             if (!name.empty()) {
                                 // Add them into our list
-                                auto ptr = std::make_shared<NetworkTarget>(name, std::move(address));
-
+                                auto ptr            = std::make_shared<NetworkTarget>(name, std::move(address));
+                                bool new_connection = false;
                                 /* Mutex scope */ {
                                     std::lock_guard<std::mutex> lock(target_mutex);
 
                                     // Double check they are new
                                     if (udp_target.count(key) == 0) {
+                                        new_connection = true;
                                         targets.push_back(ptr);
                                         udp_target.insert(std::make_pair(key, ptr));
                                         name_target.insert(std::make_pair(name, ptr));
-
 
                                         // Say hi back!
                                         ::sendto(unicast_fd,
@@ -615,9 +623,12 @@ namespace extension {
                                                  0,
                                                  &ptr->target.sock,
                                                  socket_size(ptr->target));
-
-                                        join_callback(*ptr);
                                     }
+                                }
+
+                                // Only call the callback if it is new
+                                if (new_connection) {
+                                    join_callback(*ptr);
                                 }
                             }
                         }
@@ -630,13 +641,20 @@ namespace extension {
 
                         // Goodbye!
                         if (remote) {
+                            bool left = false;
 
                             // Remove from our list
-                            std::lock_guard<std::mutex> lock(target_mutex);
+                            /* Mutex scope */ {
+                                std::lock_guard<std::mutex> lock(target_mutex);
 
-                            // Double check they are gone after locking before removal
-                            if (udp_target.count(key) > 0) {
-                                remove_target(remote);
+                                // Double check they are gone after locking before removal
+                                if (udp_target.count(key) > 0) {
+                                    left = true;
+                                    remove_target(remote);
+                                }
+                            }
+                            // Call the callback if they really left
+                            if (left) {
                                 leave_callback(*remote);
                             }
                         }
