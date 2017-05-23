@@ -18,17 +18,7 @@
 #ifndef NUCLEAR_DSL_WORD_UDP_HPP
 #define NUCLEAR_DSL_WORD_UDP_HPP
 
-#ifdef _WIN32
 #include "nuclear_bits/util/platform.hpp"
-#include "nuclear_bits/util/windows_includes.hpp"
-#else
-#include <arpa/inet.h>
-#include <net/if.h>
-#include <netinet/in.h>
-#include <sys/socket.h>
-#include <unistd.h>
-#include <cstring>
-#endif
 
 #include "nuclear_bits/PowerPlant.hpp"
 #include "nuclear_bits/dsl/word/IO.hpp"
@@ -382,8 +372,9 @@ namespace dsl {
                     std::vector<uint32_t> addresses;
                     for (auto& iface : util::network::get_interfaces()) {
                         // We receive on broadcast addresses and we don't want loopback or point to point
-                        if (iface.flags.multicast) {
-                            addresses.push_back(iface.ip);
+                        if (iface.flags.multicast && iface.ip.sock.sa_family == AF_INET) {
+                            auto& i = *reinterpret_cast<const sockaddr_in*>(&iface.ip);
+                            addresses.push_back(i.sin_addr.s_addr);
                         }
                     }
 
@@ -393,7 +384,7 @@ namespace dsl {
                         ip_mreq mreq;
                         memset(&mreq, 0, sizeof(mreq));
                         inet_pton(AF_INET, multicast_group.c_str(), &mreq.imr_multiaddr);
-                        mreq.imr_interface.s_addr = htonl(ad);
+                        mreq.imr_interface.s_addr = ad;
 
                         // Join our multicast group
                         if (setsockopt(

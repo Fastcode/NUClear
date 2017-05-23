@@ -32,7 +32,7 @@ namespace dsl {
                 /// The target to send this serialised packet to
                 std::string target;
                 /// The hash identifying the type of object
-                std::array<uint64_t, 2> hash;
+                uint64_t hash;
                 /// The serialised data
                 std::vector<char> payload;
                 /// If the message should be sent reliably

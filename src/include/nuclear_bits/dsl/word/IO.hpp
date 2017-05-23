@@ -18,12 +18,6 @@
 #ifndef NUCLEAR_DSL_WORD_IO_HPP
 #define NUCLEAR_DSL_WORD_IO_HPP
 
-#ifdef _WIN32
-#include "nuclear_bits/util/windows_includes.hpp"
-#else
-#include <poll.h>
-#endif
-
 #include "nuclear_bits/dsl/operation/Unbind.hpp"
 #include "nuclear_bits/dsl/store/ThreadStore.hpp"
 #include "nuclear_bits/dsl/trait/is_transient.hpp"

@@ -15,32 +15,26 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_UTIL_SERIALISE_MURMURHASH3_HPP
-#define NUCLEAR_UTIL_SERIALISE_MURMURHASH3_HPP
+#ifndef NUCLEAR_UTIL_NETWORK_SOCK_T_HPP
+#define NUCLEAR_UTIL_NETWORK_SOCK_T_HPP
 
-#include <array>
-#include <cstdint>
-
-#include <functional>
+#include "nuclear_bits/util/platform.hpp"
 
 namespace NUClear {
 namespace util {
-    namespace serialise {
+    namespace network {
 
-        /**
-         * @brief Constructs a new hash from the passed key (of length bytes)
-         *
-         * @details Gets the hash digest of the passed bytes using the MurmurHash3
-         *  hashing function. Specifically the x64 128 bit version using the seed
-         *  0x4e55436c
-         *
-         * @param key a pointer to the data for the key
-         * @param len the number of bytes in the key
-         */
-        std::array<uint64_t, 2> murmurhash3(const void* key, const size_t len);
+        struct sock_t {
+            union {
+                sockaddr_storage storage;
+                sockaddr sock;
+                sockaddr_in ipv4;
+                sockaddr_in6 ipv6;
+            };
+        };
 
-    }  // namespace serialise
+    }  // namespace network
 }  // namespace util
 }  // namespace NUClear
 
-#endif  // NUCLEAR_UTIL_SERIALISE_MURMURHASH3_HPP
+#endif  // NUCLEAR_UTIL_NETWORK_SOCK_T_HPP

@@ -20,19 +20,20 @@
 
 #include <string>
 #include <vector>
+#include "nuclear_bits/util/network/sock_t.hpp"
 
 namespace NUClear {
 namespace util {
     namespace network {
 
         struct Interface {
-            Interface() : name(""), ip(0), netmask(0), broadcast(0), flags() {}
+            Interface() : name(""), ip(), netmask(), broadcast(), flags() {}
 
             std::string name;
 
-            uint32_t ip;
-            uint32_t netmask;
-            uint32_t broadcast;
+            sock_t ip;
+            sock_t netmask;
+            sock_t broadcast;
 
             struct Flags {
                 Flags() : broadcast(false), loopback(false), pointtopoint(false), multicast(false) {}

@@ -18,10 +18,10 @@
 #ifndef NUCLEAR_DSL_WORD_NETWORK_HPP
 #define NUCLEAR_DSL_WORD_NETWORK_HPP
 
-#include <arpa/inet.h>
 #include "nuclear_bits/dsl/store/ThreadStore.hpp"
 #include "nuclear_bits/dsl/trait/is_transient.hpp"
 #include "nuclear_bits/util/serialise/Serialise.hpp"
+#include "nuclear_bits/util/network/sock_t.hpp"
 
 namespace NUClear {
 namespace dsl {
@@ -33,19 +33,16 @@ namespace dsl {
         };
 
         struct NetworkSource {
-            NetworkSource() : name(""), address(0), port(0), reliable(false), multicast(false) {}
+            NetworkSource() : name(""), address() {}
 
             std::string name;
-            in_addr_t address;
-            in_port_t port;
-            bool reliable;
-            bool multicast;
+            util::network::sock_t address;
         };
 
         struct NetworkListen {
             NetworkListen() : hash(), reaction() {}
 
-            std::array<uint64_t, 2> hash;
+            uint64_t hash;
             std::shared_ptr<threading::Reaction> reaction;
         };
 

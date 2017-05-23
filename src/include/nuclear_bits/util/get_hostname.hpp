@@ -15,44 +15,34 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_UTIL_WINDOWS_INCLUDES_HPP
-#define NUCLEAR_UTIL_WINDOWS_INCLUDES_HPP
+#ifndef NUCLEAR_UTIL_GET_HOSTNAME_HPP
+#define NUCLEAR_UTIL_GET_HOSTNAME_HPP
 
-// Because windows is SUUUUPER dumb and if you include headers in the wrong order
-// Nothing at all works, also if you don't define things in the right order nothing works
-// It's a terrible pile of garbage
-// So we have this header to make sure everything is in the correct order
 #ifdef _WIN32
+#include "nuclear_bits/util/platform.hpp"
+#else
+#include <sys/utsname.h>
+#endif
 
-// Windows has a dumb min/max macro that breaks stuff
-#define NOMINMAX
+namespace NUClear {
+namespace util {
 
-// Without this winsock just doesn't have half the typedefs
-#define INCL_WINSOCK_API_TYPEDEFS 1
+    inline std::string get_hostname() {
 
-// Winsock must be declared before Windows.h or it won't work
-#include <WinSock2.h>
+// If our config name is empty, use our system name
+#ifdef _WIN32
+        char n[MAX_COMPUTERNAME_LENGTH + 1];
+        DWORD size = sizeof(n);
+        GetComputerName(n, &size);
+        return std::string(n, size);
+#else
+        utsname u;
+        uname(&u);
+        return std::string(u.nodename);
+#endif
+    }
 
-#include <Ws2ipdef.h>
-#include <Ws2tcpip.h>
+}  // namespace util
+}  // namespace NUClear
 
-#include <Mstcpip.h>
-#include <Mswsock.h>
-
-#include <Iphlpapi.h>
-
-// This little thingy makes windows link to the winsock library
-#pragma comment(lib, "Ws2_32.lib")
-#pragma comment(lib, "Mswsock.lib")
-#pragma comment(lib, "IPHLPAPI.lib")
-
-// Include windows.h mega header... no wonder windows compiles so slowly
-#define WIN32_LEAN_AND_MEAN
-#include <Windows.h>
-
-// Whoever thought this was a good idea was a terrible person
-#undef ERROR
-
-#endif  // _WIN32
-
-#endif  // NUCLEAR_UTIL_WINDOWS_INCLUDES_HPP
+#endif  // NUCLEAR_UTIL_GET_HOSTNAME_HPP

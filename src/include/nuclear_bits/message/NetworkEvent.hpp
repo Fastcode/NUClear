@@ -18,25 +18,23 @@
 #ifndef NUCLEAR_MESSAGE_NETWORKEVENT_HPP
 #define NUCLEAR_MESSAGE_NETWORKEVENT_HPP
 
+#include "nuclear_bits/util/network/sock_t.hpp"
+
 namespace NUClear {
 namespace message {
 
     struct NetworkJoin {
-        NetworkJoin() : name(""), address(0), udp_port(0), tcp_port(0) {}
+        NetworkJoin() : name(""), address() {}
 
         std::string name;
-        in_addr_t address;
-        in_port_t udp_port;
-        in_port_t tcp_port;
+        util::network::sock_t address;
     };
 
     struct NetworkLeave {
-        NetworkLeave() : name(""), address(0), udp_port(0), tcp_port(0) {}
+        NetworkLeave() : name(""), address() {}
 
         std::string name;
-        in_addr_t address;
-        in_port_t udp_port;
-        in_port_t tcp_port;
+        util::network::sock_t address;
     };
 
 }  // namespace message
