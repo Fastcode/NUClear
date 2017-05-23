@@ -1,5 +1,6 @@
 /*
- * Copyright (C) 2013-2016 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ * Copyright (C) 2013      Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ *               2014-2017 Trent Houliston <trent@houliston.me>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -75,9 +76,10 @@ public:
                 if (iface.broadcast.sock.sa_family == AF_INET && iface.flags.multicast) {
                     auto& i = *reinterpret_cast<sockaddr_in*>(&iface.ip);
                     auto& b = *reinterpret_cast<sockaddr_in*>(&iface.broadcast);
-                    
+
                     // Two broadcast ips that are the same are probably on the same network so ignore those
-                    if (std::find(std::begin(addresses), std::end(addresses), ntohl(b.sin_addr.s_addr)) == std::end(addresses)) {
+                    if (std::find(std::begin(addresses), std::end(addresses), ntohl(b.sin_addr.s_addr))
+                        == std::end(addresses)) {
                         addresses.push_back(ntohl(i.sin_addr.s_addr));
                     }
                 }
@@ -105,9 +107,10 @@ public:
                 if (iface.broadcast.sock.sa_family == AF_INET && iface.flags.multicast) {
                     auto& i = *reinterpret_cast<sockaddr_in*>(&iface.ip);
                     auto& b = *reinterpret_cast<sockaddr_in*>(&iface.broadcast);
-                    
+
                     // Two broadcast ips that are the same are probably on the same network so ignore those
-                    if (std::find(std::begin(addresses), std::end(addresses), ntohl(b.sin_addr.s_addr)) == std::end(addresses)) {
+                    if (std::find(std::begin(addresses), std::end(addresses), ntohl(b.sin_addr.s_addr))
+                        == std::end(addresses)) {
                         addresses.push_back(ntohl(i.sin_addr.s_addr));
                     }
                 }

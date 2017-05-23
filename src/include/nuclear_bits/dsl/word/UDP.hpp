@@ -1,5 +1,6 @@
 /*
- * Copyright (C) 2013-2016 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ * Copyright (C) 2013      Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ *               2014-2017 Trent Houliston <trent@houliston.me>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -102,9 +103,8 @@ namespace dsl {
             };
 
             template <typename DSL>
-            static inline std::tuple<in_port_t, fd_t> bind(
-                const std::shared_ptr<threading::Reaction>& reaction,
-                int port = 0) {
+            static inline std::tuple<in_port_t, fd_t> bind(const std::shared_ptr<threading::Reaction>& reaction,
+                                                           int port = 0) {
 
                 // Make our socket
                 util::FileDescriptor fd = ::socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
@@ -246,9 +246,8 @@ namespace dsl {
             struct Broadcast {
 
                 template <typename DSL>
-                static inline std::tuple<in_port_t, fd_t> bind(
-                    const std::shared_ptr<threading::Reaction>& reaction,
-                    int port = 0) {
+                static inline std::tuple<in_port_t, fd_t> bind(const std::shared_ptr<threading::Reaction>& reaction,
+                                                               int port = 0) {
 
                     // Make our socket
                     util::FileDescriptor fd = ::socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
@@ -323,8 +322,9 @@ namespace dsl {
             struct Multicast {
 
                 template <typename DSL>
-                static inline std::tuple<in_port_t, fd_t>
-                bind(const std::shared_ptr<threading::Reaction>& reaction, std::string multicast_group, int port = 0) {
+                static inline std::tuple<in_port_t, fd_t> bind(const std::shared_ptr<threading::Reaction>& reaction,
+                                                               std::string multicast_group,
+                                                               int port = 0) {
 
                     // Our multicast group address
                     sockaddr_in address;

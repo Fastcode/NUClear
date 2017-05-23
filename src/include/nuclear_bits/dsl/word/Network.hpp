@@ -1,5 +1,6 @@
 /*
- * Copyright (C) 2013-2016 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ * Copyright (C) 2013      Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ *               2014-2017 Trent Houliston <trent@houliston.me>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -20,8 +21,8 @@
 
 #include "nuclear_bits/dsl/store/ThreadStore.hpp"
 #include "nuclear_bits/dsl/trait/is_transient.hpp"
-#include "nuclear_bits/util/serialise/Serialise.hpp"
 #include "nuclear_bits/util/network/sock_t.hpp"
+#include "nuclear_bits/util/serialise/Serialise.hpp"
 
 namespace NUClear {
 namespace dsl {

@@ -1,5 +1,6 @@
 /*
- * Copyright (C) 2013-2016 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ * Copyright (C) 2013      Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ *               2014-2017 Trent Houliston <trent@houliston.me>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -44,14 +45,15 @@ namespace extension {
         };
 
         struct DataPacket : public PacketHeader {
-            DataPacket() : PacketHeader(DATA), packet_id(0), packet_no(0), packet_count(1), reliable(false), hash(), data(0) {}
+            DataPacket()
+                : PacketHeader(DATA), packet_id(0), packet_no(0), packet_count(1), reliable(false), hash(), data(0) {}
 
-            uint16_t packet_id;            // A semiunique identifier for this packet group
-            uint16_t packet_no;            // What packet number this is within the group
-            uint16_t packet_count;         // How many packets there are in the group
-            bool reliable;                 // If this packet is reliable and should be acked
-            uint64_t hash;                 // The 64 bit hash to identify the data type
-            char data;                     // The data (&data)
+            uint16_t packet_id;     // A semiunique identifier for this packet group
+            uint16_t packet_no;     // What packet number this is within the group
+            uint16_t packet_count;  // How many packets there are in the group
+            bool reliable;          // If this packet is reliable and should be acked
+            uint64_t hash;          // The 64 bit hash to identify the data type
+            char data;              // The data (&data)
         };
 
         struct ACKPacket : public PacketHeader {

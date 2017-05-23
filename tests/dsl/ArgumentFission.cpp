@@ -1,5 +1,6 @@
 /*
- * Copyright (C) 2013-2016 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ * Copyright (C) 2013      Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ *               2014-2017 Trent Houliston <trent@houliston.me>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -92,8 +93,8 @@ public:
 
         // Run all three of our extension tests
         std::tie(std::ignore, a, b, std::ignore) = on<BindExtensionTest1, BindExtensionTest2, BindExtensionTest3>(
-                                          5, 7.9, "Hello", std::chrono::seconds(2), 9, 10, 11)
-                                          .then([] {});
+                                                       5, 7.9, "Hello", std::chrono::seconds(2), 9, 10, 11)
+                                                       .then([] {});
 
         // Check the returns from the bind
         REQUIRE(a == 5);

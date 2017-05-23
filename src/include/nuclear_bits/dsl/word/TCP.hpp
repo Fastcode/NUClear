@@ -1,5 +1,6 @@
 /*
- * Copyright (C) 2013-2016 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ * Copyright (C) 2013      Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ *               2014-2017 Trent Houliston <trent@houliston.me>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -81,7 +82,7 @@ namespace dsl {
 
             template <typename DSL>
             static inline std::tuple<int, int> bind(const std::shared_ptr<threading::Reaction>& reaction,
-                                                                               int port = 0) {
+                                                    int port = 0) {
 
                 // Make our socket
                 util::FileDescriptor fd = ::socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
@@ -119,16 +120,13 @@ namespace dsl {
                 port = ntohs(address.sin_port);
 
                 // Generate a reaction for the IO system that closes on death
-                int cfd       = fd;
-                reaction->unbinders.push_back([] (const threading::Reaction& r) {
+                int cfd = fd;
+                reaction->unbinders.push_back([](const threading::Reaction& r) {
                     r.reactor.emit<emit::Direct>(std::make_unique<operation::Unbind<IO>>(r.id));
                 });
-                reaction->unbinders.push_back([cfd] (const threading::Reaction&) {
-                    close(cfd);
-                });
+                reaction->unbinders.push_back([cfd](const threading::Reaction&) { close(cfd); });
 
-                auto io_config =
-                    std::make_unique<IOConfiguration>(IOConfiguration{fd.release(), IO::READ, reaction});
+                auto io_config = std::make_unique<IOConfiguration>(IOConfiguration{fd.release(), IO::READ, reaction});
 
                 // Send our configuration out
                 reaction->reactor.emit<emit::Direct>(io_config);
