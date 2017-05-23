@@ -31,6 +31,8 @@ namespace dsl {
         template <typename T>
         struct NetworkData : public std::shared_ptr<T> {
             using std::shared_ptr<T>::shared_ptr;
+
+            NetworkData(std::shared_ptr<T>&& ptr) : std::shared_ptr<T>(ptr) {}
         };
 
         struct NetworkSource {
@@ -103,7 +105,7 @@ namespace dsl {
                 else {
 
                     // Return invalid data
-                    return std::make_tuple(std::shared_ptr<NetworkSource>(nullptr), std::shared_ptr<T>(nullptr));
+                    return std::make_tuple(std::shared_ptr<NetworkSource>(nullptr), NetworkData<T>(nullptr));
                 }
             }
         };

@@ -191,6 +191,10 @@ namespace extension {
             struct PacketQueue {
 
                 struct PacketTarget {
+
+                    /// Constructor a new PacketTarget
+                    PacketTarget(std::weak_ptr<NetworkTarget> target, const std::vector<uint8_t>& acked);
+
                     /// The target we are sending this packet to
                     std::weak_ptr<NetworkTarget> target;
 
@@ -200,6 +204,9 @@ namespace extension {
                     /// When we last sent data to this client
                     std::chrono::steady_clock::time_point last_send;
                 };
+
+                /// Default constructor for the PacketQueue
+                PacketQueue();
 
                 /// The remote targets that want this packet
                 std::list<PacketTarget> targets;

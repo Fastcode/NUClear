@@ -38,6 +38,12 @@ namespace extension {
             }
         }
 
+        NUClearNetwork::PacketQueue::PacketTarget::PacketTarget(std::weak_ptr<NetworkTarget> target,
+                                                                const std::vector<uint8_t>& acked)
+            : target(target), acked(acked), last_send(std::chrono::steady_clock::now()) {}
+
+        NUClearNetwork::PacketQueue::PacketQueue() : targets(), header(), payload() {}
+
         NUClearNetwork::NUClearNetwork()
             : multicast_target()
             , unicast_fd(-1)
@@ -50,6 +56,7 @@ namespace extension {
             , leave_callback()
             , next_event_callback()
             , last_announce(std::chrono::seconds(0))
+            , next_event(std::chrono::seconds(0))
             , target_mutex()
             , send_queue_mutex()
             , send_queue()
@@ -1076,11 +1083,7 @@ namespace extension {
                 for (auto it = range.first; it != range.second; ++it) {
 
                     // Add this guy to the queue
-                    PacketQueue::PacketTarget target;
-                    target.last_send = std::chrono::steady_clock::now();
-                    target.acked     = acks;
-                    target.target    = it->second;
-                    queue.targets.push_back(target);
+                    queue.targets.emplace_back(it->second, acks);
 
                     // The next time we should check for a timeout
                     auto next_timeout = std::chrono::steady_clock::now() + it->second->round_trip_time;

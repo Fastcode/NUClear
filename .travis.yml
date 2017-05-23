@@ -13,11 +13,14 @@ addons:
       - g++-5
       - gcc-6
       - g++-6
+      - gcc-7
+      - g++-7
 
 env:
   - COMPILER="gcc-4.9"
   - COMPILER="gcc-5"
   - COMPILER="gcc-6"
+  - COMPILER="gcc-7"
 
 # Install our required dependencies
 install:
@@ -33,6 +36,10 @@ install:
   # gcc-6
   - if [[ "$COMPILER" == "gcc-6" ]]; then export CXX="g++-6"; fi
   - if [[ "$COMPILER" == "gcc-6" ]]; then export CC="gcc-6"; fi
+
+  # gcc-7
+  - if [[ "$COMPILER" == "gcc-7" ]]; then export CXX="g++-7"; fi
+  - if [[ "$COMPILER" == "gcc-7" ]]; then export CC="gcc-7"; fi
 
   # Catch
   - wget https://raw.githubusercontent.com/philsquared/Catch/master/single_include/catch.hpp
