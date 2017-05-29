@@ -44,10 +44,10 @@ namespace message {
             , exception(nullptr) {}
 
         ReactionStatistics(const std::vector<std::string> identifier,
-                           std::uint64_t reaction_id,
-                           std::uint64_t task_id,
-                           std::uint64_t cause_reaction_id,
-                           std::uint64_t cause_task_id,
+                           uint64_t reaction_id,
+                           uint64_t task_id,
+                           uint64_t cause_reaction_id,
+                           uint64_t cause_task_id,
                            const clock::time_point& emitted,
                            const clock::time_point& start,
                            const clock::time_point& finish,
@@ -65,13 +65,13 @@ namespace message {
         /// @brief A string containing the username/on arguments/and callback name of the reaction.
         std::vector<std::string> identifier;
         /// @brief The id of this reaction.
-        std::uint64_t reaction_id;
+        uint64_t reaction_id;
         /// @brief The task id of this reaction.
-        std::uint64_t task_id;
+        uint64_t task_id;
         /// @brief The reaction id of the reaction that caused this one or 0 if there was not one
-        std::uint64_t cause_reaction_id;
+        uint64_t cause_reaction_id;
         /// @brief The reaction id of the task that caused this task or 0 if there was not one
-        std::uint64_t cause_task_id;
+        uint64_t cause_task_id;
         /// @brief The time that this reaction was emitted to the thread pool
         clock::time_point emitted;
         /// @brief The time that execution started on this reaction

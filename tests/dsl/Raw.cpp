@@ -23,17 +23,15 @@
 namespace {
 
 struct TypeA {
-    TypeA() {}
     TypeA(int x) : x(x) {}
 
-    int x{0};
+    int x;
 };
 
 struct TypeB {
-    TypeB() {}
     TypeB(int x) : x(x) {}
 
-    int x{0};
+    int x;
 };
 
 class TestReactor : public NUClear::Reactor {
@@ -49,10 +47,10 @@ public:
 
             // Wait until we have 10 elements
             if (stored.size() == 10) {
-                emit(std::make_unique<TypeB>(TypeB{0}));
+                emit(std::make_unique<TypeB>(0));
             }
             else {
-                emit(std::make_unique<TypeA>(TypeA{a->x + 1}));
+                emit(std::make_unique<TypeA>(a->x + 1));
             }
         });
 
@@ -69,7 +67,7 @@ public:
             powerplant.shutdown();
         });
 
-        on<Startup>().then([this] { emit(std::make_unique<TypeA>(TypeA{0})); });
+        on<Startup>().then([this] { emit(std::make_unique<TypeA>(0)); });
     }
 };
 }  // namespace

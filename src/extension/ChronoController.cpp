@@ -77,7 +77,7 @@ namespace extension {
             if (!tasks.empty()) {
 
                 // Make the list into a heap so we can remove the soonest ones
-                std::make_heap(tasks.begin(), tasks.end(), std::greater<ChronoTask>());
+                std::make_heap(tasks.begin(), tasks.end(), std::greater<>());
 
                 // If we are within the wait offset of the time, spinlock until we get there for greater accuracy
                 if (NUClear::clock::now() + wait_offset > tasks.front().time) {

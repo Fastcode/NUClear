@@ -40,7 +40,7 @@ namespace extension {
         }
 
         NUClearNetwork::PacketQueue::PacketTarget::PacketTarget(std::weak_ptr<NetworkTarget> target,
-                                                                std::vector<uint8_t>&& acked)
+                                                                std::vector<uint8_t> acked)
             : target(std::move(target)), acked(std::move(acked)), last_send(std::chrono::steady_clock::now()) {}
 
         NUClearNetwork::PacketQueue::PacketQueue() = default;
@@ -1021,11 +1021,11 @@ namespace extension {
             data[0].iov_len  = sizeof(DataPacket) - 1;
 
             // Work out what chunk of data we are sending const cast is fine as posix guarantees it won't be modified
-            data[1].iov_base = const_cast<char*>(payload.data() + (packet_data_mtu * packet_no));
+            data[1].iov_base = const_cast<char*>(payload.data() + (packet_data_mtu * packet_no));  // NOLINT
             data[1].iov_len  = packet_no + 1 < header.packet_count ? packet_data_mtu : payload.size() % packet_data_mtu;
 
             // Set our target and send (once again const cast is fine)
-            message.msg_name    = const_cast<sockaddr*>(&target.sock);
+            message.msg_name    = const_cast<sockaddr*>(&target.sock);  // NOLINT
             message.msg_namelen = socket_size(target);
 
             // TODO(trent): if reliable, run select first to see if this socket is writeable
@@ -1066,8 +1066,8 @@ namespace extension {
                 // Store the header, but update it's type to be a retransmission so it can be ignored if overtransmitted
                 queue.header      = header;
                 queue.header.type = DATA_RETRANSMISSION;
-                queue.payload =
-                    payload;  // TODO(trent): there might be some better memory management that can happen here
+                // TODO(trent): there might be some better memory management that can happen here
+                queue.payload = payload;
                 std::vector<uint8_t> acks((header.packet_count / 8) + 1, 0);
 
                 // Find interested parties or if multicast it's everyone we are connected to
@@ -1077,7 +1077,7 @@ namespace extension {
                 for (auto it = range.first; it != range.second; ++it) {
 
                     // Add this guy to the queue
-                    queue.targets.emplace_back(it->second, std::move(acks));
+                    queue.targets.emplace_back(it->second, acks);
 
                     // The next time we should check for a timeout
                     auto next_timeout = std::chrono::steady_clock::now() + it->second->round_trip_time;

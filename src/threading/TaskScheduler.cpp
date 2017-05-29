@@ -71,7 +71,8 @@ namespace threading {
         // Return the type
         // If you're wondering why all the ridiculousness, it's because priority queue is not as feature complete as it
         // should be its 'top' method returns a const reference (which we can't use to move a unique pointer)
-        std::unique_ptr<ReactionTask> task(std::move(const_cast<std::unique_ptr<ReactionTask>&>(queue.top())));
+        std::unique_ptr<ReactionTask> task(
+            std::move(const_cast<std::unique_ptr<ReactionTask>&>(queue.top())));  // NOLINT
         queue.pop();
 
         return task;

@@ -193,7 +193,7 @@ namespace extension {
                 struct PacketTarget {
 
                     /// Constructor a new PacketTarget
-                    PacketTarget(std::weak_ptr<NetworkTarget> target, std::vector<uint8_t>&& acked);
+                    PacketTarget(std::weak_ptr<NetworkTarget> target, std::vector<uint8_t> acked);
 
                     /// The target we are sending this packet to
                     std::weak_ptr<NetworkTarget> target;
