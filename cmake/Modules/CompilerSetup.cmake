@@ -35,16 +35,13 @@ SET(CMAKE_POSITION_INDEPENDENT_CODE ON)
 IF(CMAKE_CXX_COMPILER_ID MATCHES GNU)
 
     # GCC Must be version 4.8 or greater for used features
-    IF(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 4.8)
-        MESSAGE(FATAL_ERROR "${PROJECT_NAME} requires g++ 4.8 or greater.")
+    IF(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 4.9)
+        MESSAGE(FATAL_ERROR "${PROJECT_NAME} requires g++ 4.9 or greater.")
     ENDIF()
 
-    # Enable colours on g++ 4.9 or greater
-    IF(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 4.9 OR CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL 4.9)
-        SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fdiagnostics-color=always")
-    ENDIF()
-
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -pthread -ftemplate-backtrace-limit=0 -Wall -Wpedantic -Weffc++")
+    # Enable colours always
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fdiagnostics-color=always")
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -pthread -ftemplate-backtrace-limit=0 -Wall -Wpedantic")
 
 # Clang Compiler
 ELSEIF(CMAKE_CXX_COMPILER_ID MATCHES Clang)
