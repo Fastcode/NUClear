@@ -33,16 +33,16 @@ struct DataType {
         return good;
     }
 };
-}
+}  // namespace
 
 namespace NUClear {
 namespace dsl {
     namespace trait {
         template <>
         struct is_transient<DataType> : public std::true_type {};
-    }
-}
-}
+    }  // namespace trait
+}  // namespace dsl
+}  // namespace NUClear
 
 namespace {
 struct SimpleMessage {
@@ -53,7 +53,7 @@ struct SimpleMessage {
 struct TransientTypeGetter : public NUClear::dsl::operation::TypeBind<int> {
 
     template <typename DSL>
-    static inline DataType get(NUClear::threading::Reaction&) {
+    static inline DataType get(NUClear::threading::Reaction& /*unused*/) {
 
         // We say for this test that our data is valid if it is odd
         return DataType{value, value % 2 == 1};
@@ -101,16 +101,16 @@ public:
 
             // This should execute our function resulting in the pair 30,5
             emit(std::make_unique<int>(0));
-            // TODO technically the thing that triggered this resulted in invalid data but used old data, do we want to
-            // stop this?
-            // TODO This would result in two states, invalid data, and non existant data
+            // TODO(trent): technically the thing that triggered this resulted in invalid data but used old data, do we
+            // want to stop this?
+            // TODO(trent): This would result in two states, invalid data, and non existant data
 
             // We are finished the test
             powerplant.shutdown();
         });
     }
 };
-}
+}  // namespace
 
 TEST_CASE("Testing whether getters that return transient data can cache between calls", "[api][transient]") {
 

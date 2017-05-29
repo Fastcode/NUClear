@@ -21,9 +21,7 @@
 namespace NUClear {
 namespace threading {
 
-    TaskScheduler::TaskScheduler() : running(true), queue(), mutex(), condition() {}
-
-    TaskScheduler::~TaskScheduler() {}
+    TaskScheduler::TaskScheduler() : running(true) {}
 
     void TaskScheduler::shutdown() {
         {
@@ -65,20 +63,18 @@ namespace threading {
                 // Return a nullptr to signify there is nothing on the queue
                 return nullptr;
             }
-            else {
-                // Wait for something to happen!
-                condition.wait(lock);
-            }
+
+            // Wait for something to happen!
+            condition.wait(lock);
         }
 
         // Return the type
         // If you're wondering why all the ridiculousness, it's because priority queue is not as feature complete as it
-        // should be
-        // It's 'top' method returns a const reference (which we can't use to move a unique pointer)
+        // should be its 'top' method returns a const reference (which we can't use to move a unique pointer)
         std::unique_ptr<ReactionTask> task(std::move(const_cast<std::unique_ptr<ReactionTask>&>(queue.top())));
         queue.pop();
 
         return task;
     }
-}
-}
+}  // namespace threading
+}  // namespace NUClear

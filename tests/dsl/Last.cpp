@@ -69,7 +69,7 @@ public:
         on<Startup>().then([this] { emit(std::make_unique<TestMessage>(++emit_counter)); });
     }
 };
-}
+}  // namespace
 
 TEST_CASE("Testing the last n feature", "[api][last]") {
 

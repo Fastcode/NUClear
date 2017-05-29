@@ -58,7 +58,7 @@ namespace threading {
          * @param identifier     string identifier information about the reaction to help identify it
          * @param callback       the callback generator function (creates databound callbacks)
          */
-        Reaction(Reactor& reactor, std::vector<std::string> identifier, TaskGenerator callback);
+        Reaction(Reactor& reactor, std::vector<std::string>&& identifier, TaskGenerator&& generator);
 
         /**
          * @brief creates a new databound callback task that can be executed.

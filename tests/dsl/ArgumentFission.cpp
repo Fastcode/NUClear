@@ -17,6 +17,7 @@
  */
 
 #include <catch.hpp>
+#include <utility>
 
 #include "nuclear"
 
@@ -27,7 +28,7 @@ struct BindExtensionTest1 {
     static double val2;
 
     template <typename DSL>
-    static inline int bind(const std::shared_ptr<NUClear::threading::Reaction>&, int v1, double v2) {
+    static inline int bind(const std::shared_ptr<NUClear::threading::Reaction>& /*unused*/, int v1, double v2) {
 
         val1 = v1;
         val2 = v2;
@@ -36,8 +37,8 @@ struct BindExtensionTest1 {
     }
 };
 
-int BindExtensionTest1::val1    = 0;
-double BindExtensionTest1::val2 = 0.0;
+int BindExtensionTest1::val1    = 0;    // NOLINT
+double BindExtensionTest1::val2 = 0.0;  // NOLINT
 
 struct BindExtensionTest2 {
 
@@ -45,19 +46,19 @@ struct BindExtensionTest2 {
     static std::chrono::nanoseconds val2;
 
     template <typename DSL>
-    static inline double bind(const std::shared_ptr<NUClear::threading::Reaction>&,
+    static inline double bind(const std::shared_ptr<NUClear::threading::Reaction>& /*unused*/,
                               std::string v1,
                               std::chrono::nanoseconds v2) {
 
-        val1 = v1;
+        val1 = std::move(v1);
         val2 = v2;
 
         return 7.2;
     }
 };
 
-std::string BindExtensionTest2::val1              = "";
-std::chrono::nanoseconds BindExtensionTest2::val2 = std::chrono::nanoseconds(0);
+std::string BindExtensionTest2::val1              = "";                           // NOLINT
+std::chrono::nanoseconds BindExtensionTest2::val2 = std::chrono::nanoseconds(0);  // NOLINT
 
 struct BindExtensionTest3 {
 
@@ -66,10 +67,8 @@ struct BindExtensionTest3 {
     static int val3;
 
     template <typename DSL>
-    static inline NUClear::threading::ReactionHandle bind(const std::shared_ptr<NUClear::threading::Reaction>&,
-                                                          int v1,
-                                                          int v2,
-                                                          int v3) {
+    static inline NUClear::threading::ReactionHandle
+    bind(const std::shared_ptr<NUClear::threading::Reaction>& /*unused*/, int v1, int v2, int v3) {
 
         val1 = v1;
         val2 = v2;
@@ -79,9 +78,9 @@ struct BindExtensionTest3 {
     }
 };
 
-int BindExtensionTest3::val1 = 0;
-int BindExtensionTest3::val2 = 0;
-int BindExtensionTest3::val3 = 0;
+int BindExtensionTest3::val1 = 0;  // NOLINT
+int BindExtensionTest3::val2 = 0;  // NOLINT
+int BindExtensionTest3::val3 = 0;  // NOLINT
 
 struct ShutdownFlag {};
 
@@ -120,7 +119,7 @@ public:
         });
     }
 };
-}
+}  // namespace
 
 TEST_CASE("Testing distributing arguments to multiple bind functions (NUClear Fission)", "[api][dsl][fission]") {
 

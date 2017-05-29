@@ -49,7 +49,7 @@ public:
             [this](const MessageA&, const MessageB&) { FAIL("B was never emitted so this should not be possible"); });
     }
 };
-}
+}  // namespace
 
 
 TEST_CASE("Testing that when a trigger does not have it's data satisfied it does not run", "[api][nodata]") {

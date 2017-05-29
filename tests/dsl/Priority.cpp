@@ -66,7 +66,7 @@ public:
         });
     }
 };
-}
+}  // namespace
 
 
 TEST_CASE("Tests that priority orders the tasks appropriately", "[api][priority]") {

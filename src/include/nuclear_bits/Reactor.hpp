@@ -107,9 +107,9 @@ namespace dsl {
             struct Network;
             template <typename T>
             struct UDP;
-        }
-    }
-}
+        }  // namespace emit
+    }      // namespace word
+}  // namespace dsl
 
 /**
  * @brief Base class for any system that wants to react to events/data from the rest of the system.
@@ -273,7 +273,9 @@ public:
 
             // Generate the reaction
             auto reaction = std::make_shared<threading::Reaction>(
-                reactor, identifier, util::CallbackGenerator<DSL, Function>(std::forward<Function>(callback)));
+                reactor,
+                std::move(identifier),
+                util::CallbackGenerator<DSL, Function>(std::forward<Function>(callback)));
 
             // Get our tuple from binding our reaction
             auto tuple = DSL::bind(reaction, std::get<Index>(args)...);

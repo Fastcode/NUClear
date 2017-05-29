@@ -173,7 +173,7 @@ namespace extension {
              * @param port          the multicast port to use
              * @param network_mtu   the mtu of the network we operate on
              */
-            void reset(std::string name, std::string group, in_port_t port, uint16_t network_mtu = 1500);
+            void reset(const std::string& name, const std::string& group, in_port_t port, uint16_t network_mtu = 1500);
 
             /**
              * @brief Process waiting data in the UDP sockets and send them to the callback if they are relevant.
@@ -193,7 +193,7 @@ namespace extension {
                 struct PacketTarget {
 
                     /// Constructor a new PacketTarget
-                    PacketTarget(std::weak_ptr<NetworkTarget> target, const std::vector<uint8_t>& acked);
+                    PacketTarget(std::weak_ptr<NetworkTarget> target, std::vector<uint8_t>&& acked);
 
                     /// The target we are sending this packet to
                     std::weak_ptr<NetworkTarget> target;
@@ -243,7 +243,7 @@ namespace extension {
              * @param address   who the packet came from
              * @param data      the data that was sent in this packet
              */
-            void process_packet(sock_t&& address, std::vector<char>&& payload);
+            void process_packet(const sock_t& address, std::vector<char>&& payload);
 
             /**
              * @brief Send an announce packet over UDP multicast

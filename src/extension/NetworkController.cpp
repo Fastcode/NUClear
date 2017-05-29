@@ -34,16 +34,12 @@ namespace extension {
 
 
     NetworkController::NetworkController(std::unique_ptr<NUClear::Environment> environment)
-        : Reactor(std::move(environment))
-        , network()
-        , process_handle()
-        , listen_handles()
-        , reaction_mutex()
-        , reactions() {
+        : Reactor(std::move(environment)) {
 
         // Set our function callback
-        network.set_packet_callback([this](
-            const network::NUClearNetwork::NetworkTarget& remote, const uint64_t& hash, std::vector<char>&& payload) {
+        network.set_packet_callback([this](const network::NUClearNetwork::NetworkTarget& remote,
+                                           const uint64_t& hash,
+                                           std::vector<char>&& payload) {
 
             // Construct our NetworkSource information
             dsl::word::NetworkSource src;
@@ -161,5 +157,5 @@ namespace extension {
             }
         });
     }
-}
-}
+}  // namespace extension
+}  // namespace NUClear

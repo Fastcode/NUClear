@@ -28,7 +28,7 @@ namespace extension {
     using NUClear::dsl::operation::ChronoTask;
 
     ChronoController::ChronoController(std::unique_ptr<NUClear::Environment> environment)
-        : Reactor(std::move(environment)), tasks(), mutex(), wait(), wait_offset(std::chrono::milliseconds(0)) {
+        : Reactor(std::move(environment)), wait_offset(std::chrono::milliseconds(0)) {
 
         on<Trigger<ChronoTask>>().then("Add Chrono task", [this](std::shared_ptr<const ChronoTask> task) {
 
@@ -114,5 +114,5 @@ namespace extension {
             }
         });
     }
-}
-}
+}  // namespace extension
+}  // namespace NUClear

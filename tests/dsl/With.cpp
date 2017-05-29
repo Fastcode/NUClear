@@ -46,7 +46,7 @@ public:
             [this] {});
     }
 };
-}
+}  // namespace
 
 TEST_CASE("Testing poorly ordered on arguments", "[api][with]") {
 

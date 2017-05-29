@@ -41,7 +41,7 @@ public:
         on<Startup>().then([this]() { emit(std::unique_ptr<SimpleMessage>(new SimpleMessage{10})); });
     }
 };
-}
+}  // namespace
 
 TEST_CASE("Testing the startup event is emitted at the start of the program", "[api][startup]") {
 

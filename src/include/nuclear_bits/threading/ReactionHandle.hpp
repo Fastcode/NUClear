@@ -50,7 +50,7 @@ namespace threading {
          * @param
          *  context the reaction that we are interacting with.
          */
-        ReactionHandle(std::shared_ptr<Reaction> context = nullptr);
+        ReactionHandle(const std::shared_ptr<Reaction>& context = nullptr);
 
         /**
          * @brief

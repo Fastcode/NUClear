@@ -22,8 +22,8 @@
 
 namespace {
 
-constexpr unsigned short port = 40001;
-const std::string test_string = "Hello UDP Broadcast World!";
+constexpr unsigned short PORT = 40001;
+const std::string TEST_STRING = "Hello UDP Broadcast World!";
 int count_a                   = 0;
 int count_b                   = 0;
 std::size_t num_addresses     = 0;
@@ -36,13 +36,13 @@ public:
     TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
 
         // Known port
-        on<UDP::Broadcast>(port).then([this](const UDP::Packet& packet) {
+        on<UDP::Broadcast>(PORT).then([this](const UDP::Packet& packet) {
 
             ++count_a;
 
             // Check that the data we received is correct
-            REQUIRE(packet.payload.size() == test_string.size());
-            REQUIRE(std::memcmp(packet.payload.data(), test_string.data(), test_string.size()) == 0);
+            REQUIRE(packet.payload.size() == TEST_STRING.size());
+            REQUIRE(std::memcmp(packet.payload.data(), TEST_STRING.data(), TEST_STRING.size()) == 0);
 
             // Shutdown we are done with the test
             if (count_a >= 1 && count_b >= 1) {
@@ -56,8 +56,8 @@ public:
             ++count_b;
 
             // Check that the data we received is correct
-            REQUIRE(packet.payload.size() == test_string.size());
-            REQUIRE(std::memcmp(packet.payload.data(), test_string.data(), test_string.size()) == 0);
+            REQUIRE(packet.payload.size() == TEST_STRING.size());
+            REQUIRE(std::memcmp(packet.payload.data(), TEST_STRING.data(), TEST_STRING.size()) == 0);
 
             // Shutdown we are done with the test
             if (count_a >= 1 && count_b >= 1) {
@@ -91,7 +91,7 @@ public:
             for (auto& ad : addresses) {
 
                 // Send our message to that broadcast address
-                emit<Scope::UDP>(std::make_unique<std::string>(test_string), ad, port);
+                emit<Scope::UDP>(std::make_unique<std::string>(TEST_STRING), ad, PORT);
             }
         });
 
@@ -120,7 +120,7 @@ public:
             for (auto& ad : addresses) {
 
                 // Send our message to that broadcast address
-                emit<Scope::UDP>(std::make_unique<std::string>(test_string), ad, bound_port);
+                emit<Scope::UDP>(std::make_unique<std::string>(TEST_STRING), ad, bound_port);
             }
         });
 
@@ -131,7 +131,7 @@ public:
         });
     }
 };
-}
+}  // namespace
 
 TEST_CASE("Testing sending and receiving of UDP Broadcast messages", "[api][network][udp][broadcast]") {
 

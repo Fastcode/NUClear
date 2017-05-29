@@ -21,7 +21,7 @@
 namespace NUClear {
 namespace threading {
 
-    ReactionHandle::ReactionHandle(std::shared_ptr<Reaction> context) : context(context) {}
+    ReactionHandle::ReactionHandle(const std::shared_ptr<Reaction>& context) : context(context) {}
 
     bool ReactionHandle::enabled() {
         auto c = context.lock();
@@ -62,5 +62,5 @@ namespace threading {
     ReactionHandle::operator bool() const {
         return bool(context.lock());
     }
-}
-}
+}  // namespace threading
+}  // namespace NUClear

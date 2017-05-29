@@ -43,7 +43,7 @@ public:
         on<Trigger<ShutdownNowPlx>>().then([this] { powerplant.shutdown(); });
     }
 };
-}
+}  // namespace
 
 TEST_CASE("Testing the Initialize scope", "[api][emit][initialize]") {
     NUClear::PowerPlant::Configuration config;

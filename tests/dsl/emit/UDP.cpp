@@ -70,7 +70,7 @@ public:
         });
     }
 };
-}
+}  // namespace
 
 TEST_CASE("Testing UDP emits work correctly", "[api][emit][udp]") {
     NUClear::PowerPlant::Configuration config;

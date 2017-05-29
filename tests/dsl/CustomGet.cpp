@@ -25,7 +25,7 @@ namespace {
 struct CustomGet : public NUClear::dsl::operation::TypeBind<int> {
 
     template <typename DSL>
-    static inline std::shared_ptr<int> get(NUClear::threading::Reaction&) {
+    static inline std::shared_ptr<int> get(NUClear::threading::Reaction& /*unused*/) {
         return std::make_shared<int>(5);
     }
 };
@@ -49,7 +49,7 @@ public:
         });
     }
 };
-}
+}  // namespace
 
 TEST_CASE("Test a custom reactor that returns a type that needs dereferencing", "[api][custom_get]") {
 

@@ -52,7 +52,7 @@ public:
         });
     }
 };
-}
+}  // namespace
 
 TEST_CASE("Testing the Watchdog Smart Type", "[api][watchdog]") {
 

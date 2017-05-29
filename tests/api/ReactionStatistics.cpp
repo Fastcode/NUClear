@@ -70,7 +70,7 @@ public:
         on<Startup>().then("Startup Handler", [this] { emit(std::make_unique<Message<0>>()); });
     }
 };
-}
+}  // namespace
 
 TEST_CASE("Testing reaction statistics functionality", "[api][reactionstatistics]") {
 

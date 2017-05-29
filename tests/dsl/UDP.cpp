@@ -22,8 +22,8 @@
 
 namespace {
 
-constexpr unsigned short port = 40000;
-const std::string test_string = "Hello UDP World!";
+constexpr unsigned short PORT = 40000;
+const std::string TEST_STRING = "Hello UDP World!";
 bool received_a               = false;
 bool received_b               = false;
 
@@ -34,12 +34,12 @@ public:
     TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
 
         // Known port
-        on<UDP>(port).then([this](const UDP::Packet& packet) {
+        on<UDP>(PORT).then([this](const UDP::Packet& packet) {
 
             // Check that the data we received is correct
             REQUIRE(packet.remote.address == INADDR_LOOPBACK);
-            REQUIRE(packet.payload.size() == test_string.size());
-            REQUIRE(std::memcmp(packet.payload.data(), test_string.data(), test_string.size()) == 0);
+            REQUIRE(packet.payload.size() == TEST_STRING.size());
+            REQUIRE(std::memcmp(packet.payload.data(), TEST_STRING.data(), TEST_STRING.size()) == 0);
 
             received_a = true;
             if (received_a && received_b) {
@@ -54,8 +54,8 @@ public:
 
             // Check that the data we received is correct
             REQUIRE(packet.remote.address == INADDR_LOOPBACK);
-            REQUIRE(packet.payload.size() == test_string.size());
-            REQUIRE(std::memcmp(packet.payload.data(), test_string.data(), test_string.size()) == 0);
+            REQUIRE(packet.payload.size() == TEST_STRING.size());
+            REQUIRE(std::memcmp(packet.payload.data(), TEST_STRING.data(), TEST_STRING.size()) == 0);
 
             received_b = true;
             if (received_a && received_b) {
@@ -68,7 +68,7 @@ public:
         // does not need to include the port in the lambda capture.  This is a global variable to the unit test, so
         // the function will have access to it.
         on<Trigger<Message>>().then(
-            [this] { emit<Scope::UDP>(std::make_unique<std::string>(test_string), INADDR_LOOPBACK, port); });
+            [this] { emit<Scope::UDP>(std::make_unique<std::string>(TEST_STRING), INADDR_LOOPBACK, PORT); });
 
 
         // Send a test for an unknown port
@@ -76,7 +76,7 @@ public:
         on<Trigger<Message>>().then([this, bound_port] {
 
             // Emit our UDP message
-            emit<Scope::UDP>(std::make_unique<std::string>(test_string), INADDR_LOOPBACK, bound_port);
+            emit<Scope::UDP>(std::make_unique<std::string>(TEST_STRING), INADDR_LOOPBACK, bound_port);
         });
 
         on<Startup>().then([this] {
@@ -86,7 +86,7 @@ public:
         });
     }
 };
-}
+}  // namespace
 
 TEST_CASE("Testing sending and receiving of UDP messages", "[api][network][udp]") {
 

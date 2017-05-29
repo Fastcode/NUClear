@@ -27,9 +27,9 @@ namespace dsl {
         struct DSLProxy<int> : public NUClear::dsl::operation::TypeBind<int>,
                                public NUClear::dsl::operation::CacheGet<double>,
                                public NUClear::dsl::word::Single {};
-    }
-}
-}
+    }  // namespace operation
+}  // namespace dsl
+}  // namespace NUClear
 
 namespace {
 
@@ -55,7 +55,7 @@ public:
         });
     }
 };
-}
+}  // namespace
 
 TEST_CASE("Testing that the DSL proxy works as expected for binding unmodifyable types", "[api][dsl][proxy]") {
 

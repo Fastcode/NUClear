@@ -38,7 +38,7 @@ public:
         on<Startup>().then([this] { powerplant.shutdown(); });
     }
 };
-}
+}  // namespace
 
 TEST_CASE("Test reaction can take a raw function instead of just a lambda", "[api][raw_function]") {
 

@@ -93,7 +93,7 @@ public:
         });
     }
 };
-}
+}  // namespace
 
 TEST_CASE("Testing that optional is able to let data through even if it's invalid", "[api][optional]") {
 

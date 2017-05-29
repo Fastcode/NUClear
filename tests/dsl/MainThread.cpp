@@ -51,7 +51,7 @@ public:
         });
     }
 };
-}
+}  // namespace
 
 TEST_CASE("Testing that the MainThread keyword runs tasks on the main thread", "[api][dsl][main_thread]") {
 

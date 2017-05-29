@@ -112,7 +112,7 @@ public:
         on<Startup>().then([this] { emit(std::make_unique<Message<0>>(123)); });
     }
 };
-}
+}  // namespace
 
 TEST_CASE("Testing that the Sync word works correctly", "[api][sync]") {
 

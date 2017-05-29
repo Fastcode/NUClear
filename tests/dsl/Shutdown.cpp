@@ -40,7 +40,7 @@ public:
         on<Shutdown>().then([this] { did_shutdown = true; });
     }
 };
-}
+}  // namespace
 
 TEST_CASE("A test that a shutdown message is emitted when the system shuts down", "[api][shutdown]") {
 

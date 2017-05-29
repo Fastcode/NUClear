@@ -15,7 +15,6 @@
  * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-
 #include "nuclear_bits/PowerPlant.hpp"
 #include "nuclear_bits/threading/ThreadPoolTask.hpp"
 
@@ -25,13 +24,12 @@
 
 namespace NUClear {
 
-PowerPlant* PowerPlant::powerplant = nullptr;
+PowerPlant* PowerPlant::powerplant = nullptr;  // NOLINT
 
-PowerPlant::PowerPlant(Configuration config, int argc, const char* argv[])
-    : configuration(config), tasks(), threads(), scheduler(), main_thread_scheduler(), reactors(), startup_tasks() {
+PowerPlant::PowerPlant(Configuration config, int argc, const char* argv[]) : configuration(config) {
 
     // Stop people from making more then one powerplant
-    if (powerplant) {
+    if (powerplant != nullptr) {
         throw std::runtime_error("There is already a powerplant in existence (There should be a single PowerPlant)");
     }
 
@@ -142,4 +140,4 @@ void PowerPlant::shutdown() {
 bool PowerPlant::running() {
     return is_running;
 }
-}
+}  // namespace NUClear

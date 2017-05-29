@@ -33,7 +33,7 @@ public:
 
     static constexpr size_t WAIT_LENGTH_MILLIS = 1;
 
-    TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)), times() {
+    TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
 
         // Trigger every 10 milliseconds
         on<Every<WAIT_LENGTH_MILLIS, std::chrono::milliseconds>>().then([this] {
@@ -79,7 +79,7 @@ public:
         });
     }
 };
-}
+}  // namespace
 
 TEST_CASE("Testing the Every<> Smart Type", "[api][every][period]") {
 

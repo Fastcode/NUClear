@@ -145,7 +145,7 @@ namespace util {
 
             std::vector<Interface> ifaces;
 
-            addrinfo hints;
+            addrinfo hints{};
             std::memset(&hints, 0, sizeof(hints));
             hints.ai_family = AF_INET;
 
@@ -174,7 +174,7 @@ namespace util {
                     case AF_INET6: std::memcpy(&iface.ip, cursor->ifa_addr, sizeof(sockaddr_in6)); break;
                 }
 
-                if (cursor->ifa_netmask) {
+                if (cursor->ifa_netmask != nullptr) {
                     switch (cursor->ifa_addr->sa_family) {
                         case AF_INET: std::memcpy(&iface.netmask, cursor->ifa_netmask, sizeof(sockaddr_in)); break;
 
@@ -182,7 +182,7 @@ namespace util {
                     }
                 }
 
-                if (cursor->ifa_dstaddr) {
+                if (cursor->ifa_dstaddr != nullptr) {
                     switch (cursor->ifa_addr->sa_family) {
                         case AF_INET: std::memcpy(&iface.broadcast, cursor->ifa_dstaddr, sizeof(sockaddr_in)); break;
 
@@ -204,6 +204,6 @@ namespace util {
             return ifaces;
         }
 #endif
-    }
-}
-}
+    }  // namespace network
+}  // namespace util
+}  // namespace NUClear

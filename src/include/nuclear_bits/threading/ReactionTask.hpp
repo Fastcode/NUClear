@@ -67,7 +67,7 @@ namespace threading {
          * @param priority  the priority to use when executing this task.
          * @param callback  the data bound callback to be executed in the threadpool.
          */
-        ReactionTask(Reaction& parent, int priority, TaskFunction callback);
+        ReactionTask(Reaction& parent, int priority, TaskFunction&& callback);
 
         /**
          * @brief Runs the internal data bound task and times it.

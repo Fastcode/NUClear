@@ -42,7 +42,7 @@ public:
         on<Trigger<ShutdownNowPlx>>().then([this] { powerplant.shutdown(); });
     }
 };
-}
+}  // namespace
 
 TEST_CASE("Testing the Command Line argument capturing", "[api][command_line_arguments]") {
     int argc           = 2;

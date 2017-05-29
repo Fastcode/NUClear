@@ -69,7 +69,7 @@ public:
         });
     }
 };
-}
+}  // namespace
 
 
 TEST_CASE("Testing emitting types that are flag types (Have no contents)", "[api][flag]") {

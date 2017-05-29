@@ -65,7 +65,7 @@ public:
         });
     }
 };
-}
+}  // namespace
 
 TEST_CASE("Test that single prevents a second call while one is executing", "[api][precondition][single]") {
 

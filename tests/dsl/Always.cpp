@@ -39,7 +39,7 @@ public:
         });
     }
 };
-}
+}  // namespace
 
 TEST_CASE("Testing on<Always> functionality (permanant run)", "[api][always]") {
 

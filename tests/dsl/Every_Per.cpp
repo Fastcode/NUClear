@@ -33,7 +33,7 @@ public:
 
     static constexpr size_t CYCLES_PER_SECOND = 1000;
 
-    TestReactorPer(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)), times() {
+    TestReactorPer(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
 
         // Trigger every 10 milliseconds
         on<Every<CYCLES_PER_SECOND, Per<std::chrono::seconds>>>().then([this]() {
@@ -79,7 +79,7 @@ public:
         });
     }
 };
-}
+}  // namespace
 
 TEST_CASE("Testing the Every<> Smart Type using Per", "[api][every][per]") {
 

@@ -65,7 +65,7 @@ public:
         });
     }
 };
-}
+}  // namespace
 
 TEST_CASE("Testing the Log<>() function", "[api][log]") {
 

@@ -25,6 +25,7 @@
 #include <cerrno>
 #include <cstring>
 #include <set>
+#include <utility>
 
 namespace NUClear {
 namespace extension {
@@ -39,30 +40,19 @@ namespace extension {
         }
 
         NUClearNetwork::PacketQueue::PacketTarget::PacketTarget(std::weak_ptr<NetworkTarget> target,
-                                                                const std::vector<uint8_t>& acked)
-            : target(target), acked(acked), last_send(std::chrono::steady_clock::now()) {}
+                                                                std::vector<uint8_t>&& acked)
+            : target(std::move(target)), acked(std::move(acked)), last_send(std::chrono::steady_clock::now()) {}
 
-        NUClearNetwork::PacketQueue::PacketQueue() : targets(), header(), payload() {}
+        NUClearNetwork::PacketQueue::PacketQueue() = default;
 
         NUClearNetwork::NUClearNetwork()
             : multicast_target()
             , unicast_fd(-1)
             , multicast_fd(-1)
             , packet_data_mtu(1000)
-            , announce_packet()
             , packet_id_source(0)
-            , packet_callback()
-            , join_callback()
-            , leave_callback()
-            , next_event_callback()
             , last_announce(std::chrono::seconds(0))
-            , next_event(std::chrono::seconds(0))
-            , target_mutex()
-            , send_queue_mutex()
-            , send_queue()
-            , targets()
-            , name_target()
-            , udp_target() {}
+            , next_event(std::chrono::seconds(0)) {}
 
 
         NUClearNetwork::~NUClearNetwork() {
@@ -71,27 +61,27 @@ namespace extension {
 
         void NUClearNetwork::set_packet_callback(
             std::function<void(const NetworkTarget&, const uint64_t&, std::vector<char>&&)> f) {
-            packet_callback = f;
+            packet_callback = std::move(f);
         }
 
 
         void NUClearNetwork::set_join_callback(std::function<void(const NetworkTarget&)> f) {
-            join_callback = f;
+            join_callback = std::move(f);
         }
 
 
         void NUClearNetwork::set_leave_callback(std::function<void(const NetworkTarget&)> f) {
-            leave_callback = f;
+            leave_callback = std::move(f);
         }
 
         void NUClearNetwork::set_next_event_callback(std::function<void(std::chrono::steady_clock::time_point)> f) {
-            next_event_callback = f;
+            next_event_callback = std::move(f);
         }
 
         std::array<uint16_t, 9> NUClearNetwork::udp_key(const sock_t& address) {
 
             // Get our keys for our maps, it will be the ip and then port
-            std::array<uint16_t, 9> key;
+            std::array<uint16_t, 9> key{};
             key.fill(0);
 
             switch (address.sock.sa_family) {
@@ -160,7 +150,7 @@ namespace extension {
             }
 
             // Bind to the address, and if we fail throw an error
-            if (::bind(unicast_fd, &address.sock, socket_size(address))) {
+            if (::bind(unicast_fd, &address.sock, socket_size(address)) != 0) {
                 throw std::system_error(
                     network_errno, std::system_category(), "Unable to bind the UDP socket to the port");
             }
@@ -189,7 +179,7 @@ namespace extension {
             }
 
             // Set that we reuse the address so more than one application can bind
-            int yes = true;
+            int yes = 1;
             if (::setsockopt(multicast_fd, SOL_SOCKET, SO_REUSEADDR, reinterpret_cast<char*>(&yes), sizeof(yes)) < 0) {
                 throw std::system_error(network_errno, std::system_category(), "Unable to reuse address on the socket");
             }
@@ -202,7 +192,7 @@ namespace extension {
 #endif
 
             // Bind to the address
-            if (::bind(multicast_fd, &address.sock, socket_size(address))) {
+            if (::bind(multicast_fd, &address.sock, socket_size(address)) != 0) {
                 throw std::system_error(network_errno, std::system_category(), "Unable to bind the UDP socket");
             }
 
@@ -210,7 +200,7 @@ namespace extension {
             if (multicast_target.sock.sa_family == AF_INET) {
 
                 // Set the multicast address we are listening on
-                ip_mreq mreq;
+                ip_mreq mreq{};
                 mreq.imr_multiaddr = multicast_target.ipv4.sin_addr;
 
                 // Join the multicast group on all the interfaces that support it
@@ -238,7 +228,7 @@ namespace extension {
             else if (multicast_target.sock.sa_family == AF_INET6) {
 
                 // Set the multicast address we are listening on
-                ipv6_mreq mreq;
+                ipv6_mreq mreq{};
                 mreq.ipv6mr_multiaddr = multicast_target.ipv6.sin6_addr;
 
                 std::set<unsigned int> added_interfaces;
@@ -302,7 +292,10 @@ namespace extension {
         }
 
 
-        void NUClearNetwork::reset(std::string name, std::string group, in_port_t port, uint16_t network_mtu) {
+        void NUClearNetwork::reset(const std::string& name,
+                                   const std::string& group,
+                                   in_port_t port,
+                                   uint16_t network_mtu) {
 
             // Close our existing FDs if they exist
             shutdown();
@@ -318,7 +311,7 @@ namespace extension {
             udp_target.clear();
 
             // Setup some hints for what our address is
-            addrinfo hints;
+            addrinfo hints{};
             memset(&hints, 0, sizeof hints);  // make sure the struct is empty
             hints.ai_family   = AF_UNSPEC;    // don't care about IPv4 or IPv6
             hints.ai_socktype = SOCK_DGRAM;   // using udp datagrams
@@ -408,16 +401,16 @@ namespace extension {
 
             // Allocate a vector that can hold a datagram
             std::vector<char> payload(1500);
-            iovec iov;
+            iovec iov{};
             iov.iov_base = payload.data();
             iov.iov_len  = payload.size();
 
             // Who we are receiving from
-            sock_t from;
+            sock_t from{};
             std::memset(&from, 0, sizeof(from));
 
             // Setup our message header to receive
-            msghdr mh;
+            msghdr mh{};
             memset(&mh, 0, sizeof(msghdr));
             mh.msg_name    = &from.sock;
             mh.msg_namelen = sizeof(from);
@@ -491,7 +484,7 @@ namespace extension {
             ioctl(multicast_fd, FIONREAD, &(count = 0));
             while (count > 0) {
                 auto packet = read_socket(multicast_fd);
-                process_packet(std::move(packet.first), std::move(packet.second));
+                process_packet(packet.first, std::move(packet.second));
                 ioctl(multicast_fd, FIONREAD, &(count = 0));
             }
 
@@ -499,7 +492,7 @@ namespace extension {
             ioctl(unicast_fd, FIONREAD, &(count = 0));
             while (count > 0) {
                 auto packet = read_socket(unicast_fd);
-                process_packet(std::move(packet.first), std::move(packet.second));
+                process_packet(packet.first, std::move(packet.second));
                 ioctl(unicast_fd, FIONREAD, &(count = 0));
             }
         }
@@ -577,7 +570,7 @@ namespace extension {
         }
 
 
-        void NUClearNetwork::process_packet(sock_t&& address, std::vector<char>&& payload) {
+        void NUClearNetwork::process_packet(const sock_t& address, std::vector<char>&& payload) {
 
             // First validate this is a NUClear network packet we can read (a version 2 NUClear packet)
             if (payload.size() >= sizeof(PacketHeader) && payload[0] == '\xE2' && payload[1] == '\x98'
@@ -612,7 +605,7 @@ namespace extension {
                             // If they sent us an empty name ignore that's reserved for multicast transmissions
                             if (!name.empty()) {
                                 // Add them into our list
-                                auto ptr            = std::make_shared<NetworkTarget>(name, std::move(address));
+                                auto ptr            = std::make_shared<NetworkTarget>(name, address);
                                 bool new_connection = false;
                                 /* Mutex scope */ {
                                     std::lock_guard<std::mutex> lock(target_mutex);
@@ -920,7 +913,7 @@ namespace extension {
                                                                ? 0xFF
                                                                : 0xFF >> (8 - (packet.packet_count % 8));
 
-                                        all_acked &= (s->acked[i] & expected) == expected;
+                                        all_acked &= static_cast<int>((s->acked[i] & expected) == expected);
                                     }
 
                                     // The remote has received this entire packet we can erase our sender
@@ -1012,10 +1005,10 @@ namespace extension {
                                          NUClear::extension::network::DataPacket header,
                                          uint16_t packet_no,
                                          const std::vector<char>& payload,
-                                         const bool& reliable) {
+                                         const bool& /*reliable*/) {
 
             // Our packet we are sending
-            msghdr message;
+            msghdr message{};
             std::memset(&message, 0, sizeof(msghdr));
 
             iovec data[2];
@@ -1035,7 +1028,7 @@ namespace extension {
             message.msg_name    = const_cast<sockaddr*>(&target.sock);
             message.msg_namelen = socket_size(target);
 
-            // TODO if reliable, run select first to see if this socket is writeable
+            // TODO(trent): if reliable, run select first to see if this socket is writeable
             // If it is not reliable just don't send the message instead of blocking
             sendmsg(unicast_fd, &message, 0);
         }
@@ -1053,8 +1046,8 @@ namespace extension {
             /* Mutex Scope */ {
                 std::lock_guard<std::mutex> lock(send_queue_mutex);
                 // For the packet id we ensure that it's not currently used for retransmission
-                while (send_queue.count(header.packet_id = ++packet_id_source) > 0)
-                    ;
+                while (send_queue.count(header.packet_id = ++packet_id_source) > 0) {
+                }
             }
 
             header.packet_no    = 0;
@@ -1073,7 +1066,8 @@ namespace extension {
                 // Store the header, but update it's type to be a retransmission so it can be ignored if overtransmitted
                 queue.header      = header;
                 queue.header.type = DATA_RETRANSMISSION;
-                queue.payload     = payload;  // TODO there might be some better memory management that can happen here
+                queue.payload =
+                    payload;  // TODO(trent): there might be some better memory management that can happen here
                 std::vector<uint8_t> acks((header.packet_count / 8) + 1, 0);
 
                 // Find interested parties or if multicast it's everyone we are connected to
@@ -1083,7 +1077,7 @@ namespace extension {
                 for (auto it = range.first; it != range.second; ++it) {
 
                     // Add this guy to the queue
-                    queue.targets.emplace_back(it->second, acks);
+                    queue.targets.emplace_back(it->second, std::move(acks));
 
                     // The next time we should check for a timeout
                     auto next_timeout = std::chrono::steady_clock::now() + it->second->round_trip_time;

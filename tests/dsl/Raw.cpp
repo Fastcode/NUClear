@@ -23,17 +23,17 @@
 namespace {
 
 struct TypeA {
-    TypeA() : x(0) {}
+    TypeA() {}
     TypeA(int x) : x(x) {}
 
-    int x;
+    int x{0};
 };
 
 struct TypeB {
-    TypeB() : x(0) {}
+    TypeB() {}
     TypeB(int x) : x(x) {}
 
-    int x;
+    int x{0};
 };
 
 class TestReactor : public NUClear::Reactor {
@@ -41,7 +41,7 @@ private:
     std::vector<std::shared_ptr<const TypeA>> stored;
 
 public:
-    TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)), stored() {
+    TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
 
         // Trigger on TypeA and store the result
         on<Trigger<TypeA>>().then([this](const std::shared_ptr<const TypeA>& a) {
@@ -72,7 +72,7 @@ public:
         on<Startup>().then([this] { emit(std::make_unique<TypeA>(TypeA{0})); });
     }
 };
-}
+}  // namespace
 
 TEST_CASE("Testing the raw type conversions work properly", "[api][raw]") {
 

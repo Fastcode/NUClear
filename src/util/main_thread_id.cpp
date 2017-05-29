@@ -28,5 +28,6 @@ namespace util {
      *         This should result in the static setup code executing on startup (in the main thread).
      */
     std::thread::id main_thread_id = std::this_thread::get_id();
-}
-}
+
+}  // namespace util
+}  // namespace NUClear

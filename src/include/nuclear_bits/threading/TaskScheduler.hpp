@@ -70,11 +70,6 @@ namespace threading {
         TaskScheduler();
 
         /**
-         * @brief destructs the TaskScheduler
-         */
-        ~TaskScheduler();
-
-        /**
          * @brief
          *  Shuts down the scheduler, all waiting threads are woken, and any attempt to get a task results in an
          *  exception

@@ -67,8 +67,8 @@ namespace util {
             return symbol;
         }
     }
-}
-}
+}  // namespace util
+}  // namespace NUClear
 
 // GNU/Clang symbol demangler
 #else
@@ -94,6 +94,6 @@ namespace util {
 
         return std::string(status == 0 ? res.get() : symbol);
     }
-}
-}
+}  // namespace util
+}  // namespace NUClear
 #endif  // _MSC_VER

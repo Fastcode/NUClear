@@ -52,7 +52,7 @@ public:
         });
     }
 };
-}
+}  // namespace
 
 TEST_CASE("Testing that when arguments missing from the call it can still run", "[api][missing_arguments]") {
 

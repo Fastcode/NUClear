@@ -29,8 +29,7 @@ namespace {
 
 class TestReactor : public NUClear::Reactor {
 public:
-    TestReactor(std::unique_ptr<NUClear::Environment> environment)
-        : Reactor(std::move(environment)), in(0), out(0), writer() {
+    TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)), in(0), out(0) {
 
         int fds[2];
 
@@ -75,7 +74,7 @@ public:
     int out;
     ReactionHandle writer;
 };
-}
+}  // namespace
 
 TEST_CASE("Testing the IO extension", "[api][io]") {
 

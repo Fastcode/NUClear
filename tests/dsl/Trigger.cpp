@@ -39,7 +39,7 @@ public:
         });
     }
 };
-}
+}  // namespace
 
 
 TEST_CASE("A very basic test for Emit and On", "[api][trigger]") {

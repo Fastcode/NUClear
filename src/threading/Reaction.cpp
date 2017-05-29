@@ -15,22 +15,22 @@
  * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-
 #include "nuclear_bits/threading/Reaction.hpp"
+
+#include <utility>
 
 namespace NUClear {
 namespace threading {
 
     // Initialize our reaction source
-    std::atomic<uint64_t> Reaction::reaction_id_source(0);
+    std::atomic<uint64_t> Reaction::reaction_id_source(0);  // NOLINT
 
-    Reaction::Reaction(Reactor& reactor, std::vector<std::string> identifier, TaskGenerator generator)
+    Reaction::Reaction(Reactor& reactor, std::vector<std::string>&& identifier, TaskGenerator&& generator)
         : reactor(reactor)
         , identifier(identifier)
         , id(++reaction_id_source)
         , active_tasks(0)
         , enabled(true)
-        , unbinders()
         , generator(generator) {}
 
     void Reaction::unbind() {
@@ -54,16 +54,15 @@ namespace threading {
 
         // If our generator returns a valid function
         if (func) {
-            return std::unique_ptr<ReactionTask>(new ReactionTask(*this, priority, func));
+            return std::make_unique<ReactionTask>(*this, priority, std::move(func));
         }
+
         // Otherwise we return a null pointer
-        else {
-            return std::unique_ptr<ReactionTask>(nullptr);
-        }
+        return std::unique_ptr<ReactionTask>(nullptr);
     }
 
     bool Reaction::is_enabled() {
         return enabled;
     }
-}
-}
+}  // namespace threading
+}  // namespace NUClear

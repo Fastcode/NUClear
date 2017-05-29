@@ -51,7 +51,7 @@ public:
         });
     }
 };
-}
+}  // namespace
 
 TEST_CASE("Testing the delay emit", "[api][emit][delay]") {
     NUClear::PowerPlant::Configuration config;
