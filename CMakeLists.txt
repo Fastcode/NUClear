@@ -30,7 +30,7 @@ INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/src/include)
 # Setup our compiler settings
 INCLUDE(CompilerSetup)
 
-# Add the subdirectories
+# Add the source
 ADD_SUBDIRECTORY(src)
 
 # Install the headers and templates that nuclear depends on

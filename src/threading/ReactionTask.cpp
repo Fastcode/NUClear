@@ -24,11 +24,6 @@ namespace threading {
     // Initialize our id source
     std::atomic<uint64_t> ReactionTask::task_id_source(0);
 
-    // This here is a hack because for some reason Xcode is broken and doesn't generate the destructors for this
-    // class...???!!!
-    // TODO once XCode stops being so stupid, you can remove this
-    message::ReactionStatistics r;
-
     // Initialize our current task
     ATTRIBUTE_TLS ReactionTask* ReactionTask::current_task = nullptr;
 

@@ -133,7 +133,7 @@ namespace util {
                 // We have to construct an instance to call the reflection functions
                 T type;
                 // We base the hash on the name of the protocol buffer
-                return murmurhash3(type.GetTypeName().c_str(), type.GetTypeName().size());
+                return XXH64(type.GetTypeName().c_str(), type.GetTypeName().size(), 0x4e55436c);
             }
         };
 

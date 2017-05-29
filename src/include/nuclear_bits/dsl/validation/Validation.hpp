@@ -46,8 +46,6 @@ namespace dsl {
 
         // TODO Test that the function signature uses the correct constness in the arguments
 
-        // TODO Test that the function provides at least a bind (otherwise it will never run)
-
     }  // namespace validation
 }  // namespace dsl
 }  // namespace NUClear
