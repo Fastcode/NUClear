@@ -133,7 +133,8 @@ namespace extension {
              *
              * @param f the callback function
              */
-            void set_packet_callback(std::function<void(const NetworkTarget&, const uint64_t&, std::vector<char>&&)> f);
+            void set_packet_callback(
+                std::function<void(const NetworkTarget&, const uint64_t&, const bool&, std::vector<char>&&)> f);
 
             /**
              * @brief Set the callback to use when a node joins the network
@@ -304,7 +305,8 @@ namespace extension {
             std::atomic<uint16_t> packet_id_source;
 
             /// The callback to execute when a data packet is completed
-            std::function<void(const NetworkTarget&, const uint64_t&, std::vector<char>&&)> packet_callback;
+            std::function<void(const NetworkTarget&, const uint64_t&, const bool&, std::vector<char>&&)>
+                packet_callback;
             /// The callback to execute when a node joins the network
             std::function<void(const NetworkTarget&)> join_callback;
             /// The callback to execute when a node leaves the network

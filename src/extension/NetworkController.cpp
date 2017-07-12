@@ -42,13 +42,16 @@ namespace extension {
         , reactions() {
 
         // Set our function callback
-        network.set_packet_callback([this](
-            const network::NUClearNetwork::NetworkTarget& remote, const uint64_t& hash, std::vector<char>&& payload) {
+        network.set_packet_callback([this](const network::NUClearNetwork::NetworkTarget& remote,
+                                           const uint64_t& hash,
+                                           const bool& reliable,
+                                           std::vector<char>&& payload) {
 
             // Construct our NetworkSource information
             dsl::word::NetworkSource src;
-            src.name    = remote.name;
-            src.address = remote.target;
+            src.name     = remote.name;
+            src.address  = remote.target;
+            src.reliable = reliable;
 
             // Store in our thread local cache
             dsl::store::ThreadStore<std::vector<char>>::value        = &payload;
@@ -161,5 +164,5 @@ namespace extension {
             }
         });
     }
-}
-}
+}  // namespace extension
+}  // namespace NUClear

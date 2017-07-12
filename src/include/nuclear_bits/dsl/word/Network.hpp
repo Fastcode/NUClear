@@ -41,6 +41,7 @@ namespace dsl {
 
             std::string name;
             util::network::sock_t address;
+            bool reliable;
         };
 
         struct NetworkListen {
