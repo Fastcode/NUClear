@@ -44,8 +44,7 @@ public:
                 // We have data to read
                 if ((event.events & IO::READ) != 0) {
 
-                    char buff[1024];
-                    memset(buff, 0, sizeof(buff));
+                    char buff[1024] = {};
 
                     // Read into the buffer
                     len = ::recv(event.fd, buff, TEST_STRING.size(), 0);
@@ -75,7 +74,7 @@ public:
             on<IO>(connection.fd, IO::READ | IO::CLOSE).then([this](IO::Event event) {
 
                 // If we read 0 later it means orderly shutdown
-                ssize_t len = -1;
+                ssize_t len                            = -1;
 
                 // We have data to read
                 if ((event.events & IO::READ) != 0) {

@@ -1011,7 +1011,7 @@ namespace extension {
             std::memset(&message, 0, sizeof(msghdr));
 
             iovec data[2];
-            message.msg_iov    = data;
+            message.msg_iov    = static_cast<iovec*>(data);
             message.msg_iovlen = 2;
 
             // Update our headers packet number and set it in the message

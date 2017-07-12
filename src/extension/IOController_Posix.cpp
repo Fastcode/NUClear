@@ -34,7 +34,7 @@ namespace extension {
 
         int vals[2];
 
-        int i = pipe(vals);
+        int i = pipe(static_cast<int*>(vals));
         if (i < 0) {
             throw std::system_error(
                 network_errno, std::system_category(), "We were unable to make the notification pipe for IO");

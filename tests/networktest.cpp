@@ -37,21 +37,26 @@ public:
             std::cout << "Connected To" << std::endl;
             std::cout << "\tName: " << join.name << std::endl;
 
-            char c[255];
-            std::memset(c, 0, sizeof(c));
+            char c[255] = {};
 
             switch (join.address.sock.sa_family) {
                 case AF_INET:
 
                     std::cout << "\tAddress: "
-                              << inet_ntop(join.address.sock.sa_family, &join.address.ipv4.sin_addr, c, sizeof(c))
+                              << inet_ntop(join.address.sock.sa_family,
+                                           &join.address.ipv4.sin_addr,
+                                           static_cast<char*>(c),
+                                           sizeof(c))
                               << std::endl;
                     std::cout << "\tPort: " << ntohs(join.address.ipv4.sin_port) << std::endl;
                     break;
 
                 case AF_INET6:
                     std::cout << "\tAddress: "
-                              << inet_ntop(join.address.sock.sa_family, &join.address.ipv6.sin6_addr, c, sizeof(c))
+                              << inet_ntop(join.address.sock.sa_family,
+                                           &join.address.ipv6.sin6_addr,
+                                           static_cast<char*>(c),
+                                           sizeof(c))
                               << std::endl;
                     std::cout << "\tPort: " << ntohs(join.address.ipv6.sin6_port) << std::endl;
                     break;
@@ -80,21 +85,26 @@ public:
             std::cout << "Disconnected from" << std::endl;
             std::cout << "\tName: " << leave.name << std::endl;
 
-            char c[255];
-            std::memset(c, 0, sizeof(c));
+            char c[255] = {};
 
             switch (leave.address.sock.sa_family) {
                 case AF_INET:
 
                     std::cout << "\tAddress: "
-                              << inet_ntop(leave.address.sock.sa_family, &leave.address.ipv4.sin_addr, c, sizeof(c))
+                              << inet_ntop(leave.address.sock.sa_family,
+                                           &leave.address.ipv4.sin_addr,
+                                           static_cast<char*>(c),
+                                           sizeof(c))
                               << std::endl;
                     std::cout << "\tPort: " << ntohs(leave.address.ipv4.sin_port) << std::endl;
                     break;
 
                 case AF_INET6:
                     std::cout << "\tAddress: "
-                              << inet_ntop(leave.address.sock.sa_family, &leave.address.ipv6.sin6_addr, c, sizeof(c))
+                              << inet_ntop(leave.address.sock.sa_family,
+                                           &leave.address.ipv6.sin6_addr,
+                                           static_cast<char*>(c),
+                                           sizeof(c))
                               << std::endl;
                     std::cout << "\tPort: " << ntohs(leave.address.ipv6.sin6_port) << std::endl;
                     break;

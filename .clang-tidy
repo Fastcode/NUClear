@@ -1,43 +1,23 @@
 ---
-Checks: 'clang-analyzer-*,cppcoreguidelines-*,-cppcoreguidelines-pro-type-union-access,-cppcoreguidelines-pro-type-reinterpret-cast,-cppcoreguidelines-pro-type-vararg,-cppcoreguidelines-pro-bounds-pointer-arithmetic,cert-err60-cpp,cert-flp30-c,google-readability-todo,google-runtime-member-string-references,google-runtime-memset,google-readability-casting,llvm-header-guard,llvm-namespace-comment,misc-*,modernize-*,performance-*,readability-*'
-  # # The clang static analyzer, checks for problems in the code
-  # - clang-analyzer-*
-  # # Generally useful rules based on https://github.com/isocpp/CppCoreGuidelines
-  # - cppcoreguidelines-*
-  # # We disable the union access, because we are not using c++17 or boost so variant is out
-  # - -cppcoreguidelines-pro-type-union-access
-  # # Without reinterpret_cast there would be no networking
-  # - -cppcoreguidelines-pro-type-reinterpret-cast
-  # # Pointer arithmatic is used a lot in networking
-  # - -cppcoreguidelines-pro-bounds-pointer-arithmetic
-  # # ioctl, htonl htons and friends are important for networking therefore we can't have this one
-  # - -cppcoreguidelines-pro-type-vararg
-  # # Check that all static and thread_local variables don't throw exceptions
-  # - cert-err58-cpp
-  # # Thrown objects must be nothrow copy constructable
-  # - cert-err60-cpp
-  # # Don't use floating point variables as loop counters
-  # - cert-flp30-c
-  # # Enforce that todos must have an issue number
-  # - google-readability-todo
-  # # const string references should't be members as they can easily be temporaries
-  # - google-runtime-member-string-references
-  # # memset with a 0 length probably has the arguments swapped
-  # - google-runtime-memset
-  # # No using c style casts
-  # - google-readability-casting
-  # # Enforce a standard for header guards
-  # - llvm-header-guard
-  # # have a closing comment for namespaces
-  # - llvm-namespace-comment
-  # # Many miscellaneous checks
-  # - misc-*
-  # # Checks that help improve the use of c++11 and beyond features where appropriate
-  # - modernize-*
-  # # Code performance improvements
-  # - performance-*
-  # # Code readability and consistency checks
-  # - readability-*
+Checks: "clang-analyzer-*\
+,cppcoreguidelines-*\
+,-cppcoreguidelines-pro-type-union-access\
+,-cppcoreguidelines-pro-type-reinterpret-cast\
+,-cppcoreguidelines-pro-type-vararg\
+,-cppcoreguidelines-pro-bounds-pointer-arithmetic\
+,-cppcoreguidelines-pro-bounds-constant-array-index\
+,cert-err60-cpp\
+,cert-flp30-c\
+,google-readability-todo\
+,google-runtime-member-string-references\
+,google-runtime-memset\
+,google-readability-casting\
+,llvm-header-guard\
+,llvm-namespace-comment\
+,misc-*\
+,modernize-*\
+,performance-*\
+,readability-*"
 WarningsAsErrors: ''
 HeaderFilterRegex: ''
 AnalyzeTemporaryDtors: false
