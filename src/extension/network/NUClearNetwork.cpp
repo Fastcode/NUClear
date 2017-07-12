@@ -60,7 +60,7 @@ namespace extension {
         }
 
         void NUClearNetwork::set_packet_callback(
-            std::function<void(const NetworkTarget&, const uint64_t&, std::vector<char>&&)> f) {
+            std::function<void(const NetworkTarget&, const uint64_t&, const bool&, std::vector<char>&&)> f) {
             packet_callback = std::move(f);
         }
 
@@ -574,8 +574,7 @@ namespace extension {
 
             // First validate this is a NUClear network packet we can read (a version 2 NUClear packet)
             if (payload.size() >= sizeof(PacketHeader) && payload[0] == '\xE2' && payload[1] == '\x98'
-                && payload[2] == '\xA2'
-                && payload[3] == 0x02) {
+                && payload[2] == '\xA2' && payload[3] == 0x02) {
 
                 // This is a real packet! get our header information
                 const PacketHeader& header = *reinterpret_cast<const PacketHeader*>(payload.data());
@@ -746,7 +745,7 @@ namespace extension {
                                     remote->recent_packets[++remote->recent_packets_index] = packet.packet_id;
                                 }
 
-                                packet_callback(*remote, packet.hash, std::move(out));
+                                packet_callback(*remote, packet.hash, packet.reliable, std::move(out));
                             }
                             else {
                                 std::lock_guard<std::mutex> lock(remote->assemblers_mutex);
@@ -842,7 +841,7 @@ namespace extension {
                                     }
 
                                     // Send our assembled data packet
-                                    packet_callback(*remote, packet.hash, std::move(out));
+                                    packet_callback(*remote, packet.hash, packet.reliable, std::move(out));
 
                                     // If the packet was reliable add that it was recently received
                                     if (packet.reliable) {
