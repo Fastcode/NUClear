@@ -143,13 +143,13 @@ namespace extension {
             }
 
             // Read the new configuration
-            std::string name            = config.name.empty() ? util::get_hostname() : config.name;
-            std::string multicast_group = config.multicast_group;
-            in_port_t multicast_port    = config.multicast_port;
-            uint16_t mtu                = config.mtu;
+            std::string name             = config.name.empty() ? util::get_hostname() : config.name;
+            std::string announce_address = config.announce_address;
+            in_port_t announce_port      = config.announce_port;
+            uint16_t mtu                 = config.mtu;
 
             // Reset our network using this configuration
-            network.reset(name, multicast_group, multicast_port, mtu);
+            network.reset(name, announce_address, announce_port, mtu);
 
             // Execution handle
             process_handle = on<Trigger<ProcessNetwork>>().then("Network processing", [this] { network.process(); });

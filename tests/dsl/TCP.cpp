@@ -47,14 +47,14 @@ public:
                     char buff[1024] = {};
 
                     // Read into the buffer
-                    len = ::recv(event.fd, buff, TEST_STRING.size(), 0);
+                    len = ::recv(event.fd, reinterpret_cast<char*>(buff), TEST_STRING.size(), 0);
 
                     // 0 indicates orderly shutdown of the socket
                     if (len != 0) {
 
                         // Test the data
                         REQUIRE(len == TEST_STRING.size());
-                        REQUIRE(TEST_STRING == std::string(buff));
+                        REQUIRE(TEST_STRING == std::string(reinterpret_cast<char*>(buff)));
                         ++messages_received;
                     }
                 }
@@ -80,16 +80,16 @@ public:
                 if ((event.events & IO::READ) != 0) {
 
                     char buff[1024];
-                    memset(buff, 0, sizeof(buff));
+                    memset(reinterpret_cast<char*>(buff), 0, sizeof(buff));
 
                     // Read into the buffer
-                    len = ::recv(event.fd, buff, TEST_STRING.size(), 0);
+                    len = ::recv(event.fd, reinterpret_cast<char*>(buff), TEST_STRING.size(), 0);
 
                     // 0 indicates orderly shutdown of the socket
                     if (len != 0) {
                         // Test the data
                         REQUIRE(len == TEST_STRING.size());
-                        REQUIRE(TEST_STRING == std::string(buff));
+                        REQUIRE(TEST_STRING == std::string(reinterpret_cast<char*>(buff)));
                         ++messages_received;
                     }
                 }

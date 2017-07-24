@@ -43,13 +43,12 @@ namespace util {
             else {
                 // Allocate some memory now and call again
                 PIP_ADAPTER_ADDRESSES addrs = reinterpret_cast<PIP_ADAPTER_ADDRESSES>(std::malloc(size));
-                auto rv =
-                    GetAdaptersAddresses(AF_UNSPEC,
-                                         GAA_FLAG_SKIP_ANYCAST | GAA_FLAG_SKIP_MULTICAST | GAA_FLAG_SKIP_DNS_SERVER
-                                             | GAA_FLAG_SKIP_FRIENDLY_NAME,
-                                         nullptr,
-                                         addrs,
-                                         &size);
+                auto rv                     = GetAdaptersAddresses(AF_UNSPEC,
+                                               GAA_FLAG_SKIP_ANYCAST | GAA_FLAG_SKIP_MULTICAST
+                                                   | GAA_FLAG_SKIP_DNS_SERVER | GAA_FLAG_SKIP_FRIENDLY_NAME,
+                                               nullptr,
+                                               addrs,
+                                               &size);
                 if (rv != ERROR_SUCCESS) {
                     free(addrs);
                     throw std::runtime_error("Unable to query the list of network interfaces");

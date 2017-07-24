@@ -166,15 +166,20 @@ namespace extension {
              * @brief Reset our network to use the new settings
              *
              * @details
-             *  Resets the networking system to use the new mutlicast information and name.
-             *  If the network was already joined, it will first leave and then rejoin.
+             *  Resets the networking system to use the new announce information and name.
+             *  If the network was already joined, it will first leave and then rejoin the new network.
+             *  If the provided address is multicast it will join a multicast network. If it is broadcast
+             *  it will use IPv4 broadcast traffic to announce, unicast addresses will only announce to a single target.
              *
              * @param name          the name of this node in the network
-             * @param group         the multicast group to announce on
-             * @param port          the multicast port to use
+             * @param address       the address to announce on
+             * @param port          the port to use for announcement
              * @param network_mtu   the mtu of the network we operate on
              */
-            void reset(const std::string& name, const std::string& group, in_port_t port, uint16_t network_mtu = 1500);
+            void reset(const std::string& name,
+                       const std::string& address,
+                       in_port_t port,
+                       uint16_t network_mtu = 1500);
 
             /**
              * @brief Process waiting data in the UDP sockets and send them to the callback if they are relevant.
@@ -220,14 +225,14 @@ namespace extension {
             };
 
             /**
-             * @brief Open our unicast udp socket
+             * @brief Open our data udp socket
              */
-            void open_unicast();
+            void open_data(const sock_t& announce_target);
 
             /**
-             * @brief Open our multicast udp socket
+             * @brief Open our announce udp socket
              */
-            void open_multicast();
+            void open_announce(const sock_t& announce_target);
 
             /**
              * @brief Read a single packet from the given udp file descriptor
@@ -247,7 +252,7 @@ namespace extension {
             void process_packet(const sock_t& address, std::vector<char>&& payload);
 
             /**
-             * @brief Send an announce packet over UDP multicast
+             * @brief Send an announce packet to our announce address
              */
             void announce();
 
@@ -287,13 +292,10 @@ namespace extension {
              */
             void remove_target(const std::shared_ptr<NetworkTarget>& target);
 
-            /// The socket address to send multicast packets to (must be an array since we don't know how big the object
-            /// could be)
-            sock_t multicast_target;
-            /// The file descriptor for the socket we use to send data and receive unicast data
-            fd_t unicast_fd;
-            /// The file descriptor for the socket we use to receive multicast data
-            fd_t multicast_fd;
+            /// The file descriptor for the socket we use to send data and receive regular data
+            fd_t data_fd;
+            /// The file descriptor for the socket we use to receive announce data
+            fd_t announce_fd;
 
             /// The largest packet of data we will transmit, based on our IP version and MTU
             uint16_t packet_data_mtu;

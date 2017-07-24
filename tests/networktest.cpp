@@ -129,11 +129,13 @@ public:
 
             auto net_config = std::make_unique<NUClear::message::NetworkConfiguration>();
 
-            net_config->name            = args.size() > 1 ? args[1] : "";
-            net_config->multicast_group = "ff02::98a2%en0";
-            //            net_config->multicast_group = "239.226.152.162";
-            //            net_config->multicast_group = "::1";
-            net_config->multicast_port = 7447;
+            net_config->name = args.size() > 1 ? args[1] : "";
+
+            // net_config->announce_address = "192.168.101.255";  // Broadcast
+            // net_config->announce_address = "ff02::98a2%en0";   // IPv6 multicast
+            net_config->announce_address = "239.226.152.162";  // IPv4 multicast
+            // net_config->announce_address = "::1";              // Unicast
+            net_config->announce_port = 7447;
 
             std::cout << "Testing network with node " << net_config->name << std::endl;
 

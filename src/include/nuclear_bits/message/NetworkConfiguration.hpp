@@ -24,14 +24,14 @@ namespace message {
 
     struct NetworkConfiguration {
 
-        NetworkConfiguration() : name(""), multicast_group(""), multicast_port(0), mtu(1500) {}
+        NetworkConfiguration() : name(""), announce_address(""), announce_port(0), mtu(1500) {}
 
-        NetworkConfiguration(const std::string& name, const std::string& group, uint16_t port, uint16_t mtu = 1500)
-            : name(name), multicast_group(group), multicast_port(port), mtu(mtu) {}
+        NetworkConfiguration(const std::string& name, const std::string& address, uint16_t port, uint16_t mtu = 1500)
+            : name(name), announce_address(address), announce_port(port), mtu(mtu) {}
 
         std::string name;
-        std::string multicast_group;
-        uint16_t multicast_port;
+        std::string announce_address;
+        uint16_t announce_port;
         uint16_t mtu;
     };
 
