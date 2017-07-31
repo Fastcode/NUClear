@@ -1,5 +1,6 @@
 /*
- * Copyright (C) 2013-2016 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ * Copyright (C) 2013      Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ *               2014-2017 Trent Houliston <trent@houliston.me>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -30,11 +31,12 @@ namespace dsl {
 
             /**
              * @brief
-             *  When emitting data under this scope, tasks are distributed normally via the thread pool for execution.
+             *  When emitting data under this scope, tasks are distributed via the thread pool for execution.
              *
              * @details
              *  @code emit<Scope::LOCAL>(data, dataType); @endcode
              *
+             * @attention
              *  Note that this type of emission is the default behaviour when emitting without a specified scope.
              *  @code emit(data, dataType); @endcode
              *

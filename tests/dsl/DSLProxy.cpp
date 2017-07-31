@@ -1,5 +1,6 @@
 /*
- * Copyright (C) 2013-2016 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ * Copyright (C) 2013      Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ *               2014-2017 Trent Houliston <trent@houliston.me>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -26,9 +27,9 @@ namespace dsl {
         struct DSLProxy<int> : public NUClear::dsl::operation::TypeBind<int>,
                                public NUClear::dsl::operation::CacheGet<double>,
                                public NUClear::dsl::word::Single {};
-    }
-}
-}
+    }  // namespace operation
+}  // namespace dsl
+}  // namespace NUClear
 
 namespace {
 
@@ -54,7 +55,7 @@ public:
         });
     }
 };
-}
+}  // namespace
 
 TEST_CASE("Testing that the DSL proxy works as expected for binding unmodifyable types", "[api][dsl][proxy]") {
 

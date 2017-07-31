@@ -1,5 +1,6 @@
 /*
- * Copyright (C) 2013-2016 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ * Copyright (C) 2013      Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ *               2014-2017 Trent Houliston <trent@houliston.me>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -18,18 +19,11 @@
 #ifndef NUCLEAR_DSL_WORD_IO_HPP
 #define NUCLEAR_DSL_WORD_IO_HPP
 
-#ifdef _WIN32
-#include "nuclear_bits/util/windows_includes.hpp"
-#else
-#include <poll.h>
-#endif
-
 #include "nuclear_bits/dsl/operation/Unbind.hpp"
 #include "nuclear_bits/dsl/store/ThreadStore.hpp"
 #include "nuclear_bits/dsl/trait/is_transient.hpp"
 #include "nuclear_bits/dsl/word/Single.hpp"
 #include "nuclear_bits/dsl/word/emit/Direct.hpp"
-#include "nuclear_bits/util/generate_reaction.hpp"
 #include "nuclear_bits/util/platform.hpp"
 
 namespace NUClear {
@@ -44,34 +38,31 @@ namespace dsl {
 
         /**
          * @brief
-         *  This is used to trigger reactions based on standard I/O operations.  This will work for any I/O
-         *  communication which uses a file descriptor. The associated reaction is triggered when the communication
-         *  line matches the descriptor.
+         *  This is used to trigger reactions based on standard I/O operations using file descriptors.
          *
          * @details
-				 *  For best use, runtime arguments should be provided, which specify the file descriptor. The generic form of
-         *  this reaction is:
          *  @code on<IO>(file_descriptor) @endcode
-				 *
-				 *  When used, it will likely match one of the following:
-         *  File reading:  triggers a reaction when the pipe/stream/communication line has data available to read.
-         *  @code on<IO>(pipe/stream/comms, IO::READ) @endcode
-				 *
-				 *  File writing:  triggers a reaction when the pipe/stream/communication line has data to be written.
-         *  @code on<IO>(pipe/stream/comms, IO::WRITE) @endcode
-				 *
-				 *  File close:  triggers a reaction when the pipe/stream/communication line is closed.
-				 *  @code on<IO>(pipe/stream/comms, IO::CLOSE) @endcode
-				 *
-				 *  File error:  triggers a reaction when the pipe/stream/communication line reports an error.
-         *  @code on<IO>(pipe/stream/comms, IO::ERROR) @endcode
+         *  This function works for any I/O communication which uses a file descriptor. The associated reaction is
+         *  triggered when the communication line matches the descriptor.
          *
-         *  Multiple states:  triggers a reaction when the pipe/stream/communication line matches multiple states.  For
-         *  example:
-         *  on<IO>(pipe/stream/comms, IO::READ | IO::CLOSE)
-				 *
-				 * @attention
-				 *  Note that any reactions caused by on<IO> are implicitly single.
+         *  When using this feature, runtime arguments should be provided, to specify the file descriptor.
+         *
+         *  <b>Example Use</b>
+         *
+         *  <b>File reading:</b> triggers a reaction when the pipe/stream/communication line has data available to read.
+         *  @code on<IO>(pipe/stream/comms, IO::READ) @endcode
+         *  <b>File writing:</b> triggers a reaction when the pipe/stream/communication line has data to be written.
+         *  @code on<IO>(pipe/stream/comms, IO::WRITE) @endcode
+         *  <b>File close:</b> triggers a reaction when the pipe/stream/communication line is closed.
+         *  @code on<IO>(pipe/stream/comms, IO::CLOSE) @endcode
+         *  <b>File error:</b> triggers a reaction when the pipe/stream/communication line reports an error.
+         *  @code on<IO>(pipe/stream/comms, IO::CLOSE) @endcode
+         *  <b>Multiple states:</b> this feature can trigger a reaction when the pipe/stream/communication line
+         *  matches multiple states.  For example;
+         *  @code on<IO>(pipe/stream/comms, IO::READ | IO::ERROR) @endcode
+         *
+         * @attention
+         *  Note that reactions triggered by an on<IO> request are implicitly single.
          *
          * @par Implements
          *  Bind
@@ -96,24 +87,17 @@ namespace dsl {
 
             using ThreadEventStore = dsl::store::ThreadStore<Event>;
 
-            template <typename DSL, typename Function>
-            static inline threading::ReactionHandle bind(Reactor& reactor,
-                                                         const std::string& label,
-                                                         Function&& callback,
-                                                         fd_t fd,
-                                                         int watch_set) {
+            template <typename DSL>
+            static inline void bind(const std::shared_ptr<threading::Reaction>& reaction, fd_t fd, int watch_set) {
 
-                auto reaction = util::generate_reaction<DSL, IO>(reactor, label, std::forward<Function>(callback));
+                reaction->unbinders.push_back([](const threading::Reaction& r) {
+                    r.reactor.emit<emit::Direct>(std::make_unique<operation::Unbind<IO>>(r.id));
+                });
 
-                auto io_config = std::make_unique<IOConfiguration>(IOConfiguration{fd, watch_set, std::move(reaction)});
-
-                threading::ReactionHandle handle(io_config->reaction);
+                auto io_config = std::make_unique<IOConfiguration>(IOConfiguration{fd, watch_set, reaction});
 
                 // Send our configuration out
-                reactor.powerplant.emit<emit::Direct>(io_config);
-
-                // Return our handles
-                return handle;
+                reaction->reactor.emit<emit::Direct>(io_config);
             }
 
             template <typename DSL>

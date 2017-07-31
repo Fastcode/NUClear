@@ -1,10 +1,10 @@
 {
-	"folders":
-	[
-		{
-			"path": "."
-		}
-	],
+    "folders":
+    [
+        {
+            "path": "."
+        }
+    ],
     "settings": {
     "ClangFormat": {
       "format_on_save": true

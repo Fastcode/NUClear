@@ -1,5 +1,6 @@
 /*
- * Copyright (C) 2013-2016 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ * Copyright (C) 2013      Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ *               2014-2017 Trent Houliston <trent@houliston.me>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -29,11 +30,11 @@ namespace NUClear {
 namespace extension {
 
     IOController::IOController(std::unique_ptr<NUClear::Environment> environment)
-        : Reactor(std::move(environment)), notify_recv(), notify_send(), reaction_mutex(), fds(), reactions() {
+        : Reactor(std::move(environment)), notify_recv(), notify_send() {
 
         int vals[2];
 
-        int i = pipe(vals);
+        int i = pipe(static_cast<int*>(vals));
         if (i < 0) {
             throw std::system_error(
                 network_errno, std::system_category(), "We were unable to make the notification pipe for IO");
@@ -51,7 +52,7 @@ namespace extension {
                 // Lock our mutex to avoid concurrent modification
                 std::lock_guard<std::mutex> lock(reaction_mutex);
 
-                reactions.push_back(Task{config.fd, static_cast<short>(config.events), config.reaction});
+                reactions.emplace_back(config.fd, static_cast<short>(config.events), config.reaction);
 
                 // Resort our list
                 std::sort(std::begin(reactions), std::end(reactions));
@@ -113,7 +114,7 @@ namespace extension {
             if (!shutdown) {
 
 
-                // TODO check for dirty here
+                // TODO(trent): check for dirty here
 
 
                 // Poll our file descriptors for events
@@ -129,7 +130,7 @@ namespace extension {
                     for (auto& fd : fds) {
 
                         // Something happened
-                        if (fd.revents) {
+                        if (fd.revents != 0) {
 
                             // It's our notification handle
                             if (fd.fd == notify_recv) {
@@ -159,18 +160,18 @@ namespace extension {
                                 else {
 
 
-                                    // TODO we also want to swap this element to the back of the list and remove it
-                                    // so that it does not fire again
+                                    // TODO(trent): we also want to swap this element to the back of the list and remove
+                                    // it so that it does not fire again
 
 
                                     // Loop through our values
                                     for (auto it = range.first; it != range.second; ++it) {
 
                                         // We should emit if the reaction is interested
-                                        if (it->events & fd.revents) {
+                                        if ((it->events & fd.revents) != 0) {
 
                                             // Make our event to pass through
-                                            IO::Event e;
+                                            IO::Event e{};
                                             e.fd = fd.fd;
 
                                             // Evaluate and store our set in thread store
@@ -192,7 +193,7 @@ namespace extension {
                                             // Reset our value
                                             IO::ThreadEventStore::value = nullptr;
 
-                                            // TODO If we had a close, or error stop listening?
+                                            // TODO(trent): If we had a close, or error stop listening?
                                         }
                                     }
                                 }
@@ -233,7 +234,7 @@ namespace extension {
             }
         });
     }
-}
-}
+}  // namespace extension
+}  // namespace NUClear
 
 #endif

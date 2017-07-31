@@ -1,5 +1,6 @@
 /*
- * Copyright (C) 2013-2016 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ * Copyright (C) 2013      Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ *               2014-2017 Trent Houliston <trent@houliston.me>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -23,14 +24,15 @@ namespace message {
 
     struct NetworkConfiguration {
 
-        NetworkConfiguration() : name(""), multicast_group(""), multicast_port(0) {}
+        NetworkConfiguration() : name(""), announce_address(""), announce_port(0), mtu(1500) {}
 
-        NetworkConfiguration(const std::string& name, const std::string& group, uint16_t port)
-            : name(name), multicast_group(group), multicast_port(port) {}
+        NetworkConfiguration(const std::string& name, const std::string& address, uint16_t port, uint16_t mtu = 1500)
+            : name(name), announce_address(address), announce_port(port), mtu(mtu) {}
 
         std::string name;
-        std::string multicast_group;
-        uint16_t multicast_port;
+        std::string announce_address;
+        uint16_t announce_port;
+        uint16_t mtu;
     };
 
 }  // namespace message

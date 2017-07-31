@@ -1,5 +1,6 @@
 /*
- * Copyright (C) 2013-2016 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ * Copyright (C) 2013      Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ *               2014-2017 Trent Houliston <trent@houliston.me>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -48,7 +49,7 @@ public:
             [this](const MessageA&, const MessageB&) { FAIL("B was never emitted so this should not be possible"); });
     }
 };
-}
+}  // namespace
 
 
 TEST_CASE("Testing that when a trigger does not have it's data satisfied it does not run", "[api][nodata]") {

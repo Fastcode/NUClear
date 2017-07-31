@@ -1,5 +1,6 @@
 /*
- * Copyright (C) 2013-2016 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ * Copyright (C) 2013      Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ *               2014-2017 Trent Houliston <trent@houliston.me>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -19,7 +20,6 @@
 #define NUCLEAR_DSL_OPERATION_TYPEBIND_HPP
 
 #include "nuclear_bits/dsl/store/TypeCallbackStore.hpp"
-#include "nuclear_bits/util/get_identifier.hpp"
 
 namespace NUClear {
 namespace dsl {
@@ -38,13 +38,11 @@ namespace dsl {
         template <typename DataType>
         struct TypeBind {
 
-            template <typename DSL, typename Function>
-            static inline threading::ReactionHandle bind(Reactor& reactor,
-                                                         const std::string& label,
-                                                         Function&& callback) {
+            template <typename DSL>
+            static inline void bind(const std::shared_ptr<threading::Reaction>& reaction) {
 
                 // Our unbinder to remove this reaction
-                std::function<void(threading::Reaction&)> unbinder([](threading::Reaction& r) {
+                reaction->unbinders.push_back([](threading::Reaction& r) {
 
                     auto& vec = store::TypeCallbackStore<DataType>::get();
 
@@ -59,19 +57,8 @@ namespace dsl {
                     }
                 });
 
-                // Get our identifier string
-                std::vector<std::string> identifier =
-                    util::get_identifier<typename DSL::DSL, Function>(label, reactor.reactor_name);
-
-                auto reaction = std::make_shared<threading::Reaction>(
-                    reactor, std::move(identifier), std::forward<Function>(callback), std::move(unbinder));
-                threading::ReactionHandle handle(reaction);
-
                 // Create our reaction and store it in the TypeCallbackStore
-                store::TypeCallbackStore<DataType>::get().push_back(std::move(reaction));
-
-                // Return our handle
-                return handle;
+                store::TypeCallbackStore<DataType>::get().push_back(reaction);
             }
         };
 

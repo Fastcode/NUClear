@@ -1,5 +1,6 @@
 /*
- * Copyright (C) 2013-2016 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ * Copyright (C) 2013      Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ *               2014-2017 Trent Houliston <trent@houliston.me>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -16,29 +17,30 @@
  */
 
 #include <catch.hpp>
+#include <utility>
 
 #include "nuclear"
 
 // Anonymous namespace to keep everything file local
 namespace {
 
-int v1               = 0;
-int v2               = 0;
-int v3               = 0;
-int stored_a         = 0;
-std::string stored_b = "";
-double stored_c      = 0;
-double stored_d      = 0;
+int v1          = 0;
+int v2          = 0;
+int v3          = 0;
+int stored_a    = 0;
+double stored_c = 0;
+double stored_d = 0;
+std::string stored_b;
 
 template <typename T>
 struct EmitTester1 {
-    static inline void emit(NUClear::PowerPlant&, std::shared_ptr<T> p, int a, std::string b) {
+    static inline void emit(NUClear::PowerPlant& /*unused*/, std::shared_ptr<T> p, int a, std::string b) {
         v1       = *p;
         stored_a = a;
-        stored_b = b;
+        stored_b = std::move(b);
     }
 
-    static inline void emit(NUClear::PowerPlant&, std::shared_ptr<T> p, double c) {
+    static inline void emit(NUClear::PowerPlant& /*unused*/, std::shared_ptr<T> p, double c) {
         v2       = *p;
         stored_c = c;
     }
@@ -46,7 +48,7 @@ struct EmitTester1 {
 
 template <typename T>
 struct EmitTester2 {
-    static inline void emit(NUClear::PowerPlant&, std::shared_ptr<T> p, double d) {
+    static inline void emit(NUClear::PowerPlant& /*unused*/, std::shared_ptr<T> p, double d) {
         v3       = *p;
         stored_d = d;
     }
@@ -114,7 +116,7 @@ public:
         on<Startup>().then([this] { powerplant.shutdown(); });
     }
 };
-}
+}  // namespace
 
 TEST_CASE("Testing emit function fusion", "[api][emit][fusion]") {
     NUClear::PowerPlant::Configuration config;

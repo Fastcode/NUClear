@@ -1,5 +1,6 @@
 /*
- * Copyright (C) 2013-2016 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ * Copyright (C) 2013      Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ *               2014-2017 Trent Houliston <trent@houliston.me>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -32,7 +33,7 @@ public:
 
     static constexpr size_t CYCLES_PER_SECOND = 1000;
 
-    TestReactorPer(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)), times() {
+    TestReactorPer(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
 
         // Trigger every 10 milliseconds
         on<Every<CYCLES_PER_SECOND, Per<std::chrono::seconds>>>().then([this]() {
@@ -68,7 +69,7 @@ public:
                 REQUIRE(fabs(mean) < 0.0005);
 
                 // Require that 95% (ish) of all results are within 1ms
-                REQUIRE(fabs(mean + stddev * 2) < 0.001);
+                REQUIRE(fabs(mean + stddev * 2) < 0.002);
             }
             // Once we have more then enough items then we shutdown the powerplant
             else if (times.size() > NUM_LOG_ITEMS) {
@@ -78,7 +79,7 @@ public:
         });
     }
 };
-}
+}  // namespace
 
 TEST_CASE("Testing the Every<> Smart Type using Per", "[api][every][per]") {
 

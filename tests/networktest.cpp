@@ -1,5 +1,6 @@
 /*
- * Copyright (C) 2013-2016 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ * Copyright (C) 2013      Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ *               2014-2017 Trent Houliston <trent@houliston.me>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -17,6 +18,7 @@
 
 #include "nuclear"
 
+#include <csignal>
 #include <cstdlib>
 
 namespace {
@@ -24,6 +26,7 @@ struct PerformEmits {};
 
 using NUClear::message::NetworkJoin;
 using NUClear::message::NetworkLeave;
+using NUClear::message::CommandLineArguments;
 
 class TestReactor : public NUClear::Reactor {
 public:
@@ -33,10 +36,32 @@ public:
 
             std::cout << "Connected To" << std::endl;
             std::cout << "\tName: " << join.name << std::endl;
-            std::cout << "\tAddress: " << ((join.address >> 24) & 0xFF) << "." << ((join.address >> 16) & 0xFF) << "."
-                      << ((join.address >> 8) & 0xFF) << "." << ((join.address >> 0) & 0xFF) << std::endl;
-            std::cout << "\tTCP Port: " << join.tcp_port << std::endl;
-            std::cout << "\tUDP Port: " << join.udp_port << std::endl;
+
+            char c[255] = {};
+
+            switch (join.address.sock.sa_family) {
+                case AF_INET:
+
+                    std::cout << "\tAddress: "
+                              << inet_ntop(join.address.sock.sa_family,
+                                           &join.address.ipv4.sin_addr,
+                                           static_cast<char*>(c),
+                                           sizeof(c))
+                              << std::endl;
+                    std::cout << "\tPort: " << ntohs(join.address.ipv4.sin_port) << std::endl;
+                    break;
+
+                case AF_INET6:
+                    std::cout << "\tAddress: "
+                              << inet_ntop(join.address.sock.sa_family,
+                                           &join.address.ipv6.sin6_addr,
+                                           static_cast<char*>(c),
+                                           sizeof(c))
+                              << std::endl;
+                    std::cout << "\tPort: " << ntohs(join.address.ipv6.sin6_port) << std::endl;
+                    break;
+            }
+
 
             // Send some data to our new friend
 
@@ -59,10 +84,31 @@ public:
 
             std::cout << "Disconnected from" << std::endl;
             std::cout << "\tName: " << leave.name << std::endl;
-            std::cout << "\tAddress: " << ((leave.address >> 24) & 0xFF) << "." << ((leave.address >> 16) & 0xFF) << "."
-                      << ((leave.address >> 8) & 0xFF) << "." << ((leave.address >> 0) & 0xFF) << std::endl;
-            std::cout << "\tTCP Port: " << leave.tcp_port << std::endl;
-            std::cout << "\tUDP Port: " << leave.udp_port << std::endl;
+
+            char c[255] = {};
+
+            switch (leave.address.sock.sa_family) {
+                case AF_INET:
+
+                    std::cout << "\tAddress: "
+                              << inet_ntop(leave.address.sock.sa_family,
+                                           &leave.address.ipv4.sin_addr,
+                                           static_cast<char*>(c),
+                                           sizeof(c))
+                              << std::endl;
+                    std::cout << "\tPort: " << ntohs(leave.address.ipv4.sin_port) << std::endl;
+                    break;
+
+                case AF_INET6:
+                    std::cout << "\tAddress: "
+                              << inet_ntop(leave.address.sock.sa_family,
+                                           &leave.address.ipv6.sin6_addr,
+                                           static_cast<char*>(c),
+                                           sizeof(c))
+                              << std::endl;
+                    std::cout << "\tPort: " << ntohs(leave.address.ipv6.sin6_port) << std::endl;
+                    break;
+            }
         });
 
         on<Network<std::string>, Sync<TestReactor>>().then(
@@ -79,13 +125,17 @@ public:
 
             });
 
-        on<Startup>().then([this] {
+        on<Startup, With<CommandLineArguments>>().then([this](const CommandLineArguments& args) {
 
             auto net_config = std::make_unique<NUClear::message::NetworkConfiguration>();
 
-            net_config->name            = ::getenv("NETWORK_NODE") ? std::string(::getenv("NETWORK_NODE")) : "";
-            net_config->multicast_group = "239.226.152.162";
-            net_config->multicast_port  = 7447;
+            net_config->name = args.size() > 1 ? args[1] : "";
+
+            // net_config->announce_address = "192.168.101.255";  // Broadcast
+            // net_config->announce_address = "ff02::98a2%en0";   // IPv6 multicast
+            net_config->announce_address = "239.226.152.162";  // IPv4 multicast
+            // net_config->announce_address = "::1";              // Unicast
+            net_config->announce_port = 7447;
 
             std::cout << "Testing network with node " << net_config->name << std::endl;
 
@@ -114,14 +164,15 @@ public:
         });
     }
 };
-}
+}  // namespace
 
 
-int main() {
+int main(int argc, const char* argv[]) {
+    signal(SIGINT, [](int) { NUClear::PowerPlant::powerplant->shutdown(); });
 
     NUClear::PowerPlant::Configuration config;
     config.thread_count = 4;
-    NUClear::PowerPlant plant(config);
+    NUClear::PowerPlant plant(config, argc, argv);
     plant.install<TestReactor>();
 
     plant.start();

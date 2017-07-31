@@ -1,5 +1,6 @@
 /*
- * Copyright (C) 2013-2016 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ * Copyright (C) 2013      Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ *               2014-2017 Trent Houliston <trent@houliston.me>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -56,12 +57,8 @@ namespace threading {
          * @param reactor        the reactor this belongs to
          * @param identifier     string identifier information about the reaction to help identify it
          * @param callback       the callback generator function (creates databound callbacks)
-         * @param unbinder       the function used to unbind this reaction and clean it up
          */
-        Reaction(Reactor& reactor,
-                 std::vector<std::string> identifier,
-                 TaskGenerator callback,
-                 std::function<void(Reaction&)>&& unbinder);
+        Reaction(Reactor& reactor, std::vector<std::string>&& identifier, TaskGenerator&& generator);
 
         /**
          * @brief creates a new databound callback task that can be executed.
@@ -90,6 +87,9 @@ namespace threading {
         /// @brief if this reaction object is currently enabled
         std::atomic<bool> enabled;
 
+        /// @brief list of functions to use to unbind the reaction and clean
+        std::vector<std::function<void(Reaction&)>> unbinders;
+
     private:
         /**
          * @brief Unbinds this reaction from it's context
@@ -100,8 +100,6 @@ namespace threading {
         static std::atomic<uint64_t> reaction_id_source;
         /// @brief the callback generator function (creates databound callbacks)
         TaskGenerator generator;
-        /// @brief unbinds the reaction and cleans up
-        std::function<void(Reaction&)> unbinder;
     };
 
 }  // namespace threading

@@ -23,8 +23,13 @@ import sys
 # Run doxygen for breathe
 from subprocess import call
 call('doxygen')
-
+	
 # -- General configuration ------------------------------------------------
+
+def setup(app):
+    app.add_stylesheet('colours.css')
+
+
 
 # If your documentation needs a minimal Sphinx version, state it here.
 #

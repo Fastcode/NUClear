@@ -75,7 +75,9 @@ FILE(GLOB src_util_network
     "include/nuclear_bits/util/network/*.ipp")
 
 FILE(GLOB src_util_serialise
+    "util/serialise/*.c"
     "util/serialise/*.cpp"
+    "include/nuclear_bits/util/serialise/*.h"
     "include/nuclear_bits/util/serialise/*.hpp"
     "include/nuclear_bits/util/serialise/*.ipp")
 

@@ -1,5 +1,6 @@
 /*
- * Copyright (C) 2013-2016 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ * Copyright (C) 2013      Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ *               2014-2017 Trent Houliston <trent@houliston.me>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -18,42 +19,61 @@
 #ifndef NUCLEAR_EXTENSION_NETWORK_WIRE_PROTOCOL_HPP
 #define NUCLEAR_EXTENSION_NETWORK_WIRE_PROTOCOL_HPP
 
-#include "nuclear"
-
 namespace NUClear {
 namespace extension {
     namespace network {
 
 #pragma pack(push, 1)
-        enum Type : uint8_t { ANNOUNCE = 1, DATA = 2 };
+        enum Type : uint8_t { ANNOUNCE = 1, LEAVE = 2, DATA = 3, DATA_RETRANSMISSION = 4, ACK = 5, NACK = 6 };
 
         struct PacketHeader {
-            PacketHeader() : type(), length(0) {}
+            PacketHeader(const Type& t) : type(t) {}
 
             uint8_t header[3] = {0xE2, 0x98, 0xA2};  // Radioactive symbol in UTF8
-            uint8_t version   = 0x01;                // The NUClear networking version
+            uint8_t version   = 0x02;                // The NUClear networking version
             Type type;                               // The type of packet
-            uint32_t length;                         // The length of the remainder of the packet
         };
 
         struct AnnouncePacket : public PacketHeader {
-            AnnouncePacket() : tcp_port(0), udp_port(0), name(0) {}
+            AnnouncePacket() : PacketHeader(ANNOUNCE), name(0) {}
 
-            uint16_t tcp_port;  // The TCP port it is listening on
-            uint16_t udp_port;  // The UDP port it is listening on
-            char name;          // A null terminated string name for this node (&name)
+            char name;  // A null terminated string name for this node (&name)
+        };
+
+        struct LeavePacket : public PacketHeader {
+            LeavePacket() : PacketHeader(LEAVE) {}
         };
 
         struct DataPacket : public PacketHeader {
-            DataPacket() : packet_id(0), packet_no(0), packet_count(0), multicast(false), hash(), data(0) {}
+            DataPacket()
+                : PacketHeader(DATA), packet_id(0), packet_no(0), packet_count(1), reliable(false), hash(), data(0) {}
 
-            uint16_t packet_id;            // A semiunique identifier for this packet group
-            uint16_t packet_no;            // What packet number this is
-            uint16_t packet_count;         // How many packets there are
-            bool multicast;                // If this packet is targeted
-            std::array<uint64_t, 2> hash;  // The 128 bit hash to identify the data type
-            char data;                     // The data (&data)
+            uint16_t packet_id;     // A semiunique identifier for this packet group
+            uint16_t packet_no;     // What packet number this is within the group
+            uint16_t packet_count;  // How many packets there are in the group
+            bool reliable;          // If this packet is reliable and should be acked
+            uint64_t hash;          // The 64 bit hash to identify the data type
+            char data;              // The data (&data)
         };
+
+        struct ACKPacket : public PacketHeader {
+            ACKPacket() : PacketHeader(ACK), packet_id(0), packet_no(0), packet_count(1), packets(0) {}
+
+            uint16_t packet_id;     // The packet group identifier we are acknowledging
+            uint16_t packet_no;     // The index of the packet we are acknowledging
+            uint16_t packet_count;  // How many packets there are in the group
+            uint8_t packets;        // A bitset of which packets we have received (&packets)
+        };
+
+        struct NACKPacket : public PacketHeader {
+
+            NACKPacket() : PacketHeader(NACK), packet_id(0), packet_count(1), packets(0) {}
+
+            uint16_t packet_id;     // The packet group identifier we are acknowledging
+            uint16_t packet_count;  // How many packets there are in the group
+            uint8_t packets;        // A bitset of which packets we have received (&packets)
+        };
+
 #pragma pack(pop)
 
     }  // namespace network

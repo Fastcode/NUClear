@@ -1,5 +1,6 @@
 /*
- * Copyright (C) 2013-2016 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ * Copyright (C) 2013      Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ *               2014-2017 Trent Houliston <trent@houliston.me>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -20,13 +21,6 @@
 // Include platform specific details
 #include "nuclear_bits/util/platform.hpp"
 
-#ifndef _WIN32
-#include <ifaddrs.h>
-#include <net/if.h>
-#include <netdb.h>
-#include <sys/socket.h>
-#endif
-
 #include <algorithm>
 #include <cstring>
 #include <system_error>
@@ -41,40 +35,104 @@ namespace util {
 
             std::vector<Interface> ifaces;
 
-            DWORD size = 0;
+            // First call with null to work out how much memory we need
+            ULONG size = 0;
+            if (GetAdaptersAddresses(AF_UNSPEC, 0, nullptr, nullptr, &size) != ERROR_BUFFER_OVERFLOW) {
+                throw std::runtime_error("Unable to query the list of network interfaces");
+            }
+            else {
+                // Allocate some memory now and call again
+                PIP_ADAPTER_ADDRESSES addrs = reinterpret_cast<PIP_ADAPTER_ADDRESSES>(std::malloc(size));
+                auto rv                     = GetAdaptersAddresses(AF_UNSPEC,
+                                               GAA_FLAG_SKIP_ANYCAST | GAA_FLAG_SKIP_MULTICAST
+                                                   | GAA_FLAG_SKIP_DNS_SERVER | GAA_FLAG_SKIP_FRIENDLY_NAME,
+                                               nullptr,
+                                               addrs,
+                                               &size);
+                if (rv != ERROR_SUCCESS) {
+                    free(addrs);
+                    throw std::runtime_error("Unable to query the list of network interfaces");
+                }
 
-            // Do an initial call to work out how much space we need
-            GetIpAddrTable(nullptr, &size, false);
+                for (PIP_ADAPTER_ADDRESSES addr = addrs; addr != nullptr; addr = addr->Next) {
 
-            // Allocate enough space for the real call
-            std::vector<MIB_IPADDRTABLE> table((size / sizeof(MIB_IPADDRTABLE)) + 1);
+                    for (auto uaddr = addr->FirstUnicastAddress; uaddr != nullptr; uaddr = uaddr->Next) {
 
-            // Do the real call
-            GetIpAddrTable(table.data(), &size, false);
+                        Interface iface;
+                        std::memset(&iface, 0, sizeof(iface));
 
-            for (size_t i = 0; i < table.front().dwNumEntries; ++i) {
+                        iface.name = addr->AdapterName;
 
-                // Storage for the information for this address
-                MIB_IF_ROW2 data;
-                memset(&data, 0, sizeof(data));
-                data.InterfaceIndex = table[i].table->dwIndex;
-                if (GetIfEntry2(&data) != NO_ERROR) {
-                    continue;
-                };
+                        // Copy across the IP address
+                        std::memcpy(&iface.ip, uaddr->Address.lpSockaddr, uaddr->Address.iSockaddrLength);
 
-                Interface iface;
-                auto n                = std::wstring(data.Alias);
-                iface.name            = std::string(n.begin(), n.end());
-                iface.ip              = htonl(table[i].table->dwAddr);
-                iface.netmask         = htonl(table[i].table->dwMask);
-                iface.broadcast       = iface.ip | ~iface.netmask;
-                iface.flags.broadcast = data.AccessType == NET_IF_ACCESS_BROADCAST;
-                iface.flags.loopback  = data.AccessType == NET_IF_ACCESS_LOOPBACK;
-                iface.flags.multicast = data.AccessType == NET_IF_ACCESS_BROADCAST;
-                iface.flags.pointtopoint =
-                    data.AccessType == NET_IF_ACCESS_LOOPBACK || data.AccessType == NET_IF_ACCESS_POINT_TO_POINT;
+                        switch (iface.ip.sock.sa_family) {
+                            case AF_INET: {
+                                // IPv4 address
+                                auto& ipv4      = *reinterpret_cast<sockaddr_in*>(&iface.ip);
+                                auto& netmask   = *reinterpret_cast<sockaddr_in*>(&iface.netmask);
+                                auto& broadcast = *reinterpret_cast<sockaddr_in*>(&iface.broadcast);
 
-                ifaces.push_back(iface);
+                                // Fill in the netmask
+                                netmask.sin_family = AF_INET;
+                                ConvertLengthToIpv4Mask(uaddr->OnLinkPrefixLength, &netmask.sin_addr.s_addr);
+                                netmask.sin_addr.s_addr = htonl(netmask.sin_addr.s_addr);
+
+                                // Fill in the broadcast
+                                broadcast.sin_family = AF_INET;
+                                broadcast.sin_addr.s_addr =
+                                    (ipv4.sin_addr.s_addr | ~netmask.sin_addr.s_addr) && netmask.sin_addr.s_addr;
+
+                                // Loopback if the ip address starts with 127
+                                iface.flags.loopback = (ipv4.sin_addr.s_addr & htonl(0x7F000000)) == htonl(0x7F000000);
+                                // Point to point if the netmask is all 1s
+                                iface.flags.pointtopoint = (netmask.sin_addr.s_addr & 0xFFFFFFFF) == 0xFFFFFFFF;
+                                // Broadcast if not point to point
+                                iface.flags.broadcast = !iface.flags.pointtopoint;
+                                // Multicast if broadcast
+                                iface.flags.multicast = iface.flags.broadcast;
+
+                            } break;
+                            case AF_INET6: {
+                                // IPv6 address
+                                auto& ipv6    = *reinterpret_cast<sockaddr_in6*>(&iface.ip);
+                                auto& netmask = *reinterpret_cast<sockaddr_in6*>(&iface.netmask);
+
+                                // Fill in the netmask
+                                netmask.sin6_family = AF_INET6;
+
+                                // Fill the netmask from the bits
+                                for (int i = 0; i < uaddr->OnLinkPrefixLength; ++i) {
+                                    netmask.sin6_addr.s6_addr[i / 8] |= 1 << (7 - (i % 8));
+                                }
+
+                                // IPv6 doesn't have broadcast
+
+                                // Loopback if the ip address is ::1
+                                iface.flags.loopback = ipv6.sin6_addr.s6_addr[15] == 0x01;
+                                for (int i = 0; i < 15; ++i) {
+                                    iface.flags.loopback &= ipv6.sin6_addr.s6_addr[i] == 0;
+                                }
+
+                                // Point to point if the netmask is all 1s
+                                iface.flags.pointtopoint = true;
+                                for (int i = 0; i < 16; ++i) {
+                                    iface.flags.pointtopoint &= netmask.sin6_addr.s6_addr[i] == 0xFF;
+                                }
+
+                                // No broadcast on IPv6
+                                iface.flags.broadcast = false;
+                                // IPv6 is always multicast
+                                iface.flags.multicast = true;
+
+                            } break;
+                        }
+
+                        ifaces.push_back(iface);
+                    }
+                }
+
+                std::free(addrs);
             }
 
             return ifaces;
@@ -86,7 +144,7 @@ namespace util {
 
             std::vector<Interface> ifaces;
 
-            addrinfo hints;
+            addrinfo hints{};
             std::memset(&hints, 0, sizeof(hints));
             hints.ai_family = AF_INET;
 
@@ -101,32 +159,50 @@ namespace util {
             for (ifaddrs* cursor = addrs; cursor != nullptr; cursor = cursor->ifa_next) {
 
                 // We only care about ipv4 addresses (one day this will need to change)
-                if (cursor->ifa_addr->sa_family == AF_INET) {
-                    Interface iface;
+                Interface iface;
 
-                    iface.name      = cursor->ifa_name;
-                    iface.ip        = ntohl(reinterpret_cast<sockaddr_in*>(cursor->ifa_addr)->sin_addr.s_addr);
-                    iface.netmask   = ntohl(reinterpret_cast<sockaddr_in*>(cursor->ifa_netmask)->sin_addr.s_addr);
-                    iface.broadcast = ntohl(reinterpret_cast<sockaddr_in*>(cursor->ifa_dstaddr)->sin_addr.s_addr);
+                // Clear!
+                std::memset(&iface, 0, sizeof(iface));
 
-                    iface.flags.broadcast    = (cursor->ifa_flags & IFF_BROADCAST) != 0;
-                    iface.flags.loopback     = (cursor->ifa_flags & IFF_LOOPBACK) != 0;
-                    iface.flags.pointtopoint = (cursor->ifa_flags & IFF_POINTOPOINT) != 0;
-                    iface.flags.multicast    = (cursor->ifa_flags & IFF_MULTICAST) != 0;
+                iface.name = cursor->ifa_name;
 
-                    ifaces.push_back(iface);
+                // Copy across our various addresses
+                switch (cursor->ifa_addr->sa_family) {
+                    case AF_INET: std::memcpy(&iface.ip, cursor->ifa_addr, sizeof(sockaddr_in)); break;
+
+                    case AF_INET6: std::memcpy(&iface.ip, cursor->ifa_addr, sizeof(sockaddr_in6)); break;
                 }
+
+                if (cursor->ifa_netmask != nullptr) {
+                    switch (cursor->ifa_addr->sa_family) {
+                        case AF_INET: std::memcpy(&iface.netmask, cursor->ifa_netmask, sizeof(sockaddr_in)); break;
+
+                        case AF_INET6: std::memcpy(&iface.netmask, cursor->ifa_netmask, sizeof(sockaddr_in6)); break;
+                    }
+                }
+
+                if (cursor->ifa_dstaddr != nullptr) {
+                    switch (cursor->ifa_addr->sa_family) {
+                        case AF_INET: std::memcpy(&iface.broadcast, cursor->ifa_dstaddr, sizeof(sockaddr_in)); break;
+
+                        case AF_INET6: std::memcpy(&iface.broadcast, cursor->ifa_dstaddr, sizeof(sockaddr_in6)); break;
+                    }
+                }
+
+                iface.flags.broadcast    = (cursor->ifa_flags & IFF_BROADCAST) != 0;
+                iface.flags.loopback     = (cursor->ifa_flags & IFF_LOOPBACK) != 0;
+                iface.flags.pointtopoint = (cursor->ifa_flags & IFF_POINTOPOINT) != 0;
+                iface.flags.multicast    = (cursor->ifa_flags & IFF_MULTICAST) != 0;
+
+                ifaces.push_back(iface);
             }
 
-            // Remove duplicates from ifaces
-            ifaces.erase(std::unique(std::begin(ifaces),
-                                     std::end(ifaces),
-                                     [](const Interface& a, const Interface& b) { return a.name == b.name; }),
-                         std::end(ifaces));
+            // Free memory
+            freeifaddrs(addrs);
 
             return ifaces;
         }
 #endif
-    }
-}
-}
+    }  // namespace network
+}  // namespace util
+}  // namespace NUClear

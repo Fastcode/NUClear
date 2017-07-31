@@ -1,5 +1,6 @@
 /*
- * Copyright (C) 2013-2016 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ * Copyright (C) 2013      Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ *               2014-2017 Trent Houliston <trent@houliston.me>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -18,9 +19,9 @@
 #ifndef NUCLEAR_DSL_WORD_NETWORK_HPP
 #define NUCLEAR_DSL_WORD_NETWORK_HPP
 
-#include <arpa/inet.h>
 #include "nuclear_bits/dsl/store/ThreadStore.hpp"
 #include "nuclear_bits/dsl/trait/is_transient.hpp"
+#include "nuclear_bits/util/network/sock_t.hpp"
 #include "nuclear_bits/util/serialise/Serialise.hpp"
 
 namespace NUClear {
@@ -29,23 +30,24 @@ namespace dsl {
 
         template <typename T>
         struct NetworkData : public std::shared_ptr<T> {
-            using std::shared_ptr<T>::shared_ptr;
+            NetworkData() : std::shared_ptr<T>() {}
+            NetworkData(T* ptr) : std::shared_ptr<T>(ptr) {}
+            NetworkData(const std::shared_ptr<T>& ptr) : std::shared_ptr<T>(ptr) {}
+            NetworkData(std::shared_ptr<T>&& ptr) : std::shared_ptr<T>(ptr) {}
         };
 
         struct NetworkSource {
-            NetworkSource() : name(""), address(0), port(0), reliable(false), multicast(false) {}
+            NetworkSource() : name(""), address() {}
 
             std::string name;
-            in_addr_t address;
-            in_port_t port;
+            util::network::sock_t address;
             bool reliable;
-            bool multicast;
         };
 
         struct NetworkListen {
             NetworkListen() : hash(), reaction() {}
 
-            std::array<uint64_t, 2> hash;
+            uint64_t hash;
             std::shared_ptr<threading::Reaction> reaction;
         };
 
@@ -54,11 +56,9 @@ namespace dsl {
          *  NUClear provides a networking protocol to send messages to other devices on the network.
          *
          * @details
-         *  This can be used to make a multi-processed NUClear instance, or communicate with other programs running
-         *  NUClear.  Note that the serialization and deserialization is handled by NUClear.
-         *
-         *  A network DSL request would be made in the following way:
-         *  @code on<Network<T>> @endcode
+         *  @code on<Network<T>>() @endcode
+         *  This request can be used to make a multi-processed NUClear instance, or communicate with other programs
+         *  running NUClear.  Note that the serialization and deserialization is handled by NUClear.
          *
          *  When the reaction is triggered, read-only access to T will be provided to the triggering unit via a
          *  callback.
@@ -77,22 +77,19 @@ namespace dsl {
         template <typename T>
         struct Network {
 
-            template <typename DSL, typename Function>
-            static inline threading::ReactionHandle bind(Reactor& reactor,
-                                                         const std::string& label,
-                                                         Function&& callback) {
+            template <typename DSL>
+            static inline void bind(const std::shared_ptr<threading::Reaction>& reaction) {
 
                 auto task = std::make_unique<NetworkListen>();
 
                 task->hash = util::serialise::Serialise<T>::hash();
-                task->reaction =
-                    util::generate_reaction<DSL, NetworkListen>(reactor, label, std::forward<Function>(callback));
+                reaction->unbinders.push_back([](const threading::Reaction& r) {
+                    r.reactor.emit<emit::Direct>(std::make_unique<operation::Unbind<NetworkListen>>(r.id));
+                });
 
-                threading::ReactionHandle handle(task->reaction);
+                task->reaction = reaction;
 
-                reactor.powerplant.emit<emit::Direct>(task);
-
-                return handle;
+                reaction->reactor.emit<emit::Direct>(task);
             }
 
             template <typename DSL>
@@ -110,7 +107,7 @@ namespace dsl {
                 else {
 
                     // Return invalid data
-                    return std::make_tuple(std::shared_ptr<NetworkSource>(nullptr), std::shared_ptr<T>(nullptr));
+                    return std::make_tuple(std::shared_ptr<NetworkSource>(nullptr), NetworkData<T>(nullptr));
                 }
             }
         };

@@ -1,5 +1,6 @@
 /*
- * Copyright (C) 2013-2016 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ * Copyright (C) 2013      Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ *               2014-2017 Trent Houliston <trent@houliston.me>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -20,9 +21,7 @@
 namespace NUClear {
 namespace threading {
 
-    TaskScheduler::TaskScheduler() : running(true), queue(), mutex(), condition() {}
-
-    TaskScheduler::~TaskScheduler() {}
+    TaskScheduler::TaskScheduler() : running(true) {}
 
     void TaskScheduler::shutdown() {
         {
@@ -64,20 +63,19 @@ namespace threading {
                 // Return a nullptr to signify there is nothing on the queue
                 return nullptr;
             }
-            else {
-                // Wait for something to happen!
-                condition.wait(lock);
-            }
+
+            // Wait for something to happen!
+            condition.wait(lock);
         }
 
         // Return the type
         // If you're wondering why all the ridiculousness, it's because priority queue is not as feature complete as it
-        // should be
-        // It's 'top' method returns a const reference (which we can't use to move a unique pointer)
-        std::unique_ptr<ReactionTask> task(std::move(const_cast<std::unique_ptr<ReactionTask>&>(queue.top())));
+        // should be its 'top' method returns a const reference (which we can't use to move a unique pointer)
+        std::unique_ptr<ReactionTask> task(
+            std::move(const_cast<std::unique_ptr<ReactionTask>&>(queue.top())));  // NOLINT
         queue.pop();
 
         return task;
     }
-}
-}
+}  // namespace threading
+}  // namespace NUClear

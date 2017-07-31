@@ -1,6 +1,6 @@
-
 /*
- * Copyright (C) 2013-2016 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ * Copyright (C) 2013      Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ *               2014-2017 Trent Houliston <trent@houliston.me>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -19,16 +19,7 @@
 #ifndef NUCLEAR_DSL_WORD_EMIT_UDP_HPP
 #define NUCLEAR_DSL_WORD_EMIT_UDP_HPP
 
-#ifdef _WIN32
-#include "nuclear_bits/util/windows_includes.hpp"
-#else
-#include <arpa/inet.h>
-#include <net/if.h>
-#include <netinet/in.h>
-#include <sys/socket.h>
-#include <unistd.h>
-#include <cstring>
-#endif
+#include "nuclear_bits/util/platform.hpp"
 
 #include "nuclear_bits/PowerPlant.hpp"
 #include "nuclear_bits/dsl/store/DataStore.hpp"
@@ -43,25 +34,25 @@ namespace dsl {
 
             /**
              * @brief
-             *  When emitting data under this scope, a UDP packet will be sent over the network.
+             *  Emits data as a UDP packet over the network.
              *
              * @details
              *  @code emit<Scope::UDP>(data, to_addr, to_port); @endcode
-             *  The target of this packet can be can be a unicast, broadcast or multicast address, specified as either
-             *  a host endian int, or as a string. Additionally the address and port on the local machine can be
-             *  specified using a string or host endian int.
+             *  Emissions under this scope are useful for communicating with third parties. The target of the packet
+             *  can be can be a unicast, broadcast or multicast address, specified as either a host endian int, or as a
+             *  string. Additionally the address and port on the local machine can be specified using a string or host
+             *  endian int.
              *
-             * @par TRENT???
-             *  Listen to audio 3 and make sure you update this.  Any specific questions go here.
+             * @attention
+             *  Anything emitted over the UDP network must be serialisable.
              *
              * @param data      the data to emit
              * @param to_addr   a string or host endian integer specifying the ip to send the packet to
              * @param to_port   the port to send this packet to in host endian
-             * @param from_addr Optional.  A string or host endian integer specifying the local ip to send the packet from.
-             *                  Defaults to INADDR_ANY.
-             * @param from_port Optional.  The port to send this from to in host endian or 0 to automatically choose a port.
-             *                  Defaults to 0.
-             *
+             * @param from_addr Optional.  A string or host endian integer specifying the local ip to send the packet
+             *                  from.  Defaults to INADDR_ANY.
+             * @param from_port Optional.  The port to send this from to in host endian or 0 to automatically choose a
+             *                  port. Defaults to 0.
              * @tparam DataType the datatype of the object to emit
              */
             template <typename DataType>

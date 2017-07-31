@@ -1,5 +1,6 @@
 /*
- * Copyright (C) 2013-2016 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ * Copyright (C) 2013      Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ *               2014-2017 Trent Houliston <trent@houliston.me>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -18,25 +19,23 @@
 #ifndef NUCLEAR_MESSAGE_NETWORKEVENT_HPP
 #define NUCLEAR_MESSAGE_NETWORKEVENT_HPP
 
+#include "nuclear_bits/util/network/sock_t.hpp"
+
 namespace NUClear {
 namespace message {
 
     struct NetworkJoin {
-        NetworkJoin() : name(""), address(0), udp_port(0), tcp_port(0) {}
+        NetworkJoin() : name(""), address() {}
 
         std::string name;
-        in_addr_t address;
-        in_port_t udp_port;
-        in_port_t tcp_port;
+        util::network::sock_t address;
     };
 
     struct NetworkLeave {
-        NetworkLeave() : name(""), address(0), udp_port(0), tcp_port(0) {}
+        NetworkLeave() : name(""), address() {}
 
         std::string name;
-        in_addr_t address;
-        in_port_t udp_port;
-        in_port_t tcp_port;
+        util::network::sock_t address;
     };
 
 }  // namespace message

@@ -1,5 +1,6 @@
 /*
- * Copyright (C) 2013-2016 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ * Copyright (C) 2013      Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ *               2014-2017 Trent Houliston <trent@houliston.me>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -22,7 +23,7 @@
 #include <type_traits>
 
 #include "nuclear_bits/util/demangle.hpp"
-#include "nuclear_bits/util/serialise/murmurhash3.hpp"
+#include "nuclear_bits/util/serialise/xxhash.h"
 
 // Forward declare google protocol buffers
 // We don't actually use or require them, but if
@@ -58,11 +59,11 @@ namespace util {
                 return ret;
             }
 
-            static inline std::array<uint64_t, 2> hash() {
+            static inline uint64_t hash() {
 
                 // Serialise based on the demangled class name
                 std::string type_name = demangle(typeid(T).name());
-                return murmurhash3(type_name.c_str(), type_name.size());
+                return XXH64(type_name.c_str(), type_name.size(), 0x4e55436c);
             }
         };
 
@@ -99,11 +100,11 @@ namespace util {
                 return out;
             }
 
-            static inline std::array<uint64_t, 2> hash() {
+            static inline uint64_t hash() {
 
                 // Serialise based on the demangled class name
                 std::string type_name = demangle(typeid(T).name());
-                return murmurhash3(type_name.c_str(), type_name.size());
+                return XXH64(type_name.c_str(), type_name.size(), 0x4e55436c);
             }
         };
 
@@ -127,12 +128,12 @@ namespace util {
                 return out;
             }
 
-            static inline std::array<uint64_t, 2> hash() {
+            static inline uint64_t hash() {
 
                 // We have to construct an instance to call the reflection functions
                 T type;
                 // We base the hash on the name of the protocol buffer
-                return murmurhash3(type.GetTypeName().c_str(), type.GetTypeName().size());
+                return XXH64(type.GetTypeName().c_str(), type.GetTypeName().size(), 0x4e55436c);
             }
         };
 

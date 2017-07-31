@@ -1,5 +1,6 @@
 /*
- * Copyright (C) 2013-2016 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ * Copyright (C) 2013      Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ *               2014-2017 Trent Houliston <trent@houliston.me>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -29,10 +30,10 @@ namespace dsl {
 
         using DSL = Fusion<Sentence...>;
 
-        template <typename Function, typename... Arguments>
-        static inline auto bind(Reactor& r, const std::string& label, Function callback, Arguments... args)
-            -> decltype(DSL::template bind<Parse<Sentence...>>(r, label, callback, std::forward<Arguments>(args)...)) {
-            return DSL::template bind<Parse<Sentence...>>(r, label, callback, std::forward<Arguments>(args)...);
+        template <typename... Arguments>
+        static inline auto bind(const std::shared_ptr<threading::Reaction>& r, Arguments... args)
+            -> decltype(DSL::template bind<Parse<Sentence...>>(r, std::forward<Arguments>(args)...)) {
+            return DSL::template bind<Parse<Sentence...>>(r, std::forward<Arguments>(args)...);
         }
 
         static inline auto get(threading::Reaction& r) -> decltype(

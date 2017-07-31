@@ -1,43 +1,119 @@
 language: cpp
 sudo: false
-addons:
-  apt:
-    sources:
-      - ubuntu-toolchain-r-test
-      - kalakris-cmake
-    packages:
-      - cmake
-      - gcc-4.9
-      - g++-4.9
-      - gcc-5
-      - g++-5
-      - gcc-6
-      - g++-6
+matrix:
+  include:
+    - os: linux
+      dist: trusty
+      compiler: gcc
+      addons:
+        apt:
+          sources: ['ubuntu-toolchain-r-test']
+          packages: ['g++-4.9']
+      env:
+        - CXX_COMPILER=g++-4.9
+        - CC_COMPILER=gcc-4.9
 
-env:
-  - COMPILER="gcc-4.9"
-  - COMPILER="gcc-5"
-  - COMPILER="gcc-6"
+    - os: linux
+      dist: trusty
+      compiler: gcc
+      addons:
+        apt:
+          sources: ['ubuntu-toolchain-r-test']
+          packages: ['g++-5']
+      env:
+        - CXX_COMPILER=g++-5
+        - CC_COMPILER=gcc-5
 
-# Install our required dependencies
+    - os: linux
+      dist: trusty
+      compiler: gcc
+      addons:
+        apt:
+          sources: ['ubuntu-toolchain-r-test']
+          packages: ['g++-6']
+      env:
+        - CXX_COMPILER=g++-6
+        - CC_COMPILER=gcc-6
+
+    - os: linux
+      dist: trusty
+      compiler: gcc
+      addons:
+        apt:
+          sources: ['ubuntu-toolchain-r-test']
+          packages: ['g++-7']
+      env:
+        - CXX_COMPILER=g++-7
+        - CC_COMPILER=gcc-7
+
+    - os: linux
+      dist: trusty
+      compiler: clang
+      addons:
+        apt:
+          sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-trusty-3.6']
+          packages: ['clang-3.6', 'g++-4.9']
+      env:
+        - CXX_COMPILER=clang++-3.6
+        - CC_COMPILER=clang-3.6
+
+    - os: linux
+      dist: trusty
+      compiler: clang
+      addons:
+        apt:
+          sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-precise-3.7']
+          packages: ['clang-3.7', 'g++-4.9']
+      env:
+        - CXX_COMPILER=clang++-3.7
+        - CC_COMPILER=clang-3.7
+
+    - os: linux
+      dist: trusty
+      compiler: clang
+      addons:
+        apt:
+          sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-trusty-3.8']
+          packages: ['clang-3.8', 'g++-4.9']
+      env:
+        - CXX_COMPILER=clang++-3.8
+        - CC_COMPILER=clang-3.8
+
+    - os: linux
+      dist: trusty
+      compiler: clang
+      addons:
+        apt:
+          sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-trusty-3.9']
+          packages: ['clang-3.9', 'g++-4.9']
+      env:
+        - CXX_COMPILER=clang++-3.9
+        - CC_COMPILER=clang-3.9
+
+    - os: linux
+      dist: trusty
+      compiler: clang
+      addons:
+        apt:
+          sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-trusty-4.0']
+          packages: ['clang-4.0', 'g++-4.9']
+      env:
+        - CXX_COMPILER=clang++-4.0
+        - CC_COMPILER=clang-4.0
+
+    - os: osx
+      env:
+        - CXX_COMPILER=clang++
+        - CC_COMPILER=clang
+
 install:
-
-  # gcc-4.9
-  - if [[ "$COMPILER" == "gcc-4.9" ]]; then export CXX="g++-4.9"; fi
-  - if [[ "$COMPILER" == "gcc-4.9" ]]; then export CC="gcc-4.9"; fi
-
-  # gcc-5
-  - if [[ "$COMPILER" == "gcc-5" ]]; then export CXX="g++-5"; fi
-  - if [[ "$COMPILER" == "gcc-5" ]]; then export CC="gcc-5"; fi
-
-  # gcc-6
-  - if [[ "$COMPILER" == "gcc-6" ]]; then export CXX="g++-6"; fi
-  - if [[ "$COMPILER" == "gcc-6" ]]; then export CC="gcc-6"; fi
-
   # Catch
   - wget https://raw.githubusercontent.com/philsquared/Catch/master/single_include/catch.hpp
   - mkdir -p /tmp/include
   - mv catch.hpp /tmp/include
+
+  - export CC=$CC_COMPILER
+  - export CXX=$CXX_COMPILER
 
 # Before our script is run (setup build)
 before_script:

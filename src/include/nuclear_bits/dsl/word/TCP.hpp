@@ -1,5 +1,6 @@
 /*
- * Copyright (C) 2013-2016 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ * Copyright (C) 2013      Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ *               2014-2017 Trent Houliston <trent@houliston.me>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -18,22 +19,13 @@
 #ifndef NUCLEAR_DSL_WORD_TCP_HPP
 #define NUCLEAR_DSL_WORD_TCP_HPP
 
-#ifdef _WIN32
-#include "nuclear_bits/util/windows_includes.hpp"
-#else
-#include <arpa/inet.h>
-#include <net/if.h>
-#include <netinet/in.h>
-#include <sys/socket.h>
-#include <unistd.h>
-#endif
+#include "nuclear_bits/util/platform.hpp"
 
 #include <cstring>
 
 #include "nuclear_bits/PowerPlant.hpp"
 #include "nuclear_bits/dsl/word/IO.hpp"
 #include "nuclear_bits/util/FileDescriptor.hpp"
-#include "nuclear_bits/util/generate_reaction.hpp"
 
 
 namespace NUClear {
@@ -42,24 +34,24 @@ namespace dsl {
 
         /**
          * @brief
-         *  This allows a reaction to be triggered based on TCP activity.  When a connection is identified on the
-         *  assigned port, the associated reaction will be triggered.
+         *  This allows a reaction to be triggered based on TCP activity.
          *
          * @details
-         *  The request for a TCP based reaction can use a runtime argument to reference a specific port.  Note that the
-         *  port reference can be changed during system run-time.
          *  @code on<TCP>(port) @endcode
+         *  When a connection is identified on the assigned port, the associated reaction will be triggered.  The
+         *  request for a TCP based reaction can use a runtime argument to reference a specific port.  Note that the
+         *  port reference can be changed during the systems execution phase.
          *
-         *  Should the port number not be provided, then the system will bind to a currently unassigned port.
          *  @code on<TCP>() @endcode
+         *  Should the port reference be omitted, then the system will bind to a currently unassigned port.
          *
-         *  Note that a reaction can be triggered via connectivity for more than one port.  For example:
          *  @code on<TCP, TCP>(port, port)  @endcode
+         *  A reaction can also be triggered via connectivity on more than one port.
          *
          * @attention
-         *  on<TCP> should be used to define the reaction which will run when the connection has been established.
-         *  Because TCP communications are stream based, the associated reaction will often be an on<IO> request.  This
-         *  request will further define the reaction to run when activity on the stream is detected.  For example:
+         *  Because TCP communications are stream based, the on< TCP >() request will often require an on< IO >()
+         *  request also be specified within its definition. It is the later request which will define the reaction to
+         *  run when activity on the stream is detected.  For example:
          *  @code on<TCP>(port).then([this](const TCP::Connection& connection){
          *    on<IO>(connection.fd, IO::READ | IO::CLOSE).then([this](IO::Event event)
          *  } @endcode
@@ -88,11 +80,9 @@ namespace dsl {
                 }
             };
 
-            template <typename DSL, typename Function>
-            static inline std::tuple<threading::ReactionHandle, int, int> bind(Reactor& reactor,
-                                                                               const std::string& label,
-                                                                               Function&& callback,
-                                                                               int port = 0) {
+            template <typename DSL>
+            static inline std::tuple<int, int> bind(const std::shared_ptr<threading::Reaction>& reaction,
+                                                    int port = 0) {
 
                 // Make our socket
                 util::FileDescriptor fd = ::socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
@@ -130,20 +120,19 @@ namespace dsl {
                 port = ntohs(address.sin_port);
 
                 // Generate a reaction for the IO system that closes on death
-                int cfd       = fd;
-                auto reaction = util::generate_reaction<DSL, IO>(
-                    reactor, label, std::forward<Function>(callback), [cfd](threading::Reaction&) { close(cfd); });
+                int cfd = fd;
+                reaction->unbinders.push_back([](const threading::Reaction& r) {
+                    r.reactor.emit<emit::Direct>(std::make_unique<operation::Unbind<IO>>(r.id));
+                });
+                reaction->unbinders.push_back([cfd](const threading::Reaction&) { close(cfd); });
 
-                auto io_config =
-                    std::make_unique<IOConfiguration>(IOConfiguration{fd.release(), IO::READ, std::move(reaction)});
-
-                threading::ReactionHandle handle(io_config->reaction);
+                auto io_config = std::make_unique<IOConfiguration>(IOConfiguration{fd.release(), IO::READ, reaction});
 
                 // Send our configuration out
-                reactor.powerplant.emit<emit::Direct>(io_config);
+                reaction->reactor.emit<emit::Direct>(io_config);
 
                 // Return our handles
-                return std::make_tuple(handle, port, cfd);
+                return std::make_tuple(port, cfd);
             }
 
             template <typename DSL>

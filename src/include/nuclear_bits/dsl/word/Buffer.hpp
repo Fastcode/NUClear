@@ -1,5 +1,6 @@
 /*
- * Copyright (C) 2013-2016 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ * Copyright (C) 2013      Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ *               2014-2017 Trent Houliston <trent@houliston.me>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -24,21 +25,21 @@ namespace dsl {
 
         /**
          * @brief
-         *  This is used to specify the number of instances (tasks) the associated reaction can execute (or place in
-         *  the queue) during runtime.
+         *  This is used to specify that up to n instances of the associated reaction can execute during runtime.
          *
          * @details
-         *  For best use, this word should be fused with at least one other binding DSL word. For example:
          *  @code on<Trigger<T, ...>, Buffer<n>>>() @endcode
-         *
          *  In the case above, when the subscribing reaction is triggered, should there be less than <i>n</i> existing
-         *  tasks (either executing or in the queue), a new Task will be created and scheduled.  However, should
-         *  <i>n</i> tasks already be allocated, then this new task request will be ignored.
+         *  tasks associated with this reaction (either executing or in the queue), then a new task will be created and
+         *  scheduled.  However, should <i>n</i> tasks already be allocated, then this new task request will be ignored.
+         *
+         *  For best use, this word should be fused with at least one other binding DSL word.
          *
          * @par Implements
          *  Precondition, Fusion
          *
-         * @tparam n the number of tasks (instances of the subscribing reaction) which can be running at a given time.
+         * @tparam n
+         *  the number of tasks (instances of the subscribing reaction) which can be running at a given time.
          */
         template <int n>
         struct Buffer {

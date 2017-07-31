@@ -1,5 +1,6 @@
 /*
- * Copyright (C) 2013-2016 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ * Copyright (C) 2013      Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ *               2014-2017 Trent Houliston <trent@houliston.me>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -31,15 +32,15 @@ namespace dsl {
              *
              * @details
              *  @code emit<Scope::INITIALISE>(data, dataType); @endcode
-             *  This kind of emission should be used to emit any data required during system start up.  This can be
-             *  useful for cases when a Reactor wants to emit to all other reactors but they may not yet be installed.
-             *  Using this scope, the message will wait until all Reactors are installed into the PowerPlant.  Once
-             *  installed, the data will be emitted to the system.
+             *  This should be used to emit any data required during system start up (that is, as the reactor is being
+             *  installed into the powerPlant). When running emissions under this scope, the message will wait until
+             *  all Reactors are installed into the powerPlant before triggering any callbacks based on the emission.
              *
              * @attention
-             *  Tasks executed based on data emitted under this scope will be executed while the system is in the
+             *  Tasks triggered by data emitted under this scope will only execute while the system is in the
              *  initialisation phase. These tasks are the final activity which occur before the system shifts into the
-             *  execution phase. For more information, please see the notes regarding system startup.
+             *  execution phase.  Any emissions under this scope while the system is in the execution phase will be
+             *  ignored.
              *
              * @param data
              *  The data to emit

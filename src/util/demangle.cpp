@@ -1,5 +1,6 @@
 /*
- * Copyright (C) 2013-2016 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ * Copyright (C) 2013      Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ *               2014-2017 Trent Houliston <trent@houliston.me>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -17,13 +18,12 @@
 
 #include "nuclear_bits/util/demangle.hpp"
 
-
 // Windows symbol demangler
 #ifdef _WIN32
 
 #include <Dbghelp.h>
 #include <mutex>
-#include "nuclear_bits/util/windows_includes.hpp"
+#include "nuclear_bits/util/platform.hpp"
 
 #pragma comment(lib, "Dbghelp.lib")
 
@@ -66,15 +66,16 @@ namespace util {
             return symbol;
         }
     }
-}
-}
+}  // namespace util
+}  // namespace NUClear
 
 // GNU/Clang symbol demangler
 #else
 
-#include <cxxabi.h>
-#include <cstdlib>
-#include <memory>
+#include <cxxabi.h>  // for __cxa_demangle
+#include <cstdlib>   // for free
+#include <memory>    // for unique_ptr
+#include <string>    // for string
 
 namespace NUClear {
 namespace util {
@@ -93,6 +94,8 @@ namespace util {
 
         return std::string(status == 0 ? res.get() : symbol);
     }
-}
-}
+
+}  // namespace util
+}  // namespace NUClear
+
 #endif  // _MSC_VER

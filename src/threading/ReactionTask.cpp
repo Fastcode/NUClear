@@ -1,5 +1,6 @@
 /*
- * Copyright (C) 2013-2016 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ * Copyright (C) 2013      Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ *               2014-2017 Trent Houliston <trent@houliston.me>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -14,15 +15,16 @@
  * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-
 #include "nuclear_bits/threading/ReactionTask.hpp"
+
+#include <utility>
 #include "nuclear_bits/threading/Reaction.hpp"
 
 namespace NUClear {
 namespace threading {
 
     // Initialize our id source
-    std::atomic<uint64_t> ReactionTask::task_id_source(0);
+    std::atomic<uint64_t> ReactionTask::task_id_source(0);  // NOLINT
 
     // This here is a hack because for some reason Xcode is broken and doesn't generate the destructors for this
     // class...???!!!
@@ -32,11 +34,9 @@ namespace threading {
 #endif
 
     // Initialize our current task
-    ATTRIBUTE_TLS ReactionTask* ReactionTask::current_task = nullptr;
+    ATTRIBUTE_TLS ReactionTask* ReactionTask::current_task = nullptr;  // NOLINT
 
-    ReactionTask::ReactionTask(Reaction& parent,
-                               int priority,
-                               std::function<std::unique_ptr<ReactionTask>(std::unique_ptr<ReactionTask>&&)> callback)
+    ReactionTask::ReactionTask(Reaction& parent, int priority, TaskFunction&& callback)
         : parent(parent)
         , id(++task_id_source)
         , priority(priority)
@@ -44,8 +44,8 @@ namespace threading {
         , stats(new message::ReactionStatistics{parent.identifier,
                                                 parent.id,
                                                 id,
-                                                current_task ? current_task->parent.id : 0,
-                                                current_task ? current_task->id : 0,
+                                                current_task != nullptr ? current_task->parent.id : 0,
+                                                current_task != nullptr ? current_task->id : 0,
                                                 clock::now(),
                                                 clock::time_point(std::chrono::seconds(0)),
                                                 clock::time_point(std::chrono::seconds(0)),
@@ -82,5 +82,5 @@ namespace threading {
         // Return our original task
         return std::move(us);
     }
-}
-}
+}  // namespace threading
+}  // namespace NUClear

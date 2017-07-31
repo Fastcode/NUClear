@@ -1,5 +1,6 @@
 /*
- * Copyright (C) 2013-2016 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ * Copyright (C) 2013      Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ *               2014-2017 Trent Houliston <trent@houliston.me>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -30,11 +31,8 @@ namespace dsl {
          *
          * @details
          *  @code  on<Shutdown>() @endcode
-         *  Note that this request simply specifies a reaction/task which should execute on system shutdown.  It is NOT
-         *  the command which initialises the shutdown process.
-         *
-         *  Once the shutdown command is emitted to the PowerPlant, all existing tasks within the system will complete
-         *  their processing as per their current place in the queue.
+         *  Once the shutdown command has been emitted to the PowerPlant, all existing tasks within the system will
+         *  complete their processing as per their current place in the queue.
          *
          *  Any reactions listed with this keyword will then be queued and processed.  Tasks in this queue are ordered
          *  based on their priority level, then their emission timestamp.
@@ -43,6 +41,10 @@ namespace dsl {
          *  system emissions will not be processed. That is, all tasks baring the shutdown tasks will be ignored.
          *
          *  Once all Shutdown tasks have finished processing, the system will terminate.
+         *
+         * @attention
+         *  An on<Shutdown>() request simply specifies a reaction/task which should run during the system shutdown
+         *  process.  It is NOT the command which initialises the process.
          *
          * @par Implements
          *  Bind

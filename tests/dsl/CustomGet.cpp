@@ -1,5 +1,6 @@
 /*
- * Copyright (C) 2013-2016 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ * Copyright (C) 2013      Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ *               2014-2017 Trent Houliston <trent@houliston.me>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -24,7 +25,7 @@ namespace {
 struct CustomGet : public NUClear::dsl::operation::TypeBind<int> {
 
     template <typename DSL>
-    static inline std::shared_ptr<int> get(NUClear::threading::Reaction&) {
+    static inline std::shared_ptr<int> get(NUClear::threading::Reaction& /*unused*/) {
         return std::make_shared<int>(5);
     }
 };
@@ -48,7 +49,7 @@ public:
         });
     }
 };
-}
+}  // namespace
 
 TEST_CASE("Test a custom reactor that returns a type that needs dereferencing", "[api][custom_get]") {
 

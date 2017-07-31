@@ -1,5 +1,6 @@
 /*
- * Copyright (C) 2013-2016 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ * Copyright (C) 2013      Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ *               2014-2017 Trent Houliston <trent@houliston.me>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -30,10 +31,8 @@ namespace dsl {
          */
         struct NoOp {
 
-            template <typename DSL, typename Function, typename... Args>
-            static inline std::tuple<> bind(Reactor&, const std::string&, Function&&, Args...) {
-                return std::tuple<>();
-            }
+            template <typename DSL, typename... Args>
+            static inline void bind(const std::shared_ptr<threading::Reaction>&, Args...) {}
 
             template <typename DSL>
             static inline std::tuple<> get(threading::Reaction&) {
@@ -67,8 +66,7 @@ namespace dsl {
         struct ParsedNoOp {
             struct DSL {};
 
-            template <typename Function>
-            static inline std::tuple<> bind(Reactor&, const std::string&, Function&&);
+            static inline std::tuple<> bind(const std::shared_ptr<threading::Reaction>&);
 
             static inline std::tuple<> get(threading::Reaction&);
 

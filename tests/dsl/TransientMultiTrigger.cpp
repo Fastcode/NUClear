@@ -1,5 +1,6 @@
 /*
- * Copyright (C) 2013-2016 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ * Copyright (C) 2013      Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ *               2014-2017 Trent Houliston <trent@houliston.me>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -32,7 +33,18 @@ struct DataType {
         return good;
     }
 };
+}  // namespace
 
+namespace NUClear {
+namespace dsl {
+    namespace trait {
+        template <>
+        struct is_transient<DataType> : public std::true_type {};
+    }  // namespace trait
+}  // namespace dsl
+}  // namespace NUClear
+
+namespace {
 struct SimpleMessage {
     SimpleMessage(int value) : value(value){};
     int value;
@@ -41,7 +53,7 @@ struct SimpleMessage {
 struct TransientTypeGetter : public NUClear::dsl::operation::TypeBind<int> {
 
     template <typename DSL>
-    static inline DataType get(NUClear::threading::Reaction&) {
+    static inline DataType get(NUClear::threading::Reaction& /*unused*/) {
 
         // We say for this test that our data is valid if it is odd
         return DataType{value, value % 2 == 1};
@@ -89,25 +101,16 @@ public:
 
             // This should execute our function resulting in the pair 30,5
             emit(std::make_unique<int>(0));
-            // TODO technically the thing that triggered this resulted in invalid data but used old data, do we want to
-            // stop this?
-            // TODO This would result in two states, invalid data, and non existant data
+            // TODO(trent): technically the thing that triggered this resulted in invalid data but used old data, do we
+            // want to stop this?
+            // TODO(trent): This would result in two states, invalid data, and non existant data
 
             // We are finished the test
             powerplant.shutdown();
         });
     }
 };
-}
-
-namespace NUClear {
-namespace dsl {
-    namespace trait {
-        template <>
-        struct is_transient<DataType> : public std::true_type {};
-    }
-}
-}
+}  // namespace
 
 TEST_CASE("Testing whether getters that return transient data can cache between calls", "[api][transient]") {
 

@@ -1,5 +1,6 @@
 /*
- * Copyright (C) 2013-2016 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ * Copyright (C) 2013      Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ *               2014-2017 Trent Houliston <trent@houliston.me>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -27,5 +28,6 @@ namespace util {
      *         This should result in the static setup code executing on startup (in the main thread).
      */
     std::thread::id main_thread_id = std::this_thread::get_id();
-}
-}
+
+}  // namespace util
+}  // namespace NUClear

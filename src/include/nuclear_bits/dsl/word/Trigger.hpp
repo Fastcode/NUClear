@@ -1,5 +1,6 @@
 /*
- * Copyright (C) 2013-2016 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ * Copyright (C) 2013      Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ *               2014-2017 Trent Houliston <trent@houliston.me>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -35,17 +36,17 @@ namespace dsl {
          *  This will enact the execution of a task whenever T is emitted into the system. When this occurs, read-only
          *  access to T will be provided to the triggering unit via a callback.
          *
-         * @attention
-         *  A DSL request can handle triggers on multiple types.
          *  @code on<Trigger<T1, T2, ... >>() @endcode
-         *  Note that when using multiple types in the one request, the reaction will only be triggered once <b>all</b>
-         *  of the trigger types have been emitted (at least once) since the last occurrence of the event.
+         *  Note that a this request can handle triggers on multiple types. When using multiple types in the request,
+         *  the reaction will only be triggered once <b>all</b> of the trigger types have been emitted (at least once)
+         *  since the last occurrence of the event.
          *
          * @par Implements
          *  Bind, Get
          *
          * @tparam Ts
-         *  The datatype on which a reaction callback will be triggered.
+         *  The datatype on which a reaction callback will be triggered.  Emission of this datatype into the system
+         *  will trigger the subscribing reaction.
          */
         template <typename... Ts>
         struct Trigger : public Fusion<operation::TypeBind<Ts>..., operation::CacheGet<Ts>...> {};

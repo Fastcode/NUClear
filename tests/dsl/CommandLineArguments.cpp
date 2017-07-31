@@ -1,5 +1,6 @@
 /*
- * Copyright (C) 2013-2016 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ * Copyright (C) 2013      Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ *               2014-2017 Trent Houliston <trent@houliston.me>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -41,7 +42,7 @@ public:
         on<Trigger<ShutdownNowPlx>>().then([this] { powerplant.shutdown(); });
     }
 };
-}
+}  // namespace
 
 TEST_CASE("Testing the Command Line argument capturing", "[api][command_line_arguments]") {
     int argc           = 2;
@@ -49,7 +50,7 @@ TEST_CASE("Testing the Command Line argument capturing", "[api][command_line_arg
 
     NUClear::PowerPlant::Configuration config;
     config.thread_count = 1;
-    NUClear::PowerPlant plant(config, argc, argv);
+    NUClear::PowerPlant plant(config, argc, reinterpret_cast<const char**>(argv));
     plant.install<TestReactor>();
 
     plant.start();

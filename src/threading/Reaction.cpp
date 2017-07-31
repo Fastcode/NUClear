@@ -1,5 +1,6 @@
 /*
- * Copyright (C) 2013-2016 Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ * Copyright (C) 2013      Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ *               2014-2017 Trent Houliston <trent@houliston.me>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -14,30 +15,29 @@
  * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-
 #include "nuclear_bits/threading/Reaction.hpp"
+
+#include <utility>
 
 namespace NUClear {
 namespace threading {
 
     // Initialize our reaction source
-    std::atomic<uint64_t> Reaction::reaction_id_source(0);
+    std::atomic<uint64_t> Reaction::reaction_id_source(0);  // NOLINT
 
-    Reaction::Reaction(Reactor& reactor,
-                       std::vector<std::string> identifier,
-                       TaskGenerator generator,
-                       std::function<void(Reaction&)>&& unbinder)
+    Reaction::Reaction(Reactor& reactor, std::vector<std::string>&& identifier, TaskGenerator&& generator)
         : reactor(reactor)
         , identifier(identifier)
         , id(++reaction_id_source)
         , active_tasks(0)
         , enabled(true)
-        , generator(generator)
-        , unbinder(unbinder) {}
+        , generator(generator) {}
 
     void Reaction::unbind() {
         // Unbind
-        unbinder(*this);
+        for (auto& u : unbinders) {
+            u(*this);
+        }
     }
 
     std::unique_ptr<ReactionTask> Reaction::get_task() {
@@ -54,16 +54,15 @@ namespace threading {
 
         // If our generator returns a valid function
         if (func) {
-            return std::unique_ptr<ReactionTask>(new ReactionTask(*this, priority, func));
+            return std::make_unique<ReactionTask>(*this, priority, std::move(func));
         }
+
         // Otherwise we return a null pointer
-        else {
-            return std::unique_ptr<ReactionTask>(nullptr);
-        }
+        return std::unique_ptr<ReactionTask>(nullptr);
     }
 
     bool Reaction::is_enabled() {
         return enabled;
     }
-}
-}
+}  // namespace threading
+}  // namespace NUClear
