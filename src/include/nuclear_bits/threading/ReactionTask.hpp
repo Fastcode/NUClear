@@ -86,6 +86,9 @@ namespace threading {
         int priority;
         /// @brief the statistics object that persists after this for information and debugging
         std::unique_ptr<message::ReactionStatistics> stats;
+        /// @brief if these stats are safe to emit. It should start true, and as soon as we are a reaction based on
+        /// reaction statistics becomes false for all created tasks. This is to stop infinite loops of death.
+        bool emit_stats;
 
         /// @brief the data bound callback to be executed
         /// @attention note this must be last in the list as the this pointer is passed to the callback generator

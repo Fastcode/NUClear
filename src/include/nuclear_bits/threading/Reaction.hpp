@@ -81,6 +81,9 @@ namespace threading {
         /// @brief the unique identifier for this Reaction object
         const uint64_t id;
 
+        /// @brief if this is false, we cannot emit ReactionStatistics from any reaction triggered by this one
+        bool emit_stats;
+
         /// @brief the number of currently active tasks (existing reaction tasks)
         std::atomic<int> active_tasks;
 

@@ -62,6 +62,36 @@ namespace dsl {
             }
         };
 
+        template <>
+        struct TypeBind<message::ReactionStatistics> {
+
+            template <typename DSL>
+            static inline void bind(const std::shared_ptr<threading::Reaction>& reaction) {
+
+                // Set this reaction as no stats emitting
+                reaction->emit_stats = false;
+
+                // Our unbinder to remove this reaction
+                reaction->unbinders.push_back([](threading::Reaction& r) {
+
+                    auto& vec = store::TypeCallbackStore<message::ReactionStatistics>::get();
+
+                    auto item = std::find_if(
+                        std::begin(vec), std::end(vec), [&r](const std::shared_ptr<threading::Reaction>& item) {
+                            return item->id == r.id;
+                        });
+
+                    // If the item is in the list erase the item
+                    if (item != std::end(vec)) {
+                        vec.erase(item);
+                    }
+                });
+
+                // Create our reaction and store it in the TypeCallbackStore
+                store::TypeCallbackStore<message::ReactionStatistics>::get().push_back(reaction);
+            }
+        };
+
     }  // namespace operation
 }  // namespace dsl
 }  // namespace NUClear

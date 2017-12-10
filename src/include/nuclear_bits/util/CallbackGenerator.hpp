@@ -113,8 +113,10 @@ namespace util {
                         // Run our postconditions
                         DSL::postcondition(*task);
 
-                        // Emit our reaction statistics
-                        PowerPlant::powerplant->emit<dsl::word::emit::Direct>(task->stats);
+                        // Emit our reaction statistics if it wouldn't cause a loop
+                        if (task->emit_stats) {
+                            PowerPlant::powerplant->emit<dsl::word::emit::Direct>(task->stats);
+                        }
                     }
 
                     // Return our task
