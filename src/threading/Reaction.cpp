@@ -29,6 +29,7 @@ namespace threading {
         : reactor(reactor)
         , identifier(identifier)
         , id(++reaction_id_source)
+        , emit_stats(true)
         , active_tasks(0)
         , enabled(true)
         , generator(generator) {}

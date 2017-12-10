@@ -42,6 +42,7 @@ namespace threading {
                                                 clock::time_point(std::chrono::seconds(0)),
                                                 clock::time_point(std::chrono::seconds(0)),
                                                 nullptr})
+        , emit_stats(parent.emit_stats && (current_task != nullptr ? current_task->emit_stats : true))
         , callback(callback) {
 
         // There is one new active task

@@ -252,9 +252,6 @@ void log(Arguments&&... args) {
 #include "nuclear_bits/message/NetworkConfiguration.hpp"
 #include "nuclear_bits/message/NetworkEvent.hpp"
 
-// Header which stops reaction statisitcs messages from triggering themselves
-#include "nuclear_bits/dsl/operation/ReactionStatisticsDeloop.hpp"
-
 // Include all of our implementation files (which use the previously included reactor.h)
 #include "nuclear_bits/PowerPlant.ipp"
 
