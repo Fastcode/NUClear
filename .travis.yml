@@ -107,11 +107,6 @@ matrix:
         - CC_COMPILER=clang
 
 install:
-  # Catch
-  - wget https://raw.githubusercontent.com/philsquared/Catch/master/single_include/catch.hpp
-  - mkdir -p /tmp/include
-  - mv catch.hpp /tmp/include
-
   - export CC=$CC_COMPILER
   - export CXX=$CXX_COMPILER
 
@@ -119,7 +114,7 @@ install:
 before_script:
   - mkdir build
   - cd build
-  - cmake -DCMAKE_BUILD_TYPE=Release -DCATCH_INCLUDE_DIR=/tmp/include ..
+  - cmake -DCMAKE_BUILD_TYPE=Release ..
 
 # Run our build
 script:
