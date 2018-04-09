@@ -69,5 +69,8 @@ FUNCTION(HeaderLibrary)
                                       VERSION_VAR ${PACKAGE_NAME}_VERSION
     )
 
+    # Export our found variable to parent scope
+    SET(${PACKAGE_NAME}_FOUND ${PACKAGE_NAME}_FOUND PARENT_SCOPE)
+
 ENDFUNCTION(HeaderLibrary)
 
