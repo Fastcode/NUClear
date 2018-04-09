@@ -1,5 +1,15 @@
+# This is a c++ project
 language: cpp
+
+# Use container based infrastructure
 sudo: false
+
+# Only do branch builds on master
+branches:
+  only:
+    - master
+
+# Our build matrix of all the options
 matrix:
   include:
     - os: linux
