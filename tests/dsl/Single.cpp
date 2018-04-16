@@ -22,14 +22,25 @@
 
 namespace {
 
-std::atomic<int> runcount1(0);
-std::atomic<int> runcount2(0);
+struct MessageCount {
+    MessageCount() : message1(0), message2(0), message3(0) {}
+
+    std::atomic<int> message1;
+    std::atomic<int> message2;
+    std::atomic<int> message3;
+};
+
+MessageCount message_count;
 
 struct SimpleMessage1 {
     int data;
 };
 
 struct SimpleMessage2 {
+    int data;
+};
+
+struct SimpleMessage3 {
     int data;
 };
 
@@ -40,13 +51,16 @@ public:
         on<Trigger<SimpleMessage1>, Single>().then([this](const SimpleMessage1&) {
 
             // Increment our run count
-            ++runcount1;
+            ++message_count.message1;
 
             // Emit a message 2
             emit(std::make_unique<SimpleMessage2>());
 
             // Wait for 10 ms
             std::this_thread::sleep_for(std::chrono::milliseconds(10));
+
+            // Emit a message 3
+            emit(std::make_unique<SimpleMessage3>());
 
             // Emit another message 2
             emit(std::make_unique<SimpleMessage2>());
@@ -55,7 +69,10 @@ public:
             powerplant.shutdown();
         });
 
-        on<Trigger<SimpleMessage2>, Single>().then([this](const SimpleMessage2&) { ++runcount2; });
+        on<Trigger<SimpleMessage2>, Single>().then([this](const SimpleMessage2&) { ++message_count.message2; });
+
+        on<Trigger<SimpleMessage2>, With<SimpleMessage3>, Single>().then(
+            [this](const SimpleMessage2&, const SimpleMessage3&) { ++message_count.message3; });
 
         on<Startup>().then([this]() {
 
@@ -78,8 +95,11 @@ TEST_CASE("Test that single prevents a second call while one is executing", "[ap
     plant.start();
 
     // Require that only 1 run has happened on message 1
-    REQUIRE(runcount1 == 1);
+    REQUIRE(message_count.message1 == 1);
 
     // Require that 2 runs have happened on message 2
-    REQUIRE(runcount2 == 2);
+    REQUIRE(message_count.message2 == 2);
+
+    // Require that only 1 run has happened on message 3
+    REQUIRE(message_count.message3 == 1);
 }
