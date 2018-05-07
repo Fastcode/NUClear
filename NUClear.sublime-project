@@ -6,8 +6,10 @@
         }
     ],
     "settings": {
-    "ClangFormat": {
-      "format_on_save": true
+    "ClangFormat": {       
+        "style": "file",
+        "format_on_save": true,
+        "languages": [ "C", "C++", "C++11", "Protobuf" ],
     }
   }
 }
