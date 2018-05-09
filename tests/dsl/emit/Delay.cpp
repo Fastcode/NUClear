@@ -24,22 +24,29 @@
 namespace {
 
 struct DelayMessage {};
+struct AtTimeMessage {};
 struct NormalMessage {};
 
 NUClear::clock::time_point sent;
 NUClear::clock::time_point normal_received;
 NUClear::clock::time_point delay_received;
+NUClear::clock::time_point at_time_received;
 
 class TestReactor : public NUClear::Reactor {
 public:
     TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
         emit<Scope::INITIALIZE>(std::make_unique<int>(5));
 
-        // This message should come in 500ms later
+        // This message should come in later
         on<Trigger<DelayMessage>>().then([this] {
             delay_received = NUClear::clock::now();
 
             powerplant.shutdown();
+        });
+
+        on<Trigger<AtTimeMessage>>().then([this] {
+            // Don't shut down here we are first
+            at_time_received = NUClear::clock::now();
         });
 
         on<Trigger<NormalMessage>>().then([this] { normal_received = NUClear::clock::now(); });
@@ -47,7 +54,11 @@ public:
         on<Startup>().then([this] {
             sent = NUClear::clock::now();
             emit(std::make_unique<NormalMessage>());
+
+            // Delay by 200, and a message 100ms in the future, the 200ms one should come in first
             emit<Scope::DELAY>(std::make_unique<DelayMessage>(), std::chrono::milliseconds(200));
+            emit<Scope::DELAY>(std::make_unique<AtTimeMessage>(),
+                               NUClear::clock::now() + std::chrono::milliseconds(100));
         });
     }
 };
@@ -61,6 +72,9 @@ TEST_CASE("Testing the delay emit", "[api][emit][delay]") {
 
     plant.start();
 
-    // Ensure the delayed message is about 200ms
-    REQUIRE(std::chrono::duration_cast<std::chrono::milliseconds>(delay_received - sent).count() > 180);
+    // Ensure the message delays are correct, I would make these bounds tighter, but travis is pretty dumb
+    REQUIRE(std::chrono::duration_cast<std::chrono::milliseconds>(delay_received - sent).count() > 190);
+    REQUIRE(std::chrono::duration_cast<std::chrono::milliseconds>(delay_received - sent).count() < 210);
+    REQUIRE(std::chrono::duration_cast<std::chrono::milliseconds>(at_time_received - sent).count() > 90);
+    REQUIRE(std::chrono::duration_cast<std::chrono::milliseconds>(at_time_received - sent).count() < 110);
 }

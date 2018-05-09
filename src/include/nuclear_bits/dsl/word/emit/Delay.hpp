@@ -57,15 +57,33 @@ namespace dsl {
                     // Our chrono task is just to do a normal emit in the amount of time
                     auto msg = std::make_shared<operation::ChronoTask>(
                         [&powerplant, data](NUClear::clock::time_point&) {
-
                             // Do the emit
                             emit::Local<DataType>::emit(powerplant, data);
 
                             // We don't renew, remove us
                             return false;
-
                         },
                         NUClear::clock::now() + delay,
+                        -1);  // Our ID is -1 as we will remove ourselves
+
+                    // Send this straight to the chrono controller
+                    emit::Direct<operation::ChronoTask>::emit(powerplant, msg);
+                }
+
+                static void emit(PowerPlant& powerplant,
+                                 std::shared_ptr<DataType> data,
+                                 NUClear::clock::time_point at_time) {
+
+                    // Our chrono task is just to do a normal emit in the amount of time
+                    auto msg = std::make_shared<operation::ChronoTask>(
+                        [&powerplant, data](NUClear::clock::time_point&) {
+                            // Do the emit
+                            emit::Local<DataType>::emit(powerplant, data);
+
+                            // We don't renew, remove us
+                            return false;
+                        },
+                        at_time,
                         -1);  // Our ID is -1 as we will remove ourselves
 
                     // Send this straight to the chrono controller
