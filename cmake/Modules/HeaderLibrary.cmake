@@ -28,6 +28,7 @@ FUNCTION(HeaderLibrary)
     FIND_PATH("${PACKAGE_NAME}_INCLUDE_DIR"
               NAMES ${PACKAGE_HEADER}
               DOC "The ${PACKAGE_NAME} include directory"
+              PATHS "${OUTPUT_DIR}/${PACKAGE_HEADER}"
               PATH_SUFFIXES ${PACKAGE_PATH_SUFFIX}
     )
 
