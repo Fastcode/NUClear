@@ -17,6 +17,6 @@ INCLUDE(HeaderLibrary)
  
 HeaderLibrary(NAME CATCH
               HEADER catch.hpp
-              URL "https://raw.githubusercontent.com/philsquared/Catch/master/single_include/catch.hpp"
+              URL "https://raw.githubusercontent.com/catchorg/Catch2/master/single_include/catch.hpp"
 )
  
