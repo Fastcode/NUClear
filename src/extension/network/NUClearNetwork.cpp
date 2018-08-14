@@ -217,6 +217,9 @@ namespace extension {
                     ip_mreq mreq{};
                     mreq.imr_multiaddr = announce_target.ipv4.sin_addr;
 
+                    int connected_count = 0;
+                    int last_network_errno = 0;
+
                     // Join the multicast group on all the interfaces that support it
                     for (auto& iface : util::network::get_interfaces()) {
 
@@ -226,18 +229,25 @@ namespace extension {
                             mreq.imr_interface = iface.ip.ipv4.sin_addr;
 
                             // Join our multicast group
-                            if (::setsockopt(announce_fd,
+                            int status = ::setsockopt(announce_fd,
                                              IPPROTO_IP,
                                              IP_ADD_MEMBERSHIP,
                                              reinterpret_cast<char*>(&mreq),
-                                             sizeof(ip_mreq))
-                                < 0) {
-                                throw std::system_error(
-                                    network_errno,
-                                    std::system_category(),
-                                    "There was an error while attempting to join the multicast group");
+                                             sizeof(ip_mreq));
+
+                            if (status < 0) {
+                                last_network_errno = network_errno;
+                            } else {
+                                connected_count++;
                             }
                         }
+                    }
+
+                    if (connected_count == 0) {
+                        throw std::system_error(
+                                    last_network_errno,
+                                    std::system_category(),
+                                    "There was an error while attempting to join the multicast group");
                     }
                 }
                 else if (announce_target.sock.sa_family == AF_INET6) {
