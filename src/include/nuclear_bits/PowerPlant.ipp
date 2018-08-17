@@ -16,7 +16,37 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+#include "nuclear_bits/extension/ChronoController.hpp"
+#include "nuclear_bits/extension/IOController.hpp"
+#include "nuclear_bits/extension/NetworkController.hpp"
+
 namespace NUClear {
+
+inline PowerPlant::PowerPlant(Configuration config, int argc, const char* argv[]) : configuration(config) {
+
+    // Stop people from making more then one powerplant
+    if (powerplant != nullptr) {
+        throw std::runtime_error("There is already a powerplant in existence (There should be a single PowerPlant)");
+    }
+
+    // Store our static variable
+    powerplant = this;
+
+    // Install the Chrono reactor
+    install<extension::ChronoController>();
+    install<extension::IOController>();
+    install<extension::NetworkController>();
+
+    // Emit our arguments if any.
+    message::CommandLineArguments args;
+    for (int i = 0; i < argc; ++i) {
+        args.emplace_back(argv[i]);
+    }
+
+    // We emit this twice, so the data is available for extensions
+    emit(std::make_unique<message::CommandLineArguments>(args));
+    emit<dsl::word::emit::Initialise>(std::make_unique<message::CommandLineArguments>(args));
+}
 
 template <typename T, enum LogLevel level>
 void PowerPlant::install() {
@@ -105,7 +135,7 @@ namespace {
         output << first << " ";
         log_impl(output, std::forward<Remainder>(args)...);
     }
-}
+}  // namespace
 
 template <enum LogLevel level, typename... Arguments>
 void PowerPlant::log(Arguments&&... args) {
