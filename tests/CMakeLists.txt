@@ -45,6 +45,9 @@ IF(CATCH_FOUND)
 
             ADD_EXECUTABLE(${test_name} ${test_src})
             TARGET_LINK_LIBRARIES(${test_name} nuclear)
+            SET_TARGET_PROPERTIES(${test_name} PROPERTIES
+                RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/individual"
+            )
             ADD_TEST(${test_name} test_nuclear)
 
         ENDFOREACH(test_src)

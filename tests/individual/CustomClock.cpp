@@ -40,15 +40,16 @@ template <int id>
 struct Message {};
 
 std::vector<std::chrono::steady_clock::time_point> times;
+constexpr int n_time = 100;
 
 class TestReactor : public NUClear::Reactor {
 public:
     TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
 
         // Running every this slowed down clock should execute slower
-        on<Every<50, std::chrono::milliseconds>>().then([this] {
+        on<Every<10, std::chrono::milliseconds>>().then([this] {
             times.push_back(std::chrono::steady_clock::now());
-            if (times.size() > 10) {
+            if (times.size() > n_time) {
                 powerplant.shutdown();
             }
         });
@@ -68,27 +69,11 @@ TEST_CASE("Testing custom clock works correctly", "[api][custom_clock]") {
     plant.start();
 
     // Build up our difference vector
-    std::vector<double> diff;
-
+    double total = 0;
     for (size_t i = 0; i < times.size() - 1; ++i) {
-        std::chrono::nanoseconds delta = times[i + 1] - times[i];
-
-        std::cout << (double(delta.count()) / double(std::nano::den)) << std::endl;
-
-        // Store our difference in seconds
-        diff.push_back(double(delta.count()) / double(std::nano::den));
+        total += (double((times[i + 1] - times[i]).count()) / double(std::nano::den));
     }
 
-
-    // // Calculate our mean, range, and stddev for the set
-    // double sum      = std::accumulate(std::begin(diff), std::end(diff), 0.0);
-    // double mean     = sum / double(diff.size());
-    // double variance = std::inner_product(diff.begin(), diff.end(), diff.begin(), 0.0);
-    // double stddev   = std::sqrt(variance / double(diff.size()));
-
-    // // As time goes on the average wait should be 0 (we accept less then 0.5ms for this test)
-    // REQUIRE(fabs(mean) < 0.0005);
-
-    // // Require that 95% (ish) of all results are faster than 1ms
-    // REQUIRE(fabs(mean + stddev * 2) < 0.002);
+    // The total should be about 2.0
+    REQUIRE(total == Approx(2.0).epsilon(1e-3));
 }

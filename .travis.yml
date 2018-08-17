@@ -130,3 +130,4 @@ before_script:
 script:
   - make
   - ./tests/test_nuclear exclude:[network]
+  - find tests/individual -type f -exec ./{} \;
