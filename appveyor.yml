@@ -36,6 +36,6 @@ before_build:
     cmake --version
     cmake .. -G %generator%
 build:
-  project: c:\projects\nuclear\build\template.sln
+  project: c:\projects\nuclear\build\nuclear.sln
   verbosity: minimal
   parallel: true
