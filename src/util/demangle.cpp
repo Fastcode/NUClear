@@ -21,9 +21,11 @@
 // Windows symbol demangler
 #ifdef _WIN32
 
+#include "nuclear_bits/util/platform.hpp"
+
+// Must be after platform
 #include <Dbghelp.h>
 #include <mutex>
-#include "nuclear_bits/util/platform.hpp"
 
 #pragma comment(lib, "Dbghelp.lib")
 
