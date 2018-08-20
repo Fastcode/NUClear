@@ -41,7 +41,7 @@ inline void update_current_thread_priority(int priority) {
 
 #ifdef _WIN32
 
-#include "nuclear_bits/util/windows_includes.hpp"
+#include "nuclear_bits/util/platform.hpp"
 
 inline void update_current_thread_priority(int priority) {
 
