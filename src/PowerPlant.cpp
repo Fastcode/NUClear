@@ -18,39 +18,9 @@
 #include "nuclear_bits/PowerPlant.hpp"
 #include "nuclear_bits/threading/ThreadPoolTask.hpp"
 
-#include "nuclear_bits/extension/ChronoController.hpp"
-#include "nuclear_bits/extension/IOController.hpp"
-#include "nuclear_bits/extension/NetworkController.hpp"
-
 namespace NUClear {
 
 PowerPlant* PowerPlant::powerplant = nullptr;  // NOLINT
-
-PowerPlant::PowerPlant(Configuration config, int argc, const char* argv[]) : configuration(config) {
-
-    // Stop people from making more then one powerplant
-    if (powerplant != nullptr) {
-        throw std::runtime_error("There is already a powerplant in existence (There should be a single PowerPlant)");
-    }
-
-    // Store our static variable
-    powerplant = this;
-
-    // Install the Chrono reactor
-    install<extension::ChronoController>();
-    install<extension::IOController>();
-    install<extension::NetworkController>();
-
-    // Emit our arguments if any.
-    message::CommandLineArguments args;
-    for (int i = 0; i < argc; ++i) {
-        args.emplace_back(argv[i]);
-    }
-
-    // We emit this twice, so the data is available for extensions
-    emit(std::make_unique<message::CommandLineArguments>(args));
-    emit<dsl::word::emit::Initialise>(std::make_unique<message::CommandLineArguments>(args));
-}
 
 PowerPlant::~PowerPlant() {
 

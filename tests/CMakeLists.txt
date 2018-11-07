@@ -24,8 +24,6 @@ IF(CATCH_FOUND)
         ENABLE_TESTING()
         INCLUDE_DIRECTORIES(${CATCH_INCLUDE_DIRS})
 
-        FILE(GLOB_RECURSE testsrc "${CMAKE_CURRENT_SOURCE_DIR}/**.cpp")
-
         FILE(GLOB test_base       "${CMAKE_CURRENT_SOURCE_DIR}/test.cpp")
         FILE(GLOB test_api        "${CMAKE_CURRENT_SOURCE_DIR}/api/*.cpp")
         FILE(GLOB test_dsl        "${CMAKE_CURRENT_SOURCE_DIR}/dsl/*.cpp")
@@ -37,6 +35,23 @@ IF(CATCH_FOUND)
         SOURCE_GROUP(dsl          FILES ${test_dsl})
         SOURCE_GROUP(dsl\\emit    FILES ${test_dsl_emit})
         SOURCE_GROUP(log          FILES ${test_log})
+
+        # Some tests must be executed as individual binaries
+
+        FILE(GLOB individual_tests "${CMAKE_CURRENT_SOURCE_DIR}/individual/*.cpp")
+
+        FOREACH(test_src ${individual_tests})
+            GET_FILENAME_COMPONENT(test_name ${test_src} NAME_WE)
+
+            ADD_EXECUTABLE(${test_name} ${test_src})
+            TARGET_LINK_LIBRARIES(${test_name} nuclear)
+            SET_TARGET_PROPERTIES(${test_name} PROPERTIES
+                RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/individual"
+            )
+            ADD_TEST(${test_name} test_nuclear)
+
+        ENDFOREACH(test_src)
+
 
         ADD_EXECUTABLE(test_nuclear ${test_base} ${test_api} ${test_dsl} ${test_dsl_emit} ${test_log})
         TARGET_LINK_LIBRARIES(test_nuclear nuclear)

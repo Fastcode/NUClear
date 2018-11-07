@@ -128,5 +128,6 @@ before_script:
 
 # Run our build
 script:
-  - make
+  - make -j2
   - ./tests/test_nuclear exclude:[network]
+  - find tests/individual -type f -exec ./{} \;

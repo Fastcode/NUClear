@@ -23,8 +23,24 @@
 
 namespace NUClear {
 
+#ifndef NUCLEAR_CUSTOM_CLOCK
+
 /// @brief The clock that is used throughout the entire nuclear system
-using clock = std::chrono::high_resolution_clock;
+using clock = std::chrono::steady_clock;
+
+#else
+
+struct clock {
+    using rep                       = std::chrono::steady_clock::rep;
+    using period                    = std::chrono::steady_clock::period;
+    using duration                  = std::chrono::steady_clock::duration;
+    using time_point                = std::chrono::steady_clock::time_point;
+    static constexpr bool is_steady = false;
+
+    static time_point now();
+};
+
+#endif
 
 }  // namespace NUClear
 
