@@ -49,7 +49,7 @@ private:
 
     /// @brief The PowerPlant to use in this reactor
     PowerPlant& powerplant;
-    /// @brief The log level to resepect for this reactor
+    /// @brief The log level for this reactor
     LogLevel log_level;
     /// @brief The name of the reactor
     std::string reactor_name;
