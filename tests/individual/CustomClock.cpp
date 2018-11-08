@@ -19,8 +19,9 @@
 #define CATCH_CONFIG_MAIN
 #include <catch.hpp>
 
+// This define declares that we are using a custom clock and it should try to link
 #define NUCLEAR_CUSTOM_CLOCK
-#include "nuclear"
+#include <nuclear>
 
 std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
 

@@ -17,8 +17,7 @@
  */
 
 #include <catch.hpp>
-
-#include "nuclear"
+#include <nuclear>
 
 namespace {
 
@@ -35,7 +34,6 @@ public:
     TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
 
         on<Trigger<Message3>, Priority::HIGH>().then("High", [this] {
-
             // We should be the first to run
             REQUIRE(!low);
             REQUIRE(!med);

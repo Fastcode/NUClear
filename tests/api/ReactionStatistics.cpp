@@ -17,8 +17,7 @@
  */
 
 #include <catch.hpp>
-
-#include "nuclear"
+#include <nuclear>
 
 // Anonymous namespace to keep everything file local
 namespace {
@@ -28,7 +27,6 @@ struct Message {};
 
 struct LoopMsg {};
 
-bool looped               = false;
 bool seen_message0        = false;
 bool seen_message_startup = false;
 
@@ -48,7 +46,6 @@ public:
         });
 
         on<Trigger<ReactionStatistics>>().then("Reaction Stats Handler", [this](const ReactionStatistics& stats) {
-
             // If we are seeing ourself, fail
             REQUIRE(stats.identifier[0] != "Reaction Stats Handler");
 
@@ -59,9 +56,7 @@ public:
             REQUIRE(stats.identifier[0] != "NoStats");
 
             // Flag if we have seen the message handler
-            if (stats.identifier[0] == "Message Handler") {
-                seen_message0 = true;
-            }
+            if (stats.identifier[0] == "Message Handler") { seen_message0 = true; }
             // Flag if we have seen the startup handler
             else if (stats.identifier[0] == "Startup Handler") {
                 seen_message_startup = true;

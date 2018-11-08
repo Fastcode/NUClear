@@ -17,8 +17,7 @@
  */
 
 #include <catch.hpp>
-
-#include "nuclear"
+#include <nuclear>
 
 namespace {
 struct SimpleMessage {};
@@ -27,7 +26,6 @@ struct MessageA {};
 struct MessageB {};
 
 MessageA* a = nullptr;
-MessageB* b = nullptr;
 
 class TestReactor : public NUClear::Reactor {
 public:

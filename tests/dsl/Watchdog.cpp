@@ -20,7 +20,7 @@
 
 #include <numeric>
 
-#include "nuclear"
+#include <nuclear>
 
 namespace {
 
@@ -36,7 +36,6 @@ public:
 
         // Trigger every 10 milliseconds
         on<Watchdog<TestReactor, 10, std::chrono::milliseconds>>().then([this] {
-
             end = NUClear::clock::now();
 
             // When our watchdog eventually triggers, shutdown
@@ -44,7 +43,6 @@ public:
         });
 
         on<Every<5, std::chrono::milliseconds>>().then([this] {
-
             // service the watchdog
             if (++count < 20) {
                 emit(std::make_unique<NUClear::message::ServiceWatchdog<TestReactor>>());

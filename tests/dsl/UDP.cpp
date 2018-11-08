@@ -18,7 +18,7 @@
 
 #include <catch.hpp>
 
-#include "nuclear"
+#include <nuclear>
 
 namespace {
 
@@ -35,7 +35,6 @@ public:
 
         // Known port
         on<UDP>(PORT).then([this](const UDP::Packet& packet) {
-
             // Check that the data we received is correct
             REQUIRE(packet.remote.address == INADDR_LOOPBACK);
             REQUIRE(packet.payload.size() == TEST_STRING.size());
@@ -51,7 +50,6 @@ public:
         // Unknown port
         in_port_t bound_port;
         std::tie(std::ignore, bound_port, std::ignore) = on<UDP>().then([this](const UDP::Packet& packet) {
-
             // Check that the data we received is correct
             REQUIRE(packet.remote.address == INADDR_LOOPBACK);
             REQUIRE(packet.payload.size() == TEST_STRING.size());
@@ -74,13 +72,11 @@ public:
         // Send a test for an unknown port
         // needs to include the bound_port in the lambda capture, so that the function will have access to bound_port.
         on<Trigger<Message>>().then([this, bound_port] {
-
             // Emit our UDP message
             emit<Scope::UDP>(std::make_unique<std::string>(TEST_STRING), INADDR_LOOPBACK, bound_port);
         });
 
         on<Startup>().then([this] {
-
             // Emit a message just so it will be when everything is running
             emit(std::make_unique<Message>());
         });

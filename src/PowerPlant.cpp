@@ -15,8 +15,10 @@
  * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-#include "nuclear_bits/PowerPlant.hpp"
-#include "nuclear_bits/threading/ThreadPoolTask.hpp"
+
+#include "PowerPlant.hpp"
+
+#include "threading/ThreadPoolTask.hpp"
 
 namespace NUClear {
 
@@ -29,9 +31,7 @@ PowerPlant::~PowerPlant() {
 }
 
 void PowerPlant::on_startup(std::function<void()>&& func) {
-    if (is_running) {
-        throw std::runtime_error("Unable to do on_startup as the PowerPlant has already started");
-    }
+    if (is_running) { throw std::runtime_error("Unable to do on_startup as the PowerPlant has already started"); }
     else {
         startup_tasks.push_back(func);
     }
@@ -71,9 +71,7 @@ void PowerPlant::start() {
     // Now wait for all the threads to finish executing
     for (auto& thread : threads) {
         try {
-            if (thread->joinable()) {
-                thread->join();
-            }
+            if (thread->joinable()) { thread->join(); }
         }
         // This gets thrown some time if between checking if joinable and joining
         // the thread is no longer joinable

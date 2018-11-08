@@ -16,14 +16,13 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include "nuclear_bits/util/network/get_interfaces.hpp"
-
-// Include platform specific details
-#include "nuclear_bits/util/platform.hpp"
+#include "get_interfaces.hpp"
 
 #include <algorithm>
 #include <cstring>
 #include <system_error>
+
+#include "../platform.hpp"
 
 namespace NUClear {
 namespace util {

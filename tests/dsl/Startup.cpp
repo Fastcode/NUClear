@@ -18,7 +18,7 @@
 
 #include <catch.hpp>
 
-#include "nuclear"
+#include <nuclear>
 
 namespace {
 struct SimpleMessage {
@@ -30,7 +30,6 @@ public:
     TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
 
         on<Trigger<SimpleMessage>>().then([this](const SimpleMessage& message) {
-
             // The message we received should have test == 10
             REQUIRE(message.data == 10);
 

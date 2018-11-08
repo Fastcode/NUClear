@@ -18,7 +18,7 @@
 
 #include <catch.hpp>
 
-#include "nuclear"
+#include <nuclear>
 
 namespace {
 
@@ -37,7 +37,6 @@ public:
     TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
 
         on<Trigger<Message<0>>, Sync<TestReactor>>().then([this](const Message<0>& m) {
-
             // Increment our semaphore
             ++semaphore;
 
@@ -61,7 +60,6 @@ public:
         });
 
         on<Trigger<Message<0>>, Sync<TestReactor>>().then([this](const Message<0>& m) {
-
             // Increment our semaphore
             ++semaphore;
 
@@ -85,7 +83,6 @@ public:
         });
 
         on<Trigger<Message<1>>, Sync<TestReactor>>().then([this](const Message<1>& m) {
-
             // Increment our semaphore
             ++semaphore;
 

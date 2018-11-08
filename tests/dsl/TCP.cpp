@@ -18,7 +18,7 @@
 
 #include <catch.hpp>
 
-#include "nuclear"
+#include <nuclear>
 
 namespace {
 
@@ -35,9 +35,7 @@ public:
 
         // Bind to a known port
         on<TCP>(PORT).then([this](const TCP::Connection& connection) {
-
             on<IO>(connection.fd, IO::READ | IO::CLOSE).then([this](IO::Event event) {
-
                 // If we read 0 later it means orderly shutdown
                 ssize_t len = -1;
 
@@ -72,9 +70,8 @@ public:
         int bound_port;
         std::tie(std::ignore, bound_port, std::ignore) = on<TCP>().then([this](const TCP::Connection& connection) {
             on<IO>(connection.fd, IO::READ | IO::CLOSE).then([this](IO::Event event) {
-
                 // If we read 0 later it means orderly shutdown
-                ssize_t len                            = -1;
+                ssize_t len = -1;
 
                 // We have data to read
                 if ((event.events & IO::READ) != 0) {
@@ -105,7 +102,6 @@ public:
 
         // Send a test message to the known port
         on<Trigger<Message>>().then([this] {
-
             // Open a random socket
             NUClear::util::FileDescriptor fd = ::socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 
@@ -155,7 +151,6 @@ public:
         });
 
         on<Startup>().then([this] {
-
             // Emit a message just so it will be when everything is running
             emit(std::make_unique<Message>());
         });

@@ -17,8 +17,7 @@
  */
 
 #include <catch.hpp>
-
-#include "nuclear"
+#include <nuclear>
 
 // Anonymous namespace to keep everything file local
 namespace {
@@ -56,9 +55,7 @@ public:
                     break;
             }
 
-            if (received_messages == 4) {
-                powerplant.shutdown();
-            }
+            if (received_messages == 4) { powerplant.shutdown(); }
         });
 
         on<Startup>().then([this] {

@@ -17,8 +17,7 @@
  */
 
 #include <catch.hpp>
-
-#include "nuclear"
+#include <nuclear>
 
 namespace {
 
@@ -87,7 +86,6 @@ public:
             });
 
         on<Startup>().then([this] {
-
             // Emit only message A
             emit(std::make_unique<MessageA>());
         });
