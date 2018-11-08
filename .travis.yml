@@ -18,7 +18,7 @@ matrix:
       addons:
         apt:
           sources: ['ubuntu-toolchain-r-test']
-          packages: ['g++-4.9', 'cmake']
+          packages: ['g++-4.9']
       env:
         - CXX_COMPILER=g++-4.9
         - CC_COMPILER=gcc-4.9
@@ -29,7 +29,7 @@ matrix:
       addons:
         apt:
           sources: ['ubuntu-toolchain-r-test']
-          packages: ['g++-5', 'cmake']
+          packages: ['g++-5']
       env:
         - CXX_COMPILER=g++-5
         - CC_COMPILER=gcc-5
@@ -40,7 +40,7 @@ matrix:
       addons:
         apt:
           sources: ['ubuntu-toolchain-r-test']
-          packages: ['g++-6', 'cmake']
+          packages: ['g++-6']
       env:
         - CXX_COMPILER=g++-6
         - CC_COMPILER=gcc-6
@@ -51,7 +51,7 @@ matrix:
       addons:
         apt:
           sources: ['ubuntu-toolchain-r-test']
-          packages: ['g++-7', 'cmake']
+          packages: ['g++-7']
       env:
         - CXX_COMPILER=g++-7
         - CC_COMPILER=gcc-7
@@ -62,7 +62,7 @@ matrix:
       addons:
         apt:
           sources: ['ubuntu-toolchain-r-test']
-          packages: ['g++-8', 'cmake']
+          packages: ['g++-8']
       env:
         - CXX_COMPILER=g++-8
         - CC_COMPILER=gcc-8
@@ -73,7 +73,7 @@ matrix:
       addons:
         apt:
           sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-trusty-3.6']
-          packages: ['clang-3.6', 'g++-4.9', 'cmake']
+          packages: ['clang-3.6', 'g++-4.9']
       env:
         - CXX_COMPILER=clang++-3.6
         - CC_COMPILER=clang-3.6
@@ -84,7 +84,7 @@ matrix:
       addons:
         apt:
           sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-precise-3.7']
-          packages: ['clang-3.7', 'g++-4.9', 'cmake']
+          packages: ['clang-3.7', 'g++-4.9']
       env:
         - CXX_COMPILER=clang++-3.7
         - CC_COMPILER=clang-3.7
@@ -95,7 +95,7 @@ matrix:
       addons:
         apt:
           sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-trusty-3.8']
-          packages: ['clang-3.8', 'g++-4.9', 'cmake']
+          packages: ['clang-3.8', 'g++-4.9']
       env:
         - CXX_COMPILER=clang++-3.8
         - CC_COMPILER=clang-3.8
@@ -106,7 +106,7 @@ matrix:
       addons:
         apt:
           sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-trusty-3.9']
-          packages: ['clang-3.9', 'g++-4.9', 'cmake']
+          packages: ['clang-3.9', 'g++-4.9']
       env:
         - CXX_COMPILER=clang++-3.9
         - CC_COMPILER=clang-3.9
@@ -117,7 +117,7 @@ matrix:
       addons:
         apt:
           sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-trusty-4.0']
-          packages: ['clang-4.0', 'g++-4.9', 'cmake']
+          packages: ['clang-4.0', 'g++-4.9']
       env:
         - CXX_COMPILER=clang++-4.0
         - CC_COMPILER=clang-4.0
@@ -141,4 +141,4 @@ before_script:
 script:
   - make -j2
   - ./tests/test_nuclear exclude:[network]
-  - find tests/individual -type f -exec ./{} \;
+  - find tests/individual -type f -print -exec ./{} \;
