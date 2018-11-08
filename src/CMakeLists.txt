@@ -120,7 +120,32 @@ ADD_LIBRARY(nuclear STATIC
 SET_TARGET_PROPERTIES(nuclear PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
-TARGET_COMPILE_FEATURES(nuclear INTERFACE cxx_std_14)
+
+# This is where we set the features required by NUClear
+TARGET_COMPILE_FEATURES(nuclear INTERFACE
+    cxx_constexpr
+    cxx_decltype
+    cxx_deleted_functions
+    cxx_generic_lambdas
+    cxx_inheriting_constructors
+    cxx_lambdas
+    cxx_lambda_init_captures
+    cxx_noexcept
+    cxx_nonstatic_member_init
+    cxx_nullptr
+    cxx_range_for
+    cxx_range_forxpr
+    cxx_return_type_deduction
+    cxx_right_angle_brackets
+    cxx_rvalue_references
+    cxx_static_assert
+    cxx_thread_local
+    cxx_trailing_return_types
+    cxx_uniform_initialization
+    cxx_variadic_templates
+    cxx_template_template_parameters
+)
+
 TARGET_LINK_LIBRARIES(nuclear ${CMAKE_THREAD_LIBS_INIT})
 
 # Install the headers and templates and libraries
