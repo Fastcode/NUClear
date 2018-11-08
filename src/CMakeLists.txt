@@ -134,7 +134,6 @@ TARGET_COMPILE_FEATURES(nuclear INTERFACE
     cxx_nonstatic_member_init
     cxx_nullptr
     cxx_range_for
-    cxx_range_forxpr
     cxx_return_type_deduction
     cxx_right_angle_brackets
     cxx_rvalue_references
