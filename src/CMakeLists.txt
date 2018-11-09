@@ -122,7 +122,7 @@ SET_TARGET_PROPERTIES(nuclear PROPERTIES
 )
 
 # This is where we set the features required by NUClear
-TARGET_COMPILE_FEATURES(nuclear INTERFACE
+TARGET_COMPILE_FEATURES(nuclear PUBLIC
     cxx_constexpr
     cxx_decltype
     cxx_deleted_functions
