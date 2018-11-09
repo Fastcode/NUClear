@@ -57,7 +57,7 @@ void PowerPlant::start() {
 
     // Start all our threads
     for (size_t i = 0; i < configuration.thread_count; ++i) {
-        tasks.push_back(threading::make_thread_pool_task(*this, scheduler));
+        tasks.push_back(threading::make_thread_pool_task(scheduler));
     }
 
     // Start all our tasks
@@ -66,7 +66,7 @@ void PowerPlant::start() {
     }
 
     // Start our main thread using our main task scheduler
-    threading::make_thread_pool_task(*this, main_thread_scheduler)();
+    threading::make_thread_pool_task(main_thread_scheduler)();
 
     // Now wait for all the threads to finish executing
     for (auto& thread : threads) {
