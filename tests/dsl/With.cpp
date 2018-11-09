@@ -17,7 +17,6 @@
  */
 
 #include <catch.hpp>
-
 #include <nuclear>
 
 namespace {
@@ -43,7 +42,7 @@ public:
 
         // Make sure we can pass an empty function in here
         on<Trigger<DifferentOrderingMessage1>, With<DifferentOrderingMessage1, DifferentOrderingMessage2>>().then(
-            [this] {});
+            [] {});
     }
 };
 }  // namespace
