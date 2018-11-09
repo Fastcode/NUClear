@@ -78,7 +78,7 @@ public:
                 std::make_unique<std::string>(std::numeric_limits<uint16_t>::max(), 's'), join.name, true);
         });
 
-        on<Trigger<NetworkLeave>, Sync<TestReactor>>().then([this](const NetworkLeave& leave) {
+        on<Trigger<NetworkLeave>, Sync<TestReactor>>().then([](const NetworkLeave& leave) {
             std::cout << "Disconnected from" << std::endl;
             std::cout << "\tName: " << leave.name << std::endl;
 
@@ -109,7 +109,7 @@ public:
         });
 
         on<Network<std::string>, Sync<TestReactor>>().then(
-            [this](const NUClear::dsl::word::NetworkSource& source, const std::string& s) {
+            [](const NUClear::dsl::word::NetworkSource& source, const std::string& s) {
                 std::cout << "Processing a message from " << source.name << std::endl;
 
                 if (s.size() < 100) { std::cout << s << std::endl; }
