@@ -17,8 +17,7 @@
  */
 
 #include <catch.hpp>
-
-#include "nuclear"
+#include <nuclear>
 
 // Anonymous namespace to keep everything file local
 namespace {
@@ -44,12 +43,12 @@ public:
             powerplant.shutdown();
         });
 
-        on<Trigger<AtTimeMessage>>().then([this] {
+        on<Trigger<AtTimeMessage>>().then([] {
             // Don't shut down here we are first
             at_time_received = NUClear::clock::now();
         });
 
-        on<Trigger<NormalMessage>>().then([this] { normal_received = NUClear::clock::now(); });
+        on<Trigger<NormalMessage>>().then([] { normal_received = NUClear::clock::now(); });
 
         on<Startup>().then([this] {
             sent = NUClear::clock::now();

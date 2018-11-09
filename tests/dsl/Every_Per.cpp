@@ -17,10 +17,8 @@
  */
 
 #include <catch.hpp>
-
 #include <numeric>
-
-#include "nuclear"
+#include <nuclear>
 
 namespace {
 
@@ -37,7 +35,6 @@ public:
 
         // Trigger every 10 milliseconds
         on<Every<CYCLES_PER_SECOND, Per<std::chrono::seconds>>>().then([this]() {
-
             // Start logging our times each time an emit happens
             times.push_back(NUClear::clock::now());
 

@@ -17,8 +17,7 @@
  */
 
 #include <catch.hpp>
-
-#include "nuclear"
+#include <nuclear>
 
 namespace {
 struct SimpleMessage {};
@@ -56,13 +55,13 @@ public:
             powerplant.shutdown();
         });
 
-        on<Trigger<MessageB>>().then([this] {
+        on<Trigger<MessageB>>().then([] {
             // Check b has been emitted
             REQUIRE(b != nullptr);
         });
 
         // We make this high priority to ensure it runs first (will check for more errors)
-        on<Trigger<MessageA>, With<MessageB>, Priority::HIGH>().then([this](const MessageA&, const MessageB&) {
+        on<Trigger<MessageA>, With<MessageB>, Priority::HIGH>().then([](const MessageA&, const MessageB&) {
             // Check A and B have been emitted
             REQUIRE(a != nullptr);
             REQUIRE(b != nullptr);

@@ -19,7 +19,7 @@
 #include <catch.hpp>
 #include <utility>
 
-#include "nuclear"
+#include <nuclear>
 
 namespace {
 struct BindExtensionTest1 {
@@ -113,7 +113,6 @@ public:
         on<Trigger<int>, BindExtensionTest1>(2, 3.3).then([] {});
 
         on<Trigger<ShutdownFlag>>().then([this] {
-
             // We are finished the test
             powerplant.shutdown();
         });

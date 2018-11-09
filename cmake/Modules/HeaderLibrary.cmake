@@ -23,18 +23,18 @@ FUNCTION(HeaderLibrary)
 
     # Clear our required_vars variable
     UNSET(required_vars)
+    SET(OUTPUT_DIR "${CMAKE_BINARY_DIR}/include")
 
     # Find our include path
     FIND_PATH("${PACKAGE_NAME}_INCLUDE_DIR"
               NAMES ${PACKAGE_HEADER}
               DOC "The ${PACKAGE_NAME} include directory"
-              PATHS "${OUTPUT_DIR}/${PACKAGE_HEADER}"
+              PATHS "${OUTPUT_DIR}"
               PATH_SUFFIXES ${PACKAGE_PATH_SUFFIX}
     )
-
+ 
     # File doesn't exist in standard search paths, download it
     IF(NOT ${PACKAGE_NAME}_INCLUDE_DIR)
-        SET(OUTPUT_DIR "${CMAKE_BINARY_DIR}/include")
 
         # Create the output folder if it doesn't already exist
         IF(NOT EXISTS "${OUTPUT_DIR}")
@@ -74,4 +74,3 @@ FUNCTION(HeaderLibrary)
     SET(${PACKAGE_NAME}_FOUND ${PACKAGE_NAME}_FOUND PARENT_SCOPE)
 
 ENDFUNCTION(HeaderLibrary)
-

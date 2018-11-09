@@ -19,7 +19,7 @@
 #include <catch.hpp>
 #include <utility>
 
-#include "nuclear"
+#include <nuclear>
 
 // Anonymous namespace to keep everything file local
 namespace {

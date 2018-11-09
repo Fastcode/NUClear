@@ -16,15 +16,16 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include "nuclear_bits/extension/network/NUClearNetwork.hpp"
+#include "NUClearNetwork.hpp"
 
 #include <algorithm>
 #include <cerrno>
 #include <cstring>
 #include <set>
 #include <utility>
-#include "nuclear_bits/util/network/get_interfaces.hpp"
-#include "nuclear_bits/util/platform.hpp"
+
+#include "../../util/network/get_interfaces.hpp"
+#include "../../util/platform.hpp"
 
 namespace NUClear {
 namespace extension {
@@ -79,7 +80,7 @@ namespace extension {
         std::array<uint16_t, 9> NUClearNetwork::udp_key(const sock_t& address) {
 
             // Get our keys for our maps, it will be the ip and then port
-            std::array<uint16_t, 9> key{};
+            std::array<uint16_t, 9> key;
             key.fill(0);
 
             switch (address.sock.sa_family) {
@@ -104,9 +105,7 @@ namespace extension {
 
             // Erase udp
             auto key = udp_key(target->target);
-            if (udp_target.find(key) != udp_target.end()) {
-                udp_target.erase(udp_target.find(key));
-            }
+            if (udp_target.find(key) != udp_target.end()) { udp_target.erase(udp_target.find(key)); }
 
             // Erase name
             auto range = name_target.equal_range(target->name);
@@ -119,9 +118,7 @@ namespace extension {
 
             // Erase target
             auto t = std::find(targets.begin(), targets.end(), target);
-            if (t != targets.end()) {
-                targets.erase(t);
-            }
+            if (t != targets.end()) { targets.erase(t); }
         }
 
 
@@ -172,9 +169,7 @@ namespace extension {
                 || (address.sock.sa_family == AF_INET6 && address.ipv6.sin6_addr.s6_addr[0] == 0xFF);
 
             // Swap our address so the rest of the information is anys
-            if (address.sock.sa_family == AF_INET) {
-                address.ipv4.sin_addr.s_addr = htonl(INADDR_ANY);
-            }
+            if (address.sock.sa_family == AF_INET) { address.ipv4.sin_addr.s_addr = htonl(INADDR_ANY); }
             else if (address.sock.sa_family == AF_INET6) {
                 address.ipv6.sin6_addr = IN6ADDR_ANY_INIT;
             }
@@ -214,10 +209,10 @@ namespace extension {
                 if (announce_target.sock.sa_family == AF_INET) {
 
                     // Set the multicast address we are listening on
-                    ip_mreq mreq{};
+                    ip_mreq mreq;
                     mreq.imr_multiaddr = announce_target.ipv4.sin_addr;
 
-                    int connected_count = 0;
+                    int connected_count    = 0;
                     int last_network_errno = 0;
 
                     // Join the multicast group on all the interfaces that support it
@@ -230,30 +225,28 @@ namespace extension {
 
                             // Join our multicast group
                             int status = ::setsockopt(announce_fd,
-                                             IPPROTO_IP,
-                                             IP_ADD_MEMBERSHIP,
-                                             reinterpret_cast<char*>(&mreq),
-                                             sizeof(ip_mreq));
+                                                      IPPROTO_IP,
+                                                      IP_ADD_MEMBERSHIP,
+                                                      reinterpret_cast<char*>(&mreq),
+                                                      sizeof(ip_mreq));
 
-                            if (status < 0) {
-                                last_network_errno = network_errno;
-                            } else {
+                            if (status < 0) { last_network_errno = network_errno; }
+                            else {
                                 connected_count++;
                             }
                         }
                     }
 
                     if (connected_count == 0) {
-                        throw std::system_error(
-                                    last_network_errno,
-                                    std::system_category(),
-                                    "There was an error while attempting to join the multicast group");
+                        throw std::system_error(last_network_errno,
+                                                std::system_category(),
+                                                "There was an error while attempting to join the multicast group");
                     }
                 }
                 else if (announce_target.sock.sa_family == AF_INET6) {
 
                     // Set the multicast address we are listening on
-                    ipv6_mreq mreq{};
+                    ipv6_mreq mreq;
                     mreq.ipv6mr_multiaddr = announce_target.ipv6.sin6_addr;
 
                     std::set<unsigned int> added_interfaces;
@@ -341,7 +334,7 @@ namespace extension {
             udp_target.clear();
 
             // Setup some hints for what our address is
-            addrinfo hints{};
+            addrinfo hints;
             memset(&hints, 0, sizeof hints);  // make sure the struct is empty
             hints.ai_family   = AF_UNSPEC;    // don't care about IPv4 or IPv6
             hints.ai_socktype = SOCK_DGRAM;   // using udp datagrams
@@ -356,7 +349,7 @@ namespace extension {
             }
 
             // Clear our struct
-            sock_t announce_target{};
+            sock_t announce_target;
             std::memset(&announce_target, 0, sizeof(announce_target));
 
             // The list is actually a linked list of valid addresses
@@ -422,16 +415,16 @@ namespace extension {
 
             // Allocate a vector that can hold a datagram
             std::vector<char> payload(1500);
-            iovec iov{};
+            iovec iov;
             iov.iov_base = payload.data();
             iov.iov_len  = payload.size();
 
             // Who we are receiving from
-            sock_t from{};
+            sock_t from;
             std::memset(&from, 0, sizeof(from));
 
             // Setup our message header to receive
-            msghdr mh{};
+            msghdr mh;
             memset(&mh, 0, sizeof(msghdr));
             mh.msg_name    = &from.sock;
             mh.msg_namelen = sizeof(from);
@@ -494,9 +487,7 @@ namespace extension {
             }
 
             // Check if we have packets to resend and if so resend
-            if (!send_queue.empty()) {
-                retransmit();
-            }
+            if (!send_queue.empty()) { retransmit(); }
 
             // Used for storing how many bytes are available on a socket
             unsigned long count = 0;
@@ -565,9 +556,7 @@ namespace extension {
                     }
                 }
 
-                if (qit->second.targets.empty()) {
-                    qit = send_queue.erase(qit);
-                }
+                if (qit->second.targets.empty()) { qit = send_queue.erase(qit); }
                 else {
                     ++qit;
                 }
@@ -653,9 +642,7 @@ namespace extension {
                                 }
 
                                 // Only call the callback if it is new
-                                if (new_connection) {
-                                    join_callback(*ptr);
-                                }
+                                if (new_connection) { join_callback(*ptr); }
                             }
                         }
                         // They're old but at least they're not timing out
@@ -680,9 +667,7 @@ namespace extension {
                                 }
                             }
                             // Call the callback if they really left
-                            if (left) {
-                                leave_callback(*remote);
-                            }
+                            if (left) { leave_callback(*remote); }
                         }
 
                     } break;
@@ -696,9 +681,7 @@ namespace extension {
 
                         // If the packet is obviously corrupt, drop it and since we didn't ack it it'll be resent if
                         // it's important
-                        if (packet.packet_no > packet.packet_count) {
-                            return;
-                        }
+                        if (packet.packet_no > packet.packet_count) { return; }
 
                         // Check if we know who this is and if we don't know them, ignore
                         if (remote) {
@@ -946,9 +929,7 @@ namespace extension {
                                         queue.targets.erase(s);
 
                                         // If we're all done remove the whole thing
-                                        if (queue.targets.empty()) {
-                                            send_queue.erase(packet.packet_id);
-                                        }
+                                        if (queue.targets.empty()) { send_queue.erase(packet.packet_id); }
                                     }
                                 }
                             }
@@ -1033,7 +1014,7 @@ namespace extension {
                                          const bool& /*reliable*/) {
 
             // Our packet we are sending
-            msghdr message{};
+            msghdr message;
             std::memset(&message, 0, sizeof(msghdr));
 
             iovec data[2];
@@ -1066,9 +1047,7 @@ namespace extension {
                                   bool reliable) {
 
             // If we are not connected throw an error
-            if (targets.empty()) {
-                throw std::runtime_error("Cannot send messages as the network is not connected");
-            }
+            if (targets.empty()) { throw std::runtime_error("Cannot send messages as the network is not connected"); }
 
 
             // The header for our packet
@@ -1077,8 +1056,7 @@ namespace extension {
             /* Mutex Scope */ {
                 std::lock_guard<std::mutex> lock(send_queue_mutex);
                 // For the packet id we ensure that it's not currently used for retransmission
-                while (send_queue.count(header.packet_id = ++packet_id_source) > 0) {
-                }
+                while (send_queue.count(header.packet_id = ++packet_id_source) > 0) {}
             }
 
             header.packet_no    = 0;

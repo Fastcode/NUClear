@@ -17,8 +17,7 @@
  */
 
 #include <catch.hpp>
-
-#include "nuclear"
+#include <nuclear>
 
 namespace {
 
@@ -29,13 +28,10 @@ public:
     TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
 
         on<Always>().then([this] {
-
             ++i;
 
             // Run until it's 11 then shutdown
-            if (i > 10) {
-                powerplant.shutdown();
-            }
+            if (i > 10) { powerplant.shutdown(); }
         });
     }
 };

@@ -16,14 +16,13 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include "nuclear_bits/util/network/get_interfaces.hpp"
-
-// Include platform specific details
-#include "nuclear_bits/util/platform.hpp"
+#include "get_interfaces.hpp"
 
 #include <algorithm>
 #include <cstring>
 #include <system_error>
+
+#include "../platform.hpp"
 
 namespace NUClear {
 namespace util {
@@ -144,7 +143,7 @@ namespace util {
 
             std::vector<Interface> ifaces;
 
-            addrinfo hints{};
+            addrinfo hints;
             std::memset(&hints, 0, sizeof(hints));
             hints.ai_family = AF_INET;
 
@@ -161,10 +160,7 @@ namespace util {
                 // Sometimes we find an interface with no IP (like a CAN bus) this is not what we're after
                 if (cursor->ifa_addr) {
 
-                    // Clear!
                     Interface iface;
-                    std::memset(&iface, 0, sizeof(iface));
-
                     iface.name = cursor->ifa_name;
 
                     // Copy across our various addresses
@@ -183,6 +179,9 @@ namespace util {
                                 break;
                         }
                     }
+                    else {
+                        std::memset(&iface.netmask, 0, sizeof(iface.netmask));
+                    }
 
                     if (cursor->ifa_dstaddr != nullptr) {
                         switch (cursor->ifa_addr->sa_family) {
@@ -194,6 +193,9 @@ namespace util {
                                 std::memcpy(&iface.broadcast, cursor->ifa_dstaddr, sizeof(sockaddr_in6));
                                 break;
                         }
+                    }
+                    else {
+                        std::memset(&iface.broadcast, 0, sizeof(iface.broadcast));
                     }
 
                     iface.flags.broadcast    = (cursor->ifa_flags & IFF_BROADCAST) != 0;

@@ -15,8 +15,10 @@
  * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-#include "nuclear_bits/PowerPlant.hpp"
-#include "nuclear_bits/threading/ThreadPoolTask.hpp"
+
+#include "PowerPlant.hpp"
+
+#include "threading/ThreadPoolTask.hpp"
 
 namespace NUClear {
 
@@ -29,9 +31,7 @@ PowerPlant::~PowerPlant() {
 }
 
 void PowerPlant::on_startup(std::function<void()>&& func) {
-    if (is_running) {
-        throw std::runtime_error("Unable to do on_startup as the PowerPlant has already started");
-    }
+    if (is_running) { throw std::runtime_error("Unable to do on_startup as the PowerPlant has already started"); }
     else {
         startup_tasks.push_back(func);
     }
@@ -57,7 +57,7 @@ void PowerPlant::start() {
 
     // Start all our threads
     for (size_t i = 0; i < configuration.thread_count; ++i) {
-        tasks.push_back(threading::make_thread_pool_task(*this, scheduler));
+        tasks.push_back(threading::make_thread_pool_task(scheduler));
     }
 
     // Start all our tasks
@@ -66,14 +66,12 @@ void PowerPlant::start() {
     }
 
     // Start our main thread using our main task scheduler
-    threading::make_thread_pool_task(*this, main_thread_scheduler)();
+    threading::make_thread_pool_task(main_thread_scheduler)();
 
     // Now wait for all the threads to finish executing
     for (auto& thread : threads) {
         try {
-            if (thread->joinable()) {
-                thread->join();
-            }
+            if (thread->joinable()) { thread->join(); }
         }
         // This gets thrown some time if between checking if joinable and joining
         // the thread is no longer joinable

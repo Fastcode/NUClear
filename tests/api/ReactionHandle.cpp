@@ -17,8 +17,7 @@
  */
 
 #include <catch.hpp>
-
-#include "nuclear"
+#include <nuclear>
 
 // Anonymous namespace to keep everything file local
 namespace {
@@ -32,7 +31,7 @@ public:
 
         // Make an always disabled reaction
         ReactionHandle a =
-            on<Trigger<Message<0>>, Priority::HIGH>().then([this] { FAIL("This reaction is disabled always"); });
+            on<Trigger<Message<0>>, Priority::HIGH>().then([] { FAIL("This reaction is disabled always"); });
         a.disable();
 
         ReactionHandle b = on<Trigger<Message<0>>>().then([this] { powerplant.shutdown(); });
