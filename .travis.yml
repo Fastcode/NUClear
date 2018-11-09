@@ -122,6 +122,41 @@ matrix:
         - CXX_COMPILER=clang++-4.0
         - CC_COMPILER=clang-4.0
 
+    - os: linux
+      dist: trusty
+      compiler: clang
+      addons:
+        apt:
+          sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-trusty-5.0']
+          packages: ['clang-5.0', 'g++-4.9']
+      env:
+        - CXX_COMPILER=clang++-5.0
+        - CC_COMPILER=clang-5.0
+
+
+    - os: linux
+      dist: trusty
+      compiler: clang
+      addons:
+        apt:
+          sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-trusty-6.0']
+          packages: ['clang-6.0', 'g++-4.9']
+      env:
+        - CXX_COMPILER=clang++-6.0
+        - CC_COMPILER=clang-6.0
+
+
+    - os: linux
+      dist: trusty
+      compiler: clang
+      addons:
+        apt:
+          sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-trusty-7.0']
+          packages: ['clang-7.0', 'g++-4.9']
+      env:
+        - CXX_COMPILER=clang++-7.0
+        - CC_COMPILER=clang-7.0
+
     - os: osx
       env:
         - CXX_COMPILER=clang++
