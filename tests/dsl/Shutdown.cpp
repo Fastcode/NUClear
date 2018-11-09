@@ -35,7 +35,7 @@ public:
             powerplant.shutdown();
         });
 
-        on<Shutdown>().then([this] { did_shutdown = true; });
+        on<Shutdown>().then([] { did_shutdown = true; });
     }
 };
 }  // namespace
