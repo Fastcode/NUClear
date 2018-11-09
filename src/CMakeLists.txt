@@ -130,6 +130,7 @@ TARGET_COMPILE_FEATURES(nuclear PUBLIC
     cxx_inheriting_constructors
     cxx_lambdas
     cxx_lambda_init_captures
+    cxx_long_long_type
     cxx_noexcept
     cxx_nonstatic_member_init
     cxx_nullptr
