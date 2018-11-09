@@ -27,19 +27,19 @@ SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 # Set a default build type if none was specified
 SET(default_build_type "Release")
 IF(EXISTS "${CMAKE_SOURCE_DIR}/.git")
-  SET(default_build_type "Debug")
+    SET(default_build_type "Debug")
 ENDIF()
 
 IF(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
-  MESSAGE(STATUS "Setting build type to '${default_build_type}' as none was specified.")
-  SET(CMAKE_BUILD_TYPE ${default_build_type} CACHE STRING "Choose the type of build." FORCE)
-  # Set the possible values of build type for cmake-gui
-  SET_PROPERTY(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release" "MinSizeRel" "RelWithDebInfo")
+    MESSAGE(STATUS "Setting build type to '${default_build_type}' as none was specified.")
+    SET(CMAKE_BUILD_TYPE ${default_build_type} CACHE STRING "Choose the type of build." FORCE)
+    # Set the possible values of build type for cmake-gui
+    SET_PROPERTY(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release" "MinSizeRel" "RelWithDebInfo")
 ENDIF()
 
 # Enable warnings, and all warnings are errors
 IF(MSVC)
-    ADD_COMIPLE_OPTIONS(/W4 /WX)
+    ADD_COMPILE_OPTIONS(/W4 /WX)
 ELSE()
     ADD_COMPILE_OPTIONS(-Wall -Wextra -pedantic -Werror)
 ENDIF(MSVC)
