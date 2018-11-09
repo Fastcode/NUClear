@@ -36,7 +36,7 @@ class TestReactor : public NUClear::Reactor {
 public:
     TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
 
-        on<Trigger<MessageA>, With<MessageB>>().then([this](const MessageA&, const MessageB&) {
+        on<Trigger<MessageA>, With<MessageB>>().then([](const MessageA&, const MessageB&) {
             ++trigger1;
             FAIL("This should never run as MessageB is never emitted");
         });
@@ -57,7 +57,7 @@ public:
                 emit(std::make_unique<MessageB>());
             });
 
-        on<Trigger<MessageB>, With<MessageA>>().then([this] {
+        on<Trigger<MessageB>, With<MessageA>>().then([] {
             // This should run once
             ++trigger3;
         });
