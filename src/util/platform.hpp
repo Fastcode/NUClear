@@ -28,6 +28,8 @@
 // So we have this header to make sure everything is in the correct order
 #ifdef _WIN32
 
+// Windows makes a ton of warnings
+#    pragma warning(push, 0)
 #    include <SdkDdkver.h>
 
 // We need at least windows vista so functions like inet_ntop exist
@@ -72,7 +74,7 @@
 
 // Whoever thought this was a good idea was a terrible person
 #    undef ERROR
-
+#    pragma warning(pop)
 #endif  // _WIN32
 
 /*******************************************
