@@ -44,7 +44,7 @@ public:
         });
 
         on<Trigger<MessageA>, With<MessageB>>().then(
-            [this](const MessageA&, const MessageB&) { FAIL("B was never emitted so this should not be possible"); });
+            [](const MessageA&, const MessageB&) { FAIL("B was never emitted so this should not be possible"); });
     }
 };
 }  // namespace
