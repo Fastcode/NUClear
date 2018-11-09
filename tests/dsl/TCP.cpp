@@ -17,7 +17,6 @@
  */
 
 #include <catch.hpp>
-
 #include <nuclear>
 
 namespace {
@@ -59,9 +58,7 @@ public:
 
                 // The connection was closed and the other test finished
                 if (len == 0 || ((event.events & IO::CLOSE) != 0)) {
-                    if (messages_received == 2) {
-                        powerplant.shutdown();
-                    }
+                    if (messages_received == 2) { powerplant.shutdown(); }
                 }
             });
         });
@@ -93,9 +90,7 @@ public:
 
                 // The connection was closed and the other test finished
                 if (len == 0 || ((event.events & IO::CLOSE) != 0)) {
-                    if (messages_received == 2) {
-                        powerplant.shutdown();
-                    }
+                    if (messages_received == 2) { powerplant.shutdown(); }
                 }
             });
         });
@@ -106,7 +101,7 @@ public:
             NUClear::util::FileDescriptor fd = ::socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 
             // Our address to our local connection
-            sockaddr_in address{};
+            sockaddr_in address;
             address.sin_family      = AF_INET;
             address.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
             address.sin_port        = htons(PORT);
@@ -131,7 +126,7 @@ public:
             NUClear::util::FileDescriptor fd = ::socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 
             // Our address to our local connection
-            sockaddr_in address{};
+            sockaddr_in address;
             address.sin_family      = AF_INET;
             address.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
             address.sin_port        = htons(bound_port);

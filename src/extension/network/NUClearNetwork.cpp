@@ -80,7 +80,7 @@ namespace extension {
         std::array<uint16_t, 9> NUClearNetwork::udp_key(const sock_t& address) {
 
             // Get our keys for our maps, it will be the ip and then port
-            std::array<uint16_t, 9> key{};
+            std::array<uint16_t, 9> key;
             key.fill(0);
 
             switch (address.sock.sa_family) {
@@ -209,7 +209,7 @@ namespace extension {
                 if (announce_target.sock.sa_family == AF_INET) {
 
                     // Set the multicast address we are listening on
-                    ip_mreq mreq{};
+                    ip_mreq mreq;
                     mreq.imr_multiaddr = announce_target.ipv4.sin_addr;
 
                     int connected_count    = 0;
@@ -246,7 +246,7 @@ namespace extension {
                 else if (announce_target.sock.sa_family == AF_INET6) {
 
                     // Set the multicast address we are listening on
-                    ipv6_mreq mreq{};
+                    ipv6_mreq mreq;
                     mreq.ipv6mr_multiaddr = announce_target.ipv6.sin6_addr;
 
                     std::set<unsigned int> added_interfaces;
@@ -334,7 +334,7 @@ namespace extension {
             udp_target.clear();
 
             // Setup some hints for what our address is
-            addrinfo hints{};
+            addrinfo hints;
             memset(&hints, 0, sizeof hints);  // make sure the struct is empty
             hints.ai_family   = AF_UNSPEC;    // don't care about IPv4 or IPv6
             hints.ai_socktype = SOCK_DGRAM;   // using udp datagrams
@@ -349,7 +349,7 @@ namespace extension {
             }
 
             // Clear our struct
-            sock_t announce_target{};
+            sock_t announce_target;
             std::memset(&announce_target, 0, sizeof(announce_target));
 
             // The list is actually a linked list of valid addresses
@@ -415,16 +415,16 @@ namespace extension {
 
             // Allocate a vector that can hold a datagram
             std::vector<char> payload(1500);
-            iovec iov{};
+            iovec iov;
             iov.iov_base = payload.data();
             iov.iov_len  = payload.size();
 
             // Who we are receiving from
-            sock_t from{};
+            sock_t from;
             std::memset(&from, 0, sizeof(from));
 
             // Setup our message header to receive
-            msghdr mh{};
+            msghdr mh;
             memset(&mh, 0, sizeof(msghdr));
             mh.msg_name    = &from.sock;
             mh.msg_namelen = sizeof(from);
@@ -1014,7 +1014,7 @@ namespace extension {
                                          const bool& /*reliable*/) {
 
             // Our packet we are sending
-            msghdr message{};
+            msghdr message;
             std::memset(&message, 0, sizeof(msghdr));
 
             iovec data[2];

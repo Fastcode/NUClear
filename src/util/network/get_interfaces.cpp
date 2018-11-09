@@ -143,7 +143,7 @@ namespace util {
 
             std::vector<Interface> ifaces;
 
-            addrinfo hints{};
+            addrinfo hints;
             std::memset(&hints, 0, sizeof(hints));
             hints.ai_family = AF_INET;
 

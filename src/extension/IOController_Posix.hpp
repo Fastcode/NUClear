@@ -187,7 +187,7 @@ namespace extension {
                                             if ((it->events & fd.revents) != 0) {
 
                                                 // Make our event to pass through
-                                                IO::Event e{};
+                                                IO::Event e;
                                                 e.fd = fd.fd;
 
                                                 // Evaluate and store our set in thread store
