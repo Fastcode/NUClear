@@ -96,7 +96,7 @@ public:
         });
 
         // Send a test message to the known port
-        on<Trigger<Message>>().then([this] {
+        on<Trigger<Message>>().then([] {
             // Open a random socket
             NUClear::util::FileDescriptor fd = ::socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 
@@ -121,7 +121,7 @@ public:
         });
 
         // Send a test message to the freely bound port
-        on<Trigger<Message>>().then([this, bound_port] {
+        on<Trigger<Message>>().then([bound_port] {
             // Open a random socket
             NUClear::util::FileDescriptor fd = ::socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 
