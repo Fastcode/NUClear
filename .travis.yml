@@ -23,17 +23,6 @@ matrix:
       addons:
         apt:
           sources: ['ubuntu-toolchain-r-test']
-          packages: ['g++-4.9']
-      env:
-        - CXX_COMPILER=g++-4.9
-        - CC_COMPILER=gcc-4.9
-
-    - os: linux
-      dist: trusty
-      compiler: gcc
-      addons:
-        apt:
-          sources: ['ubuntu-toolchain-r-test']
           packages: ['g++-5']
       env:
         - CXX_COMPILER=g++-5
