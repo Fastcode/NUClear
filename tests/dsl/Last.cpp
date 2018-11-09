@@ -17,8 +17,7 @@
  */
 
 #include <catch.hpp>
-
-#include "nuclear"
+#include <nuclear>
 
 namespace {
 
@@ -36,7 +35,6 @@ public:
     TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
 
         on<Last<5, Trigger<TestMessage>>>().then([this](std::list<std::shared_ptr<const TestMessage>> messages) {
-
             // We got another one
             ++recv_counter;
 
@@ -44,17 +42,13 @@ public:
             emit(std::make_unique<TestMessage>(++emit_counter));
 
             // Finish when we get to 10
-            if (messages.front()->value >= 10) {
-                powerplant.shutdown();
-            }
+            if (messages.front()->value >= 10) { powerplant.shutdown(); }
             else {
                 // Our list must be less than 5 long
                 REQUIRE(messages.size() <= 5);
 
                 // If our size is less than 5 it should be the size of the front element
-                if (messages.size() < 5) {
-                    REQUIRE(messages.size() == messages.back()->value);
-                }
+                if (messages.size() < 5) { REQUIRE(messages.size() == messages.back()->value); }
 
                 // Check that our numbers are decreasing
                 int i = messages.front()->value;
@@ -63,7 +57,6 @@ public:
                     ++i;
                 }
             }
-
         });
 
         on<Startup>().then([this] { emit(std::make_unique<TestMessage>(++emit_counter)); });

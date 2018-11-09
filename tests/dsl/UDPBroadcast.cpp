@@ -18,7 +18,7 @@
 
 #include <catch.hpp>
 
-#include "nuclear"
+#include <nuclear>
 
 namespace {
 
@@ -37,7 +37,6 @@ public:
 
         // Known port
         on<UDP::Broadcast>(PORT).then([this](const UDP::Packet& packet) {
-
             ++count_a;
 
             // Check that the data we received is correct
@@ -52,7 +51,6 @@ public:
 
         // Unknown port
         std::tie(std::ignore, bound_port, std::ignore) = on<UDP::Broadcast>().then([this](const UDP::Packet& packet) {
-
             ++count_b;
 
             // Check that the data we received is correct
@@ -66,7 +64,6 @@ public:
         });
 
         on<Trigger<Message>>().then([this] {
-
             // Get all the network interfaces
             auto interfaces = NUClear::util::network::get_interfaces();
 
@@ -96,7 +93,6 @@ public:
         });
 
         on<Trigger<Message>>().then([this] {
-
             // Get all the network interfaces
             auto interfaces = NUClear::util::network::get_interfaces();
 
@@ -125,7 +121,6 @@ public:
         });
 
         on<Startup>().then([this] {
-
             // Emit a message just so it will be when everything is running
             emit(std::make_unique<Message>());
         });

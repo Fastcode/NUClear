@@ -23,7 +23,7 @@
 
 #include <unistd.h>
 
-#include "nuclear"
+#include <nuclear>
 
 namespace {
 
@@ -41,7 +41,6 @@ public:
         out = fds[1];
 
         on<IO>(in, IO::READ).then([this](const IO::Event& e) {
-
             // Read from our FD
             unsigned char val;
             ssize_t bytes = ::read(e.fd, &val, 1);
@@ -56,7 +55,6 @@ public:
         });
 
         writer = on<IO>(out, IO::WRITE).then([this](const IO::Event& e) {
-
             // Send data into our fd
             unsigned char val = 0xDE;
             ssize_t bytes     = ::write(e.fd, &val, 1);

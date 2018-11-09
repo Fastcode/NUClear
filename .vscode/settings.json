@@ -1,0 +1,16 @@
+{
+    "cmake.generator": "Ninja",
+    "editor.formatOnSave": true,
+    "editor.tabSize": 4,
+    "editor.insertSpaces": true,
+    "files.insertFinalNewline": true,
+    "files.trimFinalNewlines": true,
+    "files.eol": "\n",
+    "C_Cpp.clang_format_style": "file",
+    "C_Cpp.default.cppStandard": "c++14",
+    "C_Cpp.preferredPathSeparator": "Forward Slash",
+    "editor.rulers": [
+        120
+    ],
+    "cmake.configureOnOpen": true
+}

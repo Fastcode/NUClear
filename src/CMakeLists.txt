@@ -1,85 +1,85 @@
 FILE(GLOB src
+    "nuclear"
     "*.cpp"
-    "include/nuclear"
-    "include/nuclear_bits/*.hpp"
-    "include/nuclear_bits/*.ipp")
+    "*.hpp"
+    "*.ipp")
 
 FILE(GLOB src_threading
     "threading/*.cpp"
-    "include/nuclear_bits/threading/*.hpp"
-    "include/nuclear_bits/threading/*.ipp")
+    "threading/*.hpp"
+    "threading/*.ipp")
 
 FILE(GLOB src_extension
     "extension/*.cpp"
-    "include/nuclear_bits/extension/*.hpp"
-    "include/nuclear_bits/extension/*.ipp")
+    "extension/*.hpp"
+    "extension/*.ipp")
 
 FILE(GLOB src_extension_network
     "extension/network/*.cpp"
-    "include/nuclear_bits/extension/network/*.hpp"
-    "include/nuclear_bits/extension/network/*.ipp")
+    "extension/network/*.hpp"
+    "extension/network/*.ipp")
 
 FILE(GLOB src_dsl
     "dsl/*.cpp"
-    "include/nuclear_bits/dsl/*.hpp"
-    "include/nuclear_bits/dsl/*.ipp")
+    "dsl/*.hpp"
+    "dsl/*.ipp")
 
 FILE(GLOB src_dsl_store
     "dsl/store/*.cpp"
-    "include/nuclear_bits/dsl/store/*.hpp"
-    "include/nuclear_bits/dsl/store/*.ipp")
+    "dsl/store/*.hpp"
+    "dsl/store/*.ipp")
 
 FILE(GLOB src_dsl_trait
     "dsl/trait/*.cpp"
-    "include/nuclear_bits/dsl/trait/*.hpp"
-    "include/nuclear_bits/dsl/trait/*.ipp")
+    "dsl/trait/*.hpp"
+    "dsl/trait/*.ipp")
 
 FILE(GLOB src_dsl_operation
     "dsl/operation/*.cpp"
-    "include/nuclear_bits/dsl/operation/*.hpp"
-    "include/nuclear_bits/dsl/operation/*.ipp")
+    "dsl/operation/*.hpp"
+    "dsl/operation/*.ipp")
 
 FILE(GLOB src_dsl_fusion
     "dsl/fusion/*.cpp"
-    "include/nuclear_bits/dsl/fusion/*.hpp"
-    "include/nuclear_bits/dsl/fusion/*.ipp")
+    "dsl/fusion/*.hpp"
+    "dsl/fusion/*.ipp")
 
 FILE(GLOB src_dsl_validation
     "dsl/validation/*.cpp"
-    "include/nuclear_bits/dsl/validation/*.hpp"
-    "include/nuclear_bits/dsl/validation/*.ipp")
+    "dsl/validation/*.hpp"
+    "dsl/validation/*.ipp")
 
 FILE(GLOB src_dsl_word
     "dsl/word/*.cpp"
-    "include/nuclear_bits/dsl/word/*.hpp"
-    "include/nuclear_bits/dsl/word/*.ipp")
+    "dsl/word/*.hpp"
+    "dsl/word/*.ipp")
 
 FILE(GLOB src_dsl_word_emit
     "dsl/word/emit/*.cpp"
-    "include/nuclear_bits/dsl/word/emit/*.hpp"
-    "include/nuclear_bits/dsl/word/emit/*.ipp")
+    "dsl/word/emit/*.hpp"
+    "dsl/word/emit/*.ipp")
 
 FILE(GLOB src_message
     "messages/*.cpp"
-    "include/nuclear_bits/message/*.hpp"
-    "include/nuclear_bits/message/*.ipp")
+    "message/*.hpp"
+    "message/*.ipp")
 
 FILE(GLOB src_util
     "util/*.cpp"
-    "include/nuclear_bits/util/*.hpp"
-    "include/nuclear_bits/util/*.ipp")
+    "util/*.hpp"
+    "util/*.ipp")
 
 FILE(GLOB src_util_network
     "util/network/*.cpp"
-    "include/nuclear_bits/util/network/*.hpp"
-    "include/nuclear_bits/util/network/*.ipp")
+    "util/network/*.hpp"
+    "util/network/*.ipp")
 
 FILE(GLOB src_util_serialise
     "util/serialise/*.c"
     "util/serialise/*.cpp"
-    "include/nuclear_bits/util/serialise/*.h"
-    "include/nuclear_bits/util/serialise/*.hpp"
-    "include/nuclear_bits/util/serialise/*.ipp")
+    "util/serialise/*.h"
+    "util/serialise/*.hpp"
+    "util/serialise/*.ipp")
 
 SOURCE_GROUP(""                         FILES ${src})
 SOURCE_GROUP(threading                  FILES ${src_threading})
@@ -98,6 +98,8 @@ SOURCE_GROUP(util                       FILES ${src_util})
 SOURCE_GROUP(util\\network              FILES ${src_util_network})
 SOURCE_GROUP(util\\serialise            FILES ${src_util_serialise})
 
+FIND_PACKAGE(Threads REQUIRED)
+
 ADD_LIBRARY(nuclear STATIC
     ${src}
     ${src_threading}
@@ -115,5 +117,41 @@ ADD_LIBRARY(nuclear STATIC
     ${src_util}
     ${src_util_network}
     ${src_util_serialise})
+SET_TARGET_PROPERTIES(nuclear PROPERTIES
+    POSITION_INDEPENDENT_CODE ON
+)
 
+# This is where we set the features required by NUClear
+TARGET_COMPILE_FEATURES(nuclear PUBLIC
+    cxx_constexpr
+    cxx_decltype
+    cxx_deleted_functions
+    cxx_generic_lambdas
+    cxx_inheriting_constructors
+    cxx_lambdas
+    cxx_lambda_init_captures
+    cxx_long_long_type
+    cxx_noexcept
+    cxx_nonstatic_member_init
+    cxx_nullptr
+    cxx_range_for
+    cxx_return_type_deduction
+    cxx_right_angle_brackets
+    cxx_rvalue_references
+    cxx_static_assert
+    cxx_thread_local
+    cxx_trailing_return_types
+    cxx_uniform_initialization
+    cxx_variadic_templates
+    cxx_template_template_parameters
+)
+
+TARGET_LINK_LIBRARIES(nuclear ${CMAKE_THREAD_LIBS_INIT})
+
+# Install the headers and templates and libraries
+INSTALL(
+    DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/src/ 
+    DESTINATION include/nuclear_bits
+    PATTERN "*.hpp" PATTERN "*.ipp" PATTERN "*.h"
+)
 INSTALL(TARGETS nuclear ARCHIVE DESTINATION lib)

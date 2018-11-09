@@ -17,8 +17,7 @@
  */
 
 #include <catch.hpp>
-
-#include "nuclear"
+#include <nuclear>
 
 namespace {
 
@@ -64,9 +63,8 @@ class TestReactor : public NUClear::Reactor {
 public:
     TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
 
-        on<TransientTypeGetter, Trigger<SimpleMessage>>().then([this](const DataType& d, const SimpleMessage& m) {
-            value_pairs.push_back(std::make_pair(m.value, d.value));
-        });
+        on<TransientTypeGetter, Trigger<SimpleMessage>>().then(
+            [](const DataType& d, const SimpleMessage& m) { value_pairs.push_back(std::make_pair(m.value, d.value)); });
 
         on<Startup>().then([this] {
             // Our data starts off as invalid

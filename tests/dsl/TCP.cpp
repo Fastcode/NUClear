@@ -17,8 +17,7 @@
  */
 
 #include <catch.hpp>
-
-#include "nuclear"
+#include <nuclear>
 
 namespace {
 
@@ -35,9 +34,7 @@ public:
 
         // Bind to a known port
         on<TCP>(PORT).then([this](const TCP::Connection& connection) {
-
             on<IO>(connection.fd, IO::READ | IO::CLOSE).then([this](IO::Event event) {
-
                 // If we read 0 later it means orderly shutdown
                 ssize_t len = -1;
 
@@ -61,9 +58,7 @@ public:
 
                 // The connection was closed and the other test finished
                 if (len == 0 || ((event.events & IO::CLOSE) != 0)) {
-                    if (messages_received == 2) {
-                        powerplant.shutdown();
-                    }
+                    if (messages_received == 2) { powerplant.shutdown(); }
                 }
             });
         });
@@ -72,9 +67,8 @@ public:
         int bound_port;
         std::tie(std::ignore, bound_port, std::ignore) = on<TCP>().then([this](const TCP::Connection& connection) {
             on<IO>(connection.fd, IO::READ | IO::CLOSE).then([this](IO::Event event) {
-
                 // If we read 0 later it means orderly shutdown
-                ssize_t len                            = -1;
+                ssize_t len = -1;
 
                 // We have data to read
                 if ((event.events & IO::READ) != 0) {
@@ -96,21 +90,18 @@ public:
 
                 // The connection was closed and the other test finished
                 if (len == 0 || ((event.events & IO::CLOSE) != 0)) {
-                    if (messages_received == 2) {
-                        powerplant.shutdown();
-                    }
+                    if (messages_received == 2) { powerplant.shutdown(); }
                 }
             });
         });
 
         // Send a test message to the known port
-        on<Trigger<Message>>().then([this] {
-
+        on<Trigger<Message>>().then([] {
             // Open a random socket
             NUClear::util::FileDescriptor fd = ::socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 
             // Our address to our local connection
-            sockaddr_in address{};
+            sockaddr_in address;
             address.sin_family      = AF_INET;
             address.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
             address.sin_port        = htons(PORT);
@@ -130,12 +121,12 @@ public:
         });
 
         // Send a test message to the freely bound port
-        on<Trigger<Message>>().then([this, bound_port] {
+        on<Trigger<Message>>().then([bound_port] {
             // Open a random socket
             NUClear::util::FileDescriptor fd = ::socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 
             // Our address to our local connection
-            sockaddr_in address{};
+            sockaddr_in address;
             address.sin_family      = AF_INET;
             address.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
             address.sin_port        = htons(bound_port);
@@ -155,7 +146,6 @@ public:
         });
 
         on<Startup>().then([this] {
-
             // Emit a message just so it will be when everything is running
             emit(std::make_unique<Message>());
         });

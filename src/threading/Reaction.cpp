@@ -15,7 +15,7 @@
  * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-#include "nuclear_bits/threading/Reaction.hpp"
+#include "Reaction.hpp"
 
 #include <utility>
 
@@ -44,9 +44,7 @@ namespace threading {
     std::unique_ptr<ReactionTask> Reaction::get_task() {
 
         // If we are not enabled, don't run
-        if (!enabled) {
-            return std::unique_ptr<ReactionTask>(nullptr);
-        }
+        if (!enabled) { return std::unique_ptr<ReactionTask>(nullptr); }
 
         // Run our generator to get a functor we can run
         int priority;
@@ -54,9 +52,7 @@ namespace threading {
         std::tie(priority, func) = generator(*this);
 
         // If our generator returns a valid function
-        if (func) {
-            return std::make_unique<ReactionTask>(*this, priority, std::move(func));
-        }
+        if (func) { return std::make_unique<ReactionTask>(*this, priority, std::move(func)); }
 
         // Otherwise we return a null pointer
         return std::unique_ptr<ReactionTask>(nullptr);

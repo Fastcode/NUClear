@@ -17,8 +17,7 @@
  */
 
 #include <catch.hpp>
-
-#include "nuclear"
+#include <nuclear>
 
 namespace {
 
@@ -34,7 +33,6 @@ public:
 
         on<Trigger<Message<1>>, With<Message<2>>, With<Message<3>>, With<Message<4>>>().then(
             [this](const Message<2>& m2, const Message<4>& m4) {
-
                 REQUIRE(m2.val == 2 + 4);
                 REQUIRE(m4.val == 4 + 4);
 
@@ -42,13 +40,11 @@ public:
             });
 
         on<Startup>().then([this] {
-
             // Emit from message 4 to 1
             emit(std::make_unique<Message<4>>(8));
             emit(std::make_unique<Message<3>>(7));
             emit(std::make_unique<Message<2>>(6));
             emit(std::make_unique<Message<1>>(5));
-
         });
     }
 };

@@ -16,24 +16,22 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include "nuclear"
-
 #include <csignal>
 #include <cstdlib>
+#include <nuclear>
 
 namespace {
 struct PerformEmits {};
 
+using NUClear::message::CommandLineArguments;
 using NUClear::message::NetworkJoin;
 using NUClear::message::NetworkLeave;
-using NUClear::message::CommandLineArguments;
 
 class TestReactor : public NUClear::Reactor {
 public:
     TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
 
         on<Trigger<NetworkJoin>, Sync<TestReactor>>().then([this](const NetworkJoin& join) {
-
             std::cout << "Connected To" << std::endl;
             std::cout << "\tName: " << join.name << std::endl;
 
@@ -80,8 +78,7 @@ public:
                 std::make_unique<std::string>(std::numeric_limits<uint16_t>::max(), 's'), join.name, true);
         });
 
-        on<Trigger<NetworkLeave>, Sync<TestReactor>>().then([this](const NetworkLeave& leave) {
-
+        on<Trigger<NetworkLeave>, Sync<TestReactor>>().then([](const NetworkLeave& leave) {
             std::cout << "Disconnected from" << std::endl;
             std::cout << "\tName: " << leave.name << std::endl;
 
@@ -112,21 +109,16 @@ public:
         });
 
         on<Network<std::string>, Sync<TestReactor>>().then(
-            [this](const NUClear::dsl::word::NetworkSource& source, const std::string& s) {
-
+            [](const NUClear::dsl::word::NetworkSource& source, const std::string& s) {
                 std::cout << "Processing a message from " << source.name << std::endl;
 
-                if (s.size() < 100) {
-                    std::cout << s << std::endl;
-                }
+                if (s.size() < 100) { std::cout << s << std::endl; }
                 else {
                     std::cout << s[0] << std::endl;
                 }
-
             });
 
         on<Startup, With<CommandLineArguments>>().then([this](const CommandLineArguments& args) {
-
             auto net_config = std::make_unique<NUClear::message::NetworkConfiguration>();
 
             net_config->name = args.size() > 1 ? args[1] : "";
@@ -144,7 +136,6 @@ public:
         });
 
         on<Trigger<PerformEmits>>().then([this] {
-
             // Sleep for one second to let the network stabalise
             std::this_thread::sleep_for(std::chrono::seconds(1));
 

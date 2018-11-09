@@ -17,8 +17,7 @@
  */
 
 #include <catch.hpp>
-
-#include "nuclear"
+#include <nuclear>
 
 namespace {
 
@@ -28,7 +27,6 @@ public:
 
         // Run a task without MainThread to make sure it isn't on the main thread
         on<Trigger<int>>().then([this] {
-
             // We shouldn't be on the main thread
             REQUIRE(NUClear::util::main_thread_id != std::this_thread::get_id());
 
@@ -37,7 +35,6 @@ public:
 
         // Run a task with MainTHread and ensure that it is on the main thread
         on<Trigger<double>, MainThread>().then([this] {
-
             // We should be on the main thread
             REQUIRE(NUClear::util::main_thread_id == std::this_thread::get_id());
 
@@ -45,7 +42,6 @@ public:
         });
 
         on<Startup>().then([this]() {
-
             // Emit an integer to trigger the reaction
             emit(std::make_unique<int>());
         });

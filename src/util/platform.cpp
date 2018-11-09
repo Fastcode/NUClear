@@ -16,11 +16,11 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include "nuclear_bits/util/platform.hpp"
+#include "platform.hpp"
 
 #ifdef _WIN32
 
-#include <stdexcept>
+#    include <stdexcept>
 LPFN_WSARECVMSG WSARecvMsg = nullptr;
 
 // Go get that WSARecvMsg function from stupid land
@@ -31,15 +31,16 @@ void initialize_WSARecvMsg() {
 
     sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 
-    if (SOCKET_ERROR == WSAIoctl(sock,
-                                 SIO_GET_EXTENSION_FUNCTION_POINTER,
-                                 &guid,
-                                 sizeof(guid),
-                                 &WSARecvMsg,
-                                 sizeof(WSARecvMsg),
-                                 &dw_bytes,
-                                 nullptr,
-                                 nullptr)) {
+    if (SOCKET_ERROR
+        == WSAIoctl(sock,
+                    SIO_GET_EXTENSION_FUNCTION_POINTER,
+                    &guid,
+                    sizeof(guid),
+                    &WSARecvMsg,
+                    sizeof(WSARecvMsg),
+                    &dw_bytes,
+                    nullptr,
+                    nullptr)) {
         throw std::runtime_error("We could not get WSARecvMsg from the OS");
     }
 
@@ -50,9 +51,7 @@ namespace NUClear {
 int recvmsg(fd_t fd, msghdr* msg, int flags) {
 
     // If we haven't setup our recvmsg function yet, set it up
-    if (WSARecvMsg == nullptr) {
-        initialize_WSARecvMsg();
-    }
+    if (WSARecvMsg == nullptr) { initialize_WSARecvMsg(); }
 
     // Translate to windows speak
     DWORD received = 0;
@@ -70,6 +69,6 @@ int sendmsg(fd_t fd, msghdr* msg, int flags) {
 
     return v == 0 ? sent : v;
 }
-}
+}  // namespace NUClear
 
 #endif

@@ -14,7 +14,7 @@
 # COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-CMAKE_MINIMUM_REQUIRED(VERSION 2.8.10)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.0.0)
 PROJECT(NUClear)
 
 SET(VERSION_MAJOR 0)
@@ -24,17 +24,28 @@ SET(VERSION_PATCH 0)
 # We use additional modules that cmake needs to know about
 SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 
-# This directory contains our header files and ipp files
-INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/src/include)
+# Set a default build type if none was specified
+SET(default_build_type "Release")
+IF(EXISTS "${CMAKE_SOURCE_DIR}/.git")
+  SET(default_build_type "Debug")
+ENDIF()
 
-# Setup our compiler settings
-INCLUDE(CompilerSetup)
+IF(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+  MESSAGE(STATUS "Setting build type to '${default_build_type}' as none was specified.")
+  SET(CMAKE_BUILD_TYPE ${default_build_type} CACHE STRING "Choose the type of build." FORCE)
+  # Set the possible values of build type for cmake-gui
+  SET_PROPERTY(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release" "MinSizeRel" "RelWithDebInfo")
+ENDIF()
+
+# Enable warnings, and all warnings are errors
+IF(MSVC)
+    ADD_COMIPLE_OPTIONS(/W4 /WX)
+ELSE()
+    ADD_COMPILE_OPTIONS(-Wall -Wextra -pedantic -Werror)
+ENDIF(MSVC)
 
 # Add the source
 ADD_SUBDIRECTORY(src)
-
-# Install the headers and templates that nuclear depends on
-INSTALL(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/src/include/ DESTINATION include PATTERN "*.hpp" PATTERN "*.ipp")
 
 # Add the tests directory
 ADD_SUBDIRECTORY(tests)

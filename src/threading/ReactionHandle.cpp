@@ -16,7 +16,7 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include "nuclear_bits/threading/ReactionHandle.hpp"
+#include "ReactionHandle.hpp"
 
 namespace NUClear {
 namespace threading {
@@ -30,33 +30,25 @@ namespace threading {
 
     ReactionHandle& ReactionHandle::enable() {
         auto c = context.lock();
-        if (c) {
-            c->enabled = true;
-        }
+        if (c) { c->enabled = true; }
         return *this;
     }
 
     ReactionHandle& ReactionHandle::enable(bool set) {
         auto c = context.lock();
-        if (c) {
-            c->enabled = set;
-        }
+        if (c) { c->enabled = set; }
         return *this;
     }
 
     ReactionHandle& ReactionHandle::disable() {
         auto c = context.lock();
-        if (c) {
-            c->enabled = false;
-        }
+        if (c) { c->enabled = false; }
         return *this;
     }
 
     void ReactionHandle::unbind() {
         auto c = context.lock();
-        if (c) {
-            c->unbind();
-        }
+        if (c) { c->unbind(); }
     }
 
     ReactionHandle::operator bool() const {

@@ -17,16 +17,16 @@
  */
 
 #include <catch.hpp>
-
-#include "nuclear"
+#include <nuclear>
 
 namespace NUClear {
 namespace dsl {
     namespace operation {
         template <>
-        struct DSLProxy<int> : public NUClear::dsl::operation::TypeBind<int>,
-                               public NUClear::dsl::operation::CacheGet<double>,
-                               public NUClear::dsl::word::Single {};
+        struct DSLProxy<int>
+            : public NUClear::dsl::operation::TypeBind<int>
+            , public NUClear::dsl::operation::CacheGet<double>
+            , public NUClear::dsl::word::Single {};
     }  // namespace operation
 }  // namespace dsl
 }  // namespace NUClear
@@ -38,7 +38,6 @@ public:
     TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
 
         on<int>().then([this](const double& d) {
-
             // The message we received should have test == 10
             REQUIRE(d == 4.4);
 

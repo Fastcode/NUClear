@@ -17,8 +17,7 @@
  */
 
 #include <catch.hpp>
-
-#include "nuclear"
+#include <nuclear>
 
 // Anonymous namespace to keep everything file local
 namespace {
@@ -31,7 +30,6 @@ public:
 
         // Testing that the log message gets through
         on<Trigger<NUClear::message::LogMessage>>().then([this](const NUClear::message::LogMessage& log_message) {
-
             REQUIRE(log_message.message == "Got int: 5");
             REQUIRE(log_message.level == NUClear::DEBUG);
 
@@ -45,7 +43,6 @@ public:
         // Testing that the log level gets through
 
         on<Trigger<int>>().then([this](const int& v) {
-
             // Our test val is 1337 to start with
             REQUIRE(test_val == 1337);
 

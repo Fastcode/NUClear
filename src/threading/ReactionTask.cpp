@@ -15,10 +15,11 @@
  * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-#include "nuclear_bits/threading/ReactionTask.hpp"
+#include "ReactionTask.hpp"
 
 #include <utility>
-#include "nuclear_bits/threading/Reaction.hpp"
+
+#include "Reaction.hpp"
 
 namespace NUClear {
 namespace threading {
@@ -43,8 +44,7 @@ namespace threading {
                                                 clock::time_point(std::chrono::seconds(0)),
                                                 nullptr})
         , emit_stats(parent.emit_stats && (current_task != nullptr ? current_task->emit_stats : true))
-        , callback(callback) {
-    }
+        , callback(callback) {}
 
     const ReactionTask* ReactionTask::get_current_task() {
         return current_task;

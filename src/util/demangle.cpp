@@ -16,10 +16,11 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include "nuclear_bits/util/demangle.hpp"
+#include "demangle.hpp"
 
 // Windows symbol demangler
 #ifdef _WIN32
+#    include <Dbghelp.h>
 
 #include "nuclear_bits/util/platform.hpp"
 
@@ -27,7 +28,8 @@
 #include <Dbghelp.h>
 #include <mutex>
 
-#pragma comment(lib, "Dbghelp.lib")
+#    include "nuclear_bits/util/platform.hpp"
+#    pragma comment(lib, "Dbghelp.lib")
 
 namespace NUClear {
 namespace util {
@@ -55,15 +57,11 @@ namespace util {
         std::lock_guard<std::mutex> lock(symbol_mutex);
 
         // Initialise the symbols if we have to
-        if (!sym_initialised) {
-            init_symbols();
-        }
+        if (!sym_initialised) { init_symbols(); }
 
         char name[256];
 
-        if (int len = UnDecorateSymbolName(symbol, name, sizeof(name), 0)) {
-            return std::string(name, len);
-        }
+        if (int len = UnDecorateSymbolName(symbol, name, sizeof(name), 0)) { return std::string(name, len); }
         else {
             return symbol;
         }
@@ -74,10 +72,11 @@ namespace util {
 // GNU/Clang symbol demangler
 #else
 
-#include <cxxabi.h>  // for __cxa_demangle
-#include <cstdlib>   // for free
-#include <memory>    // for unique_ptr
-#include <string>    // for string
+#    include <cxxabi.h>  // for __cxa_demangle
+
+#    include <cstdlib>  // for free
+#    include <memory>   // for unique_ptr
+#    include <string>   // for string
 
 namespace NUClear {
 namespace util {

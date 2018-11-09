@@ -17,8 +17,7 @@
  */
 
 #include <catch.hpp>
-
-#include "nuclear"
+#include <nuclear>
 
 namespace {
 
@@ -35,17 +34,14 @@ public:
     TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
 
         on<CustomGet>().then([this](const int& x) {
-
             REQUIRE(x == 5);
 
             powerplant.shutdown();
         });
 
         on<Startup>().then([this] {
-
             // Emit from message 4 to 1
             emit(std::make_unique<int>(10));
-
         });
     }
 };

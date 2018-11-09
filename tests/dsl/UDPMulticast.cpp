@@ -18,7 +18,7 @@
 
 #include <catch.hpp>
 
-#include "nuclear"
+#include <nuclear>
 
 namespace {
 
@@ -65,7 +65,6 @@ public:
 
         // Test a known port
         on<Trigger<Message>>().then([this] {
-
             // Get all the network interfaces
             auto interfaces = NUClear::util::network::get_interfaces();
 
@@ -96,7 +95,6 @@ public:
 
         // Test an unknown port
         on<Trigger<Message>>().then([this, bound_port] {
-
             // Get all the network interfaces
             auto interfaces = NUClear::util::network::get_interfaces();
 
@@ -127,7 +125,6 @@ public:
         });
 
         on<Startup>().then([this] {
-
             // Emit a message just so it will be when everything is running
             emit(std::make_unique<Message>());
         });

@@ -17,8 +17,7 @@
  */
 
 #include <catch.hpp>
-
-#include "nuclear"
+#include <nuclear>
 
 namespace {
 struct SimpleMessage {};
@@ -27,7 +26,6 @@ struct MessageA {};
 struct MessageB {};
 
 MessageA* a = nullptr;
-MessageB* b = nullptr;
 
 class TestReactor : public NUClear::Reactor {
 public:
@@ -46,7 +44,7 @@ public:
         });
 
         on<Trigger<MessageA>, With<MessageB>>().then(
-            [this](const MessageA&, const MessageB&) { FAIL("B was never emitted so this should not be possible"); });
+            [](const MessageA&, const MessageB&) { FAIL("B was never emitted so this should not be possible"); });
     }
 };
 }  // namespace
