@@ -41,7 +41,7 @@ public:
             emit(std::make_unique<LoopMsg>());
         });
 
-        on<Trigger<LoopMsg>>().then("NoStats", [this] {
+        on<Trigger<LoopMsg>>().then("NoStats", [] {
             // This guy is triggered by someone triggering on reaction statistics, don't run
         });
 
@@ -81,8 +81,7 @@ public:
 
         on<Trigger<Message<0>>>().then("Message Handler", [this] { emit(std::make_unique<Message<1>>()); });
 
-        on<Trigger<Message<1>>>().then("Exception Handler",
-                                       [this] { throw std::runtime_error("Exceptions happened"); });
+        on<Trigger<Message<1>>>().then("Exception Handler", [] { throw std::runtime_error("Exceptions happened"); });
 
         on<Startup>().then("Startup Handler", [this] { emit(std::make_unique<Message<0>>()); });
     }
