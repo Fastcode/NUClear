@@ -67,10 +67,10 @@ public:
             powerplant.shutdown();
         });
 
-        on<Trigger<SimpleMessage2>, Single>().then([this](const SimpleMessage2&) { ++message_count.message2; });
+        on<Trigger<SimpleMessage2>, Single>().then([](const SimpleMessage2&) { ++message_count.message2; });
 
         on<Trigger<SimpleMessage2>, With<SimpleMessage3>, Single>().then(
-            [this](const SimpleMessage2&, const SimpleMessage3&) { ++message_count.message3; });
+            [](const SimpleMessage2&, const SimpleMessage3&) { ++message_count.message3; });
 
         on<Startup>().then([this]() {
             // Emit two events, only one should run
