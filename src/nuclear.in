@@ -19,7 +19,7 @@
 #ifndef NUCLEAR
 #define NUCLEAR
 
-#include "PowerPlant.hpp"
-#include "Reactor.hpp"
+#include "${nuclear_include_base_directory}PowerPlant.hpp"
+#include "${nuclear_include_base_directory}Reactor.hpp"
 
 #endif  // NUCLEAR

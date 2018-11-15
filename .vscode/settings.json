@@ -12,5 +12,6 @@
     "editor.rulers": [
         120
     ],
-    "cmake.configureOnOpen": true
+    "cmake.configureOnOpen": true,
+    "C_Cpp.default.configurationProvider": "vector-of-bool.cmake-tools"
 }
