@@ -1,10 +1,10 @@
-# Copyright (C) 2013      Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
-#               2014-2017 Trent Houliston <trent@houliston.me>
+# Copyright (C) 2013      Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com> 2014-2017 Trent
+# Houliston <trent@houliston.me>
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
 # documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
-# rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
-# permit persons to whom the Software is furnished to do so, subject to the following conditions:
+# rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit
+# persons to whom the Software is furnished to do so, subject to the following conditions:
 #
 # The above copyright notice and this permission notice shall be included in all copies or substantial portions of the
 # Software.
@@ -14,62 +14,57 @@
 # COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-FIND_PACKAGE(CATCH)
+find_package(CATCH)
 
-IF(CATCH_FOUND)
-    # Supported options:
-    OPTION(BUILD_TESTS "Builds all of the NUClear unit tests." TRUE)
+if(CATCH_FOUND)
+  # Supported options:
+  option(BUILD_TESTS "Builds all of the NUClear unit tests." TRUE)
 
-    IF(BUILD_TESTS)
-        ENABLE_TESTING()
+  if(BUILD_TESTS)
+    enable_testing()
 
-        FILE(GLOB test_base       "${CMAKE_CURRENT_SOURCE_DIR}/test.cpp")
-        FILE(GLOB test_api        "${CMAKE_CURRENT_SOURCE_DIR}/api/*.cpp")
-        FILE(GLOB test_dsl        "${CMAKE_CURRENT_SOURCE_DIR}/dsl/*.cpp")
-        FILE(GLOB test_dsl_emit   "${CMAKE_CURRENT_SOURCE_DIR}/dsl/emit/*.cpp")
-        FILE(GLOB test_log        "${CMAKE_CURRENT_SOURCE_DIR}/log/*.cpp")
+    if(MSVC)
+      add_compile_options(/W4 /WX)
+    else()
+      add_compile_options(-Wall -Wextra -pedantic -Werror)
+    endif(MSVC)
 
-        SOURCE_GROUP(""           FILES ${test_base})
-        SOURCE_GROUP(api          FILES ${test_api})
-        SOURCE_GROUP(dsl          FILES ${test_dsl})
-        SOURCE_GROUP(dsl\\emit    FILES ${test_dsl_emit})
-        SOURCE_GROUP(log          FILES ${test_log})
+    file(GLOB test_src test.cpp "api/*.cpp" "dsl/*.cpp" "dsl/emit/*.cpp" "log/*.cpp")
 
-        # Some tests must be executed as individual binaries
-        FILE(GLOB individual_tests "${CMAKE_CURRENT_SOURCE_DIR}/individual/*.cpp")
+    # Some tests must be executed as individual binaries
+    file(GLOB individual_tests "${CMAKE_CURRENT_SOURCE_DIR}/individual/*.cpp")
 
-        FOREACH(test_src ${individual_tests})
-            GET_FILENAME_COMPONENT(test_name ${test_src} NAME_WE)
+    foreach(test_src ${individual_tests})
+      get_filename_component(test_name ${test_src} NAME_WE)
 
-            ADD_EXECUTABLE(${test_name} ${test_src})
-            TARGET_LINK_LIBRARIES(${test_name} nuclear)
-            SET_TARGET_PROPERTIES(${test_name} PROPERTIES
-                RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/individual"
-            )
-            TARGET_INCLUDE_DIRECTORIES(${test_name} SYSTEM
-                PRIVATE ${CATCH_INCLUDE_DIRS}
-                PRIVATE "${PROJECT_SOURCE_DIR}/src"
-            )
-            ADD_TEST(${test_name} test_nuclear)
+      add_executable(${test_name} ${test_src})
+      target_link_libraries(${test_name} NUClear::nuclear)
+      set_target_properties(${test_name} PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/individual")
+      target_include_directories(
+        ${test_name} SYSTEM
+        PRIVATE ${CATCH_INCLUDE_DIRS} ${PROJECT_BINARY_DIR}/include "${PROJECT_SOURCE_DIR}/src"
+      )
+      # Enable warnings, and all warnings are errors
 
-        ENDFOREACH(test_src)
+      add_test(${test_name} test_nuclear)
 
+    endforeach(test_src)
 
-        ADD_EXECUTABLE(test_nuclear ${test_base} ${test_api} ${test_dsl} ${test_dsl_emit} ${test_log})
-        TARGET_LINK_LIBRARIES(test_nuclear nuclear)
-        TARGET_INCLUDE_DIRECTORIES(test_nuclear SYSTEM
-            PRIVATE ${CATCH_INCLUDE_DIRS}
-            PRIVATE "${PROJECT_SOURCE_DIR}/src"
-        )
-        ADD_TEST(test_nuclear test_nuclear)
+    add_executable(test_nuclear ${test_src})
+    target_link_libraries(test_nuclear NUClear::nuclear)
+    target_include_directories(
+      test_nuclear SYSTEM
+      PRIVATE ${CATCH_INCLUDE_DIRS} ${PROJECT_BINARY_DIR}/include "${PROJECT_SOURCE_DIR}/src"
+    )
+    add_test(test_nuclear test_nuclear)
 
-        ADD_EXECUTABLE(test_network networktest.cpp)
-        TARGET_LINK_LIBRARIES(test_network nuclear)
-        TARGET_INCLUDE_DIRECTORIES(test_network SYSTEM
-            PRIVATE ${CATCH_INCLUDE_DIRS}
-            PRIVATE "${PROJECT_SOURCE_DIR}/src"
-        )
-        ADD_TEST(test_network test_network)
+    add_executable(test_network networktest.cpp)
+    target_link_libraries(test_network NUClear::nuclear)
+    target_include_directories(
+      test_network SYSTEM
+      PRIVATE ${CATCH_INCLUDE_DIRS} ${PROJECT_BINARY_DIR}/include "${PROJECT_SOURCE_DIR}/src"
+    )
+    add_test(test_network test_network)
 
-    ENDIF(BUILD_TESTS)
-ENDIF(CATCH_FOUND)
+  endif(BUILD_TESTS)
+endif(CATCH_FOUND)

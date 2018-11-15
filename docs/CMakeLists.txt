@@ -1,16 +1,17 @@
-OPTION(BUILD_DOCUMENTATION "Create and install the HTML based API documentation (requires Doxygen and Sphinx)" FALSE)
+option(BUILD_DOCUMENTATION "Create and install the HTML based API documentation (requires Doxygen and Sphinx)" FALSE)
 
-IF(BUILD_DOCUMENTATION)
+if(BUILD_DOCUMENTATION)
 
-    FIND_PACKAGE(Doxygen REQUIRED)
-    FIND_PACKAGE(Sphinx REQUIRED)
+  find_package(Doxygen REQUIRED)
+  find_package(Sphinx REQUIRED)
 
-    ADD_CUSTOM_TARGET(docs
-        COMMAND ${Sphinx_BINARY} -a ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR}
-        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-        COMMENT "Generating documentation pages using sphinx"
-    )
+  add_custom_target(
+    docs
+    COMMAND ${Sphinx_BINARY} ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR}
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+    COMMENT "Generating documentation pages using sphinx"
+  )
 
-    INSTALL(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} DESTINATION share/doc OPTIONAL)
+  install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} DESTINATION share/doc OPTIONAL)
 
-ENDIF(BUILD_DOCUMENTATION)
+endif(BUILD_DOCUMENTATION)
