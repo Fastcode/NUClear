@@ -20,7 +20,6 @@
 #define NUCLEAR_MESSAGE_LOGMESSAGE_HPP
 
 #include "../LogLevel.hpp"
-#include "ReactionStatistics.hpp"
 
 namespace NUClear {
 namespace message {
@@ -30,15 +29,11 @@ namespace message {
      */
     struct LogMessage {
 
-
         /// @brief The logging level of the log.
         LogLevel level;
 
         /// @brief The string contents of the message.
         std::string message;
-
-        /// @brief The currently executing task that made this message
-        const ReactionStatistics* task;
     };
 
 }  // namespace message

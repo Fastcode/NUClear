@@ -24,27 +24,11 @@
 namespace NUClear {
 namespace threading {
 
-    // Initialize our id source
-    std::atomic<uint64_t> ReactionTask::task_id_source(0);  // NOLINT
-
     // Initialize our current task
-    ATTRIBUTE_TLS ReactionTask* ReactionTask::current_task = nullptr;  // NOLINT
+    ReactionTask* ReactionTask::current_task = nullptr;
 
     ReactionTask::ReactionTask(Reaction& parent, int priority, TaskFunction&& callback)
-        : parent(parent)
-        , id(++task_id_source)
-        , priority(priority)
-        , stats(new message::ReactionStatistics{parent.identifier,
-                                                parent.id,
-                                                id,
-                                                current_task != nullptr ? current_task->parent.id : 0,
-                                                current_task != nullptr ? current_task->id : 0,
-                                                clock::now(),
-                                                clock::time_point(std::chrono::seconds(0)),
-                                                clock::time_point(std::chrono::seconds(0)),
-                                                nullptr})
-        , emit_stats(parent.emit_stats && (current_task != nullptr ? current_task->emit_stats : true))
-        , callback(callback) {}
+        : parent(parent), priority(priority), emit_time(clock::now()), callback(callback) {}
 
     const ReactionTask* ReactionTask::get_current_task() {
         return current_task;

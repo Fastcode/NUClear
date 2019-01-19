@@ -20,7 +20,6 @@
 #define NUCLEAR_UTIL_TYPEMAP_HPP
 
 #include <memory>
-#include <mutex>
 #include <vector>
 
 namespace NUClear {
@@ -50,8 +49,7 @@ namespace util {
         ~TypeMap() = delete;
         /// @brief the data variable where the data is stored for this map key.
 
-        static std::shared_ptr<Value> data;
-        static std::mutex mutex;
+        static Value data;
 
     public:
         /**
@@ -59,14 +57,10 @@ namespace util {
          *
          * @param d a pointer to the data to be stored (the map takes ownership)
          */
-        static void set(std::shared_ptr<Value> d) {
-
-            // Do this once G++ supports it
-            // std::atomic_store_explicit(&data, d, std::memory_order_relaxed);
-
-            // Lock a mutex and set our data
-            std::lock_guard<std::mutex> lock(mutex);
-            data = std::move(d);
+        template <typename U>
+        static void set(U&& d) {
+            // TODO EMBEDDED MAKE THIS A CRITICAL SECTION
+            data = std::forward<U>(d);
         }
 
         /**
@@ -74,14 +68,11 @@ namespace util {
          *
          * @return a shared_ptr to the data that was previously stored
          */
-        static std::shared_ptr<Value> get() {
+        static Value get() {
 
-            // TODO do this when gcc supports it
-            // std::atomic_load_explicit(&data, std::memory_order_relaxed);
-
-            std::shared_ptr<Value> d;
+            Value d;
             {
-                std::lock_guard<std::mutex> lock(mutex);
+                // TODO EMBEDDED MAKE THIS A CRITICAL SECTION
                 d = data;
             }
 
@@ -89,11 +80,9 @@ namespace util {
         }
     };
 
-    /// Initialize our shared_ptr data
+    /// Initialize our data
     template <typename MapID, typename Key, typename Value>
-    std::shared_ptr<Value> TypeMap<MapID, Key, Value>::data;
-    template <typename MapID, typename Key, typename Value>
-    std::mutex TypeMap<MapID, Key, Value>::mutex;
+    Value TypeMap<MapID, Key, Value>::data;
 
 }  // namespace util
 }  // namespace NUClear

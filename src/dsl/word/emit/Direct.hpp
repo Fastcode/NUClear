@@ -21,7 +21,6 @@
 
 #include "../../../PowerPlant.hpp"
 #include "../../store/DataStore.hpp"
-#include "../../store/ThreadStore.hpp"
 #include "../../store/TypeCallbackStore.hpp"
 
 namespace NUClear {
@@ -59,7 +58,8 @@ namespace dsl {
                         try {
 
                             // Set our thread local store data each time (as during direct it can be overwritten)
-                            store::ThreadStore<std::shared_ptr<DataType>>::value = &data;
+                            // TODO EMBEDDED THIS NEEDS FIXING
+                            // store::ThreadStore<std::shared_ptr<DataType>>::set(&data);
 
                             auto task = reaction->get_task();
                             if (task) {
@@ -77,7 +77,8 @@ namespace dsl {
                     }
 
                     // Unset our thread local store data
-                    store::ThreadStore<std::shared_ptr<DataType>>::value = nullptr;
+                    // TODO EMBEDDED THIS NEEDS FIXING
+                    // store::ThreadStore<std::shared_ptr<DataType>>::value = nullptr;
 
                     // Set the data into the global store
                     store::DataStore<DataType>::set(data);

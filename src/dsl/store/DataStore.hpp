@@ -37,7 +37,7 @@ namespace dsl {
          * @tparam DataType the type of data stored in this paticular datastore location
          */
         template <typename DataType>
-        using DataStore = util::TypeMap<DataType, DataType, DataType>;
+        using DataStore = util::TypeMap<DataType, DataType, std::shared_ptr<DataType>>;
 
     }  // namespace store
 }  // namespace dsl

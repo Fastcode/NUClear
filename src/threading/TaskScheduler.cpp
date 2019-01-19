@@ -24,53 +24,34 @@ namespace threading {
     TaskScheduler::TaskScheduler() : running(true) {}
 
     void TaskScheduler::shutdown() {
-        {
-            std::lock_guard<std::mutex> lock(mutex);
-            running = false;
-        }
-        condition.notify_all();
+        running = false;
     }
 
     void TaskScheduler::submit(std::unique_ptr<ReactionTask>&& task) {
 
         // We do not accept new tasks once we are shutdown
         if (running) {
-
-            /* Mutex Scope */ {
-                std::lock_guard<std::mutex> lock(mutex);
-                queue.push(std::forward<std::unique_ptr<ReactionTask>>(task));
-            }
+            // TODO EMBEDDED, CRITICAL SECTION DISABLE INTERRUPTS
+            queue.push(std::forward<std::unique_ptr<ReactionTask>>(task));
         }
-
-        // Notify a thread that it can proceed
-        condition.notify_one();
     }
 
     std::unique_ptr<ReactionTask> TaskScheduler::get_task() {
 
-        // Obtain the lock
-        std::unique_lock<std::mutex> lock(mutex);
-
         // While our queue is empty
         while (queue.empty()) {
-
             // If the queue is empty we either wait or shutdown
+
             if (!running) {
-
-                // Notify any other threads that might be waiting on this condition
-                condition.notify_all();
-
                 // Return a nullptr to signify there is nothing on the queue
                 return nullptr;
             }
-
-            // Wait for something to happen!
-            condition.wait(lock);
         }
 
         // Return the type
         // If you're wondering why all the ridiculousness, it's because priority queue is not as feature complete as it
         // should be its 'top' method returns a const reference (which we can't use to move a unique pointer)
+        // TODO embedded this should be a critical section
         std::unique_ptr<ReactionTask> task(
             std::move(const_cast<std::unique_ptr<ReactionTask>&>(queue.top())));  // NOLINT
         queue.pop();

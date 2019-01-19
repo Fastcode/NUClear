@@ -62,24 +62,26 @@ namespace dsl {
             template <typename DSL>
             static inline void bind(const std::shared_ptr<threading::Reaction>& reaction) {
 
+                // Add an unbinder that disables this reaction
                 reaction->unbinders.push_back([](threading::Reaction& r) { r.enabled = false; });
 
-                // This is our function that runs forever until the powerplant exits
-                reaction->reactor.powerplant.add_thread_task([reaction] {
-                    while (reaction->reactor.powerplant.running()) {
-                        try {
-                            // Get a task
-                            auto task = reaction->get_task();
+                // Run precondition which will add a new instance of this task to the queue
+                precondition<DSL>(*reaction);
+            }
 
-                            // If we got a real task back
-                            if (task) {
-                                task = task->run(std::move(task));
-                            }
-                        }
-                        catch (...) {
-                        }
+            template <typename DSL>
+            static inline bool precondition(threading::Reaction& reaction) {
+                if (reaction.enabled) {
+                    // Get a task
+                    auto task = reaction.get_task();
+
+                    // If we got a real task back
+                    if (task) {
+                        reaction.reactor.powerplant.submit(std::move(task));
                     }
-                });
+                }
+                // We only run if there are less than the target number of active tasks
+                return true;
             }
         };
 

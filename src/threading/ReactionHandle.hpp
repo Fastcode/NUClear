@@ -20,7 +20,6 @@
 #define NUCLEAR_THREADING_REACTIONHANDLE_HPP
 
 #include <memory>
-#include <mutex>
 #include <queue>
 #include <string>
 #include <typeindex>

@@ -22,12 +22,10 @@
 #include <iostream>
 #include <map>
 #include <memory>
-#include <mutex>
 #include <queue>
 #include <set>
 #include <sstream>
 #include <string>
-#include <thread>
 #include <typeindex>
 #include <vector>
 
@@ -57,38 +55,13 @@ class PowerPlant {
     friend class Reactor;
 
 public:
-    /**
-     * @brief This class holds the configuration for a PowerPlant.
-     *
-     * @details
-     *  It configures the number of threads that will be in the PowerPlants thread pool
-     */
-    struct Configuration {
-        /// @brief default to the amount of hardware concurrency (or 2) threads
-        Configuration()
-            : thread_count(std::thread::hardware_concurrency() == 0 ? 2 : std::thread::hardware_concurrency()) {}
-
-        /// @brief The number of threads the system will use
-        size_t thread_count;
-    };
-
-    /// @brief Holds the configuration information for this PowerPlant (such as number of pool threads)
-    const Configuration configuration;
-
-
     // There can only be one powerplant, so this is it
     static PowerPlant* powerplant;
 
     /**
-     * @brief
-     *  Constructs a PowerPlant with the given configuration and provides access
-     *  to argv for all reactors.
-     *
-     * @details
-     *  If PowerPlant is constructed with argc and argv then a CommandLineArguments
-     *  message will be emitted and available to all reactors.
+     * @brief Construct the instance of powerplant
      */
-    PowerPlant(Configuration config = Configuration(), int argc = 0, const char* argv[] = nullptr);
+    PowerPlant();
     PowerPlant(const PowerPlant&) = delete;
     ~PowerPlant();
 
@@ -110,19 +83,11 @@ public:
     void shutdown();
 
     /**
-     * TODO document
+     * @brief Returns true when the powerplant is running
+     *
+     * @return true if the powerplant is running
      */
     bool running();
-
-    /**
-     * TODO document
-     */
-    void on_startup(std::function<void()>&& func);
-
-    /**
-     * TODO document
-     */
-    void add_thread_task(std::function<void()>&& task);
 
     /**
      * @brief Installs a reactor of a particular type to the system.
@@ -144,13 +109,6 @@ public:
      * @param task The Reaction task to be executed in the thread pool
      */
     void submit(std::unique_ptr<threading::ReactionTask>&& task);
-
-    /**
-     * @brief Submits a new task to the main threads thread pool to be queued and then executed.
-     *
-     * @param task The Reaction task to be executed in the thread pool
-     */
-    void submit_main(std::unique_ptr<threading::ReactionTask>&& task);
 
     /**
      * @brief Log a message through NUClear's system.
@@ -214,20 +172,12 @@ public:
     void emit(std::unique_ptr<T>& data, Arguments&&... args);
 
 private:
-    /// @brief A list of tasks that must be run when the powerplant starts up
-    std::vector<std::function<void()>> tasks;
-    /// @brief A vector of the running threads in the system
-    std::vector<std::unique_ptr<std::thread>> threads;
-    /// @brief Our TaskScheduler that handles distributing task to the pool threads
-    threading::TaskScheduler scheduler;
-    /// @brief Our TaskScheduler that handles distributing tasks to the main thread
-    threading::TaskScheduler main_thread_scheduler;
     /// @brief Our vector of Reactors, will get destructed when this vector is
     std::vector<std::unique_ptr<NUClear::Reactor>> reactors;
     /// @brief Tasks that will be run during the startup process
-    std::vector<std::function<void()>> startup_tasks;
-    /// @brief True if the powerplant is running
     volatile bool is_running = false;
+    /// @brief Our TaskScheduler that handles ordering tasks to execute
+    threading::TaskScheduler scheduler;
 };
 
 // This free floating log function can be called from anywhere and will use the singleton PowerPlant
@@ -242,11 +192,7 @@ void log(Arguments&&... args) {
 #include "Reactor.hpp"
 
 #include "dsl/word/emit/Direct.hpp"
-#include "dsl/word/emit/Initialise.hpp"
 #include "dsl/word/emit/Local.hpp"
-#include "message/CommandLineArguments.hpp"
-#include "message/NetworkConfiguration.hpp"
-#include "message/NetworkEvent.hpp"
 
 // Include all of our implementation files (which use the previously included reactor.h)
 #include "PowerPlant.ipp"

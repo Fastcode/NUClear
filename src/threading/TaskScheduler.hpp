@@ -20,11 +20,9 @@
 #define NUCLEAR_THREADING_TASKSCHEDULER_HPP
 
 #include <algorithm>
-#include <atomic>
 #include <condition_variable>
 #include <map>
 #include <memory>
-#include <mutex>
 #include <queue>
 #include <typeindex>
 #include <vector>
@@ -106,10 +104,6 @@ namespace threading {
         volatile bool running;
         /// @brief our queue which sorts tasks by priority
         std::priority_queue<std::unique_ptr<ReactionTask>> queue;
-        /// @brief the mutex which our threads synchronize their access to this object
-        std::mutex mutex;
-        /// @brief the condition object that threads wait on if they can't get a task
-        std::condition_variable condition;
     };
 
 }  // namespace threading

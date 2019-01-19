@@ -17,12 +17,10 @@
  */
 
 #include "extension/ChronoController.hpp"
-#include "extension/IOController.hpp"
-#include "extension/NetworkController.hpp"
 
 namespace NUClear {
 
-inline PowerPlant::PowerPlant(Configuration config, int argc, const char* argv[]) : configuration(config) {
+inline PowerPlant::PowerPlant() {
 
     // Stop people from making more then one powerplant
     if (powerplant != nullptr) {
@@ -34,18 +32,6 @@ inline PowerPlant::PowerPlant(Configuration config, int argc, const char* argv[]
 
     // Install the Chrono reactor
     install<extension::ChronoController>();
-    install<extension::IOController>();
-    install<extension::NetworkController>();
-
-    // Emit our arguments if any.
-    message::CommandLineArguments args;
-    for (int i = 0; i < argc; ++i) {
-        args.emplace_back(argv[i]);
-    }
-
-    // We emit this twice, so the data is available for extensions
-    emit(std::make_unique<message::CommandLineArguments>(args));
-    emit<dsl::word::emit::Initialise>(std::make_unique<message::CommandLineArguments>(args));
 }
 
 template <typename T, enum LogLevel level>
@@ -62,20 +48,17 @@ void PowerPlant::install() {
 // Default emit with no types
 template <typename T>
 void PowerPlant::emit(std::unique_ptr<T>&& data) {
-
     emit<dsl::word::emit::Local>(std::forward<std::unique_ptr<T>>(data));
 }
 // Default emit with no types
 template <typename T>
 void PowerPlant::emit(std::unique_ptr<T>& data) {
-
     emit<dsl::word::emit::Local>(std::move(data));
 }
 
 // Default emit with no types
 template <template <typename> class First, template <typename> class... Remainder, typename T, typename... Arguments>
 void PowerPlant::emit(std::unique_ptr<T>& data, Arguments&&... args) {
-
     emit<First, Remainder...>(std::move(data), std::forward<Arguments>(args)...);
 }
 
@@ -97,8 +80,6 @@ struct EmitCaller {
 };
 
 // Global emit handlers
-
-
 template <template <typename> class First, template <typename> class... Remainder, typename T, typename... Arguments>
 void PowerPlant::emit_shared(std::shared_ptr<T>&& ptr, Arguments&&... args) {
 
@@ -145,12 +126,11 @@ void PowerPlant::log(Arguments&&... args) {
     log_impl(output_stream, std::forward<Arguments>(args)...);
     std::string output = output_stream.str();
 
-    auto current_task = threading::ReactionTask::get_current_task();
-    auto task         = current_task ? current_task->stats.get() : nullptr;
+    // auto current_task = threading::ReactionTask::get_current_task();
 
     // Direct emit the log message so that any direct loggers can use it
     powerplant->emit<dsl::word::emit::Direct>(
-        std::make_unique<message::LogMessage>(message::LogMessage{level, output, task}));
+        std::make_unique<message::LogMessage>(message::LogMessage{level, output}));
 }
 
 }  // namespace NUClear

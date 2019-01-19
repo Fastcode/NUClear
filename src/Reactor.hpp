@@ -19,7 +19,6 @@
 #ifndef NUCLEAR_REACTOR_HPP
 #define NUCLEAR_REACTOR_HPP
 
-#include <atomic>
 #include <chrono>
 #include <functional>
 #include <sstream>
@@ -46,24 +45,8 @@ namespace dsl {
 
         struct Priority;
 
-        struct IO;
-
-        struct UDP;
-
-        struct TCP;
-
         template <typename...>
         struct Optional;
-
-        template <size_t, typename...>
-        struct Last;
-
-        struct MainThread;
-
-        template <typename>
-        struct Network;
-
-        struct NetworkSource;
 
         template <typename...>
         struct Trigger;
@@ -89,9 +72,6 @@ namespace dsl {
         template <int>
         struct Buffer;
 
-        template <typename>
-        struct Sync;
-
         namespace emit {
             template <typename T>
             struct Local;
@@ -99,12 +79,6 @@ namespace dsl {
             struct Direct;
             template <typename T>
             struct Delay;
-            template <typename T>
-            struct Initialise;
-            template <typename T>
-            struct Network;
-            template <typename T>
-            struct UDP;
         }  // namespace emit
     }      // namespace word
 }  // namespace dsl
@@ -138,7 +112,7 @@ private:
     std::vector<threading::ReactionHandle> reaction_handles;
 
 public:
-    /// @brief TODO
+    /// @brief The powerplant that holds this reactor
     PowerPlant& powerplant;
 
     /// @brief The demangled string name of this reactor
@@ -164,15 +138,6 @@ protected:
     /// @copydoc dsl::word::Always
     using Always = dsl::word::Always;
 
-    /// @copydoc dsl::word::IO
-    using IO = dsl::word::IO;
-
-    /// @copydoc dsl::word::UDP
-    using UDP = dsl::word::UDP;
-
-    /// @copydoc dsl::word::TCP
-    using TCP = dsl::word::TCP;
-
     /// @copydoc dsl::word::With
     template <typename... Ts>
     using With = dsl::word::With<Ts...>;
@@ -181,22 +146,8 @@ protected:
     template <typename... DSL>
     using Optional = dsl::word::Optional<DSL...>;
 
-    /// @copydoc dsl::word::Last
-    template <size_t len, typename... DSL>
-    using Last = dsl::word::Last<len, DSL...>;
-
-    /// @copydoc dsl::word::MainThread
-    using MainThread = dsl::word::MainThread;
-
     /// @copydoc dsl::word::Startup
     using Startup = dsl::word::Startup;
-
-    /// @copydoc dsl::word::Network
-    template <typename T>
-    using Network = dsl::word::Network<T>;
-
-    /// @copydoc dsl::word::Network
-    using NetworkSource = dsl::word::NetworkSource;
 
     /// @copydoc dsl::word::Shutdown
     using Shutdown = dsl::word::Shutdown;
@@ -212,10 +163,6 @@ protected:
     /// @copydoc dsl::word::Per
     template <class period>
     using Per = dsl::word::Per<period>;
-
-    /// @copydoc dsl::word::Sync
-    template <typename SyncGroup>
-    using Sync = dsl::word::Sync<SyncGroup>;
 
     /// @copydoc dsl::word::Single
     using Single = dsl::word::Single;
@@ -236,18 +183,6 @@ protected:
         /// @copydoc dsl::word::emit::Direct
         template <typename T>
         using DELAY = dsl::word::emit::Delay<T>;
-
-        /// @copydoc dsl::word::emit::Initialise
-        template <typename T>
-        using INITIALIZE = dsl::word::emit::Initialise<T>;
-
-        /// @copydoc dsl::word::emit::Network
-        template <typename T>
-        using NETWORK = dsl::word::emit::Network<T>;
-
-        /// @copydoc dsl::word::emit::Network
-        template <typename T>
-        using UDP = dsl::word::emit::UDP<T>;
     };
 
     /// @brief This provides functions to modify how an on statement runs after it has been created
@@ -366,7 +301,9 @@ public:
     void log(Arguments&&... args) {
 
         // If the log is above or equal to our log level
-        if (level >= log_level) { powerplant.log<level>(std::forward<Arguments>(args)...); }
+        if (level >= log_level) {
+            powerplant.log<level>(std::forward<Arguments>(args)...);
+        }
     }
 };
 
@@ -376,26 +313,16 @@ public:
 #include "dsl/word/Always.hpp"
 #include "dsl/word/Buffer.hpp"
 #include "dsl/word/Every.hpp"
-#include "dsl/word/IO.hpp"
-#include "dsl/word/Last.hpp"
-#include "dsl/word/MainThread.hpp"
-#include "dsl/word/Network.hpp"
 #include "dsl/word/Optional.hpp"
 #include "dsl/word/Priority.hpp"
 #include "dsl/word/Shutdown.hpp"
 #include "dsl/word/Single.hpp"
 #include "dsl/word/Startup.hpp"
-#include "dsl/word/Sync.hpp"
-#include "dsl/word/TCP.hpp"
 #include "dsl/word/Trigger.hpp"
-#include "dsl/word/UDP.hpp"
 #include "dsl/word/Watchdog.hpp"
 #include "dsl/word/With.hpp"
 #include "dsl/word/emit/Delay.hpp"
 #include "dsl/word/emit/Direct.hpp"
-#include "dsl/word/emit/Initialise.hpp"
 #include "dsl/word/emit/Local.hpp"
-#include "dsl/word/emit/Network.hpp"
-#include "dsl/word/emit/UDP.hpp"
 
 #endif  // NUCLEAR_REACTOR_HPP

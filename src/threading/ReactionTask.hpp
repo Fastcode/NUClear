@@ -19,14 +19,12 @@
 #ifndef NUCLEAR_THREADING_REACTIONTASK_HPP
 #define NUCLEAR_THREADING_REACTIONTASK_HPP
 
-#include <atomic>
+#include <chrono>
 #include <functional>
 #include <memory>
 #include <typeindex>
 #include <vector>
-
-#include "../message/ReactionStatistics.hpp"
-#include "../util/platform.hpp"
+#include "clock.hpp"
 
 namespace NUClear {
 namespace threading {
@@ -43,11 +41,8 @@ namespace threading {
      */
     class ReactionTask {
     private:
-        /// @brief a source for task ids, atomically creates longs
-        static std::atomic<std::uint64_t> task_id_source;
-
-        /// @brief the current task that is being executed by this thread (or nullptr if none is)
-        static ATTRIBUTE_TLS ReactionTask* current_task;
+        /// @brief the current task that is being executed
+        static ReactionTask* current_task;
 
     public:
         /// Type of the functions that ReactionTasks execute
@@ -80,18 +75,13 @@ namespace threading {
 
         /// @brief the parent Reaction object which spawned this
         Reaction& parent;
-        /// @brief the task id of this task (the sequence number of this particular task)
-        uint64_t id;
         /// @brief the priority to run this task at
         int priority;
-        /// @brief the statistics object that persists after this for information and debugging
-        std::unique_ptr<message::ReactionStatistics> stats;
-        /// @brief if these stats are safe to emit. It should start true, and as soon as we are a reaction based on
-        /// reaction statistics becomes false for all created tasks. This is to stop infinite loops of death.
-        bool emit_stats;
+        /// @brief when this task was emitted
+        clock::time_point emit_time;
 
         /// @brief the data bound callback to be executed
-        /// @attention note this must be last in the list as the this pointer is passed to the callback generator
+        /// @attention note this must be last in the list as the *this pointer is passed to the callback generator
         TaskFunction callback;
     };
 
@@ -108,7 +98,7 @@ namespace threading {
         // If we ever have a null pointer, we move it to the top of the queue as it is being removed
         return a == nullptr ? false
                             : b == nullptr ? true
-                                           : a->priority == b->priority ? a->stats->emitted > b->stats->emitted
+                                           : a->priority == b->priority ? a->emit_time > b->emit_time
                                                                         : a->priority < b->priority;
     }
 

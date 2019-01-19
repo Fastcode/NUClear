@@ -21,7 +21,6 @@
 
 #include "../../../PowerPlant.hpp"
 #include "../../store/DataStore.hpp"
-#include "../../store/ThreadStore.hpp"
 #include "../../store/TypeCallbackStore.hpp"
 
 namespace NUClear {
@@ -51,7 +50,8 @@ namespace dsl {
                 static void emit(PowerPlant& powerplant, std::shared_ptr<DataType> data) {
 
                     // Set our thread local store data
-                    store::ThreadStore<std::shared_ptr<DataType>>::value = &data;
+                    // TODO EMBEDDED THIS NEEDS FIXING
+                    // store::ThreadStore<std::shared_ptr<DataType>>::value = &data;
 
                     // Run all our reactions that are interested
                     for (auto& reaction : store::TypeCallbackStore<DataType>::get()) {
@@ -73,7 +73,8 @@ namespace dsl {
                     }
 
                     // Unset our thread local store data
-                    store::ThreadStore<std::shared_ptr<DataType>>::value = nullptr;
+                    // TODO EMBEDDED THIS NEEDS FIXING
+                    // store::ThreadStore<std::shared_ptr<DataType>>::value = nullptr;
 
                     // Set the data into the global store
                     store::DataStore<DataType>::set(data);

@@ -19,7 +19,6 @@
 #ifndef NUCLEAR_THREADING_REACTION_HPP
 #define NUCLEAR_THREADING_REACTION_HPP
 
-#include <atomic>
 #include <functional>
 #include <memory>
 #include <string>
@@ -67,11 +66,6 @@ namespace threading {
          */
         std::unique_ptr<ReactionTask> get_task();
 
-        /**
-         * @brief returns true if this reaction is currently enabled
-         */
-        bool is_enabled();
-
         /// @brief the reactor this belongs to
         Reactor& reactor;
 
@@ -81,14 +75,11 @@ namespace threading {
         /// @brief the unique identifier for this Reaction object
         const uint64_t id;
 
-        /// @brief if this is false, we cannot emit ReactionStatistics from any reaction triggered by this one
-        bool emit_stats;
-
         /// @brief the number of currently active tasks (existing reaction tasks)
-        std::atomic<int> active_tasks;
+        volatile int active_tasks;
 
         /// @brief if this reaction object is currently enabled
-        std::atomic<bool> enabled;
+        volatile bool enabled;
 
         /// @brief list of functions to use to unbind the reaction and clean
         std::vector<std::function<void(Reaction&)>> unbinders;
@@ -100,7 +91,7 @@ namespace threading {
         void unbind();
 
         /// @brief a source for reaction_ids, atomically creates longs
-        static std::atomic<uint64_t> reaction_id_source;
+        static uint64_t reaction_id_source;
         /// @brief the callback generator function (creates databound callbacks)
         TaskGenerator generator;
     };

@@ -20,7 +20,6 @@
 #define NUCLEAR_UTIL_TYPELIST_HPP
 
 #include <memory>
-#include <mutex>
 #include <vector>
 
 namespace NUClear {

@@ -25,54 +25,59 @@
 namespace NUClear {
 namespace extension {
 
+    struct ChronoTimerComplete {};
+
+    inline void timer_fired_interrupt() {
+        // TODO EMBEDDED when the timer interrupt fires, call this function
+        PowerPlant::powerplant->emit(std::make_unique<ChronoTimerComplete>());
+    }
+
+    inline void timer_wait(const NUClear::clock::duration& duration) {
+        // TODO EMBEDDED set the timer to interrupt in the specified duration
+    }
+
     class ChronoController : public Reactor {
     private:
         using ChronoTask = NUClear::dsl::operation::ChronoTask;
 
     public:
-        explicit ChronoController(std::unique_ptr<NUClear::Environment> environment)
-            : Reactor(std::move(environment)), wait_offset(std::chrono::milliseconds(0)) {
+        explicit ChronoController(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
 
             on<Trigger<ChronoTask>>().then("Add Chrono task", [this](std::shared_ptr<const ChronoTask> task) {
-                // Lock the mutex while we're doing stuff
-                {
-                    std::lock_guard<std::mutex> lock(mutex);
+                // Add our new task to the heap
+                tasks.push_back(*task);
+                std::push_heap(tasks.begin(), tasks.end(), std::greater<>());
 
-                    // Add our new task to the heap
-                    tasks.push_back(*task);
-                }
-
-                // Poke the system
-                wait.notify_all();
+                // Update the timer in case this task changed how long to wait
+                timer_wait(tasks.front().time - NUClear::clock::now());
             });
 
             on<Trigger<dsl::operation::Unbind<ChronoTask>>>().then(
                 "Unbind Chrono Task", [this](const dsl::operation::Unbind<ChronoTask>& unbind) {
-                    // Lock the mutex while we're doing stuff
-                    {
-                        std::lock_guard<std::mutex> lock(mutex);
+                    // Find the task
+                    auto it = std::find_if(
+                        tasks.begin(), tasks.end(), [&](const ChronoTask& task) { return task.id == unbind.id; });
 
-                        // Find the task
-                        auto it = std::find_if(
-                            tasks.begin(), tasks.end(), [&](const ChronoTask& task) { return task.id == unbind.id; });
+                    // Remove if if it exists
+                    if (it != tasks.end()) {
+                        tasks.erase(it);
 
-                        // Remove if if it exists
-                        if (it != tasks.end()) {
-                            tasks.erase(it);
-                        }
+                        // Fix our heap
+                        std::make_heap(tasks.begin(), tasks.end());
                     }
 
-                    // Poke the system to make sure it's not waiting on something that's gone
-                    wait.notify_all();
+                    if (!tasks.empty()) {
+                        timer_wait(tasks.front().time - NUClear::clock::now());
+                    }
                 });
 
             // When we shutdown we notify so we quit now
-            on<Shutdown>().then("Shutdown Chrono Controller", [this] { wait.notify_all(); });
+            on<Shutdown>().then("Shutdown Chrono Controller", [this] {
+                // TODO EMBEDDED STOP THE TIMER
+            });
 
-            on<Always, Priority::REALTIME>().then("Chrono Controller", [this] {
-                // Acquire the mutex lock so we can wait on it
-                std::unique_lock<std::mutex> lock(mutex);
-
+            // Run this in the main thread when the timer IRQ fires
+            on<Trigger<ChronoTimerComplete>>().then("Chrono Controller", [this] {
                 // If we have tasks to do
                 if (!tasks.empty()) {
 
@@ -81,49 +86,34 @@ namespace extension {
 
                     // If we are within the wait offset of the time, spinlock until we get there for greater
                     // accuracy
-                    if (NUClear::clock::now() + wait_offset > tasks.front().time) {
+                    NUClear::clock::time_point now = NUClear::clock::now();
 
-                        // Spinlock!
-                        while (NUClear::clock::now() < tasks.front().time) {
+                    // Move back from the end poping the heap
+                    for (auto end = tasks.end(); end != tasks.begin() && tasks.front().time < now;) {
+                        // Run our task and if it returns false remove it
+                        bool renew = tasks.front()();
+
+                        // Move this to the back of the list
+                        std::pop_heap(tasks.begin(), end, std::greater<>());
+
+                        if (!renew) {
+                            end = tasks.erase(--end);
                         }
-
-                        NUClear::clock::time_point now = NUClear::clock::now();
-
-                        // Move back from the end poping the heap
-                        for (auto end = tasks.end(); end != tasks.begin() && tasks.front().time < now;) {
-                            // Run our task and if it returns false remove it
-                            bool renew = tasks.front()();
-
-                            // Move this to the back of the list
-                            std::pop_heap(tasks.begin(), end, std::greater<>());
-
-                            if (!renew) {
-                                end = tasks.erase(--end);
-                            }
-                            else {
-                                --end;
-                            }
+                        else {
+                            --end;
                         }
                     }
-                    // Otherwise we wait for the next event using a wait_for (with a small offset for greater
-                    // accuracy) Either that or until we get interrupted with a new event
-                    else {
-                        wait.wait_until(lock, tasks.front().time - wait_offset);
+
+                    // If there are more tasks, update the timer
+                    if (!tasks.empty()) {
+                        timer_wait(tasks.front().time - NUClear::clock::now());
                     }
-                }
-                // Otherwise we wait for something to happen
-                else {
-                    wait.wait(lock);
                 }
             });
         }
 
     private:
         std::vector<dsl::operation::ChronoTask> tasks;
-        std::mutex mutex;
-        std::condition_variable wait;
-
-        NUClear::clock::duration wait_offset;
     };
 
 }  // namespace extension
