@@ -45,15 +45,14 @@ namespace util {
     struct CallbackGenerator {
 
         CallbackGenerator(Function&& callback)
-            : callback(std::forward<Function>(callback))
-            , transients(std::make_shared<typename TransientDataElements<DSL>::type>()){};
+            : callback(std::forward<Function>(callback)), transients(typename TransientDataElements<DSL>::type()){};
 
         template <typename... T, int... DIndex, int... Index>
         void merge_transients(std::tuple<T...>& data, const Sequence<DIndex...>&, const Sequence<Index...>&) {
 
             // Merge our transient data
             unpack(MergeTransients<std::remove_reference_t<decltype(std::get<DIndex>(data))>>::merge(
-                std::get<Index>(*transients), std::get<DIndex>(data))...);
+                std::get<Index>(transients), std::get<DIndex>(data))...);
         }
 
 
@@ -125,9 +124,7 @@ namespace util {
                         --task->parent.active_tasks;
 
                         // Emit our reaction statistics if it wouldn't cause a loop
-                        if (task->emit_stats) {
-                            PowerPlant::powerplant->emit<dsl::word::emit::Direct>(task->stats);
-                        }
+                        if (task->emit_stats) { PowerPlant::powerplant->emit<dsl::word::emit::Direct>(task->stats); }
                     }
 
                     // Return our task
@@ -137,7 +134,7 @@ namespace util {
         }
 
         Function callback;
-        std::shared_ptr<typename TransientDataElements<DSL>::type> transients;
+        typename TransientDataElements<DSL>::type transients;
     };
 
 }  // namespace util
