@@ -31,12 +31,12 @@ namespace util {
 
     template <typename... Ts>
     static inline std::tuple<Ts...> tuplify(std::tuple<Ts...>&& tuple) {
-        return tuple;
+        return std::move(tuple);
     }
 
     template <typename First, typename Second, typename... Remainder>
     static inline std::tuple<First, Second, Remainder...> detuplify(std::tuple<First, Second, Remainder...>&& tuple) {
-        return tuple;
+        return std::move(tuple);
     }
 
     template <typename T>

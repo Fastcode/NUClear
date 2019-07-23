@@ -31,7 +31,8 @@
 namespace google {
 namespace protobuf {
     class Message;
-}
+    class MessageLite;
+}  // namespace protobuf
 }  // namespace google
 
 namespace NUClear {
@@ -111,7 +112,10 @@ namespace util {
 
         // Google protobuf
         template <typename T>
-        struct Serialise<T, std::enable_if_t<std::is_base_of<google::protobuf::Message, T>::value, T>> {
+        struct Serialise<T,
+                         std::enable_if_t<std::is_base_of<::google::protobuf::Message, T>::value
+                                              || std::is_base_of<::google::protobuf::MessageLite, T>::value,
+                                          T>> {
 
             static inline std::vector<char> serialise(const T& in) {
                 std::vector<char> output(in.ByteSize());
