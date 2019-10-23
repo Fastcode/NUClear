@@ -90,10 +90,12 @@ void PowerPlant::submit_main(std::unique_ptr<threading::ReactionTask>&& task) {
 
 void PowerPlant::shutdown() {
 
+    // Stop running before we emit events the Shutdown event
+    // Some things such as on<Always> depend on this flag and it's possible to miss it
+    is_running = false;
+
     // Emit our shutdown event
     emit(std::make_unique<dsl::word::Shutdown>());
-
-    is_running = false;
 
     // Shutdown the scheduler
     scheduler.shutdown();
