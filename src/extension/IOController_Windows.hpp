@@ -162,7 +162,7 @@ namespace extension {
         }
 
         // We need a destructor to cleanup WSA stuff
-        ~IOController() {
+        virtual ~IOController() {
             WSACleanup();
         }
 

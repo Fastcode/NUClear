@@ -126,7 +126,7 @@ public:
         , reactor_name(environment->reactor_name)
         , log_level(environment->log_level) {}
 
-    ~Reactor() {
+    virtual ~Reactor() {
 
         // Unbind everything when we destroy the reactor
         for (auto& handle : reaction_handles) {
