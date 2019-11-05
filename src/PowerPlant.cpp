@@ -55,14 +55,14 @@ void PowerPlant::start() {
     // Direct emit startup event
     emit<dsl::word::emit::Direct>(std::make_unique<dsl::word::Startup>());
 
-    // Start all our threads
-    for (size_t i = 0; i < configuration.thread_count; ++i) {
-        tasks.push_back(threading::make_thread_pool_task(scheduler));
-    }
-
     // Start all our tasks
     for (auto& task : tasks) {
         threads.push_back(std::make_unique<std::thread>(task));
+    }
+
+    // Start all our threads
+    for (size_t i = 0; i < configuration.thread_count; ++i) {
+        tasks.push_back(threading::make_thread_pool_task(scheduler));
     }
 
     // Start our main thread using our main task scheduler
