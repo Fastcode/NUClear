@@ -165,8 +165,9 @@ namespace extension {
 
             // Work out what type of announce we are doing as it will influence how we make the socket
             bool multicast =
-                (address.sock.sa_family == AF_INET && (ntohl(address.ipv4.sin_addr.s_addr) & 0xFF000000) == 0xEF000000)
-                || (address.sock.sa_family == AF_INET6 && address.ipv6.sin6_addr.s6_addr[0] == 0xFF);
+                (address.sock.sa_family == AF_INET && (ntohl(address.ipv4.sin_addr.s_addr) & 0xF0000000) == 0xE0000000)
+                || (address.sock.sa_family == AF_INET6 && address.ipv6.sin6_addr.s6_addr[0] == 0xFF
+                    && address.ipv6.sin6_addr.s6_addr[1] == 0x00);
 
             // Swap our address so the rest of the information is anys
             if (address.sock.sa_family == AF_INET) { address.ipv4.sin_addr.s_addr = htonl(INADDR_ANY); }
