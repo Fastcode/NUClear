@@ -55,6 +55,7 @@ function(header_library)
 
     else()
       message(ERROR "Failed to download ${PACKAGE_NAME} library.")
+      file(REMOVE "${OUTPUT_DIR}/${PACKAGE_HEADER}")
     endif()
   endif()
 
