@@ -46,6 +46,7 @@ function(header_library)
     file(DOWNLOAD "${PACKAGE_URL}" "${OUTPUT_DIR}/${PACKAGE_HEADER}" STATUS ${PACKAGE_NAME}_STATUS)
 
     list(GET ${PACKAGE_NAME}_STATUS 0 ${PACKAGE_NAME}_STATUS_CODE)
+    list(GET ${PACKAGE_NAME}_STATUS 1 ${PACKAGE_NAME}_ERROR_STRING)
 
     # Parse download status
     if(${PACKAGE_NAME}_STATUS_CODE EQUAL 0)
@@ -54,7 +55,8 @@ function(header_library)
       set(${PACKAGE_NAME}_INCLUDE_DIR "${OUTPUT_DIR}")
 
     else()
-      message(ERROR "Failed to download ${PACKAGE_NAME} library.")
+      message(ERROR "Failed to download ${PACKAGE_NAME} library. Error: ${${PACKAGE_NAME}_ERROR_STRING}")
+      file(REMOVE "${OUTPUT_DIR}/${PACKAGE_HEADER}")
     endif()
   endif()
 
