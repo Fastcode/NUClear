@@ -78,7 +78,7 @@ namespace dsl {
         template <int, typename>
         struct Every;
 
-        template <typename, int, typename, typename>
+        template <typename, int, typename>
         struct Watchdog;
 
         template <typename>
@@ -105,6 +105,8 @@ namespace dsl {
             struct Network;
             template <typename T>
             struct UDP;
+            template <typename T>
+            struct Watchdog;
         }  // namespace emit
     }      // namespace word
 }  // namespace dsl
@@ -206,8 +208,8 @@ protected:
     using Every = dsl::word::Every<ticks, period>;
 
     /// @copydoc dsl::word::Watchdog
-    template <typename TWatchdog, int ticks, class period = std::chrono::milliseconds, typename SubType = void*>
-    using Watchdog = dsl::word::Watchdog<TWatchdog, ticks, period, SubType>;
+    template <typename TWatchdog, int ticks, class period = std::chrono::milliseconds>
+    using Watchdog = dsl::word::Watchdog<TWatchdog, ticks, period>;
 
     /// @copydoc dsl::word::Per
     template <class period>
@@ -233,7 +235,7 @@ protected:
         template <typename T>
         using DIRECT = dsl::word::emit::Direct<T>;
 
-        /// @copydoc dsl::word::emit::Direct
+        /// @copydoc dsl::word::emit::Delay
         template <typename T>
         using DELAY = dsl::word::emit::Delay<T>;
 
@@ -245,9 +247,13 @@ protected:
         template <typename T>
         using NETWORK = dsl::word::emit::Network<T>;
 
-        /// @copydoc dsl::word::emit::Network
+        /// @copydoc dsl::word::emit::UDP
         template <typename T>
         using UDP = dsl::word::emit::UDP<T>;
+
+        /// @copydoc dsl::word::emit::WATCHDOG
+        template <typename T>
+        using WATCHDOG = dsl::word::emit::Watchdog<T>;
     };
 
     /// @brief This provides functions to modify how an on statement runs after it has been created
@@ -397,5 +403,6 @@ public:
 #include "dsl/word/emit/Local.hpp"
 #include "dsl/word/emit/Network.hpp"
 #include "dsl/word/emit/UDP.hpp"
+#include "dsl/word/emit/Watchdog.hpp"
 
 #endif  // NUCLEAR_REACTOR_HPP

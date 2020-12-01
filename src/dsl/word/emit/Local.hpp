@@ -20,9 +20,7 @@
 #define NUCLEAR_DSL_WORD_EMIT_LOCAL_HPP
 
 #include "../../../PowerPlant.hpp"
-#include "../../../message/ServiceWatchdog.hpp"
 #include "../../../util/TypeMap.hpp"
-#include "../../../util/demangle.hpp"
 #include "../../store/DataStore.hpp"
 #include "../../store/ThreadStore.hpp"
 #include "../../store/TypeCallbackStore.hpp"
@@ -78,38 +76,6 @@ namespace dsl {
 
                     // Set the data into the global store
                     store::DataStore<DataType>::set(data);
-                }
-            };
-
-            /**
-             * @brief
-             *  Partial specialisation of @code emit<Scope::LOCAL>(data, dataType) @endcode when the data type is
-             * @code NUClear::message::ServiceWatchdog @endcode
-             *
-             * @tparam NUClear::message::ServiceWatchdog
-             */
-            template <typename WatchdogGroup, typename SubType>
-            struct Local<message::ServiceWatchdog<WatchdogGroup, SubType>> {
-
-                static void emit(PowerPlant& powerplant,
-                                 std::shared_ptr<message::ServiceWatchdog<WatchdogGroup, SubType>> data) {
-
-                    // Find our data store
-                    using WatchdogStore = util::TypeMap<message::ServiceWatchdog<WatchdogGroup, SubType>,
-                                                        void,
-                                                        std::map<SubType, NUClear::clock::time_point>>;
-
-                    // Make sure the store has already been created and that our sub type has been entered into the
-                    // store
-                    if (WatchdogStore::get() == nullptr || WatchdogStore::get()->count(data->sub_type) == 0) {
-                        throw std::runtime_error("Store for <" + util::demangle(typeid(WatchdogGroup).name()) + ", "
-                                                 + util::demangle(typeid(SubType).name())
-                                                 + "> has not been created yet");
-                    }
-
-
-                    // Update our service time
-                    WatchdogStore::get()->operator[](data->sub_type) = NUClear::clock::now();
                 }
             };
 

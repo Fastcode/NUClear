@@ -46,7 +46,7 @@ public:
 
         on<Every<5, std::chrono::milliseconds>>().then([this] {
             // service the watchdog
-            if (++count < 20) { emit(std::make_unique<NUClear::message::ServiceWatchdog<TestReactor>>()); }
+            if (++count < 20) { emit<Scope::WATCHDOG>(std::make_unique<void*>()); }
         });
     }
 };
@@ -59,14 +59,14 @@ public:
         count = 0;
 
         // Trigger every 10 milliseconds
-        on<Watchdog<TestReactorSubType, 10, std::chrono::milliseconds, std::string>>("test a").then([this] {
+        on<Watchdog<TestReactorSubType, 10, std::chrono::milliseconds>>(std::string("test a")).then([this] {
             end_a = NUClear::clock::now();
 
             // When our watchdog eventually triggers, shutdown
             powerplant.shutdown();
         });
 
-        on<Watchdog<TestReactorSubType, 10, std::chrono::milliseconds, std::string>>("test b").then([this] {
+        on<Watchdog<TestReactorSubType, 10, std::chrono::milliseconds>>(std::string("test b")).then([this] {
             end_b = NUClear::clock::now();
 
             // When our watchdog eventually triggers, shutdown
@@ -76,8 +76,8 @@ public:
         on<Every<5, std::chrono::milliseconds>>().then([this] {
             // service the watchdog
             if (++count < 20) {
-                emit(std::make_unique<NUClear::message::ServiceWatchdog<TestReactorSubType, std::string>>("test a"));
-                emit(std::make_unique<NUClear::message::ServiceWatchdog<TestReactorSubType, std::string>>("test b"));
+                emit<Scope::WATCHDOG>(std::make_unique<std::string>("test a"));
+                emit<Scope::WATCHDOG>(std::make_unique<std::string>("test b"));
             }
         });
     }
