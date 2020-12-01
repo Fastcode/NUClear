@@ -20,6 +20,7 @@
 #define NUCLEAR_DSL_WORD_WATCHDOG_HPP
 
 #include "../../message/ServiceWatchdog.hpp"
+#include "../../util/demangle.hpp"
 #include "../operation/Unbind.hpp"
 #include "../store/DataStore.hpp"
 #include "emit/Direct.hpp"
@@ -76,29 +77,46 @@ namespace dsl {
          *  seconds, minutes, hours).  Note that you can also define your own unit:  See
          *  http://en.cppreference.com/w/cpp/chrono/duration
          */
-        template <typename WatchdogGroup, int ticks, class period>
+        template <typename WatchdogGroup, int ticks, class period, typename SubType = void*>
         struct Watchdog {
 
             template <typename DSL>
-            static inline void bind(const std::shared_ptr<threading::Reaction>& reaction) {
+            static inline void bind(const std::shared_ptr<threading::Reaction>& reaction,
+                                    SubType&& sub_type = SubType{}) {
 
-                // If this is the first time we have used this watchdog service it
-                if (!operation::CacheGet<message::ServiceWatchdog<WatchdogGroup>>::template get<DSL>(*reaction)) {
-                    reaction->reactor.emit(std::make_unique<message::ServiceWatchdog<WatchdogGroup>>());
+                // Find our data store
+                using WatchdogStore = util::TypeMap<message::ServiceWatchdog<WatchdogGroup, SubType>,
+                                                    void,
+                                                    std::map<SubType, NUClear::clock::time_point>>;
+
+                // Make sure the store is created
+                if (WatchdogStore::get() == nullptr) {
+                    WatchdogStore::set(std::make_shared<std::map<SubType, NUClear::clock::time_point>>());
                 }
 
+                // If this is the first time we have used this watchdog service it
+                if (WatchdogStore::get()->count(sub_type) == 0) {
+                    WatchdogStore::get()->operator[](sub_type) = NUClear::clock::now();
+                }
 
-                reaction->unbinders.push_back([](const threading::Reaction& r) {
+                reaction->unbinders.push_back([sub_type](const threading::Reaction& r) {
+                    // Remove the service time for the current sub type
+                    if (WatchdogStore::get() != nullptr) { WatchdogStore::get()->erase(sub_type); }
                     r.reactor.emit<emit::Direct>(std::make_unique<operation::Unbind<operation::ChronoTask>>(r.id));
                 });
 
                 // Send our configuration out
                 reaction->reactor.emit<emit::Direct>(std::make_unique<operation::ChronoTask>(
-                    [reaction](NUClear::clock::time_point& time) {
+                    [reaction, sub_type](NUClear::clock::time_point& time) {
+                        // Sanity check
+                        if (WatchdogStore::get() == nullptr || WatchdogStore::get()->count(sub_type) == 0) {
+                            throw std::runtime_error("Store for <" + util::demangle(typeid(WatchdogGroup).name()) + ", "
+                                                     + util::demangle(typeid(SubType).name())
+                                                     + "> is trying to field a service call for an unknown sub type");
+                        }
+
                         // Get the latest time the watchdog was serviced
-                        auto service_time =
-                            operation::CacheGet<message::ServiceWatchdog<WatchdogGroup>>::template get<DSL>(*reaction)
-                                ->time;
+                        auto service_time = WatchdogStore::get()->operator[](sub_type);
 
                         // Check if our watchdog has timed out
                         if (NUClear::clock::now() > (service_time + period(ticks))) {

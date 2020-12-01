@@ -22,11 +22,13 @@
 namespace NUClear {
 namespace message {
 
-    template <typename WatchdogGroup>
+    template <typename WatchdogGroup, typename SubType = void*>
     struct ServiceWatchdog {
-        ServiceWatchdog() : time(NUClear::clock::now()){};
+        ServiceWatchdog(SubType&& sub_type = SubType{})
+            : time(NUClear::clock::now()), sub_type(std::forward<SubType>(sub_type)){};
 
         const NUClear::clock::time_point time;
+        const SubType sub_type;
     };
 
 }  // namespace message

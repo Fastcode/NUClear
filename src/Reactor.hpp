@@ -78,7 +78,7 @@ namespace dsl {
         template <int, typename>
         struct Every;
 
-        template <typename, int, typename>
+        template <typename, int, typename, typename>
         struct Watchdog;
 
         template <typename>
@@ -205,9 +205,9 @@ protected:
     template <int ticks = 0, class period = std::chrono::milliseconds>
     using Every = dsl::word::Every<ticks, period>;
 
-    /// @copydoc dsl::word::Every
-    template <typename TWatchdog, int ticks, class period = std::chrono::milliseconds>
-    using Watchdog = dsl::word::Watchdog<TWatchdog, ticks, period>;
+    /// @copydoc dsl::word::Watchdog
+    template <typename TWatchdog, int ticks, class period = std::chrono::milliseconds, typename SubType = void*>
+    using Watchdog = dsl::word::Watchdog<TWatchdog, ticks, period, SubType>;
 
     /// @copydoc dsl::word::Per
     template <class period>
