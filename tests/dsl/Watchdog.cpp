@@ -17,15 +17,16 @@
  */
 
 #include <catch.hpp>
-
-#include <numeric>
-
 #include <nuclear>
+#include <numeric>
+#include <string>
 
 namespace {
 
 NUClear::clock::time_point start;
 NUClear::clock::time_point end;
+NUClear::clock::time_point end_a;
+NUClear::clock::time_point end_b;
 int count = 0;
 
 class TestReactor : public NUClear::Reactor {
@@ -33,6 +34,7 @@ public:
     TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
 
         start = NUClear::clock::now();
+        count = 0;
 
         // Trigger every 10 milliseconds
         on<Watchdog<TestReactor, 10, std::chrono::milliseconds>>().then([this] {
@@ -44,8 +46,38 @@ public:
 
         on<Every<5, std::chrono::milliseconds>>().then([this] {
             // service the watchdog
+            if (++count < 20) { emit(std::make_unique<NUClear::message::ServiceWatchdog<TestReactor>>()); }
+        });
+    }
+};
+
+class TestReactorSubType : public NUClear::Reactor {
+public:
+    TestReactorSubType(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
+
+        start = NUClear::clock::now();
+        count = 0;
+
+        // Trigger every 10 milliseconds
+        on<Watchdog<TestReactorSubType, 10, std::chrono::milliseconds, std::string>>("test a").then([this] {
+            end_a = NUClear::clock::now();
+
+            // When our watchdog eventually triggers, shutdown
+            powerplant.shutdown();
+        });
+
+        on<Watchdog<TestReactorSubType, 10, std::chrono::milliseconds, std::string>>("test b").then([this] {
+            end_b = NUClear::clock::now();
+
+            // When our watchdog eventually triggers, shutdown
+            powerplant.shutdown();
+        });
+
+        on<Every<5, std::chrono::milliseconds>>().then([this] {
+            // service the watchdog
             if (++count < 20) {
-                emit(std::make_unique<NUClear::message::ServiceWatchdog<TestReactor>>());
+                emit(std::make_unique<NUClear::message::ServiceWatchdog<TestReactorSubType, std::string>>("test a"));
+                emit(std::make_unique<NUClear::message::ServiceWatchdog<TestReactorSubType, std::string>>("test b"));
             }
         });
     }
@@ -63,4 +95,18 @@ TEST_CASE("Testing the Watchdog Smart Type", "[api][watchdog]") {
 
     // Require that at least 100ms has passed (since 20 * 5ms gives 100, and we should be longer than that)
     REQUIRE(end - start > std::chrono::milliseconds(100));
+}
+
+TEST_CASE("Testing the Watchdog Smart Type with a sub type", "[api][watchdog][sub_type]") {
+
+    NUClear::PowerPlant::Configuration config;
+    config.thread_count = 1;
+    NUClear::PowerPlant plant(config);
+    plant.install<TestReactorSubType>();
+
+    plant.start();
+
+    // Require that at least 100ms has passed (since 20 * 5ms gives 100, and we should be longer than that)
+    REQUIRE(end_a - start > std::chrono::milliseconds(100));
+    REQUIRE(end_b - start > std::chrono::milliseconds(100));
 }
