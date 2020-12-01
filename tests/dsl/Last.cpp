@@ -48,7 +48,7 @@ public:
                 REQUIRE(messages.size() <= 5);
 
                 // If our size is less than 5 it should be the size of the front element
-                if (messages.size() < 5) { REQUIRE(messages.size() == messages.back()->value); }
+                if (messages.size() < 5) { REQUIRE(int(messages.size()) == messages.back()->value); }
 
                 // Check that our numbers are decreasing
                 int i = messages.front()->value;

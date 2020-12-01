@@ -56,7 +56,7 @@ public:
 
             REQUIRE(stored.size() == 10);
 
-            for (size_t i = 0; i < stored.size(); ++i) {
+            for (int i = 0; i < int(stored.size()); ++i) {
                 REQUIRE(stored[i]->x == i);
             }
 
