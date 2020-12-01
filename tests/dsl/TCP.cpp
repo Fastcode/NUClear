@@ -50,7 +50,7 @@ public:
                     if (len != 0) {
 
                         // Test the data
-                        REQUIRE(len == TEST_STRING.size());
+                        REQUIRE(len == int(TEST_STRING.size()));
                         REQUIRE(TEST_STRING == std::string(reinterpret_cast<char*>(buff)));
                         ++messages_received;
                     }
@@ -82,7 +82,7 @@ public:
                     // 0 indicates orderly shutdown of the socket
                     if (len != 0) {
                         // Test the data
-                        REQUIRE(len == TEST_STRING.size());
+                        REQUIRE(len == int(TEST_STRING.size()));
                         REQUIRE(TEST_STRING == std::string(reinterpret_cast<char*>(buff)));
                         ++messages_received;
                     }
@@ -117,7 +117,7 @@ public:
             ssize_t sent = ::send(fd, TEST_STRING.data(), TEST_STRING.size(), 0);
 
             // We must have sent the right amount of data
-            REQUIRE(sent == TEST_STRING.size());
+            REQUIRE(sent == int(TEST_STRING.size()));
         });
 
         // Send a test message to the freely bound port
@@ -142,7 +142,7 @@ public:
             ssize_t sent = ::send(fd, TEST_STRING.data(), TEST_STRING.size(), 0);
 
             // We must have sent the right amount of data
-            REQUIRE(sent == TEST_STRING.size());
+            REQUIRE(sent == int(TEST_STRING.size()));
         });
 
         on<Startup>().then([this] {

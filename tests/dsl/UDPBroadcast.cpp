@@ -17,15 +17,14 @@
  */
 
 #include <catch.hpp>
-
 #include <nuclear>
 
 namespace {
 
 constexpr unsigned short PORT = 40001;
 const std::string TEST_STRING = "Hello UDP Broadcast World!";
-int count_a                   = 0;
-int count_b                   = 0;
+std::size_t count_a           = 0;
+std::size_t count_b           = 0;
 std::size_t num_addresses     = 0;
 
 struct Message {};
@@ -44,9 +43,7 @@ public:
             REQUIRE(std::memcmp(packet.payload.data(), TEST_STRING.data(), TEST_STRING.size()) == 0);
 
             // Shutdown we are done with the test
-            if (count_a >= 1 && count_b >= 1) {
-                powerplant.shutdown();
-            }
+            if (count_a >= 1 && count_b >= 1) { powerplant.shutdown(); }
         });
 
         // Unknown port
@@ -58,9 +55,7 @@ public:
             REQUIRE(std::memcmp(packet.payload.data(), TEST_STRING.data(), TEST_STRING.size()) == 0);
 
             // Shutdown we are done with the test
-            if (count_a >= 1 && count_b >= 1) {
-                powerplant.shutdown();
-            }
+            if (count_a >= 1 && count_b >= 1) { powerplant.shutdown(); }
         });
 
         on<Trigger<Message>>().then([this] {

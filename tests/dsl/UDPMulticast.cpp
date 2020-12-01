@@ -17,7 +17,6 @@
  */
 
 #include <catch.hpp>
-
 #include <nuclear>
 
 namespace {
@@ -25,8 +24,8 @@ namespace {
 constexpr in_port_t PORT            = 40002;
 const std::string TEST_STRING       = "Hello UDP Multicast World!";
 const std::string MULTICAST_ADDRESS = "230.12.3.21";
-int count_a                         = 0;
-int count_b                         = 0;
+std::size_t count_a                 = 0;
+std::size_t count_b                 = 0;
 std::size_t num_addresses           = 0;
 
 struct Message {};
@@ -43,9 +42,7 @@ public:
             REQUIRE(std::memcmp(packet.payload.data(), TEST_STRING.data(), TEST_STRING.size()) == 0);
 
             // Shutdown we are done with the test
-            if (count_a >= 1 && count_b >= 1) {
-                powerplant.shutdown();
-            }
+            if (count_a >= 1 && count_b >= 1) { powerplant.shutdown(); }
         });
 
         // Unknown port
@@ -58,9 +55,7 @@ public:
                 REQUIRE(std::memcmp(packet.payload.data(), TEST_STRING.data(), TEST_STRING.size()) == 0);
 
                 // Shutdown we are done with the test
-                if (count_a >= 1 && count_b >= 1) {
-                    powerplant.shutdown();
-                }
+                if (count_a >= 1 && count_b >= 1) { powerplant.shutdown(); }
             });
 
         // Test a known port
