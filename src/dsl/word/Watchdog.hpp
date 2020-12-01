@@ -82,7 +82,7 @@ namespace dsl {
 
             template <typename DSL>
             static inline void bind(const std::shared_ptr<threading::Reaction>& reaction,
-                                    SubType&& sub_type = SubType{}) {
+                                    const SubType& sub_type = SubType{}) {
 
                 // Find our data store
                 using WatchdogStore = util::TypeMap<message::ServiceWatchdog<WatchdogGroup, SubType>,

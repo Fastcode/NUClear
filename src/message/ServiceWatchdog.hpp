@@ -24,8 +24,7 @@ namespace message {
 
     template <typename WatchdogGroup, typename SubType = void*>
     struct ServiceWatchdog {
-        ServiceWatchdog(SubType&& sub_type = SubType{})
-            : time(NUClear::clock::now()), sub_type(std::forward<SubType>(sub_type)){};
+        ServiceWatchdog(const SubType& sub_type = SubType{}) : time(NUClear::clock::now()), sub_type(sub_type){};
 
         const NUClear::clock::time_point time;
         const SubType sub_type;
