@@ -355,6 +355,10 @@ public:
     void emit(std::unique_ptr<T>& data, Arguments&&... args) {
         powerplant.emit<Handlers...>(std::forward<std::unique_ptr<T>>(data), std::forward<Arguments>(args)...);
     }
+    template <template <typename> class... Handlers>
+    void emit() {
+        powerplant.emit<Handlers...>();
+    }
 
     /**
      * @brief Log a message through NUClear's system.

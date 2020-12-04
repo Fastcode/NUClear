@@ -46,7 +46,7 @@ public:
 
         on<Every<5, std::chrono::milliseconds>>().then([this] {
             // service the watchdog
-            if (++count < 20) { emit<Scope::WATCHDOG>(std::make_unique<void*>()); }
+            if (++count < 20) { emit<Scope::WATCHDOG>(); }
         });
     }
 };

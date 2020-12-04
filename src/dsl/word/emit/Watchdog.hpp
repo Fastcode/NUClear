@@ -43,7 +43,8 @@ namespace dsl {
             template <typename DataType>
             struct Watchdog {
 
-                static void emit(PowerPlant& powerplant, std::shared_ptr<DataType> data) {
+                static void emit(PowerPlant& powerplant,
+                                 std::shared_ptr<DataType> data = std::make_shared<DataType>()) {
 
                     // Find our data store
                     using WatchdogStore = util::TypeMap<DataType, void, std::map<DataType, NUClear::clock::time_point>>;
