@@ -84,33 +84,6 @@ public:
 
                 // Send our message to that broadcast address
                 emit<Scope::UDP>(std::make_unique<std::string>(TEST_STRING), ad, PORT);
-            }
-        });
-
-        on<Trigger<Message>>().then([this] {
-            // Get all the network interfaces
-            auto interfaces = NUClear::util::network::get_interfaces();
-
-            std::vector<in_addr_t> addresses;
-
-            for (auto& iface : interfaces) {
-                // We send on broadcast addresses and we don't want loopback or point to point
-                if (iface.broadcast.sock.sa_family == AF_INET && iface.flags.broadcast) {
-                    auto& i = *reinterpret_cast<sockaddr_in*>(&iface.broadcast);
-                    // Two broadcast ips that are the same are probably on the same network so ignore those
-                    if (std::find(std::begin(addresses), std::end(addresses), ntohl(i.sin_addr.s_addr))
-                        == std::end(addresses)) {
-
-                        addresses.push_back(ntohl(i.sin_addr.s_addr));
-                    }
-                }
-            }
-
-            num_addresses = addresses.size();
-
-            for (auto& ad : addresses) {
-
-                // Send our message to that broadcast address
                 emit<Scope::UDP>(std::make_unique<std::string>(TEST_STRING), ad, bound_port);
             }
         });
