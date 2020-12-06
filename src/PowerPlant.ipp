@@ -94,6 +94,7 @@ struct EmitCaller {
         Handler::emit(std::forward<Arguments>(args)...);
         return true;
     }
+
     template <typename Powerplant>
     static inline auto call(Powerplant& powerplant)
         // THIS IS VERY IMPORTANT, the return type must be dependent on the function call
@@ -150,7 +151,6 @@ void PowerPlant::emit(std::unique_ptr<T>&& data, Arguments&&... args) {
 
 template <template <typename> class First, template <typename> class... Remainder>
 void PowerPlant::emit() {
-
     emit_shared<First, Remainder...>();
 }
 

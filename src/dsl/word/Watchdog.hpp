@@ -112,7 +112,7 @@ namespace dsl {
                         }
 
                         // Get the latest time the watchdog was serviced
-                        auto service_time = WatchdogStore::get()->operator[](data);
+                        auto service_time = WatchdogStore::get()->at(data);
 
                         // Check if our watchdog has timed out
                         if (NUClear::clock::now() > (service_time + period(ticks))) {

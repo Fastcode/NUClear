@@ -201,6 +201,7 @@ public:
               typename T,
               typename... Arguments>
     void emit_shared(std::shared_ptr<T>&& data, Arguments&&... args);
+
     template <template <typename> class First, template <typename> class... Remainder>
     void emit_shared();
 
