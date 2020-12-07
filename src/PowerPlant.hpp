@@ -191,7 +191,7 @@ public:
      * @tparam First        the first handler to use for this emit
      * @tparam Remainder    the remaining handlers to use for this emit
      * @tparam T            the type of the data that we are emitting
-     * @tparam Arguments        the additional arguments that will be provided to the handlers
+     * @tparam Arguments    the additional arguments that will be provided to the handlers
      *
      * @param data The data we are emitting
      */

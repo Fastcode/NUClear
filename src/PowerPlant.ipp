@@ -142,6 +142,7 @@ void PowerPlant::emit(std::unique_ptr<T>&& data, Arguments&&... args) {
 
 template <template <typename> class First, template <typename> class... Remainder, typename... Arguments>
 void PowerPlant::emit(Arguments&&... args) {
+
     emit_shared<First, Remainder...>(std::forward<Arguments>(args)...);
 }
 

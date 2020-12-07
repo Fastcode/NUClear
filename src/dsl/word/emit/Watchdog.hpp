@@ -1,6 +1,5 @@
 /*
- * Copyright (C) 2013      Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
- *               2014-2017 Trent Houliston <trent@houliston.me>
+ * Copyright (C) Alex Biddulph <Alexander.Biddulph@uon.edu.au>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -28,6 +27,18 @@ namespace dsl {
     namespace word {
         namespace emit {
 
+            /**
+             * @brief
+             *  Handles the data store for the case when runtime arguments specified
+             *  @code on<Watchdog<>>(data) @endcode
+             *  @code emit<Scope::WATCHDOG>(data) @endcode
+             *
+             * @tparam WatchdogGroup
+             *  the type/group of tasks the watchdog will track. This needs to be a declared type within the system
+             * (be it a reactor, reaction, or other type).
+             * @tparam RuntimeType
+             *  the type of the runtime argument. const/volatile specifiers are stripped from this type
+             */
             template <typename WatchdogGroup, typename RuntimeType = void>
             struct WatchdogServicer {
                 using MapType = std::remove_cv_t<RuntimeType>;
@@ -37,6 +48,14 @@ namespace dsl {
                 WatchdogServicer() : when(NUClear::clock::now()), data() {}
                 WatchdogServicer(const RuntimeType& data) : when(NUClear::clock::now()), data(data) {}
 
+                /**
+                 * @brief
+                 *  Services the watchdog
+                 *
+                 * @details
+                 *  The watchdog timer that is specified by the WatchdogGroup/RuntimeType/data
+                 *  combination will have its service time updated to whatever is stored in when
+                 */
                 void service() {
                     if (WatchdogStore::get() == nullptr || WatchdogStore::get()->count(data) == 0) {
                         throw std::runtime_error("Store for <" + util::demangle(typeid(WatchdogGroup).name()) + ", "
@@ -51,12 +70,30 @@ namespace dsl {
                 RuntimeType data;
             };
 
+            /**
+             * @brief
+             *  Handles the data store for the case when no runtime arguments are specified
+             *  @code on<Watchdog<>>() @endcode
+             *  @code emit<Scope::WATCHDOG>() @endcode
+             *
+             * @tparam WatchdogGroup
+             *  the type/group of tasks the watchdog will track. This needs to be a declared type within the system
+             * (be it a reactor, reaction, or other type).
+             */
             template <typename WatchdogGroup>
             struct WatchdogServicer<WatchdogGroup, void> {
                 using WatchdogStore = util::TypeMap<WatchdogGroup, void, NUClear::clock::time_point>;
 
                 WatchdogServicer() : when(NUClear::clock::now()) {}
 
+                /**
+                 * @brief
+                 *  Services the watchdog
+                 *
+                 * @details
+                 *  The watchdog timer for WatchdogGroup will have its service time updated to whatever is stored in
+                 * when
+                 */
                 void service() {
                     if (WatchdogStore::get() == nullptr) {
                         throw std::runtime_error("Store for <" + util::demangle(typeid(WatchdogGroup).name())
@@ -69,10 +106,34 @@ namespace dsl {
                 NUClear::clock::time_point when;
             };
 
+            /**
+             * @brief
+             *  Convenience function to instantiate a WatchdogServicer for a watchdog with a runtime argument
+             *
+             * @tparam WatchdogGroup
+             *  the type/group of tasks the watchdog will track. This needs to be a declared type within the system
+             * (be it a reactor, reaction, or other type).
+             * @tparam RuntimeType
+             *  the type of the runtime argument. const/volatile specifiers are stripped from this type
+             * @param data
+             *  The runtime argument that was passed to
+             * @code on<Watchdog<>>(data) @endcode
+             * @return WatchdogServicer<WatchdogGroup, RuntimeType>
+             */
             template <typename WatchdogGroup, typename RuntimeType>
             WatchdogServicer<WatchdogGroup, RuntimeType> ServiceWatchdog(RuntimeType&& data) {
                 return WatchdogServicer<WatchdogGroup, RuntimeType>(std::forward<RuntimeType>(data));
             }
+
+            /**
+             * @brief
+             *  Convenience function to instantiate a WatchdogServicer for a watchdog with no runtime argument
+             *
+             * @tparam WatchdogGroup
+             *  the type/group of tasks the watchdog will track. This needs to be a declared type within the system
+             * (be it a reactor, reaction, or other type).
+             * @return WatchdogServicer<WatchdogGroup, void>
+             */
             template <typename WatchdogGroup>
             WatchdogServicer<WatchdogGroup, void> ServiceWatchdog() {
                 return WatchdogServicer<WatchdogGroup, void>();
@@ -83,11 +144,14 @@ namespace dsl {
              *  When emitting data under this scope, the service time for the watchdog is updated
              *
              * @details
-             *  @code emit<Scope::WATCHDOG>(data, dataType); @endcode
+             *  @code emit<Scope::WATCHDOG>(ServiceWatchdog<WatchdogGroup>(data)); @endcode
+             * or
+             *  @code emit<Scope::WATCHDOG>(ServiceWatchdog<WatchdogGroup>()); @endcode
              *
-             * @param data
-             *  the data to emit
-             * @tparam DataType
+             * The RuntimeType template parameter need not be specified for ServiceWatchdog as it will be inferred from
+             * the data argument, if it is specified
+             *
+             * @tparam
              *  the datatype of the object to emit
              */
             template <typename>

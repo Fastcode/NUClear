@@ -220,6 +220,8 @@ protected:
     /// @copydoc dsl::word::emit::ServiceWatchdog
     template <typename WatchdogGroup, typename... Arguments>
     auto ServiceWatchdog(Arguments&&... args)
+        // THIS IS VERY IMPORTANT, the return type must be dependent on the function call
+        // otherwise it won't check it's valid in SFINAE
         -> decltype(dsl::word::emit::ServiceWatchdog<WatchdogGroup>(std::forward<Arguments>(args)...)) {
         return dsl::word::emit::ServiceWatchdog<WatchdogGroup>(std::forward<Arguments>(args)...);
     }
@@ -356,9 +358,9 @@ public:
      *
      *
      * @tparam Handlers The handlers for this emit (e.g. LOCAL, NETWORK etc)
-     * @tparam T        The type of the data we are emitting
+     * @tparam T        The type of the data we are emitting, for some handlers (e.g. WATCHDOG) this is optional
      *
-     * @param data The data to emit
+     * @param data The data to emit, for some handlers (e.g. WATCHDOG) this is optional
      */
     template <template <typename> class... Handlers, typename T, typename... Arguments>
     void emit(std::unique_ptr<T>&& data, Arguments&&... args) {
