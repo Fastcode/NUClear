@@ -46,27 +46,27 @@ public:
 
         on<Every<5, std::chrono::milliseconds>>().then([this] {
             // service the watchdog
-            if (++count < 20) { emit<Scope::WATCHDOG>(); }
+            if (++count < 20) { emit<Scope::WATCHDOG>(ServiceWatchdog<TestReactor>()); }
         });
     }
 };
 
-class TestReactorSubType : public NUClear::Reactor {
+class TestReactorRuntimeArg : public NUClear::Reactor {
 public:
-    TestReactorSubType(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
+    TestReactorRuntimeArg(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
 
         start = NUClear::clock::now();
         count = 0;
 
         // Trigger every 10 milliseconds
-        on<Watchdog<TestReactorSubType, 10, std::chrono::milliseconds>>(std::string("test a")).then([this] {
+        on<Watchdog<TestReactorRuntimeArg, 10, std::chrono::milliseconds>>(std::string("test a")).then([this] {
             end_a = NUClear::clock::now();
 
             // When our watchdog eventually triggers, shutdown
             powerplant.shutdown();
         });
 
-        on<Watchdog<TestReactorSubType, 10, std::chrono::milliseconds>>(std::string("test b")).then([this] {
+        on<Watchdog<TestReactorRuntimeArg, 10, std::chrono::milliseconds>>(std::string("test b")).then([this] {
             end_b = NUClear::clock::now();
 
             // When our watchdog eventually triggers, shutdown
@@ -76,8 +76,8 @@ public:
         on<Every<5, std::chrono::milliseconds>>().then([this] {
             // service the watchdog
             if (++count < 20) {
-                emit<Scope::WATCHDOG>(std::make_unique<std::string>("test a"));
-                emit<Scope::WATCHDOG>(std::make_unique<std::string>("test b"));
+                emit<Scope::WATCHDOG>(ServiceWatchdog<TestReactorRuntimeArg>(std::string("test a")));
+                emit<Scope::WATCHDOG>(ServiceWatchdog<TestReactorRuntimeArg>(std::string("test b")));
             }
         });
     }
@@ -102,7 +102,7 @@ TEST_CASE("Testing the Watchdog Smart Type with a sub type", "[api][watchdog][su
     NUClear::PowerPlant::Configuration config;
     config.thread_count = 1;
     NUClear::PowerPlant plant(config);
-    plant.install<TestReactorSubType>();
+    plant.install<TestReactorRuntimeArg>();
 
     plant.start();
 
