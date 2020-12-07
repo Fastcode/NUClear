@@ -94,15 +94,6 @@ struct EmitCaller {
         Handler::emit(std::forward<Arguments>(args)...);
         return true;
     }
-
-    template <typename Powerplant>
-    static inline auto call(Powerplant& powerplant)
-        // THIS IS VERY IMPORTANT, the return type must be dependent on the function call
-        // otherwise it won't check it's valid in SFINAE
-        -> decltype(Handler::emit(std::forward<Powerplant>(powerplant)), true) {
-        Handler::emit(std::forward<Powerplant>(powerplant));
-        return true;
-    }
 };
 
 // Global emit handlers
@@ -125,11 +116,11 @@ void PowerPlant::emit_shared(std::shared_ptr<T>&& ptr, Arguments&&... args) {
     FusionFunction::call(*this, ptr, std::forward<Arguments>(args)...);
 }
 
-template <template <typename> class First, template <typename> class... Remainder>
-void PowerPlant::emit_shared() {
+template <template <typename> class First, template <typename> class... Remainder, typename... Arguments>
+void PowerPlant::emit_shared(Arguments&&... args) {
 
-    using Functions      = std::tuple<First<void*>, Remainder<void*>...>;
-    using ArgumentPack   = decltype(std::forward_as_tuple(*this));
+    using Functions      = std::tuple<First<void>, Remainder<void>...>;
+    using ArgumentPack   = decltype(std::forward_as_tuple(*this, std::forward<Arguments>(args)...));
     using CallerArgs     = std::tuple<>;
     using FusionFunction = util::FunctionFusion<Functions, ArgumentPack, EmitCaller, CallerArgs, 1>;
 
@@ -139,7 +130,7 @@ void PowerPlant::emit_shared() {
                   "match what you are trying to do.");
 
     // Fuse our emit handlers and call the fused function
-    FusionFunction::call(*this);
+    FusionFunction::call(*this, std::forward<Arguments>(args)...);
 }
 
 template <template <typename> class First, template <typename> class... Remainder, typename T, typename... Arguments>
@@ -149,9 +140,9 @@ void PowerPlant::emit(std::unique_ptr<T>&& data, Arguments&&... args) {
     emit_shared<First, Remainder...>(std::shared_ptr<T>(std::move(data)), std::forward<Arguments>(args)...);
 }
 
-template <template <typename> class First, template <typename> class... Remainder>
-void PowerPlant::emit() {
-    emit_shared<First, Remainder...>();
+template <template <typename> class First, template <typename> class... Remainder, typename... Arguments>
+void PowerPlant::emit(Arguments&&... args) {
+    emit_shared<First, Remainder...>(std::forward<Arguments>(args)...);
 }
 
 // Anonymous metafunction that concatenates everything into a single string

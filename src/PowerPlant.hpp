@@ -202,8 +202,8 @@ public:
               typename... Arguments>
     void emit_shared(std::shared_ptr<T>&& data, Arguments&&... args);
 
-    template <template <typename> class First, template <typename> class... Remainder>
-    void emit_shared();
+    template <template <typename> class First, template <typename> class... Remainder, typename... Arguments>
+    void emit_shared(Arguments&&... args);
 
     template <template <typename> class First,
               template <typename>
@@ -219,8 +219,8 @@ public:
               typename... Arguments>
     void emit(std::unique_ptr<T>& data, Arguments&&... args);
 
-    template <template <typename> class First, template <typename> class... Remainder>
-    void emit();
+    template <template <typename> class First, template <typename> class... Remainder, typename... Arguments>
+    void emit(Arguments&&... args);
 
 private:
     /// @brief A list of tasks that must be run when the powerplant starts up
