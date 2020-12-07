@@ -20,6 +20,7 @@
 #define NUCLEAR_DSL_WORD_EMIT_LOCAL_HPP
 
 #include "../../../PowerPlant.hpp"
+#include "../../../util/TypeMap.hpp"
 #include "../../store/DataStore.hpp"
 #include "../../store/ThreadStore.hpp"
 #include "../../store/TypeCallbackStore.hpp"
@@ -57,9 +58,7 @@ namespace dsl {
                     for (auto& reaction : store::TypeCallbackStore<DataType>::get()) {
                         try {
                             auto task = reaction->get_task();
-                            if (task) {
-                                powerplant.submit(std::move(task));
-                            }
+                            if (task) { powerplant.submit(std::move(task)); }
                         }
                         // If there is an exception while generating a reaction print it here, this shouldn't happen
                         catch (const std::exception& ex) {

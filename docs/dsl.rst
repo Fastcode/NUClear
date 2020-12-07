@@ -219,6 +219,10 @@ Scope::DELAY
 `````````````
 .. doxygenstruct:: NUClear::dsl::word::emit::Delay
 
+Scope::WATCHDOG
+``````````````
+.. doxygenstruct:: NUClear::dsl::word::emit::Watchdog
+
 Network Emitting
 ----------------
 

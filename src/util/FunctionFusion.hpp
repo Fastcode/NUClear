@@ -180,7 +180,7 @@ namespace util {
     struct FunctionFusion;
 
     /**
-     * @brief Splits arguments amoungst a series of functions.
+     * @brief Splits arguments amongst a series of functions.
      * @details This is the main loop for the function fusion metafunction.
      *          It will do a greedy matching of arguments with function overloads
      *          to try and make all functions callable with the given arguments.
@@ -204,7 +204,7 @@ namespace util {
      * @tparam End                  the current attempted index of the element after the last argument to pass to the
      *                              function
      * @tparam ProcessedFunctions   the list of functions that have had found argument sets
-     * @tparam ArgumentRanges       the resepctive argument ranges for the processed functions
+     * @tparam ArgumentRanges       the respective argument ranges for the processed functions
      */
     template <typename CurrentFunction,
               typename... Functions,

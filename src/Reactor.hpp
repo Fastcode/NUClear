@@ -105,6 +105,14 @@ namespace dsl {
             struct Network;
             template <typename T>
             struct UDP;
+            template <typename T>
+            struct Watchdog;
+            template <typename WatchdogGroup, typename RuntimeType>
+            struct WatchdogServicer;
+            template <typename WatchdogGroup, typename RuntimeType>
+            WatchdogServicer<WatchdogGroup, RuntimeType> ServiceWatchdog(RuntimeType&& data);
+            template <typename WatchdogGroup>
+            WatchdogServicer<WatchdogGroup, void> ServiceWatchdog();
         }  // namespace emit
     }      // namespace word
 }  // namespace dsl
@@ -205,9 +213,18 @@ protected:
     template <int ticks = 0, class period = std::chrono::milliseconds>
     using Every = dsl::word::Every<ticks, period>;
 
-    /// @copydoc dsl::word::Every
+    /// @copydoc dsl::word::Watchdog
     template <typename TWatchdog, int ticks, class period = std::chrono::milliseconds>
     using Watchdog = dsl::word::Watchdog<TWatchdog, ticks, period>;
+
+    /// @copydoc dsl::word::emit::ServiceWatchdog
+    template <typename WatchdogGroup, typename... Arguments>
+    auto ServiceWatchdog(Arguments&&... args)
+        // THIS IS VERY IMPORTANT, the return type must be dependent on the function call
+        // otherwise it won't check it's valid in SFINAE
+        -> decltype(dsl::word::emit::ServiceWatchdog<WatchdogGroup>(std::forward<Arguments>(args)...)) {
+        return dsl::word::emit::ServiceWatchdog<WatchdogGroup>(std::forward<Arguments>(args)...);
+    }
 
     /// @copydoc dsl::word::Per
     template <class period>
@@ -233,7 +250,7 @@ protected:
         template <typename T>
         using DIRECT = dsl::word::emit::Direct<T>;
 
-        /// @copydoc dsl::word::emit::Direct
+        /// @copydoc dsl::word::emit::Delay
         template <typename T>
         using DELAY = dsl::word::emit::Delay<T>;
 
@@ -245,9 +262,13 @@ protected:
         template <typename T>
         using NETWORK = dsl::word::emit::Network<T>;
 
-        /// @copydoc dsl::word::emit::Network
+        /// @copydoc dsl::word::emit::UDP
         template <typename T>
         using UDP = dsl::word::emit::UDP<T>;
+
+        /// @copydoc dsl::word::emit::WATCHDOG
+        template <typename T>
+        using WATCHDOG = dsl::word::emit::Watchdog<T>;
     };
 
     /// @brief This provides functions to modify how an on statement runs after it has been created
@@ -337,9 +358,9 @@ public:
      *
      *
      * @tparam Handlers The handlers for this emit (e.g. LOCAL, NETWORK etc)
-     * @tparam T        The type of the data we are emitting
+     * @tparam T        The type of the data we are emitting, for some handlers (e.g. WATCHDOG) this is optional
      *
-     * @param data The data to emit
+     * @param data The data to emit, for some handlers (e.g. WATCHDOG) this is optional
      */
     template <template <typename> class... Handlers, typename T, typename... Arguments>
     void emit(std::unique_ptr<T>&& data, Arguments&&... args) {
@@ -348,6 +369,10 @@ public:
     template <template <typename> class... Handlers, typename T, typename... Arguments>
     void emit(std::unique_ptr<T>& data, Arguments&&... args) {
         powerplant.emit<Handlers...>(std::forward<std::unique_ptr<T>>(data), std::forward<Arguments>(args)...);
+    }
+    template <template <typename> class... Handlers, typename... Arguments>
+    void emit(Arguments&&... args) {
+        powerplant.emit<Handlers...>(std::forward<Arguments>(args)...);
     }
 
     /**
@@ -397,5 +422,6 @@ public:
 #include "dsl/word/emit/Local.hpp"
 #include "dsl/word/emit/Network.hpp"
 #include "dsl/word/emit/UDP.hpp"
+#include "dsl/word/emit/Watchdog.hpp"
 
 #endif  // NUCLEAR_REACTOR_HPP

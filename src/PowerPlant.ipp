@@ -116,11 +116,34 @@ void PowerPlant::emit_shared(std::shared_ptr<T>&& ptr, Arguments&&... args) {
     FusionFunction::call(*this, ptr, std::forward<Arguments>(args)...);
 }
 
+template <template <typename> class First, template <typename> class... Remainder, typename... Arguments>
+void PowerPlant::emit_shared(Arguments&&... args) {
+
+    using Functions      = std::tuple<First<void>, Remainder<void>...>;
+    using ArgumentPack   = decltype(std::forward_as_tuple(*this, std::forward<Arguments>(args)...));
+    using CallerArgs     = std::tuple<>;
+    using FusionFunction = util::FunctionFusion<Functions, ArgumentPack, EmitCaller, CallerArgs, 1>;
+
+    // Provide a check to make sure they are passing us the right stuff
+    static_assert(FusionFunction::value,
+                  "There was an error with the arguments for the emit function, Check that your scope and arguments "
+                  "match what you are trying to do.");
+
+    // Fuse our emit handlers and call the fused function
+    FusionFunction::call(*this, std::forward<Arguments>(args)...);
+}
+
 template <template <typename> class First, template <typename> class... Remainder, typename T, typename... Arguments>
 void PowerPlant::emit(std::unique_ptr<T>&& data, Arguments&&... args) {
 
     // Release our data from the pointer and wrap it in a shared_ptr
     emit_shared<First, Remainder...>(std::shared_ptr<T>(std::move(data)), std::forward<Arguments>(args)...);
+}
+
+template <template <typename> class First, template <typename> class... Remainder, typename... Arguments>
+void PowerPlant::emit(Arguments&&... args) {
+
+    emit_shared<First, Remainder...>(std::forward<Arguments>(args)...);
 }
 
 // Anonymous metafunction that concatenates everything into a single string

@@ -191,27 +191,36 @@ public:
      * @tparam First        the first handler to use for this emit
      * @tparam Remainder    the remaining handlers to use for this emit
      * @tparam T            the type of the data that we are emitting
-     * @tparam Arguments        the additional arguments that will be provided to the handlers
+     * @tparam Arguments    the additional arguments that will be provided to the handlers
      *
      * @param data The data we are emitting
      */
     template <template <typename> class First,
-              template <typename> class... Remainder,
+              template <typename>
+              class... Remainder,
               typename T,
               typename... Arguments>
     void emit_shared(std::shared_ptr<T>&& data, Arguments&&... args);
 
+    template <template <typename> class First, template <typename> class... Remainder, typename... Arguments>
+    void emit_shared(Arguments&&... args);
+
     template <template <typename> class First,
-              template <typename> class... Remainder,
+              template <typename>
+              class... Remainder,
               typename T,
               typename... Arguments>
     void emit(std::unique_ptr<T>&& data, Arguments&&... args);
 
     template <template <typename> class First,
-              template <typename> class... Remainder,
+              template <typename>
+              class... Remainder,
               typename T,
               typename... Arguments>
     void emit(std::unique_ptr<T>& data, Arguments&&... args);
+
+    template <template <typename> class First, template <typename> class... Remainder, typename... Arguments>
+    void emit(Arguments&&... args);
 
 private:
     /// @brief A list of tasks that must be run when the powerplant starts up
@@ -240,7 +249,6 @@ void log(Arguments&&... args) {
 
 // Include our Reactor.h first as the tight coupling between powerplant and reactor requires a specific include order
 #include "Reactor.hpp"
-
 #include "dsl/word/emit/Direct.hpp"
 #include "dsl/word/emit/Initialise.hpp"
 #include "dsl/word/emit/Local.hpp"
