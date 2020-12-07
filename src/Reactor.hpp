@@ -107,6 +107,12 @@ namespace dsl {
             struct UDP;
             template <typename T>
             struct Watchdog;
+            template <typename WatchdogGroup, typename RuntimeType>
+            struct WatchdogServicer;
+            template <typename WatchdogGroup, typename RuntimeType>
+            WatchdogServicer<WatchdogGroup, RuntimeType> ServiceWatchdog(RuntimeType&& data);
+            template <typename WatchdogGroup>
+            WatchdogServicer<WatchdogGroup, void> ServiceWatchdog();
         }  // namespace emit
     }      // namespace word
 }  // namespace dsl
@@ -210,6 +216,13 @@ protected:
     /// @copydoc dsl::word::Watchdog
     template <typename TWatchdog, int ticks, class period = std::chrono::milliseconds>
     using Watchdog = dsl::word::Watchdog<TWatchdog, ticks, period>;
+
+    /// @copydoc dsl::word::emit::ServiceWatchdog
+    template <typename WatchdogGroup, typename... Arguments>
+    auto ServiceWatchdog(Arguments&&... args)
+        -> decltype(dsl::word::emit::ServiceWatchdog<WatchdogGroup>(std::forward<Arguments>(args)...)) {
+        return dsl::word::emit::ServiceWatchdog<WatchdogGroup>(std::forward<Arguments>(args)...);
+    }
 
     /// @copydoc dsl::word::Per
     template <class period>

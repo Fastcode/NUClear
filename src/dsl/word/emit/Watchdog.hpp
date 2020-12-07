@@ -28,6 +28,56 @@ namespace dsl {
     namespace word {
         namespace emit {
 
+            template <typename WatchdogGroup, typename RuntimeType = void>
+            struct WatchdogServicer {
+                using MapType = std::remove_cv_t<RuntimeType>;
+                using WatchdogStore =
+                    util::TypeMap<WatchdogGroup, MapType, std::map<MapType, NUClear::clock::time_point>>;
+
+                WatchdogServicer() : when(NUClear::clock::now()), data() {}
+                WatchdogServicer(const RuntimeType& data) : when(NUClear::clock::now()), data(data) {}
+
+                void service() {
+                    if (WatchdogStore::get() == nullptr || WatchdogStore::get()->count(data) == 0) {
+                        throw std::runtime_error("Store for <" + util::demangle(typeid(WatchdogGroup).name()) + ", "
+                                                 + util::demangle(typeid(RuntimeType).name())
+                                                 + "> has not been created yet or no watchdog has been set up");
+                    }
+                    WatchdogStore::get()->at(data) = when;
+                }
+
+            private:
+                NUClear::clock::time_point when;
+                RuntimeType data;
+            };
+
+            template <typename WatchdogGroup>
+            struct WatchdogServicer<WatchdogGroup, void> {
+                using WatchdogStore = util::TypeMap<WatchdogGroup, void, NUClear::clock::time_point>;
+
+                WatchdogServicer() : when(NUClear::clock::now()) {}
+
+                void service() {
+                    if (WatchdogStore::get() == nullptr) {
+                        throw std::runtime_error("Store for <" + util::demangle(typeid(WatchdogGroup).name())
+                                                 + "> has not been created yet or no watchdog has been set up");
+                    }
+                    WatchdogStore::set(std::make_shared<NUClear::clock::time_point>(when));
+                }
+
+            private:
+                NUClear::clock::time_point when;
+            };
+
+            template <typename WatchdogGroup, typename RuntimeType>
+            WatchdogServicer<WatchdogGroup, RuntimeType> ServiceWatchdog(RuntimeType&& data) {
+                return WatchdogServicer<WatchdogGroup, RuntimeType>(std::forward<RuntimeType>(data));
+            }
+            template <typename WatchdogGroup>
+            WatchdogServicer<WatchdogGroup, void> ServiceWatchdog() {
+                return WatchdogServicer<WatchdogGroup, void>();
+            }
+
             /**
              * @brief
              *  When emitting data under this scope, the service time for the watchdog is updated
@@ -40,24 +90,13 @@ namespace dsl {
              * @tparam DataType
              *  the datatype of the object to emit
              */
-            template <typename DataType>
+            template <typename>
             struct Watchdog {
 
-                static void emit(PowerPlant& powerplant,
-                                 std::shared_ptr<DataType> data = std::make_shared<DataType>()) {
-
-                    // Find our data store
-                    using WatchdogStore = util::TypeMap<DataType, void, std::map<DataType, NUClear::clock::time_point>>;
-
-                    // Make sure the store has already been created and that our sub type has been entered into the
-                    // store
-                    if (WatchdogStore::get() == nullptr || WatchdogStore::get()->count(*data) == 0) {
-                        throw std::runtime_error("Store for <" + util::demangle(typeid(DataType).name())
-                                                 + "> has not been created yet or no watchdog has been set up");
-                    }
-
+                template <typename WatchdogGroup, typename RuntimeType>
+                static void emit(PowerPlant& powerplant, WatchdogServicer<WatchdogGroup, RuntimeType>& servicer) {
                     // Update our service time
-                    WatchdogStore::get()->operator[](*data) = NUClear::clock::now();
+                    servicer.service();
                 }
             };
 
