@@ -12,24 +12,18 @@ on:
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   # Build the docker image
-  build:
-    name: "Build and test the code"
+  build-linux:
+    name: "Build and test the code for different gcc versions on linux"
 
     strategy:
       matrix:
-        include:
-          - os: macos-latest
-            env:
-              - CXX: clang
-          - os: ubuntu-latest
-            env:
-              - CXX: clang
-          - os: ubuntu-latest
-            env:
-              - CXX: gcc
+        container: ["gcc:4.9", "gcc:5"]
 
     # The type of runner that the job will run on
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
+
+    # Use the container for this specific version of gcc
+    container: ${{ matrix.container }}
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
@@ -50,7 +44,7 @@ jobs:
         # Note the current convention is to use the -S and -B options here to specify source
         # and build directories, but this is only available with CMake 3.13 and higher.
         # The CMake binaries on the Github Actions machines are (as of this writing) 3.12
-        run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=Release
+        run: cmake $GITHUB_WORKSPACE -GNinja -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=${{ matrix.compiler }}
 
       - name: Build
         working-directory: ${{runner.workspace}}/build
