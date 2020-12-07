@@ -193,8 +193,7 @@ namespace dsl {
              *
              * @tparam RuntimeType
              *  the type of the runtime argument. const/volatile specifiers are stripped from this type
-             * @param reaction
-             *
+             * @param reaction the reaction object that we are binding
              * @param data the runtime argument for the current watchdog in the WatchdogGroup/RuntimeType group
              */
             template <typename DSL, typename RuntimeType>
