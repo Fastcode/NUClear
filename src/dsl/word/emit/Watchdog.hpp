@@ -49,8 +49,7 @@ namespace dsl {
                 WatchdogServicer(const RuntimeType& data) : when(NUClear::clock::now()), data(data) {}
 
                 /**
-                 * @brief
-                 *  Services the watchdog
+                 * @brief *  Services the watchdog
                  *
                  * @details
                  *  The watchdog timer that is specified by the WatchdogGroup/RuntimeType/data
@@ -87,8 +86,7 @@ namespace dsl {
                 WatchdogServicer() : when(NUClear::clock::now()) {}
 
                 /**
-                 * @brief
-                 *  Services the watchdog
+                 * @brief *  Services the watchdog
                  *
                  * @details
                  *  The watchdog timer for WatchdogGroup will have its service time updated to whatever is stored in
@@ -115,8 +113,7 @@ namespace dsl {
              * (be it a reactor, reaction, or other type).
              * @tparam RuntimeType
              *  the type of the runtime argument. const/volatile specifiers are stripped from this type
-             * @param data
-             *  The runtime argument that was passed to
+             * @param data The runtime argument that was passed to
              * @code on<Watchdog<>>(data) @endcode
              * @return WatchdogServicer<WatchdogGroup, RuntimeType>
              */
@@ -126,8 +123,7 @@ namespace dsl {
             }
 
             /**
-             * @brief
-             *  Convenience function to instantiate a WatchdogServicer for a watchdog with no runtime argument
+             * @brief Convenience function to instantiate a WatchdogServicer for a watchdog with no runtime argument
              *
              * @tparam WatchdogGroup
              *  the type/group of tasks the watchdog will track. This needs to be a declared type within the system
@@ -140,8 +136,7 @@ namespace dsl {
             }
 
             /**
-             * @brief
-             *  When emitting data under this scope, the service time for the watchdog is updated
+             * @brief When emitting data under this scope, the service time for the watchdog is updated
              *
              * @details
              *  @code emit<Scope::WATCHDOG>(ServiceWatchdog<WatchdogGroup>(data)); @endcode
@@ -151,8 +146,7 @@ namespace dsl {
              * The RuntimeType template parameter need not be specified for ServiceWatchdog as it will be inferred from
              * the data argument, if it is specified
              *
-             * @tparam
-             *  the datatype of the object to emit
+             * @tparam the datatype of the object to emit
              */
             template <typename>
             struct Watchdog {

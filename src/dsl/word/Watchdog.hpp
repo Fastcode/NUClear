@@ -46,11 +46,9 @@ namespace dsl {
             using WatchdogStore = util::TypeMap<WatchdogGroup, MapType, std::map<MapType, NUClear::clock::time_point>>;
 
             /**
-             * @brief
-             *  Ensures the data store is initialised correctly
+             * @brief Ensures the data store is initialised correctly
              *
-             * @param data
-             *  The runtime argument for the current watchdog in the WatchdogGroup/RuntimeType group
+             * @param data The runtime argument for the current watchdog in the WatchdogGroup/RuntimeType group
              */
             static void init(const RuntimeType& data) {
                 if (WatchdogStore::get() == nullptr) {
@@ -62,11 +60,9 @@ namespace dsl {
             }
 
             /**
-             * @brief
-             *  Gets the current service time for the WatchdogGroup/RuntimeType/data watchdog
+             * @brief Gets the current service time for the WatchdogGroup/RuntimeType/data watchdog
              *
-             * @param data
-             *  The runtime argument for the current watchdog in the WatchdogGroup/RuntimeType group
+             * @param data The runtime argument for the current watchdog in the WatchdogGroup/RuntimeType group
              */
             static const NUClear::clock::time_point& get(const RuntimeType& data) {
                 if (WatchdogStore::get() == nullptr || WatchdogStore::get()->count(data) == 0) {
@@ -78,11 +74,9 @@ namespace dsl {
             }
 
             /**
-             * @brief
-             *  Cleans up any allocated storage for the WatchdogGroup/RuntimeType/data watchdog
+             * @brief Cleans up any allocated storage for the WatchdogGroup/RuntimeType/data watchdog
              *
-             * @param data
-             *  The runtime argument for the current watchdog in the WatchdogGroup/RuntimeType group
+             * @param data The runtime argument for the current watchdog in the WatchdogGroup/RuntimeType group
              */
             static void unbind(const RuntimeType& data) {
                 if (WatchdogStore::get() != nullptr) { WatchdogStore::get()->erase(data); }
@@ -104,8 +98,7 @@ namespace dsl {
             using WatchdogStore = util::TypeMap<WatchdogGroup, void, NUClear::clock::time_point>;
 
             /**
-             * @brief
-             *  Ensures the data store is initialised correctly
+             * @brief Ensures the data store is initialised correctly
              */
             static void init() {
                 if (WatchdogStore::get() == nullptr) {
@@ -114,8 +107,7 @@ namespace dsl {
             }
 
             /**
-             * @brief
-             *  Gets the current service time for the WatchdogGroup watchdog
+             * @brief Gets the current service time for the WatchdogGroup watchdog
              */
             static const NUClear::clock::time_point& get() {
                 if (WatchdogStore::get() == nullptr) {
@@ -126,8 +118,7 @@ namespace dsl {
             }
 
             /**
-             * @brief
-             *  Cleans up any allocated storage for the WatchdogGroup watchdog
+             * @brief Cleans up any allocated storage for the WatchdogGroup watchdog
              */
             static void unbind() {
                 if (WatchdogStore::get() != nullptr) { WatchdogStore::get().reset(); }
@@ -196,8 +187,7 @@ namespace dsl {
         struct Watchdog {
 
             /**
-             * @brief
-             *  Binder for Watchdog reactions with a runtime argument
+             * @brief Binder for Watchdog reactions with a runtime argument
              *
              * @tparam DSL
              *
@@ -205,8 +195,7 @@ namespace dsl {
              *  the type of the runtime argument. const/volatile specifiers are stripped from this type
              * @param reaction
              *
-             * @param data
-             *  the runtime argument for the current watchdog in the WatchdogGroup/RuntimeType group
+             * @param data the runtime argument for the current watchdog in the WatchdogGroup/RuntimeType group
              */
             template <typename DSL, typename RuntimeType>
             static inline void bind(const std::shared_ptr<threading::Reaction>& reaction, const RuntimeType& data) {
@@ -232,13 +221,7 @@ namespace dsl {
             }
 
             /**
-             * @brief
-             *  Binder for Watchdog reactions with no runtime argument
-             *
-             * @tparam DSL
-             *
-             * @param reaction
-             *
+             * @brief Binder for Watchdog reactions with no runtime argument
              */
             template <typename DSL>
             static inline void bind(const std::shared_ptr<threading::Reaction>& reaction) {
@@ -264,19 +247,13 @@ namespace dsl {
 
         private:
             /**
-             * @brief
-             *  updates the service time for the current reaction
+             * @brief updates the service time for the current reaction
              *
-             * @param reaction
-             *  the reaction we are servicing
-             * @param service_time
-             *  the last service time of the watchdog
-             * @param time
-             *  the time when this watchdog should be checked next
-             * @return true
-             *  the chrono task should run again
-             * @return false
-             *  the chrono task should not run again
+             * @param reaction the reaction we are servicing
+             * @param service_time the last service time of the watchdog
+             * @param time the time when this watchdog should be checked next
+             * @return true the chrono task should run again
+             * @return false the chrono task should not run again
              */
             static bool chrono_task(const std::shared_ptr<threading::Reaction>& reaction,
                                     const NUClear::clock::time_point& service_time,
