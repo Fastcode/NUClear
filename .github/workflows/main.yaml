@@ -13,15 +13,11 @@ on:
 jobs:
   # Build the docker image
   build-linux:
-    name: "Build and test the code for different gcc versions on linux"
+    name: "Linux GCC"
 
     strategy:
       matrix:
         container: ["gcc:4.9", "gcc:5"]
-
-    env:
-      # Output the full test results when a test fails
-      CTEST_OUTPUT_ON_FAILURE: 1
 
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
