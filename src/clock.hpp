@@ -23,18 +23,25 @@
 
 namespace NUClear {
 
+#ifndef NUCLEAR_CLOCK_TYPE
+#    define NUCLEAR_CLOCK_TYPE std::chrono::steady_clock
+#endif  // NUCLEAR_CLOCK_TYPE
+
+/// @brief The base clock that is used when defining the NUClear clock
+using base_clock = NUCLEAR_CLOCK_TYPE;
+
 #ifndef NUCLEAR_CUSTOM_CLOCK
 
 /// @brief The clock that is used throughout the entire nuclear system
-using clock = std::chrono::steady_clock;
+using clock = base_clock;
 
 #else
 
 struct clock {
-    using rep                       = std::chrono::steady_clock::rep;
-    using period                    = std::chrono::steady_clock::period;
-    using duration                  = std::chrono::steady_clock::duration;
-    using time_point                = std::chrono::steady_clock::time_point;
+    using rep                       = base_clock::rep;
+    using period                    = base_clock::period;
+    using duration                  = base_clock::duration;
+    using time_point                = base_clock::time_point;
     static constexpr bool is_steady = false;
 
     static time_point now();
