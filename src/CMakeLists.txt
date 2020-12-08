@@ -16,6 +16,7 @@ set_target_properties(nuclear PROPERTIES POSITION_INDEPENDENT_CODE ON)
 target_compile_features(
   nuclear
   PUBLIC
+  c_std_99
   cxx_constexpr
   cxx_decltype
   cxx_deleted_functions
