@@ -44,20 +44,14 @@ jobs:
           /tmp/cmake-install.sh --skip-license --prefix=/usr
           rm /tmp/cmake-install.sh
 
-      - name: Install ninja
-        run: |
-          apt-get install unzip
-          wget https://github.com/ninja-build/ninja/releases/download/v1.10.2/ninja-linux.zip -q -O /tmp/ninja.zip
-          unzip /tmp/ninja.zip -d /usr/bin
-
       - name: Configure CMake
         run: |
           cmake -E make_directory build
-          cmake -S . -B build -GNinja -DCMAKE_BUILD_TYPE=Release
+          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 
       - name: Build
         # Execute the build.  You can specify a specific target with "--target <NAME>"
-        run: cmake --build build --config Release
+        run: cmake --build build --config Release --parallel 2
 
       - name: Test
         # Execute tests defined by the CMake configuration.
