@@ -20,6 +20,7 @@ jobs:
         container: ["gcc:4.9", "gcc:5"]
 
     env:
+      # Output the full test results when a test fails
       CTEST_OUTPUT_ON_FAILURE: 1
 
     # The type of runner that the job will run on
@@ -43,10 +44,16 @@ jobs:
           /tmp/cmake-install.sh --skip-license --prefix=/usr
           rm /tmp/cmake-install.sh
 
+      - name: Install ninja
+        run: |
+          wget https://github.com/ninja-build/ninja/releases/download/v1.10.2/ninja-linux.zip -q -O /tmp/ninja.zip
+          unzip /tmp/ninja.zip
+          mv /tmp/ninja /usr/bin
+
       - name: Configure CMake
         run: |
           cmake -E make_directory build
-          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+          cmake -S . -B build -GNinja -DCMAKE_BUILD_TYPE=Release
 
       - name: Build
         # Execute the build.  You can specify a specific target with "--target <NAME>"
@@ -55,4 +62,6 @@ jobs:
       - name: Test
         # Execute tests defined by the CMake configuration.
         # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
-        run: ctest build -C Release
+        run: |
+          cd build
+          ctest -C Release
