@@ -46,7 +46,7 @@ jobs:
 
       - name: Install ninja
         run: |
-          sudo apt-get install unzip
+          apt-get install unzip
           wget https://github.com/ninja-build/ninja/releases/download/v1.10.2/ninja-linux.zip -q -O /tmp/ninja.zip
           unzip /tmp/ninja.zip -d /usr/bin
 
