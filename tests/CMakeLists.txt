@@ -64,7 +64,6 @@ if(CATCH_FOUND)
       test_network SYSTEM
       PRIVATE ${CATCH_INCLUDE_DIRS} ${PROJECT_BINARY_DIR}/include "${PROJECT_SOURCE_DIR}/src"
     )
-    add_test(test_network test_network)
 
   endif(BUILD_TESTS)
 endif(CATCH_FOUND)
