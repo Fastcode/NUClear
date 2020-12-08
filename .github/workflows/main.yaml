@@ -47,8 +47,7 @@ jobs:
       - name: Install ninja
         run: |
           wget https://github.com/ninja-build/ninja/releases/download/v1.10.2/ninja-linux.zip -q -O /tmp/ninja.zip
-          unzip /tmp/ninja.zip
-          mv /tmp/ninja /usr/bin
+          unzip /tmp/ninja.zip -d /usr/bin
 
       - name: Configure CMake
         run: |
