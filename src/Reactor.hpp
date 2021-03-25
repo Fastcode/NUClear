@@ -405,6 +405,7 @@ public:
 #include "dsl/word/Last.hpp"
 #include "dsl/word/MainThread.hpp"
 #include "dsl/word/Network.hpp"
+#include "dsl/word/Once.hpp"
 #include "dsl/word/Optional.hpp"
 #include "dsl/word/Priority.hpp"
 #include "dsl/word/Shutdown.hpp"
