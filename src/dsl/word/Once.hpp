@@ -46,7 +46,7 @@ namespace dsl {
             template <typename DSL>
             static inline void postcondition(threading::Reaction& reaction) {
                 // Unbind:
-                reaction.unbind()
+                reaction.unbind();
             }
         };
 
