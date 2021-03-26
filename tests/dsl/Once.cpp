@@ -30,7 +30,7 @@ class TestReactor : public NUClear::Reactor {
 public:
     TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
 
-        on<Once>().then([this] {
+        on<Once<Always>>().then("", [this] {
             // Increment the counter,
             ++i;
 
