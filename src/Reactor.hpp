@@ -44,6 +44,8 @@ namespace dsl {
 
         struct Always;
 
+        struct Once;
+
         struct Priority;
 
         struct IO;
@@ -171,6 +173,9 @@ protected:
 
     /// @copydoc dsl::word::Always
     using Always = dsl::word::Always;
+
+    /// @copydoc dsl::word::Once
+    using Once = dsl::word::Once;
 
     /// @copydoc dsl::word::IO
     using IO = dsl::word::IO;
