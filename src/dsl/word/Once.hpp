@@ -33,11 +33,7 @@ namespace dsl {
          * @details
          *  @code on<Once>() @endcode
          *  Any reactions listed with this DSL word will run only once. This is the only time these reactions
-         *  will run. Postcondition Unbinds the current reaction, after processing.
-         *
-         *
-         * @par Implements
-         *  Bind
+         *  will run as the postcondition Unbinds the current reaction, after processing.
          *
          */
         struct Once {
