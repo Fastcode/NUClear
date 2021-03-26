@@ -36,7 +36,7 @@ namespace dsl {
          *  will run as the postcondition Unbinds the current reaction, after processing.
          *
          */
-        struct Once {
+        struct Once : public Single {
 
             // Post condition to unbind this reaction.
             template <typename DSL>
