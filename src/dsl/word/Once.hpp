@@ -42,31 +42,11 @@ namespace dsl {
          */
         struct Once {
 
-            template <typename DSL>
-            static inline void bind(const std::shared_ptr<threading::Reaction>& reaction) {
-
-                // Unbinds the current reaction:
-                reaction->unbinders.push_back([](threading::Reaction& r) { r.enabled = false; });
-
-                // This is our function that run once
-                reaction->reactor.powerplant.add_thread_task([reaction] {
-                    try {
-                        // Get a task
-                        auto task = reaction->get_task();
-
-                        // If we got a real task back
-                        if (task) { task = task->run(std::move(task)); }
-                    }
-                    catch (...) {
-                    }
-                });
-            }
-
             // Post condition to unbind this reaction.
             template <typename DSL>
             static inline void postcondition(threading::Reaction& reaction) {
                 // Unbind:
-                reaction->unbinders.push_back([](threading::Reaction& r) { r.enabled = true; });
+                reaction.unbind()
             }
         };
 

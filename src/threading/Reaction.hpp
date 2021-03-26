@@ -93,12 +93,12 @@ namespace threading {
         /// @brief list of functions to use to unbind the reaction and clean
         std::vector<std::function<void(Reaction&)>> unbinders;
 
-    private:
         /**
          * @brief Unbinds this reaction from it's context
          */
         void unbind();
 
+    private:
         /// @brief a source for reaction_ids, atomically creates longs
         static std::atomic<uint64_t> reaction_id_source;
         /// @brief the callback generator function (creates databound callbacks)
