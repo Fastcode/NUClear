@@ -1,4 +1,4 @@
-NUClear [![Build Status](https://travis-ci.org/Fastcode/NUClear.svg?branch=master)](https://travis-ci.org/Fastcode/NUClear)
+NUClear [![CI](https://github.com/Fastcode/NUClear/actions/workflows/main.yaml/badge.svg)](https://github.com/Fastcode/NUClear/actions/workflows/main.yaml)
 =======
 
 NUClear is a C++ software framework designed to aid in the development of real time modular systems.
