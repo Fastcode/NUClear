@@ -28,7 +28,7 @@ namespace dsl {
 
         /**
          * @brief
-         *  This is used to specify reactions which should occur at only 1 time.
+         *  This is used to specify reactions which should occur only 1 time.
          *
          * @details
          *  @code on<Once>() @endcode
