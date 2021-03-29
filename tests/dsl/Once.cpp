@@ -17,37 +17,35 @@
  */
 
 #include <catch.hpp>
+#include <iostream>
 #include <nuclear>
 
 namespace {
 
 struct SimpleMessage {};
-struct EndMessage {};
+struct StartMessage {};
 
 int i = 0;
+int j = 0;
 
 class TestReactor : public NUClear::Reactor {
 public:
     TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
 
-        on<Trigger<SimpleMessage>, Once>().then([this] {
+        on<Trigger<SimpleMessage>, Priority::HIGH, Once>().then([this] {
             // Increment the counter,
             ++i;
             // Function has finished, then should unbind.
         });
 
-        on<Trigger<EndMessage>, Once>().then([this] { powerplant.shutdown(); });
-
-        // Send 3 messages at start up:
-        on<Startup>().then([this]() {
-            // Emit two events, only one should run, the last message just shuts down the powerplant.
-            emit(std::make_unique<SimpleMessage>());
-            // We'll send a few more incase: Nothing should happen
-            emit(std::make_unique<SimpleMessage>());
-            emit(std::make_unique<SimpleMessage>());
-            // We need a message to shutdown the powerplant so we can continue on to the next test.
-
-            emit(std::make_unique<EndMessage>());
+        on<Trigger<StartMessage>>().then([this] {
+            ++j;
+            // Run until it's 11 then shutdown
+            if (j > 10) { powerplant.shutdown(); }
+            else {
+                powerplant.emit(std::make_unique<SimpleMessage>());
+                powerplant.emit(std::make_unique<StartMessage>());
+            }
         });
     }
 };
@@ -61,7 +59,7 @@ TEST_CASE("Testing on<Once> functionality", "[api][once]") {
 
     // We are installing with an initial log level of debug
     plant.install<TestReactor, NUClear::DEBUG>();
-
+    plant.emit(std::make_unique<StartMessage>());
     plant.start();
 
     REQUIRE(i == 1);
