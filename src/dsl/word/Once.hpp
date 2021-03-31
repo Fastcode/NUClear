@@ -20,7 +20,7 @@
 #ifndef NUCLEAR_DSL_WORD_ONCE_HPP
 #define NUCLEAR_DSL_WORD_ONCE_HPP
 
-#include "../operation/TypeBind.hpp"
+#include "Single.hpp"
 
 namespace NUClear {
 namespace dsl {

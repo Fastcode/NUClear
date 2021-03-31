@@ -32,6 +32,7 @@ class TestReactor : public NUClear::Reactor {
 public:
     TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
 
+        // Make this priority high so it will always run first if it is able
         on<Trigger<SimpleMessage>, Priority::HIGH, Once>().then([this] {
             // Increment the counter,
             ++i;
