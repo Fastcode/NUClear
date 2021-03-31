@@ -24,7 +24,6 @@ namespace {
 
 struct SimpleMessage {};
 struct StartMessage {};
-struct BlankMessage {};
 
 int i = 0;
 int j = 0;
@@ -34,9 +33,7 @@ public:
     TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
 
         // Make this priority high so it will always run first if it is able
-        on<Trigger<SimpleMessage>, Priority::HIGH, Once>().then([this] {
-            // Use the powerplant, otherwise MAC clang will fail.
-            powerplant.emit(std::make_unique<BlankMessage>());
+        on<Trigger<SimpleMessage>, Priority::HIGH, Once>().then([] {
             // Increment the counter,
             ++i;
             // Function has finished, then should unbind.
