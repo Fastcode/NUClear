@@ -38,6 +38,7 @@ namespace message {
         std::string message;
 
         /// @brief The currently executing task that made this message
+        /// @warning This can point to garbage if this message is not acted on instantly.
         const ReactionStatistics* task;
     };
 
