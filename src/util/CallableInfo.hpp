@@ -36,7 +36,7 @@ namespace util {
     // Regular
     template <typename T, typename Ret, typename... Args>
     struct CallableInfo<Ret (T::*)(Args...)> : public function_info<Ret, Args...> {};
-    // C Variardic
+    // C Variadic
     template <typename T, typename Ret, typename... Args>
     struct CallableInfo<Ret (T::*)(Args..., ...)> : public function_info<Ret, Args...> {};
     // Types that have cv-qualifiers
@@ -92,7 +92,7 @@ namespace util {
     // Regular
     template <typename Ret, typename... Args>
     struct CallableInfo<Ret(Args...)> : public function_info<Ret, Args...> {};
-    // C Variardic
+    // C Variadic
     template <typename Ret, typename... Args>
     struct CallableInfo<Ret(Args..., ...)> : public function_info<Ret, Args...> {};
     // Types that have cv-qualifiers
@@ -154,7 +154,7 @@ namespace util {
     struct CallableInfo<Ret (*const)(Args...)> : public function_info<Ret(*), Args...> {};
     template <typename Ret, typename... Args>
     struct CallableInfo<Ret (*const&)(Args...)> : public function_info<Ret(*), Args...> {};
-    // C Variardic
+    // C Variadic
     template <typename Ret, typename... Args>
     struct CallableInfo<Ret (*)(Args..., ...)> : public function_info<Ret(*), Args...> {};
     template <typename Ret, typename... Args>
@@ -168,7 +168,7 @@ namespace util {
     // Regular
     template <typename Ret, typename... Args>
     struct CallableInfo<Ret (&)(Args...)> : public function_info<Ret(&), Args...> {};
-    // C Variardic
+    // C Variadic
     template <typename Ret, typename... Args>
     struct CallableInfo<Ret (&)(Args..., ...)> : public function_info<Ret(&), Args...> {};
 
