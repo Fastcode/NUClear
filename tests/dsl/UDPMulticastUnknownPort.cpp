@@ -21,74 +21,39 @@
 
 namespace {
 
-constexpr in_port_t PORT            = 40002;
 const std::string TEST_STRING       = "Hello UDP Multicast World!";
-const std::string MULTICAST_ADDRESS = "230.12.3.21";
-std::size_t count_a                 = 0;
-std::size_t count_b                 = 0;
+const std::string MULTICAST_ADDRESS = "230.12.3.22";
+std::size_t count                   = 0;
 std::size_t num_addresses           = 0;
 
 struct Message {};
 
 class TestReactor : public NUClear::Reactor {
 public:
+    bool shutdown_flag = false;
+
     TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
 
-        // Known port
-        on<UDP::Multicast>(MULTICAST_ADDRESS, PORT).then([this](const UDP::Packet& packet) {
-            ++count_a;
-            // Check that the data we received is correct
-            REQUIRE(packet.payload.size() == TEST_STRING.size());
-            REQUIRE(std::memcmp(packet.payload.data(), TEST_STRING.data(), TEST_STRING.size()) == 0);
-
-            // Shutdown we are done with the test
-            if (count_a >= 1 && count_b >= 1) { powerplant.shutdown(); }
+        // Terminates the test if it takes too long - longer than 200 ms since this reaction first runs
+        on<Every<200, std::chrono::milliseconds>>().then([this]() {
+            if (shutdown_flag) { powerplant.shutdown(); }
+            shutdown_flag = true;
         });
 
         // Unknown port
         in_port_t bound_port;
         std::tie(std::ignore, bound_port, std::ignore) =
             on<UDP::Multicast>(MULTICAST_ADDRESS).then([this](const UDP::Packet& packet) {
-                ++count_b;
+                ++count;
                 // Check that the data we received is correct
                 REQUIRE(packet.payload.size() == TEST_STRING.size());
                 REQUIRE(std::memcmp(packet.payload.data(), TEST_STRING.data(), TEST_STRING.size()) == 0);
 
-                // Shutdown we are done with the test
-                if (count_a >= 1 && count_b >= 1) { powerplant.shutdown(); }
+                // Shutdown if we have succeeded
+                if (count >= num_addresses) { powerplant.shutdown(); }
             });
 
-        // Test a known port
-        on<Trigger<Message>>().then([this] {
-            // Get all the network interfaces
-            auto interfaces = NUClear::util::network::get_interfaces();
-
-            std::vector<in_addr_t> addresses;
-
-            for (auto& iface : interfaces) {
-                // We send on multicast capable addresses
-                if (iface.broadcast.sock.sa_family == AF_INET && iface.flags.multicast) {
-                    auto& i = *reinterpret_cast<sockaddr_in*>(&iface.ip);
-                    auto& b = *reinterpret_cast<sockaddr_in*>(&iface.broadcast);
-
-                    // Two broadcast ips that are the same are probably on the same network so ignore those
-                    if (std::find(std::begin(addresses), std::end(addresses), ntohl(b.sin_addr.s_addr))
-                        == std::end(addresses)) {
-                        addresses.push_back(ntohl(i.sin_addr.s_addr));
-                    }
-                }
-            }
-
-            num_addresses = addresses.size();
-
-            for (auto& ad : addresses) {
-
-                // Send our message to that broadcast address
-                emit<Scope::UDP>(std::make_unique<std::string>(TEST_STRING), MULTICAST_ADDRESS, PORT, ad, in_port_t(0));
-            }
-        });
-
-        // Test an unknown port
+        // Test with port given to us
         on<Trigger<Message>>().then([this, bound_port] {
             // Get all the network interfaces
             auto interfaces = NUClear::util::network::get_interfaces();
@@ -120,14 +85,15 @@ public:
         });
 
         on<Startup>().then([this] {
-            // Emit a message just so it will be when everything is running
+            // Emit a message to start the test
             emit(std::make_unique<Message>());
         });
     }
 };
 }  // namespace
 
-TEST_CASE("Testing sending and receiving of UDP Multicast messages", "[api][network][udp][multicast]") {
+TEST_CASE("Testing sending and receiving of UDP Multicast messages with an unknown port",
+          "[api][network][udp][multicast][unknown_port]") {
 
     NUClear::PowerPlant::Configuration config;
     config.thread_count = 1;
@@ -136,6 +102,5 @@ TEST_CASE("Testing sending and receiving of UDP Multicast messages", "[api][netw
 
     plant.start();
 
-    REQUIRE(count_a == num_addresses);
-    REQUIRE(count_b == num_addresses);
+    REQUIRE(count == num_addresses);
 }

@@ -23,12 +23,12 @@ namespace NUClear {
 namespace util {
 
     /**
-     * @brief Executes a series of function calls from a variardic template pack.
+     * @brief Executes a series of function calls from a variadic template pack.
      *
      * @details
-     *  This function is to be used as a helper to expand a variardic template pack into a series of function calls.
-     *  As the variardic function pack can only be expanded in the situation where they are comma seperated (and the
-     *  comma is a syntactic seperator not the comma operator) the only place this can expand is within a function call,
+     *  This function is to be used as a helper to expand a variadic template pack into a series of function calls.
+     *  As the variadic function pack can only be expanded in the situation where they are comma separated (and the
+     *  comma is a syntactic separator not the comma operator) the only place this can expand is within a function call,
      *  or an initializer list (which can only accept a single type).
      *  This function serves that purpose by allowing a series of function calls to be expanded as its parameters. This
      *  will execute each of them without having to recursivly evaluate the pack. e.g.
