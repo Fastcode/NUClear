@@ -27,7 +27,7 @@ call('doxygen')
 # -- General configuration ------------------------------------------------
 
 def setup(app):
-    app.add_stylesheet('colours.css')
+    app.add_css_file('colours.css')
 
 
 
