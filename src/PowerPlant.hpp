@@ -116,7 +116,9 @@ public:
 
     /**
      * @brief Adds a function to the set of startup tasks.
+     *
      * @param func the task being added to the set of startup tasks.
+     *
      * @throws std::runtime_error if the PowerPlant is already running/has already started.
      */
     void on_startup(std::function<void()>&& func);
@@ -253,6 +255,7 @@ private:
  *
  * @tparam level The LogLevel the message will be logged at. Defaults to DEBUG.
  * @tparam Arguments The types of the arguments to log.
+ *
  * @param args The arguments to log.
  */
 template <enum LogLevel level = NUClear::DEBUG, typename... Arguments>
