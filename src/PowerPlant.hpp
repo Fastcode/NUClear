@@ -93,7 +93,7 @@ public:
     ~PowerPlant();
 
     /**
-     * @brief Starts up this PowerPlants components in order and begins it running.
+     * @brief Starts up the PowerPlant's components in order and begins it running.
      *
      * @details
      *  Starts up the PowerPlant instance and starts all the pool threads. This
@@ -110,17 +110,19 @@ public:
     void shutdown();
 
     /**
-     * TODO document
+     * @brief Returns true if the PowerPlant is running or not intending to shut down soon. Returns false otherwise.
      */
     bool running();
 
     /**
-     * TODO document
+     * @brief Adds a function to the set of startup tasks.
+     * @param func the task being added to the set of startup tasks.
+     * @throws std::runtime_error if the PowerPlant is already running/has already started.
      */
     void on_startup(std::function<void()>&& func);
 
     /**
-     * TODO document
+     * @brief Adds a function to the set of tasks to be run when the PowerPlant starts up
      */
     void add_thread_task(std::function<void()>&& task);
 
@@ -157,7 +159,8 @@ public:
      *
      * @details
      *  Logs a message through the system so the various log handlers
-     *  can access it.
+     *  can access it. The arguments being logged should be able to
+     *  be added into a stringstream.
      *
      * @tparam level     The level to log at (defaults to DEBUG)
      * @tparam Arguments The types of the arguments we are logging
@@ -171,9 +174,11 @@ public:
      * @brief Emits data to the system and routes it to the other systems that use it.
      *
      * @details
-     *  TODO
+     *  Emits at Local scope which creates tasks using the thread pool.
      *
-     * @tparam T    The type of the data that we are emitting
+     * @see NUClear::dsl::word::emit::Local for info about Local scope.
+     *
+     * @tparam T The type of the data that we are emitting
      *
      * @param data The data we are emitting
      */
@@ -188,10 +193,10 @@ public:
      * @details
      *  TODO
      *
-     * @tparam First        the first handler to use for this emit
-     * @tparam Remainder    the remaining handlers to use for this emit
-     * @tparam T            the type of the data that we are emitting
-     * @tparam Arguments    the additional arguments that will be provided to the handlers
+     * @tparam First        The first handler to use for this emit
+     * @tparam Remainder    The remaining handlers to use for this emit
+     * @tparam T            The type of the data that we are emitting
+     * @tparam Arguments    The additional arguments that will be provided to the handlers
      *
      * @param data The data we are emitting
      */
@@ -239,7 +244,17 @@ private:
     volatile bool is_running = false;
 };
 
-// This free floating log function can be called from anywhere and will use the singleton PowerPlant
+/**
+ * @brief This free floating log function can be called from anywhere and will use the singleton PowerPlant
+ *
+ * @see NUClear::PowerPlant::log()
+ *
+ * @note The arguments being logged should be able to be added into a stringstream.
+ *
+ * @tparam level The LogLevel the message will be logged at. Defaults to DEBUG.
+ * @tparam Arguments The types of the arguments to log.
+ * @param args The arguments to log.
+ */
 template <enum LogLevel level = NUClear::DEBUG, typename... Arguments>
 void log(Arguments&&... args) {
     PowerPlant::log<level>(std::forward<Arguments>(args)...);
