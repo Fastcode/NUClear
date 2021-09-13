@@ -63,7 +63,7 @@ void PowerPlant::install() {
 template <typename T>
 void PowerPlant::emit(std::unique_ptr<T>&& data) {
 
-    emit<dsl::word::emit::Local>(std::forward<std::unique_ptr<T>>(data));
+    emit<dsl::word::emit::Local>(std::move(data));
 }
 // Default emit with no types
 template <typename T>
