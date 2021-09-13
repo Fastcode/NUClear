@@ -193,7 +193,15 @@ public:
      * @brief Emits data to the system and routes it to the other systems that use it.
      *
      * @details
-     *  TODO
+     *  This is for the special case of emitting a shared_ptr. The types are Fused and the reaction is started. If the
+     *  Fusion fails, a static_assert fails.
+     *
+     * @note Emitting shared data can be helpful for forwarding data which has already been emitted and forwarding it on
+     * to external parties, without needing to copy it.
+     *
+     * @see NUClear::util::FunctionFusion
+     *
+     * @warning This shouldn't be used without a specific reason - usually forwarding data.
      *
      * @tparam First        The first handler to use for this emit
      * @tparam Remainder    The remaining handlers to use for this emit
