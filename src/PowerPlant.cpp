@@ -38,7 +38,7 @@ void PowerPlant::on_startup(std::function<void()>&& func) {
 }
 
 void PowerPlant::add_thread_task(std::function<void()>&& task) {
-    tasks.push_back(std::forward<std::function<void()>>(task));
+    tasks.push_back(task);
 }
 
 void PowerPlant::start() {
@@ -81,11 +81,11 @@ void PowerPlant::start() {
 }
 
 void PowerPlant::submit(std::unique_ptr<threading::ReactionTask>&& task) {
-    scheduler.submit(std::forward<std::unique_ptr<threading::ReactionTask>>(task));
+    scheduler.submit(std::move(task));
 }
 
 void PowerPlant::submit_main(std::unique_ptr<threading::ReactionTask>&& task) {
-    main_thread_scheduler.submit(std::forward<std::unique_ptr<threading::ReactionTask>>(task));
+    main_thread_scheduler.submit(std::move(task));
 }
 
 void PowerPlant::shutdown() {
@@ -107,7 +107,7 @@ void PowerPlant::shutdown() {
     powerplant = nullptr;
 }
 
-bool PowerPlant::running() {
+bool PowerPlant::running() const {
     return is_running;
 }
 }  // namespace NUClear

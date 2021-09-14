@@ -89,8 +89,13 @@ public:
      *  message will be emitted and available to all reactors.
      */
     PowerPlant(Configuration config = Configuration(), int argc = 0, const char* argv[] = nullptr);
-    PowerPlant(const PowerPlant&) = delete;
     ~PowerPlant();
+
+    // There can only be one!
+    PowerPlant(const PowerPlant& other)  = delete;
+    PowerPlant(const PowerPlant&& other) = delete;
+    PowerPlant& operator=(const PowerPlant& other) = delete;
+    PowerPlant& operator=(const PowerPlant&& other) = delete;
 
     /**
      * @brief Starts up the PowerPlant's components in order and begins it running.
@@ -112,7 +117,7 @@ public:
     /**
      * @brief Returns true if the PowerPlant is running or not intending to shut down soon. Returns false otherwise.
      */
-    bool running();
+    bool running() const;
 
     /**
      * @brief Adds a function to the set of startup tasks.
