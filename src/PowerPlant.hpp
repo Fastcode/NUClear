@@ -87,6 +87,10 @@ public:
      * @details
      *  If PowerPlant is constructed with argc and argv then a CommandLineArguments
      *  message will be emitted and available to all reactors.
+     *
+     * @param config The PowerPlant's configuration
+     * @param argc The number of command line arguments
+     * @param argv The command line argument strings
      */
     PowerPlant(Configuration config = Configuration(), int argc = 0, const char* argv[] = nullptr);
     ~PowerPlant();
@@ -130,6 +134,8 @@ public:
 
     /**
      * @brief Adds a function to the set of tasks to be run when the PowerPlant starts up
+     *
+     * @param task The function to add to the task list
      */
     void add_thread_task(std::function<void()>&& task);
 
