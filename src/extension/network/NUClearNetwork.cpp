@@ -35,7 +35,7 @@ namespace extension {
             switch (s.sock.sa_family) {
                 case AF_INET: return sizeof(sockaddr_in);
                 case AF_INET6: return sizeof(sockaddr_in6);
-                default: return -1;
+                default: throw std::runtime_error("unhandled socket address family");
             }
         }
 
@@ -46,8 +46,8 @@ namespace extension {
         NUClearNetwork::PacketQueue::PacketQueue() = default;
 
         NUClearNetwork::NUClearNetwork()
-            : data_fd(-1)
-            , announce_fd(-1)
+            : data_fd(static_cast<fd_t>(-1))
+            , announce_fd(static_cast<fd_t>(-1))
             , packet_data_mtu(1000)
             , packet_id_source(0)
             , last_announce(std::chrono::seconds(0))
@@ -307,11 +307,11 @@ namespace extension {
             // Close our existing FDs if they exist
             if (data_fd > 0) {
                 close(data_fd);
-                data_fd = -1;
+                data_fd = static_cast<fd_t>(-1);
             }
             if (announce_fd > 0) {
                 close(announce_fd);
-                announce_fd = -1;
+                announce_fd = static_cast<fd_t>(-1);
             }
         }
 
@@ -544,7 +544,11 @@ namespace extension {
                             // Work out which packets to resend and resend them
                             for (int i = 0; i < qit->second.header.packet_count; ++i) {
                                 if ((it->acked[i / 8] & uint8_t(1 << (i % 8))) == 0) {
-                                    send_packet(ptr->target, qit->second.header, i, qit->second.payload, true);
+                                    send_packet(ptr->target,
+                                                qit->second.header,
+                                                static_cast<uint16_t>(i),
+                                                qit->second.payload,
+                                                true);
                                 }
                             }
                         }
@@ -836,18 +840,18 @@ namespace extension {
                                     // Work out exactly how much data we will need first so we only need one
                                     // allocation
                                     size_t payload_size = 0;
-                                    for (auto& packet : assembler.second) {
-                                        payload_size += packet.second.size() - sizeof(DataPacket) + 1;
+                                    for (auto& _packet : assembler.second) {
+                                        payload_size += _packet.second.size() - sizeof(DataPacket) + 1;
                                     }
 
                                     // Read in our data
                                     std::vector<char> out;
                                     out.reserve(payload_size);
-                                    for (auto& packet : assembler.second) {
-                                        const DataPacket& p = *reinterpret_cast<DataPacket*>(packet.second.data());
+                                    for (auto& _packet : assembler.second) {
+                                        const DataPacket& p = *reinterpret_cast<DataPacket*>(_packet.second.data());
                                         out.insert(out.end(),
                                                    &p.data,
-                                                   &p.data + packet.second.size() - sizeof(DataPacket) + 1);
+                                                   &p.data + _packet.second.size() - sizeof(DataPacket) + 1);
                                     }
 
                                     // Send our assembled data packet
@@ -992,7 +996,11 @@ namespace extension {
                                         // Check if this packet needs to be sent
                                         uint8_t bit = 1 << (i % 8);
                                         if (((&packet.packets)[i] & bit) == bit) {
-                                            send_packet(remote->target, queue.header, i, queue.payload, true);
+                                            send_packet(remote->target,
+                                                        queue.header,
+                                                        static_cast<uint16_t>(i),
+                                                        queue.payload,
+                                                        true);
                                         }
                                     }
                                 }
@@ -1107,7 +1115,7 @@ namespace extension {
                 auto send_to = name_target.equal_range(target);
                 for (size_t i = 0; i < header.packet_count; ++i) {
                     for (auto s = send_to.first; s != send_to.second; ++s) {
-                        send_packet(s->second->target, header, i, payload, reliable);
+                        send_packet(s->second->target, header, static_cast<uint16_t>(i), payload, reliable);
                     }
                 }
             }
