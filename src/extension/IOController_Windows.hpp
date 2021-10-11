@@ -22,7 +22,7 @@
 #include "../PowerPlant.hpp"
 #include "../Reactor.hpp"
 #include "../dsl/word/IO.hpp"
-#include "../util/windows_includes.hpp"
+#include "../util/platform.hpp"
 
 namespace NUClear {
 namespace extension {

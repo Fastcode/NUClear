@@ -20,9 +20,9 @@
 #define NUCLEAR_UTIL_GET_HOSTNAME_HPP
 
 #ifdef _WIN32
-#include "nuclear_bits/util/platform.hpp"
+#    include "platform.hpp"
 #else
-#include <sys/utsname.h>
+#    include <sys/utsname.h>
 #endif
 
 namespace NUClear {
