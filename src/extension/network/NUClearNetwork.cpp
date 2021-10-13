@@ -573,7 +573,7 @@ namespace extension {
             // Get all our targets that are global targets
             auto announce_targets = name_target.equal_range("");
             for (auto it = announce_targets.first; it != announce_targets.second; ++it) {
-                socklen_t size = announce_packet.size();
+                auto size = static_cast<socklen_t>(announce_packet.size());
 
                 // Send the packet
                 if (::sendto(data_fd,
@@ -635,7 +635,7 @@ namespace extension {
                                         targets.push_back(ptr);
                                         udp_target.insert(std::make_pair(key, ptr));
                                         name_target.insert(std::make_pair(name, ptr));
-                                        socklen_t size = announce_packet.size();
+                                        auto size = static_cast<socklen_t>(announce_packet.size());
 
                                         // Say hi back!
                                         ::sendto(data_fd,
@@ -720,8 +720,8 @@ namespace extension {
                                     }
 
                                     // Make who we are sending it to into a useable address
-                                    sock_t& to     = remote->target;
-                                    socklen_t size = r.size();
+                                    sock_t& to = remote->target;
+                                    auto size  = static_cast<socklen_t>(r.size());
 
                                     // Send the packet
                                     ::sendto(data_fd, r.data(), size, 0, &to.sock, socket_size(to));
@@ -799,8 +799,8 @@ namespace extension {
                                             ~uint8_t(1 << (packet.packet_no % 8));
 
                                         // Make who we are sending it to into a useable address
-                                        sock_t& to     = remote->target;
-                                        socklen_t size = r.size();
+                                        sock_t& to = remote->target;
+                                        auto size  = static_cast<socklen_t>(r.size());
 
                                         // Send the packet
                                         ::sendto(data_fd, r.data(), size, 0, &to.sock, socket_size(to));
@@ -831,8 +831,8 @@ namespace extension {
                                     }
 
                                     // Make who we are sending it to into a useable address
-                                    sock_t& to     = remote->target;
-                                    socklen_t size = r.size();
+                                    sock_t& to = remote->target;
+                                    auto size  = static_cast<socklen_t>(r.size());
 
                                     // Send the packet
                                     ::sendto(data_fd, r.data(), size, 0, &to.sock, socket_size(to));
