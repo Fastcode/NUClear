@@ -41,10 +41,10 @@ public:
                 // We have data to read
                 if ((event.events & IO::READ) != 0) {
 
-                    char buff[1024] = {};
+                    std::array<char, 1024> buff{};
 
                     // Read into the buffer
-                    len = ::recv(event.fd, reinterpret_cast<char*>(buff), TEST_STRING.size(), 0);
+                    len = ::recv(event.fd, buff.data(), static_cast<socklen_t>(TEST_STRING.size()), 0);
 
                     // 0 indicates orderly shutdown of the socket
                     if (len != 0) {
@@ -73,17 +73,16 @@ public:
                 // We have data to read
                 if ((event.events & IO::READ) != 0) {
 
-                    char buff[1024];
-                    memset(reinterpret_cast<char*>(buff), 0, sizeof(buff));
+                    std::array<char, 1024> buff{};
 
                     // Read into the buffer
-                    len = ::recv(event.fd, reinterpret_cast<char*>(buff), TEST_STRING.size(), 0);
+                    len = ::recv(event.fd, buff.data(), static_cast<socklen_t>(TEST_STRING.size()), 0);
 
                     // 0 indicates orderly shutdown of the socket
                     if (len != 0) {
                         // Test the data
                         REQUIRE(len == int(TEST_STRING.size()));
-                        REQUIRE(TEST_STRING == std::string(reinterpret_cast<char*>(buff)));
+                        REQUIRE(TEST_STRING == std::string(buff.data()));
                         ++messages_received;
                     }
                 }
@@ -114,7 +113,7 @@ public:
             REQUIRE(setsockopt(fd, SOL_SOCKET, SO_LINGER, reinterpret_cast<char*>(&l), sizeof(linger)) == 0);
 
             // Write on our socket
-            ssize_t sent = ::send(fd, TEST_STRING.data(), TEST_STRING.size(), 0);
+            ssize_t sent = ::send(fd, TEST_STRING.data(), static_cast<socklen_t>(TEST_STRING.size()), 0);
 
             // We must have sent the right amount of data
             REQUIRE(sent == int(TEST_STRING.size()));
@@ -139,7 +138,7 @@ public:
             REQUIRE(setsockopt(fd, SOL_SOCKET, SO_LINGER, reinterpret_cast<char*>(&l), sizeof(linger)) == 0);
 
             // Write on our socket
-            ssize_t sent = ::send(fd, TEST_STRING.data(), TEST_STRING.size(), 0);
+            ssize_t sent = ::send(fd, TEST_STRING.data(), static_cast<socklen_t>(TEST_STRING.size()), 0);
 
             // We must have sent the right amount of data
             REQUIRE(sent == int(TEST_STRING.size()));

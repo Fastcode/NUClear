@@ -142,7 +142,7 @@ namespace dsl {
                 port = ntohs(address.sin_port);
 
                 // Generate a reaction for the IO system that closes on death
-                int cfd = fd;
+                fd_t cfd = fd;
                 reaction->unbinders.push_back([](const threading::Reaction& r) {
                     r.reactor.emit<emit::Direct>(std::make_unique<operation::Unbind<IO>>(r.id));
                 });
@@ -296,7 +296,7 @@ namespace dsl {
                     port = ntohs(address.sin_port);
 
                     // Generate a reaction for the IO system that closes on death
-                    int cfd = fd;
+                    fd_t cfd = fd;
                     reaction->unbinders.push_back([](const threading::Reaction& r) {
                         r.reactor.emit<emit::Direct>(std::make_unique<operation::Unbind<IO>>(r.id));
                     });
@@ -396,7 +396,7 @@ namespace dsl {
                     }
 
                     // Generate a reaction for the IO system that closes on death
-                    int cfd = fd;
+                    fd_t cfd = fd;
                     reaction->unbinders.push_back([](const threading::Reaction& r) {
                         r.reactor.emit<emit::Direct>(std::make_unique<operation::Unbind<IO>>(r.id));
                     });
