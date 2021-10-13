@@ -46,8 +46,8 @@ namespace extension {
         NUClearNetwork::PacketQueue::PacketQueue() = default;
 
         NUClearNetwork::NUClearNetwork()
-            : data_fd(static_cast<fd_t>(-1))
-            , announce_fd(static_cast<fd_t>(-1))
+            : data_fd(INVALID_SOCKET)
+            , announce_fd(INVALID_SOCKET)
             , packet_data_mtu(1000)
             , packet_id_source(0)
             , last_announce(std::chrono::seconds(0))
@@ -307,11 +307,11 @@ namespace extension {
             // Close our existing FDs if they exist
             if (data_fd > 0) {
                 close(data_fd);
-                data_fd = static_cast<fd_t>(-1);
+                data_fd = INVALID_SOCKET;
             }
             if (announce_fd > 0) {
                 close(announce_fd);
-                announce_fd = static_cast<fd_t>(-1);
+                announce_fd = INVALID_SOCKET;
             }
         }
 
