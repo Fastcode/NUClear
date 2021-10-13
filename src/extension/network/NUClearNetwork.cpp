@@ -573,12 +573,11 @@ namespace extension {
             // Get all our targets that are global targets
             auto announce_targets = name_target.equal_range("");
             for (auto it = announce_targets.first; it != announce_targets.second; ++it) {
-                auto size = static_cast<socklen_t>(announce_packet.size());
 
                 // Send the packet
                 if (::sendto(data_fd,
                              announce_packet.data(),
-                             size,
+                             static_cast<socklen_t>(announce_packet.size()),
                              0,
                              &it->second->target.sock,
                              socket_size(it->second->target))
@@ -635,12 +634,11 @@ namespace extension {
                                         targets.push_back(ptr);
                                         udp_target.insert(std::make_pair(key, ptr));
                                         name_target.insert(std::make_pair(name, ptr));
-                                        auto size = static_cast<socklen_t>(announce_packet.size());
 
                                         // Say hi back!
                                         ::sendto(data_fd,
                                                  announce_packet.data(),
-                                                 size,
+                                                 static_cast<socklen_t>(announce_packet.size()),
                                                  0,
                                                  &ptr->target.sock,
                                                  socket_size(ptr->target));
@@ -721,10 +719,14 @@ namespace extension {
 
                                     // Make who we are sending it to into a useable address
                                     sock_t& to = remote->target;
-                                    auto size  = static_cast<socklen_t>(r.size());
 
                                     // Send the packet
-                                    ::sendto(data_fd, r.data(), size, 0, &to.sock, socket_size(to));
+                                    ::sendto(data_fd,
+                                             r.data(),
+                                             static_cast<socklen_t>(r.size()),
+                                             0,
+                                             &to.sock,
+                                             socket_size(to));
 
                                     // We don't need to process this packet we already did
                                     return;
@@ -800,10 +802,14 @@ namespace extension {
 
                                         // Make who we are sending it to into a useable address
                                         sock_t& to = remote->target;
-                                        auto size  = static_cast<socklen_t>(r.size());
 
                                         // Send the packet
-                                        ::sendto(data_fd, r.data(), size, 0, &to.sock, socket_size(to));
+                                        ::sendto(data_fd,
+                                                 r.data(),
+                                                 static_cast<socklen_t>(r.size()),
+                                                 0,
+                                                 &to.sock,
+                                                 socket_size(to));
                                     }
 
                                     // Clear our packets here (the one we just got will be added right after this)
@@ -832,10 +838,14 @@ namespace extension {
 
                                     // Make who we are sending it to into a useable address
                                     sock_t& to = remote->target;
-                                    auto size  = static_cast<socklen_t>(r.size());
 
                                     // Send the packet
-                                    ::sendto(data_fd, r.data(), size, 0, &to.sock, socket_size(to));
+                                    ::sendto(data_fd,
+                                             r.data(),
+                                             static_cast<socklen_t>(r.size()),
+                                             0,
+                                             &to.sock,
+                                             socket_size(to));
                                 }
 
                                 // Check to see if we have enough to assemble the whole thing
