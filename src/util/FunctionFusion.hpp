@@ -315,7 +315,7 @@ namespace util {
                           std::tuple<Ranges...>>
         : public
           // Check if we used up all of our arguments (and not more than all of our arguments)
-          std::conditional_t<(Start == End && static_cast<unsigned int>(Start) == sizeof...(Arguments)),
+          std::conditional_t<(Start == End && Start == int(sizeof...(Arguments))),
                              // We have used up the exact right number of arguments (and everything by this point should
                              // have been callable)
                              /*T*/
