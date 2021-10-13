@@ -41,7 +41,8 @@ public:
                 // We have data to read
                 if ((event.events & IO::READ) != 0) {
 
-                    std::array<char, 1024> buff{};
+                    std::array<char, 1024> buff;
+                    buff.fill('\0');
 
                     // Read into the buffer
                     len = ::recv(event.fd, buff.data(), static_cast<socklen_t>(TEST_STRING.size()), 0);
@@ -73,7 +74,8 @@ public:
                 // We have data to read
                 if ((event.events & IO::READ) != 0) {
 
-                    std::array<char, 1024> buff{};
+                    std::array<char, 1024> buff;
+                    buff.fill('\0');
 
                     // Read into the buffer
                     len = ::recv(event.fd, buff.data(), static_cast<socklen_t>(TEST_STRING.size()), 0);
