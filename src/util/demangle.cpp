@@ -20,6 +20,8 @@
 
 // Windows symbol demangler
 #ifdef _WIN32
+// Turn off clang-format to avoid moving platform.h after Dbghelp.h
+// (Dbghelp.h depends on types from Windows.h)
 // clang-format off
 #    include "platform.hpp"
 #    include <Dbghelp.h>
