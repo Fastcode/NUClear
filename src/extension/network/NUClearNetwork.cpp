@@ -542,13 +542,9 @@ namespace extension {
                             }
 
                             // Work out which packets to resend and resend them
-                            for (int i = 0; i < qit->second.header.packet_count; ++i) {
+                            for (uint16_t i = 0; i < qit->second.header.packet_count; ++i) {
                                 if ((it->acked[i / 8] & uint8_t(1 << (i % 8))) == 0) {
-                                    send_packet(ptr->target,
-                                                qit->second.header,
-                                                static_cast<uint16_t>(i),
-                                                qit->second.payload,
-                                                true);
+                                    send_packet(ptr->target, qit->second.header, i, qit->second.payload, true);
                                 }
                             }
                         }
@@ -991,16 +987,12 @@ namespace extension {
                                     }
 
                                     // Now we have to retransmit the nacked packets
-                                    for (int i = 0; i < packet.packet_count * 8; ++i) {
+                                    for (uint16_t i = 0; i < packet.packet_count * 8; ++i) {
 
                                         // Check if this packet needs to be sent
                                         uint8_t bit = 1 << (i % 8);
                                         if (((&packet.packets)[i] & bit) == bit) {
-                                            send_packet(remote->target,
-                                                        queue.header,
-                                                        static_cast<uint16_t>(i),
-                                                        queue.payload,
-                                                        true);
+                                            send_packet(remote->target, queue.header, i, queue.payload, true);
                                         }
                                     }
                                 }
@@ -1113,9 +1105,9 @@ namespace extension {
 
                 // Now send all our packets to our targets
                 auto send_to = name_target.equal_range(target);
-                for (size_t i = 0; i < header.packet_count; ++i) {
+                for (uint16_t i = 0; i < header.packet_count; ++i) {
                     for (auto s = send_to.first; s != send_to.second; ++s) {
-                        send_packet(s->second->target, header, static_cast<uint16_t>(i), payload, reliable);
+                        send_packet(s->second->target, header, i, payload, reliable);
                     }
                 }
             }
