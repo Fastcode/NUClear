@@ -191,7 +191,7 @@ namespace dsl {
                 memset(&from, 0, sizeof(sockaddr_in));
                 iovec payload;
                 payload.iov_base = p.payload.data();
-                payload.iov_len  = p.payload.size();
+                payload.iov_len  = static_cast<decltype(payload.iov_len)>(p.payload.size());
 
                 // Make our message header to receive with
                 msghdr mh;

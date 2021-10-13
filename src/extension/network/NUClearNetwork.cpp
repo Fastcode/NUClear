@@ -418,11 +418,8 @@ namespace extension {
             std::vector<char> payload(1500);
             iovec iov;
             iov.iov_base = payload.data();
-#ifdef _WIN32
-            iov.iov_len = static_cast<DWORD>(payload.size());
-#else
-            iov.iov_len = payload.size();
-#endif
+            iov.iov_len  = static_cast<decltype(iov.iov_len)>(payload.size());
+
             // Who we are receiving from
             sock_t from;
             std::memset(&from, 0, sizeof(from));
