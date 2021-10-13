@@ -31,7 +31,7 @@ namespace NUClear {
 namespace extension {
     namespace network {
 
-        size_t socket_size(const util::network::sock_t& s) {
+        socklen_t socket_size(const util::network::sock_t& s) {
             switch (s.sock.sa_family) {
                 case AF_INET: return sizeof(sockaddr_in);
                 case AF_INET6: return sizeof(sockaddr_in6);
