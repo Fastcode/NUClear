@@ -418,8 +418,11 @@ namespace extension {
             std::vector<char> payload(1500);
             iovec iov;
             iov.iov_base = payload.data();
-            iov.iov_len  = payload.size();
-
+#ifdef _WIN32
+            iov.iov_len = static_cast<DWORD>(payload.size());
+#else
+            iov.iov_len = payload.size();
+#endif
             // Who we are receiving from
             sock_t from;
             std::memset(&from, 0, sizeof(from));
@@ -570,11 +573,12 @@ namespace extension {
             // Get all our targets that are global targets
             auto announce_targets = name_target.equal_range("");
             for (auto it = announce_targets.first; it != announce_targets.second; ++it) {
+                socklen_t size = announce_packet.size();
 
                 // Send the packet
                 if (::sendto(data_fd,
                              announce_packet.data(),
-                             announce_packet.size(),
+                             size,
                              0,
                              &it->second->target.sock,
                              socket_size(it->second->target))
@@ -631,11 +635,12 @@ namespace extension {
                                         targets.push_back(ptr);
                                         udp_target.insert(std::make_pair(key, ptr));
                                         name_target.insert(std::make_pair(name, ptr));
+                                        socklen_t size = announce_packet.size();
 
                                         // Say hi back!
                                         ::sendto(data_fd,
                                                  announce_packet.data(),
-                                                 announce_packet.size(),
+                                                 size,
                                                  0,
                                                  &ptr->target.sock,
                                                  socket_size(ptr->target));
@@ -715,10 +720,11 @@ namespace extension {
                                     }
 
                                     // Make who we are sending it to into a useable address
-                                    sock_t& to = remote->target;
+                                    sock_t& to     = remote->target;
+                                    socklen_t size = r.size();
 
                                     // Send the packet
-                                    ::sendto(data_fd, r.data(), r.size(), 0, &to.sock, socket_size(to));
+                                    ::sendto(data_fd, r.data(), size, 0, &to.sock, socket_size(to));
 
                                     // We don't need to process this packet we already did
                                     return;
@@ -793,10 +799,11 @@ namespace extension {
                                             ~uint8_t(1 << (packet.packet_no % 8));
 
                                         // Make who we are sending it to into a useable address
-                                        sock_t& to = remote->target;
+                                        sock_t& to     = remote->target;
+                                        socklen_t size = r.size();
 
                                         // Send the packet
-                                        ::sendto(data_fd, r.data(), r.size(), 0, &to.sock, socket_size(to));
+                                        ::sendto(data_fd, r.data(), size, 0, &to.sock, socket_size(to));
                                     }
 
                                     // Clear our packets here (the one we just got will be added right after this)
@@ -824,10 +831,11 @@ namespace extension {
                                     }
 
                                     // Make who we are sending it to into a useable address
-                                    sock_t& to = remote->target;
+                                    sock_t& to     = remote->target;
+                                    socklen_t size = r.size();
 
                                     // Send the packet
-                                    ::sendto(data_fd, r.data(), r.size(), 0, &to.sock, socket_size(to));
+                                    ::sendto(data_fd, r.data(), size, 0, &to.sock, socket_size(to));
                                 }
 
                                 // Check to see if we have enough to assemble the whole thing

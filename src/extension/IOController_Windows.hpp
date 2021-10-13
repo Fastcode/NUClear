@@ -94,7 +94,8 @@ namespace extension {
                 if (!shutdown) {
 
                     // Wait for events
-                    auto event = WSAWaitForMultipleEvents(fds.size(), fds.data(), false, WSA_INFINITE, false);
+                    auto event = WSAWaitForMultipleEvents(
+                        static_cast<DWORD>(fds.size()), fds.data(), false, WSA_INFINITE, false);
 
                     // Check if the return value is an event in our list
                     if (event >= WSA_WAIT_EVENT_0 && event < WSA_WAIT_EVENT_0 + fds.size()) {
