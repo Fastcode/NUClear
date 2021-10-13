@@ -25,7 +25,6 @@
 // The platform.hpp fixes this (and many other windows nonsense) so include it here to solve that issue
 #include "util/platform.hpp"
 
-
 namespace NUClear {
 
 /**
