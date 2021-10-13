@@ -851,18 +851,18 @@ namespace extension {
                                     // Work out exactly how much data we will need first so we only need one
                                     // allocation
                                     size_t payload_size = 0;
-                                    for (auto& _packet : assembler.second) {
-                                        payload_size += _packet.second.size() - sizeof(DataPacket) + 1;
+                                    for (auto& p : assembler.second) {
+                                        payload_size += p.second.size() - sizeof(DataPacket) + 1;
                                     }
 
                                     // Read in our data
                                     std::vector<char> out;
                                     out.reserve(payload_size);
-                                    for (auto& _packet : assembler.second) {
-                                        const DataPacket& p = *reinterpret_cast<DataPacket*>(_packet.second.data());
+                                    for (auto& p : assembler.second) {
+                                        const DataPacket& part = *reinterpret_cast<DataPacket*>(p.second.data());
                                         out.insert(out.end(),
-                                                   &p.data,
-                                                   &p.data + _packet.second.size() - sizeof(DataPacket) + 1);
+                                                   &part.data,
+                                                   &part.data + p.second.size() - sizeof(DataPacket) + 1);
                                     }
 
                                     // Send our assembled data packet
