@@ -63,7 +63,7 @@ namespace util {
          */
         fd_t release() {
             fd_t temp = fd;
-            fd        = static_cast<fd_t>(-1);
+            fd        = INVALID_SOCKET;
             return temp;
         }
 
