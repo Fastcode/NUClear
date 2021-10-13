@@ -22,7 +22,7 @@
 // We need to include platform.h early because of windows
 // including basically anything will cause windows to do some really dumb things
 // clang-off off
-#include "${nuclear_include_base_directory}/util/platform.hpp"
+#include "${nuclear_include_base_directory}util/platform.hpp"
 // clang-format on
 
 #include "${nuclear_include_base_directory}PowerPlant.hpp"
