@@ -64,7 +64,7 @@ public:
         });
 
         // Bind to an unknown port and get the port number
-        int bound_port;
+        in_port_t bound_port;
         std::tie(std::ignore, bound_port, std::ignore) = on<TCP>().then([this](const TCP::Connection& connection) {
             on<IO>(connection.fd, IO::READ | IO::CLOSE).then([this](IO::Event event) {
                 // If we read 0 later it means orderly shutdown
