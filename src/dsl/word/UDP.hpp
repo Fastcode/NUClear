@@ -103,7 +103,7 @@ namespace dsl {
 
             template <typename DSL>
             static inline std::tuple<in_port_t, fd_t> bind(const std::shared_ptr<threading::Reaction>& reaction,
-                                                           int port = 0) {
+                                                           in_port_t port = 0) {
 
                 // Make our socket
                 util::FileDescriptor fd = ::socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
@@ -246,7 +246,7 @@ namespace dsl {
 
                 template <typename DSL>
                 static inline std::tuple<in_port_t, fd_t> bind(const std::shared_ptr<threading::Reaction>& reaction,
-                                                               int port = 0) {
+                                                               in_port_t port = 0) {
 
                     // Make our socket
                     util::FileDescriptor fd = ::socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
@@ -323,7 +323,7 @@ namespace dsl {
                 template <typename DSL>
                 static inline std::tuple<in_port_t, fd_t> bind(const std::shared_ptr<threading::Reaction>& reaction,
                                                                std::string multicast_group,
-                                                               int port = 0) {
+                                                               in_port_t port = 0) {
 
                     // Our multicast group address
                     sockaddr_in address;
