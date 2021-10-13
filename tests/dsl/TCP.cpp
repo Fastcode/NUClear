@@ -21,8 +21,8 @@
 
 namespace {
 
-constexpr unsigned short PORT = 40009;
-int messages_received         = 0;
+constexpr in_port_t PORT = 40009;
+int messages_received    = 0;
 
 const std::string TEST_STRING = "Hello TCP World!";
 
