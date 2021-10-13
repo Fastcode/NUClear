@@ -51,7 +51,7 @@ public:
 
                         // Test the data
                         REQUIRE(len == int(TEST_STRING.size()));
-                        REQUIRE(TEST_STRING == std::string(reinterpret_cast<char*>(buff)));
+                        REQUIRE(TEST_STRING == std::string(buff.data()));
                         ++messages_received;
                     }
                 }
