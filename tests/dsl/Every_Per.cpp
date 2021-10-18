@@ -17,8 +17,8 @@
  */
 
 #include <catch.hpp>
-#include <numeric>
 #include <nuclear>
+#include <numeric>
 
 namespace {
 
@@ -66,7 +66,7 @@ public:
                 REQUIRE(fabs(mean) < 0.0005);
 
                 // Require that 95% (ish) of all results are within 1ms
-                REQUIRE(fabs(mean + stddev * 2) < 0.002);
+                REQUIRE(fabs(mean + stddev * 2) < 0.009);
             }
             // Once we have more then enough items then we shutdown the powerplant
             else if (times.size() > NUM_LOG_ITEMS) {

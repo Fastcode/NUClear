@@ -19,6 +19,8 @@
 #ifndef NUCLEAR_DSL_WORD_EMIT_UDP_HPP
 #define NUCLEAR_DSL_WORD_EMIT_UDP_HPP
 
+#include <iostream>
+
 #include "../../../PowerPlant.hpp"
 #include "../../../util/FileDescriptor.hpp"
 #include "../../../util/platform.hpp"
@@ -63,6 +65,7 @@ namespace dsl {
                                         in_port_t to_port,
                                         in_addr_t from_addr,
                                         in_port_t from_port) {
+                    std::cout << "emit 1: in_addr_t to int_addr_t" << std::endl;
 
                     sockaddr_in src;
                     sockaddr_in target;
@@ -125,17 +128,27 @@ namespace dsl {
                     // Serialise to our payload
                     std::vector<char> payload = util::serialise::Serialise<DataType>::serialise(*data);
 
+                    std::cout << "ready to send" << std::endl;
+
                     // Try to send our payload
-                    if (::sendto(fd,
-                                 payload.data(),
-                                 static_cast<socklen_t>(payload.size()),
-                                 0,
-                                 reinterpret_cast<sockaddr*>(&target),
-                                 sizeof(sockaddr_in))
-                        < 0) {
+                    auto send_result = ::sendto(fd,
+                                                payload.data(),
+                                                static_cast<socklen_t>(payload.size()),
+                                                0,
+                                                reinterpret_cast<sockaddr*>(&target),
+                                                sizeof(sockaddr_in));
+
+                    std::cout << "send result: " << send_result << std::endl;
+
+                    if (send_result < 0) {
+                        auto send_error = WSAGetLastError();
+                        std::cout << "data send failed, error code: " << send_error << std::endl;
                         throw std::system_error(
                             network_errno, std::system_category(), "We were unable to send the UDP message");
+                        std::cout << "after throw" << std::endl;
                     }
+
+                    std::cout << "emit 1: done" << std::endl;
                 }
 
                 // String ip addresses
@@ -145,6 +158,7 @@ namespace dsl {
                                         in_port_t to_port,
                                         std::string from_addr,
                                         in_port_t from_port) {
+                    std::cout << "emit 2: string to string" << std::endl;
 
                     in_addr addr;
 
@@ -155,6 +169,8 @@ namespace dsl {
                     in_addr_t from = ntohl(addr.s_addr);
 
                     emit(pp, data, to, to_port, from, from_port);
+
+                    std::cout << "emit 2: done" << std::endl;
                 }
 
                 static inline void emit(PowerPlant& pp,
@@ -163,6 +179,7 @@ namespace dsl {
                                         in_port_t to_port,
                                         in_addr_t from_addr,
                                         in_port_t from_port) {
+                    std::cout << "emit 3: int_addr_t to string" << std::endl;
 
                     in_addr addr;
 
@@ -170,6 +187,8 @@ namespace dsl {
                     in_addr_t to = ntohl(addr.s_addr);
 
                     emit(pp, data, to, to_port, from_addr, from_port);
+
+                    std::cout << "emit 3: done" << std::endl;
                 }
 
                 static inline void emit(PowerPlant& pp,
@@ -178,6 +197,7 @@ namespace dsl {
                                         in_port_t to_port,
                                         std::string from_addr,
                                         in_port_t from_port) {
+                    std::cout << "emit 4: string to int_addr_t" << std::endl;
 
                     in_addr addr;
 
@@ -185,6 +205,8 @@ namespace dsl {
                     in_addr_t from = ntohl(addr.s_addr);
 
                     emit(pp, data, to_addr, to_port, from, from_port);
+
+                    std::cout << "emit 4: done" << std::endl;
                 }
 
                 // No from address
@@ -192,13 +214,16 @@ namespace dsl {
                                         std::shared_ptr<DataType> data,
                                         in_addr_t to_addr,
                                         in_port_t to_port) {
+                    std::cout << "emit 5: no from" << std::endl;
                     emit(pp, data, to_addr, to_port, INADDR_ANY, in_port_t(0));
+                    std::cout << "emit 5: done" << std::endl;
                 }
 
                 static inline void emit(PowerPlant& pp,
                                         std::shared_ptr<DataType> data,
                                         std::string to_addr,
                                         in_port_t to_port) {
+                    std::cout << "emit 6: no from, to string" << std::endl;
 
                     in_addr addr;
 
@@ -206,6 +231,8 @@ namespace dsl {
                     in_addr_t to = ntohl(addr.s_addr);
 
                     emit(pp, data, to, to_port, INADDR_ANY, in_port_t(0));
+
+                    std::cout << "emit 6: done" << std::endl;
                 }
             };
 
