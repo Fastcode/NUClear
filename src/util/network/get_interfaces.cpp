@@ -78,7 +78,6 @@ namespace util {
                                 // Fill in the netmask
                                 netmask.sin_family = AF_INET;
                                 ConvertLengthToIpv4Mask(uaddr->OnLinkPrefixLength, &netmask.sin_addr.s_addr);
-                                // netmask.sin_addr.s_addr = htonl(netmask.sin_addr.s_addr);
 
                                 // Fill in the broadcast
                                 broadcast.sin_family      = AF_INET;
