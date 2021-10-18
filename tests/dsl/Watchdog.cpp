@@ -17,6 +17,7 @@
  */
 
 #include <catch.hpp>
+#include <iostream>
 #include <nuclear>
 #include <numeric>
 #include <string>
@@ -93,8 +94,12 @@ TEST_CASE("Testing the Watchdog Smart Type", "[api][watchdog]") {
 
     plant.start();
 
+    auto elapsed = end - start;
+    std::cout << "[api][watchdog] elapsed: " << std::chrono::duration_cast<std::chrono::milliseconds>(elapsed).count()
+              << std::endl;
+
     // Require that at least 100ms has passed (since 20 * 5ms gives 100, and we should be longer than that)
-    REQUIRE(end - start > std::chrono::milliseconds(100));
+    REQUIRE(elapsed > std::chrono::milliseconds(100));
 }
 
 TEST_CASE("Testing the Watchdog Smart Type with a sub type", "[api][watchdog][sub_type]") {
@@ -106,7 +111,15 @@ TEST_CASE("Testing the Watchdog Smart Type with a sub type", "[api][watchdog][su
 
     plant.start();
 
+    auto elapsed_a = end_a - start;
+    auto elapsed_b = end_b - start;
+
+    std::cout << "[api][watchdog][sub_type] elapsed_a: "
+              << std::chrono::duration_cast<std::chrono::milliseconds>(elapsed_a).count() << std::endl;
+    std::cout << "[api][watchdog][sub_type] elapsed_b: "
+              << std::chrono::duration_cast<std::chrono::milliseconds>(elapsed_b).count() << std::endl;
+
     // Require that at least 100ms has passed (since 20 * 5ms gives 100, and we should be longer than that)
-    REQUIRE(end_a - start > std::chrono::milliseconds(100));
-    REQUIRE(end_b - start > std::chrono::milliseconds(100));
+    REQUIRE(elapsed_a > std::chrono::milliseconds(100));
+    REQUIRE(elapsed_b > std::chrono::milliseconds(100));
 }
