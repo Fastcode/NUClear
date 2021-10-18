@@ -17,7 +17,6 @@
  */
 
 #include <catch.hpp>
-#include <iostream>
 #include <nuclear>
 
 namespace {
@@ -30,14 +29,6 @@ std::size_t num_addresses     = 0;
 
 struct Message {};
 
-void print_address(in_addr_t address) {
-    unsigned char octet[4] = {0, 0, 0, 0};
-    for (int i = 0; i < 4; i++) {
-        octet[i] = (address >> (i * 8)) & 0xFF;
-    }
-    printf(" -- pretty: %d.%d.%d.%d\n", octet[3], octet[2], octet[1], octet[0]);
-}
-
 class TestReactor : public NUClear::Reactor {
 public:
     in_port_t bound_port = 0;
@@ -45,8 +36,6 @@ public:
 
         // Known port
         on<UDP::Broadcast>(PORT).then([this](const UDP::Packet& packet) {
-            std::cout << "got packet on known port" << std::endl;
-
             ++count_a;
 
             // Check that the data we received is correct
@@ -54,13 +43,11 @@ public:
             REQUIRE(std::memcmp(packet.payload.data(), TEST_STRING.data(), TEST_STRING.size()) == 0);
 
             // Shutdown we are done with the test
-            std::cout << "can shutdown: " << (count_a >= 1 && count_b >= 1) << std::endl;
             if (count_a >= 1 && count_b >= 1) { powerplant.shutdown(); }
         });
 
         // Unknown port
         std::tie(std::ignore, bound_port, std::ignore) = on<UDP::Broadcast>().then([this](const UDP::Packet& packet) {
-            std::cout << "got packet on unknown port" << std::endl;
             ++count_b;
 
             // Check that the data we received is correct
@@ -68,30 +55,16 @@ public:
             REQUIRE(std::memcmp(packet.payload.data(), TEST_STRING.data(), TEST_STRING.size()) == 0);
 
             // Shutdown we are done with the test
-            std::cout << "can shutdown: " << (count_a >= 1 && count_b >= 1) << std::endl;
             if (count_a >= 1 && count_b >= 1) { powerplant.shutdown(); }
         });
 
         on<Trigger<Message>>().then([this] {
-            std::cout << "first trigger " << std::endl;
-
             // Get all the network interfaces
             auto interfaces = NUClear::util::network::get_interfaces();
 
             std::vector<in_addr_t> addresses;
 
             for (auto& iface : interfaces) {
-                std::cout << "  i name: " << iface.name << std::endl;
-                auto x = ntohl(iface.ip.ipv4.sin_addr.S_un.S_addr);
-                std::cout << "  i addr: " << x << ":" << iface.ip.ipv4.sin_port << " ";
-                print_address(x);
-                auto m = ntohl(iface.netmask.ipv4.sin_addr.S_un.S_addr);
-                std::cout << "  i mask: " << m << " ";
-                print_address(m);
-                auto y = ntohl(iface.broadcast.ipv4.sin_addr.S_un.S_addr);
-                std::cout << "  i broa: " << y << ":" << iface.broadcast.ipv4.sin_port << " ";
-                print_address(y);
-
                 // We send on broadcast addresses and we don't want loopback or point to point
                 if (iface.broadcast.sock.sa_family == AF_INET && iface.flags.broadcast) {
                     auto& i = *reinterpret_cast<sockaddr_in*>(&iface.broadcast);
@@ -101,101 +74,48 @@ public:
                         == std::end(addresses)) {
 
                         addresses.push_back(ntohl(i.sin_addr.s_addr));
-
-                        auto z = ntohl(i.sin_addr.s_addr);
-                        std::cout << "  picked: " << z << ":" << PORT << " ";
-                        print_address(z);
-                    }
-                    else {
-                        std::cout << "  picked: skipped" << std::endl;
                     }
                 }
-                else {
-                    std::cout << "  picked: none-broadcast" << std::endl;
-                }
-
-
-                std::cout << std::endl;
             }
 
             num_addresses = addresses.size();
 
-            std::cout << "number of broadcast addresses: " << num_addresses << std::endl;
-
             for (auto& ad : addresses) {
-
-                std::cout << "emitted message to broadcast address: " << ad << ":" << PORT << " ";
-                print_address(ad);
 
                 // Send our message to that broadcast address
                 emit<Scope::UDP>(std::make_unique<std::string>(TEST_STRING), ad, PORT);
-
-                std::cout << "emit returned\n" << std::endl;
             }
         });
 
         on<Trigger<Message>>().then([this] {
-            std::cout << "\n\nsecond trigger " << std::endl;
-
             // Get all the network interfaces
             auto interfaces = NUClear::util::network::get_interfaces();
 
             std::vector<in_addr_t> addresses;
 
             for (auto& iface : interfaces) {
-                // std::cout << "  i name: " << iface.name << std::endl;
-                // auto x = ntohl(iface.ip.ipv4.sin_addr.S_un.S_addr);
-                // std::cout << "  i addr: " << x << ":" << iface.ip.ipv4.sin_port << " ";
-                // print_address(x);
-                // auto m = ntohl(iface.netmask.ipv4.sin_addr.S_un.S_addr);
-                // std::cout << "  i mask: " << m << " ";
-                // print_address(m);
-                // auto y = ntohl(iface.broadcast.ipv4.sin_addr.S_un.S_addr);
-                // std::cout << "  i broa: " << y << ":" << iface.broadcast.ipv4.sin_port << " ";
-                // print_address(y);
-
                 // We send on broadcast addresses and we don't want loopback or point to point
                 if (iface.broadcast.sock.sa_family == AF_INET && iface.flags.broadcast) {
                     auto& i = *reinterpret_cast<sockaddr_in*>(&iface.broadcast);
-
                     // Two broadcast ips that are the same are probably on the same network so ignore those
                     if (std::find(std::begin(addresses), std::end(addresses), ntohl(i.sin_addr.s_addr))
                         == std::end(addresses)) {
+
                         addresses.push_back(ntohl(i.sin_addr.s_addr));
-
-                        // auto z = ntohl(i.sin_addr.s_addr);
-                        // std::cout << "  picked: " << z << ":" << PORT << " ";
-                        // print_address(z);
-                    }
-                    else {
-                        // std::cout << "  picked: skipped" << std::endl;
                     }
                 }
-                else {
-                    // std::cout << "  picked: none-broadcast" << std::endl;
-                }
-
-                std::cout << std::endl;
             }
 
             num_addresses = addresses.size();
 
-            std::cout << "number of broadcast addresses: " << num_addresses << std::endl;
-
             for (auto& ad : addresses) {
-                std::cout << "emitting message to broadcast address: " << ad << ":" << bound_port << " ";
-                print_address(ad);
 
                 // Send our message to that broadcast address
                 emit<Scope::UDP>(std::make_unique<std::string>(TEST_STRING), ad, bound_port);
-
-                std::cout << "emit returned\n" << std::endl;
             }
         });
 
         on<Startup>().then([this] {
-            std::cout << "emitting Startup message" << std::endl;
-
             // Emit a message just so it will be when everything is running
             emit(std::make_unique<Message>());
         });

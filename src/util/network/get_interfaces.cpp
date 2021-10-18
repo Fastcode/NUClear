@@ -65,11 +65,6 @@ namespace util {
 
                         iface.name = addr->AdapterName;
 
-                        printf("\nget_interfaces(): interface");
-                        printf("\n  Adapter Name: \t%s\n", addr->AdapterName);
-                        printf("\n  Adapter Desc: \t%ws\n", addr->Description);
-                        printf("\n        Status: \t%d\n", addr->OperStatus);
-
                         // Copy across the IP address
                         std::memcpy(&iface.ip, uaddr->Address.lpSockaddr, uaddr->Address.iSockaddrLength);
 
