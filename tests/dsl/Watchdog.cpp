@@ -28,6 +28,10 @@ NUClear::clock::time_point start;
 NUClear::clock::time_point end;
 NUClear::clock::time_point end_a;
 NUClear::clock::time_point end_b;
+bool a_ended = false;
+bool b_ended = false;
+
+
 int count = 0;
 
 #ifdef _WIN32
@@ -77,19 +81,21 @@ public:
         on<Watchdog<TestReactorRuntimeArg, WATCHDOG_TIMEOUT, std::chrono::milliseconds>>(std::string("test a"))
             .then([this] {
                 end_a   = NUClear::clock::now();
+                a_ended = true;
 
-            // When our watchdog eventually triggers, shutdown
-            powerplant.shutdown();
-        });
+                // When our watchdog eventually triggers, shutdown
+                if (b_ended) { powerplant.shutdown(); }
+            });
 
         // Trigger the watchdog after WATCHDOG_TIMEOUT milliseconds
         on<Watchdog<TestReactorRuntimeArg, WATCHDOG_TIMEOUT, std::chrono::milliseconds>>(std::string("test b"))
             .then([this] {
                 end_b   = NUClear::clock::now();
+                b_ended = true;
 
-            // When our watchdog eventually triggers, shutdown
-            powerplant.shutdown();
-        });
+                // When our watchdog eventually triggers, shutdown
+                if (a_ended) { powerplant.shutdown(); }
+            });
 
         // Service the watchdog every EVERY_INTERVAL milliseconds, 20 times. Then let it expire to trigger and end the
         // test.
