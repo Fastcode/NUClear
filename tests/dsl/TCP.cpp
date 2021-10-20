@@ -67,7 +67,8 @@ public:
                 // The connection was closed and the other test finished
                 if (len == 0 || ((event.events & IO::CLOSE) != 0)) {
                     if (messages_received == 2) {
-                        std::cout << "bind(port): shutting down powerplant" << std::endl;
+                        std::cout << "bind(port): closing fd and shutting down powerplant" << std::endl;
+                        known_port_fd.close_fd();
                         powerplant.shutdown();
                     }
                 }
@@ -107,7 +108,8 @@ public:
                 // The connection was closed and the other test finished
                 if (len == 0 || ((event.events & IO::CLOSE) != 0)) {
                     if (messages_received == 2) {
-                        std::cout << "bind(unknown port): shutting down powerplant" << std::endl;
+                        std::cout << "bind(unknown port): closing fd and shutting down powerplant" << std::endl;
+                        bound_port_fd.close_fd();
                         powerplant.shutdown();
                     }
                 }
@@ -115,9 +117,9 @@ public:
         });
 
         // Send a test message to the known port
-        on<Trigger<Message>>().then([] {
+        on<Trigger<Message>>().then([this] {
             // Open a random socket
-            NUClear::util::FileDescriptor fd = ::socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+            known_port_fd = ::socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 
             // Our address to our local connection
             sockaddr_in address;
@@ -126,23 +128,23 @@ public:
             address.sin_port        = htons(PORT);
 
             // Connect to ourself
-            ::connect(fd, reinterpret_cast<sockaddr*>(&address), sizeof(address));
+            ::connect(known_port_fd, reinterpret_cast<sockaddr*>(&address), sizeof(address));
 
             // Set linger so we ensure sending all data
             linger l{1, 2};
-            REQUIRE(setsockopt(fd, SOL_SOCKET, SO_LINGER, reinterpret_cast<char*>(&l), sizeof(linger)) == 0);
+            REQUIRE(setsockopt(known_port_fd, SOL_SOCKET, SO_LINGER, reinterpret_cast<char*>(&l), sizeof(linger)) == 0);
 
             // Write on our socket
-            ssize_t sent = ::send(fd, TEST_STRING.data(), static_cast<socklen_t>(TEST_STRING.size()), 0);
+            ssize_t sent = ::send(known_port_fd, TEST_STRING.data(), static_cast<socklen_t>(TEST_STRING.size()), 0);
 
             // We must have sent the right amount of data
             REQUIRE(sent == int(TEST_STRING.size()));
         });
 
         // Send a test message to the freely bound port
-        on<Trigger<Message>>().then([bound_port] {
+        on<Trigger<Message>>().then([this, bound_port] {
             // Open a random socket
-            NUClear::util::FileDescriptor fd = ::socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+            bound_port_fd = ::socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 
             // Our address to our local connection
             sockaddr_in address;
@@ -151,14 +153,14 @@ public:
             address.sin_port        = htons(bound_port);
 
             // Connect to ourself
-            ::connect(fd, reinterpret_cast<sockaddr*>(&address), sizeof(address));
+            ::connect(bound_port_fd, reinterpret_cast<sockaddr*>(&address), sizeof(address));
 
             // Set linger so we ensure sending all data
             linger l{1, 2};
-            REQUIRE(setsockopt(fd, SOL_SOCKET, SO_LINGER, reinterpret_cast<char*>(&l), sizeof(linger)) == 0);
+            REQUIRE(setsockopt(bound_port_fd, SOL_SOCKET, SO_LINGER, reinterpret_cast<char*>(&l), sizeof(linger)) == 0);
 
             // Write on our socket
-            ssize_t sent = ::send(fd, TEST_STRING.data(), static_cast<socklen_t>(TEST_STRING.size()), 0);
+            ssize_t sent = ::send(bound_port_fd, TEST_STRING.data(), static_cast<socklen_t>(TEST_STRING.size()), 0);
 
             // We must have sent the right amount of data
             REQUIRE(sent == int(TEST_STRING.size()));
@@ -169,6 +171,10 @@ public:
             emit(std::make_unique<Message>());
         });
     }
+
+private:
+    NUClear::util::FileDescriptor known_port_fd;
+    NUClear::util::FileDescriptor bound_port_fd;
 };
 }  // namespace
 
