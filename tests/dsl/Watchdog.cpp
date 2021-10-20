@@ -31,7 +31,6 @@ NUClear::clock::time_point end_b;
 bool a_ended = false;
 bool b_ended = false;
 
-
 int count = 0;
 
 #ifdef _WIN32
