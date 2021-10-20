@@ -17,6 +17,7 @@
  */
 
 #include <catch.hpp>
+#include <iostream>
 #include <nuclear>
 
 namespace {
@@ -46,6 +47,10 @@ public:
 
                     // Read into the buffer
                     len = ::recv(event.fd, buff.data(), static_cast<socklen_t>(TEST_STRING.size()), 0);
+
+#ifdef _WIN32
+                    if (len == -1) { std::cout << "::recv failed, last error: " << WSAGetLastError() << std::endl; }
+#endif
 
                     // 0 indicates orderly shutdown of the socket
                     if (len != 0) {
@@ -80,6 +85,9 @@ public:
                     // Read into the buffer
                     len = ::recv(event.fd, buff.data(), static_cast<socklen_t>(TEST_STRING.size()), 0);
 
+#ifdef _WIN32
+                    if (len == -1) { std::cout << "::recv failed, last error: " << WSAGetLastError() << std::endl; }
+#endif
                     // 0 indicates orderly shutdown of the socket
                     if (len != 0) {
                         // Test the data
