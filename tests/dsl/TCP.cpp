@@ -45,6 +45,8 @@ public:
                     std::array<char, 1024> buff;
                     buff.fill('\0');
 
+                    std::cout << "bind(port): receiving data" << std::endl;
+
                     // Read into the buffer
                     len = ::recv(event.fd, buff.data(), static_cast<socklen_t>(TEST_STRING.size()), 0);
 
@@ -64,7 +66,10 @@ public:
 
                 // The connection was closed and the other test finished
                 if (len == 0 || ((event.events & IO::CLOSE) != 0)) {
-                    if (messages_received == 2) { powerplant.shutdown(); }
+                    if (messages_received == 2) {
+                        std::cout << "bind(port): shutting down powerplant" << std::endl;
+                        powerplant.shutdown();
+                    }
                 }
             });
         });
@@ -82,6 +87,8 @@ public:
                     std::array<char, 1024> buff;
                     buff.fill('\0');
 
+                    std::cout << "bind(unknown port): receiving data" << std::endl;
+
                     // Read into the buffer
                     len = ::recv(event.fd, buff.data(), static_cast<socklen_t>(TEST_STRING.size()), 0);
 
@@ -99,7 +106,10 @@ public:
 
                 // The connection was closed and the other test finished
                 if (len == 0 || ((event.events & IO::CLOSE) != 0)) {
-                    if (messages_received == 2) { powerplant.shutdown(); }
+                    if (messages_received == 2) {
+                        std::cout << "bind(unknown port): shutting down powerplant" << std::endl;
+                        powerplant.shutdown();
+                    }
                 }
             });
         });
