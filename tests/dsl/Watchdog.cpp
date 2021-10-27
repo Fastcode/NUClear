@@ -117,8 +117,7 @@ TEST_CASE("Testing the Watchdog Smart Type", "[api][watchdog]") {
 
     plant.start();
 
-    // Require that at least 20 * EVERY_INTERVAL has passed (since that's how long it takes to run all the Every
-    // triggers, and we should be longer than that)
+    // Require that at least the minimum time interval to have run all Everys has passed
     REQUIRE(end - start > std::chrono::milliseconds(20 * EVERY_INTERVAL));
 }
 
@@ -131,8 +130,7 @@ TEST_CASE("Testing the Watchdog Smart Type with a sub type", "[api][watchdog][su
 
     plant.start();
 
-    // Require that at least 20 * EVERY_INTERVAL has passed (since that's how long it takes to run all the Every
-    // triggers, and we should be longer than that)
+    // Require that at least the minimum time interval to have run all Everys has passed
     REQUIRE(end_a - start > std::chrono::milliseconds(20 * EVERY_INTERVAL));
     REQUIRE(end_b - start > std::chrono::milliseconds(20 * EVERY_INTERVAL));
 }
