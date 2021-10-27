@@ -73,7 +73,7 @@ TEST_CASE("Testing the delay emit", "[api][emit][delay]") {
 
     // Ensure the message delays are correct, I would make these bounds tighter, but travis is pretty dumb
     REQUIRE(std::chrono::duration_cast<std::chrono::milliseconds>(delay_received - sent).count() > 190);
-    REQUIRE(std::chrono::duration_cast<std::chrono::milliseconds>(delay_received - sent).count() < 210);
+    REQUIRE(std::chrono::duration_cast<std::chrono::milliseconds>(delay_received - sent).count() < 225);
     REQUIRE(std::chrono::duration_cast<std::chrono::milliseconds>(at_time_received - sent).count() > 90);
-    REQUIRE(std::chrono::duration_cast<std::chrono::milliseconds>(at_time_received - sent).count() < 110);
+    REQUIRE(std::chrono::duration_cast<std::chrono::milliseconds>(at_time_received - sent).count() < 120);
 }

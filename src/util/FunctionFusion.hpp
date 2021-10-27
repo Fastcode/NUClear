@@ -170,7 +170,8 @@ namespace util {
 
     template <typename Functions,
               typename Arguments,
-              template <typename, typename...> class FunctionWrapper,
+              template <typename, typename...>
+              class FunctionWrapper,
               typename WrapperArgs,
               int Shared                  = 0,
               int Start                   = Shared,
@@ -209,7 +210,8 @@ namespace util {
     template <typename CurrentFunction,
               typename... Functions,
               typename... Arguments,
-              template <typename, typename...> class FunctionWrapper,
+              template <typename, typename...>
+              class FunctionWrapper,
               typename... WrapperArgs,
               int Shared,
               int Start,
@@ -294,7 +296,8 @@ namespace util {
      *          false_type to indicate its failure.
      */
     template <typename... Arguments,
-              template <typename, typename...> class FunctionWrapper,
+              template <typename, typename...>
+              class FunctionWrapper,
               typename... WrapperArgs,
               int Shared,
               int Start,
@@ -312,7 +315,7 @@ namespace util {
                           std::tuple<Ranges...>>
         : public
           // Check if we used up all of our arguments (and not more than all of our arguments)
-          std::conditional_t<(Start == End && Start == sizeof...(Arguments)),
+          std::conditional_t<(Start == End && Start == int(sizeof...(Arguments))),
                              // We have used up the exact right number of arguments (and everything by this point should
                              // have been callable)
                              /*T*/

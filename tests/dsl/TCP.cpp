@@ -21,8 +21,8 @@
 
 namespace {
 
-constexpr unsigned short PORT = 40009;
-int messages_received         = 0;
+constexpr in_port_t PORT = 40009;
+int messages_received    = 0;
 
 const std::string TEST_STRING = "Hello TCP World!";
 
@@ -41,30 +41,34 @@ public:
                 // We have data to read
                 if ((event.events & IO::READ) != 0) {
 
-                    char buff[1024] = {};
+                    std::array<char, 1024> buff;
+                    buff.fill('\0');
 
                     // Read into the buffer
-                    len = ::recv(event.fd, reinterpret_cast<char*>(buff), TEST_STRING.size(), 0);
+                    len = ::recv(event.fd, buff.data(), static_cast<socklen_t>(TEST_STRING.size()), 0);
 
                     // 0 indicates orderly shutdown of the socket
                     if (len != 0) {
 
                         // Test the data
                         REQUIRE(len == int(TEST_STRING.size()));
-                        REQUIRE(TEST_STRING == std::string(reinterpret_cast<char*>(buff)));
+                        REQUIRE(TEST_STRING == std::string(buff.data()));
                         ++messages_received;
                     }
                 }
 
                 // The connection was closed and the other test finished
-                if (len == 0 || ((event.events & IO::CLOSE) != 0)) {
-                    if (messages_received == 2) { powerplant.shutdown(); }
+                if (len == 0 || ((event.events & IO::CLOSE) != 0) || messages_received == 2) {
+                    if (messages_received == 2) {
+                        known_port_fd.close_fd();
+                        powerplant.shutdown();
+                    }
                 }
             });
         });
 
         // Bind to an unknown port and get the port number
-        int bound_port;
+        in_port_t bound_port;
         std::tie(std::ignore, bound_port, std::ignore) = on<TCP>().then([this](const TCP::Connection& connection) {
             on<IO>(connection.fd, IO::READ | IO::CLOSE).then([this](IO::Event event) {
                 // If we read 0 later it means orderly shutdown
@@ -73,32 +77,35 @@ public:
                 // We have data to read
                 if ((event.events & IO::READ) != 0) {
 
-                    char buff[1024];
-                    memset(reinterpret_cast<char*>(buff), 0, sizeof(buff));
+                    std::array<char, 1024> buff;
+                    buff.fill('\0');
 
                     // Read into the buffer
-                    len = ::recv(event.fd, reinterpret_cast<char*>(buff), TEST_STRING.size(), 0);
+                    len = ::recv(event.fd, buff.data(), static_cast<socklen_t>(TEST_STRING.size()), 0);
 
                     // 0 indicates orderly shutdown of the socket
                     if (len != 0) {
                         // Test the data
                         REQUIRE(len == int(TEST_STRING.size()));
-                        REQUIRE(TEST_STRING == std::string(reinterpret_cast<char*>(buff)));
+                        REQUIRE(TEST_STRING == std::string(buff.data()));
                         ++messages_received;
                     }
                 }
 
                 // The connection was closed and the other test finished
-                if (len == 0 || ((event.events & IO::CLOSE) != 0)) {
-                    if (messages_received == 2) { powerplant.shutdown(); }
+                if (len == 0 || ((event.events & IO::CLOSE) != 0) || messages_received == 2) {
+                    if (messages_received == 2) {
+                        bound_port_fd.close_fd();
+                        powerplant.shutdown();
+                    }
                 }
             });
         });
 
         // Send a test message to the known port
-        on<Trigger<Message>>().then([] {
+        on<Trigger<Message>>().then([this] {
             // Open a random socket
-            NUClear::util::FileDescriptor fd = ::socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+            known_port_fd = ::socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 
             // Our address to our local connection
             sockaddr_in address;
@@ -107,23 +114,23 @@ public:
             address.sin_port        = htons(PORT);
 
             // Connect to ourself
-            ::connect(fd, reinterpret_cast<sockaddr*>(&address), sizeof(address));
+            ::connect(known_port_fd, reinterpret_cast<sockaddr*>(&address), sizeof(address));
 
             // Set linger so we ensure sending all data
             linger l{1, 2};
-            REQUIRE(setsockopt(fd, SOL_SOCKET, SO_LINGER, reinterpret_cast<char*>(&l), sizeof(linger)) == 0);
+            REQUIRE(setsockopt(known_port_fd, SOL_SOCKET, SO_LINGER, reinterpret_cast<char*>(&l), sizeof(linger)) == 0);
 
             // Write on our socket
-            ssize_t sent = ::send(fd, TEST_STRING.data(), TEST_STRING.size(), 0);
+            ssize_t sent = ::send(known_port_fd, TEST_STRING.data(), static_cast<socklen_t>(TEST_STRING.size()), 0);
 
             // We must have sent the right amount of data
             REQUIRE(sent == int(TEST_STRING.size()));
         });
 
         // Send a test message to the freely bound port
-        on<Trigger<Message>>().then([bound_port] {
+        on<Trigger<Message>>().then([this, bound_port] {
             // Open a random socket
-            NUClear::util::FileDescriptor fd = ::socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+            bound_port_fd = ::socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 
             // Our address to our local connection
             sockaddr_in address;
@@ -132,14 +139,14 @@ public:
             address.sin_port        = htons(bound_port);
 
             // Connect to ourself
-            ::connect(fd, reinterpret_cast<sockaddr*>(&address), sizeof(address));
+            ::connect(bound_port_fd, reinterpret_cast<sockaddr*>(&address), sizeof(address));
 
             // Set linger so we ensure sending all data
             linger l{1, 2};
-            REQUIRE(setsockopt(fd, SOL_SOCKET, SO_LINGER, reinterpret_cast<char*>(&l), sizeof(linger)) == 0);
+            REQUIRE(setsockopt(bound_port_fd, SOL_SOCKET, SO_LINGER, reinterpret_cast<char*>(&l), sizeof(linger)) == 0);
 
             // Write on our socket
-            ssize_t sent = ::send(fd, TEST_STRING.data(), TEST_STRING.size(), 0);
+            ssize_t sent = ::send(bound_port_fd, TEST_STRING.data(), static_cast<socklen_t>(TEST_STRING.size()), 0);
 
             // We must have sent the right amount of data
             REQUIRE(sent == int(TEST_STRING.size()));
@@ -150,6 +157,10 @@ public:
             emit(std::make_unique<Message>());
         });
     }
+
+private:
+    NUClear::util::FileDescriptor known_port_fd;
+    NUClear::util::FileDescriptor bound_port_fd;
 };
 }  // namespace
 

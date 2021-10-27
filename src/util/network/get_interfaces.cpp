@@ -54,6 +54,9 @@ namespace util {
                 }
 
                 for (PIP_ADAPTER_ADDRESSES addr = addrs; addr != nullptr; addr = addr->Next) {
+                    // Skip adapters that are not up and able to process packets (e.g. they're disconnected, disabled,
+                    // etc)
+                    if (addr->OperStatus != IfOperStatusUp) { continue; }
 
                     for (auto uaddr = addr->FirstUnicastAddress; uaddr != nullptr; uaddr = uaddr->Next) {
 
@@ -75,12 +78,10 @@ namespace util {
                                 // Fill in the netmask
                                 netmask.sin_family = AF_INET;
                                 ConvertLengthToIpv4Mask(uaddr->OnLinkPrefixLength, &netmask.sin_addr.s_addr);
-                                netmask.sin_addr.s_addr = htonl(netmask.sin_addr.s_addr);
 
                                 // Fill in the broadcast
-                                broadcast.sin_family = AF_INET;
-                                broadcast.sin_addr.s_addr =
-                                    (ipv4.sin_addr.s_addr | ~netmask.sin_addr.s_addr) && netmask.sin_addr.s_addr;
+                                broadcast.sin_family      = AF_INET;
+                                broadcast.sin_addr.s_addr = (ipv4.sin_addr.s_addr | (~netmask.sin_addr.s_addr));
 
                                 // Loopback if the ip address starts with 127
                                 iface.flags.loopback = (ipv4.sin_addr.s_addr & htonl(0x7F000000)) == htonl(0x7F000000);

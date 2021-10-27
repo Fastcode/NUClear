@@ -19,6 +19,12 @@
 #ifndef NUCLEAR_LOGLEVEL_HPP
 #define NUCLEAR_LOGLEVEL_HPP
 
+// Why do we need to include platform.hpp here?
+// Because windows defines a bunch of things for legacy reasons, one of which is a #define for ERROR as blank
+// Of course this causes a problem when we define our own token below as error as the preprocessor removes it
+// The platform.hpp fixes this (and many other windows nonsense) so include it here to solve that issue
+#include "util/platform.hpp"
+
 namespace NUClear {
 
 /**

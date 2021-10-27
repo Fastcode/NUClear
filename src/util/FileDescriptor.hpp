@@ -30,27 +30,47 @@ namespace util {
      *          It will close the file descriptor it holds on
      *          destruction.
      */
-    struct FileDescriptor {
+    class FileDescriptor {
 
         /**
          * @brief Constructs a new RAII file descriptor.
          *
          * @param fd [description]
          */
-        FileDescriptor(fd_t fd) : fd(fd) {}
+
+    public:
+        FileDescriptor();
+        FileDescriptor(const fd_t& fd);
+
+        // Don't allow copy construction or assignment
+        FileDescriptor(const FileDescriptor&) = delete;
+        FileDescriptor& operator=(const FileDescriptor&) = delete;
+
+        // Allow move construction or assignment
+        FileDescriptor(FileDescriptor&& rhs) noexcept;
+        FileDescriptor& operator=(FileDescriptor&& rhs) noexcept;
 
         /**
          * @brief Destruct the file descriptor, closes the held FD
          */
-        ~FileDescriptor() {
-// On windows it's CLOSE_SOCKET
-#if defined(_WIN32)
-            if (fd != INVALID_SOCKET) { close(fd); }
-// On others we just close
-#else
-            if (fd > 0) { close(fd); }
-#endif
-        }
+        ~FileDescriptor();
+
+        /**
+         * @brief Get the currently held file descriptor
+         *
+         * @return the file descriptor
+         */
+        // No Lint: As we are giving access to a variable which can change state.
+        // NOLINTNEXTLINE(readability-make-member-function-const)
+        fd_t get();
+
+        /**
+         * @brief Returns if the currently held file descriptor is valid
+         *
+         * @return true     if the file descriptor is valid
+         * @return false    if the file descriptor is invalid
+         */
+        bool valid() const;
 
         /**
          * @brief Releases the file descriptor from RAII.
@@ -61,23 +81,23 @@ namespace util {
          *          be invalidated.
          * @return the held file descriptor
          */
-        fd_t release() {
-            fd_t temp = fd;
-            fd        = -1;
-            return temp;
-        }
+        fd_t release();
 
         /**
          * @brief Casts this to the held file descriptor
          *
          * @return the file descriptor
          */
-        operator fd_t() {
-            return fd;
-        }
+        operator fd_t();
 
+        /**
+         * @brief Close the current file descriptor, if it's valid
+         */
+        void close_fd();
+
+    private:
         /// @brief The held file descriptor
-        fd_t fd;
+        fd_t fd{INVALID_SOCKET};
     };
 
 }  // namespace util

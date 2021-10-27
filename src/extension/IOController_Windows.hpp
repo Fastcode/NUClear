@@ -22,7 +22,7 @@
 #include "../PowerPlant.hpp"
 #include "../Reactor.hpp"
 #include "../dsl/word/IO.hpp"
-#include "../util/windows_includes.hpp"
+#include "../util/platform.hpp"
 
 namespace NUClear {
 namespace extension {
@@ -69,7 +69,7 @@ namespace extension {
                 });
 
             on<Trigger<dsl::operation::Unbind<IO>>>().then("Unbind IO Reaction",
-                                                           [this](const dsl::operation::Unbind<IO>& unbind) {
+                                                           [this](const dsl::operation::Unbind<IO>& /* unbind */) {
                                                                // Lock our mutex
 
                                                                // Find this reaction in our list of reactions
@@ -94,15 +94,14 @@ namespace extension {
                 if (!shutdown) {
 
                     // Wait for events
-                    auto event = WSAWaitForMultipleEvents(fds.size(), fds.data(), false, WSA_INFINITE, false);
+                    auto event = WSAWaitForMultipleEvents(
+                        static_cast<DWORD>(fds.size()), fds.data(), false, WSA_INFINITE, false);
 
                     // Check if the return value is an event in our list
                     if (event >= WSA_WAIT_EVENT_0 && event < WSA_WAIT_EVENT_0 + fds.size()) {
 
                         // Check for notification event
-                        if (event == WSA_WAIT_EVENT_0) {
-                            WSAResetEvent(notifier);
-                        }
+                        if (event == WSA_WAIT_EVENT_0) { WSAResetEvent(notifier); }
                         else {
                             // Get our event
                             auto& e = fds[event - WSA_WAIT_EVENT_0];
@@ -116,21 +115,19 @@ namespace extension {
                                 WSAEnumNetworkEvents(r->second.fd, e, &wsae);
 
                                 // Make our event to pass through
-                                IO::Event e;
-                                e.fd = r->second.fd;
+                                IO::Event evt;
+                                evt.fd = r->second.fd;
 
                                 // Our events are what we got from the enum events call
-                                e.events = wsae.lNetworkEvents;
+                                evt.events = wsae.lNetworkEvents;
 
                                 // Store the event in our thread local cache
-                                IO::ThreadEventStore::value = &e;
+                                IO::ThreadEventStore::value = &evt;
 
                                 // Submit the task (which should run the get)
                                 try {
                                     auto task = r->second.reaction->get_task();
-                                    if (task) {
-                                        powerplant.submit(std::move(task));
-                                    }
+                                    if (task) { powerplant.submit(std::move(task)); }
                                 }
                                 catch (...) {
                                 }
