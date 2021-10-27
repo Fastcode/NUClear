@@ -65,7 +65,7 @@ public:
                 }
 
                 // The connection was closed and the other test finished
-                if (len == 0 || ((event.events & IO::CLOSE) != 0)) {
+                if (len == 0 || ((event.events & IO::CLOSE) != 0) || messages_received == 2) {
                     if (messages_received == 2) {
                         std::cout << "bind(port): closing fd and shutting down powerplant" << std::endl;
                         known_port_fd.close_fd();
@@ -106,7 +106,7 @@ public:
                 }
 
                 // The connection was closed and the other test finished
-                if (len == 0 || ((event.events & IO::CLOSE) != 0)) {
+                if (len == 0 || ((event.events & IO::CLOSE) != 0) || messages_received == 2) {
                     if (messages_received == 2) {
                         std::cout << "bind(unknown port): closing fd and shutting down powerplant" << std::endl;
                         bound_port_fd.close_fd();
