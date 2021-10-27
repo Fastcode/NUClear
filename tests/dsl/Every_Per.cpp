@@ -65,7 +65,7 @@ public:
                 // As time goes on the average wait should be 0 (we accept less then 0.5ms for this test)
                 REQUIRE(fabs(mean) < 0.0005);
 
-                // Require that 95% (ish) of all results are within 1ms
+                // Require that 95% (ish) of all results are fast enough
                 REQUIRE(fabs(mean + stddev * 2) < 0.008);
             }
             // Once we have more then enough items then we shutdown the powerplant
