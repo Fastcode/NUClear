@@ -37,11 +37,11 @@ int count = 0;
 // This defines the intervals larger to avoid the problems at smaller intervals
 // TODO(Josephus or Trent): use a higher precision timing method on Windows (look into nanosleep,
 // in addition to the condition lock and spin lock used in ChronoController.hpp)
-#    define WATCHDOG_TIMEOUT 30
-#    define EVERY_INTERVAL 5
+constexpr int WATCHDOG_TIMEOUT = 30;
+constexpr int EVERY_INTERVAL   = 5;
 #else
-#    define WATCHDOG_TIMEOUT 10
-#    define EVERY_INTERVAL 5
+constexpr int WATCHDOG_TIMEOUT = 10;
+constexpr int EVERY_INTERVAL   = 5;
 #endif
 
 class TestReactor : public NUClear::Reactor {
