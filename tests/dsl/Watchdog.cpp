@@ -17,7 +17,6 @@
  */
 
 #include <catch.hpp>
-#include <iostream>
 #include <nuclear>
 #include <numeric>
 #include <string>
