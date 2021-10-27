@@ -50,9 +50,7 @@ public:
         // Running every this slowed down clock should execute slower
         on<Every<10, std::chrono::milliseconds>>().then([this] {
             times.push_back(std::chrono::steady_clock::now());
-            if (times.size() > n_time) {
-                powerplant.shutdown();
-            }
+            if (times.size() > n_time) { powerplant.shutdown(); }
         });
     }
 };
@@ -75,6 +73,12 @@ TEST_CASE("Testing custom clock works correctly", "[api][custom_clock]") {
         total += (double((times[i + 1] - times[i]).count()) / double(std::nano::den));
     }
 
+#ifdef _WIN32
+    double timing_epsilon = 1e-2;
+#else
+    double timing_epsilon = 1e-3;
+#endif
+
     // The total should be about 2.0
-    REQUIRE(total == Approx(2.0).epsilon(1e-3));
+    REQUIRE(total == Approx(2.0).epsilon(timing_epsilon));
 }
