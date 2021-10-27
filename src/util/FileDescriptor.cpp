@@ -45,11 +45,7 @@ namespace util {
     }
 
     void FileDescriptor::close_fd() {
-#if defined(_WIN32)
         if (fd != INVALID_SOCKET) { close(fd); }
-#else
-        if (fd > 0) { close(fd); }
-#endif
         fd = INVALID_SOCKET;
     }
 
