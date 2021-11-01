@@ -103,7 +103,7 @@ namespace dsl {
 
             template <typename DSL>
             static inline std::tuple<in_port_t, fd_t> bind(const std::shared_ptr<threading::Reaction>& reaction,
-                                                           int port = 0) {
+                                                           in_port_t port = 0) {
 
                 // Make our socket
                 util::FileDescriptor fd = ::socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
@@ -142,7 +142,7 @@ namespace dsl {
                 port = ntohs(address.sin_port);
 
                 // Generate a reaction for the IO system that closes on death
-                int cfd = fd;
+                fd_t cfd = fd;
                 reaction->unbinders.push_back([](const threading::Reaction& r) {
                     r.reactor.emit<emit::Direct>(std::make_unique<operation::Unbind<IO>>(r.id));
                 });
@@ -191,7 +191,7 @@ namespace dsl {
                 memset(&from, 0, sizeof(sockaddr_in));
                 iovec payload;
                 payload.iov_base = p.payload.data();
-                payload.iov_len  = p.payload.size();
+                payload.iov_len  = static_cast<decltype(payload.iov_len)>(p.payload.size());
 
                 // Make our message header to receive with
                 msghdr mh;
@@ -246,7 +246,7 @@ namespace dsl {
 
                 template <typename DSL>
                 static inline std::tuple<in_port_t, fd_t> bind(const std::shared_ptr<threading::Reaction>& reaction,
-                                                               int port = 0) {
+                                                               in_port_t port = 0) {
 
                     // Make our socket
                     util::FileDescriptor fd = ::socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
@@ -296,7 +296,7 @@ namespace dsl {
                     port = ntohs(address.sin_port);
 
                     // Generate a reaction for the IO system that closes on death
-                    int cfd = fd;
+                    fd_t cfd = fd;
                     reaction->unbinders.push_back([](const threading::Reaction& r) {
                         r.reactor.emit<emit::Direct>(std::make_unique<operation::Unbind<IO>>(r.id));
                     });
@@ -323,7 +323,7 @@ namespace dsl {
                 template <typename DSL>
                 static inline std::tuple<in_port_t, fd_t> bind(const std::shared_ptr<threading::Reaction>& reaction,
                                                                std::string multicast_group,
-                                                               int port = 0) {
+                                                               in_port_t port = 0) {
 
                     // Our multicast group address
                     sockaddr_in address;
@@ -396,7 +396,7 @@ namespace dsl {
                     }
 
                     // Generate a reaction for the IO system that closes on death
-                    int cfd = fd;
+                    fd_t cfd = fd;
                     reaction->unbinders.push_back([](const threading::Reaction& r) {
                         r.reactor.emit<emit::Direct>(std::make_unique<operation::Unbind<IO>>(r.id));
                     });

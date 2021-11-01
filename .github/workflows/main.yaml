@@ -12,7 +12,7 @@ on:
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   build-linux:
-    name: "Linux GCC"
+    name: Linux GCC
 
     strategy:
       matrix:
@@ -56,7 +56,7 @@ jobs:
           for f in build/tests/individual/*; do echo "Testing $f"; ./$f; done
 
   build-osx:
-    name: "MacOS Clang"
+    name: MacOS Clang
 
     # The type of runner that the job will run on
     runs-on: macos-latest
@@ -82,3 +82,32 @@ jobs:
         run: |
           build/tests/test_nuclear
           for f in build/tests/individual/*; do echo "Testing $f"; ./$f; done
+
+  build-windows:
+    name: Windows MSVC
+
+    # The type of runner that the job will run on
+    runs-on: windows-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - name: Checkout Code
+        uses: actions/checkout@v2
+
+      - name: Configure CMake
+        run: |
+          cmake -E make_directory build
+          cmake -S . -B build -DBUILD_TESTS=ON -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        # Execute the build.  You can specify a specific target with "--target <NAME>"
+        run: cmake --build build --config Release --parallel 2
+
+      - name: Test
+        # Execute tests defined by the CMake configuration.
+        # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
+        run: |
+          build/tests/Release/test_nuclear.exe
+          for f in build/tests/individual/Release/*; do echo "Testing $f"; ./$f; done
+        shell: bash

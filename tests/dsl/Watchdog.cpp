@@ -27,7 +27,22 @@ NUClear::clock::time_point start;
 NUClear::clock::time_point end;
 NUClear::clock::time_point end_a;
 NUClear::clock::time_point end_b;
+bool a_ended = false;
+bool b_ended = false;
+
 int count = 0;
+
+#ifdef _WIN32
+// The precision of timing on Windows (with the current NUClear timing method) is not great.
+// This defines the intervals larger to avoid the problems at smaller intervals
+// TODO(Josephus or Trent): use a higher precision timing method on Windows (look into nanosleep,
+// in addition to the condition lock and spin lock used in ChronoController.hpp)
+constexpr int WATCHDOG_TIMEOUT = 30;
+constexpr int EVERY_INTERVAL   = 5;
+#else
+constexpr int WATCHDOG_TIMEOUT = 10;
+constexpr int EVERY_INTERVAL   = 5;
+#endif
 
 class TestReactor : public NUClear::Reactor {
 public:
@@ -36,15 +51,17 @@ public:
         start = NUClear::clock::now();
         count = 0;
 
-        // Trigger every 10 milliseconds
-        on<Watchdog<TestReactor, 10, std::chrono::milliseconds>>().then([this] {
+        // Trigger the watchdog after WATCHDOG_TIMEOUT milliseconds
+        on<Watchdog<TestReactor, WATCHDOG_TIMEOUT, std::chrono::milliseconds>>().then([this] {
             end = NUClear::clock::now();
 
             // When our watchdog eventually triggers, shutdown
             powerplant.shutdown();
         });
 
-        on<Every<5, std::chrono::milliseconds>>().then([this] {
+        // Service the watchdog every EVERY_INTERVAL milliseconds, 20 times. Then let it expire to trigger and end the
+        // test.
+        on<Every<EVERY_INTERVAL, std::chrono::milliseconds>>().then([this] {
             // service the watchdog
             if (++count < 20) { emit<Scope::WATCHDOG>(ServiceWatchdog<TestReactor>()); }
         });
@@ -58,22 +75,29 @@ public:
         start = NUClear::clock::now();
         count = 0;
 
-        // Trigger every 10 milliseconds
-        on<Watchdog<TestReactorRuntimeArg, 10, std::chrono::milliseconds>>(std::string("test a")).then([this] {
-            end_a = NUClear::clock::now();
+        // Trigger the watchdog after WATCHDOG_TIMEOUT milliseconds
+        on<Watchdog<TestReactorRuntimeArg, WATCHDOG_TIMEOUT, std::chrono::milliseconds>>(std::string("test a"))
+            .then([this] {
+                end_a   = NUClear::clock::now();
+                a_ended = true;
 
-            // When our watchdog eventually triggers, shutdown
-            powerplant.shutdown();
-        });
+                // When our watchdog eventually triggers, shutdown
+                if (b_ended) { powerplant.shutdown(); }
+            });
 
-        on<Watchdog<TestReactorRuntimeArg, 10, std::chrono::milliseconds>>(std::string("test b")).then([this] {
-            end_b = NUClear::clock::now();
+        // Trigger the watchdog after WATCHDOG_TIMEOUT milliseconds
+        on<Watchdog<TestReactorRuntimeArg, WATCHDOG_TIMEOUT, std::chrono::milliseconds>>(std::string("test b"))
+            .then([this] {
+                end_b   = NUClear::clock::now();
+                b_ended = true;
 
-            // When our watchdog eventually triggers, shutdown
-            powerplant.shutdown();
-        });
+                // When our watchdog eventually triggers, shutdown
+                if (a_ended) { powerplant.shutdown(); }
+            });
 
-        on<Every<5, std::chrono::milliseconds>>().then([this] {
+        // Service the watchdog every EVERY_INTERVAL milliseconds, 20 times. Then let it expire to trigger and end the
+        // test.
+        on<Every<EVERY_INTERVAL, std::chrono::milliseconds>>().then([this] {
             // service the watchdog
             if (++count < 20) {
                 emit<Scope::WATCHDOG>(ServiceWatchdog<TestReactorRuntimeArg>(std::string("test a")));
@@ -93,8 +117,8 @@ TEST_CASE("Testing the Watchdog Smart Type", "[api][watchdog]") {
 
     plant.start();
 
-    // Require that at least 100ms has passed (since 20 * 5ms gives 100, and we should be longer than that)
-    REQUIRE(end - start > std::chrono::milliseconds(100));
+    // Require that at least the minimum time interval to have run all Everys has passed
+    REQUIRE(end - start > std::chrono::milliseconds(20 * EVERY_INTERVAL));
 }
 
 TEST_CASE("Testing the Watchdog Smart Type with a sub type", "[api][watchdog][sub_type]") {
@@ -106,7 +130,7 @@ TEST_CASE("Testing the Watchdog Smart Type with a sub type", "[api][watchdog][su
 
     plant.start();
 
-    // Require that at least 100ms has passed (since 20 * 5ms gives 100, and we should be longer than that)
-    REQUIRE(end_a - start > std::chrono::milliseconds(100));
-    REQUIRE(end_b - start > std::chrono::milliseconds(100));
+    // Require that at least the minimum time interval to have run all Everys has passed
+    REQUIRE(end_a - start > std::chrono::milliseconds(20 * EVERY_INTERVAL));
+    REQUIRE(end_b - start > std::chrono::milliseconds(20 * EVERY_INTERVAL));
 }

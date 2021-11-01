@@ -128,7 +128,7 @@ namespace dsl {
                     // Try to send our payload
                     if (::sendto(fd,
                                  payload.data(),
-                                 payload.size(),
+                                 static_cast<socklen_t>(payload.size()),
                                  0,
                                  reinterpret_cast<sockaddr*>(&target),
                                  sizeof(sockaddr_in))

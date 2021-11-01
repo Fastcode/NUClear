@@ -79,8 +79,8 @@ namespace dsl {
             };
 
             template <typename DSL>
-            static inline std::tuple<int, int> bind(const std::shared_ptr<threading::Reaction>& reaction,
-                                                    int port = 0) {
+            static inline std::tuple<in_port_t, fd_t> bind(const std::shared_ptr<threading::Reaction>& reaction,
+                                                           in_port_t port = 0) {
 
                 // Make our socket
                 util::FileDescriptor fd = ::socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
@@ -118,7 +118,7 @@ namespace dsl {
                 port = ntohs(address.sin_port);
 
                 // Generate a reaction for the IO system that closes on death
-                int cfd = fd;
+                fd_t cfd = fd;
                 reaction->unbinders.push_back([](const threading::Reaction& r) {
                     r.reactor.emit<emit::Direct>(std::make_unique<operation::Unbind<IO>>(r.id));
                 });

@@ -31,11 +31,11 @@ namespace NUClear {
 namespace extension {
     namespace network {
 
-        size_t socket_size(const util::network::sock_t& s) {
+        socklen_t socket_size(const util::network::sock_t& s) {
             switch (s.sock.sa_family) {
                 case AF_INET: return sizeof(sockaddr_in);
                 case AF_INET6: return sizeof(sockaddr_in6);
-                default: return -1;
+                default: throw std::runtime_error("unhandled socket address family");
             }
         }
 
@@ -46,8 +46,8 @@ namespace extension {
         NUClearNetwork::PacketQueue::PacketQueue() = default;
 
         NUClearNetwork::NUClearNetwork()
-            : data_fd(-1)
-            , announce_fd(-1)
+            : data_fd(INVALID_SOCKET)
+            , announce_fd(INVALID_SOCKET)
             , packet_data_mtu(1000)
             , packet_id_source(0)
             , last_announce(std::chrono::seconds(0))
@@ -307,11 +307,11 @@ namespace extension {
             // Close our existing FDs if they exist
             if (data_fd > 0) {
                 close(data_fd);
-                data_fd = -1;
+                data_fd = INVALID_SOCKET;
             }
             if (announce_fd > 0) {
                 close(announce_fd);
-                announce_fd = -1;
+                announce_fd = INVALID_SOCKET;
             }
         }
 
@@ -418,7 +418,7 @@ namespace extension {
             std::vector<char> payload(1500);
             iovec iov;
             iov.iov_base = payload.data();
-            iov.iov_len  = payload.size();
+            iov.iov_len  = static_cast<decltype(iov.iov_len)>(payload.size());
 
             // Who we are receiving from
             sock_t from;
@@ -542,7 +542,7 @@ namespace extension {
                             }
 
                             // Work out which packets to resend and resend them
-                            for (int i = 0; i < qit->second.header.packet_count; ++i) {
+                            for (uint16_t i = 0; i < qit->second.header.packet_count; ++i) {
                                 if ((it->acked[i / 8] & uint8_t(1 << (i % 8))) == 0) {
                                     send_packet(ptr->target, qit->second.header, i, qit->second.payload, true);
                                 }
@@ -574,7 +574,7 @@ namespace extension {
                 // Send the packet
                 if (::sendto(data_fd,
                              announce_packet.data(),
-                             announce_packet.size(),
+                             static_cast<socklen_t>(announce_packet.size()),
                              0,
                              &it->second->target.sock,
                              socket_size(it->second->target))
@@ -635,7 +635,7 @@ namespace extension {
                                         // Say hi back!
                                         ::sendto(data_fd,
                                                  announce_packet.data(),
-                                                 announce_packet.size(),
+                                                 static_cast<socklen_t>(announce_packet.size()),
                                                  0,
                                                  &ptr->target.sock,
                                                  socket_size(ptr->target));
@@ -718,7 +718,12 @@ namespace extension {
                                     sock_t& to = remote->target;
 
                                     // Send the packet
-                                    ::sendto(data_fd, r.data(), r.size(), 0, &to.sock, socket_size(to));
+                                    ::sendto(data_fd,
+                                             r.data(),
+                                             static_cast<socklen_t>(r.size()),
+                                             0,
+                                             &to.sock,
+                                             socket_size(to));
 
                                     // We don't need to process this packet we already did
                                     return;
@@ -796,7 +801,12 @@ namespace extension {
                                         sock_t& to = remote->target;
 
                                         // Send the packet
-                                        ::sendto(data_fd, r.data(), r.size(), 0, &to.sock, socket_size(to));
+                                        ::sendto(data_fd,
+                                                 r.data(),
+                                                 static_cast<socklen_t>(r.size()),
+                                                 0,
+                                                 &to.sock,
+                                                 socket_size(to));
                                     }
 
                                     // Clear our packets here (the one we just got will be added right after this)
@@ -827,7 +837,12 @@ namespace extension {
                                     sock_t& to = remote->target;
 
                                     // Send the packet
-                                    ::sendto(data_fd, r.data(), r.size(), 0, &to.sock, socket_size(to));
+                                    ::sendto(data_fd,
+                                             r.data(),
+                                             static_cast<socklen_t>(r.size()),
+                                             0,
+                                             &to.sock,
+                                             socket_size(to));
                                 }
 
                                 // Check to see if we have enough to assemble the whole thing
@@ -836,18 +851,18 @@ namespace extension {
                                     // Work out exactly how much data we will need first so we only need one
                                     // allocation
                                     size_t payload_size = 0;
-                                    for (auto& packet : assembler.second) {
-                                        payload_size += packet.second.size() - sizeof(DataPacket) + 1;
+                                    for (auto& p : assembler.second) {
+                                        payload_size += p.second.size() - sizeof(DataPacket) + 1;
                                     }
 
                                     // Read in our data
                                     std::vector<char> out;
                                     out.reserve(payload_size);
-                                    for (auto& packet : assembler.second) {
-                                        const DataPacket& p = *reinterpret_cast<DataPacket*>(packet.second.data());
+                                    for (auto& p : assembler.second) {
+                                        const DataPacket& part = *reinterpret_cast<DataPacket*>(p.second.data());
                                         out.insert(out.end(),
-                                                   &p.data,
-                                                   &p.data + packet.second.size() - sizeof(DataPacket) + 1);
+                                                   &part.data,
+                                                   &part.data + p.second.size() - sizeof(DataPacket) + 1);
                                     }
 
                                     // Send our assembled data packet
@@ -987,7 +1002,7 @@ namespace extension {
                                     }
 
                                     // Now we have to retransmit the nacked packets
-                                    for (int i = 0; i < packet.packet_count * 8; ++i) {
+                                    for (uint16_t i = 0; i < packet.packet_count * 8; ++i) {
 
                                         // Check if this packet needs to be sent
                                         uint8_t bit = 1 << (i % 8);
@@ -1105,7 +1120,7 @@ namespace extension {
 
                 // Now send all our packets to our targets
                 auto send_to = name_target.equal_range(target);
-                for (size_t i = 0; i < header.packet_count; ++i) {
+                for (uint16_t i = 0; i < header.packet_count; ++i) {
                     for (auto s = send_to.first; s != send_to.second; ++s) {
                         send_packet(s->second->target, header, i, payload, reliable);
                     }

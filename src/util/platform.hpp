@@ -54,12 +54,17 @@
 #    endif
 
 // Winsock must be declared before Windows.h or it won't work
-#    include <Iphlpapi.h>
-#    include <Mstcpip.h>
-#    include <Mswsock.h>
+// clang-format off
 #    include <WinSock2.h>
+
 #    include <Ws2ipdef.h>
 #    include <Ws2tcpip.h>
+
+#    include <Mstcpip.h>
+#    include <Mswsock.h>
+
+#    include <Iphlpapi.h>
+// clang-format on
 
 // This little thingy makes windows link to the winsock library
 #    pragma comment(lib, "Ws2_32.lib")
