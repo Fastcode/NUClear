@@ -185,7 +185,7 @@ namespace extension {
                     }
                 }
 
-                if (reactions_list_dirty || events_to_close.size() > 0) {
+                if (reactions_list_dirty || !events_to_close.empty()) {
                     // Get the lock so we don't concurrently modify the list
                     std::lock_guard<std::mutex> lock(reaction_mutex);
 
