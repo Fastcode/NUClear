@@ -199,7 +199,7 @@ namespace extension {
                         }
 
                         // Clear the queue of events to close
-                        events_to_close.resize(0);
+                        events_to_close.clear();
                     }
 
                     // Clear the list of events, to be rebuilt
