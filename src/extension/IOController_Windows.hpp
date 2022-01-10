@@ -132,7 +132,7 @@ namespace extension {
             on<Always>().then("IO Controller", [this] {
                 if (!shutdown) {
                     // Wait for events
-                    auto eventIndex = WSAWaitForMultipleEvents(
+                    auto event_index = WSAWaitForMultipleEvents(
                         static_cast<DWORD>(events.size()), events.data(), false, WSA_INFINITE, false);
 
                     // Check if the return value is an event in our list
