@@ -33,7 +33,7 @@ jobs:
       # Download and install cmake
       - name: Install CMake
         run: |
-          wget https://github.com/Kitware/CMake/releases/download/v3.19.1/cmake-3.19.1-Linux-x86_64.sh -O /tmp/cmake-install.sh
+          curl -L -o /tmp/cmake-install.sh https://github.com/Kitware/CMake/releases/download/v3.19.1/cmake-3.19.1-Linux-x86_64.sh
           chmod u+x /tmp/cmake-install.sh
           mkdir /usr/bin/cmake
           /tmp/cmake-install.sh --skip-license --prefix=/usr
