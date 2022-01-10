@@ -105,7 +105,7 @@ namespace extension {
                         events_to_close.push_back(reaction->first);
                     }
                     else {
-                        // Probably error here? We've unbound a reaction that somehow isn't in our list of reactions!
+                        // Fail silently: we've unbound a reaction that somehow isn't in our list of reactions!
                     }
 
                     // Flag that our list is dirty
@@ -136,9 +136,9 @@ namespace extension {
                         static_cast<DWORD>(events.size()), events.data(), false, WSA_INFINITE, false);
 
                     // Check if the return value is an event in our list
-                    if (eventIndex >= WSA_WAIT_EVENT_0 && eventIndex < WSA_WAIT_EVENT_0 + events.size()) {
+                    if (event_index >= WSA_WAIT_EVENT_0 && event_index < WSA_WAIT_EVENT_0 + events.size()) {
                         // Get the signalled event
-                        auto& event = events[eventIndex - WSA_WAIT_EVENT_0];
+                        auto& event = events[event_index - WSA_WAIT_EVENT_0];
 
                         if (event == notifier) {
                             // Reset the notifier signal
@@ -190,7 +190,7 @@ namespace extension {
                     std::lock_guard<std::mutex> lock(reaction_mutex);
 
                     // Close any events we've queued for closing
-                    if (events_to_close.size() > 0) {
+                    if (!events_to_close.empty()) {
                         for (auto& event : events_to_close) {
                             if (!WSACloseEvent(event)) {
                                 throw std::system_error(
@@ -198,7 +198,7 @@ namespace extension {
                             }
                         }
 
-                        // Clear the queue of events to close
+                        // Clear the queue of closed events
                         events_to_close.clear();
                     }
 
