@@ -31,7 +31,7 @@ jobs:
         uses: actions/checkout@v2
 
       # Download and install cmake
-      - name: Get specific version CMake, v3.19.1
+      - name: Install CMake v3.19.1
         uses: lukka/get-cmake@v3.19.1
 
       - name: Configure CMake
