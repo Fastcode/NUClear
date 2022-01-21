@@ -39,10 +39,9 @@ type. Provide the template methods to the specialisation of `DSLProxy<>` as if i
 Bind
 ----
 
-``` c++
-template <typename DSL>
-static inline void bind(const std::shared_ptr<threading::Reaction>& reaction, /*More arguments can be declared*/)
-```
+.. codeblock:: c++
+    template <typename DSL>
+    static inline void bind(const std::shared_ptr<threading::Reaction>& reaction, /*More arguments can be declared*/)
 
 This function is called when the reaction is bound, it should be thought of as the constructor. It is used to setup
 anything that is required by the DSL word.
@@ -53,11 +52,11 @@ communicating to an extension reactor via a helper type that the extension react
 An unbinder, if needed, should be passed to the reaction's unbinders callback list from the bind call. This is used as a
 destructor.
 e.g. for the `IO` word we have
-``` c++
-reaction->unbinders.push_back([](const threading::Reaction& r) {
-    r.reactor.emit<emit::Direct>(std::make_unique<operation::Unbind<IO>>(r.id));
-});
-```
+.. codeblock:: c++
+    reaction->unbinders.push_back([](const threading::Reaction& r) {
+        r.reactor.emit<emit::Direct>(std::make_unique<operation::Unbind<IO>>(r.id));
+    });
+
 which will tell the extension reactor that this reaction no longer exists.
 
 The extra arguments are passed in, in order, from the `on` call.
@@ -65,10 +64,9 @@ The extra arguments are passed in, in order, from the `on` call.
 Get
 ---
 
-``` c++
-template <typename DSL>
-static inline T get(threading::Reaction&)
-```
+.. codeblock:: c++
+    template <typename DSL>
+    static inline T get(threading::Reaction&)
 
 This is used to get the data for the callback. The returned value is passed to the callback.
 
@@ -81,10 +79,9 @@ a static variable that can be accessed from within the get method.
 Precondition
 ------------
 
-``` c++
-template <typename DSL>
-static inline bool precondition(threading::Reaction& reaction)
-```
+.. codeblock:: c++
+    template <typename DSL>
+    static inline bool precondition(threading::Reaction& reaction)
 
 A precondition is used to test if the reaction should run. On a true return the reaction will run as normal. On a false
 return the reaction will be dropped.
@@ -92,20 +89,18 @@ return the reaction will be dropped.
 Postcondition
 -------------
 
-``` c++
-template <typename DSL>
-static void postcondition(threading::ReactionTask& task)
-```
+.. codeblock:: c++
+    template <typename DSL>
+    static void postcondition(threading::ReactionTask& task)
 
 This will run after the callback for a reaction task has finished.
 
 Reschedule
 ----------
 
-```
-template <typename DSL>
-static inline std::unique_ptr<threading::ReactionTask> reschedule(std::unique_ptr<threading::ReactionTask>&& task)
-```
+.. codeblock:: c++
+    template <typename DSL>
+    static inline std::unique_ptr<threading::ReactionTask> reschedule(std::unique_ptr<threading::ReactionTask>&& task)
 
 The ownership of the reaction task is passed to the DSL word. The task returned will be run instead of the passed in
 reaction task. If the returned task is the one passed in the task will be run normally.
@@ -118,4 +113,77 @@ When it is time to schedule the task either return it in another reschedule call
 Example Case
 ************
 
-TODO take one of the parts (sync maybe?) and explain how it is built using extensions
+Sync
+----
+
+Here, we have an ordinary C++ class. In this case we start by defining the attributes we need in a static context.
+The template is used to have multiple static contexts.
+.. codeblock:: c++
+    template <typename SyncGroup>
+    struct Sync {
+
+        using task_ptr = std::unique_ptr<threading::ReactionTask>;
+
+        /// @brief our queue which sorts tasks by priority
+        static std::priority_queue<task_ptr> queue;
+        /// @brief how many tasks are currently running
+        static volatile bool running;
+        /// @brief a mutex to ensure data consistency
+        static std::mutex mutex;
+
+Now we define the `reschedule` to interrupt any new tasks if we are currently running. Recall that NUClear is
+multithreaded so a mutex is needed when accessing the static members.
+.. codeblock:: c++
+        template <typename DSL>
+        static inline std::unique_ptr<threading::ReactionTask> reschedule(
+            std::unique_ptr<threading::ReactionTask>&& task) {
+
+            // Lock our mutex
+            std::lock_guard<std::mutex> lock(mutex);
+
+            // If we are already running then queue, otherwise return and set running
+            if (running) {
+                queue.push(std::move(task));
+                return std::unique_ptr<threading::ReactionTask>(nullptr);
+            }
+            else {
+                running = true;
+                return std::move(task);
+            }
+        }
+
+To run any queued tasks after the current one is done we define `postcondition`. When there is a task in the queue we
+resubmit it to the PowerPlant to be run.
+.. codeblock:: c++
+        template <typename DSL>
+        static void postcondition(threading::ReactionTask& task) {
+
+            // Lock our mutex
+            std::lock_guard<std::mutex> lock(mutex);
+
+            // We are finished running
+            running = false;
+
+            // If we have another task, add it
+            if (!queue.empty()) {
+                std::unique_ptr<threading::ReactionTask> next_task(
+                    std::move(const_cast<std::unique_ptr<threading::ReactionTask>&>(queue.top())));
+                queue.pop();
+
+                // Resubmit this task to the reaction queue
+                task.parent.reactor.powerplant.submit(std::move(next_task));
+            }
+        }
+
+We need to instantiate our static members outside the class definition.
+.. codeblock:: c++
+    };
+    template <typename SyncGroup>
+    std::priority_queue<typename Sync<SyncGroup>::task_ptr> Sync<SyncGroup>::queue;
+
+    template <typename SyncGroup>
+    volatile bool Sync<SyncGroup>::running = false;
+
+    template <typename SyncGroup>
+    std::mutex Sync<SyncGroup>::mutex;
+
