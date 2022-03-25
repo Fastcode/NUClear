@@ -71,8 +71,8 @@ namespace dsl {
         struct RescheduleFuser<std::tuple<Word>> {
 
             template <typename DSL>
-            static inline std::unique_ptr<threading::ReactionTask> reschedule(
-                std::unique_ptr<threading::ReactionTask>&& task) {
+            static inline std::unique_ptr<threading::ReactionTask<threading::Reaction>> reschedule(
+                std::unique_ptr<threading::ReactionTask<threading::Reaction>>&& task) {
 
                 // Pass our task to see if it gets rescheduled and return the result
                 return Word::template reschedule<DSL>(std::move(task));
@@ -84,8 +84,8 @@ namespace dsl {
         struct RescheduleFuser<std::tuple<Word1, Word2, WordN...>> {
 
             template <typename DSL>
-            static inline std::unique_ptr<threading::ReactionTask> reschedule(
-                std::unique_ptr<threading::ReactionTask>&& task) {
+            static inline std::unique_ptr<threading::ReactionTask<threading::Reaction>> reschedule(
+                std::unique_ptr<threading::ReactionTask<threading::Reaction>>&& task) {
 
                 // Pass our task to see if it gets rescheduled
                 auto ptr = Word1::template reschedule<DSL>(std::move(task));
@@ -101,8 +101,8 @@ namespace dsl {
         };
 
         template <typename Word1, typename... WordN>
-        struct RescheduleFusion : public RescheduleFuser<typename RescheduleWords<std::tuple<Word1, WordN...>>::type> {
-        };
+        struct RescheduleFusion
+            : public RescheduleFuser<typename RescheduleWords<std::tuple<Word1, WordN...>>::type> {};
 
     }  // namespace fusion
 }  // namespace dsl

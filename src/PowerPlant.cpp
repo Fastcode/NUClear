@@ -80,11 +80,11 @@ void PowerPlant::start() {
     }
 }
 
-void PowerPlant::submit(std::unique_ptr<threading::ReactionTask>&& task) {
+void PowerPlant::submit(std::unique_ptr<threading::ReactionTask<threading::Reaction>>&& task) {
     scheduler.submit(std::move(task));
 }
 
-void PowerPlant::submit_main(std::unique_ptr<threading::ReactionTask>&& task) {
+void PowerPlant::submit_main(std::unique_ptr<threading::ReactionTask<threading::Reaction>>&& task) {
     main_thread_scheduler.submit(std::move(task));
 }
 

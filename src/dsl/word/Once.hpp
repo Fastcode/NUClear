@@ -40,7 +40,7 @@ namespace dsl {
             // Post condition to unbind this reaction.
 
             template <typename DSL>
-            static void postcondition(threading::ReactionTask& reaction) {
+            static void postcondition(threading::ReactionTask<threading::Reaction>& reaction) {
                 // Unbind:
                 reaction.parent.unbind();
             }

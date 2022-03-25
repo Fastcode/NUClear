@@ -31,14 +31,14 @@ namespace threading {
         condition.notify_all();
     }
 
-    void TaskScheduler::submit(std::unique_ptr<ReactionTask>&& task) {
+    void TaskScheduler::submit(std::unique_ptr<ReactionTask<Reaction>>&& task) {
 
         // We do not accept new tasks once we are shutdown
         if (running) {
 
             /* Mutex Scope */ {
                 std::lock_guard<std::mutex> lock(mutex);
-                queue.push(std::forward<std::unique_ptr<ReactionTask>>(task));
+                queue.push(std::forward<std::unique_ptr<ReactionTask<Reaction>>>(task));
             }
         }
 
@@ -46,7 +46,7 @@ namespace threading {
         condition.notify_one();
     }
 
-    std::unique_ptr<ReactionTask> TaskScheduler::get_task() {
+    std::unique_ptr<ReactionTask<Reaction>> TaskScheduler::get_task() {
 
         // Obtain the lock
         std::unique_lock<std::mutex> lock(mutex);
@@ -71,8 +71,8 @@ namespace threading {
         // Return the type
         // If you're wondering why all the ridiculousness, it's because priority queue is not as feature complete as it
         // should be its 'top' method returns a const reference (which we can't use to move a unique pointer)
-        std::unique_ptr<ReactionTask> task(
-            std::move(const_cast<std::unique_ptr<ReactionTask>&>(queue.top())));  // NOLINT
+        std::unique_ptr<ReactionTask<Reaction>> task(
+            std::move(const_cast<std::unique_ptr<ReactionTask<Reaction>>&>(queue.top())));  // NOLINT
         queue.pop();
 
         return task;

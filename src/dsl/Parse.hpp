@@ -36,8 +36,9 @@ namespace dsl {
             return DSL::template bind<Parse<Sentence...>>(r, std::forward<Arguments>(args)...);
         }
 
-        static inline auto get(threading::Reaction& r) -> decltype(
-            std::conditional_t<fusion::has_get<DSL>::value, DSL, fusion::NoOp>::template get<Parse<Sentence...>>(r)) {
+        static inline auto get(threading::Reaction& r)
+            -> decltype(std::conditional_t<fusion::has_get<DSL>::value, DSL, fusion::NoOp>::template get<
+                        Parse<Sentence...>>(r)) {
             return std::conditional_t<fusion::has_get<DSL>::value, DSL, fusion::NoOp>::template get<Parse<Sentence...>>(
                 r);
         }
@@ -52,12 +53,13 @@ namespace dsl {
                 Parse<Sentence...>>(r);
         }
 
-        static std::unique_ptr<threading::ReactionTask> reschedule(std::unique_ptr<threading::ReactionTask>&& task) {
+        static std::unique_ptr<threading::ReactionTask<threading::Reaction>> reschedule(
+            std::unique_ptr<threading::ReactionTask<threading::Reaction>>&& task) {
             return std::conditional_t<fusion::has_reschedule<DSL>::value, DSL, fusion::NoOp>::template reschedule<DSL>(
                 std::move(task));
         }
 
-        static inline void postcondition(threading::ReactionTask& r) {
+        static inline void postcondition(threading::ReactionTask<threading::Reaction>& r) {
             std::conditional_t<fusion::has_postcondition<DSL>::value, DSL, fusion::NoOp>::template postcondition<
                 Parse<Sentence...>>(r);
         }

@@ -33,7 +33,8 @@ namespace threading {
             update_current_thread_priority(1000);
 
             // Run while our scheduler gives us tasks
-            for (std::unique_ptr<ReactionTask> task(scheduler.get_task()); task; task = scheduler.get_task()) {
+            for (std::unique_ptr<ReactionTask<Reaction>> task(scheduler.get_task()); task;
+                 task = scheduler.get_task()) {
 
                 // Run the task
                 task = task->run(std::move(task));

@@ -46,11 +46,11 @@ namespace threading {
     class Reaction {
         // Reaction handles are given to user code to enable and disable the reaction
         friend class ReactionHandle;
-        friend class ReactionTask;
+        friend class ReactionTask<Reaction>;
 
     public:
         // The type of the generator that is used to create functions for ReactionTask objects
-        using TaskGenerator = std::function<std::pair<int, ReactionTask::TaskFunction>(Reaction&)>;
+        using TaskGenerator = std::function<std::pair<int, ReactionTask<Reaction>::TaskFunction>(Reaction&)>;
 
         /**
          * @brief Constructs a new Reaction with the passed callback generator and options
@@ -66,7 +66,7 @@ namespace threading {
          *
          * @return a unique_ptr to a Task which has the data for it's call bound into it
          */
-        std::unique_ptr<ReactionTask> get_task();
+        std::unique_ptr<ReactionTask<Reaction>> get_task();
 
         /**
          * @brief returns true if this reaction is currently enabled
@@ -106,21 +106,6 @@ namespace threading {
         TaskGenerator generator;
     };
 
-    inline ReactionTask::ReactionTask(Reaction& parent, int priority, TaskFunction&& callback)
-        : parent(parent)
-        , id(++task_id_source)
-        , priority(priority)
-        , stats(new message::ReactionStatistics{parent.identifier,
-                                                parent.id,
-                                                id,
-                                                current_task != nullptr ? current_task->parent.id : 0,
-                                                current_task != nullptr ? current_task->id : 0,
-                                                clock::now(),
-                                                clock::time_point(std::chrono::seconds(0)),
-                                                clock::time_point(std::chrono::seconds(0)),
-                                                nullptr})
-        , emit_stats(parent.emit_stats && (current_task != nullptr ? current_task->emit_stats : true))
-        , callback(callback) {}
 }  // namespace threading
 }  // namespace NUClear
 

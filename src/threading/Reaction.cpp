@@ -41,21 +41,21 @@ namespace threading {
         }
     }
 
-    std::unique_ptr<ReactionTask> Reaction::get_task() {
+    std::unique_ptr<ReactionTask<Reaction>> Reaction::get_task() {
 
         // If we are not enabled, don't run
-        if (!enabled) { return std::unique_ptr<ReactionTask>(nullptr); }
+        if (!enabled) { return std::unique_ptr<ReactionTask<Reaction>>(nullptr); }
 
         // Run our generator to get a functor we can run
         int priority;
-        std::function<std::unique_ptr<ReactionTask>(std::unique_ptr<ReactionTask> &&)> func;
+        std::function<std::unique_ptr<ReactionTask<Reaction>>(std::unique_ptr<ReactionTask<Reaction>> &&)> func;
         std::tie(priority, func) = generator(*this);
 
         // If our generator returns a valid function
-        if (func) { return std::make_unique<ReactionTask>(*this, priority, std::move(func)); }
+        if (func) { return std::make_unique<ReactionTask<Reaction>>(*this, priority, std::move(func)); }
 
         // Otherwise we return a null pointer
-        return std::unique_ptr<ReactionTask>(nullptr);
+        return std::unique_ptr<ReactionTask<Reaction>>(nullptr);
     }
 
     bool Reaction::is_enabled() {

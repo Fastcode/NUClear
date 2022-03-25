@@ -31,16 +31,16 @@
 namespace NUClear {
 namespace threading {
 
-    // Forward declare reaction
-    class Reaction;
-
     /**
      * @brief This is a databound call of a Reaction ready to be executed.
+     *
+     * @tparam ReactionType the type of the reaction
      *
      * @details
      *  This class holds a reaction that is ready to be executed. It is a Reaction object which has had it's callback
      *  parameters bound with data. This can then be executed as a function to run the call inside it.
      */
+    template <typename ReactionType>
     class ReactionTask {
     private:
         /// @brief a source for task ids, atomically creates longs
@@ -58,7 +58,9 @@ namespace threading {
          *
          * @return the current executing task or nullptr if there isn't one
          */
-        static const ReactionTask* get_current_task();
+        static const ReactionTask* get_current_task() {
+            return current_task;
+        }
 
         /**
          * @brief Creates a new ReactionTask object bound with the parent Reaction object (that created it) and task.
@@ -67,7 +69,22 @@ namespace threading {
          * @param priority  the priority to use when executing this task.
          * @param callback  the data bound callback to be executed in the threadpool.
          */
-        ReactionTask(Reaction& parent, int priority, TaskFunction&& callback);
+        ReactionTask(ReactionType& parent, int priority, TaskFunction&& callback)
+            : parent(parent)
+            , id(++task_id_source)
+            , priority(priority)
+            , stats(new message::ReactionStatistics{parent.identifier,
+                                                    parent.id,
+                                                    id,
+                                                    current_task != nullptr ? current_task->parent.id : 0,
+                                                    current_task != nullptr ? current_task->id : 0,
+                                                    clock::now(),
+                                                    clock::time_point(std::chrono::seconds(0)),
+                                                    clock::time_point(std::chrono::seconds(0)),
+                                                    nullptr})
+            , emit_stats(parent.emit_stats && (current_task != nullptr ? current_task->emit_stats : true))
+            , callback(callback) {}
+
 
         /**
          * @brief Runs the internal data bound task and times it.
@@ -76,10 +93,24 @@ namespace threading {
          *  This runs the internal data bound task and times how long the execution takes. These figures can then be
          *  used in a debugging context to calculate how long callbacks are taking to run.
          */
-        std::unique_ptr<ReactionTask> run(std::unique_ptr<ReactionTask>&& us);
+        std::unique_ptr<ReactionTask<ReactionType>> run(std::unique_ptr<ReactionTask<ReactionType>>&& us) {
+
+            // Update our current task
+            auto old_task = current_task;
+            current_task  = this;
+
+            // Run our callback at catch the returned task (to see if it rescheduled itself)
+            us = callback(std::move(us));
+
+            // Reset our task back
+            current_task = old_task;
+
+            // Return our original task
+            return std::move(us);
+        }
 
         /// @brief the parent Reaction object which spawned this
-        Reaction& parent;
+        ReactionType& parent;
         /// @brief the task id of this task (the sequence number of this particular task)
         uint64_t id;
         /// @brief the priority to run this task at
@@ -103,7 +134,9 @@ namespace threading {
      *
      * @return true if a has lower priority than b, false otherwise
      */
-    inline bool operator<(const std::unique_ptr<ReactionTask>& a, const std::unique_ptr<ReactionTask>& b) {
+    template <typename ReactionType>
+    inline bool operator<(const std::unique_ptr<ReactionTask<ReactionType>>& a,
+                          const std::unique_ptr<ReactionTask<ReactionType>>& b) {
 
         // If we ever have a null pointer, we move it to the top of the queue as it is being removed
         return a == nullptr                 ? false
@@ -111,6 +144,14 @@ namespace threading {
                : a->priority == b->priority ? a->stats->emitted > b->stats->emitted
                                             : a->priority < b->priority;
     }
+
+    // Initialize our id source
+    template <typename ReactionType>
+    std::atomic<uint64_t> ReactionTask<ReactionType>::task_id_source(0);  // NOLINT
+
+    // Initialize our current task
+    template <typename ReactionType>
+    ATTRIBUTE_TLS ReactionTask<ReactionType>* ReactionTask<ReactionType>::current_task = nullptr;  // NOLINT
 }  // namespace threading
 }  // namespace NUClear
 

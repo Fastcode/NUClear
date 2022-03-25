@@ -40,11 +40,11 @@ namespace dsl {
          */
         struct MainThread {
 
-            using task_ptr = std::unique_ptr<threading::ReactionTask>;
+            using task_ptr = std::unique_ptr<threading::ReactionTask<threading::Reaction>>;
 
             template <typename DSL>
-            static inline std::unique_ptr<threading::ReactionTask> reschedule(
-                std::unique_ptr<threading::ReactionTask>&& task) {
+            static inline std::unique_ptr<threading::ReactionTask<threading::Reaction>> reschedule(
+                std::unique_ptr<threading::ReactionTask<threading::Reaction>>&& task) {
 
                 // If we are not the main thread, move us to the main thread
                 if (std::this_thread::get_id() != util::main_thread_id) {
@@ -53,7 +53,7 @@ namespace dsl {
                     task->parent.reactor.powerplant.submit_main(std::move(task));
 
                     // We took the task away so return null
-                    return std::unique_ptr<threading::ReactionTask>(nullptr);
+                    return std::unique_ptr<threading::ReactionTask<threading::Reaction>>(nullptr);
                 }
                 // Otherwise run!
                 else {
