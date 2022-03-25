@@ -106,12 +106,11 @@ namespace threading {
     inline bool operator<(const std::unique_ptr<ReactionTask>& a, const std::unique_ptr<ReactionTask>& b) {
 
         // If we ever have a null pointer, we move it to the top of the queue as it is being removed
-        return a == nullptr ? false
-                            : b == nullptr ? true
-                                           : a->priority == b->priority ? a->stats->emitted > b->stats->emitted
-                                                                        : a->priority < b->priority;
+        return a == nullptr                 ? false
+               : b == nullptr               ? true
+               : a->priority == b->priority ? a->stats->emitted > b->stats->emitted
+                                            : a->priority < b->priority;
     }
-
 }  // namespace threading
 }  // namespace NUClear
 

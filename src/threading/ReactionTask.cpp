@@ -19,8 +19,6 @@
 
 #include <utility>
 
-#include "Reaction.hpp"
-
 namespace NUClear {
 namespace threading {
 
@@ -29,22 +27,6 @@ namespace threading {
 
     // Initialize our current task
     ATTRIBUTE_TLS ReactionTask* ReactionTask::current_task = nullptr;  // NOLINT
-
-    ReactionTask::ReactionTask(Reaction& parent, int priority, TaskFunction&& callback)
-        : parent(parent)
-        , id(++task_id_source)
-        , priority(priority)
-        , stats(new message::ReactionStatistics{parent.identifier,
-                                                parent.id,
-                                                id,
-                                                current_task != nullptr ? current_task->parent.id : 0,
-                                                current_task != nullptr ? current_task->id : 0,
-                                                clock::now(),
-                                                clock::time_point(std::chrono::seconds(0)),
-                                                clock::time_point(std::chrono::seconds(0)),
-                                                nullptr})
-        , emit_stats(parent.emit_stats && (current_task != nullptr ? current_task->emit_stats : true))
-        , callback(callback) {}
 
     const ReactionTask* ReactionTask::get_current_task() {
         return current_task;
