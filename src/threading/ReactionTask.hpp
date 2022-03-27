@@ -144,14 +144,6 @@ namespace threading {
                : a->priority == b->priority ? a->stats->emitted > b->stats->emitted
                                             : a->priority < b->priority;
     }
-
-    // Initialize our id source
-    template <typename ReactionType>
-    std::atomic<uint64_t> ReactionTask<ReactionType>::task_id_source(0);  // NOLINT
-
-    // Initialize our current task
-    template <typename ReactionType>
-    ATTRIBUTE_TLS ReactionTask<ReactionType>* ReactionTask<ReactionType>::current_task = nullptr;  // NOLINT
 }  // namespace threading
 }  // namespace NUClear
 
