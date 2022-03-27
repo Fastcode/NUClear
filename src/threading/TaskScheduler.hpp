@@ -66,16 +66,17 @@ namespace threading {
     class TaskScheduler {
     public:
         /**
-         * @brief Constructs a new TaskScheduler instance, and builds the nullptr sync queue.
-         */
-        TaskScheduler();
-
-        /**
          * @brief
          *  Shuts down the scheduler, all waiting threads are woken, and any attempt to get a task results in an
          *  exception
          */
-        void shutdown();
+        void shutdown() {
+            /* Mutex Scope */ {
+                std::lock_guard<std::mutex> lock(mutex);
+                running = false;
+            }
+            condition.notify_all();
+        }
 
         /**
          * @brief Submit a new task to be executed to the Scheduler.
@@ -87,7 +88,19 @@ namespace threading {
          *
          * @param task  the task to be executed
          */
-        void submit(std::unique_ptr<ReactionTask<Reaction>>&& task);
+        void submit(std::unique_ptr<ReactionTask<Reaction>>&& task) {
+            // We do not accept new tasks once we are shutdown
+            if (running) {
+
+                /* Mutex Scope */ {
+                    std::lock_guard<std::mutex> lock(mutex);
+                    queue.push(std::forward<std::unique_ptr<ReactionTask<Reaction>>>(task));
+                }
+            }
+
+            // Notify a thread that it can proceed
+            condition.notify_one();
+        }
 
         /**
          * @brief Get a task object to be executed by a thread.
@@ -99,11 +112,41 @@ namespace threading {
          *
          * @return the task which has been given to be executed
          */
-        std::unique_ptr<ReactionTask<Reaction>> get_task();
+        std::unique_ptr<ReactionTask<Reaction>> get_task() {
+
+            // Obtain the lock
+            std::unique_lock<std::mutex> lock(mutex);
+
+            // While our queue is empty
+            while (queue.empty()) {
+
+                // If the queue is empty we either wait or shutdown
+                if (!running) {
+
+                    // Notify any other threads that might be waiting on this condition
+                    condition.notify_all();
+
+                    // Return a nullptr to signify there is nothing on the queue
+                    return nullptr;
+                }
+
+                // Wait for something to happen!
+                condition.wait(lock);
+            }
+
+            // Return the type
+            // If you're wondering why all the ridiculousness, it's because priority queue is not as feature complete as
+            // it should be its 'top' method returns a const reference (which we can't use to move a unique pointer)
+            std::unique_ptr<ReactionTask<Reaction>> task(
+                std::move(const_cast<std::unique_ptr<ReactionTask<Reaction>>&>(queue.top())));  // NOLINT
+            queue.pop();
+
+            return task;
+        }
 
     private:
         /// @brief if the scheduler is running or is shut down
-        volatile bool running;
+        volatile bool running{true};
         /// @brief our queue which sorts tasks by priority
         std::priority_queue<std::unique_ptr<ReactionTask<Reaction>>> queue;
         /// @brief the mutex which our threads synchronize their access to this object

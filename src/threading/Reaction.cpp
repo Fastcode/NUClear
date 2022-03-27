@@ -24,42 +24,5 @@ namespace threading {
 
     // Initialize our reaction source
     std::atomic<uint64_t> Reaction::reaction_id_source(0);  // NOLINT
-
-    Reaction::Reaction(Reactor& reactor, std::vector<std::string>&& identifier, TaskGenerator&& generator)
-        : reactor(reactor)
-        , identifier(identifier)
-        , id(++reaction_id_source)
-        , emit_stats(true)
-        , active_tasks(0)
-        , enabled(true)
-        , generator(generator) {}
-
-    void Reaction::unbind() {
-        // Unbind
-        for (auto& u : unbinders) {
-            u(*this);
-        }
-    }
-
-    std::unique_ptr<ReactionTask<Reaction>> Reaction::get_task() {
-
-        // If we are not enabled, don't run
-        if (!enabled) { return std::unique_ptr<ReactionTask<Reaction>>(nullptr); }
-
-        // Run our generator to get a functor we can run
-        int priority;
-        std::function<std::unique_ptr<ReactionTask<Reaction>>(std::unique_ptr<ReactionTask<Reaction>> &&)> func;
-        std::tie(priority, func) = generator(*this);
-
-        // If our generator returns a valid function
-        if (func) { return std::make_unique<ReactionTask<Reaction>>(*this, priority, std::move(func)); }
-
-        // Otherwise we return a null pointer
-        return std::unique_ptr<ReactionTask<Reaction>>(nullptr);
-    }
-
-    bool Reaction::is_enabled() {
-        return enabled;
-    }
 }  // namespace threading
 }  // namespace NUClear

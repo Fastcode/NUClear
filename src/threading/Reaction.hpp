@@ -23,6 +23,7 @@
 #include <functional>
 #include <memory>
 #include <string>
+#include <utility>
 
 #include "../clock.hpp"
 #include "ReactionTask.hpp"
@@ -59,19 +60,43 @@ namespace threading {
          * @param identifier     string identifier information about the reaction to help identify it
          * @param callback       the callback generator function (creates databound callbacks)
          */
-        Reaction(Reactor& reactor, std::vector<std::string>&& identifier, TaskGenerator&& generator);
+        Reaction(Reactor& reactor, std::vector<std::string>&& identifier, TaskGenerator&& generator)
+            : reactor(reactor)
+            , identifier(identifier)
+            , id(++reaction_id_source)
+            , emit_stats(true)
+            , active_tasks(0)
+            , enabled(true)
+            , generator(generator) {}
 
         /**
          * @brief creates a new databound callback task that can be executed.
          *
          * @return a unique_ptr to a Task which has the data for it's call bound into it
          */
-        std::unique_ptr<ReactionTask<Reaction>> get_task();
+        std::unique_ptr<ReactionTask<Reaction>> get_task() {
+
+            // If we are not enabled, don't run
+            if (!enabled) { return std::unique_ptr<ReactionTask<Reaction>>(nullptr); }
+
+            // Run our generator to get a functor we can run
+            int priority;
+            std::function<std::unique_ptr<ReactionTask<Reaction>>(std::unique_ptr<ReactionTask<Reaction>> &&)> func;
+            std::tie(priority, func) = generator(*this);
+
+            // If our generator returns a valid function
+            if (func) { return std::make_unique<ReactionTask<Reaction>>(*this, priority, std::move(func)); }
+
+            // Otherwise we return a null pointer
+            return std::unique_ptr<ReactionTask<Reaction>>(nullptr);
+        }
 
         /**
          * @brief returns true if this reaction is currently enabled
          */
-        bool is_enabled();
+        bool is_enabled() {
+            return enabled;
+        }
 
         /// @brief the reactor this belongs to
         Reactor& reactor;
@@ -97,7 +122,12 @@ namespace threading {
         /**
          * @brief Unbinds this reaction from it's context
          */
-        void unbind();
+        void unbind() {
+            // Unbind
+            for (auto& u : unbinders) {
+                u(*this);
+            }
+        }
 
     private:
         /// @brief a source for reaction_ids, atomically creates longs
