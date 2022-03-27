@@ -93,7 +93,7 @@ namespace threading {
          *  This runs the internal data bound task and times how long the execution takes. These figures can then be
          *  used in a debugging context to calculate how long callbacks are taking to run.
          */
-        std::unique_ptr<ReactionTask<ReactionType>> run(std::unique_ptr<ReactionTask<ReactionType>>&& us) {
+        inline std::unique_ptr<ReactionTask<ReactionType>> run(std::unique_ptr<ReactionTask<ReactionType>>&& us) {
 
             // Update our current task
             auto old_task = current_task;

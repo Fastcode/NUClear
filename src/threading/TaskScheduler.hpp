@@ -70,7 +70,7 @@ namespace threading {
          *  Shuts down the scheduler, all waiting threads are woken, and any attempt to get a task results in an
          *  exception
          */
-        void shutdown() {
+        inline void shutdown() {
             /* Mutex Scope */ {
                 std::lock_guard<std::mutex> lock(mutex);
                 running = false;
@@ -88,7 +88,7 @@ namespace threading {
          *
          * @param task  the task to be executed
          */
-        void submit(std::unique_ptr<ReactionTask<Reaction>>&& task) {
+        inline void submit(std::unique_ptr<ReactionTask<Reaction>>&& task) {
             // We do not accept new tasks once we are shutdown
             if (running) {
 
@@ -112,7 +112,7 @@ namespace threading {
          *
          * @return the task which has been given to be executed
          */
-        std::unique_ptr<ReactionTask<Reaction>> get_task() {
+        inline std::unique_ptr<ReactionTask<Reaction>> get_task() {
 
             // Obtain the lock
             std::unique_lock<std::mutex> lock(mutex);

@@ -74,7 +74,7 @@ namespace threading {
          *
          * @return a unique_ptr to a Task which has the data for it's call bound into it
          */
-        std::unique_ptr<ReactionTask<Reaction>> get_task() {
+        inline std::unique_ptr<ReactionTask<Reaction>> get_task() {
 
             // If we are not enabled, don't run
             if (!enabled) { return std::unique_ptr<ReactionTask<Reaction>>(nullptr); }
@@ -94,7 +94,7 @@ namespace threading {
         /**
          * @brief returns true if this reaction is currently enabled
          */
-        bool is_enabled() {
+        inline bool is_enabled() {
             return enabled;
         }
 
@@ -122,7 +122,7 @@ namespace threading {
         /**
          * @brief Unbinds this reaction from it's context
          */
-        void unbind() {
+        inline void unbind() {
             // Unbind
             for (auto& u : unbinders) {
                 u(*this);
