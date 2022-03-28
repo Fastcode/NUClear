@@ -25,6 +25,7 @@ extern "C" {
 
 // This define declares that we are using system_clock as the base clock for NUClear
 #define NUCLEAR_CLOCK_TYPE std::chrono::system_clock
+
 #include <chrono>
 #include <nuclear>
 #include <utility>
@@ -93,10 +94,19 @@ TEST_CASE("Testing base clock works correctly", "[api][base_clock]") {
         std::time_t stt = NUClear::clock::to_time_t(time_pairs.second);
 
         std::tm result;
+#ifdef WIN32
+        localtime_s(&ntt, &result);
+#else
         localtime_r(&ntt, &result);
+#endif  // WIN32
         TimeData nuclear_clock(&result);
 
+#ifdef WIN32
+        localtime_s(&stt, &result);
+#else
         localtime_r(&stt, &result);
+#endif  // WIN32
+
         TimeData local_clock(&result);
 
         UNSCOPED_INFO("Year.: " << nuclear_clock.year + 1900 << " == " << local_clock.year + 1900 << "\n"
