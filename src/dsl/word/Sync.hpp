@@ -63,7 +63,7 @@ namespace dsl {
         template <typename SyncGroup>
         struct Sync {
 
-            using task_ptr = std::unique_ptr<threading::ReactionTask<threading::Reaction>>;
+            using task_ptr = std::unique_ptr<threading::ReactionTask>;
 
             /// @brief our queue which sorts tasks by priority
             static std::priority_queue<task_ptr> queue;
@@ -73,8 +73,8 @@ namespace dsl {
             static std::mutex mutex;
 
             template <typename DSL>
-            static inline std::unique_ptr<threading::ReactionTask<threading::Reaction>> reschedule(
-                std::unique_ptr<threading::ReactionTask<threading::Reaction>>&& task) {
+            static inline std::unique_ptr<threading::ReactionTask> reschedule(
+                std::unique_ptr<threading::ReactionTask>&& task) {
 
                 // Lock our mutex
                 std::lock_guard<std::mutex> lock(mutex);
@@ -82,7 +82,7 @@ namespace dsl {
                 // If we are already running then queue, otherwise return and set running
                 if (running) {
                     queue.push(std::move(task));
-                    return std::unique_ptr<threading::ReactionTask<threading::Reaction>>(nullptr);
+                    return std::unique_ptr<threading::ReactionTask>(nullptr);
                 }
                 else {
                     running = true;
@@ -91,7 +91,7 @@ namespace dsl {
             }
 
             template <typename DSL>
-            static void postcondition(threading::ReactionTask<threading::Reaction>& task) {
+            static void postcondition(threading::ReactionTask& task) {
 
                 // Lock our mutex
                 std::lock_guard<std::mutex> lock(mutex);
@@ -101,8 +101,8 @@ namespace dsl {
 
                 // If we have another task, add it
                 if (!queue.empty()) {
-                    std::unique_ptr<threading::ReactionTask<threading::Reaction>> next_task(std::move(
-                        const_cast<std::unique_ptr<threading::ReactionTask<threading::Reaction>>&>(queue.top())));
+                    std::unique_ptr<threading::ReactionTask> next_task(
+                        std::move(const_cast<std::unique_ptr<threading::ReactionTask>&>(queue.top())));
                     queue.pop();
 
                     // Resubmit this task to the reaction queue

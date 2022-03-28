@@ -88,13 +88,13 @@ namespace threading {
          *
          * @param task  the task to be executed
          */
-        inline void submit(std::unique_ptr<ReactionTask<Reaction>>&& task) {
+        inline void submit(std::unique_ptr<ReactionTask>&& task) {
             // We do not accept new tasks once we are shutdown
             if (running) {
 
                 /* Mutex Scope */ {
                     std::lock_guard<std::mutex> lock(mutex);
-                    queue.push(std::forward<std::unique_ptr<ReactionTask<Reaction>>>(task));
+                    queue.push(std::forward<std::unique_ptr<ReactionTask>>(task));
                 }
             }
 
@@ -112,7 +112,7 @@ namespace threading {
          *
          * @return the task which has been given to be executed
          */
-        inline std::unique_ptr<ReactionTask<Reaction>> get_task() {
+        inline std::unique_ptr<ReactionTask> get_task() {
 
             // Obtain the lock
             std::unique_lock<std::mutex> lock(mutex);
@@ -137,8 +137,8 @@ namespace threading {
             // Return the type
             // If you're wondering why all the ridiculousness, it's because priority queue is not as feature complete as
             // it should be its 'top' method returns a const reference (which we can't use to move a unique pointer)
-            std::unique_ptr<ReactionTask<Reaction>> task(
-                std::move(const_cast<std::unique_ptr<ReactionTask<Reaction>>&>(queue.top())));  // NOLINT
+            std::unique_ptr<ReactionTask> task(
+                std::move(const_cast<std::unique_ptr<ReactionTask>&>(queue.top())));  // NOLINT
             queue.pop();
 
             return task;
@@ -148,7 +148,7 @@ namespace threading {
         /// @brief if the scheduler is running or is shut down
         volatile bool running{true};
         /// @brief our queue which sorts tasks by priority
-        std::priority_queue<std::unique_ptr<ReactionTask<Reaction>>> queue;
+        std::priority_queue<std::unique_ptr<ReactionTask>> queue;
         /// @brief the mutex which our threads synchronize their access to this object
         std::mutex mutex;
         /// @brief the condition object that threads wait on if they can't get a task

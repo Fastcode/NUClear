@@ -41,24 +41,25 @@ namespace threading {
      *  parameters bound with data. This can then be executed as a function to run the call inside it.
      */
     template <typename ReactionType>
-    class ReactionTask {
+    class TReactionTask {
     private:
         /// @brief a source for task ids, atomically creates longs
         static std::atomic<std::uint64_t> task_id_source;
 
         /// @brief the current task that is being executed by this thread (or nullptr if none is)
-        static ATTRIBUTE_TLS ReactionTask* current_task;
+        static ATTRIBUTE_TLS TReactionTask* current_task;
 
     public:
         /// Type of the functions that ReactionTasks execute
-        using TaskFunction = std::function<std::unique_ptr<ReactionTask>(std::unique_ptr<ReactionTask>&&)>;
+        using TaskFunction =
+            std::function<std::unique_ptr<TReactionTask<ReactionType>>(std::unique_ptr<TReactionTask<ReactionType>>&&)>;
 
         /**
          * @brief Gets the current executing task, or nullptr if there isn't one.
          *
          * @return the current executing task or nullptr if there isn't one
          */
-        static const ReactionTask* get_current_task() {
+        static const TReactionTask* get_current_task() {
             return current_task;
         }
 
@@ -69,7 +70,7 @@ namespace threading {
          * @param priority  the priority to use when executing this task.
          * @param callback  the data bound callback to be executed in the threadpool.
          */
-        ReactionTask(ReactionType& parent, int priority, TaskFunction&& callback)
+        TReactionTask(ReactionType& parent, int priority, TaskFunction&& callback)
             : parent(parent)
             , id(++task_id_source)
             , priority(priority)
@@ -93,7 +94,7 @@ namespace threading {
          *  This runs the internal data bound task and times how long the execution takes. These figures can then be
          *  used in a debugging context to calculate how long callbacks are taking to run.
          */
-        inline std::unique_ptr<ReactionTask<ReactionType>> run(std::unique_ptr<ReactionTask<ReactionType>>&& us) {
+        inline std::unique_ptr<TReactionTask<ReactionType>> run(std::unique_ptr<TReactionTask<ReactionType>>&& us) {
 
             // Update our current task
             auto old_task = current_task;
@@ -135,8 +136,8 @@ namespace threading {
      * @return true if a has lower priority than b, false otherwise
      */
     template <typename ReactionType>
-    inline bool operator<(const std::unique_ptr<ReactionTask<ReactionType>>& a,
-                          const std::unique_ptr<ReactionTask<ReactionType>>& b) {
+    inline bool operator<(const std::unique_ptr<TReactionTask<ReactionType>>& a,
+                          const std::unique_ptr<TReactionTask<ReactionType>>& b) {
 
         // If we ever have a null pointer, we move it to the top of the queue as it is being removed
         return a == nullptr                 ? false

@@ -26,10 +26,10 @@ namespace threading {
 
     // Initialize our id source
     template <>
-    std::atomic<uint64_t> ReactionTask<Reaction>::task_id_source(0);  // NOLINT
+    std::atomic<uint64_t> ReactionTask::task_id_source(0);  // NOLINT
 
     // Initialize our current task
     template <>
-    ATTRIBUTE_TLS ReactionTask<Reaction>* ReactionTask<Reaction>::current_task = nullptr;  // NOLINT
+    ATTRIBUTE_TLS ReactionTask* ReactionTask::current_task = nullptr;  // NOLINT
 }  // namespace threading
 }  // namespace NUClear

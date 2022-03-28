@@ -50,13 +50,13 @@ namespace dsl {
             }
 
             template <typename DSL>
-            static inline std::unique_ptr<threading::ReactionTask<threading::Reaction>> reschedule(
-                std::unique_ptr<threading::ReactionTask<threading::Reaction>>&& task) {
+            static inline std::unique_ptr<threading::ReactionTask> reschedule(
+                std::unique_ptr<threading::ReactionTask>&& task) {
                 return std::move(task);
             }
 
             template <typename DSL>
-            static inline void postcondition(threading::ReactionTask<threading::Reaction>&) {}
+            static inline void postcondition(threading::ReactionTask&) {}
         };
 
         /**
@@ -74,10 +74,10 @@ namespace dsl {
 
             static inline int priority(threading::Reaction&);
 
-            static inline std::unique_ptr<threading::ReactionTask<threading::Reaction>> reschedule(
-                std::unique_ptr<threading::ReactionTask<threading::Reaction>>&& task);
+            static inline std::unique_ptr<threading::ReactionTask> reschedule(
+                std::unique_ptr<threading::ReactionTask>&& task);
 
-            static inline void postcondition(threading::ReactionTask<threading::Reaction>&);
+            static inline void postcondition(threading::ReactionTask&);
         };
 
     }  // namespace fusion

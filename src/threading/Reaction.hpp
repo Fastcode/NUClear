@@ -35,6 +35,9 @@ class Reactor;
 
 namespace threading {
 
+    class Reaction;
+    using ReactionTask = TReactionTask<Reaction>;
+
     /**
      * @brief This class holds the definition of a Reaction (call signature).
      *
@@ -47,11 +50,11 @@ namespace threading {
     class Reaction {
         // Reaction handles are given to user code to enable and disable the reaction
         friend class ReactionHandle;
-        friend class ReactionTask<Reaction>;
+        friend class TReactionTask<Reaction>;
 
     public:
         // The type of the generator that is used to create functions for ReactionTask objects
-        using TaskGenerator = std::function<std::pair<int, ReactionTask<Reaction>::TaskFunction>(Reaction&)>;
+        using TaskGenerator = std::function<std::pair<int, ReactionTask::TaskFunction>(Reaction&)>;
 
         /**
          * @brief Constructs a new Reaction with the passed callback generator and options
@@ -74,21 +77,21 @@ namespace threading {
          *
          * @return a unique_ptr to a Task which has the data for it's call bound into it
          */
-        inline std::unique_ptr<ReactionTask<Reaction>> get_task() {
+        inline std::unique_ptr<ReactionTask> get_task() {
 
             // If we are not enabled, don't run
-            if (!enabled) { return std::unique_ptr<ReactionTask<Reaction>>(nullptr); }
+            if (!enabled) { return std::unique_ptr<ReactionTask>(nullptr); }
 
             // Run our generator to get a functor we can run
             int priority;
-            std::function<std::unique_ptr<ReactionTask<Reaction>>(std::unique_ptr<ReactionTask<Reaction>> &&)> func;
+            std::function<std::unique_ptr<ReactionTask>(std::unique_ptr<ReactionTask> &&)> func;
             std::tie(priority, func) = generator(*this);
 
             // If our generator returns a valid function
-            if (func) { return std::make_unique<ReactionTask<Reaction>>(*this, priority, std::move(func)); }
+            if (func) { return std::make_unique<ReactionTask>(*this, priority, std::move(func)); }
 
             // Otherwise we return a null pointer
-            return std::unique_ptr<ReactionTask<Reaction>>(nullptr);
+            return std::unique_ptr<ReactionTask>(nullptr);
         }
 
         /**

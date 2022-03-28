@@ -158,14 +158,14 @@ public:
      *
      * @param task The Reaction task to be executed in the thread pool
      */
-    void submit(std::unique_ptr<threading::ReactionTask<threading::Reaction>>&& task);
+    void submit(std::unique_ptr<threading::ReactionTask>&& task);
 
     /**
      * @brief Submits a new task to the main threads thread pool to be queued and then executed.
      *
      * @param task The Reaction task to be executed in the thread pool
      */
-    void submit_main(std::unique_ptr<threading::ReactionTask<threading::Reaction>>&& task);
+    void submit_main(std::unique_ptr<threading::ReactionTask>&& task);
 
     /**
      * @brief Log a message through NUClear's system.
