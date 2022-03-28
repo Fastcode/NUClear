@@ -35,7 +35,10 @@ class Reactor;
 
 namespace threading {
 
+    // Forward declare reaction
     class Reaction;
+
+    // Alias the templated TReactionTask so that public API remains intact
     using ReactionTask = TReactionTask<Reaction>;
 
     /**
