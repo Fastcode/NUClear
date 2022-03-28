@@ -19,14 +19,12 @@
 #define CATCH_CONFIG_MAIN
 #include <catch.hpp>
 
-// Setup use of the bounds-checked function if it is available
-#ifdef __STDC_LIB_EXT1__
-#    define __STDC_WANT_LIB_EXT1__ 1
-#endif
+extern "C" {
+#include <time.h>
+}
 
 // This define declares that we are using system_clock as the base clock for NUClear
 #define NUCLEAR_CLOCK_TYPE std::chrono::system_clock
-
 #include <chrono>
 #include <nuclear>
 #include <utility>
@@ -94,18 +92,12 @@ TEST_CASE("Testing base clock works correctly", "[api][base_clock]") {
         std::time_t ntt = NUClear::clock::to_time_t(time_pairs.first);
         std::time_t stt = NUClear::clock::to_time_t(time_pairs.second);
 
-#ifdef __STDC_LIB_EXT1__
         std::tm result;
-
-        std::localtime_s(&ntt, &result);
+        localtime_r(&ntt, &result);
         TimeData nuclear_clock(&result);
 
-        std::localtime_s(&stt, &result);
+        localtime_r(&stt, &result);
         TimeData local_clock(&result);
-#else
-        TimeData nuclear_clock(std::localtime(&ntt));
-        TimeData local_clock(std::localtime(&stt));
-#endif  // __STDC_LIB_EXT1__
 
         UNSCOPED_INFO("Year.: " << nuclear_clock.year + 1900 << " == " << local_clock.year + 1900 << "\n"
                                 << "Month: " << nuclear_clock.month << " == " << local_clock.month << "\n"
