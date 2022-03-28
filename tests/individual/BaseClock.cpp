@@ -95,14 +95,14 @@ TEST_CASE("Testing base clock works correctly", "[api][base_clock]") {
 
         std::tm result;
 #ifdef WIN32
-        localtime_s(&ntt, &result);
+        localtime_s(&restult, &ntt);
 #else
         localtime_r(&ntt, &result);
 #endif  // WIN32
         TimeData nuclear_clock(&result);
 
 #ifdef WIN32
-        localtime_s(&stt, &result);
+        localtime_s(&restult, &stt);
 #else
         localtime_r(&stt, &result);
 #endif  // WIN32
