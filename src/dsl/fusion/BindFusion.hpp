@@ -121,12 +121,12 @@ namespace dsl {
 
             template <typename DSL, typename... Arguments>
             static inline auto bind(const std::shared_ptr<threading::Reaction>& reaction, Arguments&&... args)
-                -> decltype(
-                    util::FunctionFusion<std::tuple<Word1, WordN...>,
-                                         decltype(std::forward_as_tuple(reaction, std::forward<Arguments>(args)...)),
-                                         BindCaller,
-                                         std::tuple<DSL>,
-                                         1>::call(reaction, std::forward<Arguments>(args)...)) {
+                -> decltype(util::FunctionFusion<std::tuple<Word1, WordN...>,
+                                                 decltype(std::forward_as_tuple(reaction,
+                                                                                std::forward<Arguments>(args)...)),
+                                                 BindCaller,
+                                                 std::tuple<DSL>,
+                                                 1>::call(reaction, std::forward<Arguments>(args)...)) {
 
                 // Perform our function fusion
                 return util::FunctionFusion<std::tuple<Word1, WordN...>,
