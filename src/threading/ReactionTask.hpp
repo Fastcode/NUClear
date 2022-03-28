@@ -103,8 +103,8 @@ namespace threading {
         inline std::unique_ptr<TReactionTask<ReactionType>> run(std::unique_ptr<TReactionTask<ReactionType>>&& us) {
 
             // Update our current task
-            auto old_task  = current_task();
-            current_task() = this;
+            TReactionTask* old_task = current_task();
+            current_task()          = this;
 
             // Run our callback at catch the returned task (to see if it rescheduled itself)
             us = callback(std::move(us));
