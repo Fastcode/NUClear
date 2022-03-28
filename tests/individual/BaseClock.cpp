@@ -47,10 +47,9 @@ public:
             if (times.size() > n_time) { powerplant.shutdown(); }
         });
 
-        on<Trigger<NUClear::message::ReactionStatistics>>().then(
-            [this](const NUClear::message::ReactionStatistics& stats) {
-                times.push_back(std::make_pair(stats.emitted, std::chrono::system_clock::now()));
-            });
+        on<Trigger<NUClear::message::ReactionStatistics>>().then([](const NUClear::message::ReactionStatistics& stats) {
+            times.push_back(std::make_pair(stats.emitted, std::chrono::system_clock::now()));
+        });
     }
 };
 }  // namespace
