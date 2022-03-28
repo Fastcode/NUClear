@@ -101,8 +101,8 @@ namespace dsl {
         };
 
         template <typename Word1, typename... WordN>
-        struct RescheduleFusion
-            : public RescheduleFuser<typename RescheduleWords<std::tuple<Word1, WordN...>>::type> {};
+        struct RescheduleFusion : public RescheduleFuser<typename RescheduleWords<std::tuple<Word1, WordN...>>::type> {
+        };
 
     }  // namespace fusion
 }  // namespace dsl

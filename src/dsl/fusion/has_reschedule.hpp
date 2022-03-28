@@ -39,9 +39,9 @@ namespace dsl {
             typedef std::false_type no;
 
             template <typename U>
-            static auto test(int) -> decltype(U::template reschedule<ParsedNoOp>(
-                                                  std::declval<std::unique_ptr<threading::ReactionTask>>()),
-                                              yes());
+            static auto test(int) -> decltype(
+                U::template reschedule<ParsedNoOp>(std::declval<std::unique_ptr<threading::ReactionTask>>()),
+                yes());
             template <typename>
             static no test(...);
 

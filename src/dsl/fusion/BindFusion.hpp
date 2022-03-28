@@ -67,10 +67,11 @@ namespace dsl {
 
             template <typename... Arguments>
             static inline auto call(const std::shared_ptr<threading::Reaction>& reaction, Arguments&&... args)
-                -> decltype(std::conditional_t<std::is_void<decltype(Function::template bind<DSL>(
-                                                   reaction, std::forward<Arguments>(args)...))>::value,
-                                               NoReturn,
-                                               Return>::template call(reaction, std::forward<Arguments>(args)...)) {
+                -> decltype(
+                    std::conditional_t<std::is_void<decltype(Function::template bind<
+                                                             DSL>(reaction, std::forward<Arguments>(args)...))>::value,
+                                       NoReturn,
+                                       Return>::template call(reaction, std::forward<Arguments>(args)...)) {
 
                 return std::conditional_t<std::is_void<decltype(Function::template bind<DSL>(
                                               reaction, std::forward<Arguments>(args)...))>::value,
@@ -121,12 +122,12 @@ namespace dsl {
 
             template <typename DSL, typename... Arguments>
             static inline auto bind(const std::shared_ptr<threading::Reaction>& reaction, Arguments&&... args)
-                -> decltype(util::FunctionFusion<std::tuple<Word1, WordN...>,
-                                                 decltype(std::forward_as_tuple(reaction,
-                                                                                std::forward<Arguments>(args)...)),
-                                                 BindCaller,
-                                                 std::tuple<DSL>,
-                                                 1>::call(reaction, std::forward<Arguments>(args)...)) {
+                -> decltype(
+                    util::FunctionFusion<std::tuple<Word1, WordN...>,
+                                         decltype(std::forward_as_tuple(reaction, std::forward<Arguments>(args)...)),
+                                         BindCaller,
+                                         std::tuple<DSL>,
+                                         1>::call(reaction, std::forward<Arguments>(args)...)) {
 
                 // Perform our function fusion
                 return util::FunctionFusion<std::tuple<Word1, WordN...>,

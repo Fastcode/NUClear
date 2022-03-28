@@ -21,7 +21,6 @@
 
 #include <list>
 #include <type_traits>
-
 #include "../../util/MergeTransient.hpp"
 
 namespace NUClear {
@@ -153,7 +152,9 @@ namespace util {
             t.list.insert(t.list.end(), d.list.begin(), d.list.end());
 
             // Then truncate the old transient data
-            if (t.list.size() > n) { t.list.erase(t.list.begin(), std::next(t.list.begin(), t.list.size() - n)); }
+            if (t.list.size() > n) {
+                t.list.erase(t.list.begin(), std::next(t.list.begin(), t.list.size() - n));
+            }
 
             // Finally clear the data list and put the transient list in it
             d.list.clear();

@@ -125,7 +125,9 @@ namespace util {
                         --task->parent.active_tasks;
 
                         // Emit our reaction statistics if it wouldn't cause a loop
-                        if (task->emit_stats) { PowerPlant::powerplant->emit<dsl::word::emit::Direct>(task->stats); }
+                        if (task->emit_stats) {
+                            PowerPlant::powerplant->emit<dsl::word::emit::Direct>(task->stats);
+                        }
                     }
 
                     // Return our task

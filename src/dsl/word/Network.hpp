@@ -19,10 +19,10 @@
 #ifndef NUCLEAR_DSL_WORD_NETWORK_HPP
 #define NUCLEAR_DSL_WORD_NETWORK_HPP
 
-#include "../../util/network/sock_t.hpp"
-#include "../../util/serialise/Serialise.hpp"
 #include "../store/ThreadStore.hpp"
 #include "../trait/is_transient.hpp"
+#include "../../util/network/sock_t.hpp"
+#include "../../util/serialise/Serialise.hpp"
 
 namespace NUClear {
 namespace dsl {

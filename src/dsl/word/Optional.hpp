@@ -73,15 +73,15 @@ namespace dsl {
             template <typename DSL>
             static inline auto get(threading::Reaction& r)
                 -> decltype(wrap(Fusion<DSLWords...>::template get<DSL>(r),
-                                 util::GenerateSequence<
-                                     0,
-                                     std::tuple_size<decltype(Fusion<DSLWords...>::template get<DSL>(r))>::value>())) {
+                                 util::GenerateSequence<0,
+                                                        std::tuple_size<decltype(
+                                                            Fusion<DSLWords...>::template get<DSL>(r))>::value>())) {
 
                 // Wrap all of our data in optional wrappers
                 return wrap(Fusion<DSLWords...>::template get<DSL>(r),
-                            util::GenerateSequence<
-                                0,
-                                std::tuple_size<decltype(Fusion<DSLWords...>::template get<DSL>(r))>::value>());
+                            util::GenerateSequence<0,
+                                                   std::tuple_size<decltype(
+                                                       Fusion<DSLWords...>::template get<DSL>(r))>::value>());
             }
         };
 

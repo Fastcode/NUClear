@@ -72,7 +72,9 @@ namespace dsl {
                             auto task = reaction->get_task();
 
                             // If we got a real task back
-                            if (task) { task = task->run(std::move(task)); }
+                            if (task) {
+                                task = task->run(std::move(task));
+                            }
                         }
                         catch (...) {
                         }
