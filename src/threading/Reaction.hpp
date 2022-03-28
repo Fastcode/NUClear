@@ -66,7 +66,7 @@ namespace threading {
         Reaction(Reactor& reactor, std::vector<std::string>&& identifier, TaskGenerator&& generator)
             : reactor(reactor)
             , identifier(identifier)
-            , id(++reaction_id_source)
+            , id(++reaction_id_source())
             , emit_stats(true)
             , active_tasks(0)
             , enabled(true)
@@ -133,10 +133,14 @@ namespace threading {
         }
 
     private:
-        /// @brief a source for reaction_ids, atomically creates longs
-        static std::atomic<uint64_t> reaction_id_source;
         /// @brief the callback generator function (creates databound callbacks)
         TaskGenerator generator;
+
+        /// @brief a source for reaction_ids, atomically creates longs
+        static std::atomic<uint64_t>& reaction_id_source() {
+            static std::atomic<uint64_t> value(0);
+            return value;
+        }
     };
 
 }  // namespace threading

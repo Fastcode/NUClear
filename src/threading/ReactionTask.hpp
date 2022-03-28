@@ -44,10 +44,16 @@ namespace threading {
     class TReactionTask {
     private:
         /// @brief a source for task ids, atomically creates longs
-        static std::atomic<std::uint64_t> task_id_source;
+        static std::atomic<std::uint64_t>& task_id_source() {
+            static std::atomic<std::uint64_t> value(0);
+            return value;
+        }
 
         /// @brief the current task that is being executed by this thread (or nullptr if none is)
-        static ATTRIBUTE_TLS TReactionTask* current_task;
+        static TReactionTask*& current_task() {
+            static thread_local TReactionTask* task = nullptr;
+            return task;
+        }
 
     public:
         /// Type of the functions that ReactionTasks execute
@@ -60,7 +66,7 @@ namespace threading {
          * @return the current executing task or nullptr if there isn't one
          */
         static const TReactionTask* get_current_task() {
-            return current_task;
+            return current_task();
         }
 
         /**
@@ -72,18 +78,18 @@ namespace threading {
          */
         TReactionTask(ReactionType& parent, int priority, TaskFunction&& callback)
             : parent(parent)
-            , id(++task_id_source)
+            , id(++task_id_source())
             , priority(priority)
             , stats(new message::ReactionStatistics{parent.identifier,
                                                     parent.id,
                                                     id,
-                                                    current_task != nullptr ? current_task->parent.id : 0,
-                                                    current_task != nullptr ? current_task->id : 0,
+                                                    current_task() != nullptr ? current_task()->parent.id : 0,
+                                                    current_task() != nullptr ? current_task()->id : 0,
                                                     clock::now(),
                                                     clock::time_point(std::chrono::seconds(0)),
                                                     clock::time_point(std::chrono::seconds(0)),
                                                     nullptr})
-            , emit_stats(parent.emit_stats && (current_task != nullptr ? current_task->emit_stats : true))
+            , emit_stats(parent.emit_stats && (current_task() != nullptr ? current_task()->emit_stats : true))
             , callback(callback) {}
 
 
@@ -97,14 +103,14 @@ namespace threading {
         inline std::unique_ptr<TReactionTask<ReactionType>> run(std::unique_ptr<TReactionTask<ReactionType>>&& us) {
 
             // Update our current task
-            auto old_task = current_task;
-            current_task  = this;
+            auto old_task  = current_task();
+            current_task() = this;
 
             // Run our callback at catch the returned task (to see if it rescheduled itself)
             us = callback(std::move(us));
 
             // Reset our task back
-            current_task = old_task;
+            current_task() = old_task;
 
             // Return our original task
             return std::move(us);
