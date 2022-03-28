@@ -95,7 +95,8 @@ namespace extension {
 
             // Set our event timer callback
             network.set_next_event_callback([this](std::chrono::steady_clock::time_point t) {
-                emit<Scope::DELAY>(std::make_unique<ProcessNetwork>(), t - std::chrono::steady_clock::now());
+                const std::chrono::steady_clock::duration emit_offset = t - std::chrono::steady_clock::now();
+                emit<Scope::DELAY>(std::make_unique<ProcessNetwork>(), std::chrono::duration_cast<clock::duration>(emit_offset));
             });
 
             // Start listening for a new network type
