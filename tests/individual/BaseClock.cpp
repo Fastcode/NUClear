@@ -56,6 +56,7 @@ public:
 
 TEST_CASE("Testing base clock works correctly", "[api][base_clock]") {
 
+    INFO("Ensure NUClear base_clock is the correct type");
     STATIC_REQUIRE(std::is_same<NUClear::clock, std::chrono::system_clock>::value);
 
     NUClear::PowerPlant::Configuration config;
