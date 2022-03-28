@@ -138,8 +138,8 @@ namespace threading {
 
         /// @brief a source for reaction_ids, atomically creates longs
         static std::atomic<uint64_t>& reaction_id_source() {
-            static std::atomic<uint64_t> value(0);
-            return value;
+            static std::atomic<uint64_t> reaction_id(0);
+            return reaction_id;
         }
     };
 

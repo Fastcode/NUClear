@@ -45,8 +45,8 @@ namespace threading {
     private:
         /// @brief a source for task ids, atomically creates longs
         static std::atomic<std::uint64_t>& task_id_source() {
-            static std::atomic<std::uint64_t> value(0);
-            return value;
+            static std::atomic<std::uint64_t> task_id(0);
+            return task_id;
         }
 
         /// @brief the current task that is being executed by this thread (or nullptr if none is)
