@@ -20,6 +20,7 @@
 #define NUCLEAR_DSL_WORD_EMIT_NETWORK_HPP
 
 #include <array>
+
 #include "../../../util/serialise/Serialise.hpp"
 
 namespace NUClear {

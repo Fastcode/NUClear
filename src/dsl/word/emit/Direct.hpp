@@ -62,9 +62,7 @@ namespace dsl {
                             store::ThreadStore<std::shared_ptr<DataType>>::value = &data;
 
                             auto task = reaction->get_task();
-                            if (task) {
-                                task = task->run(std::move(task));
-                            }
+                            if (task) { task = task->run(std::move(task)); }
                         }
                         catch (const std::exception& ex) {
                             powerplant.log<NUClear::ERROR>("There was an exception while generating a reaction",

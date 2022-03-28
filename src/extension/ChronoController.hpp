@@ -57,9 +57,7 @@ namespace extension {
                             tasks.begin(), tasks.end(), [&](const ChronoTask& task) { return task.id == unbind.id; });
 
                         // Remove if if it exists
-                        if (it != tasks.end()) {
-                            tasks.erase(it);
-                        }
+                        if (it != tasks.end()) { tasks.erase(it); }
                     }
 
                     // Poke the system to make sure it's not waiting on something that's gone
@@ -84,8 +82,7 @@ namespace extension {
                     if (NUClear::clock::now() + wait_offset > tasks.front().time) {
 
                         // Spinlock!
-                        while (NUClear::clock::now() < tasks.front().time) {
-                        }
+                        while (NUClear::clock::now() < tasks.front().time) {}
 
                         NUClear::clock::time_point now = NUClear::clock::now();
 
@@ -97,9 +94,7 @@ namespace extension {
                             // Move this to the back of the list
                             std::pop_heap(tasks.begin(), end, std::greater<>());
 
-                            if (!renew) {
-                                end = tasks.erase(--end);
-                            }
+                            if (!renew) { end = tasks.erase(--end); }
                             else {
                                 --end;
                             }

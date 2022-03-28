@@ -67,11 +67,10 @@ namespace dsl {
 
             template <typename... Arguments>
             static inline auto call(const std::shared_ptr<threading::Reaction>& reaction, Arguments&&... args)
-                -> decltype(
-                    std::conditional_t<std::is_void<decltype(Function::template bind<
-                                                             DSL>(reaction, std::forward<Arguments>(args)...))>::value,
-                                       NoReturn,
-                                       Return>::template call(reaction, std::forward<Arguments>(args)...)) {
+                -> decltype(std::conditional_t<std::is_void<decltype(Function::template bind<DSL>(
+                                                   reaction, std::forward<Arguments>(args)...))>::value,
+                                               NoReturn,
+                                               Return>::template call(reaction, std::forward<Arguments>(args)...)) {
 
                 return std::conditional_t<std::is_void<decltype(Function::template bind<DSL>(
                                               reaction, std::forward<Arguments>(args)...))>::value,

@@ -20,6 +20,7 @@
 #define NUCLEAR_DSL_WORD_EVERY_HPP
 
 #include <cmath>
+
 #include "../operation/ChronoTask.hpp"
 #include "../operation/Unbind.hpp"
 #include "emit/Direct.hpp"
@@ -94,9 +95,7 @@ namespace dsl {
                         try {
                             // submit the reaction to the thread pool
                             auto task = reaction->get_task();
-                            if (task) {
-                                reaction->reactor.powerplant.submit(std::move(task));
-                            }
+                            if (task) { reaction->reactor.powerplant.submit(std::move(task)); }
                         }
                         // If there is an exception while generating a reaction print it here, this shouldn't happen
                         catch (const std::exception& ex) {
