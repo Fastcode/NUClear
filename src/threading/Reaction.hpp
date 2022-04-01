@@ -38,9 +38,6 @@ namespace threading {
     // Forward declare reaction
     class Reaction;
 
-    // Alias the templated TReactionTask so that public API remains intact
-    using ReactionTask = TReactionTask<Reaction>;
-
     /**
      * @brief This class holds the definition of a Reaction (call signature).
      *

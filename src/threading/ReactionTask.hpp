@@ -151,6 +151,11 @@ namespace threading {
                : a->priority == b->priority ? a->stats->emitted > b->stats->emitted
                                             : a->priority < b->priority;
     }
+
+    // Alias the templated Task so that public API remains intact
+    class Reaction;
+    using ReactionTask = Task<Reaction>;
+
 }  // namespace threading
 }  // namespace NUClear
 
