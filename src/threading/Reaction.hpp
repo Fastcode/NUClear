@@ -25,7 +25,6 @@
 #include <string>
 #include <utility>
 
-#include "../clock.hpp"
 #include "ReactionTask.hpp"
 
 namespace NUClear {
@@ -34,9 +33,6 @@ namespace NUClear {
 class Reactor;
 
 namespace threading {
-
-    // Forward declare reaction
-    class Reaction;
 
     /**
      * @brief This class holds the definition of a Reaction (call signature).
