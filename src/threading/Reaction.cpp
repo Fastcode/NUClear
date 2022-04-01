@@ -17,8 +17,6 @@
  */
 #include "Reaction.hpp"
 
-#include <utility>
-
 namespace NUClear {
 namespace threading {
 
@@ -39,23 +37,6 @@ namespace threading {
         for (auto& u : unbinders) {
             u(*this);
         }
-    }
-
-    std::unique_ptr<ReactionTask> Reaction::get_task() {
-
-        // If we are not enabled, don't run
-        if (!enabled) { return std::unique_ptr<ReactionTask>(nullptr); }
-
-        // Run our generator to get a functor we can run
-        int priority;
-        std::function<std::unique_ptr<ReactionTask>(std::unique_ptr<ReactionTask> &&)> func;
-        std::tie(priority, func) = generator(*this);
-
-        // If our generator returns a valid function
-        if (func) { return std::make_unique<ReactionTask>(*this, priority, std::move(func)); }
-
-        // Otherwise we return a null pointer
-        return std::unique_ptr<ReactionTask>(nullptr);
     }
 
     bool Reaction::is_enabled() {
