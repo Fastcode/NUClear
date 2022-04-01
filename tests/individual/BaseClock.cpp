@@ -20,7 +20,7 @@
 #include <catch.hpp>
 
 extern "C" {
-#include <time.h>
+#include <time.h>  // for localtime_r/s
 }
 
 // This define declares that we are using system_clock as the base clock for NUClear
@@ -42,11 +42,14 @@ class TestReactor : public NUClear::Reactor {
 public:
     TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
 
-        // Running every this slowed down clock should execute slower
+        // Have a frequently running reaction so that ReactionStatistics will be emitted
         on<Every<10, std::chrono::milliseconds>>().then([this] {
             if (times.size() > n_time) { powerplant.shutdown(); }
         });
 
+        // Trigger on ReactionStatistics so that we can record the times that messages were emitted and compare them
+        // against the current time If everything is working as it should then the emitted times and the current times
+        // should be identical (at least down to the second, but it depends on when the clock ticks over)
         on<Trigger<NUClear::message::ReactionStatistics>>().then([](const NUClear::message::ReactionStatistics& stats) {
             times.push_back(std::make_pair(stats.emitted, std::chrono::system_clock::now()));
         });
@@ -59,15 +62,18 @@ TEST_CASE("Testing base clock works correctly", "[api][base_clock]") {
     INFO("Ensure NUClear base_clock is the correct type");
     STATIC_REQUIRE(std::is_same<NUClear::clock, std::chrono::system_clock>::value);
 
+    // Construct the powerplant
     NUClear::PowerPlant::Configuration config;
     config.thread_count = 1;
     NUClear::PowerPlant plant(config);
 
-    // We are installing with an initial log level of debug
+    // Install our test reactor
     plant.install<TestReactor>();
 
+    // Start the powerplant
     plant.start();
 
+    // Setup a struct to convert std::tm* into a more usable format and to make comparison cleaner
     struct TimeData {
         TimeData(const std::tm* tm)
             : year(tm->tm_year)
@@ -87,6 +93,7 @@ TEST_CASE("Testing base clock works correctly", "[api][base_clock]") {
         int min;
         int sec;
     };
+
     // Compute the differences between the time pairs
     int match_count = 0;
     for (const auto& time_pairs : times) {
