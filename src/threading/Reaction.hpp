@@ -115,11 +115,10 @@ namespace threading {
         void unbind();
 
     private:
-        /// @brief the callback generator function (creates databound callbacks)
-        TaskGenerator generator;
-
         /// @brief a source for reaction_ids, atomically creates longs
         static std::atomic<uint64_t> reaction_id_source;
+        /// @brief the callback generator function (creates databound callbacks)
+        TaskGenerator generator;
     };
 
 }  // namespace threading
