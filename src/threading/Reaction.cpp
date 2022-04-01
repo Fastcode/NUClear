@@ -32,5 +32,15 @@ namespace threading {
         , enabled(true)
         , generator(generator) {}
 
+    void Reaction::unbind() {
+        // Unbind
+        for (auto& u : unbinders) {
+            u(*this);
+        }
+    }
+
+    bool Reaction::is_enabled() {
+        return enabled;
+    }
 }  // namespace threading
 }  // namespace NUClear

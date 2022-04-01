@@ -90,9 +90,7 @@ namespace threading {
         /**
          * @brief returns true if this reaction is currently enabled
          */
-        inline bool is_enabled() {
-            return enabled;
-        }
+        bool is_enabled();
 
         /// @brief the reactor this belongs to
         Reactor& reactor;
@@ -118,12 +116,7 @@ namespace threading {
         /**
          * @brief Unbinds this reaction from it's context
          */
-        inline void unbind() {
-            // Unbind
-            for (auto& u : unbinders) {
-                u(*this);
-            }
-        }
+        void unbind();
 
     private:
         /// @brief the callback generator function (creates databound callbacks)
