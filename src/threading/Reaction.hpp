@@ -53,7 +53,7 @@ namespace threading {
     class Reaction {
         // Reaction handles are given to user code to enable and disable the reaction
         friend class ReactionHandle;
-        friend class TReactionTask<Reaction>;
+        friend class Task<Reaction>;
 
     public:
         // The type of the generator that is used to create functions for ReactionTask objects
