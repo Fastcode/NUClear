@@ -169,7 +169,7 @@ void PowerPlant::log(Arguments&&... args) {
     std::string output = output_stream.str();
 
     auto* current_task = threading::ReactionTask::get_current_task();
-    auto* task         = current_task ? current_task->stats.get() : nullptr;
+    auto task         = current_task ? current_task->stats : nullptr;
 
     // Direct emit the log message so that any direct loggers can use it
     powerplant->emit<dsl::word::emit::Direct>(
