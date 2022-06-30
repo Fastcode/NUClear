@@ -8,7 +8,7 @@ It is highly extensible and provides several attachment points to develop new DS
 
 These metaprograms reduce the cost of routing messages between modules resulting in a much faster system.
 
-For help getting started check the [wiki](https://github.com/Fastcode/NUClear/wiki)
+For help getting started check the [docs](https://nuclear.readthedocs.io/en/latest/quick_start.html)
 
 If you're starting a new project using NUClear the [NUClear Roles system](https://github.com/Fastcode/NUClearRoles) is highly recommended
 
