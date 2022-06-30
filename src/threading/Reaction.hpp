@@ -23,6 +23,7 @@
 #include <functional>
 #include <memory>
 #include <string>
+#include <utility>
 
 #include "ReactionTask.hpp"
 
@@ -45,7 +46,7 @@ namespace threading {
     class Reaction {
         // Reaction handles are given to user code to enable and disable the reaction
         friend class ReactionHandle;
-        friend class ReactionTask;
+        friend class Task<Reaction>;
 
     public:
         // The type of the generator that is used to create functions for ReactionTask objects
@@ -65,7 +66,22 @@ namespace threading {
          *
          * @return a unique_ptr to a Task which has the data for it's call bound into it
          */
-        std::unique_ptr<ReactionTask> get_task();
+        inline std::unique_ptr<ReactionTask> get_task() {
+
+            // If we are not enabled, don't run
+            if (!enabled) { return std::unique_ptr<ReactionTask>(nullptr); }
+
+            // Run our generator to get a functor we can run
+            int priority;
+            std::function<std::unique_ptr<ReactionTask>(std::unique_ptr<ReactionTask> &&)> func;
+            std::tie(priority, func) = generator(*this);
+
+            // If our generator returns a valid function
+            if (func) { return std::make_unique<ReactionTask>(*this, priority, std::move(func)); }
+
+            // Otherwise we return a null pointer
+            return std::unique_ptr<ReactionTask>(nullptr);
+        }
 
         /**
          * @brief returns true if this reaction is currently enabled
