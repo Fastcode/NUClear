@@ -73,7 +73,7 @@ namespace threading {
             : parent(parent)
             , id(++task_id_source)
             , priority(priority)
-            , stats(new message::ReactionStatistics{parent.identifier,
+            , stats(std::make_shared<message::ReactionStatistics>(parent.identifier,
                                                     parent.id,
                                                     id,
                                                     current_task != nullptr ? current_task->parent.id : 0,
@@ -81,7 +81,7 @@ namespace threading {
                                                     clock::now(),
                                                     clock::time_point(std::chrono::seconds(0)),
                                                     clock::time_point(std::chrono::seconds(0)),
-                                                    nullptr})
+                                                    nullptr))
             , emit_stats(parent.emit_stats && (current_task != nullptr ? current_task->emit_stats : true))
             , callback(callback) {}
 

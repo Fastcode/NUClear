@@ -126,7 +126,7 @@ namespace util {
 
                         // Emit our reaction statistics if it wouldn't cause a loop
                         if (task->emit_stats) {
-                            PowerPlant::powerplant->emit<dsl::word::emit::Direct>(task->stats);
+                            PowerPlant::powerplant->emit_shared<dsl::word::emit::Direct>(task->stats);
                         }
                     }
 
