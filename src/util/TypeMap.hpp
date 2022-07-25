@@ -31,9 +31,9 @@ namespace util {
      *
      * @details
      *  This map stores a single value in it's store when the set function is called, and when get is later called
-     *  this object will be returned. This map is accessed by template paramters, because of this when the compiler
+     *  this object will be returned. This map is accessed by template parameters, because of this when the compiler
      *  compiles this map. It can resolve each of the map accesses into a direct function call. This allows the map to
-     *  be looked up at compile time and optimized to very efficent code. There are several variations of the Map
+     *  be looked up at compile time and optimized to very efficient code. There are several variations of the Map
      *  provided through the MapType parameter the operation of each of these is described in their individual
      *  documentation.
      *
