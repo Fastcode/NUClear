@@ -149,6 +149,7 @@ namespace util {
         template <typename>
         static inline bool call_one(...);
 
+        /// The FunctionFusionCaller next step in the recursion
         using NextStep =
             FunctionFusionCaller<std::tuple<Functions...>, Shared, std::tuple<Ranges...>, std::tuple<Arguments...>>;
 
