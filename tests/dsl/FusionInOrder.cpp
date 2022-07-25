@@ -35,7 +35,7 @@ class TestReactor : public NUClear::Reactor {
 public:
     TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
 
-        on<Extension<0>, Extension<1>, Extension<2>, Extension<3>, Extension<4>>().then([this] {});
+        on<Extension<0>, Extension<1>, Extension<2>, Extension<3>, Extension<4>>().then([] {});
     }
 };
 
