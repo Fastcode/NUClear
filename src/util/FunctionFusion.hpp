@@ -167,10 +167,10 @@ namespace util {
                                        NextStep::call(std::forward<Arguments>(args)...))) {
 
             // Call each on a separate line to preserve order of execution
-            auto a = tuplify(call_one<CurrentFunction>(CurrentRange(), std::forward<Arguments>(args)...));
-            auto b = NextStep::call(std::forward<Arguments>(args)...);
+            auto current   = tuplify(call_one<CurrentFunction>(CurrentRange(), std::forward<Arguments>(args)...));
+            auto remainder = NextStep::call(std::forward<Arguments>(args)...);
 
-            return std::tuple_cat(std::move(a), std::move(b));
+            return std::tuple_cat(std::move(current), std::move(remainder));
         }
     };
 
