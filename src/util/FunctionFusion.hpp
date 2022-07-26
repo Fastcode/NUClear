@@ -101,11 +101,13 @@ namespace util {
      * @details Provides a call function that will split the given arguments amongst the functions
      *          according to the provided ranges.
      *
-     * @tparam Functions The functions that we are going to call
-     * @tparam Shared    the number of arguments (from 0) to use in all of the calls
-     * @tparam Ranges    a set of pairs of integers that describe the first and last
-     *                   argument provided to each respective function
-     * @tparam Arguments the type of the provided arguments
+     * @tparam CurrentFunction  the current function we are calling in this class
+     * @tparam Functions        the remaining functions we are going to call
+     * @tparam Shared           the number of arguments (from 0) to use in all of the calls
+     * @tparam CurrentRange     the range of arguments to use in the current call
+     * @tparam Ranges           a set of pairs of integers that describe the first and last
+     *                          argument provided to each respective function
+     * @tparam Arguments        the type of the provided arguments
      */
     template <typename CurrentFunction,
               typename... Functions,
@@ -225,10 +227,10 @@ namespace util {
      *          This allows fusion of functions without knowing the name of the function
      *          that is being fused.
      *
-     * @tparam Functions            the functions we are going to call
+     * @tparam CurrentFunction      the current function we are inspecting
+     * @tparam Functions            the remaining functions we are going to call
      * @tparam Arguments            the arguments we are calling the function with
-     * @tparam FunctionWrapper      the template that is used to wrap the Function objects
-     *                              to be called
+     * @tparam FunctionWrapper      the template that is used to wrap the Function objects to be called
      * @tparam WrapperArgs          template types to be used on the FunctionWrapper in addition to the Fuctions type.
      *                              May be empty.
      * @tparam Shared               the number of parameters (from 0) to use in all of the calls
