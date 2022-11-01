@@ -110,6 +110,17 @@ If a null pointer is returned, no task is run.
 When it is time to schedule the task either return it in another reschedule call or call
 `task.parent.reactor.powerplant.submit(std::move(task));`. Both these will pass the ownership of the task on.
 
+Transient
+---------
+
+.. codeblock:: c++
+    template <>
+    struct is_transient<word::IO::Event> : public std::true_type {};
+
+When the data returned from a `get` is falsy and its type is marked transient the latest truthy data from the `get`
+return is instead used. If the data is falsy and is either not marked transient or nothing truthy has yet been returned
+then the reaction is cancelled.
+
 Example Case
 ************
 
