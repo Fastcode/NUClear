@@ -121,6 +121,24 @@ When the data returned from a `get` is falsy and its type is marked transient th
 return is instead used. If the data is falsy and is either not marked transient or nothing truthy has yet been returned
 then the reaction is cancelled.
 
+Custom Emit Handler
+*******************
+
+.. codeblock:: c++
+    template <typename DataType>
+    struct EmitType {
+        static void emit(PowerPlant& powerplant, ...)
+    };
+
+Emit can be extended by creating a template struct that has at least one method called `emit`. This is then called from
+a Reactor with `emit<EmitType>` and the arguments will be passed through.
+
+.. codeblock:: c++
+    static void emit(PowerPlant& powerplant, std::shared_ptr<DataType> data, ...)
+
+If the second parameter is a shared pointer to the templated type when calling emit a unique pointer will be
+automatically converted to a shared pointer.
+
 Example Case
 ************
 
