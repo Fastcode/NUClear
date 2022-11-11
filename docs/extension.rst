@@ -14,8 +14,8 @@ template and filling in undefined methods with no-operations.
 
 Both the fused type and parsed type only has static methods defined, so it would be pointless to instantiate it.
 
-This means calling `Parse<Trigger<int>, Sync, Startup>.bind()` will call `Trigger<int>.get<DSL>()`, then a no-operation,
-then will call `Startup.get<DSL>()`, using `DSL = Parse<Trigger<int>, Sync, Startup>`.
+This means calling `Parse<Trigger<int>, Sync, Startup>.bind()` will call `Trigger<int>.bind<DSL>()`, then a no-operation,
+then will call `Startup.bind<DSL>()`, using `DSL = Parse<Trigger<int>, Sync, Startup>`.
 
 Fusions can be nested, this can be useful for creating a DSL word that combines the functionality of multiple other
 words.
