@@ -31,7 +31,9 @@ passed in. It is important to note that the type will only be considered by NUCl
 attributes need to be stored in the DSL word type template it and use static variables, see `Sync`.
 
 There are DSL words that are not meant to be used directly but as a part of other words, see `CacheGet` and `TypeBind`.
-TODO explain what these two do.
+`TypeBind` adds the reaction to the list of reactions to be run when a `Local` or `Direct` emit is called for the data
+type. `CacheGet` gets the last value from a thread-local cache (see `ThreadSore` below) this cache is usually populated
+in the last a `Local` or `Direct` emit call for the data type.
 
 If the type you want to become a DSL extension word is not defined within your control specialise `DSLProxy<>` with the
 type. Provide the template methods to the specialisation of `DSLProxy<>` as if it were the type.
@@ -74,7 +76,8 @@ If the return type can be dereferenced, then either the return type or the type 
 return type can be used in the callback.
 
 If data needs to be passed to a task when it is submitted to the `Powerplant` use `ThreadStore<T>`. The thread store is
-a static variable that can be accessed from within the get method.
+a static variable that can be accessed from within the get method. Make sure to clear the `ThreadStore` after use to
+ensure future invocations won't get stale data.
 
 Precondition
 ------------
@@ -93,7 +96,7 @@ Postcondition
     template <typename DSL>
     static void postcondition(threading::ReactionTask& task)
 
-This will run after the callback for a reaction task has finished.
+This will run after the callback for a reaction task has run and finished.
 
 Reschedule
 ----------
