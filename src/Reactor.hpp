@@ -396,7 +396,7 @@ public:
     void log(Arguments&&... args) {
 
         // If the log is above or equal to our log level
-        if (level >= log_level) { powerplant.log<level>(std::forward<Arguments>(args)...); }
+        powerplant.log<level>(std::forward<Arguments>(args)...);
     }
 };
 
