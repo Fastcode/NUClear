@@ -106,11 +106,12 @@ public:
 
 TEST_CASE("Testing the Log<>() function", "[api][log]") {
 
+    // Build with one thread
     NUClear::PowerPlant::Configuration config;
     config.thread_count = 1;
     NUClear::PowerPlant plant(config);
 
-    // We are installing with an initial log level of debug
+    // Install the test reactor
     plant.install<TestReactor>();
     plant.start();
 
