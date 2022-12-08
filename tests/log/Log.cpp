@@ -116,8 +116,11 @@ TEST_CASE("Testing the Log<>() function", "[api][log]") {
     plant.start();
 
     // Test that we have the correct number of messages
-    REQUIRE(messages.size() == 78);
-
+    size_t expected_count = 0;
+    expected_count += levels.size() * (levels.size() + 1) / 2;  // Direct reaction logs
+    expected_count += levels.size() * (levels.size() + 1) / 2;  // Indirect reaction logs
+    expected_count += levels.size() * levels.size();            // Non reaction logs
+    REQUIRE(messages.size() == expected_count);
 
     // Test that each of the messages are correct for each log level
     int i = 0;
