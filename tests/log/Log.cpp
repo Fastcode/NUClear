@@ -53,7 +53,7 @@ public:
     TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
 
         // Capture the log messages
-        on<Trigger<NUClear::message::LogMessage>>().then([this](const NUClear::message::LogMessage& log_message) {
+        on<Trigger<NUClear::message::LogMessage>>().then([](const NUClear::message::LogMessage& log_message) {
             messages.push_back(LogTestOutput{log_message.message, log_message.level, log_message.task != nullptr});
         });
 
@@ -79,7 +79,7 @@ public:
             free_floating_log<NUClear::FATAL>("Indirect Reaction", NUClear::FATAL);
 
             // Test logs called from a free floating function in another thread
-            std::thread([this] {
+            std::thread([] {
                 free_floating_log<NUClear::TRACE>("Non Reaction", NUClear::TRACE);
                 free_floating_log<NUClear::DEBUG>("Non Reaction", NUClear::DEBUG);
                 free_floating_log<NUClear::INFO>("Non Reaction", NUClear::INFO);
