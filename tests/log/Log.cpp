@@ -90,7 +90,15 @@ public:
         });
 
         // Shutdown when we have no tasks running
-        on<Trigger<ShutdownOnIdle>, Priority::IDLE>().then([this] { powerplant.shutdown(); });
+        on<Trigger<ShutdownOnIdle>, Priority::IDLE>().then([this] {
+            powerplant.shutdown();
+            log<NUClear::TRACE>("Post Powerplant Shutdown", NUClear::TRACE);
+            log<NUClear::DEBUG>("Post Powerplant Shutdown", NUClear::DEBUG);
+            log<NUClear::INFO>("Post Powerplant Shutdown", NUClear::INFO);
+            log<NUClear::WARN>("Post Powerplant Shutdown", NUClear::WARN);
+            log<NUClear::ERROR>("Post Powerplant Shutdown", NUClear::ERROR);
+            log<NUClear::FATAL>("Post Powerplant Shutdown", NUClear::FATAL);
+        });
 
         on<Startup>().then([this] {
             // Test each log level
@@ -106,6 +114,14 @@ public:
 
 TEST_CASE("Testing the Log<>() function", "[api][log]") {
 
+    // Try to call log before constructing a powerplant
+    free_floating_log<NUClear::TRACE>("Pre Powerplant Construction", NUClear::TRACE);
+    free_floating_log<NUClear::DEBUG>("Pre Powerplant Construction", NUClear::DEBUG);
+    free_floating_log<NUClear::INFO>("Pre Powerplant Construction", NUClear::INFO);
+    free_floating_log<NUClear::WARN>("Pre Powerplant Construction", NUClear::WARN);
+    free_floating_log<NUClear::ERROR>("Pre Powerplant Construction", NUClear::ERROR);
+    free_floating_log<NUClear::FATAL>("Pre Powerplant Construction", NUClear::FATAL);
+
     // Build with one thread
     NUClear::PowerPlant::Configuration config;
     config.thread_count = 1;
@@ -120,6 +136,7 @@ TEST_CASE("Testing the Log<>() function", "[api][log]") {
     expected_count += levels.size() * (levels.size() + 1) / 2;  // Direct reaction logs
     expected_count += levels.size() * (levels.size() + 1) / 2;  // Indirect reaction logs
     expected_count += levels.size() * levels.size();            // Non reaction logs
+    expected_count += 1;                                        // Post shutdown logs
     REQUIRE(messages.size() == expected_count);
 
     // Test that each of the messages are correct for each log level
@@ -152,4 +169,9 @@ TEST_CASE("Testing the Log<>() function", "[api][log]") {
             REQUIRE_FALSE(messages[i++].from_reaction);
         }
     }
+    // Test post-shutdown logs
+    std::string expected = "Post Powerplant Shutdown " + std::to_string(NUClear::FATAL);
+    REQUIRE(messages[i].message == expected);
+    REQUIRE(messages[i].level == NUClear::FATAL);
+    REQUIRE(messages[i++].from_reaction);
 }
