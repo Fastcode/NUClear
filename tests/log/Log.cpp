@@ -142,7 +142,7 @@ TEST_CASE("Testing the Log<>() function", "[api][log]") {
         plant.start();
     }
 
-    // Try to call log before constructing a powerplant
+    // Try to call log after destructing the powerplant
     free_floating_log<NUClear::TRACE>("Post Powerplant Destruction", NUClear::TRACE);
     free_floating_log<NUClear::DEBUG>("Post Powerplant Destruction", NUClear::DEBUG);
     free_floating_log<NUClear::INFO>("Post Powerplant Destruction", NUClear::INFO);
