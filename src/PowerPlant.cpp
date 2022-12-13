@@ -102,9 +102,6 @@ void PowerPlant::shutdown() {
 
     // Shutdown the main threads scheduler
     main_thread_scheduler.shutdown();
-
-    // Bye bye powerplant
-    powerplant = nullptr;
 }
 
 bool PowerPlant::running() const {
