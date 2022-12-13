@@ -130,14 +130,17 @@ TEST_CASE("Testing the Log<>() function", "[api][log]") {
     free_floating_log<NUClear::ERROR>("Pre Powerplant Construction", NUClear::ERROR);
     free_floating_log<NUClear::FATAL>("Pre Powerplant Construction", NUClear::FATAL);
 
-    // Build with one thread
-    NUClear::PowerPlant::Configuration config;
-    config.thread_count = 1;
-    NUClear::PowerPlant plant(config);
+    // Local scope to force powerplant destruction
+    {
+        // Build with one thread
+        NUClear::PowerPlant::Configuration config;
+        config.thread_count = 1;
+        NUClear::PowerPlant plant(config);
 
-    // Install the test reactor
-    plant.install<TestReactor>();
-    plant.start();
+        // Install the test reactor
+        plant.install<TestReactor>();
+        plant.start();
+    }
 
     // Try to call log before constructing a powerplant
     free_floating_log<NUClear::TRACE>("Post Powerplant Destruction", NUClear::TRACE);
