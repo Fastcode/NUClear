@@ -199,13 +199,15 @@ TEST_CASE("Testing the Log<>() function", "[api][log]") {
     }
 
     // Test post-shutdown logs
-    std::string expected = "Post Powerplant Shutdown " + std::to_string(NUClear::FATAL);
-    REQUIRE(messages[i].message == expected);
-    REQUIRE(messages[i].level == NUClear::FATAL);
-    REQUIRE(messages[i++].from_reaction);
-    REQUIRE(messages[i].message == expected);
-    REQUIRE(messages[i].level == NUClear::FATAL);
-    REQUIRE(messages[i++].from_reaction);
+    {
+        std::string expected = "Post Powerplant Shutdown " + std::to_string(NUClear::FATAL);
+        REQUIRE(messages[i].message == expected);
+        REQUIRE(messages[i].level == NUClear::FATAL);
+        REQUIRE(messages[i++].from_reaction);
+        REQUIRE(messages[i].message == expected);
+        REQUIRE(messages[i].level == NUClear::FATAL);
+        REQUIRE(messages[i++].from_reaction);
+    }
 
     // Test logs from free floating functions
     for (const auto& log_level : levels) {
