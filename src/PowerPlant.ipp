@@ -163,12 +163,14 @@ namespace {
 template <enum LogLevel level, typename... Arguments>
 void PowerPlant::log(Arguments&&... args) {
 
+    // If there is no powerplant then do nothing
+    if (powerplant == nullptr) { return; }
+
     // Get the current task
     auto* current_task = threading::ReactionTask::get_current_task();
 
     // Only log if we are not from a reaction, or if our reactor's log level is high enough
-    if (!current_task || level >= current_task->parent.reactor.log_level) {
-
+    if (current_task == nullptr || level >= current_task->parent.reactor.log_level) {
         // Build our log message by concatenating everything to a stream
         std::stringstream output_stream;
         log_impl(output_stream, std::forward<Arguments>(args)...);
@@ -176,7 +178,7 @@ void PowerPlant::log(Arguments&&... args) {
 
         // Direct emit the log message so that any direct loggers can use it
         powerplant->emit<dsl::word::emit::Direct>(std::make_unique<message::LogMessage>(
-            message::LogMessage{level, output, current_task ? current_task->stats.get() : nullptr}));
+            message::LogMessage{level, output, current_task != nullptr ? current_task->stats.get() : nullptr}));
     }
 }
 

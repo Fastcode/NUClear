@@ -90,7 +90,7 @@ void PowerPlant::submit_main(std::unique_ptr<threading::ReactionTask>&& task) {
 
 void PowerPlant::shutdown() {
 
-    // Stop running before we emit events the Shutdown event
+    // Stop running before we emit the Shutdown event
     // Some things such as on<Always> depend on this flag and it's possible to miss it
     is_running = false;
 
@@ -102,9 +102,6 @@ void PowerPlant::shutdown() {
 
     // Shutdown the main threads scheduler
     main_thread_scheduler.shutdown();
-
-    // Bye bye powerplant
-    powerplant = nullptr;
 }
 
 bool PowerPlant::running() const {
