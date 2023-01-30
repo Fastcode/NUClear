@@ -154,10 +154,10 @@ public:
     /// @brief The demangled string name of this reactor
     const std::string reactor_name;
 
-protected:
     /// @brief The level that this reactor logs at
     LogLevel log_level;
 
+protected:
     /***************************************************************************************************************
      * The types here are imported from other contexts so that when extending from the Reactor type in normal      *
      * usage there does not need to be any namespace declarations on the used types. This affords a simpler API    *
