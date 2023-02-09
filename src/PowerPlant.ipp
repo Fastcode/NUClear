@@ -100,7 +100,7 @@ struct EmitCaller {
 
 
 template <template <typename> class First, template <typename> class... Remainder, typename T, typename... Arguments>
-void PowerPlant::emit_shared(std::shared_ptr<T>&& ptr, Arguments&&... args) {
+void PowerPlant::emit_shared(std::shared_ptr<T> ptr, Arguments&&... args) {
 
     using Functions      = std::tuple<First<T>, Remainder<T>...>;
     using ArgumentPack   = decltype(std::forward_as_tuple(*this, ptr, std::forward<Arguments>(args)...));
