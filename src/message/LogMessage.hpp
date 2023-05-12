@@ -32,7 +32,6 @@ namespace message {
      */
     struct LogMessage {
 
-
         /// @brief The logging level of the log.
         LogLevel level;
 
