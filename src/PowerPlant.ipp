@@ -178,7 +178,7 @@ void PowerPlant::log(Arguments&&... args) {
 
         // Direct emit the log message so that any direct loggers can use it
         powerplant->emit<dsl::word::emit::Direct>(std::make_unique<message::LogMessage>(
-            message::LogMessage{level, output, current_task != nullptr ? current_task->stats.get() : nullptr}));
+            message::LogMessage{level, output, current_task != nullptr ? current_task->stats : nullptr}));
     }
 }
 
