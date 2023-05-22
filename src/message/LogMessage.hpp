@@ -19,6 +19,8 @@
 #ifndef NUCLEAR_MESSAGE_LOGMESSAGE_HPP
 #define NUCLEAR_MESSAGE_LOGMESSAGE_HPP
 
+#include <memory>
+
 #include "../LogLevel.hpp"
 #include "ReactionStatistics.hpp"
 
@@ -37,10 +39,7 @@ namespace message {
         std::string message;
 
         /// @brief The currently executing task that made this message
-        /// @warning This pointer is only valid for the duration of the reaction that triggers on this message.
-        ///          After this, it will point to junk memory. This also applies to keywords that reschedule this
-        ///          reaction. For example, using the Sync keyword can make it so this pointer is invalid
-        const ReactionStatistics* task;
+        const std::shared_ptr<ReactionStatistics> task;
     };
 
 }  // namespace message
