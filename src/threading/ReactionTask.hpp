@@ -145,10 +145,13 @@ namespace threading {
     template <typename ReactionType>
     inline bool operator<(const std::unique_ptr<Task<ReactionType>>& a, const std::unique_ptr<Task<ReactionType>>& b) {
 
-        // If we ever have a null pointer, we move it to the top of the queue as it is being removed
+        // Comparision order is as follows:
+        //  nullptr is greater than anything else so it's removed from a queue first
+        //  higher priority tasks are greater than lower priority tasks
+        //  tasks created first (smaller ids) should run before tasks created later
         return a == nullptr                 ? false
                : b == nullptr               ? true
-               : a->priority == b->priority ? a->stats->emitted > b->stats->emitted
+               : a->priority == b->priority ? a->id > b->id
                                             : a->priority < b->priority;
     }
 
