@@ -57,7 +57,8 @@ namespace util {
         }
 
 
-        std::pair<int, threading::ReactionTask::TaskFunction> operator()(threading::Reaction& r) {
+        std::tuple<int, threading::ReactionTask::TaskFunction, threading::ReactionTask::TaskFunction> operator()(
+            threading::Reaction& r) {
 
             // Add one to our active tasks
             ++r.active_tasks;
@@ -68,7 +69,8 @@ namespace util {
                 --r.active_tasks;
 
                 // We cancel our execution by returning an empty function
-                return std::make_pair(0, threading::ReactionTask::TaskFunction());
+                return std::make_tuple(
+                    0, threading::ReactionTask::TaskFunction(), threading::ReactionTask::TaskFunction());
             }
             else {
 
@@ -86,18 +88,16 @@ namespace util {
                     --r.active_tasks;
 
                     // We cancel our execution by returning an empty function
-                    return std::make_pair(0, threading::ReactionTask::TaskFunction());
+                    return std::make_tuple(
+                        0, threading::ReactionTask::TaskFunction(), threading::ReactionTask::TaskFunction());
                 }
 
                 // We have to make a copy of the callback because the "this" variable can go out of scope
                 auto c = callback;
-                return std::make_pair(DSL::priority(r), [c, data](std::unique_ptr<threading::ReactionTask>&& task) {
-                    // Check if we are going to reschedule
-                    task = DSL::reschedule(std::move(task));
-
-                    // If we still control our task
-                    if (task) {
-
+                return std::make_tuple(
+                    DSL::priority(r),
+                    [](std::unique_ptr<threading::ReactionTask>&& task) { return DSL::reschedule(std::move(task)); },
+                    [c, data](std::unique_ptr<threading::ReactionTask>&& task) {
                         // Update our thread's priority to the correct level
                         update_current_thread_priority(task->priority);
 
@@ -128,11 +128,10 @@ namespace util {
                         if (task->emit_stats) {
                             PowerPlant::powerplant->emit_shared<dsl::word::emit::Direct>(task->stats);
                         }
-                    }
 
-                    // Return our task
-                    return std::move(task);
-                });
+                        // Return our task
+                        return std::move(task);
+                    });
             }
         }
 

@@ -50,7 +50,8 @@ namespace threading {
 
     public:
         // The type of the generator that is used to create functions for ReactionTask objects
-        using TaskGenerator = std::function<std::pair<int, ReactionTask::TaskFunction>(Reaction&)>;
+        using TaskGenerator =
+            std::function<std::tuple<int, ReactionTask::TaskFunction, ReactionTask::TaskFunction>(Reaction&)>;
 
         /**
          * @brief Constructs a new Reaction with the passed callback generator and options
@@ -73,11 +74,15 @@ namespace threading {
 
             // Run our generator to get a functor we can run
             int priority;
-            std::function<std::unique_ptr<ReactionTask>(std::unique_ptr<ReactionTask> &&)> func;
-            std::tie(priority, func) = generator(*this);
+            std::function<std::unique_ptr<ReactionTask>(std::unique_ptr<ReactionTask>&&)> reschedule_func;
+            std::function<std::unique_ptr<ReactionTask>(std::unique_ptr<ReactionTask>&&)> run_func;
+            std::tie(priority, reschedule_func, run_func) = generator(*this);
 
-            // If our generator returns a valid function
-            if (func) { return std::make_unique<ReactionTask>(*this, priority, std::move(func)); }
+            // If our generator returns a valid function then build our reaction task
+            // Run reschedule now if we need to
+            if (run_func && reschedule_func) {
+                return reschedule_func(std::make_unique<ReactionTask>(*this, priority, std::move(run_func)));
+            }
 
             // Otherwise we return a null pointer
             return std::unique_ptr<ReactionTask>(nullptr);
