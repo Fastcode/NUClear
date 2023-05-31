@@ -96,9 +96,6 @@ namespace dsl {
                 // Lock our mutex
                 std::lock_guard<std::mutex> lock(mutex);
 
-                // We are finished running
-                running = false;
-
                 // If we have another task, add it
                 if (!queue.empty()) {
                     std::unique_ptr<threading::ReactionTask> next_task(
@@ -107,6 +104,10 @@ namespace dsl {
 
                     // Resubmit this task to the reaction queue
                     task.parent.reactor.powerplant.submit(std::move(next_task));
+                }
+                else {
+                    // We are finished running
+                    running = false;
                 }
             }
         };
