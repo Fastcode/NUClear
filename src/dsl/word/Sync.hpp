@@ -68,7 +68,7 @@ namespace dsl {
             /// @brief our queue which sorts tasks by priority
             static std::priority_queue<task_ptr> queue;
             /// @brief how many tasks are currently running
-            static volatile bool running;
+            static std::atomic<bool> running;
             /// @brief a mutex to ensure data consistency
             static std::mutex mutex;
 
@@ -80,12 +80,12 @@ namespace dsl {
                 std::lock_guard<std::mutex> lock(mutex);
 
                 // If we are already running then queue, otherwise return and set running
-                if (running) {
+                if (running.load()) {
                     queue.push(std::move(task));
                     return std::unique_ptr<threading::ReactionTask>(nullptr);
                 }
                 else {
-                    running = true;
+                    running.store(false);
                     return std::move(task);
                 }
             }
@@ -97,7 +97,7 @@ namespace dsl {
                 std::lock_guard<std::mutex> lock(mutex);
 
                 // We are finished running
-                running = false;
+                running.store(false);
 
                 // If we have another task, add it
                 if (!queue.empty()) {
@@ -115,7 +115,7 @@ namespace dsl {
         std::priority_queue<typename Sync<SyncGroup>::task_ptr> Sync<SyncGroup>::queue;
 
         template <typename SyncGroup>
-        volatile bool Sync<SyncGroup>::running = false;
+        std::atomic<bool> Sync<SyncGroup>::running{false};
 
         template <typename SyncGroup>
         std::mutex Sync<SyncGroup>::mutex;
