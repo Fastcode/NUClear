@@ -41,6 +41,11 @@ if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
   set(MASTER_PROJECT ON)
 endif()
 
+option(USE_VALGRIND "Add extra annotations for better valgrind handling" OFF)
+if(USE_VALGRIND)
+  add_compile_options(-DUSE_VALGRIND)
+endif(USE_VALGRIND)
+
 # Enable address sanitizer
 option(USE_ASAN "Enable address sanitization" OFF)
 if(USE_ASAN)

@@ -20,6 +20,35 @@
 
 #include "threading/ThreadPoolTask.hpp"
 
+// See https://valgrind.org/docs/manual/drd-manual.html#drd-manual.CXX11
+#if defined(USE_VALGRIND) && !defined(NDEBUG)
+namespace std {
+extern "C" {
+static void* execute_native_thread_routine(void* __p) {
+    thread::_State_ptr __t{static_cast<thread::_State*>(__p)};
+    __t->_M_run();
+    return nullptr;
+}
+void thread::_M_start_thread(_State_ptr state, void (*depend)()) {
+    // Make sure it's not optimized out, not even with LTO.
+    asm("" : : "rm"(depend));
+
+    if (!__gthread_active_p()) {
+#    if __cpp_exceptions
+        throw system_error(make_error_code(errc::operation_not_permitted), "Enable multithreading to use std::thread");
+#    else
+        __builtin_abort();
+#    endif
+    }
+
+    const int err = __gthread_create(&_M_id._M_thread, &execute_native_thread_routine, state.get());
+    if (err) __throw_system_error(err);
+    state.release();
+}
+}
+}  // namespace std
+#endif  // defined(USE_VALGRIND) && !defined(NDEBUG)
+
 namespace NUClear {
 
 PowerPlant* PowerPlant::powerplant = nullptr;  // NOLINT
