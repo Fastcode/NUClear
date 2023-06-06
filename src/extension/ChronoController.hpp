@@ -63,7 +63,7 @@ namespace extension {
             // When we shutdown we notify so we quit now
             on<Shutdown>().then("Shutdown Chrono Controller", [this] {
                 // Lock the mutex while we're doing stuff
-                std::unique_lock<std::mutex> lock(mutex);
+                std::lock_guard<std::mutex> lock(mutex);
                 wait.notify_all();
             });
 
