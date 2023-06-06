@@ -85,7 +85,7 @@ namespace dsl {
                     return std::unique_ptr<threading::ReactionTask>(nullptr);
                 }
                 else {
-                    running.store(false);
+                    running.store(true);
                     return std::move(task);
                 }
             }
