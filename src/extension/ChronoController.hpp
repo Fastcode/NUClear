@@ -35,12 +35,10 @@ namespace extension {
 
             on<Trigger<ChronoTask>>().then("Add Chrono task", [this](std::shared_ptr<const ChronoTask> task) {
                 // Lock the mutex while we're doing stuff
-                {
-                    std::lock_guard<std::mutex> lock(mutex);
+                std::lock_guard<std::mutex> lock(mutex);
 
-                    // Add our new task to the heap
-                    tasks.push_back(*task);
-                }
+                // Add our new task to the heap
+                tasks.push_back(*task);
 
                 // Poke the system
                 wait.notify_all();
@@ -49,25 +47,25 @@ namespace extension {
             on<Trigger<dsl::operation::Unbind<ChronoTask>>>().then(
                 "Unbind Chrono Task", [this](const dsl::operation::Unbind<ChronoTask>& unbind) {
                     // Lock the mutex while we're doing stuff
-                    {
-                        std::lock_guard<std::mutex> lock(mutex);
+                    std::lock_guard<std::mutex> lock(mutex);
 
-                        // Find the task
-                        auto it = std::find_if(
-                            tasks.begin(), tasks.end(), [&](const ChronoTask& task) { return task.id == unbind.id; });
+                    // Find the task
+                    auto it = std::find_if(
+                        tasks.begin(), tasks.end(), [&](const ChronoTask& task) { return task.id == unbind.id; });
 
-                        // Remove if if it exists
-                        if (it != tasks.end()) {
-                            tasks.erase(it);
-                        }
-                    }
+                    // Remove if if it exists
+                    if (it != tasks.end()) { tasks.erase(it); }
 
                     // Poke the system to make sure it's not waiting on something that's gone
                     wait.notify_all();
                 });
 
             // When we shutdown we notify so we quit now
-            on<Shutdown>().then("Shutdown Chrono Controller", [this] { wait.notify_all(); });
+            on<Shutdown>().then("Shutdown Chrono Controller", [this] {
+                // Lock the mutex while we're doing stuff
+                std::unique_lock<std::mutex> lock(mutex);
+                wait.notify_all();
+            });
 
             on<Always, Priority::REALTIME>().then("Chrono Controller", [this] {
                 // Acquire the mutex lock so we can wait on it
