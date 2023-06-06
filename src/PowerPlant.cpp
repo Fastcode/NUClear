@@ -31,10 +31,10 @@ PowerPlant::~PowerPlant() {
 }
 
 void PowerPlant::on_startup(std::function<void()>&& func) {
-    if (is_running) { throw std::runtime_error("Unable to do on_startup as the PowerPlant has already started"); }
-    else {
-        startup_tasks.push_back(func);
+    if (is_running.load()) {
+        throw std::runtime_error("Unable to do on_startup as the PowerPlant has already started");
     }
+    else { startup_tasks.push_back(func); }
 }
 
 void PowerPlant::add_thread_task(std::function<void()>&& task) {
@@ -44,7 +44,7 @@ void PowerPlant::add_thread_task(std::function<void()>&& task) {
 void PowerPlant::start() {
 
     // We are now running
-    is_running = true;
+    is_running.store(true);
 
     // Run all our Initialise scope tasks
     for (auto&& func : startup_tasks) {
@@ -92,7 +92,7 @@ void PowerPlant::shutdown() {
 
     // Stop running before we emit the Shutdown event
     // Some things such as on<Always> depend on this flag and it's possible to miss it
-    is_running = false;
+    is_running.store(false);
 
     // Emit our shutdown event
     emit(std::make_unique<dsl::word::Shutdown>());
@@ -105,6 +105,6 @@ void PowerPlant::shutdown() {
 }
 
 bool PowerPlant::running() const {
-    return is_running;
+    return is_running.load();
 }
 }  // namespace NUClear

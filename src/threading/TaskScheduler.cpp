@@ -26,7 +26,7 @@ namespace threading {
     void TaskScheduler::shutdown() {
         {
             std::lock_guard<std::mutex> lock(mutex);
-            running = false;
+            running.store(false);
         }
         condition.notify_all();
     }
@@ -34,7 +34,7 @@ namespace threading {
     void TaskScheduler::submit(std::unique_ptr<ReactionTask>&& task) {
 
         // We do not accept new tasks once we are shutdown
-        if (running) {
+        if (running.load()) {
 
             /* Mutex Scope */ {
                 std::lock_guard<std::mutex> lock(mutex);
@@ -55,7 +55,7 @@ namespace threading {
         while (queue.empty()) {
 
             // If the queue is empty we either wait or shutdown
-            if (!running) {
+            if (!running.load()) {
 
                 // Notify any other threads that might be waiting on this condition
                 condition.notify_all();

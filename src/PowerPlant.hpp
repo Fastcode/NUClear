@@ -262,7 +262,7 @@ private:
     /// @brief Tasks that will be run during the startup process
     std::vector<std::function<void()>> startup_tasks;
     /// @brief True if the powerplant is running
-    volatile bool is_running = false;
+    std::atomic<bool> is_running{false};
 };
 
 /**

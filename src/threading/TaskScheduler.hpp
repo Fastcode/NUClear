@@ -103,7 +103,7 @@ namespace threading {
 
     private:
         /// @brief if the scheduler is running or is shut down
-        volatile bool running;
+        std::atomic<bool> running;
         /// @brief our queue which sorts tasks by priority
         std::priority_queue<std::unique_ptr<ReactionTask>> queue;
         /// @brief the mutex which our threads synchronize their access to this object
