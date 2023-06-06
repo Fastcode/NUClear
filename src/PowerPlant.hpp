@@ -19,6 +19,7 @@
 #ifndef NUCLEAR_POWERPLANT_HPP
 #define NUCLEAR_POWERPLANT_HPP
 
+#include <atomic>
 #include <iostream>
 #include <map>
 #include <memory>
