@@ -66,35 +66,34 @@ namespace dsl {
             using task_ptr = std::unique_ptr<threading::ReactionTask>;
 
             /// @brief our queue which sorts tasks by priority
-            static std::priority_queue<task_ptr> queue;
+            static std::priority_queue<task_ptr> queue;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
             /// @brief how many tasks are currently running
-            static volatile bool running;
+            static volatile bool running;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
             /// @brief a mutex to ensure data consistency
-            static std::mutex mutex;
+            static std::mutex mutex;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
             template <typename DSL>
             static inline std::unique_ptr<threading::ReactionTask> reschedule(
                 std::unique_ptr<threading::ReactionTask>&& task) {
 
                 // Lock our mutex
-                std::lock_guard<std::mutex> lock(mutex);
+                const std::lock_guard<std::mutex> lock(mutex);
 
                 // If we are already running then queue, otherwise return and set running
                 if (running) {
                     queue.push(std::move(task));
-                    return std::unique_ptr<threading::ReactionTask>(nullptr);
+                    return nullptr;
                 }
-                else {
-                    running = true;
-                    return std::move(task);
-                }
+
+                running = true;
+                return std::move(task);
             }
 
             template <typename DSL>
             static void postcondition(threading::ReactionTask& task) {
 
                 // Lock our mutex
-                std::lock_guard<std::mutex> lock(mutex);
+                const std::lock_guard<std::mutex> lock(mutex);
 
                 // We are finished running
                 running = false;
@@ -102,6 +101,7 @@ namespace dsl {
                 // If we have another task, add it
                 if (!queue.empty()) {
                     std::unique_ptr<threading::ReactionTask> next_task(
+                        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-const-cast)
                         std::move(const_cast<std::unique_ptr<threading::ReactionTask>&>(queue.top())));
                     queue.pop();
 
@@ -112,12 +112,14 @@ namespace dsl {
         };
 
         template <typename SyncGroup>
+        // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables,cert-err58-cpp)
         std::priority_queue<typename Sync<SyncGroup>::task_ptr> Sync<SyncGroup>::queue;
 
         template <typename SyncGroup>
-        volatile bool Sync<SyncGroup>::running = false;
+        volatile bool Sync<SyncGroup>::running = false;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
         template <typename SyncGroup>
+        // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
         std::mutex Sync<SyncGroup>::mutex;
 
     }  // namespace word

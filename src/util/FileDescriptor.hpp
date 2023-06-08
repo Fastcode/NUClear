@@ -88,7 +88,7 @@ namespace util {
          *
          * @return the file descriptor
          */
-        operator fd_t();
+        operator fd_t() const;
 
         /**
          * @brief Close the current file descriptor, if it's valid

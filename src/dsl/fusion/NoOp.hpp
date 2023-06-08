@@ -32,20 +32,20 @@ namespace dsl {
         struct NoOp {
 
             template <typename DSL, typename... Args>
-            static inline void bind(const std::shared_ptr<threading::Reaction>&, Args...) {}
+            static inline void bind(const std::shared_ptr<threading::Reaction>& /* reaction */, Args... /* args */) {}
 
             template <typename DSL>
-            static inline std::tuple<> get(threading::Reaction&) {
-                return std::tuple<>();
+            static inline std::tuple<> get(threading::Reaction& /* reaction */) {
+                return {};
             }
 
             template <typename DSL>
-            static inline bool precondition(threading::Reaction&) {
+            static inline bool precondition(threading::Reaction& /* reaction */) {
                 return true;
             }
 
             template <typename DSL>
-            static inline int priority(threading::Reaction&) {
+            static inline int priority(threading::Reaction& /* reaction */) {
                 return word::Priority::NORMAL::value;
             }
 
@@ -56,7 +56,7 @@ namespace dsl {
             }
 
             template <typename DSL>
-            static inline void postcondition(threading::ReactionTask&) {}
+            static inline void postcondition(threading::ReactionTask& /* task */) {}
         };
 
         /**

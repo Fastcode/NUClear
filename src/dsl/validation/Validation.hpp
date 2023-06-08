@@ -42,9 +42,9 @@ namespace dsl {
                           "The provided DSL sentence does not have any components that bind a function");
         };
 
-        // TODO Test that the function signature matches the arguments that will be obtained by get
+        // TODO(Trent) Test that the function signature matches the arguments that will be obtained by get
 
-        // TODO Test that the function signature uses the correct constness in the arguments
+        // TODO(Trent) Test that the function signature uses the correct constness in the arguments
 
     }  // namespace validation
 }  // namespace dsl

@@ -101,7 +101,7 @@ namespace dsl {
             }
 
             template <typename DSL>
-            static inline Event get(threading::Reaction&) {
+            static inline Event get(threading::Reaction& /* reaction */) {
 
                 // If our thread store has a value
                 if (ThreadEventStore::value) {

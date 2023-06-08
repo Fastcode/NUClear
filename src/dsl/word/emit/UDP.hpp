@@ -57,7 +57,7 @@ namespace dsl {
             template <typename DataType>
             struct UDP {
 
-                static inline void emit(PowerPlant&,
+                static inline void emit(PowerPlant& /* powerplant */,
                                         std::shared_ptr<DataType> data,
                                         in_addr_t to_addr,
                                         in_port_t to_port,
@@ -141,7 +141,7 @@ namespace dsl {
                 }
 
                 // String ip addresses
-                static inline void emit(PowerPlant& pp,
+                static inline void emit(PowerPlant& powerplant,
                                         std::shared_ptr<DataType> data,
                                         std::string to_addr,
                                         in_port_t to_port,
@@ -156,10 +156,10 @@ namespace dsl {
                     inet_pton(AF_INET, from_addr.c_str(), &addr);
                     in_addr_t from = ntohl(addr.s_addr);
 
-                    emit(pp, data, to, to_port, from, from_port);
+                    emit(powerplant, data, to, to_port, from, from_port);
                 }
 
-                static inline void emit(PowerPlant& pp,
+                static inline void emit(PowerPlant& powerplant,
                                         std::shared_ptr<DataType> data,
                                         std::string to_addr,
                                         in_port_t to_port,
@@ -171,10 +171,10 @@ namespace dsl {
                     inet_pton(AF_INET, to_addr.c_str(), &addr);
                     in_addr_t to = ntohl(addr.s_addr);
 
-                    emit(pp, data, to, to_port, from_addr, from_port);
+                    emit(powerplant, data, to, to_port, from_addr, from_port);
                 }
 
-                static inline void emit(PowerPlant& pp,
+                static inline void emit(PowerPlant& powerplant,
                                         std::shared_ptr<DataType> data,
                                         in_addr_t to_addr,
                                         in_port_t to_port,
@@ -186,18 +186,18 @@ namespace dsl {
                     inet_pton(AF_INET, from_addr.c_str(), &addr);
                     in_addr_t from = ntohl(addr.s_addr);
 
-                    emit(pp, data, to_addr, to_port, from, from_port);
+                    emit(powerplant, data, to_addr, to_port, from, from_port);
                 }
 
                 // No from address
-                static inline void emit(PowerPlant& pp,
+                static inline void emit(PowerPlant& powerplant,
                                         std::shared_ptr<DataType> data,
                                         in_addr_t to_addr,
                                         in_port_t to_port) {
-                    emit(pp, data, to_addr, to_port, INADDR_ANY, in_port_t(0));
+                    emit(powerplant, data, to_addr, to_port, INADDR_ANY, in_port_t(0));
                 }
 
-                static inline void emit(PowerPlant& pp,
+                static inline void emit(PowerPlant& powerplant,
                                         std::shared_ptr<DataType> data,
                                         std::string to_addr,
                                         in_port_t to_port) {
@@ -207,7 +207,7 @@ namespace dsl {
                     inet_pton(AF_INET, to_addr.c_str(), &addr);
                     in_addr_t to = ntohl(addr.s_addr);
 
-                    emit(pp, data, to, to_port, INADDR_ANY, in_port_t(0));
+                    emit(powerplant, data, to, to_port, INADDR_ANY, in_port_t(0));
                 }
             };
 

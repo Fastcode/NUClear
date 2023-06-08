@@ -19,6 +19,7 @@
 #ifndef NUCLEAR_MESSAGE_REACTIONSTATISTICS_HPP
 #define NUCLEAR_MESSAGE_REACTIONSTATISTICS_HPP
 
+#include <exception>
 #include <string>
 #include <vector>
 
@@ -32,18 +33,8 @@ namespace message {
      */
     struct ReactionStatistics {
 
-        ReactionStatistics()
-            : identifier()
-            , reaction_id(0)
-            , task_id(0)
-            , cause_reaction_id(0)
-            , cause_task_id(0)
-            , emitted()
-            , started()
-            , finished()
-            , exception(nullptr) {}
-
-        ReactionStatistics(const std::vector<std::string> identifier,
+        ReactionStatistics() = default;
+        ReactionStatistics(std::vector<std::string> identifier,
                            uint64_t reaction_id,
                            uint64_t task_id,
                            uint64_t cause_reaction_id,
@@ -51,8 +42,8 @@ namespace message {
                            const clock::time_point& emitted,
                            const clock::time_point& start,
                            const clock::time_point& finish,
-                           const std::exception_ptr& exception)
-            : identifier(identifier)
+                           std::exception_ptr exception)
+            : identifier(std::move(identifier))
             , reaction_id(reaction_id)
             , task_id(task_id)
             , cause_reaction_id(cause_reaction_id)
@@ -60,26 +51,26 @@ namespace message {
             , emitted(emitted)
             , started(start)
             , finished(finish)
-            , exception(exception) {}
+            , exception(std::move(exception)) {}
 
         /// @brief A string containing the username/on arguments/and callback name of the reaction.
-        std::vector<std::string> identifier;
+        std::vector<std::string> identifier{};
         /// @brief The id of this reaction.
-        uint64_t reaction_id;
+        uint64_t reaction_id{0};
         /// @brief The task id of this reaction.
-        uint64_t task_id;
+        uint64_t task_id{0};
         /// @brief The reaction id of the reaction that caused this one or 0 if there was not one
-        uint64_t cause_reaction_id;
+        uint64_t cause_reaction_id{0};
         /// @brief The reaction id of the task that caused this task or 0 if there was not one
-        uint64_t cause_task_id;
+        uint64_t cause_task_id{0};
         /// @brief The time that this reaction was emitted to the thread pool
-        clock::time_point emitted;
+        clock::time_point emitted{};
         /// @brief The time that execution started on this reaction
-        clock::time_point started;
+        clock::time_point started{};
         /// @brief The time that execution finished on this reaction
-        clock::time_point finished;
+        clock::time_point finished{};
         /// @brief An exception pointer that can be rethrown (if the reaction threw an exception)
-        std::exception_ptr exception;
+        std::exception_ptr exception{nullptr};
     };
 
 }  // namespace message

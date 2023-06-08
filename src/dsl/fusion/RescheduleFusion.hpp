@@ -94,9 +94,7 @@ namespace dsl {
                 if (ptr) {
                     return RescheduleFuser<std::tuple<Word2, WordN...>>::template reschedule<DSL>(std::move(ptr));
                 }
-                else {
-                    return ptr;
-                }
+                return ptr;
             }
         };
 

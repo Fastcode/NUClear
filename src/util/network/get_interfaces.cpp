@@ -146,12 +146,12 @@ namespace util {
 
             std::vector<Interface> ifaces;
 
-            addrinfo hints;
+            addrinfo hints{};
             std::memset(&hints, 0, sizeof(hints));
             hints.ai_family = AF_INET;
 
             // Query our interfaces
-            ifaddrs* addrs;
+            ifaddrs* addrs{};
             if (::getifaddrs(&addrs) < 0) {
                 throw std::system_error(network_errno,
                                         std::system_category(),
@@ -162,7 +162,7 @@ namespace util {
             for (ifaddrs* cursor = addrs; cursor != nullptr; cursor = cursor->ifa_next) {
 
                 // Sometimes we find an interface with no IP (like a CAN bus) this is not what we're after
-                if (cursor->ifa_addr) {
+                if (cursor->ifa_addr != nullptr) {
 
                     Interface iface;
                     iface.name = cursor->ifa_name;

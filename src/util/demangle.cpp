@@ -20,9 +20,9 @@
 
 // Windows symbol demangler
 #ifdef _WIN32
-    // Turn off clang-format to avoid moving platform.h after Dbghelp.h
-    // (Dbghelp.h depends on types from Windows.h)
-    // clang-format off
+// Turn off clang-format to avoid moving platform.h after Dbghelp.h
+// (Dbghelp.h depends on types from Windows.h)
+// clang-format off
 #    include "platform.hpp"
 #    include <Dbghelp.h>
 
@@ -78,9 +78,9 @@ namespace util {
 
     #include <cxxabi.h>  // for __cxa_demangle
 
-    #include <cstdlib>  // for free
-    #include <memory>   // for unique_ptr
-    #include <string>   // for string
+    #include <cstdlib>   // for free
+    #include <memory>    // for unique_ptr
+    #include <string>    // for string
 
 namespace NUClear {
 namespace util {
@@ -95,12 +95,13 @@ namespace util {
     std::string demangle(const char* symbol) {
 
         int status = -4;  // some arbitrary value to eliminate the compiler warning
-        std::unique_ptr<char, void (*)(void*)> res{abi::__cxa_demangle(symbol, nullptr, nullptr, &status), std::free};
+        const std::unique_ptr<char, void (*)(void*)> res{abi::__cxa_demangle(symbol, nullptr, nullptr, &status),
+                                                         std::free};
 
-        return std::string(status == 0 ? res.get() : symbol);
+        return status == 0 ? res.get() : symbol;
     }
 
 }  // namespace util
 }  // namespace NUClear
 
-#endif  // _MSC_VER
+#endif                   // _MSC_VER

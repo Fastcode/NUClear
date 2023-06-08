@@ -22,6 +22,7 @@
 
 namespace NUClear {
 
+// NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays)
 inline PowerPlant::PowerPlant(Configuration config, int argc, const char* argv[]) : configuration(config) {
 
     // Stop people from making more then one powerplant
@@ -169,18 +170,17 @@ void PowerPlant::log(Arguments&&... args) {
     }
 
     // Get the current task
-    auto* current_task = threading::ReactionTask::get_current_task();
+    const auto* current_task = threading::ReactionTask::get_current_task();
 
     // Only log if we are not from a reaction, or if our reactor's log level is high enough
     if (current_task == nullptr || level >= current_task->parent.reactor.log_level) {
         // Build our log message by concatenating everything to a stream
         std::stringstream output_stream;
         log_impl(output_stream, std::forward<Arguments>(args)...);
-        std::string output = output_stream.str();
 
         // Direct emit the log message so that any direct loggers can use it
         powerplant->emit<dsl::word::emit::Direct>(std::make_unique<message::LogMessage>(
-            message::LogMessage{level, output, current_task != nullptr ? current_task->stats : nullptr}));
+            message::LogMessage{level, output_stream.str(), current_task != nullptr ? current_task->stats : nullptr}));
     }
 }
 

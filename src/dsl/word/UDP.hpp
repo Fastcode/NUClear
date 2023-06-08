@@ -58,35 +58,35 @@ namespace dsl {
         struct UDP {
 
             struct Packet {
-                Packet() : valid(false), remote(), local(), payload() {}
+                Packet() = default;
 
                 /// If the packet is valid (it contains data)
-                bool valid;
+                bool valid{false};
 
                 /// The information about this packet's source
                 struct Remote {
-                    Remote() : address(0), port(0) {}
+                    Remote() =default;
                     Remote(uint32_t addr, uint16_t port) : address(addr), port(port) {}
 
                     /// The address that the packet is from
-                    uint32_t address;
+                    uint32_t address{0};
                     /// The port that the packet is from
-                    uint16_t port;
+                    uint16_t port{0};
                 } remote;
 
                 /// The information about this packet's destination
                 struct Local {
-                    Local() : address(0), port(0) {}
+                    Local() =default;
                     Local(uint32_t addr, uint16_t port) : address(addr), port(port) {}
 
                     /// The address that the packet is to
-                    uint32_t address;
+                    uint32_t address{0};
                     /// The port that the packet is to
-                    uint16_t port;
+                    uint16_t port{0};
                 } local;
 
                 /// The data to be sent in the packet
-                std::vector<char> payload;
+                std::vector<char> payload{};
 
                 /// Our validator when returned for if we are a real packet
                 operator bool() const {
@@ -162,10 +162,10 @@ namespace dsl {
             }
 
             template <typename DSL>
-            static inline Packet get(threading::Reaction& r) {
+            static inline Packet get(threading::Reaction& reaction) {
 
                 // Get our filedescriptor from the magic cache
-                auto event = IO::get<DSL>(r);
+                auto event = IO::get<DSL>(reaction);
 
                 // If our get is being run without an fd (something else triggered) then short circuit
                 if (event.fd == 0) {
@@ -321,8 +321,8 @@ namespace dsl {
                 }
 
                 template <typename DSL>
-                static inline Packet get(threading::Reaction& r) {
-                    return UDP::get<DSL>(r);
+                static inline Packet get(threading::Reaction& reaction) {
+                    return UDP::get<DSL>(reaction);
                 }
             };
 
@@ -427,8 +427,8 @@ namespace dsl {
                 }
 
                 template <typename DSL>
-                static inline Packet get(threading::Reaction& r) {
-                    return UDP::get<DSL>(r);
+                static inline Packet get(threading::Reaction& reaction) {
+                    return UDP::get<DSL>(reaction);
                 }
             };
         };

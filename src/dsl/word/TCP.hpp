@@ -138,10 +138,10 @@ namespace dsl {
             }
 
             template <typename DSL>
-            static inline Connection get(threading::Reaction& r) {
+            static inline Connection get(threading::Reaction& reaction) {
 
                 // Get our file descriptor from the magic cache
-                auto event = IO::get<DSL>(r);
+                auto event = IO::get<DSL>(reaction);
 
                 // If our get is being run without an fd (something else triggered) then short circuit
                 if (event.fd == 0) {

@@ -38,7 +38,7 @@ namespace dsl {
         struct CacheGet {
 
             template <typename DSL, typename T = DataType>
-            static inline std::shared_ptr<const T> get(threading::Reaction&) {
+            static inline std::shared_ptr<const T> get(threading::Reaction& /* reaction */) {
 
                 return store::ThreadStore<std::shared_ptr<T>>::value == nullptr
                            ? store::DataStore<DataType>::get()

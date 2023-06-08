@@ -1,5 +1,7 @@
 #include "FileDescriptor.hpp"
 
+#include <utility>
+
 namespace NUClear {
 namespace util {
 
@@ -37,12 +39,10 @@ namespace util {
     }
 
     fd_t FileDescriptor::release() {
-        fd_t temp = fd;
-        fd        = INVALID_SOCKET;
-        return temp;
+        return std::exchange(fd, INVALID_SOCKET);
     }
 
-    FileDescriptor::operator fd_t() {
+    FileDescriptor::operator fd_t() const {
         return fd;
     }
 

@@ -35,8 +35,8 @@ namespace dsl {
         template <typename T>
         struct has_postcondition {
         private:
-            typedef std::true_type yes;
-            typedef std::false_type no;
+            using yes = std::true_type;
+            using no  = std::false_type;
 
             template <typename U>
             static auto test(int)

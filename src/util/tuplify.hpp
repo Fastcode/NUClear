@@ -26,7 +26,7 @@ namespace util {
 
     template <typename T>
     static inline std::tuple<T> tuplify(T&& data) {
-        return std::make_tuple(std::move(data));
+        return std::make_tuple(std::forward<T>(data));
     }
 
     template <typename... Ts>
