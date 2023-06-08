@@ -22,6 +22,7 @@
 #include <cstring>
 
 #include "../../PowerPlant.hpp"
+#include "../../threading/Reaction.hpp"
 #include "../../util/FileDescriptor.hpp"
 #include "../../util/platform.hpp"
 #include "IO.hpp"

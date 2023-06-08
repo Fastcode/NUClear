@@ -19,6 +19,8 @@
 #ifndef NUCLEAR_DSL_FUSION_NOOP_HPP
 #define NUCLEAR_DSL_FUSION_NOOP_HPP
 
+#include "../../threading/Reaction.hpp"
+#include "../../threading/ReactionTask.hpp"
 #include "../word/Priority.hpp"
 
 namespace NUClear {

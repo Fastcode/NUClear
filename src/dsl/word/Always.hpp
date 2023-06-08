@@ -19,6 +19,8 @@
 #ifndef NUCLEAR_DSL_WORD_ALWAYS_HPP
 #define NUCLEAR_DSL_WORD_ALWAYS_HPP
 
+#include "../../threading/ReactionTask.hpp"
+
 namespace NUClear {
 namespace dsl {
     namespace word {

@@ -19,6 +19,14 @@
 #ifndef NUCLEAR_DSL_WORD_SYNC_HPP
 #define NUCLEAR_DSL_WORD_SYNC_HPP
 
+#include <atomic>
+#include <memory>
+#include <mutex>
+#include <queue>
+#include <typeindex>
+
+#include "../../threading/ReactionTask.hpp"
+
 namespace NUClear {
 namespace dsl {
     namespace word {
@@ -63,62 +71,11 @@ namespace dsl {
         template <typename SyncGroup>
         struct Sync {
 
-            using task_ptr = std::unique_ptr<threading::ReactionTask>;
-
-            /// @brief our queue which sorts tasks by priority
-            static std::priority_queue<task_ptr> queue;
-            /// @brief how many tasks are currently running
-            static std::atomic<bool> running;
-            /// @brief a mutex to ensure data consistency
-            static std::mutex mutex;
-
             template <typename DSL>
-            static inline std::unique_ptr<threading::ReactionTask> reschedule(
-                std::unique_ptr<threading::ReactionTask>&& task) {
-
-                // Lock our mutex
-                std::lock_guard<std::mutex> lock(mutex);
-
-                // If we are already running then queue, otherwise return and set running
-                if (running.load()) {
-                    queue.push(std::move(task));
-                    return std::unique_ptr<threading::ReactionTask>(nullptr);
-                }
-                else {
-                    running.store(true);
-                    return std::move(task);
-                }
-            }
-
-            template <typename DSL>
-            static void postcondition(threading::ReactionTask& task) {
-
-                // Lock our mutex
-                std::lock_guard<std::mutex> lock(mutex);
-
-                // We are finished running
-                running.store(false);
-
-                // If we have another task, add it
-                if (!queue.empty()) {
-                    std::unique_ptr<threading::ReactionTask> next_task(
-                        std::move(const_cast<std::unique_ptr<threading::ReactionTask>&>(queue.top())));
-                    queue.pop();
-
-                    // Resubmit this task to the reaction queue
-                    task.parent.reactor.powerplant.submit(std::move(next_task));
-                }
+            static inline std::type_index group(threading::ReactionTask& task) {
+                return std::type_index(typeid(SyncGroup));
             }
         };
-
-        template <typename SyncGroup>
-        std::priority_queue<typename Sync<SyncGroup>::task_ptr> Sync<SyncGroup>::queue;
-
-        template <typename SyncGroup>
-        std::atomic<bool> Sync<SyncGroup>::running{false};
-
-        template <typename SyncGroup>
-        std::mutex Sync<SyncGroup>::mutex;
 
     }  // namespace word
 }  // namespace dsl

@@ -19,6 +19,7 @@
 #ifndef NUCLEAR_DSL_WORD_ONCE_HPP
 #define NUCLEAR_DSL_WORD_ONCE_HPP
 
+#include "../../threading/ReactionTask.hpp"
 #include "Single.hpp"
 
 namespace NUClear {

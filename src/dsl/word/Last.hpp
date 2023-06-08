@@ -22,6 +22,7 @@
 #include <list>
 #include <type_traits>
 
+#include "../../threading/Reaction.hpp"
 #include "../../util/MergeTransient.hpp"
 
 namespace NUClear {

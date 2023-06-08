@@ -19,6 +19,7 @@
 #ifndef NUCLEAR_DSL_WORD_MAINTHREAD_HPP
 #define NUCLEAR_DSL_WORD_MAINTHREAD_HPP
 
+#include "../../threading/ReactionTask.hpp"
 #include "../../util/main_thread_id.hpp"
 
 namespace NUClear {

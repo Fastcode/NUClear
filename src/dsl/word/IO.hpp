@@ -19,6 +19,7 @@
 #ifndef NUCLEAR_DSL_WORD_IO_HPP
 #define NUCLEAR_DSL_WORD_IO_HPP
 
+#include "../../threading/Reaction.hpp"
 #include "../../util/platform.hpp"
 #include "../operation/Unbind.hpp"
 #include "../store/ThreadStore.hpp"
