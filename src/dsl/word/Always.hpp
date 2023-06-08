@@ -20,6 +20,7 @@
 #define NUCLEAR_DSL_WORD_ALWAYS_HPP
 
 #include "../../threading/ReactionTask.hpp"
+#include "../../util/thread_pool.hpp"
 
 namespace NUClear {
 namespace dsl {
@@ -62,26 +63,34 @@ namespace dsl {
         struct Always {
 
             template <typename DSL>
+            static inline util::ThreadPoolDescriptor pool(threading::ReactionTask& /*task*/) {
+                static uint64_t pool_id = util::ThreadPoolIDSource::source++;
+                return util::ThreadPoolDescriptor{pool_id, 1};
+            }
+
+            template <typename DSL>
             static inline void bind(const std::shared_ptr<threading::Reaction>& reaction) {
 
                 reaction->unbinders.push_back([](threading::Reaction& r) { r.enabled = false; });
 
-                // This is our function that runs forever until the powerplant exits
-                reaction->reactor.powerplant.add_thread_task([reaction] {
-                    while (reaction->reactor.powerplant.running()) {
-                        try {
-                            // Get a task
-                            auto task = reaction->get_task();
+                try {
+                    // Get a task
+                    auto task = reaction->get_task();
 
-                            // If we got a real task back
-                            if (task) {
-                                task = task->run(std::move(task));
-                            }
-                        }
-                        catch (...) {
-                        }
+                    // If we got a real task back
+                    if (task) {
+                        // Set the thread pool on the task
+                        task->thread_pool_descriptor = Always::pool<DSL>(*task);
+
+                        // Make sure this task never dies
+                        task->keep_alive = true;
+
+                        // Submit the task to be run
+                        reaction->reactor.powerplant.submit(std::move(task));
                     }
-                });
+                }
+                catch (...) {
+                }
             }
         };
 
