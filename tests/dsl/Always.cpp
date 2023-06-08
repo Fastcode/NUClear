@@ -31,7 +31,9 @@ public:
             ++i;
 
             // Run until it's 11 then shutdown
-            if (i > 10) { powerplant.shutdown(); }
+            if (i > 10) {
+                powerplant.shutdown();
+            }
         });
     }
 };

@@ -56,7 +56,9 @@ public:
             REQUIRE(stats.identifier[0] != "NoStats");
 
             // Flag if we have seen the message handler
-            if (stats.identifier[0] == "Message Handler") { seen_message0 = true; }
+            if (stats.identifier[0] == "Message Handler") {
+                seen_message0 = true;
+            }
             // Flag if we have seen the startup handler
             else if (stats.identifier[0] == "Startup Handler") {
                 seen_message_startup = true;

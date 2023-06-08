@@ -56,7 +56,9 @@ namespace util {
                 for (PIP_ADAPTER_ADDRESSES addr = addrs; addr != nullptr; addr = addr->Next) {
                     // Skip adapters that are not up and able to process packets (e.g. they're disconnected, disabled,
                     // etc)
-                    if (addr->OperStatus != IfOperStatusUp) { continue; }
+                    if (addr->OperStatus != IfOperStatusUp) {
+                        continue;
+                    }
 
                     for (auto uaddr = addr->FirstUnicastAddress; uaddr != nullptr; uaddr = uaddr->Next) {
 
@@ -151,8 +153,9 @@ namespace util {
             // Query our interfaces
             ifaddrs* addrs;
             if (::getifaddrs(&addrs) < 0) {
-                throw std::system_error(
-                    network_errno, std::system_category(), "Unable to query the interfaces on the platform");
+                throw std::system_error(network_errno,
+                                        std::system_category(),
+                                        "Unable to query the interfaces on the platform");
             }
 
             // Loop through our interfaces

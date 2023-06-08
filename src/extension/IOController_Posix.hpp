@@ -57,8 +57,9 @@ namespace extension {
 
             int i = pipe(static_cast<int*>(vals));
             if (i < 0) {
-                throw std::system_error(
-                    network_errno, std::system_category(), "We were unable to make the notification pipe for IO");
+                throw std::system_error(network_errno,
+                                        std::system_category(),
+                                        "We were unable to make the notification pipe for IO");
             }
 
             notify_recv = vals[0];
@@ -68,7 +69,8 @@ namespace extension {
             fds.push_back(pollfd{notify_recv, POLLIN, 0});
 
             on<Trigger<dsl::word::IOConfiguration>>().then(
-                "Configure IO Reaction", [this](const dsl::word::IOConfiguration& config) {
+                "Configure IO Reaction",
+                [this](const dsl::word::IOConfiguration& config) {
                     // Lock our mutex to avoid concurrent modification
                     std::lock_guard<std::mutex> lock(reaction_mutex);
 
@@ -89,7 +91,8 @@ namespace extension {
                 });
 
             on<Trigger<dsl::operation::Unbind<IO>>>().then(
-                "Unbind IO Reaction", [this](const dsl::operation::Unbind<IO>& unbind) {
+                "Unbind IO Reaction",
+                [this](const dsl::operation::Unbind<IO>& unbind) {
                     // Lock our mutex to avoid concurrent modification
                     std::lock_guard<std::mutex> lock(reaction_mutex);
 
@@ -98,7 +101,9 @@ namespace extension {
                         return t.reaction->id == unbind.id;
                     });
 
-                    if (reaction != std::end(reactions)) { reactions.erase(reaction); }
+                    if (reaction != std::end(reactions)) {
+                        reactions.erase(reaction);
+                    }
 
                     // Let the poll command know that stuff happened
                     dirty = true;
@@ -199,7 +204,9 @@ namespace extension {
                                                 // Submit the task (which should run the get)
                                                 try {
                                                     auto task = it->reaction->get_task();
-                                                    if (task) { powerplant.submit(std::move(task)); }
+                                                    if (task) {
+                                                        powerplant.submit(std::move(task));
+                                                    }
                                                 }
                                                 catch (...) {
                                                 }
@@ -232,7 +239,9 @@ namespace extension {
                             for (const auto& r : reactions) {
 
                                 // If we are the same fd, then add our interest set
-                                if (r.fd == fds.back().fd) { fds.back().events |= r.events; }
+                                if (r.fd == fds.back().fd) {
+                                    fds.back().events |= r.events;
+                                }
                                 // Otherwise add a new one
                                 else {
                                     fds.push_back(pollfd{r.fd, r.events, 0});

@@ -20,6 +20,7 @@
 #define NUCLEAR_DSL_WORD_EVERY_HPP
 
 #include <cmath>
+
 #include "../operation/ChronoTask.hpp"
 #include "../operation/Unbind.hpp"
 #include "emit/Direct.hpp"
@@ -38,7 +39,7 @@ namespace dsl {
         template <typename Unit, std::intmax_t num, std::intmax_t den>
         struct Per<std::chrono::duration<Unit, std::ratio<num, den>>> : public clock::duration {
             Per(int ticks)
-                : clock::duration(std::lround((double(num) / double(ticks* den))
+                : clock::duration(std::lround((double(num) / double(ticks * den))
                                               * (double(clock::period::den) / double(clock::period::num)))) {}
         };
 

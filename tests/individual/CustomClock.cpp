@@ -50,7 +50,9 @@ public:
         // Running every this slowed down clock should execute slower
         on<Every<10, std::chrono::milliseconds>>().then([this] {
             times.push_back(std::chrono::steady_clock::now());
-            if (times.size() > n_time) { powerplant.shutdown(); }
+            if (times.size() > n_time) {
+                powerplant.shutdown();
+            }
         });
     }
 };

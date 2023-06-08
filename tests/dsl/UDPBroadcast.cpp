@@ -43,7 +43,9 @@ public:
             REQUIRE(std::memcmp(packet.payload.data(), TEST_STRING.data(), TEST_STRING.size()) == 0);
 
             // Shutdown we are done with the test
-            if (count_a == num_addresses && count_b == num_addresses) { powerplant.shutdown(); }
+            if (count_a == num_addresses && count_b == num_addresses) {
+                powerplant.shutdown();
+            }
         });
 
         // Unknown port
@@ -55,7 +57,9 @@ public:
             REQUIRE(std::memcmp(packet.payload.data(), TEST_STRING.data(), TEST_STRING.size()) == 0);
 
             // Shutdown we are done with the test
-            if (count_a == num_addresses && count_b == num_addresses) { powerplant.shutdown(); }
+            if (count_a == num_addresses && count_b == num_addresses) {
+                powerplant.shutdown();
+            }
         });
 
         on<Trigger<Message>>().then([this] {

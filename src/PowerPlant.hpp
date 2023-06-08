@@ -96,9 +96,9 @@ public:
     ~PowerPlant();
 
     // There can only be one!
-    PowerPlant(const PowerPlant& other)  = delete;
-    PowerPlant(const PowerPlant&& other) = delete;
-    PowerPlant& operator=(const PowerPlant& other) = delete;
+    PowerPlant(const PowerPlant& other)             = delete;
+    PowerPlant(const PowerPlant&& other)            = delete;
+    PowerPlant& operator=(const PowerPlant& other)  = delete;
     PowerPlant& operator=(const PowerPlant&& other) = delete;
 
     /**

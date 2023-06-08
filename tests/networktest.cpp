@@ -74,8 +74,9 @@ public:
             emit<Scope::NETWORK>(std::make_unique<std::string>(std::numeric_limits<uint16_t>::max(), 'v'), join.name);
 
             // Emit long reliable message
-            emit<Scope::NETWORK>(
-                std::make_unique<std::string>(std::numeric_limits<uint16_t>::max(), 's'), join.name, true);
+            emit<Scope::NETWORK>(std::make_unique<std::string>(std::numeric_limits<uint16_t>::max(), 's'),
+                                 join.name,
+                                 true);
         });
 
         on<Trigger<NetworkLeave>, Sync<TestReactor>>().then([](const NetworkLeave& leave) {
@@ -112,7 +113,9 @@ public:
             [](const NUClear::dsl::word::NetworkSource& source, const std::string& s) {
                 std::cout << "Processing a message from " << source.name << std::endl;
 
-                if (s.size() < 100) { std::cout << s << std::endl; }
+                if (s.size() < 100) {
+                    std::cout << s << std::endl;
+                }
                 else {
                     std::cout << s[0] << std::endl;
                 }

@@ -108,8 +108,9 @@ namespace dsl {
                 // Make our socket
                 util::FileDescriptor fd = ::socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
                 if (fd < 0) {
-                    throw std::system_error(
-                        network_errno, std::system_category(), "We were unable to open the UDP socket");
+                    throw std::system_error(network_errno,
+                                            std::system_category(),
+                                            "We were unable to open the UDP socket");
                 }
 
                 // The address we will be binding to
@@ -121,8 +122,9 @@ namespace dsl {
 
                 // Bind to the address, and if we fail throw an error
                 if (::bind(fd, reinterpret_cast<sockaddr*>(&address), sizeof(sockaddr))) {
-                    throw std::system_error(
-                        network_errno, std::system_category(), "We were unable to bind the UDP socket to the port");
+                    throw std::system_error(network_errno,
+                                            std::system_category(),
+                                            "We were unable to bind the UDP socket to the port");
                 }
 
                 int yes = 1;
@@ -136,8 +138,9 @@ namespace dsl {
                 // Get the port we ended up listening on
                 socklen_t len = sizeof(sockaddr_in);
                 if (::getsockname(fd, reinterpret_cast<sockaddr*>(&address), &len) == -1) {
-                    throw std::system_error(
-                        network_errno, std::system_category(), "We were unable to get the port from the UDP socket");
+                    throw std::system_error(network_errno,
+                                            std::system_category(),
+                                            "We were unable to get the port from the UDP socket");
                 }
                 port = ntohs(address.sin_port);
 
@@ -225,8 +228,9 @@ namespace dsl {
                 socklen_t len = sizeof(sockaddr_in);
                 sockaddr_in address;
                 if (::getsockname(event.fd, reinterpret_cast<sockaddr*>(&address), &len) == -1) {
-                    throw std::system_error(
-                        network_errno, std::system_category(), "We were unable to get the port from the UDP socket");
+                    throw std::system_error(network_errno,
+                                            std::system_category(),
+                                            "We were unable to get the port from the UDP socket");
                 }
 
                 // if no error
@@ -251,8 +255,9 @@ namespace dsl {
                     // Make our socket
                     util::FileDescriptor fd = ::socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
                     if (fd < 0) {
-                        throw std::system_error(
-                            network_errno, std::system_category(), "We were unable to open the UDP Broadcast socket");
+                        throw std::system_error(network_errno,
+                                                std::system_category(),
+                                                "We were unable to open the UDP Broadcast socket");
                     }
 
                     // The address we will be binding to
@@ -265,13 +270,15 @@ namespace dsl {
                     int yes = true;
                     // We are a broadcast socket
                     if (setsockopt(fd, SOL_SOCKET, SO_BROADCAST, reinterpret_cast<char*>(&yes), sizeof(yes)) < 0) {
-                        throw std::system_error(
-                            network_errno, std::system_category(), "We were unable to set the socket as broadcast");
+                        throw std::system_error(network_errno,
+                                                std::system_category(),
+                                                "We were unable to set the socket as broadcast");
                     }
                     // Set that we reuse the address so more than one application can bind
                     if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, reinterpret_cast<char*>(&yes), sizeof(yes)) < 0) {
-                        throw std::system_error(
-                            network_errno, std::system_category(), "We were unable to set reuse address on the socket");
+                        throw std::system_error(network_errno,
+                                                std::system_category(),
+                                                "We were unable to set reuse address on the socket");
                     }
                     // Include struct in_pktinfo in the message "ancilliary" control data
                     if (setsockopt(fd, IPPROTO_IP, IP_PKTINFO, reinterpret_cast<char*>(&yes), sizeof(yes)) < 0) {
@@ -282,8 +289,9 @@ namespace dsl {
 
                     // Bind to the address, and if we fail throw an error
                     if (::bind(fd, reinterpret_cast<sockaddr*>(&address), sizeof(sockaddr))) {
-                        throw std::system_error(
-                            network_errno, std::system_category(), "We were unable to bind the UDP socket to the port");
+                        throw std::system_error(network_errno,
+                                                std::system_category(),
+                                                "We were unable to bind the UDP socket to the port");
                     }
 
                     // Get the port we ended up listening on
@@ -335,15 +343,17 @@ namespace dsl {
                     // Make our socket
                     util::FileDescriptor fd = ::socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
                     if (fd < 0) {
-                        throw std::system_error(
-                            network_errno, std::system_category(), "We were unable to open the UDP socket");
+                        throw std::system_error(network_errno,
+                                                std::system_category(),
+                                                "We were unable to open the UDP socket");
                     }
 
                     int yes = true;
                     // Set that we reuse the address so more than one application can bind
                     if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, reinterpret_cast<char*>(&yes), sizeof(yes)) < 0) {
-                        throw std::system_error(
-                            network_errno, std::system_category(), "We were unable to set reuse address on the socket");
+                        throw std::system_error(network_errno,
+                                                std::system_category(),
+                                                "We were unable to set reuse address on the socket");
                     }
                     // Include struct in_pktinfo in the message "ancilliary" control data
                     if (setsockopt(fd, IPPROTO_IP, IP_PKTINFO, reinterpret_cast<char*>(&yes), sizeof(yes)) < 0) {
@@ -354,8 +364,9 @@ namespace dsl {
 
                     // Bind to the address
                     if (::bind(fd, reinterpret_cast<sockaddr*>(&address), sizeof(sockaddr))) {
-                        throw std::system_error(
-                            network_errno, std::system_category(), "We were unable to bind the UDP socket to the port");
+                        throw std::system_error(network_errno,
+                                                std::system_category(),
+                                                "We were unable to bind the UDP socket to the port");
                     }
 
                     // Store the port variable that was used
@@ -386,8 +397,11 @@ namespace dsl {
                         mreq.imr_interface.s_addr = ad;
 
                         // Join our multicast group
-                        if (setsockopt(
-                                fd, IPPROTO_IP, IP_ADD_MEMBERSHIP, reinterpret_cast<char*>(&mreq), sizeof(ip_mreq))
+                        if (setsockopt(fd,
+                                       IPPROTO_IP,
+                                       IP_ADD_MEMBERSHIP,
+                                       reinterpret_cast<char*>(&mreq),
+                                       sizeof(ip_mreq))
                             < 0) {
                             throw std::system_error(network_errno,
                                                     std::system_category(),

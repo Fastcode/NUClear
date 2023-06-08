@@ -21,6 +21,7 @@
 
 #include <list>
 #include <type_traits>
+
 #include "../../util/MergeTransient.hpp"
 
 namespace NUClear {

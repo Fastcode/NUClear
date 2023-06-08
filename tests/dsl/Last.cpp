@@ -42,13 +42,17 @@ public:
             emit(std::make_unique<TestMessage>(++emit_counter));
 
             // Finish when we get to 10
-            if (messages.front()->value >= 10) { powerplant.shutdown(); }
+            if (messages.front()->value >= 10) {
+                powerplant.shutdown();
+            }
             else {
                 // Our list must be less than 5 long
                 REQUIRE(messages.size() <= 5);
 
                 // If our size is less than 5 it should be the size of the front element
-                if (messages.size() < 5) { REQUIRE(int(messages.size()) == messages.back()->value); }
+                if (messages.size() < 5) {
+                    REQUIRE(int(messages.size()) == messages.back()->value);
+                }
 
                 // Check that our numbers are decreasing
                 int i = messages.front()->value;
