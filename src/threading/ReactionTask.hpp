@@ -27,6 +27,7 @@
 
 #include "../message/ReactionStatistics.hpp"
 #include "../util/platform.hpp"
+#include "../util/thread_pool.hpp"
 
 namespace NUClear {
 namespace threading {
@@ -69,7 +70,11 @@ namespace threading {
          * @param priority  the priority to use when executing this task.
          * @param callback  the data bound callback to be executed in the threadpool.
          */
-        Task(ReactionType& parent, int priority, TaskFunction&& callback)
+        Task(ReactionType& parent,
+             const int& priority,
+             const std::type_index& group_id,
+             const util::ThreadPoolDescriptor& thread_pool_descriptor,
+             TaskFunction&& callback)
             : parent(parent)
             , id(++task_id_source)
             , priority(priority)
@@ -83,6 +88,8 @@ namespace threading {
                                                                   clock::time_point(std::chrono::seconds(0)),
                                                                   nullptr))
             , emit_stats(parent.emit_stats && (current_task != nullptr ? current_task->emit_stats : true))
+            , group_id(group_id)
+            , thread_pool_descriptor(thread_pool_descriptor)
             , callback(callback) {}
 
 
@@ -121,6 +128,8 @@ namespace threading {
         /// reaction statistics becomes false for all created tasks. This is to stop infinite loops of death.
         bool emit_stats;
 
+        std::type_index group_id;
+        util::ThreadPoolDescriptor thread_pool_descriptor;
         /// @brief the data bound callback to be executed
         /// @attention note this must be last in the list as the this pointer is passed to the callback generator
         TaskFunction callback;

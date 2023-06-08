@@ -21,6 +21,7 @@
 
 #include "../dsl/trait/is_transient.hpp"
 #include "../dsl/word/emit/Direct.hpp"
+#include "../util/GeneratedCallback.hpp"
 #include "../util/MergeTransient.hpp"
 #include "../util/TransientDataElements.hpp"
 #include "../util/apply.hpp"
@@ -58,7 +59,7 @@ namespace util {
         }
 
 
-        std::pair<int, threading::ReactionTask::TaskFunction> operator()(threading::Reaction& r) {
+        GeneratedCallback operator()(threading::Reaction& r) {
 
             // Add one to our active tasks
             ++r.active_tasks;
@@ -69,7 +70,7 @@ namespace util {
                 --r.active_tasks;
 
                 // We cancel our execution by returning an empty function
-                return std::make_pair(0, threading::ReactionTask::TaskFunction());
+                return {};
             }
             else {
 
@@ -87,53 +88,57 @@ namespace util {
                     --r.active_tasks;
 
                     // We cancel our execution by returning an empty function
-                    return std::make_pair(0, threading::ReactionTask::TaskFunction());
+                    return {};
                 }
 
                 // We have to make a copy of the callback because the "this" variable can go out of scope
                 auto c = callback;
-                return std::make_pair(DSL::priority(r), [c, data](std::unique_ptr<threading::ReactionTask>&& task) {
-                    // Check if we are going to reschedule
-                    task = DSL::reschedule(std::move(task));
+                return GeneratedCallback(
+                    DSL::priority(r),
+                    DSL::group(r),
+                    DSL::pool(r),
+                    [c, data](std::unique_ptr<threading::ReactionTask>&& task) {
+                        // Check if we are going to reschedule
+                        task = DSL::reschedule(std::move(task));
 
-                    // If we still control our task
-                    if (task) {
+                        // If we still control our task
+                        if (task) {
 
-                        // Update our thread's priority to the correct level
-                        update_current_thread_priority(task->priority);
+                            // Update our thread's priority to the correct level
+                            update_current_thread_priority(task->priority);
 
-                        // Record our start time
-                        task->stats->started = clock::now();
+                            // Record our start time
+                            task->stats->started = clock::now();
 
-                        // We have to catch any exceptions
-                        try {
-                            // We call with only the relevant arguments to the passed function
-                            util::apply_relevant(c, std::move(data));
+                            // We have to catch any exceptions
+                            try {
+                                // We call with only the relevant arguments to the passed function
+                                util::apply_relevant(c, std::move(data));
+                            }
+                            catch (...) {
+
+                                // Catch our exception if it happens
+                                task->stats->exception = std::current_exception();
+                            }
+
+                            // Our finish time
+                            task->stats->finished = clock::now();
+
+                            // Run our postconditions
+                            DSL::postcondition(*task);
+
+                            // Take one from our active tasks
+                            --task->parent.active_tasks;
+
+                            // Emit our reaction statistics if it wouldn't cause a loop
+                            if (task->emit_stats) {
+                                PowerPlant::powerplant->emit_shared<dsl::word::emit::Direct>(task->stats);
+                            }
                         }
-                        catch (...) {
 
-                            // Catch our exception if it happens
-                            task->stats->exception = std::current_exception();
-                        }
-
-                        // Our finish time
-                        task->stats->finished = clock::now();
-
-                        // Run our postconditions
-                        DSL::postcondition(*task);
-
-                        // Take one from our active tasks
-                        --task->parent.active_tasks;
-
-                        // Emit our reaction statistics if it wouldn't cause a loop
-                        if (task->emit_stats) {
-                            PowerPlant::powerplant->emit_shared<dsl::word::emit::Direct>(task->stats);
-                        }
-                    }
-
-                    // Return our task
-                    return std::move(task);
-                });
+                        // Return our task
+                        return std::move(task);
+                    });
             }
         }
 
