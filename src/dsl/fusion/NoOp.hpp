@@ -19,6 +19,8 @@
 #ifndef NUCLEAR_DSL_FUSION_NOOP_HPP
 #define NUCLEAR_DSL_FUSION_NOOP_HPP
 
+#include <typeindex>
+
 #include "../../threading/Reaction.hpp"
 #include "../../threading/ReactionTask.hpp"
 #include "../word/Priority.hpp"
@@ -52,6 +54,11 @@ namespace dsl {
             }
 
             template <typename DSL>
+            static inline std::type_index group(threading::Reaction&) {
+                return std::type_index(typeid(threading::TaskScheduler));
+            }
+
+            template <typename DSL>
             static inline std::unique_ptr<threading::ReactionTask> reschedule(
                 std::unique_ptr<threading::ReactionTask>&& task) {
                 return std::move(task);
@@ -75,6 +82,8 @@ namespace dsl {
             static inline bool precondition(threading::Reaction&);
 
             static inline int priority(threading::Reaction&);
+
+            static inline std::type_index group(threading::Reaction&);
 
             static inline std::unique_ptr<threading::ReactionTask> reschedule(
                 std::unique_ptr<threading::ReactionTask>&& task);
