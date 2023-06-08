@@ -63,7 +63,8 @@ namespace dsl {
 
                             auto task = reaction->get_task();
                             if (task) {
-                                task = task->run(std::move(task));
+                                task->immediate = true;
+                                powerplant.submit(std::move(task));
                             }
                         }
                         catch (const std::exception& ex) {

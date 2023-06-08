@@ -130,6 +130,7 @@ namespace threading {
 
         std::type_index group_id;
         util::ThreadPoolDescriptor thread_pool_descriptor;
+        bool immediate{false};
         /// @brief the data bound callback to be executed
         /// @attention note this must be last in the list as the this pointer is passed to the callback generator
         TaskFunction callback;
