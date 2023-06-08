@@ -94,6 +94,9 @@ namespace dsl {
         template <typename>
         struct Sync;
 
+        template <typename>
+        struct Pool;
+
         namespace emit {
             template <typename T>
             struct Local;
@@ -289,7 +292,7 @@ public:
         template <typename Function, int... Index>
         auto then(const std::string& label, Function&& callback, const util::Sequence<Index...>&) {
 
-            // Generate the identifer
+            // Generate the identifier
             std::vector<std::string> identifier = {label,
                                                    reactor.reactor_name,
                                                    util::demangle(typeid(DSL).name()),
@@ -412,6 +415,7 @@ public:
 #include "dsl/word/Network.hpp"
 #include "dsl/word/Once.hpp"
 #include "dsl/word/Optional.hpp"
+#include "dsl/word/Pool.hpp"
 #include "dsl/word/Priority.hpp"
 #include "dsl/word/Shutdown.hpp"
 #include "dsl/word/Single.hpp"
