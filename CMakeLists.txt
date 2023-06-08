@@ -41,6 +41,49 @@ if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
   set(MASTER_PROJECT ON)
 endif()
 
+# If this option is set we are building using continous integration
+option(CI_BUILD "Enable build options for building in the CI server" OFF)
+
+# Default not to run the clang-tidy checks, default to whatever our CI_BUILD is
+option(ENABLE_CLANG_TIDY "Enable building with clang-tidy checks.")
+if(ENABLE_CLANG_TIDY OR CI_BUILD)
+  find_package(PythonInterp 3 REQUIRED)
+  set(CMAKE_CXX_CLANG_TIDY
+      "${PYTHON_EXECUTABLE}"
+      "${PROJECT_SOURCE_DIR}/cmake/scripts/clang-tidy.py"
+      "${PROJECT_BINARY_DIR}/clang-tidy"
+      "${PROJECT_SOURCE_DIR}/.clang-tidy-ignore.json"
+      "clang-tidy-cache"
+      "clang-tidy"
+      "--extra-arg=-std=c++14"
+  )
+  set(CMAKE_C_CLANG_TIDY
+      "${PYTHON_EXECUTABLE}"
+      "${PROJECT_SOURCE_DIR}/cmake/scripts/clang-tidy.py"
+      "${PROJECT_BINARY_DIR}/clang-tidy"
+      "${PROJECT_SOURCE_DIR}/.clang-tidy-ignore.json"
+      "clang-tidy-cache"
+      "clang-tidy"
+      "--extra-arg=-std=c99"
+  )
+
+  # Create a target that will apply clang-tidy fixes to the codebase
+  add_custom_target(
+    apply-clang-tidy
+    COMMAND clang-apply-replacements --format --style=file --style-config="${PROJECT_SOURCE_DIR}"
+            --remove-change-desc-files "${PROJECT_BINARY_DIR}/clang-tidy/fixes"
+    COMMENT "Applying fixes from clang-tidy to the codebase."
+  )
+endif(ENABLE_CLANG_TIDY OR CI_BUILD)
+
+# If we are doing a CI build then we want to enable -Werror when compiling warnings are bad. We will also make it fail
+# if clang-tidy has an error
+if(CI_BUILD)
+  add_compile_options(-Werror)
+  set(CMAKE_CXX_CLANG_TIDY ${CMAKE_CXX_CLANG_TIDY} -warnings-as-errors=*)
+  set(CMAKE_C_CLANG_TIDY ${CMAKE_C_CLANG_TIDY} -warnings-as-errors=*)
+endif(CI_BUILD)
+
 # Add the src directory
 add_subdirectory(src)
 
