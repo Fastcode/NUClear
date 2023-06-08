@@ -21,9 +21,11 @@
 
 // See https://valgrind.org/docs/manual/drd-manual.html#drd-manual.CXX11
 #if defined(USE_VALGRIND) && !defined(NDEBUG)
-#    include <valgrind/drd.h>
-#    define _GLIBCXX_SYNCHRONIZATION_HAPPENS_BEFORE(addr) ANNOTATE_HAPPENS_BEFORE(addr)
-#    define _GLIBCXX_SYNCHRONIZATION_HAPPENS_AFTER(addr) ANNOTATE_HAPPENS_AFTER(addr)
+    #include <valgrind/drd.h>
+    #undef _GLIBCXX_SYNCHRONIZATION_HAPPENS_BEFORE
+    #undef _GLIBCXX_SYNCHRONIZATION_HAPPENS_AFTER
+    #define _GLIBCXX_SYNCHRONIZATION_HAPPENS_BEFORE(addr) ANNOTATE_HAPPENS_BEFORE(addr)
+    #define _GLIBCXX_SYNCHRONIZATION_HAPPENS_AFTER(addr)  ANNOTATE_HAPPENS_AFTER(addr)
 #endif  // defined(USE_VALGRIND) && !defined(NDEBUG)
 
 #include <atomic>
@@ -40,11 +42,11 @@
 
 // See https://valgrind.org/docs/manual/drd-manual.html#drd-manual.CXX11
 #if defined(USE_VALGRIND) && !defined(NDEBUG)
-#    define _GLIBCXX_THREAD_IMPL 1
+    #define _GLIBCXX_THREAD_IMPL 1
 #endif  // defined(USE_VALGRIND) && !defined(NDEBUG)
 #include <thread>
 #if defined(USE_VALGRIND) && !defined(NDEBUG)
-#    undef _GLIBCXX_THREAD_IMPL
+    #undef _GLIBCXX_THREAD_IMPL
 #endif  // defined(USE_VALGRIND) && !defined(NDEBUG)
 
 // Utilities
