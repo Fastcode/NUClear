@@ -23,6 +23,7 @@
 
 #include "../../threading/Reaction.hpp"
 #include "../../threading/ReactionTask.hpp"
+#include "../../util/thread_pool.hpp"
 #include "../word/Priority.hpp"
 
 namespace NUClear {
@@ -59,6 +60,11 @@ namespace dsl {
             }
 
             template <typename DSL>
+            static inline util::ThreadPoolDescriptor pool(threading::Reaction&) {
+                return util::ThreadPoolDescriptor{util::ThreadPoolIDSource::DEFAULT_THREAD_POOL_ID, 0};
+            }
+
+            template <typename DSL>
             static inline std::unique_ptr<threading::ReactionTask> reschedule(
                 std::unique_ptr<threading::ReactionTask>&& task) {
                 return std::move(task);
@@ -84,6 +90,8 @@ namespace dsl {
             static inline int priority(threading::Reaction&);
 
             static inline std::type_index group(threading::Reaction&);
+
+            static inline util::ThreadPoolDescriptor pool(threading::Reaction&);
 
             static inline std::unique_ptr<threading::ReactionTask> reschedule(
                 std::unique_ptr<threading::ReactionTask>&& task);

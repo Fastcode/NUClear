@@ -1,6 +1,5 @@
 /*
- * Copyright (C) 2013      Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
- *               2014-2017 Trent Houliston <trent@houliston.me>
+ * Copyright (C) 2023      Alex Biddulph <bidskii@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -16,35 +15,39 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_DSL_FUSION_HPP
-#define NUCLEAR_DSL_FUSION_HPP
+#ifndef NUCLEAR_DSL_FUSION_HAS_POOL_HPP
+#define NUCLEAR_DSL_FUSION_HAS_POOL_HPP
 
-#include "../threading/ReactionHandle.hpp"
-#include "fusion/BindFusion.hpp"
-#include "fusion/GetFusion.hpp"
-#include "fusion/GroupFusion.hpp"
-#include "fusion/PoolFusion.hpp"
-#include "fusion/PostconditionFusion.hpp"
-#include "fusion/PreconditionFusion.hpp"
-#include "fusion/PriorityFusion.hpp"
-#include "fusion/RescheduleFusion.hpp"
+#include "../../threading/Reaction.hpp"
+#include "NoOp.hpp"
 
 namespace NUClear {
 namespace dsl {
+    namespace fusion {
 
-    /// @brief All of the words from a reaction handle "fused" together into one type
-    template <typename... Words>
-    struct Fusion
-        : public fusion::BindFusion<Words...>
-        , public fusion::GetFusion<Words...>
-        , public fusion::PreconditionFusion<Words...>
-        , public fusion::PriorityFusion<Words...>
-        , public fusion::GroupFusion<Words...>
-        , public fusion::PoolFusion<Words...>
-        , public fusion::RescheduleFusion<Words...>
-        , public fusion::PostconditionFusion<Words...> {};
+        /**
+         * @brief SFINAE struct to test if the passed class has a pool function that conforms to the NUClear DSL
+         *
+         * @tparam T the class to check
+         */
+        template <typename T>
+        struct has_pool {
+        private:
+            typedef std::true_type yes;
+            typedef std::false_type no;
 
+            template <typename U>
+            static auto test(int)
+                -> decltype(U::template pool<ParsedNoOp>(std::declval<threading::Reaction&>()), yes());
+            template <typename>
+            static no test(...);
+
+        public:
+            static constexpr bool value = std::is_same<decltype(test<T>(0)), yes>::value;
+        };
+
+    }  // namespace fusion
 }  // namespace dsl
 }  // namespace NUClear
 
-#endif  // NUCLEAR_DSL_FUSION_HPP
+#endif  // NUCLEAR_DSL_FUSION_HAS_POOL_HPP
