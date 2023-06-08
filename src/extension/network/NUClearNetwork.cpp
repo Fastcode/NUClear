@@ -22,6 +22,8 @@
 #include <cerrno>
 #include <cstring>
 #include <set>
+#include <stdexcept>
+#include <system_error>
 #include <utility>
 
 #include "../../util/network/get_interfaces.hpp"
