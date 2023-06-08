@@ -42,7 +42,9 @@ public:
         on<Trigger<StartMessage>>().then([this] {
             ++j;
             // Run until it's 11 then shutdown
-            if (j > 10) { powerplant.shutdown(); }
+            if (j > 10) {
+                powerplant.shutdown();
+            }
             else {
                 powerplant.emit(std::make_unique<SimpleMessage>());
                 powerplant.emit(std::make_unique<StartMessage>());

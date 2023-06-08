@@ -49,7 +49,9 @@ namespace dsl {
          * @par Implements
          *  Bind
          */
-        struct Shutdown : public operation::TypeBind<Shutdown>, Priority::IDLE {};
+        struct Shutdown
+            : public operation::TypeBind<Shutdown>
+            , Priority::IDLE {};
 
     }  // namespace word
 }  // namespace dsl

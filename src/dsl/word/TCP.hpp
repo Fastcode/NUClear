@@ -86,8 +86,9 @@ namespace dsl {
                 util::FileDescriptor fd = ::socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 
                 if (fd < 0) {
-                    throw std::system_error(
-                        network_errno, std::system_category(), "We were unable to open the TCP socket");
+                    throw std::system_error(network_errno,
+                                            std::system_category(),
+                                            "We were unable to open the TCP socket");
                 }
 
                 // The address we will be binding to
@@ -99,21 +100,24 @@ namespace dsl {
 
                 // Bind to the address, and if we fail throw an error
                 if (::bind(fd, reinterpret_cast<sockaddr*>(&address), sizeof(sockaddr))) {
-                    throw std::system_error(
-                        network_errno, std::system_category(), "We were unable to bind the TCP socket to the port");
+                    throw std::system_error(network_errno,
+                                            std::system_category(),
+                                            "We were unable to bind the TCP socket to the port");
                 }
 
                 // Listen to the address
                 if (::listen(fd, 1024) < 0) {
-                    throw std::system_error(
-                        network_errno, std::system_category(), "We were unable to listen on the TCP socket");
+                    throw std::system_error(network_errno,
+                                            std::system_category(),
+                                            "We were unable to listen on the TCP socket");
                 }
 
                 // Get the port we ended up listening on
                 socklen_t len = sizeof(sockaddr_in);
                 if (::getsockname(fd, reinterpret_cast<sockaddr*>(&address), &len) == -1) {
-                    throw std::system_error(
-                        network_errno, std::system_category(), "We were unable to get the port from the TCP socket");
+                    throw std::system_error(network_errno,
+                                            std::system_category(),
+                                            "We were unable to get the port from the TCP socket");
                 }
                 port = ntohs(address.sin_port);
 
@@ -140,7 +144,9 @@ namespace dsl {
                 auto event = IO::get<DSL>(r);
 
                 // If our get is being run without an fd (something else triggered) then short circuit
-                if (event.fd == 0) { return Connection{{0, 0}, {0, 0}, 0}; }
+                if (event.fd == 0) {
+                    return Connection{{0, 0}, {0, 0}, 0};
+                }
                 else {
                     // Accept our connection
                     sockaddr_in local;
@@ -153,7 +159,9 @@ namespace dsl {
                     // Get our local address
                     ::getsockname(fd, reinterpret_cast<sockaddr*>(&local), &size);
 
-                    if (fd == -1) { return Connection{{0, 0}, {0, 0}, 0}; }
+                    if (fd == -1) {
+                        return Connection{{0, 0}, {0, 0}, 0};
+                    }
                     else {
                         return Connection{{ntohl(remote.sin_addr.s_addr), ntohs(remote.sin_port)},
                                           {ntohl(local.sin_addr.s_addr), ntohs(local.sin_port)},

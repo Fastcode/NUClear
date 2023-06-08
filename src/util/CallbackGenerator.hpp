@@ -53,7 +53,8 @@ namespace util {
 
             // Merge our transient data
             unpack(MergeTransients<std::remove_reference_t<decltype(std::get<DIndex>(data))>>::merge(
-                std::get<Index>(*transients), std::get<DIndex>(data))...);
+                std::get<Index>(*transients),
+                std::get<DIndex>(data))...);
         }
 
 

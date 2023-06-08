@@ -12,7 +12,9 @@ namespace util {
     }
 
     FileDescriptor::FileDescriptor(FileDescriptor&& rhs) noexcept : fd{rhs.fd} {
-        if (this != &rhs) { rhs.fd = INVALID_SOCKET; }
+        if (this != &rhs) {
+            rhs.fd = INVALID_SOCKET;
+        }
     }
 
     FileDescriptor& FileDescriptor::operator=(FileDescriptor&& rhs) noexcept {
@@ -45,7 +47,9 @@ namespace util {
     }
 
     void FileDescriptor::close_fd() {
-        if (fd != INVALID_SOCKET) { close(fd); }
+        if (fd != INVALID_SOCKET) {
+            close(fd);
+        }
         fd = INVALID_SOCKET;
     }
 

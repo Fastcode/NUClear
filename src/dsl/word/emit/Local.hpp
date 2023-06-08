@@ -58,7 +58,9 @@ namespace dsl {
                     for (auto& reaction : store::TypeCallbackStore<DataType>::get()) {
                         try {
                             auto task = reaction->get_task();
-                            if (task) { powerplant.submit(std::move(task)); }
+                            if (task) {
+                                powerplant.submit(std::move(task));
+                            }
                         }
                         // If there is an exception while generating a reaction print it here, this shouldn't happen
                         catch (const std::exception& ex) {

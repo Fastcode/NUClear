@@ -46,12 +46,14 @@ namespace dsl {
                     auto& vec = store::TypeCallbackStore<DataType>::get();
 
                     auto item = std::find_if(
-                        std::begin(vec), std::end(vec), [&r](const std::shared_ptr<threading::Reaction>& item) {
-                            return item->id == r.id;
-                        });
+                        std::begin(vec),
+                        std::end(vec),
+                        [&r](const std::shared_ptr<threading::Reaction>& item) { return item->id == r.id; });
 
                     // If the item is in the list erase the item
-                    if (item != std::end(vec)) { vec.erase(item); }
+                    if (item != std::end(vec)) {
+                        vec.erase(item);
+                    }
                 });
 
                 // Create our reaction and store it in the TypeCallbackStore
@@ -73,12 +75,14 @@ namespace dsl {
                     auto& vec = store::TypeCallbackStore<message::ReactionStatistics>::get();
 
                     auto item = std::find_if(
-                        std::begin(vec), std::end(vec), [&r](const std::shared_ptr<threading::Reaction>& item) {
-                            return item->id == r.id;
-                        });
+                        std::begin(vec),
+                        std::end(vec),
+                        [&r](const std::shared_ptr<threading::Reaction>& item) { return item->id == r.id; });
 
                     // If the item is in the list erase the item
-                    if (item != std::end(vec)) { vec.erase(item); }
+                    if (item != std::end(vec)) {
+                        vec.erase(item);
+                    }
                 });
 
                 // Create our reaction and store it in the TypeCallbackStore

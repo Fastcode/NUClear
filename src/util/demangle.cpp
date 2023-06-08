@@ -20,16 +20,16 @@
 
 // Windows symbol demangler
 #ifdef _WIN32
-// Turn off clang-format to avoid moving platform.h after Dbghelp.h
-// (Dbghelp.h depends on types from Windows.h)
-// clang-format off
+    // Turn off clang-format to avoid moving platform.h after Dbghelp.h
+    // (Dbghelp.h depends on types from Windows.h)
+    // clang-format off
 #    include "platform.hpp"
 #    include <Dbghelp.h>
 
 #    include <mutex>
 // clang-format on
 
-#    pragma comment(lib, "Dbghelp.lib")
+    #pragma comment(lib, "Dbghelp.lib")
 
 namespace NUClear {
 namespace util {
@@ -57,11 +57,15 @@ namespace util {
         std::lock_guard<std::mutex> lock(symbol_mutex);
 
         // Initialise the symbols if we have to
-        if (!sym_initialised) { init_symbols(); }
+        if (!sym_initialised) {
+            init_symbols();
+        }
 
         char name[256];
 
-        if (int len = UnDecorateSymbolName(symbol, name, sizeof(name), 0)) { return std::string(name, len); }
+        if (int len = UnDecorateSymbolName(symbol, name, sizeof(name), 0)) {
+            return std::string(name, len);
+        }
         else {
             return symbol;
         }
@@ -72,11 +76,11 @@ namespace util {
 // GNU/Clang symbol demangler
 #else
 
-#    include <cxxabi.h>  // for __cxa_demangle
+    #include <cxxabi.h>  // for __cxa_demangle
 
-#    include <cstdlib>  // for free
-#    include <memory>   // for unique_ptr
-#    include <string>   // for string
+    #include <cstdlib>  // for free
+    #include <memory>   // for unique_ptr
+    #include <string>   // for string
 
 namespace NUClear {
 namespace util {

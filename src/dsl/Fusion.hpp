@@ -32,12 +32,13 @@ namespace dsl {
 
     /// @brief All of the words from a reaction handle "fused" together into one type
     template <typename... Words>
-    struct Fusion : public fusion::BindFusion<Words...>,
-                    public fusion::GetFusion<Words...>,
-                    public fusion::PreconditionFusion<Words...>,
-                    public fusion::PriorityFusion<Words...>,
-                    public fusion::RescheduleFusion<Words...>,
-                    public fusion::PostconditionFusion<Words...> {};
+    struct Fusion
+        : public fusion::BindFusion<Words...>
+        , public fusion::GetFusion<Words...>
+        , public fusion::PreconditionFusion<Words...>
+        , public fusion::PriorityFusion<Words...>
+        , public fusion::RescheduleFusion<Words...>
+        , public fusion::PostconditionFusion<Words...> {};
 
 }  // namespace dsl
 }  // namespace NUClear

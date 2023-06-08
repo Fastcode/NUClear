@@ -38,8 +38,8 @@ struct LogTestOutput {
 std::vector<LogTestOutput> messages;
 
 // All the log levels
-const std::vector<NUClear::LogLevel> levels = {
-    NUClear::TRACE, NUClear::DEBUG, NUClear::INFO, NUClear::WARN, NUClear::ERROR, NUClear::FATAL};
+const std::vector<NUClear::LogLevel> levels =
+    {NUClear::TRACE, NUClear::DEBUG, NUClear::INFO, NUClear::WARN, NUClear::ERROR, NUClear::FATAL};
 
 struct TestLevel {
     TestLevel(NUClear::LogLevel level) : level(level) {}

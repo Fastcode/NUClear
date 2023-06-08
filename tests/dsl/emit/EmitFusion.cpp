@@ -17,9 +17,8 @@
  */
 
 #include <catch.hpp>
-#include <utility>
-
 #include <nuclear>
+#include <utility>
 
 // Anonymous namespace to keep everything file local
 namespace {

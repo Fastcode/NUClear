@@ -17,9 +17,8 @@
  */
 
 #include <catch.hpp>
-#include <utility>
-
 #include <nuclear>
+#include <utility>
 
 namespace {
 struct BindExtensionTest1 {
@@ -68,7 +67,7 @@ struct BindExtensionTest3 {
 
     template <typename DSL>
     static inline NUClear::threading::ReactionHandle
-    bind(const std::shared_ptr<NUClear::threading::Reaction>& /*unused*/, int v1, int v2, int v3) {
+        bind(const std::shared_ptr<NUClear::threading::Reaction>& /*unused*/, int v1, int v2, int v3) {
 
         val1 = v1;
         val2 = v2;
@@ -91,9 +90,15 @@ public:
         double b;
 
         // Run all three of our extension tests
-        std::tie(std::ignore, a, b, std::ignore) = on<BindExtensionTest1, BindExtensionTest2, BindExtensionTest3>(
-                                                       5, 7.9, "Hello", std::chrono::seconds(2), 9, 10, 11)
-                                                       .then([] {});
+        std::tie(std::ignore, a, b, std::ignore) =
+            on<BindExtensionTest1, BindExtensionTest2, BindExtensionTest3>(5,
+                                                                           7.9,
+                                                                           "Hello",
+                                                                           std::chrono::seconds(2),
+                                                                           9,
+                                                                           10,
+                                                                           11)
+                .then([] {});
 
         // Check the returns from the bind
         REQUIRE(a == 5);

@@ -69,7 +69,9 @@ namespace threading {
         inline std::unique_ptr<ReactionTask> get_task() {
 
             // If we are not enabled, don't run
-            if (!enabled) { return std::unique_ptr<ReactionTask>(nullptr); }
+            if (!enabled) {
+                return std::unique_ptr<ReactionTask>(nullptr);
+            }
 
             // Run our generator to get a functor we can run
             int priority;
@@ -77,7 +79,9 @@ namespace threading {
             std::tie(priority, func) = generator(*this);
 
             // If our generator returns a valid function
-            if (func) { return std::make_unique<ReactionTask>(*this, priority, std::move(func)); }
+            if (func) {
+                return std::make_unique<ReactionTask>(*this, priority, std::move(func));
+            }
 
             // Otherwise we return a null pointer
             return std::unique_ptr<ReactionTask>(nullptr);

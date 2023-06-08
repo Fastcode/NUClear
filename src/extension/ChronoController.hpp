@@ -45,16 +45,20 @@ namespace extension {
             });
 
             on<Trigger<dsl::operation::Unbind<ChronoTask>>>().then(
-                "Unbind Chrono Task", [this](const dsl::operation::Unbind<ChronoTask>& unbind) {
+                "Unbind Chrono Task",
+                [this](const dsl::operation::Unbind<ChronoTask>& unbind) {
                     // Lock the mutex while we're doing stuff
                     std::lock_guard<std::mutex> lock(mutex);
 
                     // Find the task
-                    auto it = std::find_if(
-                        tasks.begin(), tasks.end(), [&](const ChronoTask& task) { return task.id == unbind.id; });
+                    auto it = std::find_if(tasks.begin(), tasks.end(), [&](const ChronoTask& task) {
+                        return task.id == unbind.id;
+                    });
 
                     // Remove if if it exists
-                    if (it != tasks.end()) { tasks.erase(it); }
+                    if (it != tasks.end()) {
+                        tasks.erase(it);
+                    }
 
                     // Poke the system to make sure it's not waiting on something that's gone
                     wait.notify_all();
