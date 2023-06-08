@@ -27,13 +27,20 @@ endif()
 
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
   message(STATUS "Setting build type to '${default_build_type}' as none was specified.")
-  set(CMAKE_BUILD_TYPE ${default_build_type} CACHE STRING "Choose the type of build." FORCE)
+  set(CMAKE_BUILD_TYPE
+      ${default_build_type}
+      CACHE STRING "Choose the type of build." FORCE
+  )
   # Set the possible values of build type for cmake-gui
   set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release" "MinSizeRel" "RelWithDebInfo")
 endif()
 
 # Set the project after the build type as the Project command can change the build type
-project(NUClear VERSION 1.0.0 LANGUAGES C CXX)
+project(
+  NUClear
+  VERSION 1.0.0
+  LANGUAGES C CXX
+)
 
 # Determine if NUClear is built as a subproject (using add_subdirectory) or if it is the master project.
 set(MASTER_PROJECT OFF)
@@ -83,6 +90,14 @@ if(CI_BUILD)
   set(CMAKE_CXX_CLANG_TIDY ${CMAKE_CXX_CLANG_TIDY} -warnings-as-errors=*)
   set(CMAKE_C_CLANG_TIDY ${CMAKE_C_CLANG_TIDY} -warnings-as-errors=*)
 endif(CI_BUILD)
+
+# Make the compiler display colours always (even when we build with ninja)
+if(CMAKE_CXX_COMPILER_ID MATCHES GNU)
+  add_compile_options(-fdiagnostics-color=always)
+endif()
+if(CMAKE_CXX_COMPILER_ID MATCHES Clang)
+  add_compile_options(-fcolor-diagnostics)
+endif()
 
 # Add the src directory
 add_subdirectory(src)
