@@ -44,7 +44,9 @@ public:
 
         // Have a frequently running reaction so that ReactionStatistics will be emitted
         on<Every<10, std::chrono::milliseconds>>().then([this] {
-            if (times.size() > n_time) { powerplant.shutdown(); }
+            if (times.size() > n_time) {
+                powerplant.shutdown();
+            }
         });
 
         // Trigger on ReactionStatistics so that we can record the times that messages were emitted and compare them
@@ -122,7 +124,9 @@ TEST_CASE("Testing base clock works correctly", "[api][base_clock]") {
                                 << "Hour.: " << nuclear_clock.hour << " == " << local_clock.hour << "\n"
                                 << "Min..: " << nuclear_clock.min << " == " << local_clock.min << "\n"
                                 << "Sec..: " << nuclear_clock.sec << " == " << local_clock.sec);
-        if (nuclear_clock == local_clock) { ++match_count; }
+        if (nuclear_clock == local_clock) {
+            ++match_count;
+        }
     }
 
     // At least 95% of all reaction statistics should match to the second

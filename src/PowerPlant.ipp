@@ -164,7 +164,9 @@ template <enum LogLevel level, typename... Arguments>
 void PowerPlant::log(Arguments&&... args) {
 
     // If there is no powerplant then do nothing
-    if (powerplant == nullptr) { return; }
+    if (powerplant == nullptr) {
+        return;
+    }
 
     // Get the current task
     auto* current_task = threading::ReactionTask::get_current_task();

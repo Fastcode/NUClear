@@ -68,7 +68,9 @@ namespace extension {
                     // Execute on our interested reactions
                     for (auto it = rs.first; it != rs.second; ++it) {
                         auto task = it->second->get_task();
-                        if (task) { powerplant.submit(std::move(task)); }
+                        if (task) {
+                            powerplant.submit(std::move(task));
+                        }
                     }
                 }
 
@@ -132,7 +134,9 @@ namespace extension {
             // Configure the NUClearNetwork options
             on<Trigger<NetworkConfiguration>>().then([this](const NetworkConfiguration& config) {
                 // Unbind our announce handle
-                if (process_handle) { process_handle.unbind(); }
+                if (process_handle) {
+                    process_handle.unbind();
+                }
 
                 // Unbind all our listen handles
                 if (!listen_handles.empty()) {

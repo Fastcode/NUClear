@@ -20,6 +20,7 @@
 #define NUCLEAR_DSL_STORE_TYPECALLBACKSTORE_HPP
 
 #include <memory>
+
 #include "../../threading/Reaction.hpp"
 #include "../../util/TypeList.hpp"
 

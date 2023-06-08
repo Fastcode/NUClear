@@ -17,7 +17,6 @@
  */
 
 #include <catch.hpp>
-
 #include <nuclear>
 
 namespace {

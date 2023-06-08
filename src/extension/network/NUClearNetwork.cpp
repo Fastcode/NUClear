@@ -105,7 +105,9 @@ namespace extension {
 
             // Erase udp
             auto key = udp_key(target->target);
-            if (udp_target.find(key) != udp_target.end()) { udp_target.erase(udp_target.find(key)); }
+            if (udp_target.find(key) != udp_target.end()) {
+                udp_target.erase(udp_target.find(key));
+            }
 
             // Erase name
             auto range = name_target.equal_range(target->name);
@@ -118,7 +120,9 @@ namespace extension {
 
             // Erase target
             auto t = std::find(targets.begin(), targets.end(), target);
-            if (t != targets.end()) { targets.erase(t); }
+            if (t != targets.end()) {
+                targets.erase(t);
+            }
         }
 
 
@@ -152,8 +156,9 @@ namespace extension {
 
             // Bind to the address, and if we fail throw an error
             if (::bind(data_fd, &address.sock, socket_size(address)) != 0) {
-                throw std::system_error(
-                    network_errno, std::system_category(), "Unable to bind the UDP socket to the port");
+                throw std::system_error(network_errno,
+                                        std::system_category(),
+                                        "Unable to bind the UDP socket to the port");
             }
         }
 
@@ -170,7 +175,9 @@ namespace extension {
                     && address.ipv6.sin6_addr.s6_addr[1] == 0x00);
 
             // Swap our address so the rest of the information is anys
-            if (address.sock.sa_family == AF_INET) { address.ipv4.sin_addr.s_addr = htonl(INADDR_ANY); }
+            if (address.sock.sa_family == AF_INET) {
+                address.ipv4.sin_addr.s_addr = htonl(INADDR_ANY);
+            }
             else if (address.sock.sa_family == AF_INET6) {
                 address.ipv6.sin6_addr = IN6ADDR_ANY_INIT;
             }
@@ -231,7 +238,9 @@ namespace extension {
                                                       reinterpret_cast<char*>(&mreq),
                                                       sizeof(ip_mreq));
 
-                            if (status < 0) { last_network_errno = network_errno; }
+                            if (status < 0) {
+                                last_network_errno = network_errno;
+                            }
                             else {
                                 connected_count++;
                             }
@@ -488,7 +497,9 @@ namespace extension {
             }
 
             // Check if we have packets to resend and if so resend
-            if (!send_queue.empty()) { retransmit(); }
+            if (!send_queue.empty()) {
+                retransmit();
+            }
 
             // Used for storing how many bytes are available on a socket
             unsigned long count = 0;
@@ -557,7 +568,9 @@ namespace extension {
                     }
                 }
 
-                if (qit->second.targets.empty()) { qit = send_queue.erase(qit); }
+                if (qit->second.targets.empty()) {
+                    qit = send_queue.erase(qit);
+                }
                 else {
                     ++qit;
                 }
@@ -579,8 +592,9 @@ namespace extension {
                              &it->second->target.sock,
                              socket_size(it->second->target))
                     < 0) {
-                    throw std::system_error(
-                        network_errno, std::system_category(), "Network error when sending the announce packet");
+                    throw std::system_error(network_errno,
+                                            std::system_category(),
+                                            "Network error when sending the announce packet");
                 }
             }
         }
@@ -643,7 +657,9 @@ namespace extension {
                                 }
 
                                 // Only call the callback if it is new
-                                if (new_connection) { join_callback(*ptr); }
+                                if (new_connection) {
+                                    join_callback(*ptr);
+                                }
                             }
                         }
                         // They're old but at least they're not timing out
@@ -668,7 +684,9 @@ namespace extension {
                                 }
                             }
                             // Call the callback if they really left
-                            if (left) { leave_callback(*remote); }
+                            if (left) {
+                                leave_callback(*remote);
+                            }
                         }
 
                     } break;
@@ -682,7 +700,9 @@ namespace extension {
 
                         // If the packet is obviously corrupt, drop it and since we didn't ack it it'll be resent if
                         // it's important
-                        if (packet.packet_no > packet.packet_count) { return; }
+                        if (packet.packet_no > packet.packet_count) {
+                            return;
+                        }
 
                         // Check if we know who this is and if we don't know them, ignore
                         if (remote) {
@@ -694,8 +714,9 @@ namespace extension {
                             if (header.type == DATA_RETRANSMISSION) {
 
                                 // See if we recently processed this packet
-                                auto it = std::find(
-                                    remote->recent_packets.begin(), remote->recent_packets.end(), packet.packet_id);
+                                auto it = std::find(remote->recent_packets.begin(),
+                                                    remote->recent_packets.end(),
+                                                    packet.packet_id);
 
                                 // We recently processed this packet, this is just a failed ack
                                 // Send the ack again if it was reliable
@@ -945,7 +966,9 @@ namespace extension {
                                         queue.targets.erase(s);
 
                                         // If we're all done remove the whole thing
-                                        if (queue.targets.empty()) { send_queue.erase(packet.packet_id); }
+                                        if (queue.targets.empty()) {
+                                            send_queue.erase(packet.packet_id);
+                                        }
                                     }
                                 }
                             }
@@ -1063,7 +1086,9 @@ namespace extension {
                                   bool reliable) {
 
             // If we are not connected throw an error
-            if (targets.empty()) { throw std::runtime_error("Cannot send messages as the network is not connected"); }
+            if (targets.empty()) {
+                throw std::runtime_error("Cannot send messages as the network is not connected");
+            }
 
 
             // The header for our packet
@@ -1072,7 +1097,8 @@ namespace extension {
             /* Mutex Scope */ {
                 std::lock_guard<std::mutex> lock(send_queue_mutex);
                 // For the packet id we ensure that it's not currently used for retransmission
-                while (send_queue.count(header.packet_id = ++packet_id_source) > 0) {}
+                while (send_queue.count(header.packet_id = ++packet_id_source) > 0) {
+                }
             }
 
             header.packet_no    = 0;

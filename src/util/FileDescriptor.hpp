@@ -43,7 +43,7 @@ namespace util {
         FileDescriptor(const fd_t& fd);
 
         // Don't allow copy construction or assignment
-        FileDescriptor(const FileDescriptor&) = delete;
+        FileDescriptor(const FileDescriptor&)            = delete;
         FileDescriptor& operator=(const FileDescriptor&) = delete;
 
         // Allow move construction or assignment

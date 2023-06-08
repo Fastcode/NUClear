@@ -58,7 +58,9 @@ namespace threading {
          */
         inline ReactionHandle& enable() {
             auto c = context.lock();
-            if (c) { c->enabled = true; }
+            if (c) {
+                c->enabled = true;
+            }
             return *this;
         }
 
@@ -71,7 +73,9 @@ namespace threading {
          */
         inline ReactionHandle& disable() {
             auto c = context.lock();
-            if (c) { c->enabled = false; }
+            if (c) {
+                c->enabled = false;
+            }
             return *this;
         }
 
@@ -83,7 +87,9 @@ namespace threading {
          */
         inline ReactionHandle& enable(const bool& set) {
             auto c = context.lock();
-            if (c) { c->enabled = set; }
+            if (c) {
+                c->enabled = set;
+            }
             return *this;
         }
 
@@ -108,7 +114,9 @@ namespace threading {
          */
         inline void unbind() {
             auto c = context.lock();
-            if (c) { c->unbind(); }
+            if (c) {
+                c->unbind();
+            }
         }
 
         /**
