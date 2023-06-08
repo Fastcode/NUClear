@@ -18,6 +18,7 @@
 #ifndef NUCLEAR_UTIL_THREADPOOL_HPP
 #define NUCLEAR_UTIL_THREADPOOL_HPP
 
+#include <atomic>
 #include <cstddef>
 #include <cstdint>
 
@@ -30,6 +31,16 @@ namespace util {
 
         /// @brief The number of threads this thread pool will use.
         size_t thread_count;
+    };
+
+    struct ThreadPoolIDSource {
+        static std::atomic<uint64_t> source;
+        static constexpr uint64_t MAIN_THREAD_POOL_ID    = 0;
+        static constexpr uint64_t DEFAULT_THREAD_POOL_ID = 1;
+
+        static uint64_t get_new_pool_id() {
+            return source++;
+        }
     };
 
 }  // namespace util

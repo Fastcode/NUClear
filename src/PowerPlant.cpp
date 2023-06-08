@@ -18,8 +18,6 @@
 
 #include "PowerPlant.hpp"
 
-#include "threading/ThreadPoolTask.hpp"
-
 // See https://valgrind.org/docs/manual/drd-manual.html#drd-manual.CXX11
 #if defined(USE_VALGRIND) && !defined(NDEBUG)
 namespace std {
@@ -60,66 +58,20 @@ PowerPlant::~PowerPlant() {
     powerplant = nullptr;
 }
 
-void PowerPlant::on_startup(std::function<void()>&& func) {
-    if (is_running) {
-        throw std::runtime_error("Unable to do on_startup as the PowerPlant has already started");
-    }
-    else {
-        startup_tasks.push_back(func);
-    }
-}
-
-void PowerPlant::add_thread_task(std::function<void()>&& task) {
-    tasks.push_back(task);
-}
-
 void PowerPlant::start() {
 
     // We are now running
     is_running.store(true);
 
-    // Run all our Initialise scope tasks
-    for (auto&& func : startup_tasks) {
-        func();
-    }
-    startup_tasks.clear();
-
     // Direct emit startup event
     emit<dsl::word::emit::Direct>(std::make_unique<dsl::word::Startup>());
 
-    // Start all our threads
-    for (size_t i = 0; i < configuration.thread_count; ++i) {
-        tasks.push_back(threading::make_thread_pool_task(scheduler));
-    }
-
-    // Start all our tasks
-    for (auto& task : tasks) {
-        threads.push_back(std::make_unique<std::thread>(task));
-    }
-
-    // Start our main thread using our main task scheduler
-    threading::make_thread_pool_task(main_thread_scheduler)();
-
-    // Now wait for all the threads to finish executing
-    for (auto& thread : threads) {
-        try {
-            if (thread->joinable()) {
-                thread->join();
-            }
-        }
-        // This gets thrown some time if between checking if joinable and joining
-        // the thread is no longer joinable
-        catch (const std::system_error&) {
-        }
-    }
+    // Start all of the threads
+    scheduler.start(configuration.thread_count);
 }
 
 void PowerPlant::submit(std::unique_ptr<threading::ReactionTask>&& task) {
     scheduler.submit(std::move(task));
-}
-
-void PowerPlant::submit_main(std::unique_ptr<threading::ReactionTask>&& task) {
-    main_thread_scheduler.submit(std::move(task));
 }
 
 void PowerPlant::shutdown() {
@@ -133,9 +85,6 @@ void PowerPlant::shutdown() {
 
     // Shutdown the scheduler
     scheduler.shutdown();
-
-    // Shutdown the main threads scheduler
-    main_thread_scheduler.shutdown();
 }
 
 bool PowerPlant::running() const {
