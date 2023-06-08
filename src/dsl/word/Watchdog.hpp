@@ -79,7 +79,9 @@ namespace dsl {
              * @param data The runtime argument for the current watchdog in the WatchdogGroup/RuntimeType group
              */
             static void unbind(const RuntimeType& data) {
-                if (WatchdogStore::get() != nullptr) { WatchdogStore::get()->erase(data); }
+                if (WatchdogStore::get() != nullptr) {
+                    WatchdogStore::get()->erase(data);
+                }
             }
         };
 
@@ -121,7 +123,9 @@ namespace dsl {
              * @brief Cleans up any allocated storage for the WatchdogGroup watchdog
              */
             static void unbind() {
-                if (WatchdogStore::get() != nullptr) { WatchdogStore::get().reset(); }
+                if (WatchdogStore::get() != nullptr) {
+                    WatchdogStore::get().reset();
+                }
             }
         };
 
@@ -212,8 +216,9 @@ namespace dsl {
                 // Send our configuration out
                 reaction->reactor.emit<emit::Direct>(std::make_unique<operation::ChronoTask>(
                     [reaction, data](NUClear::clock::time_point& time) {
-                        return Watchdog::chrono_task(
-                            reaction, WatchdogDataStore<WatchdogGroup, RuntimeType>::get(data), time);
+                        return Watchdog::chrono_task(reaction,
+                                                     WatchdogDataStore<WatchdogGroup, RuntimeType>::get(data),
+                                                     time);
                     },
                     NUClear::clock::now() + period(ticks),
                     reaction->id));
@@ -263,7 +268,9 @@ namespace dsl {
                     try {
                         // Submit the reaction to the thread pool
                         auto task = reaction->get_task();
-                        if (task) { reaction->reactor.powerplant.submit(std::move(task)); }
+                        if (task) {
+                            reaction->reactor.powerplant.submit(std::move(task));
+                        }
                     }
                     catch (...) {
                     }

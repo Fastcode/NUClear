@@ -21,7 +21,7 @@
 
 #ifndef _WIN32
 
-#    include <pthread.h>
+    #include <pthread.h>
 
 inline void update_current_thread_priority(int priority) {
 
@@ -40,7 +40,7 @@ inline void update_current_thread_priority(int priority) {
 
 #ifdef _WIN32
 
-#    include "platform.hpp"
+    #include "platform.hpp"
 
 inline void update_current_thread_priority(int priority) {
 

@@ -63,7 +63,9 @@ public:
         // test.
         on<Every<EVERY_INTERVAL, std::chrono::milliseconds>>().then([this] {
             // service the watchdog
-            if (++count < 20) { emit<Scope::WATCHDOG>(ServiceWatchdog<TestReactor>()); }
+            if (++count < 20) {
+                emit<Scope::WATCHDOG>(ServiceWatchdog<TestReactor>());
+            }
         });
     }
 };
@@ -82,7 +84,9 @@ public:
                 a_ended = true;
 
                 // When our watchdog eventually triggers, shutdown
-                if (b_ended) { powerplant.shutdown(); }
+                if (b_ended) {
+                    powerplant.shutdown();
+                }
             });
 
         // Trigger the watchdog after WATCHDOG_TIMEOUT milliseconds
@@ -92,7 +96,9 @@ public:
                 b_ended = true;
 
                 // When our watchdog eventually triggers, shutdown
-                if (a_ended) { powerplant.shutdown(); }
+                if (a_ended) {
+                    powerplant.shutdown();
+                }
             });
 
         // Service the watchdog every EVERY_INTERVAL milliseconds, 20 times. Then let it expire to trigger and end the

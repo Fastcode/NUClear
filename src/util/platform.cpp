@@ -20,7 +20,7 @@
 
 #ifdef _WIN32
 
-#    include <stdexcept>
+    #include <stdexcept>
 LPFN_WSARECVMSG WSARecvMsg = nullptr;
 
 // Go get that WSARecvMsg function from stupid land
@@ -51,7 +51,9 @@ namespace NUClear {
 int recvmsg(fd_t fd, msghdr* msg, int /* flags */) {
 
     // If we haven't setup our recvmsg function yet, set it up
-    if (WSARecvMsg == nullptr) { initialize_WSARecvMsg(); }
+    if (WSARecvMsg == nullptr) {
+        initialize_WSARecvMsg();
+    }
 
     // Translate to windows speak
     DWORD received = 0;

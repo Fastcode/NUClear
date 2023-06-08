@@ -20,9 +20,9 @@
 #define NUCLEAR_EXTENSION_IOCONTROLLER
 
 #ifdef _WIN32
-#    include "IOController_Windows.hpp"
+    #include "IOController_Windows.hpp"
 #else
-#    include "IOController_Posix.hpp"
+    #include "IOController_Posix.hpp"
 #endif  // _WIN32
 
 #endif  // NUCLEAR_EXTENSION_IOCONTROLLER

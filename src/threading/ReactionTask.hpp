@@ -74,14 +74,14 @@ namespace threading {
             , id(++task_id_source)
             , priority(priority)
             , stats(std::make_shared<message::ReactionStatistics>(parent.identifier,
-                                                    parent.id,
-                                                    id,
-                                                    current_task != nullptr ? current_task->parent.id : 0,
-                                                    current_task != nullptr ? current_task->id : 0,
-                                                    clock::now(),
-                                                    clock::time_point(std::chrono::seconds(0)),
-                                                    clock::time_point(std::chrono::seconds(0)),
-                                                    nullptr))
+                                                                  parent.id,
+                                                                  id,
+                                                                  current_task != nullptr ? current_task->parent.id : 0,
+                                                                  current_task != nullptr ? current_task->id : 0,
+                                                                  clock::now(),
+                                                                  clock::time_point(std::chrono::seconds(0)),
+                                                                  clock::time_point(std::chrono::seconds(0)),
+                                                                  nullptr))
             , emit_stats(parent.emit_stats && (current_task != nullptr ? current_task->emit_stats : true))
             , callback(callback) {}
 

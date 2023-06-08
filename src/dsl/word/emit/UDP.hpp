@@ -84,8 +84,9 @@ namespace dsl {
                     // Open a socket to send the datagram from
                     util::FileDescriptor fd = ::socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
                     if (fd < 0) {
-                        throw std::system_error(
-                            network_errno, std::system_category(), "We were unable to open the UDP socket");
+                        throw std::system_error(network_errno,
+                                                std::system_category(),
+                                                "We were unable to open the UDP socket");
                     }
 
                     // If we need to, bind to a port on our end
@@ -133,8 +134,9 @@ namespace dsl {
                                  reinterpret_cast<sockaddr*>(&target),
                                  sizeof(sockaddr_in))
                         < 0) {
-                        throw std::system_error(
-                            network_errno, std::system_category(), "We were unable to send the UDP message");
+                        throw std::system_error(network_errno,
+                                                std::system_category(),
+                                                "We were unable to send the UDP message");
                     }
                 }
 

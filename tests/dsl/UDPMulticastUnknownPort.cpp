@@ -36,7 +36,9 @@ public:
 
         // Terminates the test if it takes too long - longer than 200 ms since this reaction first runs
         on<Every<200, std::chrono::milliseconds>>().then([this]() {
-            if (shutdown_flag) { powerplant.shutdown(); }
+            if (shutdown_flag) {
+                powerplant.shutdown();
+            }
             shutdown_flag = true;
         });
 
@@ -50,7 +52,9 @@ public:
                 REQUIRE(std::memcmp(packet.payload.data(), TEST_STRING.data(), TEST_STRING.size()) == 0);
 
                 // Shutdown if we have succeeded
-                if (count >= num_addresses) { powerplant.shutdown(); }
+                if (count >= num_addresses) {
+                    powerplant.shutdown();
+                }
             });
 
         // Test with port given to us
@@ -79,8 +83,11 @@ public:
             for (auto& ad : addresses) {
 
                 // Send our message to that broadcast address
-                emit<Scope::UDP>(
-                    std::make_unique<std::string>(TEST_STRING), MULTICAST_ADDRESS, bound_port, ad, in_port_t(0));
+                emit<Scope::UDP>(std::make_unique<std::string>(TEST_STRING),
+                                 MULTICAST_ADDRESS,
+                                 bound_port,
+                                 ad,
+                                 in_port_t(0));
             }
         });
 
