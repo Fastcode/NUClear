@@ -98,8 +98,8 @@ namespace dsl {
                 sockaddr_in address{};
                 std::memset(&address, 0, sizeof(sockaddr_in));
                 address.sin_family      = AF_INET;
-                address.sin_port        = ::htons(port);
-                address.sin_addr.s_addr = ::htonl(INADDR_ANY);
+                address.sin_port        = htons(port);
+                address.sin_addr.s_addr = htonl(INADDR_ANY);
 
                 // Bind to the address, and if we fail throw an error
                 if (::bind(fd, reinterpret_cast<sockaddr*>(&address), sizeof(sockaddr))) {
@@ -122,7 +122,7 @@ namespace dsl {
                                             std::system_category(),
                                             "We were unable to get the port from the TCP socket");
                 }
-                port = ::ntohs(address.sin_port);
+                port = ntohs(address.sin_port);
 
                 // Generate a reaction for the IO system that closes on death
                 const fd_t cfd = fd;
@@ -166,8 +166,8 @@ namespace dsl {
                     return Connection{{0, 0}, {0, 0}, 0};
                 }
 
-                return Connection{{::ntohl(remote.sin_addr.s_addr), ::ntohs(remote.sin_port)},
-                                  {::ntohl(local.sin_addr.s_addr), ::ntohs(local.sin_port)},
+                return Connection{{ntohl(remote.sin_addr.s_addr), ntohs(remote.sin_port)},
+                                  {ntohl(local.sin_addr.s_addr), ntohs(local.sin_port)},
                                   fd.release()};
             }
         };

@@ -111,8 +111,8 @@ public:
             // Our address to our local connection
             sockaddr_in address{};
             address.sin_family      = AF_INET;
-            address.sin_addr.s_addr = ::htonl(INADDR_LOOPBACK);
-            address.sin_port        = ::htons(PORT);
+            address.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+            address.sin_port        = htons(PORT);
 
             // Connect to ourself
             REQUIRE(::connect(known_port_fd, reinterpret_cast<sockaddr*>(&address), sizeof(address)) == 0);
@@ -138,8 +138,8 @@ public:
             // Our address to our local connection
             sockaddr_in address{};
             address.sin_family      = AF_INET;
-            address.sin_addr.s_addr = ::htonl(INADDR_LOOPBACK);
-            address.sin_port        = ::htons(bound_port);
+            address.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+            address.sin_port        = htons(bound_port);
 
             // Connect to ourself
             REQUIRE(::connect(bound_port_fd, reinterpret_cast<sockaddr*>(&address), sizeof(address)) == 0);

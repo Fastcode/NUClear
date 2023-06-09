@@ -162,7 +162,7 @@ namespace extension {
 
             // IPv4
             if (address.sock.sa_family == AF_INET) {
-                address.ipv4.sin_addr.s_addr = ::htonl(INADDR_ANY);
+                address.ipv4.sin_addr.s_addr = htonl(INADDR_ANY);
                 address.ipv4.sin_port        = 0;
             }
             // IPv6
@@ -205,7 +205,7 @@ namespace extension {
 
             // Swap our address so the rest of the information is anys
             if (address.sock.sa_family == AF_INET) {
-                address.ipv4.sin_addr.s_addr = ::htonl(INADDR_ANY);
+                address.ipv4.sin_addr.s_addr = htonl(INADDR_ANY);
             }
             else if (address.sock.sa_family == AF_INET6) {
                 address.ipv6.sin6_addr = IN6ADDR_ANY_INIT;

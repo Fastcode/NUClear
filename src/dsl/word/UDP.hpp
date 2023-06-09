@@ -122,8 +122,8 @@ namespace dsl {
                 sockaddr_in address{};
                 std::memset(&address, 0, sizeof(sockaddr_in));
                 address.sin_family      = AF_INET;
-                address.sin_port        = ::htons(port);
-                address.sin_addr.s_addr = ::htonl(INADDR_ANY);
+                address.sin_port        = htons(port);
+                address.sin_addr.s_addr = htonl(INADDR_ANY);
 
                 // Bind to the address, and if we fail throw an error
                 if (::bind(fd, reinterpret_cast<sockaddr*>(&address), sizeof(sockaddr))) {
@@ -147,7 +147,7 @@ namespace dsl {
                                             std::system_category(),
                                             "We were unable to get the port from the UDP socket");
                 }
-                port = ::ntohs(address.sin_port);
+                port = ntohs(address.sin_port);
 
                 // Generate a reaction for the IO system that closes on death
                 const fd_t cfd = fd;
@@ -240,10 +240,10 @@ namespace dsl {
                 // if no error
                 if (received > 0) {
                     p.valid          = true;
-                    p.remote.address = ::ntohl(from.sin_addr.s_addr);
-                    p.remote.port    = ::ntohs(from.sin_port);
-                    p.local.address  = ::ntohl(our_addr);
-                    p.local.port     = ::ntohs(address.sin_port);
+                    p.remote.address = ntohl(from.sin_addr.s_addr);
+                    p.remote.port    = ntohs(from.sin_port);
+                    p.local.address  = ntohl(our_addr);
+                    p.local.port     = ntohs(address.sin_port);
                     p.payload.resize(size_t(received));
                 }
 
@@ -268,8 +268,8 @@ namespace dsl {
                     sockaddr_in address{};
                     std::memset(&address, 0, sizeof(sockaddr_in));
                     address.sin_family      = AF_INET;
-                    address.sin_port        = ::htons(port);
-                    address.sin_addr.s_addr = ::htonl(INADDR_ANY);
+                    address.sin_port        = htons(port);
+                    address.sin_addr.s_addr = htonl(INADDR_ANY);
 
                     int yes = 1;
                     // We are a broadcast socket
@@ -305,7 +305,7 @@ namespace dsl {
                                                 std::system_category(),
                                                 "We were unable to get the port from the UDP socket");
                     }
-                    port = ::ntohs(address.sin_port);
+                    port = ntohs(address.sin_port);
 
                     // Generate a reaction for the IO system that closes on death
                     const fd_t cfd = fd;
@@ -342,7 +342,7 @@ namespace dsl {
                     std::memset(&address, 0, sizeof(address));
                     address.sin_family      = AF_INET;
                     address.sin_addr.s_addr = INADDR_ANY;
-                    address.sin_port        = ::htons(port);
+                    address.sin_port        = htons(port);
 
                     // Make our socket
                     util::FileDescriptor fd = ::socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
@@ -380,7 +380,7 @@ namespace dsl {
                                                 std::system_category(),
                                                 "We were unable to get the port from the UDP socket");
                     }
-                    port = ::ntohs(address.sin_port);
+                    port = ntohs(address.sin_port);
 
                     // Get all the network interfaces that support multicast
                     std::vector<uint32_t> addresses;

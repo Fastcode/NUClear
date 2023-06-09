@@ -47,7 +47,7 @@ public:
                                              c.data(),
                                              c.size())
                               << std::endl;
-                    std::cout << "\tPort: " << ::ntohs(join.address.ipv4.sin_port) << std::endl;
+                    std::cout << "\tPort: " << ntohs(join.address.ipv4.sin_port) << std::endl;
                     break;
 
                 case AF_INET6:
@@ -57,7 +57,7 @@ public:
                                              c.data(),
                                              c.size())
                               << std::endl;
-                    std::cout << "\tPort: " << ::ntohs(join.address.ipv6.sin6_port) << std::endl;
+                    std::cout << "\tPort: " << ntohs(join.address.ipv6.sin6_port) << std::endl;
                     break;
             }
 
@@ -95,7 +95,7 @@ public:
                                              c.data(),
                                              c.size())
                               << std::endl;
-                    std::cout << "\tPort: " << ::ntohs(leave.address.ipv4.sin_port) << std::endl;
+                    std::cout << "\tPort: " << ntohs(leave.address.ipv4.sin_port) << std::endl;
                     break;
 
                 case AF_INET6:
@@ -105,7 +105,7 @@ public:
                                              c.data(),
                                              c.size())
                               << std::endl;
-                    std::cout << "\tPort: " << ::ntohs(leave.address.ipv6.sin6_port) << std::endl;
+                    std::cout << "\tPort: " << ntohs(leave.address.ipv6.sin6_port) << std::endl;
                     break;
             }
         });

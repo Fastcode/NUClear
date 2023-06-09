@@ -74,12 +74,12 @@ namespace dsl {
 
                     // Get socket addresses for our source and target
                     src.sin_family      = AF_INET;
-                    src.sin_addr.s_addr = ::htonl(from_addr);
-                    src.sin_port        = ::htons(from_port);
+                    src.sin_addr.s_addr = htonl(from_addr);
+                    src.sin_port        = htons(from_port);
 
                     target.sin_family      = AF_INET;
-                    target.sin_addr.s_addr = ::htonl(to_addr);
-                    target.sin_port        = ::htons(to_port);
+                    target.sin_addr.s_addr = htonl(to_addr);
+                    target.sin_port        = htons(to_port);
 
                     // Work out if we are sending to a multicast address
                     const bool multicast = ((to_addr >> 28) == 14);
@@ -154,10 +154,10 @@ namespace dsl {
                     in_addr addr{};
 
                     ::inet_pton(AF_INET, to_addr.c_str(), &addr);
-                    in_addr_t to = ::ntohl(addr.s_addr);
+                    in_addr_t to = ntohl(addr.s_addr);
 
                     ::inet_pton(AF_INET, from_addr.c_str(), &addr);
-                    in_addr_t from = ::ntohl(addr.s_addr);
+                    in_addr_t from = ntohl(addr.s_addr);
 
                     emit(powerplant, data, to, to_port, from, from_port);
                 }
@@ -172,7 +172,7 @@ namespace dsl {
                     in_addr addr{};
 
                     ::inet_pton(AF_INET, to_addr.c_str(), &addr);
-                    in_addr_t to = ::ntohl(addr.s_addr);
+                    in_addr_t to = ntohl(addr.s_addr);
 
                     emit(powerplant, data, to, to_port, from_addr, from_port);
                 }
@@ -187,7 +187,7 @@ namespace dsl {
                     in_addr addr{};
 
                     ::inet_pton(AF_INET, from_addr.c_str(), &addr);
-                    in_addr_t from = ::ntohl(addr.s_addr);
+                    in_addr_t from = ntohl(addr.s_addr);
 
                     emit(powerplant, data, to_addr, to_port, from, from_port);
                 }
@@ -208,7 +208,7 @@ namespace dsl {
                     in_addr addr{};
 
                     ::inet_pton(AF_INET, to_addr.c_str(), &addr);
-                    in_addr_t to = ::ntohl(addr.s_addr);
+                    in_addr_t to = ntohl(addr.s_addr);
 
                     emit(powerplant, data, to, to_port, INADDR_ANY, in_port_t(0));
                 }
