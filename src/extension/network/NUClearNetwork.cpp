@@ -502,7 +502,7 @@ namespace extension {
             }
 
             // Used for storing how many bytes are available on a socket
-            uint64_t count = 0;
+            unsigned long count = 0;  // NOLINT(google-runtime-int) MSVC wants an unsigned long
 
             // Read packets from the multicast socket while there is data available
             ioctl(announce_fd, FIONREAD, &(count = 0));
