@@ -19,6 +19,9 @@
 #ifndef NUCLEAR_DSL_WORD_EMIT_UDP_HPP
 #define NUCLEAR_DSL_WORD_EMIT_UDP_HPP
 
+#include <arpa/inet.h>
+#include <sys/socket.h>
+
 #include "../../../PowerPlant.hpp"
 #include "../../../util/FileDescriptor.hpp"
 #include "../../../util/platform.hpp"
@@ -66,8 +69,8 @@ namespace dsl {
 
                     sockaddr_in src{};
                     sockaddr_in target{};
-                   std::memset(&src, 0, sizeof(sockaddr_in));
-                   std::memset(&target, 0, sizeof(sockaddr_in));
+                    std::memset(&src, 0, sizeof(sockaddr_in));
+                    std::memset(&target, 0, sizeof(sockaddr_in));
 
                     // Get socket addresses for our source and target
                     src.sin_family      = AF_INET;

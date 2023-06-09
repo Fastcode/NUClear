@@ -19,6 +19,9 @@
 #ifndef NUCLEAR_DSL_WORD_UDP_HPP
 #define NUCLEAR_DSL_WORD_UDP_HPP
 
+#include <arpa/inet.h>
+#include <sys/socket.h>
+
 #include <array>
 
 #include "../../PowerPlant.hpp"

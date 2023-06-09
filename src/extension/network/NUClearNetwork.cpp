@@ -18,6 +18,8 @@
 
 #include "NUClearNetwork.hpp"
 
+#include <sys/socket.h>
+
 #include <algorithm>
 #include <cerrno>
 #include <cstring>
@@ -330,22 +332,22 @@ namespace extension {
                 for (auto it = announce_targets.first; it != announce_targets.second; ++it) {
 
                     // Send the packet
-                    sendto(data_fd,
-                           reinterpret_cast<const char*>(&packet),
-                           sizeof(packet),
-                           0,
-                           &it->second->target.sock,
-                           socket_size(it->second->target));
+                    ::sendto(data_fd,
+                             reinterpret_cast<const char*>(&packet),
+                             sizeof(packet),
+                             0,
+                             &it->second->target.sock,
+                             socket_size(it->second->target));
                 }
             }
 
             // Close our existing FDs if they exist
             if (data_fd > 0) {
-                close(data_fd);
+                ::close(data_fd);
                 data_fd = INVALID_SOCKET;
             }
             if (announce_fd > 0) {
-                close(announce_fd);
+                ::close(announce_fd);
                 announce_fd = INVALID_SOCKET;
             }
         }
@@ -509,7 +511,7 @@ namespace extension {
             while (count > 0) {
                 auto packet = read_socket(announce_fd);
                 process_packet(packet.first, std::move(packet.second));
-                ioctl(announce_fd, FIONREAD, &(count = 0));
+                ::ioctl(announce_fd, FIONREAD, &(count = 0));
             }
 
             // Check if we have a packet available on the data socket
@@ -517,7 +519,7 @@ namespace extension {
             while (count > 0) {
                 auto packet = read_socket(data_fd);
                 process_packet(packet.first, std::move(packet.second));
-                ioctl(data_fd, FIONREAD, &(count = 0));
+                ::ioctl(data_fd, FIONREAD, &(count = 0));
             }
         }
 
