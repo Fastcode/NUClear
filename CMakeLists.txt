@@ -54,7 +54,6 @@ option(CI_BUILD "Enable build options for building in the CI server" OFF)
 # Default not to run the clang-tidy checks, default to whatever our CI_BUILD is
 option(ENABLE_CLANG_TIDY "Enable building with clang-tidy checks.")
 if(ENABLE_CLANG_TIDY OR CI_BUILD)
-  find_package(PythonInterp 3 REQUIRED)
   set(CLANG_TIDY_ARGS "clang-tidy" "--use-color")
   set(CMAKE_CXX_CLANG_TIDY "${CLANG_TIDY_ARGS}" "--extra-arg=-std=c++14")
   set(CMAKE_C_CLANG_TIDY "${CLANG_TIDY_ARGS}" "--extra-arg=-std=c99")
