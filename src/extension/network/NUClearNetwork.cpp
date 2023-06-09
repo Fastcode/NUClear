@@ -714,9 +714,10 @@ namespace extension {
                             if (header.type == DATA_RETRANSMISSION) {
 
                                 // See if we recently processed this packet
-                                auto* it = std::find(remote->recent_packets.begin(),
-                                                     remote->recent_packets.end(),
-                                                     packet.packet_id);
+                                // NOLINTNEXTLINE(readability-qualified-auto) MSVC disagrees
+                                auto it = std::find(remote->recent_packets.begin(),
+                                                    remote->recent_packets.end(),
+                                                    packet.packet_id);
 
                                 // We recently processed this packet, this is just a failed ack
                                 // Send the ack again if it was reliable
