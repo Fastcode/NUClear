@@ -22,25 +22,25 @@
 namespace {
 
 struct MessageCount {
-    MessageCount() : message1(0), message2(0), message3(0) {}
+    MessageCount() = default;
 
-    std::atomic<int> message1;
-    std::atomic<int> message2;
-    std::atomic<int> message3;
+    std::atomic<int> message1{0};
+    std::atomic<int> message2{0};
+    std::atomic<int> message3{0};
 };
 
-MessageCount message_count;
+MessageCount message_count;  // NOLINT(cert-err58-cpp,cppcoreguidelines-avoid-non-const-global-variables)
 
 struct SimpleMessage1 {
-    int data;
+    int data{0};
 };
 
 struct SimpleMessage2 {
-    int data;
+    int data{0};
 };
 
 struct SimpleMessage3 {
-    int data;
+    int data{0};
 };
 
 class TestReactor : public NUClear::Reactor {

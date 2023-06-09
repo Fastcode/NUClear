@@ -28,13 +28,18 @@ namespace util {
 
     template <typename MapID, typename Key, typename Value>
     class TypeList {
+    public:
+        /// @brief Deleted rule-of-five as this class is a static class.
+        TypeList()                                          = delete;
+        virtual ~TypeList()                                 = delete;
+        TypeList(const TypeList& /* other */)               = delete;
+        TypeList(TypeList&& /* other */) noexcept           = delete;
+        TypeList operator=(const TypeList& /* other */)     = delete;
+        TypeList operator=(TypeList&& /* other */) noexcept = delete;
+
     private:
-        /// @brief Deleted constructor as this class is a static class.
-        TypeList() = delete;
-        /// @brief Deleted destructor as this class is a static class.
-        ~TypeList() = delete;
         /// @brief the data variable where the data is stored for this map key.
-        static std::vector<Value> data;
+        static std::vector<Value> data;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
     public:
         /**
@@ -49,7 +54,7 @@ namespace util {
 
     /// Initialize our type list data
     template <typename MapID, typename Key, typename Value>
-    std::vector<Value> TypeList<MapID, Key, Value>::data;
+    std::vector<Value> TypeList<MapID, Key, Value>::data;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
 }  // namespace util
 }  // namespace NUClear

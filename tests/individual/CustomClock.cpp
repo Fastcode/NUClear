@@ -23,6 +23,7 @@
 #define NUCLEAR_CUSTOM_CLOCK
 #include <nuclear>
 
+// NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
 std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
 
 namespace NUClear {
@@ -40,6 +41,7 @@ namespace {
 template <int id>
 struct Message {};
 
+// NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
 std::vector<std::chrono::steady_clock::time_point> times;
 constexpr int n_time = 100;
 
@@ -70,15 +72,15 @@ TEST_CASE("Testing custom clock works correctly", "[api][custom_clock]") {
     plant.start();
 
     // Build up our difference vector
-    double total = 0;
+    double total = 0.0;
     for (size_t i = 0; i < times.size() - 1; ++i) {
         total += (double((times[i + 1] - times[i]).count()) / double(std::nano::den));
     }
 
 #ifdef _WIN32
-    double timing_epsilon = 1e-2;
+    const double timing_epsilon = 1e-2;
 #else
-    double timing_epsilon = 1e-3;
+    const double timing_epsilon = 1e-3;
 #endif
 
     // The total should be about 2.0

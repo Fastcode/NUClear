@@ -21,8 +21,8 @@
 
 namespace {
 
-int value = 0;
-std::vector<std::pair<int, int>> value_pairs;
+int value = 0;                                 // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+std::vector<std::pair<int, int>> value_pairs;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
 struct DataType {
     int value;

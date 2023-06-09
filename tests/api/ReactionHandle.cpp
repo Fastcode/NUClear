@@ -34,7 +34,7 @@ public:
             on<Trigger<Message<0>>, Priority::HIGH>().then([] { FAIL("This reaction is disabled always"); });
         a.disable();
 
-        ReactionHandle b = on<Trigger<Message<0>>>().then([this] { powerplant.shutdown(); });
+        const ReactionHandle b = on<Trigger<Message<0>>>().then([this] { powerplant.shutdown(); });
 
         // Start our test
         on<Startup>().then([this] { emit(std::make_unique<Message<0>>()); });

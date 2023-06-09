@@ -19,6 +19,8 @@
 #ifndef NUCLEAR_DSL_WORD_UDP_HPP
 #define NUCLEAR_DSL_WORD_UDP_HPP
 
+#include <array>
+
 #include "../../PowerPlant.hpp"
 #include "../../util/FileDescriptor.hpp"
 #include "../../util/network/get_interfaces.hpp"
@@ -65,7 +67,7 @@ namespace dsl {
 
                 /// The information about this packet's source
                 struct Remote {
-                    Remote() =default;
+                    Remote() = default;
                     Remote(uint32_t addr, uint16_t port) : address(addr), port(port) {}
 
                     /// The address that the packet is from
@@ -76,7 +78,7 @@ namespace dsl {
 
                 /// The information about this packet's destination
                 struct Local {
-                    Local() =default;
+                    Local() = default;
                     Local(uint32_t addr, uint16_t port) : address(addr), port(port) {}
 
                     /// The address that the packet is to
@@ -114,11 +116,11 @@ namespace dsl {
                 }
 
                 // The address we will be binding to
-                sockaddr_in address;
-                memset(&address, 0, sizeof(sockaddr_in));
+                sockaddr_in address{};
+                std::memset(&address, 0, sizeof(sockaddr_in));
                 address.sin_family      = AF_INET;
-                address.sin_port        = htons(port);
-                address.sin_addr.s_addr = htonl(INADDR_ANY);
+                address.sin_port        = ::htons(port);
+                address.sin_addr.s_addr = ::htonl(INADDR_ANY);
 
                 // Bind to the address, and if we fail throw an error
                 if (::bind(fd, reinterpret_cast<sockaddr*>(&address), sizeof(sockaddr))) {
@@ -129,7 +131,7 @@ namespace dsl {
 
                 int yes = 1;
                 // Include struct in_pktinfo in the message "ancilliary" control data
-                if (setsockopt(fd, IPPROTO_IP, IP_PKTINFO, reinterpret_cast<const char*>(&yes), sizeof(yes)) < 0) {
+                if (::setsockopt(fd, IPPROTO_IP, IP_PKTINFO, reinterpret_cast<const char*>(&yes), sizeof(yes)) < 0) {
                     throw std::system_error(network_errno,
                                             std::system_category(),
                                             "We were unable to flag the socket as getting ancillary data");
@@ -142,17 +144,16 @@ namespace dsl {
                                             std::system_category(),
                                             "We were unable to get the port from the UDP socket");
                 }
-                port = ntohs(address.sin_port);
+                port = ::ntohs(address.sin_port);
 
                 // Generate a reaction for the IO system that closes on death
-                fd_t cfd = fd;
+                const fd_t cfd = fd;
                 reaction->unbinders.push_back([](const threading::Reaction& r) {
                     r.reactor.emit<emit::Direct>(std::make_unique<operation::Unbind<IO>>(r.id));
                 });
-                reaction->unbinders.push_back([cfd](const threading::Reaction&) { close(cfd); });
+                reaction->unbinders.push_back([cfd](const threading::Reaction&) { ::close(cfd); });
 
-                auto io_config =
-                    std::make_unique<IOConfiguration>(IOConfiguration{fd.release(), IO::READ, std::move(reaction)});
+                auto io_config = std::make_unique<IOConfiguration>(IOConfiguration{fd.release(), IO::READ, reaction});
 
                 // Send our configuration out
                 reaction->reactor.emit<emit::Direct>(io_config);
@@ -178,7 +179,7 @@ namespace dsl {
                     return p;
                 }
 
-                // Make a packet with 2k of storage (hopefully packets are smaller then this as most MTUs are around
+                // Make a packet with 2k of storage (hopefully packets are smaller than this as most MTUs are around
                 // 1500)
                 Packet p;
                 p.remote.address = INADDR_NONE;
@@ -189,25 +190,25 @@ namespace dsl {
                 p.payload.resize(2048);
 
                 // Make some variables to hold our message header information
-                char cmbuff[0x100] = {0};
-                sockaddr_in from;
-                memset(&from, 0, sizeof(sockaddr_in));
-                iovec payload;
+                std::array<char, 0x100> cmbuff = {0};
+                sockaddr_in from{};
+                std::memset(&from, 0, sizeof(sockaddr_in));
+                iovec payload{};
                 payload.iov_base = p.payload.data();
                 payload.iov_len  = static_cast<decltype(payload.iov_len)>(p.payload.size());
 
                 // Make our message header to receive with
-                msghdr mh;
-                memset(&mh, 0, sizeof(msghdr));
+                msghdr mh{};
+                std::memset(&mh, 0, sizeof(msghdr));
                 mh.msg_name       = reinterpret_cast<sockaddr*>(&from);
                 mh.msg_namelen    = sizeof(sockaddr_in);
-                mh.msg_control    = cmbuff;
-                mh.msg_controllen = sizeof(cmbuff);
+                mh.msg_control    = cmbuff.data();
+                mh.msg_controllen = cmbuff.size();
                 mh.msg_iov        = &payload;
                 mh.msg_iovlen     = 1;
 
                 // Receive our message
-                ssize_t received = recvmsg(event.fd, &mh, 0);
+                ssize_t received = ::recvmsg(event.fd, &mh, 0);
 
                 // Iterate through control headers to get IP information
                 in_addr_t our_addr = 0;
@@ -216,8 +217,8 @@ namespace dsl {
                     if (cmsg->cmsg_level == IPPROTO_IP && cmsg->cmsg_type == IP_PKTINFO) {
 
                         // Access the packet header information
-                        in_pktinfo* pi = reinterpret_cast<in_pktinfo*>(reinterpret_cast<char*>(cmsg) + sizeof(*cmsg));
-                        our_addr       = pi->ipi_addr.s_addr;
+                        auto* pi = reinterpret_cast<in_pktinfo*>(reinterpret_cast<char*>(cmsg) + sizeof(*cmsg));
+                        our_addr = pi->ipi_addr.s_addr;
 
                         // We are done
                         break;
@@ -226,7 +227,7 @@ namespace dsl {
 
                 // Get the port this socket is listening on
                 socklen_t len = sizeof(sockaddr_in);
-                sockaddr_in address;
+                sockaddr_in address{};
                 if (::getsockname(event.fd, reinterpret_cast<sockaddr*>(&address), &len) == -1) {
                     throw std::system_error(network_errno,
                                             std::system_category(),
@@ -236,10 +237,10 @@ namespace dsl {
                 // if no error
                 if (received > 0) {
                     p.valid          = true;
-                    p.remote.address = ntohl(from.sin_addr.s_addr);
-                    p.remote.port    = ntohs(from.sin_port);
-                    p.local.address  = ntohl(our_addr);
-                    p.local.port     = ntohs(address.sin_port);
+                    p.remote.address = ::ntohl(from.sin_addr.s_addr);
+                    p.remote.port    = ::ntohs(from.sin_port);
+                    p.local.address  = ::ntohl(our_addr);
+                    p.local.port     = ::ntohs(address.sin_port);
                     p.payload.resize(size_t(received));
                 }
 
@@ -261,27 +262,27 @@ namespace dsl {
                     }
 
                     // The address we will be binding to
-                    sockaddr_in address;
-                    memset(&address, 0, sizeof(sockaddr_in));
+                    sockaddr_in address{};
+                    std::memset(&address, 0, sizeof(sockaddr_in));
                     address.sin_family      = AF_INET;
-                    address.sin_port        = htons(port);
-                    address.sin_addr.s_addr = htonl(INADDR_ANY);
+                    address.sin_port        = ::htons(port);
+                    address.sin_addr.s_addr = ::htonl(INADDR_ANY);
 
-                    int yes = true;
+                    int yes = 1;
                     // We are a broadcast socket
-                    if (setsockopt(fd, SOL_SOCKET, SO_BROADCAST, reinterpret_cast<char*>(&yes), sizeof(yes)) < 0) {
+                    if (::setsockopt(fd, SOL_SOCKET, SO_BROADCAST, reinterpret_cast<char*>(&yes), sizeof(yes)) < 0) {
                         throw std::system_error(network_errno,
                                                 std::system_category(),
                                                 "We were unable to set the socket as broadcast");
                     }
                     // Set that we reuse the address so more than one application can bind
-                    if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, reinterpret_cast<char*>(&yes), sizeof(yes)) < 0) {
+                    if (::setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, reinterpret_cast<char*>(&yes), sizeof(yes)) < 0) {
                         throw std::system_error(network_errno,
                                                 std::system_category(),
                                                 "We were unable to set reuse address on the socket");
                     }
                     // Include struct in_pktinfo in the message "ancilliary" control data
-                    if (setsockopt(fd, IPPROTO_IP, IP_PKTINFO, reinterpret_cast<char*>(&yes), sizeof(yes)) < 0) {
+                    if (::setsockopt(fd, IPPROTO_IP, IP_PKTINFO, reinterpret_cast<char*>(&yes), sizeof(yes)) < 0) {
                         throw std::system_error(network_errno,
                                                 std::system_category(),
                                                 "We were unable to flag the socket as getting ancillary data");
@@ -301,17 +302,17 @@ namespace dsl {
                                                 std::system_category(),
                                                 "We were unable to get the port from the UDP socket");
                     }
-                    port = ntohs(address.sin_port);
+                    port = ::ntohs(address.sin_port);
 
                     // Generate a reaction for the IO system that closes on death
-                    fd_t cfd = fd;
+                    const fd_t cfd = fd;
                     reaction->unbinders.push_back([](const threading::Reaction& r) {
                         r.reactor.emit<emit::Direct>(std::make_unique<operation::Unbind<IO>>(r.id));
                     });
-                    reaction->unbinders.push_back([cfd](const threading::Reaction&) { close(cfd); });
+                    reaction->unbinders.push_back([cfd](const threading::Reaction&) { ::close(cfd); });
 
                     auto io_config =
-                        std::make_unique<IOConfiguration>(IOConfiguration{fd.release(), IO::READ, std::move(reaction)});
+                        std::make_unique<IOConfiguration>(IOConfiguration{fd.release(), IO::READ, reaction});
 
                     // Send our configuration out
                     reaction->reactor.emit<emit::Direct>(io_config);
@@ -330,15 +331,15 @@ namespace dsl {
 
                 template <typename DSL>
                 static inline std::tuple<in_port_t, fd_t> bind(const std::shared_ptr<threading::Reaction>& reaction,
-                                                               std::string multicast_group,
+                                                               const std::string& multicast_group,
                                                                in_port_t port = 0) {
 
                     // Our multicast group address
-                    sockaddr_in address;
+                    sockaddr_in address{};
                     std::memset(&address, 0, sizeof(address));
                     address.sin_family      = AF_INET;
                     address.sin_addr.s_addr = INADDR_ANY;
-                    address.sin_port        = htons(port);
+                    address.sin_port        = ::htons(port);
 
                     // Make our socket
                     util::FileDescriptor fd = ::socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
@@ -348,15 +349,15 @@ namespace dsl {
                                                 "We were unable to open the UDP socket");
                     }
 
-                    int yes = true;
+                    int yes = 1;
                     // Set that we reuse the address so more than one application can bind
-                    if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, reinterpret_cast<char*>(&yes), sizeof(yes)) < 0) {
+                    if (::setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, reinterpret_cast<char*>(&yes), sizeof(yes)) < 0) {
                         throw std::system_error(network_errno,
                                                 std::system_category(),
                                                 "We were unable to set reuse address on the socket");
                     }
                     // Include struct in_pktinfo in the message "ancilliary" control data
-                    if (setsockopt(fd, IPPROTO_IP, IP_PKTINFO, reinterpret_cast<char*>(&yes), sizeof(yes)) < 0) {
+                    if (::setsockopt(fd, IPPROTO_IP, IP_PKTINFO, reinterpret_cast<char*>(&yes), sizeof(yes)) < 0) {
                         throw std::system_error(network_errno,
                                                 std::system_category(),
                                                 "We were unable to flag the socket as getting ancillary data");
@@ -376,14 +377,14 @@ namespace dsl {
                                                 std::system_category(),
                                                 "We were unable to get the port from the UDP socket");
                     }
-                    port = ntohs(address.sin_port);
+                    port = ::ntohs(address.sin_port);
 
                     // Get all the network interfaces that support multicast
                     std::vector<uint32_t> addresses;
                     for (auto& iface : util::network::get_interfaces()) {
                         // We receive on broadcast addresses and we don't want loopback or point to point
                         if (iface.flags.multicast && iface.ip.sock.sa_family == AF_INET) {
-                            auto& i = *reinterpret_cast<const sockaddr_in*>(&iface.ip);
+                            const auto& i = *reinterpret_cast<const sockaddr_in*>(&iface.ip);
                             addresses.push_back(i.sin_addr.s_addr);
                         }
                     }
@@ -391,17 +392,17 @@ namespace dsl {
                     for (auto& ad : addresses) {
 
                         // Our multicast join request
-                        ip_mreq mreq;
-                        memset(&mreq, 0, sizeof(mreq));
-                        inet_pton(AF_INET, multicast_group.c_str(), &mreq.imr_multiaddr);
+                        ip_mreq mreq{};
+                        std::memset(&mreq, 0, sizeof(mreq));
+                        ::inet_pton(AF_INET, multicast_group.c_str(), &mreq.imr_multiaddr);
                         mreq.imr_interface.s_addr = ad;
 
                         // Join our multicast group
-                        if (setsockopt(fd,
-                                       IPPROTO_IP,
-                                       IP_ADD_MEMBERSHIP,
-                                       reinterpret_cast<char*>(&mreq),
-                                       sizeof(ip_mreq))
+                        if (::setsockopt(fd,
+                                         IPPROTO_IP,
+                                         IP_ADD_MEMBERSHIP,
+                                         reinterpret_cast<char*>(&mreq),
+                                         sizeof(ip_mreq))
                             < 0) {
                             throw std::system_error(network_errno,
                                                     std::system_category(),
@@ -410,14 +411,14 @@ namespace dsl {
                     }
 
                     // Generate a reaction for the IO system that closes on death
-                    fd_t cfd = fd;
+                    const fd_t cfd = fd;
                     reaction->unbinders.push_back([](const threading::Reaction& r) {
                         r.reactor.emit<emit::Direct>(std::make_unique<operation::Unbind<IO>>(r.id));
                     });
-                    reaction->unbinders.push_back([cfd](const threading::Reaction&) { close(cfd); });
+                    reaction->unbinders.push_back([cfd](const threading::Reaction&) { ::close(cfd); });
 
                     auto io_config =
-                        std::make_unique<IOConfiguration>(IOConfiguration{fd.release(), IO::READ, std::move(reaction)});
+                        std::make_unique<IOConfiguration>(IOConfiguration{fd.release(), IO::READ, reaction});
 
                     // Send our configuration out for each file descriptor (same reaction)
                     reaction->reactor.emit<emit::Direct>(io_config);

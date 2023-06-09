@@ -64,25 +64,25 @@ namespace dsl {
                                         in_addr_t from_addr,
                                         in_port_t from_port) {
 
-                    sockaddr_in src;
-                    sockaddr_in target;
-                    memset(&src, 0, sizeof(sockaddr_in));
-                    memset(&target, 0, sizeof(sockaddr_in));
+                    sockaddr_in src{};
+                    sockaddr_in target{};
+                   std::memset(&src, 0, sizeof(sockaddr_in));
+                   std::memset(&target, 0, sizeof(sockaddr_in));
 
                     // Get socket addresses for our source and target
                     src.sin_family      = AF_INET;
-                    src.sin_addr.s_addr = htonl(from_addr);
-                    src.sin_port        = htons(from_port);
+                    src.sin_addr.s_addr = ::htonl(from_addr);
+                    src.sin_port        = ::htons(from_port);
 
                     target.sin_family      = AF_INET;
-                    target.sin_addr.s_addr = htonl(to_addr);
-                    target.sin_port        = htons(to_port);
+                    target.sin_addr.s_addr = ::htonl(to_addr);
+                    target.sin_port        = ::htons(to_port);
 
                     // Work out if we are sending to a multicast address
-                    bool multicast = ((to_addr >> 28) == 14);
+                    const bool multicast = ((to_addr >> 28) == 14);
 
                     // Open a socket to send the datagram from
-                    util::FileDescriptor fd = ::socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+                    const util::FileDescriptor fd = ::socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
                     if (fd < 0) {
                         throw std::system_error(network_errno,
                                                 std::system_category(),
@@ -91,7 +91,7 @@ namespace dsl {
 
                     // If we need to, bind to a port on our end
                     if (from_addr != 0 || from_port != 0) {
-                        if (::bind(fd, reinterpret_cast<sockaddr*>(&src), sizeof(sockaddr))) {
+                        if (::bind(fd, reinterpret_cast<sockaddr*>(&src), sizeof(sockaddr)) != 0) {
                             throw std::system_error(network_errno,
                                                     std::system_category(),
                                                     "We were unable to bind the UDP socket to the port");
@@ -101,11 +101,11 @@ namespace dsl {
                     // If we are using multicast and we have a specific from_addr we need to tell the system to use it
                     if (multicast && from_addr != 0) {
                         // Set our transmission interface for the multicast socket
-                        if (setsockopt(fd,
-                                       IPPROTO_IP,
-                                       IP_MULTICAST_IF,
-                                       reinterpret_cast<const char*>(&src.sin_addr),
-                                       sizeof(src.sin_addr))
+                        if (::setsockopt(fd,
+                                         IPPROTO_IP,
+                                         IP_MULTICAST_IF,
+                                         reinterpret_cast<const char*>(&src.sin_addr),
+                                         sizeof(src.sin_addr))
                             < 0) {
                             throw std::system_error(network_errno,
                                                     std::system_category(),
@@ -115,8 +115,8 @@ namespace dsl {
 
                     // This isn't the greatest code, but lets assume our users don't send broadcasts they don't mean
                     // to...
-                    int yes = true;
-                    if (setsockopt(fd, SOL_SOCKET, SO_BROADCAST, reinterpret_cast<const char*>(&yes), sizeof(yes))
+                    int yes = 1;
+                    if (::setsockopt(fd, SOL_SOCKET, SO_BROADCAST, reinterpret_cast<const char*>(&yes), sizeof(yes))
                         < 0) {
                         throw std::system_error(network_errno,
                                                 std::system_category(),
@@ -143,33 +143,33 @@ namespace dsl {
                 // String ip addresses
                 static inline void emit(PowerPlant& powerplant,
                                         std::shared_ptr<DataType> data,
-                                        std::string to_addr,
+                                        const std::string& to_addr,
                                         in_port_t to_port,
-                                        std::string from_addr,
+                                        const std::string& from_addr,
                                         in_port_t from_port) {
 
-                    in_addr addr;
+                    in_addr addr{};
 
-                    inet_pton(AF_INET, to_addr.c_str(), &addr);
-                    in_addr_t to = ntohl(addr.s_addr);
+                    ::inet_pton(AF_INET, to_addr.c_str(), &addr);
+                    in_addr_t to = ::ntohl(addr.s_addr);
 
-                    inet_pton(AF_INET, from_addr.c_str(), &addr);
-                    in_addr_t from = ntohl(addr.s_addr);
+                    ::inet_pton(AF_INET, from_addr.c_str(), &addr);
+                    in_addr_t from = ::ntohl(addr.s_addr);
 
                     emit(powerplant, data, to, to_port, from, from_port);
                 }
 
                 static inline void emit(PowerPlant& powerplant,
                                         std::shared_ptr<DataType> data,
-                                        std::string to_addr,
+                                        const std::string& to_addr,
                                         in_port_t to_port,
                                         in_addr_t from_addr,
                                         in_port_t from_port) {
 
-                    in_addr addr;
+                    in_addr addr{};
 
-                    inet_pton(AF_INET, to_addr.c_str(), &addr);
-                    in_addr_t to = ntohl(addr.s_addr);
+                    ::inet_pton(AF_INET, to_addr.c_str(), &addr);
+                    in_addr_t to = ::ntohl(addr.s_addr);
 
                     emit(powerplant, data, to, to_port, from_addr, from_port);
                 }
@@ -178,13 +178,13 @@ namespace dsl {
                                         std::shared_ptr<DataType> data,
                                         in_addr_t to_addr,
                                         in_port_t to_port,
-                                        std::string from_addr,
+                                        const std::string& from_addr,
                                         in_port_t from_port) {
 
-                    in_addr addr;
+                    in_addr addr{};
 
-                    inet_pton(AF_INET, from_addr.c_str(), &addr);
-                    in_addr_t from = ntohl(addr.s_addr);
+                    ::inet_pton(AF_INET, from_addr.c_str(), &addr);
+                    in_addr_t from = ::ntohl(addr.s_addr);
 
                     emit(powerplant, data, to_addr, to_port, from, from_port);
                 }
@@ -199,13 +199,13 @@ namespace dsl {
 
                 static inline void emit(PowerPlant& powerplant,
                                         std::shared_ptr<DataType> data,
-                                        std::string to_addr,
+                                        const std::string& to_addr,
                                         in_port_t to_port) {
 
-                    in_addr addr;
+                    in_addr addr{};
 
-                    inet_pton(AF_INET, to_addr.c_str(), &addr);
-                    in_addr_t to = ntohl(addr.s_addr);
+                    ::inet_pton(AF_INET, to_addr.c_str(), &addr);
+                    in_addr_t to = ::ntohl(addr.s_addr);
 
                     emit(powerplant, data, to, to_port, INADDR_ANY, in_port_t(0));
                 }

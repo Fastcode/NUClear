@@ -25,17 +25,17 @@ namespace NUClear {
 namespace message {
 
     struct NetworkJoin {
-        NetworkJoin() : name(""), address() {}
+        NetworkJoin() = default;
 
-        std::string name;
-        util::network::sock_t address;
+        std::string name{};
+        util::network::sock_t address{};
     };
 
     struct NetworkLeave {
-        NetworkLeave() : name(""), address() {}
+        NetworkLeave() = default;
 
-        std::string name;
-        util::network::sock_t address;
+        std::string name{};
+        util::network::sock_t address{};
     };
 
 }  // namespace message

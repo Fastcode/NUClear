@@ -33,14 +33,12 @@ namespace extension {
         explicit ChronoController(std::unique_ptr<NUClear::Environment> environment)
             : Reactor(std::move(environment)), wait_offset(std::chrono::milliseconds(0)) {
 
-            on<Trigger<ChronoTask>>().then("Add Chrono task", [this](std::shared_ptr<const ChronoTask> task) {
+            on<Trigger<ChronoTask>>().then("Add Chrono task", [this](const std::shared_ptr<const ChronoTask>& task) {
                 // Lock the mutex while we're doing stuff
-                {
-                    std::lock_guard<std::mutex> lock(mutex);
+                const std::lock_guard<std::mutex> lock(mutex);
 
-                    // Add our new task to the heap
-                    tasks.push_back(*task);
-                }
+                // Add our new task to the heap
+                tasks.push_back(*task);
 
                 // Poke the system
                 wait.notify_all();
@@ -50,18 +48,16 @@ namespace extension {
                 "Unbind Chrono Task",
                 [this](const dsl::operation::Unbind<ChronoTask>& unbind) {
                     // Lock the mutex while we're doing stuff
-                    {
-                        std::lock_guard<std::mutex> lock(mutex);
+                    const std::lock_guard<std::mutex> lock(mutex);
 
-                        // Find the task
-                        auto it = std::find_if(tasks.begin(), tasks.end(), [&](const ChronoTask& task) {
-                            return task.id == unbind.id;
-                        });
+                    // Find the task
+                    auto it = std::find_if(tasks.begin(), tasks.end(), [&](const ChronoTask& task) {
+                        return task.id == unbind.id;
+                    });
 
-                        // Remove if if it exists
-                        if (it != tasks.end()) {
-                            tasks.erase(it);
-                        }
+                    // Remove if if it exists
+                    if (it != tasks.end()) {
+                        tasks.erase(it);
                     }
 
                     // Poke the system to make sure it's not waiting on something that's gone
@@ -69,7 +65,10 @@ namespace extension {
                 });
 
             // When we shutdown we notify so we quit now
-            on<Shutdown>().then("Shutdown Chrono Controller", [this] { wait.notify_all(); });
+            on<Shutdown>().then("Shutdown Chrono Controller", [this] {
+                const std::lock_guard<std::mutex> lock(mutex);
+                wait.notify_all();
+            });
 
             on<Always, Priority::REALTIME>().then("Chrono Controller", [this] {
                 // Acquire the mutex lock so we can wait on it
@@ -89,12 +88,12 @@ namespace extension {
                         while (NUClear::clock::now() < tasks.front().time) {
                         }
 
-                        NUClear::clock::time_point now = NUClear::clock::now();
+                        const NUClear::clock::time_point now = NUClear::clock::now();
 
                         // Move back from the end poping the heap
                         for (auto end = tasks.end(); end != tasks.begin() && tasks.front().time < now;) {
                             // Run our task and if it returns false remove it
-                            bool renew = tasks.front()();
+                            const bool renew = tasks.front()();
 
                             // Move this to the back of the list
                             std::pop_heap(tasks.begin(), end, std::greater<>());

@@ -92,11 +92,11 @@ namespace dsl {
                 }
 
                 // The address we will be binding to
-                sockaddr_in address;
-                memset(&address, 0, sizeof(sockaddr_in));
+                sockaddr_in address{};
+                std::memset(&address, 0, sizeof(sockaddr_in));
                 address.sin_family      = AF_INET;
-                address.sin_port        = htons(port);
-                address.sin_addr.s_addr = htonl(INADDR_ANY);
+                address.sin_port        = ::htons(port);
+                address.sin_addr.s_addr = ::htonl(INADDR_ANY);
 
                 // Bind to the address, and if we fail throw an error
                 if (::bind(fd, reinterpret_cast<sockaddr*>(&address), sizeof(sockaddr))) {
@@ -119,14 +119,14 @@ namespace dsl {
                                             std::system_category(),
                                             "We were unable to get the port from the TCP socket");
                 }
-                port = ntohs(address.sin_port);
+                port = ::ntohs(address.sin_port);
 
                 // Generate a reaction for the IO system that closes on death
-                fd_t cfd = fd;
+                const fd_t cfd = fd;
                 reaction->unbinders.push_back([](const threading::Reaction& r) {
                     r.reactor.emit<emit::Direct>(std::make_unique<operation::Unbind<IO>>(r.id));
                 });
-                reaction->unbinders.push_back([cfd](const threading::Reaction&) { close(cfd); });
+                reaction->unbinders.push_back([cfd](const threading::Reaction&) { ::close(cfd); });
 
                 auto io_config = std::make_unique<IOConfiguration>(IOConfiguration{fd.release(), IO::READ, reaction});
 
@@ -147,27 +147,25 @@ namespace dsl {
                 if (event.fd == 0) {
                     return Connection{{0, 0}, {0, 0}, 0};
                 }
-                else {
-                    // Accept our connection
-                    sockaddr_in local;
-                    sockaddr_in remote;
-                    socklen_t size = sizeof(sockaddr_in);
 
-                    // Accept the remote connection
-                    util::FileDescriptor fd = ::accept(event.fd, reinterpret_cast<sockaddr*>(&remote), &size);
+                // Accept our connection
+                sockaddr_in local{};
+                sockaddr_in remote{};
+                socklen_t size = sizeof(sockaddr_in);
 
-                    // Get our local address
-                    ::getsockname(fd, reinterpret_cast<sockaddr*>(&local), &size);
+                // Accept the remote connection
+                util::FileDescriptor fd = ::accept(event.fd, reinterpret_cast<sockaddr*>(&remote), &size);
 
-                    if (fd == -1) {
-                        return Connection{{0, 0}, {0, 0}, 0};
-                    }
-                    else {
-                        return Connection{{ntohl(remote.sin_addr.s_addr), ntohs(remote.sin_port)},
-                                          {ntohl(local.sin_addr.s_addr), ntohs(local.sin_port)},
-                                          fd.release()};
-                    }
+                // Get our local address
+                ::getsockname(fd, reinterpret_cast<sockaddr*>(&local), &size);
+
+                if (fd == -1) {
+                    return Connection{{0, 0}, {0, 0}, 0};
                 }
+
+                return Connection{{::ntohl(remote.sin_addr.s_addr), ::ntohs(remote.sin_port)},
+                                  {::ntohl(local.sin_addr.s_addr), ::ntohs(local.sin_port)},
+                                  fd.release()};
             }
         };
 

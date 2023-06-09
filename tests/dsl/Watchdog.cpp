@@ -23,14 +23,14 @@
 
 namespace {
 
-NUClear::clock::time_point start;
-NUClear::clock::time_point end;
-NUClear::clock::time_point end_a;
-NUClear::clock::time_point end_b;
-bool a_ended = false;
-bool b_ended = false;
+NUClear::clock::time_point start;  // NOLINT(cert-err58-cpp,cppcoreguidelines-avoid-non-const-global-variables)
+NUClear::clock::time_point end;    // NOLINT(cert-err58-cpp,cppcoreguidelines-avoid-non-const-global-variables)
+NUClear::clock::time_point end_a;  // NOLINT(cert-err58-cpp,cppcoreguidelines-avoid-non-const-global-variables)
+NUClear::clock::time_point end_b;  // NOLINT(cert-err58-cpp,cppcoreguidelines-avoid-non-const-global-variables)
+bool a_ended = false;              // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+bool b_ended = false;              // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
-int count = 0;
+int count = 0;                     // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
 #ifdef _WIN32
 // The precision of timing on Windows (with the current NUClear timing method) is not great.

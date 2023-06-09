@@ -22,10 +22,10 @@
 namespace {
 
 constexpr in_port_t PORT            = 40002;
-const std::string TEST_STRING       = "Hello UDP Multicast World!";
-const std::string MULTICAST_ADDRESS = "230.12.3.21";
-std::size_t count                   = 0;
-std::size_t num_addresses           = 0;
+const std::string TEST_STRING       = "Hello UDP Multicast World!";  // NOLINT(cert-err58-cpp)
+const std::string MULTICAST_ADDRESS = "230.12.3.21";                 // NOLINT(cert-err58-cpp)
+std::size_t count                   = 0;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+std::size_t num_addresses           = 0;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
 struct Message {};
 

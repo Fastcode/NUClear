@@ -50,7 +50,7 @@ namespace util {
 
                 // Copy the bytes into an array
                 const char* dataptr = reinterpret_cast<const char*>(&in);
-                return std::vector<char>(dataptr, dataptr + sizeof(T));
+                return {dataptr, dataptr + sizeof(T)};
             }
 
             static inline T deserialise(const std::vector<char>& in) {
@@ -63,7 +63,7 @@ namespace util {
             static inline uint64_t hash() {
 
                 // Serialise based on the demangled class name
-                std::string type_name = demangle(typeid(T).name());
+                const std::string type_name = demangle(typeid(T).name());
                 return XXH64(type_name.c_str(), type_name.size(), 0x4e55436c);
             }
         };
@@ -95,7 +95,7 @@ namespace util {
 
                 T out;
 
-                const StoredType* data = reinterpret_cast<const StoredType*>(in.data());
+                const auto* data = reinterpret_cast<const StoredType*>(in.data());
 
                 out.insert(out.end(), data, data + (in.size() / sizeof(StoredType)));
 

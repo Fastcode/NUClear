@@ -28,7 +28,7 @@ namespace extension {
         struct PacketHeader {
             PacketHeader(const Type& t) : type(t) {}
 
-            // NOLINTNEXTLINE(modernize-use-default-member-init)
+            // NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays)
             uint8_t header[3] = {0xE2, 0x98, 0xA2};  // Radioactive symbol in UTF8
             uint8_t version   = 0x02;                // The NUClear networking version
             Type type;                               // The type of packet

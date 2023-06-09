@@ -86,7 +86,7 @@ namespace util {
                                 broadcast.sin_addr.s_addr = (ipv4.sin_addr.s_addr | (~netmask.sin_addr.s_addr));
 
                                 // Loopback if the ip address starts with 127
-                                iface.flags.loopback = (ipv4.sin_addr.s_addr & htonl(0x7F000000)) == htonl(0x7F000000);
+                                iface.flags.loopback = (ipv4.sin_addr.s_addr & ::htonl(0x7F000000)) == ::htonl(0x7F000000);
                                 // Point to point if the netmask is all 1s
                                 iface.flags.pointtopoint = (netmask.sin_addr.s_addr & 0xFFFFFFFF) == 0xFFFFFFFF;
                                 // Broadcast if not point to point

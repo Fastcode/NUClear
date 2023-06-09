@@ -27,8 +27,8 @@ struct Message {};
 
 struct LoopMsg {};
 
-bool seen_message0        = false;
-bool seen_message_startup = false;
+bool seen_message0        = false;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+bool seen_message_startup = false;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
 using NUClear::message::ReactionStatistics;
 

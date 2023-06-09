@@ -35,6 +35,7 @@ extern "C" {
 // Anonymous namespace to keep everything file local
 namespace {
 
+// NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
 std::vector<std::pair<NUClear::clock::time_point, std::chrono::system_clock::time_point>> times;
 constexpr int n_time = 100;
 
@@ -84,7 +85,7 @@ TEST_CASE("Testing base clock works correctly", "[api][base_clock]") {
             , hour(tm->tm_hour)
             , min(tm->tm_min)
             , sec(tm->tm_sec) {}
-        bool operator==(const TimeData& other) {
+        bool operator==(const TimeData& other) const {
             return year == other.year && month == other.month && day == other.day && hour == other.hour
                    && min == other.min && sec == other.sec;
         }
@@ -99,16 +100,16 @@ TEST_CASE("Testing base clock works correctly", "[api][base_clock]") {
     // Compute the differences between the time pairs
     int match_count = 0;
     for (const auto& time_pairs : times) {
-        std::time_t ntt = NUClear::clock::to_time_t(time_pairs.first);
-        std::time_t stt = NUClear::clock::to_time_t(time_pairs.second);
+        const std::time_t ntt = NUClear::clock::to_time_t(time_pairs.first);
+        const std::time_t stt = NUClear::clock::to_time_t(time_pairs.second);
 
-        std::tm result;
+        std::tm result{};
 #ifdef WIN32
         localtime_s(&result, &ntt);
 #else
         localtime_r(&ntt, &result);
 #endif  // WIN32
-        TimeData nuclear_clock(&result);
+        const TimeData nuclear_clock(&result);
 
 #ifdef WIN32
         localtime_s(&result, &stt);
@@ -116,7 +117,7 @@ TEST_CASE("Testing base clock works correctly", "[api][base_clock]") {
         localtime_r(&stt, &result);
 #endif  // WIN32
 
-        TimeData local_clock(&result);
+        const TimeData local_clock(&result);
 
         UNSCOPED_INFO("Year.: " << nuclear_clock.year + 1900 << " == " << local_clock.year + 1900 << "\n"
                                 << "Month: " << nuclear_clock.month << " == " << local_clock.month << "\n"

@@ -25,8 +25,8 @@ namespace {
 struct SimpleMessage {};
 struct StartMessage {};
 
-int i = 0;
-int j = 0;
+int i = 0;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+int j = 0;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
 class TestReactor : public NUClear::Reactor {
 public:

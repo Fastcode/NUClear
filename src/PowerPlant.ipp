@@ -22,7 +22,7 @@
 
 namespace NUClear {
 
-// NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays)
+// NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays)
 inline PowerPlant::PowerPlant(Configuration config, int argc, const char* argv[]) : configuration(config) {
 
     // Stop people from making more then one powerplant
@@ -101,10 +101,10 @@ struct EmitCaller {
 
 
 template <template <typename> class First, template <typename> class... Remainder, typename T, typename... Arguments>
-void PowerPlant::emit_shared(std::shared_ptr<T> ptr, Arguments&&... args) {
+void PowerPlant::emit_shared(std::shared_ptr<T> data, Arguments&&... args) {
 
     using Functions      = std::tuple<First<T>, Remainder<T>...>;
-    using ArgumentPack   = decltype(std::forward_as_tuple(*this, ptr, std::forward<Arguments>(args)...));
+    using ArgumentPack   = decltype(std::forward_as_tuple(*this, data, std::forward<Arguments>(args)...));
     using CallerArgs     = std::tuple<>;
     using FusionFunction = util::FunctionFusion<Functions, ArgumentPack, EmitCaller, CallerArgs, 2>;
 
@@ -114,7 +114,7 @@ void PowerPlant::emit_shared(std::shared_ptr<T> ptr, Arguments&&... args) {
                   "match what you are trying to do.");
 
     // Fuse our emit handlers and call the fused function
-    FusionFunction::call(*this, ptr, std::forward<Arguments>(args)...);
+    FusionFunction::call(*this, data, std::forward<Arguments>(args)...);
 }
 
 template <template <typename> class First, template <typename> class... Remainder, typename... Arguments>

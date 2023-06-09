@@ -79,7 +79,7 @@ namespace dsl {
 
                     auto e = std::make_unique<NetworkEmit>();
 
-                    e->target   = target;
+                    e->target   = std::move(target);
                     e->hash     = util::serialise::Serialise<DataType>::hash();
                     e->payload  = util::serialise::Serialise<DataType>::serialise(*data);
                     e->reliable = reliable;

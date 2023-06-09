@@ -110,10 +110,10 @@ namespace extension {
 
             NUClearNetwork() = default;
             virtual ~NUClearNetwork();
-            NUClearNetwork(const NUClearNetwork& /* other */)              = default;
-            NUClearNetwork(NUClearNetwork&& /* other */) noexcept          = default;
-            NUClearNetwork& operator=(const NUClearNetwork& /* rhs */)     = default;
-            NUClearNetwork& operator=(NUClearNetwork&& /* rhs */) noexcept = default;
+            NUClearNetwork(const NUClearNetwork& /* other */)              = delete;
+            NUClearNetwork(NUClearNetwork&& /* other */) noexcept          = delete;
+            NUClearNetwork& operator=(const NUClearNetwork& /* rhs */)     = delete;
+            NUClearNetwork& operator=(NUClearNetwork&& /* rhs */) noexcept = delete;
 
             /**
              * @brief Send data using the NUClear network

@@ -25,7 +25,7 @@ namespace {
 class TestReactor : public NUClear::Reactor {
 public:
     // Store our times
-    std::vector<NUClear::clock::time_point> times;
+    std::vector<NUClear::clock::time_point> times{};
 
     static constexpr size_t NUM_LOG_ITEMS = 1000;
 
@@ -45,7 +45,7 @@ public:
                 std::vector<double> diff;
 
                 for (size_t i = 0; i < times.size() - 1; ++i) {
-                    std::chrono::nanoseconds delta = times[i + 1] - times[i];
+                    const std::chrono::nanoseconds delta = times[i + 1] - times[i];
 
                     // Store our difference in seconds
                     diff.push_back(double(delta.count()) / double(std::nano::den));
@@ -57,10 +57,10 @@ public:
                 }
 
                 // Calculate our mean, range, and stddev for the set
-                double sum      = std::accumulate(std::begin(diff), std::end(diff), 0.0);
-                double mean     = sum / double(diff.size());
-                double variance = std::inner_product(diff.begin(), diff.end(), diff.begin(), 0.0);
-                double stddev   = std::sqrt(variance / double(diff.size()));
+                const double sum      = std::accumulate(std::begin(diff), std::end(diff), 0.0);
+                const double mean     = sum / double(diff.size());
+                const double variance = std::inner_product(diff.begin(), diff.end(), diff.begin(), 0.0);
+                const double stddev   = std::sqrt(variance / double(diff.size()));
 
                 // As time goes on the average wait should be 0 (we accept less then 0.5ms for this test)
                 REQUIRE(fabs(mean) < 0.0005);

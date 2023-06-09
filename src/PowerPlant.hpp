@@ -77,7 +77,7 @@ public:
 
 
     // There can only be one powerplant, so this is it
-    static PowerPlant* powerplant;
+    static PowerPlant* powerplant;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
     /**
      * @brief
@@ -92,6 +92,7 @@ public:
      * @param argc The number of command line arguments
      * @param argv The command line argument strings
      */
+    // NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays)
     PowerPlant(Configuration config = Configuration(), int argc = 0, const char* argv[] = nullptr);
     ~PowerPlant();
 

@@ -22,7 +22,7 @@
 // Anonymous namespace to keep everything file local
 namespace {
 
-int received_messages = 0;
+int received_messages = 0;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
 class TestReactor : public NUClear::Reactor {
 public:

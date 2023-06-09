@@ -160,7 +160,7 @@ namespace extension {
 
             // IPv4
             if (address.sock.sa_family == AF_INET) {
-                address.ipv4.sin_addr.s_addr = htonl(INADDR_ANY);
+                address.ipv4.sin_addr.s_addr = ::htonl(INADDR_ANY);
                 address.ipv4.sin_port        = 0;
             }
             // IPv6
@@ -203,7 +203,7 @@ namespace extension {
 
             // Swap our address so the rest of the information is anys
             if (address.sock.sa_family == AF_INET) {
-                address.ipv4.sin_addr.s_addr = htonl(INADDR_ANY);
+                address.ipv4.sin_addr.s_addr = ::htonl(INADDR_ANY);
             }
             else if (address.sock.sa_family == AF_INET6) {
                 address.ipv6.sin6_addr = IN6ADDR_ANY_INIT;
@@ -371,9 +371,9 @@ namespace extension {
 
             // Setup some hints for what our address is
             addrinfo hints{};
-            memset(&hints, 0, sizeof hints);  // make sure the struct is empty
-            hints.ai_family   = AF_UNSPEC;    // don't care about IPv4 or IPv6
-            hints.ai_socktype = SOCK_DGRAM;   // using udp datagrams
+            std::memset(&hints, 0, sizeof hints);  // make sure the struct is empty
+            hints.ai_family   = AF_UNSPEC;         // don't care about IPv4 or IPv6
+            hints.ai_socktype = SOCK_DGRAM;        // using udp datagrams
 
             // Get our info on this address
             addrinfo* servinfo = nullptr;
@@ -1056,7 +1056,7 @@ namespace extension {
             msghdr message{};
             std::memset(&message, 0, sizeof(msghdr));
 
-            iovec data[2];  // NOLINT(modernize-use-default-member-init)
+            iovec data[2];  // NOLINT(cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays)
             message.msg_iov    = static_cast<iovec*>(data);
             message.msg_iovlen = 2;
 
@@ -1097,8 +1097,9 @@ namespace extension {
             /* Mutex Scope */ {
                 const std::lock_guard<std::mutex> lock(send_queue_mutex);
                 // For the packet id we ensure that it's not currently used for retransmission
-                while (send_queue.count(header.packet_id = ++packet_id_source) > 0) {
+                while (send_queue.count(++packet_id_source) > 0) {
                 }
+                header.packet_id = packet_id_source;
             }
 
             header.packet_no    = 0;

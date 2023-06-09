@@ -16,6 +16,7 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+#include <array>
 #include <csignal>
 #include <cstdlib>
 #include <nuclear>
@@ -35,28 +36,28 @@ public:
             std::cout << "Connected To" << std::endl;
             std::cout << "\tName: " << join.name << std::endl;
 
-            char c[255] = {};
+            std::array<char, 255> c = {0};
 
             switch (join.address.sock.sa_family) {
                 case AF_INET:
 
                     std::cout << "\tAddress: "
-                              << inet_ntop(join.address.sock.sa_family,
-                                           &join.address.ipv4.sin_addr,
-                                           static_cast<char*>(c),
-                                           sizeof(c))
+                              << ::inet_ntop(join.address.sock.sa_family,
+                                             &join.address.ipv4.sin_addr,
+                                             c.data(),
+                                             c.size())
                               << std::endl;
-                    std::cout << "\tPort: " << ntohs(join.address.ipv4.sin_port) << std::endl;
+                    std::cout << "\tPort: " << ::ntohs(join.address.ipv4.sin_port) << std::endl;
                     break;
 
                 case AF_INET6:
                     std::cout << "\tAddress: "
-                              << inet_ntop(join.address.sock.sa_family,
-                                           &join.address.ipv6.sin6_addr,
-                                           static_cast<char*>(c),
-                                           sizeof(c))
+                              << ::inet_ntop(join.address.sock.sa_family,
+                                             &join.address.ipv6.sin6_addr,
+                                             c.data(),
+                                             c.size())
                               << std::endl;
-                    std::cout << "\tPort: " << ntohs(join.address.ipv6.sin6_port) << std::endl;
+                    std::cout << "\tPort: " << ::ntohs(join.address.ipv6.sin6_port) << std::endl;
                     break;
             }
 
@@ -83,28 +84,28 @@ public:
             std::cout << "Disconnected from" << std::endl;
             std::cout << "\tName: " << leave.name << std::endl;
 
-            char c[255] = {};
+            std::array<char, 255> c = {0};
 
             switch (leave.address.sock.sa_family) {
                 case AF_INET:
 
                     std::cout << "\tAddress: "
-                              << inet_ntop(leave.address.sock.sa_family,
-                                           &leave.address.ipv4.sin_addr,
-                                           static_cast<char*>(c),
-                                           sizeof(c))
+                              << ::inet_ntop(leave.address.sock.sa_family,
+                                             &leave.address.ipv4.sin_addr,
+                                             c.data(),
+                                             c.size())
                               << std::endl;
-                    std::cout << "\tPort: " << ntohs(leave.address.ipv4.sin_port) << std::endl;
+                    std::cout << "\tPort: " << ::ntohs(leave.address.ipv4.sin_port) << std::endl;
                     break;
 
                 case AF_INET6:
                     std::cout << "\tAddress: "
-                              << inet_ntop(leave.address.sock.sa_family,
-                                           &leave.address.ipv6.sin6_addr,
-                                           static_cast<char*>(c),
-                                           sizeof(c))
+                              << ::inet_ntop(leave.address.sock.sa_family,
+                                             &leave.address.ipv6.sin6_addr,
+                                             c.data(),
+                                             c.size())
                               << std::endl;
-                    std::cout << "\tPort: " << ntohs(leave.address.ipv6.sin6_port) << std::endl;
+                    std::cout << "\tPort: " << ::ntohs(leave.address.ipv6.sin6_port) << std::endl;
                     break;
             }
         });
@@ -161,8 +162,13 @@ public:
 }  // namespace
 
 
+// NOLINTNEXTLINE(bugprone-exception-escape)
 int main(int argc, const char* argv[]) {
-    signal(SIGINT, [](int) { NUClear::PowerPlant::powerplant->shutdown(); });
+    auto old_sigint = signal(SIGINT, [](int /* signal */) { NUClear::PowerPlant::powerplant->shutdown(); });
+    if (old_sigint == SIG_ERR) {
+        std::cerr << "Failed to set SIGINT handler";
+        return -1;
+    }
 
     NUClear::PowerPlant::Configuration config;
     config.thread_count = 4;
@@ -170,4 +176,10 @@ int main(int argc, const char* argv[]) {
     plant.install<TestReactor>();
 
     plant.start();
+
+    old_sigint = signal(SIGINT, old_sigint);
+    if (old_sigint == SIG_ERR) {
+        std::cerr << "Failed to revert SIGINT handler";
+        return -1;
+    }
 }

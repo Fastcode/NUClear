@@ -21,10 +21,10 @@
 
 namespace {
 
-const std::string TEST_STRING       = "Hello UDP Multicast World!";
-const std::string MULTICAST_ADDRESS = "230.12.3.22";
-std::size_t count                   = 0;
-std::size_t num_addresses           = 0;
+const std::string TEST_STRING       = "Hello UDP Multicast World!";  // NOLINT(cert-err58-cpp)
+const std::string MULTICAST_ADDRESS = "230.12.3.22";                 // NOLINT(cert-err58-cpp)
+std::size_t count                   = 0;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+std::size_t num_addresses           = 0;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
 struct Message {};
 
@@ -43,7 +43,7 @@ public:
         });
 
         // Unknown port
-        in_port_t bound_port;
+        in_port_t bound_port = 0;
         std::tie(std::ignore, bound_port, std::ignore) =
             on<UDP::Multicast>(MULTICAST_ADDRESS).then([this](const UDP::Packet& packet) {
                 ++count;

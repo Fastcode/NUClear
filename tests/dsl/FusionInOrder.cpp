@@ -21,12 +21,12 @@
 
 namespace {
 
-std::vector<int> events;
+std::vector<int> events;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
 template <int i>
 struct Extension {
     template <typename DSL>
-    static inline void bind(const std::shared_ptr<NUClear::threading::Reaction>&) {
+    static inline void bind(const std::shared_ptr<NUClear::threading::Reaction>& /* reaction */) {
         events.push_back(i);
     }
 };
