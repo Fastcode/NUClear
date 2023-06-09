@@ -60,8 +60,8 @@ namespace threading {
                 auto task = get_task(p.pool_id);
 
                 if (task) {
-                    task = task->run(std::move(task));
-                    if (task && task->keep_alive) {
+                    task->run();
+                    if (task->keep_alive) {
                         auto new_task = task->parent.get_task();
                         submit(std::move(new_task));
                     }
@@ -92,8 +92,8 @@ namespace threading {
             auto task = get_task(util::ThreadPoolIDSource::MAIN_THREAD_POOL_ID);
 
             if (task) {
-                task = task->run(std::move(task));
-                if (task && task->keep_alive) {
+                task->run();
+                if (task->keep_alive) {
                     auto new_task = task->parent.get_task();
                     submit(std::move(new_task));
                 }
@@ -132,7 +132,7 @@ namespace threading {
             if (task->immediate) {
                 if (is_runnable(task, pool_map.at(std::this_thread::get_id()))
                     || is_runnable(task, util::ThreadPoolIDSource::DEFAULT_THREAD_POOL_ID)) {
-                    task = task->run(std::move(task));
+                    task->run();
                     return;
                 }
                 // Not runnable, stick it in the queue like nothing happened

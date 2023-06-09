@@ -52,7 +52,7 @@ namespace threading {
 
     public:
         /// Type of the functions that ReactionTasks execute
-        using TaskFunction = std::function<std::unique_ptr<Task<ReactionType>>(std::unique_ptr<Task<ReactionType>>&&)>;
+        using TaskFunction = std::function<void(Task<ReactionType>&)>;
 
         /**
          * @brief Gets the current executing task, or nullptr if there isn't one.
@@ -100,20 +100,18 @@ namespace threading {
          *  This runs the internal data bound task and times how long the execution takes. These figures can then be
          *  used in a debugging context to calculate how long callbacks are taking to run.
          */
-        inline std::unique_ptr<Task<ReactionType>> run(std::unique_ptr<Task<ReactionType>>&& us) {
+        inline void run() {
 
             // Update our current task
+            // TODO RAII THIS
             Task* old_task = current_task;
             current_task   = this;
 
-            // Run our callback at catch the returned task (to see if it rescheduled itself)
-            us = callback(std::move(us));
+            // Run our callback
+            callback(*this);
 
             // Reset our task back
             current_task = old_task;
-
-            // Return our original task
-            return std::move(us);
         }
 
         /// @brief the parent Reaction object which spawned this

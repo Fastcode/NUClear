@@ -97,47 +97,37 @@ namespace util {
                     DSL::priority(r),
                     DSL::group(r),
                     DSL::pool(r),
-                    [c, data](std::unique_ptr<threading::ReactionTask>&& task) {
-                        // Check if we are going to reschedule
-                        task = DSL::reschedule(std::move(task));
+                    [c, data](threading::ReactionTask& task) {
+                        // Update our thread's priority to the correct level
+                        update_current_thread_priority(task.priority);
 
-                        // If we still control our task
-                        if (task) {
+                        // Record our start time
+                        task.stats->started = clock::now();
 
-                            // Update our thread's priority to the correct level
-                            update_current_thread_priority(task->priority);
+                        // We have to catch any exceptions
+                        try {
+                            // We call with only the relevant arguments to the passed function
+                            util::apply_relevant(c, std::move(data));
+                        }
+                        catch (...) {
 
-                            // Record our start time
-                            task->stats->started = clock::now();
-
-                            // We have to catch any exceptions
-                            try {
-                                // We call with only the relevant arguments to the passed function
-                                util::apply_relevant(c, std::move(data));
-                            }
-                            catch (...) {
-
-                                // Catch our exception if it happens
-                                task->stats->exception = std::current_exception();
-                            }
-
-                            // Our finish time
-                            task->stats->finished = clock::now();
-
-                            // Run our postconditions
-                            DSL::postcondition(*task);
-
-                            // Take one from our active tasks
-                            --task->parent.active_tasks;
-
-                            // Emit our reaction statistics if it wouldn't cause a loop
-                            if (task->emit_stats) {
-                                PowerPlant::powerplant->emit_shared<dsl::word::emit::Direct>(task->stats);
-                            }
+                            // Catch our exception if it happens
+                            task.stats->exception = std::current_exception();
                         }
 
-                        // Return our task
-                        return std::move(task);
+                        // Our finish time
+                        task.stats->finished = clock::now();
+
+                        // Run our postconditions
+                        DSL::postcondition(task);
+
+                        // Take one from our active tasks
+                        --task.parent.active_tasks;
+
+                        // Emit our reaction statistics if it wouldn't cause a loop
+                        if (task.emit_stats) {
+                            PowerPlant::powerplant->emit_shared<dsl::word::emit::Direct>(task.stats);
+                        }
                     });
             }
         }

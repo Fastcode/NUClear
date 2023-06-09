@@ -63,11 +63,6 @@ namespace dsl {
                 Parse<Sentence...>>(r);
         }
 
-        static std::unique_ptr<threading::ReactionTask> reschedule(std::unique_ptr<threading::ReactionTask>&& task) {
-            return std::conditional_t<fusion::has_reschedule<DSL>::value, DSL, fusion::NoOp>::template reschedule<DSL>(
-                std::move(task));
-        }
-
         static inline void postcondition(threading::ReactionTask& r) {
             std::conditional_t<fusion::has_postcondition<DSL>::value, DSL, fusion::NoOp>::template postcondition<
                 Parse<Sentence...>>(r);

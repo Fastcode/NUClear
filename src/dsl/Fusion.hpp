@@ -27,7 +27,6 @@
 #include "fusion/PostconditionFusion.hpp"
 #include "fusion/PreconditionFusion.hpp"
 #include "fusion/PriorityFusion.hpp"
-#include "fusion/RescheduleFusion.hpp"
 
 namespace NUClear {
 namespace dsl {
@@ -41,7 +40,6 @@ namespace dsl {
         , public fusion::PriorityFusion<Words...>
         , public fusion::GroupFusion<Words...>
         , public fusion::PoolFusion<Words...>
-        , public fusion::RescheduleFusion<Words...>
         , public fusion::PostconditionFusion<Words...> {};
 
 }  // namespace dsl
