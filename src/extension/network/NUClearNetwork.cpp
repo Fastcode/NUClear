@@ -18,8 +18,6 @@
 
 #include "NUClearNetwork.hpp"
 
-#include <sys/socket.h>
-
 #include <algorithm>
 #include <cerrno>
 #include <cstring>
