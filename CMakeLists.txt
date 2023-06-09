@@ -53,18 +53,19 @@ option(CI_BUILD "Enable build options for building in the CI server" OFF)
 
 # Default not to run the clang-tidy checks, default to whatever our CI_BUILD is
 option(ENABLE_CLANG_TIDY "Enable building with clang-tidy checks.")
-if(ENABLE_CLANG_TIDY OR CI_BUILD)
+if(ENABLE_CLANG_TIDY)
   set(CLANG_TIDY_ARGS "clang-tidy" "--use-color")
+  if(CI_BUILD)
+    set(CLANG_TIDY_ARGS "clang-tidy" "--use-color" "-warnings-as-errors=*")
+  endif(CI_BUILD)
   set(CMAKE_CXX_CLANG_TIDY "${CLANG_TIDY_ARGS}" "--extra-arg=-std=c++14")
   set(CMAKE_C_CLANG_TIDY "${CLANG_TIDY_ARGS}" "--extra-arg=-std=c99")
-endif(ENABLE_CLANG_TIDY OR CI_BUILD)
+endif(ENABLE_CLANG_TIDY)
 
 # If we are doing a CI build then we want to enable -Werror when compiling warnings are bad. We will also make it fail
 # if clang-tidy has an error
 if(CI_BUILD)
   add_compile_options(-Werror)
-  set(CMAKE_CXX_CLANG_TIDY ${CMAKE_CXX_CLANG_TIDY} -warnings-as-errors=*)
-  set(CMAKE_C_CLANG_TIDY ${CMAKE_C_CLANG_TIDY} -warnings-as-errors=*)
 endif(CI_BUILD)
 
 # Make the compiler display colours always (even when we build with ninja)
