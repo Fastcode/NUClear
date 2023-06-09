@@ -18,10 +18,7 @@
 
 #define CATCH_CONFIG_MAIN
 #include <catch.hpp>
-
-extern "C" {
-#include <time.h>  // for localtime_r/s
-}
+#include <ctime>  // for localtime_r/s
 
 // This define declares that we are using system_clock as the base clock for NUClear
 #define NUCLEAR_CLOCK_TYPE std::chrono::system_clock
