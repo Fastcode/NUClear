@@ -19,9 +19,6 @@
 #ifndef NUCLEAR_DSL_WORD_EMIT_UDP_HPP
 #define NUCLEAR_DSL_WORD_EMIT_UDP_HPP
 
-#include <arpa/inet.h>
-#include <sys/socket.h>
-
 #include "../../../PowerPlant.hpp"
 #include "../../../util/FileDescriptor.hpp"
 #include "../../../util/platform.hpp"

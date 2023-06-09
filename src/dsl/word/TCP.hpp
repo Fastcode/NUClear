@@ -19,9 +19,6 @@
 #ifndef NUCLEAR_DSL_WORD_TCP_HPP
 #define NUCLEAR_DSL_WORD_TCP_HPP
 
-#include <arpa/inet.h>
-#include <sys/socket.h>
-
 #include <cstring>
 
 #include "../../PowerPlant.hpp"
