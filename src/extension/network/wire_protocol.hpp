@@ -23,8 +23,8 @@ namespace NUClear {
 namespace extension {
     namespace network {
 
+#pragma pack(push, 1)
         enum Type : uint8_t { ANNOUNCE = 1, LEAVE = 2, DATA = 3, DATA_RETRANSMISSION = 4, ACK = 5, NACK = 6 };
-
         struct PacketHeader {
             PacketHeader(const Type& t) : type(t) {}
 
@@ -32,17 +32,17 @@ namespace extension {
             uint8_t header[3] = {0xE2, 0x98, 0xA2};  // Radioactive symbol in UTF8
             uint8_t version   = 0x02;                // The NUClear networking version
             Type type;                               // The type of packet
-        } __attribute__((packed));
+        };
 
         struct AnnouncePacket : public PacketHeader {
             AnnouncePacket() : PacketHeader(ANNOUNCE) {}
 
             char name{0};  // A null terminated string name for this node (&name)
-        } __attribute__((packed));
+        };
 
         struct LeavePacket : public PacketHeader {
             LeavePacket() : PacketHeader(LEAVE) {}
-        } __attribute__((packed));
+        };
 
         struct DataPacket : public PacketHeader {
             DataPacket() : PacketHeader(DATA) {}
@@ -53,7 +53,7 @@ namespace extension {
             bool reliable{false};      // If this packet is reliable and should be acked
             uint64_t hash{0};          // The 64 bit hash to identify the data type
             char data{0};              // The data (&data)
-        } __attribute__((packed));
+        };
 
         struct ACKPacket : public PacketHeader {
             ACKPacket() : PacketHeader(ACK) {}
@@ -62,7 +62,7 @@ namespace extension {
             uint16_t packet_no{0};     // The index of the packet we are acknowledging
             uint16_t packet_count{1};  // How many packets there are in the group
             uint8_t packets{0};        // A bitset of which packets we have received (&packets)
-        } __attribute__((packed));
+        };
 
         struct NACKPacket : public PacketHeader {
 
@@ -71,7 +71,9 @@ namespace extension {
             uint16_t packet_id{0};     // The packet group identifier we are acknowledging
             uint16_t packet_count{1};  // How many packets there are in the group
             uint8_t packets{0};        // A bitset of which packets we have received (&packets)
-        } __attribute__((packed));
+        };
+
+#pragma pack(pop)
 
     }  // namespace network
 }  // namespace extension
