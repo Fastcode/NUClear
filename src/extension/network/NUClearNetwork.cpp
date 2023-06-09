@@ -61,7 +61,7 @@ namespace extension {
             mh.msg_iovlen  = 1;
 
             // Now read the data for real
-            const ssize_t received = ::recvmsg(fd, &mh, 0);
+            const ssize_t received = recvmsg(fd, &mh, 0);
             payload.resize(received);
 
             return {from, std::move(payload)};
@@ -341,11 +341,11 @@ namespace extension {
 
             // Close our existing FDs if they exist
             if (data_fd > 0) {
-                ::close(data_fd);
+                close(data_fd);
                 data_fd = INVALID_SOCKET;
             }
             if (announce_fd > 0) {
-                ::close(announce_fd);
+                close(announce_fd);
                 announce_fd = INVALID_SOCKET;
             }
         }
@@ -505,19 +505,19 @@ namespace extension {
             uint64_t count = 0;
 
             // Read packets from the multicast socket while there is data available
-            ::ioctl(announce_fd, FIONREAD, &(count = 0));
+            ioctl(announce_fd, FIONREAD, &(count = 0));
             while (count > 0) {
                 auto packet = read_socket(announce_fd);
                 process_packet(packet.first, std::move(packet.second));
-                ::ioctl(announce_fd, FIONREAD, &(count = 0));
+                ioctl(announce_fd, FIONREAD, &(count = 0));
             }
 
             // Check if we have a packet available on the data socket
-            ::ioctl(data_fd, FIONREAD, &(count = 0));
+            ioctl(data_fd, FIONREAD, &(count = 0));
             while (count > 0) {
                 auto packet = read_socket(data_fd);
                 process_packet(packet.first, std::move(packet.second));
-                ::ioctl(data_fd, FIONREAD, &(count = 0));
+                ioctl(data_fd, FIONREAD, &(count = 0));
             }
         }
 
@@ -1076,7 +1076,7 @@ namespace extension {
 
             // TODO(trent): if reliable, run select first to see if this socket is writeable
             // If it is not reliable just don't send the message instead of blocking
-            ::sendmsg(data_fd, &message, 0);
+            sendmsg(data_fd, &message, 0);
         }
 
 

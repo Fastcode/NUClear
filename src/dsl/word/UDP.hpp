@@ -151,7 +151,7 @@ namespace dsl {
                 reaction->unbinders.push_back([](const threading::Reaction& r) {
                     r.reactor.emit<emit::Direct>(std::make_unique<operation::Unbind<IO>>(r.id));
                 });
-                reaction->unbinders.push_back([cfd](const threading::Reaction&) { ::close(cfd); });
+                reaction->unbinders.push_back([cfd](const threading::Reaction&) { close(cfd); });
 
                 auto io_config = std::make_unique<IOConfiguration>(IOConfiguration{fd.release(), IO::READ, reaction});
 
@@ -208,7 +208,7 @@ namespace dsl {
                 mh.msg_iovlen     = 1;
 
                 // Receive our message
-                ssize_t received = ::recvmsg(event.fd, &mh, 0);
+                ssize_t received = recvmsg(event.fd, &mh, 0);
 
                 // Iterate through control headers to get IP information
                 in_addr_t our_addr = 0;
@@ -309,7 +309,7 @@ namespace dsl {
                     reaction->unbinders.push_back([](const threading::Reaction& r) {
                         r.reactor.emit<emit::Direct>(std::make_unique<operation::Unbind<IO>>(r.id));
                     });
-                    reaction->unbinders.push_back([cfd](const threading::Reaction&) { ::close(cfd); });
+                    reaction->unbinders.push_back([cfd](const threading::Reaction&) { close(cfd); });
 
                     auto io_config =
                         std::make_unique<IOConfiguration>(IOConfiguration{fd.release(), IO::READ, reaction});
@@ -415,7 +415,7 @@ namespace dsl {
                     reaction->unbinders.push_back([](const threading::Reaction& r) {
                         r.reactor.emit<emit::Direct>(std::make_unique<operation::Unbind<IO>>(r.id));
                     });
-                    reaction->unbinders.push_back([cfd](const threading::Reaction&) { ::close(cfd); });
+                    reaction->unbinders.push_back([cfd](const threading::Reaction&) { close(cfd); });
 
                     auto io_config =
                         std::make_unique<IOConfiguration>(IOConfiguration{fd.release(), IO::READ, reaction});
