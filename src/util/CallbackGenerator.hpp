@@ -45,9 +45,10 @@ namespace util {
     template <typename DSL, typename Function>
     struct CallbackGenerator {
 
-        CallbackGenerator(Function&& callback)
-            : callback(std::forward<Function>(callback))
-            , transients(std::make_shared<typename TransientDataElements<DSL>::type>()){};
+        template <typename F>
+        CallbackGenerator(F&& callback)
+            : callback(std::forward<F>(callback))
+            , transients(std::make_shared<typename TransientDataElements<DSL>::type>()) {}
 
         template <typename... T, int... DIndex, int... Index>
         void merge_transients(std::tuple<T...>& data, const Sequence<DIndex...>&, const Sequence<Index...>&) {
@@ -57,7 +58,6 @@ namespace util {
                 std::get<Index>(*transients),
                 std::get<DIndex>(data))...);
         }
-
 
         GeneratedCallback operator()(threading::Reaction& r) {
 
