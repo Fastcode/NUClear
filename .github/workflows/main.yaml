@@ -9,6 +9,14 @@ on:
   pull_request:
     branches: [main]
 
+# Ensure that only one instance of the workflow is run at a time for each branch/tag.
+# Jobs currently running on the branch/tag will be cancelled when new commits are pushed.
+# See https://docs.github.com/en/actions/learn-github-actions/workflow-syntax-for-github-actions#concurrency.
+concurrency:
+  # `github.workflow` is the workflow name, `github.ref` is the current branch/tag identifier
+  group: ${{ format('{0}:{1}', github.workflow, github.ref) }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   build-linux:
