@@ -82,7 +82,7 @@ namespace dsl {
                     const bool multicast = ((to_addr >> 28) == 14);
 
                     // Open a socket to send the datagram from
-                    const util::FileDescriptor fd = ::socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+                    util::FileDescriptor fd = ::socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
                     if (fd < 0) {
                         throw std::system_error(network_errno,
                                                 std::system_category(),

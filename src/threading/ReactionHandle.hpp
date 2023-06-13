@@ -112,7 +112,8 @@ namespace threading {
          *  This is most commonly used for the unbinding of network configuration before attempting to re-set
          *  configuration details during runtime.
          */
-        inline void unbind() const {
+        // NOLINTNEXTLINE(readability-make-member-function-const) unbinding modifies the reaction
+        inline void unbind() {
             auto c = context.lock();
             if (c) {
                 c->unbind();
