@@ -134,10 +134,10 @@ public:
         : powerplant(environment->powerplant)
         , reactor_name(environment->reactor_name)
         , log_level(environment->log_level) {}
-    Reactor(const Reactor& /* other */)              = default;
-    Reactor(Reactor&& /* other */) noexcept          = default;
-    Reactor& operator=(const Reactor& /* rhs */)     = delete;
-    Reactor& operator=(Reactor&& /* rhs */) noexcept = delete;
+    Reactor(const Reactor& /*other*/)              = default;
+    Reactor(Reactor&& /*other*/) noexcept          = default;
+    Reactor& operator=(const Reactor& /*rhs*/)     = delete;
+    Reactor& operator=(Reactor&& /*rhs*/) noexcept = delete;
 
     virtual ~Reactor() {
 
@@ -290,7 +290,7 @@ public:
         std::tuple<Arguments...> args;
 
         template <typename Function, int... Index>
-        auto then(const std::string& label, Function&& callback, const util::Sequence<Index...>& /* s */) {
+        auto then(const std::string& label, Function&& callback, const util::Sequence<Index...>& /*s*/) {
 
             // Generate the identifer
             std::vector<std::string> identifier = {label,

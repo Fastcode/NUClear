@@ -32,10 +32,10 @@ namespace util {
         /// @brief Deleted rule-of-five as this class is a static class.
         TypeList()                                          = delete;
         virtual ~TypeList()                                 = delete;
-        TypeList(const TypeList& /* other */)               = delete;
-        TypeList(TypeList&& /* other */) noexcept           = delete;
-        TypeList operator=(const TypeList& /* other */)     = delete;
-        TypeList operator=(TypeList&& /* other */) noexcept = delete;
+        TypeList(const TypeList& /*other*/)               = delete;
+        TypeList(TypeList&& /*other*/) noexcept           = delete;
+        TypeList operator=(const TypeList& /*other*/)     = delete;
+        TypeList operator=(TypeList&& /*other*/) noexcept = delete;
 
     private:
         /// @brief the data variable where the data is stored for this map key.

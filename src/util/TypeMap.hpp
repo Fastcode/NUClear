@@ -47,10 +47,10 @@ namespace util {
         /// @brief Deleted rule-of-five as this class is a static class.
         TypeMap()                                         = delete;
         virtual ~TypeMap()                                = delete;
-        TypeMap(const TypeMap& /* other */)               = delete;
-        TypeMap(TypeMap&& /* other */) noexcept           = delete;
-        TypeMap operator=(const TypeMap& /* other */)     = delete;
-        TypeMap operator=(TypeMap&& /* other */) noexcept = delete;
+        TypeMap(const TypeMap& /*other*/)               = delete;
+        TypeMap(TypeMap&& /*other*/) noexcept           = delete;
+        TypeMap operator=(const TypeMap& /*other*/)     = delete;
+        TypeMap operator=(TypeMap&& /*other*/) noexcept = delete;
 
     private:
         /// @brief the data variable where the data is stored for this map key.

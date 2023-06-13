@@ -57,7 +57,7 @@ namespace dsl {
             template <typename DataType>
             struct UDP {
 
-                static inline void emit(PowerPlant& /* powerplant */,
+                static inline void emit(PowerPlant& /*powerplant*/,
                                         std::shared_ptr<DataType> data,
                                         in_addr_t to_addr,
                                         in_port_t to_port,

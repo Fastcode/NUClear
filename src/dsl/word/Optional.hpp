@@ -64,7 +64,7 @@ namespace dsl {
 
         private:
             template <typename... T, int... Index>
-            static inline auto wrap(std::tuple<T...>&& data, util::Sequence<Index...> /* s */)
+            static inline auto wrap(std::tuple<T...>&& data, util::Sequence<Index...> /*s*/)
                 -> decltype(std::make_tuple(OptionalWrapper<T>(std::move(std::get<Index>(data)))...)) {
                 return std::make_tuple(OptionalWrapper<T>(std::move(std::get<Index>(data)))...);
             }

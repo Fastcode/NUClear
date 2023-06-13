@@ -31,7 +31,7 @@ namespace NUClear {
 namespace util {
 
     template <size_t I = 0, typename... T>
-    inline typename std::enable_if<I == sizeof...(T), bool>::type check_data(const std::tuple<T...>& /* t */) {
+    inline typename std::enable_if<I == sizeof...(T), bool>::type check_data(const std::tuple<T...>& /*t*/) {
         return true;
     }
 
@@ -50,8 +50,8 @@ namespace util {
 
         template <typename... T, int... DIndex, int... Index>
         void merge_transients(std::tuple<T...>& data,
-                              const Sequence<DIndex...>& /* d */,
-                              const Sequence<Index...>& /* i */) {
+                              const Sequence<DIndex...>& /*d*/,
+                              const Sequence<Index...>& /*i*/) {
 
             // Merge our transient data
             unpack(MergeTransients<std::remove_reference_t<decltype(std::get<DIndex>(data))>>::merge(

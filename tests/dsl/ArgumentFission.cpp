@@ -45,7 +45,7 @@ struct BindExtensionTest2 {
     static std::chrono::nanoseconds val2;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
     template <typename DSL>
-    static inline double bind(const std::shared_ptr<NUClear::threading::Reaction>& /* reaction */,
+    static inline double bind(const std::shared_ptr<NUClear::threading::Reaction>& /*reaction*/,
                               std::string v1,
                               std::chrono::nanoseconds v2) {
 
@@ -69,7 +69,7 @@ struct BindExtensionTest3 {
 
     template <typename DSL>
     static inline NUClear::threading::ReactionHandle
-        bind(const std::shared_ptr<NUClear::threading::Reaction>& /* reaction */, int v1, int v2, int v3) {
+        bind(const std::shared_ptr<NUClear::threading::Reaction>& /*reaction*/, int v1, int v2, int v3) {
 
         val1 = v1;
         val2 = v2;

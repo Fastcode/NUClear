@@ -45,8 +45,8 @@ namespace util {
      */
     template <typename Function, int... Shared, int... Selected, typename... Arguments>
     auto apply_function_fusion_call(std::tuple<Arguments...>&& args,
-                                    const Sequence<Shared...>& /* shared */,
-                                    const Sequence<Selected...>& /* selected */)
+                                    const Sequence<Shared...>& /*shared*/,
+                                    const Sequence<Selected...>& /*selected*/)
         -> decltype(Function::call(std::get<Shared>(args)..., std::get<Selected>(args)...)) {
         return Function::call(std::get<Shared>(args)..., std::get<Selected>(args)...);
     }
@@ -133,7 +133,7 @@ namespace util {
          * @return the result of calling this specific function
          */
         template <typename Function, int Start, int End>
-        static inline auto call_one(const Sequence<Start, End>& /* e */, Arguments&&... args)
+        static inline auto call_one(const Sequence<Start, End>& /*e*/, Arguments&&... args)
             -> decltype(apply_function_fusion_call<Function, Shared, Start, End>(std::forward_as_tuple(args...))) {
 
             return apply_function_fusion_call<Function, Shared, Start, End>(std::forward_as_tuple(args...));
