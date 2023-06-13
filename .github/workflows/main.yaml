@@ -48,10 +48,12 @@ jobs:
           cmake -S . -B build -DBUILD_TESTS=ON -DCMAKE_BUILD_TYPE=Release -DCI_BUILD=ON
 
       - name: Build
+        timeout-minutes: 30
         # Execute the build.  You can specify a specific target with "--target <NAME>"
         run: cmake --build build --config Release --parallel 2
 
       - name: Test
+        timeout-minutes: 5
         # Execute tests defined by the CMake configuration.
         # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
         run: |
@@ -76,10 +78,12 @@ jobs:
           cmake -S . -B build -DBUILD_TESTS=ON -DCMAKE_BUILD_TYPE=Release
 
       - name: Build
+        timeout-minutes: 30
         # Execute the build.  You can specify a specific target with "--target <NAME>"
         run: cmake --build build --config Release --parallel 2
 
       - name: Test
+        timeout-minutes: 5
         # Execute tests defined by the CMake configuration.
         # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
         run: |
@@ -104,10 +108,12 @@ jobs:
           cmake -S . -B build -DBUILD_TESTS=ON -DCMAKE_BUILD_TYPE=Release
 
       - name: Build
+        timeout-minutes: 30
         # Execute the build.  You can specify a specific target with "--target <NAME>"
         run: cmake --build build --config Release --parallel 2
 
       - name: Test
+        timeout-minutes: 5
         # Execute tests defined by the CMake configuration.
         # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
         run: |
@@ -142,5 +148,6 @@ jobs:
           cmake -S . -B build -DBUILD_TESTS=ON -DCMAKE_BUILD_TYPE=Release -DCI_BUILD=ON -DENABLE_CLANG_TIDY=ON
 
       - name: Build
+        timeout-minutes: 30
         # Execute the build.  You can specify a specific target with "--target <NAME>"
         run: cmake --build build --config Release --parallel 2
