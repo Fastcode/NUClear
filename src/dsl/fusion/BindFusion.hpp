@@ -60,7 +60,7 @@ namespace dsl {
                 static inline std::tuple<> call(const std::shared_ptr<threading::Reaction>& reaction,
                                                 Arguments&&... args) {
                     Function::template bind<DSL>(reaction, std::forward<Arguments>(args)...);
-                    return std::tuple<>();
+                    return {};
                 }
             };
 

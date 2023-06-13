@@ -45,8 +45,8 @@ namespace util {
      */
     template <typename Function, int... Shared, int... Selected, typename... Arguments>
     auto apply_function_fusion_call(std::tuple<Arguments...>&& args,
-                                    const Sequence<Shared...>&,
-                                    const Sequence<Selected...>&)
+                                    const Sequence<Shared...>& /*shared*/,
+                                    const Sequence<Selected...>& /*selected*/)
         -> decltype(Function::call(std::get<Shared>(args)..., std::get<Selected>(args)...)) {
         return Function::call(std::get<Shared>(args)..., std::get<Selected>(args)...);
     }
@@ -92,7 +92,7 @@ namespace util {
     template <int Shared, typename... Arguments>
     struct FunctionFusionCaller<std::tuple<>, Shared, std::tuple<>, std::tuple<Arguments...>> {
         static inline std::tuple<> call(Arguments&&... /*args*/) {
-            return std::tuple<>();
+            return {};
         }
     };
 
@@ -133,7 +133,7 @@ namespace util {
          * @return the result of calling this specific function
          */
         template <typename Function, int Start, int End>
-        static inline auto call_one(const Sequence<Start, End>&, Arguments&&... args)
+        static inline auto call_one(const Sequence<Start, End>& /*e*/, Arguments&&... args)
             -> decltype(apply_function_fusion_call<Function, Shared, Start, End>(std::forward_as_tuple(args...))) {
 
             return apply_function_fusion_call<Function, Shared, Start, End>(std::forward_as_tuple(args...));
@@ -188,8 +188,8 @@ namespace util {
     template <typename Function, int Shared, int Start, int End, typename Arguments>
     struct is_callable {
     private:
-        typedef std::true_type yes;
-        typedef std::false_type no;
+        using yes = std::true_type;
+        using no  = std::false_type;
 
         template <typename F>
         static auto test(int)

@@ -1,3 +1,4 @@
+// NOLINTBEGIN
 /*
    xxHash - Extremely Fast Hash algorithm
    Header File
@@ -328,3 +329,4 @@ struct XXH64_state_s {
 #endif
 
 #endif /* XXHASH_H_5627135585666179 */
+// NOLINTEND

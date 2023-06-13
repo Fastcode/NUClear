@@ -21,10 +21,10 @@
 
 namespace {
 
-int trigger1 = 0;
-int trigger2 = 0;
-int trigger3 = 0;
-int trigger4 = 0;
+int trigger1 = 0;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+int trigger2 = 0;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+int trigger3 = 0;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+int trigger4 = 0;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
 struct MessageA {};
 

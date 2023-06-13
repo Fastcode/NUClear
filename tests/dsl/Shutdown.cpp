@@ -22,7 +22,7 @@
 // Anonymous namespace to keep everything file local
 namespace {
 
-volatile bool did_shutdown = false;
+volatile bool did_shutdown = false;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
 struct SimpleMessage {};
 

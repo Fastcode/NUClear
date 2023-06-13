@@ -26,6 +26,6 @@ make install
 ```
 
 ### Dependencies
-* g++ 4.9, clang (with c++14 support) or Visual Studio 2015
+* g++ 5.0+, clang (with c++14 support) or Visual Studio 2015
 * cmake 3.1.0
 * [Catch Unit Testing Framework](https://github.com/philsquared/Catch) for building tests

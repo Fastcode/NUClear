@@ -25,9 +25,9 @@ struct Message1 {};
 struct Message2 {};
 struct Message3 {};
 
-bool low  = false;
-bool med  = false;
-bool high = false;
+bool low  = false;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+bool med  = false;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+bool high = false;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
 class TestReactor : public NUClear::Reactor {
 public:

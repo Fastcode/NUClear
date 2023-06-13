@@ -33,13 +33,13 @@ namespace message {
     struct LogMessage {
 
         /// @brief The logging level of the log.
-        LogLevel level;
+        LogLevel level{};
 
         /// @brief The string contents of the message.
-        std::string message;
+        std::string message{};
 
         /// @brief The currently executing task that made this message
-        const std::shared_ptr<ReactionStatistics> task;
+        const std::shared_ptr<ReactionStatistics> task{nullptr};
     };
 
 }  // namespace message

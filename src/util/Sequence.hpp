@@ -32,7 +32,7 @@ namespace util {
         static constexpr int length = sizeof...(S);
     };
 
-    // Anonymous
+    // Anonymous NOLINTNEXTLINE(cert-dcl59-cpp,google-build-namespaces)
     namespace {
 
         /**

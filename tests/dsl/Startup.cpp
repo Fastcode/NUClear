@@ -21,7 +21,8 @@
 
 namespace {
 struct SimpleMessage {
-    int data;
+    SimpleMessage(int data) : data(data) {}
+    int data{0};
 };
 
 class TestReactor : public NUClear::Reactor {
@@ -36,7 +37,7 @@ public:
             powerplant.shutdown();
         });
 
-        on<Startup>().then([this]() { emit(std::unique_ptr<SimpleMessage>(new SimpleMessage{10})); });
+        on<Startup>().then([this]() { emit(std::make_unique<SimpleMessage>(10)); });
     }
 };
 }  // namespace

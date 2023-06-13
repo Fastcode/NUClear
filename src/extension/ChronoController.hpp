@@ -33,9 +33,9 @@ namespace extension {
         explicit ChronoController(std::unique_ptr<NUClear::Environment> environment)
             : Reactor(std::move(environment)), wait_offset(std::chrono::milliseconds(0)) {
 
-            on<Trigger<ChronoTask>>().then("Add Chrono task", [this](std::shared_ptr<const ChronoTask> task) {
+            on<Trigger<ChronoTask>>().then("Add Chrono task", [this](const std::shared_ptr<const ChronoTask>& task) {
                 // Lock the mutex while we're doing stuff
-                std::lock_guard<std::mutex> lock(mutex);
+                const std::lock_guard<std::mutex> lock(mutex);
 
                 // Add our new task to the heap
                 tasks.push_back(*task);
@@ -48,7 +48,7 @@ namespace extension {
                 "Unbind Chrono Task",
                 [this](const dsl::operation::Unbind<ChronoTask>& unbind) {
                     // Lock the mutex while we're doing stuff
-                    std::lock_guard<std::mutex> lock(mutex);
+                    const std::lock_guard<std::mutex> lock(mutex);
 
                     // Find the task
                     auto it = std::find_if(tasks.begin(), tasks.end(), [&](const ChronoTask& task) {
@@ -66,8 +66,7 @@ namespace extension {
 
             // When we shutdown we notify so we quit now
             on<Shutdown>().then("Shutdown Chrono Controller", [this] {
-                // Lock the mutex while we're doing stuff
-                std::lock_guard<std::mutex> lock(mutex);
+                const std::lock_guard<std::mutex> lock(mutex);
                 wait.notify_all();
             });
 
@@ -89,12 +88,12 @@ namespace extension {
                         while (NUClear::clock::now() < tasks.front().time) {
                         }
 
-                        NUClear::clock::time_point now = NUClear::clock::now();
+                        const NUClear::clock::time_point now = NUClear::clock::now();
 
                         // Move back from the end poping the heap
                         for (auto end = tasks.end(); end != tasks.begin() && tasks.front().time < now;) {
                             // Run our task and if it returns false remove it
-                            bool renew = tasks.front()();
+                            const bool renew = tasks.front()();
 
                             // Move this to the back of the list
                             std::pop_heap(tasks.begin(), end, std::greater<>());

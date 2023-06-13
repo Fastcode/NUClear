@@ -18,12 +18,12 @@
 
 #include <catch.hpp>
 #include <nuclear>
-
 namespace {
 
 constexpr in_port_t PORT = 40009;
-int messages_received    = 0;
+int messages_received    = 0;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
+// NOLINTNEXTLINE(cert-err58-cpp,cppcoreguidelines-avoid-non-const-global-variables)
 const std::string TEST_STRING = "Hello TCP World!";
 
 struct Message {};
@@ -41,8 +41,7 @@ public:
                 // We have data to read
                 if ((event.events & IO::READ) != 0) {
 
-                    std::array<char, 1024> buff;
-                    buff.fill('\0');
+                    std::array<char, 1024> buff = {0};
 
                     // Read into the buffer
                     len = ::recv(event.fd, buff.data(), static_cast<socklen_t>(TEST_STRING.size()), 0);
@@ -68,7 +67,7 @@ public:
         });
 
         // Bind to an unknown port and get the port number
-        in_port_t bound_port;
+        in_port_t bound_port                           = 0;
         std::tie(std::ignore, bound_port, std::ignore) = on<TCP>().then([this](const TCP::Connection& connection) {
             on<IO>(connection.fd, IO::READ | IO::CLOSE).then([this](IO::Event event) {
                 // If we read 0 later it means orderly shutdown
@@ -77,8 +76,7 @@ public:
                 // We have data to read
                 if ((event.events & IO::READ) != 0) {
 
-                    std::array<char, 1024> buff;
-                    buff.fill('\0');
+                    std::array<char, 1024> buff = {0};
 
                     // Read into the buffer
                     len = ::recv(event.fd, buff.data(), static_cast<socklen_t>(TEST_STRING.size()), 0);
@@ -108,20 +106,22 @@ public:
             known_port_fd = ::socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 
             // Our address to our local connection
-            sockaddr_in address;
+            sockaddr_in address{};
             address.sin_family      = AF_INET;
             address.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
             address.sin_port        = htons(PORT);
 
             // Connect to ourself
-            ::connect(known_port_fd, reinterpret_cast<sockaddr*>(&address), sizeof(address));
+            REQUIRE(::connect(known_port_fd, reinterpret_cast<sockaddr*>(&address), sizeof(address)) == 0);
 
             // Set linger so we ensure sending all data
             linger l{1, 2};
-            REQUIRE(setsockopt(known_port_fd, SOL_SOCKET, SO_LINGER, reinterpret_cast<char*>(&l), sizeof(linger)) == 0);
+            REQUIRE(::setsockopt(known_port_fd, SOL_SOCKET, SO_LINGER, reinterpret_cast<char*>(&l), sizeof(linger))
+                    == 0);
 
             // Write on our socket
-            ssize_t sent = ::send(known_port_fd, TEST_STRING.data(), static_cast<socklen_t>(TEST_STRING.size()), 0);
+            const ssize_t sent =
+                ::send(known_port_fd, TEST_STRING.data(), static_cast<socklen_t>(TEST_STRING.size()), 0);
 
             // We must have sent the right amount of data
             REQUIRE(sent == int(TEST_STRING.size()));
@@ -133,20 +133,22 @@ public:
             bound_port_fd = ::socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 
             // Our address to our local connection
-            sockaddr_in address;
+            sockaddr_in address{};
             address.sin_family      = AF_INET;
             address.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
             address.sin_port        = htons(bound_port);
 
             // Connect to ourself
-            ::connect(bound_port_fd, reinterpret_cast<sockaddr*>(&address), sizeof(address));
+            REQUIRE(::connect(bound_port_fd, reinterpret_cast<sockaddr*>(&address), sizeof(address)) == 0);
 
             // Set linger so we ensure sending all data
             linger l{1, 2};
-            REQUIRE(setsockopt(bound_port_fd, SOL_SOCKET, SO_LINGER, reinterpret_cast<char*>(&l), sizeof(linger)) == 0);
+            REQUIRE(::setsockopt(bound_port_fd, SOL_SOCKET, SO_LINGER, reinterpret_cast<char*>(&l), sizeof(linger))
+                    == 0);
 
             // Write on our socket
-            ssize_t sent = ::send(bound_port_fd, TEST_STRING.data(), static_cast<socklen_t>(TEST_STRING.size()), 0);
+            const ssize_t sent =
+                ::send(bound_port_fd, TEST_STRING.data(), static_cast<socklen_t>(TEST_STRING.size()), 0);
 
             // We must have sent the right amount of data
             REQUIRE(sent == int(TEST_STRING.size()));

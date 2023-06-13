@@ -100,7 +100,7 @@ namespace threading {
          * @return
          *  true if enabled, false if disabled
          */
-        inline bool enabled() {
+        inline bool enabled() const {
             auto c = context.lock();
             return c ? bool(c->enabled) : false;
         }
@@ -112,6 +112,7 @@ namespace threading {
          *  This is most commonly used for the unbinding of network configuration before attempting to re-set
          *  configuration details during runtime.
          */
+        // NOLINTNEXTLINE(readability-make-member-function-const) unbinding modifies the reaction
         inline void unbind() {
             auto c = context.lock();
             if (c) {

@@ -24,15 +24,15 @@ namespace message {
 
     struct NetworkConfiguration {
 
-        NetworkConfiguration() : name(""), announce_address(""), announce_port(0), mtu(1500) {}
+        NetworkConfiguration() = default;
 
-        NetworkConfiguration(const std::string& name, const std::string& address, uint16_t port, uint16_t mtu = 1500)
-            : name(name), announce_address(address), announce_port(port), mtu(mtu) {}
+        NetworkConfiguration(std::string name, std::string address, uint16_t port, uint16_t mtu = 1500)
+            : name(std::move(name)), announce_address(std::move(address)), announce_port(port), mtu(mtu) {}
 
-        std::string name;
-        std::string announce_address;
-        uint16_t announce_port;
-        uint16_t mtu;
+        std::string name{};
+        std::string announce_address{};
+        uint16_t announce_port{0};
+        uint16_t mtu{1500};
     };
 
 }  // namespace message

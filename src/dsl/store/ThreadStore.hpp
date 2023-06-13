@@ -42,10 +42,11 @@ namespace dsl {
          */
         template <typename DataType, int Index = 0>
         struct ThreadStore {
-            static ATTRIBUTE_TLS DataType* value;
+            static ATTRIBUTE_TLS DataType* value;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
         };
 
         template <typename DataType, int index>
+        // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
         ATTRIBUTE_TLS DataType* ThreadStore<DataType, index>::value = nullptr;
 
     }  // namespace store

@@ -157,7 +157,7 @@ int sendmsg(fd_t fd, msghdr* msg, int flags);
 
     // Move errno so it can be used in windows
     #define network_errno  errno
-    #define INVALID_SOCKET -1
+    #define INVALID_SOCKET (-1)
 
 namespace NUClear {
 using fd_t = int;

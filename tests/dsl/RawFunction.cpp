@@ -21,7 +21,7 @@
 
 namespace {
 
-bool ran = false;
+bool ran = false;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
 double do_amazing_thing() {
     ran = true;

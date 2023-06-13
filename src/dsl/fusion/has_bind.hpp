@@ -34,8 +34,8 @@ namespace dsl {
         template <typename T>
         struct has_bind {
         private:
-            typedef std::true_type yes;
-            typedef std::false_type no;
+            using yes = std::true_type;
+            using no  = std::false_type;
 
             template <typename R, typename... A>
             static yes test_func(R (*)(const std::shared_ptr<threading::Reaction>&, A...));

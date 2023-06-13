@@ -50,36 +50,28 @@ namespace extension {
                 NetworkTarget(std::string name,
                               sock_t target,
                               std::chrono::steady_clock::time_point last_update = std::chrono::steady_clock::now())
-                    : name(name)
-                    , target(target)
-                    , last_update(last_update)
-                    , recent_packets()
-                    , recent_packets_index(0)
-                    , assemblers_mutex()
-                    , assemblers()
-                    , round_trip_kf()
-                    , round_trip_time(std::chrono::seconds(1)) {
+                    : name(std::move(name)), target(target), last_update(last_update) {
 
                     // Set our recent packets to an invalid value
                     recent_packets.fill(-1);
                 }
 
                 /// The name of the remote target
-                std::string name;
+                std::string name{};
                 /// The socket address for the remote target
-                sock_t target;
+                sock_t target{};
                 /// When we last received data from the remote target
-                std::chrono::steady_clock::time_point last_update;
+                std::chrono::steady_clock::time_point last_update{};
                 /// A list of the last n packet groups to be received
-                std::array<int, std::numeric_limits<uint8_t>::max()> recent_packets;
+                std::array<int, std::numeric_limits<uint8_t>::max()> recent_packets{};
                 /// An index for the recent_packets (circular buffer)
-                std::atomic<uint8_t> recent_packets_index;
+                std::atomic<uint8_t> recent_packets_index{0};
                 /// Mutex to protect the fragmented packet storage
                 std::mutex assemblers_mutex;
                 /// Storage for fragmented packets while we build them
                 std::map<uint16_t,
                          std::pair<std::chrono::steady_clock::time_point, std::map<uint16_t, std::vector<char>>>>
-                    assemblers;
+                    assemblers{};
 
                 /// A little kalman filter for estimating round trip time
                 struct RoundTripKF {
@@ -89,12 +81,12 @@ namespace extension {
                     float mean              = 1.0f;
                 } round_trip_kf;
 
-                std::chrono::steady_clock::duration round_trip_time;
+                std::chrono::steady_clock::duration round_trip_time{std::chrono::seconds(1)};
 
                 inline void measure_round_trip(std::chrono::steady_clock::duration time) {
 
                     // Make our measurement into a float seconds type
-                    std::chrono::duration<float, std::ratio<1>> m =
+                    const std::chrono::duration<float, std::ratio<1>> m =
                         std::chrono::duration_cast<std::chrono::duration<float, std::ratio<1>>>(time);
 
                     // Alias variables
@@ -104,7 +96,7 @@ namespace extension {
                     auto& X = round_trip_kf.mean;
 
                     // Calculate our kalman gain
-                    float K = (P + Q) / (P + Q + R);
+                    const float K = (P + Q) / (P + Q + R);
 
                     // Do filter
                     P = R * (P + Q) / (R + P + Q);
@@ -116,8 +108,12 @@ namespace extension {
                 }
             };
 
-            explicit NUClearNetwork();
-            ~NUClearNetwork();
+            NUClearNetwork() = default;
+            virtual ~NUClearNetwork();
+            NUClearNetwork(const NUClearNetwork& /*other*/)              = delete;
+            NUClearNetwork(NUClearNetwork&& /*other*/) noexcept          = delete;
+            NUClearNetwork& operator=(const NUClearNetwork& /*rhs*/)     = delete;
+            NUClearNetwork& operator=(NUClearNetwork&& /*rhs*/) noexcept = delete;
 
             /**
              * @brief Send data using the NUClear network
@@ -203,26 +199,26 @@ namespace extension {
                     PacketTarget(std::weak_ptr<NetworkTarget> target, std::vector<uint8_t> acked);
 
                     /// The target we are sending this packet to
-                    std::weak_ptr<NetworkTarget> target;
+                    std::weak_ptr<NetworkTarget> target{};
 
                     /// The bitset of the packets that have been acked
-                    std::vector<uint8_t> acked;
+                    std::vector<uint8_t> acked{};
 
                     /// When we last sent data to this client
-                    std::chrono::steady_clock::time_point last_send;
+                    std::chrono::steady_clock::time_point last_send{};
                 };
 
                 /// Default constructor for the PacketQueue
                 PacketQueue();
 
                 /// The remote targets that want this packet
-                std::list<PacketTarget> targets;
+                std::list<PacketTarget> targets{};
 
                 /// The header of the packet to send
-                DataPacket header;
+                DataPacket header{};
 
                 /// The data to send
-                std::vector<char> payload;
+                std::vector<char> payload{};
             };
 
             /**
@@ -234,15 +230,6 @@ namespace extension {
              * @brief Open our announce udp socket
              */
             void open_announce(const sock_t& announce_target);
-
-            /**
-             * @brief Read a single packet from the given udp file descriptor
-             *
-             * @param fd the file descriptor to read from
-             *
-             * @return the data and who it was sent from
-             */
-            std::pair<sock_t, std::vector<char>> read_socket(fd_t fd);
 
             /**
              * @brief Processes the given packet and calls the callback if a packet was completed
@@ -294,18 +281,18 @@ namespace extension {
             void remove_target(const std::shared_ptr<NetworkTarget>& target);
 
             /// The file descriptor for the socket we use to send data and receive regular data
-            fd_t data_fd;
+            fd_t data_fd{INVALID_SOCKET};
             /// The file descriptor for the socket we use to receive announce data
-            fd_t announce_fd;
+            fd_t announce_fd{INVALID_SOCKET};
 
             /// The largest packet of data we will transmit, based on our IP version and MTU
-            uint16_t packet_data_mtu;
+            uint16_t packet_data_mtu{1000};
 
             // Our announce packet
-            std::vector<char> announce_packet;
+            std::vector<char> announce_packet{};
 
             /// An atomic source for packet IDs to make sure they are semi unique
-            std::atomic<uint16_t> packet_id_source;
+            std::atomic<uint16_t> packet_id_source{0};
 
             /// The callback to execute when a data packet is completed
             std::function<void(const NetworkTarget&, const uint64_t&, const bool&, std::vector<char>&&)>
@@ -318,9 +305,9 @@ namespace extension {
             std::function<void(std::chrono::steady_clock::time_point)> next_event_callback;
 
             /// When we are next due to send an announce packet
-            std::chrono::steady_clock::time_point last_announce;
+            std::chrono::steady_clock::time_point last_announce{std::chrono::seconds(0)};
             /// When the next timed event is due
-            std::chrono::steady_clock::time_point next_event;
+            std::chrono::steady_clock::time_point next_event{std::chrono::seconds(0)};
 
             /// A mutex to guard modifications to the target lists
             /// NOTE: mutex lock order must always be this order to avoid deadlocks

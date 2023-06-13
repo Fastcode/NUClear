@@ -21,10 +21,10 @@
 
 namespace {
 
-constexpr unsigned short PORT = 40000;
-const std::string TEST_STRING = "Hello UDP World!";
-bool received_a               = false;
-bool received_b               = false;
+constexpr uint16_t PORT       = 40000;
+const std::string TEST_STRING = "Hello UDP World!";  // NOLINT(cert-err58-cpp)
+bool received_a               = false;               // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+bool received_b               = false;               // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
 struct Message {};
 
@@ -47,7 +47,7 @@ public:
         });
 
         // Unknown port
-        in_port_t bound_port;
+        in_port_t bound_port                           = 0;
         std::tie(std::ignore, bound_port, std::ignore) = on<UDP>().then([this](const UDP::Packet& packet) {
             // Check that the data we received is correct
             REQUIRE(packet.remote.address == INADDR_LOOPBACK);

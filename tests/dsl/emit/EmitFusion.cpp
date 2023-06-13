@@ -23,13 +23,13 @@
 // Anonymous namespace to keep everything file local
 namespace {
 
-int v1          = 0;
-int v2          = 0;
-int v3          = 0;
-int stored_a    = 0;
-double stored_c = 0;
-double stored_d = 0;
-std::string stored_b;
+int v1          = 0;    // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+int v2          = 0;    // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+int v3          = 0;    // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+int stored_a    = 0;    // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+double stored_c = 0.0;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+double stored_d = 0.0;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+std::string stored_b;   // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
 template <typename T>
 struct EmitTester1 {
@@ -70,7 +70,7 @@ public:
         v2 = 0;
         REQUIRE(v3 == 0);
         REQUIRE(stored_a == 0);
-        REQUIRE(stored_b == "");
+        REQUIRE(stored_b.empty());
         REQUIRE(stored_c == 7.2);
         stored_c = 0;
         REQUIRE(stored_d == 0);
@@ -96,7 +96,7 @@ public:
         REQUIRE(v3 == 52);
         v3 = 0;
         REQUIRE(stored_a == 0);
-        REQUIRE(stored_b == "");
+        REQUIRE(stored_b.empty());
         REQUIRE(stored_c == 15);
         stored_c = 0;
         REQUIRE(stored_d == 8.3);
