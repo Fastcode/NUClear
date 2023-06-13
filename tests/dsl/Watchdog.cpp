@@ -30,7 +30,7 @@ NUClear::clock::time_point end_b;  // NOLINT(cert-err58-cpp,cppcoreguidelines-av
 bool a_ended = false;              // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 bool b_ended = false;              // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
-int count = 0;                     // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+int count = 0;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
 #ifdef _WIN32
 // The precision of timing on Windows (with the current NUClear timing method) is not great.

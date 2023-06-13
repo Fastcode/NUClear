@@ -30,8 +30,8 @@ namespace util {
     class TypeList {
     public:
         /// @brief Deleted rule-of-five as this class is a static class.
-        TypeList()                                          = delete;
-        virtual ~TypeList()                                 = delete;
+        TypeList()                                        = delete;
+        virtual ~TypeList()                               = delete;
         TypeList(const TypeList& /*other*/)               = delete;
         TypeList(TypeList&& /*other*/) noexcept           = delete;
         TypeList operator=(const TypeList& /*other*/)     = delete;

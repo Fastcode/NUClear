@@ -20,9 +20,9 @@
 
 // Windows symbol demangler
 #ifdef _WIN32
-// Turn off clang-format to avoid moving platform.h after Dbghelp.h
-// (Dbghelp.h depends on types from Windows.h)
-// clang-format off
+    // Turn off clang-format to avoid moving platform.h after Dbghelp.h
+    // (Dbghelp.h depends on types from Windows.h)
+    // clang-format off
 #    include "platform.hpp"
 #    include <Dbghelp.h>
 
@@ -78,9 +78,9 @@ namespace util {
 
     #include <cxxabi.h>  // for __cxa_demangle
 
-    #include <cstdlib>   // for free
-    #include <memory>    // for unique_ptr
-    #include <string>    // for string
+    #include <cstdlib>  // for free
+    #include <memory>   // for unique_ptr
+    #include <string>   // for string
 
 namespace NUClear {
 namespace util {
@@ -104,4 +104,4 @@ namespace util {
 }  // namespace util
 }  // namespace NUClear
 
-#endif                   // _MSC_VER
+#endif  // _MSC_VER

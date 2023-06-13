@@ -45,8 +45,8 @@ namespace util {
     class TypeMap {
     public:
         /// @brief Deleted rule-of-five as this class is a static class.
-        TypeMap()                                         = delete;
-        virtual ~TypeMap()                                = delete;
+        TypeMap()                                       = delete;
+        virtual ~TypeMap()                              = delete;
         TypeMap(const TypeMap& /*other*/)               = delete;
         TypeMap(TypeMap&& /*other*/) noexcept           = delete;
         TypeMap operator=(const TypeMap& /*other*/)     = delete;
@@ -96,7 +96,7 @@ namespace util {
     /// Initialize our shared_ptr data
     template <typename MapID, typename Key, typename Value>
     std::shared_ptr<Value>
-        TypeMap<MapID, Key, Value>::data;          // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+        TypeMap<MapID, Key, Value>::data;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
     template <typename MapID, typename Key, typename Value>
     std::mutex TypeMap<MapID, Key, Value>::mutex;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 

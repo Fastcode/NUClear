@@ -75,7 +75,7 @@ namespace threading {
 
             // Run our generator to get a functor we can run
             int priority = 0;
-            std::function<std::unique_ptr<ReactionTask>(std::unique_ptr<ReactionTask>&&)> func;
+            std::function<std::unique_ptr<ReactionTask>(std::unique_ptr<ReactionTask> &&)> func;
             std::tie(priority, func) = generator(*this);
 
             // If our generator returns a valid function
