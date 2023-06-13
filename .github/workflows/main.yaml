@@ -117,8 +117,8 @@ jobs:
     steps:
       - name: Install clang-tidy
         run: |
-         apt-get update
-         apt-get install -y clang-tidy
+         sudo apt-get update
+         sudo apt-get install -y clang-tidy
 
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - name: Checkout Code
