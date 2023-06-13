@@ -42,13 +42,13 @@ namespace dsl {
             static inline void bind(const std::shared_ptr<threading::Reaction>& reaction) {
 
                 // Our unbinder to remove this reaction
-                reaction->unbinders.push_back([](threading::Reaction& r) {
+                reaction->unbinders.push_back([](threading::Reaction& reaction) {
                     auto& vec = store::TypeCallbackStore<DataType>::get();
 
                     auto item = std::find_if(
                         std::begin(vec),
                         std::end(vec),
-                        [&r](const std::shared_ptr<threading::Reaction>& item) { return item->id == r.id; });
+                        [&reaction](const std::shared_ptr<threading::Reaction>& r) { return r->id == reaction.id; });
 
                     // If the item is in the list erase the item
                     if (item != std::end(vec)) {

@@ -29,21 +29,21 @@ namespace util {
     namespace network {
 
         struct Interface {
-            Interface() : name(""), ip(), netmask(), broadcast(), flags() {}
+            Interface() = default;
 
-            std::string name;
+            std::string name{};
 
-            sock_t ip;
-            sock_t netmask;
-            sock_t broadcast;
+            sock_t ip{};
+            sock_t netmask{};
+            sock_t broadcast{};
 
             struct Flags {
-                Flags() : broadcast(false), loopback(false), pointtopoint(false), multicast(false) {}
+                Flags() = default;
 
-                bool broadcast;
-                bool loopback;
-                bool pointtopoint;
-                bool multicast;
+                bool broadcast{false};
+                bool loopback{false};
+                bool pointtopoint{false};
+                bool multicast{false};
             } flags;
         };
 

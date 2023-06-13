@@ -34,9 +34,7 @@ void PowerPlant::on_startup(std::function<void()>&& func) {
     if (is_running) {
         throw std::runtime_error("Unable to do on_startup as the PowerPlant has already started");
     }
-    else {
-        startup_tasks.push_back(func);
-    }
+    startup_tasks.push_back(func);
 }
 
 void PowerPlant::add_thread_task(std::function<void()>&& task) {

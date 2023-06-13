@@ -28,16 +28,16 @@ namespace dsl {
     namespace word {
         namespace emit {
             struct NetworkEmit {
-                NetworkEmit() : target(""), hash(), payload(), reliable(false) {}
+                NetworkEmit() = default;
 
                 /// The target to send this serialised packet to
-                std::string target;
+                std::string target{};
                 /// The hash identifying the type of object
-                uint64_t hash;
+                uint64_t hash{0};
                 /// The serialised data
-                std::vector<char> payload;
+                std::vector<char> payload{};
                 /// If the message should be sent reliably
-                bool reliable;
+                bool reliable{false};
             };
 
             /**
@@ -79,7 +79,7 @@ namespace dsl {
 
                     auto e = std::make_unique<NetworkEmit>();
 
-                    e->target   = target;
+                    e->target   = std::move(target);
                     e->hash     = util::serialise::Serialise<DataType>::hash();
                     e->payload  = util::serialise::Serialise<DataType>::serialise(*data);
                     e->reliable = reliable;

@@ -60,8 +60,7 @@ namespace util {
          *
          * @return the file descriptor
          */
-        // No Lint: As we are giving access to a variable which can change state.
-        // NOLINTNEXTLINE(readability-make-member-function-const)
+        // NOLINTNEXTLINE(readability-make-member-function-const) file descriptors can be modified
         fd_t get();
 
         /**
@@ -88,6 +87,7 @@ namespace util {
          *
          * @return the file descriptor
          */
+        // NOLINTNEXTLINE(readability-make-member-function-const) file descriptors can be modified
         operator fd_t();
 
         /**

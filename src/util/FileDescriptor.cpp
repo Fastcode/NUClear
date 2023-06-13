@@ -1,5 +1,7 @@
 #include "FileDescriptor.hpp"
 
+#include <utility>
+
 namespace NUClear {
 namespace util {
 
@@ -27,21 +29,20 @@ namespace util {
     }
 
     // No Lint: As we are giving access to a variable which can change state.
-    // NOLINTNEXTLINE(readability-make-member-function-const)
+    // NOLINTNEXTLINE(readability-make-member-function-const) file descriptors can be modified
     fd_t FileDescriptor::get() {
         return fd;
     }
 
     bool FileDescriptor::valid() const {
-        return fd >= 0;
+        return fd != INVALID_SOCKET;
     }
 
     fd_t FileDescriptor::release() {
-        fd_t temp = fd;
-        fd        = INVALID_SOCKET;
-        return temp;
+        return std::exchange(fd, INVALID_SOCKET);
     }
 
+    // NOLINTNEXTLINE(readability-make-member-function-const) file descriptors can be modified
     FileDescriptor::operator fd_t() {
         return fd;
     }

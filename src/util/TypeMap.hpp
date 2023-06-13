@@ -43,15 +43,19 @@ namespace util {
      */
     template <typename MapID, typename Key, typename Value>
     class TypeMap {
-    private:
-        /// @brief Deleted constructor as this class is a static class.
-        TypeMap() = delete;
-        /// @brief Deleted destructor as this class is a static class.
-        ~TypeMap() = delete;
-        /// @brief the data variable where the data is stored for this map key.
+    public:
+        /// @brief Deleted rule-of-five as this class is a static class.
+        TypeMap()                                       = delete;
+        virtual ~TypeMap()                              = delete;
+        TypeMap(const TypeMap& /*other*/)               = delete;
+        TypeMap(TypeMap&& /*other*/) noexcept           = delete;
+        TypeMap operator=(const TypeMap& /*other*/)     = delete;
+        TypeMap operator=(TypeMap&& /*other*/) noexcept = delete;
 
-        static std::shared_ptr<Value> data;
-        static std::mutex mutex;
+    private:
+        /// @brief the data variable where the data is stored for this map key.
+        static std::shared_ptr<Value> data;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+        static std::mutex mutex;             // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
     public:
         /**
@@ -65,7 +69,7 @@ namespace util {
             // std::atomic_store_explicit(&data, d, std::memory_order_relaxed);
 
             // Lock a mutex and set our data
-            std::lock_guard<std::mutex> lock(mutex);
+            const std::lock_guard<std::mutex> lock(mutex);
             data = std::move(d);
         }
 
@@ -76,12 +80,12 @@ namespace util {
          */
         static std::shared_ptr<Value> get() {
 
-            // TODO do this when gcc supports it
+            // TODO(Trent) do this when gcc supports it
             // std::atomic_load_explicit(&data, std::memory_order_relaxed);
 
             std::shared_ptr<Value> d;
             {
-                std::lock_guard<std::mutex> lock(mutex);
+                const std::lock_guard<std::mutex> lock(mutex);
                 d = data;
             }
 
@@ -91,9 +95,10 @@ namespace util {
 
     /// Initialize our shared_ptr data
     template <typename MapID, typename Key, typename Value>
-    std::shared_ptr<Value> TypeMap<MapID, Key, Value>::data;
+    std::shared_ptr<Value>
+        TypeMap<MapID, Key, Value>::data;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
     template <typename MapID, typename Key, typename Value>
-    std::mutex TypeMap<MapID, Key, Value>::mutex;
+    std::mutex TypeMap<MapID, Key, Value>::mutex;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
 }  // namespace util
 }  // namespace NUClear

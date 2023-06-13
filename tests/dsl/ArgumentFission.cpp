@@ -23,8 +23,8 @@
 namespace {
 struct BindExtensionTest1 {
 
-    static int val1;
-    static double val2;
+    static int val1;     // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+    static double val2;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
     template <typename DSL>
     static inline int bind(const std::shared_ptr<NUClear::threading::Reaction>& /*unused*/, int v1, double v2) {
@@ -36,16 +36,16 @@ struct BindExtensionTest1 {
     }
 };
 
-int BindExtensionTest1::val1    = 0;    // NOLINT
-double BindExtensionTest1::val2 = 0.0;  // NOLINT
+int BindExtensionTest1::val1    = 0;    // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+double BindExtensionTest1::val2 = 0.0;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
 struct BindExtensionTest2 {
 
-    static std::string val1;
-    static std::chrono::nanoseconds val2;
+    static std::string val1;               // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+    static std::chrono::nanoseconds val2;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
     template <typename DSL>
-    static inline double bind(const std::shared_ptr<NUClear::threading::Reaction>& /*unused*/,
+    static inline double bind(const std::shared_ptr<NUClear::threading::Reaction>& /*reaction*/,
                               std::string v1,
                               std::chrono::nanoseconds v2) {
 
@@ -56,38 +56,40 @@ struct BindExtensionTest2 {
     }
 };
 
-std::string BindExtensionTest2::val1              = "";                           // NOLINT
-std::chrono::nanoseconds BindExtensionTest2::val2 = std::chrono::nanoseconds(0);  // NOLINT
+// NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
+std::string BindExtensionTest2::val1 = {};
+// NOLINTNEXTLINE(cert-err58-cpp,cppcoreguidelines-avoid-non-const-global-variables)
+std::chrono::nanoseconds BindExtensionTest2::val2 = std::chrono::nanoseconds(0);
 
 struct BindExtensionTest3 {
 
-    static int val1;
-    static int val2;
-    static int val3;
+    static int val1;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+    static int val2;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+    static int val3;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
     template <typename DSL>
     static inline NUClear::threading::ReactionHandle
-        bind(const std::shared_ptr<NUClear::threading::Reaction>& /*unused*/, int v1, int v2, int v3) {
+        bind(const std::shared_ptr<NUClear::threading::Reaction>& /*reaction*/, int v1, int v2, int v3) {
 
         val1 = v1;
         val2 = v2;
         val3 = v3;
 
-        return NUClear::threading::ReactionHandle(nullptr);
+        return {nullptr};
     }
 };
 
-int BindExtensionTest3::val1 = 0;  // NOLINT
-int BindExtensionTest3::val2 = 0;  // NOLINT
-int BindExtensionTest3::val3 = 0;  // NOLINT
+int BindExtensionTest3::val1 = 0;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+int BindExtensionTest3::val2 = 0;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+int BindExtensionTest3::val3 = 0;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
 struct ShutdownFlag {};
 
 class TestReactor : public NUClear::Reactor {
 public:
     TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
-        int a;
-        double b;
+        int a    = 0;
+        double b = 0.0;
 
         // Run all three of our extension tests
         std::tie(std::ignore, a, b, std::ignore) =

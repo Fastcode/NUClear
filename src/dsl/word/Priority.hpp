@@ -70,7 +70,7 @@ namespace dsl {
                 static constexpr int value = 1000;
 
                 template <typename DSL>
-                static inline int priority(threading::Reaction&) {
+                static inline int priority(threading::Reaction& /*reaction*/) {
                     return value;
                 }
             };
@@ -80,7 +80,7 @@ namespace dsl {
                 static constexpr int value = 750;
 
                 template <typename DSL>
-                static inline int priority(threading::Reaction&) {
+                static inline int priority(threading::Reaction& /*reaction*/) {
                     return value;
                 }
             };
@@ -90,7 +90,7 @@ namespace dsl {
                 static constexpr int value = 500;
 
                 template <typename DSL>
-                static inline int priority(threading::Reaction&) {
+                static inline int priority(threading::Reaction& /*reaction*/) {
                     return value;
                 }
             };
@@ -100,7 +100,7 @@ namespace dsl {
                 static constexpr int value = 250;
 
                 template <typename DSL>
-                static inline int priority(threading::Reaction&) {
+                static inline int priority(threading::Reaction& /*reaction*/) {
                     return value;
                 }
             };
@@ -110,7 +110,7 @@ namespace dsl {
                 static constexpr int value = 0;
 
                 template <typename DSL>
-                static inline int priority(threading::Reaction&) {
+                static inline int priority(threading::Reaction& /*reaction*/) {
                     return value;
                 }
             };

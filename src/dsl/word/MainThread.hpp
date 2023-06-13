@@ -53,12 +53,11 @@ namespace dsl {
                     task->parent.reactor.powerplant.submit_main(std::move(task));
 
                     // We took the task away so return null
-                    return std::unique_ptr<threading::ReactionTask>(nullptr);
+                    return nullptr;
                 }
+
                 // Otherwise run!
-                else {
-                    return std::move(task);
-                }
+                return std::move(task);
             }
         };
 

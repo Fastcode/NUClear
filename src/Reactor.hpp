@@ -131,10 +131,13 @@ public:
     friend class PowerPlant;
 
     Reactor(std::unique_ptr<Environment> environment)
-        : reaction_handles()
-        , powerplant(environment->powerplant)
+        : powerplant(environment->powerplant)
         , reactor_name(environment->reactor_name)
         , log_level(environment->log_level) {}
+    Reactor(const Reactor& /*other*/)              = default;
+    Reactor(Reactor&& /*other*/) noexcept          = default;
+    Reactor& operator=(const Reactor& /*rhs*/)     = delete;
+    Reactor& operator=(Reactor&& /*rhs*/) noexcept = delete;
 
     virtual ~Reactor() {
 
@@ -145,18 +148,18 @@ public:
     }
 
 private:
-    std::vector<threading::ReactionHandle> reaction_handles;
+    std::vector<threading::ReactionHandle> reaction_handles{};
 
 public:
     /// @brief TODO
     PowerPlant& powerplant;
 
     /// @brief The demangled string name of this reactor
-    const std::string reactor_name;
+    const std::string reactor_name{};
 
 protected:
     /// @brief The level that this reactor logs at
-    LogLevel log_level;
+    LogLevel log_level{LogLevel::INFO};
 
     /***************************************************************************************************************
      * The types here are imported from other contexts so that when extending from the Reactor type in normal      *
@@ -287,7 +290,7 @@ public:
         std::tuple<Arguments...> args;
 
         template <typename Function, int... Index>
-        auto then(const std::string& label, Function&& callback, const util::Sequence<Index...>&) {
+        auto then(const std::string& label, Function&& callback, const util::Sequence<Index...>& /*s*/) {
 
             // Generate the identifer
             std::vector<std::string> identifier = {label,
@@ -396,7 +399,7 @@ public:
     void log(Arguments&&... args) {
 
         // If the log is above or equal to our log level
-        powerplant.log<level>(std::forward<Arguments>(args)...);
+        PowerPlant::log<level>(std::forward<Arguments>(args)...);
     }
 };
 

@@ -34,8 +34,8 @@ namespace dsl {
         template <typename T>
         struct has_get {
         private:
-            typedef std::true_type yes;
-            typedef std::false_type no;
+            using yes = std::true_type;
+            using no  = std::false_type;
 
             template <typename U>
             static auto test(int) -> decltype(U::template get<ParsedNoOp>(std::declval<threading::Reaction&>()), yes());

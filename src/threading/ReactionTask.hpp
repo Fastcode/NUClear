@@ -44,10 +44,10 @@ namespace threading {
     class Task {
     private:
         /// @brief a source for task ids, atomically creates longs
-        static std::atomic<std::uint64_t> task_id_source;
+        static std::atomic<std::uint64_t> task_id_source;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
         /// @brief the current task that is being executed by this thread (or nullptr if none is)
-        static ATTRIBUTE_TLS Task* current_task;
+        static ATTRIBUTE_TLS Task* current_task;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
     public:
         /// Type of the functions that ReactionTasks execute

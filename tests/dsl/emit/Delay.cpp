@@ -26,9 +26,13 @@ struct DelayMessage {};
 struct AtTimeMessage {};
 struct NormalMessage {};
 
+// NOLINTNEXTLINE(cert-err58-cpp,cppcoreguidelines-avoid-non-const-global-variables)
 NUClear::clock::time_point sent;
+// NOLINTNEXTLINE(cert-err58-cpp,cppcoreguidelines-avoid-non-const-global-variables)
 NUClear::clock::time_point normal_received;
+// NOLINTNEXTLINE(cert-err58-cpp,cppcoreguidelines-avoid-non-const-global-variables)
 NUClear::clock::time_point delay_received;
+// NOLINTNEXTLINE(cert-err58-cpp,cppcoreguidelines-avoid-non-const-global-variables)
 NUClear::clock::time_point at_time_received;
 
 class TestReactor : public NUClear::Reactor {

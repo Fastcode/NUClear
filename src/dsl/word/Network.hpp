@@ -37,18 +37,18 @@ namespace dsl {
         };
 
         struct NetworkSource {
-            NetworkSource() : name(""), address() {}
+            NetworkSource() = default;
 
-            std::string name;
-            util::network::sock_t address;
-            bool reliable;
+            std::string name{};
+            util::network::sock_t address{};
+            bool reliable{false};
         };
 
         struct NetworkListen {
-            NetworkListen() : hash(), reaction() {}
+            NetworkListen() = default;
 
-            uint64_t hash;
-            std::shared_ptr<threading::Reaction> reaction;
+            uint64_t hash{0};
+            std::shared_ptr<threading::Reaction> reaction{nullptr};
         };
 
         /**
@@ -93,10 +93,11 @@ namespace dsl {
             }
 
             template <typename DSL>
-            static inline std::tuple<std::shared_ptr<NetworkSource>, NetworkData<T>> get(threading::Reaction&) {
+            static inline std::tuple<std::shared_ptr<NetworkSource>, NetworkData<T>> get(
+                threading::Reaction& /*reaction*/) {
 
-                auto data   = store::ThreadStore<std::vector<char>>::value;
-                auto source = store::ThreadStore<NetworkSource>::value;
+                auto* data   = store::ThreadStore<std::vector<char>>::value;
+                auto* source = store::ThreadStore<NetworkSource>::value;
 
                 if (data && source) {
 
@@ -104,11 +105,9 @@ namespace dsl {
                     return std::make_tuple(std::make_shared<NetworkSource>(*source),
                                            std::make_shared<T>(util::serialise::Serialise<T>::deserialise(*data)));
                 }
-                else {
 
-                    // Return invalid data
-                    return std::make_tuple(std::shared_ptr<NetworkSource>(nullptr), NetworkData<T>(nullptr));
-                }
+                // Return invalid data
+                return std::make_tuple(std::shared_ptr<NetworkSource>(nullptr), NetworkData<T>(nullptr));
             }
         };
 

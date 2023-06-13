@@ -66,11 +66,6 @@ namespace threading {
     class TaskScheduler {
     public:
         /**
-         * @brief Constructs a new TaskScheduler instance, and builds the nullptr sync queue.
-         */
-        TaskScheduler();
-
-        /**
          * @brief
          *  Shuts down the scheduler, all waiting threads are woken, and any attempt to get a task results in an
          *  exception
@@ -103,9 +98,9 @@ namespace threading {
 
     private:
         /// @brief if the scheduler is running or is shut down
-        volatile bool running;
+        volatile bool running{true};
         /// @brief our queue which sorts tasks by priority
-        std::priority_queue<std::unique_ptr<ReactionTask>> queue;
+        std::priority_queue<std::unique_ptr<ReactionTask>> queue{};
         /// @brief the mutex which our threads synchronize their access to this object
         std::mutex mutex;
         /// @brief the condition object that threads wait on if they can't get a task

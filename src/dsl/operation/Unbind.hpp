@@ -37,7 +37,7 @@ namespace dsl {
             Unbind(uint64_t id) : id(id){};
 
             /// The id of the task to unbind
-            const uint64_t id;
+            const uint64_t id{0};
         };
 
     }  // namespace operation

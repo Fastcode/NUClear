@@ -25,7 +25,7 @@ struct SimpleMessage {};
 struct MessageA {};
 struct MessageB {};
 
-MessageA* a = nullptr;
+MessageA* a = nullptr;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
 class TestReactor : public NUClear::Reactor {
 public:

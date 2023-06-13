@@ -70,11 +70,11 @@ namespace threading {
 
             // If we are not enabled, don't run
             if (!enabled) {
-                return std::unique_ptr<ReactionTask>(nullptr);
+                return nullptr;
             }
 
             // Run our generator to get a functor we can run
-            int priority;
+            int priority = 0;
             std::function<std::unique_ptr<ReactionTask>(std::unique_ptr<ReactionTask> &&)> func;
             std::tie(priority, func) = generator(*this);
 
@@ -84,31 +84,31 @@ namespace threading {
             }
 
             // Otherwise we return a null pointer
-            return std::unique_ptr<ReactionTask>(nullptr);
+            return nullptr;
         }
 
         /**
          * @brief returns true if this reaction is currently enabled
          */
-        bool is_enabled();
+        bool is_enabled() const;
 
         /// @brief the reactor this belongs to
         Reactor& reactor;
 
         /// @brief This holds the demangled name of the On function that is being called
-        std::vector<std::string> identifier;
+        std::vector<std::string> identifier{};
 
         /// @brief the unique identifier for this Reaction object
         const uint64_t id;
 
         /// @brief if this is false, we cannot emit ReactionStatistics from any reaction triggered by this one
-        bool emit_stats;
+        bool emit_stats{true};
 
         /// @brief the number of currently active tasks (existing reaction tasks)
-        std::atomic<int> active_tasks;
+        std::atomic<int> active_tasks{0};
 
         /// @brief if this reaction object is currently enabled
-        std::atomic<bool> enabled;
+        std::atomic<bool> enabled{true};
 
         /// @brief list of functions to use to unbind the reaction and clean
         std::vector<std::function<void(Reaction&)>> unbinders;
@@ -120,7 +120,7 @@ namespace threading {
 
     private:
         /// @brief a source for reaction_ids, atomically creates longs
-        static std::atomic<uint64_t> reaction_id_source;
+        static std::atomic<uint64_t> reaction_id_source;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
         /// @brief the callback generator function (creates databound callbacks)
         TaskGenerator generator;
     };

@@ -21,11 +21,11 @@
 
 namespace {
 
-constexpr unsigned short PORT = 40001;
-const std::string TEST_STRING = "Hello UDP Broadcast World!";
-std::size_t count_a           = 0;
-std::size_t count_b           = 0;
-std::size_t num_addresses     = 0;
+constexpr uint16_t PORT       = 40001;
+const std::string TEST_STRING = "Hello UDP Broadcast World!";  // NOLINT(cert-err58-cpp)
+std::size_t count_a           = 0;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+std::size_t count_b           = 0;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+std::size_t num_addresses     = 0;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
 struct Message {};
 

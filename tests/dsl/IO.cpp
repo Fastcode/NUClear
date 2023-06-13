@@ -16,6 +16,7 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+#include <array>
 #include <catch.hpp>
 
 // Windows can't do this test as it doesn't have file descriptors
@@ -31,9 +32,9 @@ class TestReactor : public NUClear::Reactor {
 public:
     TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)), in(0), out(0) {
 
-        int fds[2];
+        std::array<int, 2> fds{-1, -1};
 
-        if (pipe(static_cast<int*>(fds)) < 0) {
+        if (pipe(fds.data()) < 0) {
             FAIL("We couldn't make the pipe for the test");
         }
 
@@ -42,8 +43,8 @@ public:
 
         on<IO>(in, IO::READ).then([this](const IO::Event& e) {
             // Read from our FD
-            unsigned char val;
-            ssize_t bytes = ::read(e.fd, &val, 1);
+            unsigned char val{0};
+            const ssize_t bytes = ::read(e.fd, &val, 1);
 
             // Check the data is correct
             REQUIRE((e.events & IO::READ) != 0);
@@ -56,8 +57,8 @@ public:
 
         writer = on<IO>(out, IO::WRITE).then([this](const IO::Event& e) {
             // Send data into our fd
-            unsigned char val = 0xDE;
-            ssize_t bytes     = ::write(e.fd, &val, 1);
+            const unsigned char val = 0xDE;
+            const ssize_t bytes     = ::write(e.fd, &val, 1);
 
             // Check that our data was sent
             REQUIRE((e.events & IO::WRITE) != 0);
@@ -68,9 +69,9 @@ public:
         });
     }
 
-    int in;
-    int out;
-    ReactionHandle writer;
+    int in{-1};
+    int out{-1};
+    ReactionHandle writer{};
 };
 }  // namespace
 

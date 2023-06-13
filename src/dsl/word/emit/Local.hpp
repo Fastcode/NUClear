@@ -64,11 +64,11 @@ namespace dsl {
                         }
                         // If there is an exception while generating a reaction print it here, this shouldn't happen
                         catch (const std::exception& ex) {
-                            powerplant.log<NUClear::ERROR>("There was an exception while generating a reaction",
-                                                           ex.what());
+                            PowerPlant::log<NUClear::ERROR>("There was an exception while generating a reaction",
+                                                            ex.what());
                         }
                         catch (...) {
-                            powerplant.log<NUClear::ERROR>(
+                            PowerPlant::log<NUClear::ERROR>(
                                 "There was an unknown exception while generating a reaction");
                         }
                     }

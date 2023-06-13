@@ -95,9 +95,10 @@ namespace util {
     std::string demangle(const char* symbol) {
 
         int status = -4;  // some arbitrary value to eliminate the compiler warning
-        std::unique_ptr<char, void (*)(void*)> res{abi::__cxa_demangle(symbol, nullptr, nullptr, &status), std::free};
+        const std::unique_ptr<char, void (*)(void*)> res{abi::__cxa_demangle(symbol, nullptr, nullptr, &status),
+                                                         std::free};
 
-        return std::string(status == 0 ? res.get() : symbol);
+        return status == 0 ? res.get() : symbol;
     }
 
 }  // namespace util

@@ -60,7 +60,7 @@ namespace extension {
 
                 /* Mutex Scope */ {
                     // Lock our reaction mutex
-                    std::lock_guard<std::mutex> lock(reaction_mutex);
+                    const std::lock_guard<std::mutex> lock(reaction_mutex);
 
                     // Find interested reactions
                     auto rs = reactions.equal_range(hash);
@@ -105,7 +105,7 @@ namespace extension {
             // Start listening for a new network type
             on<Trigger<NetworkListen>>().then("Network Bind", [this](const NetworkListen& l) {
                 // Lock our reaction mutex
-                std::lock_guard<std::mutex> lock(reaction_mutex);
+                const std::lock_guard<std::mutex> lock(reaction_mutex);
 
                 // Insert our new reaction
                 reactions.insert(std::make_pair(l.hash, l.reaction));
@@ -114,7 +114,7 @@ namespace extension {
             // Stop listening for a network type
             on<Trigger<Unbind>>().then("Network Unbind", [this](const Unbind& unbind) {
                 // Lock our reaction mutex
-                std::lock_guard<std::mutex> lock(reaction_mutex);
+                const std::lock_guard<std::mutex> lock(reaction_mutex);
 
                 // Find and delete this reaction
                 for (auto it = reactions.begin(); it != reactions.end(); ++it) {
@@ -147,10 +147,10 @@ namespace extension {
                 }
 
                 // Read the new configuration
-                std::string name             = config.name.empty() ? util::get_hostname() : config.name;
-                std::string announce_address = config.announce_address;
-                in_port_t announce_port      = config.announce_port;
-                uint16_t mtu                 = config.mtu;
+                const std::string name             = config.name.empty() ? util::get_hostname() : config.name;
+                const std::string announce_address = config.announce_address;
+                const in_port_t announce_port      = config.announce_port;
+                const uint16_t mtu                 = config.mtu;
 
                 // Reset our network using this configuration
                 network.reset(name, announce_address, announce_port, mtu);
@@ -167,17 +167,17 @@ namespace extension {
 
     private:
         /// Our NUClearNetwork object that handles the networking
-        network::NUClearNetwork network;
+        network::NUClearNetwork network{};
 
         /// The reaction that handles timed events from the network
-        ReactionHandle process_handle;
+        ReactionHandle process_handle{};
         /// The reactions that listen for io
-        std::vector<ReactionHandle> listen_handles;
+        std::vector<ReactionHandle> listen_handles{};
 
         /// Mutex to guard the list of reactions
         std::mutex reaction_mutex;
         /// Map of type hashes to reactions that are interested in them
-        std::multimap<uint64_t, std::shared_ptr<threading::Reaction>> reactions;
+        std::multimap<uint64_t, std::shared_ptr<threading::Reaction>> reactions{};
     };
 
 }  // namespace extension

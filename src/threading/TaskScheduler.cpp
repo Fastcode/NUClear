@@ -21,11 +21,9 @@
 namespace NUClear {
 namespace threading {
 
-    TaskScheduler::TaskScheduler() : running(true) {}
-
     void TaskScheduler::shutdown() {
         {
-            std::lock_guard<std::mutex> lock(mutex);
+            const std::lock_guard<std::mutex> lock(mutex);
             running = false;
         }
         condition.notify_all();
@@ -37,7 +35,7 @@ namespace threading {
         if (running) {
 
             /* Mutex Scope */ {
-                std::lock_guard<std::mutex> lock(mutex);
+                const std::lock_guard<std::mutex> lock(mutex);
                 queue.push(std::forward<std::unique_ptr<ReactionTask>>(task));
             }
         }

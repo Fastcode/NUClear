@@ -71,8 +71,10 @@ namespace dsl {
 
 // On windows we use different wait events
 #ifdef _WIN32
+            // NOLINTNEXTLINE(google-runtime-int)
             enum EventType : short{READ = FD_READ | FD_OOB | FD_ACCEPT, WRITE = FD_WRITE, CLOSE = FD_CLOSE, ERROR = 0};
 #else
+            // NOLINTNEXTLINE(google-runtime-int)
             enum EventType : short { READ = POLLIN, WRITE = POLLOUT, CLOSE = POLLHUP, ERROR = POLLNVAL | POLLERR };
 #endif
 
@@ -101,16 +103,15 @@ namespace dsl {
             }
 
             template <typename DSL>
-            static inline Event get(threading::Reaction&) {
+            static inline Event get(threading::Reaction& /*reaction*/) {
 
                 // If our thread store has a value
                 if (ThreadEventStore::value) {
                     return *ThreadEventStore::value;
                 }
+
                 // Otherwise return an invalid event
-                else {
-                    return Event{INVALID_SOCKET, 0};
-                }
+                return Event{INVALID_SOCKET, 0};
             }
         };
 

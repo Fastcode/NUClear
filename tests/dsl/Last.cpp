@@ -27,8 +27,8 @@ struct TestMessage {
     TestMessage(int v) : value(v){};
 };
 
-int emit_counter = 0;
-int recv_counter = 0;
+int emit_counter = 0;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+int recv_counter = 0;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
 class TestReactor : public NUClear::Reactor {
 public:

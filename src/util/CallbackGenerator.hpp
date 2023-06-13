@@ -31,7 +31,7 @@ namespace NUClear {
 namespace util {
 
     template <size_t I = 0, typename... T>
-    inline typename std::enable_if<I == sizeof...(T), bool>::type check_data(const std::tuple<T...>&) {
+    inline typename std::enable_if<I == sizeof...(T), bool>::type check_data(const std::tuple<T...>& /*t*/) {
         return true;
     }
 
@@ -49,7 +49,9 @@ namespace util {
             , transients(std::make_shared<typename TransientDataElements<DSL>::type>()){};
 
         template <typename... T, int... DIndex, int... Index>
-        void merge_transients(std::tuple<T...>& data, const Sequence<DIndex...>&, const Sequence<Index...>&) {
+        void merge_transients(std::tuple<T...>& data,
+                              const Sequence<DIndex...>& /*d*/,
+                              const Sequence<Index...>& /*i*/) {
 
             // Merge our transient data
             unpack(MergeTransients<std::remove_reference_t<decltype(std::get<DIndex>(data))>>::merge(
@@ -69,72 +71,70 @@ namespace util {
                 --r.active_tasks;
 
                 // We cancel our execution by returning an empty function
-                return std::make_pair(0, threading::ReactionTask::TaskFunction());
+                return {0, threading::ReactionTask::TaskFunction()};
             }
-            else {
 
-                // Bind our data to a variable (this will run in the dispatching thread)
-                auto data = DSL::get(r);
+            // Bind our data to a variable (this will run in the dispatching thread)
+            auto data = DSL::get(r);
 
-                // Merge our transient data in
-                merge_transients(data,
-                                 typename TransientDataElements<DSL>::index(),
-                                 GenerateSequence<0, TransientDataElements<DSL>::index::length>());
+            // Merge our transient data in
+            merge_transients(data,
+                             typename TransientDataElements<DSL>::index(),
+                             GenerateSequence<0, TransientDataElements<DSL>::index::length>());
 
-                // Check if our data is good (all the data exists) otherwise terminate the call
-                if (!check_data(data)) {
-                    // Take one from our active tasks
-                    --r.active_tasks;
+            // Check if our data is good (all the data exists) otherwise terminate the call
+            if (!check_data(data)) {
+                // Take one from our active tasks
+                --r.active_tasks;
 
-                    // We cancel our execution by returning an empty function
-                    return std::make_pair(0, threading::ReactionTask::TaskFunction());
-                }
+                // We cancel our execution by returning an empty function
+                return {0, threading::ReactionTask::TaskFunction()};
+            }
 
-                // We have to make a copy of the callback because the "this" variable can go out of scope
-                auto c = callback;
-                return std::make_pair(DSL::priority(r), [c, data](std::unique_ptr<threading::ReactionTask>&& task) {
-                    // Check if we are going to reschedule
-                    task = DSL::reschedule(std::move(task));
+            // We have to make a copy of the callback because the "this" variable can go out of scope
+            auto c = callback;
+            return std::make_pair(DSL::priority(r), [c, data](std::unique_ptr<threading::ReactionTask>&& task) {
+                // Check if we are going to reschedule
+                task = DSL::reschedule(std::move(task));
 
-                    // If we still control our task
-                    if (task) {
+                // If we still control our task
+                if (task) {
 
-                        // Update our thread's priority to the correct level
-                        update_current_thread_priority(task->priority);
+                    // Update our thread's priority to the correct level
+                    update_current_thread_priority(task->priority);
 
-                        // Record our start time
-                        task->stats->started = clock::now();
+                    // Record our start time
+                    task->stats->started = clock::now();
 
-                        // We have to catch any exceptions
-                        try {
-                            // We call with only the relevant arguments to the passed function
-                            util::apply_relevant(c, std::move(data));
-                        }
-                        catch (...) {
+                    // We have to catch any exceptions
+                    try {
+                        // We call with only the relevant arguments to the passed function
+                        util::apply_relevant(c, std::move(data));
+                    }
+                    catch (...) {
 
-                            // Catch our exception if it happens
-                            task->stats->exception = std::current_exception();
-                        }
-
-                        // Our finish time
-                        task->stats->finished = clock::now();
-
-                        // Run our postconditions
-                        DSL::postcondition(*task);
-
-                        // Take one from our active tasks
-                        --task->parent.active_tasks;
-
-                        // Emit our reaction statistics if it wouldn't cause a loop
-                        if (task->emit_stats) {
-                            PowerPlant::powerplant->emit_shared<dsl::word::emit::Direct>(task->stats);
-                        }
+                        // Catch our exception if it happens
+                        task->stats->exception = std::current_exception();
                     }
 
-                    // Return our task
-                    return std::move(task);
-                });
-            }
+                    // Our finish time
+                    task->stats->finished = clock::now();
+
+                    // Run our postconditions
+                    DSL::postcondition(*task);
+
+                    // Take one from our active tasks
+                    --task->parent.active_tasks;
+
+                    // Emit our reaction statistics if it wouldn't cause a loop
+                    if (task->emit_stats) {
+                        PowerPlant::powerplant->emit_shared<dsl::word::emit::Direct>(task->stats);
+                    }
+                }
+
+                // Return our task
+                return std::move(task);
+            });
         }
 
         Function callback;

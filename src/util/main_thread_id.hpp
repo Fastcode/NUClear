@@ -24,7 +24,7 @@
 namespace NUClear {
 namespace util {
 
-    extern std::thread::id main_thread_id;
+    extern const std::thread::id main_thread_id;
 
 }  // namespace util
 }  // namespace NUClear

@@ -48,7 +48,7 @@ void initialize_WSARecvMsg() {
 }
 
 namespace NUClear {
-int recvmsg(fd_t fd, msghdr* msg, int /* flags */) {
+int recvmsg(fd_t fd, msghdr* msg, int /*flags*/) {
 
     // If we haven't setup our recvmsg function yet, set it up
     if (WSARecvMsg == nullptr) {

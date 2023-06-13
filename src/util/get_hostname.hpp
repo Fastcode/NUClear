@@ -37,9 +37,9 @@ namespace util {
         GetComputerName(n, &size);
         return std::string(n, size);
 #else
-        utsname u;
+        utsname u{};
         uname(&u);
-        return std::string(u.nodename);
+        return u.nodename;
 #endif
     }
 

@@ -27,18 +27,53 @@ endif()
 
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
   message(STATUS "Setting build type to '${default_build_type}' as none was specified.")
-  set(CMAKE_BUILD_TYPE ${default_build_type} CACHE STRING "Choose the type of build." FORCE)
+  set(CMAKE_BUILD_TYPE
+      ${default_build_type}
+      CACHE STRING "Choose the type of build." FORCE
+  )
   # Set the possible values of build type for cmake-gui
   set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release" "MinSizeRel" "RelWithDebInfo")
 endif()
 
 # Set the project after the build type as the Project command can change the build type
-project(NUClear VERSION 1.0.0 LANGUAGES C CXX)
+project(
+  NUClear
+  VERSION 1.0.0
+  LANGUAGES C CXX
+)
 
 # Determine if NUClear is built as a subproject (using add_subdirectory) or if it is the master project.
 set(MASTER_PROJECT OFF)
 if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
   set(MASTER_PROJECT ON)
+endif()
+
+# If this option is set we are building using continous integration
+option(CI_BUILD "Enable build options for building in the CI server" OFF)
+
+# Default not to run the clang-tidy checks, default to whatever our CI_BUILD is
+option(ENABLE_CLANG_TIDY "Enable building with clang-tidy checks.")
+if(ENABLE_CLANG_TIDY)
+  set(CLANG_TIDY_ARGS "clang-tidy" "--use-color")
+  if(CI_BUILD)
+    set(CLANG_TIDY_ARGS "clang-tidy" "--use-color" "-warnings-as-errors=*")
+  endif(CI_BUILD)
+  set(CMAKE_CXX_CLANG_TIDY "${CLANG_TIDY_ARGS}" "--extra-arg=-std=c++14")
+  set(CMAKE_C_CLANG_TIDY "${CLANG_TIDY_ARGS}" "--extra-arg=-std=c99")
+endif(ENABLE_CLANG_TIDY)
+
+# If we are doing a CI build then we want to enable -Werror when compiling warnings are bad. We will also make it fail
+# if clang-tidy has an error
+if(CI_BUILD)
+  add_compile_options(-Werror)
+endif(CI_BUILD)
+
+# Make the compiler display colours always (even when we build with ninja)
+if(CMAKE_CXX_COMPILER_ID MATCHES GNU)
+  add_compile_options(-fdiagnostics-color=always)
+endif()
+if(CMAKE_CXX_COMPILER_ID MATCHES Clang)
+  add_compile_options(-fcolor-diagnostics)
 endif()
 
 # Add the src directory

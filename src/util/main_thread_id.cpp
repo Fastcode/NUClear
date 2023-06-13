@@ -27,7 +27,7 @@ namespace util {
      * @detail In order to get the main threads id, we set it as a global static variable.
      *         This should result in the static setup code executing on startup (in the main thread).
      */
-    std::thread::id main_thread_id = std::this_thread::get_id();
+    const std::thread::id main_thread_id = std::this_thread::get_id();
 
 }  // namespace util
 }  // namespace NUClear

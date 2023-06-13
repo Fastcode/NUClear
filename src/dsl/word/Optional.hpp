@@ -64,24 +64,24 @@ namespace dsl {
 
         private:
             template <typename... T, int... Index>
-            static inline auto wrap(std::tuple<T...>&& data, util::Sequence<Index...>)
+            static inline auto wrap(std::tuple<T...>&& data, util::Sequence<Index...> /*s*/)
                 -> decltype(std::make_tuple(OptionalWrapper<T>(std::move(std::get<Index>(data)))...)) {
                 return std::make_tuple(OptionalWrapper<T>(std::move(std::get<Index>(data)))...);
             }
 
         public:
             template <typename DSL>
-            static inline auto get(threading::Reaction& r)
-                -> decltype(wrap(Fusion<DSLWords...>::template get<DSL>(r),
-                                 util::GenerateSequence<
-                                     0,
-                                     std::tuple_size<decltype(Fusion<DSLWords...>::template get<DSL>(r))>::value>())) {
+            static inline auto get(threading::Reaction& reaction) -> decltype(wrap(
+                Fusion<DSLWords...>::template get<DSL>(reaction),
+                util::GenerateSequence<
+                    0,
+                    std::tuple_size<decltype(Fusion<DSLWords...>::template get<DSL>(reaction))>::value>())) {
 
                 // Wrap all of our data in optional wrappers
-                return wrap(Fusion<DSLWords...>::template get<DSL>(r),
+                return wrap(Fusion<DSLWords...>::template get<DSL>(reaction),
                             util::GenerateSequence<
                                 0,
-                                std::tuple_size<decltype(Fusion<DSLWords...>::template get<DSL>(r))>::value>());
+                                std::tuple_size<decltype(Fusion<DSLWords...>::template get<DSL>(reaction))>::value>());
             }
         };
 

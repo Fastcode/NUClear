@@ -24,13 +24,7 @@ namespace threading {
     std::atomic<uint64_t> Reaction::reaction_id_source(0);  // NOLINT
 
     Reaction::Reaction(Reactor& reactor, std::vector<std::string>&& identifier, TaskGenerator&& generator)
-        : reactor(reactor)
-        , identifier(identifier)
-        , id(++reaction_id_source)
-        , emit_stats(true)
-        , active_tasks(0)
-        , enabled(true)
-        , generator(generator) {}
+        : reactor(reactor), identifier(identifier), id(++reaction_id_source), generator(generator) {}
 
     void Reaction::unbind() {
         // Unbind
@@ -39,7 +33,7 @@ namespace threading {
         }
     }
 
-    bool Reaction::is_enabled() {
+    bool Reaction::is_enabled() const {
         return enabled;
     }
 }  // namespace threading
