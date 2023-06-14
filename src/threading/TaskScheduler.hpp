@@ -115,9 +115,12 @@ namespace threading {
 
     private:
         void create_pool(const util::ThreadPoolDescriptor& pool);
+        void pool_func(const util::ThreadPoolDescriptor& pool);
+        void start_threads(const util::ThreadPoolDescriptor& pool);
 
-        /// @brief if the scheduler is running or is shut down
-        std::atomic<bool> running;
+        /// @brief if the scheduler is running
+        std::atomic<bool> running{true};
+        std::atomic<bool> started{false};
 
         /// @brief our queue which sorts tasks by priority
         std::vector<std::unique_ptr<ReactionTask>> queue;
@@ -134,6 +137,7 @@ namespace threading {
 
         std::map<uint64_t, util::ThreadPoolDescriptor> pools{};
         std::map<std::thread::id, uint64_t> pool_map{};
+        std::mutex pool_mutex;
     };
 
 }  // namespace threading
