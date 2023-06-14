@@ -26,6 +26,7 @@
 #include <typeindex>
 
 #include "../../threading/ReactionTask.hpp"
+#include "../../util/GroupDescriptor.hpp"
 
 namespace NUClear {
 namespace dsl {
@@ -72,8 +73,9 @@ namespace dsl {
         struct Sync {
 
             template <typename DSL>
-            static inline std::type_index group(threading::ReactionTask& /*task*/) {
-                return typeid(SyncGroup);
+            static inline util::GroupDescriptor group(threading::Reaction& /*reaction*/) {
+                const static uint64_t group_id = util::GroupDescriptor::get_new_group_id();
+                return util::GroupDescriptor{group_id, 1};
             }
         };
 

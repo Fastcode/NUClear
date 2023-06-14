@@ -20,8 +20,8 @@
 #define NUCLEAR_DSL_WORD_MAINTHREAD_HPP
 
 #include "../../threading/ReactionTask.hpp"
+#include "../../util/ThreadPoolDescriptor.hpp"
 #include "../../util/main_thread_id.hpp"
-#include "../../util/thread_pool.hpp"
 
 namespace NUClear {
 namespace dsl {

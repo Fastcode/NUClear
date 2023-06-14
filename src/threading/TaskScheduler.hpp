@@ -27,7 +27,8 @@
 #include <thread>
 #include <vector>
 
-#include "../util/thread_pool.hpp"
+#include "../util/GroupDescriptor.hpp"
+#include "../util/ThreadPoolDescriptor.hpp"
 #include "Reaction.hpp"
 #include "ReactionTask.hpp"
 
@@ -138,6 +139,9 @@ namespace threading {
         std::map<uint64_t, util::ThreadPoolDescriptor> pools{};
         std::map<std::thread::id, uint64_t> pool_map{};
         std::mutex pool_mutex;
+
+        std::map<uint64_t, size_t> groups{};
+        std::mutex group_mutex;
     };
 
 }  // namespace threading

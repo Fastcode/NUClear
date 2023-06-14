@@ -53,7 +53,7 @@ namespace dsl {
                 Parse<Sentence...>>(r);
         }
 
-        static inline std::type_index group(threading::Reaction& r) {
+        static inline util::GroupDescriptor group(threading::Reaction& r) {
             return std::conditional_t<fusion::has_group<DSL>::value, DSL, fusion::NoOp>::template group<
                 Parse<Sentence...>>(r);
         }

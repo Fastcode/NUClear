@@ -23,7 +23,8 @@
 
 #include "../../threading/Reaction.hpp"
 #include "../../threading/ReactionTask.hpp"
-#include "../../util/thread_pool.hpp"
+#include "../../util/GroupDescriptor.hpp"
+#include "../../util/ThreadPoolDescriptor.hpp"
 #include "../word/Priority.hpp"
 
 namespace NUClear {
@@ -55,13 +56,13 @@ namespace dsl {
             }
 
             template <typename DSL>
-            static inline std::type_index group(threading::Reaction& /*reaction*/) {
-                return typeid(threading::TaskScheduler);
+            static inline util::GroupDescriptor group(threading::Reaction& /*reaction*/) {
+                return util::GroupDescriptor{};
             }
 
             template <typename DSL>
             static inline util::ThreadPoolDescriptor pool(threading::Reaction& /*reaction*/) {
-                return util::ThreadPoolDescriptor{util::ThreadPoolIDSource::DEFAULT_THREAD_POOL_ID, 0};
+                return util::ThreadPoolDescriptor{};
             }
 
             template <typename DSL>
@@ -83,7 +84,7 @@ namespace dsl {
 
             static inline int priority(threading::Reaction&);
 
-            static inline std::type_index group(threading::Reaction&);
+            static inline util::GroupDescriptor group(threading::Reaction&);
 
             static inline util::ThreadPoolDescriptor pool(threading::Reaction&);
 

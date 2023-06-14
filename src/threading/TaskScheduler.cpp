@@ -32,25 +32,41 @@
 namespace NUClear {
 namespace threading {
 
-    bool is_runnable(const std::unique_ptr<ReactionTask>& task, const uint64_t& pool_id) {
-        return task->thread_pool_descriptor.pool_id == pool_id;
+    bool is_runnable(const std::unique_ptr<ReactionTask>& task, const uint64_t& pool_id, const size_t& group_count) {
+        return
+            // Task can run if it is meant to run on the current thread pool
+            task->thread_pool_descriptor.pool_id == pool_id &&
+            // Task can run if the group is belongs to has spare threads
+            group_count < task->group_descriptor.thread_count;
     }
 
     void TaskScheduler::pool_func(const util::ThreadPoolDescriptor& pool) {
-            // Wait at a high (but not realtime) priority to reduce latency
-            // for picking up a new task
-            update_current_thread_priority(1000);
+        // Wait at a high (but not realtime) priority to reduce latency
+        // for picking up a new task
+        update_current_thread_priority(1000);
 
-            while (running.load() || !queue.empty()) {
+        while (running.load() || !queue.empty()) {
             auto task = get_task(pool.pool_id);
 
-                if (task) {
-                    task->run();
+            if (task) {
+                // This task is about to run in this group, increase the number of active tasks in the group
+                /* mutex scope */ {
+                    const std::lock_guard<std::mutex> group_lock(group_mutex);
+                    groups.at(task->group_descriptor.group_id)++;
                 }
 
-                // Back up to realtime while waiting
-                update_current_thread_priority(1000);
+                task->run();
+
+                // This task is no longer running, decrease the number of active tasks in the group
+                /* mutex scope */ {
+                    const std::lock_guard<std::mutex> group_lock(group_mutex);
+                    groups.at(task->group_descriptor.group_id)--;
+                }
             }
+
+            // Back up to realtime while waiting
+            update_current_thread_priority(1000);
+        }
     }
 
     TaskScheduler::TaskScheduler() {
@@ -143,6 +159,18 @@ namespace threading {
 
             // Check to see if this task was the result of `emit<Direct>`
             if (started.load() && task->immediate) {
+                uint64_t current_pool = util::ThreadPoolIDSource::DEFAULT_THREAD_POOL_ID;
+                size_t group_count    = 1;
+                /* mutex scope */ {
+                    const std::lock_guard<std::mutex> pool_lock(pool_mutex);
+                    current_pool = pool_map.at(std::this_thread::get_id());
+                }
+                /* mutex scope */ {
+                    const std::lock_guard<std::mutex> group_lock(group_mutex);
+                    group_count = groups.at(task->group_descriptor.group_id);
+                }
+                if ((is_runnable(task, current_pool, group_count)
+                     || is_runnable(task, util::ThreadPoolIDSource::DEFAULT_THREAD_POOL_ID, group_count))) {
                     task->run();
                     return;
                 }
@@ -172,8 +200,21 @@ namespace threading {
         while (running.load() || !queue.empty()) {
 
             for (auto it = queue.begin(); it != queue.end(); ++it) {
+
+                size_t group_count = 0;
+                /* mutex scope */ {
+                    const std::lock_guard<std::mutex> group_lock(group_mutex);
+                    uint64_t group_id = (*it)->group_descriptor.group_id;
+                    if (groups.count(group_id) > 0) {
+                        group_count = groups.at(group_id);
+                    }
+                    else {
+                        groups[group_id] = 0;
+                    }
+                }
+
                 // Check if we can run it
-                if (is_runnable(*it, pool_id)) {
+                if (is_runnable(*it, pool_id, group_count)) {
                     // Move the task out of the queue
                     std::unique_ptr<ReactionTask> task = std::move(*it);
 

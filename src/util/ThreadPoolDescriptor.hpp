@@ -15,36 +15,35 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_UTIL_GENERATEDCALLBACK_HPP
-#define NUCLEAR_UTIL_GENERATEDCALLBACK_HPP
+#ifndef NUCLEAR_UTIL_THREADPOOL_HPP
+#define NUCLEAR_UTIL_THREADPOOL_HPP
 
-#include <limits>
-
-#include "../threading/ReactionTask.hpp"
-#include "GroupDescriptor.hpp"
-#include "ThreadPoolDescriptor.hpp"
+#include <atomic>
+#include <cstddef>
+#include <cstdint>
 
 namespace NUClear {
 namespace util {
 
-    struct GeneratedCallback {
-        GeneratedCallback() = default;
-        GeneratedCallback(const int& priority,
-                          const GroupDescriptor& group,
-                          const ThreadPoolDescriptor& pool,
-                          threading::ReactionTask::TaskFunction callback)
-            : priority(priority), group(group), pool(pool), callback(std::move(callback)) {}
-        int priority{0};
-        GroupDescriptor group{0, std::numeric_limits<size_t>::max()};
-        ThreadPoolDescriptor pool{util::ThreadPoolIDSource::DEFAULT_THREAD_POOL_ID, 0};
-        threading::ReactionTask::TaskFunction callback{};
+    struct ThreadPoolIDSource {
+        static constexpr uint64_t MAIN_THREAD_POOL_ID    = 0;
+        static constexpr uint64_t DEFAULT_THREAD_POOL_ID = 1;
 
-        operator bool() const {
-            return bool(callback);
+        static uint64_t get_new_pool_id() {
+            static std::atomic<uint64_t> source{2};
+            return source++;
         }
+    };
+
+    struct ThreadPoolDescriptor {
+        /// @brief Set a unique identifier for this pool
+        uint64_t pool_id{ThreadPoolIDSource::DEFAULT_THREAD_POOL_ID};
+
+        /// @brief The number of threads this thread pool will use.
+        size_t thread_count{1};
     };
 
 }  // namespace util
 }  // namespace NUClear
 
-#endif  // NUCLEAR_UTIL_GENERATEDCALLBACK_HPP
+#endif  // NUCLEAR_UTIL_THREADPOOL_HPP

@@ -15,36 +15,28 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_UTIL_GENERATEDCALLBACK_HPP
-#define NUCLEAR_UTIL_GENERATEDCALLBACK_HPP
+#ifndef NUCLEAR_DSL_WORD_GROUP_HPP
+#define NUCLEAR_DSL_WORD_GROUP_HPP
 
-#include <limits>
-
-#include "../threading/ReactionTask.hpp"
-#include "GroupDescriptor.hpp"
-#include "ThreadPoolDescriptor.hpp"
+#include "../../threading/ReactionTask.hpp"
+#include "../../util/GroupDescriptor.hpp"
 
 namespace NUClear {
-namespace util {
+namespace dsl {
+    namespace word {
 
-    struct GeneratedCallback {
-        GeneratedCallback() = default;
-        GeneratedCallback(const int& priority,
-                          const GroupDescriptor& group,
-                          const ThreadPoolDescriptor& pool,
-                          threading::ReactionTask::TaskFunction callback)
-            : priority(priority), group(group), pool(pool), callback(std::move(callback)) {}
-        int priority{0};
-        GroupDescriptor group{0, std::numeric_limits<size_t>::max()};
-        ThreadPoolDescriptor pool{util::ThreadPoolIDSource::DEFAULT_THREAD_POOL_ID, 0};
-        threading::ReactionTask::TaskFunction callback{};
+        template <typename GroupType>
+        struct Group {
 
-        operator bool() const {
-            return bool(callback);
-        }
-    };
+            template <typename DSL>
+            static inline util::GroupDescriptor group(threading::Reaction& /*reaction*/) {
+                const static uint64_t group_id = util::GroupDescriptor::get_new_group_id();
+                return util::GroupDescriptor{group_id, GroupType::concurrency};
+            }
+        };
 
-}  // namespace util
+    }  // namespace word
+}  // namespace dsl
 }  // namespace NUClear
 
-#endif  // NUCLEAR_UTIL_GENERATEDCALLBACK_HPP
+#endif  // NUCLEAR_DSL_WORD_GROUP_HPP

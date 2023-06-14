@@ -26,8 +26,9 @@
 #include <vector>
 
 #include "../message/ReactionStatistics.hpp"
+#include "../util/GroupDescriptor.hpp"
+#include "../util/ThreadPoolDescriptor.hpp"
 #include "../util/platform.hpp"
-#include "../util/thread_pool.hpp"
 
 namespace NUClear {
 namespace threading {
@@ -72,7 +73,7 @@ namespace threading {
          */
         Task(ReactionType& parent,
              const int& priority,
-             const std::type_index& group_id,
+             const util::GroupDescriptor& group_descriptor,
              const util::ThreadPoolDescriptor& thread_pool_descriptor,
              TaskFunction&& callback)
             : parent(parent)
@@ -88,7 +89,7 @@ namespace threading {
                                                                   clock::time_point(std::chrono::seconds(0)),
                                                                   nullptr))
             , emit_stats(parent.emit_stats && (current_task != nullptr ? current_task->emit_stats : true))
-            , group_id(group_id)
+            , group_descriptor(group_descriptor)
             , thread_pool_descriptor(thread_pool_descriptor)
             , callback(callback) {}
 
@@ -126,7 +127,7 @@ namespace threading {
         /// reaction statistics becomes false for all created tasks. This is to stop infinite loops of death.
         bool emit_stats;
 
-        std::type_index group_id;
+        util::GroupDescriptor group_descriptor;
         util::ThreadPoolDescriptor thread_pool_descriptor;
         bool immediate{false};
 

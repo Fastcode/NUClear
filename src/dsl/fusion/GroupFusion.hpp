@@ -71,7 +71,7 @@ namespace dsl {
         struct GroupFuser<std::tuple<Word>> {
 
             template <typename DSL>
-            static inline std::type_index group(threading::Reaction& reaction) {
+            static inline util::GroupDescriptor group(threading::Reaction& reaction) {
 
                 // Return our group
                 return Word::template group<DSL>(reaction);

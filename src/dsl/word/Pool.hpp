@@ -19,7 +19,7 @@
 #define NUCLEAR_DSL_WORD_POOL_HPP
 
 #include "../../threading/ReactionTask.hpp"
-#include "../../util/thread_pool.hpp"
+#include "../../util/ThreadPoolDescriptor.hpp"
 
 namespace NUClear {
 namespace dsl {
@@ -28,8 +28,8 @@ namespace dsl {
         template <typename PoolType>
         struct Pool {
             template <typename DSL>
-            static inline util::ThreadPoolDescriptor pool(threading::ReactionTask& /*task*/) {
-                const static uint64_t pool_id = util::ThreadPoolIDSource::source++;
+            static inline util::ThreadPoolDescriptor pool(threading::Reaction& /*reaction*/) {
+                const static uint64_t pool_id = util::ThreadPoolIDSource::get_new_pool_id();
                 return util::ThreadPoolDescriptor{pool_id, PoolType::concurrency};
             }
         };

@@ -23,7 +23,7 @@
 #include <mutex>
 
 #include "../../threading/ReactionTask.hpp"
-#include "../../util/thread_pool.hpp"
+#include "../../util/ThreadPoolDescriptor.hpp"
 
 namespace NUClear {
 namespace dsl {
@@ -101,13 +101,13 @@ namespace dsl {
                         // Get new task for the actual reaction
                         auto idle_task = idle_reaction.get_task();
                         if (idle_task) {
-                        // Set the thread pool on the task
+                            // Set the thread pool on the task
                             idle_task->thread_pool_descriptor = Always::pool<DSL>(idle_task->parent);
 
                             // Only let this task run when the always thread pool is idle
                             idle_task->priority = Priority::IDLE::value - 1;
 
-                        // Submit the task to be run
+                            // Submit the task to be run
                             idle_reaction.reactor.powerplant.submit(std::move(idle_task));
                         }
                     };
@@ -135,8 +135,8 @@ namespace dsl {
                 auto idle_task = idle_reaction->get_task();
                 if (idle_task) {
                     idle_reaction->reactor.powerplant.submit(std::move(idle_task));
-                    }
                 }
+            }
 
             template <typename DSL>
             static inline void postcondition(threading::ReactionTask& task) {

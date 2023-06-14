@@ -15,31 +15,27 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_UTIL_THREADPOOL_HPP
-#define NUCLEAR_UTIL_THREADPOOL_HPP
+#ifndef NUCLEAR_UTIL_GROUPDESCRIPTOR_HPP
+#define NUCLEAR_UTIL_GROUPDESCRIPTOR_HPP
 
 #include <atomic>
 #include <cstddef>
 #include <cstdint>
+#include <limits>
 
 namespace NUClear {
 namespace util {
 
-    struct ThreadPoolDescriptor {
+    struct GroupDescriptor {
         /// @brief Set a unique identifier for this pool
-        uint64_t pool_id;
+        uint64_t group_id{0};
 
         /// @brief The number of threads this thread pool will use.
-        size_t thread_count;
-    };
+        size_t thread_count{std::numeric_limits<size_t>::max()};
 
-    struct ThreadPoolIDSource {
-        // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
-        static std::atomic<uint64_t> source;
-        static constexpr uint64_t MAIN_THREAD_POOL_ID    = 0;
-        static constexpr uint64_t DEFAULT_THREAD_POOL_ID = 1;
-
-        static uint64_t get_new_pool_id() {
+        static uint64_t get_new_group_id() {
+            // Make group 0 the default group
+            static std::atomic<uint64_t> source{1};
             return source++;
         }
     };
@@ -47,4 +43,4 @@ namespace util {
 }  // namespace util
 }  // namespace NUClear
 
-#endif  // NUCLEAR_UTIL_THREADPOOL_HPP
+#endif  // NUCLEAR_UTIL_GROUPDESCRIPTOR_HPP
