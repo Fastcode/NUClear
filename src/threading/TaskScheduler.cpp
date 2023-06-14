@@ -61,10 +61,6 @@ namespace threading {
 
                 if (task) {
                     task->run();
-                    if (task->keep_alive) {
-                        auto new_task = task->parent.get_task();
-                        submit(std::move(new_task));
-                    }
                 }
 
                 // Back up to realtime while waiting
@@ -93,10 +89,6 @@ namespace threading {
 
             if (task) {
                 task->run();
-                if (task->keep_alive) {
-                    auto new_task = task->parent.get_task();
-                    submit(std::move(new_task));
-                }
             }
         }
 
