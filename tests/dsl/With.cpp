@@ -58,5 +58,6 @@ TEST_CASE("Testing poorly ordered on arguments", "[api][with]") {
     plant.emit(std::make_unique<DifferentOrderingMessage2>());
     plant.emit(std::make_unique<DifferentOrderingMessage3>());
 
-    plant.start();
+    REQUIRE_NOTHROW(plant.start());
+    REQUIRE_FALSE(plant.running());
 }

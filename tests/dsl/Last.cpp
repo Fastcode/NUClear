@@ -54,7 +54,7 @@ public:
                     REQUIRE(int(messages.size()) == messages.back()->value);
                 }
 
-                // Check that our numbers are decreasing
+                // Check that our numbers are increasing
                 int i = messages.front()->value;
                 for (auto& m : messages) {
                     REQUIRE(m->value == i);
