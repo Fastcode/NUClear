@@ -40,7 +40,7 @@ namespace util {
         uint64_t pool_id{ThreadPoolIDSource::DEFAULT_THREAD_POOL_ID};
 
         /// @brief The number of threads this thread pool will use.
-        size_t thread_count{1};
+        size_t thread_count{0};
     };
 
 }  // namespace util
