@@ -64,7 +64,7 @@ namespace threading {
         update_current_thread_priority(1000);
 
         while (running.load() || !queue.empty()) {
-            run_task(std::move(get_task(pool.pool_id)));
+            run_task(get_task(pool.pool_id));
 
             // Back up to realtime while waiting
             update_current_thread_priority(1000);
@@ -156,7 +156,7 @@ namespace threading {
             // Make sure we know about this group
             /* mutex scope */ {
                 const std::lock_guard<std::mutex> group_lock(group_mutex);
-                uint64_t group_id = task->group_descriptor.group_id;
+                const uint64_t group_id = task->group_descriptor.group_id;
                 if (groups.count(group_id) == 0) {
                     groups[group_id] = 0;
                 }
