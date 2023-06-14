@@ -41,21 +41,21 @@ namespace threading {
     }
 
     void TaskScheduler::run_task(std::unique_ptr<ReactionTask>&& task) {
-            if (task) {
-                // This task is about to run in this group, increase the number of active tasks in the group
-                /* mutex scope */ {
-                    const std::lock_guard<std::mutex> group_lock(group_mutex);
-                    groups.at(task->group_descriptor.group_id)++;
-                }
-
-                task->run();
-
-                // This task is no longer running, decrease the number of active tasks in the group
-                /* mutex scope */ {
-                    const std::lock_guard<std::mutex> group_lock(group_mutex);
-                    groups.at(task->group_descriptor.group_id)--;
-                }
+        if (task) {
+            // This task is about to run in this group, increase the number of active tasks in the group
+            /* mutex scope */ {
+                const std::lock_guard<std::mutex> group_lock(group_mutex);
+                groups.at(task->group_descriptor.group_id)++;
             }
+
+            task->run();
+
+            // This task is no longer running, decrease the number of active tasks in the group
+            /* mutex scope */ {
+                const std::lock_guard<std::mutex> group_lock(group_mutex);
+                groups.at(task->group_descriptor.group_id)--;
+            }
+        }
     }
 
     void TaskScheduler::pool_func(const util::ThreadPoolDescriptor& pool) {
@@ -153,6 +153,15 @@ namespace threading {
             // Make sure the pool is created
             create_pool(task->thread_pool_descriptor);
 
+            // Make sure we know about this group
+            /* mutex scope */ {
+                const std::lock_guard<std::mutex> group_lock(group_mutex);
+                uint64_t group_id = task->group_descriptor.group_id;
+                if (groups.count(group_id) == 0) {
+                    groups[group_id] = 0;
+                }
+            }
+
             // Check to see if this task was the result of `emit<Direct>`
             if (started.load() && task->immediate) {
                 uint64_t current_pool = util::ThreadPoolIDSource::DEFAULT_THREAD_POOL_ID;
@@ -200,13 +209,7 @@ namespace threading {
                 size_t group_count = 0;
                 /* mutex scope */ {
                     const std::lock_guard<std::mutex> group_lock(group_mutex);
-                    uint64_t group_id = (*it)->group_descriptor.group_id;
-                    if (groups.count(group_id) > 0) {
-                        group_count = groups.at(group_id);
-                    }
-                    else {
-                        groups[group_id] = 0;
-                    }
+                    group_count = groups.at((*it)->group_descriptor.group_id);
                 }
 
                 // Check if we can run it
