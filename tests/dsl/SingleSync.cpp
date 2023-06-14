@@ -18,6 +18,8 @@
 
 #include <catch.hpp>
 #include <nuclear>
+#include <string>
+#include <vector>
 
 namespace {
 
@@ -28,25 +30,19 @@ struct Message {
 
 struct ShutdownOnIdle {};
 
-std::atomic<int> counter(0);
+std::vector<std::string> values;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
 class TestReactor : public NUClear::Reactor {
 public:
     TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
 
-        on<Trigger<Message>, Sync<TestReactor>>().then([this](const Message& m) {
-            // Match message value against counter value
-            auto value = counter.load();
-
-            // Increment our counter
-            ++counter;
-
-            CHECK(value == m.val);
-        });
+        on<Trigger<Message>, Sync<TestReactor>>().then(
+            [](const Message& m) { values.push_back("Received value " + std::to_string(m.val)); });
 
         on<Trigger<ShutdownOnIdle>, Priority::IDLE>().then([this] { powerplant.shutdown(); });
 
         on<Startup>().then([this] {
+            values.clear();
             emit(std::make_unique<Message>(0));
             emit(std::make_unique<Message>(1));
             emit(std::make_unique<Message>(2));
@@ -61,18 +57,12 @@ TEST_CASE("Testing that the Sync priority queue word works correctly", "[api][sy
     NUClear::PowerPlant::Configuration config;
     config.thread_count = 2;
     NUClear::PowerPlant plant(config);
+
     plant.install<TestReactor>();
+    plant.start();
 
-    // Repeat the test to try and hit the race condition
-    auto i = GENERATE(Catch::Generators::range(0, 100));
-    INFO("Testing iteration " << (i + 1));
-    {
-        plant.start();
-
-        // Reset the counter
-        auto value = counter.load();
-        counter.store(0);
-
-        REQUIRE(value == 4);
+    REQUIRE(values.size() == 4);
+    for (int i = 0; i < 4; ++i) {
+        CHECK(values[i] == "Received value " + std::to_string(i));
     }
 }
