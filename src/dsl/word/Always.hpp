@@ -19,6 +19,9 @@
 #ifndef NUCLEAR_DSL_WORD_ALWAYS_HPP
 #define NUCLEAR_DSL_WORD_ALWAYS_HPP
 
+#include <map>
+#include <mutex>
+
 #include "../../threading/ReactionTask.hpp"
 #include "../../util/thread_pool.hpp"
 
@@ -63,33 +66,87 @@ namespace dsl {
         struct Always {
 
             template <typename DSL>
-            static inline util::ThreadPoolDescriptor pool(threading::ReactionTask& /*task*/) {
-                static uint64_t pool_id = util::ThreadPoolIDSource::source++;
-                return util::ThreadPoolDescriptor{pool_id, 1};
+            static inline util::ThreadPoolDescriptor pool(threading::Reaction& reaction) {
+                static std::map<uint64_t, uint64_t> pool_id;
+                static std::mutex mutex;
+
+                const std::lock_guard<std::mutex> lock(mutex);
+                if (pool_id.count(reaction.id) == 0) {
+                    pool_id[reaction.id] = util::ThreadPoolIDSource::get_new_pool_id();
+                }
+                return util::ThreadPoolDescriptor{pool_id[reaction.id], 1};
             }
 
             template <typename DSL>
-            static inline void bind(const std::shared_ptr<threading::Reaction>& reaction) {
+            static inline void bind(const std::shared_ptr<threading::Reaction>& always_reaction) {
+                static std::map<uint64_t,
+                                std::pair<std::shared_ptr<threading::Reaction>, std::shared_ptr<threading::Reaction>>>
+                    reaction_store = {};
 
-                reaction->unbinders.push_back([](threading::Reaction& r) { r.enabled = false; });
+                always_reaction->unbinders.push_back([](threading::Reaction& r) { r.enabled = false; });
 
-                try {
-                    // Get a task
-                    auto task = reaction->get_task();
+                auto idle_callback = [always_reaction](threading::Reaction& idle_reaction) -> util::GeneratedCallback {
+                    // Reaction is still bound re-add the reaction and this
+                    auto callback = [&idle_reaction, always_reaction](threading::ReactionTask& /*task*/) {
+                        // Get new task for the actual reaction
+                        auto always_task = always_reaction->get_task();
+                        if (always_task) {
+                            // Set the thread pool on the task
+                            always_task->thread_pool_descriptor = Always::pool<DSL>(always_task->parent);
 
-                    // If we got a real task back
-                    if (task) {
+                            // Submit the task to be run
+                            always_reaction->reactor.powerplant.submit(std::move(always_task));
+                        }
+
+                        // Get new task for the actual reaction
+                        auto idle_task = idle_reaction.get_task();
+                        if (idle_task) {
                         // Set the thread pool on the task
-                        task->thread_pool_descriptor = Always::pool<DSL>(*task);
+                            idle_task->thread_pool_descriptor = Always::pool<DSL>(idle_task->parent);
 
-                        // Make sure this task never dies
-                        task->keep_alive = true;
+                            // Only let this task run when the always thread pool is idle
+                            idle_task->priority = Priority::IDLE::value - 1;
 
                         // Submit the task to be run
-                        reaction->reactor.powerplant.submit(std::move(task));
+                            idle_reaction.reactor.powerplant.submit(std::move(idle_task));
+                        }
+                    };
+
+                    return {Priority::IDLE::value - 1, DSL::group(idle_reaction), DSL::pool(idle_reaction), callback};
+                };
+                auto idle_reaction = std::make_shared<threading::Reaction>(
+                    always_reaction->reactor,
+                    std::vector<std::string>{always_reaction->identifier[0] + " - IDLE Task",
+                                             always_reaction->identifier[1],
+                                             always_reaction->identifier[2],
+                                             always_reaction->identifier[3]},
+                    idle_callback);
+
+                // Keep this reaction handy so it doesn't go out of scope
+                reaction_store[always_reaction->id] = {always_reaction, idle_reaction};
+
+                // Get a task for the always reaction and submit it to the scheduler
+                auto always_task = always_reaction->get_task();
+                if (always_task) {
+                    always_reaction->reactor.powerplant.submit(std::move(always_task));
+                }
+
+                // Get a task for the idle reaction and submit it to the scheduler
+                auto idle_task = idle_reaction->get_task();
+                if (idle_task) {
+                    idle_reaction->reactor.powerplant.submit(std::move(idle_task));
                     }
                 }
-                catch (...) {
+
+            template <typename DSL>
+            static inline void postcondition(threading::ReactionTask& task) {
+                auto new_task = task.parent.get_task();
+                if (new_task) {
+                    // Set the thread pool on the task
+                    new_task->thread_pool_descriptor = Always::pool<DSL>(new_task->parent);
+
+                    // Submit the task to be run
+                    task.parent.reactor.powerplant.submit(std::move(new_task));
                 }
             }
         };
