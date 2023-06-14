@@ -35,10 +35,11 @@ public:
 
         // Run a task with MainTHread and ensure that it is on the main thread
         on<Trigger<double>, MainThread>().then("MainThread reaction", [this] {
+            // Shutdown first so the test will end even if the next check fails
+            powerplant.shutdown();
+
             // We should be on the main thread
             REQUIRE(NUClear::util::main_thread_id == std::this_thread::get_id());
-
-            powerplant.shutdown();
         });
 
         on<Startup>().then([this]() {
