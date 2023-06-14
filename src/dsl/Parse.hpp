@@ -59,7 +59,7 @@ namespace dsl {
         }
 
         static inline util::ThreadPoolDescriptor pool(threading::Reaction& r) {
-            return std::conditional_t<fusion::has_group<DSL>::value, DSL, fusion::NoOp>::template pool<
+            return std::conditional_t<fusion::has_pool<DSL>::value, DSL, fusion::NoOp>::template pool<
                 Parse<Sentence...>>(r);
         }
 
