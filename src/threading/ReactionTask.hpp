@@ -162,7 +162,7 @@ namespace threading {
         return a == nullptr                 ? false
                : b == nullptr               ? true
                : a->priority == b->priority ? a->id > b->id
-                                            : a->priority < b->priority;
+                                            : a->priority > b->priority;
     }
 
     // Alias the templated Task so that public API remains intact
