@@ -74,7 +74,7 @@ namespace threading {
 
         // Start all our threads
         /* mutex scope */ {
-            std::lock_guard<std::mutex> lock(threads_mutex);
+            const std::lock_guard<std::mutex> threads_lock(threads_mutex);
             for (size_t i = 0; i < pool.thread_count; ++i) {
                 threads.push_back(std::make_unique<std::thread>(pool_func));
                 pool_map[threads.back()->get_id()] = pool.pool_id;
@@ -115,7 +115,7 @@ namespace threading {
     }
 
     void TaskScheduler::shutdown() {
-        std::lock_guard<std::mutex> lock(mutex);
+        const std::lock_guard<std::mutex> lock(mutex);
         running.store(false);
         condition.notify_all();
     }
@@ -139,11 +139,10 @@ namespace threading {
             }
 
             /* Mutex Scope */ {
-                std::lock_guard<std::mutex> lock(mutex);
+                const std::lock_guard<std::mutex> lock(mutex);
 
                 // Find where to insert the new task to maintain task order
-                auto it =
-                    std::lower_bound(queue.begin(), queue.end(), task, std::less<std::unique_ptr<ReactionTask>>());
+                auto it = std::lower_bound(queue.begin(), queue.end(), task, std::less<>());
 
                 // Insert before the found position
                 queue.insert(it, std::forward<std::unique_ptr<ReactionTask>>(task));
@@ -151,7 +150,7 @@ namespace threading {
         }
 
         // Notify a thread that it can proceed
-        std::lock_guard<std::mutex> lock(mutex);
+        const std::lock_guard<std::mutex> lock(mutex);
         condition.notify_all();
     }
 

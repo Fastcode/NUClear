@@ -52,7 +52,7 @@ namespace dsl {
             template <typename DataType>
             struct Direct {
 
-                static void emit(PowerPlant& /*powerplant*/, std::shared_ptr<DataType> data) {
+                static void emit(PowerPlant& powerplant, std::shared_ptr<DataType> data) {
 
                     // Run all our reactions that are interested
                     for (auto& reaction : store::TypeCallbackStore<DataType>::get()) {

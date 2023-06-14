@@ -28,8 +28,8 @@ namespace dsl {
         template <typename PoolType>
         struct Pool {
             template <typename DSL>
-            static inline util::ThreadPoolDescriptor pool(threading::ReactionTask& task) {
-                static uint64_t pool_id = util::ThreadPoolIDSource::source++;
+            static inline util::ThreadPoolDescriptor pool(threading::ReactionTask& /*task*/) {
+                const static uint64_t pool_id = util::ThreadPoolIDSource::source++;
                 return util::ThreadPoolDescriptor{pool_id, PoolType::concurrency};
             }
         };

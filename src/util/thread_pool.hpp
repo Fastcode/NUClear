@@ -34,6 +34,7 @@ namespace util {
     };
 
     struct ThreadPoolIDSource {
+        // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
         static std::atomic<uint64_t> source;
         static constexpr uint64_t MAIN_THREAD_POOL_ID    = 0;
         static constexpr uint64_t DEFAULT_THREAD_POOL_ID = 1;

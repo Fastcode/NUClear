@@ -83,7 +83,7 @@ namespace dsl {
         struct PoolFuser<std::tuple<Word1, Word2, WordN...>> {
 
             template <typename DSL>
-            static inline util::ThreadPoolDescriptor pool(threading::Reaction& reaction) {
+            static inline util::ThreadPoolDescriptor pool(threading::Reaction& /*reaction*/) {
                 throw std::runtime_error("Can not be a member of more than one pool");
             }
         };

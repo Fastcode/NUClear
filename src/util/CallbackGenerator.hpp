@@ -45,7 +45,8 @@ namespace util {
     template <typename DSL, typename Function>
     struct CallbackGenerator {
 
-        template <typename F>
+        // Don't using this constructor is F is of type CallbackGenerator
+        template <typename F, std::enable_if_t<!std::is_same<F, CallbackGenerator>::value, bool> = true>
         CallbackGenerator(F&& callback)
             : callback(std::forward<F>(callback))
             , transients(std::make_shared<typename TransientDataElements<DSL>::type>()) {}
@@ -130,11 +131,10 @@ namespace util {
                                          }
                                      });
         }
-    }
 
-    Function callback;
-    std::shared_ptr<typename TransientDataElements<DSL>::type> transients;
-};
+        Function callback;
+        std::shared_ptr<typename TransientDataElements<DSL>::type> transients;
+    };
 
 }  // namespace util
 }  // namespace NUClear

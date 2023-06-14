@@ -72,8 +72,8 @@ namespace dsl {
         struct Sync {
 
             template <typename DSL>
-            static inline std::type_index group(threading::ReactionTask& task) {
-                return std::type_index(typeid(SyncGroup));
+            static inline std::type_index group(threading::ReactionTask& /*task*/) {
+                return typeid(SyncGroup);
             }
         };
 

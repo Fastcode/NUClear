@@ -103,7 +103,7 @@ namespace threading {
         inline void run() {
 
             // Update our current task
-            // TODO RAII THIS
+            // TODO(Trent) RAII THIS
             Task* old_task = current_task;
             current_task   = this;
 

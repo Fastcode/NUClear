@@ -20,6 +20,7 @@
 
 // See https://valgrind.org/docs/manual/drd-manual.html#drd-manual.CXX11
 #if defined(USE_VALGRIND) && !defined(NDEBUG)
+// NOLINTBEGIN
 namespace std {
 extern "C" {
 static void* execute_native_thread_routine(void* __p) {
@@ -46,6 +47,7 @@ void thread::_M_start_thread(_State_ptr state, void (*depend)()) {
 }
 }
 }  // namespace std
+// NOLINTEND
 #endif  // defined(USE_VALGRIND) && !defined(NDEBUG)
 
 namespace NUClear {

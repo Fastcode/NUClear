@@ -55,12 +55,12 @@ namespace dsl {
             }
 
             template <typename DSL>
-            static inline std::type_index group(threading::Reaction&) {
-                return std::type_index(typeid(threading::TaskScheduler));
+            static inline std::type_index group(threading::Reaction& /*reaction*/) {
+                return typeid(threading::TaskScheduler);
             }
 
             template <typename DSL>
-            static inline util::ThreadPoolDescriptor pool(threading::Reaction&) {
+            static inline util::ThreadPoolDescriptor pool(threading::Reaction& /*reaction*/) {
                 return util::ThreadPoolDescriptor{util::ThreadPoolIDSource::DEFAULT_THREAD_POOL_ID, 0};
             }
 
