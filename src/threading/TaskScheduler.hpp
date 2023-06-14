@@ -118,6 +118,7 @@ namespace threading {
         void create_pool(const util::ThreadPoolDescriptor& pool);
         void pool_func(const util::ThreadPoolDescriptor& pool);
         void start_threads(const util::ThreadPoolDescriptor& pool);
+        void run_task(std::unique_ptr<ReactionTask>&& task);
 
         /// @brief if the scheduler is running
         std::atomic<bool> running{true};

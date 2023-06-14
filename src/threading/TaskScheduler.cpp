@@ -40,14 +40,7 @@ namespace threading {
             group_count < task->group_descriptor.thread_count;
     }
 
-    void TaskScheduler::pool_func(const util::ThreadPoolDescriptor& pool) {
-        // Wait at a high (but not realtime) priority to reduce latency
-        // for picking up a new task
-        update_current_thread_priority(1000);
-
-        while (running.load() || !queue.empty()) {
-            auto task = get_task(pool.pool_id);
-
+    void TaskScheduler::run_task(std::unique_ptr<ReactionTask>&& task) {
             if (task) {
                 // This task is about to run in this group, increase the number of active tasks in the group
                 /* mutex scope */ {
@@ -63,6 +56,15 @@ namespace threading {
                     groups.at(task->group_descriptor.group_id)--;
                 }
             }
+    }
+
+    void TaskScheduler::pool_func(const util::ThreadPoolDescriptor& pool) {
+        // Wait at a high (but not realtime) priority to reduce latency
+        // for picking up a new task
+        update_current_thread_priority(1000);
+
+        while (running.load() || !queue.empty()) {
+            run_task(std::move(get_task(pool.pool_id)));
 
             // Back up to realtime while waiting
             update_current_thread_priority(1000);
@@ -120,13 +122,7 @@ namespace threading {
         }
 
         // Run main thread tasks
-        while (running.load() || !queue.empty()) {
-            auto task = get_task(util::ThreadPoolIDSource::MAIN_THREAD_POOL_ID);
-
-            if (task) {
-                task->run();
-            }
-        }
+        pool_func(pools.at(util::ThreadPoolIDSource::MAIN_THREAD_POOL_ID));
 
         // Now wait for all the threads to finish executing
         for (auto& thread : threads) {
@@ -171,7 +167,7 @@ namespace threading {
                 }
                 if ((is_runnable(task, current_pool, group_count)
                      || is_runnable(task, util::ThreadPoolIDSource::DEFAULT_THREAD_POOL_ID, group_count))) {
-                    task->run();
+                    run_task(std::move(task));
                     return;
                 }
                 // Not runnable, stick it in the queue like nothing happened
