@@ -161,7 +161,7 @@ namespace threading {
         //  tasks created first (smaller ids) should run before tasks created later
         return a == nullptr                 ? false
                : b == nullptr               ? true
-               : a->priority == b->priority ? a->id > b->id
+               : a->priority == b->priority ? a->id < b->id
                                             : a->priority > b->priority;
     }
 
