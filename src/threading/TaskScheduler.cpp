@@ -78,7 +78,8 @@ namespace threading {
     }
 
     void TaskScheduler::start_threads(const util::ThreadPoolDescriptor& pool) {
-        /* mutex scope */ {
+        // The main thread never needs to be started
+        if (pool.pool_id != util::ThreadPoolIDSource::MAIN_THREAD_POOL_ID) {
             const std::lock_guard<std::mutex> threads_lock(threads_mutex);
             const std::lock_guard<std::mutex> pool_lock(pool_mutex);
             for (size_t i = 0; i < pool.thread_count; ++i) {
@@ -115,10 +116,8 @@ namespace threading {
         started.store(true);
 
         // Start all our threads
-        /* mutex scope */ {
-            for (const auto& pool : pools) {
-                start_threads(pool.second);
-            }
+        for (const auto& pool : pools) {
+            start_threads(pool.second);
         }
 
         // Run main thread tasks

@@ -57,6 +57,7 @@
 #include "threading/TaskScheduler.hpp"
 #include "util/FunctionFusion.hpp"
 #include "util/demangle.hpp"
+#include "util/main_thread_id.hpp"
 #include "util/unpack.hpp"
 
 namespace NUClear {
