@@ -31,7 +31,9 @@ namespace dsl {
 
         template <typename PoolType>
         struct Pool {
+            // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
             static std::map<std::type_index, uint64_t> pool_id;
+            // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
             static std::mutex mutex;
 
             template <typename DSL>
@@ -47,8 +49,10 @@ namespace dsl {
 
         // Initialise the static map and mutex
         template <typename PoolType>
+        // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
         std::map<std::type_index, uint64_t> Pool<PoolType>::pool_id;
         template <typename PoolType>
+        // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
         std::mutex Pool<PoolType>::mutex;
 
     }  // namespace word

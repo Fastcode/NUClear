@@ -70,7 +70,9 @@ namespace dsl {
         template <typename SyncGroup>
         struct Sync {
 
+            // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
             static std::map<std::type_index, uint64_t> group_id;
+            // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
             static std::mutex mutex;
 
             template <typename DSL>
@@ -86,8 +88,10 @@ namespace dsl {
 
         // Initialise the static map and mutex
         template <typename SyncGroup>
+        // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
         std::map<std::type_index, uint64_t> Sync<SyncGroup>::group_id;
         template <typename SyncGroup>
+        // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
         std::mutex Sync<SyncGroup>::mutex;
 
     }  // namespace word
