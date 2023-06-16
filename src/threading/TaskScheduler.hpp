@@ -125,12 +125,12 @@ namespace threading {
         std::atomic<bool> started{false};
 
         /// @brief our queue which sorts tasks by priority
-        std::vector<std::unique_ptr<ReactionTask>> queue;
+        std::map<uint64_t, std::vector<std::unique_ptr<ReactionTask>>> queue;
 
         /// @brief the mutex which our threads synchronize their access to this object
-        std::mutex mutex;
+        std::map<uint64_t, std::unique_ptr<std::mutex>> queue_mutex;
         /// @brief the condition object that threads wait on if they can't get a task
-        std::condition_variable condition;
+        std::map<uint64_t, std::unique_ptr<std::condition_variable>> queue_condition;
 
         /// @brief A vector of the running threads in the system
         std::vector<std::unique_ptr<std::thread>> threads;
