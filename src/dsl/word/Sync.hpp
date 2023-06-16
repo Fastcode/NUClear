@@ -19,10 +19,8 @@
 #ifndef NUCLEAR_DSL_WORD_SYNC_HPP
 #define NUCLEAR_DSL_WORD_SYNC_HPP
 
-#include <atomic>
-#include <memory>
+#include <map>
 #include <mutex>
-#include <queue>
 #include <typeindex>
 
 #include "../../threading/ReactionTask.hpp"
@@ -72,12 +70,25 @@ namespace dsl {
         template <typename SyncGroup>
         struct Sync {
 
+            static std::map<std::type_index, uint64_t> group_id;
+            static std::mutex mutex;
+
             template <typename DSL>
             static inline util::GroupDescriptor group(threading::Reaction& /*reaction*/) {
-                const static uint64_t group_id = util::GroupDescriptor::get_new_group_id();
-                return util::GroupDescriptor{group_id, 1};
+
+                const std::lock_guard<std::mutex> lock(mutex);
+                if (group_id.count(typeid(SyncGroup)) == 0) {
+                    group_id[typeid(SyncGroup)] = util::GroupDescriptor::get_new_group_id();
+                }
+                return util::GroupDescriptor{group_id[typeid(SyncGroup)], 1};
             }
         };
+
+        // Initialise the static map and mutex
+        template <typename SyncGroup>
+        std::map<std::type_index, uint64_t> Sync<SyncGroup>::group_id;
+        template <typename SyncGroup>
+        std::mutex Sync<SyncGroup>::mutex;
 
     }  // namespace word
 }  // namespace dsl

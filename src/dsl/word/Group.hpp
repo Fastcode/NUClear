@@ -18,6 +18,10 @@
 #ifndef NUCLEAR_DSL_WORD_GROUP_HPP
 #define NUCLEAR_DSL_WORD_GROUP_HPP
 
+#include <map>
+#include <mutex>
+#include <typeindex>
+
 #include "../../threading/ReactionTask.hpp"
 #include "../../util/GroupDescriptor.hpp"
 
@@ -28,12 +32,25 @@ namespace dsl {
         template <typename GroupType>
         struct Group {
 
+            static std::map<std::type_index, uint64_t> group_id;
+            static std::mutex mutex;
+
             template <typename DSL>
             static inline util::GroupDescriptor group(threading::Reaction& /*reaction*/) {
-                const static uint64_t group_id = util::GroupDescriptor::get_new_group_id();
-                return util::GroupDescriptor{group_id, GroupType::concurrency};
+
+                const std::lock_guard<std::mutex> lock(mutex);
+                if (group_id.count(typeid(GroupType)) == 0) {
+                    group_id[typeid(GroupType)] = util::GroupDescriptor::get_new_group_id();
+                }
+                return util::GroupDescriptor{group_id[typeid(GroupType)], 1};
             }
         };
+
+        // Initialise the static map and mutex
+        template <typename GroupType>
+        std::map<std::type_index, uint64_t> Group<GroupType>::group_id;
+        template <typename GroupType>
+        std::mutex Group<GroupType>::mutex;
 
     }  // namespace word
 }  // namespace dsl
