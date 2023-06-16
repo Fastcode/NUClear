@@ -18,6 +18,10 @@
 #ifndef NUCLEAR_DSL_WORD_POOL_HPP
 #define NUCLEAR_DSL_WORD_POOL_HPP
 
+#include <map>
+#include <mutex>
+#include <typeindex>
+
 #include "../../threading/ReactionTask.hpp"
 #include "../../util/ThreadPoolDescriptor.hpp"
 
@@ -27,12 +31,25 @@ namespace dsl {
 
         template <typename PoolType>
         struct Pool {
+            static std::map<std::type_index, uint64_t> pool_id;
+            static std::mutex mutex;
+
             template <typename DSL>
             static inline util::ThreadPoolDescriptor pool(threading::Reaction& /*reaction*/) {
-                const static uint64_t pool_id = util::ThreadPoolIDSource::get_new_pool_id();
-                return util::ThreadPoolDescriptor{pool_id, PoolType::concurrency};
+
+                const std::lock_guard<std::mutex> lock(mutex);
+                if (pool_id.count(typeid(PoolType)) == 0) {
+                    pool_id[typeid(PoolType)] = util::ThreadPoolIDSource::get_new_pool_id();
+                }
+                return util::ThreadPoolDescriptor{pool_id[typeid(PoolType)], PoolType::concurrency};
             }
         };
+
+        // Initialise the static map and mutex
+        template <typename PoolType>
+        std::map<std::type_index, uint64_t> Pool<PoolType>::pool_id;
+        template <typename PoolType>
+        std::mutex Pool<PoolType>::mutex;
 
     }  // namespace word
 }  // namespace dsl
