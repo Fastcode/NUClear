@@ -15,35 +15,13 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_UTIL_THREADPOOL_HPP
-#define NUCLEAR_UTIL_THREADPOOL_HPP
-
-#include <atomic>
-#include <cstddef>
-#include <cstdint>
+#include "ThreadPoolDescriptor.hpp"
 
 namespace NUClear {
 namespace util {
 
-    struct ThreadPoolIDSource {
-        static const uint64_t MAIN_THREAD_POOL_ID;
-        static const uint64_t DEFAULT_THREAD_POOL_ID;
-
-        static uint64_t get_new_pool_id() {
-            static std::atomic<uint64_t> source{2};
-            return source++;
-        }
-    };
-
-    struct ThreadPoolDescriptor {
-        /// @brief Set a unique identifier for this pool
-        uint64_t pool_id{ThreadPoolIDSource::DEFAULT_THREAD_POOL_ID};
-
-        /// @brief The number of threads this thread pool will use.
-        size_t thread_count{0};
-    };
+    const uint64_t ThreadPoolIDSource::MAIN_THREAD_POOL_ID    = 0;
+    const uint64_t ThreadPoolIDSource::DEFAULT_THREAD_POOL_ID = 1;
 
 }  // namespace util
 }  // namespace NUClear
-
-#endif  // NUCLEAR_UTIL_THREADPOOL_HPP
