@@ -19,6 +19,8 @@
 #ifndef NUCLEAR_UTIL_CALLBACKGENERATOR_HPP
 #define NUCLEAR_UTIL_CALLBACKGENERATOR_HPP
 
+#include <type_traits>
+
 #include "../dsl/trait/is_transient.hpp"
 #include "../dsl/word/emit/Direct.hpp"
 #include "../util/GeneratedCallback.hpp"
@@ -46,7 +48,11 @@ namespace util {
     struct CallbackGenerator {
 
         // Don't using this constructor is F is of type CallbackGenerator
-        template <typename F, typename std::enable_if<!std::is_same<F, CallbackGenerator>::value, bool>::type = true>
+        template <typename F,
+                  typename std::enable_if<
+                      !std::is_same<typename std::remove_reference<typename std::remove_cv<F>::type>::type,
+                                    CallbackGenerator>::value,
+                      bool>::type = true>
         CallbackGenerator(F&& callback)
             : callback(std::forward<F>(callback))
             , transients(std::make_shared<typename TransientDataElements<DSL>::type>()) {}
