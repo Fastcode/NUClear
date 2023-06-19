@@ -186,6 +186,7 @@ namespace threading {
             }
 
             // Check to see if this task was the result of `emit<Direct>`
+            // If we aren't already started then just queue the task up to run when we are started
             if (started.load() && task->immediate) {
                 // Map the current thread to the thread pool it belongs to
                 uint64_t thread_pool = util::ThreadPoolIDSource::DEFAULT_THREAD_POOL_ID;
@@ -194,24 +195,14 @@ namespace threading {
                     if (pool_map.count(std::this_thread::get_id()) > 0) {
                         thread_pool = pool_map.at(std::this_thread::get_id());
                     }
+                    else {
+                        throw std::runtime_error("Task submitted by unknown thread");
+                }
                 }
 
-                size_t group_count = 0;
-                /* mutex scope */ {
-                    const std::lock_guard<std::mutex> group_lock(group_mutex);
-                    const uint64_t group_id = task->group_descriptor.group_id;
-                    group_count             = groups.at(group_id);
-                }
-
-                // Because this is a direct emit we allow it to run on the default thread pool if
-                //  (a) the default thread pool isn't the thread pool of the calling thread, and
-                //  (b) the default thread pool has a spare thread
-                //
-                // If this task is not immediately runnable (neither thread pool has a spare thread and the group is
-                // already at full concurrency) then this task is just queued up like all of the other non-immediate
-                // tasks
-                if ((is_runnable(task, thread_pool, group_count)
-                     || is_runnable(task, util::ThreadPoolIDSource::DEFAULT_THREAD_POOL_ID, group_count))) {
+                // Check to see if this task is runnable in the current thread
+                // If it isn't we can just queue it up with all of the other non-immediate task
+                if (is_runnable(task, thread_pool)) {
                     run_task(std::move(task));
                     return;
                 }
