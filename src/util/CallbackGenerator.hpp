@@ -47,7 +47,7 @@ namespace util {
     template <typename DSL, typename Function>
     struct CallbackGenerator {
 
-        // Don't using this constructor is F is of type CallbackGenerator
+        // Don't use this constructor if F is of type CallbackGenerator
         template <typename F,
                   typename std::enable_if<
                       !std::is_same<typename std::remove_reference<typename std::remove_cv<F>::type>::type,
