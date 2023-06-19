@@ -34,16 +34,16 @@ namespace threading {
 
     bool TaskScheduler::is_runnable(const std::unique_ptr<ReactionTask>& task, const uint64_t& pool_id) {
 
-            // Task can run if it is meant to run on the current thread pool
+        // Task can run if it is meant to run on the current thread pool
         const bool correct_pool = pool_id == task->thread_pool_descriptor.pool_id;
 
         // Task can run if the group it belongs to has spare threads
         const std::lock_guard<std::mutex> group_lock(group_mutex);
         if (groups.at(task->group_descriptor.group_id) < task->group_descriptor.thread_count && correct_pool) {
             // This task is about to run in this group, increase the number of active tasks in the group
-                groups.at(task->group_descriptor.group_id)++;
+            groups.at(task->group_descriptor.group_id)++;
             return true;
-            }
+        }
 
         return false;
     }
@@ -146,6 +146,15 @@ namespace threading {
         for (auto& thread : threads) {
             try {
                 if (thread->joinable()) {
+                    // Poke the thread pool that this thread belongs to to make sure it has woken up
+                    /* mutex scope */ {
+                        const std::lock_guard<std::mutex> pool_lock(pool_mutex);
+                        if (pool_map.count(thread->get_id()) > 0) {
+                            const uint64_t thread_pool = pool_map.at(thread->get_id());
+                            const std::lock_guard<std::mutex> queue_lock(*queue_mutex.at(thread_pool));
+                            queue_condition.at(thread_pool)->notify_all();
+                        }
+                    }
                     thread->join();
                 }
             }
@@ -197,7 +206,7 @@ namespace threading {
                     }
                     else {
                         throw std::runtime_error("Task submitted by unknown thread");
-                }
+                    }
                 }
 
                 // Check to see if this task is runnable in the current thread
