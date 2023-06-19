@@ -32,22 +32,24 @@
 namespace NUClear {
 namespace threading {
 
-    bool is_runnable(const std::unique_ptr<ReactionTask>& task, const uint64_t& pool_id, const size_t& group_count) {
-        return
+    bool TaskScheduler::is_runnable(const std::unique_ptr<ReactionTask>& task, const uint64_t& pool_id) {
+
             // Task can run if it is meant to run on the current thread pool
-            task->thread_pool_descriptor.pool_id == pool_id &&
-            // Task can run if the group is belongs to has spare threads
-            group_count < task->group_descriptor.thread_count;
+        const bool correct_pool = pool_id == task->thread_pool_descriptor.pool_id;
+
+        // Task can run if the group it belongs to has spare threads
+        const std::lock_guard<std::mutex> group_lock(group_mutex);
+        if (groups.at(task->group_descriptor.group_id) < task->group_descriptor.thread_count && correct_pool) {
+            // This task is about to run in this group, increase the number of active tasks in the group
+                groups.at(task->group_descriptor.group_id)++;
+            return true;
+            }
+
+        return false;
     }
 
     void TaskScheduler::run_task(std::unique_ptr<ReactionTask>&& task) {
         if (task) {
-            // This task is about to run in this group, increase the number of active tasks in the group
-            /* mutex scope */ {
-                const std::lock_guard<std::mutex> group_lock(group_mutex);
-                groups.at(task->group_descriptor.group_id)++;
-            }
-
             task->run();
 
             // This task is no longer running, decrease the number of active tasks in the group
@@ -242,14 +244,8 @@ namespace threading {
 
             for (auto it = queue.at(pool_id).begin(); it != queue.at(pool_id).end(); ++it) {
 
-                size_t group_count = 0;
-                /* mutex scope */ {
-                    const std::lock_guard<std::mutex> group_lock(group_mutex);
-                    group_count = groups.at((*it)->group_descriptor.group_id);
-                }
-
                 // Check if we can run it
-                if (is_runnable(*it, pool_id, group_count)) {
+                if (is_runnable(*it, pool_id)) {
                     // Move the task out of the queue
                     std::unique_ptr<ReactionTask> task = std::move(*it);
 

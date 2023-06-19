@@ -102,6 +102,7 @@ namespace threading {
          */
         void submit(std::unique_ptr<ReactionTask>&& task);
 
+    private:
         /**
          * @brief Get a task object to be executed by a thread.
          *
@@ -114,11 +115,11 @@ namespace threading {
          */
         std::unique_ptr<ReactionTask> get_task(const uint64_t& pool_id);
 
-    private:
         void create_pool(const util::ThreadPoolDescriptor& pool);
         void pool_func(const util::ThreadPoolDescriptor& pool);
         void start_threads(const util::ThreadPoolDescriptor& pool);
         void run_task(std::unique_ptr<ReactionTask>&& task);
+        bool is_runnable(const std::unique_ptr<ReactionTask>& task, const uint64_t& pool_id);
 
         /// @brief if the scheduler is running
         std::atomic<bool> running{true};
