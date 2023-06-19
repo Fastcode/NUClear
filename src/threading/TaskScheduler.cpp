@@ -204,9 +204,6 @@ namespace threading {
                     if (pool_map.count(std::this_thread::get_id()) > 0) {
                         thread_pool = pool_map.at(std::this_thread::get_id());
                     }
-                    else {
-                        throw std::runtime_error("Task submitted by unknown thread");
-                    }
                 }
 
                 // Check to see if this task is runnable in the current thread
