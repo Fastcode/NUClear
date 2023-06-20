@@ -25,7 +25,13 @@
 namespace NUClear {
 namespace util {
 
-    struct ThreadPoolIDSource {
+    struct ThreadPoolDescriptor {
+        /// @brief Set a unique identifier for this pool
+        uint64_t pool_id{ThreadPoolDescriptor::DEFAULT_THREAD_POOL_ID};
+
+        /// @brief The number of threads this thread pool will use.
+        size_t thread_count{0};
+
         static const uint64_t MAIN_THREAD_POOL_ID;
         static const uint64_t DEFAULT_THREAD_POOL_ID;
 
@@ -33,14 +39,6 @@ namespace util {
             static std::atomic<uint64_t> source{2};
             return source++;
         }
-    };
-
-    struct ThreadPoolDescriptor {
-        /// @brief Set a unique identifier for this pool
-        uint64_t pool_id{ThreadPoolIDSource::DEFAULT_THREAD_POOL_ID};
-
-        /// @brief The number of threads this thread pool will use.
-        size_t thread_count{0};
     };
 
 }  // namespace util

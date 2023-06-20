@@ -36,7 +36,7 @@ namespace util {
             : priority(priority), group(group), pool(pool), callback(std::move(callback)) {}
         int priority{0};
         GroupDescriptor group{0, std::numeric_limits<size_t>::max()};
-        ThreadPoolDescriptor pool{util::ThreadPoolIDSource::DEFAULT_THREAD_POOL_ID, 0};
+        ThreadPoolDescriptor pool{util::ThreadPoolDescriptor::DEFAULT_THREAD_POOL_ID, 0};
         threading::ReactionTask::TaskFunction callback{};
 
         operator bool() const {

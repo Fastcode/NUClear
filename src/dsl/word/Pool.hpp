@@ -41,8 +41,9 @@ namespace dsl {
 
         // Initialise the thread pool descriptor
         template <typename PoolType>
-        const util::ThreadPoolDescriptor Pool<PoolType>::pool_descriptor = {util::ThreadPoolIDSource::get_unique_pool_id(),
-                                                                            PoolType::concurrency};
+        const util::ThreadPoolDescriptor Pool<PoolType>::pool_descriptor = {
+            util::ThreadPoolDescriptor::get_unique_pool_id(),
+            PoolType::concurrency};
 
     }  // namespace word
 }  // namespace dsl

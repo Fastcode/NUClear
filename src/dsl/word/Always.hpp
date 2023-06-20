@@ -74,7 +74,7 @@ namespace dsl {
 
                 const std::lock_guard<std::mutex> lock(mutex);
                 if (pool_id.count(reaction.id) == 0) {
-                    pool_id[reaction.id] = util::ThreadPoolIDSource::get_unique_pool_id();
+                    pool_id[reaction.id] = util::ThreadPoolDescriptor::get_unique_pool_id();
                 }
                 return util::ThreadPoolDescriptor{pool_id[reaction.id], 1};
             }

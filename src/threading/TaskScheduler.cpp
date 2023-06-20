@@ -71,16 +71,16 @@ namespace threading {
 
     TaskScheduler::TaskScheduler() {
         // Setup everything (thread pool, task queue, mutex, condition variable) for the main thread here
-        pools[util::ThreadPoolIDSource::MAIN_THREAD_POOL_ID] =
-            util::ThreadPoolDescriptor{util::ThreadPoolIDSource::MAIN_THREAD_POOL_ID, 1};
-        pool_map[std::this_thread::get_id()] = util::ThreadPoolIDSource::MAIN_THREAD_POOL_ID;
+        pools[util::ThreadPoolDescriptor::MAIN_THREAD_POOL_ID] =
+            util::ThreadPoolDescriptor{util::ThreadPoolDescriptor::MAIN_THREAD_POOL_ID, 1};
+        pool_map[std::this_thread::get_id()] = util::ThreadPoolDescriptor::MAIN_THREAD_POOL_ID;
 
-        queue.emplace(util::ThreadPoolIDSource::MAIN_THREAD_POOL_ID, std::vector<std::unique_ptr<ReactionTask>>{});
+        queue.emplace(util::ThreadPoolDescriptor::MAIN_THREAD_POOL_ID, std::vector<std::unique_ptr<ReactionTask>>{});
     }
 
     void TaskScheduler::start_threads(const util::ThreadPoolDescriptor& pool) {
         // The main thread never needs to be started
-        if (pool.pool_id != util::ThreadPoolIDSource::MAIN_THREAD_POOL_ID) {
+        if (pool.pool_id != util::ThreadPoolDescriptor::MAIN_THREAD_POOL_ID) {
             const std::lock_guard<std::mutex> pool_lock(pool_mutex);
             for (size_t i = 0; i < pool.thread_count; ++i) {
                 threads.push_back(std::make_unique<std::thread>(&TaskScheduler::pool_func, this, pool));
@@ -118,7 +118,7 @@ namespace threading {
     void TaskScheduler::start(const size_t& thread_count) {
 
         // Make the default pool
-        create_pool(util::ThreadPoolDescriptor{util::ThreadPoolIDSource::DEFAULT_THREAD_POOL_ID, thread_count});
+        create_pool(util::ThreadPoolDescriptor{util::ThreadPoolDescriptor::DEFAULT_THREAD_POOL_ID, thread_count});
 
         // The scheduler is now started
         started.store(true);
@@ -129,7 +129,8 @@ namespace threading {
         }
 
         // Run main thread tasks
-        pool_func(pools.at(util::ThreadPoolIDSource::MAIN_THREAD_POOL_ID));
+        pool_func(pools.at(util::ThreadPoolDescriptor::MAIN_THREAD_POOL_ID));
+
 
         // Now wait for all the threads to finish executing
         for (auto& thread : threads) {
@@ -184,7 +185,7 @@ namespace threading {
             // If we aren't already started then just queue the task up to run when we are started
             if (started.load() && task->immediate) {
                 // Map the current thread to the thread pool it belongs to
-                uint64_t thread_pool = util::ThreadPoolIDSource::DEFAULT_THREAD_POOL_ID;
+                uint64_t thread_pool = util::ThreadPoolDescriptor::DEFAULT_THREAD_POOL_ID;
                 /* mutex scope */ {
                     const std::lock_guard<std::mutex> pool_lock(pool_mutex);
                     if (pool_map.count(std::this_thread::get_id()) > 0) {
