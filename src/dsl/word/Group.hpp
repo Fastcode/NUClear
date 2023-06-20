@@ -32,29 +32,18 @@ namespace dsl {
         template <typename GroupType>
         struct Group {
 
-            // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
-            static std::map<std::type_index, uint64_t> group_id;
-            // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
-            static std::mutex mutex;
+            static const util::GroupDescriptor group_descriptor;
 
             template <typename DSL>
             static inline util::GroupDescriptor group(threading::Reaction& /*reaction*/) {
-
-                const std::lock_guard<std::mutex> lock(mutex);
-                if (group_id.count(typeid(GroupType)) == 0) {
-                    group_id[typeid(GroupType)] = util::GroupDescriptor::get_new_group_id();
-                }
-                return util::GroupDescriptor{group_id[typeid(GroupType)], 1};
+                return group_descriptor;
             }
         };
 
-        // Initialise the static map and mutex
+        // Initialise the group descriptor
         template <typename GroupType>
-        // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
-        std::map<std::type_index, uint64_t> Group<GroupType>::group_id;
-        template <typename GroupType>
-        // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
-        std::mutex Group<GroupType>::mutex;
+        const util::GroupDescriptor Group<GroupType>::group_descriptor = {util::GroupDescriptor::get_unique_group_id(),
+                                                                          GroupType::concurrency};
 
     }  // namespace word
 }  // namespace dsl

@@ -31,29 +31,18 @@ namespace dsl {
 
         template <typename PoolType>
         struct Pool {
-            // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
-            static std::map<std::type_index, uint64_t> pool_id;
-            // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
-            static std::mutex mutex;
+            static const util::ThreadPoolDescriptor pool_descriptor;
 
             template <typename DSL>
             static inline util::ThreadPoolDescriptor pool(threading::Reaction& /*reaction*/) {
-
-                const std::lock_guard<std::mutex> lock(mutex);
-                if (pool_id.count(typeid(PoolType)) == 0) {
-                    pool_id[typeid(PoolType)] = util::ThreadPoolIDSource::get_new_pool_id();
-                }
-                return util::ThreadPoolDescriptor{pool_id[typeid(PoolType)], PoolType::concurrency};
+                return pool_descriptor;
             }
         };
 
-        // Initialise the static map and mutex
+        // Initialise the thread pool descriptor
         template <typename PoolType>
-        // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
-        std::map<std::type_index, uint64_t> Pool<PoolType>::pool_id;
-        template <typename PoolType>
-        // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
-        std::mutex Pool<PoolType>::mutex;
+        const util::ThreadPoolDescriptor Pool<PoolType>::pool_descriptor = {util::ThreadPoolIDSource::get_unique_pool_id(),
+                                                                            PoolType::concurrency};
 
     }  // namespace word
 }  // namespace dsl

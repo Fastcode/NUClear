@@ -33,7 +33,7 @@ namespace util {
         /// @brief The number of threads this thread pool will use.
         size_t thread_count{std::numeric_limits<size_t>::max()};
 
-        static uint64_t get_new_group_id() {
+        static uint64_t get_unique_group_id() {
             // Make group 0 the default group
             static std::atomic<uint64_t> source{1};
             return source++;

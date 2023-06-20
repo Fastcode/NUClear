@@ -70,29 +70,17 @@ namespace dsl {
         template <typename SyncGroup>
         struct Sync {
 
-            // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
-            static std::map<std::type_index, uint64_t> group_id;
-            // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
-            static std::mutex mutex;
+            static const util::GroupDescriptor group_descriptor;
 
             template <typename DSL>
             static inline util::GroupDescriptor group(threading::Reaction& /*reaction*/) {
-
-                const std::lock_guard<std::mutex> lock(mutex);
-                if (group_id.count(typeid(SyncGroup)) == 0) {
-                    group_id[typeid(SyncGroup)] = util::GroupDescriptor::get_new_group_id();
-                }
-                return util::GroupDescriptor{group_id[typeid(SyncGroup)], 1};
+                return group_descriptor;
             }
         };
 
-        // Initialise the static map and mutex
+        // Initialise the group descriptor
         template <typename SyncGroup>
-        // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
-        std::map<std::type_index, uint64_t> Sync<SyncGroup>::group_id;
-        template <typename SyncGroup>
-        // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
-        std::mutex Sync<SyncGroup>::mutex;
+        const util::GroupDescriptor Sync<SyncGroup>::group_descriptor = {util::GroupDescriptor::get_unique_group_id(), 1};
 
     }  // namespace word
 }  // namespace dsl

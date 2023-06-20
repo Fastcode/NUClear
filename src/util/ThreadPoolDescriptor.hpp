@@ -29,7 +29,7 @@ namespace util {
         static const uint64_t MAIN_THREAD_POOL_ID;
         static const uint64_t DEFAULT_THREAD_POOL_ID;
 
-        static uint64_t get_new_pool_id() {
+        static uint64_t get_unique_pool_id() {
             static std::atomic<uint64_t> source{2};
             return source++;
         }
