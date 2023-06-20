@@ -104,15 +104,11 @@ namespace threading {
         inline void run() {
 
             // Update our current task
-            // TODO(Trent) RAII THIS
-            Task* old_task = current_task;
-            current_task   = this;
+            std::unique_ptr<Task, void (*)(Task*)> lock(current_task, [](Task* t) { current_task = t; });
+            current_task = this;
 
             // Run our callback
             callback(*this);
-
-            // Reset our task back
-            current_task = old_task;
         }
 
         /// @brief the parent Reaction object which spawned this
