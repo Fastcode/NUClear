@@ -155,8 +155,8 @@ namespace threading {
         //  nullptr is greater than anything else so it's removed from a queue first
         //  higher priority tasks are greater than lower priority tasks
         //  tasks created first (smaller ids) should run before tasks created later
-        return a == nullptr                 ? false
-               : b == nullptr               ? true
+        return a == nullptr                 ? true
+               : b == nullptr               ? false
                : a->priority == b->priority ? a->id < b->id
                                             : a->priority > b->priority;
     }
