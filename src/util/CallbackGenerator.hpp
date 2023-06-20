@@ -48,12 +48,8 @@ namespace util {
     struct CallbackGenerator {
 
         // Don't use this constructor if F is of type CallbackGenerator
-        template <typename F,
-                  typename std::enable_if<
-                      !std::is_same<typename std::remove_reference<typename std::remove_cv<F>::type>::type,
-                                    CallbackGenerator>::value,
-                      bool>::type = true>
-        CallbackGenerator(F&& callback)
+        template <typename F>
+        explicit CallbackGenerator(F&& callback)
             : callback(std::forward<F>(callback))
             , transients(std::make_shared<typename TransientDataElements<DSL>::type>()) {}
 
