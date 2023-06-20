@@ -129,21 +129,17 @@ namespace threading {
         std::map<uint64_t, std::vector<std::unique_ptr<ReactionTask>>> queue;
 
         /// @brief the mutex which our threads synchronize their access to this object
-        std::map<uint64_t, std::unique_ptr<std::mutex>> queue_mutex;
+        std::mutex queue_mutex;
         /// @brief the condition object that threads wait on if they can't get a task
-        std::map<uint64_t, std::unique_ptr<std::condition_variable>> queue_condition;
+        std::condition_variable queue_condition;
 
         /// @brief A vector of the running threads in the system
         std::vector<std::unique_ptr<std::thread>> threads;
-        /// @brief the mutex which our threads synchronize their access to this object
-        std::mutex threads_mutex;
-
         std::map<uint64_t, util::ThreadPoolDescriptor> pools{};
         std::map<std::thread::id, uint64_t> pool_map{};
         std::mutex pool_mutex;
 
         std::map<uint64_t, size_t> groups{};
-        std::mutex group_mutex;
     };
 
 }  // namespace threading

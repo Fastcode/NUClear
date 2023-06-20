@@ -38,7 +38,6 @@ namespace threading {
         const bool correct_pool = pool_id == task->thread_pool_descriptor.pool_id;
 
         // Task can run if the group it belongs to has spare threads
-        const std::lock_guard<std::mutex> group_lock(group_mutex);
         if (groups.at(task->group_descriptor.group_id) < task->group_descriptor.thread_count && correct_pool) {
             // This task is about to run in this group, increase the number of active tasks in the group
             groups.at(task->group_descriptor.group_id)++;
@@ -54,7 +53,7 @@ namespace threading {
 
             // This task is no longer running, decrease the number of active tasks in the group
             /* mutex scope */ {
-                const std::lock_guard<std::mutex> group_lock(group_mutex);
+                const std::lock_guard<std::mutex> group_lock(queue_mutex);
                 groups.at(task->group_descriptor.group_id)--;
             }
         }
@@ -77,15 +76,11 @@ namespace threading {
         pool_map[std::this_thread::get_id()] = util::ThreadPoolIDSource::MAIN_THREAD_POOL_ID;
 
         queue.emplace(util::ThreadPoolIDSource::MAIN_THREAD_POOL_ID, std::vector<std::unique_ptr<ReactionTask>>{});
-        queue_mutex.emplace(util::ThreadPoolIDSource::MAIN_THREAD_POOL_ID, std::make_unique<std::mutex>());
-        queue_condition.emplace(util::ThreadPoolIDSource::MAIN_THREAD_POOL_ID,
-                                std::make_unique<std::condition_variable>());
     }
 
     void TaskScheduler::start_threads(const util::ThreadPoolDescriptor& pool) {
         // The main thread never needs to be started
         if (pool.pool_id != util::ThreadPoolIDSource::MAIN_THREAD_POOL_ID) {
-            const std::lock_guard<std::mutex> threads_lock(threads_mutex);
             const std::lock_guard<std::mutex> pool_lock(pool_mutex);
             for (size_t i = 0; i < pool.thread_count; ++i) {
                 threads.push_back(std::make_unique<std::thread>(&TaskScheduler::pool_func, this, pool));
@@ -104,17 +99,11 @@ namespace threading {
 
             // Make a copy of the pool descriptor
             pools[pool.pool_id] = util::ThreadPoolDescriptor{pool.pool_id, pool.thread_count};
-
-            // Make sure the mutex and condition variable are created for this pool
-            if (queue_mutex.count(pool.pool_id) == 0) {
-                queue_mutex.emplace(pool.pool_id, std::make_unique<std::mutex>());
-                queue_condition.emplace(pool.pool_id, std::make_unique<std::condition_variable>());
-            }
         }
 
         // Make sure the task queue is created for this pool
         /* mutex scope */ {
-            const std::lock_guard<std::mutex> queue_lock(*queue_mutex[pool.pool_id]);
+            const std::lock_guard<std::mutex> queue_lock(queue_mutex);
             if (queue.count(pool.pool_id) == 0) {
                 queue.emplace(pool.pool_id, std::vector<std::unique_ptr<ReactionTask>>{});
             }
@@ -150,9 +139,8 @@ namespace threading {
                     /* mutex scope */ {
                         const std::lock_guard<std::mutex> pool_lock(pool_mutex);
                         if (pool_map.count(thread->get_id()) > 0) {
-                            const uint64_t thread_pool = pool_map.at(thread->get_id());
-                            const std::lock_guard<std::mutex> queue_lock(*queue_mutex.at(thread_pool));
-                            queue_condition.at(thread_pool)->notify_all();
+                            const std::lock_guard<std::mutex> queue_lock(queue_mutex);
+                            queue_condition.notify_all();
                         }
                     }
                     thread->join();
@@ -168,10 +156,8 @@ namespace threading {
     void TaskScheduler::shutdown() {
         started.store(false);
         running.store(false);
-        for (auto& mutex : queue_mutex) {
-            const std::lock_guard<std::mutex> queue_lock(*mutex.second);
-            queue_condition.at(mutex.first)->notify_all();
-        }
+        const std::lock_guard<std::mutex> queue_lock(queue_mutex);
+        queue_condition.notify_all();
     }
 
     void TaskScheduler::submit(std::unique_ptr<ReactionTask>&& task) {
@@ -187,7 +173,7 @@ namespace threading {
 
             // Make sure we know about this group
             /* mutex scope */ {
-                const std::lock_guard<std::mutex> group_lock(group_mutex);
+                const std::lock_guard<std::mutex> group_lock(queue_mutex);
                 const uint64_t group_id = task->group_descriptor.group_id;
                 if (groups.count(group_id) == 0) {
                     groups.emplace(group_id, 0);
@@ -215,7 +201,7 @@ namespace threading {
             }
 
             /* Mutex Scope */ {
-                const std::lock_guard<std::mutex> queue_lock(*queue_mutex.at(current_pool.pool_id));
+                const std::lock_guard<std::mutex> queue_lock(queue_mutex);
 
                 // Find where to insert the new task to maintain task order
                 auto it = std::lower_bound(queue.at(current_pool.pool_id).begin(),
@@ -229,13 +215,13 @@ namespace threading {
         }
 
         // Notify all threads that there is a new task to be processed
-        const std::lock_guard<std::mutex> queue_lock(*queue_mutex.at(current_pool.pool_id));
-        queue_condition.at(current_pool.pool_id)->notify_all();
+        const std::lock_guard<std::mutex> queue_lock(queue_mutex);
+        queue_condition.notify_all();
     }
 
     std::unique_ptr<ReactionTask> TaskScheduler::get_task(const uint64_t& pool_id) {
 
-        std::unique_lock<std::mutex> queue_lock(*queue_mutex.at(pool_id));
+        std::unique_lock<std::mutex> queue_lock(queue_mutex);
 
         while (running.load() || !queue[pool_id].empty()) {
 
@@ -255,7 +241,7 @@ namespace threading {
             }
 
             // Wait for something to happen!
-            queue_condition.at(pool_id)->wait(queue_lock);
+            queue_condition.wait(queue_lock);
         }
 
         return nullptr;
