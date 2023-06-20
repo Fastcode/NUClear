@@ -33,7 +33,7 @@ public:
             emit(std::make_unique<double>(1.1));
         });
 
-        // Run a task with MainTHread and ensure that it is on the main thread
+        // Run a task with MainThread and ensure that it is on the main thread
         on<Trigger<double>, MainThread>().then("MainThread reaction", [this] {
             // Shutdown first so the test will end even if the next check fails
             powerplant.shutdown();
