@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2013      Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
- *               2014-2017 Trent Houliston <trent@houliston.me>
+ *               2014-2022 Trent Houliston <trent@houliston.me>
+ *               2023      Trent Houliston <trent@houliston.me>, Alex Biddulph <bidskii@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -93,23 +94,21 @@ namespace dsl {
                                              always_reaction->identifier[2],
                                              always_reaction->identifier[3]},
                     [always_reaction](threading::Reaction& idle_reaction) -> util::GeneratedCallback {
-                        // Reaction is still bound re-add the reaction and this
                         auto callback = [&idle_reaction, always_reaction](threading::ReactionTask& /*task*/) {
-                            // Get new task for the actual reaction
+                            // Get a task for the always reaction and submit it to the scheduler
                             auto always_task = always_reaction->get_task();
                             if (always_task) {
-                                // Submit the task to be run
                                 always_reaction->reactor.powerplant.submit(std::move(always_task));
                             }
 
-                            // Get new task for the actual reaction
+                            // Get a task for the idle reaction and submit it to the scheduler
                             auto idle_task = idle_reaction.get_task();
                             if (idle_task) {
                                 // Set the thread pool on the task
                                 idle_task->thread_pool_descriptor = DSL::pool(*always_reaction);
 
-                                // Only let this task run when the always thread pool is idle
-                                idle_task->priority = Priority::IDLE::value - 1;
+                                // Make sure that idle reaction always has lower priority than the always reaction
+                                idle_task->priority = DSL::priority(*always_reaction) - 1;
 
                                 // Submit the task to be run
                                 idle_reaction.reactor.powerplant.submit(std::move(idle_task));
@@ -144,9 +143,9 @@ namespace dsl {
 
             template <typename DSL>
             static inline void postcondition(threading::ReactionTask& task) {
+                // Get a task for the always reaction and submit it to the scheduler
                 auto new_task = task.parent.get_task();
                 if (new_task) {
-                    // Submit the task to be run
                     task.parent.reactor.powerplant.submit(std::move(new_task));
                 }
             }
