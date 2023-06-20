@@ -77,49 +77,51 @@ namespace extension {
                 // Acquire the mutex lock so we can wait on it
                 std::unique_lock<std::mutex> lock(mutex);
 
-                if (running) {
-                    // If we have tasks to do
-                    if (!tasks.empty()) {
+                if (!running) {
+                    return;
+                }
 
-                        // Make the list into a heap so we can remove the soonest ones
-                        std::make_heap(tasks.begin(), tasks.end(), std::greater<>());
+                // If we have tasks to do
+                if (!tasks.empty()) {
 
-                        // If we are within the wait offset of the time, spinlock until we get there for greater
-                        // accuracy
-                        if (NUClear::clock::now() + wait_offset > tasks.front().time) {
+                    // Make the list into a heap so we can remove the soonest ones
+                    std::make_heap(tasks.begin(), tasks.end(), std::greater<>());
 
-                            // Spinlock!
-                            while (NUClear::clock::now() < tasks.front().time) {
-                            }
+                    // If we are within the wait offset of the time, spinlock until we get there for greater
+                    // accuracy
+                    if (NUClear::clock::now() + wait_offset > tasks.front().time) {
 
-                            const NUClear::clock::time_point now = NUClear::clock::now();
-
-                            // Move back from the end poping the heap
-                            for (auto end = tasks.end(); end != tasks.begin() && tasks.front().time < now;) {
-                                // Run our task and if it returns false remove it
-                                const bool renew = tasks.front()();
-
-                                // Move this to the back of the list
-                                std::pop_heap(tasks.begin(), end, std::greater<>());
-
-                                if (!renew) {
-                                    end = tasks.erase(--end);
-                                }
-                                else {
-                                    --end;
-                                }
-                            }
+                        // Spinlock!
+                        while (NUClear::clock::now() < tasks.front().time) {
                         }
-                        // Otherwise we wait for the next event using a wait_for (with a small offset for greater
-                        // accuracy) Either that or until we get interrupted with a new event
-                        else {
-                            wait.wait_until(lock, tasks.front().time - wait_offset);
+
+                        const NUClear::clock::time_point now = NUClear::clock::now();
+
+                        // Move back from the end poping the heap
+                        for (auto end = tasks.end(); end != tasks.begin() && tasks.front().time < now;) {
+                            // Run our task and if it returns false remove it
+                            const bool renew = tasks.front()();
+
+                            // Move this to the back of the list
+                            std::pop_heap(tasks.begin(), end, std::greater<>());
+
+                            if (!renew) {
+                                end = tasks.erase(--end);
+                            }
+                            else {
+                                --end;
+                            }
                         }
                     }
-                    // Otherwise we wait for something to happen
+                    // Otherwise we wait for the next event using a wait_for (with a small offset for greater
+                    // accuracy) Either that or until we get interrupted with a new event
                     else {
-                        wait.wait(lock);
+                        wait.wait_until(lock, tasks.front().time - wait_offset);
                     }
+                }
+                // Otherwise we wait for something to happen
+                else {
+                    wait.wait(lock);
                 }
             });
         }
