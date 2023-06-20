@@ -36,12 +36,13 @@ class TestReactor : public NUClear::Reactor {
 public:
     TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
 
-        on<Trigger<Message>, Sync<TestReactor>>().then(
-            [](const Message& m) { values.push_back("Received value " + std::to_string(m.val)); });
+        on<Trigger<Message>, Sync<TestReactor>>().then("SyncReaction", [](const Message& m) {
+            values.push_back("Received value " + std::to_string(m.val));
+        });
 
-        on<Trigger<ShutdownOnIdle>, Priority::IDLE>().then([this] { powerplant.shutdown(); });
+        on<Trigger<ShutdownOnIdle>, Priority::IDLE>().then("ShutdownOnIdle", [this] { powerplant.shutdown(); });
 
-        on<Startup>().then([this] {
+        on<Startup>().then("Startup", [this] {
             values.clear();
             emit(std::make_unique<Message>(0));
             emit(std::make_unique<Message>(1));
