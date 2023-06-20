@@ -85,8 +85,6 @@ namespace dsl {
                                 std::pair<std::shared_ptr<threading::Reaction>, std::shared_ptr<threading::Reaction>>>
                     reaction_store = {};
 
-                always_reaction->unbinders.push_back([](threading::Reaction& r) { r.enabled = false; });
-
                 auto idle_reaction = std::make_shared<threading::Reaction>(
                     always_reaction->reactor,
                     std::vector<std::string>{always_reaction->identifier[0] + " - IDLE Task",
@@ -127,6 +125,12 @@ namespace dsl {
 
                 // Keep this reaction handy so it doesn't go out of scope
                 reaction_store[always_reaction->id] = {always_reaction, idle_reaction};
+
+                // Create an unbinder for the always reaction
+                always_reaction->unbinders.push_back([](threading::Reaction& r) {
+                    r.enabled = false;
+                    reaction_store.erase(r.id);
+                });
 
                 // Get a task for the always reaction and submit it to the scheduler
                 auto always_task = always_reaction->get_task();
