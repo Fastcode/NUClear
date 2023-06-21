@@ -25,6 +25,7 @@
 
 #include "../../threading/ReactionTask.hpp"
 #include "../../util/GroupDescriptor.hpp"
+#include "Group.hpp"
 
 namespace NUClear {
 namespace dsl {
@@ -65,19 +66,7 @@ namespace dsl {
          *  Note that the developer is not limited to the use of a struct; any declared type will work.
          */
         template <typename SyncGroup>
-        struct Sync {
-
-            static const util::GroupDescriptor group_descriptor;
-
-            template <typename DSL>
-            static inline util::GroupDescriptor group(threading::Reaction& /*reaction*/) {
-                return group_descriptor;
-            }
-        };
-
-        // Initialise the group descriptor
-        template <typename SyncGroup>
-        const util::GroupDescriptor Sync<SyncGroup>::group_descriptor = {util::GroupDescriptor::get_unique_group_id(), 1};
+        struct Sync : Group<SyncGroup, 1> {};
 
     }  // namespace word
 }  // namespace dsl
