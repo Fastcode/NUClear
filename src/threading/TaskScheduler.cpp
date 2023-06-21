@@ -166,9 +166,6 @@ namespace threading {
         // Extract the thread pool descriptor from the current task
         const util::ThreadPoolDescriptor current_pool = task->thread_pool_descriptor;
 
-        // We do not accept new tasks once we are shutdown
-        if (running.load()) {
-
             // Make sure the pool is created
             create_pool(current_pool);
 
@@ -182,8 +179,8 @@ namespace threading {
             }
 
             // Check to see if this task was the result of `emit<Direct>`
-            // If we aren't already started then just queue the task up to run when we are started
-            if (started.load() && task->immediate) {
+        // Direct tasks can run after shutdown and before starting, provided they can be run immediately
+        if (task->immediate) {
                 // Map the current thread to the thread pool it belongs to
                 uint64_t thread_pool = util::ThreadPoolDescriptor::DEFAULT_THREAD_POOL_ID;
                 /* mutex scope */ {
@@ -201,7 +198,8 @@ namespace threading {
                 }
             }
 
-            /* Mutex Scope */ {
+        // We do not accept new tasks once we are shutdown
+        if (running.load()) {
                 const std::lock_guard<std::mutex> queue_lock(queue_mutex);
 
                 // Find where to insert the new task to maintain task order
@@ -212,7 +210,6 @@ namespace threading {
 
                 // Insert before the found position
                 queue.at(current_pool.pool_id).insert(it, std::forward<std::unique_ptr<ReactionTask>>(task));
-            }
         }
 
         // Notify all threads that there is a new task to be processed
