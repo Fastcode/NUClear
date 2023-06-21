@@ -43,7 +43,7 @@ namespace util {
         /**
          * @brief Return the next unique ID for a new thread pool
          */
-        static uint64_t get_unique_pool_id() {
+        static uint64_t get_unique_pool_id() noexcept {
             static std::atomic<uint64_t> source{2};
             return source++;
         }

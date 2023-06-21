@@ -39,7 +39,7 @@ namespace util {
         /**
          * @brief Return the next unique ID for a new group
          */
-        static uint64_t get_unique_group_id() {
+        static uint64_t get_unique_group_id() noexcept {
             // Make group 0 the default group
             static std::atomic<uint64_t> source{1};
             return source++;
