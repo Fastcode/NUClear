@@ -115,31 +115,76 @@ namespace threading {
          */
         std::unique_ptr<ReactionTask> get_task(const uint64_t& pool_id);
 
+        /**
+         * @brief Creates a new thread pool and ensures threads and a task queue are allocated for it
+         *
+         * @param pool the descriptor for the thread pool to create
+         */
         void create_pool(const util::ThreadPoolDescriptor& pool);
+
+        /**
+         * @brief The function that each thread runs
+         *
+         * @details This function will repeatedly query the task queue for new a task to run and then execute that task
+         *
+         * @param pool the thread pool to run from and the task queue to get tasks from
+         */
         void pool_func(const util::ThreadPoolDescriptor& pool);
+
+        /**
+         * @brief Start all threads for the given thread pool
+         */
         void start_threads(const util::ThreadPoolDescriptor& pool);
+
+        /**
+         * @brief Execute the given task
+         *
+         * @details After execution of the task has completed the number of active tasks in the tasks' group is
+         * decremented
+         */
         void run_task(std::unique_ptr<ReactionTask>&& task);
+
+        /**
+         * @brief Determines if the given task is able to be executed
+         *
+         * @details If the current thread is able to be executed the number of active tasks in the tasks' groups is
+         * incremented
+         *
+         * @param task the task to inspect
+         * @param pool_id the pool to run the task on
+         * @return true if the task is currently runnable
+         * @return false if the task is not currently runnable
+         */
         bool is_runnable(const std::unique_ptr<ReactionTask>& task, const uint64_t& pool_id);
 
-        /// @brief if the scheduler is running
+        /// @brief if the scheduler is running, and accepting new tasks. If this is false and a new, non-immediate, task
+        /// is submitted it will be ignored
         std::atomic<bool> running{true};
+        /// @brief if the scheduler has been started. This is set to true after a call to start is made. Once this is
+        /// set to true all threads will begin executing tasks from the tasks queue
         std::atomic<bool> started{false};
 
-        /// @brief our queue which sorts tasks by priority
+        /// @brief A task queue for each thread pool. In each queue, each task is ordered by priority and then by task
+        /// id
         std::map<uint64_t, std::vector<std::unique_ptr<ReactionTask>>> queue;
 
-        /// @brief the mutex which our threads synchronize their access to this object
+        /// @brief A map of group ids to the number of active tasks currently running in that group
+        std::map<uint64_t, size_t> groups{};
+
+        /// @brief the mutex which our threads synchronize their access to the task queues and the group concurrency
+        /// counts
         std::mutex queue_mutex;
         /// @brief the condition object that threads wait on if they can't get a task
         std::condition_variable queue_condition;
 
         /// @brief A vector of the running threads in the system
         std::vector<std::unique_ptr<std::thread>> threads;
+        /// @brief A map of pool descriptor ids to pool descriptors
         std::map<uint64_t, util::ThreadPoolDescriptor> pools{};
+        /// @brief A map of thread ids to the pools they belong to
         std::map<std::thread::id, uint64_t> pool_map{};
+        /// @brief the mutex which our threads synchronize their access to the thread pool maps and the threads list
         std::mutex pool_mutex;
-
-        std::map<uint64_t, size_t> groups{};
     };
 
 }  // namespace threading

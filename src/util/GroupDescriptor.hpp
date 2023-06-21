@@ -26,13 +26,19 @@
 namespace NUClear {
 namespace util {
 
+    /**
+     * @brief A description of a group
+     */
     struct GroupDescriptor {
-        /// @brief Set a unique identifier for this pool
+        /// @brief a unique identifier for this pool
         uint64_t group_id{0};
 
-        /// @brief The number of threads this thread pool will use.
+        /// @brief the maximum number of threads that can run concurrently in this group
         size_t thread_count{std::numeric_limits<size_t>::max()};
 
+        /**
+         * @brief Return the next unique ID for a new group
+         */
         static uint64_t get_unique_group_id() {
             // Make group 0 the default group
             static std::atomic<uint64_t> source{1};

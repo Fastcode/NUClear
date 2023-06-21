@@ -32,19 +32,16 @@ namespace dsl {
 
         /**
          * @brief
-         *  This option sets the synchronisation for a group of tasks.
+         *  This is used to specify that only one reaction in this SyncGroup can run concurrently.
          *
          * @details
-         *  @code on<Trigger<T, ...>, Sync<Group>>() @endcode
+         *  @code on<Trigger<T, ...>, Sync<SyncGroup>>() @endcode
          *  When a group of tasks has been synchronised, only one task from the group will execute at a given time.
          *
          *  Should another task from this group be scheduled/requested (during execution of the current task), it will
-         *  be sidelined into a priority queue.
+         *  be sidelined into the task queue.
          *
-         *  Upon completion of the currently executing task, the queue will be polled to allow execution of the next
-         *  task in this group.
-         *
-         *  Tasks in the synchronization queue are ordered based on their priority level, then their emission timestamp.
+         *  Tasks in the queue are ordered based on their priority level, then their task id.
          *
          *  For best use, this word should be fused with at least one other binding DSL word.
          *
@@ -59,7 +56,7 @@ namespace dsl {
          *  NUClear will have task and thread control so that system resources can be efficiently managed.
          *
          * @par Implements
-         *  Pre-condition, Post-condition
+         *  Group
          *
          * @tparam SyncGroup
          *  the type/group to synchronize on.  This needs to be a declared type within the system.  It is common to

@@ -32,7 +32,7 @@ namespace dsl {
             /**
              * @brief
              *  When emitting data under this scope, the tasks created as a result of this emission will bypass the
-             *  threadpool, and be executed immediately.
+             *  thread pool, and be executed immediately.
              *
              * @details
              *  @code emit<Scope::DIRECT>(data, dataType); @endcode

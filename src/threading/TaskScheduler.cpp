@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2013      Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
- *               2014-2017 Trent Houliston <trent@houliston.me>
+ *               2014-2022 Trent Houliston <trent@houliston.me>
+ *               2023      Trent Houliston <trent@houliston.me>, Alex Biddulph <bidskii@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -74,7 +75,6 @@ namespace threading {
         pools[util::ThreadPoolDescriptor::MAIN_THREAD_POOL_ID] =
             util::ThreadPoolDescriptor{util::ThreadPoolDescriptor::MAIN_THREAD_POOL_ID, 1};
         pool_map[std::this_thread::get_id()] = util::ThreadPoolDescriptor::MAIN_THREAD_POOL_ID;
-
         queue.emplace(util::ThreadPoolDescriptor::MAIN_THREAD_POOL_ID, std::vector<std::unique_ptr<ReactionTask>>{});
     }
 
@@ -221,12 +221,15 @@ namespace threading {
 
         std::unique_lock<std::mutex> queue_lock(queue_mutex);
 
+        // Keep looking for tasks while the scheduler is still running, or while there are still tasks to process
         while (running.load() || !queue[pool_id].empty()) {
 
+            // Iterate over all the tasks in the current thread pool queue, looking for one that we can run
             for (auto it = queue.at(pool_id).begin(); it != queue.at(pool_id).end(); ++it) {
 
-                // Check if we can run it
+                // Check if we can run the task
                 if (is_runnable(*it, pool_id)) {
+
                     // Move the task out of the queue
                     std::unique_ptr<ReactionTask> task = std::move(*it);
 
@@ -242,6 +245,7 @@ namespace threading {
             queue_condition.wait(queue_lock);
         }
 
+        // No more tasks and scheduler has shutdown
         return nullptr;
     }
 }  // namespace threading

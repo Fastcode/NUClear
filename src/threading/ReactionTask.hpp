@@ -67,9 +67,11 @@ namespace threading {
         /**
          * @brief Creates a new ReactionTask object bound with the parent Reaction object (that created it) and task.
          *
-         * @param parent    the Reaction object that spawned this ReactionTask.
-         * @param priority  the priority to use when executing this task.
-         * @param callback  the data bound callback to be executed in the threadpool.
+         * @param parent                 the Reaction object that spawned this ReactionTask.
+         * @param priority               the priority to use when executing this task.
+         * @param group_descriptor       the descriptor for the group that this task should run in
+         * @param thread_pool_descriptor the descriptor for the thread pool that this task should be queued in
+         * @param callback               the data bound callback to be executed in the thread pool.
          */
         Task(ReactionType& parent,
              const int& priority,
@@ -123,8 +125,16 @@ namespace threading {
         /// reaction statistics becomes false for all created tasks. This is to stop infinite loops of death.
         bool emit_stats;
 
+        /// @brief details about the group that this task will run in
         util::GroupDescriptor group_descriptor;
+
+        /// @brief details about the thread pool that this task will run from, this will also influence what task queue
+        /// the tasks will be queued on
         util::ThreadPoolDescriptor thread_pool_descriptor;
+
+        /// @brief if this task should run immediately in the current thread. If immediate execution of this task is not
+        /// possible (e.g. due to group concurrency restrictions) this task will be queued as normal. This flag will be
+        /// set by `emit<Direct>`
         bool immediate{false};
 
         /// @brief the data bound callback to be executed

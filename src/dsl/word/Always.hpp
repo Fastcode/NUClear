@@ -43,8 +43,8 @@ namespace dsl {
          *  Any reactions requested using this keyword will initialise upon system start-up and execute continually
          *  until system shut-down.
          *
-         *  Note that a task spawned from this request will execute in its own unique thread rather than the threadpool.
-         *  However, if the task is rescheduled (such as with Sync), it will then be moved into the threadpool.
+         *  Note that a task spawned from this request will execute in its own unique thread rather than the default
+         *  thread pool.
          *
          * @par Infinite Loops
          *  This word should be used in place of any reactions which would contain an infinite loop. That is,
@@ -59,10 +59,11 @@ namespace dsl {
          *
          * @attention
          *  Where possible, developers should <b>avoid using this keyword</b>.  It has been provided, but should only be
-         *  used when there is no other way to scheduled the reaction.  If a developer is tempted to use this keyword,
+         *  used when there is no other way to schedule the reaction.  If a developer is tempted to use this keyword,
          *  it is advised to review other options, such as on<IO> before resorting to this feature.
          *
          * @par Implements
+         *  Pool
          *  Bind
          */
         struct Always {
@@ -81,10 +82,23 @@ namespace dsl {
 
             template <typename DSL>
             static inline void bind(const std::shared_ptr<threading::Reaction>& always_reaction) {
+                // Static map mapping reaction id (from the always reaction) to a pair of reaction pointers -- one for
+                // the always reaction and one for the idle reaction that we generate in this function
+                // The main purpose of this map is to ensure that the always reaction pointer doesn't get destroyed
                 static std::map<uint64_t,
                                 std::pair<std::shared_ptr<threading::Reaction>, std::shared_ptr<threading::Reaction>>>
                     reaction_store = {};
 
+                // Generate a new reaction for an idle task
+                // The purpose of this reaction is to ensure that the always reaction is resubmitted in the event that
+                // the precondition fails (e.g. on<Always, With<X>> will fail the precondition if there are no X
+                // messages previously emitted)
+                //
+                // In the event that the precondition on the always reaction fails this idle task will run and resubmit
+                // both the always reaction and the idle reaction
+                //
+                // The idle reaction must have a lower priority than the always reaction and must also run in the same
+                // thread pool and group as the always reaction
                 auto idle_reaction = std::make_shared<threading::Reaction>(
                     always_reaction->reactor,
                     std::vector<std::string>{always_reaction->identifier[0] + " - IDLE Task",
