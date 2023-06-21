@@ -48,40 +48,6 @@ if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
   set(MASTER_PROJECT ON)
 endif()
 
-option(USE_VALGRIND "Add extra annotations for better valgrind handling" OFF)
-if(USE_VALGRIND)
-  add_compile_options(-DUSE_VALGRIND)
-endif(USE_VALGRIND)
-
-# Enable address sanitizer
-option(USE_ASAN "Enable address sanitization" OFF)
-if(USE_ASAN)
-  add_compile_options(-fsanitize=address -fno-omit-frame-pointer -U_FORTIFY_SOURCE -fno-common)
-  add_link_options(-fsanitize=address)
-  link_libraries(asan)
-endif(USE_ASAN)
-
-option(USE_LSAN "Enable leak sanitization" OFF)
-if(USE_LSAN)
-  add_compile_options(-fsanitize=leak -fno-omit-frame-pointer -U_FORTIFY_SOURCE -fno-common)
-  add_link_options(-fsanitize=leak)
-  link_libraries(lsan)
-endif(USE_LSAN)
-
-option(USE_TSAN "Enable thread sanitization" OFF)
-if(USE_TSAN)
-  add_compile_options(-fsanitize=thread -fno-omit-frame-pointer -U_FORTIFY_SOURCE -fno-common)
-  add_link_options(-fsanitize=thread)
-  link_libraries(tsan)
-endif(USE_TSAN)
-
-option(USE_UBSAN "Enable undefined behaviour sanitization" OFF)
-if(USE_UBSAN)
-  add_compile_options(-fsanitize=undefined -fno-omit-frame-pointer -U_FORTIFY_SOURCE -fno-common)
-  add_link_options(-fsanitize=undefined)
-  link_libraries(ubsan)
-endif(USE_UBSAN)
-
 # If this option is set we are building using continous integration
 option(CI_BUILD "Enable build options for building in the CI server" OFF)
 
