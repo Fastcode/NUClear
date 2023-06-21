@@ -97,6 +97,9 @@ namespace dsl {
         template <typename>
         struct Pool;
 
+        template <typename, int>
+        struct Group;
+
         namespace emit {
             template <typename T>
             struct Local;
@@ -412,6 +415,7 @@ public:
 #include "dsl/word/Always.hpp"
 #include "dsl/word/Buffer.hpp"
 #include "dsl/word/Every.hpp"
+#include "dsl/word/Group.hpp"
 #include "dsl/word/IO.hpp"
 #include "dsl/word/Last.hpp"
 #include "dsl/word/MainThread.hpp"
