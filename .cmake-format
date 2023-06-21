@@ -26,14 +26,11 @@ command_case: lower
 # Format keywords consistently as 'lower' or 'upper' case
 keyword_case: upper
 
+# enable comment markup parsing and reflow
+enable_markup: False
+
 # Setup all the additional commands
 additional_commands:
-  header_library:
-    kwargs:
-      NAME: "*"
-      HEADER: "*"
-      PATH_SUFFIX: "*"
-      URL: "*"
   header_library:
     kwargs:
         NAME: "*"
