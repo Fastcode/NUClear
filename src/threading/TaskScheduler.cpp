@@ -131,19 +131,16 @@ namespace threading {
         // Run main thread tasks
         pool_func(pools.at(util::ThreadPoolDescriptor::MAIN_THREAD_POOL_ID));
 
+        // Poke all of the threads to make sure they are awake
+        /* mutex scope */ {
+            const std::lock_guard<std::mutex> queue_lock(queue_mutex);
+            queue_condition.notify_all();
+        }
 
         // Now wait for all the threads to finish executing
         for (auto& thread : threads) {
             try {
                 if (thread->joinable()) {
-                    // Poke the thread pool that this thread belongs to to make sure it has woken up
-                    /* mutex scope */ {
-                        const std::lock_guard<std::mutex> pool_lock(pool_mutex);
-                        if (pool_map.count(thread->get_id()) > 0) {
-                            const std::lock_guard<std::mutex> queue_lock(queue_mutex);
-                            queue_condition.notify_all();
-                        }
-                    }
                     thread->join();
                 }
             }
@@ -166,50 +163,50 @@ namespace threading {
         // Extract the thread pool descriptor from the current task
         const util::ThreadPoolDescriptor current_pool = task->thread_pool_descriptor;
 
-            // Make sure the pool is created
-            create_pool(current_pool);
+        // Make sure the pool is created
+        create_pool(current_pool);
 
-            // Make sure we know about this group
-            /* mutex scope */ {
-                const std::lock_guard<std::mutex> group_lock(queue_mutex);
-                const uint64_t group_id = task->group_descriptor.group_id;
-                if (groups.count(group_id) == 0) {
-                    groups.emplace(group_id, 0);
-                }
+        // Make sure we know about this group
+        /* mutex scope */ {
+            const std::lock_guard<std::mutex> group_lock(queue_mutex);
+            const uint64_t group_id = task->group_descriptor.group_id;
+            if (groups.count(group_id) == 0) {
+                groups.emplace(group_id, 0);
             }
+        }
 
-            // Check to see if this task was the result of `emit<Direct>`
+        // Check to see if this task was the result of `emit<Direct>`
         // Direct tasks can run after shutdown and before starting, provided they can be run immediately
         if (task->immediate) {
-                // Map the current thread to the thread pool it belongs to
-                uint64_t thread_pool = util::ThreadPoolDescriptor::DEFAULT_THREAD_POOL_ID;
-                /* mutex scope */ {
-                    const std::lock_guard<std::mutex> pool_lock(pool_mutex);
-                    if (pool_map.count(std::this_thread::get_id()) > 0) {
-                        thread_pool = pool_map.at(std::this_thread::get_id());
-                    }
-                }
-
-                // Check to see if this task is runnable in the current thread
-                // If it isn't we can just queue it up with all of the other non-immediate task
-                if (is_runnable(task, thread_pool)) {
-                    run_task(std::move(task));
-                    return;
+            // Map the current thread to the thread pool it belongs to
+            uint64_t thread_pool = util::ThreadPoolDescriptor::DEFAULT_THREAD_POOL_ID;
+            /* mutex scope */ {
+                const std::lock_guard<std::mutex> pool_lock(pool_mutex);
+                if (pool_map.count(std::this_thread::get_id()) > 0) {
+                    thread_pool = pool_map.at(std::this_thread::get_id());
                 }
             }
+
+            // Check to see if this task is runnable in the current thread
+            // If it isn't we can just queue it up with all of the other non-immediate task
+            if (is_runnable(task, thread_pool)) {
+                run_task(std::move(task));
+                return;
+            }
+        }
 
         // We do not accept new tasks once we are shutdown
         if (running.load()) {
-                const std::lock_guard<std::mutex> queue_lock(queue_mutex);
+            const std::lock_guard<std::mutex> queue_lock(queue_mutex);
 
-                // Find where to insert the new task to maintain task order
-                auto it = std::lower_bound(queue.at(current_pool.pool_id).begin(),
-                                           queue.at(current_pool.pool_id).end(),
-                                           task,
-                                           std::less<>());
+            // Find where to insert the new task to maintain task order
+            auto it = std::lower_bound(queue.at(current_pool.pool_id).begin(),
+                                       queue.at(current_pool.pool_id).end(),
+                                       task,
+                                       std::less<>());
 
-                // Insert before the found position
-                queue.at(current_pool.pool_id).insert(it, std::forward<std::unique_ptr<ReactionTask>>(task));
+            // Insert before the found position
+            queue.at(current_pool.pool_id).insert(it, std::forward<std::unique_ptr<ReactionTask>>(task));
         }
 
         // Notify all threads that there is a new task to be processed
