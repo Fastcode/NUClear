@@ -44,10 +44,9 @@ public:
 
         on<Startup>().then("Startup", [this] {
             values.clear();
-            emit(std::make_unique<Message>(0));
-            emit(std::make_unique<Message>(1));
-            emit(std::make_unique<Message>(2));
-            emit(std::make_unique<Message>(3));
+            for (int i = 0; i < 1000; ++i) {
+                emit(std::make_unique<Message>(i));
+            }
             emit(std::make_unique<ShutdownOnIdle>());
         });
     }
@@ -62,8 +61,8 @@ TEST_CASE("Testing that the Sync priority queue word works correctly", "[api][sy
     plant.install<TestReactor>();
     plant.start();
 
-    REQUIRE(values.size() == 4);
-    for (int i = 0; i < 4; ++i) {
+    REQUIRE(values.size() == 1000);
+    for (int i = 0; i < 1000; ++i) {
         CHECK(values[i] == "Received value " + std::to_string(i));
     }
 }
