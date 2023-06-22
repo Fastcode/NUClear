@@ -60,12 +60,20 @@ namespace threading {
     }
 
     void TaskScheduler::pool_func(const util::ThreadPoolDescriptor& pool) {
-        while (running.load() || !queue.at(pool.pool_id).empty()) {
+        // Get the first task to run
+        std::unique_ptr<ReactionTask> task = get_task(pool.pool_id);
+
+        // When task is nullptr there are no more tasks to get and the scheduler is shutting down
+        while (task != nullptr) {
             // Wait at a high (but not realtime) priority to reduce latency
             // for picking up a new task
             update_current_thread_priority(1000);
 
-            run_task(get_task(pool.pool_id));
+            // Run the current task
+            run_task(std::move(task));
+
+            // Get another task
+            task = get_task(pool.pool_id);
         }
     }
 
