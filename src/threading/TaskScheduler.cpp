@@ -203,10 +203,8 @@ namespace threading {
             const std::lock_guard<std::mutex> queue_lock(queue_mutex);
 
             // Find where to insert the new task to maintain task order
-            auto it = std::lower_bound(queue.at(current_pool.pool_id).begin(),
-                                       queue.at(current_pool.pool_id).end(),
-                                       task,
-                                       std::less<>());
+            auto it =
+                std::lower_bound(queue.at(current_pool.pool_id).begin(), queue.at(current_pool.pool_id).end(), task);
 
             // Insert before the found position
             queue.at(current_pool.pool_id).insert(it, std::forward<std::unique_ptr<ReactionTask>>(task));
