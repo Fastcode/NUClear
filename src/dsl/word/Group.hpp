@@ -42,8 +42,6 @@ namespace dsl {
          *
          *  Tasks in the queue are ordered based on their priority level, then their task id.
          *
-         *  For best use, this word should be fused with at least one other binding DSL word.
-         *
          * @attention
          *  When using NUClear, developers should not make use of devices like a mutex. In the case of a mutex, threads
          *  will run and then block (leading to wasted resources on a number of inactive threads).  By using Sync,

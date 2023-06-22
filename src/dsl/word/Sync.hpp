@@ -44,8 +44,6 @@ namespace dsl {
          *
          *  Tasks in the queue are ordered based on their priority level, then their task id.
          *
-         *  For best use, this word should be fused with at least one other binding DSL word.
-         *
          * @par When should I use Sync
          *  Consider a reactor with a number of a reactions which modify its state.  It would be unwise to allow the
          *  reactions to run concurrently. To avoid race conditions, it is recommended that any reactions which modify

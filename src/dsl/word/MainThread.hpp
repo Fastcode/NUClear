@@ -33,8 +33,6 @@ namespace dsl {
          * @details
          *  @code on<Trigger<T, ...>, MainThread>() @endcode
          *  This will most likely be used with graphics related tasks.
-         *
-         *  For best use, this word should be fused with at least one other binding DSL word.
          */
         struct MainThread {
 

@@ -50,8 +50,6 @@ namespace dsl {
          *  <b>IDLE:</b>  Tasks assigned with this priority will be queued with all other IDLE tasks.  They will be
          *  scheduled for execution when there are no other tasks running in the system.
          *
-         *  For best use, this word should be fused with at least one other binding DSL word.
-         *
          * @par Default Behaviour
          *  @code on<Trigger<T>>() @endcode
          *  When the priority is not specified, tasks will be assigned a default setting; NORMAL.

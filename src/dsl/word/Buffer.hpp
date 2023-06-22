@@ -35,8 +35,6 @@ namespace dsl {
          * tasks associated with this reaction (either executing or in the queue), then a new task will be created and
          * scheduled.  However, should <i>n</i> tasks already be allocated, then this new task request will be ignored.
          *
-         *  For best use, this word should be fused with at least one other binding DSL word.
-         *
          * @par Implements
          *  Precondition, Fusion
          *

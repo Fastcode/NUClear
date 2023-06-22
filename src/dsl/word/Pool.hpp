@@ -44,8 +44,6 @@ namespace dsl {
          *  When this DSL is not specified the default thread pool will be used. For tasks that need to run on the main
          *  thread use MainThread.
          *
-         *  For best use, this word should be fused with at least one other binding DSL word.
-         *
          * @attention
          *  This DSL should be used sparingly as having an increased number of threads running concurrently on the
          *  system can lead to a degradation in performance.
