@@ -160,6 +160,12 @@ namespace threading {
 
     void TaskScheduler::submit(std::unique_ptr<ReactionTask>&& task) {
 
+        // Ignore nullptrs, take this as an opportunity to wake a thread up
+        if (task == nullptr) {
+            queue_condition.notify_all();
+            return;
+        }
+
         // Extract the thread pool descriptor from the current task
         const util::ThreadPoolDescriptor current_pool = task->thread_pool_descriptor;
 
