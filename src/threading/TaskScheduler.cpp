@@ -235,7 +235,7 @@ namespace threading {
             }
 
             // Wait for something to happen!
-            queue_condition.wait(queue_lock);
+            queue_condition.wait_for(queue_lock, std::chrono::seconds(1));
         }
 
         // No more tasks and scheduler has shutdown
