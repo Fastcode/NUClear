@@ -90,7 +90,7 @@ namespace threading {
         }
     }
 
-    void TaskScheduler::create_pool(const util::ThreadPoolDescriptor& pool) {
+    std::shared_ptr<TaskScheduler::PoolQueue> TaskScheduler::get_pool_queue(const util::ThreadPoolDescriptor& pool) {
         // If the pool does not exist, create it
         const std::lock_guard<std::mutex> pool_lock(pool_mutex);
         if (pool_queues.count(pool.pool_id) == 0) {
@@ -103,12 +103,14 @@ namespace threading {
                 start_threads(queue);
             }
         }
+
+        return pool_queues.at(pool.pool_id);
     }
 
     void TaskScheduler::start(const size_t& thread_count) {
 
         // Make the default pool
-        create_pool(util::ThreadPoolDescriptor{util::ThreadPoolDescriptor::DEFAULT_THREAD_POOL_ID, thread_count});
+        get_pool_queue(util::ThreadPoolDescriptor{util::ThreadPoolDescriptor::DEFAULT_THREAD_POOL_ID, thread_count});
 
         // The scheduler is now started
         started.store(true);
@@ -165,14 +167,7 @@ namespace threading {
             group_lock.unlock();
 
             // Get the appropiate pool for this task
-            std::shared_ptr<PoolQueue> pool;
-            /* mutex scope */ {
-                const std::lock_guard<std::mutex> pool_lock(pool_mutex);
-                if (pool_queues.count(task->thread_pool_descriptor.pool_id) == 0) {
-                    create_pool(task->thread_pool_descriptor);
-                }
-                pool = pool_queues.at(task->thread_pool_descriptor.pool_id);
-            }
+            std::shared_ptr<PoolQueue> pool = get_pool_queue(task->thread_pool_descriptor);
 
             // Find where to insert the new task to maintain task order
             std::lock_guard<std::mutex> queue_lock(pool->mutex);
