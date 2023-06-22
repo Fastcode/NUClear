@@ -37,7 +37,7 @@ void PowerPlant::start() {
     emit<dsl::word::emit::Direct>(std::make_unique<dsl::word::Startup>());
 
     // Start all of the threads
-    scheduler.start(configuration.thread_count);
+    scheduler.start();
 }
 
 void PowerPlant::submit(std::unique_ptr<threading::ReactionTask>&& task) {

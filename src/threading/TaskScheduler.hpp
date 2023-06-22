@@ -82,9 +82,14 @@ namespace threading {
         /**
          * @brief Constructs a new TaskScheduler instance, and builds the nullptr sync queue.
          */
-        TaskScheduler();
+        TaskScheduler(const size_t& default_thread_count);
 
-        void start(const size_t& thread_count);
+        /**
+         * @brief Starts the scheduler, and begins executing tasks.
+         *
+         * The main thread will stay in this function executing tasks until the scheduler is shutdown.
+         */
+        void start();
 
         /**
          * @brief

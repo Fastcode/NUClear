@@ -21,6 +21,7 @@
 
 #include <algorithm>
 #include <atomic>
+#include <iostream>
 #include <map>
 #include <mutex>
 #include <system_error>
@@ -74,10 +75,13 @@ namespace threading {
         current_queue = nullptr;
     }
 
-    TaskScheduler::TaskScheduler() {
+    TaskScheduler::TaskScheduler(const size_t& thread_count) {
         // Make the queue for the main thread
         pool_queues[util::ThreadPoolDescriptor::MAIN_THREAD_POOL_ID] =
             std::make_shared<PoolQueue>(util::ThreadPoolDescriptor{util::ThreadPoolDescriptor::MAIN_THREAD_POOL_ID, 1});
+
+        // Make the default pool with the correct number of threads
+        get_pool_queue(util::ThreadPoolDescriptor{util::ThreadPoolDescriptor::DEFAULT_THREAD_POOL_ID, thread_count});
     }
 
     void TaskScheduler::start_threads(const std::shared_ptr<PoolQueue>& pool) {
@@ -107,10 +111,7 @@ namespace threading {
         return pool_queues.at(pool.pool_id);
     }
 
-    void TaskScheduler::start(const size_t& thread_count) {
-
-        // Make the default pool
-        get_pool_queue(util::ThreadPoolDescriptor{util::ThreadPoolDescriptor::DEFAULT_THREAD_POOL_ID, thread_count});
+    void TaskScheduler::start() {
 
         // The scheduler is now started
         started.store(true);
@@ -157,15 +158,20 @@ namespace threading {
 
         // Immediate tasks are executed directly on the current thread if they can be
         // If something is blocking them from running right now they are added to the queue
-        std::unique_lock<std::mutex> group_lock(group_mutex);
-        if (task->immediate && is_runnable(task)) {
-            run_task(std::move(task));
+        if (task->immediate) {
+            bool runnable;
+            /* mutex scope */ {
+                std::lock_guard<std::mutex> group_lock(group_mutex);
+                runnable = is_runnable(task);
+            }
+            if (runnable) {
+                run_task(std::move(task));
+                return;
+            }
         }
-        // We do not accept new tasks once we are shutdown
-        else if (running.load()) {
-            // At this point we don't need the group lock anymore
-            group_lock.unlock();
 
+        // We do not accept new tasks once we are shutdown
+        if (running.load()) {
             // Get the appropiate pool for this task
             std::shared_ptr<PoolQueue> pool = get_pool_queue(task->thread_pool_descriptor);
 
