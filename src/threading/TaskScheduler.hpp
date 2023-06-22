@@ -107,6 +107,23 @@ namespace threading {
 
     private:
         /**
+         * @brief A struct which contains all the information about an individual thread pool
+         */
+        struct PoolQueue {
+            PoolQueue(const util::ThreadPoolDescriptor& pool_descriptor) : pool_descriptor(pool_descriptor) {}
+            /// @brief The descriptor for this thread pool
+            const util::ThreadPoolDescriptor pool_descriptor;
+            /// @brief The threads which are running in this thread pool
+            std::vector<std::unique_ptr<std::thread>> threads;
+            /// @brief The queue of tasks for this specific thread pool
+            std::vector<std::unique_ptr<ReactionTask>> queue;
+            /// @brief The mutex which protects the queue
+            std::mutex mutex;
+            /// @brief The condition variable which threads wait on if they can't get a task
+            std::condition_variable condition;
+        };
+
+        /**
          * @brief Get a task object to be executed by a thread.
          *
          * @details
@@ -116,7 +133,7 @@ namespace threading {
          *
          * @return the task which has been given to be executed
          */
-        std::unique_ptr<ReactionTask> get_task(const uint64_t& pool_id);
+        std::unique_ptr<ReactionTask> get_task();
 
         /**
          * @brief Creates a new thread pool and ensures threads and a task queue are allocated for it
@@ -132,12 +149,12 @@ namespace threading {
          *
          * @param pool the thread pool to run from and the task queue to get tasks from
          */
-        void pool_func(const util::ThreadPoolDescriptor& pool);
+        void pool_func(std::shared_ptr<PoolQueue> pool);
 
         /**
          * @brief Start all threads for the given thread pool
          */
-        void start_threads(const util::ThreadPoolDescriptor& pool);
+        void start_threads(const std::shared_ptr<PoolQueue>& pool);
 
         /**
          * @brief Execute the given task
@@ -154,11 +171,11 @@ namespace threading {
          * incremented
          *
          * @param task the task to inspect
-         * @param pool_id the pool to run the task on
+         *
          * @return true if the task is currently runnable
          * @return false if the task is not currently runnable
          */
-        bool is_runnable(const std::unique_ptr<ReactionTask>& task, const uint64_t& pool_id);
+        bool is_runnable(const std::unique_ptr<ReactionTask>& task);
 
         /// @brief if the scheduler is running, and accepting new tasks. If this is false and a new, non-immediate, task
         /// is submitted it will be ignored
@@ -167,27 +184,17 @@ namespace threading {
         /// set to true all threads will begin executing tasks from the tasks queue
         std::atomic<bool> started{false};
 
-        /// @brief A task queue for each thread pool. In each queue, each task is ordered by priority and then by task
-        /// id
-        std::map<uint64_t, std::vector<std::unique_ptr<ReactionTask>>> queue;
-
         /// @brief A map of group ids to the number of active tasks currently running in that group
         std::map<uint64_t, size_t> groups{};
+        /// @brief mutex for the group map
+        std::mutex group_mutex;
 
-        /// @brief the mutex which our threads synchronize their access to the task queues and the group concurrency
-        /// counts
-        std::mutex queue_mutex;
-        /// @brief the condition object that threads wait on if they can't get a task
-        std::condition_variable queue_condition;
-
-        /// @brief A vector of the running threads in the system
-        std::vector<std::unique_ptr<std::thread>> threads;
         /// @brief A map of pool descriptor ids to pool descriptors
-        std::map<uint64_t, util::ThreadPoolDescriptor> pools{};
-        /// @brief A map of thread ids to the pools they belong to
-        std::map<std::thread::id, uint64_t> pool_map{};
-        /// @brief the mutex which our threads synchronize their access to the thread pool maps and the threads list
+        std::map<uint64_t, std::shared_ptr<PoolQueue>> pool_queues{};
+        /// @brief a mutex for when we are modifying the pool_queues map
         std::mutex pool_mutex;
+        /// @brief a pointer to the pool_queue for the current thread so it does not have to access via the map
+        static ATTRIBUTE_TLS std::shared_ptr<PoolQueue>* current_queue;
     };
 
 }  // namespace threading
