@@ -226,6 +226,14 @@ namespace threading {
                 }
             }
 
+            // If pool concurrency is greater than group concurrency some threads can be left with nothing to do.
+            // Since running is false there will likely never be anything new to do and we are shutting down anyway.
+            // So if we can't find a task to run, just return nullptr and let the thread die.
+            if (!running.load()) {
+                condition.notify_all();
+                return nullptr;
+            }
+
             // Wait for something to happen!
             condition.wait(lock);
         }
