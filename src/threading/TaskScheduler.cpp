@@ -135,8 +135,7 @@ namespace threading {
          */
 
         // Poke all of the threads to make sure they are awake
-            queue_condition.notify_all();
-        }
+        queue_condition.notify_all();
 
         // Now wait for all the threads to finish executing
         for (auto& thread : threads) {
@@ -155,7 +154,6 @@ namespace threading {
     void TaskScheduler::shutdown() {
         started.store(false);
         running.store(false);
-        const std::lock_guard<std::mutex> queue_lock(queue_mutex);
         queue_condition.notify_all();
     }
 
@@ -209,7 +207,6 @@ namespace threading {
         }
 
         // Notify all threads that there is a new task to be processed
-        const std::lock_guard<std::mutex> queue_lock(queue_mutex);
         queue_condition.notify_all();
     }
 
