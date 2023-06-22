@@ -46,12 +46,10 @@ namespace threading {
      *      which thread pool this task should execute in
      *      0 being execute on the main thread
      *      1 being the default pool
-     *      Work out how to create other pools later (fold in always into this?)
      * GROUP
      *      which grouping this task belongs to for concurrency (default to the 0 group)
-     * CONCURRENCY
-     *      only run if there are less than this many tasks running in this group
-     * INLINE
+     *      only run if there are less than N tasks running in this group
+     * IMMEDIATE
      *      if the submitter of this task should wait until this task is finished before returning (for DIRECT
      * emits)
      *
@@ -60,14 +58,19 @@ namespace threading {
      *  When a priority is encountered, the task will be scheduled to execute based on this. If one of the three
      * normal options are specified (HIGH, DEFAULT and LOW), then within the specified Sync group, it will run
      * before, normally or after other reactions.
-     *  @attention Note that if Priority<REALTIME> is specified, the Sync type is ignored (Single is not).
      *
      *  @em Sync
      *  @code Sync<SyncGroup> @endcode
      *  When a Sync type is encountered, the system uses this as a compile time mutex flag. It will not allow two
      *  callbacks with the same Sync type to execute at the same time. It will effectively ensure that all of the
-     *  callbacks with this type run in sequence with each other, rather then in parallel. It is also important to
-     * note again, that if the priority of a task is realtime, it will ignore Sync groups.
+     *  callbacks with this type run in sequence with each other, rather then in parallel.
+     *
+     *  @em Group
+     *  @code Group<GroupType, GroupConcurrency> @endcode
+     *  When a Group type is encountered, the system uses this as a compile time semaphore flag. It will not allow
+     *  (GroupConcurrency + 1) callbacks with the same Group type to execute at the same time. It will effectively
+     *  ensure that the first GroupConcurrency callbacks with this type run in parallel and all subsequent callbacks
+     *  will be queued to run when one of the first GroupConcurrency callbacks have returned
      *
      *  @em Single
      *  @code Single @endcode

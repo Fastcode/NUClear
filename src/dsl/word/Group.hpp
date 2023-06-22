@@ -31,7 +31,7 @@ namespace dsl {
 
         /**
          * @brief
-         *  This is used to specify that only one reaction in this GroupType can run concurrently.
+         *  This is used to specify that up to GroupConcurrency reactions in this GroupType can run concurrently.
          *
          * @details
          *  @code on<Trigger<T, ...>, Group<GroupType, N>>() @endcode
@@ -43,9 +43,9 @@ namespace dsl {
          *  Tasks in the queue are ordered based on their priority level, then their task id.
          *
          * @attention
-         *  When using NUClear, developers should not make use of devices like a mutex. In the case of a mutex, threads
-         *  will run and then block (leading to wasted resources on a number of inactive threads).  By using Sync,
-         *  NUClear will have task and thread control so that system resources can be efficiently managed.
+         *  When using NUClear, developers should be careful when using devices like a mutex. In the case of a mutex,
+         *  threads will run and then block (leading to wasted resources on a number of inactive threads).  By using
+         *  Sync, NUClear will have task and thread control so that system resources can be efficiently managed.
          *
          * @par Implements
          *  Group

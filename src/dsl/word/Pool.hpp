@@ -56,19 +56,23 @@ namespace dsl {
          *  member that sets the number of threads that should be allocated to this pool.
          *  @code
          *  struct ThreadPool {
-         *      static const int thread_count = 2;
+         *      static constexpr int thread_count = 2;
          *  };
          *  @endcode
-         *  While it is valid to have a non-const static thread count in the struct, NUClear will not look at any
-         *  changes to this value. Only the first value that NUClear sees will be used to initiate the thread pool.
          */
         template <typename PoolType>
         struct Pool {
 
             static_assert(PoolType::thread_count > 0, "Can not have a thread pool with less than 1 thread");
 
+            /// @brief the description of the thread pool to be used for this PoolType
             static const util::ThreadPoolDescriptor pool_descriptor;
 
+            /**
+             * @brief Sets which thread pool to use for any tasks initiated from this reaction
+             *
+             * @tparam DSL the DSL used for this reaction
+             */
             template <typename DSL>
             static inline util::ThreadPoolDescriptor pool(threading::Reaction& /*reaction*/) {
                 return pool_descriptor;
