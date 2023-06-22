@@ -131,9 +131,12 @@ namespace threading {
         // Run main thread tasks
         pool_func(pools.at(util::ThreadPoolDescriptor::MAIN_THREAD_POOL_ID));
 
+        /**
+         * Once the main thread reaches this point it is because the powerplant, and by extension the schedduler, have
+         * been shutdown and the main thread is now about to leave the scheduler.
+         */
+
         // Poke all of the threads to make sure they are awake
-        /* mutex scope */ {
-            const std::lock_guard<std::mutex> queue_lock(queue_mutex);
             queue_condition.notify_all();
         }
 

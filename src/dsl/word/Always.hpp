@@ -82,23 +82,27 @@ namespace dsl {
 
             template <typename DSL>
             static inline void bind(const std::shared_ptr<threading::Reaction>& always_reaction) {
-                // Static map mapping reaction id (from the always reaction) to a pair of reaction pointers -- one for
-                // the always reaction and one for the idle reaction that we generate in this function
-                // The main purpose of this map is to ensure that the always reaction pointer doesn't get destroyed
+                /**
+                 * Static map mapping reaction id (from the always reaction) to a pair of reaction pointers -- one for
+                 * the always reaction and one for the idle reaction that we generate in this function
+                 * The main purpose of this map is to ensure that the always reaction pointer doesn't get destroyed
+                 */
                 static std::map<uint64_t,
                                 std::pair<std::shared_ptr<threading::Reaction>, std::shared_ptr<threading::Reaction>>>
                     reaction_store = {};
 
-                // Generate a new reaction for an idle task
-                // The purpose of this reaction is to ensure that the always reaction is resubmitted in the event that
-                // the precondition fails (e.g. on<Always, With<X>> will fail the precondition if there are no X
-                // messages previously emitted)
-                //
-                // In the event that the precondition on the always reaction fails this idle task will run and resubmit
-                // both the always reaction and the idle reaction
-                //
-                // The idle reaction must have a lower priority than the always reaction and must also run in the same
-                // thread pool and group as the always reaction
+                /**
+                 * Generate a new reaction for an idle task
+                 * The purpose of this reaction is to ensure that the always reaction is resubmitted in the event that
+                 * the precondition fails (e.g. on<Always, With<X>> will fail the precondition if there are no X
+                 * messages previously emitted)
+                 *
+                 * In the event that the precondition on the always reaction fails this idle task will run and resubmit
+                 * both the always reaction and the idle reaction
+                 *
+                 * The idle reaction must have a lower priority than the always reaction and must also run in the same
+                 * thread pool and group as the always reaction
+                 */
                 auto idle_reaction = std::make_shared<threading::Reaction>(
                     always_reaction->reactor,
                     std::vector<std::string>{always_reaction->identifier[0] + " - IDLE Task",
@@ -144,6 +148,7 @@ namespace dsl {
                 always_reaction->unbinders.push_back([](threading::Reaction& r) {
                     r.enabled = false;
                     reaction_store.erase(r.id);
+                    // TODO(Alex/Trent) Clean up thread pool too
                 });
 
                 // Get a task for the always reaction and submit it to the scheduler
