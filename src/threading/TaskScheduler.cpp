@@ -207,7 +207,7 @@ namespace threading {
                 std::lower_bound(queue.at(current_pool.pool_id).begin(), queue.at(current_pool.pool_id).end(), task);
 
             // Insert before the found position
-            queue.at(current_pool.pool_id).insert(it, std::forward<std::unique_ptr<ReactionTask>>(task));
+            queue.at(current_pool.pool_id).insert(it, std::move(task));
         }
 
         // Notify all threads that there is a new task to be processed
