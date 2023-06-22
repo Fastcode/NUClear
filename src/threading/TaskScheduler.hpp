@@ -136,11 +136,13 @@ namespace threading {
         std::unique_ptr<ReactionTask> get_task();
 
         /**
-         * @brief Creates a new thread pool and ensures threads and a task queue are allocated for it
+         * @brief Gets a pool queue for the given thread pool descriptor or creates one if it does not exist
          *
-         * @param pool the descriptor for the thread pool to create
+         * @param pool the descriptor for the thread pool to get or create
+         *
+         * @return a shared pointer to the pool queue for the given thread pool descriptor
          */
-        void create_pool(const util::ThreadPoolDescriptor& pool);
+        std::shared_ptr<PoolQueue> get_pool_queue(const util::ThreadPoolDescriptor& pool);
 
         /**
          * @brief The function that each thread runs
