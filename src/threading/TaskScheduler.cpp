@@ -153,19 +153,16 @@ namespace threading {
 
     void TaskScheduler::submit(std::unique_ptr<ReactionTask>&& task) {
 
-        // Check to see if this task should be run immediately
-        // Direct tasks can run after shutdown and before starting, provided they can be run immediately
-        if (task->immediate) {
-            // Check to see if this task is runnable in the current thread
-            // If it isn't we can just queue it up with all of the other non-immediate task
-            if (is_runnable(task)) {
-                run_task(std::move(task));
-                return;
-            }
+        // Immediate tasks are executed directly on the current thread if they can be
+        // If something is blocking them from running right now they are added to the queue
+        std::unique_lock<std::mutex> group_lock(group_mutex);
+        if (task->immediate && is_runnable(task)) {
+            run_task(std::move(task));
         }
-
         // We do not accept new tasks once we are shutdown
-        if (running.load()) {
+        else if (running.load()) {
+            // At this point we don't need the group lock anymore
+            group_lock.unlock();
 
             // Get the appropiate pool for this task
             std::shared_ptr<PoolQueue> pool;
@@ -189,6 +186,10 @@ namespace threading {
 
         // Wait at a high (but not realtime) priority to reduce latency for picking up a new task
         update_current_thread_priority(1000);
+
+        if (current_queue == nullptr) {
+            throw std::runtime_error("Only threads managed by the TaskScheduler can get tasks");
+        }
 
         // Get the queue for this thread from its thread local storage
         std::shared_ptr<PoolQueue> pool = *current_queue;
@@ -229,8 +230,6 @@ namespace threading {
         return nullptr;
     }
 
-
-    /// @brief a pointer to the pool_queue for the current thread so it does not have to access via the map
     ATTRIBUTE_TLS std::shared_ptr<TaskScheduler::PoolQueue>* TaskScheduler::current_queue = nullptr;
 
 }  // namespace threading
