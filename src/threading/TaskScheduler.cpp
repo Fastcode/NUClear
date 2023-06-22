@@ -168,6 +168,9 @@ namespace threading {
             std::shared_ptr<PoolQueue> pool;
             /* mutex scope */ {
                 const std::lock_guard<std::mutex> pool_lock(pool_mutex);
+                if (pool_queues.count(task->thread_pool_descriptor.pool_id) == 0) {
+                    create_pool(task->thread_pool_descriptor);
+                }
                 pool = pool_queues.at(task->thread_pool_descriptor.pool_id);
             }
 
