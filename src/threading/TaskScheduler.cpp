@@ -236,8 +236,13 @@ namespace threading {
             }
 
             // Wait for something to happen!
-            queue_condition.wait_for(queue_lock, std::chrono::seconds(1));
+            queue_condition.wait(queue_lock);
         }
+
+        // Any thread that passes through here is doing so because the scheduler is shutting down
+        // Send a notification to the other threads to make sure they aren't sleeping on the job
+        queue_lock.unlock();
+        queue_condition.notify_all();
 
         // No more tasks and scheduler has shutdown
         return nullptr;
