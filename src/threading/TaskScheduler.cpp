@@ -34,7 +34,8 @@ namespace threading {
     bool TaskScheduler::is_runnable(const std::unique_ptr<ReactionTask>& task, const uint64_t& pool_id) {
 
         // Task can run if it is meant to run on the current thread pool
-        const bool correct_pool = pool_id == task->thread_pool_descriptor.pool_id;
+        // Immediate tasks don't care about the pool, only the group concurrency is relevant
+        const bool correct_pool = task->immediate || pool_id == task->thread_pool_descriptor.pool_id;
 
         // Task can run if the group it belongs to has spare threads
         if (groups.at(task->group_descriptor.group_id) < task->group_descriptor.thread_count && correct_pool) {
