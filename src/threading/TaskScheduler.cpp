@@ -150,6 +150,7 @@ namespace threading {
         started.store(false);
         running.store(false);
         for (auto& pool : pool_queues) {
+            std::lock_guard<std::mutex> lock(pool.second->mutex);
             pool.second->condition.notify_all();
         }
     }
@@ -224,14 +225,14 @@ namespace threading {
                         return task;
                     }
                 }
-            }
 
-            // If pool concurrency is greater than group concurrency some threads can be left with nothing to do.
-            // Since running is false there will likely never be anything new to do and we are shutting down anyway.
-            // So if we can't find a task to run, just return nullptr and let the thread die.
-            if (!running.load()) {
-                condition.notify_all();
-                return nullptr;
+                // If pool concurrency is greater than group concurrency some threads can be left with nothing to do.
+                // Since running is false there will likely never be anything new to do and we are shutting down anyway.
+                // So if we can't find a task to run, just return nullptr and let the thread die.
+                if (!running.load()) {
+                    condition.notify_all();
+                    return nullptr;
+                }
             }
 
             // Wait for something to happen!
