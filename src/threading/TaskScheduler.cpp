@@ -153,7 +153,7 @@ namespace threading {
         started.store(false);
         running.store(false);
         for (auto& pool : pool_queues) {
-            const std::lock_guard<std::mutex> queue_lock(pool.second->mutex);
+            const std::lock_guard<std::mutex> lock(pool.second->mutex);
             pool.second->condition.notify_all();
         }
     }
