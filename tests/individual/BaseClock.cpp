@@ -41,20 +41,23 @@ public:
     TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
 
         // Have a frequently running reaction so that ReactionStatistics will be emitted
-        on<Every<10, std::chrono::milliseconds>, Sync<TestReactor>>().then([this] {
-            if (times.size() > n_time) {
-                powerplant.shutdown();
-            }
-        });
+        on<Every<10, std::chrono::milliseconds>>().then([] {});
 
         // Trigger on ReactionStatistics so that we can record the times that messages were emitted and compare them
         // against the current time If everything is working as it should then the emitted times and the current times
         // should be identical (at least down to the second, but it depends on when the clock ticks over)
-        on<Trigger<NUClear::message::ReactionStatistics>, Sync<TestReactor>>().then(
-            [](const NUClear::message::ReactionStatistics& stats) {
+        on<Trigger<NUClear::message::ReactionStatistics>>().then(
+            [this](const NUClear::message::ReactionStatistics& stats) {
+                const std::lock_guard<std::mutex> lock(mutex);
                 times.push_back(std::make_pair(stats.emitted, std::chrono::system_clock::now()));
+                if (times.size() >= n_time) {
+                    powerplant.shutdown();
+                }
             });
     }
+
+private:
+    std::mutex mutex;
 };
 }  // namespace
 
@@ -74,7 +77,7 @@ TEST_CASE("Testing base clock works correctly", "[api][base_clock]") {
     // Start the powerplant
     plant.start();
 
-    // Setup a struct to convert std::tm* into a more usable format and to make comparison cleaner
+    // Setup a struct to convert std::tm into a more usable format and to make comparison cleaner
     struct TimeData {
         TimeData(const std::tm& tm)
             : year(tm.tm_year), month(tm.tm_mon), day(tm.tm_mday), hour(tm.tm_hour), min(tm.tm_min), sec(tm.tm_sec) {}
