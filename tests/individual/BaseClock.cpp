@@ -41,7 +41,7 @@ public:
     TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
 
         // Have a frequently running reaction so that ReactionStatistics will be emitted
-        on<Every<10, std::chrono::milliseconds>>().then([this] {
+        on<Every<10, std::chrono::milliseconds>, Sync<TestReactor>>().then([this] {
             if (times.size() > n_time) {
                 powerplant.shutdown();
             }
@@ -50,9 +50,10 @@ public:
         // Trigger on ReactionStatistics so that we can record the times that messages were emitted and compare them
         // against the current time If everything is working as it should then the emitted times and the current times
         // should be identical (at least down to the second, but it depends on when the clock ticks over)
-        on<Trigger<NUClear::message::ReactionStatistics>>().then([](const NUClear::message::ReactionStatistics& stats) {
-            times.push_back(std::make_pair(stats.emitted, std::chrono::system_clock::now()));
-        });
+        on<Trigger<NUClear::message::ReactionStatistics>, Sync<TestReactor>>().then(
+            [](const NUClear::message::ReactionStatistics& stats) {
+                times.push_back(std::make_pair(stats.emitted, std::chrono::system_clock::now()));
+            });
     }
 };
 }  // namespace
