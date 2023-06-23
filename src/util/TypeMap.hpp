@@ -77,13 +77,9 @@ namespace util {
          */
         static std::shared_ptr<Value> get() {
 
-            std::shared_ptr<Value> d;
-            {
-                const std::lock_guard<std::mutex> lock(mutex);
-                d = data;
-            }
-
-            return d;
+            // Lock a mutex and return our data
+            const std::lock_guard<std::mutex> lock(mutex);
+            return data;
         }
     };
 
