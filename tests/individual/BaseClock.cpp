@@ -76,13 +76,8 @@ TEST_CASE("Testing base clock works correctly", "[api][base_clock]") {
 
     // Setup a struct to convert std::tm* into a more usable format and to make comparison cleaner
     struct TimeData {
-        TimeData(const std::tm* tm)
-            : year(tm->tm_year)
-            , month(tm->tm_mon)
-            , day(tm->tm_mday)
-            , hour(tm->tm_hour)
-            , min(tm->tm_min)
-            , sec(tm->tm_sec) {}
+        TimeData(const std::tm& tm)
+            : year(tm.tm_year), month(tm.tm_mon), day(tm.tm_mday), hour(tm.tm_hour), min(tm.tm_min), sec(tm.tm_sec) {}
         bool operator==(const TimeData& other) const {
             return year == other.year && month == other.month && day == other.day && hour == other.hour
                    && min == other.min && sec == other.sec;
@@ -107,7 +102,7 @@ TEST_CASE("Testing base clock works correctly", "[api][base_clock]") {
 #else
         localtime_r(&ntt, &result);
 #endif  // WIN32
-        const TimeData nuclear_clock(&result);
+        const TimeData nuclear_clock(result);
 
 #ifdef WIN32
         localtime_s(&result, &stt);
@@ -115,7 +110,7 @@ TEST_CASE("Testing base clock works correctly", "[api][base_clock]") {
         localtime_r(&stt, &result);
 #endif  // WIN32
 
-        const TimeData local_clock(&result);
+        const TimeData local_clock(result);
 
         UNSCOPED_INFO("Year.: " << nuclear_clock.year + 1900 << " == " << local_clock.year + 1900 << "\n"
                                 << "Month: " << nuclear_clock.month << " == " << local_clock.month << "\n"
