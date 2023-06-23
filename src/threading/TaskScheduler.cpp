@@ -174,7 +174,7 @@ namespace threading {
         // We do not accept new tasks once we are shutdown
         if (running.load()) {
             // Get the appropiate pool for this task
-            std::shared_ptr<PoolQueue> pool = get_pool_queue(task->thread_pool_descriptor);
+            const std::shared_ptr<PoolQueue> pool = get_pool_queue(task->thread_pool_descriptor);
 
             // Find where to insert the new task to maintain task order
             const std::lock_guard<std::mutex> queue_lock(pool->mutex);
@@ -197,9 +197,9 @@ namespace threading {
         }
 
         // Get the queue for this thread from its thread local storage
-        std::shared_ptr<PoolQueue> pool = *current_queue;
-        auto& queue                     = pool->queue;
-        auto& condition                 = pool->condition;
+        const std::shared_ptr<PoolQueue> pool = *current_queue;
+        auto& queue                           = pool->queue;
+        auto& condition                       = pool->condition;
 
         // Keep looking for tasks while the scheduler is still running, or while there are still tasks to process
         std::unique_lock<std::mutex> lock(pool->mutex);
