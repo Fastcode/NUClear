@@ -131,7 +131,10 @@ namespace threading {
 
         // Poke all of the threads to make sure they are awake and then wait for them to finish
         for (auto& pool : pool_queues) {
-            pool.second->condition.notify_all();
+            /* mutex scope */ {
+                const std::lock_guard<std::mutex> queue_lock(pool.second->mutex);
+                pool.second->condition.notify_all();
+            }
             for (auto& thread : pool.second->threads) {
                 try {
                     if (thread->joinable()) {
