@@ -87,7 +87,7 @@ namespace threading {
     void TaskScheduler::start_threads(const std::shared_ptr<PoolQueue>& pool) {
         // The main thread never needs to be started
         if (pool->pool_descriptor.pool_id != util::ThreadPoolDescriptor::MAIN_THREAD_POOL_ID) {
-            std::lock_guard<std::mutex> lock(pool->mutex);
+            const std::lock_guard<std::mutex> lock(pool->mutex);
             while (pool->threads.size() < pool->pool_descriptor.thread_count) {
                 pool->threads.emplace_back(std::make_unique<std::thread>(&TaskScheduler::pool_func, this, pool));
             }
@@ -150,7 +150,7 @@ namespace threading {
         started.store(false);
         running.store(false);
         for (auto& pool : pool_queues) {
-            std::lock_guard<std::mutex> lock(pool.second->mutex);
+            const std::lock_guard<std::mutex> queue_lock(pool.second->mutex);
             pool.second->condition.notify_all();
         }
     }
@@ -160,9 +160,9 @@ namespace threading {
         // Immediate tasks are executed directly on the current thread if they can be
         // If something is blocking them from running right now they are added to the queue
         if (task->immediate) {
-            bool runnable;
+            bool runnable = false;
             /* mutex scope */ {
-                std::lock_guard<std::mutex> group_lock(group_mutex);
+                const std::lock_guard<std::mutex> group_lock(group_mutex);
                 runnable = is_runnable(task);
             }
             if (runnable) {
@@ -174,10 +174,10 @@ namespace threading {
         // We do not accept new tasks once we are shutdown
         if (running.load()) {
             // Get the appropiate pool for this task
-            std::shared_ptr<PoolQueue> pool = get_pool_queue(task->thread_pool_descriptor);
+            const std::shared_ptr<PoolQueue> pool = get_pool_queue(task->thread_pool_descriptor);
 
             // Find where to insert the new task to maintain task order
-            std::lock_guard<std::mutex> queue_lock(pool->mutex);
+            const std::lock_guard<std::mutex> queue_lock(pool->mutex);
             auto& queue = pool->queue;
             auto it     = std::lower_bound(queue.begin(), queue.end(), task);
             queue.insert(it, std::move(task));
@@ -197,9 +197,9 @@ namespace threading {
         }
 
         // Get the queue for this thread from its thread local storage
-        std::shared_ptr<PoolQueue> pool = *current_queue;
-        auto& queue                     = pool->queue;
-        auto& condition                 = pool->condition;
+        const std::shared_ptr<PoolQueue> pool = *current_queue;
+        auto& queue                           = pool->queue;
+        auto& condition                       = pool->condition;
 
         // Keep looking for tasks while the scheduler is still running, or while there are still tasks to process
         std::unique_lock<std::mutex> lock(pool->mutex);
@@ -207,7 +207,7 @@ namespace threading {
 
             // Only one thread can be checking group concurrency at a time otherwise the ordering might not be correct
             /* mutex scope */ {
-                std::lock_guard<std::mutex> group_lock(group_mutex);
+                const std::lock_guard<std::mutex> group_lock(group_mutex);
 
                 // Iterate over all the tasks in the current thread pool queue, looking for one that we can run
                 for (auto it = queue.begin(); it != queue.end(); ++it) {
@@ -243,6 +243,7 @@ namespace threading {
         return nullptr;
     }
 
+    // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
     ATTRIBUTE_TLS std::shared_ptr<TaskScheduler::PoolQueue>* TaskScheduler::current_queue = nullptr;
 
 }  // namespace threading

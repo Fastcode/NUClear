@@ -201,6 +201,7 @@ namespace threading {
         /// @brief a mutex for when we are modifying the pool_queues map
         std::mutex pool_mutex;
         /// @brief a pointer to the pool_queue for the current thread so it does not have to access via the map
+        // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
         static ATTRIBUTE_TLS std::shared_ptr<PoolQueue>* current_queue;
     };
 
