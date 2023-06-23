@@ -41,11 +41,9 @@
 // Utilities
 #include "LogLevel.hpp"
 #include "message/LogMessage.hpp"
-#include "threading/ReactionTask.hpp"
 #include "threading/TaskScheduler.hpp"
 #include "util/FunctionFusion.hpp"
 #include "util/demangle.hpp"
-#include "util/main_thread_id.hpp"
 #include "util/unpack.hpp"
 
 namespace NUClear {
@@ -134,6 +132,22 @@ public:
     bool running() const;
 
     /**
+     * @brief Adds a function to the set of startup tasks.
+     *
+     * @param func the task being added to the set of startup tasks.
+     *
+     * @throws std::runtime_error if the PowerPlant is already running/has already started.
+     */
+    void on_startup(std::function<void()>&& func);
+
+    /**
+     * @brief Adds a function to the set of tasks to be run when the PowerPlant starts up
+     *
+     * @param task The function to add to the task list
+     */
+    void add_thread_task(std::function<void()>&& task);
+
+    /**
      * @brief Installs a reactor of a particular type to the system.
      *
      * @details
@@ -153,6 +167,13 @@ public:
      * @param task The Reaction task to be executed in the thread pool
      */
     void submit(std::unique_ptr<threading::ReactionTask>&& task);
+
+    /**
+     * @brief Submits a new task to the main threads thread pool to be queued and then executed.
+     *
+     * @param task The Reaction task to be executed in the thread pool
+     */
+    void submit_main(std::unique_ptr<threading::ReactionTask>&& task);
 
     /**
      * @brief Log a message through NUClear's system.
@@ -238,12 +259,18 @@ public:
 private:
     /// @brief A list of tasks that must be run when the powerplant starts up
     std::vector<std::function<void()>> tasks;
+    /// @brief A vector of the running threads in the system
+    std::vector<std::unique_ptr<std::thread>> threads;
     /// @brief Our TaskScheduler that handles distributing task to the pool threads
     threading::TaskScheduler scheduler;
+    /// @brief Our TaskScheduler that handles distributing tasks to the main thread
+    threading::TaskScheduler main_thread_scheduler;
     /// @brief Our vector of Reactors, will get destructed when this vector is
     std::vector<std::unique_ptr<NUClear::Reactor>> reactors;
+    /// @brief Tasks that will be run during the startup process
+    std::vector<std::function<void()>> startup_tasks;
     /// @brief True if the powerplant is running
-    std::atomic<bool> is_running{false};
+    volatile bool is_running = false;
 };
 
 /**

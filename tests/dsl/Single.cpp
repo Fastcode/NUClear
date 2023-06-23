@@ -47,7 +47,7 @@ class TestReactor : public NUClear::Reactor {
 public:
     TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
 
-        on<Trigger<SimpleMessage1>, Single>().then("SimpleMessage1", [this](const SimpleMessage1&) {
+        on<Trigger<SimpleMessage1>, Single>().then([this](const SimpleMessage1&) {
             // Increment our run count
             ++message_count.message1;
 
@@ -67,14 +67,12 @@ public:
             powerplant.shutdown();
         });
 
-        on<Trigger<SimpleMessage2>, Single>().then("SimpleMessage2",
-                                                   [](const SimpleMessage2&) { ++message_count.message2; });
+        on<Trigger<SimpleMessage2>, Single>().then([](const SimpleMessage2&) { ++message_count.message2; });
 
         on<Trigger<SimpleMessage2>, With<SimpleMessage3>, Single>().then(
-            "SimpleMessage2 With SimpleMessage3",
             [](const SimpleMessage2&, const SimpleMessage3&) { ++message_count.message3; });
 
-        on<Startup>().then("Startup", [this]() {
+        on<Startup>().then([this]() {
             // Emit two events, only one should run
             emit(std::make_unique<SimpleMessage1>());
             emit(std::make_unique<SimpleMessage1>());

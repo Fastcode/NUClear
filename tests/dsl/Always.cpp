@@ -20,31 +20,18 @@
 #include <nuclear>
 
 namespace {
-struct BlankMessage {};
 
-int i                = 0;      // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
-bool emitted_message = false;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+int i = 0;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
 class TestReactor : public NUClear::Reactor {
 public:
     TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
 
         on<Always>().then([this] {
-            // Run until it's 11 then emit the blank message
-            if (i > 10) {
-                if (!emitted_message) {
-                    emitted_message = true;
-                    emit(std::make_unique<BlankMessage>());
-                }
-            }
-            else {
-                ++i;
-            }
-        });
+            ++i;
 
-        on<Always, With<BlankMessage>>().then([this] {
-            if (i == 11) {
-                ++i;
+            // Run until it's 11 then shutdown
+            if (i > 10) {
                 powerplant.shutdown();
             }
         });
@@ -52,7 +39,7 @@ public:
 };
 }  // namespace
 
-TEST_CASE("Testing on<Always> functionality (permanent run)", "[api][always]") {
+TEST_CASE("Testing on<Always> functionality (permanant run)", "[api][always]") {
 
     NUClear::PowerPlant::Configuration config;
     config.thread_count = 1;
@@ -65,6 +52,5 @@ TEST_CASE("Testing on<Always> functionality (permanent run)", "[api][always]") {
 
     plant.start();
 
-    REQUIRE(emitted_message);
-    REQUIRE(i == 12);
+    REQUIRE(i == 11);
 }

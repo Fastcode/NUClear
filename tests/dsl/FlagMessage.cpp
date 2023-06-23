@@ -62,7 +62,9 @@ public:
 
         // We make this high priority to ensure it runs first (will check for more errors)
         on<Trigger<MessageA>, With<MessageB>, Priority::HIGH>().then([](const MessageA&, const MessageB&) {
-            FAIL("A was never emitted after B so this should not be possible");
+            // Check A and B have been emitted
+            REQUIRE(a != nullptr);
+            REQUIRE(b != nullptr);
         });
     }
 };

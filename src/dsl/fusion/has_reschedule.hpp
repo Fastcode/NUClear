@@ -1,5 +1,6 @@
 /*
- * Copyright (C) 2023      Alex Biddulph <bidskii@gmail.com>
+ * Copyright (C) 2013      Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
+ *               2014-2017 Trent Houliston <trent@houliston.me>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -15,10 +16,10 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_DSL_FUSION_HAS_POOL_HPP
-#define NUCLEAR_DSL_FUSION_HAS_POOL_HPP
+#ifndef NUCLEAR_DSL_FUSION_HAS_RESCHEDULE_HPP
+#define NUCLEAR_DSL_FUSION_HAS_RESCHEDULE_HPP
 
-#include "../../threading/Reaction.hpp"
+#include "../../threading/ReactionTask.hpp"
 #include "NoOp.hpp"
 
 namespace NUClear {
@@ -26,19 +27,21 @@ namespace dsl {
     namespace fusion {
 
         /**
-         * @brief SFINAE struct to test if the passed class has a pool function that conforms to the NUClear DSL
+         * @brief SFINAE struct to test if the passed class has a reschedule function that conforms to the
+         *        NUClear DSL
          *
          * @tparam T the class to check
          */
         template <typename T>
-        struct has_pool {
+        struct has_reschedule {
         private:
             using yes = std::true_type;
             using no  = std::false_type;
 
             template <typename U>
-            static auto test(int)
-                -> decltype(U::template pool<ParsedNoOp>(std::declval<threading::Reaction&>()), yes());
+            static auto test(int) -> decltype(U::template reschedule<ParsedNoOp>(
+                                                  std::declval<std::unique_ptr<threading::ReactionTask>>()),
+                                              yes());
             template <typename>
             static no test(...);
 
@@ -50,4 +53,4 @@ namespace dsl {
 }  // namespace dsl
 }  // namespace NUClear
 
-#endif  // NUCLEAR_DSL_FUSION_HAS_POOL_HPP
+#endif  // NUCLEAR_DSL_FUSION_HAS_RESCHEDULE_HPP
