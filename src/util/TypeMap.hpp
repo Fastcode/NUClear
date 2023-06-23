@@ -65,9 +65,6 @@ namespace util {
          */
         static void set(std::shared_ptr<Value> d) {
 
-            // Do this once G++ supports it
-            // std::atomic_store_explicit(&data, d, std::memory_order_relaxed);
-
             // Lock a mutex and set our data
             const std::lock_guard<std::mutex> lock(mutex);
             data = std::move(d);
@@ -79,9 +76,6 @@ namespace util {
          * @return a shared_ptr to the data that was previously stored
          */
         static std::shared_ptr<Value> get() {
-
-            // TODO(Trent) do this when gcc supports it
-            // std::atomic_load_explicit(&data, std::memory_order_relaxed);
 
             std::shared_ptr<Value> d;
             {
