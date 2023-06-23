@@ -22,7 +22,6 @@
 #include <array>
 
 #include "../../PowerPlant.hpp"
-#include "../../threading/Reaction.hpp"
 #include "../../util/FileDescriptor.hpp"
 #include "../../util/network/get_interfaces.hpp"
 #include "../../util/platform.hpp"

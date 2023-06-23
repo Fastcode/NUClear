@@ -19,11 +19,8 @@
 #ifndef NUCLEAR_UTIL_CALLBACKGENERATOR_HPP
 #define NUCLEAR_UTIL_CALLBACKGENERATOR_HPP
 
-#include <type_traits>
-
 #include "../dsl/trait/is_transient.hpp"
 #include "../dsl/word/emit/Direct.hpp"
-#include "../util/GeneratedCallback.hpp"
 #include "../util/MergeTransient.hpp"
 #include "../util/TransientDataElements.hpp"
 #include "../util/apply.hpp"
@@ -47,15 +44,9 @@ namespace util {
     template <typename DSL, typename Function>
     struct CallbackGenerator {
 
-        // Don't use this constructor if F is of type CallbackGenerator
-        template <typename F,
-                  typename std::enable_if<
-                      !std::is_same<typename std::remove_reference<typename std::remove_cv<F>::type>::type,
-                                    CallbackGenerator>::value,
-                      bool>::type = true>
-        CallbackGenerator(F&& callback)
-            : callback(std::forward<F>(callback))
-            , transients(std::make_shared<typename TransientDataElements<DSL>::type>()) {}
+        CallbackGenerator(Function&& callback)
+            : callback(std::forward<Function>(callback))
+            , transients(std::make_shared<typename TransientDataElements<DSL>::type>()){};
 
         template <typename... T, int... DIndex, int... Index>
         void merge_transients(std::tuple<T...>& data,
@@ -68,7 +59,8 @@ namespace util {
                 std::get<DIndex>(data))...);
         }
 
-        GeneratedCallback operator()(threading::Reaction& r) {
+
+        std::pair<int, threading::ReactionTask::TaskFunction> operator()(threading::Reaction& r) {
 
             // Add one to our active tasks
             ++r.active_tasks;
@@ -79,7 +71,7 @@ namespace util {
                 --r.active_tasks;
 
                 // We cancel our execution by returning an empty function
-                return {};
+                return {0, threading::ReactionTask::TaskFunction()};
             }
 
             // Bind our data to a variable (this will run in the dispatching thread)
@@ -96,46 +88,53 @@ namespace util {
                 --r.active_tasks;
 
                 // We cancel our execution by returning an empty function
-                return {};
+                return {0, threading::ReactionTask::TaskFunction()};
             }
 
             // We have to make a copy of the callback because the "this" variable can go out of scope
             auto c = callback;
-            return GeneratedCallback(DSL::priority(r),
-                                     DSL::group(r),
-                                     DSL::pool(r),
-                                     [c, data](threading::ReactionTask& task) {
-                                         // Update our thread's priority to the correct level
-                                         update_current_thread_priority(task.priority);
+            return std::make_pair(DSL::priority(r), [c, data](std::unique_ptr<threading::ReactionTask>&& task) {
+                // Check if we are going to reschedule
+                task = DSL::reschedule(std::move(task));
 
-                                         // Record our start time
-                                         task.stats->started = clock::now();
+                // If we still control our task
+                if (task) {
 
-                                         // We have to catch any exceptions
-                                         try {
-                                             // We call with only the relevant arguments to the passed function
-                                             util::apply_relevant(c, std::move(data));
-                                         }
-                                         catch (...) {
+                    // Update our thread's priority to the correct level
+                    update_current_thread_priority(task->priority);
 
-                                             // Catch our exception if it happens
-                                             task.stats->exception = std::current_exception();
-                                         }
+                    // Record our start time
+                    task->stats->started = clock::now();
 
-                                         // Our finish time
-                                         task.stats->finished = clock::now();
+                    // We have to catch any exceptions
+                    try {
+                        // We call with only the relevant arguments to the passed function
+                        util::apply_relevant(c, std::move(data));
+                    }
+                    catch (...) {
 
-                                         // Run our postconditions
-                                         DSL::postcondition(task);
+                        // Catch our exception if it happens
+                        task->stats->exception = std::current_exception();
+                    }
 
-                                         // Take one from our active tasks
-                                         --task.parent.active_tasks;
+                    // Our finish time
+                    task->stats->finished = clock::now();
 
-                                         // Emit our reaction statistics if it wouldn't cause a loop
-                                         if (task.emit_stats) {
-                                             PowerPlant::powerplant->emit_shared<dsl::word::emit::Direct>(task.stats);
-                                         }
-                                     });
+                    // Run our postconditions
+                    DSL::postcondition(*task);
+
+                    // Take one from our active tasks
+                    --task->parent.active_tasks;
+
+                    // Emit our reaction statistics if it wouldn't cause a loop
+                    if (task->emit_stats) {
+                        PowerPlant::powerplant->emit_shared<dsl::word::emit::Direct>(task->stats);
+                    }
+                }
+
+                // Return our task
+                return std::move(task);
+            });
         }
 
         Function callback;

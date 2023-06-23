@@ -19,30 +19,25 @@
 #ifndef NUCLEAR_DSL_WORD_SYNC_HPP
 #define NUCLEAR_DSL_WORD_SYNC_HPP
 
-#include <map>
-#include <mutex>
-#include <typeindex>
-
-#include "../../threading/ReactionTask.hpp"
-#include "../../util/GroupDescriptor.hpp"
-#include "Group.hpp"
-
 namespace NUClear {
 namespace dsl {
     namespace word {
 
         /**
          * @brief
-         *  This is used to specify that only one reaction in this SyncGroup can run concurrently.
+         *  This option sets the synchronisation for a group of tasks.
          *
          * @details
-         *  @code on<Trigger<T, ...>, Sync<SyncGroup>>() @endcode
+         *  @code on<Trigger<T, ...>, Sync<Group>>() @endcode
          *  When a group of tasks has been synchronised, only one task from the group will execute at a given time.
          *
          *  Should another task from this group be scheduled/requested (during execution of the current task), it will
-         *  be sidelined into the task queue.
+         *  be sidelined into a priority queue.
          *
-         *  Tasks in the queue are ordered based on their priority level, then their task id.
+         *  Upon completion of the currently executing task, the queue will be polled to allow execution of the next
+         *  task in this group.
+         *
+         *  Tasks in the synchronization queue are ordered based on their priority level, then their emission timestamp.
          *
          *  For best use, this word should be fused with at least one other binding DSL word.
          *
@@ -57,7 +52,7 @@ namespace dsl {
          *  NUClear will have task and thread control so that system resources can be efficiently managed.
          *
          * @par Implements
-         *  Group
+         *  Pre-condition, Post-condition
          *
          * @tparam SyncGroup
          *  the type/group to synchronize on.  This needs to be a declared type within the system.  It is common to
@@ -66,7 +61,66 @@ namespace dsl {
          *  Note that the developer is not limited to the use of a struct; any declared type will work.
          */
         template <typename SyncGroup>
-        struct Sync : Group<SyncGroup, 1> {};
+        struct Sync {
+
+            using task_ptr = std::unique_ptr<threading::ReactionTask>;
+
+            /// @brief our queue which sorts tasks by priority
+            static std::priority_queue<task_ptr> queue;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+            /// @brief how many tasks are currently running
+            static volatile bool running;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+            /// @brief a mutex to ensure data consistency
+            static std::mutex mutex;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+
+            template <typename DSL>
+            static inline std::unique_ptr<threading::ReactionTask> reschedule(
+                std::unique_ptr<threading::ReactionTask>&& task) {
+
+                // Lock our mutex
+                const std::lock_guard<std::mutex> lock(mutex);
+
+                // If we are already running then queue, otherwise return and set running
+                if (running) {
+                    queue.push(std::move(task));
+                    return nullptr;
+                }
+
+                running = true;
+                return std::move(task);
+            }
+
+            template <typename DSL>
+            static void postcondition(threading::ReactionTask& task) {
+
+                // Lock our mutex
+                const std::lock_guard<std::mutex> lock(mutex);
+
+                // We are finished running
+                running = false;
+
+                // If we have another task, add it
+                if (!queue.empty()) {
+                    std::unique_ptr<threading::ReactionTask> next_task(
+                        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-const-cast)
+                        std::move(const_cast<std::unique_ptr<threading::ReactionTask>&>(queue.top())));
+                    queue.pop();
+
+                    // Resubmit this task to the reaction queue
+                    task.parent.reactor.powerplant.submit(std::move(next_task));
+                }
+            }
+        };
+
+        template <typename SyncGroup>
+        // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables,cert-err58-cpp)
+        std::priority_queue<typename Sync<SyncGroup>::task_ptr> Sync<SyncGroup>::queue;
+
+        template <typename SyncGroup>
+        volatile bool Sync<SyncGroup>::running = false;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+
+        template <typename SyncGroup>
+        // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
+        std::mutex Sync<SyncGroup>::mutex;
 
     }  // namespace word
 }  // namespace dsl

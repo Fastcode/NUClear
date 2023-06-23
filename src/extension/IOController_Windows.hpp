@@ -125,7 +125,7 @@ namespace extension {
 
             on<Shutdown>().then("Shutdown IO Controller", [this] {
                 // Set shutdown to true
-                shutdown.store(true);
+                shutdown = true;
 
                 // Signal the notifier event to return from WSAWaitForMultipleEvents() and shutdown
                 if (!WSASetEvent(notifier)) {
@@ -136,7 +136,7 @@ namespace extension {
             });
 
             on<Always>().then("IO Controller", [this] {
-                if (!shutdown.load()) {
+                if (!shutdown) {
                     // Wait for events
                     auto event_index = WSAWaitForMultipleEvents(static_cast<DWORD>(events.size()),
                                                                 events.data(),
@@ -247,7 +247,7 @@ namespace extension {
 
         WSAEVENT notifier;
 
-        std::atomic<bool> shutdown{false};
+        bool shutdown             = false;
         bool reactions_list_dirty = false;
 
         std::mutex reaction_mutex;

@@ -118,7 +118,7 @@ namespace extension {
 
             on<Shutdown>().then("Shutdown IO Controller", [this] {
                 // Set shutdown to true so it won't try to poll again
-                shutdown.store(true);
+                shutdown = true;
                 // A byte to send down the pipe
                 char val = 0;
 
@@ -133,7 +133,7 @@ namespace extension {
             on<Always>().then("IO Controller", [this] {
                 // To make sure we don't get caught in a weird loop
                 // shutdown keeps us out here
-                if (!shutdown.load()) {
+                if (!shutdown) {
 
 
                     // TODO(trent): check for dirty here
@@ -261,8 +261,8 @@ namespace extension {
         fd_t notify_recv{-1};
         fd_t notify_send{-1};
 
-        std::atomic<bool> shutdown{false};
-        bool dirty = true;
+        bool shutdown = false;
+        bool dirty    = true;
         std::mutex reaction_mutex;
         std::vector<pollfd> fds{};
         std::vector<Task> reactions{};

@@ -53,14 +53,9 @@ namespace dsl {
                 Parse<Sentence...>>(r);
         }
 
-        static inline util::GroupDescriptor group(threading::Reaction& r) {
-            return std::conditional_t<fusion::has_group<DSL>::value, DSL, fusion::NoOp>::template group<
-                Parse<Sentence...>>(r);
-        }
-
-        static inline util::ThreadPoolDescriptor pool(threading::Reaction& r) {
-            return std::conditional_t<fusion::has_pool<DSL>::value, DSL, fusion::NoOp>::template pool<
-                Parse<Sentence...>>(r);
+        static std::unique_ptr<threading::ReactionTask> reschedule(std::unique_ptr<threading::ReactionTask>&& task) {
+            return std::conditional_t<fusion::has_reschedule<DSL>::value, DSL, fusion::NoOp>::template reschedule<DSL>(
+                std::move(task));
         }
 
         static inline void postcondition(threading::ReactionTask& r) {
