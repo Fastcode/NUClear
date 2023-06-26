@@ -34,6 +34,8 @@ namespace {
 
 // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
 std::vector<std::pair<NUClear::clock::time_point, std::chrono::system_clock::time_point>> times;
+// NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
+std::mutex times_mutex;
 constexpr int n_time = 100;
 
 class TestReactor : public NUClear::Reactor {
@@ -41,18 +43,19 @@ public:
     TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
 
         // Have a frequently running reaction so that ReactionStatistics will be emitted
-        on<Every<10, std::chrono::milliseconds>>().then([this] {
-            if (times.size() > n_time) {
-                powerplant.shutdown();
-            }
-        });
+        on<Every<10, std::chrono::milliseconds>>().then([] {});
 
         // Trigger on ReactionStatistics so that we can record the times that messages were emitted and compare them
         // against the current time If everything is working as it should then the emitted times and the current times
         // should be identical (at least down to the second, but it depends on when the clock ticks over)
-        on<Trigger<NUClear::message::ReactionStatistics>>().then([](const NUClear::message::ReactionStatistics& stats) {
-            times.push_back(std::make_pair(stats.emitted, std::chrono::system_clock::now()));
-        });
+        on<Trigger<NUClear::message::ReactionStatistics>>().then(
+            [this](const NUClear::message::ReactionStatistics& stats) {
+                std::lock_guard<std::mutex> lock(times_mutex);
+                times.push_back(std::make_pair(stats.emitted, std::chrono::system_clock::now()));
+                if (times.size() > n_time) {
+                    powerplant.shutdown();
+                }
+            });
     }
 };
 }  // namespace
