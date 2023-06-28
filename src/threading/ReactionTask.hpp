@@ -132,11 +132,6 @@ namespace threading {
         /// the tasks will be queued on
         util::ThreadPoolDescriptor thread_pool_descriptor;
 
-        /// @brief if this task should run immediately in the current thread. If immediate execution of this task is not
-        /// possible (e.g. due to group concurrency restrictions) this task will be queued as normal. This flag will be
-        /// set by `emit<Direct>`
-        bool immediate{false};
-
         /// @brief the data bound callback to be executed
         /// @attention note this must be last in the list as the this pointer is passed to the callback generator
         TaskFunction callback;

@@ -40,8 +40,8 @@ void PowerPlant::start() {
     scheduler.start();
 }
 
-void PowerPlant::submit(std::unique_ptr<threading::ReactionTask>&& task) {
-    scheduler.submit(std::move(task));
+void PowerPlant::submit(std::unique_ptr<threading::ReactionTask>&& task, const bool& immediate) {
+    scheduler.submit(std::move(task), immediate);
 }
 
 void PowerPlant::shutdown() {

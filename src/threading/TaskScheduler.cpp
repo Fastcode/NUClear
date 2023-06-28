@@ -158,11 +158,11 @@ namespace threading {
         }
     }
 
-    void TaskScheduler::submit(std::unique_ptr<ReactionTask>&& task) {
+    void TaskScheduler::submit(std::unique_ptr<ReactionTask>&& task, const bool& immediate) {
 
         // Immediate tasks are executed directly on the current thread if they can be
         // If something is blocking them from running right now they are added to the queue
-        if (task->immediate) {
+        if (immediate) {
             bool runnable = false;
             /* mutex scope */ {
                 const std::lock_guard<std::mutex> group_lock(group_mutex);

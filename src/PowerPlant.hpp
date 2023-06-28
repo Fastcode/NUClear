@@ -145,8 +145,9 @@ public:
      * @brief Submits a new task to the ThreadPool to be queued and then executed.
      *
      * @param task The Reaction task to be executed in the thread pool
+     * @param immediate if this task should run immediately in the current thread
      */
-    void submit(std::unique_ptr<threading::ReactionTask>&& task);
+    void submit(std::unique_ptr<threading::ReactionTask>&& task, const bool& immediate = false);
 
     /**
      * @brief Log a message through NUClear's system.
