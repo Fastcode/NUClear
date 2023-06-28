@@ -23,6 +23,8 @@ namespace NUClear {
 PowerPlant* PowerPlant::powerplant = nullptr;  // NOLINT
 
 PowerPlant::~PowerPlant() {
+    // Make sure reactors are destroyed before anything else
+    reactors.clear();
 
     // Bye bye powerplant
     powerplant = nullptr;
