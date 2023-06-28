@@ -50,7 +50,7 @@ public:
         // should be identical (at least down to the second, but it depends on when the clock ticks over)
         on<Trigger<NUClear::message::ReactionStatistics>>().then(
             [this](const NUClear::message::ReactionStatistics& stats) {
-                std::lock_guard<std::mutex> lock(times_mutex);
+                const std::lock_guard<std::mutex> lock(times_mutex);
                 times.push_back(std::make_pair(stats.emitted, std::chrono::system_clock::now()));
                 if (times.size() > n_time) {
                     powerplant.shutdown();
