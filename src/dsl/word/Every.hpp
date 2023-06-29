@@ -21,6 +21,7 @@
 
 #include <cmath>
 
+#include "../../threading/Reaction.hpp"
 #include "../operation/ChronoTask.hpp"
 #include "../operation/Unbind.hpp"
 #include "emit/Direct.hpp"

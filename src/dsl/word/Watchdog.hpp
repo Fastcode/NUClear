@@ -19,6 +19,7 @@
 #ifndef NUCLEAR_DSL_WORD_WATCHDOG_HPP
 #define NUCLEAR_DSL_WORD_WATCHDOG_HPP
 
+#include "../../threading/Reaction.hpp"
 #include "../../util/demangle.hpp"
 #include "../operation/Unbind.hpp"
 #include "../store/DataStore.hpp"

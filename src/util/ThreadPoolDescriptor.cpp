@@ -1,6 +1,5 @@
 /*
- * Copyright (C) 2013      Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
- *               2014-2017 Trent Houliston <trent@houliston.me>
+ * Copyright (C) 2023      Alex Biddulph <bidskii@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -16,33 +15,13 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_DSL_FUSION_HPP
-#define NUCLEAR_DSL_FUSION_HPP
-
-#include "../threading/ReactionHandle.hpp"
-#include "fusion/BindFusion.hpp"
-#include "fusion/GetFusion.hpp"
-#include "fusion/GroupFusion.hpp"
-#include "fusion/PoolFusion.hpp"
-#include "fusion/PostconditionFusion.hpp"
-#include "fusion/PreconditionFusion.hpp"
-#include "fusion/PriorityFusion.hpp"
+#include "ThreadPoolDescriptor.hpp"
 
 namespace NUClear {
-namespace dsl {
+namespace util {
 
-    /// @brief All of the words from a reaction handle "fused" together into one type
-    template <typename... Words>
-    struct Fusion
-        : public fusion::BindFusion<Words...>
-        , public fusion::GetFusion<Words...>
-        , public fusion::PreconditionFusion<Words...>
-        , public fusion::PriorityFusion<Words...>
-        , public fusion::GroupFusion<Words...>
-        , public fusion::PoolFusion<Words...>
-        , public fusion::PostconditionFusion<Words...> {};
+    const uint64_t ThreadPoolDescriptor::MAIN_THREAD_POOL_ID    = 0;
+    const uint64_t ThreadPoolDescriptor::DEFAULT_THREAD_POOL_ID = 1;
 
-}  // namespace dsl
+}  // namespace util
 }  // namespace NUClear
-
-#endif  // NUCLEAR_DSL_FUSION_HPP

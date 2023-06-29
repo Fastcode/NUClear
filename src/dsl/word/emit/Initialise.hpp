@@ -19,7 +19,7 @@
 #ifndef NUCLEAR_DSL_WORD_EMIT_INITIALISE_HPP
 #define NUCLEAR_DSL_WORD_EMIT_INITIALISE_HPP
 
-#include "Direct.hpp"
+#include "Delay.hpp"
 
 namespace NUClear {
 namespace dsl {
@@ -53,9 +53,9 @@ namespace dsl {
 
                 static void emit(PowerPlant& powerplant, std::shared_ptr<DataType> data) {
 
-                    auto task = [&powerplant, data] { emit::Direct<DataType>::emit(powerplant, data); };
-
-                    powerplant.on_startup(task);
+                    // Delay the emit by 0 seconds, this will delay the emit until the chrono controller starts, which
+                    // will be when the system starts
+                    Delay<DataType>::emit(powerplant, data, std::chrono::seconds(0));
                 }
             };
 

@@ -22,6 +22,7 @@
 #include <list>
 #include <type_traits>
 
+#include "../../threading/Reaction.hpp"
 #include "../../util/MergeTransient.hpp"
 
 namespace NUClear {
@@ -78,7 +79,7 @@ namespace dsl {
          *  element is last.  Once n messages are stored, the trigger of a new reaction task will cause the
          *  newest copy to be appended to the list, and the oldest copy to be dropped.
          *
-         *  This word is a modifier, and should  be used to modify any "Get" DSL word.
+         *  This word is a modifier, and should be used to modify any "Get" DSL word.
          *
          * @par Multiple Statements
          *  @code on<Last<n, Trigger<T1>, With<T2>>() @endcode

@@ -19,6 +19,12 @@
 #ifndef NUCLEAR_DSL_FUSION_NOOP_HPP
 #define NUCLEAR_DSL_FUSION_NOOP_HPP
 
+#include <typeindex>
+
+#include "../../threading/Reaction.hpp"
+#include "../../threading/ReactionTask.hpp"
+#include "../../util/GroupDescriptor.hpp"
+#include "../../util/ThreadPoolDescriptor.hpp"
 #include "../word/Priority.hpp"
 
 namespace NUClear {
@@ -50,9 +56,13 @@ namespace dsl {
             }
 
             template <typename DSL>
-            static inline std::unique_ptr<threading::ReactionTask> reschedule(
-                std::unique_ptr<threading::ReactionTask>&& task) {
-                return std::move(task);
+            static inline util::GroupDescriptor group(threading::Reaction& /*reaction*/) {
+                return util::GroupDescriptor{};
+            }
+
+            template <typename DSL>
+            static inline util::ThreadPoolDescriptor pool(threading::Reaction& /*reaction*/) {
+                return util::ThreadPoolDescriptor{};
             }
 
             template <typename DSL>
@@ -74,8 +84,9 @@ namespace dsl {
 
             static inline int priority(threading::Reaction&);
 
-            static inline std::unique_ptr<threading::ReactionTask> reschedule(
-                std::unique_ptr<threading::ReactionTask>&& task);
+            static inline util::GroupDescriptor group(threading::Reaction&);
+
+            static inline util::ThreadPoolDescriptor pool(threading::Reaction&);
 
             static inline void postcondition(threading::ReactionTask&);
         };
