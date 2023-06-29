@@ -24,7 +24,9 @@ PowerPlant* PowerPlant::powerplant = nullptr;  // NOLINT
 
 PowerPlant::~PowerPlant() {
     // Make sure reactors are destroyed before anything else
-    reactors.clear();
+    while (!reactors.empty()) {
+        reactors.pop_back();
+    }
 
     // Bye bye powerplant
     powerplant = nullptr;
