@@ -19,7 +19,8 @@
 #ifndef NUCLEAR_DSL_WORD_MAINTHREAD_HPP
 #define NUCLEAR_DSL_WORD_MAINTHREAD_HPP
 
-#include "../../util/main_thread_id.hpp"
+#include "../../threading/ReactionTask.hpp"
+#include "../../util/ThreadPoolDescriptor.hpp"
 
 namespace NUClear {
 namespace dsl {
@@ -32,32 +33,12 @@ namespace dsl {
          * @details
          *  @code on<Trigger<T, ...>, MainThread>() @endcode
          *  This will most likely be used with graphics related tasks.
-         *
-         *  For best use, this word should be fused with at least one other binding DSL word.
-         *
-         * @par Implements
-         *  Pre-condition
          */
         struct MainThread {
 
-            using task_ptr = std::unique_ptr<threading::ReactionTask>;
-
             template <typename DSL>
-            static inline std::unique_ptr<threading::ReactionTask> reschedule(
-                std::unique_ptr<threading::ReactionTask>&& task) {
-
-                // If we are not the main thread, move us to the main thread
-                if (std::this_thread::get_id() != util::main_thread_id) {
-
-                    // Submit to the main thread scheduler
-                    task->parent.reactor.powerplant.submit_main(std::move(task));
-
-                    // We took the task away so return null
-                    return nullptr;
-                }
-
-                // Otherwise run!
-                return std::move(task);
+            static inline util::ThreadPoolDescriptor pool(threading::Reaction& /*reaction*/) {
+                return util::ThreadPoolDescriptor{util::ThreadPoolDescriptor::MAIN_THREAD_POOL_ID, 1};
             }
         };
 

@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2013      Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
- *               2014-2017 Trent Houliston <trent@houliston.me>
+ *               2014-2022 Trent Houliston <trent@houliston.me>
+ *               2023      Trent Houliston <trent@houliston.me>, Alex Biddulph <bidskii@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -18,62 +19,235 @@
 
 #include "TaskScheduler.hpp"
 
+#include <algorithm>
+#include <atomic>
+#include <iostream>
+#include <map>
+#include <mutex>
+#include <system_error>
+
+#include "../dsl/word/MainThread.hpp"
+#include "../util/update_current_thread_priority.hpp"
+
 namespace NUClear {
 namespace threading {
 
-    void TaskScheduler::shutdown() {
-        {
-            const std::lock_guard<std::mutex> lock(mutex);
-            running = false;
+    bool TaskScheduler::is_runnable(const std::unique_ptr<ReactionTask>& task) {
+
+        if (groups.count(task->group_descriptor.group_id) == 0) {
+            groups[task->group_descriptor.group_id] = 0;
         }
-        condition.notify_all();
+
+        // Task can run if the group it belongs to has spare threads
+        if (groups.at(task->group_descriptor.group_id) < task->group_descriptor.thread_count) {
+            // This task is about to run in this group, increase the number of active tasks in the group
+            groups.at(task->group_descriptor.group_id)++;
+            return true;
+        }
+
+        return false;
     }
 
-    void TaskScheduler::submit(std::unique_ptr<ReactionTask>&& task) {
+    void TaskScheduler::run_task(std::unique_ptr<ReactionTask>&& task) {
+        if (task) {
+            task->run();
 
-        // We do not accept new tasks once we are shutdown
-        if (running) {
+            // This task is no longer running, decrease the number of active tasks in the group
+            /* mutex scope */ {
+                const std::lock_guard<std::mutex> group_lock(group_mutex);
+                groups.at(task->group_descriptor.group_id)--;
+            }
+        }
+    }
 
-            /* Mutex Scope */ {
-                const std::lock_guard<std::mutex> lock(mutex);
-                queue.push(std::forward<std::unique_ptr<ReactionTask>>(task));
+    void TaskScheduler::pool_func(std::shared_ptr<PoolQueue> pool) {
+
+        // Set the thread pool for this thread so it can be accessed elsewhere
+        current_queue = &pool;
+
+        // When task is nullptr there are no more tasks to get and the scheduler is shutting down
+        for (auto task = get_task(); task != nullptr; task = get_task()) {
+            // Run the current task
+            run_task(std::move(task));
+        }
+
+        // Clear the current queue so it can eventually be deleted
+        current_queue = nullptr;
+    }
+
+    TaskScheduler::TaskScheduler(const size_t& thread_count) {
+        // Make the queue for the main thread
+        pool_queues[util::ThreadPoolDescriptor::MAIN_THREAD_POOL_ID] =
+            std::make_shared<PoolQueue>(util::ThreadPoolDescriptor{util::ThreadPoolDescriptor::MAIN_THREAD_POOL_ID, 1});
+
+        // Make the default pool with the correct number of threads
+        get_pool_queue(util::ThreadPoolDescriptor{util::ThreadPoolDescriptor::DEFAULT_THREAD_POOL_ID, thread_count});
+    }
+
+    void TaskScheduler::start_threads(const std::shared_ptr<PoolQueue>& pool) {
+        // The main thread never needs to be started
+        if (pool->pool_descriptor.pool_id != util::ThreadPoolDescriptor::MAIN_THREAD_POOL_ID) {
+            const std::lock_guard<std::mutex> lock(pool->mutex);
+            while (pool->threads.size() < pool->pool_descriptor.thread_count) {
+                pool->threads.emplace_back(std::make_unique<std::thread>(&TaskScheduler::pool_func, this, pool));
+            }
+        }
+    }
+
+    std::shared_ptr<TaskScheduler::PoolQueue> TaskScheduler::get_pool_queue(const util::ThreadPoolDescriptor& pool) {
+        // If the pool does not exist, create it
+        const std::lock_guard<std::mutex> pool_lock(pool_mutex);
+        if (pool_queues.count(pool.pool_id) == 0) {
+            // Create the pool
+            auto queue                = std::make_shared<PoolQueue>(pool);
+            pool_queues[pool.pool_id] = queue;
+
+            // If the scheduler has not yet started then don't start the threads for this pool yet
+            if (started.load()) {
+                start_threads(queue);
             }
         }
 
-        // Notify a thread that it can proceed
-        condition.notify_one();
+        return pool_queues.at(pool.pool_id);
+    }
+
+    void TaskScheduler::start() {
+
+        // The scheduler is now started
+        started.store(true);
+
+        // Start all our threads
+        for (const auto& pool : pool_queues) {
+            start_threads(pool.second);
+        }
+
+        // Run main thread tasks
+        pool_func(pool_queues.at(util::ThreadPoolDescriptor::MAIN_THREAD_POOL_ID));
+
+        /**
+         * Once the main thread reaches this point it is because the powerplant, and by extension the scheduler, have
+         * been shutdown and the main thread is now about to leave the scheduler.
+         */
+
+        // Poke all of the threads to make sure they are awake and then wait for them to finish
+        for (auto& pool : pool_queues) {
+            /* mutex scope */ {
+                const std::lock_guard<std::mutex> queue_lock(pool.second->mutex);
+                pool.second->condition.notify_all();
+            }
+            for (auto& thread : pool.second->threads) {
+                try {
+                    if (thread->joinable()) {
+                        thread->join();
+                    }
+                }
+                // This gets thrown some time if between checking if joinable and joining
+                // the thread is no longer joinable
+                catch (const std::system_error&) {
+                }
+            }
+        }
+    }
+
+    void TaskScheduler::shutdown() {
+        started.store(false);
+        running.store(false);
+        for (auto& pool : pool_queues) {
+            const std::lock_guard<std::mutex> lock(pool.second->mutex);
+            pool.second->condition.notify_all();
+        }
+    }
+
+    void TaskScheduler::submit(std::unique_ptr<ReactionTask>&& task, const bool& immediate) {
+
+        // Immediate tasks are executed directly on the current thread if they can be
+        // If something is blocking them from running right now they are added to the queue
+        if (immediate) {
+            bool runnable = false;
+            /* mutex scope */ {
+                const std::lock_guard<std::mutex> group_lock(group_mutex);
+                runnable = is_runnable(task);
+            }
+            if (runnable) {
+                run_task(std::move(task));
+                return;
+            }
+        }
+
+        // We do not accept new tasks once we are shutdown
+        if (running.load()) {
+            // Get the appropiate pool for this task
+            const std::shared_ptr<PoolQueue> pool = get_pool_queue(task->thread_pool_descriptor);
+
+            // Find where to insert the new task to maintain task order
+            const std::lock_guard<std::mutex> queue_lock(pool->mutex);
+            auto& queue = pool->queue;
+            auto it     = std::lower_bound(queue.begin(), queue.end(), task);
+            queue.insert(it, std::move(task));
+
+            // Notify a single thread that there is a new task
+            pool->condition.notify_one();
+        }
     }
 
     std::unique_ptr<ReactionTask> TaskScheduler::get_task() {
 
-        // Obtain the lock
-        std::unique_lock<std::mutex> lock(mutex);
+        // Wait at a high (but not realtime) priority to reduce latency for picking up a new task
+        update_current_thread_priority(1000);
 
-        // While our queue is empty
-        while (queue.empty()) {
+        if (current_queue == nullptr) {
+            throw std::runtime_error("Only threads managed by the TaskScheduler can get tasks");
+        }
 
-            // If the queue is empty we either wait or shutdown
-            if (!running) {
+        // Get the queue for this thread from its thread local storage
+        const std::shared_ptr<PoolQueue> pool = *current_queue;
+        auto& queue                           = pool->queue;
+        auto& condition                       = pool->condition;
 
-                // Notify any other threads that might be waiting on this condition
-                condition.notify_all();
+        // Keep looking for tasks while the scheduler is still running, or while there are still tasks to process
+        std::unique_lock<std::mutex> lock(pool->mutex);
+        while (running.load() || !pool->queue.empty()) {
 
-                // Return a nullptr to signify there is nothing on the queue
-                return nullptr;
+            // Only one thread can be checking group concurrency at a time otherwise the ordering might not be correct
+            /* mutex scope */ {
+                const std::lock_guard<std::mutex> group_lock(group_mutex);
+
+                // Iterate over all the tasks in the current thread pool queue, looking for one that we can run
+                for (auto it = queue.begin(); it != queue.end(); ++it) {
+
+                    // Check if we can run the task
+                    if (is_runnable(*it)) {
+
+                        // Move the task out of the queue
+                        std::unique_ptr<ReactionTask> task = std::move(*it);
+
+                        // Erase the old position in the queue
+                        queue.erase(it);
+
+                        // Return the task
+                        return task;
+                    }
+                }
+
+                // If pool concurrency is greater than group concurrency some threads can be left with nothing to do.
+                // Since running is false there will likely never be anything new to do and we are shutting down anyway.
+                // So if we can't find a task to run, just return nullptr and let the thread die.
+                if (!running.load()) {
+                    condition.notify_all();
+                    return nullptr;
+                }
             }
 
             // Wait for something to happen!
             condition.wait(lock);
         }
 
-        // Return the type
-        // If you're wondering why all the ridiculousness, it's because priority queue is not as feature complete as it
-        // should be its 'top' method returns a const reference (which we can't use to move a unique pointer)
-        std::unique_ptr<ReactionTask> task(
-            std::move(const_cast<std::unique_ptr<ReactionTask>&>(queue.top())));  // NOLINT
-        queue.pop();
-
-        return task;
+        // No more tasks and scheduler has shutdown
+        return nullptr;
     }
+
+    // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
+    ATTRIBUTE_TLS std::shared_ptr<TaskScheduler::PoolQueue>* TaskScheduler::current_queue = nullptr;
+
 }  // namespace threading
 }  // namespace NUClear

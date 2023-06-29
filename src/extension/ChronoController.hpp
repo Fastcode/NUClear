@@ -37,8 +37,10 @@ namespace extension {
                 // Lock the mutex while we're doing stuff
                 const std::lock_guard<std::mutex> lock(mutex);
 
-                // Add our new task to the heap
-                tasks.push_back(*task);
+                // Add our new task to the heap if we are still running
+                if (running) {
+                    tasks.push_back(*task);
+                }
 
                 // Poke the system
                 wait.notify_all();
@@ -55,7 +57,7 @@ namespace extension {
                         return task.id == unbind.id;
                     });
 
-                    // Remove if if it exists
+                    // Remove if it exists
                     if (it != tasks.end()) {
                         tasks.erase(it);
                     }
@@ -67,12 +69,17 @@ namespace extension {
             // When we shutdown we notify so we quit now
             on<Shutdown>().then("Shutdown Chrono Controller", [this] {
                 const std::lock_guard<std::mutex> lock(mutex);
+                running = false;
                 wait.notify_all();
             });
 
             on<Always, Priority::REALTIME>().then("Chrono Controller", [this] {
                 // Acquire the mutex lock so we can wait on it
                 std::unique_lock<std::mutex> lock(mutex);
+
+                if (!running) {
+                    return;
+                }
 
                 // If we have tasks to do
                 if (!tasks.empty()) {
@@ -123,6 +130,7 @@ namespace extension {
         std::vector<dsl::operation::ChronoTask> tasks;
         std::mutex mutex;
         std::condition_variable wait;
+        bool running{true};
 
         NUClear::clock::duration wait_offset;
     };

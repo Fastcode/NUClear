@@ -1,6 +1,5 @@
 /*
- * Copyright (C) 2013      Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
- *               2014-2017 Trent Houliston <trent@houliston.me>
+ * Copyright (C) 2023      Alex Biddulph <bidskii@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -16,33 +15,38 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_DSL_FUSION_HPP
-#define NUCLEAR_DSL_FUSION_HPP
+#ifndef NUCLEAR_UTIL_GROUPDESCRIPTOR_HPP
+#define NUCLEAR_UTIL_GROUPDESCRIPTOR_HPP
 
-#include "../threading/ReactionHandle.hpp"
-#include "fusion/BindFusion.hpp"
-#include "fusion/GetFusion.hpp"
-#include "fusion/GroupFusion.hpp"
-#include "fusion/PoolFusion.hpp"
-#include "fusion/PostconditionFusion.hpp"
-#include "fusion/PreconditionFusion.hpp"
-#include "fusion/PriorityFusion.hpp"
+#include <atomic>
+#include <cstddef>
+#include <cstdint>
+#include <limits>
 
 namespace NUClear {
-namespace dsl {
+namespace util {
 
-    /// @brief All of the words from a reaction handle "fused" together into one type
-    template <typename... Words>
-    struct Fusion
-        : public fusion::BindFusion<Words...>
-        , public fusion::GetFusion<Words...>
-        , public fusion::PreconditionFusion<Words...>
-        , public fusion::PriorityFusion<Words...>
-        , public fusion::GroupFusion<Words...>
-        , public fusion::PoolFusion<Words...>
-        , public fusion::PostconditionFusion<Words...> {};
+    /**
+     * @brief A description of a group
+     */
+    struct GroupDescriptor {
+        /// @brief a unique identifier for this pool
+        uint64_t group_id{0};
 
-}  // namespace dsl
+        /// @brief the maximum number of threads that can run concurrently in this group
+        size_t thread_count{std::numeric_limits<size_t>::max()};
+
+        /**
+         * @brief Return the next unique ID for a new group
+         */
+        static uint64_t get_unique_group_id() noexcept {
+            // Make group 0 the default group
+            static std::atomic<uint64_t> source{1};
+            return source++;
+        }
+    };
+
+}  // namespace util
 }  // namespace NUClear
 
-#endif  // NUCLEAR_DSL_FUSION_HPP
+#endif  // NUCLEAR_UTIL_GROUPDESCRIPTOR_HPP

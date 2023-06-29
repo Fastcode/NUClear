@@ -26,6 +26,8 @@
 #include <vector>
 
 #include "../message/ReactionStatistics.hpp"
+#include "../util/GroupDescriptor.hpp"
+#include "../util/ThreadPoolDescriptor.hpp"
 #include "../util/platform.hpp"
 
 namespace NUClear {
@@ -51,7 +53,7 @@ namespace threading {
 
     public:
         /// Type of the functions that ReactionTasks execute
-        using TaskFunction = std::function<std::unique_ptr<Task<ReactionType>>(std::unique_ptr<Task<ReactionType>>&&)>;
+        using TaskFunction = std::function<void(Task<ReactionType>&)>;
 
         /**
          * @brief Gets the current executing task, or nullptr if there isn't one.
@@ -65,11 +67,17 @@ namespace threading {
         /**
          * @brief Creates a new ReactionTask object bound with the parent Reaction object (that created it) and task.
          *
-         * @param parent    the Reaction object that spawned this ReactionTask.
-         * @param priority  the priority to use when executing this task.
-         * @param callback  the data bound callback to be executed in the threadpool.
+         * @param parent                 the Reaction object that spawned this ReactionTask.
+         * @param priority               the priority to use when executing this task.
+         * @param group_descriptor       the descriptor for the group that this task should run in
+         * @param thread_pool_descriptor the descriptor for the thread pool that this task should be queued in
+         * @param callback               the data bound callback to be executed in the thread pool.
          */
-        Task(ReactionType& parent, int priority, TaskFunction&& callback)
+        Task(ReactionType& parent,
+             const int& priority,
+             const util::GroupDescriptor& group_descriptor,
+             const util::ThreadPoolDescriptor& thread_pool_descriptor,
+             TaskFunction&& callback)
             : parent(parent)
             , id(++task_id_source)
             , priority(priority)
@@ -83,6 +91,8 @@ namespace threading {
                                                                   clock::time_point(std::chrono::seconds(0)),
                                                                   nullptr))
             , emit_stats(parent.emit_stats && (current_task != nullptr ? current_task->emit_stats : true))
+            , group_descriptor(group_descriptor)
+            , thread_pool_descriptor(thread_pool_descriptor)
             , callback(callback) {}
 
 
@@ -93,20 +103,14 @@ namespace threading {
          *  This runs the internal data bound task and times how long the execution takes. These figures can then be
          *  used in a debugging context to calculate how long callbacks are taking to run.
          */
-        inline std::unique_ptr<Task<ReactionType>> run(std::unique_ptr<Task<ReactionType>>&& us) {
+        inline void run() {
 
             // Update our current task
-            Task* old_task = current_task;
-            current_task   = this;
+            const std::shared_ptr<Task> lock(current_task, [](Task* t) { current_task = t; });
+            current_task = this;
 
-            // Run our callback at catch the returned task (to see if it rescheduled itself)
-            us = callback(std::move(us));
-
-            // Reset our task back
-            current_task = old_task;
-
-            // Return our original task
-            return std::move(us);
+            // Run our callback
+            callback(*this);
         }
 
         /// @brief the parent Reaction object which spawned this
@@ -120,6 +124,13 @@ namespace threading {
         /// @brief if these stats are safe to emit. It should start true, and as soon as we are a reaction based on
         /// reaction statistics becomes false for all created tasks. This is to stop infinite loops of death.
         bool emit_stats;
+
+        /// @brief details about the group that this task will run in
+        util::GroupDescriptor group_descriptor;
+
+        /// @brief details about the thread pool that this task will run from, this will also influence what task queue
+        /// the tasks will be queued on
+        util::ThreadPoolDescriptor thread_pool_descriptor;
 
         /// @brief the data bound callback to be executed
         /// @attention note this must be last in the list as the this pointer is passed to the callback generator
@@ -149,10 +160,10 @@ namespace threading {
         //  nullptr is greater than anything else so it's removed from a queue first
         //  higher priority tasks are greater than lower priority tasks
         //  tasks created first (smaller ids) should run before tasks created later
-        return a == nullptr                 ? false
-               : b == nullptr               ? true
-               : a->priority == b->priority ? a->id > b->id
-                                            : a->priority < b->priority;
+        return a == nullptr                 ? true
+               : b == nullptr               ? false
+               : a->priority == b->priority ? a->id < b->id
+                                            : a->priority > b->priority;
     }
 
     // Alias the templated Task so that public API remains intact

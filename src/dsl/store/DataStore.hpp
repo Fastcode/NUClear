@@ -34,7 +34,7 @@ namespace dsl {
          *          typed datastore. This allows constant time access to any datatype without having to look it up.
          *          This is possible as the exact location of the store is known at compile time.
          *
-         * @tparam DataType the type of data stored in this paticular datastore location
+         * @tparam DataType the type of data stored in this particular datastore location
          */
         template <typename DataType>
         using DataStore = util::TypeMap<DataType, DataType, DataType>;

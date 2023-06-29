@@ -27,9 +27,6 @@ int trigger3 = 0;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 int trigger4 = 0;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
 struct MessageA {};
-
-template <typename R, typename... A>
-auto resolve_function_type(R (*)(A...)) -> R (*)(A...);
 struct MessageB {};
 
 class TestReactor : public NUClear::Reactor {

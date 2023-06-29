@@ -19,6 +19,7 @@
 #ifndef NUCLEAR_DSL_WORD_NETWORK_HPP
 #define NUCLEAR_DSL_WORD_NETWORK_HPP
 
+#include "../../threading/Reaction.hpp"
 #include "../../util/network/sock_t.hpp"
 #include "../../util/serialise/Serialise.hpp"
 #include "../store/ThreadStore.hpp"

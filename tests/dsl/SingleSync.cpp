@@ -16,73 +16,53 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include <array>
 #include <catch.hpp>
-
-// Windows can't do this test as it doesn't have file descriptors
-#ifndef _WIN32
-
-    #include <unistd.h>
-
-    #include <nuclear>
+#include <nuclear>
+#include <string>
+#include <vector>
 
 namespace {
+
+struct Message {
+    int val;
+    Message(int val) : val(val){};
+};
+
+struct ShutdownOnIdle {};
+
+std::vector<std::string> values;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
 class TestReactor : public NUClear::Reactor {
 public:
     TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
 
-        std::array<int, 2> fds{-1, -1};
-
-        if (pipe(fds.data()) < 0) {
-            FAIL("We couldn't make the pipe for the test");
-        }
-
-        in  = fds[0];
-        out = fds[1];
-
-        on<IO>(in, IO::READ).then([this](const IO::Event& e) {
-            // Read from our FD
-            unsigned char val{0};
-            const ssize_t bytes = ::read(e.fd, &val, 1);
-
-            // Check the data is correct
-            REQUIRE((e.events & IO::READ) != 0);
-            REQUIRE(bytes == 1);
-            REQUIRE(val == 0xDE);
-
-            // Shutdown
-            powerplant.shutdown();
+        on<Trigger<Message>, Sync<TestReactor>>().then("SyncReaction", [](const Message& m) {
+            values.push_back("Received value " + std::to_string(m.val));
         });
 
-        writer = on<IO>(out, IO::WRITE).then([this](const IO::Event& e) {
-            // Send data into our fd
-            const unsigned char val = 0xDE;
-            const ssize_t bytes     = ::write(e.fd, &val, 1);
+        on<Trigger<ShutdownOnIdle>, Priority::IDLE>().then("ShutdownOnIdle", [this] { powerplant.shutdown(); });
 
-            // Check that our data was sent
-            REQUIRE((e.events & IO::WRITE) != 0);
-            REQUIRE(bytes == 1);
-
-            // Unbind ourselves
-            writer.unbind();
+        on<Startup>().then("Startup", [this] {
+            values.clear();
+            for (int i = 0; i < 1000; ++i) {
+                emit(std::make_unique<Message>(i));
+            }
+            emit(std::make_unique<ShutdownOnIdle>());
         });
     }
-
-    int in{-1};
-    int out{-1};
-    ReactionHandle writer{};
 };
 }  // namespace
 
-TEST_CASE("Testing the IO extension", "[api][io]") {
-
+TEST_CASE("Testing that the Sync priority queue word works correctly", "[api][sync][priority]") {
     NUClear::PowerPlant::Configuration config;
-    config.thread_count = 1;
+    config.thread_count = 2;
     NUClear::PowerPlant plant(config);
+
     plant.install<TestReactor>();
-
     plant.start();
-}
 
-#endif
+    REQUIRE(values.size() == 1000);
+    for (int i = 0; i < 1000; ++i) {
+        CHECK(values[i] == "Received value " + std::to_string(i));
+    }
+}

@@ -62,4 +62,6 @@ TEST_CASE("Testing that when a trigger does not have it's data satisfied it does
     plant.emit(message);
 
     plant.start();
+
+    REQUIRE(a != nullptr);
 }

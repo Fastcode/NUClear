@@ -1,6 +1,5 @@
 /*
- * Copyright (C) 2013      Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
- *               2014-2017 Trent Houliston <trent@houliston.me>
+ * Copyright (C) 2023      Alex Biddulph <bidskii@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -16,33 +15,41 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_DSL_FUSION_HPP
-#define NUCLEAR_DSL_FUSION_HPP
+#ifndef NUCLEAR_UTIL_THREADPOOL_HPP
+#define NUCLEAR_UTIL_THREADPOOL_HPP
 
-#include "../threading/ReactionHandle.hpp"
-#include "fusion/BindFusion.hpp"
-#include "fusion/GetFusion.hpp"
-#include "fusion/GroupFusion.hpp"
-#include "fusion/PoolFusion.hpp"
-#include "fusion/PostconditionFusion.hpp"
-#include "fusion/PreconditionFusion.hpp"
-#include "fusion/PriorityFusion.hpp"
+#include <atomic>
+#include <cstddef>
+#include <cstdint>
 
 namespace NUClear {
-namespace dsl {
+namespace util {
 
-    /// @brief All of the words from a reaction handle "fused" together into one type
-    template <typename... Words>
-    struct Fusion
-        : public fusion::BindFusion<Words...>
-        , public fusion::GetFusion<Words...>
-        , public fusion::PreconditionFusion<Words...>
-        , public fusion::PriorityFusion<Words...>
-        , public fusion::GroupFusion<Words...>
-        , public fusion::PoolFusion<Words...>
-        , public fusion::PostconditionFusion<Words...> {};
+    /**
+     * @brief A description of a thread pool
+     */
+    struct ThreadPoolDescriptor {
+        /// @brief a unique identifier for this pool
+        uint64_t pool_id{ThreadPoolDescriptor::DEFAULT_THREAD_POOL_ID};
 
-}  // namespace dsl
+        /// @brief the number of threads this thread pool will use
+        size_t thread_count{0};
+
+        /// @brief the ID of the main thread pool (not to be confused with the ID of the main thread)
+        static const uint64_t MAIN_THREAD_POOL_ID;
+        /// @brief the ID of the default thread pool
+        static const uint64_t DEFAULT_THREAD_POOL_ID;
+
+        /**
+         * @brief Return the next unique ID for a new thread pool
+         */
+        static uint64_t get_unique_pool_id() noexcept {
+            static std::atomic<uint64_t> source{2};
+            return source++;
+        }
+    };
+
+}  // namespace util
 }  // namespace NUClear
 
-#endif  // NUCLEAR_DSL_FUSION_HPP
+#endif  // NUCLEAR_UTIL_THREADPOOL_HPP

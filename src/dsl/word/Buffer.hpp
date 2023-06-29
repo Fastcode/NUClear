@@ -19,6 +19,8 @@
 #ifndef NUCLEAR_DSL_WORD_BUFFER_HPP
 #define NUCLEAR_DSL_WORD_BUFFER_HPP
 
+#include "../../threading/Reaction.hpp"
+
 namespace NUClear {
 namespace dsl {
     namespace word {
@@ -30,10 +32,8 @@ namespace dsl {
          * @details
          *  @code on<Trigger<T, ...>, Buffer<n>>>() @endcode
          *  In the case above, when the subscribing reaction is triggered, should there be less than <i>n</i> existing
-         *  tasks associated with this reaction (either executing or in the queue), then a new task will be created and
-         *  scheduled.  However, should <i>n</i> tasks already be allocated, then this new task request will be ignored.
-         *
-         *  For best use, this word should be fused with at least one other binding DSL word.
+         * tasks associated with this reaction (either executing or in the queue), then a new task will be created and
+         * scheduled.  However, should <i>n</i> tasks already be allocated, then this new task request will be ignored.
          *
          * @par Implements
          *  Precondition, Fusion

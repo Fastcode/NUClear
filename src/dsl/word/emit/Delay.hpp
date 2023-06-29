@@ -34,7 +34,7 @@ namespace dsl {
              * @details
              *  @code emit<Scope::DELAY>(data, delay(ticks), dataType); @endcode
              *  Emissions under this scope will wait for the provided time delay, and then emit the object utilising a
-             *  local emit (that is, normal threadpool distribution).
+             *  local emit (that is, normal thread pool distribution).
              *
              * @param data
              *  the data to emit

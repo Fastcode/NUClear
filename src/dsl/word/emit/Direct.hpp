@@ -32,7 +32,7 @@ namespace dsl {
             /**
              * @brief
              *  When emitting data under this scope, the tasks created as a result of this emission will bypass the
-             *  threadpool, and be executed immediately.
+             *  thread pool, and be executed immediately.
              *
              * @details
              *  @code emit<Scope::DIRECT>(data, dataType); @endcode
@@ -52,7 +52,7 @@ namespace dsl {
             template <typename DataType>
             struct Direct {
 
-                static void emit(PowerPlant& /*powerplant*/, std::shared_ptr<DataType> data) {
+                static void emit(PowerPlant& powerplant, std::shared_ptr<DataType> data) {
 
                     // Run all our reactions that are interested
                     for (auto& reaction : store::TypeCallbackStore<DataType>::get()) {
@@ -63,7 +63,7 @@ namespace dsl {
 
                             auto task = reaction->get_task();
                             if (task) {
-                                task = task->run(std::move(task));
+                                powerplant.submit(std::move(task), true);
                             }
                         }
                         catch (const std::exception& ex) {

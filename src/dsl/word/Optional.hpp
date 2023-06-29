@@ -19,6 +19,7 @@
 #ifndef NUCLEAR_DSL_WORD_OPTIONAL_HPP
 #define NUCLEAR_DSL_WORD_OPTIONAL_HPP
 
+#include "../../threading/Reaction.hpp"
 namespace NUClear {
 namespace dsl {
     namespace word {
@@ -51,7 +52,7 @@ namespace dsl {
          *  the subscribing reaction.  However, should T2 not be present, the task will run without a reference to
          *  this data.
          *
-         *  This word is a modifier, and should  be used to modify any "Get" DSL word.
+         *  This word is a modifier, and should be used to modify any "Get" DSL word.
          *
          *@par Implements
          *  Modification

@@ -25,6 +25,7 @@
 #include <string>
 #include <utility>
 
+#include "../util/GeneratedCallback.hpp"
 #include "ReactionTask.hpp"
 
 namespace NUClear {
@@ -50,7 +51,7 @@ namespace threading {
 
     public:
         // The type of the generator that is used to create functions for ReactionTask objects
-        using TaskGenerator = std::function<std::pair<int, ReactionTask::TaskFunction>(Reaction&)>;
+        using TaskGenerator = std::function<util::GeneratedCallback(Reaction&)>;
 
         /**
          * @brief Constructs a new Reaction with the passed callback generator and options
@@ -74,13 +75,15 @@ namespace threading {
             }
 
             // Run our generator to get a functor we can run
-            int priority = 0;
-            std::function<std::unique_ptr<ReactionTask>(std::unique_ptr<ReactionTask> &&)> func;
-            std::tie(priority, func) = generator(*this);
+            auto callback = generator(*this);
 
             // If our generator returns a valid function
-            if (func) {
-                return std::make_unique<ReactionTask>(*this, priority, std::move(func));
+            if (callback) {
+                return std::make_unique<ReactionTask>(*this,
+                                                      callback.priority,
+                                                      callback.group,
+                                                      callback.pool,
+                                                      std::move(callback.callback));
             }
 
             // Otherwise we return a null pointer

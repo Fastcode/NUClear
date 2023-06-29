@@ -26,19 +26,20 @@ public:
     TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
 
         // Run a task without MainThread to make sure it isn't on the main thread
-        on<Trigger<int>>().then([this] {
+        on<Trigger<int>>().then("Non-MainThread reaction", [this] {
             // We shouldn't be on the main thread
             REQUIRE(NUClear::util::main_thread_id != std::this_thread::get_id());
 
             emit(std::make_unique<double>(1.1));
         });
 
-        // Run a task with MainTHread and ensure that it is on the main thread
-        on<Trigger<double>, MainThread>().then([this] {
+        // Run a task with MainThread and ensure that it is on the main thread
+        on<Trigger<double>, MainThread>().then("MainThread reaction", [this] {
+            // Shutdown first so the test will end even if the next check fails
+            powerplant.shutdown();
+
             // We should be on the main thread
             REQUIRE(NUClear::util::main_thread_id == std::this_thread::get_id());
-
-            powerplant.shutdown();
         });
 
         on<Startup>().then([this]() {
