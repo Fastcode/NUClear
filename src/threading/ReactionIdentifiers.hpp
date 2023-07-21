@@ -26,7 +26,6 @@ namespace threading {
 
     /**
      * @brief This struct holds string fields that can be used to identify a reaction.
-     *
      */
     struct ReactionIdentifiers {
 
