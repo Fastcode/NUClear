@@ -19,50 +19,47 @@
 #include <catch.hpp>
 #include <nuclear>
 
+#include "test_util/TestBase.hpp"
+
 namespace {
+
+/// @brief Events that occur during the test
+std::vector<std::string> events;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+
 struct SimpleMessage {};
 
 struct MessageA {};
 struct MessageB {};
 
-MessageA* a = nullptr;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
-MessageB* b = nullptr;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
-
-class TestReactor : public NUClear::Reactor {
+class TestReactor : public test_util::TestBase<TestReactor> {
 public:
-    TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
+    TestReactor(std::unique_ptr<NUClear::Environment> environment) : TestBase(std::move(environment)) {
 
-
-        on<Trigger<SimpleMessage>>().then([this] {
-            auto data = std::make_unique<MessageA>();
-            a         = data.get();
-
-            // Emit the first half of the requred data
-            emit(data);
-        });
 
         on<Trigger<MessageA>>().then([this] {
-            // Check a has been emitted
-            REQUIRE(a != nullptr);
-
-            auto data = std::make_unique<MessageB>();
-            b         = data.get();
-
-            // Emit the 2nd half
-            emit(data);
-
-            // We can shutdown now, the other reactions will process before termination
-            powerplant.shutdown();
+            events.push_back("MessageA triggered");
+            events.push_back("Emitting MessageB");
+            emit(std::make_unique<MessageB>());
         });
 
-        on<Trigger<MessageB>>().then([] {
-            // Check b has been emitted
-            REQUIRE(b != nullptr);
+        on<Trigger<MessageB>>().then([] {  //
+            events.push_back("MessageB triggered");
         });
 
-        // We make this high priority to ensure it runs first (will check for more errors)
-        on<Trigger<MessageA>, With<MessageB>, Priority::HIGH>().then([](const MessageA&, const MessageB&) {
-            FAIL("A was never emitted after B so this should not be possible");
+        // This should never run
+        on<Trigger<MessageA>, With<MessageB>>().then([](const MessageA&, const MessageB&) {  //
+            events.push_back("MessageA with MessageB triggered");
+        });
+
+        on<Trigger<Step<1>>>().then([this] {
+            events.push_back("Step<1> triggered");
+            events.push_back("Emitting MessageA");
+            emit(std::make_unique<MessageA>());
+        });
+
+        on<Startup>().then([this] {
+            events.push_back("Emitting Step<1>");
+            emit(std::make_unique<Step<1>>());
         });
     }
 };
@@ -75,10 +72,20 @@ TEST_CASE("Testing emitting types that are flag types (Have no contents)", "[api
     config.thread_count = 1;
     NUClear::PowerPlant plant(config);
     plant.install<TestReactor>();
-
-    auto message = std::make_unique<SimpleMessage>();
-
-    plant.emit(message);
-
     plant.start();
+
+    std::vector<std::string> expected = {
+        "Emitting Step<1>",
+        "Step<1> triggered",
+        "Emitting MessageA",
+        "MessageA triggered",
+        "Emitting MessageB",
+        "MessageB triggered",
+    };
+
+    // Make an info print the diff in an easy to read way if we fail
+    INFO(test_util::diff_string(expected, events));
+
+    // Check the events fired in order and only those events
+    REQUIRE(events == expected);
 }
