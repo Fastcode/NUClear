@@ -19,29 +19,34 @@
 #include <catch.hpp>
 #include <nuclear>
 
+#include "test_util/TestBase.hpp"
+
 namespace {
 
-struct CustomGet : public NUClear::dsl::operation::TypeBind<int> {
+/// @brief Events that occur during the test
+std::vector<std::string> events;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+
+struct CustomGet : public NUClear::dsl::operation::TypeBind<CustomGet> {
 
     template <typename DSL>
-    static inline std::shared_ptr<int> get(NUClear::threading::Reaction& /*unused*/) {
-        return std::make_shared<int>(5);
+    static inline std::shared_ptr<std::string> get(NUClear::threading::Reaction& /*unused*/) {
+        return std::make_shared<std::string>("Data from a custom getter");
     }
 };
 
-class TestReactor : public NUClear::Reactor {
+class TestReactor : public test_util::TestBase<TestReactor> {
 public:
-    TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
+    TestReactor(std::unique_ptr<NUClear::Environment> environment) : TestBase(std::move(environment)) {
 
-        on<CustomGet>().then([this](const int& x) {
-            REQUIRE(x == 5);
-
-            powerplant.shutdown();
+        on<CustomGet>().then([](const std::string& x) {  //
+            events.push_back("CustomGet Triggered");
+            events.push_back(x);
         });
 
         on<Startup>().then([this] {
-            // Emit from message 4 to 1
-            emit(std::make_unique<int>(10));
+            // Emit a CustomGet instance to trigger the reaction
+            events.push_back("Emitting CustomGet");
+            emit(std::make_unique<CustomGet>());
         });
     }
 };
@@ -53,6 +58,17 @@ TEST_CASE("Test a custom reactor that returns a type that needs dereferencing", 
     config.thread_count = 1;
     NUClear::PowerPlant plant(config);
     plant.install<TestReactor>();
-
     plant.start();
+
+    std::vector<std::string> expected = {
+        "Emitting CustomGet",
+        "CustomGet Triggered",
+        "Data from a custom getter",
+    };
+
+    // Make an info print the diff in an easy to read way if we fail
+    INFO(test_util::diff_string(expected, events));
+
+    // Check the events fired in order and only those events
+    REQUIRE(events == expected);
 }

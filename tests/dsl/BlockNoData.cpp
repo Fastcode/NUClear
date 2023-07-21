@@ -19,49 +19,66 @@
 #include <catch.hpp>
 #include <nuclear>
 
+#include "test_util/TestBase.hpp"
+
 namespace {
-struct SimpleMessage {};
+
+/// @brief Events that occur during the test
+std::vector<std::string> events;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
 struct MessageA {};
 struct MessageB {};
 
-MessageA* a = nullptr;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
-
-class TestReactor : public NUClear::Reactor {
+class TestReactor : public test_util::TestBase<TestReactor> {
 public:
-    TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
+    TestReactor(std::unique_ptr<NUClear::Environment> environment) : TestBase(std::move(environment)) {
 
-
-        on<Trigger<SimpleMessage>>().then([this] {
-            auto data = std::make_unique<MessageA>();
-            a         = data.get();
-
-            // Emit required data
-            emit(data);
-
-            // Since the data was emitted before the shutdown call it will be processed before total shutdown
-            powerplant.shutdown();
+        on<Trigger<MessageA>>().then([this] {
+            events.push_back("MessageA triggered");
+            events.push_back("Emitting MessageB");
+            emit(std::make_unique<MessageB>());
         });
 
-        on<Trigger<MessageA>, With<MessageB>>().then(
-            [](const MessageA&, const MessageB&) { FAIL("B was never emitted so this should not be possible"); });
+        on<Trigger<MessageA>, With<MessageB>>().then([] {  //
+            events.push_back("MessageA with MessageB triggered");
+        });
+
+        on<Trigger<MessageB>, With<MessageA>>().then([] {  //
+            events.push_back("MessageB with MessageA triggered");
+        });
+
+        on<Trigger<Step<1>>>().then([this] {
+            events.push_back("Emitting MessageA");
+            emit(std::make_unique<MessageA>());
+        });
+
+        on<Startup>().then([this] {
+            // Emit some messages with data
+            emit(std::make_unique<Step<1>>());
+        });
     }
 };
 }  // namespace
 
 
-TEST_CASE("Testing that when a trigger does not have it's data satisfied it does not run", "[api][nodata]") {
+TEST_CASE("Testing that when an on statement does not have it's data satisfied it does not run", "[api][nodata]") {
 
     NUClear::PowerPlant::Configuration config;
     config.thread_count = 1;
     NUClear::PowerPlant plant(config);
     plant.install<TestReactor>();
-
-    auto message = std::make_unique<SimpleMessage>();
-
-    plant.emit(message);
-
     plant.start();
 
-    REQUIRE(a != nullptr);
+    std::vector<std::string> expected = {
+        "Emitting MessageA",
+        "MessageA triggered",
+        "Emitting MessageB",
+        "MessageB with MessageA triggered",
+    };
+
+    // Make an info print the diff in an easy to read way if we fail
+    INFO(test_util::diff_string(expected, events));
+
+    // Check the events fired in order and only those events
+    REQUIRE(events == expected);
 }

@@ -15,86 +15,58 @@
  * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-
 #include <catch.hpp>
 #include <nuclear>
 #include <utility>
 
+#include "test_util/TestBase.hpp"
+
 namespace {
+
+/// @brief Events that occur during the test
+std::vector<std::string> events;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+
 struct BindExtensionTest1 {
-
-    static int val1;     // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
-    static double val2;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
-
     template <typename DSL>
-    static inline int bind(const std::shared_ptr<NUClear::threading::Reaction>& /*unused*/, int v1, double v2) {
-
-        val1 = v1;
-        val2 = v2;
-
+    static inline int bind(const std::shared_ptr<NUClear::threading::Reaction>& /*unused*/, int v1, bool v2) {
+        events.push_back("Bind1 with " + std::to_string(v1) + " and " + (v2 ? "true" : "false") + " called");
         return 5;
     }
 };
 
-int BindExtensionTest1::val1    = 0;    // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
-double BindExtensionTest1::val2 = 0.0;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
-
 struct BindExtensionTest2 {
-
-    static std::string val1;               // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
-    static std::chrono::nanoseconds val2;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
-
     template <typename DSL>
-    static inline double bind(const std::shared_ptr<NUClear::threading::Reaction>& /*reaction*/,
-                              std::string v1,
-                              std::chrono::nanoseconds v2) {
-
-        val1 = std::move(v1);
-        val2 = v2;
-
-        return 7.2;
+    static inline bool bind(const std::shared_ptr<NUClear::threading::Reaction>& /*reaction*/,
+                            std::string v1,
+                            std::chrono::nanoseconds v2) {
+        events.push_back("Bind2 with " + v1 + " and " + std::to_string(v2.count()) + " called");
+        return true;
     }
 };
-
-// NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
-std::string BindExtensionTest2::val1 = {};
-// NOLINTNEXTLINE(cert-err58-cpp,cppcoreguidelines-avoid-non-const-global-variables)
-std::chrono::nanoseconds BindExtensionTest2::val2 = std::chrono::nanoseconds(0);
 
 struct BindExtensionTest3 {
-
-    static int val1;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
-    static int val2;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
-    static int val3;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
-
     template <typename DSL>
-    static inline NUClear::threading::ReactionHandle
-        bind(const std::shared_ptr<NUClear::threading::Reaction>& /*reaction*/, int v1, int v2, int v3) {
-
-        val1 = v1;
-        val2 = v2;
-        val3 = v3;
-
-        return {nullptr};
+    static inline std::string bind(const std::shared_ptr<NUClear::threading::Reaction>& /*reaction*/,
+                                   int v1,
+                                   int v2,
+                                   int v3) {
+        events.push_back("Bind3 with " + std::to_string(v1) + ", " + std::to_string(v2) + " and " + std::to_string(v3)
+                         + " called");
+        return "return from Bind3";
     }
 };
 
-int BindExtensionTest3::val1 = 0;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
-int BindExtensionTest3::val2 = 0;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
-int BindExtensionTest3::val3 = 0;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
-
-struct ShutdownFlag {};
-
-class TestReactor : public NUClear::Reactor {
+class TestReactor : public test_util::TestBase<TestReactor> {
 public:
-    TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
-        int a    = 0;
-        double b = 0.0;
+    TestReactor(std::unique_ptr<NUClear::Environment> environment) : TestBase(std::move(environment)) {
+        int a  = 0;
+        bool b = 0.0;
+        std::string c;
 
-        // Run all three of our extension tests
-        std::tie(std::ignore, a, b, std::ignore) =
+        // Bind all three functions to test fission
+        std::tie(std::ignore, a, b, c) =
             on<BindExtensionTest1, BindExtensionTest2, BindExtensionTest3>(5,
-                                                                           7.9,
+                                                                           false,
                                                                            "Hello",
                                                                            std::chrono::seconds(2),
                                                                            9,
@@ -102,27 +74,9 @@ public:
                                                                            11)
                 .then([] {});
 
-        // Check the returns from the bind
-        REQUIRE(a == 5);
-        REQUIRE(b == 7.2);
-
-        REQUIRE(BindExtensionTest1::val1 == 5);
-        REQUIRE(BindExtensionTest1::val2 == 7.9);
-
-        REQUIRE(BindExtensionTest2::val1 == "Hello");
-        REQUIRE(BindExtensionTest2::val2.count() == std::chrono::nanoseconds(2 * std::nano::den).count());
-
-        REQUIRE(BindExtensionTest3::val1 == 9);
-        REQUIRE(BindExtensionTest3::val2 == 10);
-        REQUIRE(BindExtensionTest3::val3 == 11);
-
-        // Run a test when there are blanks in the list before filled elements
-        on<Trigger<int>, BindExtensionTest1>(2, 3.3).then([] {});
-
-        on<Trigger<ShutdownFlag>>().then([this] {
-            // We are finished the test
-            powerplant.shutdown();
-        });
+        events.push_back("Bind1 returned " + std::to_string(a));
+        events.push_back(std::string("Bind2 returned ") + (b ? "true" : "false"));
+        events.push_back("Bind3 returned " + c);
     }
 };
 }  // namespace
@@ -133,8 +87,20 @@ TEST_CASE("Testing distributing arguments to multiple bind functions (NUClear Fi
     config.thread_count = 1;
     NUClear::PowerPlant plant(config);
     plant.install<TestReactor>();
-
-    plant.emit(std::make_unique<ShutdownFlag>());
-
     plant.start();
+
+    std::vector<std::string> expected = {
+        "Bind1 with 5 and false called",
+        "Bind2 with Hello and 2000000000 called",
+        "Bind3 with 9, 10 and 11 called",
+        "Bind1 returned 5",
+        "Bind2 returned true",
+        "Bind3 returned return from Bind3",
+    };
+
+    // Make an info print the diff in an easy to read way if we fail
+    INFO(test_util::diff_string(expected, events));
+
+    // Check the events fired in order and only those events
+    REQUIRE(events == expected);
 }

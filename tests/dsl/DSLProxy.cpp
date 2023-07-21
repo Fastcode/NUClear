@@ -19,13 +19,23 @@
 #include <catch.hpp>
 #include <nuclear>
 
+#include "test_util/TestBase.hpp"
+
+namespace {
+struct CustomMessage1 {};
+struct CustomMessage2 {
+    CustomMessage2(int value) : value(value) {}
+    int value;
+};
+}  // namespace
+
 namespace NUClear {
 namespace dsl {
     namespace operation {
         template <>
-        struct DSLProxy<int>
-            : public NUClear::dsl::operation::TypeBind<int>
-            , public NUClear::dsl::operation::CacheGet<double>
+        struct DSLProxy<CustomMessage1>
+            : public NUClear::dsl::operation::TypeBind<CustomMessage1>
+            , public NUClear::dsl::operation::CacheGet<CustomMessage2>
             , public NUClear::dsl::word::Single {};
     }  // namespace operation
 }  // namespace dsl
@@ -33,24 +43,25 @@ namespace dsl {
 
 namespace {
 
-class TestReactor : public NUClear::Reactor {
+/// @brief Events that occur during the test
+std::vector<std::string> events;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+
+class TestReactor : public test_util::TestBase<TestReactor> {
 public:
-    TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
+    TestReactor(std::unique_ptr<NUClear::Environment> environment) : TestBase(std::move(environment)) {
 
-        on<int>().then([this](const double& d) {
-            // The message we received should have test == 10
-            REQUIRE(d == 4.4);
-
-            // We are finished the test
-            powerplant.shutdown();
+        on<CustomMessage1>().then([](const CustomMessage2& d) {
+            events.push_back("CustomMessage1 Triggered with " + std::to_string(d.value));
         });
 
         on<Startup>().then([this]() {
             // Emit a double we can get
-            emit(std::make_unique<double>(4.4));
+            events.push_back("Emitting CustomMessage2");
+            emit(std::make_unique<CustomMessage2>(123456));
 
-            // Emit an integer to trigger the reaction
-            emit(std::make_unique<int>());
+            // Emit a custom message 1 to trigger the reaction
+            events.push_back("Emitting CustomMessage1");
+            emit(std::make_unique<CustomMessage1>());
         });
     }
 };
@@ -62,6 +73,15 @@ TEST_CASE("Testing that the DSL proxy works as expected for binding unmodifyable
     config.thread_count = 1;
     NUClear::PowerPlant plant(config);
     plant.install<TestReactor>();
-
     plant.start();
+
+    std::vector<std::string> expected = {"Emitting CustomMessage2",
+                                         "Emitting CustomMessage1",
+                                         "CustomMessage1 Triggered with 123456"};
+
+    // Make an info print the diff in an easy to read way if we fail
+    INFO(test_util::diff_string(expected, events));
+
+    // Check the events fired in order and only those events
+    REQUIRE(events == expected);
 }
