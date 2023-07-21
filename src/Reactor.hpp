@@ -22,6 +22,7 @@
 #include <atomic>
 #include <chrono>
 #include <functional>
+#include <regex>
 #include <sstream>
 #include <string>
 #include <typeindex>
@@ -32,6 +33,7 @@
 #include "dsl/Parse.hpp"
 #include "threading/Reaction.hpp"
 #include "threading/ReactionHandle.hpp"
+#include "threading/ReactionIdentifiers.hpp"
 #include "util/CallbackGenerator.hpp"
 #include "util/Sequence.hpp"
 #include "util/tuplify.hpp"
@@ -298,16 +300,21 @@ public:
         template <typename Function, int... Index>
         auto then(const std::string& label, Function&& callback, const util::Sequence<Index...>& /*s*/) {
 
+            // Regex replace NUClear::dsl::Parse with NUClear::Reactor::on so that it reads more like what is expected
+            std::string dsl = std::regex_replace(util::demangle(typeid(DSL).name()),
+                                                 std::regex("NUClear::dsl::Parse<"),
+                                                 "NUClear::Reactor::on<");
+
             // Generate the identifier
-            std::vector<std::string> identifier = {label,
-                                                   reactor.reactor_name,
-                                                   util::demangle(typeid(DSL).name()),
-                                                   util::demangle(typeid(Function).name())};
+            threading::ReactionIdentifiers identifiers{label,
+                                                       reactor.reactor_name,
+                                                       dsl,
+                                                       util::demangle(typeid(Function).name())};
 
             // Generate the reaction
             auto reaction = std::make_shared<threading::Reaction>(
                 reactor,
-                std::move(identifier),
+                std::move(identifiers),
                 util::CallbackGenerator<DSL, Function>(std::forward<Function>(callback)));
 
             // Get our tuple from binding our reaction

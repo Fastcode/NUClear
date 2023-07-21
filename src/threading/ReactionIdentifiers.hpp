@@ -15,26 +15,42 @@
  * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-#include "Reaction.hpp"
+
+#ifndef NUCLEAR_THREADING_REACTIONIDENTIFIERS_HPP
+#define NUCLEAR_THREADING_REACTIONIDENTIFIERS_HPP
+
+#include <string>
 
 namespace NUClear {
 namespace threading {
 
-    // Initialize our reaction source
-    std::atomic<uint64_t> Reaction::reaction_id_source(0);  // NOLINT
+    /**
+     * @brief This struct holds string fields that can be used to identify a reaction.
+     */
+    struct ReactionIdentifiers {
 
-    Reaction::Reaction(Reactor& reactor, ReactionIdentifiers&& identifiers, TaskGenerator&& generator)
-        : reactor(reactor), identifiers(identifiers), id(++reaction_id_source), generator(generator) {}
+        /**
+         * @brief Construct a new Identifiers object
+         *
+         * @param name the name of the reaction provided by the user
+         * @param reactor the name of the reactor that this reaction belongs to
+         * @param dsl the DSL that this reaction was created from
+         * @param function the callback function that this reaction is bound to
+         */
+        ReactionIdentifiers(std::string name, std::string reactor, std::string dsl, std::string function)
+            : name(std::move(name)), reactor(std::move(reactor)), dsl(std::move(dsl)), function(std::move(function)) {}
 
-    void Reaction::unbind() {
-        // Unbind
-        for (auto& u : unbinders) {
-            u(*this);
-        }
-    }
+        /// @brief The name of the reaction provided by the user
+        std::string name;
+        /// @brief The name of the reactor that this reaction belongs to
+        std::string reactor;
+        /// @brief The DSL that this reaction was created from
+        std::string dsl;
+        /// @brief The callback function that this reaction is bound to
+        std::string function;
+    };
 
-    bool Reaction::is_enabled() const {
-        return enabled;
-    }
 }  // namespace threading
 }  // namespace NUClear
+
+#endif  // NUCLEAR_THREADING_REACTIONIDENTIFIERS_HPP
