@@ -18,6 +18,8 @@
 
 #include "diff_string.hpp"
 
+#include <cstring>
+
 #include "lcs.hpp"
 
 namespace test_util {
