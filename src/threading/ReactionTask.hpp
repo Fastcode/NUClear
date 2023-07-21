@@ -81,7 +81,7 @@ namespace threading {
             : parent(parent)
             , id(++task_id_source)
             , priority(priority)
-            , stats(std::make_shared<message::ReactionStatistics>(parent.identifier,
+            , stats(std::make_shared<message::ReactionStatistics>(parent.identifiers,
                                                                   parent.id,
                                                                   id,
                                                                   current_task != nullptr ? current_task->parent.id : 0,

@@ -26,6 +26,7 @@
 #include <utility>
 
 #include "../util/GeneratedCallback.hpp"
+#include "ReactionIdentifiers.hpp"
 #include "ReactionTask.hpp"
 
 namespace NUClear {
@@ -57,10 +58,10 @@ namespace threading {
          * @brief Constructs a new Reaction with the passed callback generator and options
          *
          * @param reactor        the reactor this belongs to
-         * @param identifier     string identifier information about the reaction to help identify it
+         * @param identifiers    string identification information for the reaction
          * @param callback       the callback generator function (creates databound callbacks)
          */
-        Reaction(Reactor& reactor, std::vector<std::string>&& identifier, TaskGenerator&& generator);
+        Reaction(Reactor& reactor, ReactionIdentifiers&& identifiers, TaskGenerator&& generator);
 
         /**
          * @brief creates a new databound callback task that can be executed.
@@ -98,8 +99,8 @@ namespace threading {
         /// @brief the reactor this belongs to
         Reactor& reactor;
 
-        /// @brief This holds the demangled name of the On function that is being called
-        std::vector<std::string> identifier{};
+        /// @brief This holds the identifying strings for this reaction
+        ReactionIdentifiers identifiers;
 
         /// @brief the unique identifier for this Reaction object
         const uint64_t id;
