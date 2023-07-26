@@ -19,6 +19,8 @@
 #include <array>
 #include <catch.hpp>
 
+#include "test_util/TestBase.hpp"
+
 // Windows can't do this test as it doesn't have file descriptors
 #ifndef _WIN32
 
@@ -28,49 +30,52 @@
 
 namespace {
 
+/// @brief Events that occur during the test
+std::vector<std::string> events;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+
 class TestReactor : public NUClear::Reactor {
 public:
     TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
 
         std::array<int, 2> fds{-1, -1};
 
-        if (pipe(fds.data()) < 0) {
-            FAIL("We couldn't make the pipe for the test");
+        if (::pipe(fds.data()) < 0) {
+            events.push_back("Pipe creation failed");
+            return;
         }
 
         in  = fds[0];
         out = fds[1];
+        events.push_back("Pipe created");
 
-        on<IO>(in, IO::READ).then([this](const IO::Event& e) {
-            // Read from our FD
-            unsigned char val{0};
-            const ssize_t bytes = ::read(e.fd, &val, 1);
+        on<IO>(in.get(), IO::READ).then([this](const IO::Event& e) {
+            // Read from our fd
+            char c{0};
+            auto bytes = ::read(e.fd, &c, 1);
 
-            // Check the data is correct
-            REQUIRE((e.events & IO::READ) != 0);
-            REQUIRE(bytes == 1);
-            REQUIRE(val == 0xDE);
+            events.push_back("Read " + std::to_string(bytes) + " bytes (" + c + ") from pipe");
 
-            // Shutdown
-            powerplant.shutdown();
+            if (c == 'o') {
+                powerplant.shutdown();
+            }
         });
 
-        writer = on<IO>(out, IO::WRITE).then([this](const IO::Event& e) {
+        writer = on<IO>(out.get(), IO::WRITE).then([this](const IO::Event& e) {
             // Send data into our fd
-            const unsigned char val = 0xDE;
-            const ssize_t bytes     = ::write(e.fd, &val, 1);
+            const char c       = "Hello"[char_no++];
+            const ssize_t sent = ::write(e.fd, &c, 1);
 
-            // Check that our data was sent
-            REQUIRE((e.events & IO::WRITE) != 0);
-            REQUIRE(bytes == 1);
+            events.push_back("Wrote " + std::to_string(sent) + " bytes (" + c + ") to pipe");
 
-            // Unbind ourselves
-            writer.unbind();
+            if (char_no == 5) {
+                writer.unbind();
+            }
         });
     }
 
-    int in{-1};
-    int out{-1};
+    NUClear::util::FileDescriptor in{};
+    NUClear::util::FileDescriptor out{};
+    int char_no{0};
     ReactionHandle writer{};
 };
 }  // namespace
@@ -81,8 +86,33 @@ TEST_CASE("Testing the IO extension", "[api][io]") {
     config.thread_count = 1;
     NUClear::PowerPlant plant(config);
     plant.install<TestReactor>();
-
     plant.start();
+
+    std::vector<std::string> expected = {
+        "Pipe created",
+        "Wrote 1 bytes (H) to pipe",
+        "Read 1 bytes (H) from pipe",
+        "Wrote 1 bytes (e) to pipe",
+        "Read 1 bytes (e) from pipe",
+        "Wrote 1 bytes (l) to pipe",
+        "Read 1 bytes (l) from pipe",
+        "Wrote 1 bytes (l) to pipe",
+        "Read 1 bytes (l) from pipe",
+        "Wrote 1 bytes (o) to pipe",
+        "Read 1 bytes (o) from pipe",
+    };
+
+    // Make an info print the diff in an easy to read way if we fail
+    INFO(test_util::diff_string(expected, events));
+
+    // Check the events fired in order and only those events
+    REQUIRE(events == expected);
 }
 
-#endif
+#else   // _WIN32
+
+TEST_CASE("Testing the IO extension", "[api][io]") {
+    SKIP("IO extension is not supported on Windows")
+}
+
+#endif  // _WIN32
