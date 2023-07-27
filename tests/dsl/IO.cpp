@@ -30,8 +30,10 @@
 
 namespace {
 
-/// @brief Events that occur during the test
-std::vector<std::string> events;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+/// @brief Events that occur during the test reading
+std::vector<std::string> read_events;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+/// @brief Events that occur during the test writing
+std::vector<std::string> write_events;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
 class TestReactor : public NUClear::Reactor {
 public:
@@ -40,20 +42,17 @@ public:
         std::array<int, 2> fds{-1, -1};
 
         if (::pipe(fds.data()) < 0) {
-            events.push_back("Pipe creation failed");
             return;
         }
-
         in  = fds[0];
         out = fds[1];
-        events.push_back("Pipe created");
 
         on<IO>(in.get(), IO::READ).then([this](const IO::Event& e) {
             // Read from our fd
             char c{0};
             auto bytes = ::read(e.fd, &c, 1);
 
-            events.push_back("Read " + std::to_string(bytes) + " bytes (" + c + ") from pipe");
+            read_events.push_back("Read " + std::to_string(bytes) + " bytes (" + c + ") from pipe");
 
             if (c == 'o') {
                 powerplant.shutdown();
@@ -65,7 +64,7 @@ public:
             const char c       = "Hello"[char_no++];
             const ssize_t sent = ::write(e.fd, &c, 1);
 
-            events.push_back("Wrote " + std::to_string(sent) + " bytes (" + c + ") to pipe");
+            write_events.push_back("Wrote " + std::to_string(sent) + " bytes (" + c + ") to pipe");
 
             if (char_no == 5) {
                 writer.unbind();
@@ -88,31 +87,31 @@ TEST_CASE("Testing the IO extension", "[api][io]") {
     plant.install<TestReactor>();
     plant.start();
 
-    std::vector<std::string> expected = {
-        "Pipe created",
-        "Wrote 1 bytes (H) to pipe",
+    std::vector<std::string> read_expected = {
         "Read 1 bytes (H) from pipe",
-        "Wrote 1 bytes (e) to pipe",
         "Read 1 bytes (e) from pipe",
-        "Wrote 1 bytes (l) to pipe",
         "Read 1 bytes (l) from pipe",
-        "Wrote 1 bytes (l) to pipe",
         "Read 1 bytes (l) from pipe",
-        "Wrote 1 bytes (o) to pipe",
         "Read 1 bytes (o) from pipe",
     };
 
     // Make an info print the diff in an easy to read way if we fail
-    INFO(test_util::diff_string(expected, events));
+    INFO("Read Events\n" << test_util::diff_string(read_expected, read_events));
+
+    std::vector<std::string> write_expected{
+        "Wrote 1 bytes (H) to pipe",
+        "Wrote 1 bytes (e) to pipe",
+        "Wrote 1 bytes (l) to pipe",
+        "Wrote 1 bytes (l) to pipe",
+        "Wrote 1 bytes (o) to pipe",
+    };
+
+    // Make an info print the diff in an easy to read way if we fail
+    INFO("Write Events\n" << test_util::diff_string(write_expected, write_events));
 
     // Check the events fired in order and only those events
-    REQUIRE(events == expected);
-}
-
-#else   // _WIN32
-
-TEST_CASE("Testing the IO extension", "[api][io]") {
-    SKIP("IO extension is not supported on Windows")
+    REQUIRE(read_events == read_expected);
+    REQUIRE(write_events == write_expected);
 }
 
 #endif  // _WIN32
