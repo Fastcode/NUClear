@@ -36,7 +36,7 @@ public:
 
         on<Trigger<CommandLineArguments>>().then([](const CommandLineArguments& args) {
             std::stringstream output;
-            for (auto& arg : args) {
+            for (const auto& arg : args) {
                 output << arg << " ";
             }
             events.push_back("CommandLineArguments: " + output.str());
