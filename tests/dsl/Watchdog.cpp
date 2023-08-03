@@ -37,13 +37,13 @@ public:
         : TestBase(std::move(environment), false), start(NUClear::clock::now()) {
 
         on<Watchdog<Flag<1>, 50, std::chrono::milliseconds>>().then([this] {
-            events.push_back("Watchdog 1  triggered @ " + rounded_time());
+            events.push_back("Watchdog 1  triggered @ " + floored_time());
             powerplant.shutdown();
         });
 
         on<Watchdog<Flag<2>, 40, std::chrono::milliseconds>>().then([this] {
             if (flag2++ < 3) {
-                events.push_back("Watchdog 2  triggered @ " + rounded_time());
+                events.push_back("Watchdog 2  triggered @ " + floored_time());
                 emit<Scope::WATCHDOG>(ServiceWatchdog<Flag<1>>());
             }
         });
@@ -51,14 +51,14 @@ public:
         // Watchdog with subtypes
         on<Watchdog<Flag<3>, 30, std::chrono::milliseconds>>('a').then([this] {
             if (flag3a++ < 3) {
-                events.push_back("Watchdog 3A triggered @ " + rounded_time());
+                events.push_back("Watchdog 3A triggered @ " + floored_time());
                 emit<Scope::WATCHDOG>(ServiceWatchdog<Flag<1>>());
                 emit<Scope::WATCHDOG>(ServiceWatchdog<Flag<2>>());
             }
         });
         on<Watchdog<Flag<3>, 20, std::chrono::milliseconds>>('b').then([this] {
             if (flag3b++ < 3) {
-                events.push_back("Watchdog 3B triggered @ " + rounded_time());
+                events.push_back("Watchdog 3B triggered @ " + floored_time());
                 emit<Scope::WATCHDOG>(ServiceWatchdog<Flag<1>>());
                 emit<Scope::WATCHDOG>(ServiceWatchdog<Flag<2>>());
                 emit<Scope::WATCHDOG>(ServiceWatchdog<Flag<3>>('a'));
@@ -67,7 +67,7 @@ public:
 
         on<Watchdog<Flag<4>, 10, std::chrono::milliseconds>>().then([this] {
             if (flag4++ < 3) {
-                events.push_back("Watchdog 4  triggered @ " + rounded_time());
+                events.push_back("Watchdog 4  triggered @ " + floored_time());
                 emit<Scope::WATCHDOG>(ServiceWatchdog<Flag<1>>());
                 emit<Scope::WATCHDOG>(ServiceWatchdog<Flag<2>>());
                 emit<Scope::WATCHDOG>(ServiceWatchdog<Flag<3>>('a'));
@@ -76,10 +76,10 @@ public:
         });
     }
 
-    std::string rounded_time() {
+    std::string floored_time() {
         double diff = std::chrono::duration_cast<std::chrono::duration<double>>(NUClear::clock::now() - start).count();
         // Round to 100ths of a second
-        return std::to_string(int(std::round(diff * 100)));
+        return std::to_string(int(std::floor(diff * 100)));
     }
 
     NUClear::clock::time_point start;
@@ -107,12 +107,12 @@ TEST_CASE("Testing the Watchdog Smart Type", "[api][watchdog]") {
         "Watchdog 3B triggered @ 7",
         "Watchdog 3B triggered @ 9",
         "Watchdog 3A triggered @ 12",
-        "Watchdog 3A triggered @ 16",
-        "Watchdog 3A triggered @ 19",
-        "Watchdog 2  triggered @ 23",
-        "Watchdog 2  triggered @ 27",
-        "Watchdog 2  triggered @ 31",
-        "Watchdog 1  triggered @ 36",
+        "Watchdog 3A triggered @ 15",
+        "Watchdog 3A triggered @ 18",
+        "Watchdog 2  triggered @ 22",
+        "Watchdog 2  triggered @ 26",
+        "Watchdog 2  triggered @ 30",
+        "Watchdog 1  triggered @ 35",
     };
 
     // Make an info print the diff in an easy to read way if we fail
