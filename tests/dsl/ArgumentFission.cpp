@@ -51,9 +51,9 @@ struct BindExtensionTest3 {
     static inline std::string bind(const std::shared_ptr<NUClear::threading::Reaction>& /*reaction*/,
                                    const int& v1,
                                    const int& v2,
-                                   const int& v3) {
-        events.push_back("Bind3 with " + std::to_string(v1) + ", " + std::to_string(v2) + " and " + std::to_string(v3)
-                         + " called");
+                                   const std::chrono::nanoseconds& v3) {
+        events.push_back("Bind3 with " + std::to_string(v1) + ", " + std::to_string(v2) + " and "
+                         + std::to_string(v3.count()) + " called");
         return "return from Bind3";
     }
 };
@@ -73,7 +73,7 @@ public:
                                                                            std::chrono::seconds(2),
                                                                            9,
                                                                            10,
-                                                                           11)
+                                                                           std::chrono::seconds(11))
                 .then([] {});
 
         events.push_back("Bind1 returned " + std::to_string(a));
@@ -94,7 +94,7 @@ TEST_CASE("Testing distributing arguments to multiple bind functions (NUClear Fi
     std::vector<std::string> expected = {
         "Bind1 with 5 and false called",
         "Bind2 with Hello and 2000000000 called",
-        "Bind3 with 9, 10 and 11 called",
+        "Bind3 with 9, 10 and 11000000000 called",
         "Bind1 returned 5",
         "Bind2 returned true",
         "Bind3 returned return from Bind3",
