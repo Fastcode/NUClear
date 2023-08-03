@@ -26,12 +26,9 @@ namespace {
 /// @brief Events that occur during the test
 std::vector<std::string> events;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
+template <int I>
 struct Message {
     Message(std::string data) : data(std::move(data)) {}
-    std::string data;
-};
-struct Data {
-    Data(std::string data) : data(std::move(data)) {}
     std::string data;
 };
 
@@ -39,47 +36,37 @@ class TestReactor : public test_util::TestBase<TestReactor> {
 public:
     TestReactor(std::unique_ptr<NUClear::Environment> environment) : TestBase(std::move(environment)) {
         // Check that the lists are combined, and that the function args are in order
-        on<Trigger<Message>, With<Data>>().then([](const Message& m, const Data& d) {  //
-            events.push_back("Message: " + m.data + " Data: " + d.data);
-        });
+        on<With<Message<1>>, Trigger<Message<3>>, With<Message<2>>>().then(
+            [](const Message<1>& a, const Message<3>& c, const Message<2>& b) {
+                events.push_back("A:" + a.data + " B:" + b.data + " C:" + c.data);
+            });
+
+        // Make sure we can pass an empty function in here
+        on<Trigger<Message<1>>, With<Message<1>, Message<2>>>().then([] { events.push_back("Empty function"); });
 
         on<Trigger<Step<1>>, Priority::LOW>().then([this] {
-            events.push_back("Emitting Data 1");
-            emit(std::make_unique<Data>("D1"));
+            events.push_back("Emitting 1");
+            emit(std::make_unique<Message<1>>("1"));
         });
-
         on<Trigger<Step<2>>, Priority::LOW>().then([this] {
-            events.push_back("Emitting Data 2");
-            emit(std::make_unique<Data>("D2"));
+            events.push_back("Emitting 2");
+            emit(std::make_unique<Message<2>>("2"));
         });
-
         on<Trigger<Step<3>>, Priority::LOW>().then([this] {
-            events.push_back("Emitting Message 1");
-            emit(std::make_unique<Message>("M1"));
-        });
-
-        on<Trigger<Step<4>>, Priority::LOW>().then([this] {
-            events.push_back("Emitting Data 3");
-            emit(std::make_unique<Data>("D3"));
-        });
-
-        on<Trigger<Step<5>>, Priority::LOW>().then([this] {
-            events.push_back("Emitting Message 2");
-            emit(std::make_unique<Message>("M2"));
+            events.push_back("Emitting 3");
+            emit(std::make_unique<Message<3>>("3"));
         });
 
         on<Startup>().then([this] {
             emit(std::make_unique<Step<1>>());
             emit(std::make_unique<Step<2>>());
             emit(std::make_unique<Step<3>>());
-            emit(std::make_unique<Step<4>>());
-            emit(std::make_unique<Step<5>>());
         });
     }
 };
 }  // namespace
 
-TEST_CASE("Testing the with dsl keyword", "[api][with]") {
+TEST_CASE("Testing poorly ordered on arguments", "[api][dsl][order][with]") {
 
     NUClear::PowerPlant::Configuration config;
     config.thread_count = 1;
@@ -88,13 +75,10 @@ TEST_CASE("Testing the with dsl keyword", "[api][with]") {
     plant.start();
 
     std::vector<std::string> expected = {
-        "Emitting Data 1",
-        "Emitting Data 2",
-        "Emitting Message 1",
-        "Message: M1 Data: D2",
-        "Emitting Data 3",
-        "Emitting Message 2",
-        "Message: M2 Data: D3",
+        "Emitting 1",
+        "Emitting 2",
+        "Emitting 3",
+        "A:1 B:2 C:3",
     };
 
     // Make an info print the diff in an easy to read way if we fail
