@@ -47,7 +47,7 @@ public:
             events.push_back("MessageB with MessageA triggered");
         });
 
-        on<Trigger<Step<1>>>().then([this] {
+        on<Trigger<Step<1>>, Priority::LOW>().then([this] {
             events.push_back("Emitting MessageA");
             emit(std::make_unique<MessageA>());
         });

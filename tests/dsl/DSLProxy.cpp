@@ -75,9 +75,11 @@ TEST_CASE("Testing that the DSL proxy works as expected for binding unmodifyable
     plant.install<TestReactor>();
     plant.start();
 
-    std::vector<std::string> expected = {"Emitting CustomMessage2",
-                                         "Emitting CustomMessage1",
-                                         "CustomMessage1 Triggered with 123456"};
+    std::vector<std::string> expected = {
+        "Emitting CustomMessage2",
+        "Emitting CustomMessage1",
+        "CustomMessage1 Triggered with 123456",
+    };
 
     // Make an info print the diff in an easy to read way if we fail
     INFO(test_util::diff_string(expected, events));
