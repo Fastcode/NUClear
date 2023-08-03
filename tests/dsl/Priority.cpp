@@ -19,48 +19,64 @@
 #include <catch.hpp>
 #include <nuclear>
 
+#include "test_util/TestBase.hpp"
+
 namespace {
 
-struct Message1 {};
-struct Message2 {};
-struct Message3 {};
+/// @brief Events that occur during the test
+std::vector<std::string> events;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
-bool low  = false;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
-bool med  = false;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
-bool high = false;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+template <int I>
+struct Message {};
 
-class TestReactor : public NUClear::Reactor {
+class TestReactor : public test_util::TestBase<TestReactor> {
 public:
-    TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
+    TestReactor(std::unique_ptr<NUClear::Environment> environment) : TestBase(std::move(environment)) {
 
-        on<Trigger<Message3>, Priority::HIGH>().then("High", [] {
-            // We should be the first to run
-            REQUIRE(!low);
-            REQUIRE(!med);
-            REQUIRE(!high);
+        // Declare in the order you'd expect them to fire
+        on<Trigger<Message<1>>, Priority::REALTIME>().then([] { events.push_back("Realtime Message<1>"); });
+        on<Trigger<Message<1>>, Priority::HIGH>().then("High", [] { events.push_back("High Message<1>"); });
+        on<Trigger<Message<1>>>().then([] { events.push_back("Default Message<1>"); });
+        on<Trigger<Message<1>>, Priority::NORMAL>().then("Normal", [] { events.push_back("Normal Message<1>"); });
+        on<Trigger<Message<1>>, Priority::LOW>().then("Low", [] { events.push_back("Low Message<1>"); });
+        on<Trigger<Message<1>>, Priority::IDLE>().then([] { events.push_back("Idle Message<1>"); });
 
-            high = true;
-        });
+        // Declare in the opposite order to what you'd expect them to fire
+        on<Trigger<Message<2>>, Priority::IDLE>().then([] { events.push_back("Idle Message<2>"); });
+        on<Trigger<Message<2>>, Priority::LOW>().then([] { events.push_back("Low Message<2>"); });
+        on<Trigger<Message<2>>, Priority::NORMAL>().then([] { events.push_back("Normal Message<2>"); });
+        on<Trigger<Message<2>>>().then([] { events.push_back("Default Message<2>"); });
+        on<Trigger<Message<2>>, Priority::HIGH>().then([] { events.push_back("High Message<2>"); });
+        on<Trigger<Message<2>>, Priority::REALTIME>().then([] { events.push_back("Realtime Message<2>"); });
 
-        on<Trigger<Message2>, Priority::NORMAL>().then("Normal", [] {
-            // We should be the second to run
-            REQUIRE(!low);
-            REQUIRE(!med);
-            REQUIRE(high);
+        // Declare in a random order
+        std::array<int, 5> order = {0, 1, 2, 3, 4};
+        std::shuffle(order.begin(), order.end(), std::mt19937(std::random_device()()));
+        for (const auto& i : order) {
+            switch (i) {
+                case 0:
+                    on<Trigger<Message<3>>, Priority::REALTIME>().then([] { events.push_back("Realtime Message<3>"); });
+                    break;
+                case 1:
+                    on<Trigger<Message<3>>, Priority::HIGH>().then([] { events.push_back("High Message<3>"); });
+                    break;
+                case 2:
+                    on<Trigger<Message<3>>, Priority::NORMAL>().then([] { events.push_back("Normal Message<3>"); });
+                    on<Trigger<Message<3>>>().then([] { events.push_back("Default Message<3>"); });
+                    break;
+                case 3:
+                    on<Trigger<Message<3>>, Priority::LOW>().then([] { events.push_back("Low Message<3>"); });
+                    break;
+                case 4:
+                    on<Trigger<Message<3>>, Priority::IDLE>().then([] { events.push_back("Idle Message<3>"); });
+                    break;
+            }
+        }
 
-            med = true;
-        });
-
-        on<Trigger<Message1>, Priority::LOW>().then("Low", [this] {
-            // We should be the final one to run
-            REQUIRE(!low);
-            REQUIRE(med);
-            REQUIRE(high);
-
-            low = true;
-
-            // We're done
-            powerplant.shutdown();
+        on<Startup>().then([this] {
+            emit(std::make_unique<Message<1>>());
+            emit(std::make_unique<Message<2>>());
+            emit(std::make_unique<Message<3>>());
         });
     }
 };
@@ -73,17 +89,32 @@ TEST_CASE("Tests that priority orders the tasks appropriately", "[api][priority]
     config.thread_count = 1;
     NUClear::PowerPlant plant(config);
     plant.install<TestReactor>();
-
-    // Emit message 2, then 1 then 3 (totally wrong order)
-    // Should require the priority queue to sort it out
-    plant.emit(std::make_unique<Message2>());
-    plant.emit(std::make_unique<Message1>());
-    plant.emit(std::make_unique<Message3>());
-
     plant.start();
 
-    // Make sure everything ran
-    REQUIRE(low);
-    REQUIRE(med);
-    REQUIRE(high);
+    std::vector<std::string> expected = {
+        "Realtime Message<1>",
+        "Realtime Message<2>",
+        "Realtime Message<3>",
+        "High Message<1>",
+        "High Message<2>",
+        "High Message<3>",
+        "Default Message<1>",
+        "Normal Message<1>",
+        "Normal Message<2>",
+        "Default Message<2>",
+        "Normal Message<3>",
+        "Default Message<3>",
+        "Low Message<1>",
+        "Low Message<2>",
+        "Low Message<3>",
+        "Idle Message<1>",
+        "Idle Message<2>",
+        "Idle Message<3>",
+    };
+
+    // Make an info print the diff in an easy to read way if we fail
+    INFO(test_util::diff_string(expected, events));
+
+    // Check the events fired in order and only those events
+    REQUIRE(events == expected);
 }
