@@ -19,22 +19,83 @@
 #include <catch.hpp>
 #include <nuclear>
 
+#include "test_util/TestBase.hpp"
+
 namespace {
 
-bool ran = false;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+/// @brief Events that occur during the test
+std::vector<std::string> events;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
-double do_amazing_thing() {
-    ran = true;
+struct Message {
+    Message(std::string data) : data(std::move(data)) {}
+    std::string data;
+};
+
+struct Data {
+    Data(std::string data) : data(std::move(data)) {}
+    std::string data;
+};
+
+/**
+ * @brief Test a raw function that takes no arguments and has a return type.
+ * The return type should be ignored and this function should run without issue.
+ *
+ * @return double
+ */
+double raw_function_test_no_args() {
+    events.push_back("Raw function no args");
     return 5.0;
 }
 
-class TestReactor : public NUClear::Reactor {
+/**
+ * @brief Raw function that takes one argument (the left side of the trigger)
+ *
+ * @param msg the message
+ */
+void raw_function_test_left_arg(const Message& msg) {
+    events.push_back("Raw function left arg: " + msg.data);
+}
+
+/**
+ * @brief Raw function that takes one argument (the right side of the trigger)
+ *
+ * @param data the data
+ */
+void raw_function_test_right_arg(const Data& data) {
+    events.push_back("Raw function right arg: " + data.data);
+}
+
+/**
+ * @brief Raw function that takes both arguments
+ *
+ * @param msg  the message
+ * @param data the data
+ */
+void raw_function_test_both_args(const Message& msg, const Data& data) {
+    events.push_back("Raw function both args: " + msg.data + " " + data.data);
+}
+
+
+class TestReactor : public test_util::TestBase<TestReactor> {
 public:
-    TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
+    TestReactor(std::unique_ptr<NUClear::Environment> environment) : TestBase(std::move(environment)) {
 
-        on<Startup>().then(do_amazing_thing);
+        on<Trigger<Message>, Trigger<Data>>().then(raw_function_test_no_args);
+        on<Trigger<Message>, Trigger<Data>>().then(raw_function_test_left_arg);
+        on<Trigger<Message>, Trigger<Data>>().then(raw_function_test_right_arg);
+        on<Trigger<Message>, Trigger<Data>>().then(raw_function_test_both_args);
 
-        on<Startup>().then([this] { powerplant.shutdown(); });
+        on<Trigger<Step<1>>>().then([this] { emit(std::make_unique<Data>("D1")); });
+        on<Trigger<Step<2>>>().then([this] { emit(std::make_unique<Message>("M2")); });
+        on<Trigger<Step<3>>>().then([this] { emit(std::make_unique<Data>("D3")); });
+        on<Trigger<Step<4>>>().then([this] { emit(std::make_unique<Message>("M4")); });
+
+        on<Startup>().then([this] {
+            emit(std::make_unique<Step<1>>());
+            emit(std::make_unique<Step<2>>());
+            emit(std::make_unique<Step<3>>());
+            emit(std::make_unique<Step<4>>());
+        });
     }
 };
 }  // namespace
@@ -45,8 +106,26 @@ TEST_CASE("Test reaction can take a raw function instead of just a lambda", "[ap
     config.thread_count = 1;
     NUClear::PowerPlant plant(config);
     plant.install<TestReactor>();
-
     plant.start();
 
-    REQUIRE(ran);
+    std::vector<std::string> expected = {
+        "Raw function no args",
+        "Raw function left arg: M2",
+        "Raw function right arg: D1",
+        "Raw function both args: M2 D1",
+        "Raw function no args",
+        "Raw function left arg: M2",
+        "Raw function right arg: D3",
+        "Raw function both args: M2 D3",
+        "Raw function no args",
+        "Raw function left arg: M4",
+        "Raw function right arg: D3",
+        "Raw function both args: M4 D3",
+    };
+
+    // Make an info print the diff in an easy to read way if we fail
+    INFO(test_util::diff_string(expected, events));
+
+    // Check the events fired in order and only those events
+    REQUIRE(events == expected);
 }
