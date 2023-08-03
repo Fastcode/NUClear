@@ -26,18 +26,11 @@ namespace util {
 
     /**
      * @brief An RAII file descriptor.
+     *
      * @details This class represents an RAII file descriptor.
-     *          It will close the file descriptor it holds on
-     *          destruction.
+     *          It will close the file descriptor it holds on destruction.
      */
     class FileDescriptor {
-
-        /**
-         * @brief Constructs a new RAII file descriptor.
-         *
-         * @param fd [description]
-         */
-
     public:
         FileDescriptor();
         FileDescriptor(const fd_t& fd);
