@@ -23,6 +23,8 @@
 #define NUCLEAR_CUSTOM_CLOCK
 #include <nuclear>
 
+#include "test_util/TestBase.hpp"
+
 // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
 std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
 
@@ -42,19 +44,20 @@ template <int id>
 struct Message {};
 
 // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
-std::vector<std::chrono::steady_clock::time_point> times;
-constexpr int n_time = 100;
+std::vector<std::pair<std::chrono::steady_clock::time_point, NUClear::clock::time_point>> times;
 
-class TestReactor : public NUClear::Reactor {
+class TestReactor : public test_util::TestBase<TestReactor, 10000> {
 public:
-    TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
+    TestReactor(std::unique_ptr<NUClear::Environment> environment) : TestBase(std::move(environment), false) {
 
-        // Running every this slowed down clock should execute slower
-        on<Every<10, std::chrono::milliseconds>>().then([this] {
-            times.push_back(std::chrono::steady_clock::now());
-            if (times.size() > n_time) {
-                powerplant.shutdown();
-            }
+        // Collect steady clock times as well as NUClear clock times
+        on<Every<10, std::chrono::milliseconds>>().then([] {  //
+            times.emplace_back(std::chrono::steady_clock::now(), NUClear::clock::now());
+        });
+
+        // Collect until the watchdog times out
+        on<Watchdog<TestReactor, 1, std::chrono::seconds>>().then([this] {  //
+            powerplant.shutdown();
         });
     }
 };
@@ -65,24 +68,22 @@ TEST_CASE("Testing custom clock works correctly", "[api][custom_clock]") {
     NUClear::PowerPlant::Configuration config;
     config.thread_count = 1;
     NUClear::PowerPlant plant(config);
-
-    // We are installing with an initial log level of debug
     plant.install<TestReactor>();
-
     plant.start();
 
-    // Build up our difference vector
-    double total = 0.0;
-    for (size_t i = 0; i < times.size() - 1; ++i) {
-        total += (double((times[i + 1] - times[i]).count()) / double(std::nano::den));
+    // Calculate the average ratio delta time for steady and custom clocks
+    double steady_total = 0;
+    double custom_total = 0;
+
+    for (int i = 0; i + 1 < int(times.size()); ++i) {
+        using namespace std::chrono;
+        steady_total += duration_cast<duration<double>>(times[i + 1].first - times[i].first).count();
+        custom_total += duration_cast<duration<double>>(times[i + 1].second - times[i].second).count();
     }
 
-#ifdef _WIN32
-    const double timing_epsilon = 1e-2;
-#else
-    const double timing_epsilon = 1e-3;
-#endif
+    // The ratio should be about 0.5
+    REQUIRE((custom_total / steady_total) == Approx(0.5));
 
-    // The total should be about 2.0
-    REQUIRE(total == Approx(2.0).epsilon(timing_epsilon));
+    // The amount of time that passed should be (n - 1) * 2 * 10ms
+    REQUIRE(steady_total == Approx(2.0 * (times.size() - 1) * 1e-2));
 }
