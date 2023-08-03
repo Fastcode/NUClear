@@ -25,7 +25,7 @@
 namespace {
 
 // Store our times
-std::vector<NUClear::clock::time_point> times{};          // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+std::vector<NUClear::clock::time_point> every_times{};    // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 std::vector<NUClear::clock::time_point> per_times{};      // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 std::vector<NUClear::clock::time_point> dynamic_times{};  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
@@ -35,7 +35,7 @@ public:
     TestReactor(std::unique_ptr<NUClear::Environment> environment) : TestBase(std::move(environment), false) {
 
         // Trigger on 3 different types of every
-        on<Every<1000, Per<std::chrono::seconds>>>().then([]() { times.push_back(NUClear::clock::now()); });
+        on<Every<1000, Per<std::chrono::seconds>>>().then([]() { every_times.push_back(NUClear::clock::now()); });
         on<Every<1, std::chrono::milliseconds>>().then([]() { per_times.push_back(NUClear::clock::now()); });
         on<Every<>>(std::chrono::milliseconds(1)).then([]() { dynamic_times.push_back(NUClear::clock::now()); });
 
@@ -79,7 +79,7 @@ TEST_CASE("Testing the Every<> DSL word", "[api][every][per]") {
 
     {
         INFO("Testing Every");
-        test_results(times);
+        test_results(every_times);
     }
 
     {
