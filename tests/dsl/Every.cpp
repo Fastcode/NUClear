@@ -20,70 +20,75 @@
 #include <nuclear>
 #include <numeric>
 
+#include "test_util/TestBase.hpp"
+
 namespace {
 
-class TestReactor : public NUClear::Reactor {
+// Store our times
+std::vector<NUClear::clock::time_point> times{};          // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+std::vector<NUClear::clock::time_point> per_times{};      // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+std::vector<NUClear::clock::time_point> dynamic_times{};  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+
+class TestReactor : public test_util::TestBase<TestReactor, 20000> {
+
 public:
-    // Store our times
-    std::vector<NUClear::clock::time_point> times{};
+    TestReactor(std::unique_ptr<NUClear::Environment> environment) : TestBase(std::move(environment), false) {
 
-    static constexpr size_t NUM_LOG_ITEMS = 1000;
+        // Trigger on 3 different types of every
+        on<Every<1000, Per<std::chrono::seconds>>>().then([]() { times.push_back(NUClear::clock::now()); });
+        on<Every<1, std::chrono::milliseconds>>().then([]() { per_times.push_back(NUClear::clock::now()); });
+        on<Every<>>(std::chrono::milliseconds(1)).then([]() { dynamic_times.push_back(NUClear::clock::now()); });
 
-    static constexpr size_t WAIT_LENGTH_MILLIS = 1;
-
-    TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
-
-        // Trigger every 10 milliseconds
-        on<Every<WAIT_LENGTH_MILLIS, std::chrono::milliseconds>>().then([this] {
-            // Start logging our times each time an emit happens
-            times.push_back(NUClear::clock::now());
-
-            // Once we have enough items then we can do our statistics
-            if (times.size() == NUM_LOG_ITEMS) {
-
-                // Build up our difference vector
-                std::vector<double> diff;
-
-                for (size_t i = 0; i < times.size() - 1; ++i) {
-                    const std::chrono::nanoseconds delta = times[i + 1] - times[i];
-
-                    // Store our difference in seconds
-                    diff.push_back(double(delta.count()) / double(std::nano::den));
-                }
-
-                // Normalize our differences to jitter
-                for (double& d : diff) {
-                    d -= double(WAIT_LENGTH_MILLIS) / 1000.0;
-                }
-
-                // Calculate our mean, range, and stddev for the set
-                const double sum      = std::accumulate(std::begin(diff), std::end(diff), 0.0);
-                const double mean     = sum / double(diff.size());
-                const double variance = std::inner_product(diff.begin(), diff.end(), diff.begin(), 0.0);
-                const double stddev   = std::sqrt(variance / double(diff.size()));
-
-                // As time goes on the average wait should be 0 (we accept less then 0.5ms for this test)
-                REQUIRE(fabs(mean) < 0.0005);
-
-                // Require that 95% (ish) of all results are fast enough
-                REQUIRE(fabs(mean + stddev * 2) < 0.008);
-            }
-            // Once we have more then enough items then we shutdown the powerplant
-            else if (times.size() > NUM_LOG_ITEMS) {
-                // We are finished the test
-                this->powerplant.shutdown();
-            }
-        });
+        // Gather data for some amount of time
+        on<Watchdog<TestReactor, 5, std::chrono::seconds>>().then([this] { powerplant.shutdown(); });
     }
 };
 }  // namespace
 
-TEST_CASE("Testing the Every<> Smart Type", "[api][every][period]") {
+void test_results(const std::vector<NUClear::clock::time_point>& times) {
+
+    // Build up our difference vector
+    std::vector<double> diff;
+    for (size_t i = 0; i < times.size() - 1; ++i) {
+        double delta = std::chrono::duration_cast<std::chrono::duration<double>>(times[i + 1] - times[i]).count();
+
+        // Calculate the difference between the expected and actual time
+        diff.push_back(delta - 1e-3);
+    }
+
+    // Calculate our mean, range, and stddev for the set
+    const double sum      = std::accumulate(std::begin(diff), std::end(diff), 0.0);
+    const double mean     = sum / double(diff.size());
+    const double variance = std::inner_product(diff.begin(), diff.end(), diff.begin(), 0.0);
+    const double stddev   = std::sqrt(variance / double(diff.size()));
+
+    // As time goes on the average wait should be close to 0
+    INFO("Average error in timing: " << mean << "±" << stddev);
+
+    REQUIRE(std::abs(mean) < 0.0005);
+    REQUIRE(std::abs(mean + stddev * 2) < 0.008);
+}
+
+TEST_CASE("Testing the Every<> DSL word", "[api][every][per]") {
 
     NUClear::PowerPlant::Configuration config;
     config.thread_count = 1;
     NUClear::PowerPlant plant(config);
     plant.install<TestReactor>();
-
     plant.start();
+
+    {
+        INFO("Testing Every");
+        test_results(times);
+    }
+
+    {
+        INFO("Testing Every Per");
+        test_results(per_times);
+    }
+
+    {
+        INFO("Testing Dynamic Every every");
+        test_results(dynamic_times);
+    }
 }
