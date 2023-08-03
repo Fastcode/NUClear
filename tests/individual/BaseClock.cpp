@@ -28,6 +28,7 @@
 #include <utility>
 
 #include "message/ReactionStatistics.hpp"
+#include "test_util/TestBase.hpp"
 
 // Anonymous namespace to keep everything file local
 namespace {
@@ -51,7 +52,7 @@ public:
         on<Trigger<NUClear::message::ReactionStatistics>>().then(
             [this](const NUClear::message::ReactionStatistics& stats) {
                 const std::lock_guard<std::mutex> lock(times_mutex);
-                times.push_back(std::make_pair(stats.emitted, std::chrono::system_clock::now()));
+                times.push_back(std::make_pair(stats.finished, std::chrono::system_clock::now()));
                 if (times.size() > n_time) {
                     powerplant.shutdown();
                 }
