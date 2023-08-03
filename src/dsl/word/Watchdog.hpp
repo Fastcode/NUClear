@@ -277,7 +277,7 @@ namespace dsl {
                     }
 
                     // Now automatically service the watchdog
-                    time = NUClear::clock::now() + period(ticks);
+                    time = time + period(ticks);
                 }
                 // Change our wait time to our new watchdog time
                 else {
