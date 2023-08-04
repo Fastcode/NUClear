@@ -45,7 +45,7 @@ namespace util {
          * @param fd the file descriptor to hold
          * @param cleanup an optional cleanup function to call on close
          */
-        FileDescriptor(const int& fd_, std::function<void(int)> cleanup_ = nullptr);
+        FileDescriptor(const int& fd_, std::function<void(fd_t)> cleanup_ = nullptr);
 
         // Don't allow copy construction or assignment
         FileDescriptor(const FileDescriptor&)            = delete;

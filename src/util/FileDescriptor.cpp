@@ -9,7 +9,7 @@ namespace util {
 
 
     FileDescriptor::FileDescriptor() = default;
-    FileDescriptor::FileDescriptor(const int& fd_, std::function<void(int)> cleanup_)
+    FileDescriptor::FileDescriptor(const int& fd_, std::function<void(fd_t)> cleanup_)
         : fd(fd_), cleanup(std::move(cleanup_)) {}
 
     FileDescriptor::~FileDescriptor() {
