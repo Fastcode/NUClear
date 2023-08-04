@@ -98,7 +98,7 @@ public:
 
             // Write on our socket
             events.push_back(target.name + " sending");
-            auto written = ::send(fd, TEST_STRING.data(), socklen_t(TEST_STRING.size()), 0);
+            ::send(fd, TEST_STRING.data(), socklen_t(TEST_STRING.size()), 0);
 
             // Receive the echo
             std::array<char, 1024> buff{};
