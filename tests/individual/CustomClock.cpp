@@ -76,7 +76,7 @@ TEST_CASE("Testing custom clock works correctly", "[api][custom_clock]") {
     double custom_total = 0;
 
     for (int i = 0; i + 1 < int(times.size()); ++i) {
-        using namespace std::chrono;
+        using namespace std::chrono;  // NOLINT(google-build-using-namespace) fine in function scope
         steady_total += duration_cast<duration<double>>(times[i + 1].first - times[i].first).count();
         custom_total += duration_cast<duration<double>>(times[i + 1].second - times[i].second).count();
     }
