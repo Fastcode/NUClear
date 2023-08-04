@@ -156,6 +156,8 @@ int sendmsg(fd_t fd, msghdr* msg, int flags);
     #include <sys/types.h>
     #include <unistd.h>
 
+    #include <cerrno>
+
     // Move errno so it can be used in windows
     #define network_errno  errno
     #define INVALID_SOCKET (-1)
