@@ -37,7 +37,9 @@ struct TestConnection {
     in_port_t port;
 };
 
-class TestReactor : public test_util::TestBase<TestReactor, 10000> {
+struct FinishTest {};
+
+class TestReactor : public test_util::TestBase<TestReactor> {
 public:
     void handle_data(const std::string& name, const IO::Event& event) {
         // We have data to read
@@ -48,6 +50,7 @@ public:
             ssize_t len = ::recv(event.fd, buff.data(), socklen_t(TEST_STRING.size()), 0);
             if (len == 0) {
                 events.push_back(name + " closed");
+                emit(std::make_unique<FinishTest>());
             }
             else {
                 events.push_back(name + " received: " + std::string(buff.data(), len));
@@ -106,6 +109,14 @@ public:
             events.push_back(target.name + " echoed: " + std::string(buff.data(), recv));
         });
 
+        on<Trigger<FinishTest>, Sync<TestReactor>>().then([this] {
+            ++count;
+            if (count == 2) {
+                events.push_back("Finishing Test");
+                powerplant.shutdown();
+            }
+        });
+
         on<Startup>().then([this, ephemeral_port] {
             // Emit a message just so it will be when everything is running
             emit(std::make_unique<TestConnection>("Known Port", PORT));
@@ -116,13 +127,15 @@ public:
 private:
     NUClear::util::FileDescriptor known_port_fd;
     NUClear::util::FileDescriptor ephemeral_port_fd;
+    // How many tests were run
+    int count = 0;
 };
 }  // namespace
 
 TEST_CASE("Testing listening for TCP connections and receiving data messages", "[api][network][tcp]") {
 
     NUClear::PowerPlant::Configuration config;
-    config.thread_count = 4;
+    config.thread_count = 2;
     NUClear::PowerPlant plant(config);
     plant.install<TestReactor>();
     plant.start();
@@ -138,6 +151,7 @@ TEST_CASE("Testing listening for TCP connections and receiving data messages", "
         "Ephemeral Port received: Hello TCP World!",
         "Ephemeral Port echoed: Hello TCP World!",
         "Ephemeral Port closed",
+        "Finishing Test",
     };
 
     // Make an info print the diff in an easy to read way if we fail
