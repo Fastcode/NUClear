@@ -82,7 +82,7 @@ public:
         on<Trigger<TestConnection>, Sync<TestReactor>>().then([](const TestConnection& target) {
             // Open a random socket
             NUClear::util::FileDescriptor fd(::socket(AF_INET, SOCK_STREAM, IPPROTO_TCP),
-                                             [](int fd) { ::shutdown(fd, SHUT_RDWR); });
+                                             [](NUClear::fd_t fd) { ::shutdown(fd, SHUT_RDWR); });
 
             if (!fd.valid()) {
                 throw std::runtime_error("Failed to create socket");

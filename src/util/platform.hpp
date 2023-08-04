@@ -78,6 +78,11 @@
     // Whoever thought this was a good idea was a terrible person
     #undef ERROR
 
+    // Make the windows shutdown functions look like the posix ones
+    #define SHUT_RD   SD_RECEIVE
+    #define SHUT_WR   SD_RECEIVE
+    #define SHUT_RDWR SD_BOTH
+
 #endif  // _WIN32
 
 /*******************************************
