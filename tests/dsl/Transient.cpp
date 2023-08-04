@@ -61,7 +61,7 @@ struct TransientGetter : public NUClear::dsl::operation::TypeBind<TransientMessa
         // Get the real message and return it directly so transient can activate
         auto raw = NUClear::dsl::operation::CacheGet<TransientMessage>::get<DSL>(r);
         if (raw == nullptr) {
-            return TransientMessage();
+            return {};
         }
         return *raw;
     }
