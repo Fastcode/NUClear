@@ -67,7 +67,7 @@ namespace util {
          */
         // No Lint: As we are giving access to a variable which can change state.
         // NOLINTNEXTLINE(readability-make-member-function-const)
-        int get();
+        fd_t get();
 
         /**
          * @brief Returns if the currently held file descriptor is valid
