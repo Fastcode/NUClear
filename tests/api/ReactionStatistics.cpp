@@ -21,8 +21,8 @@
 
 #include "test_util/TestBase.hpp"
 
-// Anonymous namespace to keep everything file local
-namespace {
+// This namespace is named to make things consistent with the reaction statistics test
+namespace stats_test {
 
 /// @brief Events that occur during the test
 std::vector<std::string> events;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
@@ -82,32 +82,32 @@ public:
         });
     }
 };
-}  // namespace
+}  // namespace stats_test
 
 TEST_CASE("Testing reaction statistics functionality", "[api][reactionstatistics]") {
 
     NUClear::PowerPlant::Configuration config;
     config.thread_count = 1;
     NUClear::PowerPlant plant(config);
-    plant.install<TestReactor>();
+    plant.install<stats_test::TestReactor>();
     plant.start();
 
     std::vector<std::string> expected = {
         "Running Startup Handler",
-        "Stats for Startup Handler from (anonymous namespace)::TestReactor",
+        "Stats for Startup Handler from stats_test::TestReactor",
         "NUClear::Reactor::on<NUClear::dsl::word::Startup>",
         "Running Message Handler",
-        "Stats for Message Handler from (anonymous namespace)::TestReactor",
-        "NUClear::Reactor::on<NUClear::dsl::word::Trigger<(anonymous namespace)::Message<0>>>",
+        "Stats for Message Handler from stats_test::TestReactor",
+        "NUClear::Reactor::on<NUClear::dsl::word::Trigger<stats_test::Message<0>>>",
         "Running Exception Handler",
-        "Stats for Exception Handler from (anonymous namespace)::TestReactor",
-        "NUClear::Reactor::on<NUClear::dsl::word::Trigger<(anonymous namespace)::Message<1>>>",
+        "Stats for Exception Handler from stats_test::TestReactor",
+        "NUClear::Reactor::on<NUClear::dsl::word::Trigger<stats_test::Message<1>>>",
         "Exception received: \"Text in an exception\"",
     };
 
     // Make an info print the diff in an easy to read way if we fail
-    INFO(test_util::diff_string(expected, events));
+    INFO(test_util::diff_string(expected, stats_test::events));
 
     // Check the events fired in order and only those events
-    REQUIRE(events == expected);
+    REQUIRE(stats_test::events == expected);
 }
