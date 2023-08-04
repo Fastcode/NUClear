@@ -19,6 +19,8 @@
 #ifndef NUCLEAR_UTIL_FILEDESCRIPTOR_HPP
 #define NUCLEAR_UTIL_FILEDESCRIPTOR_HPP
 
+#include <functional>
+
 #include "platform.hpp"
 
 namespace NUClear {
@@ -32,8 +34,18 @@ namespace util {
      */
     class FileDescriptor {
     public:
+        /**
+         * @brief Construct a File Descriptor with an invalid file descriptor.
+         */
         FileDescriptor();
-        FileDescriptor(const fd_t& fd);
+
+        /**
+         * @brief Constructs a new RAII file descriptor.
+         *
+         * @param fd the file descriptor to hold
+         * @param cleanup an optional cleanup function to call on close
+         */
+        FileDescriptor(const int& fd_, std::function<void(int)> cleanup_ = nullptr);
 
         // Don't allow copy construction or assignment
         FileDescriptor(const FileDescriptor&)            = delete;
@@ -44,7 +56,7 @@ namespace util {
         FileDescriptor& operator=(FileDescriptor&& rhs) noexcept;
 
         /**
-         * @brief Destruct the file descriptor, closes the held FD
+         * @brief Destruct the file descriptor, closes the held fd
          */
         ~FileDescriptor();
 
@@ -53,8 +65,9 @@ namespace util {
          *
          * @return the file descriptor
          */
-        // NOLINTNEXTLINE(readability-make-member-function-const) file descriptors can be modified
-        fd_t get();
+        // No Lint: As we are giving access to a variable which can change state.
+        // NOLINTNEXTLINE(readability-make-member-function-const)
+        int get();
 
         /**
          * @brief Returns if the currently held file descriptor is valid
@@ -65,32 +78,29 @@ namespace util {
         bool valid() const;
 
         /**
-         * @brief Releases the file descriptor from RAII.
-         * @details This releases and returns the file descriptor
-         *          it holds. This allows it to no longer be
-         *          subject to closure on deletion.
-         *          After this this FileDescriptor object will
-         *          be invalidated.
-         * @return the held file descriptor
+         * @brief Close the currently held file descriptor
+         */
+        void close();
+
+        /**
+         * @brief Release the currently held file descriptor
+         *
+         * @return the file descriptor
          */
         fd_t release();
 
         /**
-         * @brief Casts this to the held file descriptor
+         * @brief Implicitly convert this class to a file descriptor
          *
          * @return the file descriptor
          */
-        // NOLINTNEXTLINE(readability-make-member-function-const) file descriptors can be modified
         operator fd_t();
-
-        /**
-         * @brief Close the current file descriptor, if it's valid
-         */
-        void close_fd();
 
     private:
         /// @brief The held file descriptor
         fd_t fd{INVALID_SOCKET};
+        /// @brief An optional cleanup function to call on close
+        std::function<void(int)> cleanup;
     };
 
 }  // namespace util

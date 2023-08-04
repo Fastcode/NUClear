@@ -18,160 +18,131 @@
 
 #include <catch.hpp>
 #include <nuclear>
+
+#include "test_util/TestBase.hpp"
+
 namespace {
 
+/// @brief Events that occur during the test
+std::vector<std::string> events;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+
 constexpr in_port_t PORT = 40009;
-int messages_received    = 0;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
 // NOLINTNEXTLINE(cert-err58-cpp,cppcoreguidelines-avoid-non-const-global-variables)
 const std::string TEST_STRING = "Hello TCP World!";
 
-struct Message {};
+struct TestConnection {
+    TestConnection(std::string name, in_port_t port) : name(std::move(name)), port(port) {}
+    std::string name;
+    in_port_t port;
+};
 
-class TestReactor : public NUClear::Reactor {
+class TestReactor : public test_util::TestBase<TestReactor, 10000> {
 public:
-    TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
+    void handle_data(const std::string& name, const IO::Event& event) {
+        // We have data to read
+        if ((event.events & IO::READ) != 0) {
+
+            // Read into the buffer
+            std::array<char, 1024> buff{};
+            ssize_t len = ::recv(event.fd, buff.data(), socklen_t(TEST_STRING.size()), 0);
+            if (len == 0) {
+                events.push_back(name + " closed");
+            }
+            else {
+                events.push_back(name + " received: " + std::string(buff.data(), len));
+                ::send(event.fd, buff.data(), socklen_t(len), 0);
+            }
+        }
+    }
+
+    TestReactor(std::unique_ptr<NUClear::Environment> environment) : TestBase(std::move(environment), false) {
 
         // Bind to a known port
         on<TCP>(PORT).then([this](const TCP::Connection& connection) {
+            events.push_back("Known Port connection accepted");
             on<IO>(connection.fd, IO::READ | IO::CLOSE).then([this](IO::Event event) {
-                // If we read 0 later it means orderly shutdown
-                ssize_t len = -1;
-
-                // We have data to read
-                if ((event.events & IO::READ) != 0) {
-
-                    std::array<char, 1024> buff = {0};
-
-                    // Read into the buffer
-                    len = ::recv(event.fd, buff.data(), static_cast<socklen_t>(TEST_STRING.size()), 0);
-
-                    // 0 indicates orderly shutdown of the socket
-                    if (len != 0) {
-
-                        // Test the data
-                        REQUIRE(len == int(TEST_STRING.size()));
-                        REQUIRE(TEST_STRING == std::string(buff.data()));
-                        ++messages_received;
-                    }
-                }
-
-                // The connection was closed and the other test finished
-                if (len == 0 || ((event.events & IO::CLOSE) != 0) || messages_received == 2) {
-                    if (messages_received == 2) {
-                        known_port_fd.close_fd();
-                        powerplant.shutdown();
-                    }
-                }
+                handle_data("Known Port", event);
             });
         });
 
         // Bind to an unknown port and get the port number
-        in_port_t bound_port                           = 0;
-        std::tie(std::ignore, bound_port, std::ignore) = on<TCP>().then([this](const TCP::Connection& connection) {
+        in_port_t ephemeral_port                           = 0;
+        std::tie(std::ignore, ephemeral_port, std::ignore) = on<TCP>().then([this](const TCP::Connection& connection) {
+            events.push_back("Ephemeral Port connection accepted");
             on<IO>(connection.fd, IO::READ | IO::CLOSE).then([this](IO::Event event) {
-                // If we read 0 later it means orderly shutdown
-                ssize_t len = -1;
-
-                // We have data to read
-                if ((event.events & IO::READ) != 0) {
-
-                    std::array<char, 1024> buff = {0};
-
-                    // Read into the buffer
-                    len = ::recv(event.fd, buff.data(), static_cast<socklen_t>(TEST_STRING.size()), 0);
-
-                    // 0 indicates orderly shutdown of the socket
-                    if (len != 0) {
-                        // Test the data
-                        REQUIRE(len == int(TEST_STRING.size()));
-                        REQUIRE(TEST_STRING == std::string(buff.data()));
-                        ++messages_received;
-                    }
-                }
-
-                // The connection was closed and the other test finished
-                if (len == 0 || ((event.events & IO::CLOSE) != 0) || messages_received == 2) {
-                    if (messages_received == 2) {
-                        bound_port_fd.close_fd();
-                        powerplant.shutdown();
-                    }
-                }
+                handle_data("Ephemeral Port", event);
             });
         });
 
         // Send a test message to the known port
-        on<Trigger<Message>>().then([this] {
+        on<Trigger<TestConnection>, Sync<TestReactor>>().then([](const TestConnection& target) {
             // Open a random socket
-            known_port_fd = ::socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+            NUClear::util::FileDescriptor fd(::socket(AF_INET, SOCK_STREAM, IPPROTO_TCP),
+                                             [](int fd) { ::shutdown(fd, SHUT_RDWR); });
+
+            if (fd.valid() == false) {
+                throw std::runtime_error("Failed to create socket");
+            }
 
             // Our address to our local connection
             sockaddr_in address{};
             address.sin_family      = AF_INET;
             address.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
-            address.sin_port        = htons(PORT);
+            address.sin_port        = htons(target.port);
 
             // Connect to ourself
-            REQUIRE(::connect(known_port_fd, reinterpret_cast<sockaddr*>(&address), sizeof(address)) == 0);
-
-            // Set linger so we ensure sending all data
-            linger l{1, 2};
-            REQUIRE(::setsockopt(known_port_fd, SOL_SOCKET, SO_LINGER, reinterpret_cast<char*>(&l), sizeof(linger))
-                    == 0);
+            if (::connect(fd, reinterpret_cast<sockaddr*>(&address), sizeof(address)) != 0) {
+                throw std::runtime_error("Failed to connect to socket");
+            }
 
             // Write on our socket
-            const ssize_t sent =
-                ::send(known_port_fd, TEST_STRING.data(), static_cast<socklen_t>(TEST_STRING.size()), 0);
+            events.push_back(target.name + " sending");
+            auto written = ::send(fd, TEST_STRING.data(), socklen_t(TEST_STRING.size()), 0);
 
-            // We must have sent the right amount of data
-            REQUIRE(sent == int(TEST_STRING.size()));
+            // Receive the echo
+            std::array<char, 1024> buff{};
+            const ssize_t recv = ::recv(fd, buff.data(), socklen_t(TEST_STRING.size()), 0);
+            events.push_back(target.name + " echoed: " + std::string(buff.data(), recv));
         });
 
-        // Send a test message to the freely bound port
-        on<Trigger<Message>>().then([this, bound_port] {
-            // Open a random socket
-            bound_port_fd = ::socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-
-            // Our address to our local connection
-            sockaddr_in address{};
-            address.sin_family      = AF_INET;
-            address.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
-            address.sin_port        = htons(bound_port);
-
-            // Connect to ourself
-            REQUIRE(::connect(bound_port_fd, reinterpret_cast<sockaddr*>(&address), sizeof(address)) == 0);
-
-            // Set linger so we ensure sending all data
-            linger l{1, 2};
-            REQUIRE(::setsockopt(bound_port_fd, SOL_SOCKET, SO_LINGER, reinterpret_cast<char*>(&l), sizeof(linger))
-                    == 0);
-
-            // Write on our socket
-            const ssize_t sent =
-                ::send(bound_port_fd, TEST_STRING.data(), static_cast<socklen_t>(TEST_STRING.size()), 0);
-
-            // We must have sent the right amount of data
-            REQUIRE(sent == int(TEST_STRING.size()));
-        });
-
-        on<Startup>().then([this] {
+        on<Startup>().then([this, ephemeral_port] {
             // Emit a message just so it will be when everything is running
-            emit(std::make_unique<Message>());
+            emit(std::make_unique<TestConnection>("Known Port", PORT));
+            emit(std::make_unique<TestConnection>("Ephemeral Port", ephemeral_port));
         });
     }
 
 private:
     NUClear::util::FileDescriptor known_port_fd;
-    NUClear::util::FileDescriptor bound_port_fd;
+    NUClear::util::FileDescriptor ephemeral_port_fd;
 };
 }  // namespace
 
 TEST_CASE("Testing listening for TCP connections and receiving data messages", "[api][network][tcp]") {
 
     NUClear::PowerPlant::Configuration config;
-    config.thread_count = 1;
+    config.thread_count = 4;
     NUClear::PowerPlant plant(config);
     plant.install<TestReactor>();
-
     plant.start();
+
+    std::vector<std::string> expected = {
+        "Known Port sending",
+        "Known Port connection accepted",
+        "Known Port received: Hello TCP World!",
+        "Known Port echoed: Hello TCP World!",
+        "Known Port closed",
+        "Ephemeral Port sending",
+        "Ephemeral Port connection accepted",
+        "Ephemeral Port received: Hello TCP World!",
+        "Ephemeral Port echoed: Hello TCP World!",
+        "Ephemeral Port closed",
+    };
+
+    // Make an info print the diff in an easy to read way if we fail
+    INFO(test_util::diff_string(expected, events));
+
+    // Check the events fired in order and only those events
+    REQUIRE(events == expected);
 }

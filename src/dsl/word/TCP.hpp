@@ -84,7 +84,8 @@ namespace dsl {
                                                            in_port_t port = 0) {
 
                 // Make our socket
-                util::FileDescriptor fd = ::socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+                util::FileDescriptor fd(::socket(AF_INET, SOCK_STREAM, IPPROTO_TCP),
+                                        [](fd_t fd) { ::shutdown(fd, SHUT_RDWR); });
 
                 if (fd < 0) {
                     throw std::system_error(network_errno,
@@ -127,7 +128,10 @@ namespace dsl {
                 reaction->unbinders.push_back([](const threading::Reaction& r) {
                     r.reactor.emit<emit::Direct>(std::make_unique<operation::Unbind<IO>>(r.id));
                 });
-                reaction->unbinders.push_back([cfd](const threading::Reaction&) { close(cfd); });
+                reaction->unbinders.push_back([cfd](const threading::Reaction&) {
+                    ::shutdown(cfd, SHUT_RDWR);
+                    ::close(cfd);
+                });
 
                 auto io_config = std::make_unique<IOConfiguration>(IOConfiguration{fd.release(), IO::READ, reaction});
 

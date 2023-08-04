@@ -218,6 +218,12 @@ namespace extension {
                                             // TODO(trent): If we had a close, or error stop listening?
                                         }
                                     }
+
+                                    if ((fd.revents & IO::CLOSE) != 0) {
+                                        // Remove all the reactions that wanted this fd and flag the list as dirty
+                                        reactions.erase(range.first, range.second);
+                                        dirty = true;
+                                    }
                                 }
                             }
 
