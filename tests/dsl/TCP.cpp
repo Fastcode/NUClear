@@ -84,7 +84,7 @@ public:
             NUClear::util::FileDescriptor fd(::socket(AF_INET, SOCK_STREAM, IPPROTO_TCP),
                                              [](int fd) { ::shutdown(fd, SHUT_RDWR); });
 
-            if (fd.valid() == false) {
+            if (!fd.valid()) {
                 throw std::runtime_error("Failed to create socket");
             }
 
