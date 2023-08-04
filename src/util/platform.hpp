@@ -145,6 +145,7 @@ int sendmsg(fd_t fd, msghdr* msg, int flags);
 
     // Include real networking stuff
     #include <arpa/inet.h>
+    #include <fcntl.h>
     #include <ifaddrs.h>
     #include <net/if.h>
     #include <netdb.h>
