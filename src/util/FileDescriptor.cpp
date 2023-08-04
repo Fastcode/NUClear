@@ -21,7 +21,11 @@ namespace util {
             if (cleanup) {
                 cleanup(fd);
             }
+#ifdef _WIN32
+            ::closesocket(fd);
+#else
             ::close(fd);
+#endif
             fd = INVALID_SOCKET;
         }
     }
@@ -34,7 +38,7 @@ namespace util {
 
     FileDescriptor& FileDescriptor::operator=(FileDescriptor&& rhs) noexcept {
         if (this != &rhs) {
-            close();
+            this->close();
             fd = std::exchange(rhs.fd, INVALID_SOCKET);
         }
         return *this;
@@ -42,7 +46,7 @@ namespace util {
 
     // No Lint: As we are giving access to a variable which can change state.
     // NOLINTNEXTLINE(readability-make-member-function-const)
-    int FileDescriptor::get() {
+    fd_t FileDescriptor::get() {
         return fd;
     }
 

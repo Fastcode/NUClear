@@ -100,7 +100,7 @@ namespace util {
         /// @brief The held file descriptor
         fd_t fd{INVALID_SOCKET};
         /// @brief An optional cleanup function to call on close
-        std::function<void(int)> cleanup;
+        std::function<void(fd_t)> cleanup;
     };
 
 }  // namespace util
