@@ -130,7 +130,11 @@ namespace dsl {
                 });
                 reaction->unbinders.push_back([cfd](const threading::Reaction&) {
                     ::shutdown(cfd, SHUT_RDWR);
+#ifdef _WIN32
+                    ::closesocket(cfd);
+#else
                     ::close(cfd);
+#endif
                 });
 
                 auto io_config = std::make_unique<IOConfiguration>(IOConfiguration{fd.release(), IO::READ, reaction});
