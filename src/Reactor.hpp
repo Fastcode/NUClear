@@ -304,6 +304,7 @@ public:
             std::string dsl = util::demangle(typeid(DSL).name());
             dsl             = std::regex_replace(dsl, std::regex(R"(NUClear::dsl::Parse<)"), "NUClear::Reactor::on<");
             dsl             = std::regex_replace(dsl, std::regex(R"(struct\s+)"), "");
+            dsl             = std::regex_replace(dsl, std::regex(R"(class\s+)"), "");
             dsl             = std::regex_replace(dsl, std::regex(R"(\s+)"), "");
 
             // Generate the identifier
