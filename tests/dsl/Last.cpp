@@ -63,7 +63,7 @@ TEST_CASE("Testing the last n feature", "[api][last]") {
     plant.install<TestReactor>();
     plant.start();
 
-    std::vector<std::string> expected = {
+    const std::vector<std::string> expected = {
         "0 ",
         "0 1 ",
         "0 1 2 ",

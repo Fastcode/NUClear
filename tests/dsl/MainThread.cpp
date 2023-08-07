@@ -69,7 +69,7 @@ TEST_CASE("Testing that the MainThread keyword runs tasks on the main thread", "
     plant.install<TestReactor>();
     plant.start();
 
-    std::vector<std::string> expected = {
+    const std::vector<std::string> expected = {
         "Emitting MessageA",
         "MessageA triggered on non-main thread",
         "Emitting MessageB",

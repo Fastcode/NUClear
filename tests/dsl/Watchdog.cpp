@@ -99,7 +99,7 @@ TEST_CASE("Testing the Watchdog Smart Type", "[api][watchdog]") {
     plant.install<TestReactor>();
     plant.start();
 
-    std::vector<std::string> expected = {
+    const std::vector<std::string> expected = {
         "Watchdog 4  triggered @ 1",
         "Watchdog 4  triggered @ 2",
         "Watchdog 4  triggered @ 3",

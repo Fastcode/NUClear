@@ -101,7 +101,7 @@ TEST_CASE("Test that Buffer and Single limit the number of concurrent executions
     plant.install<TestReactor>();
     plant.start();
 
-    std::vector<std::string> expected = {
+    const std::vector<std::string> expected = {
         "Step 1",
         "Trigger reaction 1",
         "Single reaction 1",

@@ -71,7 +71,7 @@ TEST_CASE("Testing reaction handle functionality", "[api][reactionhandle]") {
     plant.install<TestReactor>();
     plant.start();
 
-    std::vector<std::string> expected = {
+    const std::vector<std::string> expected = {
         "Executed toggled reaction 0",
         "Executed enabled reaction 0",
         "Executed enabled reaction 1",

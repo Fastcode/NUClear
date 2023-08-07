@@ -27,11 +27,11 @@ namespace test_util {
 std::string diff_string(const std::vector<std::string>& expected, const std::vector<std::string>& actual) {
 
     // Find the longest string in each side or "Expected" and "Actual" if those are the longest
-    auto len      = [](const std::string& a, const std::string& b) { return a.size() < b.size(); };
-    auto max_a_it = std::max_element(expected.begin(), expected.end(), len);
-    auto max_b_it = std::max_element(actual.begin(), actual.end(), len);
-    int max_a     = std::max(int(std::strlen("Expected")), max_a_it != expected.end() ? int(max_a_it->size()) : 0);
-    int max_b     = std::max(int(std::strlen("Actual")), max_b_it != actual.end() ? int(max_b_it->size()) : 0);
+    auto len        = [](const std::string& a, const std::string& b) { return a.size() < b.size(); };
+    auto max_a_it   = std::max_element(expected.begin(), expected.end(), len);
+    auto max_b_it   = std::max_element(actual.begin(), actual.end(), len);
+    const int max_a = std::max(int(std::strlen("Expected")), max_a_it != expected.end() ? int(max_a_it->size()) : 0);
+    const int max_b = std::max(int(std::strlen("Actual")), max_b_it != actual.end() ? int(max_b_it->size()) : 0);
 
     // Start with a header
     std::string output = std::string("Expected") + std::string(max_a - 8, ' ') + "    |    " + std::string("Actual")

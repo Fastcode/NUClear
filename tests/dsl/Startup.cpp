@@ -55,7 +55,7 @@ TEST_CASE("Testing the startup event is emitted at the start of the program", "[
     plant.install<TestReactor>();
     plant.start();
 
-    std::vector<std::string> expected = {
+    const std::vector<std::string> expected = {
         "Startup triggered",
         "Emitting SimpleMessage",
         "SimpleMessage triggered with 10",

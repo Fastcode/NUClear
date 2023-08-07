@@ -91,7 +91,7 @@ TEST_CASE("Testing distributing arguments to multiple bind functions (NUClear Fi
     plant.install<TestReactor>();
     plant.start();
 
-    std::vector<std::string> expected = {
+    const std::vector<std::string> expected = {
         "Bind1 with 5 and false called",
         "Bind2 with Hello and 2000000000 called",
         "Bind3 with 9, 10 and 11000000000 called",

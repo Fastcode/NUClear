@@ -133,7 +133,7 @@ TEST_CASE("Testing whether getters that return transient data can cache between 
     plant.install<TestReactor>();
     plant.start();
 
-    std::vector<std::string> expected = {
+    const std::vector<std::string> expected = {
         "Emitting Message 1",
         "Emitting Transient 1",
         "S1 : T1",

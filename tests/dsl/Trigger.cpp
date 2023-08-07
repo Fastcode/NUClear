@@ -58,7 +58,7 @@ TEST_CASE("Test that Trigger statements get the correct data", "[api][trigger]")
     plant.install<TestReactor>();
     plant.start();
 
-    std::vector<std::string> expected = {
+    const std::vector<std::string> expected = {
         "Trigger 0",
         "Trigger 1",
         "Trigger 2",

@@ -69,7 +69,7 @@ TEST_CASE("Testing that when an on statement does not have it's data satisfied i
     plant.install<TestReactor>();
     plant.start();
 
-    std::vector<std::string> expected = {
+    const std::vector<std::string> expected = {
         "Emitting MessageA",
         "MessageA triggered",
         "Emitting MessageB",

@@ -56,7 +56,7 @@ TEST_CASE("A test that a shutdown message is emitted when the system shuts down"
     plant.install<TestReactor>();
     plant.start();
 
-    std::vector<std::string> expected = {
+    const std::vector<std::string> expected = {
         "Starting test",
         "Requesting shutdown",
         "Shutdown task executed",

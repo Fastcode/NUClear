@@ -92,7 +92,7 @@ TEST_CASE("Testing reaction statistics functionality", "[api][reactionstatistics
     plant.install<stats_test::TestReactor>();
     plant.start();
 
-    std::vector<std::string> expected = {
+    const std::vector<std::string> expected = {
         "Running Startup Handler",
         "Stats for Startup Handler from stats_test::TestReactor",
         "NUClear::Reactor::on<NUClear::dsl::word::Startup>",

@@ -64,18 +64,18 @@ std::pair<std::vector<bool>, std::vector<bool>> lcs(const std::vector<T>& a, con
     for (int y = 0; y < int(b.size()); ++y) {
         for (int x = 0; x < int(a.size()); ++x) {
             // Calculate the weights
-            int weight_from_left = x == 0 ? (y + 2) * insert_weight : curr_weights[x - 1] + insert_weight;
-            int weight_from_top  = last_weights[x] + insert_weight;
-            int weight_from_diagonal =
+            const int weight_from_left = x == 0 ? (y + 2) * insert_weight : curr_weights[x - 1] + insert_weight;
+            const int weight_from_top  = last_weights[x] + insert_weight;
+            const int weight_from_diagonal =
                 a[x] == b[y] ? (x == 0 ? (y + 1) * insert_weight : last_weights[x - 1]) : 0x7FFFFFFF;
 
             // Find the smallest weight
-            int min_weight  = std::min(std::min(weight_from_left, weight_from_top), weight_from_diagonal);
-            curr_weights[x] = min_weight;
+            const int min_weight = std::min(std::min(weight_from_left, weight_from_top), weight_from_diagonal);
+            curr_weights[x]      = min_weight;
 
-            int direction = (min_weight == weight_from_diagonal ? 0x01 : 0x0)  //
-                            | (min_weight == weight_from_left ? 0x02 : 0x0)    //
-                            | (min_weight == weight_from_top ? 0x04 : 0x0);    //
+            const int direction = (min_weight == weight_from_diagonal ? 0x01 : 0x0)  //
+                                  | (min_weight == weight_from_left ? 0x02 : 0x0)    //
+                                  | (min_weight == weight_from_top ? 0x04 : 0x0);    //
 
             directions[x][y] = direction;
         }

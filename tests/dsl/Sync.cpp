@@ -101,7 +101,7 @@ TEST_CASE("Testing that the Sync word works correctly", "[api][sync]") {
     plant.install<TestReactor>();
     plant.start();
 
-    std::vector<std::string> expected = {
+    const std::vector<std::string> expected = {
         "Sync A From Startup",
         "Sync A emitting",
         "Sync A From Startup finished",

@@ -74,7 +74,7 @@ TEST_CASE("Testing emitting types that are flag types (Have no contents)", "[api
     plant.install<TestReactor>();
     plant.start();
 
-    std::vector<std::string> expected = {
+    const std::vector<std::string> expected = {
         "Emitting Step<1>",
         "Step<1> triggered",
         "Emitting MessageA",

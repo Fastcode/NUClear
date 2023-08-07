@@ -74,7 +74,7 @@ TEST_CASE("Testing poorly ordered on arguments", "[api][dsl][order][with]") {
     plant.install<TestReactor>();
     plant.start();
 
-    std::vector<std::string> expected = {
+    const std::vector<std::string> expected = {
         "Emitting 1",
         "Emitting 2",
         "Emitting 3",

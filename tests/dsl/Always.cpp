@@ -63,7 +63,7 @@ TEST_CASE("The Always DSL keyword runs continuously when it can", "[api][always]
     plant.install<TestReactor>();
     plant.start();
 
-    std::vector<std::string> expected = {
+    const std::vector<std::string> expected = {
         "Always 0",
         "Always 1",
         "Always 2",

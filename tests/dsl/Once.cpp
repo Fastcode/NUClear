@@ -68,7 +68,7 @@ TEST_CASE("Reactions with the Once DSL keyword only execute once", "[api][once]"
     plant.install<TestReactor>();
     plant.start();
 
-    std::vector<std::string> expected = {
+    const std::vector<std::string> expected = {
         "Startup Trigger Executed",   "Once Trigger executed 0",
         "Normal Trigger Executed 0",  "Emitting 1",
         "Normal Trigger Executed 1",  "Emitting 2",

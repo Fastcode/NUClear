@@ -75,7 +75,7 @@ TEST_CASE("Testing that the DSL proxy works as expected for binding unmodifyable
     plant.install<TestReactor>();
     plant.start();
 
-    std::vector<std::string> expected = {
+    const std::vector<std::string> expected = {
         "Emitting CustomMessage2",
         "Emitting CustomMessage1",
         "CustomMessage1 Triggered with 123456",

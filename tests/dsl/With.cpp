@@ -87,7 +87,7 @@ TEST_CASE("Testing the with dsl keyword", "[api][with]") {
     plant.install<TestReactor>();
     plant.start();
 
-    std::vector<std::string> expected = {
+    const std::vector<std::string> expected = {
         "Emitting Data 1",
         "Emitting Data 2",
         "Emitting Message 1",

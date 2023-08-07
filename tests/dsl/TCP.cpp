@@ -140,7 +140,7 @@ TEST_CASE("Testing listening for TCP connections and receiving data messages", "
     plant.install<TestReactor>();
     plant.start();
 
-    std::vector<std::string> expected = {
+    const std::vector<std::string> expected = {
         "Known Port sending",
         "Known Port connection accepted",
         "Known Port received: Hello TCP World!",

@@ -54,7 +54,7 @@ TEST_CASE("Testing the Command Line argument capturing", "[api][command_line_arg
     plant.install<TestReactor>();
     plant.start();
 
-    std::vector<std::string> expected = {"CommandLineArguments: Hello World "};
+    const std::vector<std::string> expected = {"CommandLineArguments: Hello World "};
 
     // Make an info print the diff in an easy to read way if we fail
     INFO(test_util::diff_string(expected, events));

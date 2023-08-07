@@ -60,7 +60,7 @@ TEST_CASE("Test a custom reactor that returns a type that needs dereferencing", 
     plant.install<TestReactor>();
     plant.start();
 
-    std::vector<std::string> expected = {
+    const std::vector<std::string> expected = {
         "Emitting CustomGet",
         "CustomGet Triggered",
         "Data from a custom getter",

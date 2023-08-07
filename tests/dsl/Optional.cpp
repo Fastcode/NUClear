@@ -72,7 +72,7 @@ TEST_CASE("Testing that optional is able to let data through even if it's invali
     plant.install<TestReactor>();
     plant.start();
 
-    std::vector<std::string> expected = {
+    const std::vector<std::string> expected = {
         "Emitting A",
         "Executed reaction with A and optional B with B-",
         "Emitting B",

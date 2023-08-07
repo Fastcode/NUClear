@@ -65,7 +65,7 @@ TEST_CASE("Testing that when arguments missing from the call it can still run", 
     plant.install<TestReactor>();
     plant.start();
 
-    std::vector<std::string> expected = {
+    const std::vector<std::string> expected = {
         "Emitting Message<4>",
         "Emitting Message<3>",
         "Emitting Message<2>",

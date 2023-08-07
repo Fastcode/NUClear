@@ -91,7 +91,7 @@ TEST_CASE("Tests that priority orders the tasks appropriately", "[api][priority]
     plant.install<TestReactor>();
     plant.start();
 
-    std::vector<std::string> expected = {
+    const std::vector<std::string> expected = {
         "Realtime Message<1>",
         "Realtime Message<2>",
         "Realtime Message<3>",

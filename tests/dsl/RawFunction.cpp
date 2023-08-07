@@ -108,7 +108,7 @@ TEST_CASE("Test reaction can take a raw function instead of just a lambda", "[ap
     plant.install<TestReactor>();
     plant.start();
 
-    std::vector<std::string> expected = {
+    const std::vector<std::string> expected = {
         "Raw function no args",
         "Raw function left arg: M2",
         "Raw function right arg: D1",
