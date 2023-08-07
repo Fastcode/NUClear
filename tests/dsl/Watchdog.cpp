@@ -77,7 +77,8 @@ public:
     }
 
     std::string floored_time() const {
-        double diff = std::chrono::duration_cast<std::chrono::duration<double>>(NUClear::clock::now() - start).count();
+        using namespace std::chrono;  // NOLINT(google-build-using-namespace) fine in function scope
+        const double diff = duration_cast<duration<double>>(NUClear::clock::now() - start).count();
         // Round to 100ths of a second
         return std::to_string(int(std::floor(diff * 100)));
     }

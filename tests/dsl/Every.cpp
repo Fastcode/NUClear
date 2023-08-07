@@ -50,7 +50,7 @@ void test_results(const std::vector<NUClear::clock::time_point>& times) {
     // Build up our difference vector
     std::vector<double> diff;
     for (size_t i = 0; i < times.size() - 1; ++i) {
-        double delta = std::chrono::duration_cast<std::chrono::duration<double>>(times[i + 1] - times[i]).count();
+        const double delta = std::chrono::duration_cast<std::chrono::duration<double>>(times[i + 1] - times[i]).count();
 
         // Calculate the difference between the expected and actual time
         diff.push_back(delta - 1e-3);

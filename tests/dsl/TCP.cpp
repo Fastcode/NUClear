@@ -47,7 +47,7 @@ public:
 
             // Read into the buffer
             std::array<char, 1024> buff{};
-            ssize_t len = ::recv(event.fd, buff.data(), socklen_t(TEST_STRING.size()), 0);
+            const ssize_t len = ::recv(event.fd, buff.data(), socklen_t(TEST_STRING.size()), 0);
             if (len == 0) {
                 events.push_back(name + " closed");
                 emit(std::make_unique<FinishTest>());

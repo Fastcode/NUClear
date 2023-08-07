@@ -87,7 +87,7 @@ TEST_CASE("Testing the IO extension", "[api][io]") {
     plant.install<TestReactor>();
     plant.start();
 
-    std::vector<std::string> read_expected = {
+    const std::vector<std::string> read_expected = {
         "Read 1 bytes (H) from pipe",
         "Read 1 bytes (e) from pipe",
         "Read 1 bytes (l) from pipe",
@@ -98,7 +98,7 @@ TEST_CASE("Testing the IO extension", "[api][io]") {
     // Make an info print the diff in an easy to read way if we fail
     INFO("Read Events\n" << test_util::diff_string(read_expected, read_events));
 
-    std::vector<std::string> write_expected{
+    const std::vector<std::string> write_expected{
         "Wrote 1 bytes (H) to pipe",
         "Wrote 1 bytes (e) to pipe",
         "Wrote 1 bytes (l) to pipe",

@@ -90,7 +90,7 @@ std::pair<std::vector<bool>, std::vector<bool>> lcs(const std::vector<T>& a, con
     int i_a = x;
     int i_b = y;
     while (x >= 0 && y >= 0) {
-        int direction = directions[x][y];
+        const int& direction = directions[x][y];
         if (direction & 0x01) {
             match_a[i_a--] = true;
             match_b[i_b--] = true;
