@@ -106,17 +106,17 @@ using ssize_t   = SSIZE_T;
 using in_port_t = uint16_t;
 using in_addr_t = uint32_t;
 
+// Make close call closesocket
+inline int close(fd_t fd) {
+    return ::closesocket(fd);
+}
+
 namespace NUClear {
 
 // For us file descriptors will just be sockets
 using fd_t = SOCKET;
 
 using socklen_t = int;
-
-// This is defined here rather than in the global namespace so it doesn't get in the way
-inline int close(fd_t fd) {
-    return ::closesocket(fd);
-}
 
 inline int ioctl(SOCKET s, long cmd, u_long* argp) {
     return ioctlsocket(s, cmd, argp);

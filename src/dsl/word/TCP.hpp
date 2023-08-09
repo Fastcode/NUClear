@@ -128,11 +128,7 @@ namespace dsl {
 
                 reaction->unbinders.push_back([cfd](const threading::Reaction&) {
                     ::shutdown(cfd, SHUT_RDWR);
-#ifdef _WIN32
-                    ::closesocket(cfd);
-#else
                     ::close(cfd);
-#endif
                 });
 
                 // Bind using the IO system

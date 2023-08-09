@@ -126,8 +126,8 @@ namespace extension {
                         // Check how many bytes are available to read, if it's 0 and we have a read event the
                         // descriptor is sending EOF and we should fire a CLOSE event too and stop watching
                         if ((fd.revents & IO::READ) != 0) {
-                            int bytes_available;
-                            bool valid = ::ioctl(fd.fd, FIONREAD, &bytes_available) == 0;
+                            int bytes_available = 0;
+                            bool valid          = ::ioctl(fd.fd, FIONREAD, &bytes_available) == 0;
                             if (valid && bytes_available == 0) {
                                 fd.revents |= IO::CLOSE;
                             }
@@ -201,6 +201,13 @@ namespace extension {
             }
         }
 
+        /**
+         * @brief Bumps the notification pipe to wake up the poll command
+         *
+         * If the poll command is waiting it will wait forever if something doesn't happen.
+         * When trying to update what to poll or shut down we need to wake it up so it can.
+         */
+        // NOLINTNEXTLINE(readability-make-member-function-const) this changes states
         void bump() {
             // Check if there was an error
             uint8_t val = 1;

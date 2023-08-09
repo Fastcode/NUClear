@@ -32,8 +32,8 @@ namespace dsl {
     namespace word {
 
         struct IOConfiguration {
-            IOConfiguration(fd_t fd, int events, const std::shared_ptr<threading::Reaction>& reaction)
-                : fd(fd), events(events), reaction(reaction) {}
+            IOConfiguration(fd_t fd, int events, std::shared_ptr<threading::Reaction> reaction)
+                : fd(fd), events(events), reaction(std::move(reaction)) {}
             fd_t fd;
             int events;
             std::shared_ptr<threading::Reaction> reaction;

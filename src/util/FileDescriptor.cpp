@@ -21,11 +21,7 @@ namespace util {
             if (cleanup) {
                 cleanup(fd);
             }
-#ifdef _WIN32
-            ::closesocket(fd);
-#else
             ::close(fd);
-#endif
             fd = INVALID_SOCKET;
         }
     }
