@@ -40,7 +40,7 @@ class PowerPlant;
  */
 class Environment {
 public:
-    Environment(PowerPlant& powerplant, const LogLevel& log_level, std::string reactor_name)
+    Environment(PowerPlant& powerplant, std::string reactor_name, const LogLevel& log_level)
         : powerplant(powerplant), reactor_name(std::move(reactor_name)), log_level(log_level) {}
 
 private:
