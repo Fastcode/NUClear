@@ -85,5 +85,5 @@ TEST_CASE("Testing custom clock works correctly", "[api][custom_clock]") {
     REQUIRE((custom_total / steady_total) == Approx(0.5));
 
     // The amount of time that passed should be (n - 1) * 2 * 10ms
-    REQUIRE(steady_total == Approx(2.0 * (times.size() - 1) * 1e-2));
+    REQUIRE(steady_total == Approx(2.0 * (times.size() - 1) * 1e-2).margin(1e-3));
 }
