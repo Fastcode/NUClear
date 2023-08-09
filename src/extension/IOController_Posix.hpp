@@ -149,6 +149,7 @@ namespace extension {
                             for (auto it = range.first; it != range.second; ++it) {
 
                                 // Load in the relevant events that happened into the waiting events
+                                // NOLINTNEXTLINE(google-runtime-int)
                                 it->waiting_events = short(it->waiting_events | (it->events & fd.revents));
                             }
                         }
