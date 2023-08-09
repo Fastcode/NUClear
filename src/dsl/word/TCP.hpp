@@ -58,7 +58,7 @@ namespace dsl {
          * @par Implements
          *  Bind
          */
-        struct TCP {
+        struct TCP : public IO {
 
             struct Connection {
 
@@ -124,10 +124,8 @@ namespace dsl {
                 port = ntohs(address.sin_port);
 
                 // Generate a reaction for the IO system that closes on death
-                const fd_t cfd = fd;
-                reaction->unbinders.push_back([](const threading::Reaction& r) {
-                    r.reactor.emit<emit::Direct>(std::make_unique<operation::Unbind<IO>>(r.id));
-                });
+                const fd_t cfd = fd.release();
+
                 reaction->unbinders.push_back([cfd](const threading::Reaction&) {
                     ::shutdown(cfd, SHUT_RDWR);
 #ifdef _WIN32
@@ -137,10 +135,8 @@ namespace dsl {
 #endif
                 });
 
-                auto io_config = std::make_unique<IOConfiguration>(IOConfiguration{fd.release(), IO::READ, reaction});
-
-                // Send our configuration out
-                reaction->reactor.emit<emit::Direct>(io_config);
+                // Bind using the IO system
+                IO::bind<DSL>(reaction, cfd, IO::READ | IO::CLOSE);
 
                 // Return our handles
                 return std::make_tuple(port, cfd);

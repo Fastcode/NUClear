@@ -32,9 +32,16 @@ namespace dsl {
     namespace word {
 
         struct IOConfiguration {
+            IOConfiguration(fd_t fd, int events, const std::shared_ptr<threading::Reaction>& reaction)
+                : fd(fd), events(events), reaction(reaction) {}
             fd_t fd;
             int events;
             std::shared_ptr<threading::Reaction> reaction;
+        };
+
+        struct IOFinished {
+            IOFinished(const uint64_t& id) : id(id) {}
+            uint64_t id;
         };
 
         /**
@@ -68,15 +75,25 @@ namespace dsl {
          * @par Implements
          *  Bind
          */
-        struct IO : public Single {
+        struct IO {
 
 // On windows we use different wait events
 #ifdef _WIN32
             // NOLINTNEXTLINE(google-runtime-int)
-            enum EventType : short{READ = FD_READ | FD_OOB | FD_ACCEPT, WRITE = FD_WRITE, CLOSE = FD_CLOSE, ERROR = 0};
+            enum EventType : short {
+                READ  = FD_READ | FD_OOB | FD_ACCEPT,
+                WRITE = FD_WRITE,
+                CLOSE = FD_CLOSE,
+                ERROR = 0,
+            };
 #else
             // NOLINTNEXTLINE(google-runtime-int)
-            enum EventType : short { READ = POLLIN, WRITE = POLLOUT, CLOSE = POLLHUP, ERROR = POLLNVAL | POLLERR };
+            enum EventType : short {
+                READ  = POLLIN,
+                WRITE = POLLOUT,
+                CLOSE = POLLHUP,
+                ERROR = POLLNVAL | POLLERR,
+            };
 #endif
 
             struct Event {
@@ -113,6 +130,11 @@ namespace dsl {
 
                 // Otherwise return an invalid event
                 return Event{INVALID_SOCKET, 0};
+            }
+
+            template <typename DSL>
+            static inline void postcondition(threading::ReactionTask& task) {
+                task.parent.reactor.emit<emit::Direct>(std::make_unique<IOFinished>(task.parent.id));
             }
         };
 

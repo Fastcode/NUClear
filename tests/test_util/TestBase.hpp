@@ -19,6 +19,7 @@
 #ifndef TEST_UTIL_TESTBASE_HPP
 #define TEST_UTIL_TESTBASE_HPP
 
+#include <catch.hpp>
 #include <nuclear>
 #include <string>
 #include <utility>
@@ -56,7 +57,10 @@ public:
         });
 
         // Timeout if the test doesn't complete in time
-        on<Watchdog<BaseClass, timeout, std::chrono::milliseconds>>().then([this] { powerplant.shutdown(); });
+        on<Watchdog<BaseClass, timeout, std::chrono::milliseconds>, MainThread>().then([this] {
+            powerplant.shutdown();
+            FAIL("Test timed out");
+        });
     }
 };
 

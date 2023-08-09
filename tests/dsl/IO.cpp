@@ -35,9 +35,9 @@ std::vector<std::string> read_events;  // NOLINT(cppcoreguidelines-avoid-non-con
 /// @brief Events that occur during the test writing
 std::vector<std::string> write_events;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
-class TestReactor : public NUClear::Reactor {
+class TestReactor : public test_util::TestBase<TestReactor> {
 public:
-    TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
+    TestReactor(std::unique_ptr<NUClear::Environment> environment) : TestBase(std::move(environment), false) {
 
         std::array<int, 2> fds{-1, -1};
 
@@ -47,14 +47,18 @@ public:
         in  = fds[0];
         out = fds[1];
 
-        on<IO>(in.get(), IO::READ).then([this](const IO::Event& e) {
-            // Read from our fd
-            char c{0};
-            auto bytes = ::read(e.fd, &c, 1);
+        on<IO>(in.get(), IO::READ | IO::CLOSE).then([this](const IO::Event& e) {
+            if ((e.events & IO::READ) != 0) {
+                // Read from our fd
+                char c{0};
+                auto bytes = ::read(e.fd, &c, 1);
 
-            read_events.push_back("Read " + std::to_string(bytes) + " bytes (" + c + ") from pipe");
+                read_events.push_back("Read " + std::to_string(bytes) + " bytes (" + c + ") from pipe");
+            }
 
-            if (c == 'o') {
+            // FD was closed
+            if ((e.events & IO::CLOSE) != 0) {
+                read_events.push_back("Closed pipe");
                 powerplant.shutdown();
             }
         });
@@ -67,7 +71,7 @@ public:
             write_events.push_back("Wrote " + std::to_string(sent) + " bytes (" + c + ") to pipe");
 
             if (char_no == 5) {
-                writer.unbind();
+                ::close(e.fd);
             }
         });
     }
@@ -93,6 +97,7 @@ TEST_CASE("Testing the IO extension", "[api][io]") {
         "Read 1 bytes (l) from pipe",
         "Read 1 bytes (l) from pipe",
         "Read 1 bytes (o) from pipe",
+        "Closed pipe",
     };
 
     // Make an info print the diff in an easy to read way if we fail

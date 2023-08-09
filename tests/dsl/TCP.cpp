@@ -37,9 +37,12 @@ struct TestConnection {
     in_port_t port;
 };
 
-struct FinishTest {};
+struct Finished {
+    Finished(std::string name) : name(std::move(name)) {}
+    std::string name;
+};
 
-class TestReactor : public test_util::TestBase<TestReactor> {
+class TestReactor : public test_util::TestBase<TestReactor, 2000> {
 public:
     void handle_data(const std::string& name, const IO::Event& event) {
         // We have data to read
@@ -48,14 +51,15 @@ public:
             // Read into the buffer
             std::array<char, 1024> buff{};
             const ssize_t len = ::recv(event.fd, buff.data(), socklen_t(TEST_STRING.size()), 0);
-            if (len == 0) {
-                events.push_back(name + " closed");
-                emit(std::make_unique<FinishTest>());
-            }
-            else {
+            if (len != 0) {
                 events.push_back(name + " received: " + std::string(buff.data(), len));
                 ::send(event.fd, buff.data(), socklen_t(len), 0);
             }
+        }
+
+        if ((event.events & IO::CLOSE) != 0) {
+            events.push_back(name + " closed");
+            emit(std::make_unique<Finished>(name));
         }
     }
 
@@ -109,26 +113,25 @@ public:
             events.push_back(target.name + " echoed: " + std::string(buff.data(), recv));
         });
 
-        on<Trigger<FinishTest>, Sync<TestReactor>>().then([this] {
-            ++count;
-            if (count == 2) {
+        on<Trigger<Finished>, Sync<TestReactor>>().then([this, ephemeral_port](const Finished& test) {
+            if (test.name == "Known Port") {
+                emit(std::make_unique<TestConnection>("Ephemeral Port", ephemeral_port));
+            }
+            else if (test.name == "Ephemeral Port") {
                 events.push_back("Finishing Test");
                 powerplant.shutdown();
             }
         });
 
-        on<Startup>().then([this, ephemeral_port] {
-            // Emit a message just so it will be when everything is running
+        on<Startup>().then([this] {
+            // Start the first test
             emit(std::make_unique<TestConnection>("Known Port", PORT));
-            emit(std::make_unique<TestConnection>("Ephemeral Port", ephemeral_port));
         });
     }
 
 private:
     NUClear::util::FileDescriptor known_port_fd;
     NUClear::util::FileDescriptor ephemeral_port_fd;
-    // How many tests were run
-    int count = 0;
 };
 }  // namespace
 

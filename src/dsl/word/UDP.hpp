@@ -58,7 +58,7 @@ namespace dsl {
          * @par Implements
          *  Bind
          */
-        struct UDP {
+        struct UDP : public IO {
 
             struct Packet {
                 Packet() = default;
@@ -148,16 +148,9 @@ namespace dsl {
                 port = ntohs(address.sin_port);
 
                 // Generate a reaction for the IO system that closes on death
-                const fd_t cfd = fd;
-                reaction->unbinders.push_back([](const threading::Reaction& r) {
-                    r.reactor.emit<emit::Direct>(std::make_unique<operation::Unbind<IO>>(r.id));
-                });
-                reaction->unbinders.push_back([cfd](const threading::Reaction&) { close(cfd); });
-
-                auto io_config = std::make_unique<IOConfiguration>(IOConfiguration{fd.release(), IO::READ, reaction});
-
-                // Send our configuration out
-                reaction->reactor.emit<emit::Direct>(io_config);
+                const fd_t cfd = fd.release();
+                reaction->unbinders.push_back([cfd](const threading::Reaction&) { ::close(cfd); });
+                IO::bind<DSL>(reaction, cfd, IO::READ | IO::CLOSE);
 
                 // Return our handles and our bound port
                 return std::make_tuple(port, cfd);
@@ -248,7 +241,7 @@ namespace dsl {
                 return p;
             }
 
-            struct Broadcast {
+            struct Broadcast : public IO {
 
                 template <typename DSL>
                 static inline std::tuple<in_port_t, fd_t> bind(const std::shared_ptr<threading::Reaction>& reaction,
@@ -306,17 +299,9 @@ namespace dsl {
                     port = ntohs(address.sin_port);
 
                     // Generate a reaction for the IO system that closes on death
-                    const fd_t cfd = fd;
-                    reaction->unbinders.push_back([](const threading::Reaction& r) {
-                        r.reactor.emit<emit::Direct>(std::make_unique<operation::Unbind<IO>>(r.id));
-                    });
-                    reaction->unbinders.push_back([cfd](const threading::Reaction&) { close(cfd); });
-
-                    auto io_config =
-                        std::make_unique<IOConfiguration>(IOConfiguration{fd.release(), IO::READ, reaction});
-
-                    // Send our configuration out
-                    reaction->reactor.emit<emit::Direct>(io_config);
+                    const fd_t cfd = fd.release();
+                    reaction->unbinders.push_back([cfd](const threading::Reaction&) { ::close(cfd); });
+                    IO::bind<DSL>(reaction, cfd, IO::READ | IO::CLOSE);
 
                     // Return our handles and our bound port
                     return std::make_tuple(port, cfd);
@@ -328,7 +313,7 @@ namespace dsl {
                 }
             };
 
-            struct Multicast {
+            struct Multicast : public IO {
 
                 template <typename DSL>
                 static inline std::tuple<in_port_t, fd_t> bind(const std::shared_ptr<threading::Reaction>& reaction,
@@ -412,17 +397,9 @@ namespace dsl {
                     }
 
                     // Generate a reaction for the IO system that closes on death
-                    const fd_t cfd = fd;
-                    reaction->unbinders.push_back([](const threading::Reaction& r) {
-                        r.reactor.emit<emit::Direct>(std::make_unique<operation::Unbind<IO>>(r.id));
-                    });
+                    const fd_t cfd = fd.release();
                     reaction->unbinders.push_back([cfd](const threading::Reaction&) { close(cfd); });
-
-                    auto io_config =
-                        std::make_unique<IOConfiguration>(IOConfiguration{fd.release(), IO::READ, reaction});
-
-                    // Send our configuration out for each file descriptor (same reaction)
-                    reaction->reactor.emit<emit::Direct>(io_config);
+                    IO::bind<DSL>(reaction, cfd, IO::READ | IO::CLOSE);
 
                     // Return our handles
                     return std::make_tuple(port, cfd);
