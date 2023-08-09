@@ -53,7 +53,9 @@ public:
                 char c{0};
                 auto bytes = ::read(e.fd, &c, 1);
 
-                read_events.push_back("Read " + std::to_string(bytes) + " bytes (" + c + ") from pipe");
+                if (bytes > 0) {
+                    read_events.push_back("Read " + std::to_string(bytes) + " bytes (" + c + ") from pipe");
+                }
             }
 
             // FD was closed
