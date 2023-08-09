@@ -107,8 +107,12 @@ using in_port_t = uint16_t;
 using in_addr_t = uint32_t;
 
 // Make close call closesocket
-inline int close(fd_t fd) {
+inline int close(SOCKET fd) {
     return ::closesocket(fd);
+}
+
+inline int ioctl(SOCKET s, long cmd, u_long* argp) {
+    return ioctlsocket(s, cmd, argp);
 }
 
 namespace NUClear {
@@ -118,9 +122,6 @@ using fd_t = SOCKET;
 
 using socklen_t = int;
 
-inline int ioctl(SOCKET s, long cmd, u_long* argp) {
-    return ioctlsocket(s, cmd, argp);
-}
 
     // Network errors come from WSAGetLastError()
     #define network_errno WSAGetLastError()
