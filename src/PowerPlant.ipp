@@ -57,8 +57,8 @@ void PowerPlant::install() {
 
     // Get the demangled reactor name and strip `struct ` and `class ` from it
     std::string reactor_name = util::demangle(typeid(T).name());
-    // reactor_name             = std::regex_replace(reactor_name, std::regex(R"(struct\s+)"), "");
-    // reactor_name             = std::regex_replace(reactor_name, std::regex(R"(class\s+)"), "");
+    reactor_name             = std::regex_replace(reactor_name, std::regex(R"(struct\s+)"), "");
+    reactor_name             = std::regex_replace(reactor_name, std::regex(R"(class\s+)"), "");
 
     // The reactor constructor should handle subscribing to events
     reactors.push_back(std::make_unique<T>(std::make_unique<Environment>(*this, reactor_name, level)));
