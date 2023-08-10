@@ -11,7 +11,7 @@ namespace util {
     #include <chrono>
     #include <cstdint>
 
-    int64_t_t get_performance_frequency() {
+    int64_t get_performance_frequency() {
         ::LARGE_INTEGER freq;
         ::QueryPerformanceFrequency(&freq);
         return freq.QuadPart;
