@@ -34,20 +34,24 @@ namespace extension {
         explicit ChronoController(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
 
             // Estimate the accuracy of our cv wait and precise sleep
-            {
+            for (int i = 0; i < 5; ++i) {
                 // Estimate the accuracy of our cv wait
                 std::mutex test;
                 std::unique_lock<std::mutex> lock(test);
                 const auto cv_s = NUClear::clock::now();
                 wait.wait_for(lock, std::chrono::milliseconds(1));
                 const auto cv_e = NUClear::clock::now();
-                cv_accuracy = NUClear::clock::duration(std::abs((cv_e - cv_s - std::chrono::milliseconds(1)).count()));
+                const auto cv_a = NUClear::clock::duration(cv_e - cv_s - std::chrono::milliseconds(1));
 
                 // Estimate the accuracy of our precise sleep
                 const auto ns_s = NUClear::clock::now();
                 util::precise_sleep(std::chrono::milliseconds(1));
                 const auto ns_e = NUClear::clock::now();
-                ns_accuracy = NUClear::clock::duration(std::abs((ns_e - ns_s - std::chrono::milliseconds(1)).count()));
+                const auto ns_a = NUClear::clock::duration(ns_e - ns_s - std::chrono::milliseconds(1));
+
+                // Use the largest time we have seen
+                cv_accuracy = cv_a > cv_accuracy ? cv_a : cv_accuracy;
+                ns_accuracy = ns_a > ns_accuracy ? ns_a : ns_accuracy;
             }
 
             on<Trigger<ChronoTask>>().then("Add Chrono task", [this](const std::shared_ptr<const ChronoTask>& task) {
@@ -151,9 +155,9 @@ namespace extension {
         bool running{true};
 
         /// @brief The temporal accuracy when waiting on a condition variable
-        NUClear::clock::duration cv_accuracy;
+        NUClear::clock::duration cv_accuracy{0};
         /// @brief The temporal accuracy when waiting on nanosleep
-        NUClear::clock::duration ns_accuracy;
+        NUClear::clock::duration ns_accuracy{0};
     };
 
 }  // namespace extension
