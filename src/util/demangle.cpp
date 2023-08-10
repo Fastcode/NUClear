@@ -66,14 +66,15 @@ namespace util {
             init_symbols();
         }
 
-        std::array<char, 256> name;
+        std::array<char, 256> name{};
+        auto len = UnDecorateSymbolName(symbol, name.data(), name.size(), 0);
 
-        if (int len = UnDecorateSymbolName(symbol, name.data(), name.size(), 0)) {
+        if (len > 0) {
             std::string demangled(name.data(), len);
             demangled = std::regex_replace(demangled, std::regex(R"(struct\s+)"), "");
             demangled = std::regex_replace(demangled, std::regex(R"(class\s+)"), "");
             demangled = std::regex_replace(demangled, std::regex(R"(\s+)"), "");
-            return std::demangled;
+            return demangled;
         }
         else {
             return symbol;
