@@ -26,16 +26,18 @@ namespace util {
         }
     }
 
-    FileDescriptor::FileDescriptor(FileDescriptor&& rhs) noexcept : fd{rhs.fd} {
+    FileDescriptor::FileDescriptor(FileDescriptor&& rhs) noexcept {
         if (this != &rhs) {
-            rhs.fd = INVALID_SOCKET;
+            fd      = std::exchange(rhs.fd, INVALID_SOCKET);
+            cleanup = std::move(rhs.cleanup);
         }
     }
 
     FileDescriptor& FileDescriptor::operator=(FileDescriptor&& rhs) noexcept {
         if (this != &rhs) {
             this->close();
-            fd = std::exchange(rhs.fd, INVALID_SOCKET);
+            fd      = std::exchange(rhs.fd, INVALID_SOCKET);
+            cleanup = std::move(rhs.cleanup);
         }
         return *this;
     }

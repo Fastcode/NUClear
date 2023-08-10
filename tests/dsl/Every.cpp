@@ -60,7 +60,7 @@ void test_results(const std::vector<NUClear::clock::time_point>& times) {
     const double sum      = std::accumulate(std::begin(diff), std::end(diff), 0.0);
     const double mean     = sum / double(diff.size());
     const double variance = std::inner_product(diff.begin(), diff.end(), diff.begin(), 0.0);
-    const double stddev   = std::sqrt(variance / double(diff.size()));
+    const double stddev   = std::sqrt(variance / double(diff.size() - 1));
 
     // As time goes on the average wait should be close to 0
     INFO("Average error in timing: " << mean << "±" << stddev);

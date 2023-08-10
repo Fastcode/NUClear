@@ -277,7 +277,7 @@ namespace dsl {
                     }
 
                     // Now automatically service the watchdog
-                    time = time + period(ticks);
+                    time += period(ticks);
                 }
                 // Change our wait time to our new watchdog time
                 else {
