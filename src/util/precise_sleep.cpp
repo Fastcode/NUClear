@@ -6,10 +6,10 @@ namespace util {
 #if defined(_WIN32)
 
     #define WIN32_LEAN_AND_MEAN
-    #include <windows.h>
-
     #include <chrono>
     #include <cstdint>
+
+    #include "platform.hpp"
 
     int64_t get_performance_frequency() {
         ::LARGE_INTEGER freq;
