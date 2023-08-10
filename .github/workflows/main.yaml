@@ -130,10 +130,13 @@ jobs:
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      - name: Install clang-tidy
+      - name: Install clang-tidy-15
         run: |
+         wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
+         echo "deb http://apt.llvm.org/jammy/ llvm-toolchain-jammy-15 main" | sudo tee /etc/apt/sources.list.d/llvm-15
+         echo "deb http://apt.llvm.org/jammy/ llvm-toolchain-jammy-15 main" | sudo tee -a /etc/apt/sources.list.d/llvm-15
          sudo apt-get update
-         sudo apt-get install -y clang-tidy
+         sudo apt-get install -y clang-tidy-15
 
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - name: Checkout Code
