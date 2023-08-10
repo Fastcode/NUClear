@@ -101,6 +101,9 @@ namespace extension {
             dirty = false;
         }
 
+        /**
+         * @brief Collects the events that have happened and stores them on the reactions to be fired
+         */
         void collect_events() {
 
             // Get the lock so we don't concurrently modify the list
@@ -161,6 +164,9 @@ namespace extension {
             }
         }
 
+        /**
+         * @brief Fires the events that have been collected when the reactions are ready
+         */
         void fire_events() {
             const std::lock_guard<std::mutex> lock(tasks_mutex);
 
