@@ -303,9 +303,6 @@ public:
             // Regex replace NUClear::dsl::Parse with NUClear::Reactor::on so that it reads more like what is expected
             std::string dsl = util::demangle(typeid(DSL).name());
             dsl             = std::regex_replace(dsl, std::regex(R"(NUClear::dsl::Parse<)"), "NUClear::Reactor::on<");
-            dsl             = std::regex_replace(dsl, std::regex(R"(struct\s+)"), "");
-            dsl             = std::regex_replace(dsl, std::regex(R"(class\s+)"), "");
-            dsl             = std::regex_replace(dsl, std::regex(R"(\s+)"), "");
 
             // Generate the identifier
             threading::ReactionIdentifiers identifiers{label,

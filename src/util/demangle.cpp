@@ -18,16 +18,20 @@
 
 #include "demangle.hpp"
 
+#include <regex>
+
 // Windows symbol demangler
 #ifdef _WIN32
-    // Turn off clang-format to avoid moving platform.h after Dbghelp.h
-    // (Dbghelp.h depends on types from Windows.h)
-    // clang-format off
-#    include "platform.hpp"
-#    include <Dbghelp.h>
 
-#    include <mutex>
-// clang-format on
+    // Dbghelp.h depends on types from Windows.h so it needs to be included first
+    // the define keeps clang-tidy from moving it
+    #ifdef _WIN32
+        #include "platform.hpp"
+    #endif
+
+    #include <Dbghelp.h>
+
+    #include <mutex>
 
     #pragma comment(lib, "Dbghelp.lib")
 
@@ -61,10 +65,14 @@ namespace util {
             init_symbols();
         }
 
-        char name[256];
+        std::array<char, 256> name;
 
         if (int len = UnDecorateSymbolName(symbol, name, sizeof(name), 0)) {
-            return std::string(name, len);
+            std::string demangled(name, len);
+            demangled = std::regex_replace(demangled, std::regex(R"(struct\s+)"), "");
+            demangled = std::regex_replace(demangled, std::regex(R"(class\s+)"), "");
+            demangled = std::regex_replace(demangled, std::regex(R"(\s+)"), "");
+            return std::demangled;
         }
         else {
             return symbol;
@@ -94,11 +102,16 @@ namespace util {
      */
     std::string demangle(const char* symbol) {
 
-        int status = -4;  // some arbitrary value to eliminate the compiler warning
+        int status = -1;
         const std::unique_ptr<char, void (*)(void*)> res{abi::__cxa_demangle(symbol, nullptr, nullptr, &status),
                                                          std::free};
+        if (status == 0) {
+            std::string demangled = res.get();
+            demangled             = std::regex_replace(demangled, std::regex(R"(\s+)"), "");
+            return demangled;
+        }
 
-        return status == 0 ? res.get() : symbol;
+        return symbol;
     }
 
 }  // namespace util
