@@ -1,8 +1,5 @@
 #include "precise_sleep.hpp"
 
-namespace NUClear {
-namespace util {
-
 #if defined(_WIN32)
 
     #include <chrono>
@@ -10,10 +7,8 @@ namespace util {
 
     #include "platform.hpp"
 
-    // Keep this include here
-    #ifdef _WIN32
-        #include <synchapi.h>
-    #endif
+namespace NUClear {
+namespace util {
 
     void precise_sleep(const std::chrono::nanoseconds& ns) {
         ::LARGE_INTEGER ft;
@@ -28,11 +23,17 @@ namespace util {
         ::CloseHandle(timer);
     }
 
+}  // namespace util
+}  // namespace NUClear
+
 #else
 
     #include <cerrno>
     #include <cstdint>
     #include <ctime>
+
+namespace NUClear {
+namespace util {
 
     void precise_sleep(const std::chrono::nanoseconds& ns) {
         struct timespec ts;
@@ -43,7 +44,7 @@ namespace util {
         }
     }
 
-#endif
-
 }  // namespace util
 }  // namespace NUClear
+
+#endif
