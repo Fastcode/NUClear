@@ -10,12 +10,17 @@ namespace util {
 
     #include "platform.hpp"
 
+    // Keep this include here
+    #ifdef _WIN32
+        #include <synchapi.h>
+    #endif
+
     void precise_sleep(const std::chrono::nanoseconds& ns) {
         ::LARGE_INTEGER ft;
         // TODO if ns is negative make it 0 as otherwise it'll become absolute time
         // Negative for relative time, positive for absolute time
         // Measures in 100ns increments so divide by 100
-        ft.QuadPart = -static_cast<int64_t>(ns.count / 100);
+        ft.QuadPart = -static_cast<int64_t>(ns.count() / 100);
 
         ::HANDLE timer = ::CreateWaitableTimer(nullptr, TRUE, nullptr);
         ::SetWaitableTimer(timer, &ft, 0, nullptr, nullptr, 0);
