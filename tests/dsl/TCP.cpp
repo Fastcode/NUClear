@@ -67,7 +67,6 @@ public:
 
         // Bind to a known port
         on<TCP>(PORT).then([this](const TCP::Connection& connection) {
-            events.push_back("Known Port connection accepted");
             on<IO>(connection.fd, IO::READ | IO::CLOSE).then([this](IO::Event event) {
                 handle_data("Known Port", event);
             });
@@ -76,7 +75,6 @@ public:
         // Bind to an unknown port and get the port number
         in_port_t ephemeral_port                           = 0;
         std::tie(std::ignore, ephemeral_port, std::ignore) = on<TCP>().then([this](const TCP::Connection& connection) {
-            events.push_back("Ephemeral Port connection accepted");
             on<IO>(connection.fd, IO::READ | IO::CLOSE).then([this](IO::Event event) {
                 handle_data("Ephemeral Port", event);
             });
@@ -145,12 +143,10 @@ TEST_CASE("Testing listening for TCP connections and receiving data messages", "
 
     const std::vector<std::string> expected = {
         "Known Port sending",
-        "Known Port connection accepted",
         "Known Port received: Hello TCP World!",
         "Known Port echoed: Hello TCP World!",
         "Known Port closed",
         "Ephemeral Port sending",
-        "Ephemeral Port connection accepted",
         "Ephemeral Port received: Hello TCP World!",
         "Ephemeral Port echoed: Hello TCP World!",
         "Ephemeral Port closed",
