@@ -24,7 +24,7 @@
 namespace NUClear {
 namespace util {
 
-    void precise_sleep(const std::chrono::nanoseconds& duration);
+    void precise_sleep(const std::chrono::nanoseconds& ns);
 
 }  // namespace util
 }  // namespace NUClear

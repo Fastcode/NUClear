@@ -36,7 +36,7 @@ namespace NUClear {
 namespace util {
 
     void precise_sleep(const std::chrono::nanoseconds& ns) {
-        struct timespec ts;
+        timespec ts{};
         ts.tv_sec  = std::chrono::duration_cast<std::chrono::seconds>(ns).count();
         ts.tv_nsec = (ns - std::chrono::seconds(ts.tv_sec)).count();
 
