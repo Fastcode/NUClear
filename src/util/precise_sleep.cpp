@@ -11,23 +11,6 @@ namespace util {
 
     #include "platform.hpp"
 
-    int64_t get_performance_frequency() {
-        ::LARGE_INTEGER freq;
-        ::QueryPerformanceFrequency(&freq);
-        return freq.QuadPart;
-    }
-
-    int64_t performance_frequency() {
-        static int64_t freq = get_performance_frequency();
-        return freq;
-    }
-
-    int64_t performance_counter() {
-        ::LARGE_INTEGER counter;
-        ::QueryPerformanceCounter(&counter);
-        return counter.QuadPart;
-    }
-
     void precise_sleep(const std::chrono::nanoseconds& ns) {
         ::LARGE_INTEGER ft;
         // TODO if ns is negative make it 0 as otherwise it'll become absolute time
