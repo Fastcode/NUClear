@@ -31,6 +31,7 @@
 
     #include <Dbghelp.h>
 
+    #include <array>
     #include <mutex>
 
     #pragma comment(lib, "Dbghelp.lib")
@@ -67,7 +68,7 @@ namespace util {
 
         std::array<char, 256> name;
 
-        if (int len = UnDecorateSymbolName(symbol, name, sizeof(name), 0)) {
+        if (int len = UnDecorateSymbolName(symbol, name.data(), name.size(), 0)) {
             std::string demangled(name, len);
             demangled = std::regex_replace(demangled, std::regex(R"(struct\s+)"), "");
             demangled = std::regex_replace(demangled, std::regex(R"(class\s+)"), "");
