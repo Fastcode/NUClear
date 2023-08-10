@@ -69,7 +69,7 @@ namespace util {
         std::array<char, 256> name;
 
         if (int len = UnDecorateSymbolName(symbol, name.data(), name.size(), 0)) {
-            std::string demangled(name, len);
+            std::string demangled(name.data(), len);
             demangled = std::regex_replace(demangled, std::regex(R"(struct\s+)"), "");
             demangled = std::regex_replace(demangled, std::regex(R"(class\s+)"), "");
             demangled = std::regex_replace(demangled, std::regex(R"(\s+)"), "");
