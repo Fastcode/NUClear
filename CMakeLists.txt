@@ -72,7 +72,11 @@ endif(ENABLE_CLANG_TIDY)
 # If we are doing a CI build then we want to enable -Werror when compiling warnings are bad. We will also make it fail
 # if clang-tidy has an error
 if(CI_BUILD)
-  add_compile_options(-Werror)
+  if(CMAKE_CXX_COMPILER_ID MATCHES MSVC)
+    add_compile_options(/WX)
+  else()
+    add_compile_options(-Werror)
+  endif()
 endif(CI_BUILD)
 
 # Make the compiler display colours always (even when we build with ninja)
