@@ -33,6 +33,23 @@ namespace extension {
     public:
         explicit ChronoController(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
 
+            // Estimate the accuracy of our cv wait and precise sleep
+            {
+                // Estimate the accuracy of our cv wait
+                std::mutex test;
+                std::unique_lock<std::mutex> lock(test);
+                const auto cv_s = NUClear::clock::now();
+                wait.wait_for(lock, std::chrono::milliseconds(1));
+                const auto cv_e = NUClear::clock::now();
+                cv_accuracy = NUClear::clock::duration(std::abs((cv_e - cv_s - std::chrono::milliseconds(1)).count()));
+
+                // Estimate the accuracy of our precise sleep
+                const auto ns_s = NUClear::clock::now();
+                util::precise_sleep(std::chrono::milliseconds(1));
+                const auto ns_e = NUClear::clock::now();
+                ns_accuracy = NUClear::clock::duration(std::abs((ns_e - ns_s - std::chrono::milliseconds(1)).count()));
+            }
+
             on<Trigger<ChronoTask>>().then("Add Chrono task", [this](const std::shared_ptr<const ChronoTask>& task) {
                 // Lock the mutex while we're doing stuff
                 const std::lock_guard<std::mutex> lock(mutex);
@@ -76,47 +93,6 @@ namespace extension {
             });
 
             on<Always, Priority::REALTIME>().then("Chrono Controller", [this] {
-                // Estimate the accuracy of our cv wait and nanosleep
-                for (int i = 0; i < 10; ++i) {
-                    // Estimate the accuracy of our cv wait
-                    std::mutex test;
-                    std::unique_lock<std::mutex> lock(test);
-                    const auto cv_s = NUClear::clock::now();
-                    wait.wait_for(lock, std::chrono::milliseconds(1));
-                    const auto cv_e = NUClear::clock::now();
-                    cv_accuracy =
-                        NUClear::clock::duration(std::abs((cv_e - cv_s - std::chrono::milliseconds(1)).count()));
-
-                    // Estimate the accuracy of our nanosleep
-                    const auto ns_s = NUClear::clock::now();
-                    util::precise_sleep(std::chrono::milliseconds(1));
-                    const auto ns_e = NUClear::clock::now();
-                    ns_accuracy =
-                        NUClear::clock::duration(std::abs((ns_e - ns_s - std::chrono::milliseconds(1)).count()));
-
-                    std::cout << "CV:" << std::endl;
-                    std::cout << "\tStart:    " << cv_s.time_since_epoch().count() << std::endl;
-                    std::cout << "\tEnd:      " << cv_e.time_since_epoch().count() << std::endl;
-                    std::cout << "\tDelta:    " << (cv_e - cv_s).count() << std::endl;
-                    std::cout << "\tAccuracy: "
-                              << std::chrono::duration_cast<std::chrono::duration<double, std::milli>>(
-                                     cv_e - cv_s - std::chrono::milliseconds(1))
-                                     .count()
-                              << "ms" << std::endl;
-
-                    std::cout << "NS:" << std::endl;
-                    std::cout << "\tStart:    " << ns_s.time_since_epoch().count() << std::endl;
-                    std::cout << "\tEnd:      " << ns_e.time_since_epoch().count() << std::endl;
-                    std::cout << "\tDelta:    " << (ns_e - ns_s).count() << std::endl;
-                    std::cout << "\tAccuracy: "
-                              << std::chrono::duration_cast<std::chrono::duration<double, std::milli>>(
-                                     ns_e - ns_s - std::chrono::milliseconds(1))
-                                     .count()
-                              << "ms" << std::endl;
-                    std::cout << std::endl;
-                }
-                exit(1);
-
                 // Run until we are told to stop
                 while (running) {
 
