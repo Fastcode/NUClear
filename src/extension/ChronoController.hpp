@@ -21,6 +21,7 @@
 
 #include "../PowerPlant.hpp"
 #include "../Reactor.hpp"
+#include "../util/precise_sleep.hpp"
 
 namespace NUClear {
 namespace extension {
@@ -30,8 +31,7 @@ namespace extension {
         using ChronoTask = NUClear::dsl::operation::ChronoTask;
 
     public:
-        explicit ChronoController(std::unique_ptr<NUClear::Environment> environment)
-            : Reactor(std::move(environment)), wait_offset(std::chrono::milliseconds(0)) {
+        explicit ChronoController(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
 
             on<Trigger<ChronoTask>>().then("Add Chrono task", [this](const std::shared_ptr<const ChronoTask>& task) {
                 // Lock the mutex while we're doing stuff
@@ -40,6 +40,7 @@ namespace extension {
                 // Add our new task to the heap if we are still running
                 if (running) {
                     tasks.push_back(*task);
+                    std::push_heap(tasks.begin(), tasks.end(), std::greater<>());
                 }
 
                 // Poke the system
@@ -60,6 +61,7 @@ namespace extension {
                     // Remove if it exists
                     if (it != tasks.end()) {
                         tasks.erase(it);
+                        std::make_heap(tasks.begin(), tasks.end(), std::greater<>());
                     }
 
                     // Poke the system to make sure it's not waiting on something that's gone
@@ -74,65 +76,108 @@ namespace extension {
             });
 
             on<Always, Priority::REALTIME>().then("Chrono Controller", [this] {
-                // Acquire the mutex lock so we can wait on it
-                std::unique_lock<std::mutex> lock(mutex);
+                // Estimate the accuracy of our cv wait and nanosleep
+                for (int i = 0; i < 10; ++i) {
+                    // Estimate the accuracy of our cv wait
+                    std::mutex test;
+                    std::unique_lock<std::mutex> lock(test);
+                    const auto cv_s = NUClear::clock::now();
+                    wait.wait_for(lock, std::chrono::milliseconds(1));
+                    const auto cv_e = NUClear::clock::now();
+                    cv_accuracy =
+                        NUClear::clock::duration(std::abs((cv_e - cv_s - std::chrono::milliseconds(1)).count()));
 
-                if (!running) {
-                    return;
+                    // Estimate the accuracy of our nanosleep
+                    const auto ns_s = NUClear::clock::now();
+                    util::precise_sleep(std::chrono::milliseconds(1));
+                    const auto ns_e = NUClear::clock::now();
+                    ns_accuracy =
+                        NUClear::clock::duration(std::abs((ns_e - ns_s - std::chrono::milliseconds(1)).count()));
+
+                    std::cout << "CV:" << std::endl;
+                    std::cout << "\tStart:    " << cv_s.time_since_epoch().count() << std::endl;
+                    std::cout << "\tEnd:      " << cv_e.time_since_epoch().count() << std::endl;
+                    std::cout << "\tDelta:    " << (cv_e - cv_s).count() << std::endl;
+                    std::cout << "\tAccuracy: "
+                              << std::chrono::duration_cast<std::chrono::duration<double, std::milli>>(
+                                     cv_e - cv_s - std::chrono::milliseconds(1))
+                                     .count()
+                              << "ms" << std::endl;
+
+                    std::cout << "NS:" << std::endl;
+                    std::cout << "\tStart:    " << ns_s.time_since_epoch().count() << std::endl;
+                    std::cout << "\tEnd:      " << ns_e.time_since_epoch().count() << std::endl;
+                    std::cout << "\tDelta:    " << (ns_e - ns_s).count() << std::endl;
+                    std::cout << "\tAccuracy: "
+                              << std::chrono::duration_cast<std::chrono::duration<double, std::milli>>(
+                                     ns_e - ns_s - std::chrono::milliseconds(1))
+                                     .count()
+                              << "ms" << std::endl;
+                    std::cout << std::endl;
                 }
+                exit(1);
 
-                // If we have tasks to do
-                if (!tasks.empty()) {
+                // Run until we are told to stop
+                while (running) {
 
-                    // Make the list into a heap so we can remove the soonest ones
-                    std::make_heap(tasks.begin(), tasks.end(), std::greater<>());
+                    // Acquire the mutex lock so we can wait on it
+                    std::unique_lock<std::mutex> lock(mutex);
 
-                    // If we are within the wait offset of the time, spinlock until we get there for greater
-                    // accuracy
-                    if (NUClear::clock::now() + wait_offset > tasks.front().time) {
+                    // If we have no chrono tasks wait until we are notified
+                    if (tasks.empty()) {
+                        wait.wait(lock);
+                    }
+                    else {
+                        auto now    = NUClear::clock::now();
+                        auto target = tasks.front().time;
 
-                        // Spinlock!
-                        while (NUClear::clock::now() < tasks.front().time) {
+                        if (target - now > cv_accuracy) {
+                            // Wait on the cv
+                            wait.wait_until(lock, target - cv_accuracy);
                         }
+                        else if (target - now > ns_accuracy) {
+                            // Wait on nanosleep
+                            util::precise_sleep(target - now - ns_accuracy);
+                        }
+                        else {
+                            // Spinlock until we get to the time
+                            while (NUClear::clock::now() < tasks.front().time) {
+                            }
 
-                        const NUClear::clock::time_point now = NUClear::clock::now();
-
-                        // Move back from the end poping the heap
-                        for (auto end = tasks.end(); end != tasks.begin() && tasks.front().time < now;) {
                             // Run our task and if it returns false remove it
                             const bool renew = tasks.front()();
 
                             // Move this to the back of the list
-                            std::pop_heap(tasks.begin(), end, std::greater<>());
+                            std::pop_heap(tasks.begin(), tasks.end(), std::greater<>());
 
-                            if (!renew) {
-                                end = tasks.erase(--end);
+                            if (renew) {
+                                // Put the item back in the list
+                                std::push_heap(tasks.begin(), tasks.end(), std::greater<>());
                             }
                             else {
-                                --end;
+                                // Remove the item from the list
+                                tasks.pop_back();
                             }
                         }
                     }
-                    // Otherwise we wait for the next event using a wait_for (with a small offset for greater
-                    // accuracy) Either that or until we get interrupted with a new event
-                    else {
-                        wait.wait_until(lock, tasks.front().time - wait_offset);
-                    }
-                }
-                // Otherwise we wait for something to happen
-                else {
-                    wait.wait(lock);
                 }
             });
         }
 
     private:
+        /// @brief The list of tasks we need to process
         std::vector<dsl::operation::ChronoTask> tasks;
+        /// @brief The mutex we use to lock the task list
         std::mutex mutex;
+        /// @brief The condition variable we use to wait on
         std::condition_variable wait;
+        /// @brief If we are running or not
         bool running{true};
 
-        NUClear::clock::duration wait_offset;
+        /// @brief The temporal accuracy when waiting on a condition variable
+        NUClear::clock::duration cv_accuracy;
+        /// @brief The temporal accuracy when waiting on nanosleep
+        NUClear::clock::duration ns_accuracy;
     };
 
 }  // namespace extension
