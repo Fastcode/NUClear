@@ -60,6 +60,7 @@ if(ENABLE_CLANG_TIDY)
     message(FATAL_ERROR "clang-tidy-15 not found.")
   endif()
 
+  message(STATUS "Found clang-tidy: ${CLANG_TIDY_EXECUTABLE}")
   set(CLANG_TIDY_ARGS "${CLANG_TIDY_EXECUTABLE}" "--use-color")
   if(CI_BUILD)
     set(CLANG_TIDY_ARGS "${CLANG_TIDY_EXECUTABLE}" "--use-color" "-warnings-as-errors=*")
