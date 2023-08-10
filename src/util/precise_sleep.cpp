@@ -8,18 +8,21 @@ namespace util {
     #define WIN32_LEAN_AND_MEAN
     #include <windows.h>
 
-    uint64_t_t get_performance_frequency() {
+    #include <chrono>
+    #include <cstdint>
+
+    int64_t_t get_performance_frequency() {
         ::LARGE_INTEGER freq;
         ::QueryPerformanceFrequency(&freq);
         return freq.QuadPart;
     }
 
-    uint64_t performance_frequency() {
-        static uint64 xFreq = GetPerfFrequency();
-        return xFreq;
+    int64_t performance_frequency() {
+        static int64_t freq = get_performance_frequency();
+        return freq;
     }
 
-    uint64_t performance_counter() {
+    int64_t performance_counter() {
         ::LARGE_INTEGER counter;
         ::QueryPerformanceCounter(&counter);
         return counter.QuadPart;
