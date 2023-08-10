@@ -67,7 +67,7 @@ namespace util {
         }
 
         std::array<char, 256> name{};
-        auto len = UnDecorateSymbolName(symbol, name.data(), name.size(), 0);
+        auto len = UnDecorateSymbolName(symbol, name.data(), DWORD(name.size()), 0);
 
         if (len > 0) {
             std::string demangled(name.data(), len);
