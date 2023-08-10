@@ -122,8 +122,8 @@ jobs:
           for f in build/tests/individual/Release/*; do echo "Testing $f"; ./$f; done
         shell: bash
 
-  check-clang-tidy:
-    name: Clang-Tidy
+  check-clang-tidy-linux:
+    name: Clang-Tidy Linux
 
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
@@ -142,6 +142,28 @@ jobs:
       # Download and install cmake
       - name: Install CMake v3.19.1
         uses: lukka/get-cmake@v3.19.1
+
+      - name: Configure CMake
+        run: |
+          cmake -E make_directory build
+          cmake -S . -B build -DBUILD_TESTS=ON -DCMAKE_BUILD_TYPE=Release -DCI_BUILD=ON -DENABLE_CLANG_TIDY=ON
+
+      - name: Build
+        timeout-minutes: 30
+        # Execute the build.  You can specify a specific target with "--target <NAME>"
+        run: cmake --build build --config Release --parallel 2
+
+  check-clang-tidy-msvc:
+    name: Clang-Tidy MSVC
+
+    # The type of runner that the job will run on
+    runs-on: windows-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - name: Checkout Code
+        uses: actions/checkout@v2
 
       - name: Configure CMake
         run: |
