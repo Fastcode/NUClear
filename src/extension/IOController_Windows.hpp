@@ -119,8 +119,7 @@ namespace extension {
 
             // Go through every reaction and if it has events and isn't already running then run it
             for (auto it = tasks.begin(); it != tasks.end();) {
-                auto& event = it->first;
-                auto& task  = it->second;
+                auto& task = it->second;
 
                 if (task.reaction->active_tasks == 0 && task.waiting_events != 0) {
 
@@ -237,7 +236,7 @@ namespace extension {
 
                 // If we found it then clear the waiting events
                 if (task != tasks.end()) {
-                    task->waiting_events = 0;
+                    task->second.waiting_events = 0;
                 }
             });
 
@@ -278,16 +277,16 @@ namespace extension {
                     }
 
                     // Wait for events
-                    auto event_index = WSAWaitForMultipleEvents(static_cast<DWORD>(events.size()),
-                                                                events.data(),
+                    auto event_index = WSAWaitForMultipleEvents(static_cast<DWORD>(watches.size()),
+                                                                watches.data(),
                                                                 false,
                                                                 WSA_INFINITE,
                                                                 false);
 
                     // Check if the return value is an event in our list
-                    if (event_index >= WSA_WAIT_EVENT_0 && event_index < WSA_WAIT_EVENT_0 + events.size()) {
+                    if (event_index >= WSA_WAIT_EVENT_0 && event_index < WSA_WAIT_EVENT_0 + watches.size()) {
                         // Get the signalled event
-                        auto& event = events[event_index - WSA_WAIT_EVENT_0];
+                        auto& event = watches[event_index - WSA_WAIT_EVENT_0];
 
                         // Collect the events that happened into the tasks list
                         collect_events(event);
