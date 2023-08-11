@@ -104,15 +104,16 @@ namespace extension {
 
                     // Check how many bytes are available to read, if it's 0 and we have a read event the
                     // descriptor is sending EOF and we should fire a CLOSE event too and stop watching
-                    if ((wsae.lNetworkEvents & IO::READ) != 0) {
+                    long events = wsae.lNetworkEvents;
+                    if ((events & IO::READ) != 0) {
                         u_long bytes_available = 0;
                         bool valid             = ::ioctlsocket(r->second.fd, FIONREAD, &bytes_available) == 0;
                         if (valid && bytes_available == 0) {
-                            wsae.lNetworkEvents |= IO::CLOSE;
+                            events = events | IO::CLOSE;
                         }
                     }
 
-                    r->second.waiting_events = r->second.waiting_events | wsae.lNetworkEvents;
+                    r->second.waiting_events = r->second.waiting_events | events;
                 }
                 // If we can't find the event then our list is dirty
                 else {
