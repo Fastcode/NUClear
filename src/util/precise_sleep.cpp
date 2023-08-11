@@ -1,4 +1,3 @@
-
 /*
  * Copyright (C) 2013      Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
  *               2014-2023 Trent Houliston <trent@houliston.me>
