@@ -32,9 +32,9 @@ namespace dsl {
     namespace word {
 
 #ifdef _WIN32
-        using event_t = long;
+        using event_t = long;  // NOLINT(google-runtime-int)
 #else
-        using event_t = short;
+        using event_t = short;  // NOLINT(google-runtime-int)
 #endif
 
         /**
