@@ -35,15 +35,15 @@ namespace extension {
         struct Task {
             Task() = default;
             // NOLINTNEXTLINE(google-runtime-int)
-            Task(const fd_t& fd, short events, std::shared_ptr<threading::Reaction> reaction)
+            Task(const fd_t& fd, long events, std::shared_ptr<threading::Reaction> reaction)
                 : fd(fd), events(events), reaction(std::move(reaction)) {}
 
             /// @brief The socket we are waiting on
             fd_t fd;
             /// @brief The events that the task is interested in
-            short events{0};  // NOLINT(google-runtime-int)
+            long events{0};  // NOLINT(google-runtime-int)
             /// @brief The events that are waiting to be fired
-            short waiting_events{0};  // NOLINT(google-runtime-int)
+            long waiting_events{0};  // NOLINT(google-runtime-int)
             /// @brief The reaction that is waiting for this event
             std::shared_ptr<threading::Reaction> reaction{nullptr};
         };
