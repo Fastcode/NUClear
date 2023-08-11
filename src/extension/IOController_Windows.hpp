@@ -319,7 +319,7 @@ namespace extension {
         /// @brief The list of tasks that are currently being processed
         std::vector<WSAEVENT> watches;
         /// @brief The list of tasks that are waiting for IO events
-        std::map<WSAEVENT, Event> tasks;
+        std::map<WSAEVENT, Task> tasks;
     };
 
 }  // namespace extension
