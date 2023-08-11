@@ -34,7 +34,7 @@ namespace extension {
         explicit ChronoController(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
 
             // Estimate the accuracy of our cv wait and precise sleep
-            for (int i = 0; i < 5; ++i) {
+            for (int i = 0; i < 3; ++i) {
                 // Estimate the accuracy of our cv wait
                 std::mutex test;
                 std::unique_lock<std::mutex> lock(test);
@@ -108,16 +108,30 @@ namespace extension {
                         wait.wait(lock);
                     }
                     else {
-                        auto now    = NUClear::clock::now();
+                        auto start  = NUClear::clock::now();
                         auto target = tasks.front().time;
 
-                        if (target - now > cv_accuracy) {
+                        if (target - start > cv_accuracy) {
                             // Wait on the cv
                             wait.wait_until(lock, target - cv_accuracy);
+
+                            // Update the accuracy of our cv wait
+                            const auto end   = NUClear::clock::now();
+                            const auto error = end - (target - cv_accuracy);  // when ended - when wanted to end
+                            if (error.count() > 0) {                          // only if we were late
+                                cv_accuracy = error > cv_accuracy ? error : ((cv_accuracy * 99 + error) / 100);
+                            }
                         }
-                        else if (target - now > ns_accuracy) {
+                        else if (target - start > ns_accuracy) {
                             // Wait on nanosleep
-                            util::precise_sleep(target - now - ns_accuracy);
+                            util::precise_sleep(target - start - ns_accuracy);
+
+                            // Update the accuracy of our precise sleep
+                            const auto end   = NUClear::clock::now();
+                            const auto error = end - (target - ns_accuracy);  // when ended - when wanted to end
+                            if (error.count() > 0) {                          // only if we were late
+                                ns_accuracy = error > ns_accuracy ? error : ((ns_accuracy * 99 + error) / 100);
+                            }
                         }
                         else {
                             // Spinlock until we get to the time
