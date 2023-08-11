@@ -184,7 +184,7 @@ namespace extension {
             return tasks.erase(it);
 
             // Try to close the WSA event
-            if (!WSACloseEvent(it->first)) {
+            if (!WSACloseEvent(event)) {
                 throw std::system_error(WSAGetLastError(), std::system_category(), "WSACloseEvent() failed");
             }
         }
