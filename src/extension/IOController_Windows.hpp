@@ -105,13 +105,13 @@ namespace extension {
                     // Check how many bytes are available to read, if it's 0 and we have a read event the
                     // descriptor is sending EOF and we should fire a CLOSE event too and stop watching
                     long events = wsae.lNetworkEvents;
-                    if ((events & IO::READ) != 0) {
-                        u_long bytes_available = 0;
-                        bool valid             = ::ioctlsocket(r->second.fd, FIONREAD, &bytes_available) == 0;
-                        if (valid && bytes_available == 0) {
-                            events = events | IO::CLOSE;
-                        }
-                    }
+                    // if ((events & IO::READ) != 0) {
+                    //     u_long bytes_available = 0;
+                    //     bool valid             = ::ioctlsocket(r->second.fd, FIONREAD, &bytes_available) == 0;
+                    //     if (valid && bytes_available == 0) {
+                    //         events = events | IO::CLOSE;
+                    //     }
+                    // }
 
                     r->second.waiting_events = r->second.waiting_events | events;
                 }
@@ -178,12 +178,15 @@ namespace extension {
 
         std::map<WSAEVENT, Task>::iterator remove_task(std::map<WSAEVENT, Task>::iterator it) {
             // Close the event
-            if (!WSACloseEvent(it->first)) {
-                throw std::system_error(WSAGetLastError(), std::system_category(), "WSACloseEvent() failed");
-            }
+            WSAEVENT event = it->first;
 
             // Remove the task
             return tasks.erase(it);
+
+            // Try to close the WSA event
+            if (!WSACloseEvent(it->first)) {
+                throw std::system_error(WSAGetLastError(), std::system_category(), "WSACloseEvent() failed");
+            }
         }
 
 
@@ -313,7 +316,6 @@ namespace extension {
         virtual ~IOController() {
             WSACleanup();
         }
-
 
     private:
         /// @brief The event that is used to wake up the WaitForMultipleEvents call
