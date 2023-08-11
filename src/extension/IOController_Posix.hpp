@@ -109,7 +109,7 @@ namespace extension {
             // Get the lock so we don't concurrently modify the list
             const std::lock_guard<std::mutex> lock(tasks_mutex);
 
-            for (auto& fd : fds) {
+            for (auto& fd : watches) {
 
                 // Something happened
                 if (fd.revents != 0) {
@@ -305,7 +305,7 @@ namespace extension {
                     }
 
                     // Wait for an event to happen on one of our file descriptors
-                    if (::poll(fds.data(), static_cast<nfds_t>(fds.size()), -1) < 0) {
+                    if (::poll(watches.data(), nfds_t(watches.size()), -1) < 0) {
                         throw std::system_error(network_errno,
                                                 std::system_category(),
                                                 "There was an IO error while attempting to poll the file descriptors");
