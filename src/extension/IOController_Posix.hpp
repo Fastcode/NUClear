@@ -81,19 +81,19 @@ namespace extension {
             const std::lock_guard<std::mutex> lock(tasks_mutex);
 
             // Clear our fds to be rebuilt
-            fds.resize(0);
+            watches.resize(0);
 
             // Insert our notify fd
-            fds.push_back(pollfd{notify_recv, POLLIN, 0});
+            watches.push_back(pollfd{notify_recv, POLLIN, 0});
 
             for (const auto& r : tasks) {
                 // If we are the same fd, then add our interest set
-                if (r.fd == fds.back().fd) {
-                    fds.back().events = short(fds.back().events | r.events);  // NOLINT(google-runtime-int)
+                if (r.fd == watches.back().fd) {
+                    watches.back().events = short(watches.back().events | r.events);  // NOLINT(google-runtime-int)
                 }
                 // Otherwise add a new one
                 else {
-                    fds.push_back(pollfd{r.fd, r.events, 0});
+                    watches.push_back(pollfd{r.fd, r.events, 0});
                 }
             }
 
@@ -137,13 +137,13 @@ namespace extension {
                         }
 
                         // Find our relevant tasks
-                        auto range = std::equal_range(std::begin(tasks),
-                                                      std::end(tasks),
+                        auto range = std::equal_range(tasks.begin(),
+                                                      tasks.end(),
                                                       Task{fd.fd, 0, nullptr},
                                                       [](const Task& a, const Task& b) { return a.fd < b.fd; });
 
                         // There are no tasks for this!
-                        if (range.first == std::end(tasks)) {
+                        if (range.first == tasks.end()) {
                             // If this happens then our list is definitely dirty...
                             dirty = true;
                         }
@@ -192,15 +192,10 @@ namespace extension {
                     catch (...) {
                     }
 
-                    // Reset our value
-
-                    if ((it->waiting_events & IO::CLOSE) != 0) {
-                        dirty = true;
-                        it    = tasks.erase(it);
-                    }
-                    else {
-                        ++it;
-                    }
+                    // Remove if we received a close event
+                    bool closed = (it->waiting_events & IO::CLOSE) != 0;
+                    dirty |= closed;
+                    it = closed ? tasks.erase(it) : std::next(it);
                 }
                 else {
                     ++it;
@@ -248,10 +243,10 @@ namespace extension {
                     const std::lock_guard<std::mutex> lock(tasks_mutex);
 
                     // NOLINTNEXTLINE(google-runtime-int)
-                    tasks.emplace_back(config.fd, static_cast<short>(config.events), config.reaction);
+                    tasks.emplace_back(config.fd, short(config.events), config.reaction);
 
                     // Resort our list
-                    std::sort(std::begin(tasks), std::end(tasks));
+                    std::sort(tasks.begin(), tasks.end());
 
                     // Let the poll command know that stuff happened
                     dirty = true;
@@ -263,12 +258,12 @@ namespace extension {
                 const std::lock_guard<std::mutex> lock(tasks_mutex);
 
                 // Find the reaction that finished processing
-                auto task = std::find_if(std::begin(tasks), std::end(tasks), [&event](const Task& t) {
+                auto task = std::find_if(tasks.begin(), tasks.end(), [&event](const Task& t) {
                     return t.reaction->id == event.id;
                 });
 
                 // If we found it then clear the waiting events
-                if (task != std::end(tasks)) {
+                if (task != tasks.end()) {
                     task->waiting_events = 0;
                 }
             });
@@ -280,11 +275,11 @@ namespace extension {
                     const std::lock_guard<std::mutex> lock(tasks_mutex);
 
                     // Find our reaction
-                    auto reaction = std::find_if(std::begin(tasks), std::end(tasks), [&unbind](const Task& t) {
+                    auto reaction = std::find_if(tasks.begin(), tasks.end(), [&unbind](const Task& t) {
                         return t.reaction->id == unbind.id;
                     });
 
-                    if (reaction != std::end(tasks)) {
+                    if (reaction != tasks.end()) {
                         tasks.erase(reaction);
                     }
 
@@ -339,7 +334,7 @@ namespace extension {
         /// @brief Whether or not the list of file descriptors is dirty compared to tasks
         bool dirty = true;
         /// @brief The list of file descriptors to poll
-        std::vector<pollfd> fds{};
+        std::vector<pollfd> watches{};
         /// @brief The list of tasks that are waiting for IO events
         std::vector<Task> tasks{};
     };
