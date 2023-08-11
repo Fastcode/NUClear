@@ -19,6 +19,8 @@
 #include <catch.hpp>
 #include <nuclear>
 
+#include "test_util/TestBase.hpp"
+
 namespace {
 
 const std::string TEST_STRING       = "Hello UDP Multicast World!";  // NOLINT(cert-err58-cpp)
@@ -28,11 +30,11 @@ std::size_t num_addresses           = 0;  // NOLINT(cppcoreguidelines-avoid-non-
 
 struct Message {};
 
-class TestReactor : public NUClear::Reactor {
+class TestReactor : public test_util::TestBase<TestReactor> {
 public:
     bool shutdown_flag = false;
 
-    TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
+    TestReactor(std::unique_ptr<NUClear::Environment> environment) : TestBase(std::move(environment)) {
 
         // Terminates the test if it takes too long - longer than 200 ms since this reaction first runs
         on<Every<200, std::chrono::milliseconds>>().then([this]() {

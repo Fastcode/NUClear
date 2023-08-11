@@ -19,6 +19,8 @@
 #include <catch.hpp>
 #include <nuclear>
 
+#include "test_util/TestBase.hpp"
+
 namespace {
 
 constexpr uint16_t PORT       = 40000;
@@ -28,9 +30,9 @@ bool received_b               = false;               // NOLINT(cppcoreguidelines
 
 struct Message {};
 
-class TestReactor : public NUClear::Reactor {
+class TestReactor : public test_util::TestBase<TestReactor> {
 public:
-    TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
+    TestReactor(std::unique_ptr<NUClear::Environment> environment) : TestBase(std::move(environment), false) {
 
         // Known port
         on<UDP>(PORT).then([this](const UDP::Packet& packet) {
@@ -64,8 +66,9 @@ public:
         // Send a test for a known port
         // does not need to include the port in the lambda capture.  This is a global variable to the unit test, so
         // the function will have access to it.
-        on<Trigger<Message>>().then(
-            [this] { emit<Scope::UDP>(std::make_unique<std::string>(TEST_STRING), INADDR_LOOPBACK, PORT); });
+        on<Trigger<Message>>().then([this] {  //
+            emit<Scope::UDP>(std::make_unique<std::string>(TEST_STRING), INADDR_LOOPBACK, PORT);
+        });
 
 
         // Send a test for an unknown port

@@ -19,6 +19,8 @@
 #include <catch.hpp>
 #include <nuclear>
 
+#include "test_util/TestBase.hpp"
+
 namespace {
 
 constexpr uint16_t PORT       = 40001;
@@ -29,10 +31,10 @@ std::size_t num_addresses     = 0;  // NOLINT(cppcoreguidelines-avoid-non-const-
 
 struct Message {};
 
-class TestReactor : public NUClear::Reactor {
+class TestReactor : public test_util::TestBase<TestReactor> {
 public:
     in_port_t bound_port = 0;
-    TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
+    TestReactor(std::unique_ptr<NUClear::Environment> environment) : TestBase(std::move(environment), false) {
 
         // Known port
         on<UDP::Broadcast>(PORT).then([this](const UDP::Packet& packet) {
