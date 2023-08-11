@@ -230,8 +230,8 @@ namespace extension {
                 const std::lock_guard<std::mutex> lock(tasks_mutex);
 
                 // Find the reaction that finished processing
-                auto task = std::find_if(tasks.begin(), tasks.end(), [&event](const Task& t) {
-                    return t.reaction->id == event.id;
+                auto task = std::find_if(tasks.begin(), tasks.end(), [&event](const std::pair<WSAEVENT, Task>& t) {
+                    return t.second.reaction->id == event.id;
                 });
 
                 // If we found it then clear the waiting events
@@ -247,8 +247,8 @@ namespace extension {
                     const std::lock_guard<std::mutex> lock(tasks_mutex);
 
                     // Find our reaction
-                    auto it = std::find_if(tasks.begin(), tasks.end(), [&unbind](const Task& t) {
-                        return t.reaction->id == unbind.id;
+                    auto it = std::find_if(tasks.begin(), tasks.end(), [&unbind](const std::pair<WSAEVENT, Task>& t) {
+                        return t.second.reaction->id == unbind.id;
                     });
 
                     if (it != tasks.end()) {
