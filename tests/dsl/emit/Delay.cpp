@@ -19,6 +19,8 @@
 #include <catch.hpp>
 #include <nuclear>
 
+#include "../../test_util/TestBase.hpp"
+
 // Anonymous namespace to keep everything file local
 namespace {
 
@@ -35,9 +37,9 @@ NUClear::clock::time_point delay_received;
 // NOLINTNEXTLINE(cert-err58-cpp,cppcoreguidelines-avoid-non-const-global-variables)
 NUClear::clock::time_point at_time_received;
 
-class TestReactor : public NUClear::Reactor {
+class TestReactor : public test_util::TestBase<TestReactor> {
 public:
-    TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
+    TestReactor(std::unique_ptr<NUClear::Environment> environment) : TestBase(std::move(environment)) {
         emit<Scope::INITIALIZE>(std::make_unique<int>(5));
 
         // This message should come in later

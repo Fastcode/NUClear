@@ -20,6 +20,8 @@
 #include <nuclear>
 #include <utility>
 
+#include "../../test_util/TestBase.hpp"
+
 // Anonymous namespace to keep everything file local
 namespace {
 
@@ -53,9 +55,9 @@ struct EmitTester2 {
     }
 };
 
-class TestReactor : public NUClear::Reactor {
+class TestReactor : public test_util::TestBase<TestReactor> {
 public:
-    TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
+    TestReactor(std::unique_ptr<NUClear::Environment> environment) : TestBase(std::move(environment)) {
 
         // Make some things to emit
         auto t1 = std::make_unique<int>(8);
