@@ -132,7 +132,7 @@ namespace extension {
                             int bytes_available = 0;
                             bool valid          = ::ioctl(fd.fd, FIONREAD, &bytes_available) == 0;
                             if (valid && bytes_available == 0) {
-                                fd.revents |= IO::CLOSE;
+                                fd.revents = fd.revents | IO::CLOSE;
                             }
                         }
 
