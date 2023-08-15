@@ -24,24 +24,37 @@
 // Anonymous namespace to keep everything file local
 namespace {
 
-struct ShutdownNowPlx {};
+/// @brief Events that occur during the test
+std::vector<std::string> events;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+
+struct TestMessage {
+    TestMessage(std::string data) : data(std::move(data)) {}
+    std::string data;
+};
 
 class TestReactor : public test_util::TestBase<TestReactor> {
 public:
     TestReactor(std::unique_ptr<NUClear::Environment> environment) : TestBase(std::move(environment)) {
-        emit<Scope::INITIALIZE>(std::make_unique<int>(5));
+        emit<Scope::INITIALIZE>(std::make_unique<TestMessage>("Initialise before trigger"));
+        emit(std::make_unique<TestMessage>("Normal before trigger"));
 
-        on<Trigger<int>>().then([this](const int& v) {
-            REQUIRE(v == 5);
-
-            // We can't call shutdown here because
-            // we haven't started yet. That's because
-            // emits from Scope::INITIALIZE are not
-            // considered fully "initialized"
-            emit(std::make_unique<ShutdownNowPlx>());
+        on<Trigger<TestMessage>>().then([this](const TestMessage& v) {  //
+            events.push_back("Triggered " + v.data);
         });
 
-        on<Trigger<ShutdownNowPlx>>().then([this] { powerplant.shutdown(); });
+        emit(std::make_unique<TestMessage>("Normal after trigger"));
+
+        on<Trigger<Step<1>>>().then([this] {  //
+            emit<Scope::INITIALIZE>(std::make_unique<TestMessage>("Initialise post startup"));
+        });
+        on<Trigger<Step<2>>>().then([this] {  //
+            emit(std::make_unique<TestMessage>("Normal post startup"));
+        });
+
+        on<Startup>().then([this] {
+            emit(std::make_unique<Step<1>>());
+            emit(std::make_unique<Step<2>>());
+        });
     }
 };
 }  // namespace
@@ -51,6 +64,18 @@ TEST_CASE("Testing the Initialize scope", "[api][emit][initialize]") {
     config.thread_count = 1;
     NUClear::PowerPlant plant(config);
     plant.install<TestReactor>();
-
     plant.start();
+
+    const std::vector<std::string> expected = {
+        "Triggered Normal after trigger",
+        "Triggered Initialise before trigger",
+        "Triggered Initialise post startup",
+        "Triggered Normal post startup",
+    };
+
+    // Make an info print the diff in an easy to read way if we fail
+    INFO(test_util::diff_string(expected, events));
+
+    // Check the events fired in order and only those events
+    REQUIRE(events == expected);
 }

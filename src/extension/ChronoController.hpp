@@ -166,7 +166,7 @@ namespace extension {
         /// @brief The condition variable we use to wait on
         std::condition_variable wait;
         /// @brief If we are running or not
-        bool running{true};
+        volatile bool running{true};
 
         /// @brief The temporal accuracy when waiting on a condition variable
         NUClear::clock::duration cv_accuracy{0};

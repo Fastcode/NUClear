@@ -45,7 +45,7 @@ inline PowerPlant::PowerPlant(Configuration config, int argc, const char* argv[]
         args.emplace_back(argv[i]);
     }
 
-    // We emit this twice, so the data is available for extensions, it will also be emitted in start
+    // Emit our command line arguments
     emit(std::make_unique<message::CommandLineArguments>(args));
 }
 
@@ -55,7 +55,7 @@ void PowerPlant::install() {
     // Make sure that the class that we received is a reactor
     static_assert(std::is_base_of<Reactor, T>::value, "You must install Reactors");
 
-    // Get the demangled reactor name and strip `struct ` and `class ` from it
+    // Get the demangled reactor name
     std::string reactor_name = util::demangle(typeid(T).name());
 
     // The reactor constructor should handle subscribing to events

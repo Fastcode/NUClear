@@ -266,15 +266,8 @@ namespace dsl {
 
                 // Check if our watchdog has timed out
                 if (NUClear::clock::now() > (service_time + period(ticks))) {
-                    try {
-                        // Submit the reaction to the thread pool
-                        auto task = reaction->get_task();
-                        if (task) {
-                            reaction->reactor.powerplant.submit(std::move(task));
-                        }
-                    }
-                    catch (...) {
-                    }
+                    // Submit the reaction to the thread pool
+                    reaction->reactor.powerplant.submit(reaction->get_task());
 
                     // Now automatically service the watchdog
                     time += period(ticks);

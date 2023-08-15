@@ -181,17 +181,9 @@ namespace extension {
                     e.events = it->waiting_events;
 
                     // Submit the task (which should run the get)
-                    try {
-                        IO::ThreadEventStore::value = &e;
-                        auto task                   = it->reaction->get_task();
-                        IO::ThreadEventStore::value = nullptr;
-                        // Only actually submit this task if it is the only active task for this reaction
-                        if (task) {
-                            powerplant.submit(std::move(task));
-                        }
-                    }
-                    catch (...) {
-                    }
+                    IO::ThreadEventStore::value = &e;
+                    powerplant.submit(it->reaction->get_task());
+                    IO::ThreadEventStore::value = nullptr;
 
                     // Remove if we received a close event
                     bool closed = (it->waiting_events & IO::CLOSE) != 0;
