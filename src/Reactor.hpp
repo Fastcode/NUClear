@@ -301,8 +301,9 @@ public:
         auto then(const std::string& label, Function&& callback, const util::Sequence<Index...>& /*s*/) {
 
             // Regex replace NUClear::dsl::Parse with NUClear::Reactor::on so that it reads more like what is expected
-            std::string dsl = util::demangle(typeid(DSL).name());
-            dsl             = std::regex_replace(dsl, std::regex(R"(NUClear::dsl::Parse<)"), "NUClear::Reactor::on<");
+            const std::string dsl = std::regex_replace(util::demangle(typeid(DSL).name()),
+                                                       std::regex("NUClear::dsl::Parse<"),
+                                                       "NUClear::Reactor::on<");
 
             // Generate the identifier
             threading::ReactionIdentifiers identifiers{label,
