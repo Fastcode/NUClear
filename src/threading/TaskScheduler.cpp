@@ -167,13 +167,13 @@ namespace threading {
 
     void TaskScheduler::submit(const uint64_t& id,
                                const int& priority,
-                               const util::GroupDescriptor& group,
-                               const util::ThreadPoolDescriptor& pool,
+                               const util::GroupDescriptor& group_descriptor,
+                               const util::ThreadPoolDescriptor& pool_descriptor,
                                const bool& immediate,
                                std::function<void()>&& func) {
 
         // Move the arguments into a struct
-        Task task{id, priority, group, pool, std::move(func)};
+        Task task{id, priority, group_descriptor, pool_descriptor, std::move(func)};
 
         // Immediate tasks are executed directly on the current thread if they can be
         // If something is blocking them from running right now they are added to the queue
@@ -181,7 +181,7 @@ namespace threading {
             bool runnable = false;
             /* mutex scope */ {
                 const std::lock_guard<std::mutex> group_lock(group_mutex);
-                runnable = is_runnable(group);
+                runnable = is_runnable(task.group_descriptor);
             }
             if (runnable) {
                 run_task(std::move(task));
