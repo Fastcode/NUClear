@@ -53,9 +53,15 @@ namespace dsl {
 
                 static void emit(PowerPlant& powerplant, std::shared_ptr<DataType> data) {
 
-                    // Delay the emit by 0 seconds, this will delay the emit until the chrono controller starts, which
-                    // will be when the system starts
-                    Delay<DataType>::emit(powerplant, data, std::chrono::seconds(0));
+                    static std::atomic<uint64_t> id{0};
+
+                    // Submit a task to the power plant to emit this object
+                    powerplant.submit(++id,
+                                      1000,
+                                      util::GroupDescriptor{},
+                                      util::ThreadPoolDescriptor{},
+                                      false,
+                                      [&powerplant, data] { powerplant.emit_shared<dsl::word::emit::Local>(data); });
                 }
             };
 

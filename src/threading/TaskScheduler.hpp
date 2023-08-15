@@ -21,6 +21,7 @@
 
 #include <atomic>
 #include <condition_variable>
+#include <functional>
 #include <map>
 #include <memory>
 #include <mutex>
@@ -29,8 +30,7 @@
 
 #include "../util/GroupDescriptor.hpp"
 #include "../util/ThreadPoolDescriptor.hpp"
-#include "Reaction.hpp"
-#include "ReactionTask.hpp"
+#include "../util/platform.hpp"
 
 namespace NUClear {
 namespace threading {
@@ -78,6 +78,50 @@ namespace threading {
      * running in a thread, or waiting in the Queue, then this task is ignored and dropped from the system.
      */
     class TaskScheduler {
+    private:
+        /**
+         * @brief A struct which contains all the information about an individual task
+         */
+        struct Task {
+            /// @brief The id of this task used for ordering
+            uint64_t id;
+            /// @brief The priority of this task
+            int priority;
+            /// @brief The group descriptor for this task
+            util::GroupDescriptor group_descriptor;
+            /// @brief The thread pool descriptor for this task
+            util::ThreadPoolDescriptor thread_pool_descriptor;
+            /// @brief The callback to be executed
+            std::function<void()> run;
+
+            /**
+             * @brief Compare tasks based on their priority
+             *
+             * @param other the other task to compare to
+             * @return true if this task has a higher priority than the other task
+             */
+            bool operator<(const Task& other) const {
+                return priority == other.priority ? id < other.id : priority > other.priority;
+            }
+        };
+
+        /**
+         * @brief A struct which contains all the information about an individual thread pool
+         */
+        struct PoolQueue {
+            PoolQueue(const util::ThreadPoolDescriptor& pool_descriptor) : pool_descriptor(pool_descriptor) {}
+            /// @brief The descriptor for this thread pool
+            const util::ThreadPoolDescriptor pool_descriptor;
+            /// @brief The threads which are running in this thread pool
+            std::vector<std::unique_ptr<std::thread>> threads;
+            /// @brief The queue of tasks for this specific thread pool
+            std::vector<Task> queue;
+            /// @brief The mutex which protects the queue
+            std::mutex mutex;
+            /// @brief The condition variable which threads wait on if they can't get a task
+            std::condition_variable condition;
+        };
+
     public:
         /**
          * @brief Constructs a new TaskScheduler instance, and builds the nullptr sync queue.
@@ -106,30 +150,23 @@ namespace threading {
          *  queue based on it's sync type and priority. It will then wait there until it is removed by a thread to
          *  be processed.
          *
-         * @param task  the task to be executed
+         * @param id        the id of this task used for ordering tasks of the same priority
+         * @param priority  the priority of this task
+         * @param group     the group descriptor for this task
+         * @param pool      the thread pool descriptor for this task
          * @param immediate if this task should run immediately in the current thread. If immediate execution of this
-         *  task is not possible (e.g. due to group concurrency restrictions) this task will be queued as normal
+         *                  task is not possible (e.g. due to group concurrency restrictions) this task will be queued
+         *                  as normal
+         * @param func      the function to execute
          */
-        void submit(std::unique_ptr<ReactionTask>&& task, const bool& immediate = false);
+        void submit(const uint64_t& id,
+                    const int& priority,
+                    const util::GroupDescriptor& group,
+                    const util::ThreadPoolDescriptor& pool,
+                    const bool& immediate,
+                    std::function<void()>&& func);
 
     private:
-        /**
-         * @brief A struct which contains all the information about an individual thread pool
-         */
-        struct PoolQueue {
-            PoolQueue(const util::ThreadPoolDescriptor& pool_descriptor) : pool_descriptor(pool_descriptor) {}
-            /// @brief The descriptor for this thread pool
-            const util::ThreadPoolDescriptor pool_descriptor;
-            /// @brief The threads which are running in this thread pool
-            std::vector<std::unique_ptr<std::thread>> threads;
-            /// @brief The queue of tasks for this specific thread pool
-            std::vector<std::unique_ptr<ReactionTask>> queue;
-            /// @brief The mutex which protects the queue
-            std::mutex mutex;
-            /// @brief The condition variable which threads wait on if they can't get a task
-            std::condition_variable condition;
-        };
-
         /**
          * @brief Get a task object to be executed by a thread.
          *
@@ -140,7 +177,7 @@ namespace threading {
          *
          * @return the task which has been given to be executed
          */
-        std::unique_ptr<ReactionTask> get_task();
+        Task get_task();
 
         /**
          * @brief Gets a pool queue for the given thread pool descriptor or creates one if it does not exist
@@ -170,8 +207,10 @@ namespace threading {
          *
          * @details After execution of the task has completed the number of active tasks in the tasks' group is
          * decremented
+         *
+         * @param task  the task to execute
          */
-        void run_task(std::unique_ptr<ReactionTask>&& task);
+        void run_task(Task&& task);
 
         /**
          * @brief Determines if the given task is able to be executed
@@ -179,12 +218,12 @@ namespace threading {
          * @details If the current thread is able to be executed the number of active tasks in the tasks' groups is
          * incremented
          *
-         * @param task the task to inspect
+         * @param group the group descriptor for the task
          *
          * @return true if the task is currently runnable
          * @return false if the task is not currently runnable
          */
-        bool is_runnable(const std::unique_ptr<ReactionTask>& task);
+        bool is_runnable(const util::GroupDescriptor& group);
 
         /// @brief if the scheduler is running, and accepting new tasks. If this is false and a new, non-immediate, task
         /// is submitted it will be ignored

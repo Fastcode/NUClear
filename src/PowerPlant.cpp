@@ -44,8 +44,25 @@ void PowerPlant::start() {
     scheduler.start();
 }
 
-void PowerPlant::submit(std::unique_ptr<threading::ReactionTask>&& task, const bool& immediate) {
-    scheduler.submit(std::move(task), immediate);
+void PowerPlant::submit(const uint64_t& id,
+                        const int& priority,
+                        const util::GroupDescriptor& group,
+                        const util::ThreadPoolDescriptor& pool,
+                        const bool& immediate,
+                        std::function<void()>&& task) {
+    scheduler.submit(id, priority, group, pool, immediate, std::move(task));
+}
+
+void PowerPlant::submit(std::unique_ptr<threading::ReactionTask>&& task, const bool& immediate) noexcept {
+    // Only submit non null tasks
+    if (task) {
+        try {
+            std::shared_ptr<threading::ReactionTask> t(std::move(task));
+            submit(t->id, t->priority, t->group_descriptor, t->thread_pool_descriptor, immediate, [t]() { t->run(); });
+        }
+        catch (...) {
+        }
+    }
 }
 
 void PowerPlant::shutdown() {

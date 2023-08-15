@@ -145,27 +145,6 @@ namespace threading {
     template <typename ReactionType>
     ATTRIBUTE_TLS Task<ReactionType>* Task<ReactionType>::current_task = nullptr;  // NOLINT
 
-    /**
-     * @brief This overload is used to sort reactions by priority.
-     *
-     * @param a the reaction task a
-     * @param b the reaction task b
-     *
-     * @return true if a has lower priority than b, false otherwise
-     */
-    template <typename ReactionType>
-    inline bool operator<(const std::unique_ptr<Task<ReactionType>>& a, const std::unique_ptr<Task<ReactionType>>& b) {
-
-        // Comparision order is as follows:
-        //  nullptr is greater than anything else so it's removed from a queue first
-        //  higher priority tasks are greater than lower priority tasks
-        //  tasks created first (smaller ids) should run before tasks created later
-        return a == nullptr                 ? true
-               : b == nullptr               ? false
-               : a->priority == b->priority ? a->id < b->id
-                                            : a->priority > b->priority;
-    }
-
     // Alias the templated Task so that public API remains intact
     class Reaction;
     using ReactionTask = Task<Reaction>;

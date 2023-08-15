@@ -67,10 +67,7 @@ namespace extension {
 
                     // Execute on our interested reactions
                     for (auto it = rs.first; it != rs.second; ++it) {
-                        auto task = it->second->get_task();
-                        if (task) {
-                            powerplant.submit(std::move(task));
-                        }
+                        powerplant.submit(it->second->get_task());
                     }
                 }
 
