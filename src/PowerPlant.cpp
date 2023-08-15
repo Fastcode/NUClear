@@ -57,7 +57,7 @@ void PowerPlant::submit(std::unique_ptr<threading::ReactionTask>&& task, const b
     // Only submit non null tasks
     if (task) {
         try {
-            std::shared_ptr<threading::ReactionTask> t(std::move(task));
+            const std::shared_ptr<threading::ReactionTask> t(std::move(task));
             submit(t->id, t->priority, t->group_descriptor, t->thread_pool_descriptor, immediate, [t]() { t->run(); });
         }
         catch (...) {
