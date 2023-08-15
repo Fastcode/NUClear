@@ -30,22 +30,22 @@ std::vector<std::string> events;  // NOLINT(cppcoreguidelines-avoid-non-const-gl
 
 template <typename T>
 struct E1 {
-    static inline void emit(NUClear::PowerPlant& /*unused*/, std::shared_ptr<T> p, int a, std::string b) {
+    static inline void emit(NUClear::PowerPlant& /*unused*/, std::shared_ptr<T> p, const int& a, const std::string& b) {
         events.push_back("E1a " + *p + " " + std::to_string(a) + " " + b);
     }
 
-    static inline void emit(NUClear::PowerPlant& /*unused*/, std::shared_ptr<T> p, std::string c) {
+    static inline void emit(NUClear::PowerPlant& /*unused*/, std::shared_ptr<T> p, const std::string& c) {
         events.push_back("E1b " + *p + " " + c);
     }
 };
 
 template <typename T>
 struct E2 {
-    static inline void emit(NUClear::PowerPlant& /*unused*/, std::shared_ptr<T> p, bool d) {
+    static inline void emit(NUClear::PowerPlant& /*unused*/, std::shared_ptr<T> p, const bool& d) {
         events.push_back("E2a " + *p + " " + (d ? "true" : "false"));
     }
 
-    static inline void emit(NUClear::PowerPlant& /*unused*/, std::shared_ptr<T> p, int e, std::string f) {
+    static inline void emit(NUClear::PowerPlant& /*unused*/, std::shared_ptr<T> p, const int& e, const std::string& f) {
         events.push_back("E2b " + *p + " " + std::to_string(e) + " " + f);
     }
 };
