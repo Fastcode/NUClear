@@ -79,7 +79,7 @@ namespace threading {
              const util::ThreadPoolDescriptor& thread_pool_descriptor,
              TaskFunction&& callback)
             : parent(parent)
-            , id(++task_id_source)
+            , id(new_task_id())
             , priority(priority)
             , stats(std::make_shared<message::ReactionStatistics>(parent.identifiers,
                                                                   parent.id,
@@ -113,6 +113,15 @@ namespace threading {
             callback(*this);
         }
 
+        /**
+         * @brief Generate a new unique task id
+         *
+         * @return a new unique task id
+         */
+        static inline uint64_t new_task_id() {
+            return ++task_id_source;
+        }
+
         /// @brief the parent Reaction object which spawned this
         ReactionType& parent;
         /// @brief the task id of this task (the sequence number of this particular task)
@@ -144,27 +153,6 @@ namespace threading {
     // Initialize our current task
     template <typename ReactionType>
     ATTRIBUTE_TLS Task<ReactionType>* Task<ReactionType>::current_task = nullptr;  // NOLINT
-
-    /**
-     * @brief This overload is used to sort reactions by priority.
-     *
-     * @param a the reaction task a
-     * @param b the reaction task b
-     *
-     * @return true if a has lower priority than b, false otherwise
-     */
-    template <typename ReactionType>
-    inline bool operator<(const std::unique_ptr<Task<ReactionType>>& a, const std::unique_ptr<Task<ReactionType>>& b) {
-
-        // Comparision order is as follows:
-        //  nullptr is greater than anything else so it's removed from a queue first
-        //  higher priority tasks are greater than lower priority tasks
-        //  tasks created first (smaller ids) should run before tasks created later
-        return a == nullptr                 ? true
-               : b == nullptr               ? false
-               : a->priority == b->priority ? a->id < b->id
-                                            : a->priority > b->priority;
-    }
 
     // Alias the templated Task so that public API remains intact
     class Reaction;

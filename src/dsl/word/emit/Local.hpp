@@ -51,26 +51,12 @@ namespace dsl {
 
                 static void emit(PowerPlant& powerplant, std::shared_ptr<DataType> data) {
 
-                    // Set our thread local store data
-                    store::ThreadStore<std::shared_ptr<DataType>>::value = &data;
-
                     // Run all our reactions that are interested
                     for (auto& reaction : store::TypeCallbackStore<DataType>::get()) {
-                        try {
-                            auto task = reaction->get_task();
-                            if (task) {
-                                powerplant.submit(std::move(task));
-                            }
-                        }
-                        // If there is an exception while generating a reaction print it here, this shouldn't happen
-                        catch (const std::exception& ex) {
-                            PowerPlant::log<NUClear::ERROR>("There was an exception while generating a reaction",
-                                                            ex.what());
-                        }
-                        catch (...) {
-                            PowerPlant::log<NUClear::ERROR>(
-                                "There was an unknown exception while generating a reaction");
-                        }
+
+                        // Set our thread local store data
+                        store::ThreadStore<std::shared_ptr<DataType>>::value = &data;
+                        powerplant.submit(reaction->get_task());
                     }
 
                     // Unset our thread local store data
