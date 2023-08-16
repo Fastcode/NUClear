@@ -53,8 +53,6 @@ namespace dsl {
 
                 static void emit(PowerPlant& powerplant, std::shared_ptr<DataType> data) {
 
-                    static std::atomic<uint64_t> id{0};
-
                     // Submit a task to the power plant to emit this object
                     powerplant.submit(threading::ReactionTask::new_task_id(),
                                       1000,
