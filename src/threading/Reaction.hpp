@@ -70,21 +70,29 @@ namespace threading {
          */
         inline std::unique_ptr<ReactionTask> get_task() {
 
-            // If we are not enabled, don't run
-            if (!enabled) {
-                return nullptr;
+            try {
+                // If we are not enabled, don't run
+                if (!enabled) {
+                    return nullptr;
+                }
+
+                // Run our generator to get a functor we can run
+                auto callback = generator(*this);
+
+                // If our generator returns a valid function
+                if (callback) {
+                    return std::make_unique<ReactionTask>(*this,
+                                                          callback.priority,
+                                                          callback.group,
+                                                          callback.pool,
+                                                          std::move(callback.callback));
+                }
             }
-
-            // Run our generator to get a functor we can run
-            auto callback = generator(*this);
-
-            // If our generator returns a valid function
-            if (callback) {
-                return std::make_unique<ReactionTask>(*this,
-                                                      callback.priority,
-                                                      callback.group,
-                                                      callback.pool,
-                                                      std::move(callback.callback));
+            catch (const std::exception& ex) {
+                reactor.log<NUClear::ERROR>("There was an exception while generating a task", ex.what());
+            }
+            catch (...) {
+                reactor.log<NUClear::ERROR>("There was an unknown exception while generating a task");
             }
 
             // Otherwise we return a null pointer
