@@ -79,7 +79,7 @@ namespace threading {
              const util::ThreadPoolDescriptor& thread_pool_descriptor,
              TaskFunction&& callback)
             : parent(parent)
-            , id(++task_id_source)
+            , id(new_task_id())
             , priority(priority)
             , stats(std::make_shared<message::ReactionStatistics>(parent.identifiers,
                                                                   parent.id,
@@ -111,6 +111,15 @@ namespace threading {
 
             // Run our callback
             callback(*this);
+        }
+
+        /**
+         * @brief Generate a new unique task id
+         *
+         * @return a new unique task id
+         */
+        static inline uint64_t new_task_id() {
+            return ++task_id_source;
         }
 
         /// @brief the parent Reaction object which spawned this

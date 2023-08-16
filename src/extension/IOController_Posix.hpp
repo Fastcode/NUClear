@@ -307,7 +307,6 @@ namespace extension {
                     // Collect the events that happened into the tasks list
                     collect_events();
 
-
                     // Fire the events that happened if we can
                     fire_events();
                 }
