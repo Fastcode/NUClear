@@ -130,7 +130,7 @@ namespace extension {
                         // descriptor is sending EOF and we should fire a CLOSE event too and stop watching
                         if ((fd.revents & IO::READ) != 0) {
                             int bytes_available = 0;
-                            bool valid          = ::ioctl(fd.fd, FIONREAD, &bytes_available) == 0;
+                            const bool valid    = ::ioctl(fd.fd, FIONREAD, &bytes_available) == 0;
                             if (valid && bytes_available == 0) {
                                 // NOLINTNEXTLINE(google-runtime-int)
                                 fd.revents = short(fd.revents | IO::CLOSE);
@@ -186,7 +186,7 @@ namespace extension {
                     IO::ThreadEventStore::value = nullptr;
 
                     // Remove if we received a close event
-                    bool closed = (it->waiting_events & IO::CLOSE) != 0;
+                    const bool closed = (it->waiting_events & IO::CLOSE) != 0;
                     dirty |= closed;
                     it = closed ? tasks.erase(it) : std::next(it);
                 }

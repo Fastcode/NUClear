@@ -55,11 +55,9 @@ void PowerPlant::install() {
     // Make sure that the class that we received is a reactor
     static_assert(std::is_base_of<Reactor, T>::value, "You must install Reactors");
 
-    // Get the demangled reactor name
-    std::string reactor_name = util::demangle(typeid(T).name());
-
     // The reactor constructor should handle subscribing to events
-    reactors.push_back(std::make_unique<T>(std::make_unique<Environment>(*this, reactor_name, level)));
+    reactors.push_back(
+        std::make_unique<T>(std::make_unique<Environment>(*this, util::demangle(typeid(T).name()), level)));
 }
 
 // Default emit with no types
