@@ -67,15 +67,6 @@ namespace extension {
             return {from, std::move(payload)};
         }
 
-
-        socklen_t socket_size(const util::network::sock_t& s) {
-            switch (s.sock.sa_family) {
-                case AF_INET: return sizeof(sockaddr_in);
-                case AF_INET6: return sizeof(sockaddr_in6);
-                default: throw std::runtime_error("unhandled socket address family");
-            }
-        }
-
         NUClearNetwork::PacketQueue::PacketTarget::PacketTarget(std::weak_ptr<NetworkTarget> target,
                                                                 std::vector<uint8_t> acked)
             : target(std::move(target)), acked(std::move(acked)), last_send(std::chrono::steady_clock::now()) {}
@@ -182,7 +173,7 @@ namespace extension {
             }
 
             // Bind to the address, and if we fail throw an error
-            if (::bind(data_fd, &address.sock, socket_size(address)) != 0) {
+            if (::bind(data_fd, &address.sock, address.size()) != 0) {
                 throw std::system_error(network_errno,
                                         std::system_category(),
                                         "Unable to bind the UDP socket to the port");
@@ -234,7 +225,7 @@ namespace extension {
             }
 
             // Bind to the address
-            if (::bind(announce_fd, &address.sock, socket_size(address)) != 0) {
+            if (::bind(announce_fd, &address.sock, address.size()) != 0) {
                 throw std::system_error(network_errno, std::system_category(), "Unable to bind the UDP socket");
             }
 
@@ -335,7 +326,7 @@ namespace extension {
                              sizeof(packet),
                              0,
                              &it->second->target.sock,
-                             socket_size(it->second->target));
+                             it->second->target.size());
                 }
             }
 
@@ -590,7 +581,7 @@ namespace extension {
                              static_cast<socklen_t>(announce_packet.size()),
                              0,
                              &it->second->target.sock,
-                             socket_size(it->second->target))
+                             it->second->target.size())
                     < 0) {
                     throw std::system_error(network_errno,
                                             std::system_category(),
@@ -652,7 +643,7 @@ namespace extension {
                                                  static_cast<socklen_t>(announce_packet.size()),
                                                  0,
                                                  &ptr->target.sock,
-                                                 socket_size(ptr->target));
+                                                 ptr->target.size());
                                     }
                                 }
 
@@ -745,7 +736,7 @@ namespace extension {
                                              static_cast<socklen_t>(r.size()),
                                              0,
                                              &to.sock,
-                                             socket_size(to));
+                                             to.size());
 
                                     // We don't need to process this packet we already did
                                     return;
@@ -776,7 +767,7 @@ namespace extension {
                                              sizeof(response),
                                              0,
                                              &to.sock,
-                                             socket_size(to));
+                                             to.size());
 
                                     // Set this packet to have been recently received
                                     remote->recent_packets[++remote->recent_packets_index] = packet.packet_id;
@@ -828,7 +819,7 @@ namespace extension {
                                                  static_cast<socklen_t>(r.size()),
                                                  0,
                                                  &to.sock,
-                                                 socket_size(to));
+                                                 to.size());
                                     }
 
                                     // Clear our packets here (the one we just got will be added right after this)
@@ -864,7 +855,7 @@ namespace extension {
                                              static_cast<socklen_t>(r.size()),
                                              0,
                                              &to.sock,
-                                             socket_size(to));
+                                             to.size());
                                 }
 
                                 // Check to see if we have enough to assemble the whole thing
@@ -1073,7 +1064,7 @@ namespace extension {
 
             // Set our target and send (once again const cast is fine)
             message.msg_name    = const_cast<sockaddr*>(&target.sock);  // NOLINT
-            message.msg_namelen = socket_size(target);
+            message.msg_namelen = target.size();
 
             // TODO(trent): if reliable, run select first to see if this socket is writeable
             // If it is not reliable just don't send the message instead of blocking
