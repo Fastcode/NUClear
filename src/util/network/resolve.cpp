@@ -19,6 +19,7 @@
 #include "resolve.hpp"
 
 #include <cstring>
+#include <iostream>
 #include <memory>
 #include <stdexcept>
 
@@ -30,15 +31,16 @@ namespace util {
 
         NUClear::util::network::sock_t resolve(const std::string& address, const uint16_t& port) {
             addrinfo hints{};
-            memset(&hints, 0, sizeof hints);  // make sure the struct is empty
-            hints.ai_family   = AF_UNSPEC;    // don't care about IPv4 or IPv6
-            hints.ai_socktype = SOCK_STREAM;  // using a tcp stream
+            hints.ai_family   = AF_UNSPEC;  // don't care about IPv4 or IPv6
+            hints.ai_socktype = AF_UNSPEC;  // don't care about TCP or UDP
 
             // Get our info on this address
             addrinfo* servinfo_ptr = nullptr;
             if (::getaddrinfo(address.c_str(), std::to_string(port).c_str(), &hints, &servinfo_ptr) != 0) {
-                throw std::runtime_error("Failed to get address information for " + address + ":"
-                                         + std::to_string(port));
+                throw std::system_error(
+                    network_errno,
+                    std::system_category(),
+                    "Failed to get address information for " + address + ":" + std::to_string(port));
             }
 
             // Check if we have any addresses to work with
