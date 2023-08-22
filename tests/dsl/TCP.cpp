@@ -133,7 +133,6 @@ public:
                 emit(std::make_unique<TestConnection>("v4 Ephemeral", "127.0.0.1", v4_port));
             }
             else if (test.name == "v4 Ephemeral") {
-                std::cout << "Testing v6 known" << std::endl;
                 emit(std::make_unique<TestConnection>("v6 Known", "::1", KNOWN_V6_PORT));
             }
             else if (test.name == "v6 Known") {

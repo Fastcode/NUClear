@@ -63,8 +63,6 @@ namespace dsl {
                                         const std::string& from_addr = "",
                                         in_port_t from_port          = 0) {
 
-                    std::cout << to_addr << ":" << to_port << std::endl;
-
                     // Resolve our addresses
                     const util::network::sock_t remote = util::network::resolve(to_addr, to_port);
                     const bool multicast =
