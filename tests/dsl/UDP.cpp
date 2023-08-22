@@ -34,6 +34,13 @@ enum TestPorts {
     MULTICAST_V6 = 40004,
 };
 
+// Ephemeral ports that we will use
+in_port_t uni_v4_port   = 0;
+in_port_t uni_v6_port   = 0;
+in_port_t broad_v4_port = 0;
+in_port_t multi_v4_port = 0;
+in_port_t multi_v6_port = 0;
+
 constexpr in_port_t BASE_PORT            = 40000;
 const std::string IPV4_MULTICAST_ADDRESS = "230.12.3.22";        // NOLINT(cert-err58-cpp)
 const std::string IPV6_MULTICAST_ADDRESS = "ff02::230:12:3:22";  // NOLINT(cert-err58-cpp)
@@ -95,10 +102,10 @@ public:
         });
 
         // IPv4 Unicast Ephemeral port
-        auto uni_v4           = on<UDP>().then([this](const UDP::Packet& packet) {  //
+        auto uni_v4 = on<UDP>().then([this](const UDP::Packet& packet) {  //
             handle_data("Uv4 E", packet);
         });
-        in_port_t uni_v4_port = std::get<1>(uni_v4);
+        uni_v4_port = std::get<1>(uni_v4);
 
         // IPv6 Unicast Known port
         on<UDP>(UNICAST_V6, "::1").then([this](const UDP::Packet& packet) {  //
@@ -106,10 +113,10 @@ public:
         });
 
         // IPv6 Unicast Ephemeral port
-        auto uni_v6           = on<UDP>(0, "::1").then([this](const UDP::Packet& packet) {  //
+        auto uni_v6 = on<UDP>(0, "::1").then([this](const UDP::Packet& packet) {  //
             handle_data("Uv6 E", packet);
         });
-        in_port_t uni_v6_port = std::get<1>(uni_v6);
+        uni_v6_port = std::get<1>(uni_v6);
 
         // IPv4 Broadcast Known port
         on<UDP::Broadcast>(BROADCAST_V4).then([this](const UDP::Packet& packet) {  //
@@ -117,10 +124,10 @@ public:
         });
 
         // IPv4 Broadcast Ephemeral port
-        auto broad_v4           = on<UDP::Broadcast>().then([this](const UDP::Packet& packet) {  //
+        auto broad_v4 = on<UDP::Broadcast>().then([this](const UDP::Packet& packet) {  //
             handle_data("Bv4 E", packet);
         });
-        in_port_t broad_v4_port = std::get<1>(broad_v4);
+        broad_v4_port = std::get<1>(broad_v4);
 
         // No such thing as broadcast in IPv6
 
@@ -133,7 +140,7 @@ public:
         auto multi_v4 = on<UDP::Multicast>(IPV4_MULTICAST_ADDRESS).then([this](const UDP::Packet& packet) {  //
             handle_data("Mv4 E", packet);
         });
-        in_port_t multi_v4_port = std::get<1>(multi_v4);
+        multi_v4_port = std::get<1>(multi_v4);
 
         // IPv6 Multicast Known port
         on<UDP::Multicast>(IPV6_MULTICAST_ADDRESS, MULTICAST_V6).then([this](const UDP::Packet& packet) {  //
@@ -144,7 +151,7 @@ public:
         auto multi_v6 = on<UDP::Multicast>(IPV6_MULTICAST_ADDRESS).then([this](const UDP::Packet& packet) {  //
             handle_data("Mv6 E", packet);
         });
-        in_port_t multi_v6_port = std::get<1>(multi_v6);
+        multi_v6_port = std::get<1>(multi_v6);
 
         // Send a test message to the known port
         on<Trigger<TestUDP>>().then([this](const TestUDP& target) {
@@ -232,7 +239,57 @@ TEST_CASE("Testing sending and receiving of UDP messages", "[api][network][udp]"
     plant.install<TestReactor>();
     plant.start();
 
-    const std::vector<std::string> expected = {};
+    const std::vector<std::string> expected = {
+        "--------------------",
+        " -> 192.168.189.255:" + std::to_string(UNICAST_V4) + "",
+        " -> ::1:" + std::to_string(UNICAST_V4) + "",
+        " -> 127.0.0.1:" + std::to_string(UNICAST_V4) + "",
+        "Uv4 K <- Uv4 K (127.0.0.1:" + std::to_string(UNICAST_V4) + ")",
+        "--------------------",
+        " -> 192.168.189.255:" + std::to_string(uni_v4_port) + "",
+        " -> ::1:" + std::to_string(uni_v4_port) + "",
+        " -> 127.0.0.1:" + std::to_string(uni_v4_port) + "",
+        "Uv4 E <- Uv4 E (127.0.0.1:" + std::to_string(uni_v4_port) + ")",
+        "--------------------",
+        " -> 192.168.189.255:" + std::to_string(UNICAST_V6) + "",
+        " -> 127.0.0.1:" + std::to_string(UNICAST_V6) + "",
+        " -> ::1:" + std::to_string(UNICAST_V6) + "",
+        "Uv6 K <- Uv6 K (::1:" + std::to_string(UNICAST_V6) + ")",
+        "--------------------",
+        " -> 192.168.189.255:" + std::to_string(uni_v6_port) + "",
+        " -> 127.0.0.1:" + std::to_string(uni_v6_port) + "",
+        " -> ::1:" + std::to_string(uni_v6_port) + "",
+        "Uv6 E <- Uv6 E (::1:" + std::to_string(uni_v6_port) + ")",
+        "--------------------",
+        " -> 127.0.0.1:" + std::to_string(BROADCAST_V4) + "",
+        " -> ::1:" + std::to_string(BROADCAST_V4) + "",
+        " -> 192.168.189.255:" + std::to_string(BROADCAST_V4) + "",
+        "Bv4 K <- Bv4 K (192.168.189.255:" + std::to_string(BROADCAST_V4) + ")",
+        "--------------------",
+        " -> 127.0.0.1:" + std::to_string(broad_v4_port) + "",
+        " -> ::1:" + std::to_string(broad_v4_port) + "",
+        " -> 192.168.189.255:" + std::to_string(broad_v4_port) + "",
+        "Bv4 E <- Bv4 E (192.168.189.255:" + std::to_string(broad_v4_port) + ")",
+        "--------------------",
+        " -> 127.0.0.1:" + std::to_string(MULTICAST_V4) + "",
+        " -> 192.168.189.255:" + std::to_string(MULTICAST_V4) + "",
+        " -> 230.12.3.22:" + std::to_string(MULTICAST_V4) + "",
+        "Mv4 K <- Mv4 K (230.12.3.22:" + std::to_string(MULTICAST_V4) + ")",
+        "--------------------",
+        " -> 127.0.0.1:" + std::to_string(multi_v4_port) + "",
+        " -> 192.168.189.255:" + std::to_string(multi_v4_port) + "",
+        " -> 230.12.3.22:" + std::to_string(multi_v4_port) + "",
+        "Mv4 E <- Mv4 E (230.12.3.22:" + std::to_string(multi_v4_port) + ")",
+        "--------------------",
+        " -> ::1:" + std::to_string(MULTICAST_V6) + "",
+        " -> ff02::230:12:3:22:" + std::to_string(MULTICAST_V6) + "",
+        "Mv6 K <- Mv6 K (ff02::230:12:3:22:" + std::to_string(MULTICAST_V6) + ")",
+        "--------------------",
+        " -> ::1:" + std::to_string(multi_v6_port) + "",
+        " -> ff02::230:12:3:22:" + std::to_string(multi_v6_port) + "",
+        "Mv6 E <- Mv6 E (ff02::230:12:3:22:" + std::to_string(multi_v6_port) + ")",
+        "--------------------",
+    };
 
     // Make an info print the diff in an easy to read way if we fail
     INFO(test_util::diff_string(expected, events));
