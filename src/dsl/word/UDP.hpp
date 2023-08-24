@@ -311,7 +311,7 @@ namespace dsl {
                                             std::system_category(),
                                             "We were unable to get the port from the UDP socket");
                 }
-                in_port_t port;
+                in_port_t port = 0;
                 if (bind_address.sock.sa_family == AF_INET) {
                     port = ntohs(bind_address.ipv4.sin_port);
                 }
@@ -382,7 +382,7 @@ namespace dsl {
 
                 // Iterate through control headers to get IP information
                 for (cmsghdr* cmsg = CMSG_FIRSTHDR(&mh); cmsg != nullptr; cmsg = CMSG_NXTHDR(&mh, cmsg)) {
-                    // ignore the control headers that don't match what we want
+                    // If we find an ipv4 packet info header
                     if (local.sock.sa_family == AF_INET && cmsg->cmsg_level == IPPROTO_IP
                         && cmsg->cmsg_type == IP_PKTINFO) {
 
@@ -394,8 +394,10 @@ namespace dsl {
                         // We are done
                         break;
                     }
-                    else if (local.sock.sa_family == AF_INET6 && cmsg->cmsg_level == IPPROTO_IPV6
-                             && cmsg->cmsg_type == IPV6_PKTINFO) {
+
+                    // If we find a ipv6 packet info header
+                    if (local.sock.sa_family == AF_INET6 && cmsg->cmsg_level == IPPROTO_IPV6
+                        && cmsg->cmsg_type == IPV6_PKTINFO) {
 
                         // Access the packet header information
                         auto* pi = reinterpret_cast<in6_pktinfo*>(reinterpret_cast<char*>(cmsg) + sizeof(*cmsg));

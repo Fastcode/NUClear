@@ -87,7 +87,7 @@ namespace dsl {
                         }
                     }
                     else {
-                        util::network::sock_t local = util::network::resolve(from_addr, from_port);
+                        local = util::network::resolve(from_addr, from_port);
                         if (local.sock.sa_family != remote.sock.sa_family) {
                             throw std::runtime_error("to and from addresses are not the same family");
                         }

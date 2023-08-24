@@ -167,7 +167,7 @@ namespace dsl {
 
                 // If our get is being run without an fd (something else triggered) then short circuit
                 if (!event) {
-                    return Connection{{0, 0}, {0, 0}, 0};
+                    return {};
                 }
 
                 // Accept our connection

@@ -146,10 +146,10 @@ namespace extension {
         }
 
 
-        void NUClearNetwork::open_data(const sock_t& bind_target) {
+        void NUClearNetwork::open_data(const sock_t& bind_address) {
 
             // Create the "join any" address for this address family
-            sock_t address = bind_target;
+            sock_t address = bind_address;
 
             // Set port to 0 to get an ephemeral port
             if (address.sock.sa_family == AF_INET) {
@@ -181,7 +181,7 @@ namespace extension {
         }
 
 
-        void NUClearNetwork::open_announce(const sock_t& announce_target, const sock_t& bind_target) {
+        void NUClearNetwork::open_announce(const sock_t& announce_target, const sock_t& bind_address) {
 
             // Work out what type of announce we are doing as it will influence how we make the socket
             const bool multicast =
@@ -190,7 +190,7 @@ namespace extension {
                 || (announce_target.sock.sa_family == AF_INET6 && announce_target.ipv6.sin6_addr.s6_addr[0] == 0xFF);
 
             // Make our socket
-            announce_fd = ::socket(bind_target.sock.sa_family, SOCK_DGRAM, IPPROTO_UDP);
+            announce_fd = ::socket(bind_address.sock.sa_family, SOCK_DGRAM, IPPROTO_UDP);
             if (announce_fd < 0) {
                 throw std::system_error(network_errno, std::system_category(), "Unable to open the UDP socket");
             }
@@ -214,7 +214,7 @@ namespace extension {
             }
 
             // Bind to the address
-            if (::bind(announce_fd, &bind_target.sock, bind_target.size()) != 0) {
+            if (::bind(announce_fd, &bind_address.sock, bind_address.size()) != 0) {
                 throw std::system_error(network_errno, std::system_category(), "Unable to bind the UDP socket");
             }
 
@@ -227,7 +227,7 @@ namespace extension {
                     // Set the multicast address we are listening on and bind address
                     ip_mreq mreq{};
                     mreq.imr_multiaddr = announce_target.ipv4.sin_addr;
-                    mreq.imr_interface = bind_target.ipv4.sin_addr;
+                    mreq.imr_interface = bind_address.ipv4.sin_addr;
 
                     // Join our multicast group
                     if (::setsockopt(announce_fd,
@@ -245,8 +245,8 @@ namespace extension {
                     if (::setsockopt(announce_fd,
                                      IPPROTO_IP,
                                      IP_MULTICAST_IF,
-                                     reinterpret_cast<const char*>(&bind_target.ipv4.sin_addr),
-                                     sizeof(bind_target.ipv4.sin_addr))
+                                     reinterpret_cast<const char*>(&bind_address.ipv4.sin_addr),
+                                     sizeof(bind_address.ipv4.sin_addr))
                         < 0) {
                         throw std::system_error(network_errno,
                                                 std::system_category(),
@@ -258,7 +258,7 @@ namespace extension {
                     // Set the multicast address we are listening on
                     ipv6_mreq mreq{};
                     mreq.ipv6mr_multiaddr = announce_target.ipv6.sin6_addr;
-                    mreq.ipv6mr_interface = util::network::if_number_from_address(bind_target.ipv6);
+                    mreq.ipv6mr_interface = util::network::if_number_from_address(bind_address.ipv6);
 
                     // Join our multicast group
                     if (::setsockopt(announce_fd,
