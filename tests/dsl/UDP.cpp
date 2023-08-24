@@ -143,12 +143,12 @@ public:
         uni_v4_port = std::get<1>(uni_v4);
 
         // IPv6 Unicast Known port
-        on<UDP>(UNICAST_V6, "::1").then([this](const UDP::Packet& packet) {  //
+        on<UDP>(UNICAST_V6, "::").then([this](const UDP::Packet& packet) {  //
             handle_data("Uv6K", packet);
         });
 
         // IPv6 Unicast Ephemeral port
-        auto uni_v6 = on<UDP>(0, "::1").then([this](const UDP::Packet& packet) {  //
+        auto uni_v6 = on<UDP>(0, "::").then([this](const UDP::Packet& packet) {  //
             handle_data("Uv6E", packet);
         });
         uni_v6_port = std::get<1>(uni_v6);

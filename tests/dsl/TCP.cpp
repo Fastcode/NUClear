@@ -83,14 +83,14 @@ public:
         in_port_t v4_port = std::get<1>(v4);
 
         // Bind to IPv6 and a known port
-        on<TCP>(KNOWN_V6_PORT, "::1").then([this](const TCP::Connection& connection) {
+        on<TCP>(KNOWN_V6_PORT, "::").then([this](const TCP::Connection& connection) {
             on<IO>(connection.fd, IO::READ | IO::CLOSE).then([this](IO::Event event) {
                 handle_data("v6 Known", event);
             });
         });
 
         // Bind to IPv6 an unknown port and get the port number
-        auto v6           = on<TCP>(0, "::1").then([this](const TCP::Connection& connection) {
+        auto v6           = on<TCP>(0, "::").then([this](const TCP::Connection& connection) {
             on<IO>(connection.fd, IO::READ | IO::CLOSE).then([this](IO::Event event) {
                 handle_data("v6 Ephemeral", event);
             });
