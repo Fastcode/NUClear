@@ -46,6 +46,12 @@ const std::string IPV4_MULTICAST_ADDRESS = "230.12.3.22";        // NOLINT(cert-
 const std::string IPV6_MULTICAST_ADDRESS = "ff02::230:12:3:22";  // NOLINT(cert-err58-cpp)
 
 inline std::string get_broadcast_addr() {
+    static std::string addr = "";
+
+    if (!addr.empty()) {
+        return addr;
+    }
+
     // Get the first IPv4 broadcast address we can find
     std::array<char, INET_ADDRSTRLEN> buff{};
     bool found = false;
@@ -59,7 +65,40 @@ inline std::string get_broadcast_addr() {
     if (!found) {
         throw std::runtime_error("No broadcast address found");
     }
-    return std::string(buff.data());
+    addr = std::string(buff.data());
+    return addr;
+}
+
+struct SendTarget {
+    std::string data;
+    std::string address;
+    in_port_t port;
+};
+std::vector<SendTarget> send_targets(const std::string& type, in_port_t port, bool include_target = false) {
+    std::vector<SendTarget> results;
+
+    // Make sure that the type we are actually after is sent last
+    std::string t = type.substr(0, 3);
+    if (type[2] == '4' && include_target == (t == "Uv4")) {
+        results.push_back(SendTarget{type + ":Uv4", "127.0.0.1", port});
+    }
+    if (type[2] == '4' && include_target == (t == "Bv4")) {
+        results.push_back(SendTarget{type + ":Bv4", get_broadcast_addr(), port});
+    }
+    if (type[2] == '4' && include_target == (t == "Mv4")) {
+        results.push_back(SendTarget{type + ":Mv4", IPV4_MULTICAST_ADDRESS, port});
+    }
+    if (type[2] == '6' && include_target == (t == "Uv6")) {
+        results.push_back(SendTarget{type + ":Uv6", "::1", port});
+    }
+    if (type[2] == '6' && include_target == (t == "Mv6")) {
+        results.push_back(SendTarget{type + ":Mv6", IPV6_MULTICAST_ADDRESS, port});
+    }
+    if (!include_target) {
+        auto target = send_targets(type, port, true);
+        results.insert(results.end(), target.begin(), target.end());
+    }
+    return results;
 }
 
 struct TestUDP {
@@ -85,7 +124,7 @@ private:
 
         events.push_back(name + " <- " + data + " (" + local + ")");
 
-        if (data == name) {
+        if (data == (name + ":" + name.substr(0, 3))) {
             emit(std::make_unique<Finished>(name));
         }
     }
@@ -93,39 +132,36 @@ private:
 public:
     TestReactor(std::unique_ptr<NUClear::Environment> environment) : TestBase(std::move(environment), false) {
 
-        // Get the first IPv4 broadcast address we can find
-        std::string broadcast_addr = get_broadcast_addr();
-
         // IPv4 Unicast Known port
         on<UDP>(UNICAST_V4).then([this](const UDP::Packet& packet) {  //
-            handle_data("Uv4 K", packet);
+            handle_data("Uv4K", packet);
         });
 
         // IPv4 Unicast Ephemeral port
         auto uni_v4 = on<UDP>().then([this](const UDP::Packet& packet) {  //
-            handle_data("Uv4 E", packet);
+            handle_data("Uv4E", packet);
         });
         uni_v4_port = std::get<1>(uni_v4);
 
         // IPv6 Unicast Known port
         on<UDP>(UNICAST_V6, "::1").then([this](const UDP::Packet& packet) {  //
-            handle_data("Uv6 K", packet);
+            handle_data("Uv6K", packet);
         });
 
         // IPv6 Unicast Ephemeral port
         auto uni_v6 = on<UDP>(0, "::1").then([this](const UDP::Packet& packet) {  //
-            handle_data("Uv6 E", packet);
+            handle_data("Uv6E", packet);
         });
         uni_v6_port = std::get<1>(uni_v6);
 
         // IPv4 Broadcast Known port
         on<UDP::Broadcast>(BROADCAST_V4).then([this](const UDP::Packet& packet) {  //
-            handle_data("Bv4 K", packet);
+            handle_data("Bv4K", packet);
         });
 
         // IPv4 Broadcast Ephemeral port
         auto broad_v4 = on<UDP::Broadcast>().then([this](const UDP::Packet& packet) {  //
-            handle_data("Bv4 E", packet);
+            handle_data("Bv4E", packet);
         });
         broad_v4_port = std::get<1>(broad_v4);
 
@@ -133,23 +169,23 @@ public:
 
         // IPv4 Multicast Known port
         on<UDP::Multicast>(IPV4_MULTICAST_ADDRESS, MULTICAST_V4).then([this](const UDP::Packet& packet) {  //
-            handle_data("Mv4 K", packet);
+            handle_data("Mv4K", packet);
         });
 
         // IPv4 Multicast Ephemeral port
         auto multi_v4 = on<UDP::Multicast>(IPV4_MULTICAST_ADDRESS).then([this](const UDP::Packet& packet) {  //
-            handle_data("Mv4 E", packet);
+            handle_data("Mv4E", packet);
         });
         multi_v4_port = std::get<1>(multi_v4);
 
         // IPv6 Multicast Known port
         on<UDP::Multicast>(IPV6_MULTICAST_ADDRESS, MULTICAST_V6).then([this](const UDP::Packet& packet) {  //
-            handle_data("Mv6 K", packet);
+            handle_data("Mv6K", packet);
         });
 
         // IPv6 Multicast Ephemeral port
         auto multi_v6 = on<UDP::Multicast>(IPV6_MULTICAST_ADDRESS).then([this](const UDP::Packet& packet) {  //
-            handle_data("Mv6 E", packet);
+            handle_data("Mv6E", packet);
         });
         multi_v6_port = std::get<1>(multi_v6);
 
@@ -160,60 +196,63 @@ public:
         });
 
         on<Trigger<Finished>>().then([=](const Finished& test) {
-            events.push_back("--------------------");
+            auto send_all = [this](std::string type, in_port_t port) {
+                for (const auto& t : send_targets(type, port)) {
+                    events.push_back(" -> " + t.address + ":" + std::to_string(t.port));
+                    emit<Scope::UDP>(std::make_unique<std::string>(t.data), t.address, t.port);
+                }
+            };
 
             if (test.name == "Startup") {
-                // Send some invalid packets and a valid one
-                emit(std::make_unique<TestUDP>("Bv4 I", broadcast_addr, UNICAST_V4));
-                emit(std::make_unique<TestUDP>("Uv6 I", "::1", UNICAST_V4));
-                emit(std::make_unique<TestUDP>("Uv4 K", "127.0.0.1", UNICAST_V4));
+                events.push_back("- Known Unicast V4 Test -");
+                send_all("Uv4K", UNICAST_V4);
             }
-            else if (test.name == "Uv4 K") {
-                // Send some invalid packets and a valid one
-                emit(std::make_unique<TestUDP>("Bv4 I", broadcast_addr, uni_v4_port));
-                emit(std::make_unique<TestUDP>("Uv6 I", "::1", uni_v4_port));
-                emit(std::make_unique<TestUDP>("Uv4 E", "127.0.0.1", uni_v4_port));
+            else if (test.name == "Uv4K") {
+                events.push_back("");
+                events.push_back("- Ephemeral Unicast V4 Test -");
+                send_all("Uv4E", uni_v4_port);
             }
-            else if (test.name == "Uv4 E") {
-                emit(std::make_unique<TestUDP>("Bv4 I", broadcast_addr, UNICAST_V6));
-                emit(std::make_unique<TestUDP>("Uv4 I", "127.0.0.1", UNICAST_V6));
-                emit(std::make_unique<TestUDP>("Uv6 K", "::1", UNICAST_V6));
+            else if (test.name == "Uv4E") {
+                events.push_back("");
+                events.push_back("- Known Unicast V6 Test -");
+                send_all("Uv6K", UNICAST_V6);
             }
-            else if (test.name == "Uv6 K") {
-                emit(std::make_unique<TestUDP>("Bv4 I", broadcast_addr, uni_v6_port));
-                emit(std::make_unique<TestUDP>("Uv4 I", "127.0.0.1", uni_v6_port));
-                emit(std::make_unique<TestUDP>("Uv6 E", "::1", uni_v6_port));
+            else if (test.name == "Uv6K") {
+                events.push_back("");
+                events.push_back("- Ephemeral Unicast V6 Test -");
+                send_all("Uv6E", uni_v6_port);
             }
-            else if (test.name == "Uv6 E") {
-                // Send a unicast and broadcast (only the broadcast should be received)
-                emit(std::make_unique<TestUDP>("Uv4 I", "127.0.0.1", BROADCAST_V4));
-                emit(std::make_unique<TestUDP>("Uv6 E", "::1", BROADCAST_V4));
-                emit(std::make_unique<TestUDP>("Bv4 K", broadcast_addr, BROADCAST_V4));
+            else if (test.name == "Uv6E") {
+                events.push_back("");
+                events.push_back("- Known Broadcast V4 Test -");
+                send_all("Bv4K", BROADCAST_V4);
             }
-            else if (test.name == "Bv4 K") {
-                emit(std::make_unique<TestUDP>("Uv4 I", "127.0.0.1", broad_v4_port));
-                emit(std::make_unique<TestUDP>("Uv6 E", "::1", broad_v4_port));
-                emit(std::make_unique<TestUDP>("Bv4 E", broadcast_addr, broad_v4_port));
+            else if (test.name == "Bv4K") {
+                events.push_back("");
+                events.push_back("- Ephemeral Broadcast V4 Test -");
+                send_all("Bv4E", broad_v4_port);
             }
-            else if (test.name == "Bv4 E") {
-                emit(std::make_unique<TestUDP>("Uv4 I", "127.0.0.1", MULTICAST_V4));
-                emit(std::make_unique<TestUDP>("Bv4 I", broadcast_addr, MULTICAST_V4));
-                emit(std::make_unique<TestUDP>("Mv4 K", IPV4_MULTICAST_ADDRESS, MULTICAST_V4));
+            else if (test.name == "Bv4E") {
+                events.push_back("");
+                events.push_back("- Known Multicast V4 Test -");
+                send_all("Mv4K", MULTICAST_V4);
             }
-            else if (test.name == "Mv4 K") {
-                emit(std::make_unique<TestUDP>("Uv4 I", "127.0.0.1", multi_v4_port));
-                emit(std::make_unique<TestUDP>("Bv4 I", broadcast_addr, multi_v4_port));
-                emit(std::make_unique<TestUDP>("Mv4 E", IPV4_MULTICAST_ADDRESS, multi_v4_port));
+            else if (test.name == "Mv4K") {
+                events.push_back("");
+                events.push_back("- Ephemeral Multicast V4 Test -");
+                send_all("Mv4E", multi_v4_port);
             }
-            else if (test.name == "Mv4 E") {
-                emit(std::make_unique<TestUDP>("Uv6 I", "::1", MULTICAST_V6));
-                emit(std::make_unique<TestUDP>("Mv6 K", IPV6_MULTICAST_ADDRESS, MULTICAST_V6));
+            else if (test.name == "Mv4E") {
+                events.push_back("");
+                events.push_back("- Known Multicast V6 Test -");
+                send_all("Mv6K", MULTICAST_V6);
             }
-            else if (test.name == "Mv6 K") {
-                emit(std::make_unique<TestUDP>("Uv6 I", "::1", multi_v6_port));
-                emit(std::make_unique<TestUDP>("Mv6 E", IPV6_MULTICAST_ADDRESS, multi_v6_port));
+            else if (test.name == "Mv6K") {
+                events.push_back("");
+                events.push_back("- Ephemeral Multicast V6 Test -");
+                send_all("Mv6E", multi_v6_port);
             }
-            else if (test.name == "Mv6 E") {
+            else if (test.name == "Mv6E") {
                 // We are done, so stop the reactor
                 powerplant.shutdown();
             }
@@ -239,57 +278,75 @@ TEST_CASE("Testing sending and receiving of UDP messages", "[api][network][udp]"
     plant.install<TestReactor>();
     plant.start();
 
-    const std::vector<std::string> expected = {
-        "--------------------",
-        " -> 192.168.189.255:" + std::to_string(UNICAST_V4),
-        " -> ::1:" + std::to_string(UNICAST_V4),
-        " -> 127.0.0.1:" + std::to_string(UNICAST_V4),
-        "Uv4 K <- Uv4 K (127.0.0.1:" + std::to_string(UNICAST_V4) + ")",
-        "--------------------",
-        " -> 192.168.189.255:" + std::to_string(uni_v4_port),
-        " -> ::1:" + std::to_string(uni_v4_port),
-        " -> 127.0.0.1:" + std::to_string(uni_v4_port),
-        "Uv4 E <- Uv4 E (127.0.0.1:" + std::to_string(uni_v4_port) + ")",
-        "--------------------",
-        " -> 192.168.189.255:" + std::to_string(UNICAST_V6),
-        " -> 127.0.0.1:" + std::to_string(UNICAST_V6),
-        " -> ::1:" + std::to_string(UNICAST_V6),
-        "Uv6 K <- Uv6 K (::1:" + std::to_string(UNICAST_V6) + ")",
-        "--------------------",
-        " -> 192.168.189.255:" + std::to_string(uni_v6_port),
-        " -> 127.0.0.1:" + std::to_string(uni_v6_port),
-        " -> ::1:" + std::to_string(uni_v6_port),
-        "Uv6 E <- Uv6 E (::1:" + std::to_string(uni_v6_port) + ")",
-        "--------------------",
-        " -> 127.0.0.1:" + std::to_string(BROADCAST_V4),
-        " -> ::1:" + std::to_string(BROADCAST_V4),
-        " -> 192.168.189.255:" + std::to_string(BROADCAST_V4),
-        "Bv4 K <- Bv4 K (192.168.189.255:" + std::to_string(BROADCAST_V4) + ")",
-        "--------------------",
-        " -> 127.0.0.1:" + std::to_string(broad_v4_port),
-        " -> ::1:" + std::to_string(broad_v4_port),
-        " -> 192.168.189.255:" + std::to_string(broad_v4_port),
-        "Bv4 E <- Bv4 E (192.168.189.255:" + std::to_string(broad_v4_port) + ")",
-        "--------------------",
-        " -> 127.0.0.1:" + std::to_string(MULTICAST_V4),
-        " -> 192.168.189.255:" + std::to_string(MULTICAST_V4),
-        " -> 230.12.3.22:" + std::to_string(MULTICAST_V4),
-        "Mv4 K <- Mv4 K (230.12.3.22:" + std::to_string(MULTICAST_V4) + ")",
-        "--------------------",
-        " -> 127.0.0.1:" + std::to_string(multi_v4_port),
-        " -> 192.168.189.255:" + std::to_string(multi_v4_port),
-        " -> 230.12.3.22:" + std::to_string(multi_v4_port),
-        "Mv4 E <- Mv4 E (230.12.3.22:" + std::to_string(multi_v4_port) + ")",
-        "--------------------",
-        " -> ::1:" + std::to_string(MULTICAST_V6),
-        " -> ff02::230:12:3:22:" + std::to_string(MULTICAST_V6),
-        "Mv6 K <- Mv6 K (ff02::230:12:3:22:" + std::to_string(MULTICAST_V6) + ")",
-        "--------------------",
-        " -> ::1:" + std::to_string(multi_v6_port),
-        " -> ff02::230:12:3:22:" + std::to_string(multi_v6_port),
-        "Mv6 E <- Mv6 E (ff02::230:12:3:22:" + std::to_string(multi_v6_port) + ")",
-        "--------------------",
-    };
+    std::vector<std::string> expected;
+    expected.push_back("- Known Unicast V4 Test -");
+    for (const auto& line : send_targets("Uv4K", UNICAST_V4)) {
+        expected.push_back(" -> " + line.address + ":" + std::to_string(line.port));
+    }
+    expected.push_back("Uv4K <- Uv4K:Uv4 (127.0.0.1:" + std::to_string(UNICAST_V4) + ")");
+    expected.push_back("");
+
+    expected.push_back("- Ephemeral Unicast V4 Test -");
+    for (const auto& line : send_targets("Uv4E", uni_v4_port)) {
+        expected.push_back(" -> " + line.address + ":" + std::to_string(line.port));
+    }
+    expected.push_back("Uv4E <- Uv4E:Uv4 (127.0.0.1:" + std::to_string(uni_v4_port) + ")");
+    expected.push_back("");
+
+    expected.push_back("- Known Unicast V6 Test -");
+    for (const auto& line : send_targets("Uv6K", UNICAST_V6)) {
+        expected.push_back(" -> " + line.address + ":" + std::to_string(line.port));
+    }
+    expected.push_back("Uv6K <- Uv6K:Uv6 (::1:" + std::to_string(UNICAST_V6) + ")");
+    expected.push_back("");
+
+    expected.push_back("- Ephemeral Unicast V6 Test -");
+    for (const auto& line : send_targets("Uv6E", uni_v6_port)) {
+        expected.push_back(" -> " + line.address + ":" + std::to_string(line.port));
+    }
+    expected.push_back("Uv6E <- Uv6E:Uv6 (::1:" + std::to_string(uni_v6_port) + ")");
+    expected.push_back("");
+
+    expected.push_back("- Known Broadcast V4 Test -");
+    for (const auto& line : send_targets("Bv4K", BROADCAST_V4)) {
+        expected.push_back(" -> " + line.address + ":" + std::to_string(line.port));
+    }
+    expected.push_back("Bv4K <- Bv4K:Bv4 (" + get_broadcast_addr() + ":" + std::to_string(BROADCAST_V4) + ")");
+    expected.push_back("");
+
+    expected.push_back("- Ephemeral Broadcast V4 Test -");
+    for (const auto& line : send_targets("Bv4E", broad_v4_port)) {
+        expected.push_back(" -> " + line.address + ":" + std::to_string(line.port));
+    }
+    expected.push_back("Bv4E <- Bv4E:Bv4 (" + get_broadcast_addr() + ":" + std::to_string(broad_v4_port) + ")");
+    expected.push_back("");
+
+    expected.push_back("- Known Multicast V4 Test -");
+    for (const auto& line : send_targets("Mv4K", MULTICAST_V4)) {
+        expected.push_back(" -> " + line.address + ":" + std::to_string(line.port));
+    }
+    expected.push_back("Mv4K <- Mv4K:Mv4 (" + IPV4_MULTICAST_ADDRESS + ":" + std::to_string(MULTICAST_V4) + ")");
+    expected.push_back("");
+
+    expected.push_back("- Ephemeral Multicast V4 Test -");
+    for (const auto& line : send_targets("Mv4E", multi_v4_port)) {
+        expected.push_back(" -> " + line.address + ":" + std::to_string(line.port));
+    }
+    expected.push_back("Mv4E <- Mv4E:Mv4 (" + IPV4_MULTICAST_ADDRESS + ":" + std::to_string(multi_v4_port) + ")");
+    expected.push_back("");
+
+    expected.push_back("- Known Multicast V6 Test -");
+    for (const auto& line : send_targets("Mv6K", MULTICAST_V6)) {
+        expected.push_back(" -> " + line.address + ":" + std::to_string(line.port));
+    }
+    expected.push_back("Mv6K <- Mv6K:Mv6 (" + IPV6_MULTICAST_ADDRESS + ":" + std::to_string(MULTICAST_V6) + ")");
+    expected.push_back("");
+
+    expected.push_back("- Ephemeral Multicast V6 Test -");
+    for (const auto& line : send_targets("Mv6E", multi_v6_port)) {
+        expected.push_back(" -> " + line.address + ":" + std::to_string(line.port));
+    }
+    expected.push_back("Mv6E <- Mv6E:Mv6 (" + IPV6_MULTICAST_ADDRESS + ":" + std::to_string(multi_v6_port) + ")");
 
     // Make an info print the diff in an easy to read way if we fail
     INFO(test_util::diff_string(expected, events));

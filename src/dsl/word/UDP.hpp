@@ -45,28 +45,50 @@ namespace dsl {
          *  request for a UDP based reaction can use a runtime argument to reference a specific port.  Note that the
          *  port reference can be changed during the systems execution phase.
          *
+         * @code on<UDP>(port, bind_address) @endcode
+         *  The `bind_address` parameter can be used to specify which interface to bind on. If `bind_address` is an
+         * empty string, the system will bind to any available interface.
+         *
          *  @code on<UDP>() @endcode
          *  Should the port reference be omitted, then the system will bind to a currently unassigned port.
-         *
-         *  @code on<UDP, UDP>(port, port)  @endcode
-         *  A reaction can also be triggered via activity on more than one port.
          *
          *  @code on<UDP:Broadcast>(port)
          *  on<UDP:Multicast>(multicast_address, port) @endcode
          *  If needed, this trigger can also listen for UDP activity such as broadcast and multicast.
          *
-         *  These requests currently support IPv4 addressing.
+         *  These requests support both IPv4 and IPv6 addressing.
          *
          * @par Implements
          *  Bind
          */
         struct UDP : public IO {
         private:
-            struct Target {
-                std::string bind_address{};
-                in_port_t port = 0;
-                std::string target_address{};
+            /**
+             * @brief This structure is used to configure the UDP connection
+             */
+            struct ConnectOptions {
+                /// @brief The type of connection we are making
                 enum Type { UNICAST, BROADCAST, MULTICAST } type{};
+                /// @brief The address we are binding to or empty for any
+                std::string bind_address{};
+                /// @brief The port we are binding to or 0 for any
+                in_port_t port = 0;
+                /// @brief The multicast address we are listening on or empty for any
+                std::string target_address{};
+            };
+
+            /**
+             * @brief This structure is used to return the result of a recvmsg call
+             */
+            struct RecvResult {
+                /// @brief If the packet is valid
+                bool valid{false};
+                /// @brief The data that was received
+                std::vector<char> payload{};
+                /// @brief The local address that the packet was received on
+                util::network::sock_t local{};
+                /// @brief The remote address that the packet was received from
+                util::network::sock_t remote{};
             };
 
         public:
@@ -80,9 +102,9 @@ namespace dsl {
                     Target() = default;
                     Target(std::string address, const uint16_t& port) : address(std::move(address)), port(port) {}
 
-                    /// The address of the target
+                    /// @brief The address of the target
                     std::string address{};
-                    /// The port of the target
+                    /// @brief The port of the target
                     uint16_t port{0};
                 };
 
@@ -113,42 +135,44 @@ namespace dsl {
 
             template <typename DSL>
             static inline std::tuple<in_port_t, fd_t> connect(const std::shared_ptr<threading::Reaction>& reaction,
-                                                              const Target& target) {
+                                                              const ConnectOptions& options) {
 
                 // Resolve the addresses
                 util::network::sock_t bind_address{};
                 util::network::sock_t multicast_target{};
-                if (target.type == Target::MULTICAST) {
-                    multicast_target = util::network::resolve(target.target_address, target.port);
-                    if (target.bind_address.empty()) {
+                if (options.type == ConnectOptions::MULTICAST) {
+                    multicast_target = util::network::resolve(options.target_address, options.port);
+
+                    // If there is no bind address, make sure we bind to an address of the same family
+                    if (options.bind_address.empty()) {
                         bind_address = multicast_target;
                         switch (bind_address.sock.sa_family) {
                             case AF_INET: {
-                                bind_address.ipv4.sin_port        = htons(target.port);
+                                bind_address.ipv4.sin_port        = htons(options.port);
                                 bind_address.ipv4.sin_addr.s_addr = htonl(INADDR_ANY);
                             } break;
                             case AF_INET6: {
-                                bind_address.ipv6.sin6_port = htons(target.port);
+                                bind_address.ipv6.sin6_port = htons(options.port);
                                 bind_address.ipv6.sin6_addr = in6addr_any;
                             } break;
                             default: throw std::runtime_error("Unknown socket family");
                         }
                     }
                     else {
-                        bind_address = util::network::resolve(target.bind_address, target.port);
+                        bind_address = util::network::resolve(options.bind_address, options.port);
                         if (multicast_target.sock.sa_family != bind_address.sock.sa_family) {
                             throw std::runtime_error("Multicast address family does not match bind address family");
                         }
                     }
                 }
                 else {
-                    if (target.bind_address.empty()) {
+                    if (options.bind_address.empty()) {
                         bind_address.ipv4.sin_family      = AF_INET;
-                        bind_address.ipv4.sin_port        = htons(target.port);
+                        bind_address.ipv4.sin_port        = htons(options.port);
                         bind_address.ipv4.sin_addr.s_addr = htonl(INADDR_ANY);
                     }
                     else {
-                        bind_address = util::network::resolve(target.bind_address, target.port);
+                        bind_address = util::network::resolve(options.bind_address, options.port);
                     }
                 }
 
@@ -175,14 +199,14 @@ namespace dsl {
                                      reinterpret_cast<const char*>(&yes),
                                      sizeof(yes))
                         < 0) {
-                    throw std::system_error(network_errno,
-                                            std::system_category(),
-                                            "We were unable to flag the socket as getting ancillary data");
-                }
+                        throw std::system_error(network_errno,
+                                                std::system_category(),
+                                                "We were unable to flag the socket as getting ancillary data");
+                    }
                 }
 
                 // Broadcast and multicast reuse address and port
-                if (target.type == Target::BROADCAST || target.type == Target::MULTICAST) {
+                if (options.type == ConnectOptions::BROADCAST || options.type == ConnectOptions::MULTICAST) {
 
                     if (::setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, reinterpret_cast<char*>(&yes), sizeof(yes)) < 0) {
                         throw std::system_error(network_errno,
@@ -213,7 +237,7 @@ namespace dsl {
                 }
 
                 // If we have a multicast address, then we need to join the multicast groups
-                if (target.type == Target::MULTICAST) {
+                if (options.type == ConnectOptions::MULTICAST) {
 
                     // Our multicast join request will depend on protocol version
                     if (multicast_target.sock.sa_family == AF_INET) {
@@ -309,37 +333,25 @@ namespace dsl {
             }
 
             template <typename DSL>
-            static inline std::tuple<in_port_t, fd_t> bind(const std::shared_ptr<threading::Reaction>& reaction,
-                                                           in_port_t port           = 0,
-                                                           std::string bind_address = "") {
-                Target t;
-                t.type         = Target::UNICAST;
-                t.bind_address = std::move(bind_address);
-                t.port         = port;
-                return connect<DSL>(reaction, t);
-            }
-
-            template <typename DSL>
-            static inline Packet get(threading::Reaction& reaction) {
+            static inline RecvResult read(threading::Reaction& reaction) {
 
                 // Get our file descriptor from the magic cache
                 auto event = IO::get<DSL>(reaction);
 
                 // If our get is being run without an fd (something else triggered) then short circuit
                 if (!event) {
-                    return Packet{};
+                    return {};
                 }
 
                 // Allocate max size for a UDP packet
-                Packet p{};
-                p.payload.resize(65535);
+                std::vector<char> buffer(65535, 0);
 
                 // Make some variables to hold our message header information
                 std::array<char, 0x100> cmbuff = {0};
                 util::network::sock_t remote{};
                 iovec payload{};
-                payload.iov_base = p.payload.data();
-                payload.iov_len  = static_cast<decltype(payload.iov_len)>(p.payload.size());
+                payload.iov_base = buffer.data();
+                payload.iov_len  = static_cast<decltype(payload.iov_len)>(buffer.size());
 
                 // Make our message header to receive with
                 msghdr mh{};
@@ -352,6 +364,12 @@ namespace dsl {
 
                 // Receive our message
                 ssize_t received = recvmsg(event.fd, &mh, 0);
+                if (received < 0) {
+                    return {};
+                }
+
+                buffer.resize(received);
+                buffer.shrink_to_fit();
 
                 // Load the socket we are listening on
                 util::network::sock_t local{};
@@ -388,35 +406,93 @@ namespace dsl {
                     }
                 }
 
+                return RecvResult{true, buffer, local, remote};
+            }
 
-                // if no error
-                if (received > 0) {
-                    p.valid                                   = true;
-                    std::tie(p.local.address, p.local.port)   = local.address();
-                    std::tie(p.remote.address, p.remote.port) = remote.address();
-                    p.payload.resize(size_t(received));
-                    p.payload.shrink_to_fit();
+            template <typename DSL>
+            static inline std::tuple<in_port_t, fd_t> bind(const std::shared_ptr<threading::Reaction>& reaction,
+                                                           const in_port_t& port           = 0,
+                                                           const std::string& bind_address = "") {
+                return connect<DSL>(reaction, ConnectOptions{ConnectOptions::UNICAST, bind_address, port, ""});
+            }
+
+            template <typename DSL>
+            static inline Packet get(threading::Reaction& reaction) {
+                RecvResult result = read<DSL>(reaction);
+
+                Packet p{};
+                p.valid       = result.valid;
+                p.payload     = std::move(result.payload);
+                auto local_s  = result.local.address();
+                auto remote_s = result.remote.address();
+                p.local       = Packet::Target{local_s.first, local_s.second};
+                p.remote      = Packet::Target{remote_s.first, remote_s.second};
+
+                // Confirm that this packet was sent to one of our broadcast addresses
+                for (const auto& iface : util::network::get_interfaces()) {
+                    if (iface.ip.sock.sa_family == result.local.sock.sa_family) {
+                        // If the two are equal
+                        if (iface.ip.sock.sa_family == AF_INET) {
+                            if (iface.ip.ipv4.sin_addr.s_addr == result.local.ipv4.sin_addr.s_addr) {
+                                return p;
+                            }
+                        }
+                        else if (iface.ip.sock.sa_family == AF_INET6) {
+                            if (std::memcmp(&iface.ip.ipv6.sin6_addr,
+                                            &result.local.ipv6.sin6_addr,
+                                            sizeof(result.local.ipv6.sin6_addr))
+                                == 0) {
+                                return p;
+                            }
+                        }
+                    }
                 }
 
-                return p;
+                return {};
             }
 
             struct Broadcast : public IO {
 
                 template <typename DSL>
                 static inline std::tuple<in_port_t, fd_t> bind(const std::shared_ptr<threading::Reaction>& reaction,
-                                                               in_port_t port           = 0,
-                                                               std::string bind_address = "") {
-                    Target t;
-                    t.type         = Target::BROADCAST;
-                    t.bind_address = std::move(bind_address);
-                    t.port         = port;
-                    return UDP::connect<DSL>(reaction, t);
+                                                               const in_port_t& port           = 0,
+                                                               const std::string& bind_address = "") {
+                    return UDP::connect<DSL>(reaction,
+                                             ConnectOptions{ConnectOptions::BROADCAST, bind_address, port, ""});
                 }
 
                 template <typename DSL>
                 static inline Packet get(threading::Reaction& reaction) {
-                    return UDP::get<DSL>(reaction);
+                    RecvResult result = read<DSL>(reaction);
+
+                    // Broadcast is only IPv4
+                    if (result.local.sock.sa_family == AF_INET) {
+
+                        Packet p{};
+                        p.valid       = result.valid;
+                        p.payload     = std::move(result.payload);
+                        auto local_s  = result.local.address();
+                        auto remote_s = result.remote.address();
+                        p.local       = Packet::Target{local_s.first, local_s.second};
+                        p.remote      = Packet::Target{remote_s.first, remote_s.second};
+
+                        // 255.255.255.255 is always a valid broadcast address
+                        if (result.local.ipv4.sin_addr.s_addr == htonl(INADDR_BROADCAST)) {
+                            return p;
+                        }
+
+                        // Confirm that this packet was sent to one of our broadcast addresses
+                        for (const auto& iface : util::network::get_interfaces()) {
+                            if (iface.broadcast.sock.sa_family == AF_INET) {
+                                if (iface.flags.broadcast
+                                    && iface.broadcast.ipv4.sin_addr.s_addr == result.local.ipv4.sin_addr.s_addr) {
+                                    return p;
+                                }
+                            }
+                        }
+                    }
+
+                    return {};
                 }
             };
 
@@ -425,19 +501,35 @@ namespace dsl {
                 template <typename DSL>
                 static inline std::tuple<in_port_t, fd_t> bind(const std::shared_ptr<threading::Reaction>& reaction,
                                                                const std::string& multicast_group,
-                                                               in_port_t port                  = 0,
+                                                               const in_port_t& port           = 0,
                                                                const std::string& bind_address = "") {
-                    Target t;
-                    t.type           = Target::MULTICAST;
-                    t.bind_address   = bind_address;
-                    t.target_address = multicast_group;
-                    t.port           = port;
-                    return UDP::connect<DSL>(reaction, t);
+                    return UDP::connect<DSL>(
+                        reaction,
+                        ConnectOptions{ConnectOptions::MULTICAST, bind_address, port, multicast_group});
                 }
 
                 template <typename DSL>
                 static inline Packet get(threading::Reaction& reaction) {
-                    return UDP::get<DSL>(reaction);
+                    RecvResult result = read<DSL>(reaction);
+
+                    const auto& a = result.local;
+                    const bool multicast =
+                        (a.sock.sa_family == AF_INET && (ntohl(a.ipv4.sin_addr.s_addr) & 0xF0000000) == 0xE0000000)
+                        || (a.sock.sa_family == AF_INET6 && a.ipv6.sin6_addr.s6_addr[0] == 0xFF);
+
+                    // Only return multicast packets
+                    if (multicast) {
+                        Packet p{};
+                        p.valid       = result.valid;
+                        p.payload     = std::move(result.payload);
+                        auto local_s  = result.local.address();
+                        auto remote_s = result.remote.address();
+                        p.local       = Packet::Target{local_s.first, local_s.second};
+                        p.remote      = Packet::Target{remote_s.first, remote_s.second};
+                        return p;
+                    }
+
+                    return {};
                 }
             };
         };
