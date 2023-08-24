@@ -19,6 +19,8 @@
 #ifndef NUCLEAR_MESSAGE_NETWORKCONFIGURATION_HPP
 #define NUCLEAR_MESSAGE_NETWORKCONFIGURATION_HPP
 
+#include <string>
+
 namespace NUClear {
 namespace message {
 
@@ -26,12 +28,26 @@ namespace message {
 
         NetworkConfiguration() = default;
 
-        NetworkConfiguration(std::string name, std::string address, uint16_t port, uint16_t mtu = 1500)
-            : name(std::move(name)), announce_address(std::move(address)), announce_port(port), mtu(mtu) {}
+        NetworkConfiguration(std::string name,
+                             std::string address,
+                             uint16_t port,
+                             std::string bind_address = "",
+                             uint16_t mtu             = 1500)
+            : name(std::move(name))
+            , announce_address(std::move(address))
+            , announce_port(port)
+            , bind_address(std::move(bind_address))
+            , mtu(mtu) {}
 
+        /// @brief The name of this node when connecting to the NUClear network
         std::string name{};
+        /// @brief The address to announce to the NUClear network
         std::string announce_address{};
+        /// @brief The port to announce to the NUClear network
         uint16_t announce_port{0};
+        /// @brief The address of the interface to bind to when connecting to the NUClear network
+        std::string bind_address{};
+        /// @brief The maximum transmission unit for this node
         uint16_t mtu{1500};
     };
 
