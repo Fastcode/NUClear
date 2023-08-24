@@ -183,8 +183,8 @@ namespace dsl {
                 socklen_t local_size = sizeof(util::network::sock_t);
                 ::getsockname(fd, &local.sock, &local_size);
 
-                if (fd == INVALID_SOCKET) {
-                    return Connection{{0, 0}, {0, 0}, 0};
+                if (!fd.valid()) {
+                    return Connection{};
                 }
 
                 auto local_s  = local.address();
