@@ -34,16 +34,15 @@ enum TestPorts {
     MULTICAST_V6 = 40004,
 };
 
+const std::string IPV4_MULTICAST_ADDRESS = "230.12.3.22";        // NOLINT(cert-err58-cpp)
+const std::string IPV6_MULTICAST_ADDRESS = "ff02::230:12:3:22";  // NOLINT(cert-err58-cpp)
+
 // Ephemeral ports that we will use
 in_port_t uni_v4_port   = 0;
 in_port_t uni_v6_port   = 0;
 in_port_t broad_v4_port = 0;
 in_port_t multi_v4_port = 0;
 in_port_t multi_v6_port = 0;
-
-constexpr in_port_t BASE_PORT            = 40000;
-const std::string IPV4_MULTICAST_ADDRESS = "230.12.3.22";        // NOLINT(cert-err58-cpp)
-const std::string IPV6_MULTICAST_ADDRESS = "ff02::230:12:3:22";  // NOLINT(cert-err58-cpp)
 
 inline std::string get_broadcast_addr() {
     static std::string addr = "";

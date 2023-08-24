@@ -99,6 +99,10 @@
 /*******************************************
  *           SHIM FOR NETWORKING           *
  *******************************************/
+#if defined(__APPLE__) && defined(__MACH__)
+    // On OSX the IPV6_RECVPKTINFO and IPV6_PKTINFO must be enabled using this define
+    #define __APPLE_USE_RFC_3542
+#endif
 #ifdef _WIN32
 
     #include <cstdint>

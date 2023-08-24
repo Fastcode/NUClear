@@ -104,7 +104,7 @@ namespace dsl {
                     // If we are using multicast and we have a specific from_addr we need to tell the system to use the
                     // correct interface
                     if (multicast && !from_addr.empty()) {
-                        if (local.sock.sa_family = AF_INET) {
+                        if (local.sock.sa_family == AF_INET) {
                             // Set our transmission interface for the multicast socket
                             if (::setsockopt(fd,
                                              IPPROTO_IP,
@@ -117,14 +117,14 @@ namespace dsl {
                                                         "We were unable to use the requested interface for multicast");
                             }
                         }
-                        else if (local.sock.sa_family = AF_INET6) {
+                        else if (local.sock.sa_family == AF_INET6) {
                             // Set our transmission interface for the multicast socket
                             auto if_number = util::network::if_number_from_address(local.ipv6);
                             if (::setsockopt(fd,
                                              IPPROTO_IPV6,
                                              IPV6_MULTICAST_IF,
-                                             reinterpret_cast<const char*>(&local.ipv6.sin6_addr),
-                                             sizeof(local.ipv6.sin6_addr))
+                                             reinterpret_cast<const char*>(&if_number),
+                                             sizeof(if_number))
                                 < 0) {
                                 throw std::system_error(network_errno,
                                                         std::system_category(),

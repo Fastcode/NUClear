@@ -23,10 +23,12 @@ TEST_CASE("resolve function returns expected socket address", "[util][network][r
 
         REQUIRE(result.sock.sa_family == AF_INET6);
         REQUIRE(ntohs(result.ipv6.sin6_port) == port);
-        REQUIRE(ntohl(result.ipv6.sin6_addr.s6_addr32[0]) == 0);
-        REQUIRE(ntohl(result.ipv6.sin6_addr.s6_addr32[1]) == 0);
-        REQUIRE(ntohl(result.ipv6.sin6_addr.s6_addr32[2]) == 0);
-        REQUIRE(ntohl(result.ipv6.sin6_addr.s6_addr32[3]) == 1);
+        // Check each byte of the address except the last one is 0
+        for (int i = 0; i < 15; i++) {
+            REQUIRE(result.ipv6.sin6_addr.s6_addr[i] == 0);
+        }
+        // Last byte should be 1
+        REQUIRE(result.ipv6.sin6_addr.s6_addr[15] == 1);
     }
 
     SECTION("Hostname") {
@@ -45,10 +47,12 @@ TEST_CASE("resolve function returns expected socket address", "[util][network][r
         }
         else {
             REQUIRE(ntohs(result.ipv6.sin6_port) == port);
-            REQUIRE(ntohl(result.ipv6.sin6_addr.s6_addr32[0]) == 0);
-            REQUIRE(ntohl(result.ipv6.sin6_addr.s6_addr32[1]) == 0);
-            REQUIRE(ntohl(result.ipv6.sin6_addr.s6_addr32[2]) == 0);
-            REQUIRE(ntohl(result.ipv6.sin6_addr.s6_addr32[3]) == 1);
+            // Check each byte of the address except the last one is 0
+            for (int i = 0; i < 15; i++) {
+                REQUIRE(result.ipv6.sin6_addr.s6_addr[i] == 0);
+            }
+            // Last byte should be 1
+            REQUIRE(result.ipv6.sin6_addr.s6_addr[15] == 1);
         }
     }
 
@@ -71,10 +75,22 @@ TEST_CASE("resolve function returns expected socket address", "[util][network][r
 
         REQUIRE(result.sock.sa_family == AF_INET6);
         REQUIRE(ntohs(result.ipv6.sin6_port) == port);
-        REQUIRE(ntohl(result.ipv6.sin6_addr.s6_addr32[0]) == 0x20010db8);
-        REQUIRE(ntohl(result.ipv6.sin6_addr.s6_addr32[1]) == 0xac10fe01);
-        REQUIRE(ntohl(result.ipv6.sin6_addr.s6_addr32[2]) == 0);
-        REQUIRE(ntohl(result.ipv6.sin6_addr.s6_addr32[3]) == 0);
+        REQUIRE(result.ipv6.sin6_addr.s6_addr[0] == 0x20);
+        REQUIRE(result.ipv6.sin6_addr.s6_addr[1] == 0x01);
+        REQUIRE(result.ipv6.sin6_addr.s6_addr[2] == 0x0d);
+        REQUIRE(result.ipv6.sin6_addr.s6_addr[3] == 0xb8);
+        REQUIRE(result.ipv6.sin6_addr.s6_addr[4] == 0xac);
+        REQUIRE(result.ipv6.sin6_addr.s6_addr[5] == 0x10);
+        REQUIRE(result.ipv6.sin6_addr.s6_addr[6] == 0xfe);
+        REQUIRE(result.ipv6.sin6_addr.s6_addr[7] == 0x01);
+        REQUIRE(result.ipv6.sin6_addr.s6_addr[8] == 0x00);
+        REQUIRE(result.ipv6.sin6_addr.s6_addr[9] == 0x00);
+        REQUIRE(result.ipv6.sin6_addr.s6_addr[10] == 0x00);
+        REQUIRE(result.ipv6.sin6_addr.s6_addr[11] == 0x00);
+        REQUIRE(result.ipv6.sin6_addr.s6_addr[12] == 0x00);
+        REQUIRE(result.ipv6.sin6_addr.s6_addr[13] == 0x00);
+        REQUIRE(result.ipv6.sin6_addr.s6_addr[14] == 0x00);
+        REQUIRE(result.ipv6.sin6_addr.s6_addr[15] == 0x00);
     }
 
     SECTION("Hostname with valid IPv4 address") {
@@ -97,10 +113,10 @@ TEST_CASE("resolve function returns expected socket address", "[util][network][r
         REQUIRE(result.sock.sa_family == AF_INET6);
         REQUIRE(ntohs(result.ipv6.sin6_port) == port);
 
-        // Check if all compoments are zero
+        // Check if all components are zero
         bool nonzero = false;
-        for (int i = 0; i < 4; i++) {
-            nonzero |= (ntohl(result.ipv6.sin6_addr.s6_addr32[i]) != 0);
+        for (int i = 0; i < 15; i++) {
+            nonzero |= result.ipv6.sin6_addr.s6_addr[i] != 0;
         }
 
         REQUIRE(nonzero);
