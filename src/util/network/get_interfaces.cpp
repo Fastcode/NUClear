@@ -145,10 +145,6 @@ namespace util {
 
             std::vector<Interface> ifaces;
 
-            addrinfo hints{};
-            std::memset(&hints, 0, sizeof(hints));
-            hints.ai_family = AF_INET;
-
             // Query our interfaces
             ifaddrs* addrs{};
             if (::getifaddrs(&addrs) < 0) {
