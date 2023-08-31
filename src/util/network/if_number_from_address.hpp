@@ -35,7 +35,7 @@ namespace util {
          *
          * @return int the index of the interface that the address is on or 0 if the ipv6 address is the any address
          */
-        int if_number_from_address(const sockaddr_in6& ipv6);
+        unsigned int if_number_from_address(const sockaddr_in6& ipv6);
 
     }  // namespace network
 }  // namespace util
