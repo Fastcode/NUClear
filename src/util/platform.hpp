@@ -83,6 +83,11 @@
     #define SHUT_WR   SD_RECEIVE
     #define SHUT_RDWR SD_BOTH
 
+    // Windows always wanting to be different
+    #ifndef IPV6_RECVPKTINFO
+        #define IPV6_RECVPKTINFO IPV6_PKTINFO
+    #endif
+
 #endif  // _WIN32
 
 /*******************************************
@@ -125,7 +130,6 @@ namespace NUClear {
 using fd_t = SOCKET;
 
 using socklen_t = int;
-
 
     // Network errors come from WSAGetLastError()
     #define network_errno WSAGetLastError()
