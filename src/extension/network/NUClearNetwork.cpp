@@ -52,11 +52,9 @@ namespace extension {
 
             // Who we are receiving from
             util::network::sock_t from{};
-            std::memset(&from, 0, sizeof(from));
 
             // Setup our message header to receive
             msghdr mh{};
-            std::memset(&mh, 0, sizeof(msghdr));
             mh.msg_name    = &from.sock;
             mh.msg_namelen = sizeof(from);
             mh.msg_iov     = &iov;
@@ -998,7 +996,6 @@ namespace extension {
 
             // Our packet we are sending
             msghdr message{};
-            std::memset(&message, 0, sizeof(msghdr));
 
             iovec data[2];  // NOLINT(cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays)
             message.msg_iov    = static_cast<iovec*>(data);
