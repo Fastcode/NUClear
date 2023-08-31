@@ -123,7 +123,7 @@ TEST_CASE("resolve function returns expected socket address", "[util][network][r
     }
 
     SECTION("Invalid address") {
-        std::string address = "notahost";
+        std::string address = "this.url.is.invalid";
         uint16_t port       = 12345;
 
         // Check that the function throws a std::runtime_error with the appropriate message

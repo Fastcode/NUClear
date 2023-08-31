@@ -329,7 +329,6 @@ namespace dsl {
 
                 // Return our handles and our bound port
                 return std::make_tuple(port, cfd);
-                return std::make_tuple(in_port_t(0), fd_t(0));
             }
 
             template <typename DSL>

@@ -33,6 +33,7 @@ namespace util {
             addrinfo hints{};
             hints.ai_family   = AF_UNSPEC;  // don't care about IPv4 or IPv6
             hints.ai_socktype = AF_UNSPEC;  // don't care about TCP or UDP
+            hints.ai_flags    = AI_ALL;     // Get all addresses even if we don't have an interface for them
 
             // Get our info on this address
             addrinfo* servinfo_ptr = nullptr;
@@ -50,9 +51,8 @@ namespace util {
 
             std::unique_ptr<addrinfo, void (*)(addrinfo*)> servinfo(servinfo_ptr, ::freeaddrinfo);
 
-            // Clear our struct
+            // Empty sock_t struct
             NUClear::util::network::sock_t target{};
-            std::memset(&target, 0, sizeof(target));
 
             // The list is actually a linked list of valid addresses
             // The address we choose is in the following priority, IPv4, IPv6, Other

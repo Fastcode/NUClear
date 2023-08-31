@@ -62,8 +62,7 @@ namespace util {
 
                     for (auto uaddr = addr->FirstUnicastAddress; uaddr != nullptr; uaddr = uaddr->Next) {
 
-                        Interface iface;
-                        std::memset(&iface, 0, sizeof(iface));
+                        Interface iface{};
 
                         iface.name = addr->AdapterName;
 
@@ -159,53 +158,39 @@ namespace util {
             }
 
             // Loop through our interfaces
-            for (ifaddrs* cursor = addrs; cursor != nullptr; cursor = cursor->ifa_next) {
+            for (ifaddrs* it = addrs; it != nullptr; it = it->ifa_next) {
 
                 // Sometimes we find an interface with no IP (like a CAN bus) this is not what we're after
-                if (cursor->ifa_addr != nullptr) {
+                if (it->ifa_addr != nullptr) {
 
-                    Interface iface;
-                    iface.name = cursor->ifa_name;
+                    Interface iface{};
+                    iface.name = it->ifa_name;
 
                     // Copy across our various addresses
-                    switch (cursor->ifa_addr->sa_family) {
-                        case AF_INET: std::memcpy(&iface.ip, cursor->ifa_addr, sizeof(sockaddr_in)); break;
-
-                        case AF_INET6: std::memcpy(&iface.ip, cursor->ifa_addr, sizeof(sockaddr_in6)); break;
+                    switch (it->ifa_addr->sa_family) {
+                        case AF_INET: std::memcpy(&iface.ip, it->ifa_addr, sizeof(sockaddr_in)); break;
+                        case AF_INET6: std::memcpy(&iface.ip, it->ifa_addr, sizeof(sockaddr_in6)); break;
+                        default: continue;
                     }
 
-                    if (cursor->ifa_netmask != nullptr) {
-                        switch (cursor->ifa_addr->sa_family) {
-                            case AF_INET: std::memcpy(&iface.netmask, cursor->ifa_netmask, sizeof(sockaddr_in)); break;
-
-                            case AF_INET6:
-                                std::memcpy(&iface.netmask, cursor->ifa_netmask, sizeof(sockaddr_in6));
-                                break;
+                    if (it->ifa_netmask != nullptr) {
+                        switch (it->ifa_addr->sa_family) {
+                            case AF_INET: std::memcpy(&iface.netmask, it->ifa_netmask, sizeof(sockaddr_in)); break;
+                            case AF_INET6: std::memcpy(&iface.netmask, it->ifa_netmask, sizeof(sockaddr_in6)); break;
                         }
                     }
-                    else {
-                        std::memset(&iface.netmask, 0, sizeof(iface.netmask));
-                    }
 
-                    if (cursor->ifa_dstaddr != nullptr) {
-                        switch (cursor->ifa_addr->sa_family) {
-                            case AF_INET:
-                                std::memcpy(&iface.broadcast, cursor->ifa_dstaddr, sizeof(sockaddr_in));
-                                break;
-
-                            case AF_INET6:
-                                std::memcpy(&iface.broadcast, cursor->ifa_dstaddr, sizeof(sockaddr_in6));
-                                break;
+                    if (it->ifa_dstaddr != nullptr) {
+                        switch (it->ifa_addr->sa_family) {
+                            case AF_INET: std::memcpy(&iface.broadcast, it->ifa_dstaddr, sizeof(sockaddr_in)); break;
+                            case AF_INET6: std::memcpy(&iface.broadcast, it->ifa_dstaddr, sizeof(sockaddr_in6)); break;
                         }
                     }
-                    else {
-                        std::memset(&iface.broadcast, 0, sizeof(iface.broadcast));
-                    }
 
-                    iface.flags.broadcast    = (cursor->ifa_flags & IFF_BROADCAST) != 0;
-                    iface.flags.loopback     = (cursor->ifa_flags & IFF_LOOPBACK) != 0;
-                    iface.flags.pointtopoint = (cursor->ifa_flags & IFF_POINTOPOINT) != 0;
-                    iface.flags.multicast    = (cursor->ifa_flags & IFF_MULTICAST) != 0;
+                    iface.flags.broadcast    = (it->ifa_flags & IFF_BROADCAST) != 0;
+                    iface.flags.loopback     = (it->ifa_flags & IFF_LOOPBACK) != 0;
+                    iface.flags.pointtopoint = (it->ifa_flags & IFF_POINTOPOINT) != 0;
+                    iface.flags.multicast    = (it->ifa_flags & IFF_MULTICAST) != 0;
 
                     ifaces.push_back(iface);
                 }
