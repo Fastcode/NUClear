@@ -75,12 +75,12 @@ public:
         });
 
         // Bind to IPv4 an unknown port and get the port number
-        auto v4           = on<TCP>().then([this](const TCP::Connection& connection) {
+        auto v4                  = on<TCP>().then([this](const TCP::Connection& connection) {
             on<IO>(connection.fd, IO::READ | IO::CLOSE).then([this](IO::Event event) {
                 handle_data("v4 Ephemeral", event);
             });
         });
-        in_port_t v4_port = std::get<1>(v4);
+        const in_port_t& v4_port = std::get<1>(v4);
 
         // Bind to IPv6 and a known port
         on<TCP>(KNOWN_V6_PORT, "::").then([this](const TCP::Connection& connection) {
@@ -90,17 +90,17 @@ public:
         });
 
         // Bind to IPv6 an unknown port and get the port number
-        auto v6           = on<TCP>(0, "::").then([this](const TCP::Connection& connection) {
+        auto v6                  = on<TCP>(0, "::").then([this](const TCP::Connection& connection) {
             on<IO>(connection.fd, IO::READ | IO::CLOSE).then([this](IO::Event event) {
                 handle_data("v6 Ephemeral", event);
             });
         });
-        in_port_t v6_port = std::get<1>(v6);
+        const in_port_t& v6_port = std::get<1>(v6);
 
         // Send a test message to the known port
         on<Trigger<TestConnection>, Sync<TestReactor>>().then([](const TestConnection& target) {
             // Resolve the target address
-            NUClear::util::network::sock_t address = NUClear::util::network::resolve(target.address, target.port);
+            const NUClear::util::network::sock_t address = NUClear::util::network::resolve(target.address, target.port);
 
             // Open a random socket
             NUClear::util::FileDescriptor fd(::socket(address.sock.sa_family, SOCK_STREAM, IPPROTO_TCP),
