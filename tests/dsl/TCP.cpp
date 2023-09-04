@@ -38,7 +38,7 @@ enum TestType {
     V6_KNOWN,
     V6_EPHEMERAL,
 };
-std::vector<TestType> active_tests;
+std::vector<TestType> active_tests;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
 in_port_t v4_port = 0;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 in_port_t v6_port = 0;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
