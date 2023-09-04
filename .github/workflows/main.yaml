@@ -42,8 +42,9 @@ jobs:
       # Download and install cmake
       - name: Install CMake
         uses: lukka/get-cmake@latest
-        cmakeVersion: "~3.25.0"
-        ninjaVersion: "^1.11.1"
+        with:
+          cmakeVersion: "~3.25.0"
+          ninjaVersion: "^1.11.1"
 
       - name: Configure CMake
         run: |
@@ -147,8 +148,9 @@ jobs:
       # Download and install cmake
       - name: Install CMake
         uses: lukka/get-cmake@latest
-        cmakeVersion: "~3.25.0"
-        ninjaVersion: "^1.11.1"
+        with:
+          cmakeVersion: "~3.25.0"
+          ninjaVersion: "^1.11.1"
 
       - name: Configure CMake
         run: |
