@@ -43,7 +43,7 @@ jobs:
       - name: Install CMake
         uses: lukka/get-cmake@latest
         with:
-          cmakeVersion: 3.27.4
+          cmakeVersion: 3.27.1
           ninjaVersion: 1.11.1
 
       - name: Configure CMake
@@ -149,7 +149,7 @@ jobs:
       - name: Install CMake
         uses: lukka/get-cmake@latest
         with:
-          cmakeVersion: 3.27.4
+          cmakeVersion: 3.27.1
           ninjaVersion: 1.11.1
 
       - name: Configure CMake
