@@ -20,10 +20,10 @@
 #define TEST_UTIL_TESTBASE_HPP
 
 #include <catch.hpp>
-#include <nuclear>
 #include <string>
 #include <utility>
 
+#include "nuclear"
 #include "test_util/diff_string.hpp"
 
 namespace test_util {
