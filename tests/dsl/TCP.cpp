@@ -20,6 +20,7 @@
 #include <nuclear>
 
 #include "test_util/TestBase.hpp"
+#include "test_util/has_ipv6.hpp"
 
 namespace {
 
@@ -31,6 +32,17 @@ enum TestPorts {
     KNOWN_V6_PORT = 40011,
 };
 
+enum TestType {
+    V4_KNOWN,
+    V4_EPHEMERAL,
+    V6_KNOWN,
+    V6_EPHEMERAL,
+};
+std::vector<TestType> active_tests;
+
+in_port_t v4_port = 0;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+in_port_t v6_port = 0;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+
 struct TestConnection {
     TestConnection(std::string name, std::string address, in_port_t port)
         : name(std::move(name)), address(std::move(address)), port(port) {}
@@ -39,10 +51,7 @@ struct TestConnection {
     in_port_t port;
 };
 
-struct Finished {
-    Finished(std::string name) : name(std::move(name)) {}
-    std::string name;
-};
+struct Finished {};
 
 class TestReactor : public test_util::TestBase<TestReactor, 2000> {
 public:
@@ -61,41 +70,52 @@ public:
 
         if ((event.events & IO::CLOSE) != 0) {
             events.push_back(name + " closed");
-            emit(std::make_unique<Finished>(name));
+            emit(std::make_unique<Finished>());
         }
     }
 
     TestReactor(std::unique_ptr<NUClear::Environment> environment) : TestBase(std::move(environment), false) {
 
         // Bind to IPv4 and a known port
-        on<TCP>(KNOWN_V4_PORT).then([this](const TCP::Connection& connection) {
-            on<IO>(connection.fd, IO::READ | IO::CLOSE).then([this](IO::Event event) {
-                handle_data("v4 Known", event);
-            });
-        });
+        for (const auto& t : active_tests) {
+            switch (t) {
+                case V4_KNOWN: {
+                    on<TCP>(KNOWN_V4_PORT).then([this](const TCP::Connection& connection) {
+                        on<IO>(connection.fd, IO::READ | IO::CLOSE).then([this](IO::Event event) {
+                            handle_data("v4 Known", event);
+                        });
+                    });
+                } break;
+                case V4_EPHEMERAL: {
+                    // Bind to IPv4 an unknown port and get the port number
+                    auto v4 = on<TCP>().then([this](const TCP::Connection& connection) {
+                        on<IO>(connection.fd, IO::READ | IO::CLOSE).then([this](IO::Event event) {
+                            handle_data("v4 Ephemeral", event);
+                        });
+                    });
+                    v4_port = std::get<1>(v4);
+                } break;
 
-        // Bind to IPv4 an unknown port and get the port number
-        auto v4                  = on<TCP>().then([this](const TCP::Connection& connection) {
-            on<IO>(connection.fd, IO::READ | IO::CLOSE).then([this](IO::Event event) {
-                handle_data("v4 Ephemeral", event);
-            });
-        });
-        const in_port_t& v4_port = std::get<1>(v4);
+                    // Bind to IPv6 and a known port
+                case V6_KNOWN: {
+                    on<TCP>(KNOWN_V6_PORT, "::").then([this](const TCP::Connection& connection) {
+                        on<IO>(connection.fd, IO::READ | IO::CLOSE).then([this](IO::Event event) {
+                            handle_data("v6 Known", event);
+                        });
+                    });
+                } break;
 
-        // Bind to IPv6 and a known port
-        on<TCP>(KNOWN_V6_PORT, "::").then([this](const TCP::Connection& connection) {
-            on<IO>(connection.fd, IO::READ | IO::CLOSE).then([this](IO::Event event) {
-                handle_data("v6 Known", event);
-            });
-        });
-
-        // Bind to IPv6 an unknown port and get the port number
-        auto v6                  = on<TCP>(0, "::").then([this](const TCP::Connection& connection) {
-            on<IO>(connection.fd, IO::READ | IO::CLOSE).then([this](IO::Event event) {
-                handle_data("v6 Ephemeral", event);
-            });
-        });
-        const in_port_t& v6_port = std::get<1>(v6);
+                    // Bind to IPv6 an unknown port and get the port number
+                case V6_EPHEMERAL: {
+                    auto v6 = on<TCP>(0, "::").then([this](const TCP::Connection& connection) {
+                        on<IO>(connection.fd, IO::READ | IO::CLOSE).then([this](IO::Event event) {
+                            handle_data("v6 Ephemeral", event);
+                        });
+                    });
+                    v6_port = std::get<1>(v6);
+                } break;
+            }
+        }
 
         // Send a test message to the known port
         on<Trigger<TestConnection>, Sync<TestReactor>>().then([](const TestConnection& target) {
@@ -125,38 +145,52 @@ public:
             events.push_back(target.name + " echoed: " + std::string(buff.data(), recv));
         });
 
-        on<Trigger<Finished>, Sync<TestReactor>>().then([=](const Finished& test) {
-            if (test.name == "Startup") {
-                emit(std::make_unique<TestConnection>("v4 Known", "127.0.0.1", KNOWN_V4_PORT));
+        on<Trigger<Finished>, Sync<TestReactor>>().then([this](const Finished&) {
+            if (test_no < active_tests.size()) {
+                switch (active_tests[test_no++]) {
+                    case V4_KNOWN:
+                        emit(std::make_unique<TestConnection>("v4 Known", "127.0.0.1", KNOWN_V4_PORT));
+                        break;
+                    case V4_EPHEMERAL:
+                        emit(std::make_unique<TestConnection>("v4 Ephemeral", "127.0.0.1", v4_port));
+                        break;
+                    case V6_KNOWN: emit(std::make_unique<TestConnection>("v6 Known", "::1", KNOWN_V6_PORT)); break;
+                    case V6_EPHEMERAL: emit(std::make_unique<TestConnection>("v6 Ephemeral", "::1", v6_port)); break;
+                    default:
+                        events.push_back("Unexpected test");
+                        powerplant.shutdown();
+                        break;
+                }
             }
-            if (test.name == "v4 Known") {
-                emit(std::make_unique<TestConnection>("v4 Ephemeral", "127.0.0.1", v4_port));
-            }
-            else if (test.name == "v4 Ephemeral") {
-                emit(std::make_unique<TestConnection>("v6 Known", "::1", KNOWN_V6_PORT));
-            }
-            else if (test.name == "v6 Known") {
-                emit(std::make_unique<TestConnection>("v6 Ephemeral", "::1", v6_port));
-            }
-            else if (test.name == "v6 Ephemeral") {
+            else {
                 events.push_back("Finishing Test");
                 powerplant.shutdown();
             }
         });
 
         on<Startup>().then([this] {
-            // Start the first test by emitting a "finished" startup
-            emit(std::make_unique<Finished>("Startup"));
+            // Start the first test by emitting a "finished" event
+            emit(std::make_unique<Finished>());
         });
     }
 
 private:
+    size_t test_no = 0;
     NUClear::util::FileDescriptor known_port_fd;
     NUClear::util::FileDescriptor ephemeral_port_fd;
 };
+
 }  // namespace
 
 TEST_CASE("Testing listening for TCP connections and receiving data messages", "[api][network][tcp]") {
+
+    // First work out what tests will be active
+    active_tests.push_back(V4_KNOWN);
+    active_tests.push_back(V4_EPHEMERAL);
+    if (test_util::has_ipv6()) {
+        active_tests.push_back(V6_KNOWN);
+        active_tests.push_back(V6_EPHEMERAL);
+    }
 
     NUClear::PowerPlant::Configuration config;
     config.thread_count = 2;
@@ -164,25 +198,37 @@ TEST_CASE("Testing listening for TCP connections and receiving data messages", "
     plant.install<TestReactor>();
     plant.start();
 
-    const std::vector<std::string> expected = {
-        "v4 Known sending",
-        "v4 Known received: v4 Known",
-        "v4 Known echoed: v4 Known",
-        "v4 Known closed",
-        "v4 Ephemeral sending",
-        "v4 Ephemeral received: v4 Ephemeral",
-        "v4 Ephemeral echoed: v4 Ephemeral",
-        "v4 Ephemeral closed",
-        "v6 Known sending",
-        "v6 Known received: v6 Known",
-        "v6 Known echoed: v6 Known",
-        "v6 Known closed",
-        "v6 Ephemeral sending",
-        "v6 Ephemeral received: v6 Ephemeral",
-        "v6 Ephemeral echoed: v6 Ephemeral",
-        "v6 Ephemeral closed",
-        "Finishing Test",
-    };
+    // Get the results for the tests we expect
+    std::vector<std::string> expected{};
+    for (const auto& t : active_tests) {
+        switch (t) {
+            case V4_KNOWN:
+                expected.push_back("v4 Known sending");
+                expected.push_back("v4 Known received: v4 Known");
+                expected.push_back("v4 Known echoed: v4 Known");
+                expected.push_back("v4 Known closed");
+                break;
+            case V4_EPHEMERAL:
+                expected.push_back("v4 Ephemeral sending");
+                expected.push_back("v4 Ephemeral received: v4 Ephemeral");
+                expected.push_back("v4 Ephemeral echoed: v4 Ephemeral");
+                expected.push_back("v4 Ephemeral closed");
+                break;
+            case V6_KNOWN:
+                expected.push_back("v6 Known sending");
+                expected.push_back("v6 Known received: v6 Known");
+                expected.push_back("v6 Known echoed: v6 Known");
+                expected.push_back("v6 Known closed");
+                break;
+            case V6_EPHEMERAL:
+                expected.push_back("v6 Ephemeral sending");
+                expected.push_back("v6 Ephemeral received: v6 Ephemeral");
+                expected.push_back("v6 Ephemeral echoed: v6 Ephemeral");
+                expected.push_back("v6 Ephemeral closed");
+                break;
+        }
+    }
+    expected.push_back("Finishing Test");
 
     // Make an info print the diff in an easy to read way if we fail
     INFO(test_util::diff_string(expected, events));
