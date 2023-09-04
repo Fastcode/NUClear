@@ -44,6 +44,16 @@ in_port_t broad_v4_port = 0;  // NOLINT(cppcoreguidelines-avoid-non-const-global
 in_port_t multi_v4_port = 0;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 in_port_t multi_v6_port = 0;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
+inline bool has_ipv6() {
+    // Get the first IPv6 address we can find
+    for (const auto& iface : NUClear::util::network::get_interfaces()) {
+        if (iface.ip.sock.sa_family == AF_INET6) {
+            return true;
+        }
+    }
+    return false;
+}
+
 inline std::string get_broadcast_addr() {
     static std::string addr{};
 
@@ -285,6 +295,8 @@ public:
 }  // namespace
 
 TEST_CASE("Testing sending and receiving of UDP messages", "[api][network][udp]") {
+
+    REQUIRE(has_ipv6());
 
     NUClear::PowerPlant::Configuration config;
     config.thread_count = 1;
