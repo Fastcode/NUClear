@@ -35,7 +35,7 @@ public:
         // Known port
         on<UDP>(PORT).then([this](const UDP::Packet& packet) {
             // Check that the data we received is correct
-            REQUIRE(packet.remote.address == INADDR_LOOPBACK);
+            REQUIRE(packet.remote.address == "127.0.0.1");
             REQUIRE(packet.payload.size() == TEST_STRING.size());
             REQUIRE(std::memcmp(packet.payload.data(), TEST_STRING.data(), TEST_STRING.size()) == 0);
 
@@ -50,7 +50,7 @@ public:
         in_port_t bound_port                           = 0;
         std::tie(std::ignore, bound_port, std::ignore) = on<UDP>().then([this](const UDP::Packet& packet) {
             // Check that the data we received is correct
-            REQUIRE(packet.remote.address == INADDR_LOOPBACK);
+            REQUIRE(packet.remote.address == "127.0.0.1");
             REQUIRE(packet.payload.size() == TEST_STRING.size());
             REQUIRE(std::memcmp(packet.payload.data(), TEST_STRING.data(), TEST_STRING.size()) == 0);
 
@@ -64,15 +64,16 @@ public:
         // Send a test for a known port
         // does not need to include the port in the lambda capture.  This is a global variable to the unit test, so
         // the function will have access to it.
-        on<Trigger<Message>>().then(
-            [this] { emit<Scope::UDP>(std::make_unique<std::string>(TEST_STRING), INADDR_LOOPBACK, PORT); });
+        on<Trigger<Message>>().then([this] {  //
+            emit<Scope::UDP>(std::make_unique<std::string>(TEST_STRING), "127.0.0.1", PORT);
+        });
 
 
         // Send a test for an unknown port
         // needs to include the bound_port in the lambda capture, so that the function will have access to bound_port.
         on<Trigger<Message>>().then([this, bound_port] {
             // Emit our UDP message
-            emit<Scope::UDP>(std::make_unique<std::string>(TEST_STRING), INADDR_LOOPBACK, bound_port);
+            emit<Scope::UDP>(std::make_unique<std::string>(TEST_STRING), "127.0.0.1", bound_port);
         });
 
         on<Startup>().then([this] {

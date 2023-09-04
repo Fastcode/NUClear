@@ -59,7 +59,7 @@ public:
                 // The connection was closed and the other test finished
                 if (len == 0 || ((event.events & IO::CLOSE) != 0) || messages_received == 2) {
                     if (messages_received == 2) {
-                        known_port_fd.close_fd();
+                        known_port_fd.close();
                         powerplant.shutdown();
                     }
                 }
@@ -93,7 +93,7 @@ public:
                 // The connection was closed and the other test finished
                 if (len == 0 || ((event.events & IO::CLOSE) != 0) || messages_received == 2) {
                     if (messages_received == 2) {
-                        bound_port_fd.close_fd();
+                        bound_port_fd.close();
                         powerplant.shutdown();
                     }
                 }
