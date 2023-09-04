@@ -37,11 +37,13 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - name: Checkout Code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       # Download and install cmake
-      - name: Install CMake v3.19.1
-        uses: lukka/get-cmake@v3.19.1
+      - name: Install CMake
+        uses: lukka/get-cmake@latest
+        cmakeVersion: "~3.25.0"
+        ninjaVersion: "^1.11.1"
 
       - name: Configure CMake
         run: |
@@ -71,7 +73,7 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - name: Checkout Code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Configure CMake
         run: |
@@ -101,7 +103,7 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - name: Checkout Code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Configure CMake
         run: |
@@ -140,11 +142,13 @@ jobs:
 
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - name: Checkout Code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       # Download and install cmake
-      - name: Install CMake v3.19.1
-        uses: lukka/get-cmake@v3.19.1
+      - name: Install CMake
+        uses: lukka/get-cmake@latest
+        cmakeVersion: "~3.25.0"
+        ninjaVersion: "^1.11.1"
 
       - name: Configure CMake
         run: |
@@ -166,7 +170,7 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - name: Checkout Code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Configure CMake
         run: |
