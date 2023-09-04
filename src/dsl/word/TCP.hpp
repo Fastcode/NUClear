@@ -110,7 +110,7 @@ namespace dsl {
                 util::FileDescriptor fd(::socket(address.sock.sa_family, SOCK_STREAM, IPPROTO_TCP),
                                         [](fd_t fd) { ::shutdown(fd, SHUT_RDWR); });
 
-                if (fd == INVALID_SOCKET) {
+                if (!fd.valid()) {
                     throw std::system_error(network_errno,
                                             std::system_category(),
                                             "We were unable to open the TCP socket");

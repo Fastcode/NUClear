@@ -182,8 +182,8 @@ namespace dsl {
                     throw std::system_error(network_errno, std::system_category(), "Unable to open the UDP socket");
                 }
 
-                int yes = 1;
                 // Include struct in the message "ancillary" control data
+                int yes = 1;
                 if (bind_address.sock.sa_family == AF_INET) {
                     if (::setsockopt(fd, IPPROTO_IP, IP_PKTINFO, reinterpret_cast<const char*>(&yes), sizeof(yes))
                         < 0) {
