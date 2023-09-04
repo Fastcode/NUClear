@@ -78,6 +78,16 @@
     // Whoever thought this was a good idea was a terrible person
     #undef ERROR
 
+    // Make the windows shutdown functions look like the posix ones
+    #define SHUT_RD   SD_RECEIVE
+    #define SHUT_WR   SD_RECEIVE
+    #define SHUT_RDWR SD_BOTH
+
+    // Windows always wanting to be different
+    #ifndef IPV6_RECVPKTINFO
+        #define IPV6_RECVPKTINFO IPV6_PKTINFO
+    #endif
+
 #endif  // _WIN32
 
 /*******************************************
@@ -94,6 +104,10 @@
 /*******************************************
  *           SHIM FOR NETWORKING           *
  *******************************************/
+#if defined(__APPLE__) && defined(__MACH__)
+    // On OSX the IPV6_RECVPKTINFO and IPV6_PKTINFO must be enabled using this define
+    #define __APPLE_USE_RFC_3542
+#endif
 #ifdef _WIN32
 
     #include <cstdint>
@@ -101,21 +115,21 @@ using ssize_t   = SSIZE_T;
 using in_port_t = uint16_t;
 using in_addr_t = uint32_t;
 
-namespace NUClear {
-
-// For us file descriptors will just be sockets
-using fd_t = SOCKET;
-
-using socklen_t = int;
-
-// This is defined here rather than in the global namespace so it doesn't get in the way
-inline int close(fd_t fd) {
+// Make close call closesocket
+inline int close(SOCKET fd) {
     return ::closesocket(fd);
 }
 
 inline int ioctl(SOCKET s, long cmd, u_long* argp) {
     return ioctlsocket(s, cmd, argp);
 }
+
+namespace NUClear {
+
+// For us file descriptors will just be sockets
+using fd_t = SOCKET;
+
+using socklen_t = int;
 
     // Network errors come from WSAGetLastError()
     #define network_errno WSAGetLastError()
@@ -145,6 +159,7 @@ int sendmsg(fd_t fd, msghdr* msg, int flags);
 
     // Include real networking stuff
     #include <arpa/inet.h>
+    #include <fcntl.h>
     #include <ifaddrs.h>
     #include <net/if.h>
     #include <netdb.h>
@@ -154,6 +169,8 @@ int sendmsg(fd_t fd, msghdr* msg, int flags);
     #include <sys/socket.h>
     #include <sys/types.h>
     #include <unistd.h>
+
+    #include <cerrno>
 
     // Move errno so it can be used in windows
     #define network_errno  errno

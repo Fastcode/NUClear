@@ -24,6 +24,8 @@
 #include "../../PowerPlant.hpp"
 #include "../../threading/Reaction.hpp"
 #include "../../util/FileDescriptor.hpp"
+#include "../../util/network/resolve.hpp"
+#include "../../util/network/sock_t.hpp"
 #include "../../util/platform.hpp"
 #include "IO.hpp"
 
@@ -58,49 +60,64 @@ namespace dsl {
          * @par Implements
          *  Bind
          */
-        struct TCP {
+        struct TCP : public IO {
 
             struct Connection {
 
-                struct {
-                    uint32_t address;
+                struct Target {
+                    /// @brief The address of the connection
+                    std::string address;
+                    /// @brief The port of the connection
                     uint16_t port;
-                } remote;
+                };
 
-                struct {
-                    uint32_t address;
-                    uint16_t port;
-                } local;
+                /// @brief The local address of the connection
+                Target local;
+                /// @brief The remote address of the connection
+                Target remote;
 
+                /// @brief The file descriptor for the connection
                 fd_t fd;
 
+                /**
+                 * @brief Casts this packet to a boolean to check if it is valid
+                 *
+                 * @return true if the packet is valid
+                 */
                 operator bool() const {
-                    return fd != 0;
+                    return fd != INVALID_SOCKET;
                 }
             };
 
             template <typename DSL>
             static inline std::tuple<in_port_t, fd_t> bind(const std::shared_ptr<threading::Reaction>& reaction,
-                                                           in_port_t port = 0) {
+                                                           in_port_t port                  = 0,
+                                                           const std::string& bind_address = "") {
+
+                // Resolve the bind address if we have one
+                util::network::sock_t address{};
+
+                if (!bind_address.empty()) {
+                    address = util::network::resolve(bind_address, port);
+                }
+                else {
+                    address.ipv4.sin_family      = AF_INET;
+                    address.ipv4.sin_port        = htons(port);
+                    address.ipv4.sin_addr.s_addr = htonl(INADDR_ANY);
+                }
 
                 // Make our socket
-                util::FileDescriptor fd = ::socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+                util::FileDescriptor fd(::socket(address.sock.sa_family, SOCK_STREAM, IPPROTO_TCP),
+                                        [](fd_t fd) { ::shutdown(fd, SHUT_RDWR); });
 
-                if (fd < 0) {
+                if (fd == INVALID_SOCKET) {
                     throw std::system_error(network_errno,
                                             std::system_category(),
                                             "We were unable to open the TCP socket");
                 }
 
-                // The address we will be binding to
-                sockaddr_in address{};
-                std::memset(&address, 0, sizeof(sockaddr_in));
-                address.sin_family      = AF_INET;
-                address.sin_port        = htons(port);
-                address.sin_addr.s_addr = htonl(INADDR_ANY);
-
                 // Bind to the address, and if we fail throw an error
-                if (::bind(fd, reinterpret_cast<sockaddr*>(&address), sizeof(sockaddr))) {
+                if (::bind(fd, &address.sock, address.size())) {
                     throw std::system_error(network_errno,
                                             std::system_category(),
                                             "We were unable to bind the TCP socket to the port");
@@ -114,25 +131,29 @@ namespace dsl {
                 }
 
                 // Get the port we ended up listening on
-                socklen_t len = sizeof(sockaddr_in);
-                if (::getsockname(fd, reinterpret_cast<sockaddr*>(&address), &len) == -1) {
+                socklen_t len = sizeof(address);
+                if (::getsockname(fd, &address.sock, &len) == -1) {
                     throw std::system_error(network_errno,
                                             std::system_category(),
                                             "We were unable to get the port from the TCP socket");
                 }
-                port = ntohs(address.sin_port);
+                if (address.ipv4.sin_family == AF_INET6) {
+                    port = ntohs(address.ipv6.sin6_port);
+                }
+                else {
+                    port = ntohs(address.ipv4.sin_port);
+                }
 
                 // Generate a reaction for the IO system that closes on death
-                const fd_t cfd = fd;
-                reaction->unbinders.push_back([](const threading::Reaction& r) {
-                    r.reactor.emit<emit::Direct>(std::make_unique<operation::Unbind<IO>>(r.id));
+                const fd_t cfd = fd.release();
+
+                reaction->unbinders.push_back([cfd](const threading::Reaction&) {
+                    ::shutdown(cfd, SHUT_RDWR);
+                    ::close(cfd);
                 });
-                reaction->unbinders.push_back([cfd](const threading::Reaction&) { close(cfd); });
 
-                auto io_config = std::make_unique<IOConfiguration>(IOConfiguration{fd.release(), IO::READ, reaction});
-
-                // Send our configuration out
-                reaction->reactor.emit<emit::Direct>(io_config);
+                // Bind using the IO system
+                IO::bind<DSL>(reaction, cfd, IO::READ | IO::CLOSE);
 
                 // Return our handles
                 return std::make_tuple(port, cfd);
@@ -145,28 +166,31 @@ namespace dsl {
                 auto event = IO::get<DSL>(reaction);
 
                 // If our get is being run without an fd (something else triggered) then short circuit
-                if (event.fd == 0) {
-                    return Connection{{0, 0}, {0, 0}, 0};
+                if (!event) {
+                    return {};
                 }
 
                 // Accept our connection
-                sockaddr_in local{};
-                sockaddr_in remote{};
-                socklen_t size = sizeof(sockaddr_in);
+                util::network::sock_t local{};
+                util::network::sock_t remote{};
 
                 // Accept the remote connection
-                util::FileDescriptor fd = ::accept(event.fd, reinterpret_cast<sockaddr*>(&remote), &size);
+                socklen_t remote_size = sizeof(util::network::sock_t);
+                util::FileDescriptor fd(::accept(event.fd, &remote.sock, &remote_size),
+                                        [](fd_t fd) { ::shutdown(fd, SHUT_RDWR); });
 
                 // Get our local address
-                ::getsockname(fd, reinterpret_cast<sockaddr*>(&local), &size);
+                socklen_t local_size = sizeof(util::network::sock_t);
+                ::getsockname(fd, &local.sock, &local_size);
 
-                if (fd == -1) {
-                    return Connection{{0, 0}, {0, 0}, 0};
+                if (!fd.valid()) {
+                    return Connection{};
                 }
 
-                return Connection{{ntohl(remote.sin_addr.s_addr), ntohs(remote.sin_port)},
-                                  {ntohl(local.sin_addr.s_addr), ntohs(local.sin_port)},
-                                  fd.release()};
+                auto local_s  = local.address();
+                auto remote_s = remote.address();
+
+                return Connection{{local_s.first, local_s.second}, {remote_s.first, remote_s.second}, fd.release()};
             }
         };
 
