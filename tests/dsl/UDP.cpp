@@ -38,14 +38,14 @@ const std::string IPV4_MULTICAST_ADDRESS = "230.12.3.22";        // NOLINT(cert-
 const std::string IPV6_MULTICAST_ADDRESS = "ff02::230:12:3:22";  // NOLINT(cert-err58-cpp)
 
 // Ephemeral ports that we will use
-in_port_t uni_v4_port   = 0;
-in_port_t uni_v6_port   = 0;
-in_port_t broad_v4_port = 0;
-in_port_t multi_v4_port = 0;
-in_port_t multi_v6_port = 0;
+in_port_t uni_v4_port   = 0;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+in_port_t uni_v6_port   = 0;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+in_port_t broad_v4_port = 0;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+in_port_t multi_v4_port = 0;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+in_port_t multi_v6_port = 0;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
 inline std::string get_broadcast_addr() {
-    static std::string addr = "";
+    static std::string addr{};
 
     if (!addr.empty()) {
         return addr;
@@ -81,7 +81,7 @@ std::vector<SendTarget> send_targets(const std::string& type, in_port_t port, bo
     std::vector<SendTarget> results;
 
     // Make sure that the type we are actually after is sent last
-    std::string t = type.substr(0, 3);
+    const std::string t = type.substr(0, 3);
     if (type[2] == '4' && include_target == (t == "Uv4")) {
         results.push_back(SendTarget{type + ":Uv4", {"127.0.0.1", port}, {}});
     }
@@ -121,10 +121,10 @@ struct Finished {
 class TestReactor : public test_util::TestBase<TestReactor> {
 private:
     void handle_data(const std::string& name, const UDP::Packet& packet) {
-        std::string data(packet.payload.data(), packet.payload.size());
+        const std::string data(packet.payload.data(), packet.payload.size());
 
         // Convert IP address to string in dotted decimal format
-        std::string local = packet.local.address + ":" + std::to_string(packet.local.port);
+        const std::string local = packet.local.address + ":" + std::to_string(packet.local.port);
 
         events.push_back(name + " <- " + data + " (" + local + ")");
 
@@ -206,7 +206,7 @@ public:
         });
 
         on<Trigger<Finished>>().then([=](const Finished& test) {
-            auto send_all = [this](std::string type, in_port_t port) {
+            auto send_all = [this](const std::string& type, const in_port_t& port) {
                 for (const auto& t : send_targets(type, port)) {
                     events.push_back(" -> " + t.to.address + ":" + std::to_string(t.to.port));
                     emit<Scope::UDP>(std::make_unique<std::string>(t.data),
