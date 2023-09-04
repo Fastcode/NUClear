@@ -24,7 +24,8 @@ jobs:
 
     strategy:
       matrix:
-        container: ['gcc:5', 'gcc:7', 'gcc:9', 'gcc:10', 'gcc:11', 'gcc:12', 'gcc:13']
+        container:
+          ["gcc:5", "gcc:7", "gcc:9", "gcc:10", "gcc:11", "gcc:12", "gcc:13"]
 
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
@@ -33,9 +34,7 @@ jobs:
     # Use the container for this specific version of gcc
     container: ${{ matrix.container }}
 
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - name: Checkout Code
         uses: actions/checkout@v2
 
@@ -58,18 +57,14 @@ jobs:
         # Execute tests defined by the CMake configuration.
         # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
         run: |
-          build/tests/test_nuclear
-          for f in build/tests/individual/*; do echo "Testing $f"; ./$f; done
+          build/tests/test_nuclear -s
+          for f in build/tests/individual/*; do echo "Testing $f"; ./$f -s; done
 
   build-osx:
     name: MacOS Clang
-
-    # The type of runner that the job will run on
     runs-on: macos-latest
 
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - name: Checkout Code
         uses: actions/checkout@v2
 
@@ -88,8 +83,8 @@ jobs:
         # Execute tests defined by the CMake configuration.
         # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
         run: |
-          build/tests/test_nuclear
-          for f in build/tests/individual/*; do echo "Testing $f"; ./$f; done
+          build/tests/test_nuclear -s
+          for f in build/tests/individual/*; do echo "Testing $f"; ./$f -s; done
 
   build-windows:
     name: Windows MSVC
@@ -97,9 +92,7 @@ jobs:
     # The type of runner that the job will run on
     runs-on: windows-latest
 
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - name: Checkout Code
         uses: actions/checkout@v2
 
@@ -118,34 +111,29 @@ jobs:
         # Execute tests defined by the CMake configuration.
         # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
         run: |
-          build/tests/Release/test_nuclear.exe
-          for f in build/tests/individual/Release/*; do echo "Testing $f"; ./$f; done
+          build/tests/Release/test_nuclear.exe -s
+          for f in build/tests/individual/Release/*; do echo "Testing $f"; ./$f -s; done
         shell: bash
 
   check-clang-tidy-linux:
     name: Clang-Tidy Linux
-
-    # The type of runner that the job will run on
     runs-on: ubuntu-latest
 
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       - name: Install clang-tidy-15
         run: |
-         wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
-         echo "deb http://apt.llvm.org/jammy/ llvm-toolchain-jammy-15 main" | sudo tee /etc/apt/sources.list.d/llvm-15
-         echo "deb http://apt.llvm.org/jammy/ llvm-toolchain-jammy-15 main" | sudo tee -a /etc/apt/sources.list.d/llvm-15
-         sudo apt-get update
-         sudo apt-get install -y clang-tidy-15
+          wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
+          echo "deb http://apt.llvm.org/jammy/ llvm-toolchain-jammy-15 main" | sudo tee /etc/apt/sources.list.d/llvm-15
+          echo "deb http://apt.llvm.org/jammy/ llvm-toolchain-jammy-15 main" | sudo tee -a /etc/apt/sources.list.d/llvm-15
+          sudo apt-get update
+          sudo apt-get install -y clang-tidy-15
 
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - name: Checkout Code
         uses: actions/checkout@v2
 
       # Download and install cmake
       - name: Install CMake v3.19.1
         uses: lukka/get-cmake@v3.19.1
-
       - name: Configure CMake
         run: |
           cmake -E make_directory build
@@ -158,13 +146,9 @@ jobs:
 
   check-clang-tidy-msvc:
     name: Clang-Tidy MSVC
-
-    # The type of runner that the job will run on
     runs-on: windows-latest
 
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - name: Checkout Code
         uses: actions/checkout@v2
 
