@@ -76,11 +76,11 @@ namespace dsl {
          *  seconds, minutes, hours).  Note that you can also define your own unit:  See
          *  http://en.cppreference.com/w/cpp/chrono/duration
          */
-        template <int ticks = 0, class period = NUClear::clock::duration>
+        template <int ticks = 0, class period = std::chrono::milliseconds>
         struct Every;
 
-        template <>
-        struct Every<0, NUClear::clock::duration> {
+        template <typename period>
+        struct Every<0, period> {
 
             template <typename DSL>
             static inline void bind(const std::shared_ptr<threading::Reaction>& reaction,
@@ -93,7 +93,7 @@ namespace dsl {
                 // Send our configuration out
                 reaction->reactor.emit<emit::Direct>(std::make_unique<operation::ChronoTask>(
                     [reaction, jump](NUClear::clock::time_point& time) {
-                            // submit the reaction to the thread pool
+                        // submit the reaction to the thread pool
                         reaction->reactor.powerplant.submit(reaction->get_task());
 
                         time += jump;
