@@ -173,12 +173,14 @@ namespace extension {
             WSAEVENT event = it->first;
 
             // Remove the task
-            return tasks.erase(it);
+            auto new_it = tasks.erase(it);
 
             // Try to close the WSA event
             if (!WSACloseEvent(event)) {
                 throw std::system_error(WSAGetLastError(), std::system_category(), "WSACloseEvent() failed");
             }
+
+            return new_it;
         }
 
 
