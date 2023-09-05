@@ -36,11 +36,14 @@ jobs:
 
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       # Download and install cmake
-      - name: Install CMake v3.19.1
-        uses: lukka/get-cmake@v3.19.1
+      - name: Install CMake
+        uses: lukka/get-cmake@latest
+        with:
+          cmakeVersion: 3.27.1
+          ninjaVersion: 1.11.1
 
       - name: Configure CMake
         run: |
@@ -66,7 +69,7 @@ jobs:
 
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Configure CMake
         run: |
@@ -94,7 +97,7 @@ jobs:
 
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Configure CMake
         run: |
@@ -129,11 +132,15 @@ jobs:
           sudo apt-get install -y clang-tidy-15
 
       - name: Checkout Code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       # Download and install cmake
-      - name: Install CMake v3.19.1
-        uses: lukka/get-cmake@v3.19.1
+      - name: Install CMake
+        uses: lukka/get-cmake@latest
+        with:
+          cmakeVersion: 3.27.1
+          ninjaVersion: 1.11.1
+
       - name: Configure CMake
         run: |
           cmake -E make_directory build
@@ -150,7 +157,7 @@ jobs:
 
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Configure CMake
         run: |
