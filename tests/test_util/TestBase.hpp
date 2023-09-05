@@ -58,8 +58,9 @@ public:
 
         // Timeout if the test doesn't complete in time
         on<Watchdog<BaseClass, timeout, std::chrono::milliseconds>, MainThread>().then([this] {
+            INFO("Test timed out");
+            CHECK(false);
             powerplant.shutdown();
-            FAIL("Test timed out");
         });
     }
 };
