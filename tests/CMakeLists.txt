@@ -23,12 +23,6 @@ if(CATCH_FOUND)
   if(BUILD_TESTS)
     enable_testing()
 
-    if(MSVC)
-      add_compile_options(/W4 /WX)
-    else()
-      add_compile_options(-Wall -Wextra -pedantic -Werror)
-    endif(MSVC)
-
     add_compile_definitions(CATCH_CONFIG_CONSOLE_WIDTH=120)
 
     file(GLOB test_src test.cpp "api/*.cpp" "dsl/*.cpp" "dsl/emit/*.cpp" "log/*.cpp" "util/network/*.cpp" "test_util/*.cpp")
