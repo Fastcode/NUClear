@@ -21,6 +21,7 @@
 #ifdef _WIN32
 
     #include <stdexcept>
+    #include <system_error>
 LPFN_WSARECVMSG WSARecvMsg = nullptr;
 
 // Go get that WSARecvMsg function from stupid land
