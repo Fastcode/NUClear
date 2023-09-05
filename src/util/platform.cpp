@@ -86,7 +86,7 @@ WSAHolder::~WSAHolder() {
     WSACleanup();
 }
 
-WSAHolder::WSAHolder instance{};
+WSAHolder WSAHolder::instance{};
 
 }  // namespace NUClear
 
