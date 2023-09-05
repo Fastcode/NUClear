@@ -35,14 +35,14 @@ struct Message {
 struct ShutdownOnIdle {};
 
 /// @brief Events that occur during the test
-std::vector<std::string> events;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+std::vector<int> events;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
 class TestReactor : public test_util::TestBase<TestReactor> {
 public:
     TestReactor(std::unique_ptr<NUClear::Environment> environment) : TestBase(std::move(environment)) {
 
         on<Trigger<Message>, Sync<TestReactor>>().then([](const Message& m) {  //
-            events.push_back("Received value " + std::to_string(m.val));
+            events.push_back(m.val);
         });
 
         on<Startup>().then("Startup", [this] {
@@ -62,8 +62,10 @@ TEST_CASE("Sync events execute in order", "[api][sync][priority]") {
     plant.install<TestReactor>();
     plant.start();
 
+
     REQUIRE(events.size() == N_EVENTS);
-    for (int i = 0; i < N_EVENTS; ++i) {
-        CHECK(events[i] == "Received value " + std::to_string(i));
-    }
+
+    std::vector<int> expected(events.size());
+    std::iota(expected.begin(), expected.end(), 0);
+    REQUIRE(events == expected);
 }
