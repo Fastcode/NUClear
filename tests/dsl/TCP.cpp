@@ -138,7 +138,7 @@ public:
             timeout.tv_sec  = 0;
             timeout.tv_usec = 100000;
 #endif
-            setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, reinterpret_cast<const char*>(&timeout), sizeof(timeout));
+            ::setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, reinterpret_cast<const char*>(&timeout), sizeof(timeout));
 
             // Connect to ourself
             if (::connect(fd, &address.sock, address.size()) != 0) {
