@@ -72,11 +72,6 @@ int sendmsg(fd_t fd, msghdr* msg, int flags) {
 }
 
 WSAHolder::WSAHolder() {
-    WSADATA wsa_data{};
-    WORD version       = MAKEWORD(2, 2);
-    int startup_status = WSAStartup(MAKEWORD(2, 2), &wsaData);
-
-
     WORD version = MAKEWORD(2, 2);
     WSADATA wsa_data;
 
@@ -84,7 +79,6 @@ WSAHolder::WSAHolder() {
     if (startup_status != 0) {
         throw std::system_error(startup_status, std::system_category(), "WSAStartup() failed");
     }
-    WSACleanup();
 }
 
 WSAHolder::~WSAHolder() {
