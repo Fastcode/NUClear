@@ -187,15 +187,6 @@ namespace extension {
     public:
         explicit IOController(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
 
-            // Startup WSA for IO
-            WORD version = MAKEWORD(2, 2);
-            WSADATA wsa_data;
-
-            int startup_status = WSAStartup(version, &wsa_data);
-            if (startup_status != 0) {
-                throw std::system_error(startup_status, std::system_category(), "WSAStartup() failed");
-            }
-
             // Create an event to use for the notifier (used for getting out of WSAWaitForMultipleEvents())
             notifier = WSACreateEvent();
             if (notifier == WSA_INVALID_EVENT) {
@@ -304,11 +295,6 @@ namespace extension {
                     }
                 }
             });
-        }
-
-        // We need a destructor to cleanup WSA stuff
-        virtual ~IOController() {
-            WSACleanup();
         }
 
     private:
