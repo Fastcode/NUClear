@@ -72,9 +72,9 @@ namespace util {
                         switch (iface.ip.sock.sa_family) {
                             case AF_INET: {
                                 // IPv4 address
-                                auto& ipv4      = *reinterpret_cast<sockaddr_in*>(&iface.ip);
-                                auto& netmask   = *reinterpret_cast<sockaddr_in*>(&iface.netmask);
-                                auto& broadcast = *reinterpret_cast<sockaddr_in*>(&iface.broadcast);
+                                auto& ipv4      = iface.ip.ipv4;
+                                auto& netmask   = iface.netmask.ipv4;
+                                auto& broadcast = iface.broadcast.ipv4;
 
                                 // Fill in the netmask
                                 netmask.sin_family = AF_INET;
@@ -96,8 +96,8 @@ namespace util {
                             } break;
                             case AF_INET6: {
                                 // IPv6 address
-                                auto& ipv6    = *reinterpret_cast<sockaddr_in6*>(&iface.ip);
-                                auto& netmask = *reinterpret_cast<sockaddr_in6*>(&iface.netmask);
+                                auto& ipv6    = iface.ip.ipv6;
+                                auto& netmask = iface.netmask.ipv6;
 
                                 // Fill in the netmask
                                 netmask.sin6_family = AF_INET6;

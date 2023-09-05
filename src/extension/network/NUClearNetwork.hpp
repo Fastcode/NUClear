@@ -171,14 +171,14 @@ namespace extension {
              * @param name          the name of this node in the network
              * @param address       the address to announce on
              * @param port          the port to use for announcement
-             * @param bind_address  the address to bind to (if blank will bind to all interfaces)
+             * @param bind_address  the address to bind to (if unset will bind to all interfaces)
              * @param network_mtu   the mtu of the network we operate on
              */
             void reset(const std::string& name,
                        const std::string& address,
                        in_port_t port,
-                       const std::string& bind_address,
-                       uint16_t network_mtu = 1500);
+                       const std::string& bind_address = "",
+                       uint16_t network_mtu            = 1500);
             void reset(const std::string& name,
                        const std::string& address,
                        in_port_t port,

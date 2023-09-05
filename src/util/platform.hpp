@@ -80,7 +80,7 @@
 
     // Make the windows shutdown functions look like the posix ones
     #define SHUT_RD   SD_RECEIVE
-    #define SHUT_WR   SD_RECEIVE
+    #define SHUT_WR   SD_SEND
     #define SHUT_RDWR SD_BOTH
 
     // Windows always wanting to be different

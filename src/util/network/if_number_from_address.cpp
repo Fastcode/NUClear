@@ -31,7 +31,7 @@ namespace util {
         unsigned int if_number_from_address(const sockaddr_in6& ipv6) {
 
             // If the socket is referring to the any address, return 0 to use the default interface
-            if (std::all_of(ipv6.sin6_addr.s6_addr, ipv6.sin6_addr.s6_addr + 16, [](unsigned char i) {
+            if (std::all_of(std::begin(ipv6.sin6_addr.s6_addr), std::end(ipv6.sin6_addr.s6_addr), [](unsigned char i) {
                     return i == 0;
                 })) {
                 return 0;

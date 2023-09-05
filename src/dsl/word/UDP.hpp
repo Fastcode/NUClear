@@ -182,14 +182,14 @@ namespace dsl {
                     throw std::system_error(network_errno, std::system_category(), "Unable to open the UDP socket");
                 }
 
-                int yes = 1;
                 // Include struct in the message "ancillary" control data
+                int yes = 1;
                 if (bind_address.sock.sa_family == AF_INET) {
                     if (::setsockopt(fd, IPPROTO_IP, IP_PKTINFO, reinterpret_cast<const char*>(&yes), sizeof(yes))
                         < 0) {
                         throw std::system_error(network_errno,
                                                 std::system_category(),
-                                                "We were unable to flag the socket as getting ancillary data");
+                                                "Unable to flag the socket as getting ancillary data");
                     }
                 }
                 else if (bind_address.sock.sa_family == AF_INET6) {
@@ -201,7 +201,7 @@ namespace dsl {
                         < 0) {
                         throw std::system_error(network_errno,
                                                 std::system_category(),
-                                                "We were unable to flag the socket as getting ancillary data");
+                                                "Unable to flag the socket as getting ancillary data");
                     }
                 }
 
@@ -268,7 +268,7 @@ namespace dsl {
                             < 0) {
                             throw std::system_error(network_errno,
                                                     std::system_category(),
-                                                    "We were unable to use the requested interface for multicast");
+                                                    "Unable to use the requested interface for multicast");
                         }
                     }
                     else if (multicast_target.sock.sa_family == AF_INET6) {
@@ -299,17 +299,17 @@ namespace dsl {
                             < 0) {
                             throw std::system_error(network_errno,
                                                     std::system_category(),
-                                                    "We were unable to use the requested interface for multicast");
+                                                    "Unable to use the requested interface for multicast");
                         }
                     }
                 }
 
                 // Get the port we ended up listening on
-                socklen_t len = sizeof(sockaddr_in);
-                if (::getsockname(fd, reinterpret_cast<sockaddr*>(&bind_address), &len) == -1) {
+                socklen_t len = sizeof(bind_address);
+                if (::getsockname(fd, &bind_address.sock, &len) == -1) {
                     throw std::system_error(network_errno,
                                             std::system_category(),
-                                            "We were unable to get the port from the UDP socket");
+                                            "Unable to get the port from the UDP socket");
                 }
                 in_port_t port = 0;
                 if (bind_address.sock.sa_family == AF_INET) {
@@ -376,7 +376,7 @@ namespace dsl {
                 if (::getsockname(event.fd, &local.sock, &len) == -1) {
                     throw std::system_error(network_errno,
                                             std::system_category(),
-                                            "We were unable to get the port from the UDP socket");
+                                            "Unable to get the port from the UDP socket");
                 }
 
                 // Iterate through control headers to get IP information

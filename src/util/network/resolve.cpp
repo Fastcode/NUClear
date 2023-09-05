@@ -61,7 +61,7 @@ namespace util {
                 // If we find an IPv4 address, prefer that
                 if (servinfo->ai_family == AF_INET) {
 
-                    // Clear and set our struct
+                    // Set our target IPv4 address
                     std::memcpy(&target, servinfo->ai_addr, servinfo->ai_addrlen);
 
                     // We prefer IPv4 so use it and stop looking
@@ -71,7 +71,7 @@ namespace util {
                 // If we find an IPv6 address, hold the first one in case we don't find an IPv4 address
                 if (servinfo->ai_family == AF_INET6) {
 
-                    // Clear and set our struct
+                    // // Set our target IPv6 address
                     std::memcpy(&target, servinfo->ai_addr, servinfo->ai_addrlen);
                 }
             }
