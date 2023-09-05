@@ -18,6 +18,7 @@
 
 #include <catch.hpp>
 #include <nuclear>
+#include <numeric>
 #include <string>
 #include <vector>
 
