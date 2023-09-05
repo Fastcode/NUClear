@@ -60,35 +60,8 @@ public:
         // Test with port given to us
         on<Trigger<Message>>().then([this, bound_port] {
             // Get all the network interfaces
-            auto interfaces = NUClear::util::network::get_interfaces();
-
-            std::vector<in_addr_t> addresses;
-
-            for (auto& iface : interfaces) {
-                // We send on multicast capable addresses
-                if (iface.broadcast.sock.sa_family == AF_INET && iface.flags.multicast) {
-                    auto& i = *reinterpret_cast<sockaddr_in*>(&iface.ip);
-                    auto& b = *reinterpret_cast<sockaddr_in*>(&iface.broadcast);
-
-                    // Two broadcast ips that are the same are probably on the same network so ignore those
-                    if (std::find(std::begin(addresses), std::end(addresses), ntohl(b.sin_addr.s_addr))
-                        == std::end(addresses)) {
-                        addresses.push_back(ntohl(i.sin_addr.s_addr));
-                    }
-                }
-            }
-
-            num_addresses = addresses.size();
-
-            for (auto& ad : addresses) {
-
-                // Send our message to that broadcast address
-                emit<Scope::UDP>(std::make_unique<std::string>(TEST_STRING),
-                                 MULTICAST_ADDRESS,
-                                 bound_port,
-                                 ad,
-                                 in_port_t(0));
-            }
+            // Send our message to that broadcast address
+            emit<Scope::UDP>(std::make_unique<std::string>(TEST_STRING), MULTICAST_ADDRESS, bound_port);
         });
 
         on<Startup>().then([this] {
@@ -109,5 +82,5 @@ TEST_CASE("Testing sending and receiving of UDP Multicast messages with an unkno
 
     plant.start();
 
-    REQUIRE(count == num_addresses);
+    REQUIRE(count == 1);
 }

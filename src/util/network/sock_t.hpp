@@ -19,6 +19,9 @@
 #ifndef NUCLEAR_UTIL_NETWORK_SOCK_T_HPP
 #define NUCLEAR_UTIL_NETWORK_SOCK_T_HPP
 
+#include <array>
+#include <stdexcept>
+
 #include "../platform.hpp"
 
 namespace NUClear {
@@ -32,6 +35,31 @@ namespace util {
                 sockaddr_in ipv4;
                 sockaddr_in6 ipv6;
             };
+
+            inline socklen_t size() const {
+                switch (sock.sa_family) {
+                    case AF_INET: return sizeof(sockaddr_in);
+                    case AF_INET6: return sizeof(sockaddr_in6);
+                    default:
+                        throw std::runtime_error("Cannot get size for socket address family "
+                                                 + std::to_string(sock.sa_family));
+                }
+            }
+
+            inline std::pair<std::string, in_port_t> address() const {
+                std::array<char, std::max(INET_ADDRSTRLEN, INET6_ADDRSTRLEN)> c = {0};
+                switch (sock.sa_family) {
+                    case AF_INET:
+                        return std::make_pair(::inet_ntop(sock.sa_family, &ipv4.sin_addr, c.data(), c.size()),
+                                              ntohs(ipv4.sin_port));
+                    case AF_INET6:
+                        return std::make_pair(::inet_ntop(sock.sa_family, &ipv6.sin6_addr, c.data(), c.size()),
+                                              ntohs(ipv6.sin6_port));
+                    default:
+                        throw std::runtime_error("Cannot get address for socket address family "
+                                                 + std::to_string(sock.sa_family));
+                }
+            }
         };
 
     }  // namespace network

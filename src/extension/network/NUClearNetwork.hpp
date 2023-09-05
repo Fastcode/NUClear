@@ -171,8 +171,14 @@ namespace extension {
              * @param name          the name of this node in the network
              * @param address       the address to announce on
              * @param port          the port to use for announcement
+             * @param bind_address  the address to bind to (if unset will bind to all interfaces)
              * @param network_mtu   the mtu of the network we operate on
              */
+            void reset(const std::string& name,
+                       const std::string& address,
+                       in_port_t port,
+                       const std::string& bind_address = "",
+                       uint16_t network_mtu = 1500);
             void reset(const std::string& name,
                        const std::string& address,
                        in_port_t port,
@@ -223,13 +229,18 @@ namespace extension {
 
             /**
              * @brief Open our data udp socket
+             *
+             * @param bind_address the address to bind to or any to bind to all interfaces
              */
-            void open_data(const sock_t& announce_target);
+            void open_data(const sock_t& bind_address);
 
             /**
              * @brief Open our announce udp socket
+             *
+             * @param announce_target the target to announce to
+             * @param bind_address    the address to bind to or any to bind to all interfaces
              */
-            void open_announce(const sock_t& announce_target);
+            void open_announce(const sock_t& announce_target, const sock_t& bind_address);
 
             /**
              * @brief Processes the given packet and calls the callback if a packet was completed

@@ -28,25 +28,37 @@ namespace NUClear {
 namespace util {
     namespace network {
 
+        /**
+         * @brief A structure that contains information about a network interface
+         */
         struct Interface {
-            Interface() = default;
-
+            /// @brief The name of the interface
             std::string name{};
 
+            /// @brief The address that is bound to the interface
             sock_t ip{};
+            /// @brief The netmask of the interface
             sock_t netmask{};
+            /// @brief The broadcast address of the interface or point to point address
             sock_t broadcast{};
 
             struct Flags {
-                Flags() = default;
-
+                /// @brief True if the interface is a broadcast interface
                 bool broadcast{false};
+                /// @brief True if the interface is a loopback interface
                 bool loopback{false};
+                /// @brief True if the interface is a point to point interface
                 bool pointtopoint{false};
+                /// @brief True if the interface is a multicast interface
                 bool multicast{false};
             } flags;
         };
 
+        /**
+         * @brief Gets a list of all the network interfaces on the system with the addresses they are bound to
+         *
+         * @return a list of all the interfaces on the system
+         */
         std::vector<Interface> get_interfaces();
 
     }  // namespace network
