@@ -130,6 +130,16 @@ public:
                 throw std::runtime_error("Failed to create socket");
             }
 
+            // Set a timeout so we don't hang forever if something goes wrong
+#ifdef _WIN32
+            DWORD timeout = 100;
+#else
+            struct timeval timeout;
+            timeout.tv_sec  = 0;
+            timeout.tv_usec = 100000;
+#endif
+            setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, reinterpret_cast<const char*>(&timeout), sizeof(timeout));
+
             // Connect to ourself
             if (::connect(fd, &address.sock, address.size()) != 0) {
                 throw std::runtime_error("Failed to connect to socket");
