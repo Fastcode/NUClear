@@ -248,7 +248,7 @@ namespace extension {
                         < 0) {
                         throw std::system_error(network_errno,
                                                 std::system_category(),
-                                                "We were unable to use the requested interface for multicast");
+                                                "Unable to use the requested interface for multicast");
                     }
                 }
                 else if (announce_target.sock.sa_family == AF_INET6) {
@@ -279,7 +279,7 @@ namespace extension {
                         < 0) {
                         throw std::system_error(network_errno,
                                                 std::system_category(),
-                                                "We were unable to use the requested interface for multicast");
+                                                "Unable to use the requested interface for multicast");
                     }
                 }
             }

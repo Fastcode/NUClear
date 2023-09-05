@@ -111,23 +111,21 @@ namespace dsl {
                                         [](fd_t fd) { ::shutdown(fd, SHUT_RDWR); });
 
                 if (!fd.valid()) {
-                    throw std::system_error(network_errno,
-                                            std::system_category(),
-                                            "We were unable to open the TCP socket");
+                    throw std::system_error(network_errno, std::system_category(), "Unable to open the TCP socket");
                 }
 
                 // Bind to the address, and if we fail throw an error
                 if (::bind(fd, &address.sock, address.size())) {
                     throw std::system_error(network_errno,
                                             std::system_category(),
-                                            "We were unable to bind the TCP socket to the port");
+                                            "Unable to bind the TCP socket to the port");
                 }
 
                 // Listen to the address
                 if (::listen(fd, 1024) < 0) {
                     throw std::system_error(network_errno,
                                             std::system_category(),
-                                            "We were unable to listen on the TCP socket");
+                                            "Unable to listen on the TCP socket");
                 }
 
                 // Get the port we ended up listening on
@@ -135,7 +133,7 @@ namespace dsl {
                 if (::getsockname(fd, &address.sock, &len) == -1) {
                     throw std::system_error(network_errno,
                                             std::system_category(),
-                                            "We were unable to get the port from the TCP socket");
+                                            "Unable to get the port from the TCP socket");
                 }
                 if (address.ipv4.sin_family == AF_INET6) {
                     port = ntohs(address.ipv6.sin6_port);

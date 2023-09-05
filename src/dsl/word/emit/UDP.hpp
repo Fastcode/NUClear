@@ -97,9 +97,7 @@ namespace dsl {
                     // Open a socket to send the datagram from
                     util::FileDescriptor fd = ::socket(local.sock.sa_family, SOCK_DGRAM, IPPROTO_UDP);
                     if (!fd.valid()) {
-                        throw std::system_error(network_errno,
-                                                std::system_category(),
-                                                "We were unable to open the UDP socket");
+                        throw std::system_error(network_errno, std::system_category(), "Unable to open the UDP socket");
                     }
 
                     // If we are using multicast and we have a specific from_addr we need to tell the system to use the
@@ -115,7 +113,7 @@ namespace dsl {
                                 < 0) {
                                 throw std::system_error(network_errno,
                                                         std::system_category(),
-                                                        "We were unable to use the requested interface for multicast");
+                                                        "Unable to use the requested interface for multicast");
                             }
                         }
                         else if (local.sock.sa_family == AF_INET6) {
@@ -129,7 +127,7 @@ namespace dsl {
                                 < 0) {
                                 throw std::system_error(network_errno,
                                                         std::system_category(),
-                                                        "We were unable to use the requested interface for multicast");
+                                                        "Unable to use the requested interface for multicast");
                             }
                         }
                     }
@@ -139,7 +137,7 @@ namespace dsl {
                         if (::bind(fd, &local.sock, local.size()) != 0) {
                             throw std::system_error(network_errno,
                                                     std::system_category(),
-                                                    "We were unable to bind the UDP socket to the port");
+                                                    "Unable to bind the UDP socket to the port");
                         }
                     }
 
@@ -149,7 +147,7 @@ namespace dsl {
                         < 0) {
                         throw std::system_error(network_errno,
                                                 std::system_category(),
-                                                "We were unable to enable broadcasting on this socket");
+                                                "Unable to enable broadcasting on this socket");
                     }
 
                     // Serialise to our payload
@@ -165,7 +163,7 @@ namespace dsl {
                         < 0) {
                         throw std::system_error(network_errno,
                                                 std::system_category(),
-                                                "We were unable to send the UDP message");
+                                                "Unable to send the UDP message");
                     }
                 }
             };

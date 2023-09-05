@@ -189,7 +189,7 @@ namespace dsl {
                         < 0) {
                         throw std::system_error(network_errno,
                                                 std::system_category(),
-                                                "We were unable to flag the socket as getting ancillary data");
+                                                "Unable to flag the socket as getting ancillary data");
                     }
                 }
                 else if (bind_address.sock.sa_family == AF_INET6) {
@@ -201,7 +201,7 @@ namespace dsl {
                         < 0) {
                         throw std::system_error(network_errno,
                                                 std::system_category(),
-                                                "We were unable to flag the socket as getting ancillary data");
+                                                "Unable to flag the socket as getting ancillary data");
                     }
                 }
 
@@ -268,7 +268,7 @@ namespace dsl {
                             < 0) {
                             throw std::system_error(network_errno,
                                                     std::system_category(),
-                                                    "We were unable to use the requested interface for multicast");
+                                                    "Unable to use the requested interface for multicast");
                         }
                     }
                     else if (multicast_target.sock.sa_family == AF_INET6) {
@@ -299,7 +299,7 @@ namespace dsl {
                             < 0) {
                             throw std::system_error(network_errno,
                                                     std::system_category(),
-                                                    "We were unable to use the requested interface for multicast");
+                                                    "Unable to use the requested interface for multicast");
                         }
                     }
                 }
@@ -309,7 +309,7 @@ namespace dsl {
                 if (::getsockname(fd, reinterpret_cast<sockaddr*>(&bind_address), &len) == -1) {
                     throw std::system_error(network_errno,
                                             std::system_category(),
-                                            "We were unable to get the port from the UDP socket");
+                                            "Unable to get the port from the UDP socket");
                 }
                 in_port_t port = 0;
                 if (bind_address.sock.sa_family == AF_INET) {
@@ -376,7 +376,7 @@ namespace dsl {
                 if (::getsockname(event.fd, &local.sock, &len) == -1) {
                     throw std::system_error(network_errno,
                                             std::system_category(),
-                                            "We were unable to get the port from the UDP socket");
+                                            "Unable to get the port from the UDP socket");
                 }
 
                 // Iterate through control headers to get IP information
