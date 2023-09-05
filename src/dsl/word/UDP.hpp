@@ -305,8 +305,8 @@ namespace dsl {
                 }
 
                 // Get the port we ended up listening on
-                socklen_t len = sizeof(sockaddr_in);
-                if (::getsockname(fd, reinterpret_cast<sockaddr*>(&bind_address), &len) == -1) {
+                socklen_t len = sizeof(bind_address);
+                if (::getsockname(fd, &bind_address.sock, &len) == -1) {
                     throw std::system_error(network_errno,
                                             std::system_category(),
                                             "Unable to get the port from the UDP socket");
