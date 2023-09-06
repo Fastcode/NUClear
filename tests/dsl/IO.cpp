@@ -70,7 +70,10 @@ public:
             const char c       = "Hello"[char_no++];
             const ssize_t sent = ::write(e.fd, &c, 1);
 
-            write_events.push_back("Wrote " + std::to_string(sent) + " bytes (" + c + ") to pipe");
+            // If we wrote something, log it
+            if (sent > 0) {
+                write_events.push_back("Wrote " + std::to_string(sent) + " bytes (" + c + ") to pipe");
+            }
 
             if (char_no == 5) {
                 ::close(e.fd);

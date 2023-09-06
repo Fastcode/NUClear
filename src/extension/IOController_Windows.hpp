@@ -29,21 +29,25 @@ namespace extension {
 
     class IOController : public Reactor {
     private:
+        /// @brief The type that poll uses for events
+        using event_t = long;  // NOLINT(google-runtime-int)
+
         /**
          * @brief A task that is waiting for an IO event
          */
         struct Task {
             Task() = default;
-            // NOLINTNEXTLINE(google-runtime-int)
-            Task(const fd_t& fd, long events, std::shared_ptr<threading::Reaction> reaction)
-                : fd(fd), events(events), reaction(std::move(reaction)) {}
+            Task(const fd_t& fd, event_t listening_events, std::shared_ptr<threading::Reaction> reaction)
+                : fd(fd), listening_events(listening_events), reaction(std::move(reaction)) {}
 
             /// @brief The socket we are waiting on
             fd_t fd;
             /// @brief The events that the task is interested in
-            long events{0};  // NOLINT(google-runtime-int)
+            event_t listening_events{0};
             /// @brief The events that are waiting to be fired
-            long waiting_events{0};  // NOLINT(google-runtime-int)
+            event_t waiting_events{0};
+            /// @brief The events that are currently being processed
+            event_t processing_events{0};
             /// @brief The reaction that is waiting for this event
             std::shared_ptr<threading::Reaction> reaction{nullptr};
         };
@@ -73,9 +77,44 @@ namespace extension {
         }
 
         /**
-         * @brief Collects the events that have happened and stores them on the reactions to be fired
+         * @brief Fires the event for the task if it is ready
+         *
+         * @param task the task to try to fire the event for
+         *
+         * @return the iterator to the next task in the list
          */
-        void collect_events(const WSAEVENT& event) {
+        void fire_event(Task& task) {
+            if (task.processing_events == 0 && task.waiting_events != 0) {
+
+                // Make our event to pass through and store it in the local cache
+                IO::Event e{};
+                e.fd     = task.fd;
+                e.events = task.waiting_events;
+
+                // Clear the waiting events, we are now processing them
+                task.processing_events = task.waiting_events;
+                task.waiting_events    = 0;
+
+                // Submit the task (which should run the get)
+                IO::ThreadEventStore::value                = &e;
+                std::unique_ptr<threading::ReactionTask> r = task.reaction->get_task();
+                IO::ThreadEventStore::value                = nullptr;
+
+                if (r != nullptr) {
+                    powerplant.submit(std::move(r));
+                }
+                else {
+                    // Waiting events are still waiting
+                    task.waiting_events |= task.processing_events;
+                    task.processing_events = 0;
+                }
+            }
+        }
+
+        /**
+         * @brief Collects the events that have happened and sets them up to fire
+         */
+        void process_event(const WSAEVENT& event) {
 
             // Get the lock so we don't concurrently modify the list
             const std::lock_guard<std::mutex> lock(tasks_mutex);
@@ -102,53 +141,12 @@ namespace extension {
                                                 "WSAEnumNetworkEvents() failed");
                     }
 
-                    // Check how many bytes are available to read, if it's 0 and we have a read event the
-                    // descriptor is sending EOF and we should fire a CLOSE event too and stop watching
-                    long events = wsae.lNetworkEvents;
-                    if ((events & IO::READ) != 0) {
-                        u_long bytes_available = 0;
-                        bool valid             = ::ioctlsocket(r->second.fd, FIONREAD, &bytes_available) == 0;
-                        if (valid && bytes_available == 0) {
-                            events = events | IO::CLOSE;
-                        }
-                    }
-
-                    r->second.waiting_events = r->second.waiting_events | events;
+                    r->second.waiting_events |= wsae.lNetworkEvents;
+                    fire_event(r->second);
                 }
                 // If we can't find the event then our list is dirty
                 else {
                     dirty = true;
-                }
-            }
-        }
-
-        /**
-         * @brief Fires the events that have been collected when the reactions are ready
-         */
-        void fire_events() {
-            const std::lock_guard<std::mutex> lock(tasks_mutex);
-
-            // Go through every reaction and if it has events and isn't already running then run it
-            for (auto it = tasks.begin(); it != tasks.end();) {
-                auto& task = it->second;
-
-                if (task.reaction->active_tasks == 0 && task.waiting_events != 0) {
-
-                    // Make our event to pass through and store it in the local cache
-                    IO::Event e{};
-                    e.fd     = task.fd;
-                    e.events = task.waiting_events;
-
-                    // Submit the task (which should run the get)
-                    IO::ThreadEventStore::value = &e;
-                    powerplant.submit(task.reaction->get_task());
-                    IO::ThreadEventStore::value = nullptr;
-
-                    // Reset our value
-                    it = ((task.waiting_events & IO::CLOSE) != 0) ? remove_task(it) : std::next(it);
-                }
-                else {
-                    ++it;
                 }
             }
         }
@@ -168,6 +166,13 @@ namespace extension {
             }
         }
 
+        /**
+         * @brief Removes a task from the list and closes the event
+         *
+         * @param it the iterator to the task to remove
+         *
+         * @return the iterator to the next task
+         */
         std::map<WSAEVENT, Task>::iterator remove_task(std::map<WSAEVENT, Task>::iterator it) {
             // Close the event
             WSAEVENT event = it->first;
@@ -229,13 +234,25 @@ namespace extension {
                 const std::lock_guard<std::mutex> lock(tasks_mutex);
 
                 // Find the reaction that finished processing
-                auto task = std::find_if(tasks.begin(), tasks.end(), [&event](const std::pair<WSAEVENT, Task>& t) {
+                auto it = std::find_if(tasks.begin(), tasks.end(), [&event](const std::pair<WSAEVENT, Task>& t) {
                     return t.second.reaction->id == event.id;
                 });
 
                 // If we found it then clear the waiting events
-                if (task != tasks.end()) {
-                    task->second.waiting_events = 0;
+                if (it != tasks.end()) {
+                    auto& task = it->second;
+                    // If the events we were processing included close remove it from the list
+                    if (task.processing_events & IO::CLOSE) {
+                        dirty = true;
+                        remove_task(it);
+                    }
+                    else {
+                        // We have finished processing events
+                        task.processing_events = 0;
+
+                        // Try to fire again which will check if there are any waiting events
+                        fire_event(task);
+                    }
                 }
             });
 
@@ -288,10 +305,7 @@ namespace extension {
                         auto& event = watches[event_index - WSA_WAIT_EVENT_0];
 
                         // Collect the events that happened into the tasks list
-                        collect_events(event);
-
-                        // Fire the events that happened if we can
-                        fire_events();
+                        process_event(event);
                     }
                 }
             });
