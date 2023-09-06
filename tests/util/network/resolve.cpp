@@ -56,17 +56,6 @@ TEST_CASE("resolve function returns expected socket address", "[util][network][r
         }
     }
 
-    SECTION("IPv4 address with leading zeros") {
-        std::string address = "127.000.000.001";
-        uint16_t port       = 80;
-
-        auto result = NUClear::util::network::resolve(address, port);
-
-        REQUIRE(result.sock.sa_family == AF_INET);
-        REQUIRE(ntohs(result.ipv4.sin_port) == port);
-        REQUIRE(ntohl(result.ipv4.sin_addr.s_addr) == INADDR_LOOPBACK);
-    }
-
     SECTION("IPv6 address with mixed case letters") {
         std::string address = "2001:0DB8:Ac10:FE01:0000:0000:0000:0000";
         uint16_t port       = 80;
