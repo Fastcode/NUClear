@@ -51,10 +51,11 @@ public:
             if ((e.events & IO::READ) != 0) {
                 // Read from our fd
                 char c{0};
-                auto bytes = ::read(e.fd, &c, 1);
-
-                if (bytes > 0) {
-                    read_events.push_back("Read " + std::to_string(bytes) + " bytes (" + c + ") from pipe");
+                for (int bytes = ::read(e.fd, &c, 1); bytes > 0; bytes = ::read(e.fd, &c, 1)) {
+                    // If we read something, log it
+                    if (bytes > 0) {
+                        read_events.push_back("Read " + std::to_string(bytes) + " bytes (" + c + ") from pipe");
+                    }
                 }
             }
 
