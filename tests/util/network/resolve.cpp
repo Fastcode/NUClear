@@ -5,10 +5,10 @@
 TEST_CASE("resolve function returns expected socket address", "[util][network][resolve]") {
 
     SECTION("IPv4 address") {
-        std::string address = "127.0.0.1";
-        uint16_t port       = 80;
+        const std::string address = "127.0.0.1";
+        const uint16_t port       = 80;
 
-        auto result = NUClear::util::network::resolve(address, port);
+        const auto result = NUClear::util::network::resolve(address, port);
 
         REQUIRE(result.sock.sa_family == AF_INET);
         REQUIRE(ntohs(result.ipv4.sin_port) == port);
@@ -16,10 +16,10 @@ TEST_CASE("resolve function returns expected socket address", "[util][network][r
     }
 
     SECTION("IPv6 address") {
-        std::string address = "::1";
-        uint16_t port       = 80;
+        const std::string address = "::1";
+        const uint16_t port       = 80;
 
-        auto result = NUClear::util::network::resolve(address, port);
+        const auto result = NUClear::util::network::resolve(address, port);
 
         REQUIRE(result.sock.sa_family == AF_INET6);
         REQUIRE(ntohs(result.ipv6.sin6_port) == port);
@@ -32,10 +32,10 @@ TEST_CASE("resolve function returns expected socket address", "[util][network][r
     }
 
     SECTION("Hostname") {
-        std::string address = "localhost";
-        uint16_t port       = 80;
+        const std::string address = "localhost";
+        const uint16_t port       = 80;
 
-        auto result = NUClear::util::network::resolve(address, port);
+        const auto result = NUClear::util::network::resolve(address, port);
 
         // Check that the returned socket address matches the expected address and port
         REQUIRE((result.sock.sa_family == AF_INET || result.sock.sa_family == AF_INET6));
@@ -57,10 +57,10 @@ TEST_CASE("resolve function returns expected socket address", "[util][network][r
     }
 
     SECTION("IPv6 address with mixed case letters") {
-        std::string address = "2001:0DB8:Ac10:FE01:0000:0000:0000:0000";
-        uint16_t port       = 80;
+        const std::string address = "2001:0DB8:Ac10:FE01:0000:0000:0000:0000";
+        const uint16_t port       = 80;
 
-        auto result = NUClear::util::network::resolve(address, port);
+        const auto result = NUClear::util::network::resolve(address, port);
 
         REQUIRE(result.sock.sa_family == AF_INET6);
         REQUIRE(ntohs(result.ipv6.sin6_port) == port);
@@ -83,10 +83,10 @@ TEST_CASE("resolve function returns expected socket address", "[util][network][r
     }
 
     SECTION("Hostname with valid IPv4 address") {
-        std::string address = "ipv4.google.com";
-        uint16_t port       = 80;
+        const std::string address = "ipv4.google.com";
+        const uint16_t port       = 80;
 
-        auto result = NUClear::util::network::resolve(address, port);
+        const auto result = NUClear::util::network::resolve(address, port);
 
         REQUIRE(result.sock.sa_family == AF_INET);
         REQUIRE(ntohs(result.ipv4.sin_port) == port);
@@ -94,10 +94,10 @@ TEST_CASE("resolve function returns expected socket address", "[util][network][r
     }
 
     SECTION("Hostname with valid IPv6 address") {
-        std::string address = "ipv6.google.com";
-        uint16_t port       = 80;
+        const std::string address = "ipv6.google.com";
+        const uint16_t port       = 80;
 
-        auto result = NUClear::util::network::resolve(address, port);
+        const auto result = NUClear::util::network::resolve(address, port);
 
         REQUIRE(result.sock.sa_family == AF_INET6);
         REQUIRE(ntohs(result.ipv6.sin6_port) == port);
@@ -112,8 +112,8 @@ TEST_CASE("resolve function returns expected socket address", "[util][network][r
     }
 
     SECTION("Invalid address") {
-        std::string address = "this.url.is.invalid";
-        uint16_t port       = 12345;
+        const std::string address = "this.url.is.invalid";
+        const uint16_t port       = 12345;
 
         // Check that the function throws a std::runtime_error with the appropriate message
         REQUIRE_THROWS(NUClear::util::network::resolve(address, port));

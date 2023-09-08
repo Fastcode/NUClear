@@ -36,7 +36,7 @@ namespace extension {
     class IOController : public Reactor {
     private:
         /// @brief The type that poll uses for events
-        using event_t = short;  // NOLINT(google-runtime-int)
+        using event_t = decltype(pollfd::events);  // NOLINT(google-runtime-int)
 
         /**
          * @brief A task that is waiting for an IO event
@@ -94,7 +94,7 @@ namespace extension {
             for (const auto& r : tasks) {
                 // If we are the same fd, then add our interest set
                 if (r.fd == watches.back().fd) {
-                    watches.back().events |= r.listening_events;
+                    watches.back().events = event_t(watches.back().events | r.listening_events);
                 }
                 // Otherwise add a new one
                 else {
@@ -134,7 +134,7 @@ namespace extension {
                     powerplant.submit(std::move(r));
                 }
                 else {
-                    task.waiting_events |= task.processing_events;
+                    task.waiting_events    = event_t(task.waiting_events | task.processing_events);
                     task.processing_events = 0;
                 }
             }
@@ -193,7 +193,7 @@ namespace extension {
                             // Loop through our values
                             for (auto it = range.first; it != range.second; ++it) {
                                 // Load in the relevant events that happened into the waiting events
-                                it->waiting_events |= event_t(it->listening_events & fd.revents);
+                                it->waiting_events = event_t(it->waiting_events | (it->listening_events & fd.revents));
 
                                 if (maybe_eof && (it->processing_events & IO::READ) == 0) {
                                     it->waiting_events |= IO::CLOSE;
@@ -272,7 +272,7 @@ namespace extension {
                 // If we found it then clear the waiting events
                 if (task != tasks.end()) {
                     // If the events we were processing included close remove it from the list
-                    if (task->processing_events & IO::CLOSE) {
+                    if ((task->processing_events & IO::CLOSE) != 0) {
                         dirty = true;
                         tasks.erase(task);
                     }

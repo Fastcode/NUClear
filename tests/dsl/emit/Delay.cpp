@@ -77,7 +77,7 @@ public:
 
         on<Startup>().then([this] {
             // Get our jump size in milliseconds
-            int jump_unit = (TestUnits::period::num * 1000) / TestUnits::period::den;
+            const int jump_unit = (TestUnits::period::num * 1000) / TestUnits::period::den;
             // Delay with consistent jumps
             for (int i = 0; i < test_loops; ++i) {
                 auto delay = std::chrono::milliseconds(jump_unit * i);
