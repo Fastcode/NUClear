@@ -165,6 +165,19 @@ namespace extension {
                     }
                     // It's a regular handle
                     else {
+                        // Check if we have a read event but 0 bytes to read, this can happen when a socket is closed
+                        // On linux we don't get a close event, we just keep getting read events with 0 bytes
+                        // To make the close event happen if we get a read event with 0 bytes we will check if there are
+                        // any currently processing reads and if not, then close
+                        bool maybe_eof = false;
+                        if ((fd.revents & IO::READ) != 0) {
+                            int bytes_available = 0;
+                            const bool valid    = ::ioctl(fd.fd, FIONREAD, &bytes_available) == 0;
+                            if (valid && bytes_available == 0) {
+                                maybe_eof = true;
+                            }
+                        }
+
                         // Find our relevant tasks
                         auto range = std::equal_range(tasks.begin(),
                                                       tasks.end(),
@@ -181,6 +194,10 @@ namespace extension {
                             for (auto it = range.first; it != range.second; ++it) {
                                 // Load in the relevant events that happened into the waiting events
                                 it->waiting_events |= event_t(it->listening_events & fd.revents);
+
+                                if (maybe_eof && (it->processing_events & IO::READ) == 0) {
+                                    it->waiting_events |= IO::CLOSE;
+                                }
 
                                 fire_event(*it);
                             }
