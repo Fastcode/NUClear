@@ -42,6 +42,9 @@ project(
   LANGUAGES C CXX
 )
 
+# NUClear targets c++14
+set(CMAKE_CXX_STANDARD 14)
+
 # Determine if NUClear is built as a subproject (using add_subdirectory) or if it is the master project.
 set(MASTER_PROJECT OFF)
 if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
