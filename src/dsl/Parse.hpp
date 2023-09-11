@@ -31,7 +31,7 @@ namespace dsl {
         using DSL = Fusion<Sentence...>;
 
         template <typename... Arguments>
-        static inline auto bind(const std::shared_ptr<threading::Reaction>& r, Arguments... args)
+        static inline auto bind(const std::shared_ptr<threading::Reaction>& r, Arguments&&... args)
             -> decltype(DSL::template bind<Parse<Sentence...>>(r, std::forward<Arguments>(args)...)) {
             return DSL::template bind<Parse<Sentence...>>(r, std::forward<Arguments>(args)...);
         }

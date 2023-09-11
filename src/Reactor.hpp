@@ -385,11 +385,11 @@ public:
      */
     template <template <typename> class... Handlers, typename T, typename... Arguments>
     void emit(std::unique_ptr<T>&& data, Arguments&&... args) {
-        powerplant.emit<Handlers...>(std::forward<std::unique_ptr<T>>(data), std::forward<Arguments>(args)...);
+        powerplant.emit<Handlers...>(std::move(data), std::forward<Arguments>(args)...);
     }
     template <template <typename> class... Handlers, typename T, typename... Arguments>
     void emit(std::unique_ptr<T>& data, Arguments&&... args) {
-        powerplant.emit<Handlers...>(std::forward<std::unique_ptr<T>>(data), std::forward<Arguments>(args)...);
+        powerplant.emit<Handlers...>(std::move(data), std::forward<Arguments>(args)...);
     }
     template <template <typename> class... Handlers, typename... Arguments>
     void emit(Arguments&&... args) {
