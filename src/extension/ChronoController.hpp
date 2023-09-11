@@ -105,7 +105,7 @@ namespace extension {
 
                     // If we have no chrono tasks wait until we are notified
                     if (tasks.empty()) {
-                        wait.wait(lock);
+                        wait.wait(lock, [this] { return !running || !tasks.empty(); });
                     }
                     else {
                         auto start  = NUClear::clock::now();

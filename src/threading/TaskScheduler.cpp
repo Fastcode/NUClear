@@ -254,7 +254,7 @@ namespace threading {
             }
 
             // Wait for something to happen!
-            condition.wait(lock);
+            condition.wait(lock, [&] { return !running.load() || !queue.empty(); });
         }
 
         throw std::runtime_error("Task scheduler has shutdown");
