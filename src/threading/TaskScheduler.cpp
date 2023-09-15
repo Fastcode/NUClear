@@ -221,7 +221,7 @@ namespace threading {
 
         // Keep looking for tasks while the scheduler is still running, or while there are still tasks to process
         std::unique_lock<std::mutex> lock(pool->mutex);
-        while (running.load() || !pool->queue.empty()) {
+        while (running.load() || !queue.empty()) {
 
             // Only one thread can be checking group concurrency at a time otherwise the ordering might not be correct
             /* mutex scope */ {
@@ -246,7 +246,7 @@ namespace threading {
 
                 // If pool concurrency is greater than group concurrency some threads can be left with nothing to do.
                 // Since running is false there will likely never be anything new to do and we are shutting down anyway.
-                // So if we can't find a task to run, just return nullptr and let the thread die.
+                // So if we can't find a task to run we should just quit.
                 if (!running.load()) {
                     condition.notify_all();
                     throw std::runtime_error("Task scheduler has shutdown");
@@ -254,7 +254,10 @@ namespace threading {
             }
 
             // Wait for something to happen!
-            condition.wait(lock);
+            // We don't have a condition on this lock as the check would be this doing this loop again to see if there
+            // are any tasks we can execute (checking all the groups) so therefore we already did the entry predicate.
+            // Putting a condition on this would stop spurious wakeups of which the cost would be equal to the loop.
+            condition.wait(lock);  // NOSONAR
         }
 
         throw std::runtime_error("Task scheduler has shutdown");
