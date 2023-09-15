@@ -61,7 +61,7 @@ jobs:
         # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
         run: |
           build/tests/test_nuclear
-          for f in build/tests/individual/*; do echo "Testing $f"; ./$f -s; done
+          for f in build/tests/individual/*; do echo "Testing $f"; ./$f; done
 
   build-osx:
     name: MacOS Clang
@@ -87,7 +87,7 @@ jobs:
         # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
         run: |
           build/tests/test_nuclear
-          for f in build/tests/individual/*; do echo "Testing $f"; ./$f -s; done
+          for f in build/tests/individual/*; do echo "Testing $f"; ./$f; done
 
   build-windows:
     name: Windows MSVC
@@ -115,7 +115,7 @@ jobs:
         # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
         run: |
           build/tests/Release/test_nuclear.exe
-          for f in build/tests/individual/Release/*; do echo "Testing $f"; ./$f -s; done
+          for f in build/tests/individual/Release/*; do echo "Testing $f"; ./$f; done
         shell: bash
 
   check-clang-tidy-linux:
