@@ -25,7 +25,7 @@ if(CATCH_FOUND)
 
     add_compile_definitions(CATCH_CONFIG_CONSOLE_WIDTH=120)
 
-    file(GLOB test_src test.cpp "api/*.cpp" "dsl/*.cpp" "dsl/emit/*.cpp" "log/*.cpp" "util/network/*.cpp" "test_util/*.cpp")
+    file(GLOB test_src test.cpp "api/*.cpp" "dsl/*.cpp" "dsl/emit/*.cpp" "log/*.cpp" "util/*.cpp" "util/network/*.cpp" "test_util/*.cpp")
 
     # Some tests must be executed as individual binaries
     file(GLOB individual_tests "${CMAKE_CURRENT_SOURCE_DIR}/individual/*.cpp")
