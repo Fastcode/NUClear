@@ -254,7 +254,11 @@ namespace threading {
             }
 
             // Wait for something to happen!
-            condition.wait(lock, [&] { return !running.load() || !queue.empty(); });
+            // We cannot have a condition on this lock as the check would be this doing this loop again to see if there
+            // are any tasks we can execute (checking all the groups)
+            // Putting a condition on this lock is normally used to stop spurious wakeups of which the cost would be
+            // equal to the check.
+            condition.wait(lock);  // NOSONAR
         }
 
         throw std::runtime_error("Task scheduler has shutdown");
