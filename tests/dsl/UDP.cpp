@@ -257,11 +257,11 @@ public:
                 for (const auto& t : send_targets(type, port)) {
                     events.push_back(" -> " + t.to.address + ":" + std::to_string(t.to.port));
                     try {
-                    emit<Scope::UDP>(std::make_unique<std::string>(t.data),
-                                     t.to.address,
-                                     t.to.port,
-                                     t.from.address,
-                                     t.from.port);
+                        emit<Scope::UDP>(std::make_unique<std::string>(t.data),
+                                         t.to.address,
+                                         t.to.port,
+                                         t.from.address,
+                                         t.from.port);
                     }
                     catch (std::exception& e) {
                         events.push_back("Exception: " + std::string(e.what()));
