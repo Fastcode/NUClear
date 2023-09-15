@@ -246,7 +246,7 @@ namespace threading {
 
                 // If pool concurrency is greater than group concurrency some threads can be left with nothing to do.
                 // Since running is false there will likely never be anything new to do and we are shutting down anyway.
-                // So if we can't find a task to run, just return nullptr and let the thread die.
+                // So if we can't find a task to run we should just quit.
                 if (!running.load()) {
                     condition.notify_all();
                     throw std::runtime_error("Task scheduler has shutdown");
