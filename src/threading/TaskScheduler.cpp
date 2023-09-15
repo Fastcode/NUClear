@@ -221,7 +221,7 @@ namespace threading {
 
         // Keep looking for tasks while the scheduler is still running, or while there are still tasks to process
         std::unique_lock<std::mutex> lock(pool->mutex);
-        while (running.load() || !pool->queue.empty()) {
+        while (running.load() || !queue.empty()) {
 
             // Only one thread can be checking group concurrency at a time otherwise the ordering might not be correct
             /* mutex scope */ {
