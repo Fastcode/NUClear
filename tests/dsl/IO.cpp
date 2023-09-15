@@ -47,6 +47,10 @@ public:
         in  = fds[0];
         out = fds[1];
 
+        // Set the pipe to non-blocking
+        ::fcntl(in.get(), F_SETFL, ::fcntl(in.get(), F_GETFL) | O_NONBLOCK);
+        ::fcntl(out.get(), F_SETFL, ::fcntl(out.get(), F_GETFL) | O_NONBLOCK);
+
         on<IO>(in.get(), IO::READ | IO::CLOSE).then([this](const IO::Event& e) {
             if ((e.events & IO::READ) != 0) {
                 // Read from our fd
@@ -68,11 +72,12 @@ public:
 
         writer = on<IO>(out.get(), IO::WRITE).then([this](const IO::Event& e) {
             // Send data into our fd
-            const char c       = "Hello"[char_no++];
+            const char c       = "Hello"[char_no];
             const ssize_t sent = ::write(e.fd, &c, 1);
 
-            // If we wrote something, log it
+            // If we wrote something, log it and move to the next character
             if (sent > 0) {
+                ++char_no;
                 write_events.push_back("Wrote " + std::to_string(sent) + " bytes (" + c + ") to pipe");
             }
 
