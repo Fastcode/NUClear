@@ -19,6 +19,12 @@
 #ifndef NUCLEAR_POWERPLANT_HPP
 #define NUCLEAR_POWERPLANT_HPP
 
+// This file needs to be included in a spot that means it will be included everywhere
+// See https://valgrind.org/docs/manual/drd-manual.html#drd-manual.CXX11
+#if defined(USE_VALGRIND) && !defined(NDEBUG)
+    #include "util/valgrind/valgrind.hpp"
+#endif  // defined(USE_VALGRIND) && !defined(NDEBUG)
+
 #include <atomic>
 #include <iostream>
 #include <map>
