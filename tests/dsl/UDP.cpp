@@ -38,6 +38,16 @@ enum TestPorts {
 const std::string IPV4_MULTICAST_ADDRESS = "230.12.3.22";        // NOLINT(cert-err58-cpp)
 const std::string IPV6_MULTICAST_ADDRESS = "ff02::230:12:3:22";  // NOLINT(cert-err58-cpp)
 
+#ifdef __APPLE__
+// For the IPv6 test we need to bind to the IPv6 localhost address and send from it when using udp emit.
+// This is because on OSX without a fully connected IPv6 there is no default route for IPv6 multicast packets
+// (see `netstat -nr`) As a result if you don't specify an interface to use when sending and receiving IPv6 multicast
+// packets the send/bind fails which makes the tests fail.
+const std::string IPV6_BIND = "::1";  // NOLINT(cert-err58-cpp)
+#else
+const std::string IPV6_BIND = "::";  // NOLINT(cert-err58-cpp)
+#endif
+
 // Ephemeral ports that we will use
 in_port_t uni_v4_port   = 0;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 in_port_t uni_v6_port   = 0;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
@@ -117,7 +127,7 @@ std::vector<SendTarget> send_targets(const std::string& type, in_port_t port) {
             } break;
             case MULTICAST_V6_KNOWN:
             case MULTICAST_V6_EPHEMERAL: {
-                results.push_back(SendTarget{type + ":Mv6", {IPV6_MULTICAST_ADDRESS, port}, {"::1", 0}});
+                results.push_back(SendTarget{type + ":Mv6", {IPV6_MULTICAST_ADDRESS, port}, {IPV6_BIND, 0}});
             } break;
         }
     }
@@ -229,24 +239,16 @@ public:
                     multi_v4_port = std::get<1>(multi_v4);
                 } break;
 
-                // For the IPv6 test we need to bind to the IPv6 localhost address and send from it when using udp
-                // emit This is because on OSX by default there is no default route for IPv6 multicast packets (see
-                // `netstat -nr`) As a result if you don't specify an interface to use when sending and receiving
-                // IPv6 multicast packets the send/bind fails which makes the tests not work. Linux does not care
-                // about this extra step so it doesn't break the tests
-
                 // IPv6 Multicast Known port
                 case MULTICAST_V6_KNOWN: {
-                    on<UDP::Multicast>(IPV6_MULTICAST_ADDRESS, MULTICAST_V6, "::1")
+                    on<UDP::Multicast>(IPV6_MULTICAST_ADDRESS, MULTICAST_V6, IPV6_BIND)
                         .then([this](const UDP::Packet& packet) { handle_data("Mv6K", packet); });
                 } break;
 
                 // IPv6 Multicast Ephemeral port
                 case MULTICAST_V6_EPHEMERAL: {
-                    auto multi_v6 =
-                        on<UDP::Multicast>(IPV6_MULTICAST_ADDRESS, 0, "::1").then([this](const UDP::Packet& packet) {
-                            handle_data("Mv6E", packet);
-                        });
+                    auto multi_v6 = on<UDP::Multicast>(IPV6_MULTICAST_ADDRESS, 0, IPV6_BIND)
+                                        .then([this](const UDP::Packet& packet) { handle_data("Mv6E", packet); });
                     multi_v6_port = std::get<1>(multi_v6);
                 } break;
             }
