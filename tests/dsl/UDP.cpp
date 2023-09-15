@@ -143,14 +143,6 @@ std::vector<SendTarget> send_targets(const std::string& type, in_port_t port) {
     return results;
 }
 
-struct TestUDP {
-    TestUDP(std::string name, std::string address, in_port_t port)
-        : name(std::move(name)), address(std::move(address)), port(port) {}
-    std::string name;
-    std::string address;
-    in_port_t port;
-};
-
 struct Finished {
     Finished(std::string name) : name(std::move(name)) {}
     std::string name;
@@ -259,12 +251,6 @@ public:
                 } break;
             }
         }
-
-        // Send a test message to the known port
-        on<Trigger<TestUDP>>().then([this](const TestUDP& target) {
-            events.push_back(" -> " + target.address + ":" + std::to_string(target.port));
-            emit<Scope::UDP>(std::make_unique<std::string>(target.name), target.address, target.port);
-        });
 
         on<Trigger<Finished>>().then([this](const Finished&) {
             auto send_all = [this](const std::string& type, const in_port_t& port) {
