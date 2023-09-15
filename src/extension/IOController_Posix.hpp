@@ -36,7 +36,7 @@ namespace extension {
     class IOController : public Reactor {
     private:
         /// @brief The type that poll uses for events
-        using event_t = decltype(pollfd::events);  // NOLINT(google-runtime-int)
+        using event_t = decltype(pollfd::events);
 
         /**
          * @brief A task that is waiting for an IO event
