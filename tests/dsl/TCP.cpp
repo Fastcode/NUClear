@@ -132,11 +132,11 @@ public:
 
             // Set a timeout so we don't hang forever if something goes wrong
 #ifdef _WIN32
-            DWORD timeout = 100;
+            DWORD timeout = 500;
 #else
             timeval timeout{};
             timeout.tv_sec  = 0;
-            timeout.tv_usec = 100000;
+            timeout.tv_usec = 500000;
 #endif
             ::setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, reinterpret_cast<const char*>(&timeout), sizeof(timeout));
 
@@ -152,7 +152,12 @@ public:
             // Receive the echo
             std::array<char, 1024> buff{};
             const ssize_t recv = ::recv(fd, buff.data(), socklen_t(target.name.size()), 0);
-            events.push_back(target.name + " echoed: " + std::string(buff.data(), recv));
+            if (recv <= 1) {
+                events.push_back(target.name + " failed to receive echo");
+            }
+            else {
+                events.push_back(target.name + " echoed: " + std::string(buff.data(), recv));
+            }
         });
 
         on<Trigger<Finished>, Sync<TestReactor>>().then([this](const Finished&) {
