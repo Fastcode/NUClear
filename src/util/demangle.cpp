@@ -74,7 +74,7 @@ namespace util {
             demangled = std::regex_replace(demangled, std::regex(R"(struct\s+)"), "");
             demangled = std::regex_replace(demangled, std::regex(R"(class\s+)"), "");
             demangled = std::regex_replace(demangled, std::regex(R"(\s+)"), "");
-            return demangled;
+            return demangled == "??" ? symbol : demangled;
         }
         else {
             return symbol;
