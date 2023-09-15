@@ -60,7 +60,7 @@ jobs:
         # Execute tests defined by the CMake configuration.
         # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
         run: |
-          build/tests/test_nuclear -s
+          build/tests/test_nuclear
           for f in build/tests/individual/*; do echo "Testing $f"; ./$f -s; done
 
   build-osx:
@@ -86,7 +86,7 @@ jobs:
         # Execute tests defined by the CMake configuration.
         # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
         run: |
-          build/tests/test_nuclear -s
+          build/tests/test_nuclear
           for f in build/tests/individual/*; do echo "Testing $f"; ./$f -s; done
 
   build-windows:
@@ -114,7 +114,7 @@ jobs:
         # Execute tests defined by the CMake configuration.
         # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
         run: |
-          build/tests/Release/test_nuclear.exe -s
+          build/tests/Release/test_nuclear.exe
           for f in build/tests/individual/Release/*; do echo "Testing $f"; ./$f -s; done
         shell: bash
 
