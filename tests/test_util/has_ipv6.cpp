@@ -23,9 +23,10 @@ namespace test_util {
 
 bool has_ipv6() {
     // See if any interface has an ipv6 address
-    return std::any_of(NUClear::util::network::get_interfaces().begin(),
-                       NUClear::util::network::get_interfaces().end(),
-                       [](const auto& iface) { return iface.ip.sock.sa_family == AF_INET6; });
+    auto ifaces = NUClear::util::network::get_interfaces();
+    return std::any_of(ifaces.begin(), ifaces.end(), [](const auto& iface) {
+        return iface.ip.sock.sa_family == AF_INET6;
+    });
 }
 
 }  // namespace test_util
