@@ -59,6 +59,11 @@ namespace util {
     }
 
     std::string demangle(const char* symbol) {
+        // If the symbol is the empty string then just return it
+        if (symbol != nullptr && symbol[0] == '\0') {
+            return symbol;
+        }
+
         std::lock_guard<std::mutex> lock(symbol_mutex);
 
         // Initialise the symbols if we have to
@@ -74,7 +79,7 @@ namespace util {
             demangled = std::regex_replace(demangled, std::regex(R"(struct\s+)"), "");
             demangled = std::regex_replace(demangled, std::regex(R"(class\s+)"), "");
             demangled = std::regex_replace(demangled, std::regex(R"(\s+)"), "");
-            return demangled == "??" ? symbol : demangled;
+            return demangled;
         }
         else {
             return symbol;
