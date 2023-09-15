@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2013      Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
- *               2014-2017 Trent Houliston <trent@houliston.me>
+ *               2014-2023 Trent Houliston <trent@houliston.me>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -15,26 +15,30 @@
  * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-#include "Reaction.hpp"
+
+#ifndef NUCLEAR_UTIL_NETWORK_IF_NUMBER_FROM_ADDRESS_HPP
+#define NUCLEAR_UTIL_NETWORK_IF_NUMBER_FROM_ADDRESS_HPP
+
+#include <string>
+#include <vector>
+
+#include "sock_t.hpp"
 
 namespace NUClear {
-namespace threading {
+namespace util {
+    namespace network {
 
-    // Initialize our reaction source
-    std::atomic<uint64_t> Reaction::reaction_id_source(0);  // NOLINT
+        /**
+         * @brief Gets the index of the interface that the given ipv6 address is on
+         *
+         * @param ipv6 the ipv6 address to check
+         *
+         * @return int the index of the interface that the address is on or 0 if the ipv6 address is the any address
+         */
+        unsigned int if_number_from_address(const sockaddr_in6& ipv6);
 
-    Reaction::Reaction(Reactor& reactor, ReactionIdentifiers&& identifiers, TaskGenerator&& generator)
-        : reactor(reactor), identifiers(identifiers), id(++reaction_id_source), generator(generator) {}
-
-    void Reaction::unbind() {
-        // Unbind
-        for (auto& u : unbinders) {
-            u(*this);
-        }
-    }
-
-    bool Reaction::is_enabled() const {
-        return enabled;
-    }
-}  // namespace threading
+    }  // namespace network
+}  // namespace util
 }  // namespace NUClear
+
+#endif  // NUCLEAR_UTIL_NETWORK_IF_NUMBER_FROM_ADDRESS_HPP

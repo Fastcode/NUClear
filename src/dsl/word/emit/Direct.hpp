@@ -56,24 +56,9 @@ namespace dsl {
 
                     // Run all our reactions that are interested
                     for (auto& reaction : store::TypeCallbackStore<DataType>::get()) {
-                        try {
-
-                            // Set our thread local store data each time (as during direct it can be overwritten)
-                            store::ThreadStore<std::shared_ptr<DataType>>::value = &data;
-
-                            auto task = reaction->get_task();
-                            if (task) {
-                                powerplant.submit(std::move(task), true);
-                            }
-                        }
-                        catch (const std::exception& ex) {
-                            PowerPlant::log<NUClear::ERROR>("There was an exception while generating a reaction",
-                                                            ex.what());
-                        }
-                        catch (...) {
-                            PowerPlant::log<NUClear::ERROR>(
-                                "There was an unknown exception while generating a reaction");
-                        }
+                        // Set our thread local store data each time (as during direct it can be overwritten)
+                        store::ThreadStore<std::shared_ptr<DataType>>::value = &data;
+                        powerplant.submit(reaction->get_task(), true);
                     }
 
                     // Unset our thread local store data

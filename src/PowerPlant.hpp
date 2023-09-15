@@ -148,12 +148,29 @@ public:
     void install();
 
     /**
+     * @brief Generic submit function for submitting tasks to the thread pool.
+     *
+     * @param id        an id for ordering the task
+     * @param priority  the priority of the task between 0 and 1000
+     * @param group     the details of the execution group this task will run in
+     * @param pool      the details of the thread pool this task will run from
+     * @param immediate if this task should run immediately in the current thread
+     * @param task      the wrapped function to be executed
+     */
+    void submit(const uint64_t& id,
+                const int& priority,
+                const util::GroupDescriptor& group,
+                const util::ThreadPoolDescriptor& pool,
+                const bool& immediate,
+                std::function<void()>&& task);
+
+    /**
      * @brief Submits a new task to the ThreadPool to be queued and then executed.
      *
      * @param task The Reaction task to be executed in the thread pool
      * @param immediate if this task should run immediately in the current thread
      */
-    void submit(std::unique_ptr<threading::ReactionTask>&& task, const bool& immediate = false);
+    void submit(std::unique_ptr<threading::ReactionTask>&& task, const bool& immediate = false) noexcept;
 
     /**
      * @brief Log a message through NUClear's system.

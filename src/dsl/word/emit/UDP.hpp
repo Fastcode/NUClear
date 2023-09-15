@@ -21,6 +21,7 @@
 
 #include "../../../PowerPlant.hpp"
 #include "../../../util/FileDescriptor.hpp"
+#include "../../../util/network/if_number_from_address.hpp"
 #include "../../../util/platform.hpp"
 #include "../../../util/serialise/Serialise.hpp"
 #include "../../store/DataStore.hpp"
@@ -46,12 +47,10 @@ namespace dsl {
              *  Anything emitted over the UDP network must be serialisable.
              *
              * @param data      the data to emit
-             * @param to_addr   a string or host endian integer specifying the ip to send the packet to
+             * @param to_addr   a string specifying the address to send this packet to
              * @param to_port   the port to send this packet to in host endian
-             * @param from_addr Optional.  A string or host endian integer specifying the local ip to send the packet
-             *                  from.  Defaults to INADDR_ANY.
-             * @param from_port Optional.  The port to send this from to in host endian or 0 to automatically choose a
-             *                  port. Defaults to 0.
+             * @param from_addr Optional. The address to send this from or "" to automatically choose an address.
+             * @param from_port Optional. The port to send this from in host endian or 0 to automatically choose a port.
              * @tparam DataType the datatype of the object to emit
              */
             template <typename DataType>
@@ -59,68 +58,96 @@ namespace dsl {
 
                 static inline void emit(PowerPlant& /*powerplant*/,
                                         std::shared_ptr<DataType> data,
-                                        in_addr_t to_addr,
+                                        const std::string& to_addr,
                                         in_port_t to_port,
-                                        in_addr_t from_addr,
-                                        in_port_t from_port) {
+                                        const std::string& from_addr = "",
+                                        in_port_t from_port          = 0) {
 
-                    sockaddr_in src{};
-                    sockaddr_in target{};
-                    std::memset(&src, 0, sizeof(sockaddr_in));
-                    std::memset(&target, 0, sizeof(sockaddr_in));
+                    // Resolve our addresses
+                    const util::network::sock_t remote = util::network::resolve(to_addr, to_port);
+                    const bool multicast =
+                        remote.sock.sa_family == AF_INET    ? ((remote.ipv4.sin_addr.s_addr >> 28) == 0xE)
+                        : remote.sock.sa_family == AF_INET6 ? ((remote.ipv6.sin6_addr.s6_addr[0] & 0xFF) == 0xFF)
+                                                            : false;
 
-                    // Get socket addresses for our source and target
-                    src.sin_family      = AF_INET;
-                    src.sin_addr.s_addr = htonl(from_addr);
-                    src.sin_port        = htons(from_port);
-
-                    target.sin_family      = AF_INET;
-                    target.sin_addr.s_addr = htonl(to_addr);
-                    target.sin_port        = htons(to_port);
-
-                    // Work out if we are sending to a multicast address
-                    const bool multicast = ((to_addr >> 28) == 14);
+                    // If we are not provided a from address, use any from address
+                    util::network::sock_t local{};
+                    if (from_addr.empty()) {
+                        // By default have the settings of local match remote (except address and port)
+                        local = remote;
+                        switch (local.sock.sa_family) {
+                            case AF_INET: {
+                                local.ipv4.sin_port        = htons(from_port);
+                                local.ipv4.sin_addr.s_addr = htonl(INADDR_ANY);
+                            } break;
+                            case AF_INET6: {
+                                local.ipv6.sin6_port = htons(from_port);
+                                local.ipv6.sin6_addr = IN6ADDR_ANY_INIT;
+                            } break;
+                            default: throw std::runtime_error("Unknown socket family");
+                        }
+                    }
+                    else {
+                        local = util::network::resolve(from_addr, from_port);
+                        if (local.sock.sa_family != remote.sock.sa_family) {
+                            throw std::runtime_error("to and from addresses are not the same family");
+                        }
+                    }
 
                     // Open a socket to send the datagram from
-                    util::FileDescriptor fd = ::socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-                    if (fd < 0) {
-                        throw std::system_error(network_errno,
-                                                std::system_category(),
-                                                "We were unable to open the UDP socket");
+                    util::FileDescriptor fd = ::socket(local.sock.sa_family, SOCK_DGRAM, IPPROTO_UDP);
+                    if (!fd.valid()) {
+                        throw std::system_error(network_errno, std::system_category(), "Unable to open the UDP socket");
                     }
 
-                    // If we need to, bind to a port on our end
-                    if (from_addr != 0 || from_port != 0) {
-                        if (::bind(fd, reinterpret_cast<sockaddr*>(&src), sizeof(sockaddr)) != 0) {
-                            throw std::system_error(network_errno,
-                                                    std::system_category(),
-                                                    "We were unable to bind the UDP socket to the port");
+                    // If we are using multicast and we have a specific from_addr we need to tell the system to use the
+                    // correct interface
+                    if (multicast && !from_addr.empty()) {
+                        if (local.sock.sa_family == AF_INET) {
+                            // Set our transmission interface for the multicast socket
+                            if (::setsockopt(fd,
+                                             IPPROTO_IP,
+                                             IP_MULTICAST_IF,
+                                             reinterpret_cast<const char*>(&local.ipv4.sin_addr),
+                                             sizeof(local.ipv4.sin_addr))
+                                < 0) {
+                                throw std::system_error(network_errno,
+                                                        std::system_category(),
+                                                        "Unable to use the requested interface for multicast");
+                            }
+                        }
+                        else if (local.sock.sa_family == AF_INET6) {
+                            // Set our transmission interface for the multicast socket
+                            auto if_number = util::network::if_number_from_address(local.ipv6);
+                            if (::setsockopt(fd,
+                                             IPPROTO_IPV6,
+                                             IPV6_MULTICAST_IF,
+                                             reinterpret_cast<const char*>(&if_number),
+                                             sizeof(if_number))
+                                < 0) {
+                                throw std::system_error(network_errno,
+                                                        std::system_category(),
+                                                        "Unable to use the requested interface for multicast");
+                            }
                         }
                     }
 
-                    // If we are using multicast and we have a specific from_addr we need to tell the system to use it
-                    if (multicast && from_addr != 0) {
-                        // Set our transmission interface for the multicast socket
-                        if (::setsockopt(fd,
-                                         IPPROTO_IP,
-                                         IP_MULTICAST_IF,
-                                         reinterpret_cast<const char*>(&src.sin_addr),
-                                         sizeof(src.sin_addr))
-                            < 0) {
+                    // Bind a local port if requested
+                    if (!from_addr.empty() || from_port != 0) {
+                        if (::bind(fd, &local.sock, local.size()) != 0) {
                             throw std::system_error(network_errno,
                                                     std::system_category(),
-                                                    "We were unable to use the requested interface for multicast");
+                                                    "Unable to bind the UDP socket to the port");
                         }
                     }
 
-                    // This isn't the greatest code, but lets assume our users don't send broadcasts they don't mean
-                    // to...
+                    // Assume that if the user is sending a broadcast they want to enable broadcasting
                     int yes = 1;
                     if (::setsockopt(fd, SOL_SOCKET, SO_BROADCAST, reinterpret_cast<const char*>(&yes), sizeof(yes))
                         < 0) {
                         throw std::system_error(network_errno,
                                                 std::system_category(),
-                                                "We were unable to enable broadcasting on this socket");
+                                                "Unable to enable broadcasting on this socket");
                     }
 
                     // Serialise to our payload
@@ -131,83 +158,13 @@ namespace dsl {
                                  payload.data(),
                                  static_cast<socklen_t>(payload.size()),
                                  0,
-                                 reinterpret_cast<sockaddr*>(&target),
-                                 sizeof(sockaddr_in))
+                                 &remote.sock,
+                                 remote.size())
                         < 0) {
                         throw std::system_error(network_errno,
                                                 std::system_category(),
-                                                "We were unable to send the UDP message");
+                                                "Unable to send the UDP message");
                     }
-                }
-
-                // String ip addresses
-                static inline void emit(PowerPlant& powerplant,
-                                        std::shared_ptr<DataType> data,
-                                        const std::string& to_addr,
-                                        in_port_t to_port,
-                                        const std::string& from_addr,
-                                        in_port_t from_port) {
-
-                    in_addr addr{};
-
-                    ::inet_pton(AF_INET, to_addr.c_str(), &addr);
-                    in_addr_t to = ntohl(addr.s_addr);
-
-                    ::inet_pton(AF_INET, from_addr.c_str(), &addr);
-                    in_addr_t from = ntohl(addr.s_addr);
-
-                    emit(powerplant, data, to, to_port, from, from_port);
-                }
-
-                static inline void emit(PowerPlant& powerplant,
-                                        std::shared_ptr<DataType> data,
-                                        const std::string& to_addr,
-                                        in_port_t to_port,
-                                        in_addr_t from_addr,
-                                        in_port_t from_port) {
-
-                    in_addr addr{};
-
-                    ::inet_pton(AF_INET, to_addr.c_str(), &addr);
-                    in_addr_t to = ntohl(addr.s_addr);
-
-                    emit(powerplant, data, to, to_port, from_addr, from_port);
-                }
-
-                static inline void emit(PowerPlant& powerplant,
-                                        std::shared_ptr<DataType> data,
-                                        in_addr_t to_addr,
-                                        in_port_t to_port,
-                                        const std::string& from_addr,
-                                        in_port_t from_port) {
-
-                    in_addr addr{};
-
-                    ::inet_pton(AF_INET, from_addr.c_str(), &addr);
-                    in_addr_t from = ntohl(addr.s_addr);
-
-                    emit(powerplant, data, to_addr, to_port, from, from_port);
-                }
-
-                // No from address
-                static inline void emit(PowerPlant& powerplant,
-                                        std::shared_ptr<DataType> data,
-                                        in_addr_t to_addr,
-                                        in_port_t to_port) {
-                    emit(powerplant, data, to_addr, to_port, INADDR_ANY, in_port_t(0));
-                }
-
-                static inline void emit(PowerPlant& powerplant,
-                                        std::shared_ptr<DataType> data,
-                                        const std::string& to_addr,
-                                        in_port_t to_port) {
-
-                    in_addr addr{};
-
-                    ::inet_pton(AF_INET, to_addr.c_str(), &addr);
-                    in_addr_t to = ntohl(addr.s_addr);
-
-                    emit(powerplant, data, to, to_port, INADDR_ANY, in_port_t(0));
                 }
             };
 

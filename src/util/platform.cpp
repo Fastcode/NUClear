@@ -44,7 +44,7 @@ void initialize_WSARecvMsg() {
         throw std::runtime_error("We could not get WSARecvMsg from the OS");
     }
 
-    closesocket(sock);
+    ::closesocket(sock);
 }
 
 namespace NUClear {

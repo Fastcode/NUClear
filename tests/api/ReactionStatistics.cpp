@@ -47,26 +47,26 @@ public:
 
         on<Trigger<ReactionStatistics>>().then("Reaction Stats Handler", [this](const ReactionStatistics& stats) {
             // If we are seeing ourself, fail
-            REQUIRE(stats.identifier[0] != "Reaction Stats Handler");
+            REQUIRE(stats.identifiers.name != "Reaction Stats Handler");
 
             // If we are seeing the other reaction statistics handler, fail
-            REQUIRE(stats.identifier[0] != "Reaction Stats Handler 2");
+            REQUIRE(stats.identifiers.name != "Reaction Stats Handler 2");
 
             // If we are seeing the other reaction statistics handler, fail
-            REQUIRE(stats.identifier[0] != "NoStats");
+            REQUIRE(stats.identifiers.name != "NoStats");
 
             // Flag if we have seen the message handler
-            if (stats.identifier[0] == "Message Handler") {
+            if (stats.identifiers.name == "Message Handler") {
                 seen_message0 = true;
             }
             // Flag if we have seen the startup handler
-            else if (stats.identifier[0] == "Startup Handler") {
+            else if (stats.identifiers.name == "Startup Handler") {
                 seen_message_startup = true;
             }
 
             // Ensure exceptions are passed through correctly in the exception handler
             if (stats.exception) {
-                REQUIRE(stats.identifier[0] == "Exception Handler");
+                REQUIRE(stats.identifiers.name == "Exception Handler");
                 try {
                     std::rethrow_exception(stats.exception);
                 }

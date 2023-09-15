@@ -42,6 +42,9 @@ project(
   LANGUAGES C CXX
 )
 
+# NUClear targets c++14
+set(CMAKE_CXX_STANDARD 14)
+
 # Determine if NUClear is built as a subproject (using add_subdirectory) or if it is the master project.
 set(MASTER_PROJECT OFF)
 if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
@@ -54,9 +57,21 @@ option(CI_BUILD "Enable build options for building in the CI server" OFF)
 # Default not to run the clang-tidy checks, default to whatever our CI_BUILD is
 option(ENABLE_CLANG_TIDY "Enable building with clang-tidy checks.")
 if(ENABLE_CLANG_TIDY)
-  set(CLANG_TIDY_ARGS "clang-tidy" "--use-color")
+  # Search for clang-tidy-15 first as this is the version installed in CI
+  find_program(CLANG_TIDY_EXECUTABLE NAMES clang-tidy-15 clang-tidy)
+  if(NOT CLANG_TIDY_EXECUTABLE)
+    message(FATAL_ERROR "clang-tidy-15 not found.")
+  endif()
+
+  # Report clang-tidy executable details
+  execute_process(COMMAND "${CLANG_TIDY_EXECUTABLE}" "--version" OUTPUT_VARIABLE CLANG_TIDY_VERSION)
+  string(REGEX REPLACE ".*LLVM version ([0-9.]*).*" "\\1" CLANG_TIDY_VERSION "${CLANG_TIDY_VERSION}")
+  message(STATUS "Found clang-tidy: ${CLANG_TIDY_EXECUTABLE} ${CLANG_TIDY_VERSION}")
+
+  # Build clang-tidy command line
+  set(CLANG_TIDY_ARGS "${CLANG_TIDY_EXECUTABLE}" "--use-color" "--config-file=${PROJECT_SOURCE_DIR}/.clang-tidy")
   if(CI_BUILD)
-    set(CLANG_TIDY_ARGS "clang-tidy" "--use-color" "-warnings-as-errors=*")
+    set(CLANG_TIDY_ARGS "${CLANG_TIDY_EXECUTABLE}" "-warnings-as-errors=*")
   endif(CI_BUILD)
   set(CMAKE_CXX_CLANG_TIDY "${CLANG_TIDY_ARGS}" "--extra-arg=-std=c++14")
   set(CMAKE_C_CLANG_TIDY "${CLANG_TIDY_ARGS}" "--extra-arg=-std=c99")
@@ -65,7 +80,11 @@ endif(ENABLE_CLANG_TIDY)
 # If we are doing a CI build then we want to enable -Werror when compiling warnings are bad. We will also make it fail
 # if clang-tidy has an error
 if(CI_BUILD)
-  add_compile_options(-Werror)
+  if(CMAKE_CXX_COMPILER_ID MATCHES MSVC)
+    add_compile_options(/WX)
+  else()
+    add_compile_options(-Werror)
+  endif()
 endif(CI_BUILD)
 
 # When using valgrind data race detector or helgrind (both are for debugging issues with threading and data races)

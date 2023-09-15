@@ -202,15 +202,8 @@ namespace extension {
                                             // Store the event in our thread local cache
                                             IO::ThreadEventStore::value = &e;
 
-                                            // Submit the task (which should run the get)
-                                            try {
-                                                auto task = it->reaction->get_task();
-                                                if (task) {
-                                                    powerplant.submit(std::move(task));
-                                                }
-                                            }
-                                            catch (...) {
-                                            }
+                                            // Submit the task
+                                            powerplant.submit(it->reaction->get_task());
 
                                             // Reset our value
                                             IO::ThreadEventStore::value = nullptr;

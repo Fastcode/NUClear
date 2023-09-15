@@ -105,30 +105,17 @@ namespace dsl {
                  */
                 auto idle_reaction = std::make_shared<threading::Reaction>(
                     always_reaction->reactor,
-                    std::vector<std::string>{always_reaction->identifier[0] + " - IDLE Task",
-                                             always_reaction->identifier[1],
-                                             always_reaction->identifier[2],
-                                             always_reaction->identifier[3]},
+                    threading::ReactionIdentifiers{always_reaction->identifiers.name + " - IDLE Task",
+                                                   always_reaction->identifiers.reactor,
+                                                   always_reaction->identifiers.dsl,
+                                                   always_reaction->identifiers.function},
                     [always_reaction](threading::Reaction& idle_reaction) -> util::GeneratedCallback {
                         auto callback = [&idle_reaction, always_reaction](threading::ReactionTask& /*task*/) {
                             // Get a task for the always reaction and submit it to the scheduler
-                            auto always_task = always_reaction->get_task();
-                            if (always_task) {
-                                always_reaction->reactor.powerplant.submit(std::move(always_task));
-                            }
+                            always_reaction->reactor.powerplant.submit(always_reaction->get_task());
 
                             // Get a task for the idle reaction and submit it to the scheduler
-                            auto idle_task = idle_reaction.get_task();
-                            if (idle_task) {
-                                // Set the thread pool on the task
-                                idle_task->thread_pool_descriptor = DSL::pool(*always_reaction);
-
-                                // Make sure that idle reaction always has lower priority than the always reaction
-                                idle_task->priority = DSL::priority(*always_reaction) - 1;
-
-                                // Submit the task to be run
-                                idle_reaction.reactor.powerplant.submit(std::move(idle_task));
-                            }
+                            idle_reaction.reactor.powerplant.submit(idle_reaction.get_task());
                         };
 
                         // Make sure that idle reaction always has lower priority than the always reaction
@@ -152,25 +139,16 @@ namespace dsl {
                 });
 
                 // Get a task for the always reaction and submit it to the scheduler
-                auto always_task = always_reaction->get_task();
-                if (always_task) {
-                    always_reaction->reactor.powerplant.submit(std::move(always_task));
-                }
+                always_reaction->reactor.powerplant.submit(always_reaction->get_task());
 
                 // Get a task for the idle reaction and submit it to the scheduler
-                auto idle_task = idle_reaction->get_task();
-                if (idle_task) {
-                    idle_reaction->reactor.powerplant.submit(std::move(idle_task));
-                }
+                idle_reaction->reactor.powerplant.submit(idle_reaction->get_task());
             }
 
             template <typename DSL>
             static inline void postcondition(threading::ReactionTask& task) {
                 // Get a task for the always reaction and submit it to the scheduler
-                auto new_task = task.parent.get_task();
-                if (new_task) {
-                    task.parent.reactor.powerplant.submit(std::move(new_task));
-                }
+                task.parent.reactor.powerplant.submit(task.parent.get_task());
             }
         };
 

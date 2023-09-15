@@ -67,10 +67,7 @@ namespace extension {
 
                     // Execute on our interested reactions
                     for (auto it = rs.first; it != rs.second; ++it) {
-                        auto task = it->second->get_task();
-                        if (task) {
-                            powerplant.submit(std::move(task));
-                        }
+                        powerplant.submit(it->second->get_task());
                     }
                 }
 
@@ -146,14 +143,11 @@ namespace extension {
                     listen_handles.clear();
                 }
 
-                // Read the new configuration
-                const std::string name             = config.name.empty() ? util::get_hostname() : config.name;
-                const std::string announce_address = config.announce_address;
-                const in_port_t announce_port      = config.announce_port;
-                const uint16_t mtu                 = config.mtu;
+                // Name becomes hostname by default if not set
+                const std::string name = config.name.empty() ? util::get_hostname() : config.name;
 
                 // Reset our network using this configuration
-                network.reset(name, announce_address, announce_port, mtu);
+                network.reset(name, config.announce_address, config.announce_port, config.bind_address, config.mtu);
 
                 // Execution handle
                 process_handle =

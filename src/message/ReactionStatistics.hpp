@@ -24,6 +24,7 @@
 #include <vector>
 
 #include "../clock.hpp"
+#include "../threading/ReactionIdentifiers.hpp"
 
 namespace NUClear {
 namespace message {
@@ -33,8 +34,7 @@ namespace message {
      */
     struct ReactionStatistics {
 
-        ReactionStatistics() = default;
-        ReactionStatistics(std::vector<std::string> identifier,
+        ReactionStatistics(threading::ReactionIdentifiers identifiers,
                            uint64_t reaction_id,
                            uint64_t task_id,
                            uint64_t cause_reaction_id,
@@ -43,7 +43,7 @@ namespace message {
                            const clock::time_point& start,
                            const clock::time_point& finish,
                            std::exception_ptr exception)
-            : identifier(std::move(identifier))
+            : identifiers(std::move(identifiers))
             , reaction_id(reaction_id)
             , task_id(task_id)
             , cause_reaction_id(cause_reaction_id)
@@ -54,7 +54,7 @@ namespace message {
             , exception(std::move(exception)) {}
 
         /// @brief A string containing the username/on arguments/and callback name of the reaction.
-        std::vector<std::string> identifier{};
+        threading::ReactionIdentifiers identifiers;
         /// @brief The id of this reaction.
         uint64_t reaction_id{0};
         /// @brief The task id of this reaction.

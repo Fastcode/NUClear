@@ -70,10 +70,10 @@ namespace util {
      */
     template <typename Function, int Shared, int Start, int End, typename... Arguments>
     auto apply_function_fusion_call(std::tuple<Arguments...>&& args)
-        -> decltype(apply_function_fusion_call<Function>(std::forward<std::tuple<Arguments...>>(args),
+        -> decltype(apply_function_fusion_call<Function>(std::move(args),
                                                          GenerateSequence<0, Shared>(),
                                                          GenerateSequence<Start, End>())) {
-        return apply_function_fusion_call<Function>(std::forward<std::tuple<Arguments...>>(args),
+        return apply_function_fusion_call<Function>(std::move(args),
                                                     GenerateSequence<0, Shared>(),
                                                     GenerateSequence<Start, End>());
     }
@@ -163,14 +163,14 @@ namespace util {
          *
          * @return A tuple of the returned values, or if the return value was a tuple fuse it
          */
-        static inline auto call(Arguments&&... args)
-            -> decltype(std::tuple_cat(tuplify(call_one<CurrentFunction>(CurrentRange(),
-                                                                         std::forward<Arguments>(args)...)),
-                                       NextStep::call(std::forward<Arguments>(args)...))) {
+        template <typename... Args>
+        static inline auto call(Args&&... args)
+            -> decltype(std::tuple_cat(tuplify(call_one<CurrentFunction>(CurrentRange(), std::forward<Args>(args)...)),
+                                       NextStep::call(std::forward<Args>(args)...))) {
 
             // Call each on a separate line to preserve order of execution
-            auto current   = tuplify(call_one<CurrentFunction>(CurrentRange(), std::forward<Arguments>(args)...));
-            auto remainder = NextStep::call(std::forward<Arguments>(args)...);
+            auto current   = tuplify(call_one<CurrentFunction>(CurrentRange(), std::forward<Args>(args)...));
+            auto remainder = NextStep::call(std::forward<Args>(args)...);
 
             return std::tuple_cat(std::move(current), std::move(remainder));
         }

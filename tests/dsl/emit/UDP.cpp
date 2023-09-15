@@ -37,20 +37,20 @@ public:
             switch (packet.payload.front()) {
                 case 'a':
                 case 'b':
-                    REQUIRE(packet.remote.address == INADDR_LOOPBACK);
-                    REQUIRE(packet.local.address == INADDR_LOOPBACK);
+                    REQUIRE(packet.remote.address == "127.0.0.1");
+                    REQUIRE(packet.local.address == "127.0.0.1");
                     REQUIRE(packet.local.port == bound_port);
                     break;
                 case 'c':
-                    REQUIRE(packet.remote.address == INADDR_LOOPBACK);
+                    REQUIRE(packet.remote.address == "127.0.0.1");
                     REQUIRE(packet.remote.port == 12345);
-                    REQUIRE(packet.local.address == INADDR_LOOPBACK);
+                    REQUIRE(packet.local.address == "127.0.0.1");
                     REQUIRE(packet.local.port == bound_port);
                     break;
                 case 'd':
-                    REQUIRE(packet.remote.address == INADDR_LOOPBACK);
+                    REQUIRE(packet.remote.address == "127.0.0.1");
                     REQUIRE(packet.remote.port == 54321);
-                    REQUIRE(packet.local.address == INADDR_LOOPBACK);
+                    REQUIRE(packet.local.address == "127.0.0.1");
                     REQUIRE(packet.local.port == bound_port);
                     break;
             }
@@ -63,9 +63,9 @@ public:
         on<Startup>().then([this] {
             // Send using a string
             emit<Scope::UDP>(std::make_unique<char>('a'), "127.0.0.1", bound_port);
-            emit<Scope::UDP>(std::make_unique<char>('b'), INADDR_LOOPBACK, bound_port);
-            emit<Scope::UDP>(std::make_unique<char>('c'), "127.0.0.1", bound_port, INADDR_ANY, in_port_t(12345));
-            emit<Scope::UDP>(std::make_unique<char>('d'), INADDR_LOOPBACK, bound_port, INADDR_ANY, in_port_t(54321));
+            emit<Scope::UDP>(std::make_unique<char>('b'), "127.0.0.1", bound_port);
+            emit<Scope::UDP>(std::make_unique<char>('c'), "127.0.0.1", bound_port, "", in_port_t(12345));
+            emit<Scope::UDP>(std::make_unique<char>('d'), "127.0.0.1", bound_port, "", in_port_t(54321));
         });
     }
 };

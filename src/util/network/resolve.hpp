@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2013      Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
- *               2014-2017 Trent Houliston <trent@houliston.me>
+ *               2014-2023 Trent Houliston <trent@houliston.me>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -15,26 +15,34 @@
  * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-#include "Reaction.hpp"
+
+#ifndef UTILITY_NETWORK_RESOLVE_HPP
+#define UTILITY_NETWORK_RESOLVE_HPP
+
+#include <string>
+
+#include "sock_t.hpp"
 
 namespace NUClear {
-namespace threading {
+namespace util {
+    namespace network {
 
-    // Initialize our reaction source
-    std::atomic<uint64_t> Reaction::reaction_id_source(0);  // NOLINT
+        /**
+         * @brief Resolves a hostname and port into a socket address
+         *
+         * @details
+         *  This function will resolve a hostname and port into a socket address.
+         *  It will return a socket address that can be used to connect to the specified host and port.
+         *
+         * @param address the hostname or IP address to resolve
+         * @param port the port to connect to
+         *
+         * @return a socket address that can be used to connect to the specified host and port
+         */
+        sock_t resolve(const std::string& address, const uint16_t& port);
 
-    Reaction::Reaction(Reactor& reactor, ReactionIdentifiers&& identifiers, TaskGenerator&& generator)
-        : reactor(reactor), identifiers(identifiers), id(++reaction_id_source), generator(generator) {}
-
-    void Reaction::unbind() {
-        // Unbind
-        for (auto& u : unbinders) {
-            u(*this);
-        }
-    }
-
-    bool Reaction::is_enabled() const {
-        return enabled;
-    }
-}  // namespace threading
+    }  // namespace network
+}  // namespace util
 }  // namespace NUClear
+
+#endif  // UTILITY_NETWORK_RESOLVE_HPP
