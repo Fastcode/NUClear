@@ -256,7 +256,7 @@ namespace threading {
             // Wait for something to happen!
             // We don't have a condition on this lock as the check would be this doing this loop again to see if there
             // are any tasks we can execute (checking all the groups) so therefore we already did the entry predicate.
-            // Putting a condition on this would stop spurious wakeups of which the cost would be equal to running again
+            // Putting a condition on this would stop spurious wakeups of which the cost would be equal to the loop.
             condition.wait(lock);  // NOSONAR
         }
 
