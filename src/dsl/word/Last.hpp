@@ -40,6 +40,8 @@ namespace dsl {
          */
         template <size_t n, typename T>
         struct LastItemStorage {
+            LastItemStorage() = default;
+
             /**
              * @brief Constructs a LastItemStorage object with the given data.
              *
