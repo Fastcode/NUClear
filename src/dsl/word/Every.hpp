@@ -39,7 +39,7 @@ namespace dsl {
 
         template <typename Unit, std::intmax_t num, std::intmax_t den>
         struct Per<std::chrono::duration<Unit, std::ratio<num, den>>> : public clock::duration {
-            Per(int ticks)
+            explicit Per(int ticks)
                 : clock::duration(std::lround((double(num) / double(ticks * den))
                                               * (double(clock::period::den) / double(clock::period::num)))) {}
         };

@@ -34,7 +34,7 @@ namespace dsl {
          */
         template <typename Word>
         struct Unbind {
-            Unbind(uint64_t id) : id(id){};
+            explicit Unbind(const uint64_t& id) : id(id){};
 
             /// The id of the task to unbind
             const uint64_t id{0};
