@@ -44,7 +44,7 @@ jobs:
           for f in build/tests/individual/*; do echo "Testing $f"; ./$f; done
 
       - name: Collect coverage into one XML report
-        run: gcovr --exclude-unreachable-branches --sonarqube > coverage.xml
+        run: gcovr --exclude-unreachable-branches --exclude-noncode-lines --exclude-throw-branche --sonarqube > coverage.xml
 
       - name: Run sonar-scanner
         env:
