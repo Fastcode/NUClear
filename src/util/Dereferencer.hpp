@@ -51,7 +51,7 @@ namespace util {
         T& value;
 
     public:
-        Dereferencer(T& value) : value(value) {}
+        explicit Dereferencer(T& value) : value(value) {}
 
         // We can return the type as normal
         operator T&() {
