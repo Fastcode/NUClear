@@ -134,8 +134,8 @@ namespace extension {
                             }
                         }
                         else {
-                            // Spinlock until we get to the time
                             while (NUClear::clock::now() < tasks.front().time) {
+                                // Spinlock until we get to the time
                             }
 
                             // Run our task and if it returns false remove it
