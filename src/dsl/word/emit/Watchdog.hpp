@@ -45,8 +45,8 @@ namespace dsl {
                 using WatchdogStore =
                     util::TypeMap<WatchdogGroup, MapType, std::map<MapType, NUClear::clock::time_point>>;
 
-                WatchdogServicer() : when(NUClear::clock::now()), data() {}
-                WatchdogServicer(const RuntimeType& data) : when(NUClear::clock::now()), data(data) {}
+                WatchdogServicer() {}
+                explicit WatchdogServicer(const RuntimeType& data) : when(NUClear::clock::now()), data(data) {}
 
                 /**
                  * @brief *  Services the watchdog
@@ -65,8 +65,8 @@ namespace dsl {
                 }
 
             private:
-                NUClear::clock::time_point when;
-                RuntimeType data;
+                NUClear::clock::time_point when{NUClear::clock::now()};
+                RuntimeType data{};
             };
 
             /**
@@ -83,7 +83,7 @@ namespace dsl {
             struct WatchdogServicer<WatchdogGroup, void> {
                 using WatchdogStore = util::TypeMap<WatchdogGroup, void, NUClear::clock::time_point>;
 
-                WatchdogServicer() : when(NUClear::clock::now()) {}
+                WatchdogServicer() {}
 
                 /**
                  * @brief *  Services the watchdog
@@ -101,7 +101,7 @@ namespace dsl {
                 }
 
             private:
-                NUClear::clock::time_point when;
+                NUClear::clock::time_point when{NUClear::clock::now()};
             };
 
             /**
