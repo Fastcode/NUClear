@@ -18,16 +18,20 @@
 
 #include "demangle.hpp"
 
+#include <regex>
+
 // Windows symbol demangler
 #ifdef _WIN32
-    // Turn off clang-format to avoid moving platform.h after Dbghelp.h
-    // (Dbghelp.h depends on types from Windows.h)
-    // clang-format off
-#    include "platform.hpp"
-#    include <Dbghelp.h>
 
-#    include <mutex>
-// clang-format on
+    #include "platform.hpp"
+
+// Dbghelp.h depends on types from Windows.h so it needs to be included first
+// Separate to always include platform.hpp (which includes windows.h) first
+
+    #include <Dbghelp.h>
+
+    #include <array>
+    #include <mutex>
 
     #pragma comment(lib, "Dbghelp.lib")
 
@@ -54,6 +58,11 @@ namespace util {
     }
 
     std::string demangle(const char* symbol) {
+        // If the symbol is the empty string then just return it
+        if (symbol != nullptr && symbol[0] == '\0') {
+            return symbol;
+        }
+
         std::lock_guard<std::mutex> lock(symbol_mutex);
 
         // Initialise the symbols if we have to
@@ -61,10 +70,15 @@ namespace util {
             init_symbols();
         }
 
-        char name[256];
+        std::array<char, 256> name{};
+        auto len = UnDecorateSymbolName(symbol, name.data(), DWORD(name.size()), 0);
 
-        if (int len = UnDecorateSymbolName(symbol, name, sizeof(name), 0)) {
-            return std::string(name, len);
+        if (len > 0) {
+            std::string demangled(name.data(), len);
+            demangled = std::regex_replace(demangled, std::regex(R"(struct\s+)"), "");
+            demangled = std::regex_replace(demangled, std::regex(R"(class\s+)"), "");
+            demangled = std::regex_replace(demangled, std::regex(R"(\s+)"), "");
+            return demangled;
         }
         else {
             return symbol;
@@ -94,11 +108,16 @@ namespace util {
      */
     std::string demangle(const char* symbol) {
 
-        int status = -4;  // some arbitrary value to eliminate the compiler warning
+        int status = -1;
         const std::unique_ptr<char, void (*)(void*)> res{abi::__cxa_demangle(symbol, nullptr, nullptr, &status),
                                                          std::free};
+        if (status == 0) {
+            std::string demangled = res.get();
+            demangled             = std::regex_replace(demangled, std::regex(R"(\s+)"), "");
+            return demangled;
+        }
 
-        return status == 0 ? res.get() : symbol;
+        return symbol;
     }
 
 }  // namespace util
