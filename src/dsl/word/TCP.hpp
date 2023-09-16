@@ -108,7 +108,7 @@ namespace dsl {
 
                 // Make our socket
                 util::FileDescriptor fd(::socket(address.sock.sa_family, SOCK_STREAM, IPPROTO_TCP),
-                                        [](fd_t fd) { ::shutdown(fd, SHUT_RDWR); });
+                                        [](const fd_t& f) { ::shutdown(f, SHUT_RDWR); });
 
                 if (!fd.valid()) {
                     throw std::system_error(network_errno, std::system_category(), "Unable to open the TCP socket");
