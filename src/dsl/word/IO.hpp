@@ -55,7 +55,7 @@ namespace dsl {
          * @brief This is emitted when an IO operation has finished.
          */
         struct IOFinished {
-            IOFinished(const uint64_t& id) : id(id) {}
+            explicit IOFinished(const uint64_t& id) : id(id) {}
             /// @brief The id of the reaction that has finished
             uint64_t id;
         };
