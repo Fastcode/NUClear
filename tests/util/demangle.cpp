@@ -68,6 +68,18 @@ SCENARIO("Test the demangle function correctly demangles symbols", "[util][deman
         }
     }
 
+    GIVEN("A nullptr as the symbol") {
+        const char* symbol = nullptr;
+
+        WHEN("Demangle is called") {
+            std::string result = demangle(symbol);
+
+            THEN("It should return an empty string") {
+                REQUIRE(result.empty());
+            }
+        }
+    }
+
     GIVEN("A symbol from a struct") {
         const char* symbol         = typeid(TestSymbol).name();
         const std::string expected = "TestSymbol";
