@@ -207,7 +207,7 @@ TEST_CASE("Testing listening for TCP connections and receiving data messages", "
         active_tests.push_back(V6_EPHEMERAL);
     }
 
-    NUClear::PowerPlant::Configuration config;
+    NUClear::Configuration config;
     config.thread_count = 2;
     NUClear::PowerPlant plant(config);
     plant.install<TestReactor>();

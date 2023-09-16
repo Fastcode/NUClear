@@ -62,7 +62,7 @@ public:
 
 TEST_CASE("Reactions with the Once DSL keyword only execute once", "[api][once]") {
 
-    NUClear::PowerPlant::Configuration config;
+    NUClear::Configuration config;
     config.thread_count = 1;
     NUClear::PowerPlant plant(config);
     plant.install<TestReactor>();

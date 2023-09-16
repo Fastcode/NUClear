@@ -54,7 +54,7 @@ public:
 
 TEST_CASE("Test a custom reactor that returns a type that needs dereferencing", "[api][custom_get]") {
 
-    NUClear::PowerPlant::Configuration config;
+    NUClear::Configuration config;
     config.thread_count = 1;
     NUClear::PowerPlant plant(config);
     plant.install<TestReactor>();

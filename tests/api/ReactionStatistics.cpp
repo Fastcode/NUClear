@@ -85,7 +85,7 @@ public:
 
 TEST_CASE("Testing reaction statistics functionality", "[api][reactionstatistics]") {
 
-    NUClear::PowerPlant::Configuration config;
+    NUClear::Configuration config;
     config.thread_count = 1;
     NUClear::PowerPlant plant(config);
     plant.install<stats_test::TestReactor>();

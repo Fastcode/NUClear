@@ -56,7 +56,7 @@ public:
 }  // namespace
 
 TEST_CASE("Sync events execute in order", "[api][sync][priority]") {
-    NUClear::PowerPlant::Configuration config;
+    NUClear::Configuration config;
     config.thread_count = 4;
     NUClear::PowerPlant plant(config);
 

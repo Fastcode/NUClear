@@ -75,7 +75,7 @@ public:
 
 TEST_CASE("Testing emit function fusion", "[api][emit][fusion]") {
 
-    NUClear::PowerPlant::Configuration config;
+    NUClear::Configuration config;
     config.thread_count = 1;
     NUClear::PowerPlant plant(config);
     plant.install<TestReactor>();

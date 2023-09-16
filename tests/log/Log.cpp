@@ -143,7 +143,7 @@ TEST_CASE("Testing the Log<>() function", "[api][log]") {
     // Local scope to force powerplant destruction
     {
         // Build with one thread
-        NUClear::PowerPlant::Configuration config;
+        NUClear::Configuration config;
         config.thread_count = 1;
         NUClear::PowerPlant plant(config);
 

@@ -71,7 +71,7 @@ void test_results(const std::vector<NUClear::clock::time_point>& times) {
 
 TEST_CASE("Testing the Every<> DSL word", "[api][every][per]") {
 
-    NUClear::PowerPlant::Configuration config;
+    NUClear::Configuration config;
     config.thread_count = 1;
     NUClear::PowerPlant plant(config);
     plant.install<TestReactor>();

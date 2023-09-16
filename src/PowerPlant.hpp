@@ -33,6 +33,7 @@
 #include <vector>
 
 // Utilities
+#include "Configuration.hpp"
 #include "LogLevel.hpp"
 #include "message/LogMessage.hpp"
 #include "threading/ReactionTask.hpp"
@@ -60,21 +61,6 @@ class PowerPlant {
     friend class Reactor;
 
 public:
-    /**
-     * @brief This class holds the configuration for a PowerPlant.
-     *
-     * @details
-     *  It configures the number of threads that will be in the PowerPlants thread pool
-     */
-    struct Configuration {
-        /// @brief The number of threads the system will use
-        size_t thread_count = std::thread::hardware_concurrency() == 0 ? 2 : std::thread::hardware_concurrency();
-    };
-
-    /// @brief Holds the configuration information for this PowerPlant (such as number of pool threads)
-    const Configuration configuration;
-
-
     // There can only be one powerplant, so this is it
     static PowerPlant* powerplant;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
@@ -83,9 +69,7 @@ public:
      *  Constructs a PowerPlant with the given configuration and provides access
      *  to argv for all reactors.
      *
-     * @details
-     *  If PowerPlant is constructed with argc and argv then a CommandLineArguments
-     *  message will be emitted and available to all reactors.
+     * @details Arguments passed to this function will be emitted as a CommandLineArguments message.
      *
      * @param config The PowerPlant's configuration
      * @param argc The number of command line arguments

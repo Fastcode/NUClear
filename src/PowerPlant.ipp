@@ -23,8 +23,7 @@
 namespace NUClear {
 
 // NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays)
-inline PowerPlant::PowerPlant(Configuration config, int argc, const char* argv[])
-    : configuration(config), scheduler(config.thread_count) {
+inline PowerPlant::PowerPlant(Configuration config, int argc, const char* argv[]) : scheduler(config.thread_count) {
 
     // Stop people from making more then one powerplant
     if (powerplant != nullptr) {

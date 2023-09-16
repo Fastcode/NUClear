@@ -81,7 +81,7 @@ public:
 
 TEST_CASE("Testing the with dsl keyword", "[api][with]") {
 
-    NUClear::PowerPlant::Configuration config;
+    NUClear::Configuration config;
     config.thread_count = 1;
     NUClear::PowerPlant plant(config);
     plant.install<TestReactor>();

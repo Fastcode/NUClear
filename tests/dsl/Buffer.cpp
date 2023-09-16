@@ -95,7 +95,7 @@ public:
 
 TEST_CASE("Test that Buffer and Single limit the number of concurrent executions", "[api][precondition][single]") {
 
-    NUClear::PowerPlant::Configuration config;
+    NUClear::Configuration config;
     config.thread_count = 1;
     NUClear::PowerPlant plant(config);
     plant.install<TestReactor>();

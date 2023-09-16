@@ -16,38 +16,22 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include <catch.hpp>
-#include <nuclear>
+#ifndef NUCLEAR_CONFIGURATION_HPP
+#define NUCLEAR_CONFIGURATION_HPP
 
-namespace {
+#include <cstddef>
+#include <thread>
 
-std::vector<int> events;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+namespace NUClear {
 
-template <int i>
-struct Extension {
-    template <typename DSL>
-    static inline void bind(const std::shared_ptr<NUClear::threading::Reaction>& /*reaction*/) {
-        events.push_back(i);
-    }
+/**
+ * @brief This class holds the configuration for a PowerPlant.
+ */
+struct Configuration {
+    /// @brief The number of threads the system will use
+    size_t thread_count = std::thread::hardware_concurrency() == 0 ? 2 : std::thread::hardware_concurrency();
 };
 
-class TestReactor : public NUClear::Reactor {
-public:
-    TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
+}  // namespace NUClear
 
-        on<Extension<0>, Extension<1>, Extension<2>, Extension<3>, Extension<4>>().then([] {});
-    }
-};
-
-}  // namespace
-
-
-TEST_CASE("Testing that the bind functions of extensions are executed in order", "[api][extension][bind]") {
-
-    NUClear::Configuration config;
-    config.thread_count = 1;
-    NUClear::PowerPlant plant(config);
-    plant.install<TestReactor>();
-
-    REQUIRE(events == std::vector<int>{0, 1, 2, 3, 4});
-}
+#endif  // NUCLEAR_CONFIGURATION_HPP

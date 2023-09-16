@@ -52,7 +52,7 @@ public:
 
 TEST_CASE("Test that Trigger statements get the correct data", "[api][trigger]") {
 
-    NUClear::PowerPlant::Configuration config;
+    NUClear::Configuration config;
     config.thread_count = 1;
     NUClear::PowerPlant plant(config);
     plant.install<TestReactor>();

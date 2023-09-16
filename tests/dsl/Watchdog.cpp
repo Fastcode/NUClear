@@ -94,7 +94,7 @@ public:
 
 TEST_CASE("Testing the Watchdog Smart Type", "[api][watchdog]") {
 
-    NUClear::PowerPlant::Configuration config;
+    NUClear::Configuration config;
     config.thread_count = 1;
     NUClear::PowerPlant plant(config);
     plant.install<TestReactor>();

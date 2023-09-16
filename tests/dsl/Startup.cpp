@@ -49,7 +49,7 @@ public:
 }  // namespace
 
 TEST_CASE("Testing the startup event is emitted at the start of the program", "[api][startup]") {
-    NUClear::PowerPlant::Configuration config;
+    NUClear::Configuration config;
     config.thread_count = 1;
     NUClear::PowerPlant plant(config);
     plant.install<TestReactor>();

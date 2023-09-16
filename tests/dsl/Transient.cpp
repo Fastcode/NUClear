@@ -127,7 +127,7 @@ public:
 }  // namespace
 
 TEST_CASE("Testing whether getters that return transient data can cache between calls", "[api][transient]") {
-    NUClear::PowerPlant::Configuration config;
+    NUClear::Configuration config;
     config.thread_count = 1;
     NUClear::PowerPlant plant(config);
     plant.install<TestReactor>();
