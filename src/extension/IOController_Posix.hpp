@@ -161,7 +161,7 @@ namespace extension {
                             throw std::system_error(network_errno,
                                                     std::system_category(),
                                                     "There was an error reading our notification pipe?");
-                        };
+                        }
                     }
                     // It's a regular handle
                     else {
