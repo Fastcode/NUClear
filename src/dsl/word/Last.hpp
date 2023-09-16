@@ -34,9 +34,9 @@ namespace dsl {
             // The items we are storing
             std::list<T> list;
 
-            LastItemStorage() : list() {}
-
-            LastItemStorage(T&& data) : list({std::move(data)}) {}
+            LastItemStorage() {}
+            explicit LastItemStorage(T&& data) : list({std::move(data)}) {}
+            explicit LastItemStorage(const T& data) : list({data}) {}
 
             template <typename Output>
             operator std::list<Output>() const {
