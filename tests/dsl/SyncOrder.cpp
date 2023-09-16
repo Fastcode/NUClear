@@ -18,10 +18,15 @@
 
 #include <catch.hpp>
 #include <nuclear>
+#include <numeric>
 #include <string>
 #include <vector>
 
+#include "test_util/TestBase.hpp"
+
 namespace {
+
+constexpr int N_EVENTS = 1000;
 
 struct Message {
     int val;
@@ -30,39 +35,38 @@ struct Message {
 
 struct ShutdownOnIdle {};
 
-std::vector<std::string> values;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+/// @brief Events that occur during the test
+std::vector<int> events;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
-class TestReactor : public NUClear::Reactor {
+class TestReactor : public test_util::TestBase<TestReactor> {
 public:
-    TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
+    TestReactor(std::unique_ptr<NUClear::Environment> environment) : TestBase(std::move(environment)) {
 
-        on<Trigger<Message>, Sync<TestReactor>>().then("SyncReaction", [](const Message& m) {
-            values.push_back("Received value " + std::to_string(m.val));
+        on<Trigger<Message>, Sync<TestReactor>>().then([](const Message& m) {  //
+            events.push_back(m.val);
         });
 
-        on<Trigger<ShutdownOnIdle>, Priority::IDLE>().then("ShutdownOnIdle", [this] { powerplant.shutdown(); });
-
         on<Startup>().then("Startup", [this] {
-            values.clear();
-            for (int i = 0; i < 1000; ++i) {
+            for (int i = 0; i < N_EVENTS; ++i) {
                 emit(std::make_unique<Message>(i));
             }
-            emit(std::make_unique<ShutdownOnIdle>());
         });
     }
 };
 }  // namespace
 
-TEST_CASE("Testing that the Sync priority queue word works correctly", "[api][sync][priority]") {
+TEST_CASE("Sync events execute in order", "[api][sync][priority]") {
     NUClear::PowerPlant::Configuration config;
-    config.thread_count = 2;
+    config.thread_count = 4;
     NUClear::PowerPlant plant(config);
 
     plant.install<TestReactor>();
     plant.start();
 
-    REQUIRE(values.size() == 1000);
-    for (int i = 0; i < 1000; ++i) {
-        CHECK(values[i] == "Received value " + std::to_string(i));
-    }
+
+    REQUIRE(events.size() == N_EVENTS);
+
+    std::vector<int> expected(events.size());
+    std::iota(expected.begin(), expected.end(), 0);
+    REQUIRE(events == expected);
 }

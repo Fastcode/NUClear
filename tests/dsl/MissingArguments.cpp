@@ -19,7 +19,12 @@
 #include <catch.hpp>
 #include <nuclear>
 
+#include "test_util/TestBase.hpp"
+
 namespace {
+
+/// @brief Events that occur during the test
+std::vector<std::string> events;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
 template <int i>
 struct Message {
@@ -27,24 +32,26 @@ struct Message {
     Message(int val) : val(val){};
 };
 
-class TestReactor : public NUClear::Reactor {
+class TestReactor : public test_util::TestBase<TestReactor> {
 public:
-    TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
+    TestReactor(std::unique_ptr<NUClear::Environment> environment) : TestBase(std::move(environment)) {
 
         on<Trigger<Message<1>>, With<Message<2>>, With<Message<3>>, With<Message<4>>>().then(
-            [this](const Message<2>& m2, const Message<4>& m4) {
-                REQUIRE(m2.val == 2 + 4);
-                REQUIRE(m4.val == 4 + 4);
-
-                powerplant.shutdown();
+            [](const Message<2>& m2, const Message<4>& m4) {
+                events.push_back("Message<2>: " + std::to_string(m2.val));
+                events.push_back("Message<4>: " + std::to_string(m4.val));
             });
 
         on<Startup>().then([this] {
             // Emit from message 4 to 1
-            emit(std::make_unique<Message<4>>(8));
-            emit(std::make_unique<Message<3>>(7));
-            emit(std::make_unique<Message<2>>(6));
-            emit(std::make_unique<Message<1>>(5));
+            events.push_back("Emitting Message<4>");
+            emit(std::make_unique<Message<4>>(4 * 4));
+            events.push_back("Emitting Message<3>");
+            emit(std::make_unique<Message<3>>(3 * 3));
+            events.push_back("Emitting Message<2>");
+            emit(std::make_unique<Message<2>>(2 * 2));
+            events.push_back("Emitting Message<1>");
+            emit(std::make_unique<Message<1>>(1 * 1));
         });
     }
 };
@@ -56,6 +63,20 @@ TEST_CASE("Testing that when arguments missing from the call it can still run", 
     config.thread_count = 1;
     NUClear::PowerPlant plant(config);
     plant.install<TestReactor>();
-
     plant.start();
+
+    const std::vector<std::string> expected = {
+        "Emitting Message<4>",
+        "Emitting Message<3>",
+        "Emitting Message<2>",
+        "Emitting Message<1>",
+        "Message<2>: 4",
+        "Message<4>: 16",
+    };
+
+    // Make an info print the diff in an easy to read way if we fail
+    INFO(test_util::diff_string(expected, events));
+
+    // Check the events fired in order and only those events
+    REQUIRE(events == expected);
 }

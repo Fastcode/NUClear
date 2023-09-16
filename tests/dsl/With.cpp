@@ -19,45 +19,87 @@
 #include <catch.hpp>
 #include <nuclear>
 
+#include "test_util/TestBase.hpp"
+
 namespace {
 
-struct DifferentOrderingMessage1 {
-    int a;
+/// @brief Events that occur during the test
+std::vector<std::string> events;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+
+struct Message {
+    Message(std::string data) : data(std::move(data)) {}
+    std::string data;
 };
-struct DifferentOrderingMessage2 {
-    int a;
-};
-struct DifferentOrderingMessage3 {
-    int a;
+struct Data {
+    Data(std::string data) : data(std::move(data)) {}
+    std::string data;
 };
 
-class DifferentOrderingReactor : public NUClear::Reactor {
+class TestReactor : public test_util::TestBase<TestReactor> {
 public:
-    DifferentOrderingReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
+    TestReactor(std::unique_ptr<NUClear::Environment> environment) : TestBase(std::move(environment)) {
         // Check that the lists are combined, and that the function args are in order
-        on<With<DifferentOrderingMessage1>, Trigger<DifferentOrderingMessage3>, With<DifferentOrderingMessage2>>().then(
-            [this](const DifferentOrderingMessage1&,
-                   const DifferentOrderingMessage3&,
-                   const DifferentOrderingMessage2&) { this->powerplant.shutdown(); });
+        on<Trigger<Message>, With<Data>>().then([](const Message& m, const Data& d) {  //
+            events.push_back("Message: " + m.data + " Data: " + d.data);
+        });
 
-        // Make sure we can pass an empty function in here
-        on<Trigger<DifferentOrderingMessage1>, With<DifferentOrderingMessage1, DifferentOrderingMessage2>>().then(
-            [] {});
+        on<Trigger<Step<1>>, Priority::LOW>().then([this] {
+            events.push_back("Emitting Data 1");
+            emit(std::make_unique<Data>("D1"));
+        });
+
+        on<Trigger<Step<2>>, Priority::LOW>().then([this] {
+            events.push_back("Emitting Data 2");
+            emit(std::make_unique<Data>("D2"));
+        });
+
+        on<Trigger<Step<3>>, Priority::LOW>().then([this] {
+            events.push_back("Emitting Message 1");
+            emit(std::make_unique<Message>("M1"));
+        });
+
+        on<Trigger<Step<4>>, Priority::LOW>().then([this] {
+            events.push_back("Emitting Data 3");
+            emit(std::make_unique<Data>("D3"));
+        });
+
+        on<Trigger<Step<5>>, Priority::LOW>().then([this] {
+            events.push_back("Emitting Message 2");
+            emit(std::make_unique<Message>("M2"));
+        });
+
+        on<Startup>().then([this] {
+            emit(std::make_unique<Step<1>>());
+            emit(std::make_unique<Step<2>>());
+            emit(std::make_unique<Step<3>>());
+            emit(std::make_unique<Step<4>>());
+            emit(std::make_unique<Step<5>>());
+        });
     }
 };
 }  // namespace
 
-TEST_CASE("Testing poorly ordered on arguments", "[api][with]") {
+TEST_CASE("Testing the with dsl keyword", "[api][with]") {
 
     NUClear::PowerPlant::Configuration config;
     config.thread_count = 1;
     NUClear::PowerPlant plant(config);
-    plant.install<DifferentOrderingReactor>();
+    plant.install<TestReactor>();
+    plant.start();
 
-    plant.emit(std::make_unique<DifferentOrderingMessage1>());
-    plant.emit(std::make_unique<DifferentOrderingMessage2>());
-    plant.emit(std::make_unique<DifferentOrderingMessage3>());
+    const std::vector<std::string> expected = {
+        "Emitting Data 1",
+        "Emitting Data 2",
+        "Emitting Message 1",
+        "Message: M1 Data: D2",
+        "Emitting Data 3",
+        "Emitting Message 2",
+        "Message: M2 Data: D3",
+    };
 
-    REQUIRE_NOTHROW(plant.start());
-    REQUIRE_FALSE(plant.running());
+    // Make an info print the diff in an easy to read way if we fail
+    INFO(test_util::diff_string(expected, events));
+
+    // Check the events fired in order and only those events
+    REQUIRE(events == expected);
 }

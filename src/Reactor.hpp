@@ -159,7 +159,7 @@ private:
     std::vector<threading::ReactionHandle> reaction_handles{};
 
 public:
-    /// @brief TODO
+    /// @brief The powerplant that this reactor is running in
     PowerPlant& powerplant;
 
     /// @brief The demangled string name of this reactor

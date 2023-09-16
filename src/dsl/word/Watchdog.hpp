@@ -266,11 +266,11 @@ namespace dsl {
 
                 // Check if our watchdog has timed out
                 if (NUClear::clock::now() > (service_time + period(ticks))) {
-                        // Submit the reaction to the thread pool
+                    // Submit the reaction to the thread pool
                     reaction->reactor.powerplant.submit(reaction->get_task());
 
                     // Now automatically service the watchdog
-                    time = NUClear::clock::now() + period(ticks);
+                    time += period(ticks);
                 }
                 // Change our wait time to our new watchdog time
                 else {

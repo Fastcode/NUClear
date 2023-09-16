@@ -18,43 +18,68 @@
 
 #include <catch.hpp>
 #include <nuclear>
-#include <sstream>
 
 #include "test_util/TestBase.hpp"
 
 namespace {
 
-// Events that occur during the test
+/// @brief Events that occur during the test
 std::vector<std::string> events;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
-class TestReactor : public test_util::TestBase<TestReactor> {
-private:
-    using CommandLineArguments = NUClear::message::CommandLineArguments;
+template <int I>
+struct Message {
+    Message(std::string data) : data(std::move(data)) {}
+    std::string data;
+};
 
+class TestReactor : public test_util::TestBase<TestReactor> {
 public:
     TestReactor(std::unique_ptr<NUClear::Environment> environment) : TestBase(std::move(environment)) {
+        // Check that the lists are combined, and that the function args are in order
+        on<With<Message<1>>, Trigger<Message<3>>, With<Message<2>>>().then(
+            [](const Message<1>& a, const Message<3>& c, const Message<2>& b) {
+                events.push_back("A:" + a.data + " B:" + b.data + " C:" + c.data);
+            });
 
-        on<Trigger<CommandLineArguments>>().then([](const CommandLineArguments& args) {
-            std::stringstream output;
-            for (const auto& arg : args) {
-                output << arg << " ";
-            }
-            events.push_back("CommandLineArguments: " + output.str());
+        // Make sure we can pass an empty function in here
+        on<Trigger<Message<1>>, With<Message<1>, Message<2>>>().then([] { events.push_back("Empty function"); });
+
+        on<Trigger<Step<1>>, Priority::LOW>().then([this] {
+            events.push_back("Emitting 1");
+            emit(std::make_unique<Message<1>>("1"));
+        });
+        on<Trigger<Step<2>>, Priority::LOW>().then([this] {
+            events.push_back("Emitting 2");
+            emit(std::make_unique<Message<2>>("2"));
+        });
+        on<Trigger<Step<3>>, Priority::LOW>().then([this] {
+            events.push_back("Emitting 3");
+            emit(std::make_unique<Message<3>>("3"));
+        });
+
+        on<Startup>().then([this] {
+            emit(std::make_unique<Step<1>>());
+            emit(std::make_unique<Step<2>>());
+            emit(std::make_unique<Step<3>>());
         });
     }
 };
 }  // namespace
 
-TEST_CASE("Testing the Command Line argument capturing", "[api][command_line_arguments]") {
-    const int argc     = 2;
-    const char* argv[] = {"Hello", "World"};  // NOLINT(cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays)
+TEST_CASE("Testing poorly ordered on arguments", "[api][dsl][order][with]") {
+
     NUClear::PowerPlant::Configuration config;
     config.thread_count = 1;
-    NUClear::PowerPlant plant(config, argc, argv);
+    NUClear::PowerPlant plant(config);
     plant.install<TestReactor>();
     plant.start();
 
-    const std::vector<std::string> expected = {"CommandLineArguments: Hello World "};
+    const std::vector<std::string> expected = {
+        "Emitting 1",
+        "Emitting 2",
+        "Emitting 3",
+        "A:1 B:2 C:3",
+    };
 
     // Make an info print the diff in an easy to read way if we fail
     INFO(test_util::diff_string(expected, events));

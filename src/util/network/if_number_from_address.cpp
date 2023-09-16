@@ -39,8 +39,8 @@ namespace util {
 
             // Find the correct interface to join on (the one that has our bind address)
             for (auto& iface : get_interfaces()) {
-                // iface must be, ipv6, multicast, and have the same address as our bind address
-                if (iface.ip.sock.sa_family == AF_INET6 && iface.flags.multicast
+                // iface must be, ipv6, and have the same address as our bind address
+                if (iface.ip.sock.sa_family == AF_INET6
                     && ::memcmp(iface.ip.ipv6.sin6_addr.s6_addr, ipv6.sin6_addr.s6_addr, sizeof(in6_addr)) == 0) {
 
                     // Get the interface for this
@@ -49,7 +49,10 @@ namespace util {
             }
 
             // If we get here then we couldn't find an interface
-            throw std::runtime_error("Could not find interface for address");
+            sock_t s{};
+            s.ipv6 = ipv6;
+            auto a = s.address();
+            throw std::runtime_error("Could not find interface for address " + a.first + " (is it up?)");
         }
 
     }  // namespace network

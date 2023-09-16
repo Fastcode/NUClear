@@ -21,6 +21,7 @@
 #ifdef _WIN32
 
     #include <stdexcept>
+    #include <system_error>
 LPFN_WSARECVMSG WSARecvMsg = nullptr;
 
 // Go get that WSARecvMsg function from stupid land
@@ -70,6 +71,23 @@ int sendmsg(fd_t fd, msghdr* msg, int flags) {
 
     return v == 0 ? sent : v;
 }
+
+WSAHolder::WSAHolder() {
+    WORD version = MAKEWORD(2, 2);
+    WSADATA wsa_data;
+
+    int startup_status = WSAStartup(version, &wsa_data);
+    if (startup_status != 0) {
+        throw std::system_error(startup_status, std::system_category(), "WSAStartup() failed");
+    }
+}
+
+WSAHolder::~WSAHolder() {
+    WSACleanup();
+}
+
+WSAHolder WSAHolder::instance{};
+
 }  // namespace NUClear
 
 #endif

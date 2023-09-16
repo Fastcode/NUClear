@@ -178,7 +178,7 @@ namespace extension {
                        const std::string& address,
                        in_port_t port,
                        const std::string& bind_address = "",
-                       uint16_t network_mtu = 1500);
+                       uint16_t network_mtu            = 1500);
             void reset(const std::string& name,
                        const std::string& address,
                        in_port_t port,

@@ -20,108 +20,86 @@
 #include <nuclear>
 #include <utility>
 
+#include "../../test_util/TestBase.hpp"
+
 // Anonymous namespace to keep everything file local
 namespace {
 
-int v1          = 0;    // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
-int v2          = 0;    // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
-int v3          = 0;    // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
-int stored_a    = 0;    // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
-double stored_c = 0.0;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
-double stored_d = 0.0;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
-std::string stored_b;   // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+/// @brief Events that occur during the test
+std::vector<std::string> events;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
 template <typename T>
-struct EmitTester1 {
-    static inline void emit(NUClear::PowerPlant& /*unused*/, std::shared_ptr<T> p, int a, std::string b) {
-        v1       = *p;
-        stored_a = a;
-        stored_b = std::move(b);
+struct E1 {
+    static inline void emit(NUClear::PowerPlant& /*unused*/, std::shared_ptr<T> p, const int& a, const std::string& b) {
+        events.push_back("E1a " + *p + " " + std::to_string(a) + " " + b);
     }
 
-    static inline void emit(NUClear::PowerPlant& /*unused*/, std::shared_ptr<T> p, double c) {
-        v2       = *p;
-        stored_c = c;
+    static inline void emit(NUClear::PowerPlant& /*unused*/, std::shared_ptr<T> p, const std::string& c) {
+        events.push_back("E1b " + *p + " " + c);
     }
 };
 
 template <typename T>
-struct EmitTester2 {
-    static inline void emit(NUClear::PowerPlant& /*unused*/, std::shared_ptr<T> p, double d) {
-        v3       = *p;
-        stored_d = d;
+struct E2 {
+    static inline void emit(NUClear::PowerPlant& /*unused*/, std::shared_ptr<T> p, const bool& d) {
+        events.push_back("E2a " + *p + " " + (d ? "true" : "false"));
+    }
+
+    static inline void emit(NUClear::PowerPlant& /*unused*/, std::shared_ptr<T> p, const int& e, const std::string& f) {
+        events.push_back("E2b " + *p + " " + std::to_string(e) + " " + f);
     }
 };
 
-class TestReactor : public NUClear::Reactor {
+class TestReactor : public test_util::TestBase<TestReactor> {
 public:
-    TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
+    TestReactor(std::unique_ptr<NUClear::Environment> environment) : TestBase(std::move(environment)) {
 
-        // Make some things to emit
-        auto t1 = std::make_unique<int>(8);
-        auto t2 = std::make_unique<int>(10);
-        auto t3 = std::make_unique<int>(52);
-        auto t4 = std::make_unique<int>(100);
+        // Emit some messages
+        emit<E1>(std::make_unique<std::string>("message1"), "test1");  // 1b
+        events.push_back("End test 1");
 
-        // Test using the second overload
-        emit<EmitTester1>(t1, 7.2);
-        REQUIRE(v1 == 0);
-        REQUIRE(v2 == 8);
-        v2 = 0;
-        REQUIRE(v3 == 0);
-        REQUIRE(stored_a == 0);
-        REQUIRE(stored_b.empty());
-        REQUIRE(stored_c == 7.2);
-        stored_c = 0;
-        REQUIRE(stored_d == 0);
+        emit<E1>(std::make_unique<std::string>("message2"), 1337, "test2");  // 1a
+        events.push_back("End test 2");
 
-        // Test using the first overload
-        emit<EmitTester1>(t2, 1337, "This is text");
-        REQUIRE(v1 == 10);
-        v1 = 0;
-        REQUIRE(v2 == 0);
-        REQUIRE(v3 == 0);
-        REQUIRE(stored_a == 1337);
-        stored_a = 0;
-        REQUIRE(stored_b == "This is text");
-        stored_b = "";
-        REQUIRE(stored_c == 0);
-        REQUIRE(stored_d == 0);
+        emit<E1, E2>(std::make_unique<std::string>("message3"), 15, "test3", true);  // 1a, 2a
+        events.push_back("End test 3");
 
-        // Test multiple functions
-        emit<EmitTester1, EmitTester2>(t3, 15, 8.3);
-        REQUIRE(v1 == 0);
-        REQUIRE(v2 == 52);
-        v2 = 0;
-        REQUIRE(v3 == 52);
-        v3 = 0;
-        REQUIRE(stored_a == 0);
-        REQUIRE(stored_b.empty());
-        REQUIRE(stored_c == 15);
-        stored_c = 0;
-        REQUIRE(stored_d == 8.3);
-        stored_d = 0;
+        emit<E1, E2, E1>(std::make_unique<std::string>("message4"), 2, "Hello World", false, "test4");  // 1a, 2a, 1b
+        events.push_back("End test 4");
 
-        // Test even more multiple functions
-        emit<EmitTester1, EmitTester2, EmitTester1>(t4, 2, "Hello World", 9.2, 5);
-        REQUIRE(v1 == 100);
-        REQUIRE(v2 == 100);
-        REQUIRE(v3 == 100);
-        REQUIRE(stored_a == 2);
-        REQUIRE(stored_b == "Hello World");
-        REQUIRE(stored_c == 5);
-        REQUIRE(stored_d == 9.2);
-
-        on<Startup>().then([this] { powerplant.shutdown(); });
+        emit<E1, E2>(std::make_unique<std::string>("message5"), 5, "test5a", 10, "test5b");  // 1a, 2b
+        events.push_back("End test 5");
     }
 };
 }  // namespace
 
 TEST_CASE("Testing emit function fusion", "[api][emit][fusion]") {
+
     NUClear::PowerPlant::Configuration config;
     config.thread_count = 1;
     NUClear::PowerPlant plant(config);
     plant.install<TestReactor>();
 
-    plant.start();
+    const std::vector<std::string> expected = {
+        "E1b message1 test1",
+        "End test 1",
+        "E1a message2 1337 test2",
+        "End test 2",
+        "E1a message3 15 test3",
+        "E2a message3 true",
+        "End test 3",
+        "E1a message4 2 Hello World",
+        "E2a message4 false",
+        "E1b message4 test4",
+        "End test 4",
+        "E1a message5 5 test5a",
+        "E2b message5 10 test5b",
+        "End test 5",
+    };
+
+    // Make an info print the diff in an easy to read way if we fail
+    INFO(test_util::diff_string(expected, events));
+
+    // Check the events fired in order and only those events
+    REQUIRE(events == expected);
 }

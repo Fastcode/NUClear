@@ -45,9 +45,8 @@ inline PowerPlant::PowerPlant(Configuration config, int argc, const char* argv[]
         args.emplace_back(argv[i]);
     }
 
-    // We emit this twice, so the data is available for extensions
+    // Emit our command line arguments
     emit(std::make_unique<message::CommandLineArguments>(args));
-    emit<dsl::word::emit::Initialise>(std::make_unique<message::CommandLineArguments>(args));
 }
 
 template <typename T, enum LogLevel level>

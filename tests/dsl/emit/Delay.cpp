@@ -19,49 +19,79 @@
 #include <catch.hpp>
 #include <nuclear>
 
+#include "../../test_util/TestBase.hpp"
+
 // Anonymous namespace to keep everything file local
 namespace {
 
-struct DelayMessage {};
-struct AtTimeMessage {};
-struct NormalMessage {};
+/// @brief Events that occur during the test
+std::vector<std::string> events;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
-// NOLINTNEXTLINE(cert-err58-cpp,cppcoreguidelines-avoid-non-const-global-variables)
-NUClear::clock::time_point sent;
-// NOLINTNEXTLINE(cert-err58-cpp,cppcoreguidelines-avoid-non-const-global-variables)
-NUClear::clock::time_point normal_received;
-// NOLINTNEXTLINE(cert-err58-cpp,cppcoreguidelines-avoid-non-const-global-variables)
-NUClear::clock::time_point delay_received;
-// NOLINTNEXTLINE(cert-err58-cpp,cppcoreguidelines-avoid-non-const-global-variables)
-NUClear::clock::time_point at_time_received;
+/// @brief Test units are the time units the test is performed in
+using TestUnits = std::chrono::duration<int64_t, std::ratio<1, 20>>;
+/// @brief Perform this many different time points for the test
+constexpr int test_loops = 5;
 
-class TestReactor : public NUClear::Reactor {
+struct DelayedMessage {
+    DelayedMessage(const NUClear::clock::duration& delay) : time(NUClear::clock::now()), delay(delay) {}
+    NUClear::clock::time_point time;
+    NUClear::clock::duration delay;
+};
+
+struct TargetTimeMessage {
+    TargetTimeMessage(const NUClear::clock::time_point& target) : time(NUClear::clock::now()), target(target) {}
+    NUClear::clock::time_point time;
+    NUClear::clock::time_point target;
+};
+
+struct FinishTest {};
+
+class TestReactor : public test_util::TestBase<TestReactor> {
 public:
-    TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
-        emit<Scope::INITIALIZE>(std::make_unique<int>(5));
+    TestReactor(std::unique_ptr<NUClear::Environment> environment) : TestBase(std::move(environment), false) {
 
-        // This message should come in later
-        on<Trigger<DelayMessage>>().then([this] {
-            delay_received = NUClear::clock::now();
+        // Measure when messages were sent and received and print those values
+        on<Trigger<DelayedMessage>>().then([](const DelayedMessage& m) {
+            auto true_delta = std::chrono::duration_cast<TestUnits>(NUClear::clock::now() - m.time);
+            auto delta      = std::chrono::duration_cast<TestUnits>(m.delay);
 
+            // Print the debug message
+            events.push_back("delayed " + std::to_string(true_delta.count()) + " received "
+                             + std::to_string(delta.count()));
+        });
+
+        on<Trigger<TargetTimeMessage>>().then([](const TargetTimeMessage& m) {
+            auto true_delta = std::chrono::duration_cast<TestUnits>(NUClear::clock::now() - m.time);
+            auto delta      = std::chrono::duration_cast<TestUnits>(m.target - m.time);
+
+            // Print the debug message
+            events.push_back("at_time " + std::to_string(true_delta.count()) + " received "
+                             + std::to_string(delta.count()));
+        });
+
+        on<Trigger<FinishTest>>().then([this] {
+            events.push_back("Finished");
             powerplant.shutdown();
         });
 
-        on<Trigger<AtTimeMessage>>().then([] {
-            // Don't shut down here we are first
-            at_time_received = NUClear::clock::now();
-        });
-
-        on<Trigger<NormalMessage>>().then([] { normal_received = NUClear::clock::now(); });
 
         on<Startup>().then([this] {
-            sent = NUClear::clock::now();
-            emit(std::make_unique<NormalMessage>());
+            // Get our jump size in milliseconds
+            const int jump_unit = (TestUnits::period::num * 1000) / TestUnits::period::den;
+            // Delay with consistent jumps
+            for (int i = 0; i < test_loops; ++i) {
+                auto delay = std::chrono::milliseconds(jump_unit * i);
+                emit<Scope::DELAY>(std::make_unique<DelayedMessage>(delay), delay);
+            }
 
-            // Delay by 200, and a message 100ms in the future, the 200ms one should come in first
-            emit<Scope::DELAY>(std::make_unique<DelayMessage>(), std::chrono::milliseconds(200));
-            emit<Scope::DELAY>(std::make_unique<AtTimeMessage>(),
-                               NUClear::clock::now() + std::chrono::milliseconds(100));
+            // Target time with consistent jumps that interleave the first set
+            for (int i = 0; i < test_loops; ++i) {
+                auto target = NUClear::clock::now() + std::chrono::milliseconds(jump_unit / 2 + jump_unit * i);
+                emit<Scope::DELAY>(std::make_unique<TargetTimeMessage>(target), target);
+            }
+
+            // Emit a shutdown one time unit after
+            emit<Scope::DELAY>(std::make_unique<FinishTest>(), std::chrono::milliseconds(jump_unit * (test_loops + 1)));
         });
     }
 };
@@ -72,12 +102,25 @@ TEST_CASE("Testing the delay emit", "[api][emit][delay]") {
     config.thread_count = 1;
     NUClear::PowerPlant plant(config);
     plant.install<TestReactor>();
-
     plant.start();
 
-    // Ensure the message delays are correct, I would make these bounds tighter, but travis is pretty dumb
-    REQUIRE(std::chrono::duration_cast<std::chrono::milliseconds>(delay_received - sent).count() > 190);
-    REQUIRE(std::chrono::duration_cast<std::chrono::milliseconds>(delay_received - sent).count() < 225);
-    REQUIRE(std::chrono::duration_cast<std::chrono::milliseconds>(at_time_received - sent).count() > 90);
-    REQUIRE(std::chrono::duration_cast<std::chrono::milliseconds>(at_time_received - sent).count() < 120);
+    const std::vector<std::string> expected = {
+        "delayed 0 received 0",
+        "at_time 0 received 0",
+        "delayed 1 received 1",
+        "at_time 1 received 1",
+        "delayed 2 received 2",
+        "at_time 2 received 2",
+        "delayed 3 received 3",
+        "at_time 3 received 3",
+        "delayed 4 received 4",
+        "at_time 4 received 4",
+        "Finished",
+    };
+
+    // Make an info print the diff in an easy to read way if we fail
+    INFO(test_util::diff_string(expected, events));
+
+    // Check the events fired in order and only those events
+    REQUIRE(events == expected);
 }

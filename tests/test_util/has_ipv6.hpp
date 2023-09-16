@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2013      Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
- *               2014-2017 Trent Houliston <trent@houliston.me>
+ *               2014-2023 Trent Houliston <trent@houliston.me>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -15,46 +15,13 @@
  * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+#ifndef TEST_UTIL_HAS_IPV6_HPP
+#define TEST_UTIL_HAS_IPV6_HPP
 
-#ifndef NUCLEAR_ENVIRONMENT_HPP
-#define NUCLEAR_ENVIRONMENT_HPP
+namespace test_util {
 
-#include <string>
+bool has_ipv6();
 
-#include "LogLevel.hpp"
+}  // namespace test_util
 
-namespace NUClear {
-
-// Forward declare reactor and powerplant
-class Reactor;
-class PowerPlant;
-
-/**
- * @brief
- *  Environment defines variables that are passed from the installing PowerPlant context
- *  into a Reactor.
- *
- * @details
- *  The Environment is used to provide information from the PowerPlant to Reactors.
- *  Each Reactor owns it's own environment and can use it to access useful information.
- */
-class Environment {
-public:
-    Environment(PowerPlant& powerplant, std::string reactor_name, const LogLevel& log_level)
-        : powerplant(powerplant), reactor_name(std::move(reactor_name)), log_level(log_level) {}
-
-private:
-    friend class PowerPlant;
-    friend class Reactor;
-
-    /// @brief The PowerPlant to use in this reactor
-    PowerPlant& powerplant;
-    /// @brief The name of the reactor
-    std::string reactor_name;
-    /// @brief The log level for this reactor
-    LogLevel log_level;
-};
-
-}  // namespace NUClear
-
-#endif  // NUCLEAR_ENVIRONMENT_HPP
+#endif  // TEST_UTIL_HAS_IPV6_HPP

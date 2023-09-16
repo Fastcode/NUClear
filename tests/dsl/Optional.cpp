@@ -19,71 +19,45 @@
 #include <catch.hpp>
 #include <nuclear>
 
+#include "test_util/TestBase.hpp"
+
 namespace {
 
-int trigger1 = 0;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
-int trigger2 = 0;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
-int trigger3 = 0;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
-int trigger4 = 0;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+/// @brief Events that occur during the test
+std::vector<std::string> events;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
 struct MessageA {};
 struct MessageB {};
 
-class TestReactor : public NUClear::Reactor {
+class TestReactor : public test_util::TestBase<TestReactor> {
 public:
-    TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
+    TestReactor(std::unique_ptr<NUClear::Environment> environment) : TestBase(std::move(environment)) {
 
-        on<Trigger<MessageA>, With<MessageB>>().then([](const MessageA&, const MessageB&) {
-            ++trigger1;
-            FAIL("This should never run as MessageB is never emitted");
+        on<Trigger<MessageA>, With<MessageB>>().then([](const MessageA&, const MessageB&) {  //
+            events.push_back("Executed reaction with A and B");
         });
 
-        on<Trigger<MessageA>, Optional<With<MessageB>>>().then(
-            [this](const MessageA&, const std::shared_ptr<const MessageB>& b) {
-                ++trigger2;
+        on<Trigger<MessageA>, Optional<With<MessageB>>>().then([this](const std::shared_ptr<const MessageB>& b) {
+            events.push_back(std::string("Executed reaction with A and optional B with B") + (b ? "+" : "-"));
+            // Emit B to start the second set
+            events.push_back("Emitting B");
+            emit(std::make_unique<MessageB>());
+        });
 
-                switch (trigger2) {
-                    case 1:
-                        // On our trigger, b should not exist
-                        REQUIRE(!b);
-                        break;
-                    default: FAIL("Trigger 2 was triggered more than once");
-                }
-
-                // Emit B to start the second set
-                emit(std::make_unique<MessageB>());
-            });
-
-        on<Trigger<MessageB>, With<MessageA>>().then([] {
-            // This should run once
-            ++trigger3;
+        on<Trigger<MessageB>, With<MessageA>>().then([] {  //
+            events.push_back("Executed reaction with B and A");
         });
 
         // Double trigger test (to ensure that it can handle multiple DSL words
         on<Optional<Trigger<MessageA>, Trigger<MessageB>>>().then(
-            [this](const std::shared_ptr<const MessageA>& a, const std::shared_ptr<const MessageB>& b) {
-                ++trigger4;
-                switch (trigger4) {
-                    case 1:
-                        // Check that A exists and B does not
-                        REQUIRE(a);
-                        REQUIRE(!b);
-                        break;
-                    case 2:
-                        // Check that both exist
-                        REQUIRE(a);
-                        REQUIRE(b);
-
-                        // We should be done now
-                        powerplant.shutdown();
-                        break;
-
-                    default: FAIL("Trigger 4 should only be triggered twice"); break;
-                }
+            [](const std::shared_ptr<const MessageA>& a, const std::shared_ptr<const MessageB>& b) {  //
+                events.push_back(std::string("Executed reaction with optional A and B with A") + (a ? "+" : "-")
+                                 + " and B" + (b ? "+" : "-"));
             });
 
         on<Startup>().then([this] {
             // Emit only message A
+            events.push_back("Emitting A");
             emit(std::make_unique<MessageA>());
         });
     }
@@ -96,12 +70,20 @@ TEST_CASE("Testing that optional is able to let data through even if it's invali
     config.thread_count = 1;
     NUClear::PowerPlant plant(config);
     plant.install<TestReactor>();
-
     plant.start();
 
-    // Check that it was all as expected
-    REQUIRE(trigger1 == 0);
-    REQUIRE(trigger2 == 1);
-    REQUIRE(trigger3 == 1);
-    REQUIRE(trigger4 == 2);
+    const std::vector<std::string> expected = {
+        "Emitting A",
+        "Executed reaction with A and optional B with B-",
+        "Emitting B",
+        "Executed reaction with optional A and B with A+ and B-",
+        "Executed reaction with B and A",
+        "Executed reaction with optional A and B with A+ and B+",
+    };
+
+    // Make an info print the diff in an easy to read way if we fail
+    INFO(test_util::diff_string(expected, events));
+
+    // Check the events fired in order and only those events
+    REQUIRE(events == expected);
 }

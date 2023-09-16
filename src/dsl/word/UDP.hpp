@@ -333,7 +333,6 @@ namespace dsl {
 
             template <typename DSL>
             static inline RecvResult read(threading::Reaction& reaction) {
-
                 // Get our file descriptor from the magic cache
                 auto event = IO::get<DSL>(reaction);
 
@@ -429,7 +428,7 @@ namespace dsl {
                 p.local       = Packet::Target{local_s.first, local_s.second};
                 p.remote      = Packet::Target{remote_s.first, remote_s.second};
 
-                // Confirm that this packet was sent to one of our broadcast addresses
+                // Confirm that this packet was sent to one of our local addresses
                 for (const auto& iface : util::network::get_interfaces()) {
                     if (iface.ip.sock.sa_family == result.local.sock.sa_family) {
                         // If the two are equal
