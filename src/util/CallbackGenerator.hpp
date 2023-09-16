@@ -52,9 +52,7 @@ namespace util {
             typename F,
             std::enable_if_t<!std::is_same<std::remove_reference_t<std::remove_cv_t<F>>, CallbackGenerator>::value,
                              bool> = true>
-        CallbackGenerator(F&& callback)
-            : callback(std::forward<F>(callback))
-            , transients(std::make_shared<typename TransientDataElements<DSL>::type>()) {}
+        explicit CallbackGenerator(F&& callback) : callback(std::forward<F>(callback)) {}
 
         template <typename... T, int... DIndex, int... Index>
         void merge_transients(std::tuple<T...>& data,
@@ -116,7 +114,6 @@ namespace util {
                                              util::apply_relevant(c, std::move(data));
                                          }
                                          catch (...) {
-
                                              // Catch our exception if it happens
                                              task.stats->exception = std::current_exception();
                                          }
@@ -138,7 +135,8 @@ namespace util {
         }
 
         Function callback;
-        std::shared_ptr<typename TransientDataElements<DSL>::type> transients;
+        std::shared_ptr<typename TransientDataElements<DSL>::type> transients{
+            std::make_shared<typename TransientDataElements<DSL>::type>()};
     };
 
 }  // namespace util
