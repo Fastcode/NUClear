@@ -109,8 +109,8 @@ namespace util {
     std::string demangle(const char* symbol) {
 
         int status = -1;
-        const std::unique_ptr<char, void (*)(void*)> res{abi::__cxa_demangle(symbol, nullptr, nullptr, &status),
-                                                         [](void* ptr) { std::free(ptr); }};
+        const std::unique_ptr<char, void (*)(char*)> res{abi::__cxa_demangle(symbol, nullptr, nullptr, &status),
+                                                         [](char* ptr) { std::free(ptr); }};
         if (res != nullptr) {
             std::string demangled = res.get();
             demangled             = std::regex_replace(demangled, std::regex(R"(\s+)"), "");
