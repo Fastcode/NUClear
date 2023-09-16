@@ -32,9 +32,9 @@ namespace dsl {
         template <typename T>
         struct NetworkData : public std::shared_ptr<T> {
             NetworkData() : std::shared_ptr<T>() {}
-            NetworkData(T* ptr) : std::shared_ptr<T>(ptr) {}
-            NetworkData(const std::shared_ptr<T>& ptr) : std::shared_ptr<T>(ptr) {}
-            NetworkData(std::shared_ptr<T>&& ptr) : std::shared_ptr<T>(std::move(ptr)) {}
+            explicit NetworkData(T* ptr) : std::shared_ptr<T>(ptr) {}
+            explicit NetworkData(const std::shared_ptr<T>& ptr) : std::shared_ptr<T>(ptr) {}
+            explicit NetworkData(std::shared_ptr<T>&& ptr) : std::shared_ptr<T>(std::move(ptr)) {}
         };
 
         struct NetworkSource {
