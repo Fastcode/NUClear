@@ -108,7 +108,7 @@ namespace util {
      */
     std::string demangle(const char* symbol) {
 
-        if (symbol == nullptr) { return ""; }
+        if (symbol == nullptr) { return {}; }
 
         int status = -1;
         const std::unique_ptr<char, void (*)(char*)> res{abi::__cxa_demangle(symbol, nullptr, nullptr, &status),
