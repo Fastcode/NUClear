@@ -68,7 +68,9 @@ namespace dsl {
              */
             struct ConnectOptions {
                 /// @brief The type of connection we are making
-                enum Type { UNICAST, BROADCAST, MULTICAST } type{};
+                enum Type { UNICAST, BROADCAST, MULTICAST };
+                /// @brief The type of connection we are making
+                Type type{};
                 /// @brief The address we are binding to or empty for any
                 std::string bind_address{};
                 /// @brief The port we are binding to or 0 for any
