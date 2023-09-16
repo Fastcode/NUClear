@@ -436,7 +436,7 @@ namespace extension {
             }
 
             // Run the callback for anyone that left
-            for (auto& l : leavers) {
+            for (const auto& l : leavers) {
                 leave_callback(*l);
             }
 
@@ -754,7 +754,7 @@ namespace extension {
                                         response.packet_count = packet.packet_count;
 
                                         // Set the bits for the packets we thought we received
-                                        for (auto& p : assembler.second) {
+                                        for (const auto& p : assembler.second) {
                                             (&response.packets)[p.first / 8] |= uint8_t(1 << (p.first % 8));
                                         }
 
@@ -794,7 +794,7 @@ namespace extension {
                                     response.packet_count = packet.packet_count;
 
                                     // Set the bits for the packets we have received
-                                    for (auto& p : assembler.second) {
+                                    for (const auto& p : assembler.second) {
                                         (&response.packets)[p.first / 8] |= uint8_t(1 << (p.first % 8));
                                     }
 
@@ -816,7 +816,7 @@ namespace extension {
                                     // Work out exactly how much data we will need first so we only need one
                                     // allocation
                                     size_t payload_size = 0;
-                                    for (auto& p : assembler.second) {
+                                    for (const auto& p : assembler.second) {
                                         payload_size += p.second.size() - sizeof(DataPacket) + 1;
                                     }
 
@@ -999,8 +999,8 @@ namespace extension {
             // Our packet we are sending
             msghdr message{};
 
-            iovec data[2];  // NOLINT(cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays)
-            message.msg_iov    = static_cast<iovec*>(data);
+            std::array<iovec, 2> data;  // NOLINT(cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays)
+            message.msg_iov    = data.data();
             message.msg_iovlen = 2;
 
             // Update our headers packet number and set it in the message
