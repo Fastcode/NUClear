@@ -38,16 +38,12 @@ namespace dsl {
         };
 
         struct NetworkSource {
-            NetworkSource() = default;
-
             std::string name{};
             util::network::sock_t address{};
             bool reliable{false};
         };
 
         struct NetworkListen {
-            NetworkListen() = default;
-
             uint64_t hash{0};
             std::shared_ptr<threading::Reaction> reaction{nullptr};
         };
