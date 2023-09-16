@@ -23,11 +23,10 @@
 // Windows symbol demangler
 #ifdef _WIN32
 
-    // Dbghelp.h depends on types from Windows.h so it needs to be included first
-    // the define keeps clang-tidy from moving it
-    #ifdef _WIN32
-        #include "platform.hpp"
-    #endif
+    #include "platform.hpp"
+
+// Dbghelp.h depends on types from Windows.h so it needs to be included first
+// Separate to always include platform.hpp (which includes windows.h) first
 
     #include <Dbghelp.h>
 
