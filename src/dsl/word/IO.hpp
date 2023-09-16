@@ -133,7 +133,7 @@ namespace dsl {
                     r.reactor.emit<emit::Direct>(std::make_unique<operation::Unbind<IO>>(r.id));
                 });
 
-                auto io_config = std::make_unique<IOConfiguration>(IOConfiguration{fd, watch_set, reaction});
+                auto io_config = std::make_unique<IOConfiguration>(fd, watch_set, reaction);
 
                 // Send our configuration out
                 reaction->reactor.emit<emit::Direct>(io_config);
