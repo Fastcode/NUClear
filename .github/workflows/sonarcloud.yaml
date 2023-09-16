@@ -34,8 +34,8 @@ jobs:
       - name: Run build-wrapper
         run: |
           cmake -E make_directory build
-          cmake -S . -B build -DCMAKE_CXX_FLAGS="--coverage" -DBUILD_TESTS=ON -DCMAKE_BUILD_TYPE=Release -DCI_BUILD=ON
-          build-wrapper-linux-x86-64 --out-dir ${{ env.BUILD_WRAPPER_OUT_DIR }} cmake --build build/ --config Release
+          cmake -S . -B build -DCMAKE_CXX_FLAGS="--coverage" -DBUILD_TESTS=ON -DCMAKE_BUILD_TYPE=Debug -DCI_BUILD=ON
+          build-wrapper-linux-x86-64 --out-dir ${{ env.BUILD_WRAPPER_OUT_DIR }} cmake --build build/ --config Debug
 
       - name: Run tests to generate coverage statistics
         timeout-minutes: 10
