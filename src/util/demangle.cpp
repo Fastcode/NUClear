@@ -110,7 +110,7 @@ namespace util {
 
         int status = -1;
         const std::unique_ptr<char, void (*)(void*)> res{abi::__cxa_demangle(symbol, nullptr, nullptr, &status),
-                                                         [](char* ptr) { std::free(ptr); }};
+                                                         [](void* ptr) { std::free(ptr); }};
         if (res != nullptr) {
             std::string demangled = res.get();
             demangled             = std::regex_replace(demangled, std::regex(R"(\s+)"), "");
