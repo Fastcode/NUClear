@@ -44,7 +44,9 @@ namespace util {
      * @tparam Ts the types of the resulting objects from executing the functions, these are ignored
      */
     template <typename... Ts>
-    void unpack(Ts... /*t*/) {}
+    void unpack(Ts... /*t*/) {
+        // This function is empty because it is only used for its template expansion
+    }
 
 }  // namespace util
 }  // namespace NUClear
