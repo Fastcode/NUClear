@@ -36,7 +36,7 @@ namespace dsl {
 
             LastItemStorage() : list() {}
 
-            LastItemStorage(T&& data) : list({data}) {}
+            LastItemStorage(T&& data) : list({std::move(data)}) {}
 
             template <typename Output>
             operator std::list<Output>() const {

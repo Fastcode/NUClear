@@ -34,7 +34,7 @@ namespace dsl {
             NetworkData() : std::shared_ptr<T>() {}
             NetworkData(T* ptr) : std::shared_ptr<T>(ptr) {}
             NetworkData(const std::shared_ptr<T>& ptr) : std::shared_ptr<T>(ptr) {}
-            NetworkData(std::shared_ptr<T>&& ptr) : std::shared_ptr<T>(ptr) {}
+            NetworkData(std::shared_ptr<T>&& ptr) : std::shared_ptr<T>(std::move(ptr)) {}
         };
 
         struct NetworkSource {

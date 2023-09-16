@@ -93,7 +93,7 @@ namespace threading {
             , emit_stats(parent.emit_stats && (current_task != nullptr ? current_task->emit_stats : true))
             , group_descriptor(group_descriptor)
             , thread_pool_descriptor(thread_pool_descriptor)
-            , callback(callback) {}
+            , callback(std::move(callback)) {}
 
 
         /**

@@ -47,7 +47,7 @@ namespace dsl {
             ChronoTask(std::function<bool(NUClear::clock::time_point&)>&& task,
                        NUClear::clock::time_point time,
                        uint64_t id)
-                : task(task), time(time), id(id) {}
+                : task(std::move(task)), time(time), id(id) {}
 
             /**
              * @brief Run the task and return true if the time has been updated to run again
