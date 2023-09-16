@@ -326,8 +326,9 @@ namespace extension {
             shutdown();
 
             // Lock all mutexes
-            const std::lock_guard<std::mutex> target_lock(target_mutex);
-            const std::lock_guard<std::mutex> send_lock(send_queue_mutex);
+            std::lock(target_mutex, send_queue_mutex);
+            const std::lock_guard<std::mutex> target_lock(target_mutex, std::adopt_lock);
+            const std::lock_guard<std::mutex> send_lock(send_queue_mutex, std::adopt_lock);
 
             // Clear all our data structures
             send_queue.clear();
@@ -467,8 +468,9 @@ namespace extension {
         void NUClearNetwork::retransmit() {
 
             // Locking send_queue_mutex second after target_mutex
-            const std::lock_guard<std::mutex> target_lock(target_mutex);
-            const std::lock_guard<std::mutex> send_lock(send_queue_mutex);
+            std::lock(target_mutex, send_queue_mutex);
+            const std::lock_guard<std::mutex> target_lock(target_mutex, std::adopt_lock);
+            const std::lock_guard<std::mutex> send_lock(send_queue_mutex, std::adopt_lock);
 
             for (auto qit = send_queue.begin(); qit != send_queue.end();) {
                 for (auto it = qit->second.targets.begin(); it != qit->second.targets.end();) {
@@ -1050,9 +1052,9 @@ namespace extension {
 
             // If this was a reliable packet we need to cache it in case it needs to be resent
             if (reliable) {
-
-                const std::lock_guard<std::mutex> lock_target(target_mutex);
-                const std::lock_guard<std::mutex> lock_send(send_queue_mutex);
+                std::lock(target_mutex, send_queue_mutex);
+                const std::lock_guard<std::mutex> lock_target(target_mutex, std::adopt_lock);
+                const std::lock_guard<std::mutex> lock_send(send_queue_mutex, std::adopt_lock);
 
                 auto& queue = send_queue[header.packet_id];
 
