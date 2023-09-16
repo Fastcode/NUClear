@@ -138,7 +138,7 @@ class Reactor {
 public:
     friend class PowerPlant;
 
-    Reactor(std::unique_ptr<Environment> environment)
+    explicit Reactor(std::unique_ptr<Environment> environment)
         : powerplant(environment->powerplant)
         , reactor_name(environment->reactor_name)
         , log_level(environment->log_level) {}
