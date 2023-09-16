@@ -109,7 +109,7 @@ namespace threading {
          * @brief A struct which contains all the information about an individual thread pool
          */
         struct PoolQueue {
-            PoolQueue(const util::ThreadPoolDescriptor& pool_descriptor) : pool_descriptor(pool_descriptor) {}
+            explicit PoolQueue(const util::ThreadPoolDescriptor& pool_descriptor) : pool_descriptor(pool_descriptor) {}
             /// @brief The descriptor for this thread pool
             const util::ThreadPoolDescriptor pool_descriptor;
             /// @brief The threads which are running in this thread pool
@@ -126,7 +126,7 @@ namespace threading {
         /**
          * @brief Constructs a new TaskScheduler instance, and builds the nullptr sync queue.
          */
-        TaskScheduler(const size_t& default_thread_count);
+        explicit TaskScheduler(const size_t& default_thread_count);
 
         /**
          * @brief Starts the scheduler, and begins executing tasks.
