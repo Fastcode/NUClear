@@ -175,7 +175,7 @@ namespace dsl {
                 // Accept the remote connection
                 socklen_t remote_size = sizeof(util::network::sock_t);
                 util::FileDescriptor fd(::accept(event.fd, &remote.sock, &remote_size),
-                                        [](fd_t fd) { ::shutdown(fd, SHUT_RDWR); });
+                                        [](const fd_t& f) { ::shutdown(f, SHUT_RDWR); });
 
                 // Get our local address
                 socklen_t local_size = sizeof(util::network::sock_t);
