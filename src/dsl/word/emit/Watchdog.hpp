@@ -45,11 +45,20 @@ namespace dsl {
                 using WatchdogStore =
                     util::TypeMap<WatchdogGroup, MapType, std::map<MapType, NUClear::clock::time_point>>;
 
-                WatchdogServicer() {}
+                /**
+                 * @brief Construct a new Watchdog Servicer object
+                 */
+                WatchdogServicer() = default;
+
+                /**
+                 * @brief Construct a new Watchdog Servicer object
+                 *
+                 * @param data The runtime argument that was passed to on<Watchdog<>>()
+                 */
                 explicit WatchdogServicer(const RuntimeType& data) : when(NUClear::clock::now()), data(data) {}
 
                 /**
-                 * @brief *  Services the watchdog
+                 * @brief Services the watchdog
                  *
                  * @details
                  *  The watchdog timer that is specified by the WatchdogGroup/RuntimeType/data
@@ -65,7 +74,9 @@ namespace dsl {
                 }
 
             private:
+                /// @brief The time when the watchdog was serviced
                 NUClear::clock::time_point when{NUClear::clock::now()};
+                /// @brief The runtime argument that was passed to on<Watchdog<>>()
                 RuntimeType data{};
             };
 
