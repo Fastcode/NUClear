@@ -142,7 +142,7 @@ namespace dsl {
                 // Resolve the addresses
                 util::network::sock_t bind_address{};
                 util::network::sock_t multicast_target{};
-                if (options.type == ConnectOptions::MULTICAST) {
+                if (options.type == ConnectOptions::Type::MULTICAST) {
                     multicast_target = util::network::resolve(options.target_address, options.port);
 
                     // If there is no bind address, make sure we bind to an address of the same family
@@ -208,7 +208,8 @@ namespace dsl {
                 }
 
                 // Broadcast and multicast reuse address and port
-                if (options.type == ConnectOptions::BROADCAST || options.type == ConnectOptions::MULTICAST) {
+                if (options.type == ConnectOptions::Type::BROADCAST
+                    || options.type == ConnectOptions::Type::MULTICAST) {
 
                     if (::setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, reinterpret_cast<char*>(&yes), sizeof(yes)) < 0) {
                         throw std::system_error(network_errno,
@@ -239,7 +240,7 @@ namespace dsl {
                 }
 
                 // If we have a multicast address, then we need to join the multicast groups
-                if (options.type == ConnectOptions::MULTICAST) {
+                if (options.type == ConnectOptions::Type::MULTICAST) {
 
                     // Our multicast join request will depend on protocol version
                     if (multicast_target.sock.sa_family == AF_INET) {
@@ -415,7 +416,7 @@ namespace dsl {
             static inline std::tuple<in_port_t, fd_t> bind(const std::shared_ptr<threading::Reaction>& reaction,
                                                            const in_port_t& port           = 0,
                                                            const std::string& bind_address = "") {
-                return connect<DSL>(reaction, ConnectOptions{ConnectOptions::UNICAST, bind_address, port, ""});
+                return connect<DSL>(reaction, ConnectOptions{ConnectOptions::Type::UNICAST, bind_address, port, ""});
             }
 
             template <typename DSL>
@@ -460,7 +461,7 @@ namespace dsl {
                                                                const in_port_t& port           = 0,
                                                                const std::string& bind_address = "") {
                     return UDP::connect<DSL>(reaction,
-                                             ConnectOptions{ConnectOptions::BROADCAST, bind_address, port, ""});
+                                             ConnectOptions{ConnectOptions::Type::BROADCAST, bind_address, port, ""});
                 }
 
                 template <typename DSL>
@@ -507,7 +508,7 @@ namespace dsl {
                                                                const std::string& bind_address = "") {
                     return UDP::connect<DSL>(
                         reaction,
-                        ConnectOptions{ConnectOptions::MULTICAST, bind_address, port, multicast_group});
+                        ConnectOptions{ConnectOptions::Type::MULTICAST, bind_address, port, multicast_group});
                 }
 
                 template <typename DSL>
