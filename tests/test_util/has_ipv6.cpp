@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2013      Trent Houliston <trent@houliston.me>, Jake Woods <jake.f.woods@gmail.com>
- *               2014-2017 Trent Houliston <trent@houliston.me>
+ *               2014-2023 Trent Houliston <trent@houliston.me>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
@@ -15,46 +15,18 @@
  * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+#include "has_ipv6.hpp"
 
-#ifndef NUCLEAR_ENVIRONMENT_HPP
-#define NUCLEAR_ENVIRONMENT_HPP
+#include "nuclear"
 
-#include <string>
+namespace test_util {
 
-#include "LogLevel.hpp"
+bool has_ipv6() {
+    // See if any interface has an ipv6 address
+    auto ifaces = NUClear::util::network::get_interfaces();
+    return std::any_of(ifaces.begin(), ifaces.end(), [](const auto& iface) {
+        return iface.ip.sock.sa_family == AF_INET6;
+    });
+}
 
-namespace NUClear {
-
-// Forward declare reactor and powerplant
-class Reactor;
-class PowerPlant;
-
-/**
- * @brief
- *  Environment defines variables that are passed from the installing PowerPlant context
- *  into a Reactor.
- *
- * @details
- *  The Environment is used to provide information from the PowerPlant to Reactors.
- *  Each Reactor owns it's own environment and can use it to access useful information.
- */
-class Environment {
-public:
-    Environment(PowerPlant& powerplant, std::string reactor_name, const LogLevel& log_level)
-        : powerplant(powerplant), reactor_name(std::move(reactor_name)), log_level(log_level) {}
-
-private:
-    friend class PowerPlant;
-    friend class Reactor;
-
-    /// @brief The PowerPlant to use in this reactor
-    PowerPlant& powerplant;
-    /// @brief The name of the reactor
-    std::string reactor_name;
-    /// @brief The log level for this reactor
-    LogLevel log_level;
-};
-
-}  // namespace NUClear
-
-#endif  // NUCLEAR_ENVIRONMENT_HPP
+}  // namespace test_util

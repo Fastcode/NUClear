@@ -21,97 +21,75 @@
 #include <numeric>
 #include <string>
 
+#include "test_util/TestBase.hpp"
+
 namespace {
 
-NUClear::clock::time_point start;  // NOLINT(cert-err58-cpp,cppcoreguidelines-avoid-non-const-global-variables)
-NUClear::clock::time_point end;    // NOLINT(cert-err58-cpp,cppcoreguidelines-avoid-non-const-global-variables)
-NUClear::clock::time_point end_a;  // NOLINT(cert-err58-cpp,cppcoreguidelines-avoid-non-const-global-variables)
-NUClear::clock::time_point end_b;  // NOLINT(cert-err58-cpp,cppcoreguidelines-avoid-non-const-global-variables)
-bool a_ended = false;              // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
-bool b_ended = false;              // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+/// @brief Events that occur during the test
+std::vector<std::string> events;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
-int count = 0;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+template <int I>
+struct Flag {};
 
-#ifdef _WIN32
-// The precision of timing on Windows (with the current NUClear timing method) is not great.
-// This defines the intervals larger to avoid the problems at smaller intervals
-// TODO(Josephus or Trent): use a higher precision timing method on Windows (look into nanosleep,
-// in addition to the condition lock and spin lock used in ChronoController.hpp)
-constexpr int WATCHDOG_TIMEOUT = 30;
-constexpr int EVERY_INTERVAL   = 5;
-#else
-constexpr int WATCHDOG_TIMEOUT = 10;
-constexpr int EVERY_INTERVAL   = 5;
-#endif
-
-class TestReactor : public NUClear::Reactor {
+class TestReactor : public test_util::TestBase<TestReactor, 10000> {
 public:
-    TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
+    TestReactor(std::unique_ptr<NUClear::Environment> environment)
+        : TestBase(std::move(environment), false), start(NUClear::clock::now()) {
 
-        start = NUClear::clock::now();
-        count = 0;
-
-        // Trigger the watchdog after WATCHDOG_TIMEOUT milliseconds
-        on<Watchdog<TestReactor, WATCHDOG_TIMEOUT, std::chrono::milliseconds>>().then([this] {
-            end = NUClear::clock::now();
-
-            // When our watchdog eventually triggers, shutdown
+        on<Watchdog<Flag<1>, 50, std::chrono::milliseconds>>().then([this] {
+            events.push_back("Watchdog 1  triggered @ " + floored_time());
             powerplant.shutdown();
         });
 
-        // Service the watchdog every EVERY_INTERVAL milliseconds, 20 times. Then let it expire to trigger and end the
-        // test.
-        on<Every<EVERY_INTERVAL, std::chrono::milliseconds>>().then([this] {
-            // service the watchdog
-            if (++count < 20) {
-                emit<Scope::WATCHDOG>(ServiceWatchdog<TestReactor>());
+        on<Watchdog<Flag<2>, 40, std::chrono::milliseconds>>().then([this] {
+            if (flag2++ < 3) {
+                events.push_back("Watchdog 2  triggered @ " + floored_time());
+                emit<Scope::WATCHDOG>(ServiceWatchdog<Flag<1>>());
+            }
+        });
+
+        // Watchdog with subtypes
+        on<Watchdog<Flag<3>, 30, std::chrono::milliseconds>>('a').then([this] {
+            if (flag3a++ < 3) {
+                events.push_back("Watchdog 3A triggered @ " + floored_time());
+                emit<Scope::WATCHDOG>(ServiceWatchdog<Flag<1>>());
+                emit<Scope::WATCHDOG>(ServiceWatchdog<Flag<2>>());
+            }
+        });
+        on<Watchdog<Flag<3>, 20, std::chrono::milliseconds>>('b').then([this] {
+            if (flag3b++ < 3) {
+                events.push_back("Watchdog 3B triggered @ " + floored_time());
+                emit<Scope::WATCHDOG>(ServiceWatchdog<Flag<1>>());
+                emit<Scope::WATCHDOG>(ServiceWatchdog<Flag<2>>());
+                emit<Scope::WATCHDOG>(ServiceWatchdog<Flag<3>>('a'));
+            }
+        });
+
+        on<Watchdog<Flag<4>, 10, std::chrono::milliseconds>>().then([this] {
+            if (flag4++ < 3) {
+                events.push_back("Watchdog 4  triggered @ " + floored_time());
+                emit<Scope::WATCHDOG>(ServiceWatchdog<Flag<1>>());
+                emit<Scope::WATCHDOG>(ServiceWatchdog<Flag<2>>());
+                emit<Scope::WATCHDOG>(ServiceWatchdog<Flag<3>>('a'));
+                emit<Scope::WATCHDOG>(ServiceWatchdog<Flag<3>>('b'));
             }
         });
     }
-};
 
-class TestReactorRuntimeArg : public NUClear::Reactor {
-public:
-    TestReactorRuntimeArg(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
-
-        start = NUClear::clock::now();
-        count = 0;
-
-        // Trigger the watchdog after WATCHDOG_TIMEOUT milliseconds
-        on<Watchdog<TestReactorRuntimeArg, WATCHDOG_TIMEOUT, std::chrono::milliseconds>>(std::string("test a"))
-            .then([this] {
-                end_a   = NUClear::clock::now();
-                a_ended = true;
-
-                // When our watchdog eventually triggers, shutdown
-                if (b_ended) {
-                    powerplant.shutdown();
-                }
-            });
-
-        // Trigger the watchdog after WATCHDOG_TIMEOUT milliseconds
-        on<Watchdog<TestReactorRuntimeArg, WATCHDOG_TIMEOUT, std::chrono::milliseconds>>(std::string("test b"))
-            .then([this] {
-                end_b   = NUClear::clock::now();
-                b_ended = true;
-
-                // When our watchdog eventually triggers, shutdown
-                if (a_ended) {
-                    powerplant.shutdown();
-                }
-            });
-
-        // Service the watchdog every EVERY_INTERVAL milliseconds, 20 times. Then let it expire to trigger and end the
-        // test.
-        on<Every<EVERY_INTERVAL, std::chrono::milliseconds>>().then([this] {
-            // service the watchdog
-            if (++count < 20) {
-                emit<Scope::WATCHDOG>(ServiceWatchdog<TestReactorRuntimeArg>(std::string("test a")));
-                emit<Scope::WATCHDOG>(ServiceWatchdog<TestReactorRuntimeArg>(std::string("test b")));
-            }
-        });
+    std::string floored_time() const {
+        using namespace std::chrono;  // NOLINT(google-build-using-namespace) fine in function scope
+        const double diff = duration_cast<duration<double>>(NUClear::clock::now() - start).count();
+        // Round to 100ths of a second
+        return std::to_string(int(std::floor(diff * 100)));
     }
+
+    NUClear::clock::time_point start;
+    int flag2{0};
+    int flag3a{0};
+    int flag3b{0};
+    int flag4{0};
 };
+
 }  // namespace
 
 TEST_CASE("Testing the Watchdog Smart Type", "[api][watchdog]") {
@@ -120,23 +98,27 @@ TEST_CASE("Testing the Watchdog Smart Type", "[api][watchdog]") {
     config.thread_count = 1;
     NUClear::PowerPlant plant(config);
     plant.install<TestReactor>();
-
     plant.start();
 
-    // Require that at least the minimum time interval to have run all Everys has passed
-    REQUIRE(end - start > std::chrono::milliseconds(20 * EVERY_INTERVAL));
-}
+    const std::vector<std::string> expected = {
+        "Watchdog 4  triggered @ 1",
+        "Watchdog 4  triggered @ 2",
+        "Watchdog 4  triggered @ 3",
+        "Watchdog 3B triggered @ 5",
+        "Watchdog 3B triggered @ 7",
+        "Watchdog 3B triggered @ 9",
+        "Watchdog 3A triggered @ 12",
+        "Watchdog 3A triggered @ 15",
+        "Watchdog 3A triggered @ 18",
+        "Watchdog 2  triggered @ 22",
+        "Watchdog 2  triggered @ 26",
+        "Watchdog 2  triggered @ 30",
+        "Watchdog 1  triggered @ 35",
+    };
 
-TEST_CASE("Testing the Watchdog Smart Type with a sub type", "[api][watchdog][sub_type]") {
+    // Make an info print the diff in an easy to read way if we fail
+    INFO(test_util::diff_string(expected, events));
 
-    NUClear::PowerPlant::Configuration config;
-    config.thread_count = 1;
-    NUClear::PowerPlant plant(config);
-    plant.install<TestReactorRuntimeArg>();
-
-    plant.start();
-
-    // Require that at least the minimum time interval to have run all Everys has passed
-    REQUIRE(end_a - start > std::chrono::milliseconds(20 * EVERY_INTERVAL));
-    REQUIRE(end_b - start > std::chrono::milliseconds(20 * EVERY_INTERVAL));
+    // Check the events fired in order and only those events
+    REQUIRE(events == expected);
 }

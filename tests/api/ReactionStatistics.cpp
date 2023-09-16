@@ -19,85 +19,94 @@
 #include <catch.hpp>
 #include <nuclear>
 
-// Anonymous namespace to keep everything file local
-namespace {
+#include "test_util/TestBase.hpp"
+
+// This namespace is named to make things consistent with the reaction statistics test
+namespace stats_test {
+
+/// @brief Events that occur during the test
+std::vector<std::string> events;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
 template <int id>
 struct Message {};
-
-struct LoopMsg {};
-
-bool seen_message0        = false;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
-bool seen_message_startup = false;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+struct LoopMessage {};
 
 using NUClear::message::ReactionStatistics;
 
-class TestReactor : public NUClear::Reactor {
+class TestReactor : public test_util::TestBase<TestReactor> {
 public:
-    TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
+    TestReactor(std::unique_ptr<NUClear::Environment> environment) : TestBase(std::move(environment)) {
 
-        on<Trigger<ReactionStatistics>>().then("Reaction Stats Handler 2", [this](const ReactionStatistics&) {
-            // This reaction is just here to cause a potential looping of reaction statistics handlers
-            emit(std::make_unique<LoopMsg>());
+        // This reaction is here to emit something from a ReactionStatistics trigger
+        // This shouldn't cause reaction statistics of their own otherwise everything would explode
+        on<Trigger<ReactionStatistics>>().then("Loop Statistics", [this](const ReactionStatistics&) {
+            emit(std::make_unique<LoopMessage>());
         });
+        on<Trigger<LoopMessage>>().then("No Statistics", [] {});
 
-        on<Trigger<LoopMsg>>().then("NoStats", [] {
-            // This guy is triggered by someone triggering on reaction statistics, don't run
-        });
 
         on<Trigger<ReactionStatistics>>().then("Reaction Stats Handler", [this](const ReactionStatistics& stats) {
-            // If we are seeing ourself, fail
-            REQUIRE(stats.identifiers.name != "Reaction Stats Handler");
-
-            // If we are seeing the other reaction statistics handler, fail
-            REQUIRE(stats.identifiers.name != "Reaction Stats Handler 2");
-
-            // If we are seeing the other reaction statistics handler, fail
-            REQUIRE(stats.identifiers.name != "NoStats");
-
-            // Flag if we have seen the message handler
-            if (stats.identifiers.name == "Message Handler") {
-                seen_message0 = true;
+            // Other reactions statistics run on this because of built in NUClear reactors (e.g. chrono controller etc)
+            // We want to filter those out so only our own stats are shown
+            if (stats.identifiers.name.empty() || stats.identifiers.reactor != reactor_name) {
+                return;
             }
-            // Flag if we have seen the startup handler
-            else if (stats.identifiers.name == "Startup Handler") {
-                seen_message_startup = true;
-            }
+            events.push_back("Stats for " + stats.identifiers.name + " from " + stats.identifiers.reactor);
+            events.push_back(stats.identifiers.dsl);
 
             // Ensure exceptions are passed through correctly in the exception handler
             if (stats.exception) {
-                REQUIRE(stats.identifiers.name == "Exception Handler");
                 try {
                     std::rethrow_exception(stats.exception);
                 }
                 catch (const std::exception& e) {
-                    REQUIRE(seen_message0);
-                    REQUIRE(seen_message_startup);
-                    REQUIRE(std::string(e.what()) == std::string("Exceptions happened"));
-
-                    // We are done
-                    powerplant.shutdown();
+                    events.push_back("Exception received: \"" + std::string(e.what()) + "\"");
                 }
             }
         });
 
-        on<Trigger<Message<0>>>().then("Message Handler", [this] { emit(std::make_unique<Message<1>>()); });
+        on<Trigger<Message<1>>>().then("Exception Handler", [] {
+            events.push_back("Running Exception Handler");
+            throw std::runtime_error("Text in an exception");
+        });
 
-        on<Trigger<Message<1>>>().then("Exception Handler", [] { throw std::runtime_error("Exceptions happened"); });
+        on<Trigger<Message<0>>>().then("Message Handler", [this] {
+            events.push_back("Running Message Handler");
+            emit(std::make_unique<Message<1>>());
+        });
 
-        on<Startup>().then("Startup Handler", [this] { emit(std::make_unique<Message<0>>()); });
+        on<Startup>().then("Startup Handler", [this] {
+            events.push_back("Running Startup Handler");
+            emit(std::make_unique<Message<0>>());
+        });
     }
 };
-}  // namespace
+}  // namespace stats_test
 
 TEST_CASE("Testing reaction statistics functionality", "[api][reactionstatistics]") {
 
     NUClear::PowerPlant::Configuration config;
     config.thread_count = 1;
     NUClear::PowerPlant plant(config);
-
-    // We are installing with an initial log level of debug
-    plant.install<TestReactor>();
-
+    plant.install<stats_test::TestReactor>();
     plant.start();
+
+    const std::vector<std::string> expected = {
+        "Running Startup Handler",
+        "Stats for Startup Handler from stats_test::TestReactor",
+        "NUClear::Reactor::on<NUClear::dsl::word::Startup>",
+        "Running Message Handler",
+        "Stats for Message Handler from stats_test::TestReactor",
+        "NUClear::Reactor::on<NUClear::dsl::word::Trigger<stats_test::Message<0>>>",
+        "Running Exception Handler",
+        "Stats for Exception Handler from stats_test::TestReactor",
+        "NUClear::Reactor::on<NUClear::dsl::word::Trigger<stats_test::Message<1>>>",
+        "Exception received: \"Text in an exception\"",
+    };
+
+    // Make an info print the diff in an easy to read way if we fail
+    INFO(test_util::diff_string(expected, stats_test::events));
+
+    // Check the events fired in order and only those events
+    REQUIRE(stats_test::events == expected);
 }

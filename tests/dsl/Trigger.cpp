@@ -19,37 +19,61 @@
 #include <catch.hpp>
 #include <nuclear>
 
+#include "test_util/TestBase.hpp"
+
 namespace {
+
+/// @brief A vector of events that have happened
+std::vector<std::string> events;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+
 struct SimpleMessage {
+    SimpleMessage(int data) : data(data) {}
     int data;
 };
 
-class TestReactor : public NUClear::Reactor {
+class TestReactor : public test_util::TestBase<TestReactor> {
 public:
-    TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
+    TestReactor(std::unique_ptr<NUClear::Environment> environment) : TestBase(std::move(environment)) {
 
-        on<Trigger<SimpleMessage>>().then([this](const SimpleMessage& message) {
-            // The message we received should have test == 10
-            REQUIRE(message.data == 10);
+        on<Trigger<SimpleMessage>>().then([](const SimpleMessage& message) {  //
+            events.push_back("Trigger " + std::to_string(message.data));
+        });
 
-            // We are finished the test
-            this->powerplant.shutdown();
+        on<Startup>().then([this] {
+            // Emit some messages with data
+            for (int i = 0; i < 10; ++i) {
+                emit(std::make_unique<SimpleMessage>(i));
+            }
         });
     }
 };
 }  // namespace
 
 
-TEST_CASE("A very basic test for Emit and On", "[api][trigger]") {
+TEST_CASE("Test that Trigger statements get the correct data", "[api][trigger]") {
 
     NUClear::PowerPlant::Configuration config;
     config.thread_count = 1;
     NUClear::PowerPlant plant(config);
     plant.install<TestReactor>();
-
-    auto message = std::make_unique<SimpleMessage>(SimpleMessage{10});
-
-    plant.emit(message);
-
     plant.start();
+
+    const std::vector<std::string> expected = {
+        "Trigger 0",
+        "Trigger 1",
+        "Trigger 2",
+        "Trigger 3",
+        "Trigger 4",
+        "Trigger 5",
+        "Trigger 6",
+        "Trigger 7",
+        "Trigger 8",
+        "Trigger 9",
+    };
+
+    // Make an info print the diff in an easy to read way if we fail
+    INFO(test_util::diff_string(expected, events));
+
+    // Check the events fired in order and only those events
+    REQUIRE(events == expected);
 }

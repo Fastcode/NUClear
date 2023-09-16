@@ -31,10 +31,33 @@ namespace NUClear {
 namespace dsl {
     namespace word {
 
+#ifdef _WIN32
+        using event_t = long;  // NOLINT(google-runtime-int)
+#else
+        using event_t = short;  // NOLINT(google-runtime-int)
+#endif
+
+        /**
+         * @brief This message is sent to the IO controller to configure a new IO operation.
+         */
         struct IOConfiguration {
+            IOConfiguration(fd_t fd, event_t events, std::shared_ptr<threading::Reaction> reaction)
+                : fd(fd), events(events), reaction(std::move(reaction)) {}
+            /// @brief The file descriptor to watch
             fd_t fd;
-            int events;
+            /// @brief The events to watch for on this file descriptor
+            event_t events;
+            /// @brief The reaction to trigger when this file descriptor has an event
             std::shared_ptr<threading::Reaction> reaction;
+        };
+
+        /**
+         * @brief This is emitted when an IO operation has finished.
+         */
+        struct IOFinished {
+            IOFinished(const uint64_t& id) : id(id) {}
+            /// @brief The id of the reaction that has finished
+            uint64_t id;
         };
 
         /**
@@ -68,30 +91,43 @@ namespace dsl {
          * @par Implements
          *  Bind
          */
-        struct IO : public Single {
+        struct IO {
 
 // On windows we use different wait events
 #ifdef _WIN32
             // NOLINTNEXTLINE(google-runtime-int)
-            enum EventType : short{READ = FD_READ | FD_OOB | FD_ACCEPT, WRITE = FD_WRITE, CLOSE = FD_CLOSE, ERROR = 0};
+            enum EventType : event_t {
+                READ  = FD_READ | FD_OOB | FD_ACCEPT,
+                WRITE = FD_WRITE,
+                CLOSE = FD_CLOSE,
+                ERROR = 0,
+            };
 #else
             // NOLINTNEXTLINE(google-runtime-int)
-            enum EventType : short { READ = POLLIN, WRITE = POLLOUT, CLOSE = POLLHUP, ERROR = POLLNVAL | POLLERR };
+            enum EventType : event_t {
+                READ  = POLLIN,
+                WRITE = POLLOUT,
+                CLOSE = POLLHUP,
+                ERROR = POLLNVAL | POLLERR,
+            };
 #endif
 
             struct Event {
+                /// @brief The file descriptor that this event is for
                 fd_t fd;
-                int events;
+                /// @brief The events that have occurred on this file descriptor
+                event_t events;
 
+                /// @brief Returns true if the event is for the given event type
                 operator bool() const {
-                    return fd != -1;
+                    return fd != INVALID_SOCKET;
                 }
             };
 
             using ThreadEventStore = dsl::store::ThreadStore<Event>;
 
             template <typename DSL>
-            static inline void bind(const std::shared_ptr<threading::Reaction>& reaction, fd_t fd, int watch_set) {
+            static inline void bind(const std::shared_ptr<threading::Reaction>& reaction, fd_t fd, event_t watch_set) {
 
                 reaction->unbinders.push_back([](const threading::Reaction& r) {
                     r.reactor.emit<emit::Direct>(std::make_unique<operation::Unbind<IO>>(r.id));
@@ -113,6 +149,11 @@ namespace dsl {
 
                 // Otherwise return an invalid event
                 return Event{INVALID_SOCKET, 0};
+            }
+
+            template <typename DSL>
+            static inline void postcondition(threading::ReactionTask& task) {
+                task.parent.reactor.emit<emit::Direct>(std::make_unique<IOFinished>(task.parent.id));
             }
         };
 

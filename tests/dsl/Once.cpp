@@ -17,53 +17,75 @@
  */
 
 #include <catch.hpp>
-#include <iostream>
 #include <nuclear>
+
+#include "test_util/TestBase.hpp"
 
 namespace {
 
-struct SimpleMessage {};
-struct StartMessage {};
+// Events that occur during the test
+std::vector<std::string> events;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
-int i = 0;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
-int j = 0;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+struct SimpleMessage {
+    SimpleMessage(int run) : run(run) {}
+    int run = 0;
+};
 
 class TestReactor : public NUClear::Reactor {
 public:
     TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
 
         // Make this priority high so it will always run first if it is able
-        on<Trigger<SimpleMessage>, Priority::HIGH, Once>().then([] {
-            // Increment the counter,
-            ++i;
-            // Function has finished, then should unbind.
+        on<Trigger<SimpleMessage>, Priority::HIGH, Once>().then([](const SimpleMessage& msg) {  //
+            events.push_back("Once Trigger executed " + std::to_string(msg.run));
         });
 
-        on<Trigger<StartMessage>>().then([this] {
-            ++j;
-            // Run until it's 11 then shutdown
-            if (j > 10) {
-                powerplant.shutdown();
+        on<Trigger<SimpleMessage>>().then([this](const SimpleMessage& msg) {
+            events.push_back("Normal Trigger Executed " + std::to_string(msg.run));
+            // Keep running until we have run 10 times
+            if (msg.run < 10) {
+                events.push_back("Emitting " + std::to_string(msg.run + 1));
+                emit(std::make_unique<SimpleMessage>(msg.run + 1));
             }
             else {
-                powerplant.emit(std::make_unique<SimpleMessage>());
-                powerplant.emit(std::make_unique<StartMessage>());
+                powerplant.shutdown();
             }
+        });
+
+        on<Startup>().then([this] {
+            events.push_back("Startup Trigger Executed");
+            emit(std::make_unique<SimpleMessage>(0));
         });
     }
 };
 }  // namespace
 
-TEST_CASE("Testing on<Once> functionality", "[api][once]") {
+TEST_CASE("Reactions with the Once DSL keyword only execute once", "[api][once]") {
 
     NUClear::PowerPlant::Configuration config;
     config.thread_count = 1;
     NUClear::PowerPlant plant(config);
-
-    // We are installing with an initial log level of debug
-    plant.install<TestReactor, NUClear::DEBUG>();
-    plant.emit(std::make_unique<StartMessage>());
+    plant.install<TestReactor>();
     plant.start();
 
-    REQUIRE(i == 1);
+    const std::vector<std::string> expected = {
+        "Startup Trigger Executed",   "Once Trigger executed 0",
+        "Normal Trigger Executed 0",  "Emitting 1",
+        "Normal Trigger Executed 1",  "Emitting 2",
+        "Normal Trigger Executed 2",  "Emitting 3",
+        "Normal Trigger Executed 3",  "Emitting 4",
+        "Normal Trigger Executed 4",  "Emitting 5",
+        "Normal Trigger Executed 5",  "Emitting 6",
+        "Normal Trigger Executed 6",  "Emitting 7",
+        "Normal Trigger Executed 7",  "Emitting 8",
+        "Normal Trigger Executed 8",  "Emitting 9",
+        "Normal Trigger Executed 9",  "Emitting 10",
+        "Normal Trigger Executed 10",
+    };
+
+    // Make an info print the diff in an easy to read way if we fail
+    INFO(test_util::diff_string(expected, events));
+
+    // Check the events fired in order and only those events
+    REQUIRE(events == expected);
 }

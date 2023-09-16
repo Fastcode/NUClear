@@ -19,103 +19,106 @@
 #include <catch.hpp>
 #include <nuclear>
 
+#include "test_util/TestBase.hpp"
+
 namespace {
+
+/// @brief Events that occur during the test
+std::vector<std::string> events;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
 template <int i>
 struct Message {
-    int val;
-    Message(int val) : val(val){};
+    Message(std::string data) : data(std::move(data)){};
+    std::string data;
 };
 
-
-std::atomic<int> semaphore(0);  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
-int finished = 0;               // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
-
-class TestReactor : public NUClear::Reactor {
+class TestReactor : public test_util::TestBase<TestReactor> {
 public:
-    TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
+    TestReactor(std::unique_ptr<NUClear::Environment> environment) : TestBase(std::move(environment), false) {
 
         on<Trigger<Message<0>>, Sync<TestReactor>>().then([this](const Message<0>& m) {
-            // Increment our semaphore
-            ++semaphore;
+            events.push_back("Sync A " + m.data);
 
             // Sleep for some time to be safe
             std::this_thread::sleep_for(std::chrono::milliseconds(5));
 
-            // Check we got the right message
-            REQUIRE(m.val == 123);
-
-            // Require our semaphore is 1
-            REQUIRE(semaphore == 1);
-
             // Emit a message 1 here, it should not run yet
-            emit(std::make_unique<Message<1>>(10));
+            events.push_back("Sync A emitting");
+            emit(std::make_unique<Message<1>>("From Sync A"));
 
             // Sleep for some time again
             std::this_thread::sleep_for(std::chrono::milliseconds(5));
 
-            // Decrement our semaphore
-            --semaphore;
+            events.push_back("Sync A " + m.data + " finished");
         });
 
         on<Trigger<Message<0>>, Sync<TestReactor>>().then([this](const Message<0>& m) {
-            // Increment our semaphore
-            ++semaphore;
+            events.push_back("Sync B " + m.data);
 
             // Sleep for some time to be safe
             std::this_thread::sleep_for(std::chrono::milliseconds(5));
 
-            // Check we got the right message
-            REQUIRE(m.val == 123);
-
-            // Require our semaphore is 1
-            REQUIRE(semaphore == 1);
-
             // Emit a message 1 here, it should not run yet
-            emit(std::make_unique<Message<1>>(10));
+            events.push_back("Sync B emitting");
+            emit(std::make_unique<Message<1>>("From Sync B"));
 
             // Sleep for some time again
             std::this_thread::sleep_for(std::chrono::milliseconds(5));
 
-            // Decrement our semaphore
-            --semaphore;
+            events.push_back("Sync B " + m.data + " finished");
         });
 
         on<Trigger<Message<1>>, Sync<TestReactor>>().then([this](const Message<1>& m) {
-            // Increment our semaphore
-            ++semaphore;
+            events.push_back("Sync C " + m.data);
 
             // Sleep for some time to be safe
             std::this_thread::sleep_for(std::chrono::milliseconds(5));
 
-            // Check we got the right message
-            REQUIRE(m.val == 10);
-
-            // Require our semaphore is 1
-            REQUIRE(semaphore == 1);
+            // Emit a message 1 here, it should not run yet
+            events.push_back("Sync C waiting");
 
             // Sleep for some time again
             std::this_thread::sleep_for(std::chrono::milliseconds(5));
 
-            // Decrement our semaphore
-            --semaphore;
+            events.push_back("Sync C " + m.data + " finished");
 
-            if (++finished == 2) {
+            if (m.data == "From Sync B") {
                 powerplant.shutdown();
             }
         });
 
-        on<Startup>().then([this] { emit(std::make_unique<Message<0>>(123)); });
+        on<Startup>().then([this] {  //
+            emit(std::make_unique<Message<0>>("From Startup"));
+        });
     }
 };
 }  // namespace
 
 TEST_CASE("Testing that the Sync word works correctly", "[api][sync]") {
-
     NUClear::PowerPlant::Configuration config;
     config.thread_count = 4;
     NUClear::PowerPlant plant(config);
     plant.install<TestReactor>();
-
     plant.start();
+
+    const std::vector<std::string> expected = {
+        "Sync A From Startup",
+        "Sync A emitting",
+        "Sync A From Startup finished",
+        "Sync B From Startup",
+        "Sync B emitting",
+        "Sync B From Startup finished",
+        "Sync C From Sync A",
+        "Sync C waiting",
+        "Sync C From Sync A finished",
+        "Sync C From Sync B",
+        "Sync C waiting",
+        "Sync C From Sync B finished",
+    };
+
+    // Make an info print the diff in an easy to read way if we fail
+    INFO(test_util::diff_string(expected, events));
+
+    // Check the events fired in order and only those events
+    REQUIRE(events == expected);
 }

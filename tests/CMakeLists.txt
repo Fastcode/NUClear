@@ -23,13 +23,9 @@ if(CATCH_FOUND)
   if(BUILD_TESTS)
     enable_testing()
 
-    if(MSVC)
-      add_compile_options(/W4 /WX)
-    else()
-      add_compile_options(-Wall -Wextra -pedantic -Werror)
-    endif(MSVC)
+    add_compile_definitions(CATCH_CONFIG_CONSOLE_WIDTH=120)
 
-    file(GLOB test_src test.cpp "api/*.cpp" "dsl/*.cpp" "dsl/emit/*.cpp" "log/*.cpp" "util/*.cpp")
+    file(GLOB test_src test.cpp "api/*.cpp" "dsl/*.cpp" "dsl/emit/*.cpp" "log/*.cpp" "util/*.cpp" "util/network/*.cpp" "test_util/*.cpp")
 
     # Some tests must be executed as individual binaries
     file(GLOB individual_tests "${CMAKE_CURRENT_SOURCE_DIR}/individual/*.cpp")
@@ -40,6 +36,7 @@ if(CATCH_FOUND)
       add_executable(${test_name} ${test_src})
       target_link_libraries(${test_name} NUClear::nuclear)
       set_target_properties(${test_name} PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/individual")
+      target_include_directories(${test_name} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
       target_include_directories(
         ${test_name} SYSTEM
         PRIVATE ${CATCH_INCLUDE_DIRS} ${PROJECT_BINARY_DIR}/include "${PROJECT_SOURCE_DIR}/src"
@@ -51,6 +48,7 @@ if(CATCH_FOUND)
     endforeach(test_src)
 
     add_executable(test_nuclear ${test_src})
+    target_include_directories(test_nuclear PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
     target_link_libraries(test_nuclear NUClear::nuclear)
     target_include_directories(
       test_nuclear SYSTEM
@@ -60,6 +58,7 @@ if(CATCH_FOUND)
 
     add_executable(test_network networktest.cpp)
     target_link_libraries(test_network NUClear::nuclear)
+    target_include_directories(test_network PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
     target_include_directories(
       test_network SYSTEM
       PRIVATE ${CATCH_INCLUDE_DIRS} ${PROJECT_BINARY_DIR}/include "${PROJECT_SOURCE_DIR}/src"

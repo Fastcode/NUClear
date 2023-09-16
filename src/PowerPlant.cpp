@@ -37,8 +37,9 @@ void PowerPlant::start() {
     // We are now running
     is_running.store(true);
 
-    // Direct emit startup event
+    // Direct emit startup event and command line arguments
     emit<dsl::word::emit::Direct>(std::make_unique<dsl::word::Startup>());
+    emit_shared<dsl::word::emit::Direct>(dsl::store::DataStore<message::CommandLineArguments>::get());
 
     // Start all of the threads
     scheduler.start();
