@@ -38,7 +38,7 @@ namespace util {
             }
 
             // Find the correct interface to join on (the one that has our bind address)
-            for (auto& iface : get_interfaces()) {
+            for (const auto& iface : get_interfaces()) {
                 // iface must be, ipv6, and have the same address as our bind address
                 if (iface.ip.sock.sa_family == AF_INET6
                     && ::memcmp(iface.ip.ipv6.sin6_addr.s6_addr, ipv6.sin6_addr.s6_addr, sizeof(in6_addr)) == 0) {
