@@ -108,16 +108,18 @@ namespace util {
      */
     std::string demangle(const char* symbol) {
 
-        if (symbol == nullptr) { return {}; }
+        if (symbol == nullptr) {
+            return {};
+        }
 
         int status = -1;
         const std::unique_ptr<char, void (*)(char*)> res{abi::__cxa_demangle(symbol, nullptr, nullptr, &status),
                                                          [](char* ptr) {
-                                                            // The API for __cxa_demangle REQUIRES us to call free
-                                                            // No choice here so supress the linter
-                                                            // NOLINTNEXTLINE(cppcoreguidelines-no-malloc)
-                                                            std::free(ptr); // NOSONAR
-                                                        }};
+                                                             // The API for __cxa_demangle REQUIRES us to call free
+                                                             // No choice here so suppress the linter
+                                                             // NOLINTNEXTLINE(cppcoreguidelines-no-malloc)
+                                                             std::free(ptr);  // NOSONAR
+                                                         }};
         if (res != nullptr) {
             std::string demangled = res.get();
             demangled             = std::regex_replace(demangled, std::regex(R"(\s+)"), "");
