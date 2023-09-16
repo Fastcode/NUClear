@@ -148,7 +148,7 @@ void PowerPlant::emit(Arguments&&... args) {
 
 template <typename T>
 inline void log_impl(std::stringstream& output, T&& first) {
-    output << std::forward<First>(first);
+    output << std::forward<T>(first);
 }
 
 template <typename First, typename... Remainder>
