@@ -67,12 +67,8 @@ public:
      *  It configures the number of threads that will be in the PowerPlants thread pool
      */
     struct Configuration {
-        /// @brief default to the amount of hardware concurrency (or 2) threads
-        Configuration()
-            : thread_count(std::thread::hardware_concurrency() == 0 ? 2 : std::thread::hardware_concurrency()) {}
-
         /// @brief The number of threads the system will use
-        size_t thread_count;
+        size_t thread_count = std::thread::hardware_concurrency() == 0 ? 2 : std::thread::hardware_concurrency();
     };
 
     /// @brief Holds the configuration information for this PowerPlant (such as number of pool threads)
