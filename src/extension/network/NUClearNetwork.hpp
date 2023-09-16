@@ -47,9 +47,10 @@ namespace extension {
         public:
             struct NetworkTarget {
 
-                NetworkTarget(std::string name,
-                              sock_t target,
-                              std::chrono::steady_clock::time_point last_update = std::chrono::steady_clock::now())
+                NetworkTarget(
+                    std::string name,
+                    const sock_t& target,
+                    const std::chrono::steady_clock::time_point& last_update = std::chrono::steady_clock::now())
                     : name(std::move(name)), target(target), last_update(last_update) {
 
                     // Set our recent packets to an invalid value
