@@ -103,7 +103,7 @@ namespace threading {
         ReactionIdentifiers identifiers;
 
         /// @brief the unique identifier for this Reaction object
-        const uint64_t id;
+        const uint64_t id{++reaction_id_source};
 
         /// @brief if this is false, we cannot emit ReactionStatistics from any reaction triggered by this one
         bool emit_stats{true};

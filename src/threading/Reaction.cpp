@@ -24,10 +24,7 @@ namespace threading {
     std::atomic<uint64_t> Reaction::reaction_id_source(0);  // NOLINT
 
     Reaction::Reaction(Reactor& reactor, ReactionIdentifiers&& identifiers, TaskGenerator&& generator)
-        : reactor(reactor)
-        , identifiers(std::move(identifiers))
-        , id(++reaction_id_source)
-        , generator(std::move(generator)) {}
+        : reactor(reactor), identifiers(std::move(identifiers)), generator(std::move(generator)) {}
 
     void Reaction::unbind() {
         // Unbind
