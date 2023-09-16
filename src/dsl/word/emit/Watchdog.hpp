@@ -55,7 +55,7 @@ namespace dsl {
                  *
                  * @param data The runtime argument that was passed to on<Watchdog<>>()
                  */
-                explicit WatchdogServicer(const RuntimeType& data) : when(NUClear::clock::now()), data(data) {}
+                explicit WatchdogServicer(const RuntimeType& data) : data(data) {}
 
                 /**
                  * @brief Services the watchdog
