@@ -26,7 +26,7 @@ namespace extension {
 #pragma pack(push, 1)
         enum Type : uint8_t { ANNOUNCE = 1, LEAVE = 2, DATA = 3, DATA_RETRANSMISSION = 4, ACK = 5, NACK = 6 };
         struct PacketHeader {
-            PacketHeader(const Type& t) : type(t) {}
+            explicit PacketHeader(const Type& t) : type(t) {}
 
             // NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays)
             uint8_t header[3] = {0xE2, 0x98, 0xA2};  // Radioactive symbol in UTF8
