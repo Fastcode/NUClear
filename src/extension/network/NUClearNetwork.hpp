@@ -74,13 +74,15 @@ namespace extension {
                          std::pair<std::chrono::steady_clock::time_point, std::map<uint16_t, std::vector<char>>>>
                     assemblers{};
 
-                /// A little kalman filter for estimating round trip time
+                /// Struct storing the kalman filter for round trip time
                 struct RoundTripKF {
                     float process_noise     = 1e-6f;
                     float measurement_noise = 1e-1f;
                     float variance          = 1.0f;
                     float mean              = 1.0f;
-                } round_trip_kf;
+                };
+                /// A little kalman filter for estimating round trip time
+                RoundTripKF round_trip_kf{};
 
                 std::chrono::steady_clock::duration round_trip_time{std::chrono::seconds(1)};
 
