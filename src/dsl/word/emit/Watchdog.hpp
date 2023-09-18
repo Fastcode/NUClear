@@ -1,5 +1,10 @@
 /*
- * Copyright (C) Alex Biddulph <Alexander.Biddulph@uon.edu.au>
+ * MIT License
+ *
+ * Copyright (c) 2020 NUClear Contributors
+ *
+ * This file is part of the NUClear codebase.
+ * See https://github.com/Fastcode/NUClear for further info.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
