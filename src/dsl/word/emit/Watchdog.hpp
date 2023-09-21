@@ -166,7 +166,8 @@ namespace dsl {
             struct Watchdog {
 
                 template <typename WatchdogGroup, typename RuntimeType>
-                static void emit(PowerPlant& /*powerplant*/, WatchdogServicer<WatchdogGroup, RuntimeType>& servicer) {
+                static void emit(const PowerPlant& /*powerplant*/,
+                                 WatchdogServicer<WatchdogGroup, RuntimeType>& servicer) {
                     // Update our service time
                     servicer.service();
                 }
