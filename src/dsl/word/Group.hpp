@@ -72,7 +72,7 @@ namespace dsl {
             static const util::GroupDescriptor group_descriptor;
 
             template <typename DSL>
-            static inline util::GroupDescriptor group(threading::Reaction& /*reaction*/) {
+            static inline util::GroupDescriptor group(const threading::Reaction& /*reaction*/) {
                 return group_descriptor;
             }
         };

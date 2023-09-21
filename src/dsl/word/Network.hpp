@@ -94,7 +94,7 @@ namespace dsl {
 
             template <typename DSL>
             static inline std::tuple<std::shared_ptr<NetworkSource>, NetworkData<T>> get(
-                threading::Reaction& /*reaction*/) {
+                const threading::Reaction& /*reaction*/) {
 
                 auto* data   = store::ThreadStore<std::vector<char>>::value;
                 auto* source = store::ThreadStore<NetworkSource>::value;

@@ -88,7 +88,7 @@ namespace dsl {
         struct GroupFuser<std::tuple<Word1, Word2, WordN...>> {
 
             template <typename DSL>
-            static inline void group(threading::Reaction& /*reaction*/) {
+            static inline void group(const threading::Reaction& /*reaction*/) {
                 throw std::runtime_error("Can not be a member of more than one group");
             }
         };

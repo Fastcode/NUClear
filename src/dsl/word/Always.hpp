@@ -113,7 +113,7 @@ namespace dsl {
                                                    always_reaction->identifiers.dsl,
                                                    always_reaction->identifiers.function},
                     [always_reaction](threading::Reaction& idle_reaction) -> util::GeneratedCallback {
-                        auto callback = [&idle_reaction, always_reaction](threading::ReactionTask& /*task*/) {
+                        auto callback = [&idle_reaction, always_reaction](const threading::ReactionTask& /*task*/) {
                             // Get a task for the always reaction and submit it to the scheduler
                             always_reaction->reactor.powerplant.submit(always_reaction->get_task());
 

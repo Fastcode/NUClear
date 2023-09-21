@@ -47,32 +47,32 @@ namespace dsl {
             }
 
             template <typename DSL>
-            static inline std::tuple<> get(threading::Reaction& /*reaction*/) {
+            static inline std::tuple<> get(const threading::Reaction& /*reaction*/) {
                 return {};
             }
 
             template <typename DSL>
-            static inline bool precondition(threading::Reaction& /*reaction*/) {
+            static inline bool precondition(const threading::Reaction& /*reaction*/) {
                 return true;
             }
 
             template <typename DSL>
-            static inline int priority(threading::Reaction& /*reaction*/) {
+            static inline int priority(const threading::Reaction& /*reaction*/) {
                 return word::Priority::NORMAL::value;
             }
 
             template <typename DSL>
-            static inline util::GroupDescriptor group(threading::Reaction& /*reaction*/) {
+            static inline util::GroupDescriptor group(const threading::Reaction& /*reaction*/) {
                 return util::GroupDescriptor{};
             }
 
             template <typename DSL>
-            static inline util::ThreadPoolDescriptor pool(threading::Reaction& /*reaction*/) {
+            static inline util::ThreadPoolDescriptor pool(const threading::Reaction& /*reaction*/) {
                 return util::ThreadPoolDescriptor{};
             }
 
             template <typename DSL>
-            static inline void postcondition(threading::ReactionTask& /*task*/) {
+            static inline void postcondition(const threading::ReactionTask& /*task*/) {
                 // Empty as this is a no-op placeholder
             }
         };
