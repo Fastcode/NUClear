@@ -22,6 +22,8 @@
 
 #include "xxhash.hpp"
 
+#include <type_traits>
+
 namespace NUClear {
 namespace util {
     namespace serialise {
