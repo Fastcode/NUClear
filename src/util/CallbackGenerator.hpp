@@ -105,7 +105,7 @@ namespace util {
             return GeneratedCallback(DSL::priority(r),
                                      DSL::group(r),
                                      DSL::pool(r),
-                                     [c, data](threading::ReactionTask& task) {
+                                     [c, data](threading::ReactionTask& task) noexcept {
                                          // Update our thread's priority to the correct level
                                          update_current_thread_priority(task.priority);
 
