@@ -78,13 +78,13 @@ namespace dsl {
                 reaction->unbinders.push_back([](threading::Reaction& r) {
                     auto& vec = store::TypeCallbackStore<message::ReactionStatistics>::get();
 
-                    auto item = std::find_if(
+                    auto it = std::find_if(
                         std::begin(vec),
                         std::end(vec),
                         [&r](const std::shared_ptr<threading::Reaction>& item) { return item->id == r.id; });
 
                     // If the item is in the list erase the item
-                    if (item != std::end(vec)) {
+                    if (it != std::end(vec)) {
                         vec.erase(item);
                     }
                 });
