@@ -40,7 +40,7 @@ namespace util {
              * @return true if the system is little-endian, false if it is big-endian.
              */
             inline bool little_endian() {
-                union {  // NOSONAR
+                const union {  // NOSONAR
                     uint16_t a;
                     uint8_t b;
                 } u{1};
