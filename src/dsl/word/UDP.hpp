@@ -393,7 +393,7 @@ namespace dsl {
                         && cmsg->cmsg_type == IP_PKTINFO) {
 
                         // Access the packet header information
-                        auto* pi = reinterpret_cast<in_pktinfo*>(reinterpret_cast<char*>(cmsg) + sizeof(*cmsg));
+                        const auto* pi = reinterpret_cast<in_pktinfo*>(reinterpret_cast<char*>(cmsg) + sizeof(*cmsg));
                         local.ipv4.sin_family = AF_INET;
                         local.ipv4.sin_addr   = pi->ipi_addr;
 
@@ -406,7 +406,7 @@ namespace dsl {
                         && cmsg->cmsg_type == IPV6_PKTINFO) {
 
                         // Access the packet header information
-                        auto* pi = reinterpret_cast<in6_pktinfo*>(reinterpret_cast<char*>(cmsg) + sizeof(*cmsg));
+                        const auto* pi = reinterpret_cast<in6_pktinfo*>(reinterpret_cast<char*>(cmsg) + sizeof(*cmsg));
                         local.ipv6.sin6_addr = pi->ipi6_addr;
 
                         // We are done

@@ -97,10 +97,10 @@ namespace extension {
                         std::chrono::duration_cast<std::chrono::duration<float, std::ratio<1>>>(time);
 
                     // Alias variables
-                    auto& Q = round_trip_kf.process_noise;
-                    auto& R = round_trip_kf.measurement_noise;
-                    auto& P = round_trip_kf.variance;
-                    auto& X = round_trip_kf.mean;
+                    const auto& Q = round_trip_kf.process_noise;
+                    const auto& R = round_trip_kf.measurement_noise;
+                    auto& P       = round_trip_kf.variance;
+                    auto& X       = round_trip_kf.mean;
 
                     // Calculate our kalman gain
                     const float K = (P + Q) / (P + Q + R);

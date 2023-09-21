@@ -75,7 +75,7 @@ namespace dsl {
                 reaction->emit_stats = false;
 
                 // Our unbinder to remove this reaction
-                reaction->unbinders.push_back([](threading::Reaction& r) {
+                reaction->unbinders.push_back([](const threading::Reaction& r) {
                     auto& vec = store::TypeCallbackStore<message::ReactionStatistics>::get();
 
                     auto it = std::find_if(
