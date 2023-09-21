@@ -252,7 +252,7 @@ namespace threading {
                 // So if we can't find a task to run we should just quit.
                 if (!running.load()) {
                     condition.notify_all();
-                    throw std::runtime_error("Task scheduler has shutdown");
+                    throw ShutdownThreadException();
                 }
             }
 
@@ -263,7 +263,8 @@ namespace threading {
             condition.wait(lock);  // NOSONAR
         }
 
-        throw std::runtime_error("Task scheduler has shutdown");
+        // If we get out here then we are finished running.
+        throw ShutdownThreadException();
     }
 
     // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)

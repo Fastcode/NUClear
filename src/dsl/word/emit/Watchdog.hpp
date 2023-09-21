@@ -23,6 +23,8 @@
 #ifndef NUCLEAR_DSL_WORD_EMIT_WATCHDOG_HPP
 #define NUCLEAR_DSL_WORD_EMIT_WATCHDOG_HPP
 
+#include <stdexcept>
+
 #include "../../../PowerPlant.hpp"
 #include "../../../util/TypeMap.hpp"
 #include "../../../util/demangle.hpp"
@@ -71,9 +73,9 @@ namespace dsl {
                  */
                 void service() {
                     if (WatchdogStore::get() == nullptr || WatchdogStore::get()->count(data) == 0) {
-                        throw std::runtime_error("Store for <" + util::demangle(typeid(WatchdogGroup).name()) + ", "
-                                                 + util::demangle(typeid(RuntimeType).name())
-                                                 + "> has not been created yet or no watchdog has been set up");
+                        throw std::domain_error("Store for <" + util::demangle(typeid(WatchdogGroup).name()) + ", "
+                                                + util::demangle(typeid(RuntimeType).name())
+                                                + "> has not been created yet or no watchdog has been set up");
                     }
                     WatchdogStore::get()->at(data) = when;
                 }
@@ -108,8 +110,8 @@ namespace dsl {
                  */
                 void service() {
                     if (WatchdogStore::get() == nullptr) {
-                        throw std::runtime_error("Store for <" + util::demangle(typeid(WatchdogGroup).name())
-                                                 + "> has not been created yet or no watchdog has been set up");
+                        throw std::domain_error("Store for <" + util::demangle(typeid(WatchdogGroup).name())
+                                                + "> has not been created yet or no watchdog has been set up");
                     }
                     WatchdogStore::set(std::make_shared<NUClear::clock::time_point>(when));
                 }

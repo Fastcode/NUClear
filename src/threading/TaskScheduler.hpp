@@ -84,6 +84,11 @@ namespace threading {
     class TaskScheduler {
     private:
         /**
+         * @brief Exception thrown when a thread in the pool should shut down.
+         */
+        class ShutdownThreadException : public std::exception {};
+
+        /**
          * @brief A struct which contains all the information about an individual task
          */
         struct Task {

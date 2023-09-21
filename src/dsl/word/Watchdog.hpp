@@ -23,6 +23,8 @@
 #ifndef NUCLEAR_DSL_WORD_WATCHDOG_HPP
 #define NUCLEAR_DSL_WORD_WATCHDOG_HPP
 
+#include <stdexcept>
+
 #include "../../threading/Reaction.hpp"
 #include "../../util/demangle.hpp"
 #include "../operation/Unbind.hpp"
@@ -71,9 +73,9 @@ namespace dsl {
              */
             static const NUClear::clock::time_point& get(const RuntimeType& data) {
                 if (WatchdogStore::get() == nullptr || WatchdogStore::get()->count(data) == 0) {
-                    throw std::runtime_error("Store for <" + util::demangle(typeid(WatchdogGroup).name()) + ", "
-                                             + util::demangle(typeid(MapType).name())
-                                             + "> is trying to field a service call for an unknown data type");
+                    throw std::domain_error("Store for <" + util::demangle(typeid(WatchdogGroup).name()) + ", "
+                                            + util::demangle(typeid(MapType).name())
+                                            + "> is trying to field a service call for an unknown data type");
                 }
                 return WatchdogStore::get()->at(data);
             }
@@ -118,8 +120,8 @@ namespace dsl {
              */
             static const NUClear::clock::time_point& get() {
                 if (WatchdogStore::get() == nullptr) {
-                    throw std::runtime_error("Store for <" + util::demangle(typeid(WatchdogGroup).name())
-                                             + "> is trying to field a service call for an unknown data type");
+                    throw std::domain_error("Store for <" + util::demangle(typeid(WatchdogGroup).name())
+                                            + "> is trying to field a service call for an unknown data type");
                 }
                 return *WatchdogStore::get();
             }

@@ -23,6 +23,8 @@
 #ifndef NUCLEAR_DSL_WORD_EMIT_UDP_HPP
 #define NUCLEAR_DSL_WORD_EMIT_UDP_HPP
 
+#include <stdexcept>
+
 #include "../../../PowerPlant.hpp"
 #include "../../../util/FileDescriptor.hpp"
 #include "../../../util/network/if_number_from_address.hpp"
@@ -88,13 +90,13 @@ namespace dsl {
                                 local.ipv6.sin6_port = htons(from_port);
                                 local.ipv6.sin6_addr = IN6ADDR_ANY_INIT;
                             } break;
-                            default: throw std::runtime_error("Unknown socket family");
+                            default: throw std::invalid_argument("Unknown socket family");
                         }
                     }
                     else {
                         local = util::network::resolve(from_addr, from_port);
                         if (local.sock.sa_family != remote.sock.sa_family) {
-                            throw std::runtime_error("to and from addresses are not the same family");
+                            throw std::invalid_argument("to and from addresses are not the same family");
                         }
                     }
 

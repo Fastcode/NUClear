@@ -354,14 +354,14 @@ namespace extension {
                     bind_target.ipv6.sin6_addr = IN6ADDR_ANY_INIT;
                 }
                 else {
-                    throw std::runtime_error("Unknown address family");
+                    throw std::invalid_argument("Unknown address family");
                 }
             }
             else {
                 bind_target = util::network::resolve(bind_address, port);
                 // If the family doesn't match, throw an error
                 if (bind_target.sock.sa_family != announce_target.sock.sa_family) {
-                    throw std::runtime_error("Bind address family does not match announce address family");
+                    throw std::invalid_argument("Bind address family does not match announce address family");
                 }
             }
 
@@ -1036,7 +1036,6 @@ namespace extension {
             if (targets.empty()) {
                 throw std::runtime_error("Cannot send messages as the network is not connected");
             }
-
 
             // The header for our packet
             DataPacket header;

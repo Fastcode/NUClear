@@ -24,6 +24,7 @@
 #define NUCLEAR_DSL_WORD_UDP_HPP
 
 #include <array>
+#include <stdexcept>
 
 #include "../../PowerPlant.hpp"
 #include "../../threading/Reaction.hpp"
@@ -161,13 +162,13 @@ namespace dsl {
                                 bind_address.ipv6.sin6_port = htons(options.port);
                                 bind_address.ipv6.sin6_addr = in6addr_any;
                             } break;
-                            default: throw std::runtime_error("Unknown socket family");
+                            default: throw std::invalid_argument("Unknown socket family");
                         }
                     }
                     else {
                         bind_address = util::network::resolve(options.bind_address, options.port);
                         if (multicast_target.sock.sa_family != bind_address.sock.sa_family) {
-                            throw std::runtime_error("Multicast address family does not match bind address family");
+                            throw std::invalid_argument("Multicast address family does not match bind address family");
                         }
                     }
                 }
@@ -326,7 +327,7 @@ namespace dsl {
                     port = ntohs(bind_address.ipv6.sin6_port);
                 }
                 else {
-                    throw std::runtime_error("Unknown socket family");
+                    throw std::invalid_argument("Unknown socket family");
                 }
 
                 // Generate a reaction for the IO system that closes on death
