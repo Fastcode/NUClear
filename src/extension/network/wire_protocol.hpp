@@ -27,8 +27,10 @@
 
 // These macros are used to pack the structs so that they are sent over the network in the correct format
 #ifdef _MSC_VER
+    // NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
     #define PACK(...) __pragma(pack(push, 1)) __VA_ARGS__ __pragma(pack(pop))
 #else
+    // NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
     #define PACK(...) __VA_ARGS__ __attribute__((__packed__))
 #endif
 
