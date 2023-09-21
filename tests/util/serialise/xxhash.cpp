@@ -77,7 +77,7 @@ SCENARIO("xxhash32 produces correct output for different input values", "[util][
             }
         }
     }
-};
+}
 
 SCENARIO("xxhash64 produces correct output for different input values", "[util][serialise][xxhash][xxhash64]") {
 
@@ -179,4 +179,4 @@ SCENARIO("xxhash64 produces correct output for different input values", "[util][
             }
         }
     }
-};
+}
