@@ -27,7 +27,7 @@
 #include <type_traits>
 
 #include "../demangle.hpp"
-#include "xxhash.h"
+#include "xxhash.hpp"
 
 // Forward declare google protocol buffers
 // We don't actually use or require them, but if
@@ -68,7 +68,7 @@ namespace util {
 
                 // Serialise based on the demangled class name
                 const std::string type_name = demangle(typeid(T).name());
-                return XXH64(type_name.c_str(), type_name.size(), 0x4e55436c);
+                return xxhash64(type_name.c_str(), type_name.size(), 0x4e55436c);
             }
         };
 
@@ -110,7 +110,7 @@ namespace util {
 
                 // Serialise based on the demangled class name
                 std::string type_name = demangle(typeid(T).name());
-                return XXH64(type_name.c_str(), type_name.size(), 0x4e55436c);
+                return xxhash64(type_name.c_str(), type_name.size(), 0x4e55436c);
             }
         };
 
@@ -142,7 +142,7 @@ namespace util {
                 // We have to construct an instance to call the reflection functions
                 T type;
                 // We base the hash on the name of the protocol buffer
-                return XXH64(type.GetTypeName().c_str(), type.GetTypeName().size(), 0x4e55436c);
+                return xxhash64(type.GetTypeName().c_str(), type.GetTypeName().size(), 0x4e55436c);
             }
         };
 
