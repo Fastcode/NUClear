@@ -53,13 +53,13 @@ namespace extension {
                                                const bool& reliable,
                                                std::vector<char>&& payload) {
                 // Construct our NetworkSource information
-                dsl::word::NetworkSource src;
-                src.name     = remote.name;
-                src.address  = remote.target;
-                src.reliable = reliable;
+                dsl::word::NetworkSource src{remote.name, remote.target, reliable};
+
+                // Move the payload in as we are stealing it
+                std::vector<char> p(std::move(payload));
 
                 // Store in our thread local cache
-                dsl::store::ThreadStore<std::vector<char>>::value        = &payload;
+                dsl::store::ThreadStore<std::vector<char>>::value        = &p;
                 dsl::store::ThreadStore<dsl::word::NetworkSource>::value = &src;
 
                 /* Mutex Scope */ {
