@@ -99,8 +99,6 @@ namespace dsl {
             struct WatchdogServicer<WatchdogGroup, void> {
                 using WatchdogStore = util::TypeMap<WatchdogGroup, void, NUClear::clock::time_point>;
 
-                WatchdogServicer() {}
-
                 /**
                  * @brief *  Services the watchdog
                  *

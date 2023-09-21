@@ -1003,7 +1003,7 @@ namespace extension {
             // Our packet we are sending
             msghdr message{};
 
-            std::array<iovec, 2> data;  // NOLINT(cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays)
+            std::array<iovec, 2> data{};
             message.msg_iov    = data.data();
             message.msg_iovlen = 2;
 
