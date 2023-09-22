@@ -33,6 +33,10 @@ if(BUILD_DOCUMENTATION)
     COMMENT "Generating documentation pages using sphinx"
   )
 
-  install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} DESTINATION share/doc OPTIONAL)
+  install(
+    DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+    DESTINATION share/doc
+    OPTIONAL
+  )
 
 endif(BUILD_DOCUMENTATION)

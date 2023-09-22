@@ -69,22 +69,25 @@ function(header_library)
 
   # Setup and export our variables
   set(required_vars ${required_vars} "${PACKAGE_NAME}_INCLUDE_DIR")
-  set(${PACKAGE_NAME}_INCLUDE_DIRS ${${PACKAGE_NAME}_INCLUDE_DIR} PARENT_SCOPE)
+  set(${PACKAGE_NAME}_INCLUDE_DIRS
+      ${${PACKAGE_NAME}_INCLUDE_DIR}
+      PARENT_SCOPE
+  )
   mark_as_advanced(${PACKAGE_NAME}_INCLUDE_DIR ${PACKAGE_NAME}_INCLUDE_DIRS)
 
   # Find the package
   include(FindPackageHandleStandardArgs)
   find_package_handle_standard_args(
     ${PACKAGE_NAME}
-    FOUND_VAR
-    ${PACKAGE_NAME}_FOUND
-    REQUIRED_VARS
-    ${required_vars}
-    VERSION_VAR
-    ${PACKAGE_NAME}_VERSION
+    FOUND_VAR ${PACKAGE_NAME}_FOUND
+    REQUIRED_VARS ${required_vars}
+    VERSION_VAR ${PACKAGE_NAME}_VERSION
   )
 
   # Export our found variable to parent scope
-  set(${PACKAGE_NAME}_FOUND ${PACKAGE_NAME}_FOUND PARENT_SCOPE)
+  set(${PACKAGE_NAME}_FOUND
+      ${PACKAGE_NAME}_FOUND
+      PARENT_SCOPE
+  )
 
 endfunction(header_library)
