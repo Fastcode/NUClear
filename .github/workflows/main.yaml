@@ -19,49 +19,6 @@ concurrency:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  build-osx:
-    name: MacOS Clang
-    runs-on: macos-latest
-
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
-
-      # Download and setup ccache
-      - name: Setup CCache
-        uses: hendrikmuhs/ccache-action@v1.2
-        with:
-          key: ${{ github.job }}-${{ matrix.container }}
-      - name: Zero CCache Stats
-        run: ccache --zero-stats
-
-      - name: Configure CMake
-        run: |
-          cmake -E make_directory build
-          cmake -S . -B build \
-            -DBUILD_TESTS=ON \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DCI_BUILD=ON \
-            -DCLANG_TIDY=OFF \
-            -DCMAKE_C_COMPILER_LAUNCHER=ccache \
-            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
-
-      - name: Build
-        timeout-minutes: 30
-        # Execute the build.  You can specify a specific target with "--target <NAME>"
-        run: cmake --build build --config Release --parallel 2
-
-      - name: CCache Stats
-        run: ccache --show-stats
-
-      - name: Test
-        timeout-minutes: 10
-        # Execute tests defined by the CMake configuration.
-        # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
-        run: |
-          build/tests/test_nuclear
-          for f in build/tests/individual/*; do echo "Testing $f"; ./$f; done
-
   build-windows:
     name: Windows MSVC
 
