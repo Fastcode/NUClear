@@ -94,7 +94,7 @@ jobs:
             -DBUILD_TESTS=ON \
             -DCMAKE_BUILD_TYPE=Release \
             -DCI_BUILD=ON \
-            -DCLANG_TIDY=OFF
+            -DENABLE_CLANG_TIDY=OFF
 
       - name: Build
         timeout-minutes: 30
