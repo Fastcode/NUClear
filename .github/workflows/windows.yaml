@@ -9,6 +9,9 @@ on:
   pull_request:
     branches: [main]
 
+# C:/ProgramData/chocolatey/bin/gcc.exe
+# C:/ProgramData/chocolatey/bin/g++.exe
+
 # Ensure that only one instance of the workflow is run at a time for each branch/tag.
 # Jobs currently running on the branch/tag will be cancelled when new commits are pushed.
 # See https://docs.github.com/en/actions/learn-github-actions/workflow-syntax-for-github-actions#concurrency.
@@ -53,10 +56,10 @@ jobs:
           cmake -E make_directory build
           cmake -S . -B build ^
             -GNinja ^
-            -DCMAKE_C_COMPILER=cl \
-            -DCMAKE_CXX_COMPILER=cl \
-            -DCMAKE_C_COMPILER_LAUNCHER=sccache \
-            -DCMAKE_CXX_COMPILER_LAUNCHER=sccache \
+            -DCMAKE_C_COMPILER=cl ^
+            -DCMAKE_CXX_COMPILER=cl ^
+            -DCMAKE_C_COMPILER_LAUNCHER=sccache ^
+            -DCMAKE_CXX_COMPILER_LAUNCHER=sccache ^
             -DBUILD_TESTS=ON ^
             -DCMAKE_BUILD_TYPE=Release ^
             -DCI_BUILD=ON ^
