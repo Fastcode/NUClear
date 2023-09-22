@@ -1,5 +1,5 @@
 # Continuous Integration tests
-name: GCC Build
+name: GCC
 
 # Controls when the action will run.
 on:
