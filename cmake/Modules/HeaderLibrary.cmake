@@ -21,7 +21,7 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 ]]
 
 include(CMakeParseArguments)
-function(header_library)
+function(HeaderLibrary)
   # Extract the arguments from our function call
   set(options, "")
   set(oneValueArgs "NAME")
@@ -90,4 +90,4 @@ function(header_library)
       PARENT_SCOPE
   )
 
-endfunction(header_library)
+endfunction(HeaderLibrary)

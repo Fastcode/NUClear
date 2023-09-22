@@ -214,4 +214,5 @@ with section("misc"):
     # only `command_case` is supported.
     per_command = {
         "HeaderLibrary": {"command_case": "unchanged"},
+        "ToolchainLibraryFinder": {"command_case": "unchanged"},
     }
