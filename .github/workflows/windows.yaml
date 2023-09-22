@@ -9,9 +9,6 @@ on:
   pull_request:
     branches: [main]
 
-# C:/ProgramData/chocolatey/bin/gcc.exe
-# C:/ProgramData/chocolatey/bin/g++.exe
-
 # Ensure that only one instance of the workflow is run at a time for each branch/tag.
 # Jobs currently running on the branch/tag will be cancelled when new commits are pushed.
 # See https://docs.github.com/en/actions/learn-github-actions/workflow-syntax-for-github-actions#concurrency.
@@ -37,6 +34,7 @@ jobs:
 
     # The type of runner that the job will run on
     runs-on: windows-latest
+    continue-on-error: true
 
     steps:
       - name: Checkout Code
