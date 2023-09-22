@@ -133,18 +133,7 @@ jobs:
       - name: Configure CMake
         run: |
           cmake -E make_directory build
-          cmake -S . -B build \
-            -DBUILD_TESTS=ON \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DCI_BUILD=ON \
-            -DENABLE_CLANG_TIDY=ON \
-            -DCMAKE_C_COMPILER_LAUNCHER=ccache \
-            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
-
-      - name: Configure CMake
-        run: |
-          cmake -E make_directory build
-          cmake -S . -B build -DBUILD_TESTS=ON -DCMAKE_BUILD_TYPE=Release -DCI_BUILD=ON -DENABLE_CLANG_TIDY=OFF
+          cmake -S . -B build -DBUILD_TESTS=ON -DCMAKE_BUILD_TYPE=Release -DCI_BUILD=ON -DENABLE_CLANG_TIDY=ON -DCMAKE_C_COMPILER_LAUNCHER=sccache -DCMAKE_CXX_COMPILER_LAUNCHER=sccache
 
       - name: Build
         timeout-minutes: 30
@@ -222,18 +211,7 @@ jobs:
       - name: Configure CMake
         run: |
           cmake -E make_directory build
-          cmake -S . -B build \
-            -DBUILD_TESTS=ON \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DCI_BUILD=ON \
-            -DENABLE_CLANG_TIDY=ON \
-            -DCMAKE_C_COMPILER_LAUNCHER=ccache \
-            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
-
-      - name: Configure CMake
-        run: |
-          cmake -E make_directory build
-          cmake -S . -B build -DBUILD_TESTS=ON -DCMAKE_BUILD_TYPE=Release -DCI_BUILD=ON -DENABLE_CLANG_TIDY=ON
+          cmake -S . -B build -DBUILD_TESTS=ON -DCMAKE_BUILD_TYPE=Release -DCI_BUILD=ON -DENABLE_CLANG_TIDY=ON -DCMAKE_C_COMPILER_LAUNCHER=sccache -DCMAKE_CXX_COMPILER_LAUNCHER=sccache
 
       - name: Build
         timeout-minutes: 30
