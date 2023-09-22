@@ -65,7 +65,7 @@ jobs:
         run: |
           add-apt-repository ppa:ubuntu-toolchain-r/test
           apt-get update
-          apt-get install -y gcc-${{ matrix.toolchain.version }}
+          apt-get install -y gcc-${{ matrix.toolchain.version }} g++-${{ matrix.toolchain.version }}
 
       # Download and install cmake
       - name: Install CMake
@@ -87,14 +87,14 @@ jobs:
           cmake -E make_directory build
           cmake -S . -B build \
             -GNinja \
-            -DCMAKE_CXX_COMPILER=/usr/bin/g++-${{ matrix.toolchain.version }} \
             -DCMAKE_C_COMPILER=/usr/bin/gcc-${{ matrix.toolchain.version }} \
+            -DCMAKE_CXX_COMPILER=/usr/bin/g++-${{ matrix.toolchain.version }} \
+            -DCMAKE_C_COMPILER_LAUNCHER=ccache \
+            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
             -DBUILD_TESTS=ON \
             -DCMAKE_BUILD_TYPE=Release \
             -DCI_BUILD=ON \
-            -DCLANG_TIDY=OFF \
-            -DCMAKE_C_COMPILER_LAUNCHER=ccache \
-            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
+            -DCLANG_TIDY=OFF
 
       - name: Build
         timeout-minutes: 30
