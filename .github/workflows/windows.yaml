@@ -23,7 +23,17 @@ concurrency:
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   build-windows:
-    name: Windows MSVC
+    name: ${{ matrix.toolchain.name }}
+
+    strategy:
+      matrix:
+        toolchain:
+          - name: MSVC
+            c: cl
+            cxx: cl
+          - name: GCC
+            c: gcc
+            cxx: g++
 
     # The type of runner that the job will run on
     runs-on: windows-latest
@@ -56,8 +66,8 @@ jobs:
           cmake -E make_directory build
           cmake -S . -B build ^
             -GNinja ^
-            -DCMAKE_C_COMPILER=cl ^
-            -DCMAKE_CXX_COMPILER=cl ^
+            -DCMAKE_C_COMPILER=${{ matrix.toolchain.c }} ^
+            -DCMAKE_CXX_COMPILER=${{ matrix.toolchain.cxx }}  ^
             -DCMAKE_C_COMPILER_LAUNCHER=sccache ^
             -DCMAKE_CXX_COMPILER_LAUNCHER=sccache ^
             -DBUILD_TESTS=ON ^
