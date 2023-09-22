@@ -98,7 +98,7 @@ jobs:
 
       - name: Build
         timeout-minutes: 30
-        run: cmake --build build --config Release --parallel 2
+        run: cmake --build build --config Release
 
       - name: CCache Stats
         run: ccache --show-stats
