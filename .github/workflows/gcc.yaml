@@ -65,7 +65,7 @@ jobs:
         run: |
           add-apt-repository ppa:ubuntu-toolchain-r/test
           apt-get update
-          apt-get install -y build-essential gcc-${{ matrix.toolchain.version }}
+          apt-get install -y gcc-${{ matrix.toolchain.version }}
 
       # Download and install cmake
       - name: Install CMake
