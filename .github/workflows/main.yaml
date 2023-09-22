@@ -46,6 +46,7 @@ jobs:
           ninjaVersion: 1.11.1
 
       # Download and setup ccache
+      - run: apt update # Docker container needs to update first
       - name: ccache
         uses: hendrikmuhs/ccache-action@v1.2
         with:
