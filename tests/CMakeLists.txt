@@ -41,6 +41,7 @@ if(CATCH_FOUND)
       "log/*.cpp"
       "util/*.cpp"
       "util/network/*.cpp"
+      "util/serialise/*.cpp"
       "test_util/*.cpp"
     )
 
