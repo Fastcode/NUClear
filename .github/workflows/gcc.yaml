@@ -86,8 +86,8 @@ jobs:
         run: |
           cmake -E make_directory build
           cmake -S . -B build \
-            -CMAKE_CXX_COMPILER=g++-${{ matrix.toolchain.version }} \
-            -CMAKE_C_COMPILER=gcc-${{ matrix.toolchain.version }} \
+            -DCMAKE_CXX_COMPILER=g++-${{ matrix.toolchain.version }} \
+            -DCMAKE_C_COMPILER=gcc-${{ matrix.toolchain.version }} \
             -DBUILD_TESTS=ON \
             -DCMAKE_BUILD_TYPE=Release \
             -DCI_BUILD=ON \
