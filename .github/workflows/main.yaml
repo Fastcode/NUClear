@@ -47,7 +47,7 @@ jobs:
 
       # Download and setup ccache
       - run: apt update # Docker container needs to update first
-      - name: ccache
+      - name: Setup CCache
         uses: hendrikmuhs/ccache-action@v1.2
         with:
           key: ${{ github.job }}-${{ matrix.container }}
@@ -85,7 +85,7 @@ jobs:
         uses: actions/checkout@v3
 
       # Download and setup ccache
-      - name: ccache
+      - name: Setup CCache
         uses: hendrikmuhs/ccache-action@v1.2
         with:
           key: ${{ github.job }}-${{ matrix.container }}
@@ -125,7 +125,7 @@ jobs:
         uses: actions/checkout@v3
 
       # Download and setup ccache
-      - name: ccache
+      - name: Setup CCache
         uses: hendrikmuhs/ccache-action@v1.2
         with:
           key: ${{ github.job }}-clang-tidy
@@ -184,7 +184,7 @@ jobs:
           ninjaVersion: 1.11.1
 
       # Download and setup ccache
-      - name: ccache
+      - name: Setup CCache
         uses: hendrikmuhs/ccache-action@v1.2
         with:
           key: ${{ github.job }}-clang-tidy
@@ -214,7 +214,7 @@ jobs:
         uses: actions/checkout@v3
 
       # Download and setup ccache
-      - name: ccache
+      - name: Setup CCache
         uses: hendrikmuhs/ccache-action@v1.2
         with:
           key: ${{ github.job }}-clang-tidy
