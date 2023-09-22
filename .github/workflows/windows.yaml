@@ -28,9 +28,10 @@ jobs:
           - name: MSVC
             c: cl
             cxx: cl
-          - name: GCC
-            c: gcc
-            cxx: g++
+          # Code does not compile on GCC on windows
+          # - name: GCC
+          #   c: gcc
+          #   cxx: g++
 
     # The type of runner that the job will run on
     runs-on: windows-latest
@@ -71,7 +72,7 @@ jobs:
             -DBUILD_TESTS=ON ^
             -DCMAKE_BUILD_TYPE=Release ^
             -DCI_BUILD=ON ^
-            -DENABLE_CLANG_TIDY=OFF
+            -DENABLE_CLANG_TIDY=ON
 
       - name: Build
         timeout-minutes: 30
