@@ -62,9 +62,9 @@ namespace util {
     }
 
     std::string demangle(const char* symbol) {
-        // If the symbol is the empty string then just return it
-        if (symbol != nullptr && symbol[0] == '\0') {
-            return symbol;
+        // If the symbol is null or the empty string then just return it
+        if (symbol == nullptr || symbol[0] == '\0') {
+            return "";
         }
 
         std::lock_guard<std::mutex> lock(symbol_mutex);
