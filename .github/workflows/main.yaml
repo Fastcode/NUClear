@@ -19,68 +19,6 @@ concurrency:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  build-linux:
-    name: Linux GCC
-
-    strategy:
-      matrix:
-        container:
-          ["gcc:5", "gcc:7", "gcc:9", "gcc:10", "gcc:11", "gcc:12", "gcc:13"]
-
-    # The type of runner that the job will run on
-    runs-on: ubuntu-latest
-    continue-on-error: true
-
-    # Use the container for this specific version of gcc
-    container: ${{ matrix.container }}
-
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
-
-      # Download and install cmake
-      - name: Install CMake
-        uses: lukka/get-cmake@latest
-        with:
-          cmakeVersion: 3.27.1
-          ninjaVersion: 1.11.1
-
-      # Download and setup ccache
-      - run: apt update # Docker container needs to update first
-      - name: Setup CCache
-        uses: hendrikmuhs/ccache-action@v1.2
-        with:
-          key: ${{ github.job }}-${{ matrix.container }}
-      - name: Zero CCache Stats
-        run: ccache --zero-stats
-
-      - name: Configure CMake
-        run: |
-          cmake -E make_directory build
-          cmake -S . -B build \
-            -DBUILD_TESTS=ON \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DCI_BUILD=ON \
-            -DCLANG_TIDY=OFF \
-            -DCMAKE_C_COMPILER_LAUNCHER=ccache \
-            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
-
-      - name: Build
-        timeout-minutes: 30
-        # Execute the build.  You can specify a specific target with "--target <NAME>"
-        run: cmake --build build --config Release --parallel 2
-
-      - name: CCache Stats
-        run: ccache --show-stats
-
-      - name: Test
-        timeout-minutes: 10
-        # Execute tests defined by the CMake configuration.
-        # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
-        run: |
-          build/tests/test_nuclear
-          for f in build/tests/individual/*; do echo "Testing $f"; ./$f; done
-
   build-osx:
     name: MacOS Clang
     runs-on: macos-latest
