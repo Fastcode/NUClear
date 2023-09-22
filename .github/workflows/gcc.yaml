@@ -57,15 +57,15 @@ jobs:
 
       # Update for all the actions that need to install stuff
       - run: |
-          apt update
-          apt install -y --no-install-recommends software-properties-common
+          apt-get update
+          apt-get install -y software-properties-common
 
       # Download and install the targeted version of gcc
       - name: Install GCC
         run: |
           add-apt-repository ppa:ubuntu-toolchain-r/test
-          apt update
-          apt install -y --no-install-recommends build-essential gcc-${{ matrix.toolchain.version }}
+          apt-get update
+          apt-get install -y build-essential gcc-${{ matrix.toolchain.version }}
 
       # Download and install cmake
       - name: Install CMake
