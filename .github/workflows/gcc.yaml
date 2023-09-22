@@ -55,11 +55,17 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v3
 
+      # Update for all the actions that need to install stuff
+      - run: |
+          apt update
+          apt install -y --no-install-recommends software-properties-common
+
       # Download and install the targeted version of gcc
       - name: Install GCC
-        uses: egor-tensin/setup-gcc@v1
-        with:
-          version: ${{ matrix.toolchain.version }}
+        run: |
+          add-apt-repository ppa:ubuntu-toolchain-r/test
+          apt update
+          apt install -y --no-install-recommends build-essential gcc-${{ matrix.toolchain.version }}
 
       # Download and install cmake
       - name: Install CMake
@@ -69,7 +75,6 @@ jobs:
           ninjaVersion: 1.11.1
 
       # Download and setup ccache
-      - run: apt update # Docker container needs to update first
       - name: Setup CCache
         uses: hendrikmuhs/ccache-action@v1.2
         with:
