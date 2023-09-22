@@ -22,7 +22,8 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 
 include(HeaderLibrary)
 
-header_library(
+HeaderLibrary(
   NAME CATCH
-  HEADER catch.hpp URL "https://raw.githubusercontent.com/catchorg/Catch2/v2.x/single_include/catch2/catch.hpp"
+  HEADER catch.hpp
+  URL "https://raw.githubusercontent.com/catchorg/Catch2/v2.x/single_include/catch2/catch.hpp"
 )

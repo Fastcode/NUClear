@@ -21,4 +21,4 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 ]]
 
 include(ToolchainLibraryFinder)
-toolchainlibraryfinder(NAME Sphinx BINARY sphinx-build)
+ToolchainLibraryFinder(NAME Sphinx BINARY sphinx-build)

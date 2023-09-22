@@ -75,9 +75,6 @@ with section("format"):
     # Format keywords consistently as 'lower' or 'upper' case
     keyword_case = "upper"
 
-    # A list of command names which should always be wrapped
-    always_wrap = ["NUCLEAR_ROLE", "nuclear_role"]
-
     # If true, the argument lists which are known to be sortable will be sorted
     # lexicographicall
     enable_sort = True
@@ -216,6 +213,6 @@ with section("misc"):
     # A dictionary containing any per-command configuration overrides. Currently
     # only `command_case` is supported.
     per_command = {
-        "ToolchainLibraryFinder": {"command_case": "unchanged"},
         "HeaderLibrary": {"command_case": "unchanged"},
+        "ToolchainLibraryFinder": {"command_case": "unchanged"},
     }
