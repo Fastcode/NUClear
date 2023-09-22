@@ -45,10 +45,22 @@ jobs:
           cmakeVersion: 3.27.1
           ninjaVersion: 1.11.1
 
+      # Download and setup ccache
+      - name: ccache
+        uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: ${{ github.job }}-${{ matrix.container }}
+
       - name: Configure CMake
         run: |
           cmake -E make_directory build
-          cmake -S . -B build -DBUILD_TESTS=ON -DCMAKE_BUILD_TYPE=Release -DCI_BUILD=ON
+          cmake -S . -B build \
+            -DBUILD_TESTS=ON \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCI_BUILD=ON \
+            -DCLANG_TIDY=OFF \
+            -DCMAKE_C_COMPILER_LAUNCHER=ccache \
+            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
 
       - name: Build
         timeout-minutes: 30
@@ -71,10 +83,22 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v3
 
+      # Download and setup ccache
+      - name: ccache
+        uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: ${{ github.job }}-${{ matrix.container }}
+
       - name: Configure CMake
         run: |
           cmake -E make_directory build
-          cmake -S . -B build -DBUILD_TESTS=ON -DCMAKE_BUILD_TYPE=Release
+          cmake -S . -B build \
+            -DBUILD_TESTS=ON \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCI_BUILD=ON \
+            -DCLANG_TIDY=OFF \
+            -DCMAKE_C_COMPILER_LAUNCHER=ccache \
+            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
 
       - name: Build
         timeout-minutes: 30
@@ -99,10 +123,31 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v3
 
+      # Download and setup ccache
+      - name: ccache
+        uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: ${{ github.job }}-clang-tidy
+
       - name: Configure CMake
         run: |
           cmake -E make_directory build
-          cmake -S . -B build -DBUILD_TESTS=ON -DCMAKE_BUILD_TYPE=Release
+          cmake -S . -B build \
+            -DBUILD_TESTS=ON \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCI_BUILD=ON \
+            -DENABLE_CLANG_TIDY=ON \
+            -DCMAKE_C_COMPILER_LAUNCHER=ccache \
+            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
+
+      - name: Configure CMake
+        run: |
+          cmake -E make_directory build
+          cmake -S . -B build \
+            -DBUILD_TESTS=ON \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCI_BUILD=ON \
+            -DENABLE_CLANG_TIDY=OFF
 
       - name: Build
         timeout-minutes: 30
@@ -123,6 +168,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
       - name: Install clang-tidy-15
         run: |
           wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
@@ -131,9 +179,6 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y clang-tidy-15
 
-      - name: Checkout Code
-        uses: actions/checkout@v3
-
       # Download and install cmake
       - name: Install CMake
         uses: lukka/get-cmake@latest
@@ -141,10 +186,22 @@ jobs:
           cmakeVersion: 3.27.1
           ninjaVersion: 1.11.1
 
+      # Download and setup ccache
+      - name: ccache
+        uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: ${{ github.job }}-clang-tidy
+
       - name: Configure CMake
         run: |
           cmake -E make_directory build
-          cmake -S . -B build -DBUILD_TESTS=ON -DCMAKE_BUILD_TYPE=Release -DCI_BUILD=ON -DENABLE_CLANG_TIDY=ON
+          cmake -S . -B build \
+            -DBUILD_TESTS=ON \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCI_BUILD=ON \
+            -DENABLE_CLANG_TIDY=ON \
+            -DCMAKE_C_COMPILER_LAUNCHER=ccache \
+            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
 
       - name: Build
         timeout-minutes: 30
@@ -159,10 +216,31 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v3
 
+      # Download and setup ccache
+      - name: ccache
+        uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: ${{ github.job }}-clang-tidy
+
       - name: Configure CMake
         run: |
           cmake -E make_directory build
-          cmake -S . -B build -DBUILD_TESTS=ON -DCMAKE_BUILD_TYPE=Release -DCI_BUILD=ON -DENABLE_CLANG_TIDY=ON
+          cmake -S . -B build \
+            -DBUILD_TESTS=ON \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCI_BUILD=ON \
+            -DENABLE_CLANG_TIDY=ON \
+            -DCMAKE_C_COMPILER_LAUNCHER=ccache \
+            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
+
+      - name: Configure CMake
+        run: |
+          cmake -E make_directory build
+          cmake -S . -B build \
+            -DBUILD_TESTS=ON \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCI_BUILD=ON \
+            -DENABLE_CLANG_TIDY=ON
 
       - name: Build
         timeout-minutes: 30
