@@ -39,6 +39,7 @@ jobs:
         run: |
           cmake -E make_directory build
           cmake -S . -B build \
+            -GNinja \
             -DCMAKE_C_COMPILER_LAUNCHER=ccache \
             -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
             -DBUILD_TESTS=ON \
@@ -49,7 +50,7 @@ jobs:
       - name: Build
         timeout-minutes: 30
         # Execute the build.  You can specify a specific target with "--target <NAME>"
-        run: cmake --build build --config Release --parallel 2
+        run: cmake --build build --config Release
 
       - name: CCache Stats
         run: ccache --show-stats
