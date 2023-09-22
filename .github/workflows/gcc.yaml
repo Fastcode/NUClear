@@ -79,8 +79,6 @@ jobs:
         uses: hendrikmuhs/ccache-action@v1.2
         with:
           key: ${{ github.job }}-${{ matrix.container }}
-      - name: Zero CCache Stats
-        run: ccache --zero-stats
 
       - name: Configure CMake
         run: |
