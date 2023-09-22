@@ -36,6 +36,13 @@ jobs:
           key: ${{ github.job }}-clang-tidy
           variant: sccache
 
+      # Download and install cmake
+      - name: Install CMake
+        uses: lukka/get-cmake@latest
+        with:
+          cmakeVersion: 3.27.1
+          ninjaVersion: 1.11.1
+
       - name: Configure CMake
         run: |
           cmake -E make_directory build
