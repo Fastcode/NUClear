@@ -62,8 +62,12 @@ namespace util {
     }
 
     std::string demangle(const char* symbol) {
+        // If the symbol is null then just return an empty string
+        if (symbol == nullptr) {
+            return "";
+        }
         // If the symbol is the empty string then just return it
-        if (symbol != nullptr && symbol[0] == '\0') {
+        if (symbol[0] == '\0') {
             return symbol;
         }
 
