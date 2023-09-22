@@ -129,6 +129,7 @@ jobs:
         uses: hendrikmuhs/ccache-action@v1.2
         with:
           key: ${{ github.job }}-clang-tidy
+          variant: sccache
 
       - name: Configure CMake
         run: |
@@ -207,6 +208,7 @@ jobs:
         uses: hendrikmuhs/ccache-action@v1.2
         with:
           key: ${{ github.job }}-clang-tidy
+          variant: sccache
 
       - name: Configure CMake
         run: |
