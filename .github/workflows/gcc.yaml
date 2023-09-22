@@ -86,6 +86,7 @@ jobs:
         run: |
           cmake -E make_directory build
           cmake -S . -B build \
+            -GNinja \
             -DCMAKE_CXX_COMPILER=/usr/bin/g++-${{ matrix.toolchain.version }} \
             -DCMAKE_C_COMPILER=/usr/bin/gcc-${{ matrix.toolchain.version }} \
             -DBUILD_TESTS=ON \
