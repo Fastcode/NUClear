@@ -70,7 +70,7 @@ jobs:
       - name: Setup CCache
         uses: hendrikmuhs/ccache-action@v1.2
         with:
-          key: ${{ github.job }}-${{ matrix.container }}
+          key: ${{ github.job }}-${{ matrix.toolchain.version }}
 
       - name: Configure CMake
         run: |

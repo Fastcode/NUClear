@@ -28,9 +28,7 @@ jobs:
       - name: Setup CCache
         uses: hendrikmuhs/ccache-action@v1.2
         with:
-          key: ${{ github.job }}-${{ matrix.container }}
-      - name: Zero CCache Stats
-        run: ccache --zero-stats
+          key: ${{ github.job }}
 
       - name: Install CMake
         uses: lukka/get-cmake@latest

@@ -1,5 +1,4 @@
-# Continuous Integration tests
-name: CI
+name: Linting
 
 # Controls when the action will run.
 on:
@@ -19,7 +18,7 @@ concurrency:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  check-clang-tidy-linux:
+  clang-tidy-linux:
     name: Clang-Tidy Linux
     runs-on: ubuntu-latest
 
@@ -46,20 +45,19 @@ jobs:
       - name: Setup CCache
         uses: hendrikmuhs/ccache-action@v1.2
         with:
-          key: ${{ github.job }}-clang-tidy
-      - name: Zero CCache Stats
-        run: ccache --zero-stats
+          key: ${{ github.job }}
 
       - name: Configure CMake
         run: |
           cmake -E make_directory build
           cmake -S . -B build \
+            -GNinja \
+            -DCMAKE_C_COMPILER_LAUNCHER=ccache \
+            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
             -DBUILD_TESTS=ON \
             -DCMAKE_BUILD_TYPE=Release \
             -DCI_BUILD=ON \
             -DENABLE_CLANG_TIDY=ON \
-            -DCMAKE_C_COMPILER_LAUNCHER=ccache \
-            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
 
       - name: Build
         timeout-minutes: 30
