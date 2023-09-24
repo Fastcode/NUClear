@@ -39,7 +39,7 @@ jobs:
           - container: ubuntu:18.04
             version: "5"
 
-    name: gcc-${{ matrix.toolchain.version }}
+    name: Linux GCC-${{ matrix.toolchain.version }}
     runs-on: ubuntu-latest
     continue-on-error: true
 
