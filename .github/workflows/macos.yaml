@@ -29,6 +29,7 @@ jobs:
         uses: hendrikmuhs/ccache-action@v1.2
         with:
           key: ${{ github.job }}
+          max-size: 100M
 
       - name: Install CMake
         uses: lukka/get-cmake@latest
