@@ -48,7 +48,7 @@ public:
 
 TEST_CASE("Testing that the bind functions of extensions are executed in order", "[api][extension][bind]") {
 
-    NUClear::PowerPlant::Configuration config;
+    NUClear::Configuration config;
     config.thread_count = 1;
     NUClear::PowerPlant plant(config);
     plant.install<TestReactor>();

@@ -99,7 +99,7 @@ public:
 }  // namespace
 
 TEST_CASE("Testing that the Sync word works correctly", "[api][sync]") {
-    NUClear::PowerPlant::Configuration config;
+    NUClear::Configuration config;
     config.thread_count = 4;
     NUClear::PowerPlant plant(config);
     plant.install<TestReactor>();

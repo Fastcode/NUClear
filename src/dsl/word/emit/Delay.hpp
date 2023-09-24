@@ -60,7 +60,7 @@ namespace dsl {
 
                     // Our chrono task is just to do a normal emit in the amount of time
                     auto msg = std::make_shared<operation::ChronoTask>(
-                        [&powerplant, data](NUClear::clock::time_point&) {
+                        [&powerplant, data](const NUClear::clock::time_point&) {
                             // Do the emit
                             emit::Local<DataType>::emit(powerplant, data);
 
@@ -80,7 +80,7 @@ namespace dsl {
 
                     // Our chrono task is just to do a normal emit in the amount of time
                     auto msg = std::make_shared<operation::ChronoTask>(
-                        [&powerplant, data](NUClear::clock::time_point&) {
+                        [&powerplant, data](const NUClear::clock::time_point&) {
                             // Do the emit
                             emit::Local<DataType>::emit(powerplant, data);
 

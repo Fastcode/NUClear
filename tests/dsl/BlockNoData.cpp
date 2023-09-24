@@ -67,7 +67,7 @@ public:
 
 TEST_CASE("Testing that when an on statement does not have it's data satisfied it does not run", "[api][nodata]") {
 
-    NUClear::PowerPlant::Configuration config;
+    NUClear::Configuration config;
     config.thread_count = 1;
     NUClear::PowerPlant plant(config);
     plant.install<TestReactor>();

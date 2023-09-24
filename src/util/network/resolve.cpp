@@ -53,7 +53,8 @@ namespace util {
                 throw std::runtime_error("Unable to find an address for " + address + ":" + std::to_string(port));
             }
 
-            std::unique_ptr<addrinfo, void (*)(addrinfo*)> servinfo(servinfo_ptr, ::freeaddrinfo);
+            std::unique_ptr<addrinfo, void (*)(addrinfo*)> servinfo(servinfo_ptr,
+                                                                    [](addrinfo* ptr) { ::freeaddrinfo(ptr); });
 
             // Empty sock_t struct
             NUClear::util::network::sock_t target{};

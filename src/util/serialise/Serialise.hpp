@@ -53,7 +53,7 @@ namespace util {
             static inline std::vector<char> serialise(const T& in) {
 
                 // Copy the bytes into an array
-                const char* dataptr = reinterpret_cast<const char*>(&in);
+                const auto* dataptr = reinterpret_cast<const char*>(&in);
                 return {dataptr, dataptr + sizeof(T)};
             }
 

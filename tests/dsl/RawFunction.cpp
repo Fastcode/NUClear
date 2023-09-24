@@ -106,7 +106,7 @@ public:
 
 TEST_CASE("Test reaction can take a raw function instead of just a lambda", "[api][raw_function]") {
 
-    NUClear::PowerPlant::Configuration config;
+    NUClear::Configuration config;
     config.thread_count = 1;
     NUClear::PowerPlant plant(config);
     plant.install<TestReactor>();

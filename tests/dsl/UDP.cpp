@@ -368,7 +368,7 @@ TEST_CASE("Testing sending and receiving of UDP messages", "[api][network][udp]"
         active_tests.push_back(MULTICAST_V6_EPHEMERAL);
     }
 
-    NUClear::PowerPlant::Configuration config;
+    NUClear::Configuration config;
     config.thread_count = 1;
     NUClear::PowerPlant plant(config);
     plant.install<TestReactor>();

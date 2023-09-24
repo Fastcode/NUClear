@@ -31,7 +31,7 @@ namespace dsl {
         template <typename T>
         struct OptionalWrapper {
 
-            OptionalWrapper(T&& d) : d(std::move(d)) {}
+            explicit OptionalWrapper(T&& d) : d(std::move(d)) {}
 
             T operator*() const {
                 return std::move(d);

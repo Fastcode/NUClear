@@ -23,6 +23,8 @@
 #ifndef NUCLEAR_DSL_WORD_EMIT_WATCHDOG_HPP
 #define NUCLEAR_DSL_WORD_EMIT_WATCHDOG_HPP
 
+#include <stdexcept>
+
 #include "../../../PowerPlant.hpp"
 #include "../../../util/TypeMap.hpp"
 #include "../../../util/demangle.hpp"
@@ -50,11 +52,20 @@ namespace dsl {
                 using WatchdogStore =
                     util::TypeMap<WatchdogGroup, MapType, std::map<MapType, NUClear::clock::time_point>>;
 
-                WatchdogServicer() : when(NUClear::clock::now()), data() {}
-                WatchdogServicer(const RuntimeType& data) : when(NUClear::clock::now()), data(data) {}
+                /**
+                 * @brief Construct a new Watchdog Servicer object
+                 */
+                WatchdogServicer() = default;
 
                 /**
-                 * @brief *  Services the watchdog
+                 * @brief Construct a new Watchdog Servicer object
+                 *
+                 * @param data The runtime argument that was passed to on<Watchdog<>>()
+                 */
+                explicit WatchdogServicer(const RuntimeType& data) : data(data) {}
+
+                /**
+                 * @brief Services the watchdog
                  *
                  * @details
                  *  The watchdog timer that is specified by the WatchdogGroup/RuntimeType/data
@@ -62,16 +73,18 @@ namespace dsl {
                  */
                 void service() {
                     if (WatchdogStore::get() == nullptr || WatchdogStore::get()->count(data) == 0) {
-                        throw std::runtime_error("Store for <" + util::demangle(typeid(WatchdogGroup).name()) + ", "
-                                                 + util::demangle(typeid(RuntimeType).name())
-                                                 + "> has not been created yet or no watchdog has been set up");
+                        throw std::domain_error("Store for <" + util::demangle(typeid(WatchdogGroup).name()) + ", "
+                                                + util::demangle(typeid(RuntimeType).name())
+                                                + "> has not been created yet or no watchdog has been set up");
                     }
                     WatchdogStore::get()->at(data) = when;
                 }
 
             private:
-                NUClear::clock::time_point when;
-                RuntimeType data;
+                /// @brief The time when the watchdog was serviced
+                NUClear::clock::time_point when{NUClear::clock::now()};
+                /// @brief The runtime argument that was passed to on<Watchdog<>>()
+                RuntimeType data{};
             };
 
             /**
@@ -88,8 +101,6 @@ namespace dsl {
             struct WatchdogServicer<WatchdogGroup, void> {
                 using WatchdogStore = util::TypeMap<WatchdogGroup, void, NUClear::clock::time_point>;
 
-                WatchdogServicer() : when(NUClear::clock::now()) {}
-
                 /**
                  * @brief *  Services the watchdog
                  *
@@ -99,14 +110,14 @@ namespace dsl {
                  */
                 void service() {
                     if (WatchdogStore::get() == nullptr) {
-                        throw std::runtime_error("Store for <" + util::demangle(typeid(WatchdogGroup).name())
-                                                 + "> has not been created yet or no watchdog has been set up");
+                        throw std::domain_error("Store for <" + util::demangle(typeid(WatchdogGroup).name())
+                                                + "> has not been created yet or no watchdog has been set up");
                     }
                     WatchdogStore::set(std::make_shared<NUClear::clock::time_point>(when));
                 }
 
             private:
-                NUClear::clock::time_point when;
+                NUClear::clock::time_point when{NUClear::clock::now()};
             };
 
             /**
@@ -157,7 +168,8 @@ namespace dsl {
             struct Watchdog {
 
                 template <typename WatchdogGroup, typename RuntimeType>
-                static void emit(PowerPlant& /*powerplant*/, WatchdogServicer<WatchdogGroup, RuntimeType>& servicer) {
+                static void emit(const PowerPlant& /*powerplant*/,
+                                 WatchdogServicer<WatchdogGroup, RuntimeType>& servicer) {
                     // Update our service time
                     servicer.service();
                 }

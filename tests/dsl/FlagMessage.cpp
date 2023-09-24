@@ -72,7 +72,7 @@ public:
 
 TEST_CASE("Testing emitting types that are flag types (Have no contents)", "[api][flag]") {
 
-    NUClear::PowerPlant::Configuration config;
+    NUClear::Configuration config;
     config.thread_count = 1;
     NUClear::PowerPlant plant(config);
     plant.install<TestReactor>();

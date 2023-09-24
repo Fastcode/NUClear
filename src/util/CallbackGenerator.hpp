@@ -38,12 +38,12 @@ namespace NUClear {
 namespace util {
 
     template <size_t I = 0, typename... T>
-    inline typename std::enable_if<I == sizeof...(T), bool>::type check_data(const std::tuple<T...>& /*t*/) {
+    inline std::enable_if_t<(I == sizeof...(T)), bool> check_data(const std::tuple<T...>& /*t*/) {
         return true;
     }
 
     template <size_t I = 0, typename... T>
-        inline typename std::enable_if < I<sizeof...(T), bool>::type check_data(const std::tuple<T...>& t) {
+    inline std::enable_if_t<(I < sizeof...(T)), bool> check_data(const std::tuple<T...>& t) {
         return std::get<I>(t) && check_data<I + 1>(t);
     }
 
@@ -52,14 +52,11 @@ namespace util {
     struct CallbackGenerator {
 
         // Don't use this constructor if F is of type CallbackGenerator
-        template <typename F,
-                  typename std::enable_if<
-                      !std::is_same<typename std::remove_reference<typename std::remove_cv<F>::type>::type,
-                                    CallbackGenerator>::value,
-                      bool>::type = true>
-        CallbackGenerator(F&& callback)
-            : callback(std::forward<F>(callback))
-            , transients(std::make_shared<typename TransientDataElements<DSL>::type>()) {}
+        template <
+            typename F,
+            std::enable_if_t<!std::is_same<std::remove_reference_t<std::remove_cv_t<F>>, CallbackGenerator>::value,
+                             bool> = true>
+        explicit CallbackGenerator(F&& callback) : callback(std::forward<F>(callback)) {}
 
         template <typename... T, int... DIndex, int... Index>
         void merge_transients(std::tuple<T...>& data,
@@ -108,7 +105,7 @@ namespace util {
             return GeneratedCallback(DSL::priority(r),
                                      DSL::group(r),
                                      DSL::pool(r),
-                                     [c, data](threading::ReactionTask& task) {
+                                     [c, data](threading::ReactionTask& task) noexcept {
                                          // Update our thread's priority to the correct level
                                          update_current_thread_priority(task.priority);
 
@@ -121,7 +118,6 @@ namespace util {
                                              util::apply_relevant(c, std::move(data));
                                          }
                                          catch (...) {
-
                                              // Catch our exception if it happens
                                              task.stats->exception = std::current_exception();
                                          }
@@ -143,7 +139,8 @@ namespace util {
         }
 
         Function callback;
-        std::shared_ptr<typename TransientDataElements<DSL>::type> transients;
+        std::shared_ptr<typename TransientDataElements<DSL>::type> transients{
+            std::make_shared<typename TransientDataElements<DSL>::type>()};
     };
 
 }  // namespace util

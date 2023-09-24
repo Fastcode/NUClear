@@ -79,7 +79,7 @@ namespace dsl {
              * @tparam DSL the DSL used for this reaction
              */
             template <typename DSL>
-            static inline util::ThreadPoolDescriptor pool(threading::Reaction& /*reaction*/) {
+            static inline util::ThreadPoolDescriptor pool(const threading::Reaction& /*reaction*/) {
                 return pool_descriptor;
             }
         };

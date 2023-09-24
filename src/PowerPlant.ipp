@@ -27,8 +27,7 @@
 namespace NUClear {
 
 // NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays)
-inline PowerPlant::PowerPlant(Configuration config, int argc, const char* argv[])
-    : configuration(config), scheduler(config.thread_count) {
+inline PowerPlant::PowerPlant(Configuration config, int argc, const char* argv[]) : scheduler(config.thread_count) {
 
     // Stop people from making more then one powerplant
     if (powerplant != nullptr) {
@@ -151,19 +150,16 @@ void PowerPlant::emit(Arguments&&... args) {
     emit_shared<First, Remainder...>(std::forward<Arguments>(args)...);
 }
 
-// Anonymous metafunction that concatenates everything into a single string
-namespace {
-    template <typename T>
-    inline void log_impl(std::stringstream& output, T&& first) {
-        output << first;
-    }
+template <typename T>
+inline void log_impl(std::stringstream& output, T&& first) {
+    output << std::forward<T>(first);
+}
 
-    template <typename First, typename... Remainder>
-    inline void log_impl(std::stringstream& output, First&& first, Remainder&&... args) {
-        output << first << " ";
-        log_impl(output, std::forward<Remainder>(args)...);
-    }
-}  // namespace
+template <typename First, typename... Remainder>
+inline void log_impl(std::stringstream& output, First&& first, Remainder&&... args) {
+    output << std::forward<First>(first) << " ";
+    log_impl(output, std::forward<Remainder>(args)...);
+}
 
 template <enum LogLevel level, typename... Arguments>
 void PowerPlant::log(Arguments&&... args) {

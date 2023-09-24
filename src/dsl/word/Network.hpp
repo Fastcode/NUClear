@@ -36,22 +36,17 @@ namespace dsl {
         template <typename T>
         struct NetworkData : public std::shared_ptr<T> {
             NetworkData() : std::shared_ptr<T>() {}
-            NetworkData(T* ptr) : std::shared_ptr<T>(ptr) {}
+            explicit NetworkData(T* ptr) : std::shared_ptr<T>(ptr) {}
             NetworkData(const std::shared_ptr<T>& ptr) : std::shared_ptr<T>(ptr) {}
-            NetworkData(std::shared_ptr<T>&& ptr) : std::shared_ptr<T>(ptr) {}
         };
 
         struct NetworkSource {
-            NetworkSource() = default;
-
             std::string name{};
             util::network::sock_t address{};
             bool reliable{false};
         };
 
         struct NetworkListen {
-            NetworkListen() = default;
-
             uint64_t hash{0};
             std::shared_ptr<threading::Reaction> reaction{nullptr};
         };
@@ -99,7 +94,7 @@ namespace dsl {
 
             template <typename DSL>
             static inline std::tuple<std::shared_ptr<NetworkSource>, NetworkData<T>> get(
-                threading::Reaction& /*reaction*/) {
+                const threading::Reaction& /*reaction*/) {
 
                 auto* data   = store::ThreadStore<std::vector<char>>::value;
                 auto* source = store::ThreadStore<NetworkSource>::value;

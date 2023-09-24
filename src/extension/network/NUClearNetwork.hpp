@@ -51,9 +51,10 @@ namespace extension {
         public:
             struct NetworkTarget {
 
-                NetworkTarget(std::string name,
-                              sock_t target,
-                              std::chrono::steady_clock::time_point last_update = std::chrono::steady_clock::now())
+                NetworkTarget(
+                    std::string name,
+                    const sock_t& target,
+                    const std::chrono::steady_clock::time_point& last_update = std::chrono::steady_clock::now())
                     : name(std::move(name)), target(target), last_update(last_update) {
 
                     // Set our recent packets to an invalid value
@@ -77,13 +78,15 @@ namespace extension {
                          std::pair<std::chrono::steady_clock::time_point, std::map<uint16_t, std::vector<char>>>>
                     assemblers{};
 
-                /// A little kalman filter for estimating round trip time
+                /// Struct storing the kalman filter for round trip time
                 struct RoundTripKF {
                     float process_noise     = 1e-6f;
                     float measurement_noise = 1e-1f;
                     float variance          = 1.0f;
                     float mean              = 1.0f;
-                } round_trip_kf;
+                };
+                /// A little kalman filter for estimating round trip time
+                RoundTripKF round_trip_kf{};
 
                 std::chrono::steady_clock::duration round_trip_time{std::chrono::seconds(1)};
 
@@ -94,10 +97,10 @@ namespace extension {
                         std::chrono::duration_cast<std::chrono::duration<float, std::ratio<1>>>(time);
 
                     // Alias variables
-                    auto& Q = round_trip_kf.process_noise;
-                    auto& R = round_trip_kf.measurement_noise;
-                    auto& P = round_trip_kf.variance;
-                    auto& X = round_trip_kf.mean;
+                    const auto& Q = round_trip_kf.process_noise;
+                    const auto& R = round_trip_kf.measurement_noise;
+                    auto& P       = round_trip_kf.variance;
+                    auto& X       = round_trip_kf.mean;
 
                     // Calculate our kalman gain
                     const float K = (P + Q) / (P + Q + R);
@@ -337,7 +340,7 @@ namespace extension {
             std::list<std::shared_ptr<NetworkTarget>> targets;
 
             /// A map of string names to targets with that name
-            std::multimap<std::string, std::shared_ptr<NetworkTarget>> name_target;
+            std::multimap<std::string, std::shared_ptr<NetworkTarget>, std::less<>> name_target;
 
             /// A map of ip/port pairs to the network target they belong to
             std::map<std::array<uint16_t, 9>, std::shared_ptr<NetworkTarget>> udp_target;

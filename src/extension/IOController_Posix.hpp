@@ -114,8 +114,6 @@ namespace extension {
          * @brief Fires the event for the task if it is ready
          *
          * @param task the task to try to fire the event for
-         *
-         * @return the iterator to the next task in the list
          */
         void fire_event(Task& task) {
             if (task.processing_events == 0 && task.waiting_events != 0) {
@@ -165,7 +163,7 @@ namespace extension {
                             throw std::system_error(network_errno,
                                                     std::system_category(),
                                                     "There was an error reading our notification pipe?");
-                        };
+                        }
                     }
                     // It's a regular handle
                     else {

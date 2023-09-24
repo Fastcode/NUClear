@@ -83,7 +83,6 @@ namespace threading {
              const util::ThreadPoolDescriptor& thread_pool_descriptor,
              TaskFunction&& callback)
             : parent(parent)
-            , id(new_task_id())
             , priority(priority)
             , stats(std::make_shared<message::ReactionStatistics>(parent.identifiers,
                                                                   parent.id,
@@ -97,7 +96,7 @@ namespace threading {
             , emit_stats(parent.emit_stats && (current_task != nullptr ? current_task->emit_stats : true))
             , group_descriptor(group_descriptor)
             , thread_pool_descriptor(thread_pool_descriptor)
-            , callback(callback) {}
+            , callback(std::move(callback)) {}
 
 
         /**
@@ -129,7 +128,7 @@ namespace threading {
         /// @brief the parent Reaction object which spawned this
         ReactionType& parent;
         /// @brief the task id of this task (the sequence number of this particular task)
-        uint64_t id;
+        uint64_t id{new_task_id()};
         /// @brief the priority to run this task at
         int priority;
         /// @brief the statistics object that persists after this for information and debugging

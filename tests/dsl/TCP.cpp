@@ -80,9 +80,9 @@ public:
 
     TestReactor(std::unique_ptr<NUClear::Environment> environment) : TestBase(std::move(environment), false) {
 
-        // Bind to IPv4 and a known port
         for (const auto& t : active_tests) {
             switch (t) {
+                // Bind to IPv4 and a known port
                 case V4_KNOWN: {
                     on<TCP>(KNOWN_V4_PORT).then([this](const TCP::Connection& connection) {
                         on<IO>(connection.fd, IO::READ | IO::CLOSE).then([this](IO::Event event) {
@@ -90,8 +90,8 @@ public:
                         });
                     });
                 } break;
+                // Bind to IPv4 an unknown port and get the port number
                 case V4_EPHEMERAL: {
-                    // Bind to IPv4 an unknown port and get the port number
                     auto v4 = on<TCP>().then([this](const TCP::Connection& connection) {
                         on<IO>(connection.fd, IO::READ | IO::CLOSE).then([this](IO::Event event) {
                             handle_data("v4 Ephemeral", event);
@@ -100,7 +100,7 @@ public:
                     v4_port = std::get<1>(v4);
                 } break;
 
-                    // Bind to IPv6 and a known port
+                // Bind to IPv6 and a known port
                 case V6_KNOWN: {
                     on<TCP>(KNOWN_V6_PORT, "::").then([this](const TCP::Connection& connection) {
                         on<IO>(connection.fd, IO::READ | IO::CLOSE).then([this](IO::Event event) {
@@ -109,7 +109,7 @@ public:
                     });
                 } break;
 
-                    // Bind to IPv6 an unknown port and get the port number
+                // Bind to IPv6 an unknown port and get the port number
                 case V6_EPHEMERAL: {
                     auto v6 = on<TCP>(0, "::").then([this](const TCP::Connection& connection) {
                         on<IO>(connection.fd, IO::READ | IO::CLOSE).then([this](IO::Event event) {
@@ -211,7 +211,7 @@ TEST_CASE("Testing listening for TCP connections and receiving data messages", "
         active_tests.push_back(V6_EPHEMERAL);
     }
 
-    NUClear::PowerPlant::Configuration config;
+    NUClear::Configuration config;
     config.thread_count = 2;
     NUClear::PowerPlant plant(config);
     plant.install<TestReactor>();

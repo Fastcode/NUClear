@@ -61,7 +61,7 @@ public:
 
 TEST_CASE("The Always DSL keyword runs continuously when it can", "[api][always]") {
 
-    NUClear::PowerPlant::Configuration config;
+    NUClear::Configuration config;
     config.thread_count = 1;
     NUClear::PowerPlant plant(config);
     plant.install<TestReactor>();

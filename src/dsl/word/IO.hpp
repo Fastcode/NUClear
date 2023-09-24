@@ -59,7 +59,7 @@ namespace dsl {
          * @brief This is emitted when an IO operation has finished.
          */
         struct IOFinished {
-            IOFinished(const uint64_t& id) : id(id) {}
+            explicit IOFinished(const uint64_t& id) : id(id) {}
             /// @brief The id of the reaction that has finished
             uint64_t id;
         };
@@ -137,14 +137,14 @@ namespace dsl {
                     r.reactor.emit<emit::Direct>(std::make_unique<operation::Unbind<IO>>(r.id));
                 });
 
-                auto io_config = std::make_unique<IOConfiguration>(IOConfiguration{fd, watch_set, reaction});
+                auto io_config = std::make_unique<IOConfiguration>(fd, watch_set, reaction);
 
                 // Send our configuration out
                 reaction->reactor.emit<emit::Direct>(io_config);
             }
 
             template <typename DSL>
-            static inline Event get(threading::Reaction& /*reaction*/) {
+            static inline Event get(const threading::Reaction& /*reaction*/) {
 
                 // If our thread store has a value
                 if (ThreadEventStore::value) {

@@ -174,7 +174,7 @@ int main(int argc, const char* argv[]) {
         return -1;
     }
 
-    NUClear::PowerPlant::Configuration config;
+    NUClear::Configuration config;
     config.thread_count = 4;
     NUClear::PowerPlant plant(config, argc, argv);
     plant.install<TestReactor>();

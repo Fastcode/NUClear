@@ -33,15 +33,39 @@ namespace NUClear {
 namespace dsl {
     namespace word {
 
+        /**
+         * @brief A class that stores the last received items from a reaction
+         *
+         * This class stores the received items and provides conversion operators so that when passed into the reaction
+         * it can be converted to an appropriate type.
+         *
+         * @tparam n The number of items to store.
+         * @tparam T The type of the items to store.
+         */
         template <size_t n, typename T>
         struct LastItemStorage {
-            // The items we are storing
-            std::list<T> list;
+            LastItemStorage() = default;
 
-            LastItemStorage() : list() {}
+            /**
+             * @brief Constructs a LastItemStorage object with the given data.
+             *
+             * @param data The data to store.
+             */
+            explicit LastItemStorage(T&& data) : list({std::move(data)}) {}
+            /**
+             * @brief Constructs a LastItemStorage object with the given data.
+             *
+             * @param data The data to store.
+             */
+            explicit LastItemStorage(const T& data) : list({data}) {}
 
-            LastItemStorage(T&& data) : list({data}) {}
-
+            /**
+             * @brief Converts the stored list to a list of the given type.
+             *
+             * @tparam Output The type of the output list.
+             *
+             * @return The output list.
+             */
             template <typename Output>
             operator std::list<Output>() const {
 
@@ -54,6 +78,13 @@ namespace dsl {
                 return out;
             }
 
+            /**
+             * @brief Converts the stored list to a vector of the given type.
+             *
+             * @tparam Output The type of the output vector.
+             *
+             * @return The output vector.
+             */
             template <typename Output>
             operator std::vector<Output>() const {
 
@@ -66,9 +97,18 @@ namespace dsl {
                 return out;
             }
 
+            /**
+             * @brief Bool operator to allow the reaction to decide not to run if there is no data.
+             *
+             * @return true     If the list is not empty.
+             * @return false    If the list is empty.
+             */
             operator bool() const {
                 return !list.empty();
             }
+
+            /// The items we are storing
+            std::list<T> list;
         };
 
         /**

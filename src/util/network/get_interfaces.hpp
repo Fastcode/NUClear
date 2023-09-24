@@ -55,7 +55,9 @@ namespace util {
                 bool pointtopoint{false};
                 /// @brief True if the interface is a multicast interface
                 bool multicast{false};
-            } flags;
+            };
+            /// @brief The flags that are set on the interface
+            Flags flags;
         };
 
         /**

@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016 NUClear Contributors
+ * Copyright (c) 2023 NUClear Contributors
  *
  * This file is part of the NUClear codebase.
  * See https://github.com/Fastcode/NUClear for further info.
@@ -20,34 +20,22 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_DSL_WORD_MAINTHREAD_HPP
-#define NUCLEAR_DSL_WORD_MAINTHREAD_HPP
+#ifndef NUCLEAR_CONFIGURATION_HPP
+#define NUCLEAR_CONFIGURATION_HPP
 
-#include "../../threading/ReactionTask.hpp"
-#include "../../util/ThreadPoolDescriptor.hpp"
+#include <cstddef>
+#include <thread>
 
 namespace NUClear {
-namespace dsl {
-    namespace word {
 
-        /**
-         * @brief
-         *  This is used to specify that the associated task will need to execute using the main thread.
-         *
-         * @details
-         *  @code on<Trigger<T, ...>, MainThread>() @endcode
-         *  This will most likely be used with graphics related tasks.
-         */
-        struct MainThread {
+/**
+ * @brief This class holds the configuration for a PowerPlant.
+ */
+struct Configuration {
+    /// @brief The number of threads the system will use
+    size_t thread_count = std::thread::hardware_concurrency() == 0 ? 2 : std::thread::hardware_concurrency();
+};
 
-            template <typename DSL>
-            static inline util::ThreadPoolDescriptor pool(const threading::Reaction& /*reaction*/) {
-                return util::ThreadPoolDescriptor{util::ThreadPoolDescriptor::MAIN_THREAD_POOL_ID, 1};
-            }
-        };
-
-    }  // namespace word
-}  // namespace dsl
 }  // namespace NUClear
 
-#endif  // NUCLEAR_DSL_WORD_MAINTHREAD_HPP
+#endif  // NUCLEAR_CONFIGURATION_HPP

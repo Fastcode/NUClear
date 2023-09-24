@@ -102,7 +102,7 @@ public:
 }  // namespace
 
 TEST_CASE("Testing the delay emit", "[api][emit][delay]") {
-    NUClear::PowerPlant::Configuration config;
+    NUClear::Configuration config;
     config.thread_count = 1;
     NUClear::PowerPlant plant(config);
     plant.install<TestReactor>();

@@ -330,8 +330,9 @@ namespace extension {
             shutdown();
 
             // Lock all mutexes
-            const std::lock_guard<std::mutex> target_lock(target_mutex);
-            const std::lock_guard<std::mutex> send_lock(send_queue_mutex);
+            std::lock(target_mutex, send_queue_mutex);
+            const std::lock_guard<std::mutex> target_lock(target_mutex, std::adopt_lock);
+            const std::lock_guard<std::mutex> send_lock(send_queue_mutex, std::adopt_lock);
 
             // Clear all our data structures
             send_queue.clear();
@@ -353,14 +354,14 @@ namespace extension {
                     bind_target.ipv6.sin6_addr = IN6ADDR_ANY_INIT;
                 }
                 else {
-                    throw std::runtime_error("Unknown address family");
+                    throw std::invalid_argument("Unknown address family");
                 }
             }
             else {
                 bind_target = util::network::resolve(bind_address, port);
                 // If the family doesn't match, throw an error
                 if (bind_target.sock.sa_family != announce_target.sock.sa_family) {
-                    throw std::runtime_error("Bind address family does not match announce address family");
+                    throw std::invalid_argument("Bind address family does not match announce address family");
                 }
             }
 
@@ -439,7 +440,7 @@ namespace extension {
             }
 
             // Run the callback for anyone that left
-            for (auto& l : leavers) {
+            for (const auto& l : leavers) {
                 leave_callback(*l);
             }
 
@@ -471,8 +472,9 @@ namespace extension {
         void NUClearNetwork::retransmit() {
 
             // Locking send_queue_mutex second after target_mutex
-            const std::lock_guard<std::mutex> target_lock(target_mutex);
-            const std::lock_guard<std::mutex> send_lock(send_queue_mutex);
+            std::lock(target_mutex, send_queue_mutex);
+            const std::lock_guard<std::mutex> target_lock(target_mutex, std::adopt_lock);
+            const std::lock_guard<std::mutex> send_lock(send_queue_mutex, std::adopt_lock);
 
             for (auto qit = send_queue.begin(); qit != send_queue.end();) {
                 for (auto it = qit->second.targets.begin(); it != qit->second.targets.end();) {
@@ -756,7 +758,7 @@ namespace extension {
                                         response.packet_count = packet.packet_count;
 
                                         // Set the bits for the packets we thought we received
-                                        for (auto& p : assembler.second) {
+                                        for (const auto& p : assembler.second) {
                                             (&response.packets)[p.first / 8] |= uint8_t(1 << (p.first % 8));
                                         }
 
@@ -796,7 +798,7 @@ namespace extension {
                                     response.packet_count = packet.packet_count;
 
                                     // Set the bits for the packets we have received
-                                    for (auto& p : assembler.second) {
+                                    for (const auto& p : assembler.second) {
                                         (&response.packets)[p.first / 8] |= uint8_t(1 << (p.first % 8));
                                     }
 
@@ -818,7 +820,7 @@ namespace extension {
                                     // Work out exactly how much data we will need first so we only need one
                                     // allocation
                                     size_t payload_size = 0;
-                                    for (auto& p : assembler.second) {
+                                    for (const auto& p : assembler.second) {
                                         payload_size += p.second.size() - sizeof(DataPacket) + 1;
                                     }
 
@@ -1001,8 +1003,8 @@ namespace extension {
             // Our packet we are sending
             msghdr message{};
 
-            iovec data[2];  // NOLINT(cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays)
-            message.msg_iov    = static_cast<iovec*>(data);
+            std::array<iovec, 2> data{};
+            message.msg_iov    = data.data();
             message.msg_iovlen = 2;
 
             // Update our headers packet number and set it in the message
@@ -1035,7 +1037,6 @@ namespace extension {
                 throw std::runtime_error("Cannot send messages as the network is not connected");
             }
 
-
             // The header for our packet
             DataPacket header;
 
@@ -1054,9 +1055,9 @@ namespace extension {
 
             // If this was a reliable packet we need to cache it in case it needs to be resent
             if (reliable) {
-
-                const std::lock_guard<std::mutex> lock_target(target_mutex);
-                const std::lock_guard<std::mutex> lock_send(send_queue_mutex);
+                std::lock(target_mutex, send_queue_mutex);
+                const std::lock_guard<std::mutex> lock_target(target_mutex, std::adopt_lock);
+                const std::lock_guard<std::mutex> lock_send(send_queue_mutex, std::adopt_lock);
 
                 auto& queue = send_queue[header.packet_id];
 

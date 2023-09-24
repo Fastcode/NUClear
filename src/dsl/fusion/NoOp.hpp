@@ -42,35 +42,39 @@ namespace dsl {
         struct NoOp {
 
             template <typename DSL, typename... Args>
-            static inline void bind(const std::shared_ptr<threading::Reaction>& /*reaction*/, Args... /*args*/) {}
+            static inline void bind(const std::shared_ptr<threading::Reaction>& /*reaction*/, Args... /*args*/) {
+                // Empty as this is a no-op placeholder
+            }
 
             template <typename DSL>
-            static inline std::tuple<> get(threading::Reaction& /*reaction*/) {
+            static inline std::tuple<> get(const threading::Reaction& /*reaction*/) {
                 return {};
             }
 
             template <typename DSL>
-            static inline bool precondition(threading::Reaction& /*reaction*/) {
+            static inline bool precondition(const threading::Reaction& /*reaction*/) {
                 return true;
             }
 
             template <typename DSL>
-            static inline int priority(threading::Reaction& /*reaction*/) {
+            static inline int priority(const threading::Reaction& /*reaction*/) {
                 return word::Priority::NORMAL::value;
             }
 
             template <typename DSL>
-            static inline util::GroupDescriptor group(threading::Reaction& /*reaction*/) {
+            static inline util::GroupDescriptor group(const threading::Reaction& /*reaction*/) {
                 return util::GroupDescriptor{};
             }
 
             template <typename DSL>
-            static inline util::ThreadPoolDescriptor pool(threading::Reaction& /*reaction*/) {
+            static inline util::ThreadPoolDescriptor pool(const threading::Reaction& /*reaction*/) {
                 return util::ThreadPoolDescriptor{};
             }
 
             template <typename DSL>
-            static inline void postcondition(threading::ReactionTask& /*task*/) {}
+            static inline void postcondition(const threading::ReactionTask& /*task*/) {
+                // Empty as this is a no-op placeholder
+            }
         };
 
         /**
@@ -80,19 +84,19 @@ namespace dsl {
         struct ParsedNoOp {
             struct DSL {};
 
-            static inline std::tuple<> bind(const std::shared_ptr<threading::Reaction>&);
+            static std::tuple<> bind(const std::shared_ptr<threading::Reaction>&);
 
-            static inline std::tuple<> get(threading::Reaction&);
+            static std::tuple<> get(threading::Reaction&);
 
-            static inline bool precondition(threading::Reaction&);
+            static bool precondition(threading::Reaction&);
 
-            static inline int priority(threading::Reaction&);
+            static int priority(threading::Reaction&);
 
-            static inline util::GroupDescriptor group(threading::Reaction&);
+            static util::GroupDescriptor group(threading::Reaction&);
 
-            static inline util::ThreadPoolDescriptor pool(threading::Reaction&);
+            static util::ThreadPoolDescriptor pool(threading::Reaction&);
 
-            static inline void postcondition(threading::ReactionTask&);
+            static void postcondition(threading::ReactionTask&);
         };
 
     }  // namespace fusion

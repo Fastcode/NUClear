@@ -24,6 +24,7 @@
 #define NUCLEAR_DSL_WORD_UDP_HPP
 
 #include <array>
+#include <stdexcept>
 
 #include "../../PowerPlant.hpp"
 #include "../../threading/Reaction.hpp"
@@ -72,7 +73,9 @@ namespace dsl {
              */
             struct ConnectOptions {
                 /// @brief The type of connection we are making
-                enum Type { UNICAST, BROADCAST, MULTICAST } type{};
+                enum class Type { UNICAST, BROADCAST, MULTICAST };
+                /// @brief The type of connection we are making
+                Type type{};
                 /// @brief The address we are binding to or empty for any
                 std::string bind_address{};
                 /// @brief The port we are binding to or 0 for any
@@ -144,7 +147,7 @@ namespace dsl {
                 // Resolve the addresses
                 util::network::sock_t bind_address{};
                 util::network::sock_t multicast_target{};
-                if (options.type == ConnectOptions::MULTICAST) {
+                if (options.type == ConnectOptions::Type::MULTICAST) {
                     multicast_target = util::network::resolve(options.target_address, options.port);
 
                     // If there is no bind address, make sure we bind to an address of the same family
@@ -159,13 +162,13 @@ namespace dsl {
                                 bind_address.ipv6.sin6_port = htons(options.port);
                                 bind_address.ipv6.sin6_addr = in6addr_any;
                             } break;
-                            default: throw std::runtime_error("Unknown socket family");
+                            default: throw std::invalid_argument("Unknown socket family");
                         }
                     }
                     else {
                         bind_address = util::network::resolve(options.bind_address, options.port);
                         if (multicast_target.sock.sa_family != bind_address.sock.sa_family) {
-                            throw std::runtime_error("Multicast address family does not match bind address family");
+                            throw std::invalid_argument("Multicast address family does not match bind address family");
                         }
                     }
                 }
@@ -210,7 +213,8 @@ namespace dsl {
                 }
 
                 // Broadcast and multicast reuse address and port
-                if (options.type == ConnectOptions::BROADCAST || options.type == ConnectOptions::MULTICAST) {
+                if (options.type == ConnectOptions::Type::BROADCAST
+                    || options.type == ConnectOptions::Type::MULTICAST) {
 
                     if (::setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, reinterpret_cast<char*>(&yes), sizeof(yes)) < 0) {
                         throw std::system_error(network_errno,
@@ -241,7 +245,7 @@ namespace dsl {
                 }
 
                 // If we have a multicast address, then we need to join the multicast groups
-                if (options.type == ConnectOptions::MULTICAST) {
+                if (options.type == ConnectOptions::Type::MULTICAST) {
 
                     // Our multicast join request will depend on protocol version
                     if (multicast_target.sock.sa_family == AF_INET) {
@@ -323,7 +327,7 @@ namespace dsl {
                     port = ntohs(bind_address.ipv6.sin6_port);
                 }
                 else {
-                    throw std::runtime_error("Unknown socket family");
+                    throw std::invalid_argument("Unknown socket family");
                 }
 
                 // Generate a reaction for the IO system that closes on death
@@ -389,7 +393,7 @@ namespace dsl {
                         && cmsg->cmsg_type == IP_PKTINFO) {
 
                         // Access the packet header information
-                        auto* pi = reinterpret_cast<in_pktinfo*>(reinterpret_cast<char*>(cmsg) + sizeof(*cmsg));
+                        const auto* pi = reinterpret_cast<in_pktinfo*>(reinterpret_cast<char*>(cmsg) + sizeof(*cmsg));
                         local.ipv4.sin_family = AF_INET;
                         local.ipv4.sin_addr   = pi->ipi_addr;
 
@@ -402,7 +406,7 @@ namespace dsl {
                         && cmsg->cmsg_type == IPV6_PKTINFO) {
 
                         // Access the packet header information
-                        auto* pi = reinterpret_cast<in6_pktinfo*>(reinterpret_cast<char*>(cmsg) + sizeof(*cmsg));
+                        const auto* pi = reinterpret_cast<in6_pktinfo*>(reinterpret_cast<char*>(cmsg) + sizeof(*cmsg));
                         local.ipv6.sin6_addr = pi->ipi6_addr;
 
                         // We are done
@@ -417,7 +421,7 @@ namespace dsl {
             static inline std::tuple<in_port_t, fd_t> bind(const std::shared_ptr<threading::Reaction>& reaction,
                                                            const in_port_t& port           = 0,
                                                            const std::string& bind_address = "") {
-                return connect<DSL>(reaction, ConnectOptions{ConnectOptions::UNICAST, bind_address, port, ""});
+                return connect<DSL>(reaction, ConnectOptions{ConnectOptions::Type::UNICAST, bind_address, port, ""});
             }
 
             template <typename DSL>
@@ -462,7 +466,7 @@ namespace dsl {
                                                                const in_port_t& port           = 0,
                                                                const std::string& bind_address = "") {
                     return UDP::connect<DSL>(reaction,
-                                             ConnectOptions{ConnectOptions::BROADCAST, bind_address, port, ""});
+                                             ConnectOptions{ConnectOptions::Type::BROADCAST, bind_address, port, ""});
                 }
 
                 template <typename DSL>
@@ -509,7 +513,7 @@ namespace dsl {
                                                                const std::string& bind_address = "") {
                     return UDP::connect<DSL>(
                         reaction,
-                        ConnectOptions{ConnectOptions::MULTICAST, bind_address, port, multicast_group});
+                        ConnectOptions{ConnectOptions::Type::MULTICAST, bind_address, port, multicast_group});
                 }
 
                 template <typename DSL>

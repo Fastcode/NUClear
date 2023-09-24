@@ -72,7 +72,7 @@ namespace dsl {
         struct Always {
 
             template <typename DSL>
-            static inline util::ThreadPoolDescriptor pool(threading::Reaction& reaction) {
+            static inline util::ThreadPoolDescriptor pool(const threading::Reaction& reaction) {
                 static std::map<uint64_t, uint64_t> pool_id;
                 static std::mutex mutex;
 
@@ -112,13 +112,13 @@ namespace dsl {
                                                    always_reaction->identifiers.reactor,
                                                    always_reaction->identifiers.dsl,
                                                    always_reaction->identifiers.function},
-                    [always_reaction](threading::Reaction& idle_reaction) -> util::GeneratedCallback {
-                        auto callback = [&idle_reaction, always_reaction](threading::ReactionTask& /*task*/) {
+                    [always_reaction](threading::Reaction& ir) -> util::GeneratedCallback {
+                        auto callback = [&ir, always_reaction](const threading::ReactionTask& /*task*/) {
                             // Get a task for the always reaction and submit it to the scheduler
                             always_reaction->reactor.powerplant.submit(always_reaction->get_task());
 
                             // Get a task for the idle reaction and submit it to the scheduler
-                            idle_reaction.reactor.powerplant.submit(idle_reaction.get_task());
+                            ir.reactor.powerplant.submit(ir.get_task());
                         };
 
                         // Make sure that idle reaction always has lower priority than the always reaction

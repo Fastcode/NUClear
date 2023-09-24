@@ -69,7 +69,7 @@ public:
 
 TEST_CASE("Testing custom clock works correctly", "[api][custom_clock]") {
 
-    NUClear::PowerPlant::Configuration config;
+    NUClear::Configuration config;
     config.thread_count = 1;
     NUClear::PowerPlant plant(config);
     plant.install<TestReactor>();

@@ -27,12 +27,13 @@
 
 namespace NUClear {
 
-#ifndef NUCLEAR_CLOCK_TYPE
-    #define NUCLEAR_CLOCK_TYPE std::chrono::steady_clock
-#endif  // NUCLEAR_CLOCK_TYPE
-
-/// @brief The base clock that is used when defining the NUClear clock
+#ifdef NUCLEAR_CLOCK_TYPE
+/// @brief The custom base clock that is used when defining the NUClear clock
 using base_clock = NUCLEAR_CLOCK_TYPE;
+#else
+/// @brief The default base clock that is used when defining the NUClear clock
+using base_clock = std::chrono::steady_clock;
+#endif  // NUCLEAR_CLOCK_TYPE
 
 #ifndef NUCLEAR_CUSTOM_CLOCK
 

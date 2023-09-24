@@ -24,6 +24,7 @@
 #define NUCLEAR_DSL_FUSION_GROUPFUSION_HPP
 
 #include <algorithm>
+#include <stdexcept>
 
 #include "../../threading/Reaction.hpp"
 #include "../operation/DSLProxy.hpp"
@@ -88,8 +89,8 @@ namespace dsl {
         struct GroupFuser<std::tuple<Word1, Word2, WordN...>> {
 
             template <typename DSL>
-            static inline void group(threading::Reaction& /*reaction*/) {
-                throw std::runtime_error("Can not be a member of more than one group");
+            static inline void group(const threading::Reaction& /*reaction*/) {
+                throw std::invalid_argument("Can not be a member of more than one group");
             }
         };
 

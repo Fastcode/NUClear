@@ -112,7 +112,7 @@ namespace dsl {
 
                 // Make our socket
                 util::FileDescriptor fd(::socket(address.sock.sa_family, SOCK_STREAM, IPPROTO_TCP),
-                                        [](fd_t fd) { ::shutdown(fd, SHUT_RDWR); });
+                                        [](const fd_t& f) { ::shutdown(f, SHUT_RDWR); });
 
                 if (!fd.valid()) {
                     throw std::system_error(network_errno, std::system_category(), "Unable to open the TCP socket");
@@ -179,7 +179,7 @@ namespace dsl {
                 // Accept the remote connection
                 socklen_t remote_size = sizeof(util::network::sock_t);
                 util::FileDescriptor fd(::accept(event.fd, &remote.sock, &remote_size),
-                                        [](fd_t fd) { ::shutdown(fd, SHUT_RDWR); });
+                                        [](const fd_t& f) { ::shutdown(f, SHUT_RDWR); });
 
                 // Get our local address
                 socklen_t local_size = sizeof(util::network::sock_t);

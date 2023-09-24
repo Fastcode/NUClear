@@ -23,61 +23,94 @@
 #ifndef NUCLEAR_EXTENSION_NETWORK_WIRE_PROTOCOL_HPP
 #define NUCLEAR_EXTENSION_NETWORK_WIRE_PROTOCOL_HPP
 
+#include <cstdint>
+
+// These macros are used to pack the structs so that they are sent over the network in the correct format
+#ifdef _MSC_VER
+    // NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
+    #define PACK(...) __pragma(pack(push, 1)) __VA_ARGS__ __pragma(pack(pop))
+#else
+    // NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
+    #define PACK(...) __VA_ARGS__ __attribute__((__packed__))
+#endif
+
 namespace NUClear {
 namespace extension {
     namespace network {
 
-#pragma pack(push, 1)
+        /**
+         * @brief A number that is used to represent the type of packet that is being sent/received
+         */
         enum Type : uint8_t { ANNOUNCE = 1, LEAVE = 2, DATA = 3, DATA_RETRANSMISSION = 4, ACK = 5, NACK = 6 };
-        struct PacketHeader {
-            PacketHeader(const Type& t) : type(t) {}
 
+        /**
+         * @brief The header that is sent with every packet
+         */
+        PACK(struct PacketHeader {
+            explicit PacketHeader(const Type& t) : type(t) {}
+
+            /// Radioactive symbol in UTF8
             // NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays)
-            uint8_t header[3] = {0xE2, 0x98, 0xA2};  // Radioactive symbol in UTF8
-            uint8_t version   = 0x02;                // The NUClear networking version
-            Type type;                               // The type of packet
-        };
+            uint8_t header[3] = {0xE2, 0x98, 0xA2};
+            /// The NUClear networking version
+            uint8_t version = 0x02;
+            /// The type of packet
+            Type type;
+        });
 
-        struct AnnouncePacket : public PacketHeader {
-            AnnouncePacket() : PacketHeader(ANNOUNCE) {}
+        PACK(struct AnnouncePacket
+             : public PacketHeader {
+                 AnnouncePacket() : PacketHeader(ANNOUNCE) {}
 
-            char name{0};  // A null terminated string name for this node (&name)
-        };
+                 // A null terminated string name for this node (&name)
+                 char name{0};
+             });
 
-        struct LeavePacket : public PacketHeader {
-            LeavePacket() : PacketHeader(LEAVE) {}
-        };
+        PACK(struct LeavePacket : public PacketHeader{LeavePacket(): PacketHeader(LEAVE){}});
 
-        struct DataPacket : public PacketHeader {
-            DataPacket() : PacketHeader(DATA) {}
+        PACK(struct DataPacket
+             : public PacketHeader {
+                 DataPacket() : PacketHeader(DATA) {}
 
-            uint16_t packet_id{0};     // A semi-unique identifier for this packet group
-            uint16_t packet_no{0};     // What packet number this is within the group
-            uint16_t packet_count{1};  // How many packets there are in the group
-            bool reliable{false};      // If this packet is reliable and should be acked
-            uint64_t hash{0};          // The 64 bit hash to identify the data type
-            char data{0};              // The data (&data)
-        };
+                 // A semi-unique identifier for this packet group
+                 uint16_t packet_id{0};
+                 // What packet number this is within the group
+                 uint16_t packet_no{0};
+                 // How many packets there are in the group
+                 uint16_t packet_count{1};
+                 // If this packet is reliable and should be acked
+                 bool reliable{false};
+                 // The 64 bit hash to identify the data type
+                 uint64_t hash{0};
+                 // The data (access using &data)
+                 char data{0};
+             });
 
-        struct ACKPacket : public PacketHeader {
-            ACKPacket() : PacketHeader(ACK) {}
+        PACK(struct ACKPacket
+             : public PacketHeader {
+                 ACKPacket() : PacketHeader(ACK) {}
 
-            uint16_t packet_id{0};     // The packet group identifier we are acknowledging
-            uint16_t packet_no{0};     // The index of the packet we are acknowledging
-            uint16_t packet_count{1};  // How many packets there are in the group
-            uint8_t packets{0};        // A bitset of which packets we have received (&packets)
-        };
+                 /// The packet group identifier we are acknowledging
+                 uint16_t packet_id{0};
+                 /// The index of the packet we are acknowledging
+                 uint16_t packet_no{0};
+                 /// How many packets there are in the group
+                 uint16_t packet_count{1};
+                 /// A bitset of which packets we have received (access using &packets)
+                 uint8_t packets{0};
+             });
 
-        struct NACKPacket : public PacketHeader {
+        PACK(struct NACKPacket
+             : public PacketHeader {
+                 NACKPacket() : PacketHeader(NACK) {}
 
-            NACKPacket() : PacketHeader(NACK) {}
-
-            uint16_t packet_id{0};     // The packet group identifier we are acknowledging
-            uint16_t packet_count{1};  // How many packets there are in the group
-            uint8_t packets{0};        // A bitset of which packets we have received (&packets)
-        };
-
-#pragma pack(pop)
+                 /// The packet group identifier we are acknowledging
+                 uint16_t packet_id{0};
+                 /// How many packets there are in the group
+                 uint16_t packet_count{1};
+                 /// A bitset of which packets we have received (access using &packets)
+                 uint8_t packets{0};
+             });
 
     }  // namespace network
 }  // namespace extension
