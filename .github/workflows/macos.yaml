@@ -17,8 +17,8 @@ concurrency:
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 jobs:
-  build-osx:
-    name: Latest
+  build-macos:
+    name: MacOS Latest
     runs-on: macos-latest
 
     steps:
