@@ -1,0 +1,85 @@
+# Continuous Integration tests
+name: Windows
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# Ensure that only one instance of the workflow is run at a time for each branch/tag.
+# Jobs currently running on the branch/tag will be cancelled when new commits are pushed.
+# See https://docs.github.com/en/actions/learn-github-actions/workflow-syntax-for-github-actions#concurrency.
+concurrency:
+  # `github.workflow` is the workflow name, `github.ref` is the current branch/tag identifier
+  group: ${{ format('{0}:{1}', github.workflow, github.ref) }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  windows-latest:
+    name: Windows Latest ${{ matrix.toolchain.name }}
+
+    strategy:
+      matrix:
+        toolchain:
+          - name: MSVC
+            c: cl
+            cxx: cl
+          # Code does not compile on GCC on windows
+          # - name: GCC
+          #   c: gcc
+          #   cxx: g++
+
+    runs-on: windows-latest
+    continue-on-error: true
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Setup CCache
+        uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: ${{ github.job }}-${{ matrix.toolchain.name }}
+          max-size: 100M
+          variant: sccache
+
+      - name: Install CMake
+        uses: lukka/get-cmake@latest
+        with:
+          cmakeVersion: 3.27.1
+          ninjaVersion: 1.11.1
+
+      # This lets ninja find MSVC
+      - name: Add MSVC to path
+        uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Configure CMake
+        shell: cmd
+        run: |
+          cmake -E make_directory build
+          cmake -S . -B build ^
+            -GNinja ^
+            -DCMAKE_C_COMPILER=${{ matrix.toolchain.c }} ^
+            -DCMAKE_CXX_COMPILER=${{ matrix.toolchain.cxx }}  ^
+            -DCMAKE_C_COMPILER_LAUNCHER=sccache ^
+            -DCMAKE_CXX_COMPILER_LAUNCHER=sccache ^
+            -DBUILD_TESTS=ON ^
+            -DCMAKE_BUILD_TYPE=Release ^
+            -DCI_BUILD=ON ^
+            -DENABLE_CLANG_TIDY=OFF
+
+      - name: Build
+        timeout-minutes: 30
+        run: cmake --build build --config Release
+
+      - name: SCCache Stats
+        run: sccache --show-stats
+
+      - name: Test
+        timeout-minutes: 10
+        shell: bash
+        run: |
+          build/tests/test_nuclear.exe
+          for f in build/tests/individual/*; do echo "Testing $f"; ./$f; done

@@ -1,0 +1,101 @@
+# Continuous Integration tests
+name: GCC
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# Ensure that only one instance of the workflow is run at a time for each branch/tag.
+# Jobs currently running on the branch/tag will be cancelled when new commits are pushed.
+# See https://docs.github.com/en/actions/learn-github-actions/workflow-syntax-for-github-actions#concurrency.
+concurrency:
+  # `github.workflow` is the workflow name, `github.ref` is the current branch/tag identifier
+  group: ${{ format('{0}:{1}', github.workflow, github.ref) }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+jobs:
+  linux-gcc:
+    strategy:
+      matrix:
+        toolchain:
+          - container: ubuntu:22.04
+            version: "13"
+          - container: ubuntu:22.04
+            version: "12"
+          - container: ubuntu:22.04
+            version: "11"
+          - container: ubuntu:22.04
+            version: "10"
+          - container: ubuntu:22.04
+            version: "9"
+          - container: ubuntu:20.04
+            version: "8"
+          - container: ubuntu:20.04
+            version: "7"
+          - container: ubuntu:18.04
+            version: "6"
+          - container: ubuntu:18.04
+            version: "5"
+
+    name: Linux GCC-${{ matrix.toolchain.version }}
+    runs-on: ubuntu-latest
+    continue-on-error: true
+
+    # Use the container for this specific version of gcc
+    container: ${{ matrix.toolchain.container }}
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      # Update for all the actions that need to install stuff
+      - run: |
+          apt-get update
+          apt-get install -y software-properties-common
+
+      - name: Install GCC
+        run: |
+          add-apt-repository ppa:ubuntu-toolchain-r/test
+          apt-get update
+          apt-get install -y gcc-${{ matrix.toolchain.version }} g++-${{ matrix.toolchain.version }}
+
+      - name: Install CMake
+        uses: lukka/get-cmake@latest
+        with:
+          cmakeVersion: 3.27.1
+          ninjaVersion: 1.11.1
+
+      - name: Setup CCache
+        uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: ${{ github.job }}-gcc-${{ matrix.toolchain.version }}
+          max-size: 100M
+
+      - name: Configure CMake
+        run: |
+          cmake -E make_directory build
+          cmake -S . -B build \
+            -GNinja \
+            -DCMAKE_C_COMPILER=/usr/bin/gcc-${{ matrix.toolchain.version }} \
+            -DCMAKE_CXX_COMPILER=/usr/bin/g++-${{ matrix.toolchain.version }} \
+            -DCMAKE_C_COMPILER_LAUNCHER=ccache \
+            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
+            -DBUILD_TESTS=ON \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCI_BUILD=ON \
+            -DENABLE_CLANG_TIDY=OFF
+
+      - name: Build
+        timeout-minutes: 30
+        run: cmake --build build --config Release
+
+      - name: CCache Stats
+        run: ccache --show-stats
+
+      - name: Test
+        timeout-minutes: 10
+        run: |
+          build/tests/test_nuclear
+          for f in build/tests/individual/*; do echo "Testing $f"; ./$f; done
