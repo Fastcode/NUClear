@@ -16,7 +16,7 @@ concurrency:
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 jobs:
-  build-linux:
+  linux-gcc:
     strategy:
       matrix:
         toolchain:
