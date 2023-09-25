@@ -40,21 +40,21 @@ namespace message {
          * @brief Construct a new Log Message object
          *
          * @param level          the logging level of the log
-         * @param reactor_level  the logging level of the reactor that made this log
+         * @param display_level  the logging level of the reactor that made this log
          * @param message        the string contents of the message
          * @param task           the currently executing task that made this message or nullptr if not in a task
          */
         LogMessage(const LogLevel& level,
-                   const LogLevel& reactor_level,
+                   const LogLevel& display_level,
                    const std::string& message,
                    const std::shared_ptr<ReactionStatistics>& task)
-            : level(level), reactor_level(reactor_level), message(message), task(task) {}
+            : level(level), display_level(display_level), message(message), task(task) {}
 
         /// @brief The logging level of the log.
         LogLevel level{};
 
-        /// @brief The logging level of the reactor that made this log.
-        LogLevel reactor_level{};
+        /// @brief The logging level of the reactor that made the log (the level to display at).
+        LogLevel display_level{};
 
         /// @brief The string contents of the message.
         std::string message{};
