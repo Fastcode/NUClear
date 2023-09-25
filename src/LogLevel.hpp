@@ -41,6 +41,15 @@ namespace NUClear {
 enum LogLevel {
     /**
      * @brief
+     *  Don't use this log level when emitting logs, it is for setting reactor log level from non reactor sources.
+     *
+     * Specifically when a NUClear::log is called from code that is not running in a reaction (even transitively) then
+     * the reactor_level will be set to UNKNOWN.
+     */
+    UNKNOWN,
+
+    /**
+     * @brief
      *  The Trace level contains messages that are used to trace the exact flow of execution.
      *
      * @details

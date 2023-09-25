@@ -143,9 +143,7 @@ public:
     friend class PowerPlant;
 
     explicit Reactor(std::unique_ptr<Environment> environment)
-        : powerplant(environment->powerplant)
-        , reactor_name(environment->reactor_name)
-        , log_level(environment->log_level) {}
+        : powerplant(environment->powerplant), reactor_name(environment->reactor_name) {}
     Reactor(const Reactor& /*other*/)              = default;
     Reactor(Reactor&& /*other*/) noexcept          = default;
     Reactor& operator=(const Reactor& /*rhs*/)     = delete;
@@ -413,7 +411,7 @@ public:
      * @param args The arguments we are logging
      */
     template <enum LogLevel level = DEBUG, typename... Arguments>
-    void log(Arguments&&... args) {
+    void log(Arguments&&... args) const {
 
         // If the log is above or equal to our log level
         PowerPlant::log<level>(std::forward<Arguments>(args)...);
