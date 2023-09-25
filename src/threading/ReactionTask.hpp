@@ -28,7 +28,7 @@
 #include <memory>
 #include <typeindex>
 #include <vector>
-
+#include "../id.hpp"
 #include "../message/ReactionStatistics.hpp"
 #include "../util/GroupDescriptor.hpp"
 #include "../util/ThreadPoolDescriptor.hpp"
@@ -50,7 +50,7 @@ namespace threading {
     class Task {
     private:
         /// @brief a source for task ids, atomically creates longs
-        static std::atomic<std::uint64_t> task_id_source;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+        static std::atomic<NUClear::id_t> task_id_source;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
         /// @brief the current task that is being executed by this thread (or nullptr if none is)
         static ATTRIBUTE_TLS Task* current_task;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
@@ -121,14 +121,14 @@ namespace threading {
          *
          * @return a new unique task id
          */
-        static inline uint64_t new_task_id() {
+        static inline NUClear::id_t new_task_id() {
             return ++task_id_source;
         }
 
         /// @brief the parent Reaction object which spawned this
         ReactionType& parent;
         /// @brief the task id of this task (the sequence number of this particular task)
-        uint64_t id{new_task_id()};
+        NUClear::id_t id{new_task_id()};
         /// @brief the priority to run this task at
         int priority;
         /// @brief the statistics object that persists after this for information and debugging
@@ -151,7 +151,7 @@ namespace threading {
 
     // Initialize our id source
     template <typename ReactionType>
-    std::atomic<uint64_t> Task<ReactionType>::task_id_source(0);  // NOLINT
+    std::atomic<NUClear::id_t> Task<ReactionType>::task_id_source(0);  // NOLINT
 
     // Initialize our current task
     template <typename ReactionType>

@@ -27,6 +27,7 @@
 #include <functional>
 #include <memory>
 #include <string>
+#include "../id.hpp"
 #include <utility>
 
 #include "../util/GeneratedCallback.hpp"
@@ -107,7 +108,7 @@ namespace threading {
         ReactionIdentifiers identifiers;
 
         /// @brief the unique identifier for this Reaction object
-        const uint64_t id{++reaction_id_source};
+        const NUClear::id_t id{++reaction_id_source};
 
         /// @brief if this is false, we cannot emit ReactionStatistics from any reaction triggered by this one
         bool emit_stats{true};
@@ -128,7 +129,8 @@ namespace threading {
 
     private:
         /// @brief a source for reaction_ids, atomically creates longs
-        static std::atomic<uint64_t> reaction_id_source;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+        static std::atomic<NUClear::id_t>
+            reaction_id_source;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
         /// @brief the callback generator function (creates databound callbacks)
         TaskGenerator generator;
     };

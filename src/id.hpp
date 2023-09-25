@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2014 NUClear Contributors
+ * Copyright (c) 2023 NUClear Contributors
  *
  * This file is part of the NUClear codebase.
  * See https://github.com/Fastcode/NUClear for further info.
@@ -20,34 +20,18 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_DSL_OPERATION_UNBIND_HPP
-#define NUCLEAR_DSL_OPERATION_UNBIND_HPP
+#ifndef NUCLEAR_UTIL_ID_HPP
+#define NUCLEAR_UTIL_ID_HPP
 
-#include "../../id.hpp"
+#include <cstdint>
 
 namespace NUClear {
-namespace dsl {
-    namespace operation {
 
-        /**
-         * @brief Signals that the reaction with this id servicing this type should be unbound and its resources
-         *  cleaned up
-         *
-         * @details When a reaction is finished and won't be run again, this type should be emitted along with the
-         * original DSL word that created it. This signals to its handler to clean it up and not run it again.
-         *
-         * @tparam Word the DSL word that created this binding (or another helper type)
-         */
-        template <typename Word>
-        struct Unbind {
-            explicit Unbind(const NUClear::id_t& id) : id(id){};
+/**
+ * @brief A unique identifier for a thread pool
+ */
+using id_t = std::size_t;
 
-            /// The id of the task to unbind
-            const NUClear::id_t id{0};
-        };
-
-    }  // namespace operation
-}  // namespace dsl
 }  // namespace NUClear
 
-#endif  // NUCLEAR_DSL_OPERATION_UNBIND_HPP
+#endif  // NUCLEAR_UTIL_ID_HPP

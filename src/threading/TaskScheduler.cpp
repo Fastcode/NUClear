@@ -168,7 +168,7 @@ namespace threading {
         }
     }
 
-    void TaskScheduler::submit(const uint64_t& id,
+    void TaskScheduler::submit(const NUClear::id_t& id,
                                const int& priority,
                                const util::GroupDescriptor& group_descriptor,
                                const util::ThreadPoolDescriptor& pool_descriptor,
