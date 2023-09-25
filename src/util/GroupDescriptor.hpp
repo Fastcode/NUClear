@@ -28,6 +28,8 @@
 #include <cstdint>
 #include <limits>
 
+#include "../id.hpp"
+
 namespace NUClear {
 namespace util {
 
@@ -36,7 +38,7 @@ namespace util {
      */
     struct GroupDescriptor {
         /// @brief a unique identifier for this pool
-        uint64_t group_id{0};
+        NUClear::id_t group_id{0};
 
         /// @brief the maximum number of threads that can run concurrently in this group
         size_t thread_count{std::numeric_limits<size_t>::max()};
@@ -44,9 +46,9 @@ namespace util {
         /**
          * @brief Return the next unique ID for a new group
          */
-        static uint64_t get_unique_group_id() noexcept {
+        static NUClear::id_t get_unique_group_id() noexcept {
             // Make group 0 the default group
-            static std::atomic<uint64_t> source{1};
+            static std::atomic<NUClear::id_t> source{1};
             return source++;
         }
     };

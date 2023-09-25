@@ -39,6 +39,7 @@
 // Utilities
 #include "Configuration.hpp"
 #include "LogLevel.hpp"
+#include "id.hpp"
 #include "message/LogMessage.hpp"
 #include "threading/ReactionTask.hpp"
 #include "threading/TaskScheduler.hpp"
@@ -135,7 +136,7 @@ public:
      * @param immediate if this task should run immediately in the current thread
      * @param task      the wrapped function to be executed
      */
-    void submit(const uint64_t& id,
+    void submit(const NUClear::id_t& id,
                 const int& priority,
                 const util::GroupDescriptor& group,
                 const util::ThreadPoolDescriptor& pool,

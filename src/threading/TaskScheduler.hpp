@@ -32,6 +32,7 @@
 #include <thread>
 #include <vector>
 
+#include "../id.hpp"
 #include "../util/GroupDescriptor.hpp"
 #include "../util/ThreadPoolDescriptor.hpp"
 #include "../util/platform.hpp"
@@ -93,7 +94,7 @@ namespace threading {
          */
         struct Task {
             /// @brief The id of this task used for ordering
-            uint64_t id;
+            NUClear::id_t id;
             /// @brief The priority of this task
             int priority;
             /// @brief The group descriptor for this task
@@ -168,7 +169,7 @@ namespace threading {
          *                  as normal
          * @param func      the function to execute
          */
-        void submit(const uint64_t& id,
+        void submit(const NUClear::id_t& id,
                     const int& priority,
                     const util::GroupDescriptor& group,
                     const util::ThreadPoolDescriptor& pool,
@@ -242,12 +243,12 @@ namespace threading {
         std::atomic<bool> started{false};
 
         /// @brief A map of group ids to the number of active tasks currently running in that group
-        std::map<uint64_t, size_t> groups{};
+        std::map<NUClear::id_t, size_t> groups{};
         /// @brief mutex for the group map
         std::mutex group_mutex;
 
         /// @brief A map of pool descriptor ids to pool descriptors
-        std::map<uint64_t, std::shared_ptr<PoolQueue>> pool_queues{};
+        std::map<NUClear::id_t, std::shared_ptr<PoolQueue>> pool_queues{};
         /// @brief a mutex for when we are modifying the pool_queues map
         std::mutex pool_mutex;
         /// @brief a pointer to the pool_queue for the current thread so it does not have to access via the map

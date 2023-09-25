@@ -49,7 +49,7 @@ void PowerPlant::start() {
     scheduler.start();
 }
 
-void PowerPlant::submit(const uint64_t& id,
+void PowerPlant::submit(const NUClear::id_t& id,
                         const int& priority,
                         const util::GroupDescriptor& group,
                         const util::ThreadPoolDescriptor& pool,

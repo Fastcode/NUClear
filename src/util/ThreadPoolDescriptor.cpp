@@ -25,8 +25,8 @@
 namespace NUClear {
 namespace util {
 
-    const uint64_t ThreadPoolDescriptor::MAIN_THREAD_POOL_ID    = 0;
-    const uint64_t ThreadPoolDescriptor::DEFAULT_THREAD_POOL_ID = 1;
+    const NUClear::id_t ThreadPoolDescriptor::MAIN_THREAD_POOL_ID    = 0;
+    const NUClear::id_t ThreadPoolDescriptor::DEFAULT_THREAD_POOL_ID = 1;
 
 }  // namespace util
 }  // namespace NUClear
