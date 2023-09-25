@@ -46,9 +46,9 @@ namespace message {
          */
         LogMessage(const LogLevel& level,
                    const LogLevel& display_level,
-                   const std::string& message,
-                   const std::shared_ptr<ReactionStatistics>& task)
-            : level(level), display_level(display_level), message(message), task(task) {}
+                   std::string message,
+                   std::shared_ptr<ReactionStatistics> task)
+            : level(level), display_level(display_level), message(std::move(message)), task(std::move(task)) {}
 
         /// @brief The logging level of the log.
         LogLevel level{};
