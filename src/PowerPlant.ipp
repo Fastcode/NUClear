@@ -52,15 +52,14 @@ inline PowerPlant::PowerPlant(Configuration config, int argc, const char* argv[]
     emit(std::make_unique<message::CommandLineArguments>(args));
 }
 
-template <typename T, enum LogLevel level>
+template <typename T>
 void PowerPlant::install() {
 
     // Make sure that the class that we received is a reactor
     static_assert(std::is_base_of<Reactor, T>::value, "You must install Reactors");
 
     // The reactor constructor should handle subscribing to events
-    reactors.push_back(
-        std::make_unique<T>(std::make_unique<Environment>(*this, util::demangle(typeid(T).name()), level)));
+    reactors.push_back(std::make_unique<T>(std::make_unique<Environment>(*this, util::demangle(typeid(T).name()))));
 }
 
 // Default emit with no types
@@ -172,16 +171,16 @@ void PowerPlant::log(Arguments&&... args) {
     // Get the current task
     const auto* current_task = threading::ReactionTask::get_current_task();
 
-    // Only log if we are not from a reaction, or if our reactor's log level is high enough
-    if (current_task == nullptr || level >= current_task->parent.reactor.log_level) {
-        // Build our log message by concatenating everything to a stream
-        std::stringstream output_stream;
-        log_impl(output_stream, std::forward<Arguments>(args)...);
+    // Build our log message by concatenating everything to a stream
+    std::stringstream output_stream;
+    log_impl(output_stream, std::forward<Arguments>(args)...);
 
-        // Direct emit the log message so that any direct loggers can use it
-        powerplant->emit<dsl::word::emit::Direct>(std::make_unique<message::LogMessage>(
-            message::LogMessage{level, output_stream.str(), current_task != nullptr ? current_task->stats : nullptr}));
-    }
+    // Direct emit the log message so that any direct loggers can use it
+    powerplant->emit<dsl::word::emit::Direct>(std::make_unique<message::LogMessage>(
+        level,
+        current_task != nullptr ? current_task->parent.reactor.log_level : LogLevel::UNKNOWN,
+        output_stream.str(),
+        current_task != nullptr ? current_task->stats : nullptr));
 }
 
 }  // namespace NUClear

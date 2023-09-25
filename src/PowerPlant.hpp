@@ -122,7 +122,7 @@ public:
      * @tparam T        The type of the reactor to build and install
      * @tparam level    The initial logging level for this reactor to use
      */
-    template <typename T, enum LogLevel level = DEBUG>
+    template <typename T>
     void install();
 
     /**
