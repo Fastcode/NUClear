@@ -51,7 +51,7 @@ namespace extension {
             // Allocate a vector that can hold a datagram
             std::vector<uint8_t> payload(1500);
             iovec iov{};
-            iov.iov_base = payload.data();
+            iov.iov_base = reinterpret_cast<char*>(payload.data());
             iov.iov_len  = static_cast<decltype(iov.iov_len)>(payload.size());
 
             // Who we are receiving from
