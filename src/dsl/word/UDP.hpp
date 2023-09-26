@@ -356,7 +356,7 @@ namespace dsl {
                 std::array<char, 0x100> cmbuff = {0};
                 util::network::sock_t remote{};
                 iovec payload{};
-                payload.iov_base = buffer.data();
+                payload.iov_base = reinterpret_cast<char*>(buffer.data());
                 payload.iov_len  = static_cast<decltype(payload.iov_len)>(buffer.size());
 
                 // Make our message header to receive with
