@@ -161,7 +161,7 @@ namespace dsl {
 
                     // Try to send our payload
                     if (::sendto(fd,
-                                 payload.data(),
+                                 reinterpret_cast<const char*>(payload.data()),
                                  static_cast<socklen_t>(payload.size()),
                                  0,
                                  &remote.sock,
