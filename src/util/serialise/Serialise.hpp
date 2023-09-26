@@ -23,9 +23,11 @@
 #ifndef NUCLEAR_UTIL_SERIALISE_SERIALISE_HPP
 #define NUCLEAR_UTIL_SERIALISE_SERIALISE_HPP
 
+#include <cstdint>
 #include <cstring>
 #include <string>
 #include <type_traits>
+#include <vector>
 
 #include "../demangle.hpp"
 #include "xxhash.hpp"
