@@ -1019,7 +1019,7 @@ namespace extension {
             data[1].iov_len = packet_no + 1 < header.packet_count ? packet_data_mtu : payload.size() % packet_data_mtu;
 
             // Set our target and send (once again const cast is fine)
-            message.msg_name    = const_cast<sockaddr*>(&target.sock);
+            message.msg_name    = const_cast<sockaddr*>(&target.sock);  // NOLINT(cppcoreguidelines-pro-type-const-cast)
             message.msg_namelen = target.size();
 
             // TODO(trent): if reliable, run select first to see if this socket is writeable
