@@ -94,6 +94,10 @@ namespace util {
 
             static inline T deserialise(const std::vector<char>& in) {
 
+                if (in.size() % sizeof(V) != 0) {
+                    throw std::length_error("Serialised data is not the correct size");
+                }
+
                 T out;
 
                 const auto* data = reinterpret_cast<const V*>(in.data());

@@ -75,11 +75,26 @@ SCENARIO("Serialisation works correctly on single primitives", "[util][serialise
         }
     }
 
-    GIVEN("serialised data of the incorrect size") {
+    GIVEN("serialised data that is too small") {
         std::vector<char> in;
-        in.push_back(char(0xCA));
-        in.push_back(char(0xFE));
-        in.push_back(char(0xFE));
+        in.push_back(char(0xBA));
+        in.push_back(char(0xAD));
+        in.push_back(char(0xBA));
+
+        WHEN("it is deserialised") {
+            THEN("The deserialise function throws an exception") {
+                REQUIRE_THROWS_AS(NUClear::util::serialise::Serialise<uint32_t>::deserialise(in), std::length_error);
+            }
+        }
+    }
+
+    GIVEN("serialised data that is too large") {
+        std::vector<char> in;
+        in.push_back(char(0xBA));
+        in.push_back(char(0xDB));
+        in.push_back(char(0xAD));
+        in.push_back(char(0xBA));
+        in.push_back(char(0xDB));
 
         WHEN("it is deserialised") {
             THEN("The deserialise function throws an exception") {
@@ -144,6 +159,22 @@ TEMPLATE_TEST_CASE("Scenario: Serialisation works correctly on iterables of prim
         }
     }
 
+    GIVEN("serialised data that does not divide evenly into the size") {
+        std::vector<char> in;
+        in.push_back(char(0xBA));
+        in.push_back(char(0xAD));
+        in.push_back(char(0xBA));
+        in.push_back(char(0xBA));
+        in.push_back(char(0xAD));
+        in.push_back(char(0xBA));
+
+        WHEN("it is deserialised") {
+            THEN("The deserialise function throws an exception") {
+                REQUIRE_THROWS_AS(NUClear::util::serialise::Serialise<uint32_t>::deserialise(in), std::length_error);
+            }
+        }
+    }
+
     GIVEN("empty serialised data") {
         std::vector<char> in;
 
@@ -170,7 +201,6 @@ struct TriviallyCopyable {
 }  // namespace
 
 SCENARIO("Serialisation works correctly on single trivially copyable types", "[util][serialise][single][trivial]") {
-
 
     GIVEN("a trivially copyable value") {
         TriviallyCopyable in = {0xFF, -1, {0xDE, 0xAD}};
@@ -227,8 +257,25 @@ SCENARIO("Serialisation works correctly on single trivially copyable types", "[u
         }
     }
 
-    GIVEN("serialised data of the incorrect size") {
+    GIVEN("serialised data that is too small") {
         std::vector<char> in;
+        in.push_back(char(0xCA));
+        in.push_back(char(0xFE));
+        in.push_back(char(0xFE));
+
+        WHEN("it is deserialised") {
+            THEN("The deserialise function throws an exception") {
+                REQUIRE_THROWS_AS(NUClear::util::serialise::Serialise<TriviallyCopyable>::deserialise(in),
+                                  std::length_error);
+            }
+        }
+    }
+
+    GIVEN("serialised data that is too large") {
+        std::vector<char> in;
+        in.push_back(char(0xCA));
+        in.push_back(char(0xFE));
+        in.push_back(char(0xFE));
         in.push_back(char(0xCA));
         in.push_back(char(0xFE));
         in.push_back(char(0xFE));
@@ -293,6 +340,25 @@ TEMPLATE_TEST_CASE("Scenario: Serialisation works correctly on iterables of triv
             THEN("The serialised data is the same as the input") {
                 REQUIRE(serialised.size() == in.size());
                 REQUIRE(serialised == in);
+            }
+        }
+    }
+
+    GIVEN("serialised data that does not divide evenly into the size") {
+        std::vector<char> in;
+        in.push_back(char(0xBA));
+        in.push_back(char(0xAD));
+        in.push_back(char(0xBA));
+        in.push_back(char(0xBA));
+        in.push_back(char(0xAD));
+        in.push_back(char(0xBA));
+        in.push_back(char(0xBA));
+        in.push_back(char(0xAD));
+        in.push_back(char(0xBA));
+
+        WHEN("it is deserialised") {
+            THEN("The deserialise function throws an exception") {
+                REQUIRE_THROWS_AS(NUClear::util::serialise::Serialise<uint32_t>::deserialise(in), std::length_error);
             }
         }
     }
