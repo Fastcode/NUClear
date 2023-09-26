@@ -51,15 +51,15 @@ namespace extension {
             network.set_packet_callback([this](const network::NUClearNetwork::NetworkTarget& remote,
                                                const uint64_t& hash,
                                                const bool& reliable,
-                                               std::vector<char>&& payload) {
+                                               std::vector<uint8_t>&& payload) {
                 // Construct our NetworkSource information
                 dsl::word::NetworkSource src{remote.name, remote.target, reliable};
 
                 // Move the payload in as we are stealing it
-                std::vector<char> p(std::move(payload));
+                std::vector<uint8_t> p(std::move(payload));
 
                 // Store in our thread local cache
-                dsl::store::ThreadStore<std::vector<char>>::value        = &p;
+                dsl::store::ThreadStore<std::vector<uint8_t>>::value        = &p;
                 dsl::store::ThreadStore<dsl::word::NetworkSource>::value = &src;
 
                 /* Mutex Scope */ {
@@ -76,7 +76,7 @@ namespace extension {
                 }
 
                 // Clear our cache
-                dsl::store::ThreadStore<std::vector<char>>::value        = nullptr;
+                dsl::store::ThreadStore<std::vector<uint8_t>>::value        = nullptr;
                 dsl::store::ThreadStore<dsl::word::NetworkSource>::value = nullptr;
             });
 

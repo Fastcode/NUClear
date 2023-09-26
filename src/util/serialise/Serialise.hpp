@@ -51,13 +51,13 @@ namespace util {
         template <typename T>
         struct Serialise<T, std::enable_if_t<std::is_trivially_copyable<T>::value, T>> {
 
-            static inline std::vector<char> serialise(const T& in) {
-                std::vector<char> out(sizeof(T));
+            static inline std::vector<uint8_t> serialise(const T& in) {
+                std::vector<uint8_t> out(sizeof(T));
                 std::memcpy(out.data(), &in, sizeof(T));
                 return out;
             }
 
-            static inline T deserialise(const std::vector<char>& in) {
+            static inline T deserialise(const std::vector<uint8_t>& in) {
                 if (in.size() != sizeof(T)) {
                     throw std::length_error("Serialised data is not the correct size");
                 }
@@ -81,8 +81,8 @@ namespace util {
 
             using V = std::remove_reference_t<iterator_value_type_t<T>>;
 
-            static inline std::vector<char> serialise(const T& in) {
-                std::vector<char> out;
+            static inline std::vector<uint8_t> serialise(const T& in) {
+                std::vector<uint8_t> out;
                 out.reserve(sizeof(V) * size_t(std::distance(std::begin(in), std::end(in))));
 
                 for (const V& item : in) {
@@ -93,7 +93,7 @@ namespace util {
                 return out;
             }
 
-            static inline T deserialise(const std::vector<char>& in) {
+            static inline T deserialise(const std::vector<uint8_t>& in) {
 
                 if (in.size() % sizeof(V) != 0) {
                     throw std::length_error("Serialised data is not the correct size");
@@ -123,14 +123,14 @@ namespace util {
                                               || std::is_base_of<::google::protobuf::MessageLite, T>::value,
                                           T>> {
 
-            static inline std::vector<char> serialise(const T& in) {
-                std::vector<char> output(in.ByteSize());
+            static inline std::vector<uint8_t> serialise(const T& in) {
+                std::vector<uint8_t> output(in.ByteSize());
                 in.SerializeToArray(output.data(), output.size());
 
                 return output;
             }
 
-            static inline T deserialise(const std::vector<char>& in) {
+            static inline T deserialise(const std::vector<uint8_t>& in) {
                 // Make a buffer
                 T out;
 

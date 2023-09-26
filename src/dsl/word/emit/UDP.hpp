@@ -157,7 +157,7 @@ namespace dsl {
                     }
 
                     // Serialise to our payload
-                    std::vector<char> payload = util::serialise::Serialise<DataType>::serialise(*data);
+                    std::vector<uint8_t> payload = util::serialise::Serialise<DataType>::serialise(*data);
 
                     // Try to send our payload
                     if (::sendto(fd,

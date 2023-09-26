@@ -96,7 +96,7 @@ namespace dsl {
             static inline std::tuple<std::shared_ptr<NetworkSource>, NetworkData<T>> get(
                 const threading::Reaction& /*reaction*/) {
 
-                auto* data   = store::ThreadStore<std::vector<char>>::value;
+                auto* data   = store::ThreadStore<std::vector<uint8_t>>::value;
                 auto* source = store::ThreadStore<NetworkSource>::value;
 
                 if (data && source) {
