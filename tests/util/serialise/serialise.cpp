@@ -173,7 +173,7 @@ namespace {
 struct TriviallyCopyable {
     uint8_t a;
     int8_t b;
-    uint8_t c[2];
+    std::array<uint8_t, 2> c;
 
     bool operator==(const TriviallyCopyable& rhs) const {
         return a == rhs.a && b == rhs.b && c[0] == rhs.c[0] && c[1] == rhs.c[1];
