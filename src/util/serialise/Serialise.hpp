@@ -46,22 +46,21 @@ namespace util {
         template <typename T, typename Check = T>
         struct Serialise;
 
-        // Plain old data
+        // Trivially copyable data
         template <typename T>
-        struct Serialise<T, std::enable_if_t<std::is_trivial<T>::value, T>> {
+        struct Serialise<T, std::enable_if_t<std::is_trivially_copyable<T>::value, T>> {
 
             static inline std::vector<char> serialise(const T& in) {
-
-                // Copy the bytes into an array
-                const auto* dataptr = reinterpret_cast<const char*>(&in);
-                return {dataptr, dataptr + sizeof(T)};
+                std::vector<char> out(sizeof(T));
+                std::memcpy(out.data(), &in, sizeof(T));
+                return out;
             }
 
             static inline T deserialise(const std::vector<char>& in) {
-
-                // Copy the data into an object of the correct type
-                T ret = *reinterpret_cast<T*>(in.data());
-                return ret;
+                if (in.size() != sizeof(T)) {
+                    throw std::length_error("Serialised data is not the correct size");
+                }
+                return *reinterpret_cast<const T*>(in.data());
             }
 
             static inline uint64_t hash() {
@@ -72,22 +71,20 @@ namespace util {
             }
         };
 
-        // Iterable of pod
+        // Iterable of trivially copyable data
         template <typename T>
-        struct Serialise<
-            T,
-            std::enable_if_t<
-                std::is_same<typename std::iterator_traits<decltype(std::declval<T>().begin())>::iterator_category,
-                             std::random_access_iterator_tag>::value,
-                T>> {
+        using iterator_value_type_t =
+            typename std::iterator_traits<decltype(std::begin(std::declval<T>()))>::value_type;
+        template <typename T>
+        struct Serialise<T, std::enable_if_t<std::is_trivially_copyable<iterator_value_type_t<T>>::value, T>> {
 
-            using StoredType = std::remove_reference_t<decltype(*std::declval<T>().begin())>;
+            using V = std::remove_reference_t<iterator_value_type_t<T>>;
 
             static inline std::vector<char> serialise(const T& in) {
                 std::vector<char> out;
-                out.reserve(std::size_t(std::distance(in.begin(), in.end())));
+                out.reserve(sizeof(V) * size_t(std::distance(std::begin(in), std::end(in))));
 
-                for (const StoredType& item : in) {
+                for (const V& item : in) {
                     const char* i = reinterpret_cast<const char*>(&item);
                     out.insert(out.end(), i, i + sizeof(decltype(item)));
                 }
@@ -99,9 +96,9 @@ namespace util {
 
                 T out;
 
-                const auto* data = reinterpret_cast<const StoredType*>(in.data());
+                const auto* data = reinterpret_cast<const V*>(in.data());
 
-                out.insert(out.end(), data, data + (in.size() / sizeof(StoredType)));
+                out.insert(out.end(), data, data + (in.size() / sizeof(V)));
 
                 return out;
             }

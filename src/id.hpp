@@ -27,9 +27,7 @@
 
 namespace NUClear {
 
-/**
- * @brief A unique identifier for a thread pool
- */
+/// @brief This type is used when NUClear requires a unique identifier
 using id_t = std::size_t;
 
 }  // namespace NUClear
