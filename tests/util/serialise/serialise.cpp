@@ -65,7 +65,6 @@ SCENARIO("Serialisation works correctly on single primitives", "[util][serialise
             auto serialised   = NUClear::util::serialise::Serialise<uint32_t>::serialise(deserialised);
 
             THEN("The serialised data is the same as the input") {
-                REQUIRE(serialised.size() == in.size());
                 REQUIRE(serialised == in);
             }
         }
@@ -141,7 +140,6 @@ TEMPLATE_TEST_CASE("Scenario: Serialisation works correctly on iterables of prim
             auto serialised   = NUClear::util::serialise::Serialise<TestType>::serialise(deserialised);
 
             THEN("The serialised data is the same as the input") {
-                REQUIRE(serialised.size() == in.size());
                 REQUIRE(serialised == in);
             }
         }
@@ -164,7 +162,7 @@ TEMPLATE_TEST_CASE("Scenario: Serialisation works correctly on iterables of prim
             auto deserialised = NUClear::util::serialise::Serialise<TestType>::deserialise(in);
 
             THEN("The deserialised data is empty") {
-                REQUIRE(deserialised.size() == 0);
+                REQUIRE(deserialised.empty());
             }
         }
     }
@@ -231,7 +229,6 @@ SCENARIO("Serialisation works correctly on single trivially copyable types", "[u
             auto serialised   = NUClear::util::serialise::Serialise<TriviallyCopyable>::serialise(deserialised);
 
             THEN("The serialised data is the same as the input") {
-                REQUIRE(serialised.size() == in.size());
                 REQUIRE(serialised == in);
             }
         }
@@ -309,7 +306,6 @@ TEMPLATE_TEST_CASE("Scenario: Serialisation works correctly on iterables of triv
             auto serialised   = NUClear::util::serialise::Serialise<TestType>::serialise(deserialised);
 
             THEN("The serialised data is the same as the input") {
-                REQUIRE(serialised.size() == in.size());
                 REQUIRE(serialised == in);
             }
         }
@@ -332,7 +328,7 @@ TEMPLATE_TEST_CASE("Scenario: Serialisation works correctly on iterables of triv
             auto deserialised = NUClear::util::serialise::Serialise<TestType>::deserialise(in);
 
             THEN("The deserialised data is empty") {
-                REQUIRE(deserialised.size() == 0);
+                REQUIRE(deserialised.empty());
             }
         }
     }

@@ -1015,7 +1015,7 @@ namespace extension {
             // Work out what chunk of data we are sending
             // const cast is fine as posix guarantees it won't be modified on a sendmsg
             const char* start = reinterpret_cast<const char*>(payload.data()) + (packet_no * packet_data_mtu);
-            data[1].iov_base  = const_cast<char*>(start);
+            data[1].iov_base  = const_cast<char*>(start);  // NOLINT(cppcoreguidelines-pro-type-const-cast)
             data[1].iov_len = packet_no + 1 < header.packet_count ? packet_data_mtu : payload.size() % packet_data_mtu;
 
             // Set our target and send (once again const cast is fine)
