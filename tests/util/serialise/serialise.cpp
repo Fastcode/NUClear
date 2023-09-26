@@ -35,7 +35,7 @@ SCENARIO("Serialisation works correctly on single primitives", "[util][serialise
 
             THEN("The serialised data is as expected") {
                 REQUIRE(serialised.size() == sizeof(uint32_t));
-                REQUIRE(serialised == std::vector<uint8_t>{char(0xCA), char(0xFE), char(0xFE), char(0xCA)});
+                REQUIRE(serialised == std::vector<uint8_t>{0xCA, 0xFE, 0xFE, 0xCA});
             }
         }
 
@@ -50,11 +50,7 @@ SCENARIO("Serialisation works correctly on single primitives", "[util][serialise
     }
 
     GIVEN("serialised data for a primitive value") {
-        std::vector<uint8_t> in;
-        in.push_back(char(0xCA));
-        in.push_back(char(0xFE));
-        in.push_back(char(0xFE));
-        in.push_back(char(0xCA));
+        std::vector<uint8_t> in = {0xCA, 0xFE, 0xFE, 0xCA};
 
         WHEN("it is deserialised") {
             auto deserialised = NUClear::util::serialise::Serialise<uint32_t>::deserialise(in);
@@ -76,10 +72,7 @@ SCENARIO("Serialisation works correctly on single primitives", "[util][serialise
     }
 
     GIVEN("serialised data that is too small") {
-        std::vector<uint8_t> in;
-        in.push_back(char(0xBA));
-        in.push_back(char(0xAD));
-        in.push_back(char(0xBA));
+        std::vector<uint8_t> in = {0xBA, 0xAD, 0xBA};
 
         WHEN("it is deserialised") {
             THEN("The deserialise function throws an exception") {
@@ -89,12 +82,7 @@ SCENARIO("Serialisation works correctly on single primitives", "[util][serialise
     }
 
     GIVEN("serialised data that is too large") {
-        std::vector<uint8_t> in;
-        in.push_back(char(0xBA));
-        in.push_back(char(0xDB));
-        in.push_back(char(0xAD));
-        in.push_back(char(0xBA));
-        in.push_back(char(0xDB));
+        std::vector<uint8_t> in = {0xBA, 0xDB, 0xAD, 0xBA, 0xDB};
 
         WHEN("it is deserialised") {
             THEN("The deserialise function throws an exception") {
@@ -116,11 +104,9 @@ TEMPLATE_TEST_CASE("Scenario: Serialisation works correctly on iterables of prim
             auto serialised = NUClear::util::serialise::Serialise<TestType>::serialise(in);
 
             THEN("The serialised data is as expected") {
-                auto s = std::string(serialised.begin(), serialised.end());
-                REQUIRE(serialised.size() == sizeof(uint32_t) * in.size());
                 std::vector<uint8_t> expected =
                     {0xAB, 0xBA, 0xBA, 0xAB, 0xDE, 0xAD, 0xAD, 0xDE, 0xCA, 0xFE, 0xFE, 0xCA, 0xBE, 0xEF, 0xEF, 0xBE};
-                REQUIRE(s == expected);
+                REQUIRE(serialised == expected);
             }
         }
 
@@ -162,13 +148,7 @@ TEMPLATE_TEST_CASE("Scenario: Serialisation works correctly on iterables of prim
     }
 
     GIVEN("serialised data that does not divide evenly into the size") {
-        std::vector<uint8_t> in;
-        in.push_back(char(0xBA));
-        in.push_back(char(0xAD));
-        in.push_back(char(0xBA));
-        in.push_back(char(0xBA));
-        in.push_back(char(0xAD));
-        in.push_back(char(0xBA));
+        std::vector<uint8_t> in = {0xBA, 0xAD, 0xBA, 0xBA, 0xAD, 0xBA};
 
         WHEN("it is deserialised") {
             THEN("The deserialise function throws an exception") {
@@ -178,7 +158,7 @@ TEMPLATE_TEST_CASE("Scenario: Serialisation works correctly on iterables of prim
     }
 
     GIVEN("empty serialised data") {
-        std::vector<uint8_t> in;
+        std::vector<uint8_t> in{};
 
         WHEN("it is deserialised") {
             auto deserialised = NUClear::util::serialise::Serialise<TestType>::deserialise(in);
@@ -201,7 +181,7 @@ struct TriviallyCopyable {
         return a == rhs.a && b == rhs.b && c[0] == rhs.c[0] && c[1] == rhs.c[1];
     }
 };
-static_assert(std::is_trivially_copyable<TriviallyCopyable>::value "This type should be trivially copyable");
+static_assert(std::is_trivially_copyable<TriviallyCopyable>::value, "This type should be trivially copyable");
 
 }  // namespace
 
@@ -233,11 +213,7 @@ SCENARIO("Serialisation works correctly on single trivially copyable types", "[u
     }
 
     GIVEN("serialised data for a primitive value") {
-        std::vector<uint8_t> in;
-        in.push_back(char(0xCA));
-        in.push_back(char(0xFE));
-        in.push_back(char(0xFE));
-        in.push_back(char(0xCA));
+        std::vector<uint8_t> in = {0xCA, 0xFE, 0xFE, 0xCA};
 
         WHEN("it is deserialised") {
             auto deserialised = NUClear::util::serialise::Serialise<TriviallyCopyable>::deserialise(in);
@@ -262,10 +238,7 @@ SCENARIO("Serialisation works correctly on single trivially copyable types", "[u
     }
 
     GIVEN("serialised data that is too small") {
-        std::vector<uint8_t> in;
-        in.push_back(char(0xCA));
-        in.push_back(char(0xFE));
-        in.push_back(char(0xFE));
+        std::vector<uint8_t> in = {0xCA, 0xFE, 0xFE};
 
         WHEN("it is deserialised") {
             THEN("The deserialise function throws an exception") {
@@ -276,13 +249,7 @@ SCENARIO("Serialisation works correctly on single trivially copyable types", "[u
     }
 
     GIVEN("serialised data that is too large") {
-        std::vector<uint8_t> in;
-        in.push_back(char(0xCA));
-        in.push_back(char(0xFE));
-        in.push_back(char(0xFE));
-        in.push_back(char(0xCA));
-        in.push_back(char(0xFE));
-        in.push_back(char(0xFE));
+        std::vector<uint8_t> in = {0xCA, 0xFE, 0xFE, 0xCA, 0xFE, 0xFE};
 
         WHEN("it is deserialised") {
             THEN("The deserialise function throws an exception") {
@@ -349,16 +316,7 @@ TEMPLATE_TEST_CASE("Scenario: Serialisation works correctly on iterables of triv
     }
 
     GIVEN("serialised data that does not divide evenly into the size") {
-        std::vector<uint8_t> in;
-        in.push_back(char(0xBA));
-        in.push_back(char(0xAD));
-        in.push_back(char(0xBA));
-        in.push_back(char(0xBA));
-        in.push_back(char(0xAD));
-        in.push_back(char(0xBA));
-        in.push_back(char(0xBA));
-        in.push_back(char(0xAD));
-        in.push_back(char(0xBA));
+        std::vector<uint8_t> in = {0xBA, 0xAD, 0xBA, 0xBA, 0xAD, 0xBA, 0xBA, 0xAD, 0xBA};
 
         WHEN("it is deserialised") {
             THEN("The deserialise function throws an exception") {

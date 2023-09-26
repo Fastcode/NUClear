@@ -550,8 +550,8 @@ namespace extension {
         void NUClearNetwork::process_packet(const sock_t& address, std::vector<uint8_t>&& payload) {
 
             // First validate this is a NUClear network packet we can read (a version 2 NUClear packet)
-            if (payload.size() >= sizeof(PacketHeader) && payload[0] == '\xE2' && payload[1] == '\x98'
-                && payload[2] == '\xA2' && payload[3] == 0x02) {
+            if (payload.size() >= sizeof(PacketHeader) && payload[0] == 0xE2 && payload[1] == 0x98 && payload[2] == 0xA2
+                && payload[3] == 0x02) {
 
                 // This is a real packet! get our header information
                 const PacketHeader& header = *reinterpret_cast<const PacketHeader*>(payload.data());
@@ -1012,13 +1012,14 @@ namespace extension {
             data[0].iov_base = reinterpret_cast<char*>(&header);
             data[0].iov_len  = sizeof(DataPacket) - 1;
 
-            // Work out what chunk of data we are sending const cast is fine as posix guarantees it won't be
-            // modified
-            data[1].iov_base = const_cast<char*>(payload.data() + (packet_data_mtu * packet_no));  // NOLINT
-            data[1].iov_len  = packet_no + 1 < header.packet_count ? packet_data_mtu : payload.size() % packet_data_mtu;
+            // Work out what chunk of data we are sending
+            // const cast is fine as posix guarantees it won't be modified on a sendmsg
+            const char* start = reinterpret_cast<const char*>(payload.data()) + (packet_no * packet_data_mtu);
+            data[1].iov_base  = const_cast<char*>(start);
+            data[1].iov_len = packet_no + 1 < header.packet_count ? packet_data_mtu : payload.size() % packet_data_mtu;
 
             // Set our target and send (once again const cast is fine)
-            message.msg_name    = const_cast<sockaddr*>(&target.sock);  // NOLINT
+            message.msg_name    = const_cast<sockaddr*>(&target.sock);
             message.msg_namelen = target.size();
 
             // TODO(trent): if reliable, run select first to see if this socket is writeable
