@@ -22,8 +22,11 @@
 
 #include "util/serialise/Serialise.hpp"
 
+#include <array>
 #include <catch.hpp>
+#include <csdtint>
 #include <list>
+#include <vector>
 
 SCENARIO("Serialisation works correctly on single primitives", "[util][serialise][single][primitive]") {
 
