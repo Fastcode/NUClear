@@ -534,7 +534,7 @@ namespace extension {
 
                 // Send the packet
                 if (::sendto(data_fd,
-                             announce_packet.data(),
+                             reinterpret_cast<const char*>(announce_packet.data()),
                              static_cast<socklen_t>(announce_packet.size()),
                              0,
                              &it->second->target.sock,
@@ -595,7 +595,7 @@ namespace extension {
 
                                         // Say hi back!
                                         ::sendto(data_fd,
-                                                 announce_packet.data(),
+                                                 reinterpret_cast<const char*>(announce_packet.data()),
                                                  static_cast<socklen_t>(announce_packet.size()),
                                                  0,
                                                  &ptr->target.sock,
@@ -688,7 +688,7 @@ namespace extension {
 
                                     // Send the packet
                                     ::sendto(data_fd,
-                                             r.data(),
+                                             reinterpret_cast<const char*>(r.data()),
                                              static_cast<socklen_t>(r.size()),
                                              0,
                                              &to.sock,
@@ -771,7 +771,7 @@ namespace extension {
 
                                         // Send the packet
                                         ::sendto(data_fd,
-                                                 r.data(),
+                                                 reinterpret_cast<const char*>(r.data()),
                                                  static_cast<socklen_t>(r.size()),
                                                  0,
                                                  &to.sock,
@@ -807,7 +807,7 @@ namespace extension {
 
                                     // Send the packet
                                     ::sendto(data_fd,
-                                             r.data(),
+                                             reinterpret_cast<const char*>(r.data()),
                                              static_cast<socklen_t>(r.size()),
                                              0,
                                              &to.sock,
