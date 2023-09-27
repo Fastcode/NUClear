@@ -24,6 +24,7 @@
 
 namespace NUClear {
 
+// NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
 PowerPlant* PowerPlant::powerplant = nullptr;
 
 PowerPlant::~PowerPlant() {
