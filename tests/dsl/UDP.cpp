@@ -165,7 +165,7 @@ struct Finished {
 class TestReactor : public test_util::TestBase<TestReactor> {
 private:
     void handle_data(const std::string& name, const UDP::Packet& packet) {
-        const std::string data(packet.payload.data(), packet.payload.size());
+        const std::string data(packet.payload.begin(), packet.payload.end());
 
         // Convert IP address to string in dotted decimal format
         const std::string local = packet.local.address + ":" + std::to_string(packet.local.port);

@@ -28,6 +28,7 @@
 #include <memory>
 #include <typeindex>
 #include <vector>
+
 #include "../id.hpp"
 #include "../message/ReactionStatistics.hpp"
 #include "../util/GroupDescriptor.hpp"
@@ -151,11 +152,13 @@ namespace threading {
 
     // Initialize our id source
     template <typename ReactionType>
-    std::atomic<NUClear::id_t> Task<ReactionType>::task_id_source(0);  // NOLINT
+    // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
+    std::atomic<NUClear::id_t> Task<ReactionType>::task_id_source(0);
 
     // Initialize our current task
     template <typename ReactionType>
-    ATTRIBUTE_TLS Task<ReactionType>* Task<ReactionType>::current_task = nullptr;  // NOLINT
+    // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
+    ATTRIBUTE_TLS Task<ReactionType>* Task<ReactionType>::current_task = nullptr;
 
     // Alias the templated Task so that public API remains intact
     class Reaction;

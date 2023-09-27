@@ -91,7 +91,7 @@ namespace dsl {
                 /// @brief If the packet is valid
                 bool valid{false};
                 /// @brief The data that was received
-                std::vector<char> payload{};
+                std::vector<uint8_t> payload{};
                 /// @brief The local address that the packet was received on
                 util::network::sock_t local{};
                 /// @brief The remote address that the packet was received from
@@ -121,7 +121,7 @@ namespace dsl {
                 Target remote;
 
                 /// @brief The data to be sent in the packet
-                std::vector<char> payload{};
+                std::vector<uint8_t> payload{};
 
                 /**
                  * @brief Casts this packet to a boolean to check if it is valid
@@ -350,13 +350,13 @@ namespace dsl {
                 }
 
                 // Allocate max size for a UDP packet
-                std::vector<char> buffer(65535, 0);
+                std::vector<uint8_t> buffer(65535, 0);
 
                 // Make some variables to hold our message header information
                 std::array<char, 0x100> cmbuff = {0};
                 util::network::sock_t remote{};
                 iovec payload{};
-                payload.iov_base = buffer.data();
+                payload.iov_base = reinterpret_cast<char*>(buffer.data());
                 payload.iov_len  = static_cast<decltype(payload.iov_len)>(buffer.size());
 
                 // Make our message header to receive with

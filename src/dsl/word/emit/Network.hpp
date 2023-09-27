@@ -39,7 +39,7 @@ namespace dsl {
                 /// The hash identifying the type of object
                 uint64_t hash{0};
                 /// The serialised data
-                std::vector<char> payload{};
+                std::vector<uint8_t> payload{};
                 /// If the message should be sent reliably
                 bool reliable{false};
             };

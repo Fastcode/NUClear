@@ -75,7 +75,7 @@ namespace extension {
                 std::mutex assemblers_mutex;
                 /// Storage for fragmented packets while we build them
                 std::map<uint16_t,
-                         std::pair<std::chrono::steady_clock::time_point, std::map<uint16_t, std::vector<char>>>>
+                         std::pair<std::chrono::steady_clock::time_point, std::map<uint16_t, std::vector<uint8_t>>>>
                     assemblers{};
 
                 /// Struct storing the kalman filter for round trip time
@@ -130,7 +130,7 @@ namespace extension {
              * @param target        who we are sending to (blank means everyone)
              * @param reliable      if the delivery of the data should be ensured
              */
-            void send(const uint64_t& hash, const std::vector<char>& payload, const std::string& target, bool reliable);
+            void send(const uint64_t& hash, const std::vector<uint8_t>& payload, const std::string& target, bool reliable);
 
             /**
              * @brief Set the callback to use when a data packet is completed
@@ -138,7 +138,7 @@ namespace extension {
              * @param f the callback function
              */
             void set_packet_callback(
-                std::function<void(const NetworkTarget&, const uint64_t&, const bool&, std::vector<char>&&)> f);
+                std::function<void(const NetworkTarget&, const uint64_t&, const bool&, std::vector<uint8_t>&&)> f);
 
             /**
              * @brief Set the callback to use when a node joins the network
@@ -231,7 +231,7 @@ namespace extension {
                 DataPacket header{};
 
                 /// The data to send
-                std::vector<char> payload{};
+                std::vector<uint8_t> payload{};
             };
 
             /**
@@ -255,7 +255,7 @@ namespace extension {
              * @param address   who the packet came from
              * @param data      the data that was sent in this packet
              */
-            void process_packet(const sock_t& address, std::vector<char>&& payload);
+            void process_packet(const sock_t& address, std::vector<uint8_t>&& payload);
 
             /**
              * @brief Send an announce packet to our announce address
@@ -279,7 +279,7 @@ namespace extension {
             void send_packet(const sock_t& target,
                              DataPacket header,
                              uint16_t packet_no,
-                             const std::vector<char>& payload,
+                             const std::vector<uint8_t>& payload,
                              const bool& reliable);
 
             /**
@@ -307,13 +307,13 @@ namespace extension {
             uint16_t packet_data_mtu{1000};
 
             // Our announce packet
-            std::vector<char> announce_packet{};
+            std::vector<uint8_t> announce_packet{};
 
             /// An atomic source for packet IDs to make sure they are semi unique
             std::atomic<uint16_t> packet_id_source{0};
 
             /// The callback to execute when a data packet is completed
-            std::function<void(const NetworkTarget&, const uint64_t&, const bool&, std::vector<char>&&)>
+            std::function<void(const NetworkTarget&, const uint64_t&, const bool&, std::vector<uint8_t>&&)>
                 packet_callback;
             /// The callback to execute when a node joins the network
             std::function<void(const NetworkTarget&)> join_callback;

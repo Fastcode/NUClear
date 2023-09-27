@@ -24,7 +24,8 @@
 
 namespace NUClear {
 
-PowerPlant* PowerPlant::powerplant = nullptr;  // NOLINT
+// NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
+PowerPlant* PowerPlant::powerplant = nullptr;
 
 PowerPlant::~PowerPlant() {
     // Make sure reactors are destroyed before anything else
