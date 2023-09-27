@@ -151,13 +151,13 @@ namespace threading {
     };
 
     // Initialize our id source
-    // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
     template <typename ReactionType>
+    // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
     std::atomic<NUClear::id_t> Task<ReactionType>::task_id_source(0);
 
     // Initialize our current task
-    // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
     template <typename ReactionType>
+    // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
     ATTRIBUTE_TLS Task<ReactionType>* Task<ReactionType>::current_task = nullptr;
 
     // Alias the templated Task so that public API remains intact
