@@ -24,7 +24,7 @@
 
 #include <array>
 #include <catch.hpp>
-#include <csdtint>
+#include <cstdint>
 #include <list>
 #include <vector>
 
