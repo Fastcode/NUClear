@@ -53,13 +53,15 @@ inline PowerPlant::PowerPlant(Configuration config, int argc, const char* argv[]
 }
 
 template <typename T>
-void PowerPlant::install() {
+Reactor& PowerPlant::install() {
 
     // Make sure that the class that we received is a reactor
     static_assert(std::is_base_of<Reactor, T>::value, "You must install Reactors");
 
     // The reactor constructor should handle subscribing to events
     reactors.push_back(std::make_unique<T>(std::make_unique<Environment>(*this, util::demangle(typeid(T).name()))));
+
+    return *reactors.back();
 }
 
 // Default emit with no types

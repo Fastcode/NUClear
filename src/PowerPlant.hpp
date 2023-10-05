@@ -122,9 +122,11 @@ public:
      *
      * @tparam T        The type of the reactor to build and install
      * @tparam level    The initial logging level for this reactor to use
+     *
+     * @return A reference to the installed reactor
      */
     template <typename T>
-    void install();
+    Reactor& install();
 
     /**
      * @brief Generic submit function for submitting tasks to the thread pool.
