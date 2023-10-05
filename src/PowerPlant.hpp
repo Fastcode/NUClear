@@ -126,7 +126,7 @@ public:
      * @return A reference to the installed reactor
      */
     template <typename T>
-    Reactor& install();
+    T& install();
 
     /**
      * @brief Generic submit function for submitting tasks to the thread pool.
