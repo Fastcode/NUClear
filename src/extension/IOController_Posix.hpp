@@ -98,12 +98,13 @@ namespace extension {
             for (const auto& r : tasks) {
                 // If we are the same fd, then add our interest set and mask out events that are already being processed
                 if (r.fd == watches.back().fd) {
-                    watches.back().events =
-                        event_t((watches.back().events | r.listening_events) & ~r.processing_events);
+                    watches.back().events = event_t((watches.back().events | r.listening_events)
+                                                    & ~(r.processing_events | r.waiting_events));
                 }
                 // Otherwise add a new one and mask out events that are already being processed
                 else {
-                    watches.push_back(pollfd{r.fd, event_t(r.listening_events & ~r.processing_events), 0});
+                    watches.push_back(
+                        pollfd{r.fd, event_t(r.listening_events & ~(r.processing_events | r.waiting_events)), 0});
                 }
             }
 
