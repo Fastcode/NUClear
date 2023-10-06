@@ -129,10 +129,12 @@ namespace extension {
                 task.waiting_events    = 0;
 
                 // Mask out the currently processing events so poll doesn't notify for them
-                for (auto& w : watches) {
-                    if (task.fd == w.fd) {
-                        w.events = event_t(w.events & ~task.processing_events);
-                    }
+                auto it =
+                    std::lower_bound(watches.begin(), watches.end(), task.fd, [&](const pollfd& w, const fd_t& fd) {
+                        return w.fd < fd;
+                    });
+                if (it != watches.end() && it->fd == task.fd) {
+                    it->events = event_t(it->events & ~task.processing_events);
                 }
 
                 // Submit the task (which should run the get)
@@ -291,11 +293,12 @@ namespace extension {
                         bump();
 
                         // Unmask the events that were just processed
-                        for (auto& w : watches) {
-                            if (task->fd == w.fd) {
-                                // No events are currently processing, remove the mask
-                                w.events = event_t(w.events | task->processing_events);
-                            }
+                        auto it = std::lower_bound(watches.begin(),
+                                                   watches.end(),
+                                                   task->fd,
+                                                   [&](const pollfd& w, const fd_t& fd) { return w.fd < fd; });
+                        if (it != watches.end() && it->fd == task->fd) {
+                            it->events = event_t(it->events | task->processing_events);
                         }
 
                         // No longer processing events
