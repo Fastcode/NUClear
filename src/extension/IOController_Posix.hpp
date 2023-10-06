@@ -96,13 +96,14 @@ namespace extension {
             watches.push_back(pollfd{notify_recv, POLLIN, 0});
 
             for (const auto& r : tasks) {
-                // If we are the same fd, then add our interest set
+                // If we are the same fd, then add our interest set and mask out events that are already being processed
                 if (r.fd == watches.back().fd) {
-                    watches.back().events = event_t(watches.back().events | r.listening_events);
+                    watches.back().events =
+                        event_t((watches.back().events | r.listening_events) & ~r.processing_events);
                 }
-                // Otherwise add a new one
+                // Otherwise add a new one and mask out events that are already being processed
                 else {
-                    watches.push_back(pollfd{r.fd, r.listening_events, 0});
+                    watches.push_back(pollfd{r.fd, event_t(r.listening_events & ~r.processing_events), 0});
                 }
             }
 
@@ -126,6 +127,13 @@ namespace extension {
                 // Clear the waiting events, we are now processing them
                 task.processing_events = task.waiting_events;
                 task.waiting_events    = 0;
+
+                // Mask out the currently processing events so poll doesn't notify for them
+                for (auto& w : watches) {
+                    if (task.fd == w.fd) {
+                        w.events = event_t(w.events & ~task.processing_events);
+                    }
+                }
 
                 // Submit the task (which should run the get)
                 IO::ThreadEventStore::value                = &e;
@@ -242,7 +250,7 @@ namespace extension {
             notify_recv = vals[0];
             notify_send = vals[1];
 
-            // Start by rebuliding the list
+            // Start by rebuilding the list
             rebuild_list();
 
             on<Trigger<dsl::word::IOConfiguration>>().then(
@@ -279,7 +287,18 @@ namespace extension {
                         tasks.erase(task);
                     }
                     else {
-                        // We have finished processing events
+                        // Make sure poll isn't currently waiting for an event to happen
+                        bump();
+
+                        // Unmask the events that were just processed
+                        for (auto& w : watches) {
+                            if (task->fd == w.fd) {
+                                // No events are currently processing, remove the mask
+                                w.events = event_t(w.events | task->processing_events);
+                            }
+                        }
+
+                        // No longer processing events
                         task->processing_events = 0;
 
                         // Try to fire again which will check if there are any waiting events
