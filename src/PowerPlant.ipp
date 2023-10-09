@@ -52,14 +52,15 @@ inline PowerPlant::PowerPlant(Configuration config, int argc, const char* argv[]
     emit(std::make_unique<message::CommandLineArguments>(args));
 }
 
-template <typename T>
-T& PowerPlant::install() {
+template <typename T, typename... Args>
+T& PowerPlant::install(Args&&... args) {
 
     // Make sure that the class that we received is a reactor
     static_assert(std::is_base_of<Reactor, T>::value, "You must install Reactors");
 
     // The reactor constructor should handle subscribing to events
-    reactors.push_back(std::make_unique<T>(std::make_unique<Environment>(*this, util::demangle(typeid(T).name()))));
+    reactors.push_back(std::make_unique<T>(std::make_unique<Environment>(*this, util::demangle(typeid(T).name())),
+                                           std::forward<Args>(args)...));
 
     return static_cast<T&>(*reactors.back());
 }
