@@ -125,25 +125,25 @@ namespace extension {
                 e.fd     = task.fd;
                 e.events = task.waiting_events;
 
-                // Clear the waiting events, we are now processing them
-                task.processing_events = task.waiting_events;
-                task.waiting_events    = 0;
-
-                // Mask out the currently processing events so poll doesn't notify for them
-                auto it =
-                    std::lower_bound(watches.begin(), watches.end(), task.fd, [&](const pollfd& w, const fd_t& fd) {
-                        return w.fd < fd;
-                    });
-                if (it != watches.end() && it->fd == task.fd) {
-                    it->events = event_t(it->events & ~task.processing_events);
-                }
-
                 // Submit the task (which should run the get)
                 IO::ThreadEventStore::value                = &e;
                 std::unique_ptr<threading::ReactionTask> r = task.reaction->get_task();
                 IO::ThreadEventStore::value                = nullptr;
 
                 if (r != nullptr) {
+                    // Clear the waiting events, we are now processing them
+                    task.processing_events = task.waiting_events;
+                    task.waiting_events    = 0;
+
+                    // Mask out the currently processing events so poll doesn't notify for them
+                    auto it =
+                        std::lower_bound(watches.begin(), watches.end(), task.fd, [&](const pollfd& w, const fd_t& fd) {
+                            return w.fd < fd;
+                        });
+                    if (it != watches.end() && it->fd == task.fd) {
+                        it->events = event_t(it->events & ~task.processing_events);
+                    }
+
                     powerplant.submit(std::move(r));
                 }
                 else {
