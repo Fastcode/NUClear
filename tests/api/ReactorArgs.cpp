@@ -43,6 +43,7 @@ public:
     bool b{false};
     uint32_t i{0};
 };
+
 }  // namespace
 
 TEST_CASE("Testing Reactor installation arguments", "[api][reactorargs]") {
