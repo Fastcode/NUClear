@@ -238,6 +238,9 @@ namespace extension {
                                         std::system_category(),
                                         "There was an error while writing to the notification pipe");
             }
+
+            // Locking here will ensure we won't return until poll is not running
+            std::lock_guard<std::mutex> lock(poll_mutex);
         }
 
     public:
@@ -282,7 +285,6 @@ namespace extension {
                     return t.reaction->id == event.id;
                 });
 
-                // If we found it then clear the waiting events
                 if (task != tasks.end()) {
                     // If the events we were processing included close remove it from the list
                     if ((task->processing_events & IO::CLOSE) != 0) {
@@ -348,10 +350,14 @@ namespace extension {
                     }
 
                     // Wait for an event to happen on one of our file descriptors
-                    if (::poll(watches.data(), nfds_t(watches.size()), -1) < 0) {
-                        throw std::system_error(network_errno,
-                                                std::system_category(),
-                                                "There was an IO error while attempting to poll the file descriptors");
+                    /* mutex scope */ {
+                        std::lock_guard<std::mutex> lock(poll_mutex);
+                        if (::poll(watches.data(), nfds_t(watches.size()), -1) < 0) {
+                            throw std::system_error(
+                                network_errno,
+                                std::system_category(),
+                                "There was an IO error while attempting to poll the file descriptors");
+                        }
                     }
 
                     // Collect the events that happened into the tasks list
@@ -365,6 +371,9 @@ namespace extension {
         fd_t notify_recv{-1};
         /// @brief The send file descriptor for our notification pipe
         fd_t notify_send{-1};
+
+        /// @brief The mutex to wait on when bumping to ensure poll has returned
+        std::mutex poll_mutex;
 
         /// @brief Whether or not we are shutting down
         std::atomic<bool> shutdown{false};
