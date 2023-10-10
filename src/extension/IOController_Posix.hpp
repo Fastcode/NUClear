@@ -240,7 +240,7 @@ namespace extension {
             }
 
             // Locking here will ensure we won't return until poll is not running
-            std::lock_guard<std::mutex> lock(poll_mutex);
+            const std::lock_guard<std::mutex> lock(poll_mutex);
         }
 
     public:
@@ -351,7 +351,7 @@ namespace extension {
 
                     // Wait for an event to happen on one of our file descriptors
                     /* mutex scope */ {
-                        std::lock_guard<std::mutex> lock(poll_mutex);
+                        const std::lock_guard<std::mutex> lock(poll_mutex);
                         if (::poll(watches.data(), nfds_t(watches.size()), -1) < 0) {
                             throw std::system_error(
                                 network_errno,
