@@ -121,12 +121,15 @@ public:
      *  in the environment of that reactor so that it can be used to filter logs.
      *
      * @tparam T        The type of the reactor to build and install
+     * @tparam Args     The types of the extra arguments to pass to the reactor constructor
      * @tparam level    The initial logging level for this reactor to use
+     *
+     * @param arg       Extra arguments to pass to the reactor constructor
      *
      * @return A reference to the installed reactor
      */
-    template <typename T>
-    T& install();
+    template <typename T, typename... Args>
+    T& install(Args&&... args);
 
     /**
      * @brief Generic submit function for submitting tasks to the thread pool.
