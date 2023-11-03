@@ -24,6 +24,7 @@
 #define NUCLEAR_DSL_WORD_NETWORK_HPP
 
 #include "../../threading/Reaction.hpp"
+#include "../../util/network/network_hash_t.hpp"
 #include "../../util/network/sock_t.hpp"
 #include "../../util/serialise/Serialise.hpp"
 #include "../store/ThreadStore.hpp"
@@ -47,7 +48,7 @@ namespace dsl {
         };
 
         struct NetworkListen {
-            uint64_t hash{0};
+            util::network::network_hash_t hash{0};
             std::shared_ptr<threading::Reaction> reaction{nullptr};
         };
 

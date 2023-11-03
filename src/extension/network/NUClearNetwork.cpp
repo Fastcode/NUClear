@@ -82,7 +82,9 @@ namespace extension {
         }
 
         void NUClearNetwork::set_packet_callback(
-            std::function<void(const NetworkTarget&, const uint64_t&, const bool&, std::vector<uint8_t>&&)> f) {
+            std::function<
+                void(const NetworkTarget&, const util::network::network_hash_t&, const bool&, std::vector<uint8_t>&&)>
+                f) {
             packet_callback = std::move(f);
         }
 
@@ -1028,7 +1030,7 @@ namespace extension {
         }
 
 
-        void NUClearNetwork::send(const uint64_t& hash,
+        void NUClearNetwork::send(const util::network::network_hash_t& hash,
                                   const std::vector<uint8_t>& payload,
                                   const std::string& target,
                                   bool reliable) {

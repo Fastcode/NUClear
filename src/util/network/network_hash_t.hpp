@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2014 NUClear Contributors
+ * Copyright (c) 2017 NUClear Contributors
  *
  * This file is part of the NUClear codebase.
  * See https://github.com/Fastcode/NUClear for further info.
@@ -20,21 +20,21 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_MESSAGE_COMMANDLINEARGUMENTS_HPP
-#define NUCLEAR_MESSAGE_COMMANDLINEARGUMENTS_HPP
-
-#include <string>
-#include <vector>
+#ifndef NUCLEAR_UTIL_NETWORK_NETWORK_HASH_T_HPP
+#define NUCLEAR_UTIL_NETWORK_NETWORK_HASH_T_HPP
 
 namespace NUClear {
-namespace message {
+namespace util {
+    namespace network {
 
-    /**
-     * @brief This type is a NUClear message type that holds command line arguments
-     */
-    struct CommandLineArguments : public std::vector<std::string> {};
+#ifdef __QNX__
+        using network_hash_t = unsigned long long;
+#else
+        using network_hash_t = uint64_t;
+#endif
 
-}  // namespace message
+    }  // namespace network
+}  // namespace util
 }  // namespace NUClear
 
-#endif  // NUCLEAR_MESSAGE_COMMANDLINEARGUMENTS_HPP
+#endif  // NUCLEAR_UTIL_NETWORK_NETWORK_HASH_T_HPP
