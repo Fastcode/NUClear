@@ -36,6 +36,7 @@
 #include <thread>
 #include <vector>
 
+#include "../../util/network/network_hash_t.hpp"
 #include "../../util/network/sock_t.hpp"
 #include "../../util/platform.hpp"
 #include "wire_protocol.hpp"
@@ -130,15 +131,20 @@ namespace extension {
              * @param target        who we are sending to (blank means everyone)
              * @param reliable      if the delivery of the data should be ensured
              */
-            void send(const uint64_t& hash, const std::vector<uint8_t>& payload, const std::string& target, bool reliable);
+            void send(const util::network::network_hash_t& hash,
+                      const std::vector<uint8_t>& payload,
+                      const std::string& target,
+                      bool reliable);
 
             /**
              * @brief Set the callback to use when a data packet is completed
              *
              * @param f the callback function
              */
-            void set_packet_callback(
-                std::function<void(const NetworkTarget&, const uint64_t&, const bool&, std::vector<uint8_t>&&)> f);
+            void set_packet_callback(std::function<void(const NetworkTarget&,
+                                                        const util::network::network_hash_t&,
+                                                        const bool&,
+                                                        std::vector<uint8_t>&&)> f);
 
             /**
              * @brief Set the callback to use when a node joins the network
@@ -313,7 +319,8 @@ namespace extension {
             std::atomic<uint16_t> packet_id_source{0};
 
             /// The callback to execute when a data packet is completed
-            std::function<void(const NetworkTarget&, const uint64_t&, const bool&, std::vector<uint8_t>&&)>
+            std::function<
+                void(const NetworkTarget&, const util::network::network_hash_t&, const bool&, std::vector<uint8_t>&&)>
                 packet_callback;
             /// The callback to execute when a node joins the network
             std::function<void(const NetworkTarget&)> join_callback;
