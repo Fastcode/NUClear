@@ -23,22 +23,14 @@
 #ifndef NUCLEAR_MESSAGE_COMMANDLINEARGUMENTS_HPP
 #define NUCLEAR_MESSAGE_COMMANDLINEARGUMENTS_HPP
 
-namespace NUClear {
-namespace message {
+#include <string>
+#include <vector>
+
 
     /**
      * @brief This type is a NUClear message type that holds command line arguments
      */
-    struct CommandLineArguments : public std::vector<std::string> {
-#ifdef __QNX__
-    public:
-        template <typename... Args>
-        CommandLineArguments(Args... args) : std::vector<std::string>::vector(std::forward<Args>(args)...) {}
-#else
-        // Inherit constructors
-        using std::vector<std::string>::vector;
-#endif
-    };
+    struct CommandLineArguments : public std::vector<std::string> {};
 
 }  // namespace message
 }  // namespace NUClear
