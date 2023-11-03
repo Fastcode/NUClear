@@ -37,7 +37,9 @@ namespace util {
             addrinfo hints{};
             hints.ai_family   = AF_UNSPEC;  // don't care about IPv4 or IPv6
             hints.ai_socktype = AF_UNSPEC;  // don't care about TCP or UDP
-            hints.ai_flags    = AI_ALL;     // Get all addresses even if we don't have an interface for them
+#ifndef __QNX__
+            hints.ai_flags = AI_ALL;  // Get all addresses even if we don't have an interface for them
+#endif
 
             // Get our info on this address
             addrinfo* servinfo_ptr = nullptr;
