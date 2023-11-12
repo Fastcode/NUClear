@@ -7,7 +7,7 @@ namespace util {
 #if defined(__linux__)
     #include <sys/resource.h>
 
-    static time_point user_cpu_clock::now() noexcept {
+    user_cpu_clock::time_point user_cpu_clock::now() noexcept {
         struct rusage usage;
         int err = ::getrusage(RUSAGE_THREAD, &usage);
         if (err == 0) {
@@ -17,7 +17,7 @@ namespace util {
         return time_point();
     }
 
-    static time_point kernel_cpu_clock::now() noexcept {
+    kernel_cpu_clock::time_point kernel_cpu_clock::now() noexcept {
         struct rusage usage;
         int err = ::getrusage(RUSAGE_THREAD, &usage);
         if (err == 0) {
@@ -69,7 +69,7 @@ namespace util {
 #elif defined(_WIN32)
     #include "platform.hpp"
 
-    static time_point user_cpu_clock::now() noexcept {
+    user_cpu_clock::time_point user_cpu_clock::now() noexcept {
         FILETIME creation_time;
         FILETIME exit_time;
         FILETIME kernel_time;
@@ -82,7 +82,7 @@ namespace util {
         return time_point();
     }
 
-    static time_point kernel_cpu_clock::now() noexcept {
+    kernel_cpu_clock::time_point kernel_cpu_clock::now() noexcept {
         FILETIME creation_time;
         FILETIME exit_time;
         FILETIME kernel_time;
