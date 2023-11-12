@@ -14,7 +14,7 @@ namespace util {
             return time_point(std::chrono::seconds(usage.ru_utime.tv_sec)
                               + std::chrono::microseconds(usage.ru_utime.tv_usec));
         }
-        return time_point{};
+        return {};
     }
 
     kernel_cpu_clock::time_point kernel_cpu_clock::now() noexcept {
@@ -23,7 +23,7 @@ namespace util {
             return time_point(std::chrono::seconds(usage.ru_stime.tv_sec)
                               + std::chrono::microseconds(usage.ru_stime.tv_usec));
         }
-        return time_point{};
+        return {};
     }
 
 }  // namespace util
