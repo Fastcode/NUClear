@@ -9,23 +9,21 @@ namespace NUClear {
 namespace util {
 
     user_cpu_clock::time_point user_cpu_clock::now() noexcept {
-        struct rusage usage;
-        int err = ::getrusage(RUSAGE_THREAD, &usage);
-        if (err == 0) {
+        rusage usage{};
+        if (::getrusage(RUSAGE_THREAD, &usage) == 0) {
             return time_point(std::chrono::seconds(usage.ru_utime.tv_sec)
                               + std::chrono::microseconds(usage.ru_utime.tv_usec));
         }
-        return time_point();
+        return time_point{};
     }
 
     kernel_cpu_clock::time_point kernel_cpu_clock::now() noexcept {
-        struct rusage usage;
-        int err = ::getrusage(RUSAGE_THREAD, &usage);
-        if (err == 0) {
+        rusage usage{};
+        if (::getrusage(RUSAGE_THREAD, &usage) == 0) {
             return time_point(std::chrono::seconds(usage.ru_stime.tv_sec)
                               + std::chrono::microseconds(usage.ru_stime.tv_usec));
         }
-        return time_point();
+        return time_point{};
     }
 
 }  // namespace util
