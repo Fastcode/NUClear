@@ -1,11 +1,12 @@
 #include "usage_clock.hpp"
 
-namespace NUClear {
-namespace util {
 
 // Linux
 #if defined(__linux__)
     #include <sys/resource.h>
+
+namespace NUClear {
+namespace util {
 
     user_cpu_clock::time_point user_cpu_clock::now() noexcept {
         struct rusage usage;
@@ -27,11 +28,18 @@ namespace util {
         return time_point();
     }
 
+}  // namespace util
+}  // namespace NUClear
+
 // Mac OS X
 #elif defined(__MACH__) && defined(__APPLE__)
+
     #include <errno.h>
     #include <mach/mach.h>
     #include <sys/resource.h>
+
+namespace NUClear {
+namespace util {
 
     user_cpu_clock::time_point user_cpu_clock::now() noexcept {
         thread_basic_info_data_t info{};
@@ -65,9 +73,15 @@ namespace util {
         return time_point();
     }
 
+}  // namespace util
+}  // namespace NUClear
+
 // Windows
 #elif defined(_WIN32)
     #include "platform.hpp"
+
+namespace NUClear {
+namespace util {
 
     user_cpu_clock::time_point user_cpu_clock::now() noexcept {
         FILETIME creation_time;
@@ -95,7 +109,7 @@ namespace util {
         return time_point();
     }
 
-#endif
-
 }  // namespace util
 }  // namespace NUClear
+
+#endif  // OS
