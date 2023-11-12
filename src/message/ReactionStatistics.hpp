@@ -26,10 +26,11 @@
 #include <exception>
 #include <string>
 #include <vector>
-#include "../id.hpp"
 
 #include "../clock.hpp"
+#include "../id.hpp"
 #include "../threading/ReactionIdentifiers.hpp"
+#include "../util/usage_clock.hpp"
 
 namespace NUClear {
 namespace message {
@@ -74,6 +75,10 @@ namespace message {
         clock::time_point started{};
         /// @brief The time that execution finished on this reaction
         clock::time_point finished{};
+        /// @brief The amount of CPU time that this reaction took to execute
+        util::user_cpu_clock::duration user_cpu_time{};
+        /// @brief The amount of kernel time that this reaction took to execute
+        util::kernel_cpu_clock::duration kernel_cpu_time{};
         /// @brief An exception pointer that can be rethrown (if the reaction threw an exception)
         std::exception_ptr exception{nullptr};
     };

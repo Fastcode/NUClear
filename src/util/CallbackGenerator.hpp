@@ -109,8 +109,10 @@ namespace util {
                                          // Update our thread's priority to the correct level
                                          update_current_thread_priority(task.priority);
 
-                                         // Record our start time
+                                         // Start times
                                          task.stats->started = clock::now();
+                                         auto user_start     = util::user_cpu_clock::now();
+                                         auto kernel_start   = util::kernel_cpu_clock::now();
 
                                          // We have to catch any exceptions
                                          try {
@@ -122,8 +124,10 @@ namespace util {
                                              task.stats->exception = std::current_exception();
                                          }
 
-                                         // Our finish time
-                                         task.stats->finished = clock::now();
+                                         // Finish times in same order
+                                         task.stats->finished        = clock::now();
+                                         task.stats->user_cpu_time   = util::user_cpu_clock::now() - user_start;
+                                         task.stats->kernel_cpu_time = util::kernel_cpu_clock::now() - kernel_start;
 
                                          // Run our postconditions
                                          DSL::postcondition(task);
