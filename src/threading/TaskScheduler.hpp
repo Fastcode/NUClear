@@ -132,7 +132,14 @@ namespace threading {
             std::mutex mutex;
             /// @brief The condition variable which threads wait on if they can't get a task
             std::condition_variable condition;
+            /// @brief The map of idle tasks for this thread pool
+            std::map<NUClear::id_t, std::function<void()>> idle_tasks;
 
+            /**
+             * @brief Submit a new task to this thread pool
+             *
+             * @param task the task to submit
+             */
             void submit(Task&& task);
         };
 
@@ -179,6 +186,30 @@ namespace threading {
                     const util::ThreadPoolDescriptor& pool,
                     const bool& immediate,
                     std::function<void()>&& func);
+
+        /**
+         * @brief Adds an idle task to the task scheduler.
+         *
+         * This function adds an idle task to the task scheduler, which will be executed when the thread pool associated
+         * with the given `pool_id` has no other tasks to execute. The `task` parameter is a callable object that
+         * represents the idle task to be executed.
+         *
+         * @param id The ID of the task.
+         * @param pool_id The ID of the thread pool to which the task belongs.
+         * @param task The idle task to be executed.
+         */
+        void add_idle_task(const NUClear::id_t& id, const id_t& pool_id, std::function<void()>&& task);
+
+        /**
+         * @brief Removes an idle task from the task scheduler.
+         *
+         * This function removes an idle task from the task scheduler. The `id` and `pool_id` parameters are used to
+         * identify the idle task to be removed.
+         *
+         * @param id The ID of the task.
+         * @param pool_id The ID of the thread pool to which the task belongs.
+         */
+        void remove_idle_task(const NUClear::id_t& id, const id_t& pool_id);
 
     private:
         /**

@@ -211,6 +211,30 @@ namespace threading {
         }
     }
 
+    void TaskScheduler::add_idle_task(const NUClear::id_t& id, const id_t& pool_id, std::function<void()>&& task) {
+        // Get the appropiate pool for this task
+        const std::shared_ptr<PoolQueue> pool =
+            get_pool_queue(util::ThreadPoolDescriptor{pool_id, 1});  // TODO can't have this be 1
+
+        // Find where to insert the new task to maintain task order
+        const std::lock_guard<std::mutex> lock(pool->mutex);
+        pool->idle_tasks.emplace(id, std::move(task));
+    }
+
+    void TaskScheduler::remove_idle_task(const NUClear::id_t& id, const id_t& pool_id) {
+        // Get the appropiate pool for this task
+        const std::shared_ptr<PoolQueue> pool = get_pool_queue(util::ThreadPoolDescriptor{pool_id, 1});
+
+        // Find the idle task with the given id and remove it if it exists
+        const std::lock_guard<std::mutex> lock(pool->mutex);
+        auto it = std::find_if(pool->idle_tasks.begin(), pool->idle_tasks.end(), [&](const auto& task) {
+            return task.first == id;
+        });
+        if (it != pool->idle_tasks.end()) {
+            pool->idle_tasks.erase(it);
+        }
+    }
+
     TaskScheduler::Task TaskScheduler::get_task() {
 
         // Wait at a high (but not realtime) priority to reduce latency for picking up a new task
