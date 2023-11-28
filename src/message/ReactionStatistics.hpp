@@ -76,9 +76,7 @@ namespace message {
         /// @brief The time that execution finished on this reaction
         clock::time_point finished{};
         /// @brief The amount of CPU time that this reaction took to execute
-        util::user_cpu_clock::duration user_cpu_time{};
-        /// @brief The amount of kernel time that this reaction took to execute
-        util::kernel_cpu_clock::duration kernel_cpu_time{};
+        util::cpu_clock::duration cpu_time{};
         /// @brief An exception pointer that can be rethrown (if the reaction threw an exception)
         std::exception_ptr exception{nullptr};
     };

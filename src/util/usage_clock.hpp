@@ -6,21 +6,11 @@
 namespace NUClear {
 namespace util {
 
-    struct user_cpu_clock {
+    struct cpu_clock {
         using duration              = std::chrono::nanoseconds;
         using rep                   = duration::rep;
         using period                = duration::period;
-        using time_point            = std::chrono::time_point<user_cpu_clock>;
-        static const bool is_steady = true;
-
-        static time_point now() noexcept;
-    };
-
-    struct kernel_cpu_clock {
-        using duration              = std::chrono::nanoseconds;
-        using rep                   = duration::rep;
-        using period                = duration::period;
-        using time_point            = std::chrono::time_point<kernel_cpu_clock>;
+        using time_point            = std::chrono::time_point<cpu_clock>;
         static const bool is_steady = true;
 
         static time_point now() noexcept;

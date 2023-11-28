@@ -29,17 +29,15 @@
 namespace {
 
 /// @brief Events that occur during the test and the time they occur
-// NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
+/// NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
 std::vector<std::pair<std::string, NUClear::clock::time_point>> events;
 
 struct Usage {
-    // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
     std::map<std::string, NUClear::clock::duration> real;
-    // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
-    std::map<std::string, NUClear::util::user_cpu_clock::duration> user;
-    // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
-    std::map<std::string, NUClear::util::kernel_cpu_clock::duration> kernel;
+    std::map<std::string, NUClear::util::cpu_clock::duration> cpu;
 };
+
+// NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
 Usage usage;
 
 struct DoTest {};
@@ -96,7 +94,6 @@ public:
             events.emplace_back("Code: Finished " + light_name, NUClear::clock::now());
         });
 
-
         on<Trigger<ReactionStatistics>>().then([this](const ReactionStatistics& stats) {
             if (stats.identifiers.reactor == reactor_name
                 && (stats.identifiers.name == initial_name || stats.identifiers.name == heavy_name
@@ -105,9 +102,8 @@ public:
                 events.emplace_back("Stat: Started " + stats.identifiers.name, stats.started);
                 events.emplace_back("Stat: Finished " + stats.identifiers.name, stats.finished);
 
-                usage.real[stats.identifiers.name]   = stats.finished - stats.started;
-                usage.user[stats.identifiers.name]   = stats.user_cpu_time;
-                usage.kernel[stats.identifiers.name] = stats.kernel_cpu_time;
+                usage.real[stats.identifiers.name] = stats.finished - stats.started;
+                usage.cpu[stats.identifiers.name]  = stats.cpu_time;
             }
         });
 
@@ -153,14 +149,12 @@ TEST_CASE("Testing reaction statistics timing", "[api][reactionstatistics][timin
     // Check the events fired in order and only those events
     REQUIRE(delta_events == expected);
 
-    // Check that the amount of CPU time spent is at least reasonable for each of the reactions
-
     // Most of initial real time should be spent sleeping
-    REQUIRE(usage.user[initial_name] + usage.kernel[initial_name] < usage.real[initial_name] / 2);
+    REQUIRE(usage.cpu[initial_name] < usage.real[initial_name] / 2);
 
     // Most of heavy real time should be cpu time
-    REQUIRE(usage.user[heavy_name] + usage.kernel[heavy_name] > usage.real[heavy_name] / 2);
+    REQUIRE(usage.cpu[heavy_name] > usage.real[heavy_name] / 2);
 
     // Most of light real time should be sleeping
-    REQUIRE(usage.user[light_name] + usage.kernel[light_name] < usage.real[light_name] / 2);
+    REQUIRE(usage.cpu[light_name] < usage.real[light_name] / 2);
 }

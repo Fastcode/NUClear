@@ -111,8 +111,7 @@ namespace util {
 
                                          // Start times
                                          task.stats->started = clock::now();
-                                         auto user_start     = util::user_cpu_clock::now();
-                                         auto kernel_start   = util::kernel_cpu_clock::now();
+                                         auto cpu_start      = util::cpu_clock::now();
 
                                          // We have to catch any exceptions
                                          try {
@@ -125,9 +124,8 @@ namespace util {
                                          }
 
                                          // Finish times in same order
-                                         task.stats->finished        = clock::now();
-                                         task.stats->user_cpu_time   = util::user_cpu_clock::now() - user_start;
-                                         task.stats->kernel_cpu_time = util::kernel_cpu_clock::now() - kernel_start;
+                                         task.stats->finished = clock::now();
+                                         task.stats->cpu_time = util::cpu_clock::now() - cpu_start;
 
                                          // Run our postconditions
                                          DSL::postcondition(task);
