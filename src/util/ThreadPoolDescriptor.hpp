@@ -41,7 +41,7 @@ namespace util {
             : pool_id(pool_id), thread_count(thread_count), counts_for_idle(counts_for_idle) {}
 
         static ThreadPoolDescriptor AllPools() {
-            return ThreadPoolDescriptor(NUClear::id_t(-1), size_t(-1), false);
+            return ThreadPoolDescriptor{NUClear::id_t(-1), size_t(-1), false};
         }
 
         /// @brief a unique identifier for this pool
