@@ -28,10 +28,29 @@
 #include <typeindex>
 
 #include "../../threading/ReactionTask.hpp"
+#include "../fusion/NoOp.hpp"
+#include "MainThread.hpp"
+#include "Pool.hpp"
 
 namespace NUClear {
 namespace dsl {
     namespace word {
+
+        /**
+         * @brief A base type to handle the common code for idling after turning the pool descriptor into an id.
+         */
+        inline void bind_idle(const std::shared_ptr<threading::Reaction>& reaction,
+                              const util::ThreadPoolDescriptor& pool_descriptor) {
+
+            // Our unbinder to remove this reaction
+            reaction->unbinders.push_back([pool_descriptor](const threading::Reaction& r) {  //
+                r.reactor.powerplant.remove_idle_task(r.id, pool_descriptor);
+            });
+
+            reaction->reactor.powerplant.add_idle_task(reaction->id, pool_descriptor, [reaction] {
+                reaction->reactor.powerplant.submit(reaction->get_task());
+            });
+        }
 
         /**
          * @brief Execute a task when there is nothing currently running on the thread pool.
@@ -39,7 +58,6 @@ namespace dsl {
          * @details
          *  @code on<Idle<PoolType>>() @endcode
          *  When the thread pool is idle, this task will be executed. This is use
-         *
          *
          * @par Implements
          *  Bind
@@ -50,16 +68,33 @@ namespace dsl {
          */
         template <typename PoolType>
         struct Idle {
-
             template <typename DSL>
             static inline void bind(const std::shared_ptr<threading::Reaction>& reaction) {
+                bind_idle(reaction, Pool<PoolType>::template pool<DSL>(*reaction));
+            }
+        };
 
-                // Our unbinder to remove this reaction
-                reaction->unbinders.push_back([](const threading::Reaction& r) {
-                    // TODO remove this reaction
-                });
+        template <>
+        struct Idle<Pool<>> {
+            template <typename DSL>
+            static inline void bind(const std::shared_ptr<threading::Reaction>& reaction) {
+                bind_idle(reaction, Pool<>::template pool<DSL>(*reaction));
+            }
+        };
 
-                // TODO add this to the idle task list for the pool
+        template <>
+        struct Idle<MainThread> {
+            template <typename DSL>
+            static inline void bind(const std::shared_ptr<threading::Reaction>& reaction) {
+                bind_idle(reaction, MainThread::pool<DSL>(*reaction));
+            }
+        };
+
+        template <>
+        struct Idle<void> {
+            template <typename DSL>
+            static inline void bind(const std::shared_ptr<threading::Reaction>& reaction) {
+                bind_idle(reaction, util::ThreadPoolDescriptor::AllPools());
             }
         };
 

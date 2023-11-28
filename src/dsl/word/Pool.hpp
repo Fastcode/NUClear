@@ -65,7 +65,7 @@ namespace dsl {
          *  };
          *  @endcode
          */
-        template <typename PoolType>
+        template <typename PoolType = void>
         struct Pool {
 
             static_assert(PoolType::thread_count > 0, "Can not have a thread pool with less than 1 thread");
@@ -84,11 +84,21 @@ namespace dsl {
             }
         };
 
+        template <>
+        struct Pool<void> {
+            template <typename DSL>
+            static inline util::ThreadPoolDescriptor pool(const threading::Reaction& /*reaction*/) {
+                return util::ThreadPoolDescriptor{};
+            }
+        };
+
         // Initialise the thread pool descriptor
         template <typename PoolType>
         const util::ThreadPoolDescriptor Pool<PoolType>::pool_descriptor = {
             util::ThreadPoolDescriptor::get_unique_pool_id(),
-            PoolType::thread_count};
+            PoolType::thread_count,
+            true,
+        };
 
     }  // namespace word
 }  // namespace dsl

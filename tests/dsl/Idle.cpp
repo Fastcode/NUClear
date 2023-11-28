@@ -63,6 +63,10 @@ public:
             events.push_back("Idle");
             emit(std::make_unique<Step<5>>());
         });
+        on<Idle<Pool<>>>().then([this] {  //
+            events.push_back("Idle Pool");
+            emit(std::make_unique<Step<6>>());
+        });
         on<Trigger<Step<5>>>().then([this] {
             events.push_back("Step 5");
             std::this_thread::sleep_for(std::chrono::milliseconds(50));

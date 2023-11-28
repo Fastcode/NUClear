@@ -75,6 +75,16 @@ void PowerPlant::submit(std::unique_ptr<threading::ReactionTask>&& task, const b
     }
 }
 
+void PowerPlant::add_idle_task(const NUClear::id_t& id,
+                               const util::ThreadPoolDescriptor& pool_descriptor,
+                               std::function<void()>&& task) {
+    scheduler.add_idle_task(id, pool_descriptor, std::move(task));
+}
+
+void PowerPlant::remove_idle_task(const NUClear::id_t& id, const util::ThreadPoolDescriptor& pool_descriptor) {
+    scheduler.remove_idle_task(id, pool_descriptor);
+}
+
 void PowerPlant::shutdown() {
 
     // Stop running before we emit the Shutdown event

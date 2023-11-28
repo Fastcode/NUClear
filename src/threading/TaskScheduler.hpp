@@ -195,10 +195,12 @@ namespace threading {
          * represents the idle task to be executed.
          *
          * @param id The ID of the task.
-         * @param pool_id The ID of the thread pool to which the task belongs.
+         * @param pool_descriptor The descriptor for the thread pool to test for idle
          * @param task The idle task to be executed.
          */
-        void add_idle_task(const NUClear::id_t& id, const id_t& pool_id, std::function<void()>&& task);
+        void add_idle_task(const NUClear::id_t& id,
+                           const util::ThreadPoolDescriptor& pool_descriptor,
+                           std::function<void()>&& task);
 
         /**
          * @brief Removes an idle task from the task scheduler.
@@ -206,10 +208,10 @@ namespace threading {
          * This function removes an idle task from the task scheduler. The `id` and `pool_id` parameters are used to
          * identify the idle task to be removed.
          *
-         * @param id The ID of the task.
-         * @param pool_id The ID of the thread pool to which the task belongs.
+         * @param id The ID of the task
+         * @param pool_descriptor The descriptor for the thread pool to test for idle
          */
-        void remove_idle_task(const NUClear::id_t& id, const id_t& pool_id);
+        void remove_idle_task(const NUClear::id_t& id, const util::ThreadPoolDescriptor& pool_descriptor);
 
     private:
         /**
@@ -281,6 +283,13 @@ namespace threading {
         std::map<NUClear::id_t, size_t> groups{};
         /// @brief mutex for the group map
         std::mutex group_mutex;
+
+        /// @brief global idle tasks to be executed when no other tasks are running
+        std::map<NUClear::id_t, std::function<void()>> idle_tasks{};
+        /// @brief the total number of threads that can be counted as idle
+        std::atomic<size_t> total_idleable_threads{0};
+        /// @brief the number of global idle threads
+        std::atomic<size_t> idle_threads{0};
 
         /// @brief A map of pool descriptor ids to pool descriptors
         std::map<NUClear::id_t, std::shared_ptr<PoolQueue>> pool_queues{};

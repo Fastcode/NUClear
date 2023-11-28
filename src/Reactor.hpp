@@ -235,7 +235,7 @@ protected:
     using Shutdown = dsl::word::Shutdown;
 
     /// @copydoc dsl::word::Pool
-    template <typename T>
+    template <typename T = void>
     using Pool = dsl::word::Pool<T>;
 
     /// @copydoc dsl::word::Group

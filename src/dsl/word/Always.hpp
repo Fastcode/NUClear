@@ -81,7 +81,7 @@ namespace dsl {
                 if (pool_id.count(reaction.id) == 0) {
                     pool_id[reaction.id] = util::ThreadPoolDescriptor::get_unique_pool_id();
                 }
-                return util::ThreadPoolDescriptor{pool_id[reaction.id], 1};
+                return util::ThreadPoolDescriptor{pool_id[reaction.id], 1, false};
             }
 
             template <typename DSL>
