@@ -124,12 +124,16 @@ namespace threading {
             const util::ThreadPoolDescriptor pool_descriptor;
             /// @brief The threads which are running in this thread pool
             std::vector<std::unique_ptr<std::thread>> threads;
+            /// @brief The number of threads currently waiting for a task
+            size_t idle_threads{0};
             /// @brief The queue of tasks for this specific thread pool
             std::vector<Task> queue;
             /// @brief The mutex which protects the queue
             std::mutex mutex;
             /// @brief The condition variable which threads wait on if they can't get a task
             std::condition_variable condition;
+
+            void submit(Task&& task);
         };
 
     public:

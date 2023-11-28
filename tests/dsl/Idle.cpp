@@ -1,0 +1,107 @@
+/*
+ * MIT License
+ *
+ * Copyright (c) 2013 NUClear Contributors
+ *
+ * This file is part of the NUClear codebase.
+ * See https://github.com/Fastcode/NUClear for further info.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+ * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
+ * rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the
+ * Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+ * WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+ * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+
+#include <catch.hpp>
+#include <nuclear>
+
+#include "test_util/TestBase.hpp"
+
+namespace {
+
+/// @brief A vector of events that have happened
+std::vector<std::string> events;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+
+struct SimpleMessage {
+    SimpleMessage(int data) : data(data) {}
+    int data;
+};
+
+class TestReactor : public test_util::TestBase<TestReactor> {
+public:
+    TestReactor(std::unique_ptr<NUClear::Environment> environment) : TestBase(std::move(environment), false) {
+
+        on<Startup>().then([this] {
+            events.push_back("Startup");
+            // Sleep for a bit to ensure no other threads do something
+            emit(std::make_unique<Step<1>>());
+        });
+        on<Trigger<Step<1>>>().then([this] {
+            events.push_back("Step 1");
+            std::this_thread::sleep_for(std::chrono::milliseconds(50));
+            emit(std::make_unique<Step<2>>());
+        });
+        on<Trigger<Step<2>>>().then([this] {
+            events.push_back("Step 2");
+            std::this_thread::sleep_for(std::chrono::milliseconds(50));
+            emit(std::make_unique<Step<3>>());
+        });
+        on<Trigger<Step<3>>>().then([this] {
+            events.push_back("Step 3");
+            std::this_thread::sleep_for(std::chrono::milliseconds(50));
+            emit(std::make_unique<Step<4>>());
+        });
+        on<Idle<>>().then([this] {  //
+            events.push_back("Idle");
+            emit(std::make_unique<Step<5>>());
+        });
+        on<Trigger<Step<5>>>().then([this] {
+            events.push_back("Step 5");
+            std::this_thread::sleep_for(std::chrono::milliseconds(50));
+            emit(std::make_unique<Step<6>>());
+        });
+        on<Trigger<Step<6>>>().then([this] {
+            events.push_back("Step 6");
+            std::this_thread::sleep_for(std::chrono::milliseconds(50));
+            emit(std::make_unique<Step<4>>());
+        });
+    }
+};
+}  // namespace
+
+
+TEST_CASE("Test that pool idle triggers when nothing is running", "[api][idle]") {
+
+    NUClear::Configuration config;
+    config.thread_count = 4;
+    NUClear::PowerPlant plant(config);
+    plant.install<TestReactor>();
+    plant.start();
+
+    const std::vector<std::string> expected = {
+        "Trigger 0",
+        "Trigger 1",
+        "Trigger 2",
+        "Trigger 3",
+        "Trigger 4",
+        "Trigger 5",
+        "Trigger 6",
+        "Trigger 7",
+        "Trigger 8",
+        "Trigger 9",
+    };
+
+    // Make an info print the diff in an easy to read way if we fail
+    INFO(test_util::diff_string(expected, events));
+
+    // Check the events fired in order and only those events
+    REQUIRE(events == expected);
+}

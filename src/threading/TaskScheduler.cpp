@@ -168,6 +168,14 @@ namespace threading {
         }
     }
 
+    void TaskScheduler::PoolQueue::submit(Task&& task) {
+        // Insert in sorted order
+        queue.insert(std::lower_bound(queue.begin(), queue.end(), task), std::move(task));
+
+        // Notify a single thread that there is a new task
+        condition.notify_one();
+    }
+
     void TaskScheduler::submit(const NUClear::id_t& id,
                                const int& priority,
                                const util::GroupDescriptor& group_descriptor,
@@ -199,12 +207,7 @@ namespace threading {
 
             // Find where to insert the new task to maintain task order
             const std::lock_guard<std::mutex> queue_lock(pool->mutex);
-            auto& queue = pool->queue;
-            auto it     = std::lower_bound(queue.begin(), queue.end(), task);
-            queue.insert(it, std::move(task));
-
-            // Notify a single thread that there is a new task
-            pool->condition.notify_one();
+            pool->submit(std::move(task));
         }
     }
 
@@ -224,6 +227,7 @@ namespace threading {
 
         // Keep looking for tasks while the scheduler is still running, or while there are still tasks to process
         std::unique_lock<std::mutex> lock(pool->mutex);
+        ++pool->idle_threads;
         while (running.load() || !queue.empty()) {
 
             // Only one thread can be checking group concurrency at a time otherwise the ordering might not be correct
@@ -243,6 +247,7 @@ namespace threading {
                         queue.erase(it);
 
                         // Return the task
+                        --pool->idle_threads;
                         return task;
                     }
                 }
@@ -260,6 +265,11 @@ namespace threading {
             // We don't have a condition on this lock as the check would be this doing this loop again to see if there
             // are any tasks we can execute (checking all the groups) so therefore we already did the entry predicate.
             // Putting a condition on this would stop spurious wakeups of which the cost would be equal to the loop.
+            std::cout << "idle" << pool->idle_threads << std::endl;
+            if (pool->idle_threads == pool->threads.size()) {
+                // TODO submit the idle tasks to the pool using pool->submit
+                std::cout << "ALL IDLE!!!!" << std::endl;
+            }
             condition.wait(lock);  // NOSONAR
         }
 
