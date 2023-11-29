@@ -37,48 +37,28 @@ struct SimpleMessage {
 
 class TestReactor : public test_util::TestBase<TestReactor> {
 public:
+    template <int N>
+    void do_step(const std::string& name) {
+        events.push_back(name + " " + std::to_string(N));
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));
+        emit(std::make_unique<Step<N + 1>>());
+    }
+
     TestReactor(std::unique_ptr<NUClear::Environment> environment) : TestBase(std::move(environment), false) {
 
-        on<Startup>().then([this] {
-            events.push_back("Startup");
-            // Sleep for a bit to ensure no other threads do something
-            emit(std::make_unique<Step<1>>());
-        });
-        on<Trigger<Step<1>>>().then([this] {
-            events.push_back("Step 1");
-            std::this_thread::sleep_for(std::chrono::milliseconds(50));
-            emit(std::make_unique<Step<2>>());
-        });
-        on<Trigger<Step<2>>>().then([this] {
-            events.push_back("Step 2");
-            std::this_thread::sleep_for(std::chrono::milliseconds(50));
-            emit(std::make_unique<Step<3>>());
-        });
-        on<Trigger<Step<3>>>().then([this] {
-            events.push_back("Step 3");
-            std::this_thread::sleep_for(std::chrono::milliseconds(50));
-            emit(std::make_unique<Step<4>>());
-        });
-        on<Idle<>>().then([this] {  //
-            events.push_back("Idle");
-            emit(std::make_unique<Step<5>>());
-        });
-        on<Idle<Pool<>>>().then([this] {  //
-            events.push_back("Idle Pool");
-            emit(std::make_unique<Step<6>>());
-        });
-        on<Trigger<Step<5>>>().then([this] {
-            events.push_back("Step 5");
-            std::this_thread::sleep_for(std::chrono::milliseconds(50));
-            emit(std::make_unique<Step<6>>());
-        });
-        on<Trigger<Step<6>>>().then([this] {
-            events.push_back("Step 6");
-            std::this_thread::sleep_for(std::chrono::milliseconds(50));
-            emit(std::make_unique<Step<4>>());
-        });
+        on<Startup>().then([this] { do_step<0>("Startup"); });
+        on<Trigger<Step<1>>>().then([this] { do_step<1>("Step"); });
+        on<Trigger<Step<2>>>().then([this] { do_step<2>("Step"); });
+        on<Trigger<Step<3>>>().then([this] { do_step<3>("Step"); });
+        on<Idle<>>().then([this] { do_step<4>("Global Idle"); });
+        on<Trigger<Step<5>>>().then([this] { do_step<5>("Step"); });
+        on<Trigger<Step<6>>>().then([this] { do_step<6>("Step"); });
+        on<Trigger<Step<6>>>().then([this] { do_step<7>("Step"); });
+
+        on<Trigger<Step<8>>>().then([this] { powerplant.shutdown(); });
     }
 };
+
 }  // namespace
 
 

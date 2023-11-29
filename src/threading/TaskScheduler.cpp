@@ -104,7 +104,7 @@ namespace threading {
     void TaskScheduler::start_threads(const std::shared_ptr<PoolQueue>& pool) {
         // The main thread never needs to be started
         if (pool->pool_descriptor.pool_id != util::ThreadPoolDescriptor::MAIN_THREAD_POOL_ID) {
-            const std::lock_guard<std::mutex> lock(pool->mutex);
+            const std::lock_guard<std::recursive_mutex> lock(pool->mutex);
             while (pool->threads.size() < pool->pool_descriptor.thread_count) {
                 pool->threads.emplace_back(std::make_unique<std::thread>(&TaskScheduler::pool_func, this, pool));
             }
@@ -149,7 +149,7 @@ namespace threading {
         // Poke all of the threads to make sure they are awake and then wait for them to finish
         for (auto& pool : pool_queues) {
             /* mutex scope */ {
-                const std::lock_guard<std::mutex> queue_lock(pool.second->mutex);
+                const std::lock_guard<std::recursive_mutex> queue_lock(pool.second->mutex);
                 pool.second->condition.notify_all();
             }
             for (auto& thread : pool.second->threads) {
@@ -170,13 +170,13 @@ namespace threading {
         started.store(false);
         running.store(false);
         for (auto& pool : pool_queues) {
-            const std::lock_guard<std::mutex> lock(pool.second->mutex);
+            const std::lock_guard<std::recursive_mutex> lock(pool.second->mutex);
             pool.second->condition.notify_all();
         }
     }
 
     void TaskScheduler::PoolQueue::submit(Task&& task) {
-        std::lock_guard<std::mutex> lock(mutex);
+        std::lock_guard<std::recursive_mutex> lock(mutex);
 
         // Insert in sorted order
         queue.insert(std::lower_bound(queue.begin(), queue.end(), task), std::move(task));
@@ -211,7 +211,7 @@ namespace threading {
 
         // We do not accept new tasks once we are shutdown
         if (running.load()) {
-            // Get the appropiate pool for this task
+            // Get the appropiate pool for this task and submit
             get_pool_queue(task.thread_pool_descriptor)->submit(std::move(task));
         }
     }
@@ -229,7 +229,7 @@ namespace threading {
             const std::shared_ptr<PoolQueue> pool = get_pool_queue(pool_descriptor);
 
             // Find where to insert the new task to maintain task order
-            const std::lock_guard<std::mutex> lock(pool->mutex);
+            const std::lock_guard<std::recursive_mutex> lock(pool->mutex);
             pool->idle_tasks.emplace(id, std::move(task));
         }
     }
@@ -239,7 +239,7 @@ namespace threading {
         const std::shared_ptr<PoolQueue> pool = get_pool_queue(pool_descriptor);
 
         // Find the idle task with the given id and remove it if it exists
-        const std::lock_guard<std::mutex> lock(pool->mutex);
+        const std::lock_guard<std::recursive_mutex> lock(pool->mutex);
         auto it = std::find_if(pool->idle_tasks.begin(), pool->idle_tasks.end(), [&](const auto& task) {
             return task.first == id;
         });
@@ -263,7 +263,7 @@ namespace threading {
         auto& condition                       = pool->condition;
 
         // Keep looking for tasks while the scheduler is still running, or while there are still tasks to process
-        std::unique_lock<std::mutex> lock(pool->mutex);
+        std::unique_lock<std::recursive_mutex> lock(pool->mutex);
         bool idle = false;
         while (running.load() || !queue.empty()) {
 
@@ -285,8 +285,8 @@ namespace threading {
 
                         // If we were idle, we are about to not be
                         if (pool->pool_descriptor.counts_for_idle && idle) {
-                            --pool->idle_threads;
                             --idle_threads;
+                            --pool->idle_threads;
                         }
 
                         // Return the task

@@ -129,9 +129,9 @@ namespace threading {
             /// @brief The queue of tasks for this specific thread pool
             std::vector<Task> queue;
             /// @brief The mutex which protects the queue
-            std::mutex mutex;
+            std::recursive_mutex mutex;
             /// @brief The condition variable which threads wait on if they can't get a task
-            std::condition_variable condition;
+            std::condition_variable_any condition;
             /// @brief The map of idle tasks for this thread pool
             std::map<NUClear::id_t, std::function<void()>> idle_tasks;
 
