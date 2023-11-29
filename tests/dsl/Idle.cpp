@@ -53,7 +53,7 @@ public:
         on<Idle<>>().then([this] { do_step<4>("Global Idle"); });
         on<Trigger<Step<5>>>().then([this] { do_step<5>("Step"); });
         on<Trigger<Step<6>>>().then([this] { do_step<6>("Step"); });
-        on<Trigger<Step<6>>>().then([this] { do_step<7>("Step"); });
+        on<Trigger<Step<7>>>().then([this] { do_step<7>("Step"); });
 
         on<Trigger<Step<8>>>().then([this] { powerplant.shutdown(); });
     }
@@ -71,16 +71,14 @@ TEST_CASE("Test that pool idle triggers when nothing is running", "[api][idle]")
     plant.start();
 
     const std::vector<std::string> expected = {
-        "Trigger 0",
-        "Trigger 1",
-        "Trigger 2",
-        "Trigger 3",
-        "Trigger 4",
-        "Trigger 5",
-        "Trigger 6",
-        "Trigger 7",
-        "Trigger 8",
-        "Trigger 9",
+        "Startup 0",
+        "Step 1",
+        "Step 2",
+        "Step 3",
+        "Global Idle 4",
+        "Step 5",
+        "Step 6",
+        "Step 7",
     };
 
     // Make an info print the diff in an easy to read way if we fail
