@@ -35,10 +35,11 @@ struct SimpleMessage {
     int data;
 };
 
-constexpr int time_step = 100;
+constexpr int time_step = 50;
 
 class TestReactor : public test_util::TestBase<TestReactor, 10000> {
 public:
+    template <int N>
     struct CustomPool {
         static constexpr int thread_count = 2;
     };
@@ -75,20 +76,24 @@ public:
         on<Trigger<Step<15>>, MainThread>().then([this] { mrh.unbind(); });
 
         // Idle testing for custom pool
-        on<Trigger<Step<16>>, Pool<CustomPool>>().then([this] { do_step<16>("Custom Startup"); });
-        on<Trigger<Step<17>>, Pool<CustomPool>>().then([this] { do_step<17>("Custom Step"); });
-        on<Trigger<Step<18>>, Pool<CustomPool>>().then([this] { do_step<18>("Custom Step"); });
-        crh = on<Idle<Pool<CustomPool>>>().then([this] { do_step<19>("Custom Idle"); });
-        on<Trigger<Step<20>>, Pool<CustomPool>>().then([this] { do_step<20>("Custom Step"); });
-        on<Trigger<Step<21>>, Pool<CustomPool>>().then([this] { do_step<21>("Custom Step"); });
-        on<Trigger<Step<22>>, Pool<CustomPool>>().then([this] { do_step<22>("Custom Step"); });
-        on<Trigger<Step<23>>, Pool<CustomPool>>().then([this] { crh.unbind(); });
+        on<Trigger<Step<16>>, Pool<CustomPool<1>>>().then([this] { do_step<16>("Custom Startup"); });
+        on<Trigger<Step<17>>, Pool<CustomPool<1>>>().then([this] { do_step<17>("Custom Step"); });
+        on<Trigger<Step<18>>, Pool<CustomPool<1>>>().then([this] { do_step<18>("Custom Step"); });
+        crh = on<Idle<Pool<CustomPool<1>>>>().then([this] { do_step<19>("Custom Idle"); });
+        on<Trigger<Step<20>>, Pool<CustomPool<1>>>().then([this] { do_step<20>("Custom Step"); });
+        on<Trigger<Step<21>>, Pool<CustomPool<1>>>().then([this] { do_step<21>("Custom Step"); });
+        on<Trigger<Step<22>>, Pool<CustomPool<1>>>().then([this] { do_step<22>("Custom Step"); });
+        on<Trigger<Step<23>>, Pool<CustomPool<1>>>().then([this] { crh.unbind(); });
 
-        // Global idle everything finished
-        on<Idle<>>().then([this] {
-            events.push_back("Global Idle");
-            powerplant.shutdown();
-        });
+        // Idle testing for global
+        on<Trigger<Step<24>>, Pool<CustomPool<2>>>().then([this] { do_step<24>("Custom<2> Startup"); });
+        on<Trigger<Step<25>>, Pool<CustomPool<2>>>().then([this] { do_step<25>("Custom<2> Step"); });
+        on<Trigger<Step<26>>, Pool<CustomPool<2>>>().then([this] { do_step<26>("Custom<2> Step"); });
+        crh = on<Idle<>>().then([this] { do_step<27>("Global Idle"); });
+        on<Trigger<Step<28>>, Pool<CustomPool<2>>>().then([this] { do_step<28>("Custom<2> Step"); });
+        on<Trigger<Step<29>>, Pool<CustomPool<2>>>().then([this] { do_step<29>("Custom<2> Step"); });
+        on<Trigger<Step<30>>, Pool<CustomPool<2>>>().then([this] { do_step<30>("Custom<2> Step"); });
+        on<Trigger<Step<31>>, Pool<CustomPool<2>>>().then([this] { powerplant.shutdown(); });
 
         on<Startup>().then([this] {
             emit(std::make_unique<Step<1>>());
