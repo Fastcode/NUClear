@@ -74,6 +74,7 @@ namespace threading {
 
         // Sum up the number of threads that are idleable
         total_idleable_threads += count;
+        pool->n_threads += count;
 
         // When task is nullptr there are no more tasks to get and the scheduler is shutting down
         while (running.load() || !pool->queue.empty()) {
@@ -85,6 +86,7 @@ namespace threading {
             }
         }
 
+        pool->n_threads -= count;
         total_idleable_threads -= count;
 
         // Clear the current queue
@@ -235,16 +237,22 @@ namespace threading {
     }
 
     void TaskScheduler::remove_idle_task(const NUClear::id_t& id, const util::ThreadPoolDescriptor& pool_descriptor) {
-        // Get the appropiate pool for this task
-        const std::shared_ptr<PoolQueue> pool = get_pool_queue(pool_descriptor);
 
-        // Find the idle task with the given id and remove it if it exists
-        const std::lock_guard<std::recursive_mutex> lock(pool->mutex);
-        auto it = std::find_if(pool->idle_tasks.begin(), pool->idle_tasks.end(), [&](const auto& task) {
-            return task.first == id;
-        });
-        if (it != pool->idle_tasks.end()) {
-            pool->idle_tasks.erase(it);
+        if (pool_descriptor.pool_id == NUClear::id_t(-1)) {
+            std::lock_guard<std::mutex> lock(pool_mutex);
+            if (idle_tasks.count(id) > 0) {
+                idle_tasks.erase(id);
+            }
+        }
+        else {
+            // Get the appropiate pool for this task
+            const std::shared_ptr<PoolQueue> pool = get_pool_queue(pool_descriptor);
+
+            // Find the idle task with the given id and remove it if it exists
+            const std::lock_guard<std::recursive_mutex> lock(pool->mutex);
+            if (pool->idle_tasks.count(id) > 0) {
+                pool->idle_tasks.erase(id);
+            }
         }
     }
 
@@ -307,7 +315,7 @@ namespace threading {
                 idle = true;
 
                 // Local idle tasks
-                if (++pool->idle_threads == pool->threads.size()) {
+                if (++pool->idle_threads == pool->n_threads) {
                     for (auto& t : pool->idle_tasks) {
                         t.second();
                     }

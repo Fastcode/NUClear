@@ -124,7 +124,9 @@ namespace threading {
             const util::ThreadPoolDescriptor pool_descriptor;
             /// @brief The threads which are running in this thread pool
             std::vector<std::unique_ptr<std::thread>> threads;
-            /// @brief The number of threads currently waiting for a task
+            /// @brief The number of threads which are currently running
+            size_t n_threads{0};
+            /// @brief The number of currently active threads
             size_t idle_threads{0};
             /// @brief The queue of tasks for this specific thread pool
             std::vector<Task> queue;

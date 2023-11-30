@@ -73,32 +73,33 @@ public:
         on<Trigger<Step<13>>, MainThread>().then([this] { do_step<13>("Main Step"); });
         on<Trigger<Step<14>>, MainThread>().then([this] { do_step<14>("Main Step"); });
         on<Trigger<Step<15>>, MainThread>().then([this] { do_step<15>("Main Step"); });
-        on<Trigger<Step<15>>, MainThread>().then([this] { mrh.unbind(); });
+        on<Trigger<Step<16>>, MainThread>().then([this] { mrh.unbind(); });
 
         // Idle testing for custom pool
-        on<Trigger<Step<16>>, Pool<CustomPool<1>>>().then([this] { do_step<16>("Custom Startup"); });
-        on<Trigger<Step<17>>, Pool<CustomPool<1>>>().then([this] { do_step<17>("Custom Step"); });
-        on<Trigger<Step<18>>, Pool<CustomPool<1>>>().then([this] { do_step<18>("Custom Step"); });
-        crh = on<Idle<Pool<CustomPool<1>>>>().then([this] { do_step<19>("Custom Idle"); });
-        on<Trigger<Step<20>>, Pool<CustomPool<1>>>().then([this] { do_step<20>("Custom Step"); });
-        on<Trigger<Step<21>>, Pool<CustomPool<1>>>().then([this] { do_step<21>("Custom Step"); });
-        on<Trigger<Step<22>>, Pool<CustomPool<1>>>().then([this] { do_step<22>("Custom Step"); });
-        on<Trigger<Step<23>>, Pool<CustomPool<1>>>().then([this] { crh.unbind(); });
+        on<Trigger<Step<17>>, Pool<CustomPool<1>>>().then([this] { do_step<17>("Custom<1> Startup"); });
+        on<Trigger<Step<18>>, Pool<CustomPool<1>>>().then([this] { do_step<18>("Custom<1> Step"); });
+        on<Trigger<Step<19>>, Pool<CustomPool<1>>>().then([this] { do_step<19>("Custom<1> Step"); });
+        crh = on<Idle<Pool<CustomPool<1>>>>().then([this] { do_step<20>("Custom<1> Idle"); });
+        on<Trigger<Step<21>>, Pool<CustomPool<1>>>().then([this] { do_step<21>("Custom<1> Step"); });
+        on<Trigger<Step<22>>, Pool<CustomPool<1>>>().then([this] { do_step<22>("Custom<1> Step"); });
+        on<Trigger<Step<23>>, Pool<CustomPool<1>>>().then([this] { do_step<23>("Custom<1> Step"); });
+        on<Trigger<Step<24>>, Pool<CustomPool<1>>>().then([this] { crh.unbind(); });
 
         // Idle testing for global
-        on<Trigger<Step<24>>, Pool<CustomPool<2>>>().then([this] { do_step<24>("Custom<2> Startup"); });
-        on<Trigger<Step<25>>, Pool<CustomPool<2>>>().then([this] { do_step<25>("Custom<2> Step"); });
+        on<Trigger<Step<25>>, Pool<CustomPool<2>>>().then([this] { do_step<25>("Custom<2> Startup"); });
         on<Trigger<Step<26>>, Pool<CustomPool<2>>>().then([this] { do_step<26>("Custom<2> Step"); });
-        crh = on<Idle<>>().then([this] { do_step<27>("Global Idle"); });
-        on<Trigger<Step<28>>, Pool<CustomPool<2>>>().then([this] { do_step<28>("Custom<2> Step"); });
+        on<Trigger<Step<27>>, Pool<CustomPool<2>>>().then([this] { do_step<27>("Custom<2> Step"); });
+        grh = on<Idle<>>().then([this] { do_step<28>("Global Idle"); });
         on<Trigger<Step<29>>, Pool<CustomPool<2>>>().then([this] { do_step<29>("Custom<2> Step"); });
         on<Trigger<Step<30>>, Pool<CustomPool<2>>>().then([this] { do_step<30>("Custom<2> Step"); });
-        on<Trigger<Step<31>>, Pool<CustomPool<2>>>().then([this] { powerplant.shutdown(); });
+        on<Trigger<Step<31>>, Pool<CustomPool<2>>>().then([this] { do_step<31>("Custom<2> Step"); });
+        on<Trigger<Step<32>>, Pool<CustomPool<2>>>().then([this] { powerplant.shutdown(); });
 
         on<Startup>().then([this] {
             emit(std::make_unique<Step<1>>());
             emit(std::make_unique<Step<9>>());
-            emit(std::make_unique<Step<16>>());
+            emit(std::make_unique<Step<17>>());
+            emit(std::make_unique<Step<25>>());
         });
     }
 
@@ -107,6 +108,7 @@ private:
     NUClear::threading::ReactionHandle drh;
     NUClear::threading::ReactionHandle mrh;
     NUClear::threading::ReactionHandle crh;
+    NUClear::threading::ReactionHandle grh;
 };
 
 }  // namespace
@@ -121,14 +123,34 @@ TEST_CASE("Test that pool idle triggers when nothing is running", "[api][idle]")
     plant.start();
 
     const std::vector<std::string> expected = {
-        "Startup 0",
-        "Step 1",
-        "Step 2",
-        "Step 3",
-        "Global Idle 4",
-        "Step 5",
-        "Step 6",
-        "Step 7",
+        "Default Startup 1",
+        "Default Step 2",
+        "Default Step 3",
+        "Default Idle 4",
+        "Default Step 5",
+        "Default Step 6",
+        "Default Step 7",
+        "Main Startup 9",
+        "Main Step 10",
+        "Main Step 11",
+        "Main Idle 12",
+        "Main Step 13",
+        "Main Step 14",
+        "Main Step 15",
+        "Custom<1> Startup 17",
+        "Custom<1> Step 18",
+        "Custom<1> Step 19",
+        "Custom<1> Idle 20",
+        "Custom<1> Step 21",
+        "Custom<1> Step 22",
+        "Custom<1> Step 23",
+        "Custom<2> Startup 25",
+        "Custom<2> Step 26",
+        "Custom<2> Step 27",
+        "Global Idle 28",
+        "Custom<2> Step 29",
+        "Custom<2> Step 30",
+        "Custom<2> Step 31",
     };
 
     // Make an info print the diff in an easy to read way if we fail
