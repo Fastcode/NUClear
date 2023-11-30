@@ -69,8 +69,8 @@ namespace threading {
     void TaskScheduler::pool_func(std::shared_ptr<PoolQueue> pool) {
 
         // Set the thread pool for this thread so it can be accessed elsewhere
-        current_queue = &pool;
-        size_t count  = pool->pool_descriptor.counts_for_idle ? 1 : 0;
+        current_queue      = &pool;
+        const size_t count = pool->pool_descriptor.counts_for_idle ? 1 : 0;
 
         // Sum up the number of threads that are idleable
         total_idleable_threads += count;
@@ -178,7 +178,7 @@ namespace threading {
     }
 
     void TaskScheduler::PoolQueue::submit(Task&& task) {
-        std::lock_guard<std::recursive_mutex> lock(mutex);
+        const std::lock_guard<std::recursive_mutex> lock(mutex);
 
         // Insert in sorted order
         queue.insert(std::lower_bound(queue.begin(), queue.end(), task), std::move(task));
@@ -223,7 +223,7 @@ namespace threading {
                                       std::function<void()>&& task) {
 
         if (pool_descriptor.pool_id == NUClear::id_t(-1)) {
-            std::lock_guard<std::mutex> lock(pool_mutex);
+            const std::lock_guard<std::mutex> lock(pool_mutex);
             idle_tasks.emplace(id, std::move(task));
         }
         else {
@@ -239,7 +239,7 @@ namespace threading {
     void TaskScheduler::remove_idle_task(const NUClear::id_t& id, const util::ThreadPoolDescriptor& pool_descriptor) {
 
         if (pool_descriptor.pool_id == NUClear::id_t(-1)) {
-            std::lock_guard<std::mutex> lock(pool_mutex);
+            const std::lock_guard<std::mutex> lock(pool_mutex);
             if (idle_tasks.count(id) > 0) {
                 idle_tasks.erase(id);
             }
