@@ -84,6 +84,7 @@ namespace dsl {
             }
         };
 
+        // When given void as the pool type we use the default thread pool
         template <>
         struct Pool<void> {
             template <typename DSL>

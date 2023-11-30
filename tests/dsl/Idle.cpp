@@ -35,9 +35,9 @@ struct SimpleMessage {
     int data;
 };
 
-constexpr int time_step = 50;
+constexpr int time_step = 100;
 
-class TestReactor : public test_util::TestBase<TestReactor> {
+class TestReactor : public test_util::TestBase<TestReactor, 10000> {
 public:
     struct CustomPool {
         static constexpr int thread_count = 2;
@@ -52,42 +52,56 @@ public:
 
     TestReactor(std::unique_ptr<NUClear::Environment> environment) : TestBase(std::move(environment), false) {
 
+        start_time = NUClear::clock::now();
+
         // Idle testing for default thread
-        on<Startup>().then([this] { do_step<1>("Default Startup"); });
+        on<Trigger<Step<1>>>().then([this] { do_step<1>("Default Startup"); });
         on<Trigger<Step<2>>>().then([this] { do_step<2>("Default Step"); });
         on<Trigger<Step<3>>>().then([this] { do_step<3>("Default Step"); });
-        on<Idle<Pool<>>>().then([this] { do_step<4>("Default Idle"); });
+        drh = on<Idle<Pool<>>>().then([this] { do_step<4>("Default Idle"); });
         on<Trigger<Step<5>>>().then([this] { do_step<5>("Default Step"); });
         on<Trigger<Step<6>>>().then([this] { do_step<6>("Default Step"); });
         on<Trigger<Step<7>>>().then([this] { do_step<7>("Default Step"); });
+        on<Trigger<Step<8>>>().then([this] { drh.unbind(); });
 
         // Idle testing for main thread
-        on<Startup, MainThread>().then([this] { do_step<8>("Main Startup"); });
-        on<Trigger<Step<9>>, MainThread>().then([this] { do_step<9>("Main Step"); });
+        on<Trigger<Step<9>>, MainThread>().then([this] { do_step<9>("Main Startup"); });
         on<Trigger<Step<10>>, MainThread>().then([this] { do_step<10>("Main Step"); });
-        on<Idle<MainThread>>().then([this] { do_step<11>("Main Idle"); });
-        on<Trigger<Step<12>>, MainThread>().then([this] { do_step<12>("Main Step"); });
+        on<Trigger<Step<11>>, MainThread>().then([this] { do_step<11>("Main Step"); });
+        mrh = on<Idle<MainThread>>().then([this] { do_step<12>("Main Idle"); });
         on<Trigger<Step<13>>, MainThread>().then([this] { do_step<13>("Main Step"); });
         on<Trigger<Step<14>>, MainThread>().then([this] { do_step<14>("Main Step"); });
+        on<Trigger<Step<15>>, MainThread>().then([this] { do_step<15>("Main Step"); });
+        on<Trigger<Step<15>>, MainThread>().then([this] { mrh.unbind(); });
 
         // Idle testing for custom pool
-        on<Startup, Pool<CustomPool>>().then([this] { do_step<15>("Custom Startup"); });
-        on<Trigger<Step<16>>, Pool<CustomPool>>().then([this] { do_step<16>("Custom Step"); });
+        on<Trigger<Step<16>>, Pool<CustomPool>>().then([this] { do_step<16>("Custom Startup"); });
         on<Trigger<Step<17>>, Pool<CustomPool>>().then([this] { do_step<17>("Custom Step"); });
-        on<Idle<Pool<CustomPool>>>().then([this] { do_step<18>("Custom Idle"); });
-        on<Trigger<Step<18>>, Pool<CustomPool>>().then([this] { do_step<19>("Custom Step"); });
-        on<Trigger<Step<19>>, Pool<CustomPool>>().then([this] { do_step<20>("Custom Step"); });
-        on<Trigger<Step<20>>, Pool<CustomPool>>().then([this] { do_step<21>("Custom Step"); });
+        on<Trigger<Step<18>>, Pool<CustomPool>>().then([this] { do_step<18>("Custom Step"); });
+        crh = on<Idle<Pool<CustomPool>>>().then([this] { do_step<19>("Custom Idle"); });
+        on<Trigger<Step<20>>, Pool<CustomPool>>().then([this] { do_step<20>("Custom Step"); });
+        on<Trigger<Step<21>>, Pool<CustomPool>>().then([this] { do_step<21>("Custom Step"); });
+        on<Trigger<Step<22>>, Pool<CustomPool>>().then([this] { do_step<22>("Custom Step"); });
+        on<Trigger<Step<23>>, Pool<CustomPool>>().then([this] { crh.unbind(); });
 
         // Global idle everything finished
         on<Idle<>>().then([this] {
             events.push_back("Global Idle");
             powerplant.shutdown();
         });
+
+        on<Startup>().then([this] {
+            emit(std::make_unique<Step<1>>());
+            emit(std::make_unique<Step<9>>());
+            emit(std::make_unique<Step<16>>());
+        });
     }
 
 private:
-    NUClear::clock::time_point start_time = NUClear::clock::now();
+    NUClear::clock::time_point start_time;
+    NUClear::threading::ReactionHandle drh;
+    NUClear::threading::ReactionHandle mrh;
+    NUClear::threading::ReactionHandle crh;
 };
 
 }  // namespace
