@@ -35,28 +35,59 @@ struct SimpleMessage {
     int data;
 };
 
+constexpr int time_step = 50;
+
 class TestReactor : public test_util::TestBase<TestReactor> {
 public:
+    struct CustomPool {
+        static constexpr int thread_count = 2;
+    };
+
     template <int N>
     void do_step(const std::string& name) {
+        std::this_thread::sleep_until(start_time + std::chrono::milliseconds(time_step * N));
         events.push_back(name + " " + std::to_string(N));
-        std::this_thread::sleep_for(std::chrono::milliseconds(50));
         emit(std::make_unique<Step<N + 1>>());
     }
 
     TestReactor(std::unique_ptr<NUClear::Environment> environment) : TestBase(std::move(environment), false) {
 
-        on<Startup>().then([this] { do_step<0>("Startup"); });
-        on<Trigger<Step<1>>>().then([this] { do_step<1>("Step"); });
-        on<Trigger<Step<2>>>().then([this] { do_step<2>("Step"); });
-        on<Trigger<Step<3>>>().then([this] { do_step<3>("Step"); });
-        on<Idle<>>().then([this] { do_step<4>("Global Idle"); });
-        on<Trigger<Step<5>>>().then([this] { do_step<5>("Step"); });
-        on<Trigger<Step<6>>>().then([this] { do_step<6>("Step"); });
-        on<Trigger<Step<7>>>().then([this] { do_step<7>("Step"); });
+        // Idle testing for default thread
+        on<Startup>().then([this] { do_step<1>("Default Startup"); });
+        on<Trigger<Step<2>>>().then([this] { do_step<2>("Default Step"); });
+        on<Trigger<Step<3>>>().then([this] { do_step<3>("Default Step"); });
+        on<Idle<Pool<>>>().then([this] { do_step<4>("Default Idle"); });
+        on<Trigger<Step<5>>>().then([this] { do_step<5>("Default Step"); });
+        on<Trigger<Step<6>>>().then([this] { do_step<6>("Default Step"); });
+        on<Trigger<Step<7>>>().then([this] { do_step<7>("Default Step"); });
 
-        on<Trigger<Step<8>>>().then([this] { powerplant.shutdown(); });
+        // Idle testing for main thread
+        on<Startup, MainThread>().then([this] { do_step<8>("Main Startup"); });
+        on<Trigger<Step<9>>, MainThread>().then([this] { do_step<9>("Main Step"); });
+        on<Trigger<Step<10>>, MainThread>().then([this] { do_step<10>("Main Step"); });
+        on<Idle<MainThread>>().then([this] { do_step<11>("Main Idle"); });
+        on<Trigger<Step<12>>, MainThread>().then([this] { do_step<12>("Main Step"); });
+        on<Trigger<Step<13>>, MainThread>().then([this] { do_step<13>("Main Step"); });
+        on<Trigger<Step<14>>, MainThread>().then([this] { do_step<14>("Main Step"); });
+
+        // Idle testing for custom pool
+        on<Startup, Pool<CustomPool>>().then([this] { do_step<15>("Custom Startup"); });
+        on<Trigger<Step<16>>, Pool<CustomPool>>().then([this] { do_step<16>("Custom Step"); });
+        on<Trigger<Step<17>>, Pool<CustomPool>>().then([this] { do_step<17>("Custom Step"); });
+        on<Idle<Pool<CustomPool>>>().then([this] { do_step<18>("Custom Idle"); });
+        on<Trigger<Step<18>>, Pool<CustomPool>>().then([this] { do_step<19>("Custom Step"); });
+        on<Trigger<Step<19>>, Pool<CustomPool>>().then([this] { do_step<20>("Custom Step"); });
+        on<Trigger<Step<20>>, Pool<CustomPool>>().then([this] { do_step<21>("Custom Step"); });
+
+        // Global idle everything finished
+        on<Idle<>>().then([this] {
+            events.push_back("Global Idle");
+            powerplant.shutdown();
+        });
     }
+
+private:
+    NUClear::clock::time_point start_time = NUClear::clock::now();
 };
 
 }  // namespace
