@@ -103,6 +103,8 @@ namespace threading {
             util::ThreadPoolDescriptor thread_pool_descriptor;
             /// @brief The callback to be executed
             std::function<void()> run;
+            /// @brief If task has been checked for runnable
+            bool checked_runnable{false};
 
             /**
              * @brief Compare tasks based on their priority
@@ -286,10 +288,12 @@ namespace threading {
         /// @brief mutex for the group map
         std::mutex group_mutex;
 
+        /// @brief mutex for the idle tasks
+        std::mutex idle_mutex;
         /// @brief global idle tasks to be executed when no other tasks are running
         std::map<NUClear::id_t, std::function<void()>> idle_tasks{};
         /// @brief the total number of threads that can be counted as idle
-        std::atomic<size_t> total_idleable_threads{0};
+        std::atomic<size_t> total_runnable_tasks{0};
         /// @brief the number of global idle threads
         std::atomic<size_t> idle_threads{0};
 
