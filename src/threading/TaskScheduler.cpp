@@ -298,7 +298,7 @@ namespace threading {
                         // Return the task
                         return task;
                     }
-                    else if (!it->checked_runnable) {
+                    if (!it->checked_runnable) {
                         if (pool->pool_descriptor.counts_for_idle) {
                             --global_runnable_tasks;
                             --pool->runnable_tasks;
