@@ -41,7 +41,7 @@ public:
         });
 
         // Idle testing for default thread
-        on<Trigger<Step<2>>, Sync<TestReactor>>().then([this] {
+        on<Trigger<Step<2>>, Sync<TestReactor>>().then([] {
             events.push_back("Default Start");
             std::this_thread::sleep_for(std::chrono::milliseconds(300));
             events.push_back("Default End");
