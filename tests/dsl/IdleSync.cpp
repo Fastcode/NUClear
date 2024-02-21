@@ -54,7 +54,6 @@ public:
             powerplant.shutdown();
         });
 
-
         on<Startup>().then([this] { emit(std::make_unique<Step<1>>()); });
     }
 };
