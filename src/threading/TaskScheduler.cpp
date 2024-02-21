@@ -290,8 +290,20 @@ namespace threading {
                         // Erase the old position in the queue
                         queue.erase(it);
 
+                        if (pool->pool_descriptor.counts_for_idle && task.checked_runnable) {
+                            ++global_runnable_tasks;
+                            ++pool->runnable_tasks;
+                        }
+
                         // Return the task
                         return task;
+                    }
+                    else if (!it->checked_runnable) {
+                        if (pool->pool_descriptor.counts_for_idle) {
+                            --global_runnable_tasks;
+                            --pool->runnable_tasks;
+                        }
+                        it->checked_runnable = true;
                     }
                 }
 

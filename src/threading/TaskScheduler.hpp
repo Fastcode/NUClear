@@ -103,6 +103,8 @@ namespace threading {
             util::ThreadPoolDescriptor thread_pool_descriptor;
             /// @brief The callback to be executed
             std::function<void()> run;
+            /// @brief If task has been checked for runnable
+            bool checked_runnable{false};
 
             /**
              * @brief Compare tasks based on their priority
