@@ -34,22 +34,28 @@ class TestReactor : public test_util::TestBase<TestReactor, 1000> {
 public:
     TestReactor(std::unique_ptr<NUClear::Environment> environment) : TestBase(std::move(environment), false) {
 
-        // Idle testing for default thread
-        on<Trigger<Step<1>>, Sync<TestReactor>>().then([] {
-            events.push_back("Step 1 Start");
+        on<Trigger<Step<1>>, MainThread>().then([this] {
+            emit(std::make_unique<Step<2>>());
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
-            events.push_back("Step 1 End");
+            emit(std::make_unique<Step<3>>());
         });
-        on<Trigger<Step<2>>, Sync<TestReactor>, MainThread>().then([] { events.push_back("Step 2"); });
+
+        // Idle testing for default thread
+        on<Trigger<Step<2>>, Sync<TestReactor>>().then([this] {
+            events.push_back("Default Start");
+            std::this_thread::sleep_for(std::chrono::milliseconds(300));
+            events.push_back("Default End");
+        });
+
+        on<Trigger<Step<3>>, Sync<TestReactor>, MainThread>().then([] { events.push_back("Main Task"); });
+
         on<Idle<MainThread>>().then([this] {
             events.push_back("Idle Main Thread");
             powerplant.shutdown();
         });
 
-        on<Startup>().then([this] {
-            emit(std::make_unique<Step<1>>());
-            emit(std::make_unique<Step<2>>());
-        });
+
+        on<Startup>().then([this] { emit(std::make_unique<Step<1>>()); });
     }
 };
 
@@ -64,10 +70,10 @@ TEST_CASE("Test that pool idle triggers when a waiting task prevents running", "
     plant.start();
 
     const std::vector<std::string> expected = {
-        "Step 1 Start",
+        "Default Start",
         "Idle Main Thread",
-        "Step 1 End",
-        "Step 2",
+        "Default End",
+        "Main Task",
     };
 
     // Make an info print the diff in an easy to read way if we fail
