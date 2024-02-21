@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2013 NUClear Contributors
+ * Copyright (c) 2024 NUClear Contributors
  *
  * This file is part of the NUClear codebase.
  * See https://github.com/Fastcode/NUClear for further info.
@@ -123,34 +123,12 @@ TEST_CASE("Test that pool idle triggers when nothing is running", "[api][idle]")
     plant.start();
 
     const std::vector<std::string> expected = {
-        "Default Startup 1",
-        "Default Step 2",
-        "Default Step 3",
-        "Default Idle 4",
-        "Default Step 5",
-        "Default Step 6",
-        "Default Step 7",
-        "Main Startup 9",
-        "Main Step 10",
-        "Main Step 11",
-        "Main Idle 12",
-        "Main Step 13",
-        "Main Step 14",
-        "Main Step 15",
-        "Custom<1> Startup 17",
-        "Custom<1> Step 18",
-        "Custom<1> Step 19",
-        "Custom<1> Idle 20",
-        "Custom<1> Step 21",
-        "Custom<1> Step 22",
-        "Custom<1> Step 23",
-        "Custom<2> Startup 25",
-        "Custom<2> Step 26",
-        "Custom<2> Step 27",
-        "Global Idle 28",
-        "Custom<2> Step 29",
-        "Custom<2> Step 30",
-        "Custom<2> Step 31",
+        "Default Startup 1", "Default Step 2",       "Default Step 3",    "Default Idle 4",    "Default Step 5",
+        "Default Step 6",    "Default Step 7",       "Main Startup 9",    "Main Step 10",      "Main Step 11",
+        "Main Idle 12",      "Main Step 13",         "Main Step 14",      "Main Step 15",      "Custom<1> Startup 17",
+        "Custom<1> Step 18", "Custom<1> Step 19",    "Custom<1> Idle 20", "Custom<1> Step 21", "Custom<1> Step 22",
+        "Custom<1> Step 23", "Custom<2> Startup 25", "Custom<2> Step 26", "Custom<2> Step 27", "Global Idle 28",
+        "Custom<2> Step 29", "Custom<2> Step 30",    "Custom<2> Step 31",
     };
 
     // Make an info print the diff in an easy to read way if we fail

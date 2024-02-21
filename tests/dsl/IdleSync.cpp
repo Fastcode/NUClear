@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2013 NUClear Contributors
+ * Copyright (c) 2024 NUClear Contributors
  *
  * This file is part of the NUClear codebase.
  * See https://github.com/Fastcode/NUClear for further info.
@@ -35,12 +35,12 @@ public:
     TestReactor(std::unique_ptr<NUClear::Environment> environment) : TestBase(std::move(environment), false) {
 
         // Idle testing for default thread
-        on<Trigger<Step<1>>, Sync<TestReactor>>().then([this] {
+        on<Trigger<Step<1>>, Sync<TestReactor>>().then([] {
             events.push_back("Step 1 Start");
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
             events.push_back("Step 1 End");
         });
-        on<Trigger<Step<2>>, Sync<TestReactor>, MainThread>().then([this] { events.push_back("Step 2"); });
+        on<Trigger<Step<2>>, Sync<TestReactor>, MainThread>().then([] { events.push_back("Step 2"); });
         on<Idle<MainThread>>().then([this] {
             events.push_back("Idle Main Thread");
             powerplant.shutdown();
