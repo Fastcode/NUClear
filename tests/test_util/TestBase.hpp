@@ -53,12 +53,9 @@ public:
         : Reactor(std::move(environment)) {
 
         // Shutdown if the system is idle
-        on<Trigger<ShutdownOnIdle>, Priority::IDLE>().then([this] { powerplant.shutdown(); });
-        on<Startup>().then([this, shutdown_on_idle] {
-            if (shutdown_on_idle) {
-                emit(std::make_unique<ShutdownOnIdle>());
-            }
-        });
+        if (shutdown_on_idle) {
+            on<Idle<>>().then([this] { powerplant.shutdown(); });
+        }
 
         // Timeout if the test doesn't complete in time
         on<Watchdog<BaseClass, timeout, std::chrono::milliseconds>, MainThread>().then([this] {

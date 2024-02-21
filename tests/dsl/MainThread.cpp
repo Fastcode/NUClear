@@ -35,7 +35,7 @@ struct MessageB {};
 
 class TestReactor : public test_util::TestBase<TestReactor> {
 public:
-    TestReactor(std::unique_ptr<NUClear::Environment> environment) : TestBase(std::move(environment), false) {
+    TestReactor(std::unique_ptr<NUClear::Environment> environment) : TestBase(std::move(environment)) {
 
         // Run a task without MainThread to make sure it isn't on the main thread
         on<Trigger<MessageA>>().then("Non-MainThread reaction", [this] {

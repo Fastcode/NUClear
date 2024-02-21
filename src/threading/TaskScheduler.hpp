@@ -103,6 +103,8 @@ namespace threading {
             util::ThreadPoolDescriptor thread_pool_descriptor;
             /// @brief The callback to be executed
             std::function<void()> run;
+            /// @brief If task has been checked for runnable
+            bool checked_runnable{false};
 
             /**
              * @brief Compare tasks based on their priority
@@ -124,12 +126,23 @@ namespace threading {
             const util::ThreadPoolDescriptor pool_descriptor;
             /// @brief The threads which are running in this thread pool
             std::vector<std::unique_ptr<std::thread>> threads;
+            /// @brief The number of runnable tasks in this thread pool
+            size_t runnable_tasks{0};
             /// @brief The queue of tasks for this specific thread pool
             std::vector<Task> queue;
             /// @brief The mutex which protects the queue
-            std::mutex mutex;
+            std::recursive_mutex mutex;
             /// @brief The condition variable which threads wait on if they can't get a task
-            std::condition_variable condition;
+            std::condition_variable_any condition;
+            /// @brief The map of idle tasks for this thread pool
+            std::map<NUClear::id_t, std::function<void()>> idle_tasks;
+
+            /**
+             * @brief Submit a new task to this thread pool
+             *
+             * @param task the task to submit
+             */
+            void submit(Task&& task);
         };
 
     public:
@@ -175,6 +188,32 @@ namespace threading {
                     const util::ThreadPoolDescriptor& pool,
                     const bool& immediate,
                     std::function<void()>&& func);
+
+        /**
+         * @brief Adds an idle task to the task scheduler.
+         *
+         * This function adds an idle task to the task scheduler, which will be executed when the thread pool associated
+         * with the given `pool_id` has no other tasks to execute. The `task` parameter is a callable object that
+         * represents the idle task to be executed.
+         *
+         * @param id The ID of the task.
+         * @param pool_descriptor The descriptor for the thread pool to test for idle
+         * @param task The idle task to be executed.
+         */
+        void add_idle_task(const NUClear::id_t& id,
+                           const util::ThreadPoolDescriptor& pool_descriptor,
+                           std::function<void()>&& task);
+
+        /**
+         * @brief Removes an idle task from the task scheduler.
+         *
+         * This function removes an idle task from the task scheduler. The `id` and `pool_id` parameters are used to
+         * identify the idle task to be removed.
+         *
+         * @param id The ID of the task
+         * @param pool_descriptor The descriptor for the thread pool to test for idle
+         */
+        void remove_idle_task(const NUClear::id_t& id, const util::ThreadPoolDescriptor& pool_descriptor);
 
     private:
         /**
@@ -246,6 +285,13 @@ namespace threading {
         std::map<NUClear::id_t, size_t> groups{};
         /// @brief mutex for the group map
         std::mutex group_mutex;
+
+        /// @brief mutex for the idle tasks
+        std::mutex idle_mutex;
+        /// @brief global idle tasks to be executed when no other tasks are running
+        std::map<NUClear::id_t, std::function<void()>> idle_tasks{};
+        /// @brief the total number of threads that have runnable tasks
+        std::atomic<size_t> global_runnable_tasks{0};
 
         /// @brief A map of pool descriptor ids to pool descriptors
         std::map<NUClear::id_t, std::shared_ptr<PoolQueue>> pool_queues{};

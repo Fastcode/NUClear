@@ -38,7 +38,7 @@ struct Message {
 
 class TestReactor : public test_util::TestBase<TestReactor> {
 public:
-    TestReactor(std::unique_ptr<NUClear::Environment> environment) : TestBase(std::move(environment), false) {
+    TestReactor(std::unique_ptr<NUClear::Environment> environment) : TestBase(std::move(environment)) {
 
         on<Trigger<Message<0>>, Sync<TestReactor>>().then([this](const Message<0>& m) {
             events.push_back("Sync A " + m.data);
