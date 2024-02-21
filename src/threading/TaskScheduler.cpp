@@ -69,11 +69,7 @@ namespace threading {
     void TaskScheduler::pool_func(std::shared_ptr<PoolQueue> pool) {
 
         // Set the thread pool for this thread so it can be accessed elsewhere
-        current_queue      = &pool;
-        const size_t count = pool->pool_descriptor.counts_for_idle ? 1 : 0;
-
-        // Sum up the number of threads that are idleable
-        pool->n_threads += count;
+        current_queue = &pool;
 
         // When task is nullptr there are no more tasks to get and the scheduler is shutting down
         while (running.load() || !pool->queue.empty()) {
@@ -84,11 +80,10 @@ namespace threading {
             catch (...) {
             }
             if (pool->pool_descriptor.counts_for_idle) {
-                --total_runnable_tasks;
+                --global_runnable_tasks;
+                --pool->runnable_tasks;
             }
         }
-
-        pool->n_threads -= count;
 
         // Clear the current queue
         current_queue = nullptr;
@@ -216,7 +211,8 @@ namespace threading {
         if (running.load()) {
             const std::shared_ptr<PoolQueue> pool = get_pool_queue(task.thread_pool_descriptor);
             if (pool->pool_descriptor.counts_for_idle) {
-                ++total_runnable_tasks;
+                ++global_runnable_tasks;
+                ++pool->runnable_tasks;
             }
             // Get the appropiate pool for this task and submit
             pool->submit(std::move(task));
@@ -294,23 +290,8 @@ namespace threading {
                         // Erase the old position in the queue
                         queue.erase(it);
 
-                        if (pool->pool_descriptor.counts_for_idle && task.checked_runnable) {
-                            ++total_runnable_tasks;
-                        }
-
-                        // If we were idle, we are about to not be
-                        if (pool->pool_descriptor.counts_for_idle && idle) {
-                            --pool->idle_threads;
-                        }
-
                         // Return the task
                         return task;
-                    }
-                    else if (!it->checked_runnable) {
-                        if (pool->pool_descriptor.counts_for_idle) {
-                            --total_runnable_tasks;
-                        }
-                        it->checked_runnable = true;
                     }
                 }
 
@@ -326,23 +307,19 @@ namespace threading {
             if (pool->pool_descriptor.counts_for_idle && !idle) {
                 idle = true;
 
-                // Local idle tasks
-                if (++pool->idle_threads == pool->n_threads) {
-                    for (auto& t : pool->idle_tasks) {
-                        t.second();
+                /* mutex scope */ {
+                    const std::lock_guard<std::mutex> idle_lock(idle_mutex);
+                    // Local idle tasks
+                    if (pool->runnable_tasks == 0) {
+                        for (auto& t : pool->idle_tasks) {
+                            t.second();
+                        }
                     }
-                }
 
-                // Global idle tasks
-                if (pool->pool_descriptor.counts_for_idle) {
-                    /* mutex scope */ {
-                        if (total_runnable_tasks == 0) {
-                            const std::lock_guard<std::mutex> idle_lock(idle_mutex);
-                            if (total_runnable_tasks == 0) {
-                                for (auto& t : idle_tasks) {
-                                    t.second();
-                                }
-                            }
+                    // Global idle tasks
+                    if (global_runnable_tasks == 0) {
+                        for (auto& t : idle_tasks) {
+                            t.second();
                         }
                     }
                 }

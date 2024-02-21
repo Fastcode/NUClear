@@ -103,8 +103,6 @@ namespace threading {
             util::ThreadPoolDescriptor thread_pool_descriptor;
             /// @brief The callback to be executed
             std::function<void()> run;
-            /// @brief If task has been checked for runnable
-            bool checked_runnable{false};
 
             /**
              * @brief Compare tasks based on their priority
@@ -126,10 +124,8 @@ namespace threading {
             const util::ThreadPoolDescriptor pool_descriptor;
             /// @brief The threads which are running in this thread pool
             std::vector<std::unique_ptr<std::thread>> threads;
-            /// @brief The number of threads which are currently running
-            size_t n_threads{0};
-            /// @brief The number of currently active threads
-            size_t idle_threads{0};
+            /// @brief The number of runnable tasks in this thread pool
+            size_t runnable_tasks{0};
             /// @brief The queue of tasks for this specific thread pool
             std::vector<Task> queue;
             /// @brief The mutex which protects the queue
@@ -292,10 +288,8 @@ namespace threading {
         std::mutex idle_mutex;
         /// @brief global idle tasks to be executed when no other tasks are running
         std::map<NUClear::id_t, std::function<void()>> idle_tasks{};
-        /// @brief the total number of threads that can be counted as idle
-        std::atomic<size_t> total_runnable_tasks{0};
-        /// @brief the number of global idle threads
-        std::atomic<size_t> idle_threads{0};
+        /// @brief the total number of threads that have runnable tasks
+        std::atomic<size_t> global_runnable_tasks{0};
 
         /// @brief A map of pool descriptor ids to pool descriptors
         std::map<NUClear::id_t, std::shared_ptr<PoolQueue>> pool_queues{};
