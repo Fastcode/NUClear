@@ -25,6 +25,7 @@
 
 #include "../PowerPlant.hpp"
 #include "../Reactor.hpp"
+#include "../message/TimeTravel.hpp"
 #include "../util/precise_sleep.hpp"
 
 namespace NUClear {
@@ -97,6 +98,20 @@ namespace extension {
             on<Shutdown>().then("Shutdown Chrono Controller", [this] {
                 const std::lock_guard<std::mutex> lock(mutex);
                 running = false;
+                wait.notify_all();
+            });
+
+            on<Trigger<message::TimeTravel>>().then("Time Travel", [this](const message::TimeTravel& travel) {
+                const std::lock_guard<std::mutex> lock(mutex);
+
+                clock::adjust_clock(travel.adjustment, travel.rtf);
+
+                // Adjust all the times of the tasks by the travel time
+                for (auto& task : tasks) {
+                    task.time += travel.adjustment;
+                }
+
+                // Poke the system
                 wait.notify_all();
             });
 

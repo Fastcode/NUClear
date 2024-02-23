@@ -23,36 +23,81 @@
 #ifndef NUCLEAR_CLOCK_HPP
 #define NUCLEAR_CLOCK_HPP
 
+// Default to using the system clock but allow it to be overridden by the user
+#ifndef NUCLEAR_CLOCK_TYPE
+    #define NUCLEAR_CLOCK_TYPE std::chrono::system_clock
+#endif  // NUCLEAR_CLOCK_TYPE
+
+#include <array>
+#include <atomic>
 #include <chrono>
+#include <mutex>
 
 namespace NUClear {
 
-#ifdef NUCLEAR_CLOCK_TYPE
-/// @brief The custom base clock that is used when defining the NUClear clock
-using base_clock = NUCLEAR_CLOCK_TYPE;
-#else
-/// @brief The default base clock that is used when defining the NUClear clock
-using base_clock = std::chrono::steady_clock;
-#endif  // NUCLEAR_CLOCK_TYPE
+struct clock : public NUCLEAR_CLOCK_TYPE {
+    using base_clock = NUCLEAR_CLOCK_TYPE;
 
-#ifndef NUCLEAR_CUSTOM_CLOCK
+    static time_point now() {
+        ClockData current = data[active.load()];  // Take a copy in case it changes
+        return current.epoch + dc((base_clock::now() - current.base_from) * current.rtf);
+    }
 
-/// @brief The clock that is used throughout the entire nuclear system
-using clock = base_clock;
+    static void adjust_clock(const duration& adjustment, const double& rtf = 1.0) {
+        std::lock_guard<std::mutex> lock(mutex);
+        // Load the current state
+        auto& current = data[active.load()];
+        int n         = (active.load() + 1) % data.size();
+        auto& next    = data[n];
 
-#else
+        // Perform the update
+        auto base      = base_clock::now();
+        next.epoch     = current.epoch + adjustment + dc((base - current.base_from) * current.rtf);
+        next.base_from = base;
+        next.rtf       = rtf;
+        active         = n;
+    }
 
-struct clock {
-    using rep                       = base_clock::rep;
-    using period                    = base_clock::period;
-    using duration                  = base_clock::duration;
-    using time_point                = base_clock::time_point;
-    static constexpr bool is_steady = false;
+    static void set_clock(const time_point& time, const double& rtf = 1.0) {
+        std::lock_guard<std::mutex> lock(mutex);
+        // Load the current state
+        int n      = (active.load() + 1) % data.size();
+        auto& next = data[n];
 
-    static time_point now();
+        // Perform the update
+        auto base      = base_clock::now();
+        next.epoch     = time;
+        next.base_from = base;
+        next.rtf       = rtf;
+        active         = n;
+    }
+
+private:
+    template <typename T>
+    duration static dc(const T& t) {
+        return std::chrono::duration_cast<duration>(t);
+    }
+
+    struct ClockData {
+        /// When the clock was last updated under the true time
+        time_point base_from;
+        /// Our calculated time when the clock was last updated in simulated time
+        time_point epoch = base_from;
+        /// The real time factor of the simulated clock
+        double rtf;
+
+        ClockData() : base_from(base_clock::now()), epoch(base_from), rtf(1.0) {}
+    };
+
+    static std::mutex mutex;               // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+    static std::array<ClockData, 3> data;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+    static std::atomic<int> active;        // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 };
 
-#endif
+std::mutex clock::mutex;
+std::array<clock::ClockData, 3> clock::data = std::array<clock::ClockData, 3>{};
+std::atomic<int> clock::active{0};
+
 
 }  // namespace NUClear
 
