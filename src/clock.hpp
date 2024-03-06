@@ -94,11 +94,6 @@ private:
     static std::atomic<int> active;        // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 };
 
-std::mutex clock::mutex;
-std::array<clock::ClockData, 3> clock::data = std::array<clock::ClockData, 3>{};
-std::atomic<int> clock::active{0};
-
-
 }  // namespace NUClear
 
 #endif  // NUCLEAR_CLOCK_HPP
