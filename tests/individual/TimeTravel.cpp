@@ -59,12 +59,12 @@ public:
 void perform_time_travel(const NUClear::message::TimeTravel::Action action,
                          const NUClear::clock::duration adjustment,
                          const std::chrono::seconds& shutdown_delay,
-                         const std::chrono::seconds& chrono_task_delay_) {
+                         const std::chrono::seconds& task_delay) {
     NUClear::Configuration config;
     NUClear::PowerPlant plant(config);
     time_travel_action     = action;
     time_travel_adjustment = adjustment;
-    chrono_task_delay      = chrono_task_delay_;
+    chrono_task_delay      = task_delay;
 
     // Reset the clock
     NUClear::clock::set_clock(NUClear::clock::time_point());
