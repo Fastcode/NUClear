@@ -24,8 +24,8 @@
 #include <catch.hpp>
 #include <ctime>  // for localtime_r/s
 
-// This define declares that we are using system_clock as the base clock for NUClear
-#define NUCLEAR_CLOCK_TYPE std::chrono::system_clock
+// This define declares that we are using steady_clock as the base clock for NUClear
+#define NUCLEAR_CLOCK_TYPE std::chrono::steady_clock
 
 #include <chrono>
 #include <nuclear>
@@ -38,7 +38,7 @@
 namespace {
 
 // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
-std::vector<std::pair<NUClear::clock::time_point, std::chrono::system_clock::time_point>> times;
+std::vector<std::pair<NUClear::clock::time_point, std::chrono::steady_clock::time_point>> times;
 // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
 std::mutex times_mutex;
 constexpr int n_time = 100;
@@ -56,7 +56,7 @@ public:
         on<Trigger<NUClear::message::ReactionStatistics>>().then(
             [this](const NUClear::message::ReactionStatistics& stats) {
                 const std::lock_guard<std::mutex> lock(times_mutex);
-                times.push_back(std::make_pair(stats.finished, std::chrono::system_clock::now()));
+                times.push_back(std::make_pair(stats.finished, std::chrono::steady_clock::now()));
                 if (times.size() > n_time) {
                     powerplant.shutdown();
                 }
@@ -68,7 +68,7 @@ public:
 TEST_CASE("Testing base clock works correctly", "[api][base_clock]") {
 
     INFO("Ensure NUClear base_clock is the correct type");
-    STATIC_REQUIRE(std::is_same<NUClear::clock, std::chrono::system_clock>::value);
+    STATIC_REQUIRE(std::is_base_of<std::chrono::steady_clock, NUClear::clock>::value);
 
     // Construct the powerplant
     NUClear::Configuration config;
@@ -105,8 +105,11 @@ TEST_CASE("Testing base clock works correctly", "[api][base_clock]") {
     // Compute the differences between the time pairs
     int match_count = 0;
     for (const auto& time_pairs : times) {
-        const std::time_t ntt = NUClear::clock::to_time_t(time_pairs.first);
-        const std::time_t stt = NUClear::clock::to_time_t(time_pairs.second);
+        using namespace std::chrono;
+        const std::time_t ntt = system_clock::to_time_t(
+            system_clock::time_point(duration_cast<system_clock::duration>(time_pairs.first.time_since_epoch())));
+        const std::time_t stt = system_clock::to_time_t(
+            system_clock::time_point(duration_cast<system_clock::duration>(time_pairs.second.time_since_epoch())));
 
         std::tm result{};
 #ifdef WIN32

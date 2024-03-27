@@ -25,6 +25,7 @@
 
 #include "../PowerPlant.hpp"
 #include "../Reactor.hpp"
+#include "../message/TimeTravel.hpp"
 #include "../util/precise_sleep.hpp"
 
 namespace NUClear {
@@ -98,6 +99,39 @@ namespace extension {
                 const std::lock_guard<std::mutex> lock(mutex);
                 running = false;
                 wait.notify_all();
+            });
+
+            on<Trigger<message::TimeTravel>>().then("Time Travel", [this](const message::TimeTravel& travel) {
+                {
+                    const std::lock_guard<std::mutex> lock(mutex);
+
+                    // Adjust clock to target time and leave chrono tasks where they are
+                    if (travel.type == message::TimeTravel::Action::JUMP) {
+                        clock::adjust_clock(travel.adjustment, travel.rtf);
+                    }
+
+                    // Adjust clock to target time and leave chrono tasks where they are
+                    if (travel.type == message::TimeTravel::Action::NEAREST) {
+                        // Find the task in the list that is closest to be run
+                        auto it =
+                            std::min_element(tasks.begin(), tasks.end(), [](const ChronoTask& a, const ChronoTask& b) {
+                                return a.time < b.time;
+                            });
+                        // Set the clock to the time closest of the nearest task and the target time
+                        clock::adjust_clock(std::min(it->time - clock::now(), travel.adjustment), travel.rtf);
+                    }
+
+                    // Adjust clock and move all chrono tasks with it
+                    if (travel.type == message::TimeTravel::Action::RELATIVE) {
+                        clock::adjust_clock(travel.adjustment, travel.rtf);
+                        for (auto& task : tasks) {
+                            task.time += travel.adjustment;
+                        }
+                    }
+
+                    // Poke the system
+                    wait.notify_all();
+                }
             });
 
             on<Always, Priority::REALTIME>().then("Chrono Controller", [this] {

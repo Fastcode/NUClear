@@ -22,24 +22,9 @@
 
 #define CATCH_CONFIG_MAIN
 #include <catch.hpp>
-
-// This define declares that we are using a custom clock and it should try to link
-#define NUCLEAR_CUSTOM_CLOCK
 #include <nuclear>
 
 #include "test_util/TestBase.hpp"
-
-// NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
-std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
-
-namespace NUClear {
-clock::time_point clock::now() {
-
-    // Add half the time since we started (time moving at half speed)
-    auto now = std::chrono::steady_clock::now();
-    return clock::time_point(start + (now - start) / 2);
-}
-}  // namespace NUClear
 
 // Anonymous namespace to keep everything file local
 namespace {
@@ -62,6 +47,11 @@ public:
         // Collect until the watchdog times out
         on<Watchdog<TestReactor, 1, std::chrono::seconds>>().then([this] {  //
             powerplant.shutdown();
+        });
+
+        on<Startup>().then([this] {
+            // Adjust the clock to run at half speed
+            emit(std::make_unique<NUClear::message::TimeTravel>(NUClear::clock::duration(0), 0.5));
         });
     }
 };
