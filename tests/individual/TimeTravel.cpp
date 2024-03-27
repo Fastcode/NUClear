@@ -8,15 +8,16 @@ namespace {
 
 // Helper struct for testing chrono tasks
 struct ChronoTaskTest {
-    NUClear::clock::time_point time;  // Time the task is supposed to run
-    bool ran = false;                 // Whether the task has been executed
-    std::chrono::seconds steady_delta;
-    std::chrono::seconds system_delta;
-    NUClear::id_t id;  // Unique identifier for the task
+    NUClear::clock::time_point time   = NUClear::clock::time_point();  // Time to execute the task
+    bool ran                          = false;                         // Whether the task has been executed
+    std::chrono::seconds steady_delta = std::chrono::seconds(0);       // Real time delta
+    std::chrono::seconds system_delta = std::chrono::seconds(0);       // System time delta
+    NUClear::id_t id                  = 0;                             // Unique identifier for the task
+    ChronoTaskTest() {}
     ChronoTaskTest(NUClear::clock::time_point time_, bool ran_, NUClear::id_t id_) : time(time_), ran(ran_), id(id_) {}
 };
 
-ChronoTaskTest test_task(NUClear::clock::time_point(), false, 0);
+std::unique_ptr<ChronoTaskTest> test_task;
 
 NUClear::clock::duration time_travel_adjustment;
 NUClear::message::TimeTravel::Action time_travel_action;
@@ -30,24 +31,25 @@ public:
     TestReactor(std::unique_ptr<NUClear::Environment> environment) : TestBase(std::move(environment), false) {
 
         on<Startup>().then([this] {
-            test_task = ChronoTaskTest(NUClear::clock::now() + chrono_task_delay, false, 99);
-
+            // Emit a chrono task to run after a delay
+            test_task        = std::make_unique<ChronoTaskTest>(NUClear::clock::now() + chrono_task_delay, false, 1);
             auto chrono_task = std::make_unique<NUClear::dsl::operation::ChronoTask>(
-                [this, &test_task](NUClear::clock::time_point&) {
-                    test_task.ran        = true;
+                [this](NUClear::clock::time_point&) {
+                    test_task->ran       = true;
                     auto steady_end_time = std::chrono::steady_clock::now();
-                    test_task.steady_delta =
+                    test_task->steady_delta =
                         std::chrono::duration_cast<std::chrono::seconds>(steady_end_time - steady_start_time);
                     auto system_end_time = NUClear::clock::now();
-                    test_task.system_delta =
+                    test_task->system_delta =
                         std::chrono::duration_cast<std::chrono::seconds>(system_end_time - system_start_time);
                     powerplant.shutdown();
                     return false;  // Do not repeat the test_task
                 },
-                test_task.time,
-                test_task.id);
+                test_task->time,
+                test_task->id);
             emit<Scope::DIRECT>(std::move(chrono_task));
 
+            // Time travel!
             emit<Scope::DIRECT>(
                 std::make_unique<NUClear::message::TimeTravel>(time_travel_adjustment, 1.0, time_travel_action));
         });
@@ -88,8 +90,8 @@ TEST_CASE("TimeTravel Actions Test", "[time_travel][chrono_controller]") {
                             std::chrono::seconds(3),   // Time travel adjustment
                             std::chrono::seconds(2),   // Shutdown delay
                             std::chrono::seconds(3));  // Chrono task delay
-        INFO("Task expected ran: " << 0 << ", actual ran: " << test_task.ran);
-        REQUIRE_FALSE(test_task.ran);
+        INFO("Task expected ran: " << 0 << ", actual ran: " << test_task->ran);
+        REQUIRE_FALSE(test_task->ran);
     }
 
     SECTION("Action::RELATIVE with shutdown after task time") {
@@ -97,8 +99,8 @@ TEST_CASE("TimeTravel Actions Test", "[time_travel][chrono_controller]") {
                             std::chrono::seconds(3),   // Time travel adjustment
                             std::chrono::seconds(3),   // Shutdown delay
                             std::chrono::seconds(2));  // Chrono task delay
-        INFO("Task expected ran: " << 1 << ", actual ran: " << test_task.ran);
-        REQUIRE(test_task.ran);
+        INFO("Task expected ran: " << 1 << ", actual ran: " << test_task->ran);
+        REQUIRE(test_task->ran);
     }
 
     SECTION("Action::JUMP with task time before jump time") {
@@ -106,10 +108,10 @@ TEST_CASE("TimeTravel Actions Test", "[time_travel][chrono_controller]") {
                             std::chrono::seconds(3),   // Time travel adjustment
                             std::chrono::seconds(4),   // Shutdown delay
                             std::chrono::seconds(3));  // Chrono task delay
-        INFO("Task expected ran: " << 1 << ", actual ran: " << test_task.ran);
-        REQUIRE(test_task.ran);
-        REQUIRE(test_task.steady_delta.count() == 0);
-        REQUIRE(test_task.system_delta.count() == 3);
+        INFO("Task expected ran: " << 1 << ", actual ran: " << test_task->ran);
+        REQUIRE(test_task->ran);
+        REQUIRE(test_task->steady_delta.count() == 0);
+        REQUIRE(test_task->system_delta.count() == 3);
     }
 
     SECTION("Action::JUMP with task time after jump time") {
@@ -117,10 +119,8 @@ TEST_CASE("TimeTravel Actions Test", "[time_travel][chrono_controller]") {
                             std::chrono::seconds(3),   // Time travel adjustment
                             std::chrono::seconds(2),   // Shutdown delay
                             std::chrono::seconds(5));  // Chrono task delay
-        INFO("Task expected ran: " << 0 << ", actual ran: " << test_task.ran);
-        REQUIRE_FALSE(test_task.ran);
-        REQUIRE(test_task.steady_delta.count() == 0);
-        REQUIRE(test_task.system_delta.count() == 3);
+        INFO("Task expected ran: " << 0 << ", actual ran: " << test_task->ran);
+        REQUIRE_FALSE(test_task->ran);
     }
 
     SECTION("Action::NEAREST") {
@@ -128,9 +128,9 @@ TEST_CASE("TimeTravel Actions Test", "[time_travel][chrono_controller]") {
                             std::chrono::seconds(5),   // Time travel adjustment
                             std::chrono::seconds(10),  // Shutdown delay
                             std::chrono::seconds(1));  // Chrono task delay
-        INFO("Task expected ran: " << 1 << ", actual ran: " << test_task.ran);
-        REQUIRE(test_task.ran);
-        REQUIRE(test_task.steady_delta.count() == 0);
-        REQUIRE(test_task.system_delta.count() == 1);
+        INFO("Task expected ran: " << 1 << ", actual ran: " << test_task->ran);
+        REQUIRE(test_task->ran);
+        REQUIRE(test_task->steady_delta.count() == 0);
+        REQUIRE(test_task->system_delta.count() == 1);
     }
 }
