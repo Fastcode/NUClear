@@ -46,9 +46,9 @@ struct clock : public NUCLEAR_CLOCK_TYPE {
     static void adjust_clock(const duration& adjustment, const double& rtf = 1.0) {
         std::lock_guard<std::mutex> lock(mutex);
         // Load the current state
-        auto& current = data[active.load()];
-        int n         = (active.load() + 1) % data.size();
-        auto& next    = data[n];
+        const auto& current = data[active.load()];
+        const int n         = (active.load() + 1) % data.size();
+        auto& next          = data[n];
 
         // Perform the update
         auto base      = base_clock::now();
@@ -84,7 +84,7 @@ private:
         /// Our calculated time when the clock was last updated in simulated time
         time_point epoch = base_from;
         /// The real time factor of the simulated clock
-        double rtf;
+        double rtf = 1.0;
 
         ClockData() : base_from(base_clock::now()), epoch(base_from), rtf(1.0) {}
     };
