@@ -39,12 +39,12 @@ struct clock : public NUCLEAR_CLOCK_TYPE {
     using base_clock = NUCLEAR_CLOCK_TYPE;
 
     static time_point now() {
-        ClockData current = data[active.load()];  // Take a copy in case it changes
+        const ClockData current = data[active.load()];  // Take a copy in case it changes
         return current.epoch + dc((base_clock::now() - current.base_from) * current.rtf);
     }
 
     static void adjust_clock(const duration& adjustment, const double& rtf = 1.0) {
-        std::lock_guard<std::mutex> lock(mutex);
+        const std::lock_guard<std::mutex> lock(mutex);
         // Load the current state
         const auto& current = data[active.load()];
         const int n         = (active.load() + 1) % data.size();
@@ -59,10 +59,10 @@ struct clock : public NUCLEAR_CLOCK_TYPE {
     }
 
     static void set_clock(const time_point& time, const double& rtf = 1.0) {
-        std::lock_guard<std::mutex> lock(mutex);
+        const std::lock_guard<std::mutex> lock(mutex);
         // Load the current state
-        int n      = (active.load() + 1) % data.size();
-        auto& next = data[n];
+        const int n = (active.load() + 1) % data.size();
+        auto& next  = data[n];
 
         // Perform the update
         auto base      = base_clock::now();
@@ -80,13 +80,13 @@ private:
 
     struct ClockData {
         /// When the clock was last updated under the true time
-        time_point base_from;
+        time_point base_from = base_clock::now();
         /// Our calculated time when the clock was last updated in simulated time
         time_point epoch = base_from;
         /// The real time factor of the simulated clock
         double rtf = 1.0;
 
-        ClockData() : base_from(base_clock::now()), epoch(base_from), rtf(1.0) {}
+        ClockData() = default;
     };
 
     static std::mutex mutex;               // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
