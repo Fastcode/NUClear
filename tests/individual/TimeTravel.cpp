@@ -103,17 +103,17 @@ TEST_CASE("TimeTravel Actions Test", "[time_travel][chrono_controller]") {
 
     SECTION("Action::RELATIVE with shutdown before task time") {
         auto results = perform_test(NUClear::message::TimeTravel::Action::RELATIVE,
-                                    std::chrono::milliseconds(20),
-                                    std::chrono::milliseconds(10),
-                                    std::chrono::milliseconds(20));
+                                    std::chrono::milliseconds(20),   // Time travel adjustment
+                                    std::chrono::milliseconds(10),   // Steady clock shutdown delay
+                                    std::chrono::milliseconds(20));  // Chrono task delay
         REQUIRE_FALSE(results.task_ran);
     }
 
     SECTION("Action::RELATIVE with shutdown after task time") {
         auto results = perform_test(NUClear::message::TimeTravel::Action::RELATIVE,
-                                    std::chrono::milliseconds(20),
-                                    std::chrono::milliseconds(30),
-                                    std::chrono::milliseconds(10));
+                                    std::chrono::milliseconds(20),   // Time travel adjustment
+                                    std::chrono::milliseconds(30),   // Steady clock shutdown delay
+                                    std::chrono::milliseconds(10));  // Chrono task delay
         REQUIRE(results.task_ran);
         REQUIRE(abs(results.steady_delta.count() - 10) <= tolerance);
         REQUIRE(abs(results.system_delta.count() - 30) <= tolerance);
@@ -121,9 +121,9 @@ TEST_CASE("TimeTravel Actions Test", "[time_travel][chrono_controller]") {
 
     SECTION("Action::JUMP with task time before jump time") {
         auto results = perform_test(NUClear::message::TimeTravel::Action::JUMP,
-                                    std::chrono::milliseconds(20),
-                                    std::chrono::milliseconds(30),
-                                    std::chrono::milliseconds(10));
+                                    std::chrono::milliseconds(20),   // Time travel adjustment
+                                    std::chrono::milliseconds(30),   // Steady clock shutdown delay
+                                    std::chrono::milliseconds(10));  // Chrono task delay
         REQUIRE(results.task_ran);
         REQUIRE(abs(results.steady_delta.count() - 0) <= tolerance);
         REQUIRE(abs(results.system_delta.count() - 20) <= tolerance);
@@ -131,17 +131,17 @@ TEST_CASE("TimeTravel Actions Test", "[time_travel][chrono_controller]") {
 
     SECTION("Action::JUMP with task time after jump time") {
         auto results = perform_test(NUClear::message::TimeTravel::Action::JUMP,
-                                    std::chrono::milliseconds(20),
-                                    std::chrono::milliseconds(10),
-                                    std::chrono::milliseconds(40));
+                                    std::chrono::milliseconds(20),   // Time travel adjustment
+                                    std::chrono::milliseconds(10),   // Steady clock shutdown delay
+                                    std::chrono::milliseconds(40));  // Chrono task delay
         REQUIRE_FALSE(results.task_ran);
     }
 
     SECTION("Action::NEAREST") {
         auto results = perform_test(NUClear::message::TimeTravel::Action::NEAREST,
-                                    std::chrono::milliseconds(20),
-                                    std::chrono::milliseconds(30),
-                                    std::chrono::milliseconds(10));
+                                    std::chrono::milliseconds(20),   // Time travel adjustment
+                                    std::chrono::milliseconds(30),   // Steady clock shutdown delay
+                                    std::chrono::milliseconds(10));  // Chrono task delay
         REQUIRE(results.task_ran);
         REQUIRE(abs(results.steady_delta.count() - 0) <= tolerance);
         REQUIRE(abs(results.system_delta.count() - 10) <= tolerance);
