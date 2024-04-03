@@ -23,7 +23,8 @@
 #include "clock.hpp"
 
 namespace NUClear {
-std::mutex clock::mutex;
-std::array<clock::ClockData, 3> clock::data = std::array<clock::ClockData, 3>{};
-std::atomic<int> clock::active{0};
+std::mutex clock::mutex;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+std::array<clock::ClockData, 3> clock::data =
+    std::array<clock::ClockData, 3>{};  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+std::atomic<int> clock::active{0};      // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 }  // namespace NUClear

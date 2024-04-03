@@ -47,7 +47,7 @@ struct clock : public NUCLEAR_CLOCK_TYPE {
         const std::lock_guard<std::mutex> lock(mutex);
         // Load the current state
         const auto& current = data[active.load()];
-        const int n         = (active.load() + 1) % data.size();
+        const int n         = static_cast<int>((active.load() + 1) % data.size());
         auto& next          = data[n];
 
         // Perform the update
@@ -61,7 +61,7 @@ struct clock : public NUCLEAR_CLOCK_TYPE {
     static void set_clock(const time_point& time, const double& rtf = 1.0) {
         const std::lock_guard<std::mutex> lock(mutex);
         // Load the current state
-        const int n = (active.load() + 1) % data.size();
+        const int n = static_cast<int>((active.load() + 1) % data.size());
         auto& next  = data[n];
 
         // Perform the update

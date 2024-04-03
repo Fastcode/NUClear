@@ -46,7 +46,7 @@ namespace message {
         };
 
         /// @brief The duration to adjust the clock by
-        clock::duration adjustment;
+        clock::duration adjustment = clock::duration(0);
         /// @brief The rate at which time should pass
         double rtf = 1.0;
         /// @brief The type of time travel to perform
