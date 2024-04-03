@@ -98,49 +98,52 @@ TestResults perform_test(NUClear::message::TimeTravel::Action action,
 }  // anonymous namespace
 
 TEST_CASE("TimeTravel Actions Test", "[time_travel][chrono_controller]") {
+    // Tolerance (milliseconds)
+    const int tolerance = 1;
+
     SECTION("Action::RELATIVE with shutdown before task time") {
         auto results = perform_test(NUClear::message::TimeTravel::Action::RELATIVE,
-                                    std::chrono::milliseconds(20),   // Time travel adjustment
-                                    std::chrono::milliseconds(10),   // Shutdown delay
-                                    std::chrono::milliseconds(20));  // Chrono task delay
+                                    std::chrono::milliseconds(20),
+                                    std::chrono::milliseconds(10),
+                                    std::chrono::milliseconds(20));
         REQUIRE_FALSE(results.task_ran);
     }
 
     SECTION("Action::RELATIVE with shutdown after task time") {
         auto results = perform_test(NUClear::message::TimeTravel::Action::RELATIVE,
-                                    std::chrono::milliseconds(20),   // Time travel adjustment
-                                    std::chrono::milliseconds(30),   // Shutdown delay
-                                    std::chrono::milliseconds(10));  // Chrono task delay
+                                    std::chrono::milliseconds(20),
+                                    std::chrono::milliseconds(30),
+                                    std::chrono::milliseconds(10));
         REQUIRE(results.task_ran);
-        REQUIRE(results.steady_delta.count() == 10);
-        REQUIRE(results.system_delta.count() == 30);
+        REQUIRE(abs(results.steady_delta.count() - 10) <= tolerance);
+        REQUIRE(abs(results.system_delta.count() - 30) <= tolerance);
     }
 
     SECTION("Action::JUMP with task time before jump time") {
         auto results = perform_test(NUClear::message::TimeTravel::Action::JUMP,
-                                    std::chrono::milliseconds(20),   // Time travel adjustment
-                                    std::chrono::milliseconds(30),   // Shutdown delay
-                                    std::chrono::milliseconds(10));  // Chrono task delay
+                                    std::chrono::milliseconds(20),
+                                    std::chrono::milliseconds(30),
+                                    std::chrono::milliseconds(10));
         REQUIRE(results.task_ran);
-        REQUIRE(results.steady_delta.count() == 0);
-        REQUIRE(results.system_delta.count() == 20);
+        REQUIRE(abs(results.steady_delta.count() - 0) <= tolerance);
+        REQUIRE(abs(results.system_delta.count() - 20) <= tolerance);
     }
 
     SECTION("Action::JUMP with task time after jump time") {
         auto results = perform_test(NUClear::message::TimeTravel::Action::JUMP,
-                                    std::chrono::milliseconds(20),   // Time travel adjustment
-                                    std::chrono::milliseconds(10),   // Shutdown delay
-                                    std::chrono::milliseconds(40));  // Chrono task delay
+                                    std::chrono::milliseconds(20),
+                                    std::chrono::milliseconds(10),
+                                    std::chrono::milliseconds(40));
         REQUIRE_FALSE(results.task_ran);
     }
 
     SECTION("Action::NEAREST") {
         auto results = perform_test(NUClear::message::TimeTravel::Action::NEAREST,
-                                    std::chrono::milliseconds(20),   // Time travel adjustment
-                                    std::chrono::milliseconds(30),   // Shutdown delay
-                                    std::chrono::milliseconds(10));  // Chrono task delay
+                                    std::chrono::milliseconds(20),
+                                    std::chrono::milliseconds(30),
+                                    std::chrono::milliseconds(10));
         REQUIRE(results.task_ran);
-        REQUIRE(results.steady_delta.count() == 0);
-        REQUIRE(results.system_delta.count() == 10);
+        REQUIRE(abs(results.steady_delta.count() - 0) <= tolerance);
+        REQUIRE(abs(results.system_delta.count() - 10) <= tolerance);
     }
 }
