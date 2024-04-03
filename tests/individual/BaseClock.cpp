@@ -105,7 +105,7 @@ TEST_CASE("Testing base clock works correctly", "[api][base_clock]") {
     // Compute the differences between the time pairs
     int match_count = 0;
     for (const auto& time_pairs : times) {
-        using namespace std::chrono;
+        using namespace std::chrono;  // NOLINT(google-build-using-namespace)
         const std::time_t ntt = system_clock::to_time_t(
             system_clock::time_point(duration_cast<system_clock::duration>(time_pairs.first.time_since_epoch())));
         const std::time_t stt = system_clock::to_time_t(
