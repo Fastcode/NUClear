@@ -23,8 +23,44 @@
 #include "clock.hpp"
 
 namespace NUClear {
+
 std::mutex clock::mutex;                       // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 std::array<clock::ClockData, 3> clock::data =  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
     std::array<clock::ClockData, 3>{};         // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 std::atomic<int> clock::active{0};             // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+
+clock::time_point clock::now() {
+    const ClockData current = data[active.load()];  // Take a copy in case it changes
+    return current.epoch + dc((base_clock::now() - current.base_from) * current.rtf);
+}
+
+void clock::adjust_clock(const duration& adjustment, const double& rtf) {
+    const std::lock_guard<std::mutex> lock(mutex);
+    // Load the current state
+    const auto& current = data[active.load()];
+    const int n         = static_cast<int>((active.load() + 1) % data.size());
+    auto& next          = data[n];
+
+    // Perform the update
+    auto base      = base_clock::now();
+    next.epoch     = current.epoch + adjustment + dc((base - current.base_from) * current.rtf);
+    next.base_from = base;
+    next.rtf       = rtf;
+    active         = n;
+}
+
+void clock::set_clock(const time_point& time, const double& rtf) {
+    const std::lock_guard<std::mutex> lock(mutex);
+    // Load the current state
+    const int n = static_cast<int>((active.load() + 1) % data.size());
+    auto& next  = data[n];
+
+    // Perform the update
+    auto base      = base_clock::now();
+    next.epoch     = time;
+    next.base_from = base;
+    next.rtf       = rtf;
+    active         = n;
+}
+
 }  // namespace NUClear
