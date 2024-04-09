@@ -110,15 +110,13 @@ namespace extension {
                         clock::adjust_clock(travel.adjustment, travel.rtf);
                     }
 
-                    // Adjust clock to target time and leave chrono tasks where they are
+                    // Adjust clock to as close to target as possible without skipping any chrono tasks
                     if (travel.type == message::TimeTravel::Action::NEAREST) {
-                        // Find the task in the list that is closest to be run
-                        auto it =
+                        auto next_task =
                             std::min_element(tasks.begin(), tasks.end(), [](const ChronoTask& a, const ChronoTask& b) {
                                 return a.time < b.time;
                             });
-                        // Set the clock to the time closest of the nearest task and the target time
-                        clock::adjust_clock(std::min(it->time - clock::now(), travel.adjustment), travel.rtf);
+                        clock::adjust_clock(std::min(next_task->time - clock::now(), travel.adjustment), travel.rtf);
                     }
 
                     // Adjust clock and move all chrono tasks with it
