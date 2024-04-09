@@ -67,7 +67,7 @@ TestResults perform_test(NUClear::message::TimeTravel::Action action,
                          const NUClear::clock::duration& adjustment,
                          const std::chrono::milliseconds& shutdown_delay,
                          const std::chrono::milliseconds& task_delay) {
-    NUClear::Configuration config;
+    const NUClear::Configuration config;
     auto plant    = std::make_shared<NUClear::PowerPlant>(config);
     auto& reactor = plant->install<TestReactor>();
 
@@ -115,8 +115,8 @@ TEST_CASE("TimeTravel Actions Test", "[time_travel][chrono_controller]") {
                                     std::chrono::milliseconds(30),   // Steady clock shutdown delay
                                     std::chrono::milliseconds(10));  // Chrono task delay
         REQUIRE(results.task_ran);
-        REQUIRE(abs(results.steady_delta.count() - 10) <= tolerance);
-        REQUIRE(abs(results.system_delta.count() - 30) <= tolerance);
+        REQUIRE(std::abs(results.steady_delta.count() - 10) <= tolerance);
+        REQUIRE(std::abs(results.system_delta.count() - 30) <= tolerance);
     }
 
     SECTION("Action::JUMP with task time before jump time") {
@@ -125,8 +125,8 @@ TEST_CASE("TimeTravel Actions Test", "[time_travel][chrono_controller]") {
                                     std::chrono::milliseconds(30),   // Steady clock shutdown delay
                                     std::chrono::milliseconds(10));  // Chrono task delay
         REQUIRE(results.task_ran);
-        REQUIRE(abs(results.steady_delta.count() - 0) <= tolerance);
-        REQUIRE(abs(results.system_delta.count() - 20) <= tolerance);
+        REQUIRE(std::abs(results.steady_delta.count() - 0) <= tolerance);
+        REQUIRE(std::abs(results.system_delta.count() - 20) <= tolerance);
     }
 
     SECTION("Action::JUMP with task time after jump time") {
@@ -143,7 +143,7 @@ TEST_CASE("TimeTravel Actions Test", "[time_travel][chrono_controller]") {
                                     std::chrono::milliseconds(30),   // Steady clock shutdown delay
                                     std::chrono::milliseconds(10));  // Chrono task delay
         REQUIRE(results.task_ran);
-        REQUIRE(abs(results.steady_delta.count() - 0) <= tolerance);
-        REQUIRE(abs(results.system_delta.count() - 10) <= tolerance);
+        REQUIRE(std::abs(results.steady_delta.count() - 0) <= tolerance);
+        REQUIRE(std::abs(results.system_delta.count() - 10) <= tolerance);
     }
 }
