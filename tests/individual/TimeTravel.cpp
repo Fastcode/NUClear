@@ -26,13 +26,12 @@ struct TestResults {
 
 class TestReactor : public test_util::TestBase<TestReactor, 5000> {
 public:
-    std::unique_ptr<ChronoTaskTest> test_task;
-    NUClear::clock::duration time_travel_adjustment;
-    NUClear::message::TimeTravel::Action time_travel_action;
-    std::chrono::milliseconds chrono_task_delay;
-
-    std::chrono::steady_clock::time_point steady_start_time;
-    NUClear::clock::time_point system_start_time;
+    std::unique_ptr<ChronoTaskTest> test_task               = nullptr;
+    NUClear::clock::duration time_travel_adjustment         = std::chrono::milliseconds(0);
+    NUClear::message::TimeTravel::Action time_travel_action = NUClear::message::TimeTravel::Action::RELATIVE;
+    std::chrono::milliseconds chrono_task_delay             = std::chrono::milliseconds(0);
+    std::chrono::steady_clock::time_point steady_start_time = std::chrono::steady_clock::now();
+    NUClear::clock::time_point system_start_time            = NUClear::clock::now();
 
     TestReactor(std::unique_ptr<NUClear::Environment> environment) : TestBase(std::move(environment), false) {
 
