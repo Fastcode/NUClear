@@ -106,7 +106,7 @@ namespace extension {
                     const std::lock_guard<std::mutex> lock(mutex);
 
                     // Adjust clock to target time and leave chrono tasks where they are
-                    if (travel.type == message::TimeTravel::Action::JUMP) {
+                    if (travel.type == message::TimeTravel::Action::ABSOLUTE) {
                         clock::adjust_clock(travel.adjustment, travel.rtf);
                     }
 

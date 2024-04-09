@@ -39,7 +39,7 @@ namespace message {
             RELATIVE,
 
             /// @brief Adjust clock to target time and leave chrono tasks where they are
-            JUMP,
+            ABSOLUTE,
 
             /// @brief Adjust clock to as close to target as possible without skipping any chrono tasks
             NEAREST,

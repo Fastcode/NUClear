@@ -118,8 +118,8 @@ TEST_CASE("TimeTravel Actions Test", "[time_travel][chrono_controller]") {
         REQUIRE(std::abs(results.system_delta.count() - 30) <= tolerance);
     }
 
-    SECTION("Action::JUMP with task time before jump time") {
-        auto results = perform_test(NUClear::message::TimeTravel::Action::JUMP,
+    SECTION("Action::ABSOLUTE with task time before adjustment time") {
+        auto results = perform_test(NUClear::message::TimeTravel::Action::ABSOLUTE,
                                     std::chrono::milliseconds(20),   // Time travel adjustment
                                     std::chrono::milliseconds(30),   // Steady clock shutdown delay
                                     std::chrono::milliseconds(10));  // Chrono task delay
@@ -128,15 +128,15 @@ TEST_CASE("TimeTravel Actions Test", "[time_travel][chrono_controller]") {
         REQUIRE(std::abs(results.system_delta.count() - 20) <= tolerance);
     }
 
-    SECTION("Action::JUMP with task time after jump time") {
-        auto results = perform_test(NUClear::message::TimeTravel::Action::JUMP,
+    SECTION("Action::ABSOLUTE with task time after adjustment time") {
+        auto results = perform_test(NUClear::message::TimeTravel::Action::ABSOLUTE,
                                     std::chrono::milliseconds(20),   // Time travel adjustment
                                     std::chrono::milliseconds(10),   // Steady clock shutdown delay
                                     std::chrono::milliseconds(40));  // Chrono task delay
         REQUIRE_FALSE(results.task_ran);
     }
 
-    SECTION("Action::NEAREST") {
+    SECTION("Action::NEAREST with task time before adjustment time") {
         auto results = perform_test(NUClear::message::TimeTravel::Action::NEAREST,
                                     std::chrono::milliseconds(20),   // Time travel adjustment
                                     std::chrono::milliseconds(30),   // Steady clock shutdown delay
