@@ -72,9 +72,6 @@ public:
 
 }  // anonymous namespace
 
-
-TEST_CASE("Test time travel correctly changes the time for zero rtf", "[time_travel][chrono_controller]") {}
-
 TEST_CASE("Test time travel correctly changes the time for non zero rtf", "[time_travel][chrono_controller]") {
 
     using Action = NUClear::message::TimeTravel::Action;
