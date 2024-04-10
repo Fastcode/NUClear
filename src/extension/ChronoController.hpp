@@ -102,34 +102,32 @@ namespace extension {
             });
 
             on<Trigger<message::TimeTravel>>().then("Time Travel", [this](const message::TimeTravel& travel) {
-                {
-                    const std::lock_guard<std::mutex> lock(mutex);
+                const std::lock_guard<std::mutex> lock(mutex);
 
-                    // Adjust clock to target time and leave chrono tasks where they are
-                    if (travel.type == message::TimeTravel::Action::ABSOLUTE) {
-                        clock::adjust_clock(travel.adjustment, travel.rtf);
-                    }
-
-                    // Adjust clock to as close to target as possible without skipping any chrono tasks
-                    if (travel.type == message::TimeTravel::Action::NEAREST) {
-                        auto next_task =
-                            std::min_element(tasks.begin(), tasks.end(), [](const ChronoTask& a, const ChronoTask& b) {
-                                return a.time < b.time;
-                            });
-                        clock::adjust_clock(std::min(next_task->time - clock::now(), travel.adjustment), travel.rtf);
-                    }
-
-                    // Adjust clock and move all chrono tasks with it
-                    if (travel.type == message::TimeTravel::Action::RELATIVE) {
-                        clock::adjust_clock(travel.adjustment, travel.rtf);
-                        for (auto& task : tasks) {
-                            task.time += travel.adjustment;
-                        }
-                    }
-
-                    // Poke the system
-                    wait.notify_all();
+                // Adjust clock to target time and leave chrono tasks where they are
+                if (travel.type == message::TimeTravel::Action::ABSOLUTE) {
+                    clock::adjust_clock(travel.adjustment, travel.rtf);
                 }
+
+                // Adjust clock to as close to target as possible without skipping any chrono tasks
+                if (travel.type == message::TimeTravel::Action::NEAREST) {
+                    auto next_task =
+                        std::min_element(tasks.begin(), tasks.end(), [](const ChronoTask& a, const ChronoTask& b) {
+                            return a.time < b.time;
+                        });
+                    clock::adjust_clock(std::min(next_task->time - clock::now(), travel.adjustment), travel.rtf);
+                }
+
+                // Adjust clock and move all chrono tasks with it
+                if (travel.type == message::TimeTravel::Action::RELATIVE) {
+                    clock::adjust_clock(travel.adjustment, travel.rtf);
+                    for (auto& task : tasks) {
+                        task.time += travel.adjustment;
+                    }
+                }
+
+                // Poke the system
+                wait.notify_all();
             });
 
             on<Always, Priority::REALTIME>().then("Chrono Controller", [this] {
@@ -146,37 +144,8 @@ namespace extension {
                     else {
                         auto start  = NUClear::clock::now();
                         auto target = tasks.front().time;
-                        NUClear::clock::duration time_until_task =
-                            std::chrono::duration_cast<NUClear::clock::duration>((target - start) / clock::rtf());
 
-                        if (time_until_task > cv_accuracy) {  // A long time in the future
-                            // Wait on the cv
-                            wait.wait_for(lock, time_until_task - cv_accuracy);
-
-                            // Update the accuracy of our cv wait
-                            const auto end   = NUClear::clock::now();
-                            const auto error = end - (target - cv_accuracy);  // when ended - when wanted to end
-                            if (error.count() > 0) {                          // only if we were late
-                                cv_accuracy = error > cv_accuracy ? error : ((cv_accuracy * 99 + error) / 100);
-                            }
-                        }
-                        else if (time_until_task > ns_accuracy) {  // Somewhat close in time
-                            // Wait on nanosleep
-                            NUClear::clock::duration sleep_time = time_until_task - ns_accuracy;
-                            util::precise_sleep(sleep_time);
-
-                            // Update the accuracy of our precise sleep
-                            const auto end   = NUClear::clock::now();
-                            const auto error = end - (target - ns_accuracy);  // when ended - when wanted to end
-                            if (error.count() > 0) {                          // only if we were late
-                                ns_accuracy = error > ns_accuracy ? error : ((ns_accuracy * 99 + error) / 100);
-                            }
-                        }
-                        else {
-                            while (NUClear::clock::now() < tasks.front().time) {
-                                // Spinlock until we get to the time
-                            }
-
+                        if (target <= start) {
                             // Run our task and if it returns false remove it
                             const bool renew = tasks.front()();
 
@@ -190,6 +159,45 @@ namespace extension {
                             else {
                                 // Remove the item from the list
                                 tasks.pop_back();
+                            }
+                        }
+                        else {
+                            NUClear::clock::duration time_until_task =
+                                std::chrono::duration_cast<NUClear::clock::duration>((target - start) / clock::rtf());
+
+                            if (clock::rtf() == 0.0) {
+                                // If we are paused then just wait until we are unpaused
+                                wait.wait(lock, [&] {
+                                    return !running.load() || clock::rtf() != 0.0 || NUClear::clock::now() != start;
+                                });
+                            }
+                            else if (time_until_task > cv_accuracy) {  // A long time in the future
+                                // Wait on the cv
+                                wait.wait_for(lock, time_until_task - cv_accuracy);
+
+                                // Update the accuracy of our cv wait
+                                const auto end   = NUClear::clock::now();
+                                const auto error = end - (target - cv_accuracy);  // when ended - when wanted to end
+                                if (error.count() > 0) {                          // only if we were late
+                                    cv_accuracy = error > cv_accuracy ? error : ((cv_accuracy * 99 + error) / 100);
+                                }
+                            }
+                            else if (time_until_task > ns_accuracy) {  // Somewhat close in time
+                                // Wait on nanosleep
+                                NUClear::clock::duration sleep_time = time_until_task - ns_accuracy;
+                                util::precise_sleep(sleep_time);
+
+                                // Update the accuracy of our precise sleep
+                                const auto end   = NUClear::clock::now();
+                                const auto error = end - (target - ns_accuracy);  // when ended - when wanted to end
+                                if (error.count() > 0) {                          // only if we were late
+                                    ns_accuracy = error > ns_accuracy ? error : ((ns_accuracy * 99 + error) / 100);
+                                }
+                            }
+                            else {
+                                while (NUClear::clock::now() < tasks.front().time) {
+                                    // Spinlock until we get to the time
+                                }
                             }
                         }
                     }
