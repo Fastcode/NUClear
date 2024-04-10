@@ -6,9 +6,9 @@
 
 namespace {
 
-using TestUnits                       = std::chrono::duration<int64_t, std::ratio<1, 50>>;
-static constexpr int64_t EVENT_1_TIME = 4;
-static constexpr int64_t EVENT_2_TIME = 8;
+using TestUnits                = std::chrono::duration<int64_t, std::ratio<1, 50>>;
+constexpr int64_t EVENT_1_TIME = 4;
+constexpr int64_t EVENT_2_TIME = 8;
 
 struct Results {
     struct TimePair {
@@ -82,9 +82,9 @@ TEST_CASE("Test time travel correctly changes the time for non zero rtf", "[time
     auto& reactor = plant->install<TestReactor>();
 
     // Set the reactor fields to the values we want to test
-    Action action      = GENERATE(Action::RELATIVE, Action::ABSOLUTE, Action::NEAREST);
-    int64_t adjustment = GENERATE(-4, -2, 0, 2, 4, 6, 8, 10);
-    double rtf         = GENERATE(0.5, 1.0, 2.0);
+    const Action action      = GENERATE(Action::RELATIVE, Action::ABSOLUTE, Action::NEAREST);
+    const int64_t adjustment = GENERATE(-4, -2, 0, 2, 4, 6, 8, 10);
+    const double rtf         = GENERATE(0.5, 1.0, 2.0);
     CAPTURE(action, adjustment, rtf);
     reactor.action     = action;
     reactor.adjustment = TestUnits(adjustment);
@@ -97,11 +97,11 @@ TEST_CASE("Test time travel correctly changes the time for non zero rtf", "[time
     plant->start();
 
     // Expected results
-    std::array<int64_t, 2> expected;
+    std::array<int64_t, 2> expected{};
     switch (action) {
         case Action::RELATIVE: expected = {EVENT_1_TIME, EVENT_2_TIME}; break;
         case Action::ABSOLUTE:
-            expected = {std::max(0l, EVENT_1_TIME - adjustment), std::max(0l, EVENT_2_TIME - adjustment)};
+            expected = {std::max(0L, EVENT_1_TIME - adjustment), std::max(0L, EVENT_2_TIME - adjustment)};
             break;
         case Action::NEAREST:
             expected = adjustment < EVENT_1_TIME
@@ -112,16 +112,17 @@ TEST_CASE("Test time travel correctly changes the time for non zero rtf", "[time
     }
 
     std::array<TestUnits, 2> expected_nuclear = {TestUnits(expected[0]), TestUnits(expected[1])};
-    std::array<TestUnits, 2> expected_steady  = {TestUnits(int64_t(expected[0] / rtf)),
-                                                 TestUnits(int64_t(expected[1] / rtf))};
+    // NOLINTNEXTLINE(bugprone-narrowing-conversions,cppcoreguidelines-narrowing-conversions)
+    std::array<TestUnits, 2> expected_steady = {TestUnits(int64_t(expected[0] / rtf)),
+                                                TestUnits(int64_t(expected[1] / rtf))};
 
     const auto& r       = reactor.results;
     const auto& n_start = reactor.results.start.nuclear;
     const auto& s_start = reactor.results.start.steady;
 
     auto round_to_test_units = [](const auto& duration) {
-        double d = std::chrono::duration_cast<std::chrono::duration<double>>(duration).count();
-        double t = (TestUnits::period::den * d) / TestUnits::period::num;
+        const double d = std::chrono::duration_cast<std::chrono::duration<double>>(duration).count();
+        const double t = (TestUnits::period::den * d) / TestUnits::period::num;
         return TestUnits(std::lround(t));
     };
 
@@ -134,8 +135,8 @@ TEST_CASE("Test time travel correctly changes the time for non zero rtf", "[time
         round_to_test_units(r.events[1].steady - s_start),
     };
 
-    TestUnits actual_adjustment(round_to_test_units(r.start.nuclear - r.zero.nuclear));
-    TestUnits expected_adjustment(std::min(adjustment, action == Action::NEAREST ? EVENT_1_TIME : adjustment));
+    const TestUnits actual_adjustment(round_to_test_units(r.start.nuclear - r.zero.nuclear));
+    const TestUnits expected_adjustment(std::min(adjustment, action == Action::NEAREST ? EVENT_1_TIME : adjustment));
     CHECK(expected_nuclear[0] == actual_nuclear[0]);
     CHECK(expected_nuclear[1] == actual_nuclear[1]);
     CHECK(expected_steady[0] == actual_steady[0]);

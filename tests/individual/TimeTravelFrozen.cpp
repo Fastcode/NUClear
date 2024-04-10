@@ -7,8 +7,8 @@
 
 namespace {
 
-static constexpr std::chrono::milliseconds EVENT_1_TIME = std::chrono::milliseconds(4);
-static constexpr std::chrono::milliseconds EVENT_2_TIME = std::chrono::milliseconds(8);
+constexpr std::chrono::milliseconds EVENT_1_TIME = std::chrono::milliseconds(4);
+constexpr std::chrono::milliseconds EVENT_2_TIME = std::chrono::milliseconds(8);
 
 struct WaitForShutdown {};
 
