@@ -27,7 +27,7 @@ public:
     double rtf = 1.0;
 
     // Events
-    std::vector<std::string> events;
+    std::vector<std::string> events = {};
 
     TestReactor(std::unique_ptr<NUClear::Environment> environment) : TestBase(std::move(environment), false) {
 
