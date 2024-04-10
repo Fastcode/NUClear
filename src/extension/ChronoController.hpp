@@ -160,7 +160,7 @@ namespace extension {
                             }
                         }
                         else {
-                            NUClear::clock::duration time_until_task =
+                            const NUClear::clock::duration time_until_task =
                                 std::chrono::duration_cast<NUClear::clock::duration>((target - start) / clock::rtf());
 
                             if (clock::rtf() == 0.0) {
@@ -182,7 +182,7 @@ namespace extension {
                             }
                             else if (time_until_task > ns_accuracy) {  // Somewhat close in time
                                 // Wait on nanosleep
-                                NUClear::clock::duration sleep_time = time_until_task - ns_accuracy;
+                                const NUClear::clock::duration sleep_time = time_until_task - ns_accuracy;
                                 util::precise_sleep(sleep_time);
 
                                 // Update the accuracy of our precise sleep
