@@ -105,25 +105,23 @@ namespace extension {
                 const std::lock_guard<std::mutex> lock(mutex);
 
                 // Adjust clock to target time and leave chrono tasks where they are
-                if (travel.type == message::TimeTravel::Action::ABSOLUTE) {
-                    clock::adjust_clock(travel.adjustment, travel.rtf);
-                }
+                switch (travel.type) {
+                    case message::TimeTravel::Action::ABSOLUTE: clock::set_clock(travel.target, travel.rtf); break;
+                    case message::TimeTravel::Action::RELATIVE: {
+                        auto adjustment = travel.target - NUClear::clock::now();
+                        clock::set_clock(travel.target, travel.rtf);
+                        for (auto& task : tasks) {
+                            task.time += adjustment;
+                        }
 
-                // Adjust clock to as close to target as possible without skipping any chrono tasks
-                if (travel.type == message::TimeTravel::Action::NEAREST) {
-                    auto next_task =
-                        std::min_element(tasks.begin(), tasks.end(), [](const ChronoTask& a, const ChronoTask& b) {
-                            return a.time < b.time;
-                        });
-                    clock::adjust_clock(std::min(next_task->time - clock::now(), travel.adjustment), travel.rtf);
-                }
-
-                // Adjust clock and move all chrono tasks with it
-                if (travel.type == message::TimeTravel::Action::RELATIVE) {
-                    clock::adjust_clock(travel.adjustment, travel.rtf);
-                    for (auto& task : tasks) {
-                        task.time += travel.adjustment;
-                    }
+                    } break;
+                    case message::TimeTravel::Action::NEAREST: {
+                        auto next_task =
+                            std::min_element(tasks.begin(), tasks.end(), [](const ChronoTask& a, const ChronoTask& b) {
+                                return a.time < b.time;
+                            });
+                        clock::set_clock(std::min(next_task->time, travel.target), travel.rtf);
+                    } break;
                 }
 
                 // Poke the system

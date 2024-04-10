@@ -63,7 +63,8 @@ public:
                 2));
 
             // Time travel!
-            emit<Scope::DIRECT>(std::make_unique<NUClear::message::TimeTravel>(adjustment, rtf, action));
+            emit<Scope::DIRECT>(
+                std::make_unique<NUClear::message::TimeTravel>(NUClear::clock::time_point(adjustment), rtf, action));
 
             results.start = Results::TimePair{NUClear::clock::now(), std::chrono::steady_clock::now()};
         });

@@ -51,7 +51,8 @@ public:
                 2));
 
             // Time travel
-            emit<Scope::DIRECT>(std::make_unique<NUClear::message::TimeTravel>(adjustment, rtf, action));
+            emit<Scope::DIRECT>(
+                std::make_unique<NUClear::message::TimeTravel>(NUClear::clock::now() + adjustment, rtf, action));
 
             // Shutdown after steady clock amount of time
             emit(std::make_unique<WaitForShutdown>());
@@ -84,7 +85,7 @@ TEST_CASE("Test time travel correctly changes the time for non zero rtf", "[time
     reactor.rtf        = 0.0;
 
     // Reset clock to zero
-    NUClear::clock::set_clock(NUClear::clock::time_point());
+    NUClear::clock::set_clock(NUClear::clock::time_point(), 0.0);
 
     // Start the powerplant
     plant->start();

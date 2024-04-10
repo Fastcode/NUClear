@@ -45,18 +45,16 @@ namespace message {
             NEAREST,
         };
 
-        /// @brief The duration to adjust the clock by
-        clock::duration adjustment = clock::duration(0);
+        /// @brief The target time to set the clock to
+        clock::time_point target = clock::now();
         /// @brief The rate at which time should pass
         double rtf = 1.0;
         /// @brief The type of time travel to perform
         Action type = Action::RELATIVE;
 
         TimeTravel() = default;
-        TimeTravel(const clock::duration& adjustment, double rtf = 1.0, Action type = Action::RELATIVE)
-            : adjustment(adjustment), rtf(rtf), type(type) {}
         TimeTravel(const clock::time_point& target, double rtf = 1.0, Action type = Action::RELATIVE)
-            : adjustment(target - clock::now()), rtf(rtf), type(type) {}
+            : target(target), rtf(rtf), type(type) {}
     };
 
 }  // namespace message
