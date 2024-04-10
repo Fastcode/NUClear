@@ -146,10 +146,12 @@ namespace extension {
                     else {
                         auto start  = NUClear::clock::now();
                         auto target = tasks.front().time;
+                        NUClear::clock::duration time_until_task =
+                            std::chrono::duration_cast<NUClear::clock::duration>((target - start) / clock::rtf());
 
-                        if (target - start > cv_accuracy) {
+                        if (time_until_task > cv_accuracy) {  // A long time in the future
                             // Wait on the cv
-                            wait.wait_until(lock, target - cv_accuracy);
+                            wait.wait_for(lock, time_until_task - cv_accuracy);
 
                             // Update the accuracy of our cv wait
                             const auto end   = NUClear::clock::now();
@@ -158,9 +160,10 @@ namespace extension {
                                 cv_accuracy = error > cv_accuracy ? error : ((cv_accuracy * 99 + error) / 100);
                             }
                         }
-                        else if (target - start > ns_accuracy) {
+                        else if (time_until_task > ns_accuracy) {  // Somewhat close in time
                             // Wait on nanosleep
-                            util::precise_sleep(target - start - ns_accuracy);
+                            NUClear::clock::duration sleep_time = time_until_task - ns_accuracy;
+                            util::precise_sleep(sleep_time);
 
                             // Update the accuracy of our precise sleep
                             const auto end   = NUClear::clock::now();

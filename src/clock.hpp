@@ -61,6 +61,12 @@ struct clock : public NUCLEAR_CLOCK_TYPE {
      */
     static void set_clock(const time_point& time, const double& rtf = 1.0);
 
+    /**
+     * @brief Get the real-time factor of the clock.
+     * @return The real-time factor of the clock.
+     */
+    static double rtf();
+
 private:
     /**
      * @brief Convert a duration to the clock's duration type.

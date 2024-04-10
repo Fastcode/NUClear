@@ -63,4 +63,8 @@ void clock::set_clock(const time_point& time, const double& rtf) {
     active         = n;
 }
 
+double clock::rtf() {
+    return data[active.load()].rtf;
+}
+
 }  // namespace NUClear
