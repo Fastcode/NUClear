@@ -77,8 +77,8 @@ TEST_CASE("Test time travel correctly changes the time for non zero rtf", "[time
     auto& reactor = plant->install<TestReactor>();
 
     // Set the reactor fields to the values we want to test
-    Action action      = GENERATE(Action::RELATIVE, Action::ABSOLUTE, Action::NEAREST);
-    int64_t adjustment = GENERATE(-4, -2, 0, 2, 4, 6, 8, 10);
+    const Action action      = GENERATE(Action::RELATIVE, Action::ABSOLUTE, Action::NEAREST);
+    const int64_t adjustment = GENERATE(-4, -2, 0, 2, 4, 6, 8, 10);
     CAPTURE(action, adjustment);
     reactor.action     = action;
     reactor.adjustment = std::chrono::milliseconds(adjustment);

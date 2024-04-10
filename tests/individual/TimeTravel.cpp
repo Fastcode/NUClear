@@ -113,8 +113,8 @@ TEST_CASE("Test time travel correctly changes the time for non zero rtf", "[time
 
     std::array<TestUnits, 2> expected_nuclear = {TestUnits(expected[0]), TestUnits(expected[1])};
     // NOLINTNEXTLINE(bugprone-narrowing-conversions,cppcoreguidelines-narrowing-conversions)
-    std::array<TestUnits, 2> expected_steady = {TestUnits(int64_t(expected[0] / rtf)),
-                                                TestUnits(int64_t(expected[1] / rtf))};
+    std::array<TestUnits, 2> expected_steady = {TestUnits(std::lround(double(expected[0]) / rtf)),
+                                                TestUnits(std::lround(double(expected[1]) / rtf))};
 
     const auto& r       = reactor.results;
     const auto& n_start = reactor.results.start.nuclear;
