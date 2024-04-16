@@ -111,7 +111,6 @@ TEST_CASE("Test time travel correctly changes the time for non zero rtf", "[time
         default: throw std::runtime_error("Unknown action");
     }
 
-    INFO("Expected: " << expected);
-    INFO("Actual: " << reactor.events);
+    INFO(test_util::diff_string(expected, reactor.events));
     CHECK(expected == reactor.events);
 }
