@@ -23,21 +23,6 @@ struct Results {
 
 class TestReactor : public test_util::TestBase<TestReactor, 5000> {
 public:
-    // Start time of steady clock
-    std::chrono::steady_clock::time_point steady_start_time = std::chrono::steady_clock::now();
-
-    // Time travel action
-    NUClear::message::TimeTravel::Action action = NUClear::message::TimeTravel::Action::RELATIVE;
-
-    // Time adjustment
-    NUClear::clock::duration adjustment = std::chrono::milliseconds(0);
-
-    // Real-time factor
-    double rtf = 1.0;
-
-    // Results struct
-    Results results;
-
     TestReactor(std::unique_ptr<NUClear::Environment> environment) : TestBase(std::move(environment), false) {
 
         on<Startup>().then([this] {
@@ -51,7 +36,7 @@ public:
                     results.events[0] = Results::TimePair{NUClear::clock::now(), std::chrono::steady_clock::now()};
                     return false;
                 },
-                NUClear::clock::now() + TestUnits(EVENT_1_TIME),
+                NUClear::clock::time_point(TestUnits(EVENT_1_TIME)),
                 1));
 
             // Emit a chrono task to run at time EVENT_2_TIME, and shutdown
@@ -61,7 +46,7 @@ public:
                     powerplant.shutdown();
                     return false;
                 },
-                NUClear::clock::now() + TestUnits(EVENT_2_TIME),
+                NUClear::clock::time_point(TestUnits(EVENT_2_TIME)),
                 2));
 
             // Time travel!
@@ -71,6 +56,18 @@ public:
             results.start = Results::TimePair{NUClear::clock::now(), std::chrono::steady_clock::now()};
         });
     }
+
+    // Time travel action
+    NUClear::message::TimeTravel::Action action = NUClear::message::TimeTravel::Action::RELATIVE;
+
+    // Time adjustment
+    NUClear::clock::duration adjustment = std::chrono::milliseconds(0);
+
+    // Real-time factor
+    double rtf = 1.0;
+
+    // Results struct
+    Results results;
 };
 
 }  // anonymous namespace
