@@ -41,6 +41,8 @@ public:
     TestReactor(std::unique_ptr<NUClear::Environment> environment) : TestBase(std::move(environment), false) {
 
         on<Startup>().then([this] {
+            // Reset clock to zero
+            NUClear::clock::set_clock(NUClear::clock::time_point());
             results.zero = Results::TimePair{NUClear::clock::now(), std::chrono::steady_clock::now()};
 
             // Emit a chrono task to run at time EVENT_1_TIME
@@ -89,9 +91,6 @@ TEST_CASE("Test time travel correctly changes the time for non zero rtf", "[time
     reactor.action     = action;
     reactor.adjustment = TestUnits(adjustment);
     reactor.rtf        = rtf;
-
-    // Reset clock to zero
-    NUClear::clock::set_clock(NUClear::clock::time_point());
 
     // Start the powerplant
     plant->start();
