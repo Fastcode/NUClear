@@ -97,7 +97,10 @@ TEST_CASE("Test time travel correctly changes the time for non zero rtf", "[time
     switch (action) {
         case Action::RELATIVE: expected = {EVENT_1_TIME, EVENT_2_TIME}; break;
         case Action::ABSOLUTE:
-            expected = {std::max(0L, EVENT_1_TIME - adjustment), std::max(0L, EVENT_2_TIME - adjustment)};
+            expected = {
+                std::max(int64_t(0), int64_t(EVENT_1_TIME - adjustment)),
+                std::max(int64_t(0), int64_t(EVENT_2_TIME - adjustment)),
+            };
             break;
         case Action::NEAREST:
             expected = adjustment < EVENT_1_TIME
