@@ -58,7 +58,7 @@ public:
     }
 
     // Time travel action
-    NUClear::message::TimeTravel::Action action = NUClear::message::TimeTravel::Action::RELATIVE_;
+    NUClear::message::TimeTravel::Action action = NUClear::message::TimeTravel::Action::RELATIVE;
 
     // Time adjustment
     NUClear::clock::duration adjustment = std::chrono::milliseconds(0);
@@ -81,7 +81,7 @@ TEST_CASE("Test time travel correctly changes the time for non zero rtf", "[time
     auto& reactor = plant->install<TestReactor>();
 
     // Set the reactor fields to the values we want to test
-    const Action action      = GENERATE(Action::RELATIVE_, Action::ABSOLUTE_, Action::NEAREST_);
+    const Action action      = GENERATE(Action::RELATIVE, Action::ABSOLUTE, Action::NEAREST);
     const int64_t adjustment = GENERATE(-4, -2, 0, 2, 4, 6, 8, 10);
     const double rtf         = GENERATE(0.5, 1.0, 2.0);
     CAPTURE(action, adjustment, rtf);
@@ -95,14 +95,14 @@ TEST_CASE("Test time travel correctly changes the time for non zero rtf", "[time
     // Expected results
     std::array<int64_t, 2> expected{};
     switch (action) {
-        case Action::RELATIVE_: expected = {EVENT_1_TIME, EVENT_2_TIME}; break;
-        case Action::ABSOLUTE_:
+        case Action::RELATIVE: expected = {EVENT_1_TIME, EVENT_2_TIME}; break;
+        case Action::ABSOLUTE:
             expected = {
                 std::max(int64_t(0), int64_t(EVENT_1_TIME - adjustment)),
                 std::max(int64_t(0), int64_t(EVENT_2_TIME - adjustment)),
             };
             break;
-        case Action::NEAREST_:
+        case Action::NEAREST:
             expected = adjustment < EVENT_1_TIME
                            ? std::array<int64_t, 2>{EVENT_1_TIME - adjustment, EVENT_2_TIME - adjustment}
                            : std::array<int64_t, 2>{0, EVENT_2_TIME - EVENT_1_TIME};
@@ -135,7 +135,7 @@ TEST_CASE("Test time travel correctly changes the time for non zero rtf", "[time
     };
 
     const TestUnits actual_adjustment(round_to_test_units(r.start.nuclear - r.zero.nuclear));
-    const TestUnits expected_adjustment(std::min(adjustment, action == Action::NEAREST_ ? EVENT_1_TIME : adjustment));
+    const TestUnits expected_adjustment(std::min(adjustment, action == Action::NEAREST ? EVENT_1_TIME : adjustment));
     CHECK(expected_nuclear[0] == actual_nuclear[0]);
     CHECK(expected_nuclear[1] == actual_nuclear[1]);
     CHECK(expected_steady[0] == actual_steady[0]);

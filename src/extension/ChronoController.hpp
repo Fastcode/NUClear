@@ -106,8 +106,8 @@ namespace extension {
 
                 // Adjust clock to target time and leave chrono tasks where they are
                 switch (travel.type) {
-                    case message::TimeTravel::Action::ABSOLUTE_: clock::set_clock(travel.target, travel.rtf); break;
-                    case message::TimeTravel::Action::RELATIVE_: {
+                    case message::TimeTravel::Action::ABSOLUTE: clock::set_clock(travel.target, travel.rtf); break;
+                    case message::TimeTravel::Action::RELATIVE: {
                         auto adjustment = travel.target - NUClear::clock::now();
                         clock::set_clock(travel.target, travel.rtf);
                         for (auto& task : tasks) {
@@ -115,7 +115,7 @@ namespace extension {
                         }
 
                     } break;
-                    case message::TimeTravel::Action::NEAREST_: {
+                    case message::TimeTravel::Action::NEAREST: {
                         auto next_task =
                             std::min_element(tasks.begin(), tasks.end(), [](const ChronoTask& a, const ChronoTask& b) {
                                 return a.time < b.time;

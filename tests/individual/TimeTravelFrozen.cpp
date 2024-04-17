@@ -55,7 +55,7 @@ public:
     }
 
     // Time travel action
-    NUClear::message::TimeTravel::Action action = NUClear::message::TimeTravel::Action::RELATIVE_;
+    NUClear::message::TimeTravel::Action action = NUClear::message::TimeTravel::Action::RELATIVE;
 
     // Time adjustment
     NUClear::clock::duration adjustment = std::chrono::milliseconds(0);
@@ -78,7 +78,7 @@ TEST_CASE("Test time travel correctly changes the time for non zero rtf", "[time
     auto& reactor = plant->install<TestReactor>();
 
     // Set the reactor fields to the values we want to test
-    const Action action      = GENERATE(Action::RELATIVE_, Action::ABSOLUTE_, Action::NEAREST_);
+    const Action action      = GENERATE(Action::RELATIVE, Action::ABSOLUTE, Action::NEAREST);
     const int64_t adjustment = GENERATE(-4, -2, 0, 2, 4, 6, 8, 10);
     CAPTURE(action, adjustment);
     reactor.action     = action;
@@ -91,8 +91,8 @@ TEST_CASE("Test time travel correctly changes the time for non zero rtf", "[time
     // Expected results
     std::vector<std::string> expected;
     switch (action) {
-        case Action::RELATIVE_: expected = {"Finished"}; break;
-        case Action::ABSOLUTE_:
+        case Action::RELATIVE: expected = {"Finished"}; break;
+        case Action::ABSOLUTE:
             if (std::chrono::milliseconds(adjustment) < EVENT_1_TIME) {
                 expected = {"Finished"};
             }
@@ -103,7 +103,7 @@ TEST_CASE("Test time travel correctly changes the time for non zero rtf", "[time
                 expected = {"Event 1", "Event 2", "Finished"};
             }
             break;
-        case Action::NEAREST_:
+        case Action::NEAREST:
             expected = std::chrono::milliseconds(adjustment) < EVENT_1_TIME
                            ? std::vector<std::string>{"Finished"}
                            : std::vector<std::string>{"Event 1", "Finished"};

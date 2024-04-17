@@ -36,13 +36,13 @@ namespace message {
     struct TimeTravel {
         enum class Action {
             /// @brief Adjust clock and move all chrono tasks with it
-            RELATIVE_,
+            RELATIVE,
 
             /// @brief Adjust clock to target time and leave chrono tasks where they are
-            ABSOLUTE_,
+            ABSOLUTE,
 
             /// @brief Adjust clock to as close to target as possible without skipping any chrono tasks
-            NEAREST_,
+            NEAREST,
         };
 
         /// @brief The target time to set the clock to
@@ -50,10 +50,10 @@ namespace message {
         /// @brief The rate at which time should pass
         double rtf = 1.0;
         /// @brief The type of time travel to perform
-        Action type = Action::RELATIVE_;
+        Action type = Action::RELATIVE;
 
         TimeTravel() = default;
-        TimeTravel(const clock::time_point& target, double rtf = 1.0, Action type = Action::RELATIVE_)
+        TimeTravel(const clock::time_point& target, double rtf = 1.0, Action type = Action::RELATIVE)
             : target(target), rtf(rtf), type(type) {}
     };
 
