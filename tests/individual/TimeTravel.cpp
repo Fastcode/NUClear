@@ -6,7 +6,7 @@
 
 namespace {
 
-using TestUnits                = std::chrono::duration<int64_t, std::ratio<1, 50>>;
+using TestUnits                = std::chrono::duration<int64_t, std::ratio<1, 25>>;
 constexpr int64_t EVENT_1_TIME = 4;
 constexpr int64_t EVENT_2_TIME = 8;
 
