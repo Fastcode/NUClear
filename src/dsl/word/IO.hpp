@@ -23,6 +23,7 @@
 #ifndef NUCLEAR_DSL_WORD_IO_HPP
 #define NUCLEAR_DSL_WORD_IO_HPP
 
+#include "../../id.hpp"
 #include "../../threading/Reaction.hpp"
 #include "../../util/platform.hpp"
 #include "../operation/Unbind.hpp"
@@ -59,9 +60,9 @@ namespace dsl {
          * @brief This is emitted when an IO operation has finished.
          */
         struct IOFinished {
-            explicit IOFinished(const uint64_t& id) : id(id) {}
+            explicit IOFinished(const NUClear::id_t& id) : id(id) {}
             /// @brief The id of the reaction that has finished
-            uint64_t id;
+            NUClear::id_t id;
         };
 
         /**

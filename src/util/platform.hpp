@@ -81,6 +81,8 @@
 
     // Whoever thought this was a good idea was a terrible person
     #undef ERROR
+    #undef RELATIVE
+    #undef ABSOLUTE
 
     // Make the windows shutdown functions look like the posix ones
     #define SHUT_RD   SD_RECEIVE

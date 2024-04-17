@@ -23,6 +23,8 @@
 #ifndef NUCLEAR_DSL_OPERATION_UNBIND_HPP
 #define NUCLEAR_DSL_OPERATION_UNBIND_HPP
 
+#include "../../id.hpp"
+
 namespace NUClear {
 namespace dsl {
     namespace operation {
@@ -38,10 +40,10 @@ namespace dsl {
          */
         template <typename Word>
         struct Unbind {
-            explicit Unbind(const uint64_t& id) : id(id){};
+            explicit Unbind(const NUClear::id_t& id) : id(id){};
 
             /// The id of the task to unbind
-            const uint64_t id{0};
+            const NUClear::id_t id{0};
         };
 
     }  // namespace operation

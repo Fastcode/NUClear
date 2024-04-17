@@ -27,6 +27,7 @@
 #include <mutex>
 #include <utility>
 
+#include "../../id.hpp"
 #include "../../threading/ReactionTask.hpp"
 #include "../../util/ThreadPoolDescriptor.hpp"
 
@@ -73,14 +74,14 @@ namespace dsl {
 
             template <typename DSL>
             static inline util::ThreadPoolDescriptor pool(const threading::Reaction& reaction) {
-                static std::map<uint64_t, uint64_t> pool_id;
+                static std::map<NUClear::id_t, NUClear::id_t> pool_id;
                 static std::mutex mutex;
 
                 const std::lock_guard<std::mutex> lock(mutex);
                 if (pool_id.count(reaction.id) == 0) {
                     pool_id[reaction.id] = util::ThreadPoolDescriptor::get_unique_pool_id();
                 }
-                return util::ThreadPoolDescriptor{pool_id[reaction.id], 1};
+                return util::ThreadPoolDescriptor{pool_id[reaction.id], 1, false};
             }
 
             template <typename DSL>
@@ -90,7 +91,7 @@ namespace dsl {
                  * the always reaction and one for the idle reaction that we generate in this function
                  * The main purpose of this map is to ensure that the always reaction pointer doesn't get destroyed
                  */
-                static std::map<uint64_t,
+                static std::map<NUClear::id_t,
                                 std::pair<std::shared_ptr<threading::Reaction>, std::shared_ptr<threading::Reaction>>>
                     reaction_store = {};
 

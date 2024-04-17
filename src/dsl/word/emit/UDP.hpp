@@ -157,11 +157,11 @@ namespace dsl {
                     }
 
                     // Serialise to our payload
-                    std::vector<char> payload = util::serialise::Serialise<DataType>::serialise(*data);
+                    std::vector<uint8_t> payload = util::serialise::Serialise<DataType>::serialise(*data);
 
                     // Try to send our payload
                     if (::sendto(fd,
-                                 payload.data(),
+                                 reinterpret_cast<const char*>(payload.data()),
                                  static_cast<socklen_t>(payload.size()),
                                  0,
                                  &remote.sock,

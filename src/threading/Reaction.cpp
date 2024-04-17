@@ -26,7 +26,7 @@ namespace NUClear {
 namespace threading {
 
     // Initialize our reaction source
-    std::atomic<uint64_t> Reaction::reaction_id_source(0);  // NOLINT
+    std::atomic<NUClear::id_t> Reaction::reaction_id_source(0);  // NOLINT
 
     Reaction::Reaction(Reactor& reactor, ReactionIdentifiers&& identifiers, TaskGenerator&& generator)
         : reactor(reactor), identifiers(std::move(identifiers)), generator(std::move(generator)) {}

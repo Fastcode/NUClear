@@ -79,6 +79,10 @@ namespace threading {
             }
             catch (...) {
             }
+            if (pool->pool_descriptor.counts_for_idle) {
+                --global_runnable_tasks;
+                --pool->runnable_tasks;
+            }
         }
 
         // Clear the current queue
@@ -87,17 +91,18 @@ namespace threading {
 
     TaskScheduler::TaskScheduler(const size_t& thread_count) {
         // Make the queue for the main thread
-        pool_queues[util::ThreadPoolDescriptor::MAIN_THREAD_POOL_ID] =
-            std::make_shared<PoolQueue>(util::ThreadPoolDescriptor{util::ThreadPoolDescriptor::MAIN_THREAD_POOL_ID, 1});
+        pool_queues[util::ThreadPoolDescriptor::MAIN_THREAD_POOL_ID] = std::make_shared<PoolQueue>(
+            util::ThreadPoolDescriptor{util::ThreadPoolDescriptor::MAIN_THREAD_POOL_ID, 1, true});
 
         // Make the default pool with the correct number of threads
-        get_pool_queue(util::ThreadPoolDescriptor{util::ThreadPoolDescriptor::DEFAULT_THREAD_POOL_ID, thread_count});
+        get_pool_queue(
+            util::ThreadPoolDescriptor{util::ThreadPoolDescriptor::DEFAULT_THREAD_POOL_ID, thread_count, true});
     }
 
     void TaskScheduler::start_threads(const std::shared_ptr<PoolQueue>& pool) {
         // The main thread never needs to be started
         if (pool->pool_descriptor.pool_id != util::ThreadPoolDescriptor::MAIN_THREAD_POOL_ID) {
-            const std::lock_guard<std::mutex> lock(pool->mutex);
+            const std::lock_guard<std::recursive_mutex> lock(pool->mutex);
             while (pool->threads.size() < pool->pool_descriptor.thread_count) {
                 pool->threads.emplace_back(std::make_unique<std::thread>(&TaskScheduler::pool_func, this, pool));
             }
@@ -142,7 +147,7 @@ namespace threading {
         // Poke all of the threads to make sure they are awake and then wait for them to finish
         for (auto& pool : pool_queues) {
             /* mutex scope */ {
-                const std::lock_guard<std::mutex> queue_lock(pool.second->mutex);
+                const std::lock_guard<std::recursive_mutex> queue_lock(pool.second->mutex);
                 pool.second->condition.notify_all();
             }
             for (auto& thread : pool.second->threads) {
@@ -163,12 +168,22 @@ namespace threading {
         started.store(false);
         running.store(false);
         for (auto& pool : pool_queues) {
-            const std::lock_guard<std::mutex> lock(pool.second->mutex);
+            const std::lock_guard<std::recursive_mutex> lock(pool.second->mutex);
             pool.second->condition.notify_all();
         }
     }
 
-    void TaskScheduler::submit(const uint64_t& id,
+    void TaskScheduler::PoolQueue::submit(Task&& task) {
+        const std::lock_guard<std::recursive_mutex> lock(mutex);
+
+        // Insert in sorted order
+        queue.insert(std::lower_bound(queue.begin(), queue.end(), task), std::move(task));
+
+        // Notify a single thread that there is a new task
+        condition.notify_one();
+    }
+
+    void TaskScheduler::submit(const NUClear::id_t& id,
                                const int& priority,
                                const util::GroupDescriptor& group_descriptor,
                                const util::ThreadPoolDescriptor& pool_descriptor,
@@ -194,17 +209,51 @@ namespace threading {
 
         // We do not accept new tasks once we are shutdown
         if (running.load()) {
-            // Get the appropiate pool for this task
             const std::shared_ptr<PoolQueue> pool = get_pool_queue(task.thread_pool_descriptor);
+            if (pool->pool_descriptor.counts_for_idle) {
+                ++global_runnable_tasks;
+                ++pool->runnable_tasks;
+            }
+            // Get the appropiate pool for this task and submit
+            pool->submit(std::move(task));
+        }
+    }
+
+    void TaskScheduler::add_idle_task(const NUClear::id_t& id,
+                                      const util::ThreadPoolDescriptor& pool_descriptor,
+                                      std::function<void()>&& task) {
+
+        if (pool_descriptor.pool_id == NUClear::id_t(-1)) {
+            const std::lock_guard<std::mutex> lock(pool_mutex);
+            idle_tasks.emplace(id, std::move(task));
+        }
+        else {
+            // Get the appropiate pool for this task
+            const std::shared_ptr<PoolQueue> pool = get_pool_queue(pool_descriptor);
 
             // Find where to insert the new task to maintain task order
-            const std::lock_guard<std::mutex> queue_lock(pool->mutex);
-            auto& queue = pool->queue;
-            auto it     = std::lower_bound(queue.begin(), queue.end(), task);
-            queue.insert(it, std::move(task));
+            const std::lock_guard<std::recursive_mutex> lock(pool->mutex);
+            pool->idle_tasks.emplace(id, std::move(task));
+        }
+    }
 
-            // Notify a single thread that there is a new task
-            pool->condition.notify_one();
+    void TaskScheduler::remove_idle_task(const NUClear::id_t& id, const util::ThreadPoolDescriptor& pool_descriptor) {
+
+        if (pool_descriptor.pool_id == NUClear::id_t(-1)) {
+            const std::lock_guard<std::mutex> lock(pool_mutex);
+            if (idle_tasks.count(id) > 0) {
+                idle_tasks.erase(id);
+            }
+        }
+        else {
+            // Get the appropiate pool for this task
+            const std::shared_ptr<PoolQueue> pool = get_pool_queue(pool_descriptor);
+
+            // Find the idle task with the given id and remove it if it exists
+            const std::lock_guard<std::recursive_mutex> lock(pool->mutex);
+            if (pool->idle_tasks.count(id) > 0) {
+                pool->idle_tasks.erase(id);
+            }
         }
     }
 
@@ -223,7 +272,8 @@ namespace threading {
         auto& condition                       = pool->condition;
 
         // Keep looking for tasks while the scheduler is still running, or while there are still tasks to process
-        std::unique_lock<std::mutex> lock(pool->mutex);
+        std::unique_lock<std::recursive_mutex> lock(pool->mutex);
+        bool idle = false;
         while (running.load() || !queue.empty()) {
 
             // Only one thread can be checking group concurrency at a time otherwise the ordering might not be correct
@@ -235,15 +285,25 @@ namespace threading {
 
                     // Check if we can run the task
                     if (is_runnable(it->group_descriptor)) {
-
                         // Move the task out of the queue
                         Task task = std::move(*it);
-
                         // Erase the old position in the queue
                         queue.erase(it);
 
+                        if (pool->pool_descriptor.counts_for_idle && task.checked_runnable) {
+                            ++global_runnable_tasks;
+                            ++pool->runnable_tasks;
+                        }
+
                         // Return the task
                         return task;
+                    }
+                    if (!it->checked_runnable) {
+                        if (pool->pool_descriptor.counts_for_idle) {
+                            --global_runnable_tasks;
+                            --pool->runnable_tasks;
+                        }
+                        it->checked_runnable = true;
                     }
                 }
 
@@ -256,11 +316,35 @@ namespace threading {
                 }
             }
 
-            // Wait for something to happen!
-            // We don't have a condition on this lock as the check would be this doing this loop again to see if there
-            // are any tasks we can execute (checking all the groups) so therefore we already did the entry predicate.
-            // Putting a condition on this would stop spurious wakeups of which the cost would be equal to the loop.
-            condition.wait(lock);  // NOSONAR
+            if (pool->pool_descriptor.counts_for_idle && !idle) {
+                idle = true;
+
+                /* mutex scope */ {
+                    const std::lock_guard<std::mutex> idle_lock(idle_mutex);
+                    // Local idle tasks
+                    if (pool->runnable_tasks == 0) {
+                        for (auto& t : pool->idle_tasks) {
+                            t.second();
+                        }
+                    }
+
+                    // Global idle tasks
+                    if (global_runnable_tasks == 0) {
+                        for (auto& t : idle_tasks) {
+                            t.second();
+                        }
+                    }
+                }
+            }
+            else {
+
+                // Wait for something to happen!
+                // We don't have a condition on this lock as the check would be this doing this loop again to see if
+                // there are any tasks we can execute (checking all the groups) so therefore we already did the entry
+                // predicate. Putting a condition on this would stop spurious wakeups of which the cost would be equal
+                // to the loop.
+                condition.wait(lock);  // NOSONAR
+            }
         }
 
         // If we get out here then we are finished running.

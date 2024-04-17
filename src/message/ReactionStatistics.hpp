@@ -26,6 +26,7 @@
 #include <exception>
 #include <string>
 #include <vector>
+#include "../id.hpp"
 
 #include "../clock.hpp"
 #include "../threading/ReactionIdentifiers.hpp"
@@ -39,10 +40,10 @@ namespace message {
     struct ReactionStatistics {
 
         ReactionStatistics(threading::ReactionIdentifiers identifiers,
-                           uint64_t reaction_id,
-                           uint64_t task_id,
-                           uint64_t cause_reaction_id,
-                           uint64_t cause_task_id,
+                           const NUClear::id_t& reaction_id,
+                           const NUClear::id_t& task_id,
+                           const NUClear::id_t& cause_reaction_id,
+                           const NUClear::id_t& cause_task_id,
                            const clock::time_point& emitted,
                            const clock::time_point& start,
                            const clock::time_point& finish,
@@ -60,13 +61,13 @@ namespace message {
         /// @brief A string containing the username/on arguments/and callback name of the reaction.
         threading::ReactionIdentifiers identifiers;
         /// @brief The id of this reaction.
-        uint64_t reaction_id{0};
+        NUClear::id_t reaction_id{0};
         /// @brief The task id of this reaction.
-        uint64_t task_id{0};
+        NUClear::id_t task_id{0};
         /// @brief The reaction id of the reaction that caused this one or 0 if there was not one
-        uint64_t cause_reaction_id{0};
+        NUClear::id_t cause_reaction_id{0};
         /// @brief The reaction id of the task that caused this task or 0 if there was not one
-        uint64_t cause_task_id{0};
+        NUClear::id_t cause_task_id{0};
         /// @brief The time that this reaction was emitted to the thread pool
         clock::time_point emitted{};
         /// @brief The time that execution started on this reaction

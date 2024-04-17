@@ -46,12 +46,12 @@ namespace extension {
          *
          * @return the data and who it was sent from
          */
-        std::pair<util::network::sock_t, std::vector<char>> read_socket(fd_t fd) {
+        std::pair<util::network::sock_t, std::vector<uint8_t>> read_socket(fd_t fd) {
 
             // Allocate a vector that can hold a datagram
-            std::vector<char> payload(1500);
+            std::vector<uint8_t> payload(1500);
             iovec iov{};
-            iov.iov_base = payload.data();
+            iov.iov_base = reinterpret_cast<char*>(payload.data());
             iov.iov_len  = static_cast<decltype(iov.iov_len)>(payload.size());
 
             // Who we are receiving from
@@ -82,7 +82,7 @@ namespace extension {
         }
 
         void NUClearNetwork::set_packet_callback(
-            std::function<void(const NetworkTarget&, const uint64_t&, const bool&, std::vector<char>&&)> f) {
+            std::function<void(const NetworkTarget&, const uint64_t&, const bool&, std::vector<uint8_t>&&)> f) {
             packet_callback = std::move(f);
         }
 
@@ -534,7 +534,7 @@ namespace extension {
 
                 // Send the packet
                 if (::sendto(data_fd,
-                             announce_packet.data(),
+                             reinterpret_cast<const char*>(announce_packet.data()),
                              static_cast<socklen_t>(announce_packet.size()),
                              0,
                              &it->second->target.sock,
@@ -547,11 +547,11 @@ namespace extension {
             }
         }
 
-        void NUClearNetwork::process_packet(const sock_t& address, std::vector<char>&& payload) {
+        void NUClearNetwork::process_packet(const sock_t& address, std::vector<uint8_t>&& payload) {
 
             // First validate this is a NUClear network packet we can read (a version 2 NUClear packet)
-            if (payload.size() >= sizeof(PacketHeader) && payload[0] == '\xE2' && payload[1] == '\x98'
-                && payload[2] == '\xA2' && payload[3] == 0x02) {
+            if (payload.size() >= sizeof(PacketHeader) && payload[0] == 0xE2 && payload[1] == 0x98 && payload[2] == 0xA2
+                && payload[3] == 0x02) {
 
                 // This is a real packet! get our header information
                 const PacketHeader& header = *reinterpret_cast<const PacketHeader*>(payload.data());
@@ -595,7 +595,7 @@ namespace extension {
 
                                         // Say hi back!
                                         ::sendto(data_fd,
-                                                 announce_packet.data(),
+                                                 reinterpret_cast<const char*>(announce_packet.data()),
                                                  static_cast<socklen_t>(announce_packet.size()),
                                                  0,
                                                  &ptr->target.sock,
@@ -671,7 +671,7 @@ namespace extension {
                                 if (it != remote->recent_packets.end() && packet.reliable) {
 
                                     // Allocate room for the whole ack packet
-                                    std::vector<char> r(sizeof(ACKPacket) + (packet.packet_count / 8), 0);
+                                    std::vector<uint8_t> r(sizeof(ACKPacket) + (packet.packet_count / 8), 0);
                                     ACKPacket& response   = *reinterpret_cast<ACKPacket*>(r.data());
                                     response              = ACKPacket();
                                     response.packet_id    = packet.packet_id;
@@ -688,7 +688,7 @@ namespace extension {
 
                                     // Send the packet
                                     ::sendto(data_fd,
-                                             r.data(),
+                                             reinterpret_cast<const char*>(r.data()),
                                              static_cast<socklen_t>(r.size()),
                                              0,
                                              &to.sock,
@@ -703,8 +703,8 @@ namespace extension {
                             if (packet.packet_count == 1) {
 
                                 // Copy our data into a vector
-                                std::vector<char> out(&packet.data,
-                                                      &packet.data + payload.size() - sizeof(DataPacket) + 1);
+                                std::vector<uint8_t> out(&packet.data,
+                                                         &packet.data + payload.size() - sizeof(DataPacket) + 1);
 
                                 // If this is a reliable packet, send an ack back
                                 if (packet.reliable) {
@@ -751,7 +751,7 @@ namespace extension {
 
                                         // A basic ack has room for 8 packets and we need 1 extra byte for each 8
                                         // additional packets
-                                        std::vector<char> r(sizeof(NACKPacket) + (packet.packet_count / 8), 0);
+                                        std::vector<uint8_t> r(sizeof(NACKPacket) + (packet.packet_count / 8), 0);
                                         NACKPacket& response  = *reinterpret_cast<NACKPacket*>(r.data());
                                         response              = NACKPacket();
                                         response.packet_id    = packet.packet_id;
@@ -771,7 +771,7 @@ namespace extension {
 
                                         // Send the packet
                                         ::sendto(data_fd,
-                                                 r.data(),
+                                                 reinterpret_cast<const char*>(r.data()),
                                                  static_cast<socklen_t>(r.size()),
                                                  0,
                                                  &to.sock,
@@ -790,7 +790,7 @@ namespace extension {
                                 if (packet.reliable) {
                                     // A basic ack has room for 8 packets and we need 1 extra byte for each 8
                                     // additional packets
-                                    std::vector<char> r(sizeof(ACKPacket) + (packet.packet_count / 8), 0);
+                                    std::vector<uint8_t> r(sizeof(ACKPacket) + (packet.packet_count / 8), 0);
                                     ACKPacket& response   = *reinterpret_cast<ACKPacket*>(r.data());
                                     response              = ACKPacket();
                                     response.packet_id    = packet.packet_id;
@@ -807,7 +807,7 @@ namespace extension {
 
                                     // Send the packet
                                     ::sendto(data_fd,
-                                             r.data(),
+                                             reinterpret_cast<const char*>(r.data()),
                                              static_cast<socklen_t>(r.size()),
                                              0,
                                              &to.sock,
@@ -825,7 +825,7 @@ namespace extension {
                                     }
 
                                     // Read in our data
-                                    std::vector<char> out;
+                                    std::vector<uint8_t> out;
                                     out.reserve(payload_size);
                                     for (auto& p : assembler.second) {
                                         const DataPacket& part = *reinterpret_cast<DataPacket*>(p.second.data());
@@ -997,7 +997,7 @@ namespace extension {
         void NUClearNetwork::send_packet(const sock_t& target,
                                          NUClear::extension::network::DataPacket header,
                                          uint16_t packet_no,
-                                         const std::vector<char>& payload,
+                                         const std::vector<uint8_t>& payload,
                                          const bool& /*reliable*/) {
 
             // Our packet we are sending
@@ -1012,13 +1012,14 @@ namespace extension {
             data[0].iov_base = reinterpret_cast<char*>(&header);
             data[0].iov_len  = sizeof(DataPacket) - 1;
 
-            // Work out what chunk of data we are sending const cast is fine as posix guarantees it won't be
-            // modified
-            data[1].iov_base = const_cast<char*>(payload.data() + (packet_data_mtu * packet_no));  // NOLINT
-            data[1].iov_len  = packet_no + 1 < header.packet_count ? packet_data_mtu : payload.size() % packet_data_mtu;
+            // Work out what chunk of data we are sending
+            // const cast is fine as posix guarantees it won't be modified on a sendmsg
+            const char* start = reinterpret_cast<const char*>(payload.data()) + (packet_no * packet_data_mtu);
+            data[1].iov_base  = const_cast<char*>(start);  // NOLINT(cppcoreguidelines-pro-type-const-cast)
+            data[1].iov_len = packet_no + 1 < header.packet_count ? packet_data_mtu : payload.size() % packet_data_mtu;
 
             // Set our target and send (once again const cast is fine)
-            message.msg_name    = const_cast<sockaddr*>(&target.sock);  // NOLINT
+            message.msg_name    = const_cast<sockaddr*>(&target.sock);  // NOLINT(cppcoreguidelines-pro-type-const-cast)
             message.msg_namelen = target.size();
 
             // TODO(trent): if reliable, run select first to see if this socket is writeable
@@ -1028,7 +1029,7 @@ namespace extension {
 
 
         void NUClearNetwork::send(const uint64_t& hash,
-                                  const std::vector<char>& payload,
+                                  const std::vector<uint8_t>& payload,
                                   const std::string& target,
                                   bool reliable) {
 

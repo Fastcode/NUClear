@@ -96,13 +96,15 @@ namespace extension {
             watches.push_back(pollfd{notify_recv, POLLIN, 0});
 
             for (const auto& r : tasks) {
-                // If we are the same fd, then add our interest set
+                // If we are the same fd, then add our interest set and mask out events that are already being processed
                 if (r.fd == watches.back().fd) {
-                    watches.back().events = event_t(watches.back().events | r.listening_events);
+                    watches.back().events = event_t((watches.back().events | r.listening_events)
+                                                    & ~(r.processing_events | r.waiting_events));
                 }
-                // Otherwise add a new one
+                // Otherwise add a new one and mask out events that are already being processed
                 else {
-                    watches.push_back(pollfd{r.fd, r.listening_events, 0});
+                    watches.push_back(
+                        pollfd{r.fd, event_t(r.listening_events & ~(r.processing_events | r.waiting_events)), 0});
                 }
             }
 
@@ -123,16 +125,25 @@ namespace extension {
                 e.fd     = task.fd;
                 e.events = task.waiting_events;
 
-                // Clear the waiting events, we are now processing them
-                task.processing_events = task.waiting_events;
-                task.waiting_events    = 0;
-
                 // Submit the task (which should run the get)
                 IO::ThreadEventStore::value                = &e;
                 std::unique_ptr<threading::ReactionTask> r = task.reaction->get_task();
                 IO::ThreadEventStore::value                = nullptr;
 
                 if (r != nullptr) {
+                    // Clear the waiting events, we are now processing them
+                    task.processing_events = task.waiting_events;
+                    task.waiting_events    = 0;
+
+                    // Mask out the currently processing events so poll doesn't notify for them
+                    auto it =
+                        std::lower_bound(watches.begin(), watches.end(), task.fd, [&](const pollfd& w, const fd_t& fd) {
+                            return w.fd < fd;
+                        });
+                    if (it != watches.end() && it->fd == task.fd) {
+                        it->events = event_t(it->events & ~task.processing_events);
+                    }
+
                     powerplant.submit(std::move(r));
                 }
                 else {
@@ -227,6 +238,9 @@ namespace extension {
                                         std::system_category(),
                                         "There was an error while writing to the notification pipe");
             }
+
+            // Locking here will ensure we won't return until poll is not running
+            const std::lock_guard<std::mutex> lock(poll_mutex);
         }
 
     public:
@@ -242,7 +256,7 @@ namespace extension {
             notify_recv = vals[0];
             notify_send = vals[1];
 
-            // Start by rebuliding the list
+            // Start by rebuilding the list
             rebuild_list();
 
             on<Trigger<dsl::word::IOConfiguration>>().then(
@@ -271,7 +285,6 @@ namespace extension {
                     return t.reaction->id == event.id;
                 });
 
-                // If we found it then clear the waiting events
                 if (task != tasks.end()) {
                     // If the events we were processing included close remove it from the list
                     if ((task->processing_events & IO::CLOSE) != 0) {
@@ -279,7 +292,19 @@ namespace extension {
                         tasks.erase(task);
                     }
                     else {
-                        // We have finished processing events
+                        // Make sure poll isn't currently waiting for an event to happen
+                        bump();
+
+                        // Unmask the events that were just processed
+                        auto it = std::lower_bound(watches.begin(),
+                                                   watches.end(),
+                                                   task->fd,
+                                                   [&](const pollfd& w, const fd_t& fd) { return w.fd < fd; });
+                        if (it != watches.end() && it->fd == task->fd) {
+                            it->events = event_t(it->events | task->processing_events);
+                        }
+
+                        // No longer processing events
                         task->processing_events = 0;
 
                         // Try to fire again which will check if there are any waiting events
@@ -325,10 +350,14 @@ namespace extension {
                     }
 
                     // Wait for an event to happen on one of our file descriptors
-                    if (::poll(watches.data(), nfds_t(watches.size()), -1) < 0) {
-                        throw std::system_error(network_errno,
-                                                std::system_category(),
-                                                "There was an IO error while attempting to poll the file descriptors");
+                    /* mutex scope */ {
+                        const std::lock_guard<std::mutex> lock(poll_mutex);
+                        if (::poll(watches.data(), nfds_t(watches.size()), -1) < 0) {
+                            throw std::system_error(
+                                network_errno,
+                                std::system_category(),
+                                "There was an IO error while attempting to poll the file descriptors");
+                        }
                     }
 
                     // Collect the events that happened into the tasks list
@@ -342,6 +371,9 @@ namespace extension {
         fd_t notify_recv{-1};
         /// @brief The send file descriptor for our notification pipe
         fd_t notify_send{-1};
+
+        /// @brief The mutex to wait on when bumping to ensure poll has returned
+        std::mutex poll_mutex;
 
         /// @brief Whether or not we are shutting down
         std::atomic<bool> shutdown{false};

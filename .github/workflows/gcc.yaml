@@ -34,10 +34,6 @@ jobs:
             version: "8"
           - container: ubuntu:20.04
             version: "7"
-          - container: ubuntu:18.04
-            version: "6"
-          - container: ubuntu:18.04
-            version: "5"
 
     name: Linux GCC-${{ matrix.toolchain.version }}
     runs-on: ubuntu-latest

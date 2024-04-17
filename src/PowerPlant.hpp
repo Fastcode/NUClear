@@ -39,6 +39,7 @@
 // Utilities
 #include "Configuration.hpp"
 #include "LogLevel.hpp"
+#include "id.hpp"
 #include "message/LogMessage.hpp"
 #include "threading/ReactionTask.hpp"
 #include "threading/TaskScheduler.hpp"
@@ -120,10 +121,41 @@ public:
      *  in the environment of that reactor so that it can be used to filter logs.
      *
      * @tparam T        The type of the reactor to build and install
+     * @tparam Args     The types of the extra arguments to pass to the reactor constructor
      * @tparam level    The initial logging level for this reactor to use
+     *
+     * @param arg       Extra arguments to pass to the reactor constructor
+     *
+     * @return A reference to the installed reactor
      */
-    template <typename T, enum LogLevel level = DEBUG>
-    void install();
+    template <typename T, typename... Args>
+    T& install(Args&&... args);
+
+    /**
+     * @brief Adds an idle task to the task scheduler.
+     *
+     * This function adds an idle task to the task scheduler, which will be executed when the thread pool associated
+     * with the given `pool_id` has no other tasks to execute. The `task` parameter is a callable object that
+     * represents the idle task to be executed.
+     *
+     * @param id The ID of the task.
+     * @param pool_descriptor The descriptor for the thread pool to test for idle
+     * @param task The idle task to be executed.
+     */
+    void add_idle_task(const NUClear::id_t& id,
+                       const util::ThreadPoolDescriptor& pool_descriptor,
+                       std::function<void()>&& task);
+
+    /**
+     * @brief Removes an idle task from the task scheduler.
+     *
+     * This function removes an idle task from the task scheduler. The `id` and `pool_id` parameters are used to
+     * identify the idle task to be removed.
+     *
+     * @param id The ID of the task.
+     * @param pool_descriptor The descriptor for the thread pool to test for idle
+     */
+    void remove_idle_task(const NUClear::id_t& id, const util::ThreadPoolDescriptor& pool_descriptor);
 
     /**
      * @brief Generic submit function for submitting tasks to the thread pool.
@@ -135,7 +167,7 @@ public:
      * @param immediate if this task should run immediately in the current thread
      * @param task      the wrapped function to be executed
      */
-    void submit(const uint64_t& id,
+    void submit(const NUClear::id_t& id,
                 const int& priority,
                 const util::GroupDescriptor& group,
                 const util::ThreadPoolDescriptor& pool,

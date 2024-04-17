@@ -24,7 +24,8 @@
 
 namespace NUClear {
 
-PowerPlant* PowerPlant::powerplant = nullptr;  // NOLINT
+// NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
+PowerPlant* PowerPlant::powerplant = nullptr;
 
 PowerPlant::~PowerPlant() {
     // Make sure reactors are destroyed before anything else
@@ -49,7 +50,7 @@ void PowerPlant::start() {
     scheduler.start();
 }
 
-void PowerPlant::submit(const uint64_t& id,
+void PowerPlant::submit(const NUClear::id_t& id,
                         const int& priority,
                         const util::GroupDescriptor& group,
                         const util::ThreadPoolDescriptor& pool,
@@ -72,6 +73,16 @@ void PowerPlant::submit(std::unique_ptr<threading::ReactionTask>&& task, const b
             task->parent.reactor.log<NUClear::ERROR>("There was an unknown exception while submitting a reaction");
         }
     }
+}
+
+void PowerPlant::add_idle_task(const NUClear::id_t& id,
+                               const util::ThreadPoolDescriptor& pool_descriptor,
+                               std::function<void()>&& task) {
+    scheduler.add_idle_task(id, pool_descriptor, std::move(task));
+}
+
+void PowerPlant::remove_idle_task(const NUClear::id_t& id, const util::ThreadPoolDescriptor& pool_descriptor) {
+    scheduler.remove_idle_task(id, pool_descriptor);
 }
 
 void PowerPlant::shutdown() {

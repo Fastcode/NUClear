@@ -27,6 +27,8 @@
 #include <cstddef>
 #include <cstdint>
 
+#include "../id.hpp"
+
 namespace NUClear {
 namespace util {
 
@@ -34,22 +36,32 @@ namespace util {
      * @brief A description of a thread pool
      */
     struct ThreadPoolDescriptor {
+        ThreadPoolDescriptor() = default;
+        ThreadPoolDescriptor(const NUClear::id_t& pool_id, size_t thread_count, bool counts_for_idle)
+            : pool_id(pool_id), thread_count(thread_count), counts_for_idle(counts_for_idle) {}
+
+        static ThreadPoolDescriptor AllPools() {
+            return ThreadPoolDescriptor{NUClear::id_t(-1), size_t(-1), false};
+        }
+
         /// @brief a unique identifier for this pool
-        uint64_t pool_id{ThreadPoolDescriptor::DEFAULT_THREAD_POOL_ID};
+        NUClear::id_t pool_id{ThreadPoolDescriptor::DEFAULT_THREAD_POOL_ID};
 
         /// @brief the number of threads this thread pool will use
         size_t thread_count{0};
+        /// @brief if these threads count towards system idle
+        bool counts_for_idle{true};
 
         /// @brief the ID of the main thread pool (not to be confused with the ID of the main thread)
-        static const uint64_t MAIN_THREAD_POOL_ID;
+        static const NUClear::id_t MAIN_THREAD_POOL_ID;
         /// @brief the ID of the default thread pool
-        static const uint64_t DEFAULT_THREAD_POOL_ID;
+        static const NUClear::id_t DEFAULT_THREAD_POOL_ID;
 
         /**
          * @brief Return the next unique ID for a new thread pool
          */
-        static uint64_t get_unique_pool_id() noexcept {
-            static std::atomic<uint64_t> source{2};
+        static NUClear::id_t get_unique_pool_id() noexcept {
+            static std::atomic<NUClear::id_t> source{2};
             return source++;
         }
     };

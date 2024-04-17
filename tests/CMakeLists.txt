@@ -42,7 +42,13 @@ if(CATCH_FOUND)
       "util/*.cpp"
       "util/network/*.cpp"
       "util/serialise/*.cpp"
-      "test_util/*.cpp"
+    )
+
+    file(GLOB test_util_src "test_util/*.cpp")
+    add_library(test_util STATIC ${test_util_src})
+    target_link_libraries(test_util PUBLIC NUClear::nuclear)
+    target_include_directories(
+      test_util SYSTEM PUBLIC ${CATCH_INCLUDE_DIRS} ${PROJECT_BINARY_DIR}/include "${PROJECT_SOURCE_DIR}/src"
     )
 
     # Some tests must be executed as individual binaries
@@ -52,12 +58,9 @@ if(CATCH_FOUND)
       get_filename_component(test_name ${test_src} NAME_WE)
 
       add_executable(${test_name} ${test_src})
-      target_link_libraries(${test_name} NUClear::nuclear)
+      target_link_libraries(${test_name} NUClear::nuclear test_util)
       set_target_properties(${test_name} PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/individual")
       target_include_directories(${test_name} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
-      target_include_directories(
-        ${test_name} SYSTEM PRIVATE ${CATCH_INCLUDE_DIRS} ${PROJECT_BINARY_DIR}/include "${PROJECT_SOURCE_DIR}/src"
-      )
       # Enable warnings, and all warnings are errors
 
       add_test(${test_name} test_nuclear)
@@ -66,18 +69,12 @@ if(CATCH_FOUND)
 
     add_executable(test_nuclear ${test_src})
     target_include_directories(test_nuclear PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
-    target_link_libraries(test_nuclear NUClear::nuclear)
-    target_include_directories(
-      test_nuclear SYSTEM PRIVATE ${CATCH_INCLUDE_DIRS} ${PROJECT_BINARY_DIR}/include "${PROJECT_SOURCE_DIR}/src"
-    )
+    target_link_libraries(test_nuclear NUClear::nuclear test_util)
     add_test(test_nuclear test_nuclear)
 
     add_executable(test_network networktest.cpp)
-    target_link_libraries(test_network NUClear::nuclear)
+    target_link_libraries(test_network NUClear::nuclear test_util)
     target_include_directories(test_network PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
-    target_include_directories(
-      test_network SYSTEM PRIVATE ${CATCH_INCLUDE_DIRS} ${PROJECT_BINARY_DIR}/include "${PROJECT_SOURCE_DIR}/src"
-    )
 
   endif(BUILD_TESTS)
 endif(CATCH_FOUND)

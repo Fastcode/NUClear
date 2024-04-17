@@ -20,33 +20,16 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_UTIL_NETWORK_RESOLVE_HPP
-#define NUCLEAR_UTIL_NETWORK_RESOLVE_HPP
+#ifndef NUCLEAR_UTIL_ID_HPP
+#define NUCLEAR_UTIL_ID_HPP
 
-#include <string>
-
-#include "sock_t.hpp"
+#include <cstdint>
 
 namespace NUClear {
-namespace util {
-    namespace network {
 
-        /**
-         * @brief Resolves a hostname and port into a socket address
-         *
-         * @details
-         *  This function will resolve a hostname and port into a socket address.
-         *  It will return a socket address that can be used to connect to the specified host and port.
-         *
-         * @param address the hostname or IP address to resolve
-         * @param port the port to connect to
-         *
-         * @return a socket address that can be used to connect to the specified host and port
-         */
-        sock_t resolve(const std::string& address, const uint16_t& port);
+/// @brief This type is used when NUClear requires a unique identifier
+using id_t = std::size_t;
 
-    }  // namespace network
-}  // namespace util
 }  // namespace NUClear
 
-#endif  // NUCLEAR_UTIL_NETWORK_RESOLVE_HPP
+#endif  // NUCLEAR_UTIL_ID_HPP

@@ -54,6 +54,9 @@ namespace dsl {
 
         struct Priority;
 
+        template <typename>
+        struct Idle;
+
         struct IO;
 
         struct UDP;
@@ -143,9 +146,7 @@ public:
     friend class PowerPlant;
 
     explicit Reactor(std::unique_ptr<Environment> environment)
-        : powerplant(environment->powerplant)
-        , reactor_name(environment->reactor_name)
-        , log_level(environment->log_level) {}
+        : powerplant(environment->powerplant), reactor_name(environment->reactor_name) {}
     Reactor(const Reactor& /*other*/)              = default;
     Reactor(Reactor&& /*other*/) noexcept          = default;
     Reactor& operator=(const Reactor& /*rhs*/)     = delete;
@@ -192,6 +193,10 @@ protected:
     /// @copydoc dsl::word::Once
     using Once = dsl::word::Once;
 
+    /// @copydoc dsl::word::Idle
+    template <typename T = void>
+    using Idle = dsl::word::Idle<T>;
+
     /// @copydoc dsl::word::IO
     using IO = dsl::word::IO;
 
@@ -228,6 +233,14 @@ protected:
 
     /// @copydoc dsl::word::Shutdown
     using Shutdown = dsl::word::Shutdown;
+
+    /// @copydoc dsl::word::Pool
+    template <typename T = void>
+    using Pool = dsl::word::Pool<T>;
+
+    /// @copydoc dsl::word::Group
+    template <typename T, int I>
+    using Group = dsl::word::Group<T, I>;
 
     /// @copydoc dsl::word::Every
     template <int ticks = 0, class period = std::chrono::milliseconds>
@@ -413,7 +426,7 @@ public:
      * @param args The arguments we are logging
      */
     template <enum LogLevel level = DEBUG, typename... Arguments>
-    void log(Arguments&&... args) {
+    void log(Arguments&&... args) const {
 
         // If the log is above or equal to our log level
         PowerPlant::log<level>(std::forward<Arguments>(args)...);
@@ -428,6 +441,7 @@ public:
 #include "dsl/word/Every.hpp"
 #include "dsl/word/Group.hpp"
 #include "dsl/word/IO.hpp"
+#include "dsl/word/Idle.hpp"
 #include "dsl/word/Last.hpp"
 #include "dsl/word/MainThread.hpp"
 #include "dsl/word/Network.hpp"
