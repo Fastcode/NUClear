@@ -1,2 +1,3 @@
 breathe==4.20
 jinja2==3.0.0
+sphinx_rtd_theme==2.0.0
