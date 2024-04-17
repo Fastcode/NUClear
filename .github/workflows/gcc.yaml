@@ -34,10 +34,6 @@ jobs:
             version: "8"
           - container: ubuntu:20.04
             version: "7"
-          - container: ubuntu:18.04
-            version: "6"
-          - container: ubuntu:18.04
-            version: "5"
 
     name: Linux GCC-${{ matrix.toolchain.version }}
     runs-on: ubuntu-latest
@@ -48,7 +44,7 @@ jobs:
 
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       # Update for all the actions that need to install stuff
       - run: |

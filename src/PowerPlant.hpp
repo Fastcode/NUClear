@@ -132,6 +132,32 @@ public:
     T& install(Args&&... args);
 
     /**
+     * @brief Adds an idle task to the task scheduler.
+     *
+     * This function adds an idle task to the task scheduler, which will be executed when the thread pool associated
+     * with the given `pool_id` has no other tasks to execute. The `task` parameter is a callable object that
+     * represents the idle task to be executed.
+     *
+     * @param id The ID of the task.
+     * @param pool_descriptor The descriptor for the thread pool to test for idle
+     * @param task The idle task to be executed.
+     */
+    void add_idle_task(const NUClear::id_t& id,
+                       const util::ThreadPoolDescriptor& pool_descriptor,
+                       std::function<void()>&& task);
+
+    /**
+     * @brief Removes an idle task from the task scheduler.
+     *
+     * This function removes an idle task from the task scheduler. The `id` and `pool_id` parameters are used to
+     * identify the idle task to be removed.
+     *
+     * @param id The ID of the task.
+     * @param pool_descriptor The descriptor for the thread pool to test for idle
+     */
+    void remove_idle_task(const NUClear::id_t& id, const util::ThreadPoolDescriptor& pool_descriptor);
+
+    /**
      * @brief Generic submit function for submitting tasks to the thread pool.
      *
      * @param id        an id for ordering the task

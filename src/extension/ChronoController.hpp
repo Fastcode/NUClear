@@ -25,6 +25,7 @@
 
 #include "../PowerPlant.hpp"
 #include "../Reactor.hpp"
+#include "../message/TimeTravel.hpp"
 #include "../util/precise_sleep.hpp"
 
 namespace NUClear {
@@ -100,6 +101,33 @@ namespace extension {
                 wait.notify_all();
             });
 
+            on<Trigger<message::TimeTravel>>().then("Time Travel", [this](const message::TimeTravel& travel) {
+                const std::lock_guard<std::mutex> lock(mutex);
+
+                // Adjust clock to target time and leave chrono tasks where they are
+                switch (travel.type) {
+                    case message::TimeTravel::Action::ABSOLUTE: clock::set_clock(travel.target, travel.rtf); break;
+                    case message::TimeTravel::Action::RELATIVE: {
+                        auto adjustment = travel.target - NUClear::clock::now();
+                        clock::set_clock(travel.target, travel.rtf);
+                        for (auto& task : tasks) {
+                            task.time += adjustment;
+                        }
+
+                    } break;
+                    case message::TimeTravel::Action::NEAREST: {
+                        auto next_task =
+                            std::min_element(tasks.begin(), tasks.end(), [](const ChronoTask& a, const ChronoTask& b) {
+                                return a.time < b.time;
+                            });
+                        clock::set_clock(std::min(next_task->time, travel.target), travel.rtf);
+                    } break;
+                }
+
+                // Poke the system
+                wait.notify_all();
+            });
+
             on<Always, Priority::REALTIME>().then("Chrono Controller", [this] {
                 // Run until we are told to stop
                 while (running.load()) {
@@ -115,33 +143,7 @@ namespace extension {
                         auto start  = NUClear::clock::now();
                         auto target = tasks.front().time;
 
-                        if (target - start > cv_accuracy) {
-                            // Wait on the cv
-                            wait.wait_until(lock, target - cv_accuracy);
-
-                            // Update the accuracy of our cv wait
-                            const auto end   = NUClear::clock::now();
-                            const auto error = end - (target - cv_accuracy);  // when ended - when wanted to end
-                            if (error.count() > 0) {                          // only if we were late
-                                cv_accuracy = error > cv_accuracy ? error : ((cv_accuracy * 99 + error) / 100);
-                            }
-                        }
-                        else if (target - start > ns_accuracy) {
-                            // Wait on nanosleep
-                            util::precise_sleep(target - start - ns_accuracy);
-
-                            // Update the accuracy of our precise sleep
-                            const auto end   = NUClear::clock::now();
-                            const auto error = end - (target - ns_accuracy);  // when ended - when wanted to end
-                            if (error.count() > 0) {                          // only if we were late
-                                ns_accuracy = error > ns_accuracy ? error : ((ns_accuracy * 99 + error) / 100);
-                            }
-                        }
-                        else {
-                            while (NUClear::clock::now() < tasks.front().time) {
-                                // Spinlock until we get to the time
-                            }
-
+                        if (target <= start) {
                             // Run our task and if it returns false remove it
                             const bool renew = tasks.front()();
 
@@ -155,6 +157,45 @@ namespace extension {
                             else {
                                 // Remove the item from the list
                                 tasks.pop_back();
+                            }
+                        }
+                        else {
+                            const NUClear::clock::duration time_until_task =
+                                std::chrono::duration_cast<NUClear::clock::duration>((target - start) / clock::rtf());
+
+                            if (clock::rtf() == 0.0) {
+                                // If we are paused then just wait until we are unpaused
+                                wait.wait(lock, [&] {
+                                    return !running.load() || clock::rtf() != 0.0 || NUClear::clock::now() != start;
+                                });
+                            }
+                            else if (time_until_task > cv_accuracy) {  // A long time in the future
+                                // Wait on the cv
+                                wait.wait_for(lock, time_until_task - cv_accuracy);
+
+                                // Update the accuracy of our cv wait
+                                const auto end   = NUClear::clock::now();
+                                const auto error = end - (target - cv_accuracy);  // when ended - when wanted to end
+                                if (error.count() > 0) {                          // only if we were late
+                                    cv_accuracy = error > cv_accuracy ? error : ((cv_accuracy * 99 + error) / 100);
+                                }
+                            }
+                            else if (time_until_task > ns_accuracy) {  // Somewhat close in time
+                                // Wait on nanosleep
+                                const NUClear::clock::duration sleep_time = time_until_task - ns_accuracy;
+                                util::precise_sleep(sleep_time);
+
+                                // Update the accuracy of our precise sleep
+                                const auto end   = NUClear::clock::now();
+                                const auto error = end - (target - ns_accuracy);  // when ended - when wanted to end
+                                if (error.count() > 0) {                          // only if we were late
+                                    ns_accuracy = error > ns_accuracy ? error : ((ns_accuracy * 99 + error) / 100);
+                                }
+                            }
+                            else {
+                                while (NUClear::clock::now() < tasks.front().time) {
+                                    // Spinlock until we get to the time
+                                }
                             }
                         }
                     }

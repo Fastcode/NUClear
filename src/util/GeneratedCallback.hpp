@@ -47,7 +47,7 @@ namespace util {
         /// @brief the descriptor for the group the task should run in
         GroupDescriptor group{0, std::numeric_limits<size_t>::max()};
         /// @brief the descriptor the thread pool and task queue that the should run in
-        ThreadPoolDescriptor pool{util::ThreadPoolDescriptor::DEFAULT_THREAD_POOL_ID, 0};
+        ThreadPoolDescriptor pool{util::ThreadPoolDescriptor::DEFAULT_THREAD_POOL_ID, 0, true};
         /// @brief the function that should be executed in order to run the task
         threading::ReactionTask::TaskFunction callback{};
 
