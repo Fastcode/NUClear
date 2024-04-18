@@ -15,20 +15,8 @@ namespace util {
         FILETIME user_time;
         if (GetThreadTimes(GetCurrentThread(), &creation_time, &exit_time, &kernel_time, &user_time) != -1) {
             // Time in in 100 nanosecond intervals
-            uint64_t time = (uint64_t(user_time.dwHighDateTime) << 32) | user_time.dwLowDateTime;
-            return time_point(std::chrono::duration<uint64_t, std::ratio<1LL, 10000000LL>>(time));
-        }
-        return time_point();
-    }
-
-    kernel_cpu_clock::time_point kernel_cpu_clock::now() noexcept {
-        FILETIME creation_time;
-        FILETIME exit_time;
-        FILETIME kernel_time;
-        FILETIME user_time;
-        if (GetThreadTimes(GetCurrentThread(), &creation_time, &exit_time, &kernel_time, &user_time) != -1) {
-            // Time in in 100 nanosecond intervals
-            uint64_t time = (uint64_t(kernel_time.dwHighDateTime) << 32) | kernel_time.dwLowDateTime;
+            uint64_t time = ((uint64_t(user_time.dwHighDateTime) << 32) | user_time.dwLowDateTime)
+                            + ((uint64_t(kernel_time.dwHighDateTime) << 32) | kernel_time.dwLowDateTime);
             return time_point(std::chrono::duration<uint64_t, std::ratio<1LL, 10000000LL>>(time));
         }
         return time_point();
