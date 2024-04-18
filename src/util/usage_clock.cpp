@@ -38,7 +38,7 @@ namespace util {
 }  // namespace NUClear
 
 #else
-    #include <time.h>
+    #include <ctime>
 
 namespace NUClear {
 namespace util {
