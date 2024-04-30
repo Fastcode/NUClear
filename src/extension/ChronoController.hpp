@@ -116,7 +116,7 @@ namespace extension {
 
                     } break;
                     case message::TimeTravel::Action::NEAREST: {
-                        clock::time_point nearest =
+                        const clock::time_point nearest =
                             tasks.empty() ? travel.target
                                           : std::min(travel.target, std::min_element(tasks.begin(), tasks.end())->time);
                         clock::set_clock(nearest, travel.rtf);
