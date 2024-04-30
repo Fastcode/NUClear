@@ -81,22 +81,20 @@ public:
 
 
         on<Startup>().then([this] {
-            // Get our jump size in milliseconds
-            const int jump_unit = (TimeUnit::period::num * 1000) / TimeUnit::period::den;
             // Delay with consistent jumps
             for (int i = 0; i < test_loops; ++i) {
-                auto delay = std::chrono::milliseconds(jump_unit * i);
+                auto delay = TimeUnit(i * 2);
                 emit<Scope::DELAY>(std::make_unique<DelayedMessage>(delay), delay);
             }
 
             // Target time with consistent jumps that interleave the first set
             for (int i = 0; i < test_loops; ++i) {
-                auto target = NUClear::clock::now() + std::chrono::milliseconds(jump_unit / 2 + jump_unit * i);
+                auto target = NUClear::clock::now() + TimeUnit(1 + (2 * i));
                 emit<Scope::DELAY>(std::make_unique<TargetTimeMessage>(target), target);
             }
 
             // Emit a shutdown one time unit after
-            emit<Scope::DELAY>(std::make_unique<FinishTest>(), std::chrono::milliseconds(jump_unit * (test_loops + 1)));
+            emit<Scope::DELAY>(std::make_unique<FinishTest>(), TimeUnit((test_loops + 1) * 2));
         });
     }
 };
@@ -111,15 +109,15 @@ TEST_CASE("Testing the delay emit", "[api][emit][delay]") {
 
     const std::vector<std::string> expected = {
         "delayed 0 received 0",
-        "at_time 0 received 0",
-        "delayed 1 received 1",
         "at_time 1 received 1",
         "delayed 2 received 2",
-        "at_time 2 received 2",
-        "delayed 3 received 3",
         "at_time 3 received 3",
         "delayed 4 received 4",
-        "at_time 4 received 4",
+        "at_time 5 received 5",
+        "delayed 6 received 6",
+        "at_time 7 received 7",
+        "delayed 8 received 8",
+        "at_time 9 received 9",
         "Finished",
     };
 
