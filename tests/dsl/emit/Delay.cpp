@@ -32,7 +32,7 @@ namespace {
 std::vector<std::string> events;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
 /// @brief Test units are the time units the test is performed in
-using TestUnits = std::chrono::duration<int64_t, std::ratio<1, 20>>;
+using TestUnits = std::chrono::duration<int, std::ratio<1, 20>>;
 /// @brief Perform this many different time points for the test
 constexpr int test_loops = 5;
 

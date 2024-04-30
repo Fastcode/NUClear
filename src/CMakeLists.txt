@@ -37,6 +37,10 @@ target_link_libraries(nuclear ${CMAKE_THREAD_LIBS_INIT})
 set_target_properties(nuclear PROPERTIES POSITION_INDEPENDENT_CODE ON)
 target_compile_features(nuclear PUBLIC cxx_std_14)
 
+if(QNX)
+  target_link_libraries(nuclear socket)
+endif(QNX)
+
 # Enable warnings, and all warnings are errors
 if(MSVC)
   target_compile_options(nuclear PRIVATE /W4 /WX)
