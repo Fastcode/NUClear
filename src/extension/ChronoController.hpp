@@ -116,11 +116,10 @@ namespace extension {
 
                     } break;
                     case message::TimeTravel::Action::NEAREST: {
-                        auto next_task =
-                            std::min_element(tasks.begin(), tasks.end(), [](const ChronoTask& a, const ChronoTask& b) {
-                                return a.time < b.time;
-                            });
-                        clock::set_clock(std::min(next_task->time, travel.target), travel.rtf);
+                        clock::time_point nearest =
+                            tasks.empty() ? travel.target
+                                          : std::min(travel.target, std::min_element(tasks.begin(), tasks.end())->time);
+                        clock::set_clock(nearest, travel.rtf);
                     } break;
                 }
 
