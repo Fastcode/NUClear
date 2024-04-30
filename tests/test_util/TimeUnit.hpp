@@ -44,6 +44,22 @@ namespace test_util {
  */
 using TimeUnit = std::chrono::duration<int64_t, std::ratio<NUCLEAR_TEST_TIME_UNIT_NUM, NUCLEAR_TEST_TIME_UNIT_DEN>>;
 
+/**
+ * Rounds the given duration to the nearest TimeUnit.
+ *
+ * @tparam T The type of the duration.
+ *
+ * @param duration The duration to be rounded.
+ *
+ * @return The rounded duration in TimeUnit.
+ */
+template <typename T>
+TimeUnit round_to_test_units(const T& duration) {
+    const double d = std::chrono::duration_cast<std::chrono::duration<double>>(duration).count();
+    const double t = (TimeUnit::period::den * d) / TimeUnit::period::num;
+    return TimeUnit(std::lround(t));
+}
+
 }  // namespace test_util
 
 #endif  // TEST_UTIL_TIME_UNIT_HPP

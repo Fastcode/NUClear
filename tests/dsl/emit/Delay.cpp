@@ -56,18 +56,18 @@ public:
     TestReactor(std::unique_ptr<NUClear::Environment> environment) : TestBase(std::move(environment), false) {
 
         // Measure when messages were sent and received and print those values
-        on<Trigger<DelayedMessage>>().then([](const DelayedMessage& m) {
-            auto true_delta = std::chrono::duration_cast<TimeUnit>(NUClear::clock::now() - m.time);
-            auto delta      = std::chrono::duration_cast<TimeUnit>(m.delay);
+        on<Trigger<DelayedMessage>>().then([&](const DelayedMessage& m) {
+            auto true_delta = test_util::round_to_test_units(NUClear::clock::now() - m.time);
+            auto delta      = test_util::round_to_test_units(m.delay);
 
             // Print the debug message
             events.push_back("delayed " + std::to_string(true_delta.count()) + " received "
                              + std::to_string(delta.count()));
         });
 
-        on<Trigger<TargetTimeMessage>>().then([](const TargetTimeMessage& m) {
-            auto true_delta = std::chrono::duration_cast<TimeUnit>(NUClear::clock::now() - m.time);
-            auto delta      = std::chrono::duration_cast<TimeUnit>(m.target - m.time);
+        on<Trigger<TargetTimeMessage>>().then([&](const TargetTimeMessage& m) {
+            auto true_delta = test_util::round_to_test_units(NUClear::clock::now() - m.time);
+            auto delta      = test_util::round_to_test_units(m.target - m.time);
 
             // Print the debug message
             events.push_back("at_time " + std::to_string(true_delta.count()) + " received "
@@ -79,18 +79,20 @@ public:
             powerplant.shutdown();
         });
 
-        on<Startup>().then([this] {
+        on<Trigger<Step<1>>>().then([this] {
             // Interleave absolute and relative events
             for (int i = 0; i < test_loops; ++i) {
                 auto delay = TimeUnit(i * 2);
                 emit<Scope::DELAY>(std::make_unique<DelayedMessage>(delay), delay);
-                auto target = NUClear::clock::now() + TimeUnit(1 + (i * 2));
+                auto target = NUClear::clock::now() + TimeUnit((i * 2) + 1);
                 emit<Scope::DELAY>(std::make_unique<TargetTimeMessage>(target), target);
             }
 
             // Emit a shutdown one time unit after
             emit<Scope::DELAY>(std::make_unique<FinishTest>(), TimeUnit((test_loops + 1) * 2));
         });
+
+        on<Startup>().then([this] { emit(std::make_unique<Step<1>>()); });
     }
 };
 }  // namespace

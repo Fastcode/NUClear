@@ -120,24 +120,18 @@ TEST_CASE("Test time travel correctly changes the time for non zero rtf", "[time
     const auto& n_start = reactor.results.start.nuclear;
     const auto& s_start = reactor.results.start.steady;
 
-    auto round_to_test_units = [](const auto& duration) {
-        const double d = std::chrono::duration_cast<std::chrono::duration<double>>(duration).count();
-        const double t = (TimeUnit::period::den * d) / TimeUnit::period::num;
-        return TimeUnit(std::lround(t));
-    };
-
     std::array<TimeUnit, 2> actual_nuclear = {
-        round_to_test_units(r.events[0].nuclear - n_start),
-        round_to_test_units(r.events[1].nuclear - n_start),
+        test_util::round_to_test_units(r.events[0].nuclear - n_start),
+        test_util::round_to_test_units(r.events[1].nuclear - n_start),
     };
     std::array<TimeUnit, 2> actual_steady = {
-        round_to_test_units(r.events[0].steady - s_start),
-        round_to_test_units(r.events[1].steady - s_start),
+        test_util::round_to_test_units(r.events[0].steady - s_start),
+        test_util::round_to_test_units(r.events[1].steady - s_start),
     };
 
-    const TimeUnit actual_adjustment(round_to_test_units(r.start.nuclear - r.zero.nuclear));
+    const TimeUnit actual_adjustment(test_util::round_to_test_units(r.start.nuclear - r.zero.nuclear));
     const TimeUnit expected_adjustment(std::min(adjustment, action == Action::NEAREST ? EVENT_1_TIME : adjustment));
-    CHECK(round_to_test_units(r.zero.nuclear.time_since_epoch()) == TimeUnit(0));
+    CHECK(test_util::round_to_test_units(r.zero.nuclear.time_since_epoch()) == TimeUnit(0));
     CHECK(expected_nuclear[0] == actual_nuclear[0]);
     CHECK(expected_nuclear[1] == actual_nuclear[1]);
     CHECK(expected_steady[0] == actual_steady[0]);
