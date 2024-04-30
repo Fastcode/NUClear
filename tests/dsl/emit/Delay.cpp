@@ -89,7 +89,7 @@ public:
             }
 
             // Emit a shutdown one time unit after
-            emit<Scope::DELAY>(std::make_unique<FinishTest>(), TimeUnit(test_loops * 2));
+            emit<Scope::DELAY>(std::make_unique<FinishTest>(), TimeUnit((test_loops + 1) * 2));
         });
     }
 };
