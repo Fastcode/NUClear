@@ -79,7 +79,6 @@ public:
             powerplant.shutdown();
         });
 
-
         on<Startup>().then([this] {
             // Delay with consistent jumps
             for (int i = 0; i < test_loops; ++i) {
