@@ -51,7 +51,7 @@ struct TargetTimeMessage {
 
 struct FinishTest {};
 
-class TestReactor : public test_util::TestBase<TestReactor> {
+class TestReactor : public test_util::TestBase<TestReactor, 2000> {
 public:
     TestReactor(std::unique_ptr<NUClear::Environment> environment) : TestBase(std::move(environment), false) {
 
