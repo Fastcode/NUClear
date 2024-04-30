@@ -80,20 +80,16 @@ public:
         });
 
         on<Startup>().then([this] {
-            // Delay with consistent jumps
+            // Interleave absolute and relative events
             for (int i = 0; i < test_loops; ++i) {
                 auto delay = TimeUnit(i * 2);
                 emit<Scope::DELAY>(std::make_unique<DelayedMessage>(delay), delay);
-            }
-
-            // Target time with consistent jumps that interleave the first set
-            for (int i = 0; i < test_loops; ++i) {
-                auto target = NUClear::clock::now() + TimeUnit(1 + (2 * i));
+                auto target = NUClear::clock::now() + TimeUnit(1 + (i * 2));
                 emit<Scope::DELAY>(std::make_unique<TargetTimeMessage>(target), target);
             }
 
             // Emit a shutdown one time unit after
-            emit<Scope::DELAY>(std::make_unique<FinishTest>(), TimeUnit((test_loops + 1) * 2));
+            emit<Scope::DELAY>(std::make_unique<FinishTest>(), TimeUnit(test_loops * 2));
         });
     }
 };
