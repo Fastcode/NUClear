@@ -24,9 +24,11 @@
 #define TEST_UTIL_TIME_UNIT_HPP
 
 #ifndef NUCLEAR_TEST_TIME_UNIT_NUM
+    // NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
     #define NUCLEAR_TEST_TIME_UNIT_NUM 1
 #endif
 #ifndef NUCLEAR_TEST_TIME_UNIT_DEN
+    // NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
     #define NUCLEAR_TEST_TIME_UNIT_DEN 20
 #endif
 
