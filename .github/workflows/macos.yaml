@@ -38,6 +38,8 @@ jobs:
           ninjaVersion: 1.11.1
 
       - name: Configure CMake
+        env:
+          CXXFLAGS: -DNUCLEAR_TEST_TIME_UNIT_DEN=10
         run: |
           cmake -E make_directory build
           cmake -S . -B build \

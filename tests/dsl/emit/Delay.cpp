@@ -23,16 +23,17 @@
 #include <catch.hpp>
 #include <nuclear>
 
-#include "../../test_util/TestBase.hpp"
+#include "test_util/TestBase.hpp"
+#include "test_util/TimeUnit.hpp"
 
 // Anonymous namespace to keep everything file local
 namespace {
 
+using TimeUnit = test_util::TimeUnit;
+
 /// @brief Events that occur during the test
 std::vector<std::string> events;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
-/// @brief Test units are the time units the test is performed in
-using TestUnits = std::chrono::duration<int64_t, std::ratio<1, 20>>;
 /// @brief Perform this many different time points for the test
 constexpr int test_loops = 5;
 
@@ -50,14 +51,14 @@ struct TargetTimeMessage {
 
 struct FinishTest {};
 
-class TestReactor : public test_util::TestBase<TestReactor> {
+class TestReactor : public test_util::TestBase<TestReactor, 2000> {
 public:
     TestReactor(std::unique_ptr<NUClear::Environment> environment) : TestBase(std::move(environment), false) {
 
         // Measure when messages were sent and received and print those values
         on<Trigger<DelayedMessage>>().then([](const DelayedMessage& m) {
-            auto true_delta = std::chrono::duration_cast<TestUnits>(NUClear::clock::now() - m.time);
-            auto delta      = std::chrono::duration_cast<TestUnits>(m.delay);
+            auto true_delta = test_util::round_to_test_units(NUClear::clock::now() - m.time);
+            auto delta      = test_util::round_to_test_units(m.delay);
 
             // Print the debug message
             events.push_back("delayed " + std::to_string(true_delta.count()) + " received "
@@ -65,8 +66,8 @@ public:
         });
 
         on<Trigger<TargetTimeMessage>>().then([](const TargetTimeMessage& m) {
-            auto true_delta = std::chrono::duration_cast<TestUnits>(NUClear::clock::now() - m.time);
-            auto delta      = std::chrono::duration_cast<TestUnits>(m.target - m.time);
+            auto true_delta = test_util::round_to_test_units(NUClear::clock::now() - m.time);
+            auto delta      = test_util::round_to_test_units(m.target - m.time);
 
             // Print the debug message
             events.push_back("at_time " + std::to_string(true_delta.count()) + " received "
@@ -78,25 +79,20 @@ public:
             powerplant.shutdown();
         });
 
-
-        on<Startup>().then([this] {
-            // Get our jump size in milliseconds
-            const int jump_unit = (TestUnits::period::num * 1000) / TestUnits::period::den;
-            // Delay with consistent jumps
+        on<Trigger<Step<1>>>().then([this] {
+            // Interleave absolute and relative events
             for (int i = 0; i < test_loops; ++i) {
-                auto delay = std::chrono::milliseconds(jump_unit * i);
+                auto delay = TimeUnit(i * 2);
                 emit<Scope::DELAY>(std::make_unique<DelayedMessage>(delay), delay);
-            }
-
-            // Target time with consistent jumps that interleave the first set
-            for (int i = 0; i < test_loops; ++i) {
-                auto target = NUClear::clock::now() + std::chrono::milliseconds(jump_unit / 2 + jump_unit * i);
+                auto target = NUClear::clock::now() + TimeUnit((i * 2) + 1);
                 emit<Scope::DELAY>(std::make_unique<TargetTimeMessage>(target), target);
             }
 
             // Emit a shutdown one time unit after
-            emit<Scope::DELAY>(std::make_unique<FinishTest>(), std::chrono::milliseconds(jump_unit * (test_loops + 1)));
+            emit<Scope::DELAY>(std::make_unique<FinishTest>(), TimeUnit((test_loops + 1) * 2));
         });
+
+        on<Startup>().then([this] { emit(std::make_unique<Step<1>>()); });
     }
 };
 }  // namespace
@@ -110,15 +106,15 @@ TEST_CASE("Testing the delay emit", "[api][emit][delay]") {
 
     const std::vector<std::string> expected = {
         "delayed 0 received 0",
-        "at_time 0 received 0",
-        "delayed 1 received 1",
         "at_time 1 received 1",
         "delayed 2 received 2",
-        "at_time 2 received 2",
-        "delayed 3 received 3",
         "at_time 3 received 3",
         "delayed 4 received 4",
-        "at_time 4 received 4",
+        "at_time 5 received 5",
+        "delayed 6 received 6",
+        "at_time 7 received 7",
+        "delayed 8 received 8",
+        "at_time 9 received 9",
         "Finished",
     };
 
