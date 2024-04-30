@@ -23,16 +23,17 @@
 #include <catch.hpp>
 #include <nuclear>
 
-#include "../../test_util/TestBase.hpp"
+#include "test_util/TestBase.hpp"
+#include "test_util/TimeUnit.hpp"
 
 // Anonymous namespace to keep everything file local
 namespace {
 
+using TimeUnit = test_util::TimeUnit;
+
 /// @brief Events that occur during the test
 std::vector<std::string> events;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
-/// @brief Test units are the time units the test is performed in
-using TestUnits = std::chrono::duration<int64_t, std::ratio<1, 20>>;
 /// @brief Perform this many different time points for the test
 constexpr int test_loops = 5;
 
@@ -56,8 +57,8 @@ public:
 
         // Measure when messages were sent and received and print those values
         on<Trigger<DelayedMessage>>().then([](const DelayedMessage& m) {
-            auto true_delta = std::chrono::duration_cast<TestUnits>(NUClear::clock::now() - m.time);
-            auto delta      = std::chrono::duration_cast<TestUnits>(m.delay);
+            auto true_delta = std::chrono::duration_cast<TimeUnit>(NUClear::clock::now() - m.time);
+            auto delta      = std::chrono::duration_cast<TimeUnit>(m.delay);
 
             // Print the debug message
             events.push_back("delayed " + std::to_string(true_delta.count()) + " received "
@@ -65,8 +66,8 @@ public:
         });
 
         on<Trigger<TargetTimeMessage>>().then([](const TargetTimeMessage& m) {
-            auto true_delta = std::chrono::duration_cast<TestUnits>(NUClear::clock::now() - m.time);
-            auto delta      = std::chrono::duration_cast<TestUnits>(m.target - m.time);
+            auto true_delta = std::chrono::duration_cast<TimeUnit>(NUClear::clock::now() - m.time);
+            auto delta      = std::chrono::duration_cast<TimeUnit>(m.target - m.time);
 
             // Print the debug message
             events.push_back("at_time " + std::to_string(true_delta.count()) + " received "
@@ -81,7 +82,7 @@ public:
 
         on<Startup>().then([this] {
             // Get our jump size in milliseconds
-            const int jump_unit = (TestUnits::period::num * 1000) / TestUnits::period::den;
+            const int jump_unit = (TimeUnit::period::num * 1000) / TimeUnit::period::den;
             // Delay with consistent jumps
             for (int i = 0; i < test_loops; ++i) {
                 auto delay = std::chrono::milliseconds(jump_unit * i);
