@@ -56,7 +56,7 @@ public:
     TestReactor(std::unique_ptr<NUClear::Environment> environment) : TestBase(std::move(environment), false) {
 
         // Measure when messages were sent and received and print those values
-        on<Trigger<DelayedMessage>>().then([&](const DelayedMessage& m) {
+        on<Trigger<DelayedMessage>>().then([](const DelayedMessage& m) {
             auto true_delta = test_util::round_to_test_units(NUClear::clock::now() - m.time);
             auto delta      = test_util::round_to_test_units(m.delay);
 
@@ -65,7 +65,7 @@ public:
                              + std::to_string(delta.count()));
         });
 
-        on<Trigger<TargetTimeMessage>>().then([&](const TargetTimeMessage& m) {
+        on<Trigger<TargetTimeMessage>>().then([](const TargetTimeMessage& m) {
             auto true_delta = test_util::round_to_test_units(NUClear::clock::now() - m.time);
             auto delta      = test_util::round_to_test_units(m.target - m.time);
 
