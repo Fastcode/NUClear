@@ -58,7 +58,7 @@ if(CATCH_FOUND)
       get_filename_component(test_name ${test_src} NAME_WE)
 
       add_executable(${test_name} ${test_src})
-      target_link_libraries(${test_name} NUClear::nuclear test_util)
+      target_link_libraries(${test_name} test_util)
       set_target_properties(${test_name} PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/individual")
       target_include_directories(${test_name} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
       # Enable warnings, and all warnings are errors
@@ -69,11 +69,11 @@ if(CATCH_FOUND)
 
     add_executable(test_nuclear ${test_src})
     target_include_directories(test_nuclear PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
-    target_link_libraries(test_nuclear NUClear::nuclear test_util)
+    target_link_libraries(test_nuclear test_util)
     add_test(test_nuclear test_nuclear)
 
     add_executable(test_network networktest.cpp)
-    target_link_libraries(test_network NUClear::nuclear test_util)
+    target_link_libraries(test_network test_util)
     target_include_directories(test_network PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
   endif(BUILD_TESTS)
