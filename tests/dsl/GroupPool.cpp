@@ -30,35 +30,49 @@ namespace {
 /// @brief A vector of events that have happened
 std::vector<std::string> events;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
-struct MessageA {};
-struct MessageB {};
+struct StartTest {};
+struct Synced {};
+template <int id>
+struct PoolFinished {};
+
+static constexpr int POOL_COUNT = 10;
 
 class TestReactor : public test_util::TestBase<TestReactor, 1000> {
 public:
-    static constexpr int thread_count = 1;
+    template <int id>
+    struct TestPool {
+        static constexpr int thread_count = 1;
+    };
+
+    template <int... ID>
+    void register_callbacks(NUClear::util::Sequence<ID...>) {
+
+        NUClear::util::unpack(on<Trigger<Synced>, Pool<TestPool<ID>>, Sync<TestReactor>>().then([this] {
+            events.push_back("Pool Message");
+            emit(std::make_unique<PoolFinished<ID>>());
+        })...);
+
+        on<Trigger<PoolFinished<ID>>...>().then([this] {
+            events.push_back("Finished");
+            powerplant.shutdown();
+        });
+    }
 
     TestReactor(std::unique_ptr<NUClear::Environment> environment) : TestBase(std::move(environment), false) {
 
         on<Startup>().then([this] {
             events.push_back("Startup");
-            emit(std::make_unique<MessageA>());
+            emit(std::make_unique<StartTest>());
         });
 
-        // Emit the first half of the pair
-        on<Trigger<MessageA>, Sync<TestReactor>>().then([this] {
-            events.push_back("First Half");
-            emit(std::make_unique<MessageB>());
-            // Wait for a bit to ensure that the second half checks this message/group
-            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        // Trigger on the start message and emit a message that will be synced
+        on<Trigger<StartTest>, Sync<TestReactor>>().then([this] {
+            events.push_back("Send Synced Message");
+            emit(std::make_unique<Synced>());
         });
 
-        // Won't run until the emit from First Half due to the lack of message b.
-        // However since First Half is sync with this one, this one can't run until it finishes so all threads will
-        // sleep
-        on<Trigger<MessageA>, Trigger<MessageB>, Pool<TestReactor>, Sync<TestReactor>>().then([this] {
-            events.push_back("Second Half");
-            powerplant.shutdown();
-        });
+        // Register all the callbacks and a final callback to gather the results
+        register_callbacks(NUClear::util::GenerateSequence<0, POOL_COUNT>());
     }
 };
 
@@ -73,11 +87,11 @@ TEST_CASE("Test that if a pool has nothing to do because of a sync group it will
     plant.install<TestReactor>();
     plant.start();
 
-    const std::vector<std::string> expected = {
-        "Startup",
-        "First Half",
-        "Second Half",
-    };
+    std::vector<std::string> expected = {"Send Synced Message"};
+    for (int i = 0; i < POOL_COUNT; ++i) {
+        expected.push_back("Pool Message");
+    }
+    expected.push_back("Finished");
 
     // Make an info print the diff in an easy to read way if we fail
     INFO(test_util::diff_string(expected, events));
