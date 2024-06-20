@@ -30,6 +30,13 @@ namespace {
 /// @brief A vector of events that have happened
 std::vector<std::string> events;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
+/// @brief Add an event to the event list
+void add_event(const std::string& event) {
+    static std::mutex events_mutex;
+    std::lock_guard<std::mutex> lock(events_mutex);
+    events.push_back(event);
+}
+
 struct StartTest {};
 struct Synced {};
 template <int id>
@@ -48,12 +55,12 @@ public:
     void register_callbacks(NUClear::util::Sequence<ID...>) {
 
         NUClear::util::unpack(on<Trigger<Synced>, Pool<TestPool<ID>>, Sync<TestReactor>>().then([this] {
-            events.push_back("Pool Message");
+            add_event("Pool Message");
             emit(std::make_unique<PoolFinished<ID>>());
         })...);
 
         on<Trigger<PoolFinished<ID>>...>().then([this] {
-            events.push_back("Finished");
+            add_event("Finished");
             powerplant.shutdown();
         });
     }
@@ -61,13 +68,13 @@ public:
     TestReactor(std::unique_ptr<NUClear::Environment> environment) : TestBase(std::move(environment), false) {
 
         on<Startup>().then([this] {
-            events.push_back("Startup");
+            add_event("Startup");
             emit(std::make_unique<StartTest>());
         });
 
         // Trigger on the start message and emit a message that will be synced
         on<Trigger<StartTest>, Sync<TestReactor>>().then([this] {
-            events.push_back("Send Synced Message");
+            add_event("Send Synced Message");
             emit(std::make_unique<Synced>());
         });
 
@@ -87,7 +94,10 @@ TEST_CASE("Test that if a pool has nothing to do because of a sync group it will
     plant.install<TestReactor>();
     plant.start();
 
-    std::vector<std::string> expected = {"Send Synced Message"};
+    std::vector<std::string> expected = {
+        "Startup",
+        "Send Synced Message",
+    };
     for (int i = 0; i < POOL_COUNT; ++i) {
         expected.push_back("Pool Message");
     }
