@@ -25,12 +25,20 @@ option(BUILD_TESTS "Builds all of the NUClear unit tests." TRUE)
 if(BUILD_TESTS)
   # Get catch2 using FetchContent
   include(FetchContent)
-  FetchContent_Declare(Catch2 URL https://github.com/catchorg/Catch2/archive/refs/tags/v3.6.0.tar.gz)
+  FetchContent_Declare(
+    Catch2
+    SYSTEM DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+    URL https://github.com/catchorg/Catch2/archive/refs/tags/v3.6.0.tar.gz
+  )
   FetchContent_MakeAvailable(Catch2)
 
   # Silence clang-tidy warnings from catch2
-  set_target_properties(Catch2 PROPERTIES CXX_CLANG_TIDY "")
-  set_target_properties(Catch2 PROPERTIES CXX_CLANG_TIDY "")
+  get_target_property(catch2_target Catch2::Catch2 ALIASED_TARGET)
+  set_target_properties(${catch2_target} PROPERTIES CXX_CLANG_TIDY "")
+  set_target_properties(${catch2_target} PROPERTIES CXX_CLANG_TIDY "")
+  get_target_property(catch2_with_main_target Catch2::Catch2WithMain ALIASED_TARGET)
+  set_target_properties(${catch2_with_main_target} PROPERTIES CXX_CLANG_TIDY "")
+  set_target_properties(${catch2_with_main_target} PROPERTIES CXX_CLANG_TIDY "")
 
   enable_testing()
 
