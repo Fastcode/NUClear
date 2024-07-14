@@ -25,12 +25,7 @@ option(BUILD_TESTS "Builds all of the NUClear unit tests." TRUE)
 if(BUILD_TESTS)
   # Get catch2 using FetchContent
   include(FetchContent)
-  FetchContent_Declare(
-    Catch2
-    GIT_SHALLOW TRUE
-    GIT_REPOSITORY https://github.com/catchorg/Catch2.git
-    GIT_TAG v3.6.0
-  )
+  FetchContent_Declare(Catch2 URL https://github.com/catchorg/Catch2/archive/refs/tags/v3.6.0.tar.gz)
   FetchContent_MakeAvailable(Catch2)
 
   enable_testing()
