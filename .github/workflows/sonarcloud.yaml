@@ -75,5 +75,5 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
           sonar-scanner \
-            --define sonar.cfamily.compile-commands=build/compile_commands.json
+            --define sonar.cfamily.compile-commands=build/compile_commands.json \
             --define sonar.coverageReportPaths=coverage.xml
