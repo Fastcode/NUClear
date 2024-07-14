@@ -134,4 +134,10 @@ TEST_CASE("Testing the IO extension", "[api][io]") {
     REQUIRE(write_events == write_expected);
 }
 
+#else
+
+TEST_CASE("Testing the IO extension", "[api][io]") {
+    SUCCESS("This test is not supported on Windows");
+}
+
 #endif  // _WIN32
