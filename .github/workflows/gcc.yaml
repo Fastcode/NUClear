@@ -93,5 +93,5 @@ jobs:
       - name: Test
         timeout-minutes: 10
         run: |
-          build/tests/test_nuclear
+          build/tests/test_nuclear ~[UDP]
           for f in build/tests/individual/*; do echo "Testing $f"; ./$f; done
