@@ -93,4 +93,4 @@ jobs:
       - name: Test
         timeout-minutes: 10
         working-directory: build/tests
-        run: ctest --output-on-failure -E "*UDP*"
+        run: ctest --output-on-failure -E "tests/dsl/UDP"
