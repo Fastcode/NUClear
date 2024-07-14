@@ -111,6 +111,7 @@ namespace util {
 
                                          // Start times
                                          task.stats->started = clock::now();
+                                         auto real_start     = std::chrono::steady_clock::now();
                                          auto cpu_start      = util::cpu_clock::now();
 
                                          // We have to catch any exceptions
@@ -125,7 +126,13 @@ namespace util {
 
                                          // Finish times in same order
                                          task.stats->finished = clock::now();
-                                         task.stats->cpu_time = util::cpu_clock::now() - cpu_start;
+
+                                         auto real_end = std::chrono::steady_clock::now();
+                                         auto cpu_end  = util::cpu_clock::now();
+
+                                         // Calculate the time taken
+                                         task.stats->cpu_time  = cpu_end - cpu_start;
+                                         task.stats->real_time = real_end - real_start;
 
                                          // Run our postconditions
                                          DSL::postcondition(task);

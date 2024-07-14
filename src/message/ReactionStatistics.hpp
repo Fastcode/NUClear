@@ -75,6 +75,8 @@ namespace message {
         clock::time_point started{};
         /// @brief The time that execution finished on this reaction
         clock::time_point finished{};
+        /// @brief The amount of real time that this reaction took to execute
+        std::chrono::steady_clock::duration real_time{};
         /// @brief The amount of CPU time that this reaction took to execute
         util::cpu_clock::duration cpu_time{};
         /// @brief An exception pointer that can be rethrown (if the reaction threw an exception)

@@ -20,20 +20,24 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include <catch.hpp>
+#include <catch2/catch_test_macros.hpp>
 #include <nuclear>
 
 #include "test_util/TestBase.hpp"
+#include "test_util/TimeUnit.hpp"
 
 // Anonymous namespace to keep everything file local
 namespace {
 
+using TimeUnit = test_util::TimeUnit;
+
 /// @brief Events that occur during the test and the time they occur
 /// NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
-std::vector<std::pair<std::string, NUClear::clock::time_point>> events;
+std::vector<std::pair<std::string, NUClear::clock::time_point>> code_events;
+std::vector<std::pair<std::string, NUClear::clock::time_point>> stat_events;
 
 struct Usage {
-    std::map<std::string, NUClear::clock::duration> real;
+    std::map<std::string, std::chrono::steady_clock::duration> real;
     std::map<std::string, NUClear::util::cpu_clock::duration> cpu;
 };
 
@@ -44,10 +48,10 @@ struct DoTest {};
 struct HeavyTask {};
 struct LightTask {};
 
-constexpr std::chrono::milliseconds STEP = std::chrono::milliseconds(100);
-const std::string heavy_name             = "Heavy";
-const std::string light_name             = "Light";
-const std::string initial_name           = "Initial";
+const std::string heavy_name   = "Heavy";
+const std::string light_name   = "Light";
+const std::string initial_name = "Initial";
+constexpr int scale            = 5;  // Number of time units to sleep/wait for
 
 using NUClear::message::ReactionStatistics;
 
@@ -55,59 +59,52 @@ class TestReactor : public test_util::TestBase<TestReactor> {
 public:
     TestReactor(std::unique_ptr<NUClear::Environment> environment) : TestBase(std::move(environment)) {
 
-        // This reaction is here to emit something from a ReactionStatistics trigger
-        // This shouldn't cause reaction statistics of their own otherwise everything would explode
-        on<Trigger<Step<1>>>().then(initial_name, [this] {
-            events.emplace_back("Code: Started " + initial_name, NUClear::clock::now());
-
-            events.emplace_back("Code: Emit " + heavy_name, NUClear::clock::now());
+        on<Trigger<Step<1>>, Priority::LOW>().then(initial_name + ":" + heavy_name, [this] {
+            code_events.emplace_back("Started " + initial_name + ":" + heavy_name, NUClear::clock::now());
+            code_events.emplace_back("Emitted " + heavy_name, NUClear::clock::now());
             emit(std::make_unique<HeavyTask>());
-            events.emplace_back("Code: Emitted " + heavy_name, NUClear::clock::now());
-
-            // Wait a step to separate out the start times (and the heavy task execution time)
-            std::this_thread::sleep_for(STEP);
-
-            events.emplace_back("Code: Emit " + light_name, NUClear::clock::now());
-            emit(std::make_unique<LightTask>());
-            events.emplace_back("Code: Emit " + light_name, NUClear::clock::now());
-
-            events.emplace_back("Code: Finished " + initial_name, NUClear::clock::now());
+            code_events.emplace_back("Finished " + initial_name + ":" + heavy_name, NUClear::clock::now());
         });
-
         on<Trigger<HeavyTask>>().then(heavy_name, [] {
-            events.emplace_back("Code: Started " + heavy_name, NUClear::clock::now());
-
-            // Wait using CPU power
+            code_events.emplace_back("Started " + heavy_name, NUClear::clock::now());
             auto start = NUClear::clock::now();
-            while (NUClear::clock::now() - start < STEP) {
+            while (NUClear::clock::now() - start < TimeUnit(scale)) {
             }
-
-            events.emplace_back("Code: Finished " + heavy_name, NUClear::clock::now());
+            code_events.emplace_back("Finished " + heavy_name, NUClear::clock::now());
         });
 
+        on<Trigger<Step<1>>, Priority::LOW>().then(initial_name + ":" + light_name, [this] {
+            code_events.emplace_back("Started " + initial_name + ":" + light_name, NUClear::clock::now());
+            code_events.emplace_back("Emitted " + light_name, NUClear::clock::now());
+            emit(std::make_unique<LightTask>());
+            code_events.emplace_back("Finished " + initial_name + ":" + light_name, NUClear::clock::now());
+        });
         on<Trigger<LightTask>>().then(light_name, [] {
-            events.emplace_back("Code: Started " + light_name, NUClear::clock::now());
-
-            // Wait by sleeping
-            std::this_thread::sleep_for(STEP);
-
-            events.emplace_back("Code: Finished " + light_name, NUClear::clock::now());
+            code_events.emplace_back("Started " + light_name, NUClear::clock::now());
+            std::this_thread::sleep_for(TimeUnit(scale));
+            code_events.emplace_back("Finished " + light_name, NUClear::clock::now());
         });
 
-        on<Trigger<ReactionStatistics>>().then([this](const ReactionStatistics& stats) {
-            if (stats.identifiers.reactor == reactor_name
-                && (stats.identifiers.name == initial_name || stats.identifiers.name == heavy_name
-                    || stats.identifiers.name == light_name)) {
-                events.emplace_back("Stat: Emitted " + stats.identifiers.name, stats.emitted);
-                events.emplace_back("Stat: Started " + stats.identifiers.name, stats.started);
-                events.emplace_back("Stat: Finished " + stats.identifiers.name, stats.finished);
+        on<Trigger<ReactionStatistics>>().then([](const ReactionStatistics& stats) {
+            // Check the name ends with light_name or heavy_name
+            if (stats.identifiers.name.substr(stats.identifiers.name.size() - light_name.size()) == light_name
+                || stats.identifiers.name.substr(stats.identifiers.name.size() - heavy_name.size()) == heavy_name) {
 
-                usage.real[stats.identifiers.name] = stats.finished - stats.started;
+                stat_events.emplace_back("Emitted " + stats.identifiers.name, stats.emitted);
+                stat_events.emplace_back("Started " + stats.identifiers.name, stats.started);
+                stat_events.emplace_back("Finished " + stats.identifiers.name, stats.finished);
+
+                usage.real[stats.identifiers.name] = stats.real_time;
                 usage.cpu[stats.identifiers.name]  = stats.cpu_time;
             }
         });
 
-        on<Startup>().then("Startup", [this] { emit(std::make_unique<Step<1>>()); });
+        on<Startup>().then("Startup", [this] {
+            auto start = NUClear::clock::now();
+            code_events.emplace_back("Emitted " + initial_name + ":" + heavy_name, start);
+            code_events.emplace_back("Emitted " + initial_name + ":" + light_name, start);
+            emit(std::make_unique<Step<1>>());
+        });
     }
 };
 }  // namespace
@@ -120,37 +117,51 @@ TEST_CASE("Testing reaction statistics timing", "[api][reactionstatistics][timin
     plant.install<TestReactor>();
     plant.start();
 
-    // The events are added in a different order due to stats running after, so sort it to be in the same order
-    std::sort(events.begin(), events.end(), [](const auto& lhs, const auto& rhs) { return lhs.second < rhs.second; });
+    // Sort the stats events by timestamp as they are not always going to be in order due to how stats are processed
+    std::sort(stat_events.begin(), stat_events.end(), [](const auto& lhs, const auto& rhs) {
+        return lhs.second < rhs.second;
+    });
 
-    // Convert the events to delta strings where 1 unit is 1 step unit
-    std::vector<std::string> delta_events;
-    auto first = events.front().second;
-    for (auto& event : events) {
-        auto delta = event.second - first;
-        auto units = std::chrono::duration_cast<std::chrono::nanoseconds>(delta).count()
-                     / std::chrono::duration_cast<std::chrono::nanoseconds>(STEP).count();
-        delta_events.push_back(event.first + " @ Step " + std::to_string(units));
-    }
 
-    const std::vector<std::string> expected = {
-        "Stat: Emitted Initial @ Step 0",  "Stat: Started Initial @ Step 0",  "Code: Started Initial @ Step 0",
-        "Code: Emit Heavy @ Step 0",       "Stat: Emitted Heavy @ Step 0",    "Code: Emitted Heavy @ Step 0",
-        "Code: Emit Light @ Step 1",       "Stat: Emitted Light @ Step 1",    "Code: Emit Light @ Step 1",
-        "Code: Finished Initial @ Step 1", "Stat: Finished Initial @ Step 1", "Stat: Started Heavy @ Step 1",
-        "Code: Started Heavy @ Step 1",    "Code: Finished Heavy @ Step 2",   "Stat: Finished Heavy @ Step 2",
-        "Stat: Started Light @ Step 2",    "Code: Started Light @ Step 2",    "Code: Finished Light @ Step 3",
-        "Stat: Finished Light @ Step 3",
+    auto make_delta = [](const std::vector<std::pair<std::string, NUClear::clock::time_point>>& events) {
+        std::vector<std::string> delta_events;
+        auto first = events.front().second;
+        for (auto& event : events) {
+            auto delta = event.second - first;
+            auto units = test_util::round_to_test_units(delta / scale).count();
+            delta_events.push_back(event.first + " @ Step " + std::to_string(units));
+        }
+        return delta_events;
     };
 
-    // Make an info print the diff in an easy to read way if we fail
-    INFO(test_util::diff_string(expected, delta_events));
+    // Convert the events to delta strings where 1 unit is 1 step unit
+    std::vector<std::string> delta_code_events = make_delta(code_events);
+    std::vector<std::string> delta_stat_events = make_delta(stat_events);
 
-    // Check the events fired in order and only those events
-    REQUIRE(delta_events == expected);
+    const std::vector<std::string> expected = {
+        "Emitted Initial:Heavy @ Step 0",
+        "Emitted Initial:Light @ Step 0",
+        "Started Initial:Heavy @ Step 0",
+        "Emitted Heavy @ Step 0",
+        "Finished Initial:Heavy @ Step 0",
+        "Started Heavy @ Step 0",
+        "Finished Heavy @ Step 1",
+        "Started Initial:Light @ Step 1",
+        "Emitted Light @ Step 1",
+        "Finished Initial:Light @ Step 1",
+        "Started Light @ Step 1",
+        "Finished Light @ Step 2",
+    };
 
-    // Most of initial real time should be spent sleeping
-    REQUIRE(usage.cpu[initial_name] < usage.real[initial_name] / 2);
+
+    /* Info Scope */ {
+        INFO("Code Events:\n" << test_util::diff_string(expected, delta_code_events));
+        REQUIRE(delta_code_events == expected);
+    }
+    /* Info Scope */ {
+        INFO("Statistic Events:\n" << test_util::diff_string(expected, delta_stat_events));
+        REQUIRE(delta_stat_events == expected);
+    }
 
     // Most of heavy real time should be cpu time
     REQUIRE(usage.cpu[heavy_name] > usage.real[heavy_name] / 2);
