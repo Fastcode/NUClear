@@ -48,6 +48,24 @@ jobs:
           key: ${{ github.job }}
           max-size: 100M
 
+      # Install ctcache
+      - name: Install ctcache
+        shell: bash
+        run: |
+          CTCACHE_REF=e70da77cb867d74ccadce3f3c5862fc9cf4d22a7
+          curl --location https://raw.githubusercontent.com/matus-chochlik/ctcache/${CTCACHE_REF}/clang-tidy-cache | sudo tee /usr/bin/clang-tidy-cache > /dev/null
+          curl --location https://raw.githubusercontent.com/matus-chochlik/ctcache/${CTCACHE_REF}/clang-tidy | sudo tee /usr/local/bin/clang-tidy > /dev/null
+          sudo chmod +x /usr/bin/clang-tidy-cache /usr/local/bin/clang-tidy
+          echo CTCACHE_DIR='${{github.workspace}}/.ctcache' >> "$GITHUB_ENV"
+          echo "CTCACHE_NOW=$(date -u +"%Y-%m-%dT%H:%M:%S.%3NZ")" >> $GITHUB_ENV
+
+      - name: Setup caching for ctcache
+        uses: actions/cache@v4
+        with:
+          key: ctcache-${{ inputs.key }}-${{ env.CTCACHE_NOW }}
+          path: ${{env.CTCACHE_DIR}}
+          restore-keys: ctcache-${{ inputs.key }}-
+
       - name: Configure CMake
         run: |
           cmake -E make_directory build

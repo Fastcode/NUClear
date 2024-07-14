@@ -78,7 +78,7 @@ if(ENABLE_CLANG_TIDY)
   # Search for clang-tidy-15 first as this is the version installed in CI
   find_program(CLANG_TIDY_EXECUTABLE NAMES clang-tidy-15 clang-tidy)
   if(NOT CLANG_TIDY_EXECUTABLE)
-    message(FATAL_ERROR "clang-tidy-15 not found.")
+    message(FATAL_ERROR "clang-tidy not found.")
   endif()
 
   # Report clang-tidy executable details
