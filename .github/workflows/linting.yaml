@@ -54,7 +54,8 @@ jobs:
         run: |
           CTCACHE_REF=e70da77cb867d74ccadce3f3c5862fc9cf4d22a7
           curl --location https://raw.githubusercontent.com/matus-chochlik/ctcache/${CTCACHE_REF}/clang-tidy-cache | sudo tee /usr/bin/clang-tidy-cache > /dev/null
-          curl --location https://raw.githubusercontent.com/matus-chochlik/ctcache/${CTCACHE_REF}/clang-tidy | sudo tee /usr/bin/clang-tidy > /dev/null
+          echo #!/bin/bash | sudo tee /usr/bin/clang-tidy > /dev/null
+          echo /usr/bin/clang-tidy-cache ${CTCACHE_CLANG_TIDY:-/usr/bin/clang-tidy} '"$@"' | sudo tee -a /usr/bin/clang-tidy > /dev/null
           sudo chmod +x /usr/bin/clang-tidy-cache /usr/bin/clang-tidy
           mkdir -p ${{ github.workspace }}/.ctcache
           echo CTCACHE_CLANG_TIDY='/usr/bin/clang-tidy-15' >> "$GITHUB_ENV"
