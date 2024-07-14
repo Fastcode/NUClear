@@ -63,7 +63,7 @@ jobs:
       - name: Setup caching for ctcache
         uses: actions/cache@v4
         with:
-          key: ctcache-${{ inputs.key }}-${{ env.CTCACHE_NOW }}
+          key: ctcache-${{ github.workflow }}-${{ github.job }}-${{ env.CTCACHE_NOW }}
           path: ${{env.CTCACHE_DIR}}
           restore-keys: ctcache-${{ inputs.key }}-
           save-always: true
