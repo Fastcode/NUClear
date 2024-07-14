@@ -49,7 +49,7 @@ jobs:
       # Update for all the actions that need to install stuff
       - run: |
           apt-get update
-          apt-get install -y software-properties-common
+          apt-get install -y software-properties-common unzip
 
       - name: Install GCC
         run: |
