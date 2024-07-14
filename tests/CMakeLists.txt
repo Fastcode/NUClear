@@ -45,7 +45,7 @@ if(BUILD_TESTS)
   # Create a test_util library that is used by all tests
   file(GLOB_RECURSE test_util_src "test_util/*.cpp")
   add_library(test_util OBJECT ${test_util_src})
-  target_link_libraries(test_util PUBLIC NUClear::nuclear)
+  target_link_libraries(test_util INTERFACE "$<LINK_LIBRARY:WHOLE_ARCHIVE,NUClear::nuclear>")
   target_link_libraries(test_util PUBLIC Catch2::Catch2)
   target_include_directories(test_util PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
   target_include_directories(
