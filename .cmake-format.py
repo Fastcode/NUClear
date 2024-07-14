@@ -4,9 +4,7 @@
 with section("parse"):
 
     # Specify structure for custom cmake functions
-    additional_commands = {
-        "HeaderLibrary": {"kwargs": {"NAME": "*", "HEADER": "*", "PATH_SUFFIX": "*", "URL": "*"}},
-    }
+    additional_commands = {}
 
     # Specify variable tags.
     vartags = []
@@ -213,6 +211,5 @@ with section("misc"):
     # A dictionary containing any per-command configuration overrides. Currently
     # only `command_case` is supported.
     per_command = {
-        "HeaderLibrary": {"command_case": "unchanged"},
         "ToolchainLibraryFinder": {"command_case": "unchanged"},
     }

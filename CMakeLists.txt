@@ -32,6 +32,12 @@ project(
 # We use additional modules that cmake needs to know about
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 
+# Output the compilation database
+set(CMAKE_EXPORT_COMPILE_COMMANDS
+    ON
+    CACHE STRING "Enable/Disable output of compile commands during generation." FORCE
+)
+
 # Set a default build type if none was specified
 set(default_build_type "Release")
 if(EXISTS "${CMAKE_SOURCE_DIR}/.git")
@@ -69,10 +75,11 @@ option(CI_BUILD "Enable build options for building in the CI server" OFF)
 # Default not to run the clang-tidy checks, default to whatever our CI_BUILD is
 option(ENABLE_CLANG_TIDY "Enable building with clang-tidy checks.")
 if(ENABLE_CLANG_TIDY)
-  # Search for clang-tidy-15 first as this is the version installed in CI
-  find_program(CLANG_TIDY_EXECUTABLE NAMES clang-tidy-15 clang-tidy)
+  # Search for clang-tidy first as this is the version installed in CI
+  find_program(CLANG_TIDY_EXECUTABLE NAMES clang-tidy)
+  message(STATUS "Found clang-tidy: ${CLANG_TIDY_EXECUTABLE}")
   if(NOT CLANG_TIDY_EXECUTABLE)
-    message(FATAL_ERROR "clang-tidy-15 not found.")
+    message(FATAL_ERROR "clang-tidy not found.")
   endif()
 
   # Report clang-tidy executable details

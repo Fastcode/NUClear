@@ -59,13 +59,12 @@ jobs:
 
       - name: Build with Sonar Wrapper
         timeout-minutes: 30
-        run: build-wrapper-linux-x86-64 --out-dir ${{ env.BUILD_WRAPPER_OUT_DIR }} cmake --build build/ --config Debug
+        run: cmake --build build/ --config Debug
 
       - name: Run tests to generate coverage statistics
         timeout-minutes: 10
-        run: |
-          build/tests/test_nuclear
-          for f in build/tests/individual/*; do echo "Testing $f"; ./$f; done
+        working-directory: build/tests
+        run: ctest --output-on-failure
 
       - name: Collect coverage into one XML report
         run: gcovr --exclude-unreachable-branches --exclude-noncode-lines --sonarqube > coverage.xml
@@ -76,5 +75,5 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
           sonar-scanner \
-            --define sonar.cfamily.build-wrapper-output="${{ env.BUILD_WRAPPER_OUT_DIR }}" \
+            --define sonar.cfamily.compile-commands=build/compile_commands.json \
             --define sonar.coverageReportPaths=coverage.xml
