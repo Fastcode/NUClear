@@ -28,6 +28,10 @@ if(BUILD_TESTS)
   FetchContent_Declare(Catch2 URL https://github.com/catchorg/Catch2/archive/refs/tags/v3.6.0.tar.gz)
   FetchContent_MakeAvailable(Catch2)
 
+  # Silence clang-tidy warnings from catch2
+  set_target_properties(Catch2 PROPERTIES CXX_CLANG_TIDY "")
+  set_target_properties(Catch2 PROPERTIES CXX_CLANG_TIDY "")
+
   enable_testing()
 
   file(
