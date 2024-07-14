@@ -75,8 +75,8 @@ option(CI_BUILD "Enable build options for building in the CI server" OFF)
 # Default not to run the clang-tidy checks, default to whatever our CI_BUILD is
 option(ENABLE_CLANG_TIDY "Enable building with clang-tidy checks.")
 if(ENABLE_CLANG_TIDY)
-  # Search for clang-tidy-15 first as this is the version installed in CI
-  find_program(CLANG_TIDY_EXECUTABLE NAMES clang-tidy-15 clang-tidy)
+  # Search for clang-tidy first as this is the version installed in CI
+  find_program(CLANG_TIDY_EXECUTABLE NAMES clang-tidy)
   if(NOT CLANG_TIDY_EXECUTABLE)
     message(FATAL_ERROR "clang-tidy not found.")
   endif()
