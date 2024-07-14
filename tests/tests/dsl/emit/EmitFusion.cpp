@@ -24,7 +24,7 @@
 #include <nuclear>
 #include <utility>
 
-#include "../../test_util/TestBase.hpp"
+#include "test_util/TestBase.hpp"
 
 // Anonymous namespace to keep everything file local
 namespace {

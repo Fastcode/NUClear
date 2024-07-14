@@ -23,7 +23,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include <nuclear>
 
-#include "../../test_util/TestBase.hpp"
+#include "test_util/TestBase.hpp"
 
 // Anonymous namespace to keep everything file local
 namespace {
