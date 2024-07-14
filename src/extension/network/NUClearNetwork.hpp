@@ -93,8 +93,8 @@ namespace extension {
                 inline void measure_round_trip(std::chrono::steady_clock::duration time) {
 
                     // Make our measurement into a float seconds type
-                    const std::chrono::duration<float, std::ratio<1>> m =
-                        std::chrono::duration_cast<std::chrono::duration<float, std::ratio<1>>>(time);
+                    const std::chrono::duration<float> m =
+                        std::chrono::duration_cast<std::chrono::duration<float>>(time);
 
                     // Alias variables
                     const auto& Q = round_trip_kf.process_noise;
@@ -111,7 +111,7 @@ namespace extension {
 
                     // Put result into our variable
                     round_trip_time = std::chrono::duration_cast<std::chrono::steady_clock::duration>(
-                        std::chrono::duration<float, std::ratio<1>>(X));
+                        std::chrono::duration<float>(X));
                 }
             };
 
@@ -130,7 +130,10 @@ namespace extension {
              * @param target        who we are sending to (blank means everyone)
              * @param reliable      if the delivery of the data should be ensured
              */
-            void send(const uint64_t& hash, const std::vector<uint8_t>& payload, const std::string& target, bool reliable);
+            void send(const uint64_t& hash,
+                      const std::vector<uint8_t>& payload,
+                      const std::string& target,
+                      bool reliable);
 
             /**
              * @brief Set the callback to use when a data packet is completed

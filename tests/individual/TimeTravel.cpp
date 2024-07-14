@@ -3,10 +3,12 @@
 #include <nuclear>
 
 #include "test_util/TestBase.hpp"
+#include "test_util/TimeUnit.hpp"
 
 namespace {
 
-using TestUnits                = std::chrono::duration<int64_t, std::ratio<1, 25>>;
+using TimeUnit = test_util::TimeUnit;
+
 constexpr int64_t EVENT_1_TIME = 4;
 constexpr int64_t EVENT_2_TIME = 8;
 
@@ -36,7 +38,7 @@ public:
                     results.events[0] = Results::TimePair{NUClear::clock::now(), std::chrono::steady_clock::now()};
                     return false;
                 },
-                NUClear::clock::time_point(TestUnits(EVENT_1_TIME)),
+                NUClear::clock::time_point(TimeUnit(EVENT_1_TIME)),
                 1));
 
             // Emit a chrono task to run at time EVENT_2_TIME, and shutdown
@@ -46,7 +48,7 @@ public:
                     powerplant.shutdown();
                     return false;
                 },
-                NUClear::clock::time_point(TestUnits(EVENT_2_TIME)),
+                NUClear::clock::time_point(TimeUnit(EVENT_2_TIME)),
                 2));
 
             // Time travel!
@@ -86,7 +88,7 @@ TEST_CASE("Test time travel correctly changes the time for non zero rtf", "[time
     const double rtf         = GENERATE(0.5, 1.0, 2.0);
     CAPTURE(action, adjustment, rtf);
     reactor.action     = action;
-    reactor.adjustment = TestUnits(adjustment);
+    reactor.adjustment = TimeUnit(adjustment);
     reactor.rtf        = rtf;
 
     // Start the powerplant
@@ -110,32 +112,26 @@ TEST_CASE("Test time travel correctly changes the time for non zero rtf", "[time
         default: throw std::runtime_error("Unknown action");
     }
 
-    std::array<TestUnits, 2> expected_nuclear = {TestUnits(expected[0]), TestUnits(expected[1])};
-    std::array<TestUnits, 2> expected_steady  = {TestUnits(std::lround(double(expected[0]) / rtf)),
-                                                 TestUnits(std::lround(double(expected[1]) / rtf))};
+    std::array<TimeUnit, 2> expected_nuclear = {TimeUnit(expected[0]), TimeUnit(expected[1])};
+    std::array<TimeUnit, 2> expected_steady  = {TimeUnit(std::lround(double(expected[0]) / rtf)),
+                                                TimeUnit(std::lround(double(expected[1]) / rtf))};
 
     const auto& r       = reactor.results;
     const auto& n_start = reactor.results.start.nuclear;
     const auto& s_start = reactor.results.start.steady;
 
-    auto round_to_test_units = [](const auto& duration) {
-        const double d = std::chrono::duration_cast<std::chrono::duration<double>>(duration).count();
-        const double t = (TestUnits::period::den * d) / TestUnits::period::num;
-        return TestUnits(std::lround(t));
+    std::array<TimeUnit, 2> actual_nuclear = {
+        test_util::round_to_test_units(r.events[0].nuclear - n_start),
+        test_util::round_to_test_units(r.events[1].nuclear - n_start),
+    };
+    std::array<TimeUnit, 2> actual_steady = {
+        test_util::round_to_test_units(r.events[0].steady - s_start),
+        test_util::round_to_test_units(r.events[1].steady - s_start),
     };
 
-    std::array<TestUnits, 2> actual_nuclear = {
-        round_to_test_units(r.events[0].nuclear - n_start),
-        round_to_test_units(r.events[1].nuclear - n_start),
-    };
-    std::array<TestUnits, 2> actual_steady = {
-        round_to_test_units(r.events[0].steady - s_start),
-        round_to_test_units(r.events[1].steady - s_start),
-    };
-
-    const TestUnits actual_adjustment(round_to_test_units(r.start.nuclear - r.zero.nuclear));
-    const TestUnits expected_adjustment(std::min(adjustment, action == Action::NEAREST ? EVENT_1_TIME : adjustment));
-    CHECK(round_to_test_units(r.zero.nuclear.time_since_epoch()) == TestUnits(0));
+    const TimeUnit actual_adjustment(test_util::round_to_test_units(r.start.nuclear - r.zero.nuclear));
+    const TimeUnit expected_adjustment(std::min(adjustment, action == Action::NEAREST ? EVENT_1_TIME : adjustment));
+    CHECK(test_util::round_to_test_units(r.zero.nuclear.time_since_epoch()) == TimeUnit(0));
     CHECK(expected_nuclear[0] == actual_nuclear[0]);
     CHECK(expected_nuclear[1] == actual_nuclear[1]);
     CHECK(expected_steady[0] == actual_steady[0]);
