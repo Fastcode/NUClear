@@ -77,6 +77,7 @@ option(ENABLE_CLANG_TIDY "Enable building with clang-tidy checks.")
 if(ENABLE_CLANG_TIDY)
   # Search for clang-tidy first as this is the version installed in CI
   find_program(CLANG_TIDY_EXECUTABLE NAMES clang-tidy)
+  message(STATUS "Found clang-tidy: ${CLANG_TIDY_EXECUTABLE}")
   if(NOT CLANG_TIDY_EXECUTABLE)
     message(FATAL_ERROR "clang-tidy not found.")
   endif()
