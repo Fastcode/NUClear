@@ -126,7 +126,7 @@ TEST_CASE("Testing reaction statistics timing", "[api][reactionstatistics][timin
     auto make_delta = [](const std::vector<std::pair<std::string, NUClear::clock::time_point>>& events) {
         std::vector<std::string> delta_events;
         auto first = events.front().second;
-        for (auto& event : events) {
+        for (const auto& event : events) {
             auto delta = event.second - first;
             auto units = test_util::round_to_test_units(delta / scale).count();
             delta_events.push_back(event.first + " @ Step " + std::to_string(units));
