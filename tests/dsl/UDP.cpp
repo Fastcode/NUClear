@@ -25,6 +25,7 @@
 
 #include "test_util/TestBase.hpp"
 #include "test_util/has_ipv6.hpp"
+#include "test_util/has_multicast.hpp"
 
 namespace {
 
@@ -361,8 +362,10 @@ TEST_CASE("Testing sending and receiving of UDP messages", "[api][network][udp]"
     }
     active_tests.push_back(BROADCAST_V4_KNOWN);
     active_tests.push_back(BROADCAST_V4_EPHEMERAL);
-    active_tests.push_back(MULTICAST_V4_KNOWN);
-    active_tests.push_back(MULTICAST_V4_EPHEMERAL);
+    if (test_util::has_multicast()) {
+        active_tests.push_back(MULTICAST_V4_KNOWN);
+        active_tests.push_back(MULTICAST_V4_EPHEMERAL);
+    }
     if (test_util::has_ipv6()) {
         active_tests.push_back(MULTICAST_V6_KNOWN);
         active_tests.push_back(MULTICAST_V6_EPHEMERAL);
