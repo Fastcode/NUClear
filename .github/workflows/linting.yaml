@@ -65,7 +65,7 @@ jobs:
         with:
           key: ctcache-${{ github.workflow }}-${{ github.job }}-${{ env.CTCACHE_NOW }}
           path: ${{env.CTCACHE_DIR}}
-          restore-keys: ctcache-${{ inputs.key }}-
+          restore-keys: ctcache-${{ github.workflow }}-${{ github.job }}-
           save-always: true
 
       - name: Configure CMake
