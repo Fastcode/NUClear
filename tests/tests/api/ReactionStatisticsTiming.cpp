@@ -118,7 +118,7 @@ TEST_CASE("Testing reaction statistics timing", "[api][reactionstatistics][timin
     plant.start();
 
     // Sort the stats events by timestamp as they are not always going to be in order due to how stats are processed
-    std::sort(stat_events.begin(), stat_events.end(), [](const auto& lhs, const auto& rhs) {
+    std::stable_sort(stat_events.begin(), stat_events.end(), [](const auto& lhs, const auto& rhs) {
         return lhs.second < rhs.second;
     });
 
