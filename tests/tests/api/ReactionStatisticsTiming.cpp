@@ -48,10 +48,10 @@ struct DoTest {};
 struct HeavyTask {};
 struct LightTask {};
 
-const std::string heavy_name   = "Heavy";
-const std::string light_name   = "Light";
-const std::string initial_name = "Initial";
-constexpr int scale            = 5;  // Number of time units to sleep/wait for
+const std::string heavy_name   = "Heavy";    // NOLINT(cert-err58-cpp)
+const std::string light_name   = "Light";    // NOLINT(cert-err58-cpp)
+const std::string initial_name = "Initial";  // NOLINT(cert-err58-cpp)
+constexpr int scale            = 5;          // Number of time units to sleep/wait for
 
 using NUClear::message::ReactionStatistics;
 
