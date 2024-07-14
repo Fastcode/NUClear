@@ -22,7 +22,7 @@
 
 #include "util/network/resolve.hpp"
 
-#include <catch.hpp>
+#include <catch2/catch_test_macros.hpp>
 
 TEST_CASE("resolve function returns expected socket address", "[util][network][resolve]") {
 

@@ -20,7 +20,7 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include <catch.hpp>
+#include <catch2/catch_test_macros.hpp>
 #include <nuclear>
 
 #include "test_util/TestBase.hpp"
@@ -31,7 +31,7 @@ namespace {
 std::vector<std::string> events;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
 struct TestMessage {
-    TestMessage(int v) : value(v){};
+    TestMessage(int v) : value(v) {};
     int value;
 };
 

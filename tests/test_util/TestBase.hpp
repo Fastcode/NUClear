@@ -23,7 +23,7 @@
 #ifndef TEST_UTIL_TESTBASE_HPP
 #define TEST_UTIL_TESTBASE_HPP
 
-#include <catch.hpp>
+#include <catch2/catch_test_macros.hpp>
 #include <string>
 #include <utility>
 

@@ -20,7 +20,7 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include <catch.hpp>
+#include <catch2/catch_test_macros.hpp>
 #include <nuclear>
 
 #include "test_util/TestBase.hpp"
@@ -33,7 +33,7 @@ std::vector<std::string> events;  // NOLINT(cppcoreguidelines-avoid-non-const-gl
 template <int i>
 struct Message {
     int val;
-    Message(int val) : val(val){};
+    Message(int val) : val(val) {};
 };
 
 class TestReactor : public test_util::TestBase<TestReactor> {

@@ -20,8 +20,7 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#define CATCH_CONFIG_MAIN
-#include <catch.hpp>
+#include <catch2/catch_test_macros.hpp>
 #include <ctime>  // for localtime_r/s
 
 // This define declares that we are using steady_clock as the base clock for NUClear
