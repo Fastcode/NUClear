@@ -32,6 +32,12 @@ project(
 # We use additional modules that cmake needs to know about
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 
+# Output the compilation database
+set(CMAKE_EXPORT_COMPILE_COMMANDS
+    ON
+    CACHE STRING "Enable/Disable output of compile commands during generation." FORCE
+)
+
 # Set a default build type if none was specified
 set(default_build_type "Release")
 if(EXISTS "${CMAKE_SOURCE_DIR}/.git")
