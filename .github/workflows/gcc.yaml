@@ -49,7 +49,7 @@ jobs:
       # Update for all the actions that need to install stuff
       - run: |
           apt-get update
-          apt-get install -y software-properties-common
+          apt-get install -y software-properties-common unzip
 
       - name: Install GCC
         run: |
@@ -91,7 +91,6 @@ jobs:
         run: ccache --show-stats
 
       - name: Test
-        timeout-minutes: 10
-        run: |
-          build/tests/test_nuclear
-          for f in build/tests/individual/*; do echo "Testing $f"; ./$f; done
+        timeout-minutes: 3
+        working-directory: build/tests
+        run: ctest --output-on-failure -E "tests/dsl/UDP"

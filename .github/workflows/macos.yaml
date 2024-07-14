@@ -59,7 +59,6 @@ jobs:
         run: ccache --show-stats
 
       - name: Test
-        timeout-minutes: 10
-        run: |
-          build/tests/test_nuclear
-          for f in build/tests/individual/*; do echo "Testing $f"; ./$f; done
+        timeout-minutes: 3
+        working-directory: build/tests
+        run: ctest --output-on-failure
