@@ -66,6 +66,7 @@ jobs:
           key: ctcache-${{ inputs.key }}-${{ env.CTCACHE_NOW }}
           path: ${{env.CTCACHE_DIR}}
           restore-keys: ctcache-${{ inputs.key }}-
+          save-always: true
 
       - name: Configure CMake
         run: |
