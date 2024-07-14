@@ -56,6 +56,7 @@ jobs:
           curl --location https://raw.githubusercontent.com/matus-chochlik/ctcache/${CTCACHE_REF}/clang-tidy-cache | sudo tee /usr/bin/clang-tidy-cache > /dev/null
           curl --location https://raw.githubusercontent.com/matus-chochlik/ctcache/${CTCACHE_REF}/clang-tidy | sudo tee /usr/bin/clang-tidy > /dev/null
           sudo chmod +x /usr/bin/clang-tidy-cache /usr/bin/clang-tidy
+          mkdir -p ${{ github.workspace }}/.ctcache
           echo CTCACHE_CLANG_TIDY='/usr/bin/clang-tidy-15' >> "$GITHUB_ENV"
           echo CTCACHE_DIR='${{github.workspace}}/.ctcache' >> "$GITHUB_ENV"
           echo "CTCACHE_NOW=$(date -u +"%Y-%m-%dT%H:%M:%S.%3NZ")" >> $GITHUB_ENV
@@ -76,14 +77,13 @@ jobs:
             -DCMAKE_C_COMPILER_LAUNCHER=ccache \
             -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
             -DBUILD_TESTS=ON \
-            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_BUILD_TYPE=Debug \
             -DCI_BUILD=ON \
             -DENABLE_CLANG_TIDY=ON
 
       - name: Build
         timeout-minutes: 30
-        # Execute the build.  You can specify a specific target with "--target <NAME>"
-        run: cmake --build build --config Release --parallel 2
+        run: cmake --build build --config Debug --parallel 2
 
       - name: CCache Stats
         run: ccache --show-stats
