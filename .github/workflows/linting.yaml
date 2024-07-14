@@ -90,3 +90,6 @@ jobs:
 
       - name: CCache Stats
         run: ccache --show-stats
+
+      - name: CTCache Stats
+        run: clang-tidy-cache --show-stats
