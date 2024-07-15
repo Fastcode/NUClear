@@ -34,6 +34,7 @@ using TimeUnit = test_util::TimeUnit;
 /// @brief Events that occur during the test and the time they occur
 /// NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
 std::vector<std::pair<std::string, NUClear::clock::time_point>> code_events;
+/// NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
 std::vector<std::pair<std::string, NUClear::clock::time_point>> stat_events;
 
 struct Usage {
