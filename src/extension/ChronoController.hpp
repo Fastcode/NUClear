@@ -203,18 +203,18 @@ namespace extension {
         }
 
     private:
-        /// @brief The list of tasks we need to process
+        /// The list of tasks we need to process
         std::vector<dsl::operation::ChronoTask> tasks;
-        /// @brief The mutex we use to lock the task list
+        /// The mutex we use to lock the task list
         std::mutex mutex;
-        /// @brief The condition variable we use to wait on
+        /// The condition variable we use to wait on
         std::condition_variable wait;
-        /// @brief If we are running or not
+        /// If we are running or not
         std::atomic<bool> running{true};
 
-        /// @brief The temporal accuracy when waiting on a condition variable
+        /// The temporal accuracy when waiting on a condition variable
         NUClear::clock::duration cv_accuracy{0};
-        /// @brief The temporal accuracy when waiting on nanosleep
+        /// The temporal accuracy when waiting on nanosleep
         NUClear::clock::duration ns_accuracy{0};
     };
 

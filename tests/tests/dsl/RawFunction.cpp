@@ -27,7 +27,7 @@
 
 namespace {
 
-/// @brief Events that occur during the test
+/// Events that occur during the test
 std::vector<std::string> events;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
 struct Message {
@@ -41,7 +41,7 @@ struct Data {
 };
 
 /**
- * @brief Test a raw function that takes no arguments and has a return type.
+ * Test a raw function that takes no arguments and has a return type.
  * The return type should be ignored and this function should run without issue.
  *
  * @return double
@@ -52,7 +52,7 @@ double raw_function_test_no_args() {
 }
 
 /**
- * @brief Raw function that takes one argument (the left side of the trigger)
+ * Raw function that takes one argument (the left side of the trigger)
  *
  * @param msg the message
  */
@@ -61,7 +61,7 @@ void raw_function_test_left_arg(const Message& msg) {
 }
 
 /**
- * @brief Raw function that takes one argument (the right side of the trigger)
+ * Raw function that takes one argument (the right side of the trigger)
  *
  * @param data the data
  */
@@ -70,7 +70,7 @@ void raw_function_test_right_arg(const Data& data) {
 }
 
 /**
- * @brief Raw function that takes both arguments
+ * Raw function that takes both arguments
  *
  * @param msg  the message
  * @param data the data

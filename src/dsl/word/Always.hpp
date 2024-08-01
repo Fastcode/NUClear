@@ -36,19 +36,19 @@ namespace dsl {
     namespace word {
 
         /**
-         * @brief
-         *  This is used to request any continuous reactions in the system.
+         * This is used to request any continuous reactions in the system.
          *
-         * @details
-         *  @code on<Always> @endcode
-         *  This request will ensure a single instance of the associated reaction is running at all times.
-         *  That is, as one instance is completed, a new instance of the task will spawn.
          *
-         *  Any reactions requested using this keyword will initialise upon system start-up and execute continually
-         *  until system shut-down.
+         * @code on<Always> @endcode
          *
-         *  Note that a task spawned from this request will execute in its own unique thread rather than the default
-         *  thread pool.
+         * This request will ensure a single instance of the associated reaction is running at all times.
+         * That is, as one instance is completed, a new instance of the task will spawn.
+         *
+         * Any reactions requested using this keyword will initialise upon system start-up and execute continually
+         * until system shut-down.
+         *
+         * Note that a task spawned from this request will execute in its own unique thread rather than the default
+         * thread pool.
          *
          * @par Infinite Loops
          *  This word should be used in place of any reactions which would contain an infinite loop. That is,
@@ -59,7 +59,7 @@ namespace dsl {
          *
          * @par Ensure Clean Shutdown
          *  If the reaction associated with this task is performing a blocking operation, developers should make the
-         *  the reaction interruptible with an on<Shutdown> reaction.  This will enforce a clean shutdown in the system.
+         *  the reaction interruptable with an on<Shutdown> reaction.  This will enforce a clean shutdown in the system.
          *
          * @attention
          *  Where possible, developers should <b>avoid using this keyword</b>.  It has been provided, but should only be
@@ -73,86 +73,74 @@ namespace dsl {
         struct Always {
 
             template <typename DSL>
-            static inline util::ThreadPoolDescriptor pool(const threading::Reaction& reaction) {
-                static std::map<NUClear::id_t, NUClear::id_t> pool_id;
+            static inline util::ThreadPoolDescriptor pool(const threading::ReactionTask& task) {
+                static std::map<NUClear::id_t, NUClear::id_t> pool_ids;
                 static std::mutex mutex;
 
-                const std::lock_guard<std::mutex> lock(mutex);
-                if (pool_id.count(reaction.id) == 0) {
-                    pool_id[reaction.id] = util::ThreadPoolDescriptor::get_unique_pool_id();
+                const auto& reaction = *task.parent;
+                id_t pool_id         = 0;
+
+                /*mutex scope*/ {
+                    const std::lock_guard<std::mutex> lock(mutex);
+                    if (pool_ids.count(reaction.id) == 0) {
+                        pool_ids[reaction.id] = util::ThreadPoolDescriptor::get_unique_pool_id();
+                    }
+                    pool_id = pool_ids.at(reaction.id);
                 }
-                return util::ThreadPoolDescriptor{pool_id[reaction.id], 1, false};
+
+                // Use the reaction name as the pool name otherwise default to "Always<pool_id>"
+                std::string pool_name = !reaction.identifiers->name.empty()
+                                            ? std::string(reaction.identifiers->name)
+                                            : std::string("Always<") + std::to_string(pool_id) + ">";
+                return util::ThreadPoolDescriptor{pool_name, pool_id, 1, false};
             }
 
             template <typename DSL>
-            static inline void bind(const std::shared_ptr<threading::Reaction>& always_reaction) {
-                /**
-                 * Static map mapping reaction id (from the always reaction) to a pair of reaction pointers -- one for
-                 * the always reaction and one for the idle reaction that we generate in this function
-                 * The main purpose of this map is to ensure that the always reaction pointer doesn't get destroyed
-                 */
-                static std::map<NUClear::id_t,
-                                std::pair<std::shared_ptr<threading::Reaction>, std::shared_ptr<threading::Reaction>>>
-                    reaction_store = {};
-
-                /**
-                 * Generate a new reaction for an idle task
-                 * The purpose of this reaction is to ensure that the always reaction is resubmitted in the event that
-                 * the precondition fails (e.g. on<Always, With<X>> will fail the precondition if there are no X
-                 * messages previously emitted)
-                 *
-                 * In the event that the precondition on the always reaction fails this idle task will run and resubmit
-                 * both the always reaction and the idle reaction
-                 *
-                 * The idle reaction must have a lower priority than the always reaction and must also run in the same
-                 * thread pool and group as the always reaction
-                 */
-                auto idle_reaction = std::make_shared<threading::Reaction>(
-                    always_reaction->reactor,
-                    threading::ReactionIdentifiers{always_reaction->identifiers.name + " - IDLE Task",
-                                                   always_reaction->identifiers.reactor,
-                                                   always_reaction->identifiers.dsl,
-                                                   always_reaction->identifiers.function},
-                    [always_reaction](threading::Reaction& ir) -> util::GeneratedCallback {
-                        auto callback = [&ir, always_reaction](const threading::ReactionTask& /*task*/) {
-                            // Get a task for the always reaction and submit it to the scheduler
-                            always_reaction->reactor.powerplant.submit(always_reaction->get_task());
-
-                            // Get a task for the idle reaction and submit it to the scheduler
-                            ir.reactor.powerplant.submit(ir.get_task());
-                        };
-
-                        // Make sure that idle reaction always has lower priority than the always reaction
-                        return {DSL::priority(*always_reaction) - 1,
-                                DSL::group(*always_reaction),
-                                DSL::pool(*always_reaction),
-                                callback};
-                    });
-
-                // Don't emit stats for the idle reaction
-                idle_reaction->emit_stats = false;
-
-                // Keep this reaction handy so it doesn't go out of scope
-                reaction_store[always_reaction->id] = {always_reaction, idle_reaction};
+            static inline void bind(const std::shared_ptr<threading::Reaction>& reaction) {
 
                 // Create an unbinder for the always reaction
-                always_reaction->unbinders.push_back([](threading::Reaction& r) {
+                reaction->unbinders.push_back([](threading::Reaction& r) {
                     r.enabled = false;
-                    reaction_store.erase(r.id);
                     // TODO(Alex/Trent) Clean up thread pool too
                 });
 
-                // Get a task for the always reaction and submit it to the scheduler
-                always_reaction->reactor.powerplant.submit(always_reaction->get_task());
-
-                // Get a task for the idle reaction and submit it to the scheduler
-                idle_reaction->reactor.powerplant.submit(idle_reaction->get_task());
+                // Submit the always and idle task to the scheduler
+                PowerPlant::powerplant->submit(reaction->get_task());
+                PowerPlant::powerplant->submit(make_idle_task<DSL>(reaction));
             }
 
             template <typename DSL>
             static inline void postcondition(threading::ReactionTask& task) {
                 // Get a task for the always reaction and submit it to the scheduler
-                task.parent.reactor.powerplant.submit(task.parent.get_task());
+                PowerPlant::powerplant->submit(task.parent->get_task());
+            }
+
+        private:
+            /**
+             * Generate an idle task for Always which will be used to resubmit the Always task if it fails
+             *
+             * @tparam DSL      the DSL that the Always task is using
+             * @param reaction  the reaction that the Always task is associated with
+             *
+             * @return a unique pointer to the idle task which will resubmit the Always task and itself
+             */
+            template <typename DSL>
+            static inline std::unique_ptr<threading::ReactionTask> make_idle_task(
+                const std::shared_ptr<threading::Reaction>& reaction) {
+
+                auto idle_task = std::make_unique<threading::ReactionTask>(
+                    reaction,
+                    [](threading::ReactionTask& task) { return DSL::priority(task) - 1; },
+                    DSL::pool,
+                    DSL::group);
+
+                idle_task->callback = [](threading::ReactionTask& task) {
+                    // Submit the always and idle tasks to the scheduler
+                    PowerPlant::powerplant->submit(task.parent->get_task());
+                    PowerPlant::powerplant->submit(make_idle_task<DSL>(task.parent));
+                };
+
+                return idle_task;
             }
         };
 

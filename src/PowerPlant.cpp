@@ -67,10 +67,10 @@ void PowerPlant::submit(std::unique_ptr<threading::ReactionTask>&& task, const b
             submit(t->id, t->priority, t->group_descriptor, t->thread_pool_descriptor, immediate, [t]() { t->run(); });
         }
         catch (const std::exception& ex) {
-            task->parent.reactor.log<NUClear::ERROR>("There was an exception while submitting a reaction", ex.what());
+            task->parent->reactor.log<NUClear::ERROR>("There was an exception while submitting a reaction", ex.what());
         }
         catch (...) {
-            task->parent.reactor.log<NUClear::ERROR>("There was an unknown exception while submitting a reaction");
+            task->parent->reactor.log<NUClear::ERROR>("There was an unknown exception while submitting a reaction");
         }
     }
 }

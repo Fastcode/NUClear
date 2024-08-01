@@ -31,18 +31,22 @@ namespace dsl {
     namespace word {
 
         /**
-         * @brief
-         *  This is used to specify that the associated task will need to execute using the main thread.
+         * This is used to specify that the associated task will need to execute using the main thread.
          *
-         * @details
-         *  @code on<Trigger<T, ...>, MainThread>() @endcode
-         *  This will most likely be used with graphics related tasks.
+         * @code on<Trigger<T, ...>, MainThread>() @endcode
+         *
+         * This will most likely be used with graphics related tasks.
          */
         struct MainThread {
 
+            /// the description of the thread pool to be used for this PoolType
+            static util::ThreadPoolDescriptor main_descriptor() {
+                return util::ThreadPoolDescriptor{"Main", util::ThreadPoolDescriptor::MAIN_THREAD_POOL_ID, 1, true};
+            }
+
             template <typename DSL>
-            static inline util::ThreadPoolDescriptor pool(const threading::Reaction& /*reaction*/) {
-                return util::ThreadPoolDescriptor{util::ThreadPoolDescriptor::MAIN_THREAD_POOL_ID, 1, true};
+            static inline util::ThreadPoolDescriptor pool(const threading::ReactionTask& /*task*/) {
+                return main_descriptor();
             }
         };
 

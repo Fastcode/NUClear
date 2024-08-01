@@ -35,19 +35,18 @@ namespace dsl {
     namespace word {
 
         /**
-         * @brief
-         *  This is used to specify that this reaction should run in the designated thread pool
+         * This is used to specify that this reaction should run in the designated thread pool
          *
-         * @details
-         *  @code on<Trigger<T, ...>, Pool<PoolType>>() @endcode
-         *  This DSL will cause the creation of a new thread pool with a specific number of threads allocated to it.
+         * @code on<Trigger<T, ...>, Pool<PoolType>>() @endcode
          *
-         *  All tasks for this reaction will be queued to run on threads from this thread pool.
+         * This DSL will cause the creation of a new thread pool with a specific number of threads allocated to it.
          *
-         *  Tasks in the queue are ordered based on their priority level, then their task id.
+         * All tasks for this reaction will be queued to run on threads from this thread pool.
          *
-         *  When this DSL is not specified the default thread pool will be used. For tasks that need to run on the main
-         *  thread use MainThread.
+         * Tasks in the queue are ordered based on their priority level, then their task id.
+         *
+         * When this DSL is not specified the default thread pool will be used. For tasks that need to run on the main
+         * thread use MainThread.
          *
          * @attention
          *  This DSL should be used sparingly as having an increased number of threads running concurrently on the
@@ -70,16 +69,16 @@ namespace dsl {
 
             static_assert(PoolType::thread_count > 0, "Can not have a thread pool with less than 1 thread");
 
-            /// @brief the description of the thread pool to be used for this PoolType
+            /// the description of the thread pool to be used for this PoolType
             static const util::ThreadPoolDescriptor pool_descriptor;
 
             /**
-             * @brief Sets which thread pool to use for any tasks initiated from this reaction
+             * Sets which thread pool to use for this task
              *
              * @tparam DSL the DSL used for this reaction
              */
             template <typename DSL>
-            static inline util::ThreadPoolDescriptor pool(const threading::Reaction& /*reaction*/) {
+            static inline util::ThreadPoolDescriptor pool(const threading::ReactionTask& /*task*/) {
                 return pool_descriptor;
             }
         };
@@ -88,7 +87,7 @@ namespace dsl {
         template <>
         struct Pool<void> {
             template <typename DSL>
-            static inline util::ThreadPoolDescriptor pool(const threading::Reaction& /*reaction*/) {
+            static inline util::ThreadPoolDescriptor pool(const threading::ReactionTask& /*task*/) {
                 return util::ThreadPoolDescriptor{};
             }
         };
@@ -96,6 +95,7 @@ namespace dsl {
         // Initialise the thread pool descriptor
         template <typename PoolType>
         const util::ThreadPoolDescriptor Pool<PoolType>::pool_descriptor = {
+            util::demangle(typeid(PoolType).name()),
             util::ThreadPoolDescriptor::get_unique_pool_id(),
             PoolType::thread_count,
             true,

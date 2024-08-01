@@ -31,7 +31,7 @@ namespace {
 
 using TimeUnit = test_util::TimeUnit;
 
-/// @brief Events that occur during the test and the time they occur
+/// Events that occur during the test and the time they occur
 /// NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
 std::vector<std::pair<std::string, NUClear::clock::time_point>> code_events;
 /// NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
@@ -54,7 +54,7 @@ const std::string light_name   = "Light";    // NOLINT(cert-err58-cpp)
 const std::string initial_name = "Initial";  // NOLINT(cert-err58-cpp)
 constexpr int scale            = 5;          // Number of time units to sleep/wait for
 
-using NUClear::message::ReactionStatistics;
+using NUClear::message::ReactionEvent;
 
 class TestReactor : public test_util::TestBase<TestReactor> {
 public:
@@ -62,7 +62,7 @@ public:
 
         on<Trigger<Step<1>>, Priority::LOW>().then(initial_name + ":" + heavy_name, [this] {
             code_events.emplace_back("Started " + initial_name + ":" + heavy_name, NUClear::clock::now());
-            code_events.emplace_back("Emitted " + heavy_name, NUClear::clock::now());
+            code_events.emplace_back("Created " + heavy_name, NUClear::clock::now());
             emit(std::make_unique<HeavyTask>());
             code_events.emplace_back("Finished " + initial_name + ":" + heavy_name, NUClear::clock::now());
         });
@@ -76,7 +76,7 @@ public:
 
         on<Trigger<Step<1>>, Priority::LOW>().then(initial_name + ":" + light_name, [this] {
             code_events.emplace_back("Started " + initial_name + ":" + light_name, NUClear::clock::now());
-            code_events.emplace_back("Emitted " + light_name, NUClear::clock::now());
+            code_events.emplace_back("Created " + light_name, NUClear::clock::now());
             emit(std::make_unique<LightTask>());
             code_events.emplace_back("Finished " + initial_name + ":" + light_name, NUClear::clock::now());
         });
@@ -86,24 +86,33 @@ public:
             code_events.emplace_back("Finished " + light_name, NUClear::clock::now());
         });
 
-        on<Trigger<ReactionStatistics>>().then([](const ReactionStatistics& stats) {
+        on<Trigger<ReactionEvent>>().then([](const ReactionEvent& event) {
+            const auto& stats = *event.statistics;
             // Check the name ends with light_name or heavy_name
-            if (stats.identifiers.name.substr(stats.identifiers.name.size() - light_name.size()) == light_name
-                || stats.identifiers.name.substr(stats.identifiers.name.size() - heavy_name.size()) == heavy_name) {
+            if (stats.identifiers->name.substr(stats.identifiers->name.size() - light_name.size()) == light_name
+                || stats.identifiers->name.substr(stats.identifiers->name.size() - heavy_name.size()) == heavy_name) {
 
-                stat_events.emplace_back("Emitted " + stats.identifiers.name, stats.emitted);
-                stat_events.emplace_back("Started " + stats.identifiers.name, stats.started);
-                stat_events.emplace_back("Finished " + stats.identifiers.name, stats.finished);
-
-                usage.real[stats.identifiers.name] = stats.real_time;
-                usage.cpu[stats.identifiers.name]  = stats.cpu_time;
+                switch (event.type) {
+                    case ReactionEvent::CREATED:
+                        stat_events.emplace_back("Created " + stats.identifiers->name, stats.created.nuclear_time);
+                        break;
+                    case ReactionEvent::STARTED:
+                        stat_events.emplace_back("Started " + stats.identifiers->name, stats.started.nuclear_time);
+                        break;
+                    case ReactionEvent::FINISHED:
+                        stat_events.emplace_back("Finished " + stats.identifiers->name, stats.finished.nuclear_time);
+                        usage.real[stats.identifiers->name] = stats.finished.realtime - stats.started.realtime;
+                        usage.cpu[stats.identifiers->name]  = stats.finished.cpu_time - stats.started.cpu_time;
+                        break;
+                    default: break;
+                }
             }
         });
 
         on<Startup>().then("Startup", [this] {
             auto start = NUClear::clock::now();
-            code_events.emplace_back("Emitted " + initial_name + ":" + heavy_name, start);
-            code_events.emplace_back("Emitted " + initial_name + ":" + light_name, start);
+            code_events.emplace_back("Created " + initial_name + ":" + heavy_name, start);
+            code_events.emplace_back("Created " + initial_name + ":" + light_name, start);
             emit(std::make_unique<Step<1>>());
         });
     }
@@ -140,15 +149,15 @@ TEST_CASE("Testing reaction statistics timing", "[api][reactionstatistics][timin
     std::vector<std::string> delta_stat_events = make_delta(stat_events);
 
     const std::vector<std::string> expected = {
-        "Emitted Initial:Heavy @ Step 0",
-        "Emitted Initial:Light @ Step 0",
+        "Created Initial:Heavy @ Step 0",
+        "Created Initial:Light @ Step 0",
         "Started Initial:Heavy @ Step 0",
-        "Emitted Heavy @ Step 0",
+        "Created Heavy @ Step 0",
         "Finished Initial:Heavy @ Step 0",
         "Started Heavy @ Step 0",
         "Finished Heavy @ Step 1",
         "Started Initial:Light @ Step 1",
-        "Emitted Light @ Step 1",
+        "Created Light @ Step 1",
         "Finished Initial:Light @ Step 1",
         "Started Light @ Step 1",
         "Finished Light @ Step 2",

@@ -123,7 +123,7 @@ namespace extension {
             NUClearNetwork& operator=(NUClearNetwork&& /*rhs*/) noexcept = delete;
 
             /**
-             * @brief Send data using the NUClear network
+             * Send data using the NUClear network
              *
              * @param hash          the identifying hash for the data
              * @param data          the bytes that are to be sent
@@ -136,7 +136,7 @@ namespace extension {
                       bool reliable);
 
             /**
-             * @brief Set the callback to use when a data packet is completed
+             * Set the callback to use when a data packet is completed
              *
              * @param f the callback function
              */
@@ -144,39 +144,38 @@ namespace extension {
                 std::function<void(const NetworkTarget&, const uint64_t&, const bool&, std::vector<uint8_t>&&)> f);
 
             /**
-             * @brief Set the callback to use when a node joins the network
+             * Set the callback to use when a node joins the network
              *
              * @param f the callback function
              */
             void set_join_callback(std::function<void(const NetworkTarget&)> f);
 
             /**
-             * @brief Set the callback to use when a node leaves the network
+             * Set the callback to use when a node leaves the network
              *
              * @param f the callback function
              */
             void set_leave_callback(std::function<void(const NetworkTarget&)> f);
 
             /**
-             * @brief Set the callback to use when the system want's to notify when it next needs attention
+             * Set the callback to use when the system want's to notify when it next needs attention
              *
              * @param f the callback function
              */
             void set_next_event_callback(std::function<void(std::chrono::steady_clock::time_point)> f);
 
             /**
-             * @brief Leave the NUClear network
+             * Leave the NUClear network
              */
             void shutdown();
 
             /**
-             * @brief Reset our network to use the new settings
+             * Reset our network to use the new settings
              *
-             * @details
-             *  Resets the networking system to use the new announce information and name.
-             *  If the network was already joined, it will first leave and then rejoin the new network.
-             *  If the provided address is multicast it will join a multicast network. If it is broadcast
-             *  it will use IPv4 broadcast traffic to announce, unicast addresses will only announce to a single target.
+             * Resets the networking system to use the new announce information and name.
+             * If the network was already joined, it will first leave and then rejoin the new network.
+             * If the provided address is multicast it will join a multicast network. If it is broadcast
+             * it will use IPv4 broadcast traffic to announce, unicast addresses will only announce to a single target.
              *
              * @param name          the name of this node in the network
              * @param address       the address to announce on
@@ -195,12 +194,12 @@ namespace extension {
                        uint16_t network_mtu = 1500);
 
             /**
-             * @brief Process waiting data in the UDP sockets and send them to the callback if they are relevant.
+             * Process waiting data in the UDP sockets and send them to the callback if they are relevant.
              */
             void process();
 
             /**
-             * @brief Get the file descriptors that the network listens on
+             * Get the file descriptors that the network listens on
              *
              * @return a list of file descriptors that the system listens on
              */
@@ -238,14 +237,14 @@ namespace extension {
             };
 
             /**
-             * @brief Open our data udp socket
+             * Open our data udp socket
              *
              * @param bind_address the address to bind to or any to bind to all interfaces
              */
             void open_data(const sock_t& bind_address);
 
             /**
-             * @brief Open our announce udp socket
+             * Open our announce udp socket
              *
              * @param announce_target the target to announce to
              * @param bind_address    the address to bind to or any to bind to all interfaces
@@ -253,7 +252,7 @@ namespace extension {
             void open_announce(const sock_t& announce_target, const sock_t& bind_address);
 
             /**
-             * @brief Processes the given packet and calls the callback if a packet was completed
+             * Processes the given packet and calls the callback if a packet was completed
              *
              * @param address   who the packet came from
              * @param data      the data that was sent in this packet
@@ -261,17 +260,17 @@ namespace extension {
             void process_packet(const sock_t& address, std::vector<uint8_t>&& payload);
 
             /**
-             * @brief Send an announce packet to our announce address
+             * Send an announce packet to our announce address
              */
             void announce();
 
             /**
-             * @brief Retransmit waiting packets that failed to send
+             * Retransmit waiting packets that failed to send
              */
             void retransmit();
 
             /**
-             * @brief Send an individual packet to an individual target
+             * Send an individual packet to an individual target
              *
              * @param target    the target to send the packet to
              * @param header    the header for this packet
@@ -286,7 +285,7 @@ namespace extension {
                              const bool& reliable);
 
             /**
-             * @brief Get the map key for this socket address
+             * Get the map key for this socket address
              *
              * @param address   who the packet came from
              *
@@ -295,7 +294,7 @@ namespace extension {
             static std::array<uint16_t, 9> udp_key(const sock_t& address);
 
             /**
-             * @brief Remove a target from our list of targets
+             * Remove a target from our list of targets
              *
              * @param t the target to remove
              */

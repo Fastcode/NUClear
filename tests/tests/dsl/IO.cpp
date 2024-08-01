@@ -34,9 +34,9 @@
 
 namespace {
 
-/// @brief Events that occur during the test reading
+/// Events that occur during the test reading
 std::vector<std::string> read_events;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
-/// @brief Events that occur during the test writing
+/// Events that occur during the test writing
 std::vector<std::string> write_events;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
 class TestReactor : public test_util::TestBase<TestReactor> {

@@ -20,8 +20,8 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_DSL_FUSION_GROUPFUSION_HPP
-#define NUCLEAR_DSL_FUSION_GROUPFUSION_HPP
+#ifndef NUCLEAR_DSL_FUSION_GROUP_FUSION_HPP
+#define NUCLEAR_DSL_FUSION_GROUP_FUSION_HPP
 
 #include <algorithm>
 #include <stdexcept>
@@ -44,7 +44,7 @@ namespace dsl {
         struct GroupWords;
 
         /**
-         * @brief Metafunction that extracts all of the Words with a group function
+         * Metafunction that extracts all of the Words with a group function
          *
          * @tparam Word1        The word we are looking at
          * @tparam WordN        The words we have yet to look at
@@ -58,7 +58,7 @@ namespace dsl {
                   /*F*/ GroupWords<std::tuple<WordN...>, std::tuple<FoundWords...>>> {};
 
         /**
-         * @brief Termination case for the GroupWords metafunction
+         * Termination case for the GroupWords metafunction
          *
          * @tparam FoundWords The words we have found with group functions
          */
@@ -77,10 +77,10 @@ namespace dsl {
         struct GroupFuser<std::tuple<Word>> {
 
             template <typename DSL>
-            static inline util::GroupDescriptor group(threading::Reaction& reaction) {
+            static inline util::GroupDescriptor group(threading::ReactionTask& task) {
 
                 // Return our group
-                return Word::template group<DSL>(reaction);
+                return Word::template group<DSL>(task);
             }
         };
 
@@ -101,4 +101,4 @@ namespace dsl {
 }  // namespace dsl
 }  // namespace NUClear
 
-#endif  // NUCLEAR_DSL_FUSION_GROUPFUSION_HPP
+#endif  // NUCLEAR_DSL_FUSION_GROUP_FUSION_HPP

@@ -30,15 +30,13 @@ namespace NUClear {
 namespace util {
 
     /**
-     * @brief Applies a single set of function fusion with expanded arguments
-     * @details Calls the function held in the template type Function.
-     *          for the arguments it uses the parameter packs Shared and Selected
-     *          to expand the passed tuple args and forward those selected
-     *          arguments to the function. This function is normally called by
-     *          the other overload of apply_function_fusion_call to get the expanded
-     *          parameter packs.
+     * Applies a single set of function fusion with expanded arguments
+     * Calls the function held in the template type Function.
+     * For the arguments it uses the parameter packs Shared and Selected to expand the passed tuple args and forward
+     * those selected arguments to the function. This function is normally called by the other overload of
+     * apply_function_fusion_call to get the expanded parameter packs.
      *
-     * @param  args     the arguments that were passed to the superfunction
+     * @param  args     the arguments that were passed to the super-function
      *
      * @tparam Function     the struct that holds the call function wrapper to be called
      * @tparam Shared       the index list of shared arguments at the start of the argument pack to use
@@ -56,13 +54,13 @@ namespace util {
     }
 
     /**
-     * @brief Applies a single set of function fusion with argument ranges
-     * @details Calls the function held in the template type Function.
-     *          for the arguments it uses the parameter packs Shared and Selected
-     *          to expand the passed tuple args and forward those selected
-     *          arguments to the function.
+     * Applies a single set of function fusion with argument ranges
      *
-     * @param  args     the arguments that were passed to the superfunction
+     * Calls the function held in the template type Function.
+     * For the arguments it uses the parameter packs Shared and Selected to expand the passed tuple args and forward
+     * those selected arguments to the function.
+     *
+     * @param  args     the arguments that were passed to the super-function
      *
      * @tparam Function     the struct that holds the call function wrapper to be called
      * @tparam Shared       the number of parameters (from 0) to use in the call
@@ -86,9 +84,9 @@ namespace util {
     struct FunctionFusionCaller;
 
     /**
-     * @brief Termination case for calling a function fusion.
+     * Termination case for calling a function fusion.
      *
-     * @details terminates by just returning an empty tuple
+     * Terminates by just returning an empty tuple
      *
      * @tparam Shared the number of arguments (from 0) to use in all of the calls
      * @tparam Arguments the type of the provided arguments
@@ -101,9 +99,9 @@ namespace util {
     };
 
     /**
-     * @brief Used to call the result of the function fusion with the given arguments
-     * @details Provides a call function that will split the given arguments amongst the functions
-     *          according to the provided ranges.
+     * Used to call the result of the function fusion with the given arguments
+     * Provides a call function that will split the given arguments amongst the functions according to the provided
+     * ranges.
      *
      * @tparam CurrentFunction  the current function we are calling in this class
      * @tparam Functions        the remaining functions we are going to call
@@ -125,7 +123,7 @@ namespace util {
                                 std::tuple<Arguments...>> : public std::true_type {
     private:
         /**
-         * @brief Calls a single function in the function set.
+         * Calls a single function in the function set.
          *
          * @param e     the range sequence providing the start and end of the relevant arguments
          * @param args  the arguments to be used to call
@@ -144,9 +142,9 @@ namespace util {
         }
 
         /**
-         * @brief This function exists unimplemented to absorb incorrect template instantiations.
+         * This function exists unimplemented to absorb incorrect template instantiations.
          *
-         * @param  swallows arguments
+         * @param ... swallows arguments
          *
          * @tparam typename swallows the template parameter
          *
@@ -161,7 +159,7 @@ namespace util {
 
     public:
         /**
-         * @brief Calls the collection of functions with the given arguments.
+         * Calls the collection of functions with the given arguments.
          *
          * @param args The arguments to be used to call
          *
@@ -181,7 +179,7 @@ namespace util {
     };
 
     /**
-     * @brief SFINAE test struct to see if a function is callable with the provided arguments.
+     * SFINAE test struct to see if a function is callable with the provided arguments.
      *
      * @tparam Function  the function to be tested
      * @tparam Shared    the number of parameters (from 0) to use in the call
@@ -196,8 +194,8 @@ namespace util {
         using no  = std::false_type;
 
         template <typename F>
-        static auto test(int)
-            -> decltype(apply_function_fusion_call<F, Shared, Start, End>(std::declval<Arguments>()), yes());
+        static auto test(int) -> decltype(apply_function_fusion_call<F, Shared, Start, End>(std::declval<Arguments>()),
+                                          yes());
         template <typename>
         static no test(...);
 
@@ -218,18 +216,16 @@ namespace util {
     struct FunctionFusion;
 
     /**
-     * @brief Splits arguments amongst a series of functions.
-     * @details This is the main loop for the function fusion metafunction.
-     *          It will do a greedy matching of arguments with function overloads
-     *          to try and make all functions callable with the given arguments.
-     *          It will share the first arguments (up to but not including Shared)
-     *          across all functions.
+     * Splits arguments amongst a series of functions.
      *
-     *          These functions are provided with a wrapper FunctionWrapper which is
-     *          a template that takes their type and uses its ::call function to call
-     *          the original functions function.
-     *          This allows fusion of functions without knowing the name of the function
-     *          that is being fused.
+     * This is the main loop for the function fusion metafunction.
+     * It will do a greedy matching of arguments with function overloads
+     * to try and make all functions callable with the given arguments.
+     * It will share the first arguments (up to but not including Shared) across all functions.
+     *
+     * These functions are provided with a wrapper FunctionWrapper which is a template that takes their type and uses
+     * its ::call function to call the original functions function. This allows fusion of functions without knowing the
+     * name of the function that is being fused.
      *
      * @tparam CurrentFunction      the current function we are inspecting
      * @tparam Functions            the remaining functions we are going to call
@@ -325,12 +321,11 @@ namespace util {
                                  std::tuple<ArgumentRanges...>>>> {};
 
     /**
-     * @brief The termination case for the FunctionFusion metafunction.
+     * The termination case for the FunctionFusion metafunction.
      *
-     * @details This is the termination case for the FunctionFusion metafunction.
-     *          if it reaches this point with a successful combination it will
-     *          extend from the FunctionFusionCaller, otherwise it will be a
-     *          false_type to indicate its failure.
+     * This is the termination case for the FunctionFusion metafunction.
+     * if it reaches this point with a successful combination it will extend from the FunctionFusionCaller, otherwise it
+     * will be a false_type to indicate its failure.
      */
     template <typename... Arguments,
               template <typename, typename...>

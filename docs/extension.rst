@@ -68,7 +68,7 @@ Get
 
 .. codeblock:: c++
     template <typename DSL>
-    static inline T get(threading::Reaction&)
+    static inline T get(threading::ReactionTask& task)
 
 This is used to get the data for the callback. The returned value is passed to the callback.
 
@@ -84,7 +84,7 @@ Precondition
 
 .. codeblock:: c++
     template <typename DSL>
-    static inline bool precondition(threading::Reaction& reaction)
+    static inline bool precondition(threading::ReactionTask& task)
 
 A precondition is used to test if the reaction should run. On a true return the reaction will run as normal. On a false
 return the reaction will be dropped.
@@ -156,11 +156,11 @@ The template is used to have multiple static contexts.
 
         using task_ptr = std::unique_ptr<threading::ReactionTask>;
 
-        /// @brief our queue which sorts tasks by priority
+        /// our queue which sorts tasks by priority
         static std::priority_queue<task_ptr> queue;
-        /// @brief how many tasks are currently running
+        /// how many tasks are currently running
         static volatile bool running;
-        /// @brief a mutex to ensure data consistency
+        /// a mutex to ensure data consistency
         static std::mutex mutex;
 
 Now we define the `reschedule` to interrupt any new tasks if we are currently running. Recall that NUClear is
@@ -218,4 +218,3 @@ We need to instantiate our static members outside the class definition.
 
     template <typename SyncGroup>
     std::mutex Sync<SyncGroup>::mutex;
-

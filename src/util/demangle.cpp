@@ -104,7 +104,7 @@ namespace NUClear {
 namespace util {
 
     /**
-     * @brief Demangles the passed symbol to a string, or returns it if it cannot demangle it
+     * Demangles the passed symbol to a string, or returns it if it cannot demangle it
      *
      * @param symbol the symbol to demangle
      *

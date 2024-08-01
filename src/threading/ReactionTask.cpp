@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2014 NUClear Contributors
+ * Copyright (c) 2013 NUClear Contributors
  *
  * This file is part of the NUClear codebase.
  * See https://github.com/Fastcode/NUClear for further info.
@@ -20,23 +20,44 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_UTIL_MAIN_THREAD_ID_HPP
-#define NUCLEAR_UTIL_MAIN_THREAD_ID_HPP
+#include "ReactionTask.hpp"
 
-#include <thread>
+#include <atomic>
+#include <functional>
+#include <memory>
+
+#include "Reaction.hpp"
 
 namespace NUClear {
-namespace util {
+namespace threading {
 
-    /**
-     * The thread id of the main execution thread for this process
+    const ReactionTask* ReactionTask::get_current_task() {
+        return current_task;
+    }
 
-     * In order to get the main threads id, we set it as a global static variable.
-     * This should result in the static setup code executing on startup (in the main thread).
-     */
-    extern const std::thread::id main_thread_id;
+    ReactionTask::~ReactionTask() {
+        // Decrement the number of active tasks
+        --parent->active_tasks;
+    }
 
-}  // namespace util
+    void ReactionTask::run() {
+        // Update our current task and RAII lock to restore it when finished
+        const std::unique_ptr<ReactionTask, void (*)(ReactionTask*)> lock(current_task,
+                                                                          [](ReactionTask* t) { current_task = t; });
+        current_task = this;
+
+        // Run our callback
+        callback(*this);
+    }
+
+    NUClear::id_t ReactionTask::new_task_id() {
+        static std::atomic<NUClear::id_t> task_id_source(0);
+        return ++task_id_source;
+    }
+
+    // Initialize our current task
+    // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
+    ATTRIBUTE_TLS ReactionTask* ReactionTask::current_task = nullptr;
+
+}  // namespace threading
 }  // namespace NUClear
-
-#endif  // NUCLEAR_UTIL_MAIN_THREAD_ID_HPP

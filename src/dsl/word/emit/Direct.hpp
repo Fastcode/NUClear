@@ -34,24 +34,22 @@ namespace dsl {
         namespace emit {
 
             /**
-             * @brief
-             *  When emitting data under this scope, the tasks created as a result of this emission will bypass the
-             *  thread pool, and be executed immediately.
+             * When emitting data under this scope, the tasks created as a result of this emission will bypass the
+             * thread pool, and be executed immediately.
              *
-             * @details
-             *  @code emit<Scope::DIRECT>(data, dataType); @endcode
-             *  When data is emitted via this scope, the task which is currently executing will be paused. At this time
-             *  any tasks created as a result of this emission are executed one at a time sequentially, using the
-             *  current thread.  This type of emission will always run even when the system is in its Shutdown process
-             *  or before the system has started up to the main phase.
+             * @code emit<Scope::DIRECT>(data, dataType); @endcode
+             *
+             * When data is emitted via this scope, the task which is currently executing will be paused. At this time
+             * any tasks created as a result of this emission are executed one at a time sequentially, using the
+             * current thread.  This type of emission will always run even when the system is in its Shutdown process
+             * or before the system has started up to the main phase.
              *
              * @attention
              *  This scope is useful for reactors which emit data to themselves.
              *
-             * @param data
-             *  the data to emit
-             * @tparam DataType
-             *  the datatype that is being emitted
+             * @tparam DataType the datatype that is being emitted
+             *
+             * @param data the data to emit
              */
             template <typename DataType>
             struct Direct {
@@ -74,7 +72,7 @@ namespace dsl {
             };
 
         }  // namespace emit
-    }      // namespace word
+    }  // namespace word
 }  // namespace dsl
 }  // namespace NUClear
 

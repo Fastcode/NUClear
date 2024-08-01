@@ -34,7 +34,7 @@ namespace dsl {
     namespace word {
 
         /**
-         * @brief A class that stores the last received items from a reaction
+         * A class that stores the last received items from a reaction
          *
          * This class stores the received items and provides conversion operators so that when passed into the reaction
          * it can be converted to an appropriate type.
@@ -47,20 +47,20 @@ namespace dsl {
             LastItemStorage() = default;
 
             /**
-             * @brief Constructs a LastItemStorage object with the given data.
+             * Constructs a LastItemStorage object with the given data.
              *
              * @param data The data to store.
              */
             explicit LastItemStorage(T&& data) : list({std::move(data)}) {}
             /**
-             * @brief Constructs a LastItemStorage object with the given data.
+             * Constructs a LastItemStorage object with the given data.
              *
              * @param data The data to store.
              */
             explicit LastItemStorage(const T& data) : list({data}) {}
 
             /**
-             * @brief Converts the stored list to a list of the given type.
+             * Converts the stored list to a list of the given type.
              *
              * @tparam Output The type of the output list.
              *
@@ -79,7 +79,7 @@ namespace dsl {
             }
 
             /**
-             * @brief Converts the stored list to a vector of the given type.
+             * Converts the stored list to a vector of the given type.
              *
              * @tparam Output The type of the output vector.
              *
@@ -98,7 +98,7 @@ namespace dsl {
             }
 
             /**
-             * @brief Bool operator to allow the reaction to decide not to run if there is no data.
+             * Bool operator to allow the reaction to decide not to run if there is no data.
              *
              * @return true     If the list is not empty.
              * @return false    If the list is empty.
@@ -112,18 +112,17 @@ namespace dsl {
         };
 
         /**
-         * @brief
-         *  This instructs the powerplant to store the last n messages (of the associated type) to the cache and
-         *  provide read-only access to the subscribing reaction.
+         * This instructs the powerplant to store the last n messages (of the associated type) to the cache and
+         * provide read-only access to the subscribing reaction.
          *
-         * @details
-         *  @code on<Last<n, Trigger<T, ...>>>() @endcode
-         *  During system runtime, the PowerPlant will keep a record of the last [0-n] messages which were provided to
-         *  the subscribing reaction. This list is ordered such that the oldest element is first, and the newest
-         *  element is last.  Once n messages are stored, the trigger of a new reaction task will cause the
-         *  newest copy to be appended to the list, and the oldest copy to be dropped.
+         * @code on<Last<n, Trigger<T, ...>>>() @endcode
          *
-         *  This word is a modifier, and should be used to modify any "Get" DSL word.
+         * During system runtime, the PowerPlant will keep a record of the last [0-n] messages which were provided to
+         * the subscribing reaction. This list is ordered such that the oldest element is first, and the newest
+         * element is last.  Once n messages are stored, the trigger of a new reaction task will cause the
+         * newest copy to be appended to the list, and the oldest copy to be dropped.
+         *
+         * This word is a modifier, and should be used to modify any "Get" DSL word.
          *
          * @par Multiple Statements
          *  @code on<Last<n, Trigger<T1>, With<T2>>() @endcode
@@ -164,17 +163,18 @@ namespace dsl {
 
         public:
             template <typename DSL>
-            static inline auto get(threading::Reaction& reaction) -> decltype(wrap(
-                Fusion<DSLWords...>::template get<DSL>(reaction),
-                util::GenerateSequence<
-                    0,
-                    std::tuple_size<decltype(Fusion<DSLWords...>::template get<DSL>(reaction))>::value>())) {
+            static inline auto get(threading::ReactionTask& task)
+                -> decltype(wrap(
+                    Fusion<DSLWords...>::template get<DSL>(task),
+                    util::GenerateSequence<
+                        0,
+                        std::tuple_size<decltype(Fusion<DSLWords...>::template get<DSL>(task))>::value>())) {
 
                 // Wrap all of our data in last list wrappers
-                return wrap(Fusion<DSLWords...>::template get<DSL>(reaction),
+                return wrap(Fusion<DSLWords...>::template get<DSL>(task),
                             util::GenerateSequence<
                                 0,
-                                std::tuple_size<decltype(Fusion<DSLWords...>::template get<DSL>(reaction))>::value>());
+                                std::tuple_size<decltype(Fusion<DSLWords...>::template get<DSL>(task))>::value>());
             }
         };
 

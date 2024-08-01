@@ -40,7 +40,7 @@ namespace extension {
     namespace network {
 
         /**
-         * @brief Read a single packet from the given udp file descriptor
+         * Read a single packet from the given udp file descriptor
          *
          * @param fd the file descriptor to read from
          *

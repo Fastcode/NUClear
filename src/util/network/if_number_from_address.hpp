@@ -33,7 +33,7 @@ namespace util {
     namespace network {
 
         /**
-         * @brief Gets the index of the interface that the given ipv6 address is on
+         * Gets the index of the interface that the given ipv6 address is on
          *
          * @param ipv6 the ipv6 address to check
          *

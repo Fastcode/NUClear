@@ -59,7 +59,7 @@ namespace extension {
                 std::vector<uint8_t> p(std::move(payload));
 
                 // Store in our thread local cache
-                dsl::store::ThreadStore<std::vector<uint8_t>>::value        = &p;
+                dsl::store::ThreadStore<std::vector<uint8_t>>::value     = &p;
                 dsl::store::ThreadStore<dsl::word::NetworkSource>::value = &src;
 
                 /* Mutex Scope */ {
@@ -76,7 +76,7 @@ namespace extension {
                 }
 
                 // Clear our cache
-                dsl::store::ThreadStore<std::vector<uint8_t>>::value        = nullptr;
+                dsl::store::ThreadStore<std::vector<uint8_t>>::value     = nullptr;
                 dsl::store::ThreadStore<dsl::word::NetworkSource>::value = nullptr;
             });
 

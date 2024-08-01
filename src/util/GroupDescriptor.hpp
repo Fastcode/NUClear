@@ -34,17 +34,17 @@ namespace NUClear {
 namespace util {
 
     /**
-     * @brief A description of a group
+     * A description of a group
      */
     struct GroupDescriptor {
-        /// @brief a unique identifier for this pool
+        /// a unique identifier for this pool
         NUClear::id_t group_id{0};
 
-        /// @brief the maximum number of threads that can run concurrently in this group
+        /// the maximum number of threads that can run concurrently in this group
         size_t thread_count{std::numeric_limits<size_t>::max()};
 
         /**
-         * @brief Return the next unique ID for a new group
+         * Return the next unique ID for a new group
          */
         static NUClear::id_t get_unique_group_id() noexcept {
             // Make group 0 the default group

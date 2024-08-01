@@ -20,13 +20,13 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_DSL_FUSION_POOLFUSION_HPP
-#define NUCLEAR_DSL_FUSION_POOLFUSION_HPP
+#ifndef NUCLEAR_DSL_FUSION_POOL_FUSION_HPP
+#define NUCLEAR_DSL_FUSION_POOL_FUSION_HPP
 
 #include <algorithm>
 #include <stdexcept>
 
-#include "../../threading/Reaction.hpp"
+#include "../../threading/ReactionTask.hpp"
 #include "../operation/DSLProxy.hpp"
 #include "has_pool.hpp"
 
@@ -44,7 +44,7 @@ namespace dsl {
         struct PoolWords;
 
         /**
-         * @brief Metafunction that extracts all of the Words with a pool function
+         * Metafunction that extracts all of the Words with a pool function
          *
          * @tparam Word1        The word we are looking at
          * @tparam WordN        The words we have yet to look at
@@ -58,7 +58,7 @@ namespace dsl {
                   /*F*/ PoolWords<std::tuple<WordN...>, std::tuple<FoundWords...>>> {};
 
         /**
-         * @brief Termination case for the PoolWords metafunction
+         * Termination case for the PoolWords metafunction
          *
          * @tparam FoundWords The words we have found with pool functions
          */
@@ -77,10 +77,10 @@ namespace dsl {
         struct PoolFuser<std::tuple<Word>> {
 
             template <typename DSL>
-            static inline util::ThreadPoolDescriptor pool(threading::Reaction& reaction) {
+            static inline util::ThreadPoolDescriptor pool(threading::ReactionTask& task) {
 
                 // Return our pool
-                return Word::template pool<DSL>(reaction);
+                return Word::template pool<DSL>(task);
             }
         };
 
@@ -89,7 +89,7 @@ namespace dsl {
         struct PoolFuser<std::tuple<Word1, Word2, WordN...>> {
 
             template <typename DSL>
-            static inline util::ThreadPoolDescriptor pool(const threading::Reaction& /*reaction*/) {
+            static inline util::ThreadPoolDescriptor pool(const threading::ReactionTask& /*task*/) {
                 throw std::invalid_argument("Can not be a member of more than one pool");
             }
         };
@@ -101,4 +101,4 @@ namespace dsl {
 }  // namespace dsl
 }  // namespace NUClear
 
-#endif  // NUCLEAR_DSL_FUSION_POOLFUSION_HPP
+#endif  // NUCLEAR_DSL_FUSION_POOL_FUSION_HPP

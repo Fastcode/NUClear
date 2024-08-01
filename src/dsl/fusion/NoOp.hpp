@@ -20,8 +20,8 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_DSL_FUSION_NOOP_HPP
-#define NUCLEAR_DSL_FUSION_NOOP_HPP
+#ifndef NUCLEAR_DSL_FUSION_NO_OP_HPP
+#define NUCLEAR_DSL_FUSION_NO_OP_HPP
 
 #include <typeindex>
 
@@ -36,7 +36,7 @@ namespace dsl {
     namespace fusion {
 
         /**
-         * @brief Struct to act as a DSL word that does nothing. Used as a placeholder to satisfy some dead template
+         * Struct to act as a DSL word that does nothing. Used as a placeholder to satisfy some dead template
          *        branches that are required for the code to compile.
          */
         struct NoOp {
@@ -47,27 +47,27 @@ namespace dsl {
             }
 
             template <typename DSL>
-            static inline std::tuple<> get(const threading::Reaction& /*reaction*/) {
+            static inline std::tuple<> get(const threading::ReactionTask& /*task*/) {
                 return {};
             }
 
             template <typename DSL>
-            static inline bool precondition(const threading::Reaction& /*reaction*/) {
+            static inline bool precondition(const threading::ReactionTask& /*task*/) {
                 return true;
             }
 
             template <typename DSL>
-            static inline int priority(const threading::Reaction& /*reaction*/) {
+            static inline int priority(const threading::ReactionTask& /*task*/) {
                 return word::Priority::NORMAL::value;
             }
 
             template <typename DSL>
-            static inline util::GroupDescriptor group(const threading::Reaction& /*reaction*/) {
+            static inline util::GroupDescriptor group(const threading::ReactionTask& /*task*/) {
                 return util::GroupDescriptor{};
             }
 
             template <typename DSL>
-            static inline util::ThreadPoolDescriptor pool(const threading::Reaction& /*reaction*/) {
+            static inline util::ThreadPoolDescriptor pool(const threading::ReactionTask& /*task*/) {
                 return util::ThreadPoolDescriptor{};
             }
 
@@ -78,7 +78,7 @@ namespace dsl {
         };
 
         /**
-         * @brief Struct to act as Parsed DSL statement that does nothing. Used as a placeholder to satisfy some
+         * Struct to act as Parsed DSL statement that does nothing. Used as a placeholder to satisfy some
          *        dead template branches that are required for the code to compile.
          */
         struct ParsedNoOp {
@@ -86,15 +86,15 @@ namespace dsl {
 
             static std::tuple<> bind(const std::shared_ptr<threading::Reaction>&);
 
-            static std::tuple<> get(threading::Reaction&);
+            static std::tuple<> get(threading::ReactionTask&);
 
-            static bool precondition(threading::Reaction&);
+            static bool precondition(threading::ReactionTask&);
 
-            static int priority(threading::Reaction&);
+            static int priority(threading::ReactionTask&);
 
-            static util::GroupDescriptor group(threading::Reaction&);
+            static util::GroupDescriptor group(threading::ReactionTask&);
 
-            static util::ThreadPoolDescriptor pool(threading::Reaction&);
+            static util::ThreadPoolDescriptor pool(threading::ReactionTask&);
 
             static void postcondition(threading::ReactionTask&);
         };
@@ -103,4 +103,4 @@ namespace dsl {
 }  // namespace dsl
 }  // namespace NUClear
 
-#endif  // NUCLEAR_DSL_FUSION_NOOP_HPP
+#endif  // NUCLEAR_DSL_FUSION_NO_OP_HPP

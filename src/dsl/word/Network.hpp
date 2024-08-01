@@ -52,16 +52,14 @@ namespace dsl {
         };
 
         /**
-         * @brief
-         *  NUClear provides a networking protocol to send messages to other devices on the network.
+         * NUClear provides a networking protocol to send messages to other devices on the network.
          *
-         * @details
-         *  @code on<Network<T>>() @endcode
-         *  This request can be used to make a multi-processed NUClear instance, or communicate with other programs
-         *  running NUClear.  Note that the serialization and deserialization is handled by NUClear.
+         * @code on<Network<T>>() @endcode
          *
-         *  When the reaction is triggered, read-only access to T will be provided to the triggering unit via a
-         *  callback.
+         * This request can be used to make a multi-processed NUClear instance, or communicate with other programs
+         * running NUClear.  Note that the serialization and deserialization is handled by NUClear.
+         *
+         * When the reaction is triggered, read-only access to T will be provided to the triggering unit via a callback.
          *
          * @attention
          *  When using an on<Network<T>> request, the associated reaction will only be triggered when T is emitted to
@@ -94,7 +92,7 @@ namespace dsl {
 
             template <typename DSL>
             static inline std::tuple<std::shared_ptr<NetworkSource>, NetworkData<T>> get(
-                const threading::Reaction& /*reaction*/) {
+                threading::ReactionTask& /*task*/) {
 
                 auto* data   = store::ThreadStore<std::vector<uint8_t>>::value;
                 auto* source = store::ThreadStore<NetworkSource>::value;

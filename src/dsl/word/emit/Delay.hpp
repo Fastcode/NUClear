@@ -32,13 +32,12 @@ namespace dsl {
         namespace emit {
 
             /**
-             * @brief
-             *  This will emit data, after the provided delay.
+             * This will emit data, after the provided delay.
              *
-             * @details
-             *  @code emit<Scope::DELAY>(data, delay(ticks), dataType); @endcode
-             *  Emissions under this scope will wait for the provided time delay, and then emit the object utilising a
-             *  local emit (that is, normal thread pool distribution).
+             * @code emit<Scope::DELAY>(data, delay(ticks), dataType); @endcode
+             *
+             * Emissions under this scope will wait for the provided time delay, and then emit the object utilising a
+             * local emit (that is, normal thread pool distribution).
              *
              * @param data
              *  the data to emit
@@ -96,7 +95,7 @@ namespace dsl {
             };
 
         }  // namespace emit
-    }      // namespace word
+    }  // namespace word
 }  // namespace dsl
 }  // namespace NUClear
 

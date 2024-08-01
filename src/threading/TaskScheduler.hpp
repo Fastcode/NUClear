@@ -41,9 +41,8 @@ namespace NUClear {
 namespace threading {
 
     /**
-     * @brief This class is responsible for scheduling tasks and distributing them amongst threads.
+     * This class is responsible for scheduling tasks and distributing them amongst threads.
      *
-     * @details
      * PRIORITY
      *      what priority this task should run with
      *      tasks are ordered by priority -> creation order
@@ -85,29 +84,29 @@ namespace threading {
     class TaskScheduler {
     private:
         /**
-         * @brief Exception thrown when a thread in the pool should shut down.
+         * Exception thrown when a thread in the pool should shut down.
          */
         class ShutdownThreadException : public std::exception {};
 
         /**
-         * @brief A struct which contains all the information about an individual task
+         * A struct which contains all the information about an individual task
          */
         struct Task {
-            /// @brief The id of this task used for ordering
+            /// The id of this task used for ordering
             NUClear::id_t id;
-            /// @brief The priority of this task
+            /// The priority of this task
             int priority;
-            /// @brief The group descriptor for this task
+            /// The group descriptor for this task
             util::GroupDescriptor group_descriptor;
-            /// @brief The thread pool descriptor for this task
+            /// The thread pool descriptor for this task
             util::ThreadPoolDescriptor thread_pool_descriptor;
-            /// @brief The callback to be executed
+            /// The callback to be executed
             std::function<void()> run;
-            /// @brief If task has been checked for runnable
+            /// If task has been checked for runnable
             bool checked_runnable{false};
 
             /**
-             * @brief Compare tasks based on their priority
+             * Compare tasks based on their priority
              *
              * @param other the other task to compare to
              * @return true if this task has a higher priority than the other task
@@ -118,27 +117,27 @@ namespace threading {
         };
 
         /**
-         * @brief A struct which contains all the information about an individual thread pool
+         * A struct which contains all the information about an individual thread pool
          */
         struct PoolQueue {
             explicit PoolQueue(const util::ThreadPoolDescriptor& pool_descriptor) : pool_descriptor(pool_descriptor) {}
-            /// @brief The descriptor for this thread pool
+            /// The descriptor for this thread pool
             const util::ThreadPoolDescriptor pool_descriptor;
-            /// @brief The threads which are running in this thread pool
+            /// The threads which are running in this thread pool
             std::vector<std::unique_ptr<std::thread>> threads;
-            /// @brief The number of runnable tasks in this thread pool
+            /// The number of runnable tasks in this thread pool
             size_t runnable_tasks{0};
-            /// @brief The queue of tasks for this specific thread pool
+            /// The queue of tasks for this specific thread pool
             std::vector<Task> queue;
-            /// @brief The mutex which protects the queue
+            /// The mutex which protects the queue
             std::recursive_mutex mutex;
-            /// @brief The condition variable which threads wait on if they can't get a task
+            /// The condition variable which threads wait on if they can't get a task
             std::condition_variable_any condition;
-            /// @brief The map of idle tasks for this thread pool
+            /// The map of idle tasks for this thread pool
             std::map<NUClear::id_t, std::function<void()>> idle_tasks;
 
             /**
-             * @brief Submit a new task to this thread pool
+             * Submit a new task to this thread pool
              *
              * @param task the task to submit
              */
@@ -147,31 +146,28 @@ namespace threading {
 
     public:
         /**
-         * @brief Constructs a new TaskScheduler instance, and builds the nullptr sync queue.
+         * Constructs a new TaskScheduler instance, and builds the nullptr sync queue.
          */
         explicit TaskScheduler(const size_t& default_thread_count);
 
         /**
-         * @brief Starts the scheduler, and begins executing tasks.
+         * Starts the scheduler, and begins executing tasks.
          *
          * The main thread will stay in this function executing tasks until the scheduler is shutdown.
          */
         void start();
 
         /**
-         * @brief
-         *  Shuts down the scheduler, all waiting threads are woken, and any attempt to get a task results in an
-         *  exception
+         * Shuts down the scheduler, all waiting threads are woken, and attempting to get a task results in an exception
          */
         void shutdown();
 
         /**
-         * @brief Submit a new task to be executed to the Scheduler.
+         * Submit a new task to be executed to the Scheduler.
          *
-         * @details
-         *  This method submits a new task to the scheduler. This task will then be sorted into the appropriate
-         *  queue based on it's sync type and priority. It will then wait there until it is removed by a thread to
-         *  be processed.
+         * This method submits a new task to the scheduler. This task will then be sorted into the appropriate
+         * queue based on it's sync type and priority. It will then wait there until it is removed by a thread to
+         * be processed.
          *
          * @param id        the id of this task used for ordering tasks of the same priority
          * @param priority  the priority of this task
@@ -190,7 +186,7 @@ namespace threading {
                     std::function<void()>&& func);
 
         /**
-         * @brief Adds an idle task to the task scheduler.
+         * Adds an idle task to the task scheduler.
          *
          * This function adds an idle task to the task scheduler, which will be executed when the thread pool associated
          * with the given `pool_id` has no other tasks to execute. The `task` parameter is a callable object that
@@ -205,7 +201,7 @@ namespace threading {
                            std::function<void()>&& task);
 
         /**
-         * @brief Removes an idle task from the task scheduler.
+         * Removes an idle task from the task scheduler.
          *
          * This function removes an idle task from the task scheduler. The `id` and `pool_id` parameters are used to
          * identify the idle task to be removed.
@@ -217,19 +213,18 @@ namespace threading {
 
     private:
         /**
-         * @brief Get a task object to be executed by a thread.
+         * Get a task object to be executed by a thread.
          *
-         * @details
-         *  This method will get a task object to be executed from the queue. It will block until such a time as a
-         *  task is available to be executed. For example, if a task with a particular sync type was out, then this
-         *  thread would block until that sync type was no longer out, and then it would take a task.
+         * This method will get a task object to be executed from the queue. It will block until such a time as a
+         * task is available to be executed. For example, if a task with a particular sync type was out, then this
+         * thread would block until that sync type was no longer out, and then it would take a task.
          *
          * @return the task which has been given to be executed
          */
         Task get_task();
 
         /**
-         * @brief Gets a pool queue for the given thread pool descriptor or creates one if it does not exist
+         * Gets a pool queue for the given thread pool descriptor or creates one if it does not exist
          *
          * @param pool the descriptor for the thread pool to get or create
          *
@@ -238,34 +233,32 @@ namespace threading {
         std::shared_ptr<PoolQueue> get_pool_queue(const util::ThreadPoolDescriptor& pool);
 
         /**
-         * @brief The function that each thread runs
+         * The function that each thread runs
          *
-         * @details This function will repeatedly query the task queue for new a task to run and then execute that task
+         * This function will repeatedly query the task queue for new a task to run and then execute that task
          *
          * @param pool the thread pool to run from and the task queue to get tasks from
          */
         void pool_func(std::shared_ptr<PoolQueue> pool);
 
         /**
-         * @brief Start all threads for the given thread pool
+         * Start all threads for the given thread pool
          */
         void start_threads(const std::shared_ptr<PoolQueue>& pool);
 
         /**
-         * @brief Execute the given task
+         * Execute the given task
          *
-         * @details After execution of the task has completed the number of active tasks in the tasks' group is
-         * decremented
+         * After execution of the task has completed the number of active tasks in the tasks' group is decremented
          *
          * @param task  the task to execute
          */
         void run_task(Task&& task);
 
         /**
-         * @brief Determines if the given task is able to be executed
+         * Determines if the given task is able to be executed
          *
-         * @details If the current thread is able to be executed the number of active tasks in the tasks' groups is
-         * incremented
+         * If the current thread is able to be executed the number of active tasks in the tasks' groups is incremented
          *
          * @param group the group descriptor for the task
          *
@@ -274,30 +267,30 @@ namespace threading {
          */
         bool is_runnable(const util::GroupDescriptor& group);
 
-        /// @brief if the scheduler is running, and accepting new tasks. If this is false and a new, non-immediate, task
+        /// if the scheduler is running, and accepting new tasks. If this is false and a new, non-immediate, task
         /// is submitted it will be ignored
         std::atomic<bool> running{true};
-        /// @brief if the scheduler has been started. This is set to true after a call to start is made. Once this is
+        /// if the scheduler has been started. This is set to true after a call to start is made. Once this is
         /// set to true all threads will begin executing tasks from the tasks queue
         std::atomic<bool> started{false};
 
-        /// @brief A map of group ids to the number of active tasks currently running in that group
+        /// A map of group ids to the number of active tasks currently running in that group
         std::map<NUClear::id_t, size_t> groups{};
-        /// @brief mutex for the group map
+        /// mutex for the group map
         std::mutex group_mutex;
 
-        /// @brief mutex for the idle tasks
+        /// mutex for the idle tasks
         std::mutex idle_mutex;
-        /// @brief global idle tasks to be executed when no other tasks are running
+        /// global idle tasks to be executed when no other tasks are running
         std::map<NUClear::id_t, std::function<void()>> idle_tasks{};
-        /// @brief the total number of threads that have runnable tasks
+        /// the total number of threads that have runnable tasks
         std::atomic<size_t> global_runnable_tasks{0};
 
-        /// @brief A map of pool descriptor ids to pool descriptors
+        /// A map of pool descriptor ids to pool descriptors
         std::map<NUClear::id_t, std::shared_ptr<PoolQueue>> pool_queues{};
-        /// @brief a mutex for when we are modifying the pool_queues map
+        /// a mutex for when we are modifying the pool_queues map
         std::mutex pool_mutex;
-        /// @brief a pointer to the pool_queue for the current thread so it does not have to access via the map
+        /// a pointer to the pool_queue for the current thread so it does not have to access via the map
         // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
         static ATTRIBUTE_TLS std::shared_ptr<PoolQueue>* current_queue;
     };

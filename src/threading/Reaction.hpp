@@ -27,12 +27,10 @@
 #include <functional>
 #include <memory>
 #include <string>
-#include "../id.hpp"
 #include <utility>
 
-#include "../util/GeneratedCallback.hpp"
+#include "../id.hpp"
 #include "ReactionIdentifiers.hpp"
-#include "ReactionTask.hpp"
 
 namespace NUClear {
 
@@ -41,97 +39,86 @@ class Reactor;
 
 namespace threading {
 
+    // Forward declare ReactionTask
+    class ReactionTask;
+
     /**
-     * @brief This class holds the definition of a Reaction (call signature).
+     * This class holds the definition of a Reaction (call signature).
      *
-     * @details
-     *  A reaction holds the information about a callback. It holds the options as to how to process it in the
-     * scheduler.
-     *  It also holds a function which is used to generate databound Task objects (callback with the function arguments
-     *  already loaded and ready to run).
+     * A reaction holds the information about a callback. It holds the options as to how to process it in the scheduler.
+     * It also holds a function which is used to generate data-bound Task objects.
+     * I.e. callback with the function arguments already loaded and ready to run.
      */
-    class Reaction {
+    class Reaction : public std::enable_shared_from_this<Reaction> {
         // Reaction handles are given to user code to enable and disable the reaction
         friend class ReactionHandle;
-        friend class Task<Reaction>;
+        friend class ReactionTask;
 
     public:
         // The type of the generator that is used to create functions for ReactionTask objects
-        using TaskGenerator = std::function<util::GeneratedCallback(Reaction&)>;
+        using TaskGenerator = std::function<std::unique_ptr<ReactionTask>(const std::shared_ptr<Reaction>&)>;
 
         /**
-         * @brief Constructs a new Reaction with the passed callback generator and options
+         * Constructs a new Reaction with the passed callback generator and options
          *
          * @param reactor        the reactor this belongs to
          * @param identifiers    string identification information for the reaction
-         * @param callback       the callback generator function (creates databound callbacks)
+         * @param callback       the callback generator function (creates data-bound callbacks)
          */
         Reaction(Reactor& reactor, ReactionIdentifiers&& identifiers, TaskGenerator&& generator);
 
+        // No copying or moving this class
+        Reaction(const Reaction&)            = delete;
+        Reaction(Reaction&&)                 = delete;
+        Reaction& operator=(const Reaction&) = delete;
+        Reaction& operator=(Reaction&&)      = delete;
+
+        // This must go in the c++ file as ReactionTask is an incomplete type at this point
+        ~Reaction();
+
         /**
-         * @brief creates a new databound callback task that can be executed.
+         * creates a new data-bound callback task that can be executed.
          *
          * @return a unique_ptr to a Task which has the data for it's call bound into it
          */
-        inline std::unique_ptr<ReactionTask> get_task() {
-
-            // If we are not enabled, don't run
-            if (!enabled) {
-                return nullptr;
-            }
-
-            // Run our generator to get a functor we can run
-            auto callback = generator(*this);
-
-            // If our generator returns a valid function
-            if (callback) {
-                return std::make_unique<ReactionTask>(*this,
-                                                      callback.priority,
-                                                      callback.group,
-                                                      callback.pool,
-                                                      std::move(callback.callback));
-            }
-
-            // Otherwise we return a null pointer
-            return nullptr;
-        }
+        std::unique_ptr<ReactionTask> get_task();
 
         /**
-         * @brief returns true if this reaction is currently enabled
+         * returns true if this reaction is currently enabled
          */
         bool is_enabled() const;
 
-        /// @brief the reactor this belongs to
-        Reactor& reactor;
-
-        /// @brief This holds the identifying strings for this reaction
-        ReactionIdentifiers identifiers;
-
-        /// @brief the unique identifier for this Reaction object
-        const NUClear::id_t id{++reaction_id_source};
-
-        /// @brief if this is false, we cannot emit ReactionStatistics from any reaction triggered by this one
-        bool emit_stats{true};
-
-        /// @brief the number of currently active tasks (existing reaction tasks)
-        std::atomic<int> active_tasks{0};
-
-        /// @brief if this reaction object is currently enabled
-        std::atomic<bool> enabled{true};
-
-        /// @brief list of functions to use to unbind the reaction and clean
-        std::vector<std::function<void(Reaction&)>> unbinders;
-
         /**
-         * @brief Unbinds this reaction from it's context
+         * Unbinds this reaction from it's context
          */
         void unbind();
 
+        /// the reactor this belongs to
+        Reactor& reactor;
+
+        /// This holds the identifying strings for this reaction
+        std::shared_ptr<ReactionIdentifiers> identifiers;
+
+        /// the unique identifier for this Reaction object
+        const NUClear::id_t id{++reaction_id_source};
+
+        /// if this is false, we cannot emit ReactionStatistics from any reaction triggered by this one
+        bool emit_stats{true};
+
+        /// the number of currently active tasks (existing reaction tasks)
+        std::atomic<int> active_tasks{0};
+
+        /// if this reaction object is currently enabled
+        std::atomic<bool> enabled{true};
+
+        /// list of functions to use to unbind the reaction and clean
+        std::vector<std::function<void(Reaction&)>> unbinders;
+
     private:
-        /// @brief a source for reaction_ids, atomically creates longs
-        static std::atomic<NUClear::id_t>
-            reaction_id_source;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
-        /// @brief the callback generator function (creates databound callbacks)
+        /// a source for reaction_ids, atomically creates ids
+        // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
+        static std::atomic<NUClear::id_t> reaction_id_source;
+        /// the callback generator function (creates data-bound callbacks)
         TaskGenerator generator;
     };
 

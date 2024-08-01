@@ -36,10 +36,10 @@ namespace dsl {
     namespace word {
 
         /**
-         * @brief
-         *  Handles the data store for the case when runtime arguments specified
-         *  @code on<Watchdog<>>(data) @endcode
-         *  @code emit<Scope::WATCHDOG>(data) @endcode
+         * Handles the data store for the case when runtime arguments specified
+         *
+         * @code on<Watchdog<>>(data) @endcode
+         * @code emit<Scope::WATCHDOG>(data) @endcode
          *
          * @tparam WatchdogGroup
          *  the type/group of tasks the watchdog will track. This needs to be a declared type within the system
@@ -53,7 +53,7 @@ namespace dsl {
             using WatchdogStore = util::TypeMap<WatchdogGroup, MapType, std::map<MapType, NUClear::clock::time_point>>;
 
             /**
-             * @brief Ensures the data store is initialised correctly
+             * Ensures the data store is initialised correctly
              *
              * @param data The runtime argument for the current watchdog in the WatchdogGroup/RuntimeType group
              */
@@ -67,7 +67,7 @@ namespace dsl {
             }
 
             /**
-             * @brief Gets the current service time for the WatchdogGroup/RuntimeType/data watchdog
+             * Gets the current service time for the WatchdogGroup/RuntimeType/data watchdog
              *
              * @param data The runtime argument for the current watchdog in the WatchdogGroup/RuntimeType group
              */
@@ -81,7 +81,7 @@ namespace dsl {
             }
 
             /**
-             * @brief Cleans up any allocated storage for the WatchdogGroup/RuntimeType/data watchdog
+             * Cleans up any allocated storage for the WatchdogGroup/RuntimeType/data watchdog
              *
              * @param data The runtime argument for the current watchdog in the WatchdogGroup/RuntimeType group
              */
@@ -93,21 +93,21 @@ namespace dsl {
         };
 
         /**
-         * @brief
-         *  Handles the data store for the case when no runtime arguments are specified
-         *  @code on<Watchdog<>>() @endcode
-         *  @code emit<Scope::WATCHDOG>() @endcode
+         * Handles the data store for the case when no runtime arguments are specified
+         *
+         * @code on<Watchdog<>>() @endcode
+         * @code emit<Scope::WATCHDOG>() @endcode
          *
          * @tparam WatchdogGroup
          *  the type/group of tasks the watchdog will track. This needs to be a declared type within the system
-         * (be it a reactor, reaction, or other type).
+         *  (be it a reactor, reaction, or other type).
          */
         template <typename WatchdogGroup>
         struct WatchdogDataStore<WatchdogGroup, void> {
             using WatchdogStore = util::TypeMap<WatchdogGroup, void, NUClear::clock::time_point>;
 
             /**
-             * @brief Ensures the data store is initialised correctly
+             * Ensures the data store is initialised correctly
              */
             static void init() {
                 if (WatchdogStore::get() == nullptr) {
@@ -116,7 +116,7 @@ namespace dsl {
             }
 
             /**
-             * @brief Gets the current service time for the WatchdogGroup watchdog
+             * Gets the current service time for the WatchdogGroup watchdog
              */
             static const NUClear::clock::time_point& get() {
                 if (WatchdogStore::get() == nullptr) {
@@ -127,7 +127,7 @@ namespace dsl {
             }
 
             /**
-             * @brief Cleans up any allocated storage for the WatchdogGroup watchdog
+             * Cleans up any allocated storage for the WatchdogGroup watchdog
              */
             static void unbind() {
                 if (WatchdogStore::get() != nullptr) {
@@ -137,17 +137,16 @@ namespace dsl {
         };
 
         /**
-         * @brief
-         *  This can be used to monitor task(s); if the monitored task(s) have not occurred within a desired timeframe,
-         *  the watchdog can be serviced to trigger a specified reaction.
+         * This can be used to monitor task(s); if the monitored task(s) have not occurred within a desired time frame,
+         * the watchdog can be serviced to trigger a specified reaction.
          *
-         * @details
-         *  @code on<Watchdog<WatchdogGroup, ticks, period>>() @endcode
-         *  This is a useful tool for anything in the system which might stall, and needs to be kick-started.
+         * @code on<Watchdog<WatchdogGroup, ticks, period>>() @endcode
          *
-         *  The watchdog can monitor a single task, or group of tasks, over a period of time. If no activity is
-         *  detected after the specified timeframe, the watchdog will be serviced.  When the watchdog is serviced, the
-         *  timer resets.
+         * This is a useful tool for anything in the system which might stall, and needs to be kick-started.
+         *
+         * The watchdog can monitor a single task, or group of tasks, over a period of time. If no activity is
+         * detected after the specified time frame, the watchdog will be serviced.  When the watchdog is serviced, the
+         * timer resets.
          *
          * @par Single Reaction
          *  @code on<Watchdog<SampleReaction, 10, std::chrono::milliseconds>>() @endcode
@@ -166,7 +165,7 @@ namespace dsl {
          *  the SampleReactor group has not occurred for 10 milliseconds, the watchdog for that instance of data will
          *  be serviced.
          *
-         * @par Service the Watcdog
+         * @par Service the Watchdog
          *  @code  emit<Scope::WATCHDOG>(ServiceWatchdog<SampleReactor>()) @endcode
          *  The watchdog will need to be serviced by a watchdog service emission. The emission must use the same
          *  template type as the watchdog. Each time this emission occurs, the watchdog timer will be reset.
@@ -198,7 +197,7 @@ namespace dsl {
         struct Watchdog {
 
             /**
-             * @brief Binder for Watchdog reactions with a runtime argument
+             * Binder for Watchdog reactions with a runtime argument
              *
              * @tparam DSL
              *
@@ -232,7 +231,7 @@ namespace dsl {
             }
 
             /**
-             * @brief Binder for Watchdog reactions with no runtime argument
+             * Binder for Watchdog reactions with no runtime argument
              */
             template <typename DSL>
             static inline void bind(const std::shared_ptr<threading::Reaction>& reaction) {
@@ -258,7 +257,7 @@ namespace dsl {
 
         private:
             /**
-             * @brief updates the service time for the current reaction
+             * Updates the service time for the current reaction
              *
              * @param reaction the reaction we are servicing
              * @param service_time the last service time of the watchdog

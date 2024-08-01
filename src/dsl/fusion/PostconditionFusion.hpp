@@ -20,8 +20,8 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_DSL_FUSION_POSTCONDITIONFUSION_HPP
-#define NUCLEAR_DSL_FUSION_POSTCONDITIONFUSION_HPP
+#ifndef NUCLEAR_DSL_FUSION_POSTCONDITION_FUSION_HPP
+#define NUCLEAR_DSL_FUSION_POSTCONDITION_FUSION_HPP
 
 #include "../../threading/ReactionTask.hpp"
 #include "../operation/DSLProxy.hpp"
@@ -41,7 +41,7 @@ namespace dsl {
         struct PostconditionWords;
 
         /**
-         * @brief Metafunction that extracts all of the Words with a postcondition function
+         * Metafunction that extracts all of the Words with a postcondition function
          *
          * @tparam Word1        The word we are looking at
          * @tparam WordN        The words we have yet to look at
@@ -57,7 +57,7 @@ namespace dsl {
                   /*F*/ PostconditionWords<std::tuple<WordN...>, std::tuple<FoundWords...>>> {};
 
         /**
-         * @brief Termination case for the PostconditionWords metafunction
+         * Termination case for the PostconditionWords metafunction
          *
          * @tparam PostconditionWords The words we have found with postcondition functions
          */
@@ -106,4 +106,4 @@ namespace dsl {
 }  // namespace dsl
 }  // namespace NUClear
 
-#endif  // NUCLEAR_DSL_FUSION_POSTCONDITIONFUSION_HPP
+#endif  // NUCLEAR_DSL_FUSION_POSTCONDITION_FUSION_HPP

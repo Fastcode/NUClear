@@ -35,8 +35,7 @@ namespace dsl {
     namespace word {
 
         /**
-         * @brief
-         *  This type is used within an every in order to measure a frequency rather then a period.
+         * This type is used within an every in order to measure a frequency rather then a period.
          */
         template <typename period>
         struct Per;
@@ -49,21 +48,21 @@ namespace dsl {
         };
 
         /**
-         * @brief
-         *  This is used to request any periodic reactions in the system.
+         * This is used to request any periodic reactions in the system.
          *
-         * @details
-         *  @code on<Every<ticks, period>>() @endcode
-         *  This request will enact the execution of a task at a periodic rate. To set the timing, simply specify the
-         *  desired period with the request.  For example, to run a task every two seconds, the following request would
-         *  be used:
+         * @code on<Every<ticks, period>>() @endcode
          *
-         *  @code on<Every<2, std::chrono::seconds>() @endcode
+         * This request will enact the execution of a task at a periodic rate. To set the timing, simply specify the
+         * desired period with the request.  For example, to run a task every two seconds, the following request would
+         * be used:
          *
-         *  Note that the period argument can also be wrapped in a Per<> template so that the inverse relation
-         *  can be invoked.  For instance, to execute a callback to initialise two tasks every second, then the
-         *  request would be used:
-         *  @code on<Every<2, Per<std::chrono::seconds>>() @endcode
+         * @code on<Every<2, std::chrono::seconds>() @endcode
+         *
+         * Note that the period argument can also be wrapped in a Per<> template so that the inverse relation
+         * can be invoked.  For instance, to execute a callback to initialise two tasks every second, then the request
+         * would be used:
+         *
+         * @code on<Every<2, Per<std::chrono::seconds>>() @endcode
          *
          * @attention
          *  The period which is used to measure the ticks must be greater than or equal to clock::duration or the

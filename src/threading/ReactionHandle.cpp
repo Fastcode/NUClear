@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2014 NUClear Contributors
+ * Copyright (c) 2013 NUClear Contributors
  *
  * This file is part of the NUClear codebase.
  * See https://github.com/Fastcode/NUClear for further info.
@@ -20,23 +20,53 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_UTIL_MAIN_THREAD_ID_HPP
-#define NUCLEAR_UTIL_MAIN_THREAD_ID_HPP
-
-#include <thread>
+#include "ReactionHandle.hpp"
 
 namespace NUClear {
-namespace util {
+namespace threading {
 
-    /**
-     * The thread id of the main execution thread for this process
+    ReactionHandle::ReactionHandle(const std::shared_ptr<Reaction>& context) : context(context) {}
 
-     * In order to get the main threads id, we set it as a global static variable.
-     * This should result in the static setup code executing on startup (in the main thread).
-     */
-    extern const std::thread::id main_thread_id;
+    ReactionHandle& ReactionHandle::enable() {
+        auto c = context.lock();
+        if (c) {
+            c->enabled = true;
+        }
+        return *this;
+    }
 
-}  // namespace util
+    ReactionHandle& ReactionHandle::disable() {
+        auto c = context.lock();
+        if (c) {
+            c->enabled = false;
+        }
+        return *this;
+    }
+
+    ReactionHandle& ReactionHandle::enable(const bool& set) {
+        auto c = context.lock();
+        if (c) {
+            c->enabled = set;
+        }
+        return *this;
+    }
+
+    bool ReactionHandle::enabled() const {
+        auto c = context.lock();
+        return c ? bool(c->enabled) : false;
+    }
+
+
+    void ReactionHandle::unbind() {
+        auto c = context.lock();
+        if (c) {
+            c->unbind();
+        }
+    }
+
+    ReactionHandle::operator bool() const {
+        return bool(context.lock());
+    }
+
+}  // namespace threading
 }  // namespace NUClear
-
-#endif  // NUCLEAR_UTIL_MAIN_THREAD_ID_HPP

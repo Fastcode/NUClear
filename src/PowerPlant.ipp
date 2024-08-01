@@ -86,7 +86,7 @@ void PowerPlant::emit(std::unique_ptr<T>& data, Arguments&&... args) {
 }
 
 /**
- * @brief This is our Function Fusion wrapper class that allows it to call emit functions
+ * This is our Function Fusion wrapper class that allows it to call emit functions
  *
  * @tparam Handler The emit handler that we are wrapping for
  */
@@ -103,7 +103,6 @@ struct EmitCaller {
 };
 
 // Global emit handlers
-
 
 template <template <typename> class First, template <typename> class... Remainder, typename T, typename... Arguments>
 void PowerPlant::emit_shared(std::shared_ptr<T> data, Arguments&&... args) {
@@ -181,7 +180,7 @@ void PowerPlant::log(Arguments&&... args) {
     // Direct emit the log message so that any direct loggers can use it
     powerplant->emit<dsl::word::emit::Direct>(std::make_unique<message::LogMessage>(
         level,
-        current_task != nullptr ? current_task->parent.reactor.log_level : LogLevel::UNKNOWN,
+        current_task != nullptr ? current_task->parent->reactor.log_level : LogLevel::UNKNOWN,
         output_stream.str(),
         current_task != nullptr ? current_task->stats : nullptr));
 }

@@ -20,8 +20,8 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_DSL_OPERATION_CHRONOTASK_HPP
-#define NUCLEAR_DSL_OPERATION_CHRONOTASK_HPP
+#ifndef NUCLEAR_DSL_OPERATION_CHRONO_TASK_HPP
+#define NUCLEAR_DSL_OPERATION_CHRONO_TASK_HPP
 
 #include "../../clock.hpp"
 #include "../../id.hpp"
@@ -31,18 +31,18 @@ namespace dsl {
     namespace operation {
 
         /**
-         * @brief Emit to schedule a function to be run at a particular time.
+         * Emit to schedule a function to be run at a particular time.
          *
-         * @details When the Chrono system is running, tasks emitted using this struct will be scheduled to execute
-         *          at the given time and are passed this time as a reference. The return value from this function
-         *          is used to indicate that the function should be called again in the future. If it is true the
-         *          function will not be purged after execution. If the task is to be executed again it should
-         *          modify the time reference to the next time that this should be executed.
+         * When the Chrono system is running, tasks emitted using this struct will be scheduled to execute at the given
+         * time and are passed this time as a reference. The return value from this function is used to indicate that
+         * the function should be called again in the future. If it is true the function will not be purged after
+         * execution. If the task is to be executed again it should modify the time reference to the next time that this
+         * should be executed.
          */
         struct ChronoTask {
 
             /**
-             * @brief Constructs a new ChronoTask to execute
+             * Constructs a new ChronoTask to execute
              *
              * @param task  the task to run, takes the time to execute as a reference so it can be updated for
              *              future runs
@@ -55,7 +55,7 @@ namespace dsl {
                 : task(std::move(task)), time(time), id(id) {}
 
             /**
-             * @brief Run the task and return true if the time has been updated to run again
+             * Run the task and return true if the time has been updated to run again
              *
              * @return true if the task updated the time to run to a new time
              */
@@ -64,7 +64,7 @@ namespace dsl {
             }
 
             /**
-             * @brief Compares tasks in order of soonest to execute first
+             * Compares tasks in order of soonest to execute first
              *
              * @param other the other task to compare to
              *
@@ -75,7 +75,7 @@ namespace dsl {
             }
 
             /**
-             * @brief Compares tasks in order of soonest to execute first
+             * Compares tasks in order of soonest to execute first
              *
              * @param other the other task to compare to
              *
@@ -86,7 +86,7 @@ namespace dsl {
             }
 
             /**
-             * @brief Check if tasks share the same execution time
+             * Check if tasks share the same execution time
              *
              * @param other the other task to compare to
              *
@@ -108,4 +108,4 @@ namespace dsl {
 }  // namespace dsl
 }  // namespace NUClear
 
-#endif  // NUCLEAR_DSL_OPERATION_TYPEBIND_HPP
+#endif  // NUCLEAR_DSL_OPERATION_CHRONO_TASK_HPP

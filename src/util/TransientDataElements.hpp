@@ -20,8 +20,8 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_UTIL_TRANSIENTDATAELEMENTS_HPP
-#define NUCLEAR_UTIL_TRANSIENTDATAELEMENTS_HPP
+#ifndef NUCLEAR_UTIL_TRANSIENT_DATA_ELEMENTS_HPP
+#define NUCLEAR_UTIL_TRANSIENT_DATA_ELEMENTS_HPP
 
 namespace NUClear {
 namespace util {
@@ -48,9 +48,10 @@ namespace util {
     };
 
     template <typename DSL>
-    struct TransientDataElements : public ExtractTransient<decltype(DSL::get(std::declval<threading::Reaction&>()))> {};
+    struct TransientDataElements
+        : public ExtractTransient<decltype(DSL::get(std::declval<threading::ReactionTask&>()))> {};
 
 }  // namespace util
 }  // namespace NUClear
 
-#endif  // NUCLEAR_UTIL_TRANSIENTDATAELEMENTS_HPP
+#endif  // NUCLEAR_UTIL_TRANSIENT_DATA_ELEMENTS_HPP

@@ -7,7 +7,7 @@ namespace NUClear {
 namespace util {
 
     /**
-     * @brief A clock that measures CPU time.
+     * A clock that measures CPU time.
      */
     struct cpu_clock {
         using duration              = std::chrono::nanoseconds;            ///< The duration type of the clock.
@@ -17,7 +17,7 @@ namespace util {
         static const bool is_steady = true;                                ///< Indicates if the clock is steady.
 
         /**
-         * @brief Get the current time point of the cpu clock for the current thread
+         * Get the current time point of the cpu clock for the current thread
          *
          * @return The current time point.
          */

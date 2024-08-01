@@ -54,16 +54,16 @@ namespace dsl {
 
 namespace {
 
-/// @brief Events that occur during the test
+/// Events that occur during the test
 std::vector<std::string> events;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
 struct TransientGetter : public NUClear::dsl::operation::TypeBind<TransientMessage> {
 
     template <typename DSL>
-    static inline TransientMessage get(NUClear::threading::Reaction& r) {
+    static inline TransientMessage get(NUClear::threading::ReactionTask& task) {
 
         // Get the real message and return it directly so transient can activate
-        auto raw = NUClear::dsl::operation::CacheGet<TransientMessage>::get<DSL>(r);
+        auto raw = NUClear::dsl::operation::CacheGet<TransientMessage>::get<DSL>(task);
         if (raw == nullptr) {
             return {};
         }

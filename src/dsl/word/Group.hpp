@@ -35,17 +35,16 @@ namespace dsl {
     namespace word {
 
         /**
-         * @brief
-         *  This is used to specify that up to GroupConcurrency reactions in this GroupType can run concurrently.
+         * This is used to specify that up to GroupConcurrency reactions in this GroupType can run concurrently.
          *
-         * @details
-         *  @code on<Trigger<T, ...>, Group<GroupType, N>>() @endcode
-         *  When a group of tasks has been synchronised, only N task(s) from the group will execute at a given time.
+         * @code on<Trigger<T, ...>, Group<GroupType, N>>() @endcode
          *
-         *  Should another task from this group be scheduled/requested (during execution of the current N task(s)), it
-         *  will be sidelined into the task queue.
+         * When a group of tasks has been synchronised, only N task(s) from the group will execute at a given time.
          *
-         *  Tasks in the queue are ordered based on their priority level, then their task id.
+         * Should another task from this group be scheduled/requested (during execution of the current N task(s)), it
+         * will be sidelined into the task queue.
+         *
+         * Tasks in the queue are ordered based on their priority level, then their task id.
          *
          * @attention
          *  When using NUClear, developers should be careful when using devices like a mutex. In the case of a mutex,
@@ -72,7 +71,7 @@ namespace dsl {
             static const util::GroupDescriptor group_descriptor;
 
             template <typename DSL>
-            static inline util::GroupDescriptor group(const threading::Reaction& /*reaction*/) {
+            static inline util::GroupDescriptor group(const threading::ReactionTask& /*reaction*/) {
                 return group_descriptor;
             }
         };

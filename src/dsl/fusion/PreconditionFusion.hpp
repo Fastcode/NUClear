@@ -23,7 +23,7 @@
 #ifndef NUCLEAR_DSL_FUSION_PRECONDITIONFUSION_HPP
 #define NUCLEAR_DSL_FUSION_PRECONDITIONFUSION_HPP
 
-#include "../../threading/Reaction.hpp"
+#include "../../threading/ReactionTask.hpp"
 #include "../operation/DSLProxy.hpp"
 #include "has_precondition.hpp"
 
@@ -41,7 +41,7 @@ namespace dsl {
         struct PreconditionWords;
 
         /**
-         * @brief Metafunction that extracts all of the Words with a precondition function
+         * Metafunction that extracts all of the Words with a precondition function
          *
          * @tparam Word1        The word we are looking at
          * @tparam WordN        The words we have yet to look at
@@ -57,7 +57,7 @@ namespace dsl {
                   /*F*/ PreconditionWords<std::tuple<WordN...>, std::tuple<FoundWords...>>> {};
 
         /**
-         * @brief Termination case for the PreconditionWords metafunction
+         * Termination case for the PreconditionWords metafunction
          *
          * @tparam FoundWords The words we have found with precondition functions
          */
@@ -76,10 +76,10 @@ namespace dsl {
         struct PreconditionFuser<std::tuple<Word>> {
 
             template <typename DSL>
-            static inline bool precondition(threading::Reaction& reaction) {
+            static inline bool precondition(threading::ReactionTask& task) {
 
                 // Run our remaining precondition
-                return Word::template precondition<DSL>(reaction);
+                return Word::template precondition<DSL>(task);
             }
         };
 
@@ -88,11 +88,11 @@ namespace dsl {
         struct PreconditionFuser<std::tuple<Word1, Word2, WordN...>> {
 
             template <typename DSL>
-            static inline bool precondition(threading::Reaction& reaction) {
+            static inline bool precondition(threading::ReactionTask& task) {
 
                 // Perform a recursive and operation ending with the first false
-                return Word1::template precondition<DSL>(reaction)
-                       && PreconditionFuser<std::tuple<Word2, WordN...>>::template precondition<DSL>(reaction);
+                return Word1::template precondition<DSL>(task)
+                       && PreconditionFuser<std::tuple<Word2, WordN...>>::template precondition<DSL>(task);
             }
         };
 

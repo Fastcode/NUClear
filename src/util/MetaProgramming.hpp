@@ -33,7 +33,7 @@
 namespace NUClear {
 
 /**
- * @brief Becomes true_type if all of the predicates pass, and false_type if any fail.
+ * Becomes true_type if all of the predicates pass, and false_type if any fail.
  *
  * @tparam T the set of condtions to check.
  *
@@ -45,7 +45,7 @@ template <typename Head, typename... Tail>
 struct All<Head, Tail...> : std::conditional_t<Head::value, All<Tail...>, std::false_type> {};
 
 /**
- * @brief Becomes true_type if any of the predicates pass, and false_type they all fail.
+ * Becomes true_type if any of the predicates pass, and false_type they all fail.
  *
  * @tparam T the set of condtions to check.
  *
@@ -57,7 +57,7 @@ template <typename Head, typename... Tail>
 struct Any<Head, Tail...> : std::conditional_t<Head::value, std::true_type, Any<Tail...>> {};
 
 /**
- * @brief Becomes the inverse to the boolean type passed.
+ * Becomes the inverse to the boolean type passed.
  *
  * @tparam Condition the type to attempt to inverse.
  *

@@ -40,36 +40,36 @@ namespace dsl {
             return DSL::template bind<Parse<Sentence...>>(r, std::forward<Arguments>(args)...);
         }
 
-        static inline auto get(threading::Reaction& r)
+        static inline auto get(threading::ReactionTask& task)
             -> decltype(std::conditional_t<fusion::has_get<DSL>::value, DSL, fusion::NoOp>::template get<
-                        Parse<Sentence...>>(r)) {
+                        Parse<Sentence...>>(task)) {
             return std::conditional_t<fusion::has_get<DSL>::value, DSL, fusion::NoOp>::template get<Parse<Sentence...>>(
-                r);
+                task);
         }
 
-        static inline bool precondition(threading::Reaction& r) {
+        static inline bool precondition(threading::ReactionTask& task) {
             return std::conditional_t<fusion::has_precondition<DSL>::value, DSL, fusion::NoOp>::template precondition<
-                Parse<Sentence...>>(r);
+                Parse<Sentence...>>(task);
         }
 
-        static inline int priority(threading::Reaction& r) {
+        static inline int priority(threading::ReactionTask& task) {
             return std::conditional_t<fusion::has_priority<DSL>::value, DSL, fusion::NoOp>::template priority<
-                Parse<Sentence...>>(r);
+                Parse<Sentence...>>(task);
         }
 
-        static inline util::GroupDescriptor group(threading::Reaction& r) {
+        static inline util::GroupDescriptor group(threading::ReactionTask& task) {
             return std::conditional_t<fusion::has_group<DSL>::value, DSL, fusion::NoOp>::template group<
-                Parse<Sentence...>>(r);
+                Parse<Sentence...>>(task);
         }
 
-        static inline util::ThreadPoolDescriptor pool(threading::Reaction& r) {
+        static inline util::ThreadPoolDescriptor pool(threading::ReactionTask& task) {
             return std::conditional_t<fusion::has_pool<DSL>::value, DSL, fusion::NoOp>::template pool<
-                Parse<Sentence...>>(r);
+                Parse<Sentence...>>(task);
         }
 
-        static inline void postcondition(threading::ReactionTask& r) {
+        static inline void postcondition(threading::ReactionTask& task) {
             std::conditional_t<fusion::has_postcondition<DSL>::value, DSL, fusion::NoOp>::template postcondition<
-                Parse<Sentence...>>(r);
+                Parse<Sentence...>>(task);
         }
     };
 

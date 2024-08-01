@@ -48,7 +48,7 @@ namespace util {
             }
 
             /**
-             * @brief Reads a 32-bit integer from a character array in either little-endian or big-endian byte order.
+             * Reads a 32-bit integer from a character array in either little-endian or big-endian byte order.
              *
              * @param v The character array to read from.
              *
@@ -62,7 +62,7 @@ namespace util {
             }
 
             /**
-             * @brief Reads a 64-bit integer from a character array in either little-endian or big-endian byte order.
+             * Reads a 64-bit integer from a character array in either little-endian or big-endian byte order.
              *
              * @param v The character array to read from.
              *
@@ -80,7 +80,7 @@ namespace util {
             }
 
             /**
-             * @brief Rotates the bits of an integral type to the left by a given amount.
+             * Rotates the bits of an integral type to the left by a given amount.
              * @note This function is only enabled for integral types.
              *
              * @tparam T The integral type to rotate.

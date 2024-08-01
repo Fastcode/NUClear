@@ -31,14 +31,13 @@ namespace dsl {
         namespace emit {
 
             /**
-             * @brief
-             *  This scope emits data as the system starts up.
+             * This scope emits data as the system starts up.
              *
-             * @details
-             *  @code emit<Scope::INITIALISE>(data, dataType); @endcode
-             *  This should be used to emit any data required during system start up (that is, as the reactor is being
-             *  installed into the powerPlant). When running emissions under this scope, the message will wait until
-             *  all Reactors are installed into the powerPlant before triggering any callbacks based on the emission.
+             * @code emit<Scope::INITIALISE>(data, dataType); @endcode
+             *
+             * This should be used to emit any data required during system start up (that is, as the reactor is being
+             * installed into the powerPlant). When running emissions under this scope, the message will wait until
+             * all Reactors are installed into the powerPlant before triggering any callbacks based on the emission.
              *
              * @attention
              *  Tasks triggered by data emitted under this scope will only execute while the system is in the
@@ -46,11 +45,9 @@ namespace dsl {
              *  execution phase.  Any emissions under this scope while the system is in the execution phase will be
              *  ignored.
              *
-             * @param data
-             *  The data to emit
+             * @tparam DataType The type of the data to be emitted
              *
-             * @tparam DataType
-             *  The type of the data to be emitted
+             * @param data The data to emit
              */
             template <typename DataType>
             struct Initialise {
@@ -68,7 +65,7 @@ namespace dsl {
             };
 
         }  // namespace emit
-    }      // namespace word
+    }  // namespace word
 }  // namespace dsl
 }  // namespace NUClear
 

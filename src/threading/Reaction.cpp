@@ -22,6 +22,8 @@
 
 #include "Reaction.hpp"
 
+#include "ReactionTask.hpp"
+
 namespace NUClear {
 namespace threading {
 
@@ -29,7 +31,22 @@ namespace threading {
     std::atomic<NUClear::id_t> Reaction::reaction_id_source(0);  // NOLINT
 
     Reaction::Reaction(Reactor& reactor, ReactionIdentifiers&& identifiers, TaskGenerator&& generator)
-        : reactor(reactor), identifiers(std::move(identifiers)), generator(std::move(generator)) {}
+        : reactor(reactor)
+        , identifiers(std::make_shared<ReactionIdentifiers>(std::move(identifiers)))
+        , generator(std::move(generator)) {}
+
+    Reaction::~Reaction() {}
+
+    std::unique_ptr<ReactionTask> Reaction::get_task() {
+
+        // If we are not enabled, don't run
+        if (!enabled) {
+            return nullptr;
+        }
+
+        // Return the task returned by the generator
+        return generator(this->shared_from_this());
+    }
 
     void Reaction::unbind() {
         // Unbind

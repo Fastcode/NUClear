@@ -31,23 +31,21 @@ namespace dsl {
     namespace word {
 
         /**
-         * @brief
-         *  This is used to specify reactions which should occur only 1 time.
+         * This is used to specify reactions which should occur only 1 time.
          *
-         * @details
-         *  @code on<Once>() @endcode
-         *  Any reactions listed with this DSL word will run only once. This is the only time these reactions
-         *  will run as the postcondition Unbinds the current reaction, after processing.
+         * @code on<Once>() @endcode
+         *
+         * Any reactions listed with this DSL word will run only once. This is the only time these reactions
+         * will run as the postcondition Unbinds the current reaction, after processing.
          *
          */
         struct Once : public Single {
 
             // Post condition to unbind this reaction.
-
             template <typename DSL>
-            static void postcondition(threading::ReactionTask& reaction) {
+            static void postcondition(threading::ReactionTask& task) {
                 // Unbind:
-                reaction.parent.unbind();
+                task.parent->unbind();
             }
         };
 

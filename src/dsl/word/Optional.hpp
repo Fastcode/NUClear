@@ -45,18 +45,17 @@ namespace dsl {
         };
 
         /**
-         * @brief
-         *  This is used to signify any optional properties in the DSL request.
+         * This is used to signify any optional properties in the DSL request.
          *
-         * @details
-         *  @code on<Trigger<T1>, Optional<With<T2>() @endcode
-         *  During system runtime, optional data does not need to be present when initialising a reaction within the
-         *  system.  In the case above, when T1 is emitted to the system, the associated task will be queued for
-         *  execution. Should T2 be available, read-only access to the most recent emission of T2 will be provided to
-         *  the subscribing reaction.  However, should T2 not be present, the task will run without a reference to
-         *  this data.
+         * @code on<Trigger<T1>, Optional<With<T2>() @endcode
          *
-         *  This word is a modifier, and should be used to modify any "Get" DSL word.
+         * During system runtime, optional data does not need to be present when initialising a reaction within the
+         * system.  In the case above, when T1 is emitted to the system, the associated task will be queued for
+         * execution. Should T2 be available, read-only access to the most recent emission of T2 will be provided to
+         * the subscribing reaction.  However, should T2 not be present, the task will run without a reference to
+         * this data.
+         *
+         * This word is a modifier, and should be used to modify any "Get" DSL word.
          *
          *@par Implements
          *  Modification
@@ -76,17 +75,18 @@ namespace dsl {
 
         public:
             template <typename DSL>
-            static inline auto get(threading::Reaction& reaction) -> decltype(wrap(
-                Fusion<DSLWords...>::template get<DSL>(reaction),
-                util::GenerateSequence<
-                    0,
-                    std::tuple_size<decltype(Fusion<DSLWords...>::template get<DSL>(reaction))>::value>())) {
+            static inline auto get(threading::ReactionTask& task)
+                -> decltype(wrap(
+                    Fusion<DSLWords...>::template get<DSL>(task),
+                    util::GenerateSequence<
+                        0,
+                        std::tuple_size<decltype(Fusion<DSLWords...>::template get<DSL>(task))>::value>())) {
 
                 // Wrap all of our data in optional wrappers
-                return wrap(Fusion<DSLWords...>::template get<DSL>(reaction),
+                return wrap(Fusion<DSLWords...>::template get<DSL>(task),
                             util::GenerateSequence<
                                 0,
-                                std::tuple_size<decltype(Fusion<DSLWords...>::template get<DSL>(reaction))>::value>());
+                                std::tuple_size<decltype(Fusion<DSLWords...>::template get<DSL>(task))>::value>());
             }
         };
 
