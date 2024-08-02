@@ -25,6 +25,7 @@
 
 #include <cmath>
 
+#include "../../Reactor.hpp"
 #include "../../threading/Reaction.hpp"
 #include "../operation/ChronoTask.hpp"
 #include "../operation/Unbind.hpp"

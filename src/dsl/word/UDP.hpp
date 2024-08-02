@@ -545,6 +545,7 @@ namespace dsl {
                 }
             };
         };
+
     }  // namespace word
 
     namespace trait {

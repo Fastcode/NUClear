@@ -50,7 +50,7 @@ namespace dsl {
          *
          * Should the port reference be omitted, then the system will bind to a currently unassigned port.
          *
-         * @code on<TCP, TCP>(port, port)  @endcode
+         * @code on<TCP, TCP>(port, port) @endcode
          *
          * A reaction can also be triggered via connectivity on more than one port.
          *
@@ -58,9 +58,11 @@ namespace dsl {
          *  Because TCP communications are stream based, the on< TCP >() request will often require an on< IO >()
          *  request also be specified within its definition. It is the later request which will define the reaction to
          *  run when activity on the stream is detected.  For example:
-         *  @code on<TCP>(port).then([this](const TCP::Connection& connection){
-         *    on<IO>(connection.fd, IO::READ | IO::CLOSE).then([this](IO::Event event)
-         *  } @endcode
+         *  @code
+         *      on<TCP>(port).then([this](const TCP::Connection& connection){
+         *          on<IO>(connection.fd, IO::READ | IO::CLOSE).then([this](IO::Event event)
+         *      }
+         *  @endcode
          *
          * @par Implements
          *  Bind

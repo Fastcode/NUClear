@@ -24,12 +24,17 @@
 
 #include <algorithm>
 #include <atomic>
-#include <iostream>
 #include <map>
 #include <mutex>
+#include <stdexcept>
 #include <system_error>
+#include <utility>
 
 #include "../dsl/word/MainThread.hpp"
+#include "../id.hpp"
+#include "../util/GroupDescriptor.hpp"
+#include "../util/ThreadPoolDescriptor.hpp"
+#include "../util/platform.hpp"
 #include "../util/update_current_thread_priority.hpp"
 
 namespace NUClear {
@@ -56,13 +61,13 @@ namespace threading {
         return false;
     }
 
-    void TaskScheduler::run_task(Task&& task) {
-        task.run();
+    void TaskScheduler::run_task(std::unique_ptr<ReactionTask>&& task) {
+        task->run();
 
         // We need to do group counting if this isn't the default group
-        if (task.group_descriptor.group_id != 0) {
+        if (task->group_descriptor.group_id != 0) {
             const std::lock_guard<std::mutex> group_lock(group_mutex);
-            --groups.at(task.group_descriptor.group_id);
+            --groups.at(task->group_descriptor.group_id);
         }
     }
 
@@ -174,25 +179,18 @@ namespace threading {
         }
     }
 
-    void TaskScheduler::PoolQueue::submit(Task&& task) {
+    void TaskScheduler::PoolQueue::submit(std::unique_ptr<ReactionTask>&& task) {
         const std::lock_guard<std::recursive_mutex> lock(mutex);
 
         // Insert in sorted order
-        queue.insert(std::lower_bound(queue.begin(), queue.end(), task), std::move(task));
+        PoolQueue::Task item{std::move(task), false};
+        queue.insert(std::lower_bound(queue.begin(), queue.end(), item), std::move(item));
 
         // Notify a single thread that there is a new task
         condition.notify_one();
     }
 
-    void TaskScheduler::submit(const NUClear::id_t& id,
-                               const int& priority,
-                               const util::GroupDescriptor& group_descriptor,
-                               const util::ThreadPoolDescriptor& pool_descriptor,
-                               const bool& immediate,
-                               std::function<void()>&& func) {
-
-        // Move the arguments into a struct
-        Task task{id, priority, group_descriptor, pool_descriptor, std::move(func)};
+    void TaskScheduler::submit(std::unique_ptr<ReactionTask>&& task, const bool& immediate) noexcept {
 
         // Immediate tasks are executed directly on the current thread if they can be
         // If something is blocking them from running right now they are added to the queue
@@ -200,7 +198,7 @@ namespace threading {
             bool runnable = false;
             /* mutex scope */ {
                 const std::lock_guard<std::mutex> group_lock(group_mutex);
-                runnable = is_runnable(task.group_descriptor);
+                runnable = is_runnable(task->group_descriptor);
             }
             if (runnable) {
                 run_task(std::move(task));
@@ -208,9 +206,9 @@ namespace threading {
             }
         }
 
-        // We do not accept new tasks once we are shutdown
+        // We only accept new tasks while the scheduler is running
         if (running.load()) {
-            const std::shared_ptr<PoolQueue> pool = get_pool_queue(task.thread_pool_descriptor);
+            const std::shared_ptr<PoolQueue> pool = get_pool_queue(task->thread_pool_descriptor);
             if (pool->pool_descriptor.counts_for_idle) {
                 ++global_runnable_tasks;
                 ++pool->runnable_tasks;
@@ -258,7 +256,7 @@ namespace threading {
         }
     }
 
-    TaskScheduler::Task TaskScheduler::get_task() {
+    std::unique_ptr<ReactionTask> TaskScheduler::get_task() {
 
         // Wait at a high (but not realtime) priority to reduce latency for picking up a new task
         update_current_thread_priority(1000);
@@ -285,26 +283,29 @@ namespace threading {
                 for (auto it = queue.begin(); it != queue.end(); ++it) {
 
                     // Check if we can run the task
-                    if (is_runnable(it->group_descriptor)) {
+                    if (is_runnable(it->task->group_descriptor)) {
                         // Move the task out of the queue
-                        Task task = std::move(*it);
+                        auto task = std::move(*it);
                         // Erase the old position in the queue
                         queue.erase(it);
 
-                        if (pool->pool_descriptor.counts_for_idle && task.checked_runnable) {
+                        // If it was blocked and is now unblocked, there is an additional runnable task
+                        if (pool->pool_descriptor.counts_for_idle && task.blocked) {
                             ++global_runnable_tasks;
                             ++pool->runnable_tasks;
                         }
 
                         // Return the task
-                        return task;
+                        return std::move(task.task);
                     }
-                    if (!it->checked_runnable) {
+
+                    // The task is blocked, mark it as such and lower the number of runnable tasks
+                    if (!it->blocked) {
                         if (pool->pool_descriptor.counts_for_idle) {
                             --global_runnable_tasks;
                             --pool->runnable_tasks;
                         }
-                        it->checked_runnable = true;
+                        it->blocked = true;
                     }
                 }
 

@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2013 NUClear Contributors
+ * Copyright (c) 2015 NUClear Contributors
  *
  * This file is part of the NUClear codebase.
  * See https://github.com/Fastcode/NUClear for further info.
@@ -20,24 +20,8 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR
-#define NUCLEAR
-
-// Main classes
-#include "${nuclear_include_base_directory}PowerPlant.hpp"
-#include "${nuclear_include_base_directory}Reactor.hpp"
-
-// Message types
-#include "${nuclear_include_base_directory}message/CommandLineArguments.hpp"
-#include "${nuclear_include_base_directory}message/LogMessage.hpp"
-#include "${nuclear_include_base_directory}message/NetworkConfiguration.hpp"
-#include "${nuclear_include_base_directory}message/NetworkEvent.hpp"
-#include "${nuclear_include_base_directory}message/ReactionStatistics.hpp"
-#include "${nuclear_include_base_directory}message/TimeTravel.hpp"
-
-// Extensions
-#include "${nuclear_include_base_directory}extension/ChronoController.hpp"
-#include "${nuclear_include_base_directory}extension/IOController.hpp"
-#include "${nuclear_include_base_directory}extension/NetworkController.hpp"
-
-#endif  // NUCLEAR
+#ifdef _WIN32
+    #include "IOController_Windows.ipp"
+#else
+    #include "IOController_Posix.ipp"
+#endif  // _WIN32

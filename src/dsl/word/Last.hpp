@@ -26,6 +26,7 @@
 #include <list>
 #include <type_traits>
 
+#include "../../dsl/trait/is_transient.hpp"
 #include "../../threading/Reaction.hpp"
 #include "../../util/MergeTransient.hpp"
 
@@ -146,10 +147,8 @@ namespace dsl {
          * @par Implements
          *  Modification
          *
-         * @tparam  n
-         *  the number of records to be stored in the cache.
-         * @tparam  DSLWords
-         *  the DSL word/activity being modified.
+         * @tparam n        the number of records to be stored in the cache.
+         * @tparam DSLWords the DSL word/activity being modified.
          */
         template <size_t n, typename... DSLWords>
         struct Last : public Fusion<DSLWords...> {

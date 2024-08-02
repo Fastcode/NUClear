@@ -24,6 +24,7 @@
 #define NUCLEAR_DSL_OPERATION_CACHE_GET_HPP
 
 #include "../store/DataStore.hpp"
+#include "../store/ThreadStore.hpp"
 
 namespace NUClear {
 namespace dsl {

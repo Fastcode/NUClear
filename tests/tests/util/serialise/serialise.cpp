@@ -26,7 +26,12 @@
 #include <catch2/catch_template_test_macros.hpp>
 #include <catch2/catch_test_macros.hpp>
 #include <cstdint>
+#include <iterator>
 #include <list>
+#include <ostream>
+#include <stdexcept>
+#include <string>
+#include <type_traits>
 #include <vector>
 
 SCENARIO("Serialisation works correctly on single primitives", "[util][serialise][single][primitive]") {

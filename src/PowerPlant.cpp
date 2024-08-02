@@ -22,10 +22,46 @@
 
 #include "PowerPlant.hpp"
 
+#include <exception>
+#include <tuple>
+
+#include "Reactor.hpp"
+#include "dsl/store/DataStore.hpp"
+#include "dsl/word/Shutdown.hpp"
+#include "dsl/word/Startup.hpp"
+#include "dsl/word/emit/Direct.hpp"
+#include "message/CommandLineArguments.hpp"
+#include "message/LogMessage.hpp"
+#include "threading/ReactionTask.hpp"
+
 namespace NUClear {
+namespace util {
+    struct GroupDescriptor;
+    struct ThreadPoolDescriptor;
+}  // namespace util
 
 // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
 PowerPlant* PowerPlant::powerplant = nullptr;
+
+PowerPlant::PowerPlant(Configuration config, int argc, const char* argv[]) : scheduler(config.thread_count) {
+
+    // Stop people from making more then one powerplant
+    if (powerplant != nullptr) {
+        throw std::runtime_error("There is already a powerplant in existence (There should be a single PowerPlant)");
+    }
+
+    // Store our static variable
+    powerplant = this;
+
+    // Emit our arguments if any.
+    message::CommandLineArguments args;
+    for (int i = 0; i < argc; ++i) {
+        args.emplace_back(argv[i]);
+    }
+
+    // Emit our command line arguments
+    emit(std::make_unique<message::CommandLineArguments>(args));
+}
 
 PowerPlant::~PowerPlant() {
     // Make sure reactors are destroyed before anything else
@@ -50,29 +86,26 @@ void PowerPlant::start() {
     scheduler.start();
 }
 
-void PowerPlant::submit(const NUClear::id_t& id,
-                        const int& priority,
-                        const util::GroupDescriptor& group,
-                        const util::ThreadPoolDescriptor& pool,
-                        const bool& immediate,
-                        std::function<void()>&& task) {
-    scheduler.submit(id, priority, group, pool, immediate, std::move(task));
-}
-
 void PowerPlant::submit(std::unique_ptr<threading::ReactionTask>&& task, const bool& immediate) noexcept {
     // Only submit non null tasks
     if (task) {
-        try {
-            const std::shared_ptr<threading::ReactionTask> t(std::move(task));
-            submit(t->id, t->priority, t->group_descriptor, t->thread_pool_descriptor, immediate, [t]() { t->run(); });
-        }
-        catch (const std::exception& ex) {
-            task->parent->reactor.log<NUClear::ERROR>("There was an exception while submitting a reaction", ex.what());
-        }
-        catch (...) {
-            task->parent->reactor.log<NUClear::ERROR>("There was an unknown exception while submitting a reaction");
-        }
+        scheduler.submit(std::move(task), immediate);
     }
+}
+
+void PowerPlant::log(const LogLevel& level, const std::string& message) {
+    // Get the current task
+    const auto* current_task = threading::ReactionTask::get_current_task();
+
+    // Direct emit the log message so that any direct loggers can use it
+    emit<dsl::word::emit::Direct>(std::make_unique<message::LogMessage>(
+        level,
+        current_task != nullptr ? current_task->parent->reactor.log_level : LogLevel::UNKNOWN,
+        message,
+        current_task != nullptr ? current_task->stats : nullptr));
+}
+void PowerPlant::log(const LogLevel& level, std::stringstream& message) {
+    log(level, message.str());
 }
 
 void PowerPlant::add_idle_task(const NUClear::id_t& id,
@@ -101,4 +134,5 @@ void PowerPlant::shutdown() {
 bool PowerPlant::running() const {
     return is_running.load();
 }
+
 }  // namespace NUClear

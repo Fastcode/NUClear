@@ -20,12 +20,13 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_EXTENSION_NETWORK_NUCLEARNETWORK_HPP
-#define NUCLEAR_EXTENSION_NETWORK_NUCLEARNETWORK_HPP
+#ifndef NUCLEAR_EXTENSION_NETWORK_NUCLEAR_NETWORK_HPP
+#define NUCLEAR_EXTENSION_NETWORK_NUCLEAR_NETWORK_HPP
 
 #include <array>
 #include <atomic>
 #include <chrono>
+#include <cstdint>
 #include <functional>
 #include <limits>
 #include <list>
@@ -33,7 +34,7 @@
 #include <memory>
 #include <mutex>
 #include <string>
-#include <thread>
+#include <utility>
 #include <vector>
 
 #include "../../util/network/sock_t.hpp"
@@ -352,4 +353,4 @@ namespace extension {
 }  // namespace extension
 }  // namespace NUClear
 
-#endif  // NUCLEAR_EXTENSION_NETWORKCONTROLLER_HPP
+#endif  // NUCLEAR_EXTENSION_NETWORK_NUCLEAR_NETWORK_HPP

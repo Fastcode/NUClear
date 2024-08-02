@@ -23,11 +23,9 @@
 #ifndef NUCLEAR_REACTOR_HPP
 #define NUCLEAR_REACTOR_HPP
 
-#include <atomic>
 #include <chrono>
 #include <functional>
 #include <regex>
-#include <sstream>
 #include <string>
 #include <typeindex>
 #include <vector>
@@ -40,6 +38,7 @@
 #include "threading/ReactionIdentifiers.hpp"
 #include "util/CallbackGenerator.hpp"
 #include "util/Sequence.hpp"
+#include "util/demangle.hpp"
 #include "util/tuplify.hpp"
 
 namespace NUClear {
@@ -116,8 +115,6 @@ namespace dsl {
             struct Direct;
             template <typename T>
             struct Delay;
-            template <typename T>
-            struct Initialise;
             template <typename T>
             struct Network;
             template <typename T>
@@ -286,10 +283,6 @@ protected:
         template <typename T>
         using DELAY = dsl::word::emit::Delay<T>;
 
-        /// @copydoc dsl::word::emit::Initialise
-        template <typename T>
-        using INITIALIZE = dsl::word::emit::Initialise<T>;
-
         /// @copydoc dsl::word::emit::Network
         template <typename T>
         using NETWORK = dsl::word::emit::Network<T>;
@@ -423,7 +416,7 @@ public:
     void log(Arguments&&... args) const {
 
         // If the log is above or equal to our log level
-        PowerPlant::log<level>(std::forward<Arguments>(args)...);
+        powerplant.log<level>(std::forward<Arguments>(args)...);
     }
 };
 
@@ -454,7 +447,6 @@ public:
 #include "dsl/word/With.hpp"
 #include "dsl/word/emit/Delay.hpp"
 #include "dsl/word/emit/Direct.hpp"
-#include "dsl/word/emit/Initialise.hpp"
 #include "dsl/word/emit/Local.hpp"
 #include "dsl/word/emit/Network.hpp"
 #include "dsl/word/emit/UDP.hpp"

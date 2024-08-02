@@ -23,9 +23,9 @@
 #include "resolve.hpp"
 
 #include <cstring>
-#include <iostream>
 #include <memory>
 #include <stdexcept>
+#include <system_error>
 
 #include "../platform.hpp"
 

@@ -23,6 +23,8 @@
 #ifndef NUCLEAR_UTIL_TRANSIENT_DATA_ELEMENTS_HPP
 #define NUCLEAR_UTIL_TRANSIENT_DATA_ELEMENTS_HPP
 
+#include "../dsl/trait/is_transient.hpp"
+
 namespace NUClear {
 namespace util {
 

@@ -23,14 +23,13 @@
 #include "NUClearNetwork.hpp"
 
 #include <algorithm>
-#include <cerrno>
 #include <cstring>
-#include <set>
+#include <iterator>
+#include <ratio>
 #include <stdexcept>
 #include <system_error>
 #include <utility>
 
-#include "../../util/network/get_interfaces.hpp"
 #include "../../util/network/if_number_from_address.hpp"
 #include "../../util/network/resolve.hpp"
 #include "../../util/platform.hpp"

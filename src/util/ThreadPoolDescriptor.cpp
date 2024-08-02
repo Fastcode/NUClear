@@ -22,6 +22,8 @@
 
 #include "ThreadPoolDescriptor.hpp"
 
+#include "../id.hpp"
+
 namespace NUClear {
 namespace util {
 

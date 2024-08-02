@@ -22,6 +22,10 @@
 
 #include "Reaction.hpp"
 
+#include <utility>
+
+#include "../id.hpp"
+#include "ReactionIdentifiers.hpp"
 #include "ReactionTask.hpp"
 
 namespace NUClear {

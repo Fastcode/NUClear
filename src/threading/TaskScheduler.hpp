@@ -20,11 +20,13 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_THREADING_TASKSCHEDULER_HPP
-#define NUCLEAR_THREADING_TASKSCHEDULER_HPP
+#ifndef NUCLEAR_THREADING_TASK_SCHEDULER_HPP
+#define NUCLEAR_THREADING_TASK_SCHEDULER_HPP
 
 #include <atomic>
 #include <condition_variable>
+#include <cstddef>
+#include <exception>
 #include <functional>
 #include <map>
 #include <memory>
@@ -36,6 +38,7 @@
 #include "../util/GroupDescriptor.hpp"
 #include "../util/ThreadPoolDescriptor.hpp"
 #include "../util/platform.hpp"
+#include "ReactionTask.hpp"
 
 namespace NUClear {
 namespace threading {
@@ -57,28 +60,28 @@ namespace threading {
      *      if the submitter of this task should wait until this task is finished before returning (for DIRECT
      * emits)
      *
-     *  @em Priority
-     *  @code Priority<P> @endcode
-     *  When a priority is encountered, the task will be scheduled to execute based on this. If one of the three
+     * @em Priority
+     * @code Priority<P> @endcode
+     * When a priority is encountered, the task will be scheduled to execute based on this. If one of the three
      * normal options are specified (HIGH, DEFAULT and LOW), then within the specified Sync group, it will run
      * before, normally or after other reactions.
      *
-     *  @em Sync
-     *  @code Sync<SyncGroup> @endcode
-     *  When a Sync type is encountered, the system uses this as a compile time mutex flag. It will not allow two
-     *  callbacks with the same Sync type to execute at the same time. It will effectively ensure that all of the
-     *  callbacks with this type run in sequence with each other, rather then in parallel.
+     * @em Sync
+     * @code Sync<SyncGroup> @endcode
+     * When a Sync type is encountered, the system uses this as a compile time mutex flag. It will not allow two
+     * callbacks with the same Sync type to execute at the same time. It will effectively ensure that all of the
+     * callbacks with this type run in sequence with each other, rather then in parallel.
      *
-     *  @em Group
-     *  @code Group<GroupType, GroupConcurrency> @endcode
-     *  When a Group type is encountered, the system uses this as a compile time semaphore flag. It will not allow
-     *  (GroupConcurrency + 1) callbacks with the same Group type to execute at the same time. It will effectively
-     *  ensure that the first GroupConcurrency callbacks with this type run in parallel and all subsequent callbacks
-     *  will be queued to run when one of the first GroupConcurrency callbacks have returned
+     * @em Group
+     * @code Group<GroupType, GroupConcurrency> @endcode
+     * When a Group type is encountered, the system uses this as a compile time semaphore flag. It will not allow
+     * (GroupConcurrency + 1) callbacks with the same Group type to execute at the same time. It will effectively
+     * ensure that the first GroupConcurrency callbacks with this type run in parallel and all subsequent callbacks
+     * will be queued to run when one of the first GroupConcurrency callbacks have returned
      *
-     *  @em Single
-     *  @code Single @endcode
-     *  If single is encountered while processing the function, and a Task object for this Reaction is already
+     * @em Single
+     * @code Single @endcode
+     * If single is encountered while processing the function, and a Task object for this Reaction is already
      * running in a thread, or waiting in the Queue, then this task is ignored and dropped from the system.
      */
     class TaskScheduler {
@@ -89,37 +92,17 @@ namespace threading {
         class ShutdownThreadException : public std::exception {};
 
         /**
-         * A struct which contains all the information about an individual task
-         */
-        struct Task {
-            /// The id of this task used for ordering
-            NUClear::id_t id;
-            /// The priority of this task
-            int priority;
-            /// The group descriptor for this task
-            util::GroupDescriptor group_descriptor;
-            /// The thread pool descriptor for this task
-            util::ThreadPoolDescriptor thread_pool_descriptor;
-            /// The callback to be executed
-            std::function<void()> run;
-            /// If task has been checked for runnable
-            bool checked_runnable{false};
-
-            /**
-             * Compare tasks based on their priority
-             *
-             * @param other the other task to compare to
-             * @return true if this task has a higher priority than the other task
-             */
-            bool operator<(const Task& other) const {
-                return priority == other.priority ? id < other.id : priority > other.priority;
-            }
-        };
-
-        /**
          * A struct which contains all the information about an individual thread pool
          */
         struct PoolQueue {
+            struct Task {
+                std::unique_ptr<ReactionTask> task;
+                bool blocked;
+                bool operator<(const Task& other) const {
+                    return *task < *other.task;
+                }
+            };
+
             explicit PoolQueue(const util::ThreadPoolDescriptor& pool_descriptor) : pool_descriptor(pool_descriptor) {}
             /// The descriptor for this thread pool
             const util::ThreadPoolDescriptor pool_descriptor;
@@ -127,7 +110,7 @@ namespace threading {
             std::vector<std::unique_ptr<std::thread>> threads;
             /// The number of runnable tasks in this thread pool
             size_t runnable_tasks{0};
-            /// The queue of tasks for this specific thread pool
+            /// The queue of tasks for this specific thread pool and if they are group blocked
             std::vector<Task> queue;
             /// The mutex which protects the queue
             std::recursive_mutex mutex;
@@ -139,9 +122,9 @@ namespace threading {
             /**
              * Submit a new task to this thread pool
              *
-             * @param task the task to submit
+             * @param task the reaction task task to submit
              */
-            void submit(Task&& task);
+            void submit(std::unique_ptr<ReactionTask>&& task);
         };
 
     public:
@@ -169,21 +152,12 @@ namespace threading {
          * queue based on it's sync type and priority. It will then wait there until it is removed by a thread to
          * be processed.
          *
-         * @param id        the id of this task used for ordering tasks of the same priority
-         * @param priority  the priority of this task
-         * @param group     the group descriptor for this task
-         * @param pool      the thread pool descriptor for this task
+         * @param task the reaction task task to submit
          * @param immediate if this task should run immediately in the current thread. If immediate execution of this
          *                  task is not possible (e.g. due to group concurrency restrictions) this task will be queued
          *                  as normal
-         * @param func      the function to execute
          */
-        void submit(const NUClear::id_t& id,
-                    const int& priority,
-                    const util::GroupDescriptor& group,
-                    const util::ThreadPoolDescriptor& pool,
-                    const bool& immediate,
-                    std::function<void()>&& func);
+        void submit(std::unique_ptr<ReactionTask>&& task, const bool& immediate) noexcept;
 
         /**
          * Adds an idle task to the task scheduler.
@@ -221,7 +195,7 @@ namespace threading {
          *
          * @return the task which has been given to be executed
          */
-        Task get_task();
+        std::unique_ptr<ReactionTask> get_task();
 
         /**
          * Gets a pool queue for the given thread pool descriptor or creates one if it does not exist
@@ -253,7 +227,7 @@ namespace threading {
          *
          * @param task  the task to execute
          */
-        void run_task(Task&& task);
+        void run_task(std::unique_ptr<ReactionTask>&& task);
 
         /**
          * Determines if the given task is able to be executed
@@ -298,4 +272,4 @@ namespace threading {
 }  // namespace threading
 }  // namespace NUClear
 
-#endif  // NUCLEAR_THREADING_TASKSCHEDULER_HPP
+#endif  // NUCLEAR_THREADING_TASK_SCHEDULER_HPP

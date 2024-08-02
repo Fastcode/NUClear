@@ -26,11 +26,9 @@
 #include <atomic>
 #include <functional>
 #include <memory>
-#include <string>
-#include <utility>
+#include <vector>
 
 #include "../id.hpp"
-#include "ReactionIdentifiers.hpp"
 
 namespace NUClear {
 
@@ -39,8 +37,9 @@ class Reactor;
 
 namespace threading {
 
-    // Forward declare ReactionTask
+    // Forward declare
     class ReactionTask;
+    struct ReactionIdentifiers;
 
     /**
      * This class holds the definition of a Reaction (call signature).

@@ -25,7 +25,6 @@
 
 #include <atomic>
 #include <cstddef>
-#include <cstdint>
 #include <string>
 
 #include "../id.hpp"

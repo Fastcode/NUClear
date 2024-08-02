@@ -25,7 +25,10 @@
 #include <atomic>
 #include <functional>
 #include <memory>
+#include <utility>
 
+#include "../id.hpp"
+#include "../util/platform.hpp"
 #include "Reaction.hpp"
 
 namespace NUClear {
@@ -41,13 +44,13 @@ namespace threading {
     }
 
     void ReactionTask::run() {
-        // Update our current task and RAII lock to restore it when finished
-        const std::unique_ptr<ReactionTask, void (*)(ReactionTask*)> lock(current_task,
-                                                                          [](ReactionTask* t) { current_task = t; });
-        current_task = this;
-
+        // Update the current task
+        auto* t = std::exchange(current_task, this);
         // Run our callback
         callback(*this);
+
+        // Restore the current task
+        current_task = t;
     }
 
     NUClear::id_t ReactionTask::new_task_id() {

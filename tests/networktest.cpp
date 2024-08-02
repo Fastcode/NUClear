@@ -23,6 +23,7 @@
 #include <array>
 #include <csignal>
 #include <cstdlib>
+#include <iostream>
 #include <nuclear>
 
 namespace {
@@ -177,6 +178,9 @@ int main(int argc, const char* argv[]) {
     NUClear::Configuration config;
     config.thread_count = 4;
     NUClear::PowerPlant plant(config, argc, argv);
+    plant.install<NUClear::extension::ChronoController>();
+    plant.install<NUClear::extension::IOController>();
+    plant.install<NUClear::extension::NetworkController>();
     plant.install<TestReactor>();
 
     plant.start();

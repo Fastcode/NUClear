@@ -22,7 +22,6 @@
 
 #include "get_interfaces.hpp"
 
-#include <algorithm>
 #include <cstring>
 #include <system_error>
 

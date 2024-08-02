@@ -23,6 +23,7 @@
 #ifndef NUCLEAR_UTIL_NETWORK_RESOLVE_HPP
 #define NUCLEAR_UTIL_NETWORK_RESOLVE_HPP
 
+#include <cstdint>
 #include <string>
 
 #include "sock_t.hpp"

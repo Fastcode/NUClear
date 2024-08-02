@@ -25,6 +25,7 @@
 
 #include "../../threading/ReactionTask.hpp"
 #include "../../util/ThreadPoolDescriptor.hpp"
+#include "../../util/main_thread_id.hpp"
 
 namespace NUClear {
 namespace dsl {

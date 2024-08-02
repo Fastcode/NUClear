@@ -28,13 +28,16 @@
 #include <memory>
 
 #include "../id.hpp"
-#include "../message/ReactionStatistics.hpp"
 #include "../util/GroupDescriptor.hpp"
 #include "../util/ThreadPoolDescriptor.hpp"
 #include "../util/platform.hpp"
 #include "Reaction.hpp"
 
 namespace NUClear {
+namespace message {
+    struct ReactionStatistics;
+}  // namespace message
+
 namespace threading {
 
     /**
@@ -50,7 +53,7 @@ namespace threading {
 
     public:
         /// Type of the functions that ReactionTasks execute
-        using TaskFunction = std::function<void(ReactionTask&)>;
+        using TaskFunction = std::function<void(ReactionTask&) noexcept>;
 
         /**
          * Gets the current executing task, or nullptr if there isn't one.
@@ -105,10 +108,7 @@ namespace threading {
         ~ReactionTask();
 
         /**
-         * Runs the internal data bound task and times it.
-         *
-         * This runs the internal data bound task and times how long the execution takes. These figures can then be
-         * used in a debugging context to calculate how long callbacks are taking to run.
+         * Runs the internal data bound task.
          */
         void run();
 
@@ -139,6 +139,24 @@ namespace threading {
         /// the data bound callback to be executed
         /// @attention note this must be last in the list as the this pointer is passed to the callback generator
         TaskFunction callback;
+
+        /**
+         * This operator compares two ReactionTask objects based on their priority and ID.
+         *
+         * It sorts tasks in the order that they should be executed by comparing their priority the the order they were
+         * created. The task that should execute first will have the lowest sort order value and the task that should
+         * execute last will have the highest sort order.
+         *
+         * The task with higher priority is considered less.
+         * If two tasks have equal priority, the one with the lower ID is considered less.
+         *
+         * @param other The other ReactionTask object to compare with.
+         *
+         * @return true if the current object is less than the other object, false otherwise.
+         */
+        inline bool operator<(const ReactionTask& other) const {
+            return priority == other.priority ? id < other.id : priority > other.priority;
+        }
     };
 
 }  // namespace threading

@@ -27,6 +27,7 @@
 #include <mutex>
 #include <typeindex>
 
+#include "../../Reactor.hpp"
 #include "../../threading/ReactionTask.hpp"
 #include "../fusion/NoOp.hpp"
 #include "MainThread.hpp"

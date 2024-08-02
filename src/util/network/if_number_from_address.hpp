@@ -23,10 +23,7 @@
 #ifndef NUCLEAR_UTIL_NETWORK_IF_NUMBER_FROM_ADDRESS_HPP
 #define NUCLEAR_UTIL_NETWORK_IF_NUMBER_FROM_ADDRESS_HPP
 
-#include <string>
-#include <vector>
-
-#include "sock_t.hpp"
+struct sockaddr_in6;
 
 namespace NUClear {
 namespace util {

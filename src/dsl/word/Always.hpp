@@ -28,6 +28,7 @@
 #include <utility>
 
 #include "../../id.hpp"
+#include "../../threading/ReactionIdentifiers.hpp"
 #include "../../threading/ReactionTask.hpp"
 #include "../../util/ThreadPoolDescriptor.hpp"
 

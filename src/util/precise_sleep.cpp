@@ -22,6 +22,8 @@
 
 #include "precise_sleep.hpp"
 
+#include <chrono>
+
 #if defined(_WIN32)
 
     #include <chrono>

@@ -23,6 +23,7 @@
 #ifndef NUCLEAR_DSL_WORD_IO_HPP
 #define NUCLEAR_DSL_WORD_IO_HPP
 
+#include "../../Reactor.hpp"
 #include "../../id.hpp"
 #include "../../threading/Reaction.hpp"
 #include "../../util/platform.hpp"

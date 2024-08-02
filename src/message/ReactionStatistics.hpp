@@ -105,7 +105,6 @@ namespace message {
         std::exception_ptr exception;
     };
 
-
     struct ReactionEvent {
         enum Event { CREATED, MISSING_DATA, BLOCKED, STARTED, FINISHED };
 
