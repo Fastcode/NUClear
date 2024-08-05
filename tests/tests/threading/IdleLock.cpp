@@ -28,8 +28,8 @@ namespace NUClear {
 namespace threading {
     namespace scheduler {
 
-        char lock_state_to_char(const std::unique_ptr<IdleLock>& lock) {
-            switch (lock->lock() << 2 | lock->local_idle() << 1 | lock->global_idle()) {
+        char lock_state_to_char(const std::unique_ptr<IdleLockPair>& lock) {
+            switch (lock->lock() << 2 | lock->local_lock() << 1 | lock->global_lock()) {
                 case 0b000: return 'U';  // Unlocked
                 case 0b101: return 'G';  // Global only
                 case 0b110: return 'L';  // Local only
@@ -43,7 +43,7 @@ namespace threading {
         }
 
         void check_locks(const std::string& name,
-                         const std::vector<std::unique_ptr<IdleLock>>& locks,
+                         const std::vector<std::unique_ptr<IdleLockPair>>& locks,
                          const std::string& expected) {
             INFO("Checking " << name << " Locks");
 
@@ -87,31 +87,33 @@ namespace threading {
             }
         }
 
-        TEST_CASE("IdleLock correctly tracks the state of the local and global pools",
-                  "[threading][scheduler][IdleLock]") {
+        TEST_CASE("IdleLockPair correctly tracks the state of the local and global pools",
+                  "[threading][scheduler][IdleLockPair]") {
 
-            constexpr unsigned int n_locks = 3;
+            using semaphore_t = IdleLock::semaphore_t;
 
-            unsigned int a = n_locks;
-            unsigned int b = n_locks;
-            std::atomic<unsigned int> g(n_locks * 2);
+            constexpr semaphore_t n_locks = 3;
 
-            std::vector<std::unique_ptr<IdleLock>> a_locks;
-            std::vector<std::unique_ptr<IdleLock>> b_locks;
+            std::atomic<semaphore_t> a{n_locks};
+            std::atomic<semaphore_t> b{n_locks};
+            std::atomic<semaphore_t> g(n_locks * 2);
+
+            std::vector<std::unique_ptr<IdleLockPair>> a_locks;
+            std::vector<std::unique_ptr<IdleLockPair>> b_locks;
 
             {
                 INFO("Locking enough for all except for the last lock");
 
                 // Perform all except the last lock checking that the state is correct at each step
-                for (unsigned int i = 0; i + 1 < n_locks; i++) {
+                for (semaphore_t i = 0; i + 1 < n_locks; i++) {
                     INFO("Locking Step " << i);
-                    unsigned int e = n_locks - i - 1;  // Expect to be one less after locking
+                    semaphore_t e = n_locks - i - 1;  // Expect to be one less after locking
 
-                    a_locks.push_back(std::make_unique<IdleLock>(a, g));
+                    a_locks.push_back(std::make_unique<IdleLockPair>(a, g));
                     check_var_states("A", {a, e, false}, {g.load(), e * 2 + 1, false});
                     CHECK(a_locks.back()->lock() == false);
 
-                    b_locks.push_back(std::make_unique<IdleLock>(b, g));
+                    b_locks.push_back(std::make_unique<IdleLockPair>(b, g));
                     check_var_states("B", {b, e, false}, {g.load(), e * 2, false});
                     CHECK(b_locks.back()->lock() == false);
                 }
@@ -123,11 +125,11 @@ namespace threading {
             {
                 INFO("Locking the final locks");
 
-                a_locks.push_back(std::make_unique<IdleLock>(a, g));
+                a_locks.push_back(std::make_unique<IdleLockPair>(a, g));
                 check_var_states("A", {a, 0, true}, {g.load(), 1, false});
                 check_locks("A", a_locks, "UUL");
 
-                b_locks.push_back(std::make_unique<IdleLock>(b, g));
+                b_locks.push_back(std::make_unique<IdleLockPair>(b, g));
                 check_var_states("B", {b, 0, true}, {g.load(), 0, true});
                 check_locks("B", b_locks, "UUB");
             }
@@ -146,11 +148,11 @@ namespace threading {
             {
                 INFO("Relocking the first lock in each list (should not gain the lock)");
 
-                a_locks.insert(a_locks.begin(), std::make_unique<IdleLock>(a, g));
+                a_locks.insert(a_locks.begin(), std::make_unique<IdleLockPair>(a, g));
                 check_var_states("A", {a, 0, true}, {g.load(), 1, true});
                 check_locks("A", a_locks, "UUL");
 
-                b_locks.insert(b_locks.begin(), std::make_unique<IdleLock>(b, g));
+                b_locks.insert(b_locks.begin(), std::make_unique<IdleLockPair>(b, g));
                 check_var_states("B", {b, 0, true}, {g.load(), 0, true});
                 check_locks("B", b_locks, "UUB");
             }
@@ -169,11 +171,11 @@ namespace threading {
             {
                 INFO("Locking B as local, and a new A as global only");
 
-                b_locks.emplace_back(std::make_unique<IdleLock>(b, g));
+                b_locks.emplace_back(std::make_unique<IdleLockPair>(b, g));
                 check_var_states("B", {b, 0, true}, {g.load(), 1, false});
                 check_locks("B", b_locks, "UUL");
 
-                a_locks.emplace_back(std::make_unique<IdleLock>(a, g));
+                a_locks.emplace_back(std::make_unique<IdleLockPair>(a, g));
                 check_var_states("A", {a, 0, true}, {g.load(), 0, true});
                 check_locks("A", a_locks, "ULG");
             }
@@ -183,7 +185,7 @@ namespace threading {
                 check_var_states("A", {a, 1, false}, {g.load(), 1, true});
                 check_locks("A", a_locks, "UG");
 
-                a_locks.emplace_back(std::make_unique<IdleLock>(a, g));
+                a_locks.emplace_back(std::make_unique<IdleLockPair>(a, g));
                 check_var_states("A", {a, 0, true}, {g.load(), 0, true});
                 check_locks("A", a_locks, "UGL");
             }
