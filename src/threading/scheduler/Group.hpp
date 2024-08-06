@@ -34,8 +34,6 @@ namespace NUClear {
 namespace threading {
     namespace scheduler {
 
-        struct Pool;
-
         /**
          * A group is a collection of tasks which are mutually exclusive to each other.
          *

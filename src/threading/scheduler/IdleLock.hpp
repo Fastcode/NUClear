@@ -22,8 +22,9 @@
 #ifndef NUCLEAR_THREADING_SCHEDULER_IDLE_LOCK_HPP
 #define NUCLEAR_THREADING_SCHEDULER_IDLE_LOCK_HPP
 
+#include <atomic>
+
 #include "Lock.hpp"
-#include "Pool.hpp"
 
 namespace NUClear {
 namespace threading {
@@ -91,11 +92,30 @@ namespace threading {
             IdleLockPair(IdleLockPair&&)                 = delete;
             IdleLockPair& operator=(IdleLockPair&&)      = delete;
 
+            /**
+             * Returns true if this thread was the last active thread to check if it was idle.
+             *
+             * If this returns true, other threads are prevented from obtaining the idle lock until this lock is
+             * released.
+             *
+             * @return True if the lock was successfully acquired, false otherwise.
+             */
             bool lock() override;
 
+            /**
+             * Acquires a lock on the local mutex.
+             *
+             * @return true if the lock was successfully acquired, false otherwise.
+             */
             inline bool local_lock() {
                 return local.lock();
             }
+
+            /**
+             * Acquires a lock on the global mutex.
+             *
+             * @return true if the lock was successfully acquired, false otherwise.
+             */
             inline bool global_lock() {
                 return global.lock();
             }

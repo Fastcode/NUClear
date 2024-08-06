@@ -74,7 +74,6 @@ namespace dsl {
 
                 // Make a fake task to use for finding an appropriate descriptor
                 threading::ReactionTask task(reaction, DSL::priority, DSL::pool, DSL::group);
-
                 bind_idle(reaction, PoolType::template pool<DSL>(task));
             }
         };

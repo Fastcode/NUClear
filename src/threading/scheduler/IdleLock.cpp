@@ -22,6 +22,7 @@
 #include "IdleLock.hpp"
 
 #include <atomic>
+#include <utility>
 
 namespace NUClear {
 namespace threading {
