@@ -48,8 +48,14 @@ namespace threading {
     void ReactionTask::run() {
         // Update the current task
         auto* t = std::exchange(current_task, this);
-        // Run our callback
-        callback(*this);
+        try {
+            // Run our callback
+            callback(*this);
+        }
+        catch (...) {
+            // This shouldn't happen, but either way no exceptions should ever leave this function
+            // They should have all been caught and callback is noexcept, however it seems that's a suggestion
+        }
 
         // Restore the current task
         current_task = t;
