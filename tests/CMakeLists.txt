@@ -52,7 +52,7 @@ file(GLOB_RECURSE test_sources "tests/*.cpp")
 foreach(test_file ${test_sources})
   get_filename_component(test_name ${test_file} NAME_WE)
   get_filename_component(test_dir ${test_file} DIRECTORY)
-  file(RELATIVE_PATH test_dir ${CMAKE_CURRENT_SOURCE_DIR} ${test_dir})
+  file(RELATIVE_PATH test_dir "${CMAKE_CURRENT_SOURCE_DIR}/tests" ${test_dir})
 
   add_executable(${test_name} ${test_file})
   target_include_directories(${test_name} PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
