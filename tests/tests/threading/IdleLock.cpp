@@ -22,180 +22,109 @@
 #include "threading/scheduler/IdleLock.hpp"
 
 #include <catch2/catch_test_macros.hpp>
-#include <catch2/generators/catch_generators.hpp>
 
 namespace NUClear {
 namespace threading {
     namespace scheduler {
 
-        char lock_state_to_char(const std::unique_ptr<IdleLockPair>& lock) {
+        /**
+         * Converts the status of an IdleLockPair into a character for easier comparison
+         *
+         * @param lock The lock to check
+         * @return The character representing the lock status
+         */
+        char lock_status(const std::unique_ptr<IdleLockPair>& lock) {
             switch (lock->lock() << 2 | lock->local_lock() << 1 | lock->global_lock()) {
                 case 0b000: return 'U';  // Unlocked
                 case 0b101: return 'G';  // Global only
                 case 0b110: return 'L';  // Local only
                 case 0b111: return 'B';  // Both locked
-                case 0b001: return 'g';  // Error global without being locked
-                case 0b010: return 'l';  // Error local without being locked
-                case 0b011: return 'b';  // Error both without being locked
-                case 0b100: return 'u';  // Error locked without a reason
+                case 0b001: return 'g';  // Error: global without being locked
+                case 0b010: return 'l';  // Error: local without being locked
+                case 0b011: return 'b';  // Error: both without being locked
+                case 0b100: return 'u';  // Error: locked without a reason
                 default: return '?';
             }
         }
 
-        void check_locks(const std::string& name,
-                         const std::vector<std::unique_ptr<IdleLockPair>>& locks,
-                         const std::string& expected) {
-            INFO("Checking " << name << " Locks");
+        SCENARIO("The last thread to lock an IdleLock should obtain the lock until releasing it",
+                 "[threading][scheduler][IdleLock]") {
+            GIVEN("A semaphore with a value of 2") {
+                std::atomic<IdleLock::semaphore_t> active{2};
 
-            // Make the expected string from the locks
-            std::string actual;
-            for (const auto& lock : locks) {
-                actual += lock_state_to_char(lock);
-            }
+                WHEN("Two locks are attempted") {
+                    std::unique_ptr<Lock> a1 = std::make_unique<IdleLock>(active);
+                    std::unique_ptr<Lock> a2 = std::make_unique<IdleLock>(active);
 
-            // Check it matches
-            CHECK(actual == expected);
-        }
+                    THEN("The last lock should obtain the lock") {
+                        CHECK(a1->lock() == false);
+                        CHECK(a2->lock() == true);
+                    }
 
-        struct CheckSemaphoreState {
-            unsigned int current;
-            unsigned int expected;
-            bool expected_locked;
-            CheckSemaphoreState(unsigned int current, unsigned int expected, bool expected_locked)
-                : current(current), expected(expected), expected_locked(expected_locked) {}
-        };
-        void check_semaphore_state(const CheckSemaphoreState& v) {
-            // The lock value is stored in the most significant bit of the integer
-            unsigned int mask  = (1 << (sizeof(v.current) * 8 - 1));
-            bool locked        = (v.current & mask) == mask;
-            unsigned int count = v.current & ~mask;
-            CHECK(count == v.expected);
-            CHECK(locked == v.expected_locked);
-        }
+                    AND_WHEN("The locked lock is released and a third lock is attempted") {
+                        a2.reset();
+                        std::unique_ptr<Lock> a3 = std::make_unique<IdleLock>(active);
 
-        void check_var_states(const std::string& msg,
-                              const CheckSemaphoreState& local,
-                              const CheckSemaphoreState& global) {
+                        THEN("Only the third lock should obtain the lock") {
+                            CHECK(a1->lock() == false);
+                            CHECK(a3->lock() == true);
+                        }
+                    }
 
-            {
-                INFO("Checking " << msg << " Local States");
-                check_semaphore_state(local);
-            }
-            {
-                INFO("Checking " << msg << " Global States");
-                check_semaphore_state(global);
-            }
-        }
+                    AND_WHEN("The unlocked lock is released and a third lock is attempted") {
+                        a1.reset();
+                        std::unique_ptr<Lock> a3 = std::make_unique<IdleLock>(active);
 
-        TEST_CASE("IdleLockPair correctly tracks the state of the local and global pools",
-                  "[threading][scheduler][IdleLockPair]") {
-
-            using semaphore_t = IdleLock::semaphore_t;
-
-            constexpr semaphore_t n_locks = 3;
-
-            std::atomic<semaphore_t> a{n_locks};
-            std::atomic<semaphore_t> b{n_locks};
-            std::atomic<semaphore_t> g(n_locks * 2);
-
-            std::vector<std::unique_ptr<IdleLockPair>> a_locks;
-            std::vector<std::unique_ptr<IdleLockPair>> b_locks;
-
-            {
-                INFO("Locking enough for all except for the last lock");
-
-                // Perform all except the last lock checking that the state is correct at each step
-                for (semaphore_t i = 0; i + 1 < n_locks; i++) {
-                    INFO("Locking Step " << i);
-                    semaphore_t e = n_locks - i - 1;  // Expect to be one less after locking
-
-                    a_locks.push_back(std::make_unique<IdleLockPair>(a, g));
-                    check_var_states("A", {a, e, false}, {g.load(), e * 2 + 1, false});
-                    CHECK(a_locks.back()->lock() == false);
-
-                    b_locks.push_back(std::make_unique<IdleLockPair>(b, g));
-                    check_var_states("B", {b, e, false}, {g.load(), e * 2, false});
-                    CHECK(b_locks.back()->lock() == false);
+                        THEN("Only the originally locked lock should obtain the lock") {
+                            CHECK(a2->lock() == true);
+                            CHECK(a3->lock() == false);
+                        }
+                    }
                 }
-
-                check_locks("A", a_locks, "UU");
-                check_locks("B", b_locks, "UU");
             }
+        }
 
-            {
-                INFO("Locking the final locks");
+        SCENARIO("IdleLockPair locks global and local separately", "[threading][scheduler][IdleLockPair]") {
+            GIVEN("Two local semaphores with a value of 2 and a global semaphore") {
+                std::atomic<IdleLock::semaphore_t> a{2};
+                std::atomic<IdleLock::semaphore_t> b{2};
+                std::atomic<IdleLock::semaphore_t> g{4};
 
-                a_locks.push_back(std::make_unique<IdleLockPair>(a, g));
-                check_var_states("A", {a, 0, true}, {g.load(), 1, false});
-                check_locks("A", a_locks, "UUL");
+                WHEN("A lock is attempted for each local semaphore") {
+                    std::unique_ptr<IdleLockPair> a1 = std::make_unique<IdleLockPair>(a, g);
+                    std::unique_ptr<IdleLockPair> b1 = std::make_unique<IdleLockPair>(b, g);
 
-                b_locks.push_back(std::make_unique<IdleLockPair>(b, g));
-                check_var_states("B", {b, 0, true}, {g.load(), 0, true});
-                check_locks("B", b_locks, "UUB");
-            }
+                    THEN("No locks should be obtained") {
+                        CHECK(lock_status(a1) == 'U');
+                        CHECK(lock_status(b1) == 'U');
+                    }
 
-            {
-                INFO("Clearing the first (unlocked) lock from each list");
-                a_locks.erase(a_locks.begin());
-                check_var_states("A", {a, 1, true}, {g.load(), 1, true});
-                check_locks("A", a_locks, "UL");
+                    AND_WHEN("A second lock is attempted for each local semaphore") {
+                        std::unique_ptr<IdleLockPair> a2 = std::make_unique<IdleLockPair>(a, g);
+                        std::unique_ptr<IdleLockPair> b2 = std::make_unique<IdleLockPair>(b, g);
 
-                b_locks.erase(b_locks.begin());
-                check_var_states("B", {b, 1, true}, {g.load(), 2, true});
-                check_locks("B", b_locks, "UB");
-            }
+                        THEN("A should obtain a local lock, and B should obtain both locks") {
+                            CHECK(lock_status(a1) == 'U');
+                            CHECK(lock_status(a2) == 'L');
+                            CHECK(lock_status(b1) == 'U');
+                            CHECK(lock_status(b2) == 'B');
+                        }
 
-            {
-                INFO("Relocking the first lock in each list (should not gain the lock)");
+                        AND_WHEN("Locking and unlocking to allow `A` to obtain only a global lock") {
+                            b2.reset();
+                            a1.reset();
+                            b2 = std::make_unique<IdleLockPair>(b, g);
+                            a1 = std::make_unique<IdleLockPair>(a, g);
 
-                a_locks.insert(a_locks.begin(), std::make_unique<IdleLockPair>(a, g));
-                check_var_states("A", {a, 0, true}, {g.load(), 1, true});
-                check_locks("A", a_locks, "UUL");
-
-                b_locks.insert(b_locks.begin(), std::make_unique<IdleLockPair>(b, g));
-                check_var_states("B", {b, 0, true}, {g.load(), 0, true});
-                check_locks("B", b_locks, "UUB");
-            }
-
-            {
-                INFO("Unlocking empty a lock and b global lock");
-
-                a_locks.erase(a_locks.begin());
-                check_var_states("A", {a, 1, true}, {g.load(), 1, true});
-                check_locks("A", a_locks, "UL");
-
-                b_locks.pop_back();
-                check_var_states("B", {b, 1, false}, {g.load(), 2, false});
-                check_locks("B", b_locks, "UU");
-            }
-            {
-                INFO("Locking B as local, and a new A as global only");
-
-                b_locks.emplace_back(std::make_unique<IdleLockPair>(b, g));
-                check_var_states("B", {b, 0, true}, {g.load(), 1, false});
-                check_locks("B", b_locks, "UUL");
-
-                a_locks.emplace_back(std::make_unique<IdleLockPair>(a, g));
-                check_var_states("A", {a, 0, true}, {g.load(), 0, true});
-                check_locks("A", a_locks, "ULG");
-            }
-            {
-                INFO("Unlocking the local only A lock and relocking it");
-                a_locks.erase(std::next(a_locks.begin(), 1));
-                check_var_states("A", {a, 1, false}, {g.load(), 1, true});
-                check_locks("A", a_locks, "UG");
-
-                a_locks.emplace_back(std::make_unique<IdleLockPair>(a, g));
-                check_var_states("A", {a, 0, true}, {g.load(), 0, true});
-                check_locks("A", a_locks, "UGL");
-            }
-            {
-                INFO("Unlocking all remaining locks");
-                a_locks.clear();
-                check_var_states("A", {a, n_locks, false}, {g.load(), n_locks, false});
-
-                b_locks.clear();
-                check_var_states("B", {b, n_locks, false}, {g.load(), n_locks * 2, false});
+                            THEN("`A` should only obtain a global lock, and `B` only a local lock") {
+                                CHECK(lock_status(a1) == 'G');
+                                CHECK(lock_status(a2) == 'L');
+                                CHECK(lock_status(b1) == 'U');
+                                CHECK(lock_status(b2) == 'L');
+                            }
+                        }
+                    }
+                }
             }
         }
 
