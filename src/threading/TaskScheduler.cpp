@@ -107,7 +107,7 @@ namespace threading {
 
     void TaskScheduler::start_threads(const std::shared_ptr<PoolQueue>& pool) {
         // The main thread never needs to be started
-        if (pool->pool_descriptor.pool_id != util::ThreadPoolDescriptor::MAIN_THREAD_POOL_ID) {
+        if (pool->pool_descriptor.pool_id != NUClear::id_t(util::ThreadPoolDescriptor::MAIN_THREAD_POOL_ID)) {
             const std::lock_guard<std::recursive_mutex> lock(pool->mutex);
             while (pool->threads.size() < pool->pool_descriptor.thread_count) {
                 pool->threads.emplace_back(std::make_unique<std::thread>(&TaskScheduler::pool_func, this, pool));
@@ -143,7 +143,7 @@ namespace threading {
         }
 
         // Run main thread tasks
-        pool_func(pool_queues.at(util::ThreadPoolDescriptor::MAIN_THREAD_POOL_ID));
+        pool_func(pool_queues.at(NUClear::id_t(util::ThreadPoolDescriptor::MAIN_THREAD_POOL_ID)));
 
         /**
          * Once the main thread reaches this point it is because the powerplant, and by extension the scheduler, have

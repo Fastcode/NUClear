@@ -20,8 +20,8 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_DSL_WORD_MAINTHREAD_HPP
-#define NUCLEAR_DSL_WORD_MAINTHREAD_HPP
+#ifndef NUCLEAR_DSL_WORD_MAIN_THREAD_HPP
+#define NUCLEAR_DSL_WORD_MAIN_THREAD_HPP
 
 #include "../../threading/ReactionTask.hpp"
 #include "../../util/ThreadPoolDescriptor.hpp"
@@ -41,8 +41,11 @@ namespace dsl {
         struct MainThread {
 
             /// the description of the thread pool to be used for this PoolType
-            static util::ThreadPoolDescriptor main_descriptor() {
-                return util::ThreadPoolDescriptor{"Main", util::ThreadPoolDescriptor::MAIN_THREAD_POOL_ID, 1, true};
+            static inline util::ThreadPoolDescriptor main_descriptor() {
+                return util::ThreadPoolDescriptor{"Main",
+                                                  NUClear::id_t(util::ThreadPoolDescriptor::MAIN_THREAD_POOL_ID),
+                                                  1,
+                                                  true};
             }
 
             template <typename DSL>
@@ -55,4 +58,4 @@ namespace dsl {
 }  // namespace dsl
 }  // namespace NUClear
 
-#endif  // NUCLEAR_DSL_WORD_MAINTHREAD_HPP
+#endif  // NUCLEAR_DSL_WORD_MAIN_THREAD_HPP
