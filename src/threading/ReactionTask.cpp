@@ -40,7 +40,9 @@ namespace threading {
 
     ReactionTask::~ReactionTask() {
         // Decrement the number of active tasks
-        --parent->active_tasks;
+        if (parent != nullptr) {
+            --parent->active_tasks;
+        }
     }
 
     void ReactionTask::run() {

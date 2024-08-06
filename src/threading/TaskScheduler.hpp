@@ -249,7 +249,7 @@ namespace threading {
         std::atomic<bool> started{false};
 
         /// A map of group ids to the number of active tasks currently running in that group
-        std::map<NUClear::id_t, size_t> groups{};
+        std::map<NUClear::id_t, int> groups{};
         /// mutex for the group map
         std::mutex group_mutex;
 

@@ -81,17 +81,19 @@ namespace threading {
             , thread_pool_descriptor(thread_pool_fn(*this))
             , group_descriptor(group_fn(*this))
             // Only create a stats object if we wouldn't cause an infinite loop of stats
-            , stats(parent->emit_stats && (current_task == nullptr || current_task->stats != nullptr)
-                        ? std::make_shared<message::ReactionStatistics>(
-                              parent->identifiers,
-                              IDPair{parent->id, id},
-                              IDPair{current_task != nullptr ? current_task->parent->id : 0,
-                                     current_task != nullptr ? current_task->id : 0},
-                              thread_pool_descriptor,
-                              group_descriptor)
-                        : nullptr) {
+            , stats(
+                  parent != nullptr && parent->emit_stats && (current_task == nullptr || current_task->stats != nullptr)
+                      ? std::make_shared<message::ReactionStatistics>(
+                            parent->identifiers,
+                            IDPair{parent->id, id},
+                            current_task != nullptr ? IDPair{current_task->parent->id, current_task->id} : IDPair{0, 0},
+                            thread_pool_descriptor,
+                            group_descriptor)
+                      : nullptr) {
             // Increment the number of active tasks
-            ++parent->active_tasks;
+            if (parent != nullptr) {
+                ++parent->active_tasks;
+            }
         }
 
         // No copying or moving of tasks (use unique_ptrs to manage tasks)
@@ -119,7 +121,7 @@ namespace threading {
          */
         static NUClear::id_t new_task_id();
 
-        /// the parent Reaction object which spawned this
+        /// the parent Reaction object which spawned this, or nullptr if this is a floating task
         std::shared_ptr<Reaction> parent;
         /// the task id of this task (the sequence number of this particular task)
         NUClear::id_t id;

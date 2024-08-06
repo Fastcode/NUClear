@@ -20,8 +20,8 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_UTIL_GROUPDESCRIPTOR_HPP
-#define NUCLEAR_UTIL_GROUPDESCRIPTOR_HPP
+#ifndef NUCLEAR_UTIL_GROUP_DESCRIPTOR_HPP
+#define NUCLEAR_UTIL_GROUP_DESCRIPTOR_HPP
 
 #include <atomic>
 #include <cstddef>
@@ -41,7 +41,7 @@ namespace util {
         NUClear::id_t group_id{0};
 
         /// the maximum number of threads that can run concurrently in this group
-        size_t thread_count{std::numeric_limits<size_t>::max()};
+        int thread_count{std::numeric_limits<int>::max()};
 
         /**
          * Return the next unique ID for a new group
@@ -56,4 +56,4 @@ namespace util {
 }  // namespace util
 }  // namespace NUClear
 
-#endif  // NUCLEAR_UTIL_GROUPDESCRIPTOR_HPP
+#endif  // NUCLEAR_UTIL_GROUP_DESCRIPTOR_HPP
