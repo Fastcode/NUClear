@@ -45,12 +45,10 @@ namespace dsl {
 
             // Our unbinder to remove this reaction
             reaction->unbinders.push_back([pool_descriptor](const threading::Reaction& r) {  //
-                r.reactor.powerplant.remove_idle_task(r.id, pool_descriptor);
+                r.reactor.powerplant.remove_idle_task(pool_descriptor, r.id);
             });
 
-            reaction->reactor.powerplant.add_idle_task(reaction->id, pool_descriptor, [reaction] {
-                reaction->reactor.powerplant.submit(reaction->get_task());
-            });
+            reaction->reactor.powerplant.add_idle_task(pool_descriptor, reaction);
         }
 
         /**

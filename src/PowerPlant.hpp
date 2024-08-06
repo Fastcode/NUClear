@@ -36,7 +36,7 @@
 #include "LogLevel.hpp"
 #include "id.hpp"
 #include "threading/ReactionTask.hpp"
-#include "threading/TaskScheduler.hpp"
+#include "threading/scheduler/Scheduler.hpp"
 #include "util/FunctionFusion.hpp"
 #include "util/demangle.hpp"
 
@@ -158,16 +158,14 @@ public:
      * Adds an idle task to the task scheduler.
      *
      * This function adds an idle task to the task scheduler, which will be executed when the thread pool associated
-     * with the given `pool_id` has no other tasks to execute. The `task` parameter is a callable object that
-     * represents the idle task to be executed.
+     * with the given `pool_id` has no other tasks to execute. The `task` parameter is a Reaction from which a task will
+     * be submitted when the pool is idle.
      *
-     * @param id The ID of the task.
      * @param pool_descriptor The descriptor for the thread pool to test for idle
-     * @param task The idle task to be executed.
+     * @param reaction        The reaction to be executed when idle
      */
-    void add_idle_task(const NUClear::id_t& id,
-                       const util::ThreadPoolDescriptor& pool_descriptor,
-                       std::function<void()>&& task);
+    void add_idle_task(const util::ThreadPoolDescriptor& pool_descriptor,
+                       const std::shared_ptr<threading::Reaction>& reaction);
 
     /**
      * Removes an idle task from the task scheduler.
@@ -175,10 +173,10 @@ public:
      * This function removes an idle task from the task scheduler. The `id` and `pool_id` parameters are used to
      * identify the idle task to be removed.
      *
-     * @param id The ID of the task.
      * @param pool_descriptor The descriptor for the thread pool to test for idle
+     * @param id              The reaction id of the task to be removed
      */
-    void remove_idle_task(const NUClear::id_t& id, const util::ThreadPoolDescriptor& pool_descriptor);
+    void remove_idle_task(const util::ThreadPoolDescriptor& pool_descriptor, const NUClear::id_t& id);
 
     /**
      * Submits a new task to the ThreadPool to be queued and then executed.
@@ -320,7 +318,7 @@ public:
     /// A list of tasks that must be run when the powerplant starts up
     std::vector<std::function<void()>> tasks;
     /// Our TaskScheduler that handles distributing task to the pool threads
-    threading::TaskScheduler scheduler;
+    threading::scheduler::Scheduler scheduler;
     /// Our vector of Reactors, will get destructed when this vector is
     std::vector<std::unique_ptr<NUClear::Reactor>> reactors;
     /// True if the powerplant is running

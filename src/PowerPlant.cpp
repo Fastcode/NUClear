@@ -108,14 +108,13 @@ void PowerPlant::log(const LogLevel& level, std::stringstream& message) {
     log(level, message.str());
 }
 
-void PowerPlant::add_idle_task(const NUClear::id_t& id,
-                               const util::ThreadPoolDescriptor& pool_descriptor,
-                               std::function<void()>&& task) {
-    scheduler.add_idle_task(id, pool_descriptor, std::move(task));
+void PowerPlant::add_idle_task(const util::ThreadPoolDescriptor& pool_descriptor,
+                               const std::shared_ptr<threading::Reaction>& task) {
+    scheduler.add_idle_task(pool_descriptor, task);
 }
 
-void PowerPlant::remove_idle_task(const NUClear::id_t& id, const util::ThreadPoolDescriptor& pool_descriptor) {
-    scheduler.remove_idle_task(id, pool_descriptor);
+void PowerPlant::remove_idle_task(const util::ThreadPoolDescriptor& pool_descriptor, const NUClear::id_t& id) {
+    scheduler.remove_idle_task(pool_descriptor, id);
 }
 
 void PowerPlant::shutdown() {
@@ -128,7 +127,7 @@ void PowerPlant::shutdown() {
     emit(std::make_unique<dsl::word::Shutdown>());
 
     // Shutdown the scheduler
-    scheduler.shutdown();
+    scheduler.stop();
 }
 
 bool PowerPlant::running() const {
