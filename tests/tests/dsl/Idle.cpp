@@ -59,7 +59,7 @@ public:
         on<Trigger<Step<1>>>().then([this] { do_step<1>("Default Startup"); });
         on<Trigger<Step<2>>>().then([this] { do_step<2>("Default Step"); });
         on<Trigger<Step<3>>>().then([this] { do_step<3>("Default Step"); });
-        drh = on<Idle<Pool<>>>().then([this] { do_step<4>("Default Idle"); });
+        drh = on<Idle<Pool<>>, Pool<>>().then([this] { do_step<4>("Default Idle"); });
         on<Trigger<Step<5>>>().then([this] { do_step<5>("Default Step"); });
         on<Trigger<Step<6>>>().then([this] { do_step<6>("Default Step"); });
         on<Trigger<Step<7>>>().then([this] { do_step<7>("Default Step"); });
@@ -69,7 +69,7 @@ public:
         on<Trigger<Step<9>>, MainThread>().then([this] { do_step<9>("Main Startup"); });
         on<Trigger<Step<10>>, MainThread>().then([this] { do_step<10>("Main Step"); });
         on<Trigger<Step<11>>, MainThread>().then([this] { do_step<11>("Main Step"); });
-        mrh = on<Idle<MainThread>>().then([this] { do_step<12>("Main Idle"); });
+        mrh = on<Idle<MainThread>, MainThread>().then([this] { do_step<12>("Main Idle"); });
         on<Trigger<Step<13>>, MainThread>().then([this] { do_step<13>("Main Step"); });
         on<Trigger<Step<14>>, MainThread>().then([this] { do_step<14>("Main Step"); });
         on<Trigger<Step<15>>, MainThread>().then([this] { do_step<15>("Main Step"); });
@@ -79,7 +79,7 @@ public:
         on<Trigger<Step<17>>, Pool<CustomPool<1>>>().then([this] { do_step<17>("Custom<1> Startup"); });
         on<Trigger<Step<18>>, Pool<CustomPool<1>>>().then([this] { do_step<18>("Custom<1> Step"); });
         on<Trigger<Step<19>>, Pool<CustomPool<1>>>().then([this] { do_step<19>("Custom<1> Step"); });
-        crh = on<Idle<Pool<CustomPool<1>>>>().then([this] { do_step<20>("Custom<1> Idle"); });
+        crh = on<Idle<Pool<CustomPool<1>>>, Pool<CustomPool<1>>>().then([this] { do_step<20>("Custom<1> Idle"); });
         on<Trigger<Step<21>>, Pool<CustomPool<1>>>().then([this] { do_step<21>("Custom<1> Step"); });
         on<Trigger<Step<22>>, Pool<CustomPool<1>>>().then([this] { do_step<22>("Custom<1> Step"); });
         on<Trigger<Step<23>>, Pool<CustomPool<1>>>().then([this] { do_step<23>("Custom<1> Step"); });
@@ -89,7 +89,7 @@ public:
         on<Trigger<Step<25>>, Pool<CustomPool<2>>>().then([this] { do_step<25>("Custom<2> Startup"); });
         on<Trigger<Step<26>>, Pool<CustomPool<2>>>().then([this] { do_step<26>("Custom<2> Step"); });
         on<Trigger<Step<27>>, Pool<CustomPool<2>>>().then([this] { do_step<27>("Custom<2> Step"); });
-        grh = on<Idle<>>().then([this] { do_step<28>("Global Idle"); });
+        grh = on<Idle<>, Pool<CustomPool<2>>>().then([this] { do_step<28>("Global Idle"); });
         on<Trigger<Step<29>>, Pool<CustomPool<2>>>().then([this] { do_step<29>("Custom<2> Step"); });
         on<Trigger<Step<30>>, Pool<CustomPool<2>>>().then([this] { do_step<30>("Custom<2> Step"); });
         on<Trigger<Step<31>>, Pool<CustomPool<2>>>().then([this] { do_step<31>("Custom<2> Step"); });
