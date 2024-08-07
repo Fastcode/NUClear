@@ -151,7 +151,7 @@ namespace threading {
 
         Pool::Task Pool::get_idle_task() {
             // If this pool does not count for idle, it can't participate in idle tasks
-            if (!descriptor.counts_for_idle) {
+            if (!running.load(std::memory_order_relaxed) || !descriptor.counts_for_idle) {
                 return Task{nullptr, nullptr};
             }
 
