@@ -202,6 +202,11 @@ public:
         std::stringstream ss;
         log(level, ss, std::forward<Arguments>(args)...);
     }
+    template <typename Last>
+    void log(const LogLevel& level, std::stringstream& ss, Last&& last) {
+        ss << std::forward<Last>(last);
+        log(level, ss);
+    }
     template <typename First, typename... Arguments>
     void log(const LogLevel& level, std::stringstream& ss, First&& first, Arguments&&... args) {
         ss << std::forward<First>(first) << " ";
