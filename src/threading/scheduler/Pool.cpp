@@ -21,6 +21,8 @@
  */
 #include "Pool.hpp"
 
+#include <algorithm>
+
 #include "../../message/ReactionStatistics.hpp"
 #include "../ReactionTask.hpp"
 #include "CombinedLock.hpp"

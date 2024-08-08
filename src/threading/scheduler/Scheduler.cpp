@@ -21,6 +21,8 @@
  */
 #include "Scheduler.hpp"
 
+#include <algorithm>
+
 #include "../../dsl/word/MainThread.hpp"
 #include "CombinedLock.hpp"
 
