@@ -150,11 +150,11 @@ namespace threading {
                     locks[2] = group->lock(2, 1, [&] { ++notified[2]; });
 
                     THEN("The locks should be lockable in the proper order") {
-                        CHECK(locks[0]->lock() == 0 < n_tokens);
-                        CHECK(locks[1]->lock() == 1 < n_tokens);
-                        CHECK(locks[2]->lock() == 2 < n_tokens);
-                        CHECK(locks[3]->lock() == 3 < n_tokens);
-                        CHECK(locks[4]->lock() == 4 < n_tokens);
+                        CHECK(locks[0]->lock() == (0 < n_tokens));
+                        CHECK(locks[1]->lock() == (1 < n_tokens));
+                        CHECK(locks[2]->lock() == (2 < n_tokens));
+                        CHECK(locks[3]->lock() == (3 < n_tokens));
+                        CHECK(locks[4]->lock() == (4 < n_tokens));
 
                         AND_WHEN("Releasing the locks in order") {
                             THEN("The locks are available and notified correctly") {
@@ -166,7 +166,7 @@ namespace threading {
 
                                     for (int j = i + 1; j < n_locks; ++j) {
                                         CAPTURE(j);
-                                        CHECK(locks[j]->lock() == (j - i - 1) < n_tokens);
+                                        CHECK(locks[j]->lock() == ((j - i - 1) < n_tokens));
 
                                         // The notified one would have been the one that just became lockable
                                         CHECK(notified[j] == (j == i + n_tokens ? 1 : 0));
