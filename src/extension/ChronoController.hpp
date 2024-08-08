@@ -39,14 +39,14 @@ namespace extension {
         explicit ChronoController(std::unique_ptr<NUClear::Environment> environment);
 
     private:
+        /// The mutex used to guard the tasks and running flag
+        std::mutex mutex;
         /// The list of tasks we need to process
         std::vector<dsl::operation::ChronoTask> tasks;
-        /// The mutex we use to lock the task list
-        std::mutex mutex;
         /// The condition variable we use to wait on
         std::condition_variable wait;
         /// If we are running or not
-        std::atomic<bool> running{true};
+        bool running = true;
 
         /// The temporal accuracy when waiting on a condition variable
         NUClear::clock::duration cv_accuracy{0};

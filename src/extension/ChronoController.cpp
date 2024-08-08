@@ -55,7 +55,7 @@ namespace extension {
             const std::lock_guard<std::mutex> lock(mutex);
 
             // Add our new task to the heap if we are still running
-            if (running.load()) {
+            if (running) {
                 tasks.push_back(*task);
                 std::push_heap(tasks.begin(), tasks.end(), std::greater<>());
             }
@@ -119,15 +119,15 @@ namespace extension {
         });
 
         on<Always, Priority::REALTIME>().then("Chrono Controller", [this] {
-            // Run until we are told to stop
-            while (running.load()) {
+            // Acquire the mutex lock so we can wait on it
+            std::unique_lock<std::mutex> lock(mutex);
 
-                // Acquire the mutex lock so we can wait on it
-                std::unique_lock<std::mutex> lock(mutex);
+            // Run until we are told to stop
+            while (running) {
 
                 // If we have no chrono tasks wait until we are notified
                 if (tasks.empty()) {
-                    wait.wait(lock, [this] { return !running.load() || !tasks.empty(); });
+                    wait.wait(lock, [this] { return !running || !tasks.empty(); });
                 }
                 else {
                     auto start  = NUClear::clock::now();
@@ -156,7 +156,7 @@ namespace extension {
                         if (clock::rtf() == 0.0) {
                             // If we are paused then just wait until we are unpaused
                             wait.wait(lock, [&] {
-                                return !running.load() || clock::rtf() != 0.0 || NUClear::clock::now() != start;
+                                return !running || clock::rtf() != 0.0 || NUClear::clock::now() != start;
                             });
                         }
                         else if (time_until_task > cv_accuracy) {  // A long time in the future
