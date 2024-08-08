@@ -125,9 +125,6 @@ namespace threading {
 
             /// If running is false this means the scheduler is shutting down and no more tasks will be accepted
             std::atomic<bool> running{true};
-            /// If started is false pools will not be started until start is called
-            /// once start is called future pools will be started immediately
-            std::atomic<bool> started{false};
 
             /// A mutex for when we are modifying groups
             std::mutex groups_mutex;
@@ -138,6 +135,9 @@ namespace threading {
             std::mutex pools_mutex;
             /// A map of pool descriptor ids to pool descriptors
             std::map<NUClear::id_t, std::shared_ptr<Pool>> pools{};
+            /// If started is false pools will not be started until start is called
+            /// once start is called future pools will be started immediately
+            bool started = false;
 
             /// A mutex to protect the idle tasks list
             std::mutex idle_mutex;
