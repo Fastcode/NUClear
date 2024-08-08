@@ -104,8 +104,9 @@ namespace threading {
                 auto pool           = std::make_shared<Pool>(*this, desc);
                 pools[desc.pool_id] = pool;
 
+                // Don't start the main thread here, it will be started in the start function
                 // If the scheduler has not yet started then don't start the threads for this pool yet
-                if (started) {
+                if (desc.pool_id != util::ThreadPoolDescriptor::MAIN_THREAD_POOL_ID && started) {
                     pool->start();
                 }
             }
