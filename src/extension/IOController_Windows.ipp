@@ -257,5 +257,3 @@ namespace extension {
 
 }  // namespace extension
 }  // namespace NUClear
-
-#endif  // NUCLEAR_EXTENSION_IO_CONTROLLER_WINDOWS_HPP
