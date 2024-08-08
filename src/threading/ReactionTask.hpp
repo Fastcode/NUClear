@@ -93,7 +93,7 @@ namespace threading {
                       : nullptr) {
             // Increment the number of active tasks
             if (parent != nullptr) {
-                ++parent->active_tasks;
+                parent->active_tasks.fetch_add(1, std::memory_order_release);
             }
         }
 

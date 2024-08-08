@@ -50,7 +50,7 @@ namespace dsl {
             template <typename DSL>
             static inline bool precondition(const threading::ReactionTask& task) {
                 // We only run if there are less than the target number of active tasks
-                return task.parent->active_tasks < (n + 1);
+                return task.parent->active_tasks.load(std::memory_order_acquire) < (n + 1);
             }
         };
 

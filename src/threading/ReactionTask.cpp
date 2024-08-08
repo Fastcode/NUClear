@@ -41,7 +41,7 @@ namespace threading {
     ReactionTask::~ReactionTask() {
         // Decrement the number of active tasks
         if (parent != nullptr) {
-            --parent->active_tasks;
+            parent->active_tasks.fetch_sub(1, std::memory_order_release);
         }
     }
 
