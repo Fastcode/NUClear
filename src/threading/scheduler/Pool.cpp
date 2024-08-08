@@ -53,8 +53,8 @@ namespace threading {
 
         void Pool::stop() {
             // Stop the pool threads
+            running.store(false, std::memory_order_relaxed);
             std::lock_guard<std::mutex> lock(mutex);
-            running.store(false);
             condition.notify_all();
         }
 
@@ -172,7 +172,10 @@ namespace threading {
                 tasks.insert(tasks.end(), scheduler.idle_tasks.begin(), scheduler.idle_tasks.end());
             }
 
-            // If there are no idle tasks,
+            // If there are no idle tasks, return no task along with the lock to hold the idle state
+            if (tasks.empty()) {
+                return Task{nullptr, std::move(idle_lock)};
+            }
 
             auto task = std::make_unique<ReactionTask>(
                 nullptr,
