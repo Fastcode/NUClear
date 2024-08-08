@@ -23,7 +23,6 @@
 #ifndef NUCLEAR_DSL_WORD_POOL_HPP
 #define NUCLEAR_DSL_WORD_POOL_HPP
 
-#include <condition_variable>
 #include <map>
 #include <mutex>
 #include <typeindex>

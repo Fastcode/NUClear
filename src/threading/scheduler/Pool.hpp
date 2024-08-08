@@ -22,6 +22,7 @@
 #ifndef NUCLEAR_THREADING_SCHEDULER_POOL_HPP
 #define NUCLEAR_THREADING_SCHEDULER_POOL_HPP
 
+#include <condition_variable>
 #include <map>
 #include <memory>
 #include <mutex>
