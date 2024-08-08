@@ -32,7 +32,6 @@
 #include "../../util/ThreadPoolDescriptor.hpp"
 #include "../ReactionTask.hpp"
 #include "Group.hpp"
-#include "IdleLock.hpp"
 #include "Pool.hpp"
 
 namespace NUClear {
@@ -67,7 +66,7 @@ namespace threading {
              * @param immediate if this task should run immediately in the current thread. If immediate execution of
              * this task is not possible (e.g. due to group concurrency restrictions) this task will be queued as normal
              */
-            void submit(std::unique_ptr<ReactionTask>&& task, const bool& immediate) noexcept;
+            void submit(std::unique_ptr<ReactionTask>&& task, const bool& immediate = false) noexcept;
 
             /**
              * Adds a task to the idle task list.
@@ -130,17 +129,22 @@ namespace threading {
             /// once start is called future pools will be started immediately
             std::atomic<bool> started{false};
 
-            /// A mutex for when we are modifying the groups or pools
-            std::mutex mutex;
+            /// A mutex for when we are modifying groups
+            std::mutex groups_mutex;
             /// A map of group ids to the number of active tasks currently running in that group
             std::map<NUClear::id_t, std::shared_ptr<Group>> groups{};
+
+            /// A mutex for when we are modifying pools
+            std::mutex pools_mutex;
             /// A map of pool descriptor ids to pool descriptors
             std::map<NUClear::id_t, std::shared_ptr<Pool>> pools{};
 
+            /// A mutex to protect the idle tasks list
+            std::mutex idle_mutex;
             /// A list of idle tasks to execute when all pools are idle
             std::vector<std::shared_ptr<Reaction>> idle_tasks{};
-            /// The number of active threads across all pools in the scheduler
-            std::atomic<IdleLock::semaphore_t> active{0};
+            /// The number of active thread pools which count for idle
+            std::atomic<int> active_pools{0};
 
             // Pool works with scheduler to manage the thread pools
             friend class Pool;

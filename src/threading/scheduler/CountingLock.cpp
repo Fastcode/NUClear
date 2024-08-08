@@ -19,42 +19,28 @@
  * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-#ifndef NUCLEAR_THREADING_SCHEDULER_LOCK_HPP
-#define NUCLEAR_THREADING_SCHEDULER_LOCK_HPP
+#include "CountingLock.hpp"
+
+#include <atomic>
+#include <utility>
 
 namespace NUClear {
 namespace threading {
     namespace scheduler {
 
-        /**
-         * Represents an RAII lock that can be attached to a task.
-         *
-         * This lock is able to determine if a task should be executed based on the current state of the system.
-         * Different implementations of lock may be used to ensure different properties of the system are maintained.
-         * Additionally since this lock is RAII, it will ensure that the lock is held until the task has finished
-         * execution, not just until the task is removed from the queue.
-         */
-        class Lock {
-        public:
-            Lock()          = default;
-            virtual ~Lock() = default;
+        CountingLock::CountingLock(std::atomic<int>& counter, const int& step, const int& target)
+            : counter(counter)
+            , step(step)
+            , locked((counter.fetch_add(step, std::memory_order_acquire) + step) == target) {}
 
-            Lock(const Lock&)            = delete;
-            Lock& operator=(const Lock&) = delete;
-            Lock(Lock&&)                 = delete;
-            Lock& operator=(Lock&&)      = delete;
+        CountingLock::~CountingLock() {
+            counter.fetch_sub(step, std::memory_order_release);
+        }
 
-            /**
-             * Returns the current status of the lock, potentially attempting to acquire it.
-             * This function must be non blocking.
-             *
-             * @return True if the lock was successfully acquired, false otherwise.
-             */
-            virtual bool lock();
-        };
+        bool CountingLock::lock() {
+            return locked;
+        }
 
     }  // namespace scheduler
 }  // namespace threading
 }  // namespace NUClear
-
-#endif  // NUCLEAR_THREADING_SCHEDULER_LOCK_HPP

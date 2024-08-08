@@ -42,6 +42,15 @@ namespace threading {
         class Pool {
         public:
             struct Task {
+                /**
+                 * @brief Construct a new Task object
+                 *
+                 * @param task the task to execute
+                 * @param lock the RAII lock to hold while the task is being executed
+                 */
+                Task(std::unique_ptr<ReactionTask>&& task = nullptr, std::unique_ptr<Lock>&& lock = nullptr)
+                    : task(std::move(task)), lock(std::move(lock)) {}
+
                 /// Holds the task to execute
                 std::unique_ptr<ReactionTask> task;
                 /// A lock that is held while the task is being executed.
@@ -72,6 +81,13 @@ namespace threading {
              * @param descriptor the descriptor for this thread pool
              */
             explicit Pool(Scheduler& scheduler, const util::ThreadPoolDescriptor& descriptor);
+
+            /**
+             * Destroy the Pool object
+             *
+             * Will stop the pool if it is still running and wait for all threads to exit.
+             */
+            ~Pool();
 
             /**
              * Starts the thread pool and begins executing tasks.
@@ -161,25 +177,32 @@ namespace threading {
             const util::ThreadPoolDescriptor descriptor;
 
             /// If running is false this means the pool is shutting down and no more tasks will be accepted
-            std::atomic<bool> running{true};
+            bool running = true;
 
             /// The threads which are running in this thread pool
             std::vector<std::unique_ptr<std::thread>> threads;
 
-            /// The mutex which protects the queue and idle tasks
-            std::mutex mutex;
             /// The queue of tasks for this specific thread pool
             std::vector<Task> queue;
+            /// A boolean which is set to true when the queue is modified and set to false when there was no work to do
+            bool live = true;
+            /// The mutex which protects the queue and idle tasks
+            std::mutex mutex;
             /// The condition variable which threads wait on if they can't get a task
             std::condition_variable condition;
 
             /// The number of active threads in this pool
-            std::atomic<IdleLock::semaphore_t> active{0};
+            std::atomic<int> active{0};
             /// The idle tasks for this pool
             std::vector<std::shared_ptr<Reaction>> idle_tasks;
 
-            /// Holds true if the queue has been checked and nothing could run
-            bool checked = false;
+            /// The lock which holds the idle state for the specific thread in the pool
+            std::map<std::thread::id, std::unique_ptr<Lock>> thread_idle;
+
+            /// When this lock is held, the pool is considered idle
+            /// The idle status will be removed when a non idle task is retrieved from the queue
+            /// Or when another thread pool notifies this pool, giving its chance at global idle to this pool
+            std::unique_ptr<Lock> pool_idle = nullptr;
         };
 
     }  // namespace scheduler

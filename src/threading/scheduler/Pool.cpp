@@ -23,7 +23,8 @@
 
 #include "../../message/ReactionStatistics.hpp"
 #include "../ReactionTask.hpp"
-#include "IdleLock.hpp"
+#include "CombinedLock.hpp"
+#include "CountingLock.hpp"
 #include "Scheduler.hpp"
 
 namespace NUClear {
@@ -33,10 +34,22 @@ namespace threading {
         Pool::Pool(Scheduler& scheduler, const util::ThreadPoolDescriptor& descriptor)
             : scheduler(scheduler), descriptor(descriptor) {}
 
+        Pool::~Pool() {
+
+            // Stop the pool threads and wait for them to finish
+            stop();
+            join();
+
+            // One less active pool
+            scheduler.active_pools.fetch_sub(descriptor.counts_for_idle ? 1 : 0, std::memory_order_relaxed);
+        }
+
         void Pool::start() {
-            // Increase the number of active threads if this pool counts for idle
+            // Set the number of active threads to the number of threads in the pool
             active = descriptor.counts_for_idle ? descriptor.thread_count : 0;
-            scheduler.active.fetch_add(active, std::memory_order_relaxed);
+
+            // Increase the number of active pools if this pool counts for idle
+            scheduler.active_pools.fetch_add(descriptor.counts_for_idle ? 1 : 0, std::memory_order_relaxed);
 
             // The main thread never needs to be started
             if (descriptor.pool_id != NUClear::id_t(util::ThreadPoolDescriptor::MAIN_THREAD_POOL_ID)) {
@@ -53,14 +66,17 @@ namespace threading {
 
         void Pool::stop() {
             // Stop the pool threads
-            running.store(false, std::memory_order_relaxed);
             std::lock_guard<std::mutex> lock(mutex);
+            running = false;
+            live    = true;
             condition.notify_all();
         }
 
         void Pool::notify() {
             std::lock_guard<std::mutex> lock(mutex);
-            checked = false;
+            /// May not be idle anymore, flag this before the thread wakes up
+            live      = true;
+            pool_idle = nullptr;
             condition.notify_one();
         }
 
@@ -78,7 +94,9 @@ namespace threading {
 
             // Insert in sorted order
             queue.insert(std::lower_bound(queue.begin(), queue.end(), task), std::move(task));
-            checked = false;
+
+            // Pool might have something to do now
+            live = true;
 
             // Notify a single thread that there is a new task
             condition.notify_one();
@@ -89,10 +107,9 @@ namespace threading {
             idle_tasks.push_back(reaction);
 
             // If we previously had no idle tasks, it's possible every thread is sleeping (idle)
-            // Therefore we need to notify all since we don't know which thread is the one that holds the idle lock
+            // Wake one up so that it can check again
             if (idle_tasks.size() == 1) {
-                checked = false;
-                condition.notify_all();
+                condition.notify_one();
             }
         }
 
@@ -106,11 +123,15 @@ namespace threading {
         void Pool::run() {
 
             // When task is nullptr there are no more tasks to get and the scheduler is shutting down
-            while (running.load() || !queue.empty()) {
+            while (true) {
                 try {
                     // Run the next task
                     Task task = get_task();
                     task.task->run();
+                }
+                catch (const ShutdownThreadException&) {
+                    // This thread is shutting down
+                    return;
                 }
                 catch (...) {
                 }
@@ -120,8 +141,8 @@ namespace threading {
         Pool::Task Pool::get_task() {
 
             std::unique_lock<std::mutex> lock(mutex);
-            while (running.load(std::memory_order_relaxed) || !queue.empty()) {
-                if (!checked) {
+            while (running || !queue.empty()) {
+                if (live) {
                     // Get the first task that can be run
                     for (auto it = queue.begin(); it != queue.end(); ++it) {
                         // If the task is not a group member, or we can get a token for the group then we can run it
@@ -129,20 +150,21 @@ namespace threading {
                             // If the task is not group blocked or we can lock the group then we can run it
                             Task task = std::move(*it);
                             queue.erase(it);
+                            thread_idle[std::this_thread::get_id()] = nullptr;  // This thread is no longer idle
+                            pool_idle                               = nullptr;  // The pool as a whole is no longer idle
                             return task;
                         }
                     }
-                    checked = true;
                 }
+                live = false;
 
-                // If we reach here before we sleep check if we can run the idle task
                 auto idle_task = get_idle_task();
-                if (idle_task.task != nullptr && idle_task.lock->lock()) {
+                if (idle_task.task != nullptr) {
                     return idle_task;
                 }
 
                 // Wait for something to happen!
-                condition.wait(lock, [this] { return !checked || (!running.load() && queue.empty()); });
+                condition.wait(lock, [this] { return live || (!running && queue.empty()); });
             }
 
             condition.notify_all();
@@ -150,39 +172,47 @@ namespace threading {
         }
 
         Pool::Task Pool::get_idle_task() {
-            // If this pool does not count for idle, it can't participate in idle tasks
-            if (!running.load(std::memory_order_relaxed) || !descriptor.counts_for_idle) {
-                return Task{nullptr, nullptr};
+            // Don't idle when shutting down, don't idle if we can't idle, don't idle if we are already idle
+            if (!running || !descriptor.counts_for_idle) {
+                return Task{};
             }
 
-            // Make the idle lock to which will make this thread count as idle
-            auto idle_lock = std::make_unique<IdleLockPair>(active, scheduler.active);
-
-            // If we weren't the last, just return no task along with the lock to hold the idle state
-            if (!idle_lock->lock()) {
-                return Task{nullptr, std::move(idle_lock)};
-            }
-
+            // Tasks to be executed when idle
             std::vector<std::shared_ptr<Reaction>> tasks;
-            if (idle_lock->local_lock()) {
-                tasks.insert(tasks.end(), idle_tasks.begin(), idle_tasks.end());
-            }
-            if (idle_lock->global_lock()) {
-                // TODO unprotected access to scheduler idle tasks here
-                tasks.insert(tasks.end(), scheduler.idle_tasks.begin(), scheduler.idle_tasks.end());
+
+            /// Current local lock status
+            auto& local_lock = thread_idle[std::this_thread::get_id()];
+
+            // If not already idle, check to see if we are the last and if so add the local idle tasks
+            if (local_lock == nullptr) {
+                local_lock = std::make_unique<CountingLock>(active);
+                if (local_lock->lock()) {
+                    tasks.insert(tasks.end(), idle_tasks.begin(), idle_tasks.end());
+                }
             }
 
-            // If there are no idle tasks, return no task along with the lock to hold the idle state
+            // The if the pool is idle and does not have a global idle task, try the global lock
+            if (pool_idle == nullptr && active == 0) {
+                pool_idle = std::make_unique<CountingLock>(scheduler.active_pools);
+
+                // This was the last pool to become idle, so get the global idle tasks
+                if (pool_idle->lock()) {
+                    std::lock_guard<std::mutex> lock(scheduler.idle_mutex);
+                    tasks.insert(tasks.end(), scheduler.idle_tasks.begin(), scheduler.idle_tasks.end());
+                }
+            }
+
+            // If there are no idle tasks, return no task
             if (tasks.empty()) {
-                return Task{nullptr, std::move(idle_lock)};
+                return Task{};
             }
 
+            // Make a reaction task which will submit all the idle tasks to the scheduler
             auto task = std::make_unique<ReactionTask>(
                 nullptr,
                 [](const ReactionTask&) { return 0; },
                 [](const ReactionTask&) { return util::ThreadPoolDescriptor{}; },
-                [](const ReactionTask&) { return util::GroupDescriptor{}; });
-
+                [](const ReactionTask&) { return std::set<util::GroupDescriptor>{}; });
             task->callback = [this, tasks = std::move(tasks)](const ReactionTask& /*task*/) {
                 for (auto& idle_task : tasks) {
                     // Submit all the idle tasks to the scheduler
@@ -190,7 +220,7 @@ namespace threading {
                 }
             };
 
-            return Task{std::move(task), std::move(idle_lock)};
+            return Task{std::move(task)};
         }
 
     }  // namespace scheduler

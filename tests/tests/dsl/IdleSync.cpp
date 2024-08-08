@@ -47,9 +47,11 @@ public:
             events.push_back("Default End");
         });
 
-        on<Trigger<Step<3>>, Sync<TestReactor>, MainThread>().then([] { events.push_back("Main Task"); });
+        on<Trigger<Step<3>>, Sync<TestReactor>, MainThread>().then([] {  //
+            events.push_back("Main Task");
+        });
 
-        on<Idle<MainThread>>().then([this] {
+        on<Idle<MainThread>, MainThread>().then([this] {
             events.push_back("Idle Main Thread");
             powerplant.shutdown();
         });
