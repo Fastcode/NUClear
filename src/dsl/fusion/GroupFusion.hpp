@@ -24,6 +24,7 @@
 #define NUCLEAR_DSL_FUSION_GROUP_FUSION_HPP
 
 #include <algorithm>
+#include <set>
 #include <stdexcept>
 
 #include "../../threading/Reaction.hpp"
@@ -77,7 +78,7 @@ namespace dsl {
         struct GroupFuser<std::tuple<Word>> {
 
             template <typename DSL>
-            static inline util::GroupDescriptor group(threading::ReactionTask& task) {
+            static inline std::set<util::GroupDescriptor> group(threading::ReactionTask& task) {
 
                 // Return our group
                 return Word::template group<DSL>(task);
@@ -89,8 +90,13 @@ namespace dsl {
         struct GroupFuser<std::tuple<Word1, Word2, WordN...>> {
 
             template <typename DSL>
-            static inline void group(const threading::Reaction& /*reaction*/) {
-                throw std::invalid_argument("Can not be a member of more than one group");
+            static inline std::set<util::GroupDescriptor> group(threading::ReactionTask& task) {
+                // Merge the list of groups together
+                std::set<util::GroupDescriptor> groups = Word1::template group<DSL>(task);
+                auto remainder = GroupFuser<std::tuple<Word2, WordN...>>::template group<DSL>(task);
+                groups.insert(groups.end(), remainder.begin(), remainder.end());
+
+                return groups;
             }
         };
 

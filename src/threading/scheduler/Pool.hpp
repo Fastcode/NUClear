@@ -30,8 +30,7 @@
 
 #include "../../util/ThreadPoolDescriptor.hpp"
 #include "../ReactionTask.hpp"
-#include "Group.hpp"
-#include "IdleLock.hpp"
+#include "Lock.hpp"
 
 namespace NUClear {
 namespace threading {

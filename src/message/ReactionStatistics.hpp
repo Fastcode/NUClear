@@ -72,12 +72,12 @@ namespace message {
                            const IDPair& cause,
                            const IDPair& target,
                            const util::ThreadPoolDescriptor& target_threadpool,
-                           const util::GroupDescriptor& target_group)
+                           const std::set<util::GroupDescriptor>& target_groups)
             : identifiers(std::move(identifiers))
             , cause(cause)
             , target(target)
             , target_threadpool(target_threadpool)
-            , target_group(target_group)
+            , target_groups(target_groups)
             , created(Event::now()) {};
 
 
@@ -92,7 +92,7 @@ namespace message {
         /// The thread pool that this reaction was intended to run on
         util::ThreadPoolDescriptor target_threadpool;
         /// The group that this reaction was intended to run in
-        util::GroupDescriptor target_group;
+        std::set<util::GroupDescriptor> target_groups;
 
         /// The time and thread information for when this reaction was created
         Event created;

@@ -22,7 +22,7 @@
 #include "Scheduler.hpp"
 
 #include "../../dsl/word/MainThread.hpp"
-#include "GroupLock.hpp"
+#include "CombinedLock.hpp"
 
 namespace NUClear {
 namespace threading {
@@ -110,11 +110,6 @@ namespace threading {
         }
 
         std::shared_ptr<Group> Scheduler::get_group(const util::GroupDescriptor& desc) {
-            // Default group is ungrouped
-            if (desc.group_id == 0) {
-                return nullptr;
-            }
-
             // If the group does not exist, create it
             if (groups.count(desc.group_id) == 0) {
                 groups[desc.group_id] = std::make_shared<Group>(desc);
@@ -123,31 +118,40 @@ namespace threading {
             return groups.at(desc.group_id);
         }
 
+        std::unique_ptr<Lock> Scheduler::get_groups_lock(const NUClear::id_t task_id,
+                                                         const int& priority,
+                                                         const std::shared_ptr<Pool>& pool,
+                                                         const std::set<util::GroupDescriptor>& descs) {
+
+            // No groups
+            if (descs.empty()) {
+                return nullptr;
+            }
+
+            // Make a lock which waits for all the groups to be unlocked
+            auto lock = std::make_unique<CombinedLock>();
+            for (auto& desc : descs) {
+                lock->add(get_group(desc)->lock(task_id, priority, [pool] { pool->notify(); }));
+            }
+
+            return lock;
+        }
+
         void Scheduler::submit(std::unique_ptr<ReactionTask>&& task, const bool& immediate) noexcept {
 
-            // If this task should run immediately and is not grouped then run it immediately
-            if (immediate && task->group_descriptor.group_id == 0) {
+            // Get the pool and locks for the group group
+            auto pool       = get_pool(task->pool_descriptor);
+            auto group_lock = get_groups_lock(task->id, task->priority, pool, task->group_descriptors);
+
+            // If this task should run immediately and not limited by the group lock
+            if (immediate && (group_lock == nullptr || group_lock->lock())) {
                 task->run();
                 return;
             }
 
-            auto group = get_group(task->group_descriptor);
-            if (immediate) {
-                GroupLock lock(group);
-                if (lock.lock()) {
-                    task->run();
-                    return;
-                }
-            }
-
-            auto pool = get_pool(task->thread_pool_descriptor);
-
-            // Submit the task to the pool
+            // Submit the task to the appropriate pool
             if (running.load(std::memory_order_relaxed)) {
-                pool->submit({
-                    std::move(task),
-                    group != nullptr ? std::make_unique<GroupLock>(group, [pool] { pool->notify(); }) : nullptr,
-                });
+                pool->submit({std::move(task), std::move(group_lock)});
             }
         }
 

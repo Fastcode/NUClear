@@ -71,8 +71,8 @@ namespace dsl {
             static const util::GroupDescriptor group_descriptor;
 
             template <typename DSL>
-            static inline util::GroupDescriptor group(const threading::ReactionTask& /*reaction*/) {
-                return group_descriptor;
+            static inline std::set<util::GroupDescriptor> group(const threading::ReactionTask& /*task*/) {
+                return {group_descriptor};
             }
         };
 

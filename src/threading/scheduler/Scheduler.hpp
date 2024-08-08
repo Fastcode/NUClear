@@ -109,6 +109,21 @@ namespace threading {
              */
             std::shared_ptr<Group> get_group(const util::GroupDescriptor& desc);
 
+            /**
+             * Gets a lock object for all the groups listed in the descriptors.
+             *
+             * @param task_id   the id of the task that is requesting the lock for sorting purposes
+             * @param priority  the priority of the task that is requesting the lock for sorting purposes
+             * @param pool      the pool to notify when the lock is acquired
+             * @param descs     the descriptors for the groups to lock on
+             *
+             * @return a combined lock representing the state of all the groups
+             */
+            std::unique_ptr<Lock> get_groups_lock(const NUClear::id_t task_id,
+                                                  const int& priority,
+                                                  const std::shared_ptr<Pool>& pool,
+                                                  const std::set<util::GroupDescriptor>& descs);
+
             /// If running is false this means the scheduler is shutting down and no more tasks will be accepted
             std::atomic<bool> running{true};
             /// If started is false pools will not be started until start is called

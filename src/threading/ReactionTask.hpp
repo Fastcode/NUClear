@@ -26,6 +26,7 @@
 #include <atomic>
 #include <functional>
 #include <memory>
+#include <set>
 
 #include "../id.hpp"
 #include "../util/GroupDescriptor.hpp"
@@ -65,21 +66,21 @@ namespace threading {
         /**
          * Creates a new ReactionTask object bound with the parent Reaction object (that created it) and task.
          *
-         * @param parent                 the Reaction object that spawned this ReactionTask.
-         * @param priority               a function that can be called to get the priority of this task
-         * @param thread_pool_descriptor a function that can be called to get the thread pool descriptor for this task
-         * @param group_descriptor       a function that can be called to get the group descriptor for this task
+         * @param parent            the Reaction object that spawned this ReactionTask.
+         * @param priority          a function that can be called to get the priority of this task
+         * @param pool_descriptor   a function that can be called to get the thread pool descriptor for this task
+         * @param group_descriptors a function that can be called to get the list of group descriptors for this task
          */
-        template <typename GetPriority, typename GetGroup, typename GetThreadPool>
+        template <typename GetPriority, typename GetGroups, typename GetThreadPool>
         ReactionTask(const std::shared_ptr<Reaction>& parent,
                      const GetPriority& priority_fn,
                      const GetThreadPool& thread_pool_fn,
-                     const GetGroup& group_fn)
+                     const GetGroups& groups_fn)
             : parent(parent)
             , id(new_task_id())
             , priority(priority_fn(*this))
-            , thread_pool_descriptor(thread_pool_fn(*this))
-            , group_descriptor(group_fn(*this))
+            , pool_descriptor(thread_pool_fn(*this))
+            , group_descriptors(groups_fn(*this))
             // Only create a stats object if we wouldn't cause an infinite loop of stats
             , stats(
                   parent != nullptr && parent->emit_stats && (current_task == nullptr || current_task->stats != nullptr)
@@ -87,8 +88,8 @@ namespace threading {
                             parent->identifiers,
                             IDPair{parent->id, id},
                             current_task != nullptr ? IDPair{current_task->parent->id, current_task->id} : IDPair{0, 0},
-                            thread_pool_descriptor,
-                            group_descriptor)
+                            pool_descriptor,
+                            group_descriptors)
                       : nullptr) {
             // Increment the number of active tasks
             if (parent != nullptr) {
@@ -130,9 +131,9 @@ namespace threading {
         int priority;
         /// details about the thread pool that this task will run from, this will also influence what task queue
         /// the tasks will be queued on
-        util::ThreadPoolDescriptor thread_pool_descriptor;
-        /// details about the group that this task will run in
-        util::GroupDescriptor group_descriptor;
+        util::ThreadPoolDescriptor pool_descriptor;
+        /// details about the groups that this task will run in
+        std::set<util::GroupDescriptor> group_descriptors;
 
         /// the statistics object that records run details about this reaction task
         // This will be nullptr if this task is ineligible to emit stats (e.g. it would cause a loop)

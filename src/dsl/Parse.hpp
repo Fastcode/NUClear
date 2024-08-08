@@ -57,7 +57,7 @@ namespace dsl {
                 Parse<Sentence...>>(task);
         }
 
-        static inline util::GroupDescriptor group(threading::ReactionTask& task) {
+        static inline std::set<util::GroupDescriptor> group(threading::ReactionTask& task) {
             return std::conditional_t<fusion::has_group<DSL>::value, DSL, fusion::NoOp>::template group<
                 Parse<Sentence...>>(task);
         }

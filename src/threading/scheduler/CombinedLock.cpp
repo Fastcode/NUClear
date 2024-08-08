@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2023 NUClear Contributors
+ * Copyright (c) 2024 NUClear Contributors
  *
  * This file is part of the NUClear codebase.
  * See https://github.com/Fastcode/NUClear for further info.
@@ -19,52 +19,29 @@
  * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-
-#ifndef NUCLEAR_UTIL_GROUP_DESCRIPTOR_HPP
-#define NUCLEAR_UTIL_GROUP_DESCRIPTOR_HPP
-
-#include <atomic>
-#include <cstddef>
-#include <cstdint>
-#include <limits>
-
-#include "../id.hpp"
+#include "CombinedLock.hpp"
 
 namespace NUClear {
-namespace util {
+namespace threading {
+    namespace scheduler {
 
-    /**
-     * A description of a group
-     */
-    struct GroupDescriptor {
-        /// a unique identifier for this pool
-        NUClear::id_t group_id{0};
-
-        /// the maximum number of threads that can run concurrently in this group
-        int thread_count{1};
-
-        /**
-         * Return the next unique ID for a new group
-         */
-        static NUClear::id_t get_unique_group_id() noexcept {
-            // Make group 0 the default group
-            static std::atomic<NUClear::id_t> source{1};
-            return source++;
+        CombinedLock::CombinedLock(std::unique_ptr<Lock>&& lock) {
+            locks.push_back(std::move(lock));
         }
 
-        /**
-         * Compare two group descriptors by their group_id to allow for sorting and uniqueness
-         *
-         * @param other the other group descriptor to compare to
-         *
-         * @return true if this group_id is less than the other group_id
-         */
-        inline bool operator<(const GroupDescriptor& other) const {
-            return group_id < other.group_id;
+        bool CombinedLock::lock() {
+            for (auto& lock : locks) {
+                if (!lock->lock()) {
+                    return false;
+                }
+            }
+            return true;
         }
-    };
 
-}  // namespace util
+        void CombinedLock::add(std::unique_ptr<Lock>&& lock) {
+            locks.push_back(std::move(lock));
+        }
+
+    }  // namespace scheduler
+}  // namespace threading
 }  // namespace NUClear
-
-#endif  // NUCLEAR_UTIL_GROUP_DESCRIPTOR_HPP

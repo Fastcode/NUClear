@@ -21,46 +21,106 @@
  */
 #include "Group.hpp"
 
-#include <map>
-#include <memory>
-#include <mutex>
-#include <vector>
-
-#include "Pool.hpp"
-
 namespace NUClear {
 namespace threading {
     namespace scheduler {
 
-        Group::Group(const util::GroupDescriptor& descriptor) : descriptor(descriptor) {}
+        Group::LockHandle::LockHandle(const NUClear::id_t& task_id,
+                                      const int& priority,
+                                      const bool& locked,
+                                      const std::function<void()>& notify)
+            : task_id(task_id), priority(priority), locked(locked), notify(notify) {}
 
-        std::shared_ptr<Group::WatcherHandle> Group::add_watcher(const std::function<void()>& fn) {
-            if (fn != nullptr) {
-                std::lock_guard<std::mutex> lock(mutex);
+        Group::GroupLock::GroupLock(Group& group, const std::shared_ptr<LockHandle>& handle)
+            : group(group), handle(handle) {}
 
-                auto watcher = std::make_shared<WatcherHandle>(fn);
-                watchers.push_back(watcher);
-                return watcher;
-            }
-            return nullptr;
-        }
+        Group::GroupLock::~GroupLock() {
+            // The notify targets may be trying to lock the group
+            // If we try to notify them here we will deadlock
+            std::vector<std::shared_ptr<LockHandle>> to_notify;
 
-        void Group::notify() {
-            // Get the watchers to run out so that we don't hold the lock while running them
-            std::vector<std::weak_ptr<WatcherHandle>> to_run;
             /*mutex scope*/ {
-                std::lock_guard<std::mutex> lock(mutex);
-                to_run.swap(watchers);
-            }
+                std::lock_guard<std::mutex> lock(group.mutex);
+                // Free the token if we held one
+                if (handle->locked) {
+                    handle->locked = false;
+                    group.tokens++;
+                }
 
-            // Run each of the watchers if they are still valid
-            for (auto& watcher : to_run) {
-                auto w = watcher.lock();
-                if (w != nullptr) {
-                    w->called = true;
-                    w->fn();
+                // Find our position in the queue and notify any tasks that can now lock which couldn't before
+                int free_tokens = group.tokens;
+                bool found      = false;
+                for (auto it = group.queue.begin(); it != group.queue.end();) {
+
+                    // If this is the lock we are removing, then we have found it and we should remove it
+                    if (!found && *it == handle) {
+                        found = true;
+                        it    = group.queue.erase(it);
+                    }
+                    else {
+                        // Unlocked tasks would consume a token
+                        free_tokens -= (*it)->locked ? 0 : 1;
+
+                        if (found) {
+                            // Ran out of tokens to give out
+                            if (free_tokens < 0) {
+                                break;
+                            }
+                            if (!(*it)->locked) {
+                                to_notify.push_back(*it);
+                            }
+                        }
+                        ++it;
+                    }
                 }
             }
+
+            // Notify all the tasks that can now lock
+            for (auto& h : to_notify) {
+                h->notify();
+            }
+        }
+
+        bool Group::GroupLock::lock() {
+            // If already locked then return true
+            if (handle->locked) {
+                return true;
+            }
+
+            std::lock_guard<std::mutex> lock(group.mutex);
+
+            int free = group.tokens;
+            for (auto& h : group.queue) {
+                // Unlocked tasks would consume a token
+                free -= h->locked ? 0 : 1;
+
+                // Ran out of free tokens
+                if (free < 0) {
+                    return false;
+                }
+                if (h == handle) {
+                    handle->locked = true;
+                    group.tokens--;
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        Group::Group(const util::GroupDescriptor& descriptor) : descriptor(descriptor) {}
+
+        std::unique_ptr<Lock> Group::lock(const NUClear::id_t& task_id,
+                                          const int& priority,
+                                          const std::function<void()>& notify) {
+
+            auto handle = std::make_shared<LockHandle>(task_id, priority, false, notify);
+
+            // Insert sorted into the queue
+            std::lock_guard<std::mutex> lock(mutex);
+            queue.insert(std::lower_bound(queue.begin(), queue.end(), handle), handle);
+
+            return std::make_unique<GroupLock>(*this, handle);
         }
 
     }  // namespace scheduler
