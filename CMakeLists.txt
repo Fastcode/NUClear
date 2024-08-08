@@ -106,9 +106,6 @@ if(CI_BUILD)
   endif()
 endif(CI_BUILD)
 
-add_compile_options(-fsanitize=address -fno-omit-frame-pointer)
-add_link_options(-fsanitize=address)
-
 # Make the compiler display colours always (even when we build with ninja)
 if(CMAKE_CXX_COMPILER_ID MATCHES GNU)
   add_compile_options(-fdiagnostics-color=always)
