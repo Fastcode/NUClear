@@ -22,6 +22,7 @@
 
 #include "Sleeper.hpp"
 
+#include <array>
 #include <chrono>
 
 #if defined(_WIN32)
@@ -107,28 +108,7 @@ namespace util {
         using namespace std::chrono;
 
         for (auto start = std::chrono::steady_clock::now(); start < target; start = std::chrono::steady_clock::now()) {
-            // If we can accurately sleep for the target amount of time then do so
-            if (target - start >= sleep_accuracy) {
-                // Sleep as accurately as we think we can
-                auto target_sleep_time = target - start - sleep_accuracy;
-                idle_sleep(target_sleep_time);
-                auto end = std::chrono::steady_clock::now();
-
-                // Update the idle sleep accuracy estimate using Welford's method
-                auto actual_sleep_time = end - start;
-
-                double sleep_error =
-                    duration_cast<duration<double, std::nano>>(actual_sleep_time - target_sleep_time).count();
-                double delta = sleep_error - mean;
-
-                count         = count + 1;
-                mean          = mean + (delta / count);
-                double delta2 = sleep_error - mean;
-                m2            = m2 + delta * delta2;
-
-                // Sleep accuracy with 3 standard deviations of the mean for a 99.7% confidence interval
-                sleep_accuracy = nanoseconds(std::lround(std::sqrt(m2 / count) * 3.0));
-            }
+            idle_sleep(target - start);
         }
     }
 
