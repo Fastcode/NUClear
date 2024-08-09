@@ -68,7 +68,7 @@ namespace threading {
             /// The atomic variable to mutate
             std::atomic<int>& counter;
             /// The amount to increment the counter by
-            const int step;
+            const int step;  // NOLINT()
 
             /// If this lock hit the target when it was constructed
             bool locked;

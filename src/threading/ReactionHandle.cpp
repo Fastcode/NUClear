@@ -56,7 +56,8 @@ namespace threading {
         return c ? bool(c->enabled) : false;
     }
 
-
+    // Unbind mutates the reaction which this is a handle for
+    // NOLINTNEXTLINE(readability-make-member-function-const)
     void ReactionHandle::unbind() {
         auto c = context.lock();
         if (c) {

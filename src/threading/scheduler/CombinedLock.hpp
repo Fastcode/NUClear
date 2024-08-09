@@ -40,7 +40,7 @@ namespace threading {
         public:
             CombinedLock() = default;
             CombinedLock(std::unique_ptr<Lock>&& lock);
-            virtual ~CombinedLock() = default;
+            ~CombinedLock() override = default;
 
             CombinedLock(const CombinedLock&)            = delete;
             CombinedLock& operator=(const CombinedLock&) = delete;
@@ -52,7 +52,7 @@ namespace threading {
              *
              * @return true if all of the component locks return true, false otherwise.
              */
-            virtual bool lock();
+            bool lock() override;
 
             /**
              * Adds a new lock to the combined lock.

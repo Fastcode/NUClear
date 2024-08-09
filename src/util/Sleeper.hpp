@@ -24,6 +24,7 @@
 #define NUCLEAR_UTIL_SLEEPER_HPP
 
 #include <chrono>
+#include <memory>
 
 namespace NUClear {
 namespace util {
@@ -41,8 +42,8 @@ namespace util {
     public:
         Sleeper();
         ~Sleeper();
-        Sleeper(Sleeper&&);
-        Sleeper& operator=(Sleeper&&);
+        Sleeper(Sleeper&&) noexcept;
+        Sleeper& operator=(Sleeper&&) noexcept;
 
         // No copying due to the unique_ptr
         Sleeper(const Sleeper&)            = delete;

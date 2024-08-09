@@ -28,9 +28,11 @@
 
 namespace NUClear {
 
-template <typename T>
-clock::duration static dc(const T& t) {
-    return std::chrono::duration_cast<clock::duration>(t);
+namespace {
+    template <typename T>
+    clock::duration dc(const T& t) {
+        return std::chrono::duration_cast<clock::duration>(t);
+    }
 }
 
 clock::time_point clock::now() {
