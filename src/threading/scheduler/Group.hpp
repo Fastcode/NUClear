@@ -99,7 +99,7 @@ namespace threading {
                  * @param group  the reference to the group this lock is for
                  * @param handle the shared state between the group object and the lock objects
                  */
-                GroupLock(Group& group, const std::shared_ptr<LockHandle>& handle);
+                GroupLock(Group& group, std::shared_ptr<LockHandle> handle);
 
                 // Not movable or copyable
                 GroupLock(const GroupLock&)            = delete;
