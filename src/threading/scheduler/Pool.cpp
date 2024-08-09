@@ -56,7 +56,7 @@ namespace threading {
             // The main thread never needs to be started
             if (descriptor.pool_id != NUClear::id_t(util::ThreadPoolDescriptor::MAIN_THREAD_POOL_ID)) {
                 const std::lock_guard<std::mutex> lock(mutex);
-                while (threads.size() < descriptor.thread_count) {
+                while (int(threads.size()) < descriptor.thread_count) {
                     threads.emplace_back(std::make_unique<std::thread>(&Pool::run, this));
                 }
             }
