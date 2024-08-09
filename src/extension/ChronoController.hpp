@@ -26,7 +26,7 @@
 #include "../PowerPlant.hpp"
 #include "../Reactor.hpp"
 #include "../message/TimeTravel.hpp"
-#include "../util/precise_sleep.hpp"
+#include "../util/Sleeper.hpp"
 
 namespace NUClear {
 namespace extension {
@@ -48,10 +48,8 @@ namespace extension {
         /// If we are running or not
         bool running = true;
 
-        /// The temporal accuracy when waiting on a condition variable
-        NUClear::clock::duration cv_accuracy{0};
-        /// The temporal accuracy when waiting on nanosleep
-        NUClear::clock::duration ns_accuracy{0};
+        /// The class which is able to perform high precision sleeps
+        util::Sleeper sleeper;
     };
 
 }  // namespace extension
