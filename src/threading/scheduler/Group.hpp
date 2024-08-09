@@ -53,7 +53,7 @@ namespace threading {
                 LockHandle(const NUClear::id_t& task_id,
                            const int& priority,
                            const bool& locked,
-                           const std::function<void()>& notify);
+                           std::function<void()> notify);
 
                 /**
                  * Compare two lock handles by comparing their priority and task id
