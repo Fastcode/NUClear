@@ -50,10 +50,10 @@ namespace extension {
 
     private:
         /// Our NUClearNetwork object that handles the networking
-        network::NUClearNetwork network{};
+        network::NUClearNetwork network;
 
         /// The reaction that handles timed events from the network
-        ReactionHandle process_handle{};
+        ReactionHandle process_handle;
         /// The reactions that listen for io
         std::vector<ReactionHandle> listen_handles;
 

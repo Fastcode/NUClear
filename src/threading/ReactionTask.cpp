@@ -51,9 +51,10 @@ namespace threading {
             // Run our callback
             callback(*this);
         }
-        catch (...) {
+        catch (...) {  // NOLINT(bugprone-empty-catch)
             // This shouldn't happen, but either way no exceptions should ever leave this function
-            // They should have all been caught and callback is noexcept, however it seems that's a suggestion
+            // They should have all been caught and callback is noexcept
+            // However somehow it still happens sometimes so we need to catch it
         }
 
         // Restore the current task

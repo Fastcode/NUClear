@@ -48,7 +48,7 @@ namespace util {
 
         // Get each of the values from the tuple, dereference them and call the function with them
         // Also ensure that each value is a const reference
-        function(Dereferencer<decltype(std::get<S>(args))>(std::get<S>(args))...);
+        std::forward<Function>(function)(Dereferencer<decltype(std::get<S>(args))>(std::get<S>(args))...);
     }
 
     template <typename Function, typename... Arguments>

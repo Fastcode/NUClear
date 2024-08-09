@@ -33,8 +33,8 @@ namespace threading {
             "The last lock to attempt a lock which hits the target value should obtain the lock"
             "[threading][scheduler][CountingLock]") {
 
-            int base   = GENERATE(-1, 1, 2);
-            int offset = GENERATE(-1, 0, 1);
+            const int base   = GENERATE(-1, 1, 2);
+            const int offset = GENERATE(-1, 0, 1);
 
             GIVEN("An atomic integer with a value of 2") {
                 std::atomic<int> active{2 * base + offset};
