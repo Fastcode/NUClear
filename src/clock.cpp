@@ -33,7 +33,7 @@ namespace {
     clock::duration dc(const T& t) {
         return std::chrono::duration_cast<clock::duration>(t);
     }
-}
+}  // namespace
 
 clock::time_point clock::now() {
     const ClockData current = data[active.load(std::memory_order_acquire)];  // Take a copy in case it changes
