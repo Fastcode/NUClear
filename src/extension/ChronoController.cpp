@@ -113,11 +113,11 @@ namespace extension {
         });
 
         on<Always, Priority::REALTIME>().then("Chrono Controller", [this] {
-            // Acquire the mutex lock so we can wait on it
-            std::unique_lock<std::mutex> lock(mutex);
-
             // Run until we are told to stop
             while (running) {
+
+                // Acquire the mutex lock so we can wait on it
+                std::unique_lock<std::mutex> lock(mutex);
 
                 // If we have no chrono tasks wait until we are notified
                 if (tasks.empty()) {
