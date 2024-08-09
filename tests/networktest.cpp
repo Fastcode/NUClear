@@ -121,9 +121,10 @@ public:
 };
 }  // namespace
 
-
+extern "C" {
 void sigint_handler(int /*signal*/) {
     NUClear::PowerPlant::powerplant->shutdown();
+}
 }
 
 // NOLINTNEXTLINE(bugprone-exception-escape)

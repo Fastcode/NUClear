@@ -92,9 +92,9 @@ namespace util {
      * @tparam Arguments the type of the provided arguments
      */
     template <int Shared, typename... Arguments>
-    // This function is just here to satisfy the templates
-    // NOLINTNEXTLINE(cppcoreguidelines-rvalue-reference-param-not-moved)
     struct FunctionFusionCaller<std::tuple<>, Shared, std::tuple<>, std::tuple<Arguments...>> {
+        // This function is just here to satisfy the templates
+        // NOLINTNEXTLINE(cppcoreguidelines-rvalue-reference-param-not-moved)
         static std::tuple<> call(Arguments&&... /*args*/) {
             return {};
         }
