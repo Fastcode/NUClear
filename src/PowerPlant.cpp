@@ -95,7 +95,7 @@ void PowerPlant::submit(std::unique_ptr<threading::ReactionTask>&& task, const b
     }
 }
 
-void PowerPlant::log(const LogLevel& level, const std::string& message) {
+void PowerPlant::log(const LogLevel& level, std::string message) {
     // Get the current task
     const auto* current_task = threading::ReactionTask::get_current_task();
 
@@ -103,7 +103,7 @@ void PowerPlant::log(const LogLevel& level, const std::string& message) {
     emit<dsl::word::emit::Direct>(std::make_unique<message::LogMessage>(
         level,
         current_task != nullptr ? current_task->parent->reactor.log_level : LogLevel::UNKNOWN,
-        message,
+        std::move(message),
         current_task != nullptr ? current_task->stats : nullptr));
 }
 void PowerPlant::log(const LogLevel& level, std::stringstream& message) {

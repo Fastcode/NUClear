@@ -199,7 +199,16 @@ public:
      */
     template <enum LogLevel level, typename... Arguments>
     void log(Arguments&&... args) {
+        log(level, std::forward<Arguments>(args)...);
+    }
+    template <typename... Arguments>
+    void log(const LogLevel& level, Arguments&&... args) {
         std::stringstream ss;
+        log(level, ss, std::forward<Arguments>(args)...);
+    }
+    template <typename First, typename... Arguments>
+    void log(const LogLevel& level, std::stringstream& ss, First&& first, Arguments&&... args) {
+        ss << std::forward<First>(first) << " ";
         log(level, ss, std::forward<Arguments>(args)...);
     }
     template <typename Last>
@@ -207,13 +216,8 @@ public:
         ss << std::forward<Last>(last);
         log(level, ss);
     }
-    template <typename First, typename... Arguments>
-    void log(const LogLevel& level, std::stringstream& ss, First&& first, Arguments&&... args) {
-        ss << std::forward<First>(first) << " ";
-        log(level, ss, std::forward<Arguments>(args)...);
-    }
     void log(const LogLevel& level, std::stringstream& message);
-    void log(const LogLevel& level, const std::string& message);
+    void log(const LogLevel& level, std::string message);
 
     /**
      * Emits data to the system and routes it to the other systems that use it.
@@ -346,6 +350,12 @@ template <enum LogLevel level = NUClear::DEBUG, typename... Arguments>
 void log(Arguments&&... args) {
     if (PowerPlant::powerplant != nullptr) {
         PowerPlant::powerplant->log<level>(std::forward<Arguments>(args)...);
+    }
+}
+template <typename... Arguments>
+void log(const LogLevel& level, Arguments&&... args) {
+    if (PowerPlant::powerplant != nullptr) {
+        PowerPlant::powerplant->log(level, std::forward<Arguments>(args)...);
     }
 }
 

@@ -418,6 +418,23 @@ public:
         // If the log is above or equal to our log level
         powerplant.log<level>(std::forward<Arguments>(args)...);
     }
+
+    /**
+     * Log a message through NUClear's system.
+     *
+     * Logs a message through the system so the various log handlers can access it.
+     *
+     * @tparam Arguments The types of the arguments we are logging
+     *
+     * @param level The level to log at
+     * @param args The arguments we are logging
+     */
+    template <typename... Arguments>
+    void log(const LogLevel& level, Arguments&&... args) const {
+
+        // If the log is above or equal to our log level
+        powerplant.log(level, std::forward<Arguments>(args)...);
+    }
 };
 
 }  // namespace NUClear

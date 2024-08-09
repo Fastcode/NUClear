@@ -19,9 +19,10 @@
  * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-
 #ifndef NUCLEAR_LOGLEVEL_HPP
 #define NUCLEAR_LOGLEVEL_HPP
+
+#include <ostream>
 
 // Why do we need to include platform.hpp here?
 // Because windows defines a bunch of things for legacy reasons, one of which is a #define for ERROR as blank
@@ -97,6 +98,33 @@ enum LogLevel : uint8_t {
      */
     FATAL
 };
+
+/**
+ * This function is used to convert a LogLevel into a string
+ *
+ * @param level the LogLevel to convert
+ *
+ * @return the string representation of the LogLevel
+ */
+std::string to_string(const LogLevel& level);
+
+/**
+ * This function is used to convert a string into a LogLevel
+ *
+ * @param level the string to convert
+ *
+ * @return the LogLevel representation of the string
+ */
+LogLevel from_string(const std::string& level);
+
+/**
+ * This function is used to convert a LogLevel into a string for printing.
+ *
+ * @param os    the output stream to write to
+ * @param level the LogLevel to convert
+ * @return the output stream
+ */
+std::ostream& operator<<(std::ostream& os, const LogLevel& level);
 
 }  // namespace NUClear
 
