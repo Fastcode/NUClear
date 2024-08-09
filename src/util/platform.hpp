@@ -23,8 +23,6 @@
 #ifndef NUCLEAR_UTIL_PLATFORM_HPP
 #define NUCLEAR_UTIL_PLATFORM_HPP
 
-// IWYU pragma: begin_export
-
 /*******************************************
  *   MANAGE WINDOWS CRAZY INCLUDE SYSTEM   *
  *******************************************/
@@ -203,7 +201,5 @@ using fd_t = int;
 }  // namespace NUClear
 
 #endif
-
-// IWYU pragma: end_export
 
 #endif  // NUCLEAR_UTIL_PLATFORM_HPP
