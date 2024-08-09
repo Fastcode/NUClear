@@ -122,9 +122,13 @@ public:
 }  // namespace
 
 
+void sigint_handler(int /*signal*/) {
+    NUClear::PowerPlant::powerplant->shutdown();
+}
+
 // NOLINTNEXTLINE(bugprone-exception-escape)
 int main(int argc, const char* argv[]) {
-    auto old_sigint = signal(SIGINT, [](int /*signal*/) { NUClear::PowerPlant::powerplant->shutdown(); });
+    auto old_sigint = signal(SIGINT, sigint_handler);
     if (old_sigint == SIG_ERR) {
         std::cerr << "Failed to set SIGINT handler";
         return -1;

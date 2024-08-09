@@ -93,7 +93,7 @@ namespace util {
      */
     template <int Shared, typename... Arguments>
     struct FunctionFusionCaller<std::tuple<>, Shared, std::tuple<>, std::tuple<Arguments...>> {
-        static std::tuple<> call(Arguments&&... /*args*/) {
+        static std::tuple<> call(const Arguments&... /*args*/) {
             return {};
         }
     };
@@ -135,6 +135,8 @@ namespace util {
          * @return the result of calling this specific function
          */
         template <typename Function, int Start, int End>
+        // It is forwarded as a tuple
+        // NOLINTNEXTLINE(cppcoreguidelines-rvalue-reference-param-not-moved)
         static auto call_one(const Sequence<Start, End>& /*e*/, Arguments&&... args)
             -> decltype(apply_function_fusion_call<Function, Shared, Start, End>(std::forward_as_tuple(args...))) {
 
