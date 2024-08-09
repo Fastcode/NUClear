@@ -124,9 +124,9 @@ namespace extension {
         /// Whether or not the list of file descriptors is dirty compared to tasks
         bool dirty = true;
         /// The list of file descriptors to poll
-        std::vector<pollfd> watches{};
+        std::vector<pollfd> watches;
         /// The list of tasks that are waiting for IO events
-        std::vector<Task> tasks{};
+        std::vector<Task> tasks;
     };
 
 }  // namespace extension

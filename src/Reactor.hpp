@@ -157,14 +157,14 @@ public:
     }
 
 private:
-    std::vector<threading::ReactionHandle> reaction_handles{};
+    std::vector<threading::ReactionHandle> reaction_handles;
 
 public:
     /// The powerplant that this reactor is running in
     PowerPlant& powerplant;
 
     /// The demangled string name of this reactor
-    const std::string reactor_name{};
+    const std::string reactor_name;
 
 protected:
     /// The level that this reactor logs at

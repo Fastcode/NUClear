@@ -55,7 +55,7 @@ namespace extension {
         /// The reaction that handles timed events from the network
         ReactionHandle process_handle{};
         /// The reactions that listen for io
-        std::vector<ReactionHandle> listen_handles{};
+        std::vector<ReactionHandle> listen_handles;
 
         /// Mutex to guard the list of reactions
         std::mutex reaction_mutex;

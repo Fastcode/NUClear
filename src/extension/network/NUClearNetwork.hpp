@@ -63,7 +63,7 @@ namespace extension {
                 }
 
                 /// The name of the remote target
-                std::string name{};
+                std::string name;
                 /// The socket address for the remote target
                 sock_t target{};
                 /// When we last received data from the remote target
@@ -218,7 +218,7 @@ namespace extension {
                     std::weak_ptr<NetworkTarget> target{};
 
                     /// The bitset of the packets that have been acked
-                    std::vector<uint8_t> acked{};
+                    std::vector<uint8_t> acked;
 
                     /// When we last sent data to this client
                     std::chrono::steady_clock::time_point last_send{};
@@ -234,7 +234,7 @@ namespace extension {
                 DataPacket header{};
 
                 /// The data to send
-                std::vector<uint8_t> payload{};
+                std::vector<uint8_t> payload;
             };
 
             /**
@@ -310,7 +310,7 @@ namespace extension {
             uint16_t packet_data_mtu{1000};
 
             // Our announce packet
-            std::vector<uint8_t> announce_packet{};
+            std::vector<uint8_t> announce_packet;
 
             /// An atomic source for packet IDs to make sure they are semi unique
             std::atomic<uint16_t> packet_id_source{0};

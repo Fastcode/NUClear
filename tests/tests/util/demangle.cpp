@@ -47,7 +47,7 @@ SCENARIO("Test the demangle function correctly demangles symbols", "[util][deman
 
     GIVEN("An empty symbol") {
         const char* symbol = "";
-        const std::string expected{};
+        const std::string expected;
 
         WHEN("Demangle is called") {
             const std::string result = NUClear::util::demangle(symbol);

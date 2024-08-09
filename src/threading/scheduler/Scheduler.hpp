@@ -142,7 +142,7 @@ namespace threading {
             /// A mutex to protect the idle tasks list
             std::mutex idle_mutex;
             /// A list of idle tasks to execute when all pools are idle
-            std::vector<std::shared_ptr<Reaction>> idle_tasks{};
+            std::vector<std::shared_ptr<Reaction>> idle_tasks;
             /// The number of active thread pools which count for idle
             std::atomic<int> active_pools{0};
 

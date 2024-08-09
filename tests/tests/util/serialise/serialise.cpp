@@ -165,7 +165,7 @@ TEMPLATE_TEST_CASE("Scenario: Serialisation works correctly on iterables of prim
     }
 
     GIVEN("empty serialised data") {
-        const std::vector<uint8_t> in{};
+        const std::vector<uint8_t> in;
 
         WHEN("it is deserialised") {
             const auto deserialised = NUClear::util::serialise::Serialise<TestType>::deserialise(in);

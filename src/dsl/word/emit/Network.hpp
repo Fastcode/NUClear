@@ -35,11 +35,11 @@ namespace dsl {
                 NetworkEmit() = default;
 
                 /// The target to send this serialised packet to
-                std::string target{};
+                std::string target;
                 /// The hash identifying the type of object
                 uint64_t hash{0};
                 /// The serialised data
-                std::vector<uint8_t> payload{};
+                std::vector<uint8_t> payload;
                 /// If the message should be sent reliably
                 bool reliable{false};
             };

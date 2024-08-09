@@ -74,7 +74,7 @@ enum TestType {
 std::vector<TestType> active_tests;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
 inline std::string get_broadcast_addr() {
-    static std::string addr{};
+    static std::string addr;
 
     if (!addr.empty()) {
         return addr;
@@ -98,9 +98,9 @@ inline std::string get_broadcast_addr() {
 }
 
 struct SendTarget {
-    std::string data{};
+    std::string data;
     struct Target {
-        std::string address{};
+        std::string address;
         in_port_t port = 0;
     };
     Target to{};

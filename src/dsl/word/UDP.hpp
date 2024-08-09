@@ -81,11 +81,11 @@ namespace dsl {
                 /// The type of connection we are making
                 Type type{};
                 /// The address we are binding to or empty for any
-                std::string bind_address{};
+                std::string bind_address;
                 /// The port we are binding to or 0 for any
                 in_port_t port = 0;
                 /// The multicast address we are listening on or empty for any
-                std::string target_address{};
+                std::string target_address;
             };
 
             /**
@@ -95,7 +95,7 @@ namespace dsl {
                 /// If the packet is valid
                 bool valid{false};
                 /// The data that was received
-                std::vector<uint8_t> payload{};
+                std::vector<uint8_t> payload;
                 /// The local address that the packet was received on
                 util::network::sock_t local{};
                 /// The remote address that the packet was received from
@@ -114,7 +114,7 @@ namespace dsl {
                     Target(std::string address, const uint16_t& port) : address(std::move(address)), port(port) {}
 
                     /// The address of the target
-                    std::string address{};
+                    std::string address;
                     /// The port of the target
                     uint16_t port{0};
                 };
@@ -125,7 +125,7 @@ namespace dsl {
                 Target remote;
 
                 /// The data to be sent in the packet
-                std::vector<uint8_t> payload{};
+                std::vector<uint8_t> payload;
 
                 /**
                  * Casts this packet to a boolean to check if it is valid

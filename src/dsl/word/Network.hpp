@@ -41,7 +41,7 @@ namespace dsl {
         };
 
         struct NetworkSource {
-            std::string name{};
+            std::string name;
             util::network::sock_t address{};
             bool reliable{false};
         };
