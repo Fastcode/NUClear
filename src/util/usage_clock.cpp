@@ -33,8 +33,8 @@ namespace NUClear {
 namespace util {
 
     cpu_clock::time_point cpu_clock::now() noexcept {
-        timespec ts{};
-        clock_gettime(CLOCK_THREAD_CPUTIME_ID, &ts);
+        ::timespec ts{};
+        ::clock_gettime(CLOCK_THREAD_CPUTIME_ID, &ts);
         return time_point(std::chrono::seconds(ts.tv_sec) + std::chrono::nanoseconds(ts.tv_nsec));
     }
 
