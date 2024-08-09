@@ -73,6 +73,14 @@ namespace util {
 
         /// The platform specific implementation of the Sleeper.
         std::unique_ptr<SleeperImpl> sleeper;
+
+        /// Welford's method for calculating the mean and variance of the sleep function.
+        int count   = 0;
+        double mean = 0;
+        double m2   = 0;
+
+        /// The estimated accuracy of the sleep function.
+        std::chrono::nanoseconds sleep_accuracy{0};
     };
 
 }  // namespace util
