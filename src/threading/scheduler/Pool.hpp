@@ -65,7 +65,7 @@ namespace threading {
                  *
                  * @return true if this task should be executed before the other task
                  */
-                inline bool operator<(const Task& other) const {
+                bool operator<(const Task& other) const {
                     return *task < *other.task;
                 }
             };

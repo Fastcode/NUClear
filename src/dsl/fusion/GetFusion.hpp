@@ -40,7 +40,7 @@ namespace dsl {
          */
         template <typename Function, typename DSL>
         struct GetCaller {
-            static inline auto call(threading::ReactionTask& task) -> decltype(Function::template get<DSL>(task)) {
+            static auto call(threading::ReactionTask& task) -> decltype(Function::template get<DSL>(task)) {
                 return Function::template get<DSL>(task);
             }
         };
@@ -86,7 +86,7 @@ namespace dsl {
         struct GetFuser<std::tuple<Word1, WordN...>> {
 
             template <typename DSL, typename U = Word1>
-            static inline auto get(threading::ReactionTask& task)
+            static auto get(threading::ReactionTask& task)
                 -> decltype(util::FunctionFusion<std::tuple<Word1, WordN...>,
                                                  decltype(std::forward_as_tuple(task)),
                                                  GetCaller,

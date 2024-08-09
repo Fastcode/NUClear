@@ -91,7 +91,7 @@ namespace extension {
 
                 std::chrono::steady_clock::duration round_trip_time{std::chrono::seconds(1)};
 
-                inline void measure_round_trip(std::chrono::steady_clock::duration time) {
+                void measure_round_trip(std::chrono::steady_clock::duration time) {
 
                     // Make our measurement into a float seconds type
                     const std::chrono::duration<float> m =

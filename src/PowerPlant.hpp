@@ -77,7 +77,7 @@ class PowerPlant {
     template <typename Handler>
     struct EmitCaller {
         template <typename... Arguments>
-        static inline auto call(Arguments&&... args)
+        static auto call(Arguments&&... args)
             // THIS IS VERY IMPORTANT, the return type must be dependent on the function call
             // otherwise it won't check it's valid in SFINAE (the comma operator does it again!)
             -> decltype(Handler::emit(std::forward<Arguments>(args)...), true) {

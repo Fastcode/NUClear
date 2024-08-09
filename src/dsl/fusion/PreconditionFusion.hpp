@@ -76,7 +76,7 @@ namespace dsl {
         struct PreconditionFuser<std::tuple<Word>> {
 
             template <typename DSL>
-            static inline bool precondition(threading::ReactionTask& task) {
+            static bool precondition(threading::ReactionTask& task) {
 
                 // Run our remaining precondition
                 return Word::template precondition<DSL>(task);
@@ -88,7 +88,7 @@ namespace dsl {
         struct PreconditionFuser<std::tuple<Word1, Word2, WordN...>> {
 
             template <typename DSL>
-            static inline bool precondition(threading::ReactionTask& task) {
+            static bool precondition(threading::ReactionTask& task) {
 
                 // Perform a recursive and operation ending with the first false
                 return Word1::template precondition<DSL>(task)

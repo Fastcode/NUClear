@@ -68,7 +68,7 @@ namespace dsl {
         template <typename PoolType>
         struct Idle {
             template <typename DSL>
-            static inline void bind(const std::shared_ptr<threading::Reaction>& reaction) {
+            static void bind(const std::shared_ptr<threading::Reaction>& reaction) {
 
                 // Make a fake task to use for finding an appropriate descriptor
                 threading::ReactionTask task(reaction, DSL::priority, DSL::pool, DSL::group);
@@ -79,7 +79,7 @@ namespace dsl {
         template <>
         struct Idle<void> {
             template <typename DSL>
-            static inline void bind(const std::shared_ptr<threading::Reaction>& reaction) {
+            static void bind(const std::shared_ptr<threading::Reaction>& reaction) {
                 bind_idle(reaction, util::ThreadPoolDescriptor::AllPools());
             }
         };

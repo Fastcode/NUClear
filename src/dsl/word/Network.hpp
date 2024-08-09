@@ -76,7 +76,7 @@ namespace dsl {
         struct Network {
 
             template <typename DSL>
-            static inline void bind(const std::shared_ptr<threading::Reaction>& reaction) {
+            static void bind(const std::shared_ptr<threading::Reaction>& reaction) {
 
                 auto task = std::make_unique<NetworkListen>();
 
@@ -91,8 +91,7 @@ namespace dsl {
             }
 
             template <typename DSL>
-            static inline std::tuple<std::shared_ptr<NetworkSource>, NetworkData<T>> get(
-                threading::ReactionTask& /*task*/) {
+            static std::tuple<std::shared_ptr<NetworkSource>, NetworkData<T>> get(threading::ReactionTask& /*task*/) {
 
                 auto* data   = store::ThreadStore<std::vector<uint8_t>>::value;
                 auto* source = store::ThreadStore<NetworkSource>::value;

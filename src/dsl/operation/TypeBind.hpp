@@ -58,7 +58,7 @@ namespace dsl {
         struct TypeBind {
 
             template <typename DSL>
-            static inline void bind(const std::shared_ptr<threading::Reaction>& reaction) {
+            static void bind(const std::shared_ptr<threading::Reaction>& reaction) {
 
                 // Set this reaction as no stats emitting
                 reaction->emit_stats &= EmitStats<DataType>::value;

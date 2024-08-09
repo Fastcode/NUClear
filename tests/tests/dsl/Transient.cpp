@@ -60,7 +60,7 @@ std::vector<std::string> events;  // NOLINT(cppcoreguidelines-avoid-non-const-gl
 struct TransientGetter : public NUClear::dsl::operation::TypeBind<TransientMessage> {
 
     template <typename DSL>
-    static inline TransientMessage get(NUClear::threading::ReactionTask& task) {
+    static TransientMessage get(NUClear::threading::ReactionTask& task) {
 
         // Get the real message and return it directly so transient can activate
         auto raw = NUClear::dsl::operation::CacheGet<TransientMessage>::get<DSL>(task);

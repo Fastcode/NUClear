@@ -59,7 +59,7 @@ namespace dsl {
              *
              * @return true if the task updated the time to run to a new time
              */
-            inline bool operator()() {
+            bool operator()() {
                 return task(time);
             }
 
@@ -70,7 +70,7 @@ namespace dsl {
              *
              * @return true if the other task is after this task
              */
-            inline bool operator<(const ChronoTask& other) const {
+            bool operator<(const ChronoTask& other) const {
                 return time < other.time;
             }
 
@@ -81,7 +81,7 @@ namespace dsl {
              *
              * @return true if the other task is before this task
              */
-            inline bool operator>(const ChronoTask& other) const {
+            bool operator>(const ChronoTask& other) const {
                 return time > other.time;
             }
 
@@ -92,7 +92,7 @@ namespace dsl {
              *
              * @return true if the other task is at the same time as this task
              */
-            inline bool operator==(const ChronoTask& other) const {
+            bool operator==(const ChronoTask& other) const {
                 return time == other.time;
             }
 

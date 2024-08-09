@@ -23,7 +23,6 @@
 #ifndef NUCLEAR_DSL_WORD_IO_HPP
 #define NUCLEAR_DSL_WORD_IO_HPP
 
-#include "../../Reactor.hpp"
 #include "../../id.hpp"
 #include "../../threading/Reaction.hpp"
 #include "../../util/platform.hpp"
@@ -132,7 +131,7 @@ namespace dsl {
             using ThreadEventStore = dsl::store::ThreadStore<Event>;
 
             template <typename DSL>
-            static inline void bind(const std::shared_ptr<threading::Reaction>& reaction, fd_t fd, event_t watch_set) {
+            static void bind(const std::shared_ptr<threading::Reaction>& reaction, fd_t fd, event_t watch_set) {
 
                 reaction->unbinders.push_back([](const threading::Reaction& r) {
                     r.reactor.emit<emit::Direct>(std::make_unique<operation::Unbind<IO>>(r.id));
@@ -145,7 +144,7 @@ namespace dsl {
             }
 
             template <typename DSL>
-            static inline Event get(const threading::ReactionTask& /*task*/) {
+            static Event get(const threading::ReactionTask& /*task*/) {
 
                 // If our thread store has a value
                 if (ThreadEventStore::value) {
@@ -157,7 +156,7 @@ namespace dsl {
             }
 
             template <typename DSL>
-            static inline void postcondition(threading::ReactionTask& task) {
+            static void postcondition(threading::ReactionTask& task) {
                 task.parent->reactor.emit<emit::Direct>(std::make_unique<IOFinished>(task.parent->id));
             }
         };

@@ -87,8 +87,7 @@ namespace dsl {
         struct Every<0, period> {
 
             template <typename DSL>
-            static inline void bind(const std::shared_ptr<threading::Reaction>& reaction,
-                                    NUClear::clock::duration jump) {
+            static void bind(const std::shared_ptr<threading::Reaction>& reaction, NUClear::clock::duration jump) {
 
                 reaction->unbinders.push_back([](const threading::Reaction& r) {
                     r.reactor.emit<emit::Direct>(std::make_unique<operation::Unbind<operation::ChronoTask>>(r.id));
@@ -113,7 +112,7 @@ namespace dsl {
         struct Every {
 
             template <typename DSL>
-            static inline void bind(const std::shared_ptr<threading::Reaction>& reaction) {
+            static void bind(const std::shared_ptr<threading::Reaction>& reaction) {
                 Every<>::bind<DSL>(reaction, period(ticks));
             }
         };

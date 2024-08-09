@@ -74,7 +74,7 @@ namespace dsl {
         struct Always {
 
             template <typename DSL>
-            static inline util::ThreadPoolDescriptor pool(const threading::ReactionTask& task) {
+            static util::ThreadPoolDescriptor pool(const threading::ReactionTask& task) {
                 static std::map<NUClear::id_t, NUClear::id_t> pool_ids;
                 static std::mutex mutex;
 
@@ -97,7 +97,7 @@ namespace dsl {
             }
 
             template <typename DSL>
-            static inline void bind(const std::shared_ptr<threading::Reaction>& reaction) {
+            static void bind(const std::shared_ptr<threading::Reaction>& reaction) {
 
                 // Create an unbinder for the always reaction
                 reaction->unbinders.push_back([](threading::Reaction& r) {
@@ -111,7 +111,7 @@ namespace dsl {
             }
 
             template <typename DSL>
-            static inline void postcondition(threading::ReactionTask& task) {
+            static void postcondition(threading::ReactionTask& task) {
                 // Get a task for the always reaction and submit it to the scheduler
                 PowerPlant::powerplant->submit(task.parent->get_task());
             }
@@ -126,7 +126,7 @@ namespace dsl {
              * @return a unique pointer to the idle task which will resubmit the Always task and itself
              */
             template <typename DSL>
-            static inline std::unique_ptr<threading::ReactionTask> make_idle_task(
+            static std::unique_ptr<threading::ReactionTask> make_idle_task(
                 const std::shared_ptr<threading::Reaction>& reaction) {
 
                 auto idle_task = std::make_unique<threading::ReactionTask>(

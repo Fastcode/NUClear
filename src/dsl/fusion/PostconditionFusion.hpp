@@ -76,7 +76,7 @@ namespace dsl {
         struct PostconditionFuser<std::tuple<Word>> {
 
             template <typename DSL>
-            static inline void postcondition(threading::ReactionTask& task) {
+            static void postcondition(threading::ReactionTask& task) {
 
                 // Run our remaining postcondition
                 Word::template postcondition<DSL>(task);
@@ -88,7 +88,7 @@ namespace dsl {
         struct PostconditionFuser<std::tuple<Word1, Word2, WordN...>> {
 
             template <typename DSL>
-            static inline void postcondition(threading::ReactionTask& task) {
+            static void postcondition(threading::ReactionTask& task) {
 
                 // Run our postcondition
                 Word1::template postcondition<DSL>(task);
