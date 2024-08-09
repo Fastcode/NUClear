@@ -23,6 +23,8 @@
 #ifndef NUCLEAR
 #define NUCLEAR
 
+// IWYU pragma: begin_export
+
 // Main classes
 #include "${nuclear_include_base_directory}PowerPlant.hpp"
 #include "${nuclear_include_base_directory}Reactor.hpp"
@@ -39,5 +41,7 @@
 #include "${nuclear_include_base_directory}extension/ChronoController.hpp"
 #include "${nuclear_include_base_directory}extension/IOController.hpp"
 #include "${nuclear_include_base_directory}extension/NetworkController.hpp"
+
+// IWYU pragma: begin_export
 
 #endif  // NUCLEAR
