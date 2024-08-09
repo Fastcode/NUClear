@@ -20,21 +20,22 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_DSL_OPERATION_CACHEGET_HPP
-#define NUCLEAR_DSL_OPERATION_CACHEGET_HPP
+#ifndef NUCLEAR_DSL_OPERATION_CACHE_GET_HPP
+#define NUCLEAR_DSL_OPERATION_CACHE_GET_HPP
 
 #include "../store/DataStore.hpp"
+#include "../store/ThreadStore.hpp"
 
 namespace NUClear {
 namespace dsl {
     namespace operation {
 
         /**
-         * @brief Accesses a variable from the shared data cache when used.
+         * Accesses a variable from the shared data cache when used.
          *
-         * @details NUClear maintains a datastore of the latest data emitted of each type in the system.
-         *          This utility type accesses this shared cache and accesses the latest data using get.
-         *          To use this utility inherit from this type with the DataType to listen for.
+         * NUClear maintains a datastore of the latest data emitted of each type in the system.
+         * This utility type accesses this shared cache and accesses the latest data using get.
+         * To use this utility inherit from this type with the DataType to listen for.
          *
          * @tparam DataType the data type that will be accessed from the cache
          */
@@ -42,7 +43,7 @@ namespace dsl {
         struct CacheGet {
 
             template <typename DSL, typename T = DataType>
-            static inline std::shared_ptr<const T> get(const threading::Reaction& /*reaction*/) {
+            static std::shared_ptr<const T> get(const threading::ReactionTask& /*task*/) {
 
                 return store::ThreadStore<std::shared_ptr<T>>::value == nullptr
                            ? store::DataStore<DataType>::get()
@@ -54,4 +55,4 @@ namespace dsl {
 }  // namespace dsl
 }  // namespace NUClear
 
-#endif  // NUCLEAR_DSL_OPERATION_CACHEGET_HPP
+#endif  // NUCLEAR_DSL_OPERATION_CACHE_GET_HPP

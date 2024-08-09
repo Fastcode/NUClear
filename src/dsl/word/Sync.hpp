@@ -36,17 +36,16 @@ namespace dsl {
     namespace word {
 
         /**
-         * @brief
-         *  This is used to specify that only one reaction in this SyncGroup can run concurrently.
+         * This is used to specify that only one reaction in this SyncGroup can run concurrently.
          *
-         * @details
-         *  @code on<Trigger<T, ...>, Sync<SyncGroup>>() @endcode
-         *  When a group of tasks has been synchronised, only one task from the group will execute at a given time.
+         * @code on<Trigger<T, ...>, Sync<SyncGroup>>() @endcode
          *
-         *  Should another task from this group be scheduled/requested (during execution of the current task), it will
-         *  be sidelined into the task queue.
+         * When a group of tasks has been synchronised, only one task from the group will execute at a given time.
          *
-         *  Tasks in the queue are ordered based on their priority level, then their task id.
+         * Should another task from this group be scheduled/requested (during execution of the current task), it will
+         * be sidelined into the task queue.
+         *
+         * Tasks in the queue are ordered based on their priority level, then their task id.
          *
          * @par When should I use Sync
          *  Consider a reactor with a number of a reactions which modify its state.  It would be unwise to allow the

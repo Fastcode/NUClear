@@ -28,7 +28,7 @@
 namespace NUClear {
 namespace util {
 
-    std::string demangle(const char* symbol);
+    std::string demangle(const char* symbol) noexcept;
 
 }  // namespace util
 }  // namespace NUClear

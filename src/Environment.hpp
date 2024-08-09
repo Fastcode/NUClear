@@ -34,13 +34,10 @@ class Reactor;
 class PowerPlant;
 
 /**
- * @brief
- *  Environment defines variables that are passed from the installing PowerPlant context
- *  into a Reactor.
+ * Environment defines variables that are passed from the installing PowerPlant context into a Reactor.
  *
- * @details
- *  The Environment is used to provide information from the PowerPlant to Reactors.
- *  Each Reactor owns it's own environment and can use it to access useful information.
+ * The Environment is used to provide information from the PowerPlant to Reactors.
+ * Each Reactor owns it's own environment and can use it to access useful information.
  */
 class Environment {
 public:
@@ -51,9 +48,9 @@ private:
     friend class PowerPlant;
     friend class Reactor;
 
-    /// @brief The PowerPlant to use in this reactor
+    /// The PowerPlant to use in this reactor
     PowerPlant& powerplant;
-    /// @brief The name of the reactor
+    /// The name of the reactor
     std::string reactor_name;
 };
 

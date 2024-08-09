@@ -21,13 +21,16 @@
  */
 
 #include <catch2/catch_test_macros.hpp>
+#include <memory>
 #include <nuclear>
+#include <utility>
+#include <vector>
 
 #include "test_util/TestBase.hpp"
 
 namespace {
 
-/// @brief Events that occur during the test
+/// Events that occur during the test
 std::vector<std::string> events;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
 struct MessageA {};

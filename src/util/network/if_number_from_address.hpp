@@ -23,17 +23,14 @@
 #ifndef NUCLEAR_UTIL_NETWORK_IF_NUMBER_FROM_ADDRESS_HPP
 #define NUCLEAR_UTIL_NETWORK_IF_NUMBER_FROM_ADDRESS_HPP
 
-#include <string>
-#include <vector>
-
-#include "sock_t.hpp"
+struct sockaddr_in6;
 
 namespace NUClear {
 namespace util {
     namespace network {
 
         /**
-         * @brief Gets the index of the interface that the given ipv6 address is on
+         * Gets the index of the interface that the given ipv6 address is on
          *
          * @param ipv6 the ipv6 address to check
          *

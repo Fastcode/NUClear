@@ -38,28 +38,31 @@ namespace dsl {
     namespace word {
 
         /**
-         * @brief
-         *  This allows a reaction to be triggered based on TCP activity.
+         * This allows a reaction to be triggered based on TCP activity.
          *
-         * @details
-         *  @code on<TCP>(port) @endcode
-         *  When a connection is identified on the assigned port, the associated reaction will be triggered.  The
-         *  request for a TCP based reaction can use a runtime argument to reference a specific port.  Note that the
-         *  port reference can be changed during the systems execution phase.
+         * @code on<TCP>(port) @endcode
          *
-         *  @code on<TCP>() @endcode
-         *  Should the port reference be omitted, then the system will bind to a currently unassigned port.
+         * When a connection is identified on the assigned port, the associated reaction will be triggered.  The
+         * request for a TCP based reaction can use a runtime argument to reference a specific port.  Note that the
+         * port reference can be changed during the systems execution phase.
          *
-         *  @code on<TCP, TCP>(port, port)  @endcode
-         *  A reaction can also be triggered via connectivity on more than one port.
+         * @code on<TCP>() @endcode
+         *
+         * Should the port reference be omitted, then the system will bind to a currently unassigned port.
+         *
+         * @code on<TCP, TCP>(port, port) @endcode
+         *
+         * A reaction can also be triggered via connectivity on more than one port.
          *
          * @attention
          *  Because TCP communications are stream based, the on< TCP >() request will often require an on< IO >()
          *  request also be specified within its definition. It is the later request which will define the reaction to
          *  run when activity on the stream is detected.  For example:
-         *  @code on<TCP>(port).then([this](const TCP::Connection& connection){
-         *    on<IO>(connection.fd, IO::READ | IO::CLOSE).then([this](IO::Event event)
-         *  } @endcode
+         *  @code
+         *      on<TCP>(port).then([this](const TCP::Connection& connection){
+         *          on<IO>(connection.fd, IO::READ | IO::CLOSE).then([this](IO::Event event)
+         *      }
+         *  @endcode
          *
          * @par Implements
          *  Bind
@@ -69,22 +72,22 @@ namespace dsl {
             struct Connection {
 
                 struct Target {
-                    /// @brief The address of the connection
+                    /// The address of the connection
                     std::string address;
-                    /// @brief The port of the connection
+                    /// The port of the connection
                     uint16_t port;
                 };
 
-                /// @brief The local address of the connection
+                /// The local address of the connection
                 Target local;
-                /// @brief The remote address of the connection
+                /// The remote address of the connection
                 Target remote;
 
-                /// @brief The file descriptor for the connection
+                /// The file descriptor for the connection
                 fd_t fd;
 
                 /**
-                 * @brief Casts this packet to a boolean to check if it is valid
+                 * Casts this packet to a boolean to check if it is valid
                  *
                  * @return true if the packet is valid
                  */
@@ -94,9 +97,9 @@ namespace dsl {
             };
 
             template <typename DSL>
-            static inline std::tuple<in_port_t, fd_t> bind(const std::shared_ptr<threading::Reaction>& reaction,
-                                                           in_port_t port                  = 0,
-                                                           const std::string& bind_address = "") {
+            static std::tuple<in_port_t, fd_t> bind(const std::shared_ptr<threading::Reaction>& reaction,
+                                                    in_port_t port                  = 0,
+                                                    const std::string& bind_address = "") {
 
                 // Resolve the bind address if we have one
                 util::network::sock_t address{};
@@ -162,10 +165,10 @@ namespace dsl {
             }
 
             template <typename DSL>
-            static inline Connection get(threading::Reaction& reaction) {
+            static Connection get(threading::ReactionTask& task) {
 
                 // Get our file descriptor from the magic cache
-                auto event = IO::get<DSL>(reaction);
+                auto event = IO::get<DSL>(task);
 
                 // If our get is being run without an fd (something else triggered) then short circuit
                 if (!event) {

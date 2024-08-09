@@ -31,7 +31,7 @@ namespace util {
     namespace serialise {
 
         /**
-         * @brief Calculates the 32-bit xxHash of the input data.
+         * Calculates the 32-bit xxHash of the input data.
          *
          * This function calculates the 32-bit xxHash of the input data using the specified seed value.
          *
@@ -44,7 +44,7 @@ namespace util {
         uint32_t xxhash32(const void* input, const size_t& length, const uint32_t& seed = 0);
 
         /**
-         * @brief Calculates the 64-bit xxHash of the input data.
+         * Calculates the 64-bit xxHash of the input data.
          *
          * This function calculates the 64-bit xxHash of the input data using the specified seed value.
          *

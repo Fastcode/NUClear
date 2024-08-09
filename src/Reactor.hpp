@@ -23,11 +23,9 @@
 #ifndef NUCLEAR_REACTOR_HPP
 #define NUCLEAR_REACTOR_HPP
 
-#include <atomic>
 #include <chrono>
 #include <functional>
 #include <regex>
-#include <sstream>
 #include <string>
 #include <typeindex>
 #include <vector>
@@ -40,6 +38,7 @@
 #include "threading/ReactionIdentifiers.hpp"
 #include "util/CallbackGenerator.hpp"
 #include "util/Sequence.hpp"
+#include "util/demangle.hpp"
 #include "util/tuplify.hpp"
 
 namespace NUClear {
@@ -117,8 +116,6 @@ namespace dsl {
             template <typename T>
             struct Delay;
             template <typename T>
-            struct Initialise;
-            template <typename T>
             struct Network;
             template <typename T>
             struct UDP;
@@ -131,15 +128,14 @@ namespace dsl {
             template <typename WatchdogGroup>
             WatchdogServicer<WatchdogGroup, void> ServiceWatchdog();
         }  // namespace emit
-    }      // namespace word
+    }  // namespace word
 }  // namespace dsl
 
 /**
- * @brief Base class for any system that wants to react to events/data from the rest of the system.
+ * Base class for any system that wants to react to events/data from the rest of the system.
  *
- * @details
- *  Provides functionality for binding callbacks to incoming data events. Callbacks are executed
- *  in a transparent, multithreaded manner. TODO needs to be expanded and updated
+ * Provides functionality for binding callbacks to incoming data events. Callbacks are executed
+ * in a transparent, multithreaded manner. TODO needs to be expanded and updated
  */
 class Reactor {
 public:
@@ -161,17 +157,17 @@ public:
     }
 
 private:
-    std::vector<threading::ReactionHandle> reaction_handles{};
+    std::vector<threading::ReactionHandle> reaction_handles;
 
 public:
-    /// @brief The powerplant that this reactor is running in
+    /// The powerplant that this reactor is running in
     PowerPlant& powerplant;
 
-    /// @brief The demangled string name of this reactor
-    const std::string reactor_name{};
+    /// The demangled string name of this reactor
+    const std::string reactor_name;
 
 protected:
-    /// @brief The level that this reactor logs at
+    /// The level that this reactor logs at
     LogLevel log_level{LogLevel::INFO};
 
     /***************************************************************************************************************
@@ -287,10 +283,6 @@ protected:
         template <typename T>
         using DELAY = dsl::word::emit::Delay<T>;
 
-        /// @copydoc dsl::word::emit::Initialise
-        template <typename T>
-        using INITIALIZE = dsl::word::emit::Initialise<T>;
-
         /// @copydoc dsl::word::emit::Network
         template <typename T>
         using NETWORK = dsl::word::emit::Network<T>;
@@ -304,7 +296,7 @@ protected:
         using WATCHDOG = dsl::word::emit::Watchdog<T>;
     };
 
-    /// @brief This provides functions to modify how an on statement runs after it has been created
+    /// This provides functions to modify how an on statement runs after it has been created
     using ReactionHandle = threading::ReactionHandle;
 
 public:
@@ -364,13 +356,12 @@ public:
     // FUNCTIONS
 
     /**
-     * @brief The on function is the method used to create a reaction in the NUClear system.
+     * The on function is the method used to create a reaction in the NUClear system.
      *
-     * @details
-     *  This function is used to create a Reaction in the system. By providing the correct
-     *  template parameters, this function can modify how and when this reaction runs.
+     * This function is used to create a Reaction in the system. By providing the correct template parameters, this
+     * function can modify how and when this reaction runs.
      *
-     * @tparam DSL     The NUClear domain specific language information
+     * @tparam DSL          The NUClear domain specific language information
      * @tparam Arguments    The types of the arguments passed into the function
      *
      * @param args      The arguments that will be passed to each of the binding DSL words in order
@@ -387,13 +378,11 @@ public:
     }
 
     /**
-     * @brief Emits data into the system so that other reactors can use it.
+     * Emits data into the system so that other reactors can use it.
      *
-     * @details
-     *  This function emits data to the rest of the system so that it can be used.
-     *  This results in it being the new data used when a with is used, and triggering
-     *  any reaction that is set to be triggered on this data type.
-     *
+     * This function emits data to the rest of the system so that it can be used.
+     * This results in it being the new data used when a with is used, and triggering
+     * any reaction that is set to be triggered on this data type.
      *
      * @tparam Handlers The handlers for this emit (e.g. LOCAL, NETWORK etc)
      * @tparam T        The type of the data we are emitting, for some handlers (e.g. WATCHDOG) this is optional
@@ -414,11 +403,9 @@ public:
     }
 
     /**
-     * @brief Log a message through NUClear's system.
+     * Log a message through NUClear's system.
      *
-     * @details
-     *  Logs a message through the system so the various log handlers
-     *  can access it.
+     * Logs a message through the system so the various log handlers can access it.
      *
      * @tparam level The level to log at (defaults to DEBUG)
      * @tparam Arguments The types of the arguments we are logging
@@ -429,7 +416,24 @@ public:
     void log(Arguments&&... args) const {
 
         // If the log is above or equal to our log level
-        PowerPlant::log<level>(std::forward<Arguments>(args)...);
+        powerplant.log<level>(std::forward<Arguments>(args)...);
+    }
+
+    /**
+     * Log a message through NUClear's system.
+     *
+     * Logs a message through the system so the various log handlers can access it.
+     *
+     * @tparam Arguments The types of the arguments we are logging
+     *
+     * @param level The level to log at
+     * @param args The arguments we are logging
+     */
+    template <typename... Arguments>
+    void log(const LogLevel& level, Arguments&&... args) const {
+
+        // If the log is above or equal to our log level
+        powerplant.log(level, std::forward<Arguments>(args)...);
     }
 };
 
@@ -460,7 +464,6 @@ public:
 #include "dsl/word/With.hpp"
 #include "dsl/word/emit/Delay.hpp"
 #include "dsl/word/emit/Direct.hpp"
-#include "dsl/word/emit/Initialise.hpp"
 #include "dsl/word/emit/Local.hpp"
 #include "dsl/word/emit/Network.hpp"
 #include "dsl/word/emit/UDP.hpp"

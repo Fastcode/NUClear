@@ -32,18 +32,18 @@ namespace dsl {
     namespace word {
 
         /**
-         * @brief
-         *  This is used to request any data dependent reactions in the system.
+         * This is used to request any data dependent reactions in the system.
          *
-         * @details
-         *  @code on<Trigger<T>>() @endcode
-         *  This will enact the execution of a task whenever T is emitted into the system. When this occurs, read-only
-         *  access to T will be provided to the triggering unit via a callback.
+         * @code on<Trigger<T>>() @endcode
          *
-         *  @code on<Trigger<T1, T2, ... >>() @endcode
-         *  Note that a this request can handle triggers on multiple types. When using multiple types in the request,
-         *  the reaction will only be triggered once <b>all</b> of the trigger types have been emitted (at least once)
-         *  since the last occurrence of the event.
+         * This will enact the execution of a task whenever T is emitted into the system. When this occurs, read-only
+         * access to T will be provided to the triggering unit via a callback.
+         *
+         * @code on<Trigger<T1, T2, ... >>() @endcode
+         *
+         * Note that a this request can handle triggers on multiple types. When using multiple types in the request,
+         * the reaction will only be triggered once <b>all</b> of the trigger types have been emitted (at least once)
+         * since the last occurrence of the event.
          *
          * @par Implements
          *  Bind, Get

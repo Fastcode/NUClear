@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2014 NUClear Contributors
+ * Copyright (c) 2024 NUClear Contributors
  *
  * This file is part of the NUClear codebase.
  * See https://github.com/Fastcode/NUClear for further info.
@@ -19,18 +19,27 @@
  * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+#include "CountingLock.hpp"
 
-#ifndef NUCLEAR_UTIL_SLEEPER_HPP
-#define NUCLEAR_UTIL_SLEEPER_HPP
-
-#include <chrono>
+#include <atomic>
 
 namespace NUClear {
-namespace util {
+namespace threading {
+    namespace scheduler {
 
-    void precise_sleep(const std::chrono::nanoseconds& ns);
+        CountingLock::CountingLock(std::atomic<int>& counter, const int& step, const int& target)
+            : counter(counter)
+            , step(step)
+            , locked((counter.fetch_add(step, std::memory_order_acquire) + step) == target) {}
 
-}  // namespace util
+        CountingLock::~CountingLock() {
+            counter.fetch_sub(step, std::memory_order_release);
+        }
+
+        bool CountingLock::lock() {
+            return locked;
+        }
+
+    }  // namespace scheduler
+}  // namespace threading
 }  // namespace NUClear
-
-#endif  // NUCLEAR_UTIL_SLEEPER_HPP

@@ -20,9 +20,9 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include "platform.hpp"
-
 #ifdef _WIN32
+
+    #include "platform.hpp"
 
     #include <stdexcept>
     #include <system_error>

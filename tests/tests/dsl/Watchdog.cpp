@@ -29,7 +29,7 @@
 
 namespace {
 
-/// @brief Events that occur during the test
+/// Events that occur during the test
 std::vector<std::string> events;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
 template <int I>
@@ -101,6 +101,7 @@ TEST_CASE("Testing the Watchdog Smart Type", "[api][watchdog]") {
     NUClear::Configuration config;
     config.thread_count = 1;
     NUClear::PowerPlant plant(config);
+    plant.install<NUClear::extension::ChronoController>();
     plant.install<TestReactor>();
     plant.start();
 

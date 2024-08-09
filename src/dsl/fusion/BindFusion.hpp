@@ -20,11 +20,10 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_DSL_FUSION_BINDFUSION_HPP
-#define NUCLEAR_DSL_FUSION_BINDFUSION_HPP
+#ifndef NUCLEAR_DSL_FUSION_BIND_FUSION_HPP
+#define NUCLEAR_DSL_FUSION_BIND_FUSION_HPP
 
-#include "../../threading/ReactionHandle.hpp"
-#include "../../util/tuplify.hpp"
+#include "../../util/FunctionFusion.hpp"
 #include "../operation/DSLProxy.hpp"
 #include "has_bind.hpp"
 
@@ -33,7 +32,7 @@ namespace dsl {
     namespace fusion {
 
         /**
-         * @brief This is our Function Fusion wrapper class that allows it to call bind functions
+         * This is our Function Fusion wrapper class that allows it to call bind functions
          *
          * @tparam Function the bind function that we are wrapping for
          * @tparam DSL      the DSL that we pass to our bind function
@@ -42,27 +41,26 @@ namespace dsl {
         struct BindCaller {
 
             /**
-             * @brief This struct is used if there is a return type. It just passes the returned data back up.
+             * This struct is used if there is a return type. It just passes the returned data back up.
              *
              * @return the data that is returned by the bind call
              */
             struct Return {
                 template <typename... Arguments>
-                static inline auto call(const std::shared_ptr<threading::Reaction>& reaction, Arguments&&... args) {
+                static auto call(const std::shared_ptr<threading::Reaction>& reaction, Arguments&&... args) {
                     return Function::template bind<DSL>(reaction, std::forward<Arguments>(args)...);
                 }
             };
 
             /**
-             * @brief This struct is used if the return type of the bind function is void. It wraps it into an empty
+             * This struct is used if the return type of the bind function is void. It wraps it into an empty
              * tuple instead.
              *
              * @return an empty tuple
              */
             struct NoReturn {
                 template <typename... Arguments>
-                static inline std::tuple<> call(const std::shared_ptr<threading::Reaction>& reaction,
-                                                Arguments&&... args) {
+                static std::tuple<> call(const std::shared_ptr<threading::Reaction>& reaction, Arguments&&... args) {
                     Function::template bind<DSL>(reaction, std::forward<Arguments>(args)...);
                     return {};
                 }
@@ -70,7 +68,7 @@ namespace dsl {
 
 
             template <typename... Arguments>
-            static inline auto call(const std::shared_ptr<threading::Reaction>& reaction, Arguments&&... args)
+            static auto call(const std::shared_ptr<threading::Reaction>& reaction, Arguments&&... args)
                 -> decltype(std::conditional_t<std::is_void<decltype(Function::template bind<DSL>(
                                                    reaction,
                                                    std::forward<Arguments>(args)...))>::value,
@@ -89,7 +87,7 @@ namespace dsl {
         struct BindWords;
 
         /**
-         * @brief Metafunction that extracts all of the Words with a bind function
+         * Metafunction that extracts all of the Words with a bind function
          *
          * @tparam Word1        The word we are looking at
          * @tparam WordN        The words we have yet to look at
@@ -102,7 +100,7 @@ namespace dsl {
                                         /*F*/ BindWords<std::tuple<WordN...>, std::tuple<FoundWords...>>> {};
 
         /**
-         * @brief Termination case for the BindWords metafunction
+         * Termination case for the BindWords metafunction
          *
          * @tparam FoundWords The words we have found with bind functions
          */
@@ -126,7 +124,7 @@ namespace dsl {
         struct BindFuser<std::tuple<Word1, WordN...>> {
 
             template <typename DSL, typename... Arguments>
-            static inline auto bind(const std::shared_ptr<threading::Reaction>& reaction, Arguments&&... args)
+            static auto bind(const std::shared_ptr<threading::Reaction>& reaction, Arguments&&... args)
                 -> decltype(util::FunctionFusion<std::tuple<Word1, WordN...>,
                                                  decltype(std::forward_as_tuple(reaction,
                                                                                 std::forward<Arguments>(args)...)),
@@ -152,4 +150,4 @@ namespace dsl {
 }  // namespace dsl
 }  // namespace NUClear
 
-#endif  // NUCLEAR_DSL_FUSION_BINDFUSION_HPP
+#endif  // NUCLEAR_DSL_FUSION_BIND_FUSION_HPP

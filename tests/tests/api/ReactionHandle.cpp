@@ -28,7 +28,7 @@
 // Anonymous namespace to keep everything file local
 namespace {
 
-/// @brief Events that occur during the test
+/// Events that occur during the test
 std::vector<std::string> events;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
 struct Message {
@@ -63,8 +63,8 @@ public:
         });
     }
 
-    ReactionHandle a{};
-    ReactionHandle b{};
+    ReactionHandle a;
+    ReactionHandle b;
 };
 }  // namespace
 

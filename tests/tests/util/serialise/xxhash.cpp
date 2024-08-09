@@ -25,6 +25,8 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/generators/catch_generators.hpp>
 #include <cstdint>
+#include <string>
+#include <utility>
 
 // The seed used for the tests (the same one that NUClear uses)
 constexpr uint32_t fixed_seed = 0x4e55436c;

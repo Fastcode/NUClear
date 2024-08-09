@@ -44,6 +44,8 @@ namespace util {
     }
 
     template <typename T>
+    // Reaching here there is only one element in the tuple and it is moved
+    // NOLINTNEXTLINE(cppcoreguidelines-rvalue-reference-param-not-moved)
     static inline T detuplify(std::tuple<T>&& tuple) {
         return std::move(std::get<0>(tuple));
     }

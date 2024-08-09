@@ -19,33 +19,20 @@
  * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-
 #ifndef NUCLEAR_UTIL_GET_HOSTNAME_HPP
 #define NUCLEAR_UTIL_GET_HOSTNAME_HPP
 
-#ifdef _WIN32
-    #include "platform.hpp"
-#else
-    #include <sys/utsname.h>
-#endif
+#include <string>
 
 namespace NUClear {
 namespace util {
 
-    inline std::string get_hostname() {
-
-// If our config name is empty, use our system name
-#ifdef _WIN32
-        char n[MAX_COMPUTERNAME_LENGTH + 1];
-        DWORD size = sizeof(n);
-        GetComputerName(n, &size);
-        return std::string(n, size);
-#else
-        utsname u{};
-        uname(&u);
-        return u.nodename;
-#endif
-    }
+    /**
+     * Get the hostname of the machine
+     *
+     * @return the hostname of the machine
+     */
+    std::string get_hostname();
 
 }  // namespace util
 }  // namespace NUClear

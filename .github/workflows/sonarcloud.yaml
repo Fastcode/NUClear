@@ -57,7 +57,7 @@ jobs:
             -DCI_BUILD=ON \
             -DENABLE_CLANG_TIDY=OFF
 
-      - name: Build with Sonar Wrapper
+      - name: Build the code in debug mode
         timeout-minutes: 30
         run: cmake --build build/ --config Debug
 

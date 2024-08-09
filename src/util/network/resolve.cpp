@@ -22,12 +22,15 @@
 
 #include "resolve.hpp"
 
+#include <cstdint>
 #include <cstring>
-#include <iostream>
 #include <memory>
 #include <stdexcept>
+#include <string>
+#include <system_error>
 
 #include "../platform.hpp"
+#include "sock_t.hpp"
 
 namespace NUClear {
 namespace util {

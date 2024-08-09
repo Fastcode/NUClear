@@ -28,15 +28,15 @@
 
 namespace {
 
-/// @brief Events that occur during the test
+/// Events that occur during the test
 std::vector<std::string> events;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
-enum TestPorts {
+enum TestPorts : in_port_t {
     KNOWN_V4_PORT = 40010,
     KNOWN_V6_PORT = 40011,
 };
 
-enum TestType {
+enum TestType : uint8_t {
     V4_KNOWN,
     V4_EPHEMERAL,
     V6_KNOWN,
@@ -214,11 +214,12 @@ TEST_CASE("Testing listening for TCP connections and receiving data messages", "
     NUClear::Configuration config;
     config.thread_count = 2;
     NUClear::PowerPlant plant(config);
+    plant.install<NUClear::extension::IOController>();
     plant.install<TestReactor>();
     plant.start();
 
     // Get the results for the tests we expect
-    std::vector<std::string> expected{};
+    std::vector<std::string> expected;
     for (const auto& t : active_tests) {
         switch (t) {
             case V4_KNOWN:

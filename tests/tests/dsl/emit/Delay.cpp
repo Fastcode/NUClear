@@ -31,10 +31,10 @@ namespace {
 
 using TimeUnit = test_util::TimeUnit;
 
-/// @brief Events that occur during the test
+/// Events that occur during the test
 std::vector<std::string> events;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
-/// @brief Perform this many different time points for the test
+/// Perform this many different time points for the test
 constexpr int test_loops = 5;
 
 struct DelayedMessage {
@@ -101,6 +101,7 @@ TEST_CASE("Testing the delay emit", "[api][emit][delay]") {
     NUClear::Configuration config;
     config.thread_count = 1;
     NUClear::PowerPlant plant(config);
+    plant.install<NUClear::extension::ChronoController>();
     plant.install<TestReactor>();
     plant.start();
 

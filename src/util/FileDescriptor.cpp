@@ -22,6 +22,7 @@
 
 #include "FileDescriptor.hpp"
 
+#include <functional>
 #include <utility>
 
 #include "platform.hpp"

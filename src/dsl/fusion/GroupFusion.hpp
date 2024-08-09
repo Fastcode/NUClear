@@ -20,10 +20,11 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_DSL_FUSION_GROUPFUSION_HPP
-#define NUCLEAR_DSL_FUSION_GROUPFUSION_HPP
+#ifndef NUCLEAR_DSL_FUSION_GROUP_FUSION_HPP
+#define NUCLEAR_DSL_FUSION_GROUP_FUSION_HPP
 
 #include <algorithm>
+#include <set>
 #include <stdexcept>
 
 #include "../../threading/Reaction.hpp"
@@ -44,7 +45,7 @@ namespace dsl {
         struct GroupWords;
 
         /**
-         * @brief Metafunction that extracts all of the Words with a group function
+         * Metafunction that extracts all of the Words with a group function
          *
          * @tparam Word1        The word we are looking at
          * @tparam WordN        The words we have yet to look at
@@ -58,7 +59,7 @@ namespace dsl {
                   /*F*/ GroupWords<std::tuple<WordN...>, std::tuple<FoundWords...>>> {};
 
         /**
-         * @brief Termination case for the GroupWords metafunction
+         * Termination case for the GroupWords metafunction
          *
          * @tparam FoundWords The words we have found with group functions
          */
@@ -77,10 +78,10 @@ namespace dsl {
         struct GroupFuser<std::tuple<Word>> {
 
             template <typename DSL>
-            static inline util::GroupDescriptor group(threading::Reaction& reaction) {
+            static std::set<util::GroupDescriptor> group(threading::ReactionTask& task) {
 
                 // Return our group
-                return Word::template group<DSL>(reaction);
+                return Word::template group<DSL>(task);
             }
         };
 
@@ -89,8 +90,13 @@ namespace dsl {
         struct GroupFuser<std::tuple<Word1, Word2, WordN...>> {
 
             template <typename DSL>
-            static inline void group(const threading::Reaction& /*reaction*/) {
-                throw std::invalid_argument("Can not be a member of more than one group");
+            static std::set<util::GroupDescriptor> group(threading::ReactionTask& task) {
+                // Merge the list of groups together
+                std::set<util::GroupDescriptor> groups = Word1::template group<DSL>(task);
+                auto remainder = GroupFuser<std::tuple<Word2, WordN...>>::template group<DSL>(task);
+                groups.insert(groups.end(), remainder.begin(), remainder.end());
+
+                return groups;
             }
         };
 
@@ -101,4 +107,4 @@ namespace dsl {
 }  // namespace dsl
 }  // namespace NUClear
 
-#endif  // NUCLEAR_DSL_FUSION_GROUPFUSION_HPP
+#endif  // NUCLEAR_DSL_FUSION_GROUP_FUSION_HPP

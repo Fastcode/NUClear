@@ -29,9 +29,9 @@
 namespace {
 
 // Store our times
-std::vector<NUClear::clock::time_point> every_times{};    // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
-std::vector<NUClear::clock::time_point> per_times{};      // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
-std::vector<NUClear::clock::time_point> dynamic_times{};  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+std::vector<NUClear::clock::time_point> every_times;    // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+std::vector<NUClear::clock::time_point> per_times;      // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+std::vector<NUClear::clock::time_point> dynamic_times;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
 class TestReactor : public test_util::TestBase<TestReactor, 20000> {
 
@@ -78,6 +78,7 @@ TEST_CASE("Testing the Every<> DSL word", "[api][every][per]") {
     NUClear::Configuration config;
     config.thread_count = 1;
     NUClear::PowerPlant plant(config);
+    plant.install<NUClear::extension::ChronoController>();
     plant.install<TestReactor>();
     plant.start();
 

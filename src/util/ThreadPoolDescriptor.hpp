@@ -20,12 +20,12 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_UTIL_THREADPOOL_HPP
-#define NUCLEAR_UTIL_THREADPOOL_HPP
+#ifndef NUCLEAR_UTIL_THREAD_POOL_DESCRIPTOR_HPP
+#define NUCLEAR_UTIL_THREAD_POOL_DESCRIPTOR_HPP
 
 #include <atomic>
 #include <cstddef>
-#include <cstdint>
+#include <string>
 
 #include "../id.hpp"
 
@@ -33,32 +33,42 @@ namespace NUClear {
 namespace util {
 
     /**
-     * @brief A description of a thread pool
+     * A description of a thread pool
      */
     struct ThreadPoolDescriptor {
-        ThreadPoolDescriptor() = default;
-        ThreadPoolDescriptor(const NUClear::id_t& pool_id, size_t thread_count, bool counts_for_idle)
-            : pool_id(pool_id), thread_count(thread_count), counts_for_idle(counts_for_idle) {}
+        ThreadPoolDescriptor() noexcept = default;
+        ThreadPoolDescriptor(std::string name,
+                             const NUClear::id_t& pool_id,
+                             int thread_count     = 1,
+                             bool counts_for_idle = true) noexcept
+            : name(std::move(name)), pool_id(pool_id), thread_count(thread_count), counts_for_idle(counts_for_idle) {}
 
         static ThreadPoolDescriptor AllPools() {
-            return ThreadPoolDescriptor{NUClear::id_t(-1), size_t(-1), false};
+            return ThreadPoolDescriptor{"All", NUClear::id_t(-1), -1, false};
         }
 
-        /// @brief a unique identifier for this pool
+        static ThreadPoolDescriptor Invalid() {
+            return ThreadPoolDescriptor{"Invalid", NUClear::id_t(-1), -1, false};
+        }
+
+        /// the name of this pool
+        std::string name = "Default";
+
+        /// a unique identifier for this pool
         NUClear::id_t pool_id{ThreadPoolDescriptor::DEFAULT_THREAD_POOL_ID};
 
-        /// @brief the number of threads this thread pool will use
-        size_t thread_count{0};
-        /// @brief if these threads count towards system idle
+        /// the number of threads this thread pool will use
+        int thread_count{0};
+        /// if these threads count towards system idle
         bool counts_for_idle{true};
 
-        /// @brief the ID of the main thread pool (not to be confused with the ID of the main thread)
-        static const NUClear::id_t MAIN_THREAD_POOL_ID;
-        /// @brief the ID of the default thread pool
-        static const NUClear::id_t DEFAULT_THREAD_POOL_ID;
+        /// the ID of the main thread pool (not to be confused with the ID of the main thread)
+        static constexpr NUClear::id_t MAIN_THREAD_POOL_ID = 0;
+        /// the ID of the default thread pool
+        static constexpr NUClear::id_t DEFAULT_THREAD_POOL_ID = 1;
 
         /**
-         * @brief Return the next unique ID for a new thread pool
+         * Return the next unique ID for a new thread pool
          */
         static NUClear::id_t get_unique_pool_id() noexcept {
             static std::atomic<NUClear::id_t> source{2};
@@ -69,4 +79,4 @@ namespace util {
 }  // namespace util
 }  // namespace NUClear
 
-#endif  // NUCLEAR_UTIL_THREADPOOL_HPP
+#endif  // NUCLEAR_UTIL_THREAD_POOL_DESCRIPTOR_HPP

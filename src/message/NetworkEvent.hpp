@@ -20,8 +20,8 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_MESSAGE_NETWORKEVENT_HPP
-#define NUCLEAR_MESSAGE_NETWORKEVENT_HPP
+#ifndef NUCLEAR_MESSAGE_NETWORK_EVENT_HPP
+#define NUCLEAR_MESSAGE_NETWORK_EVENT_HPP
 
 #include "../util/network/sock_t.hpp"
 
@@ -29,20 +29,16 @@ namespace NUClear {
 namespace message {
 
     struct NetworkJoin {
-        NetworkJoin() = default;
-
-        std::string name{};
+        std::string name;
         util::network::sock_t address{};
     };
 
     struct NetworkLeave {
-        NetworkLeave() = default;
-
-        std::string name{};
+        std::string name;
         util::network::sock_t address{};
     };
 
 }  // namespace message
 }  // namespace NUClear
 
-#endif  // NUCLEAR_MESSAGE_NETWORKEVENT_HPP
+#endif  // NUCLEAR_MESSAGE_NETWORK_EVENT_HPP

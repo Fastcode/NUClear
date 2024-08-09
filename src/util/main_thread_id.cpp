@@ -22,6 +22,8 @@
 
 #include "main_thread_id.hpp"
 
+#include <thread>
+
 namespace NUClear {
 namespace util {
 

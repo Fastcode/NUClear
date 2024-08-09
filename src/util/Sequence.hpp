@@ -27,7 +27,7 @@ namespace NUClear {
 namespace util {
 
     /**
-     * @brief This class is used to hold a sequence of integers as a variadic pack
+     * This class is used to hold a sequence of integers as a variadic pack
      *
      * @tparam S the variadic pack containing the sequence
      */
@@ -37,7 +37,7 @@ namespace util {
     };
 
     /**
-     * @brief Generate a sequence of numbers between a start and an end, this is the entry case
+     * Generate a sequence of numbers between a start and an end, this is the entry case
      */
     template <int Start, int End, typename Seq = Sequence<>>
     struct GenSequence;
@@ -62,13 +62,12 @@ namespace util {
     };
 
     /**
-     * @brief Holds a generated integer sequence of numbers as a variadic pack.
+     * Holds a generated integer sequence of numbers as a variadic pack.
      *
-     * @details
-     *  This class is used to generate a variadic template pack which contains all of the integers from Start to End
+     * This class is used to generate a variadic template pack which contains all of the integers from Start to End
      * (non inclusive).
-     *  This can then be used in other templates or tempalate expansions as needed (for instance it is useful for
-     *  expanding tuples).
+     * This can then be used in other templates or template expansions as needed (for instance it is useful for
+     * expanding tuples).
      *
      * @tparam Start    the number to start counting from
      * @tparam End      the number to finish counting at (non inclusive)

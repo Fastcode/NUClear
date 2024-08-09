@@ -23,14 +23,13 @@
 #include "NUClearNetwork.hpp"
 
 #include <algorithm>
-#include <cerrno>
 #include <cstring>
-#include <set>
+#include <iterator>
+#include <ratio>
 #include <stdexcept>
 #include <system_error>
 #include <utility>
 
-#include "../../util/network/get_interfaces.hpp"
 #include "../../util/network/if_number_from_address.hpp"
 #include "../../util/network/resolve.hpp"
 #include "../../util/platform.hpp"
@@ -40,7 +39,7 @@ namespace extension {
     namespace network {
 
         /**
-         * @brief Read a single packet from the given udp file descriptor
+         * Read a single packet from the given udp file descriptor
          *
          * @param fd the file descriptor to read from
          *
@@ -117,6 +116,8 @@ namespace extension {
                     std::memcpy(key.data(), &address.ipv6.sin6_addr, sizeof(address.ipv6.sin6_addr));
                     key[8] = address.ipv6.sin6_port;
                     break;
+
+                default: throw std::invalid_argument("Unknown address family");
             }
 
             return key;

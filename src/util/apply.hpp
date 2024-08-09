@@ -33,12 +33,11 @@ namespace NUClear {
 namespace util {
 
     /**
-     * @brief Dereferences and uses the values from the tuple as the arguments for the function call.
+     * Dereferences and uses the values from the tuple as the arguments for the function call.
      *
-     * @details
-     *  This function uses the values which are stored in the tuple and dereferences them as parameters in
-     *  the callback function. It does this using the generated sequence of integers for this tuple. These
-     *  values are then used to extract the function parameters in order.
+     * This function uses the values which are stored in the tuple and dereferences them as parameters in
+     * the callback function. It does this using the generated sequence of integers for this tuple. These
+     * values are then used to extract the function parameters in order.
      *
      * @param s the Sequence object which is passed in holding the int template pack
      *
@@ -49,7 +48,7 @@ namespace util {
 
         // Get each of the values from the tuple, dereference them and call the function with them
         // Also ensure that each value is a const reference
-        function(Dereferencer<decltype(std::get<S>(args))>(std::get<S>(args))...);
+        std::forward<Function>(function)(Dereferencer<decltype(std::get<S>(args))>(std::get<S>(args))...);
     }
 
     template <typename Function, typename... Arguments>

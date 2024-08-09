@@ -40,7 +40,7 @@ namespace util {
                 sockaddr_in6 ipv6;
             };
 
-            inline socklen_t size() const {
+            socklen_t size() const {
                 switch (sock.sa_family) {
                     case AF_INET: return sizeof(sockaddr_in);
                     case AF_INET6: return sizeof(sockaddr_in6);
@@ -50,7 +50,7 @@ namespace util {
                 }
             }
 
-            inline std::pair<std::string, in_port_t> address() const {
+            std::pair<std::string, in_port_t> address() const {
                 std::array<char, std::max(INET_ADDRSTRLEN, INET6_ADDRSTRLEN)> c = {0};
                 switch (sock.sa_family) {
                     case AF_INET:

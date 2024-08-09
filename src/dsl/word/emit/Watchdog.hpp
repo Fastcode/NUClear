@@ -35,10 +35,10 @@ namespace dsl {
         namespace emit {
 
             /**
-             * @brief
-             *  Handles the data store for the case when runtime arguments specified
-             *  @code on<Watchdog<>>(data) @endcode
-             *  @code emit<Scope::WATCHDOG>(data) @endcode
+             * Handles the data store for the case when runtime arguments specified
+             *
+             * @code on<Watchdog<>>(data) @endcode
+             * @code emit<Scope::WATCHDOG>(data) @endcode
              *
              * @tparam WatchdogGroup
              *  the type/group of tasks the watchdog will track. This needs to be a declared type within the system
@@ -53,23 +53,22 @@ namespace dsl {
                     util::TypeMap<WatchdogGroup, MapType, std::map<MapType, NUClear::clock::time_point>>;
 
                 /**
-                 * @brief Construct a new Watchdog Servicer object
+                 * Construct a new Watchdog Servicer object
                  */
                 WatchdogServicer() = default;
 
                 /**
-                 * @brief Construct a new Watchdog Servicer object
+                 * Construct a new Watchdog Servicer object
                  *
                  * @param data The runtime argument that was passed to on<Watchdog<>>()
                  */
                 explicit WatchdogServicer(const RuntimeType& data) : data(data) {}
 
                 /**
-                 * @brief Services the watchdog
+                 * Services the watchdog
                  *
-                 * @details
-                 *  The watchdog timer that is specified by the WatchdogGroup/RuntimeType/data
-                 *  combination will have its service time updated to whatever is stored in when
+                 * The watchdog timer that is specified by the WatchdogGroup/RuntimeType/data
+                 * combination will have its service time updated to whatever is stored in when
                  */
                 void service() {
                     if (WatchdogStore::get() == nullptr || WatchdogStore::get()->count(data) == 0) {
@@ -81,17 +80,17 @@ namespace dsl {
                 }
 
             private:
-                /// @brief The time when the watchdog was serviced
+                /// The time when the watchdog was serviced
                 NUClear::clock::time_point when{NUClear::clock::now()};
-                /// @brief The runtime argument that was passed to on<Watchdog<>>()
+                /// The runtime argument that was passed to on<Watchdog<>>()
                 RuntimeType data{};
             };
 
             /**
-             * @brief
-             *  Handles the data store for the case when no runtime arguments are specified
-             *  @code on<Watchdog<>>() @endcode
-             *  @code emit<Scope::WATCHDOG>() @endcode
+             * Handles the data store for the case when no runtime arguments are specified
+             *
+             * @code on<Watchdog<>>() @endcode
+             * @code emit<Scope::WATCHDOG>() @endcode
              *
              * @tparam WatchdogGroup
              *  the type/group of tasks the watchdog will track. This needs to be a declared type within the system
@@ -102,10 +101,9 @@ namespace dsl {
                 using WatchdogStore = util::TypeMap<WatchdogGroup, void, NUClear::clock::time_point>;
 
                 /**
-                 * @brief *  Services the watchdog
+                 * Services the watchdog
                  *
-                 * @details
-                 *  The watchdog timer for WatchdogGroup will have its service time updated to whatever is stored in
+                 * The watchdog timer for WatchdogGroup will have its service time updated to whatever is stored in
                  * when
                  */
                 void service() {
@@ -121,17 +119,17 @@ namespace dsl {
             };
 
             /**
-             * @brief
-             *  Convenience function to instantiate a WatchdogServicer for a watchdog with a runtime argument
+             * Convenience function to instantiate a WatchdogServicer for a watchdog with a runtime argument
              *
              * @tparam WatchdogGroup
              *  the type/group of tasks the watchdog will track. This needs to be a declared type within the system
              * (be it a reactor, reaction, or other type).
              * @tparam RuntimeType
              *  the type of the runtime argument. const/volatile specifiers are stripped from this type
+             *
              * @param data The runtime argument that was passed to
-             * @code on<Watchdog<>>(data) @endcode
-             * @return WatchdogServicer<WatchdogGroup, RuntimeType>
+             *
+             * @return A message which can be used to service the watchdog
              */
             template <typename WatchdogGroup, typename RuntimeType>
             WatchdogServicer<WatchdogGroup, RuntimeType> ServiceWatchdog(RuntimeType&& data) {
@@ -139,7 +137,7 @@ namespace dsl {
             }
 
             /**
-             * @brief Convenience function to instantiate a WatchdogServicer for a watchdog with no runtime argument
+             * Convenience function to instantiate a WatchdogServicer for a watchdog with no runtime argument
              *
              * @tparam WatchdogGroup
              *  the type/group of tasks the watchdog will track. This needs to be a declared type within the system
@@ -152,12 +150,11 @@ namespace dsl {
             }
 
             /**
-             * @brief When emitting data under this scope, the service time for the watchdog is updated
+             * When emitting data under this scope, the service time for the watchdog is updated
              *
-             * @details
-             *  @code emit<Scope::WATCHDOG>(ServiceWatchdog<WatchdogGroup>(data)); @endcode
+             * @code emit<Scope::WATCHDOG>(ServiceWatchdog<WatchdogGroup>(data)); @endcode
              * or
-             *  @code emit<Scope::WATCHDOG>(ServiceWatchdog<WatchdogGroup>()); @endcode
+             * @code emit<Scope::WATCHDOG>(ServiceWatchdog<WatchdogGroup>()); @endcode
              *
              * The RuntimeType template parameter need not be specified for ServiceWatchdog as it will be inferred from
              * the data argument, if it is specified
@@ -176,7 +173,7 @@ namespace dsl {
             };
 
         }  // namespace emit
-    }      // namespace word
+    }  // namespace word
 }  // namespace dsl
 }  // namespace NUClear
 

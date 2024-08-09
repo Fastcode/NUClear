@@ -36,7 +36,7 @@ template <typename BaseClass, int timeout = 1000>
 class TestBase : public NUClear::Reactor {
 public:
     /**
-     * @brief Struct to use to emit each step of the test, by doing each step in a separate reaction with low priority,
+     * Struct to use to emit each step of the test, by doing each step in a separate reaction with low priority,
      * it will ensure that everything has finished changing before the next step is run
      *
      * @tparam i the number of the step
@@ -45,7 +45,7 @@ public:
     struct Step {};
 
     /**
-     * @brief Struct to handle shutting down the powerplant when the system is idle (i.e. the unit test(s) are finished)
+     * Struct to handle shutting down the powerplant when the system is idle (i.e. the unit test(s) are finished)
      */
     struct ShutdownOnIdle {};
 

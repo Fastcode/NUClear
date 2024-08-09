@@ -34,9 +34,9 @@
 
 namespace {
 
-/// @brief Events that occur during the test reading
+/// Events that occur during the test reading
 std::vector<std::string> read_events;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
-/// @brief Events that occur during the test writing
+/// Events that occur during the test writing
 std::vector<std::string> write_events;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
 class TestReactor : public test_util::TestBase<TestReactor> {
@@ -91,10 +91,10 @@ public:
         });
     }
 
-    NUClear::util::FileDescriptor in{};
-    NUClear::util::FileDescriptor out{};
+    NUClear::util::FileDescriptor in;
+    NUClear::util::FileDescriptor out;
     int char_no{0};
-    ReactionHandle writer{};
+    ReactionHandle writer;
 };
 }  // namespace
 
@@ -103,6 +103,7 @@ TEST_CASE("Testing the IO extension", "[api][io]") {
     NUClear::Configuration config;
     config.thread_count = 1;
     NUClear::PowerPlant plant(config);
+    plant.install<NUClear::extension::IOController>();
     plant.install<TestReactor>();
     plant.start();
 
