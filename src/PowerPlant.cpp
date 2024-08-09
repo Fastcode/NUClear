@@ -43,6 +43,8 @@ namespace util {
 // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
 PowerPlant* PowerPlant::powerplant = nullptr;
 
+// This is taking argc and argv as given by main so this should not take an array
+// NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays)
 PowerPlant::PowerPlant(Configuration config, int argc, const char* argv[]) : scheduler(config.thread_count) {
 
     // Stop people from making more then one powerplant
