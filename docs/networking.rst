@@ -43,8 +43,8 @@ checks explicitly for an explicit type. Be careful about multiple declarations.
 For this partial specialisation three static methods need to be defined.
 
 .. codeblock:: c++
-    static inline std::vector<uint8_t> serialise(const T& in)
+    static std::vector<uint8_t> serialise(const T& in)
 
-    static inline T deserialise(const std::vector<uint8_t>& in)
+    static T deserialise(const std::vector<uint8_t>& in)
 
-    static inline uint64_t hash()
+    static uint64_t hash()
