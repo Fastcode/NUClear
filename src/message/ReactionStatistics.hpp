@@ -45,19 +45,19 @@ namespace message {
 
         struct Event {
             struct ThreadInfo {
-                std::thread::id thread_id{};
+                std::thread::id thread_id;
                 util::ThreadPoolDescriptor pool{util::ThreadPoolDescriptor::Invalid()};
             };
 
             ThreadInfo thread{};
-            NUClear::clock::time_point nuclear_time{};
-            std::chrono::steady_clock::time_point realtime{};
-            util::cpu_clock::time_point cpu_time{};
+            NUClear::clock::time_point nuclear_time;
+            std::chrono::steady_clock::time_point realtime;
+            util::cpu_clock::time_point cpu_time;
 
             static Event now() {
 
                 // Get the thread pool information for this thread if it's a NUClear thread
-                Event::ThreadInfo thread_info;
+                const Event::ThreadInfo thread_info;
 
                 return Event{
                     thread_info,
@@ -71,13 +71,13 @@ namespace message {
         ReactionStatistics(std::shared_ptr<threading::ReactionIdentifiers> identifiers,
                            const IDPair& cause,
                            const IDPair& target,
-                           const util::ThreadPoolDescriptor& target_threadpool,
-                           const std::set<util::GroupDescriptor>& target_groups)
+                           util::ThreadPoolDescriptor target_threadpool,
+                           std::set<util::GroupDescriptor> target_groups)
             : identifiers(std::move(identifiers))
             , cause(cause)
             , target(target)
-            , target_threadpool(target_threadpool)
-            , target_groups(target_groups)
+            , target_threadpool(std::move(target_threadpool))
+            , target_groups(std::move(target_groups))
             , created(Event::now()) {};
 
 

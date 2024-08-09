@@ -21,6 +21,7 @@
  */
 #include "get_hostname.hpp"
 
+#include <string>
 
 #ifdef _WIN32
 

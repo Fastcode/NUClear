@@ -21,6 +21,13 @@
  */
 #include "Group.hpp"
 
+#include <functional>
+#include <memory>
+#include <mutex>
+#include <vector>
+
+#include "../../id.hpp"
+
 namespace NUClear {
 namespace threading {
     namespace scheduler {
@@ -40,7 +47,7 @@ namespace threading {
             std::vector<std::shared_ptr<LockHandle>> to_notify;
 
             /*mutex scope*/ {
-                std::lock_guard<std::mutex> lock(group.mutex);
+                const std::lock_guard<std::mutex> lock(group.mutex);
                 // Free the token if we held one
                 if (handle->locked) {
                     handle->locked = false;
@@ -87,7 +94,7 @@ namespace threading {
                 return true;
             }
 
-            std::lock_guard<std::mutex> lock(group.mutex);
+            const std::lock_guard<std::mutex> lock(group.mutex);
 
             int free = group.tokens;
             for (auto& h : group.queue) {
@@ -117,7 +124,7 @@ namespace threading {
             auto handle = std::make_shared<LockHandle>(task_id, priority, false, notify);
 
             // Insert sorted into the queue
-            std::lock_guard<std::mutex> lock(mutex);
+            const std::lock_guard<std::mutex> lock(mutex);
             queue.insert(std::lower_bound(queue.begin(), queue.end(), handle), handle);
 
             return std::make_unique<GroupLock>(*this, handle);
