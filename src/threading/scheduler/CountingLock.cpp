@@ -22,7 +22,6 @@
 #include "CountingLock.hpp"
 
 #include <atomic>
-#include <utility>
 
 namespace NUClear {
 namespace threading {

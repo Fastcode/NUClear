@@ -21,6 +21,10 @@
  */
 #include "CombinedLock.hpp"
 
+#include <memory>
+#include <thread>
+#include <utility>
+
 namespace NUClear {
 namespace threading {
     namespace scheduler {

@@ -22,6 +22,7 @@
 
 #include "xxhash.hpp"
 
+#include <cstdint>
 #include <type_traits>
 
 namespace NUClear {

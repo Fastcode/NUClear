@@ -22,7 +22,6 @@
 
 #include "Sleeper.hpp"
 
-#include <array>
 #include <chrono>
 
 #if defined(_WIN32)
@@ -63,7 +62,6 @@ namespace util {
 #else
 
     #include <cerrno>
-    #include <cstdint>
     #include <ctime>
 
 namespace NUClear {

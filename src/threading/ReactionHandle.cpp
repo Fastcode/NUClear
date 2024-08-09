@@ -22,6 +22,10 @@
 
 #include "ReactionHandle.hpp"
 
+#include <memory>
+
+#include "Reaction.hpp"
+
 namespace NUClear {
 namespace threading {
 
