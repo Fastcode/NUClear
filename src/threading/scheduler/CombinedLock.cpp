@@ -22,8 +22,9 @@
 #include "CombinedLock.hpp"
 
 #include <memory>
-#include <thread>
 #include <utility>
+
+#include "Lock.hpp"
 
 namespace NUClear {
 namespace threading {

@@ -22,6 +22,7 @@
 
 #include "xxhash.hpp"
 
+#include <cstddef>
 #include <cstdint>
 #include <type_traits>
 

@@ -157,7 +157,7 @@ namespace threading {
          *
          * @return true if the current object is less than the other object, false otherwise.
          */
-        inline bool operator<(const ReactionTask& other) const {
+        bool operator<(const ReactionTask& other) const {
             return priority == other.priority ? id < other.id : priority > other.priority;
         }
     };

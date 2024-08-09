@@ -59,7 +59,7 @@ namespace util {
          *
          * @return true if this group_id is less than the other group_id
          */
-        inline bool operator<(const GroupDescriptor& other) const {
+        bool operator<(const GroupDescriptor& other) const {
             return group_id < other.group_id;
         }
     };

@@ -37,7 +37,7 @@ namespace util {
          */
         struct Interface {
             /// The name of the interface
-            std::string name{};
+            std::string name;
 
             /// The address that is bound to the interface
             sock_t ip{};

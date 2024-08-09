@@ -1,5 +1,6 @@
 #include "usage_clock.hpp"
 
+#include <chrono>
 
 // Windows
 #if defined(_WIN32)

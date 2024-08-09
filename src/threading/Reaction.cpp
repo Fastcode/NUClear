@@ -22,6 +22,7 @@
 
 #include "Reaction.hpp"
 
+#include <memory>
 #include <utility>
 
 #include "../id.hpp"
@@ -39,7 +40,7 @@ namespace threading {
         , identifiers(std::make_shared<ReactionIdentifiers>(std::move(identifiers)))
         , generator(std::move(generator)) {}
 
-    Reaction::~Reaction() {}
+    Reaction::~Reaction() = default;
 
     std::unique_ptr<ReactionTask> Reaction::get_task() {
 

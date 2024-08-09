@@ -41,11 +41,8 @@ namespace threading {
          * @param dsl the DSL that this reaction was created from
          * @param function the callback function that this reaction is bound to
          */
-        ReactionIdentifiers(const std::string& name,
-                            const std::string& reactor,
-                            const std::string& dsl,
-                            const std::string& function)
-            : name(name), reactor(reactor), dsl(dsl), function(function) {}
+        ReactionIdentifiers(std::string name, std::string reactor, std::string dsl, std::string function)
+            : name(std::move(name)), reactor(std::move(reactor)), dsl(std::move(dsl)), function(std::move(function)) {}
 
         /// The name of the reaction provided by the user
         std::string name;

@@ -37,11 +37,11 @@ namespace util {
      */
     struct ThreadPoolDescriptor {
         ThreadPoolDescriptor() = default;
-        ThreadPoolDescriptor(const std::string& name,
+        ThreadPoolDescriptor(std::string name,
                              const NUClear::id_t& pool_id,
                              size_t thread_count  = 1,
                              bool counts_for_idle = true)
-            : name(name), pool_id(pool_id), thread_count(thread_count), counts_for_idle(counts_for_idle) {}
+            : name(std::move(name)), pool_id(pool_id), thread_count(thread_count), counts_for_idle(counts_for_idle) {}
 
         static ThreadPoolDescriptor AllPools() {
             return ThreadPoolDescriptor{"All", NUClear::id_t(-1), size_t(-1), false};
