@@ -19,21 +19,28 @@
  * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+#include "get_hostname.hpp"
 
-#ifndef NUCLEAR_UTIL_GET_HOSTNAME_HPP
-#define NUCLEAR_UTIL_GET_HOSTNAME_HPP
 
-namespace NUClear {
-namespace util {
+#ifdef _WIN32
 
-    /**
-     * Get the hostname of the machine
-     *
-     * @return the hostname of the machine
-     */
-    std::string get_hostname();
+    #include "platform.hpp"
 
-}  // namespace util
-}  // namespace NUClear
+std::string NUClear::util::get_hostname() {
+    char n[MAX_COMPUTERNAME_LENGTH + 1];
+    DWORD size = sizeof(n);
+    GetComputerName(n, &size);
+    return std::string(n, size);
+}
 
-#endif  // NUCLEAR_UTIL_GET_HOSTNAME_HPP
+#else
+
+    #include <sys/utsname.h>
+
+std::string NUClear::util::get_hostname() {
+    utsname u{};
+    uname(&u);
+    return u.nodename;
+}
+
+#endif
