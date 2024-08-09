@@ -23,6 +23,7 @@
 #include "Sleeper.hpp"
 
 #include <chrono>
+#include <cmath>
 
 #if defined(_WIN32)
 
@@ -117,16 +118,16 @@ namespace util {
                 auto end = std::chrono::steady_clock::now();
 
                 // Update the idle sleep accuracy estimate using Welford's method
-                auto actual_sleep_time = end - start;
+                const auto actual_sleep_time = end - start;
 
-                double sleep_error =
+                const double sleep_error =
                     duration_cast<duration<double, std::nano>>(actual_sleep_time - target_sleep_time).count();
-                double delta = sleep_error - mean;
+                const double delta = sleep_error - mean;
 
-                count         = count + 1;
-                mean          = mean + (delta / count);
-                double delta2 = sleep_error - mean;
-                m2            = m2 + delta * delta2;
+                count               = count + 1;
+                mean                = mean + (delta / count);
+                const double delta2 = sleep_error - mean;
+                m2                  = m2 + delta * delta2;
 
                 // Sleep accuracy with 3 standard deviations of the mean for a 99.7% confidence interval
                 sleep_accuracy = nanoseconds(std::lround(std::sqrt(m2 / count) * 3.0));
