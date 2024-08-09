@@ -30,7 +30,7 @@ namespace NUClear {
 namespace threading {
     namespace scheduler {
 
-        Scheduler::Scheduler(const size_t& thread_count) {
+        Scheduler::Scheduler(const int& thread_count) {
             // Make the default pool with the correct number of threads
             auto default_descriptor         = util::ThreadPoolDescriptor{};
             default_descriptor.thread_count = thread_count;
