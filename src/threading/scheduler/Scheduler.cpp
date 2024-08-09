@@ -40,7 +40,7 @@ namespace threading {
         void Scheduler::start() {
             // We have to scope this mutex, otherwise the main thread will hold the mutex while it is running
             /*mutex scope*/ {
-                std::lock_guard<std::mutex> lock(pools_mutex);
+                const std::lock_guard<std::mutex> lock(pools_mutex);
 
                 started = true;
                 // Start all of the pools except the main thread pool
@@ -63,7 +63,7 @@ namespace threading {
 
         void Scheduler::stop() {
             running.store(false, std::memory_order_release);
-            std::lock_guard<std::mutex> lock(pools_mutex);
+            const std::lock_guard<std::mutex> lock(pools_mutex);
             for (auto& pool : pools) {
                 pool.second->stop();
             }
@@ -74,7 +74,7 @@ namespace threading {
             // If this is the "ALL" pool then add it to the schedulers list of tasks
             if (desc.pool_id == util::ThreadPoolDescriptor::AllPools().pool_id) {
                 /*mutex scope*/ {
-                    std::lock_guard<std::mutex> lock(idle_mutex);
+                    const std::lock_guard<std::mutex> lock(idle_mutex);
                     idle_tasks.push_back(reaction);
                 }
                 // Notify the main thread pool just in case there were no global idle tasks and now there are
@@ -88,7 +88,7 @@ namespace threading {
         void Scheduler::remove_idle_task(const util::ThreadPoolDescriptor& desc, const NUClear::id_t& id) {
             // If this is the "ALL" pool then remove it from the schedulers list of tasks
             if (desc.pool_id == util::ThreadPoolDescriptor::AllPools().pool_id) {
-                std::lock_guard<std::mutex> lock(idle_mutex);
+                const std::lock_guard<std::mutex> lock(idle_mutex);
                 idle_tasks.erase(
                     std::remove_if(idle_tasks.begin(), idle_tasks.end(), [&](const auto& r) { return r->id == id; }),
                     idle_tasks.end());
@@ -99,7 +99,7 @@ namespace threading {
         }
 
         std::shared_ptr<Pool> Scheduler::get_pool(const util::ThreadPoolDescriptor& desc) {
-            std::lock_guard<std::mutex> lock(pools_mutex);
+            const std::lock_guard<std::mutex> lock(pools_mutex);
             // If the pool does not exist, create it
             if (pools.count(desc.pool_id) == 0) {
                 // Create the pool
@@ -117,7 +117,7 @@ namespace threading {
         }
 
         std::shared_ptr<Group> Scheduler::get_group(const util::GroupDescriptor& desc) {
-            std::lock_guard<std::mutex> lock(groups_mutex);
+            const std::lock_guard<std::mutex> lock(groups_mutex);
             // If the group does not exist, create it
             if (groups.count(desc.group_id) == 0) {
                 groups[desc.group_id] = std::make_shared<Group>(desc);

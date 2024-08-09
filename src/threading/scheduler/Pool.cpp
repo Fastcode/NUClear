@@ -68,14 +68,14 @@ namespace threading {
 
         void Pool::stop() {
             // Stop the pool threads
-            std::lock_guard<std::mutex> lock(mutex);
+            const std::lock_guard<std::mutex> lock(mutex);
             running = false;
             live    = true;
             condition.notify_all();
         }
 
         void Pool::notify() {
-            std::lock_guard<std::mutex> lock(mutex);
+            const std::lock_guard<std::mutex> lock(mutex);
             /// May not be idle anymore, flag this before the thread wakes up
             live      = true;
             pool_idle = nullptr;
@@ -199,7 +199,7 @@ namespace threading {
 
                 // This was the last pool to become idle, so get the global idle tasks
                 if (pool_idle->lock()) {
-                    std::lock_guard<std::mutex> lock(scheduler.idle_mutex);
+                    const std::lock_guard<std::mutex> lock(scheduler.idle_mutex);
                     tasks.insert(tasks.end(), scheduler.idle_tasks.begin(), scheduler.idle_tasks.end());
                 }
             }

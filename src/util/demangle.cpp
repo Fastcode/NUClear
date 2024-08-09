@@ -67,7 +67,7 @@ namespace util {
             return "";
         }
 
-        std::lock_guard<std::mutex> lock(symbol_mutex);
+        const std::lock_guard<std::mutex> lock(symbol_mutex);
 
         // Initialise the symbols if we have to
         if (!sym_initialised) {
