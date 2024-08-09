@@ -101,6 +101,12 @@ namespace threading {
                  */
                 GroupLock(Group& group, const std::shared_ptr<LockHandle>& handle);
 
+                // Not movable or copyable
+                GroupLock(const GroupLock&)            = delete;
+                GroupLock(GroupLock&&)                 = delete;
+                GroupLock& operator=(const GroupLock&) = delete;
+                GroupLock& operator=(GroupLock&&)      = delete;
+
                 /**
                  * Destroy the Group Lock object
                  *
