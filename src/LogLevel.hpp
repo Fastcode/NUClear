@@ -37,7 +37,7 @@ namespace NUClear {
  * Log levels are used to provide different levels of detail on a per-reactor basis.
  * The logging level of a reactor can be changed by setting it in the install function.
  */
-enum LogLevel {
+enum LogLevel : uint8_t {
     /**
      * Don't use this log level when emitting logs, it is for setting reactor log level from non reactor sources.
      *

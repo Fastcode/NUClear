@@ -60,7 +60,7 @@ namespace threading {
 
                 WHEN("Creating a lock and locking it") {
                     int notified1               = 0;
-                    std::unique_ptr<Lock> lock1 = group->lock(task_id_source++, 1, [&] { notified1 = true; });
+                    std::unique_ptr<Lock> lock1 = group->lock(task_id_source++, 1, [&] { ++notified1; });
                     lock1->lock();
 
                     THEN("The lock should be true") {
@@ -134,7 +134,7 @@ namespace threading {
 
         SCENARIO("Tasks are locked in task/priority order regardless of input order") {
             constexpr int n_locks = 5;
-            int n_tokens          = GENERATE(1, 2);
+            const int n_tokens    = GENERATE(1, 2);
             CAPTURE(n_tokens);
 
             GIVEN("A group with one token") {

@@ -91,10 +91,10 @@ public:
         });
     }
 
-    NUClear::util::FileDescriptor in{};
-    NUClear::util::FileDescriptor out{};
+    NUClear::util::FileDescriptor in;
+    NUClear::util::FileDescriptor out;
     int char_no{0};
-    ReactionHandle writer{};
+    ReactionHandle writer;
 };
 }  // namespace
 

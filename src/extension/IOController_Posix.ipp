@@ -131,7 +131,7 @@ namespace extension {
                 // Loop through our values
                 for (auto it = range.first; it != range.second; ++it) {
                     // Load in the relevant events that happened into the waiting events
-                    it->waiting_events = event_t(it->waiting_events | (it->listening_events & fd.revents));
+                    it->waiting_events = event_t(it->waiting_events | (it->listening_events & event.revents));
 
                     if (maybe_eof && (it->processing_events & IO::READ) == 0) {
                         it->waiting_events |= IO::CLOSE;

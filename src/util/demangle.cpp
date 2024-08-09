@@ -61,7 +61,7 @@ namespace util {
         sym_initialised = true;
     }
 
-    std::string demangle(const char* symbol) {
+    std::string demangle(const char* symbol) noexcept {
         // If the symbol is null or the empty string then just return it
         if (symbol == nullptr || symbol[0] == '\0') {
             return "";
@@ -110,7 +110,7 @@ namespace util {
      *
      * @return the demangled symbol, or the original string if it could not be demangeld
      */
-    std::string demangle(const char* symbol) {
+    std::string demangle(const char* symbol) noexcept {
 
         if (symbol == nullptr) {
             return {};
