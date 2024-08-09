@@ -60,7 +60,7 @@ namespace extension {
         /// Mutex to guard the list of reactions
         std::mutex reaction_mutex;
         /// Map of type hashes to reactions that are interested in them
-        std::multimap<uint64_t, std::shared_ptr<threading::Reaction>> reactions{};
+        std::multimap<uint64_t, std::shared_ptr<threading::Reaction>> reactions;
     };
 
 }  // namespace extension

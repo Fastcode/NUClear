@@ -39,16 +39,16 @@ namespace util {
         ThreadPoolDescriptor() noexcept = default;
         ThreadPoolDescriptor(std::string name,
                              const NUClear::id_t& pool_id,
-                             size_t thread_count  = 1,
+                             int thread_count     = 1,
                              bool counts_for_idle = true) noexcept
             : name(std::move(name)), pool_id(pool_id), thread_count(thread_count), counts_for_idle(counts_for_idle) {}
 
         static ThreadPoolDescriptor AllPools() {
-            return ThreadPoolDescriptor{"All", NUClear::id_t(-1), size_t(-1), false};
+            return ThreadPoolDescriptor{"All", NUClear::id_t(-1), -1, false};
         }
 
         static ThreadPoolDescriptor Invalid() {
-            return ThreadPoolDescriptor{"Invalid", NUClear::id_t(-1), size_t(-1), false};
+            return ThreadPoolDescriptor{"Invalid", NUClear::id_t(-1), -1, false};
         }
 
         /// the name of this pool
@@ -58,7 +58,7 @@ namespace util {
         NUClear::id_t pool_id{ThreadPoolDescriptor::DEFAULT_THREAD_POOL_ID};
 
         /// the number of threads this thread pool will use
-        size_t thread_count{0};
+        int thread_count{0};
         /// if these threads count towards system idle
         bool counts_for_idle{true};
 

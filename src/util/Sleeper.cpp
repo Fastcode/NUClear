@@ -105,7 +105,7 @@ namespace util {
     }
 
     void NUClear::util::Sleeper::sleep_until(const std::chrono::steady_clock::time_point& target) {
-        using namespace std::chrono;
+        using namespace std::chrono;  // NOLINT(google-build-using-namespace) fine in function scope
 
         for (auto start = std::chrono::steady_clock::now(); start < target; start = std::chrono::steady_clock::now()) {
             idle_sleep(target - start);

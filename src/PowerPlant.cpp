@@ -109,8 +109,8 @@ void PowerPlant::log(const LogLevel& level, std::stringstream& message) {
 }
 
 void PowerPlant::add_idle_task(const util::ThreadPoolDescriptor& pool_descriptor,
-                               const std::shared_ptr<threading::Reaction>& task) {
-    scheduler.add_idle_task(pool_descriptor, task);
+                               const std::shared_ptr<threading::Reaction>& reaction) {
+    scheduler.add_idle_task(pool_descriptor, reaction);
 }
 
 void PowerPlant::remove_idle_task(const util::ThreadPoolDescriptor& pool_descriptor, const NUClear::id_t& id) {

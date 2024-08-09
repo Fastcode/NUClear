@@ -29,16 +29,12 @@ namespace NUClear {
 namespace message {
 
     struct NetworkJoin {
-        NetworkJoin() = default;
-
-        std::string name{};
+        std::string name;
         util::network::sock_t address{};
     };
 
     struct NetworkLeave {
-        NetworkLeave() = default;
-
-        std::string name{};
+        std::string name;
         util::network::sock_t address{};
     };
 

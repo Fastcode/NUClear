@@ -77,7 +77,7 @@ namespace dsl {
              */
             struct ConnectOptions {
                 /// The type of connection we are making
-                enum class Type { UNICAST, BROADCAST, MULTICAST };
+                enum class Type : uint8_t { UNICAST, BROADCAST, MULTICAST };
                 /// The type of connection we are making
                 Type type{};
                 /// The address we are binding to or empty for any
