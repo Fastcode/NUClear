@@ -116,6 +116,8 @@ namespace extension {
                     std::memcpy(key.data(), &address.ipv6.sin6_addr, sizeof(address.ipv6.sin6_addr));
                     key[8] = address.ipv6.sin6_port;
                     break;
+
+                default: throw std::invalid_argument("Unknown address family");
             }
 
             return key;

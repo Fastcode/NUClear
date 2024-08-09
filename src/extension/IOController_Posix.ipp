@@ -88,14 +88,14 @@ namespace extension {
         }
     }
 
-    void IOController::process_event(pollfd& fd) {
+    void IOController::process_event(pollfd& event) {
 
 
         // It's our notification handle
-        if (fd.fd == notify_recv) {
+        if (event.fd == notify_recv) {
             // Read our value to clear it's read status
             char val = 0;
-            if (::read(fd.fd, &val, sizeof(char)) < 0) {
+            if (::read(event.fd, &val, sizeof(char)) < 0) {
                 throw std::system_error(network_errno,
                                         std::system_category(),
                                         "There was an error reading our notification pipe?");
@@ -108,19 +108,19 @@ namespace extension {
             // To make the close event happen if we get a read event with 0 bytes we will check if there are
             // any currently processing reads and if not, then close
             bool maybe_eof = false;
-            if ((fd.revents & IO::READ) != 0) {
+            if ((event.revents & IO::READ) != 0) {
                 int bytes_available = 0;
-                const bool valid    = ::ioctl(fd.fd, FIONREAD, &bytes_available) == 0;
+                const bool valid    = ::ioctl(event.fd, FIONREAD, &bytes_available) == 0;
                 if (valid && bytes_available == 0) {
                     maybe_eof = true;
                 }
             }
 
             // Find our relevant tasks
-            auto range =
-                std::equal_range(tasks.begin(), tasks.end(), Task{fd.fd, 0, nullptr}, [](const Task& a, const Task& b) {
-                    return a.fd < b.fd;
-                });
+            auto range = std::equal_range(tasks.begin(),
+                                          tasks.end(),
+                                          Task{event.fd, 0, nullptr},
+                                          [](const Task& a, const Task& b) { return a.fd < b.fd; });
 
             // There are no tasks for this!
             if (range.first == tasks.end()) {
@@ -143,7 +143,7 @@ namespace extension {
         }
 
         // Clear the events from poll to avoid double firing
-        fd.revents = 0;
+        event.revents = 0;
     }
 
     void IOController::bump() {

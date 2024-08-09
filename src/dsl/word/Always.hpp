@@ -90,9 +90,9 @@ namespace dsl {
                 }
 
                 // Use the reaction name as the pool name otherwise default to "Always<pool_id>"
-                std::string pool_name = !reaction.identifiers->name.empty()
-                                            ? std::string(reaction.identifiers->name)
-                                            : std::string("Always<") + std::to_string(pool_id) + ">";
+                const std::string pool_name = !reaction.identifiers->name.empty()
+                                                  ? std::string(reaction.identifiers->name)
+                                                  : std::string("Always<") + std::to_string(pool_id) + ">";
                 return util::ThreadPoolDescriptor{pool_name, pool_id, 1, false};
             }
 

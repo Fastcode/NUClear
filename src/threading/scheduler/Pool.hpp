@@ -71,17 +71,18 @@ namespace threading {
             };
 
             /**
-             * Exception thrown when a thread in the pool should shut down.
-             */
-            class ShutdownThreadException : public std::exception {};
-
-            /**
              * Construct a new thread pool with the given descriptor
              *
              * @param scheduler  the scheduler parent of this pool
              * @param descriptor the descriptor for this thread pool
              */
-            explicit Pool(Scheduler& scheduler, const util::ThreadPoolDescriptor& descriptor);
+            explicit Pool(Scheduler& scheduler, util::ThreadPoolDescriptor descriptor);
+
+            // No moving or copying
+            Pool(const Pool&)            = delete;
+            Pool(Pool&&)                 = delete;
+            Pool& operator=(const Pool&) = delete;
+            Pool& operator=(Pool&&)      = delete;
 
             /**
              * Destroy the Pool object
@@ -140,6 +141,11 @@ namespace threading {
             void remove_idle_task(const NUClear::id_t& id);
 
         private:
+            /**
+             * Exception thrown when a thread in the pool should shut down.
+             */
+            class ShutdownThreadException : public std::exception {};
+
             /**
              * The main function executed by each thread in the pool.
              *

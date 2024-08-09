@@ -16,14 +16,14 @@ namespace util {
         update_current_thread_priority(1000);
 
         GIVEN("A Sleeper object") {
+            // Sleep for a negative duration, 0, 10, and 20 milliseconds
+            const int sleep_ms = GENERATE(-10, 0, 10, 20);
+
             Sleeper sleeper;
             // Sleep a few times to seed the sleep accuracy
             for (int i = 0; i < 100; ++i) {
                 sleeper.sleep_for(std::chrono::milliseconds(1));
             }
-
-            // Sleep for a negative duration, 0, 10, and 20 milliseconds
-            int sleep_ms = GENERATE(-10, 0, 10, 20);
 
             WHEN("Sleeping for a specified duration") {
                 auto sleep_duration    = std::chrono::milliseconds(sleep_ms);

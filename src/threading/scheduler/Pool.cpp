@@ -33,8 +33,8 @@ namespace NUClear {
 namespace threading {
     namespace scheduler {
 
-        Pool::Pool(Scheduler& scheduler, const util::ThreadPoolDescriptor& descriptor)
-            : scheduler(scheduler), descriptor(descriptor) {}
+        Pool::Pool(Scheduler& scheduler, util::ThreadPoolDescriptor descriptor)
+            : scheduler(scheduler), descriptor(std::move(descriptor)) {}
 
         Pool::~Pool() {
 
@@ -135,7 +135,8 @@ namespace threading {
                     // This thread is shutting down
                     return;
                 }
-                catch (...) {
+                // No exception should ever reach here, but if it does we do not want to crash the thread
+                catch (...) {  // NOLINT(bugprone-empty-catch)
                 }
             }
         }
@@ -216,7 +217,7 @@ namespace threading {
                 [](const ReactionTask&) { return util::ThreadPoolDescriptor{}; },
                 [](const ReactionTask&) { return std::set<util::GroupDescriptor>{}; });
             task->callback = [this, tasks = std::move(tasks)](const ReactionTask& /*task*/) {
-                for (auto& idle_task : tasks) {
+                for (const auto& idle_task : tasks) {
                     // Submit all the idle tasks to the scheduler
                     scheduler.submit(idle_task->get_task(), false);
                 }

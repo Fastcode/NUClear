@@ -56,7 +56,7 @@ namespace threading {
 
             // The main thread will reach this point when the PowerPlant is shutting down
             // Calling stop on each pool will wait for each pool to finish processing all tasks before returning
-            for (auto& pool : pools) {
+            for (const auto& pool : pools) {
                 pool.second->join();
             }
         }
@@ -126,7 +126,7 @@ namespace threading {
             return groups.at(desc.group_id);
         }
 
-        std::unique_ptr<Lock> Scheduler::get_groups_lock(const NUClear::id_t task_id,
+        std::unique_ptr<Lock> Scheduler::get_groups_lock(const NUClear::id_t& task_id,
                                                          const int& priority,
                                                          const std::shared_ptr<Pool>& pool,
                                                          const std::set<util::GroupDescriptor>& descs) {
@@ -138,7 +138,7 @@ namespace threading {
 
             // Make a lock which waits for all the groups to be unlocked
             auto lock = std::make_unique<CombinedLock>();
-            for (auto& desc : descs) {
+            for (const auto& desc : descs) {
                 lock->add(get_group(desc)->lock(task_id, priority, [pool] { pool->notify(); }));
             }
 

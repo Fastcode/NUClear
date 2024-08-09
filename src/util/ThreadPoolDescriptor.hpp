@@ -36,11 +36,11 @@ namespace util {
      * A description of a thread pool
      */
     struct ThreadPoolDescriptor {
-        ThreadPoolDescriptor() = default;
+        ThreadPoolDescriptor() noexcept = default;
         ThreadPoolDescriptor(std::string name,
                              const NUClear::id_t& pool_id,
                              size_t thread_count  = 1,
-                             bool counts_for_idle = true)
+                             bool counts_for_idle = true) noexcept
             : name(std::move(name)), pool_id(pool_id), thread_count(thread_count), counts_for_idle(counts_for_idle) {}
 
         static ThreadPoolDescriptor AllPools() {
