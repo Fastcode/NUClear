@@ -98,9 +98,9 @@ namespace util {
     Sleeper::Sleeper() : sleeper(std::make_unique<SleeperImpl>()) {}
 
     // This must be in the .cpp file as we need the full definition of SleeperImpl
-    Sleeper::~Sleeper() noexcept           = default;
-    Sleeper::Sleeper(Sleeper&&) noexcept   = default;
-    Sleeper& Sleeper::operator=(Sleeper&&) = default;
+    Sleeper::~Sleeper()                             = default;
+    Sleeper::Sleeper(Sleeper&&) noexcept            = default;
+    Sleeper& Sleeper::operator=(Sleeper&&) noexcept = default;
 
     void NUClear::util::Sleeper::sleep_for(const std::chrono::nanoseconds& duration) {
         sleep_until(std::chrono::steady_clock::now() + duration);
