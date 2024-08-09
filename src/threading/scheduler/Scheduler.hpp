@@ -129,12 +129,12 @@ namespace threading {
             /// A mutex for when we are modifying groups
             std::mutex groups_mutex;
             /// A map of group ids to the number of active tasks currently running in that group
-            std::map<NUClear::id_t, std::shared_ptr<Group>> groups{};
+            std::map<NUClear::id_t, std::shared_ptr<Group>> groups;
 
             /// A mutex for when we are modifying pools
             std::mutex pools_mutex;
             /// A map of pool descriptor ids to pool descriptors
-            std::map<NUClear::id_t, std::shared_ptr<Pool>> pools{};
+            std::map<NUClear::id_t, std::shared_ptr<Pool>> pools;
             /// If started is false pools will not be started until start is called
             /// once start is called future pools will be started immediately
             bool started = false;
