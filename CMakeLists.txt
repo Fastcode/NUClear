@@ -118,7 +118,14 @@ endif()
 add_subdirectory(src)
 
 # Add the tests directory
-add_subdirectory(tests)
+option(BUILD_TESTS "Builds all of the NUClear unit tests." TRUE)
+if(BUILD_TESTS)
+  enable_testing()
+  add_subdirectory(tests)
+endif()
 
 # Add the documentation subdirectory
-add_subdirectory(docs)
+option(BUILD_DOCUMENTATION "Create and install the HTML based API documentation (requires Doxygen and Sphinx)" FALSE)
+if(BUILD_DOCUMENTATION)
+  add_subdirectory(docs)
+endif()
