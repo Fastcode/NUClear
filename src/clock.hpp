@@ -74,20 +74,6 @@ struct clock : public NUCLEAR_CLOCK_TYPE {
 
 private:
     /**
-     * Convert a duration to the clock's duration type.
-     *
-     * @tparam T The type of the duration.
-     *
-     * @param t The duration to convert.
-     *
-     * @return The converted duration.
-     */
-    template <typename T>
-    duration static dc(const T& t) {
-        return std::chrono::duration_cast<duration>(t);
-    }
-
-    /**
      * Data structure to hold clock information.
      */
     struct ClockData {
