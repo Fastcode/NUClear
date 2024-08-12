@@ -33,7 +33,7 @@ namespace util {
     template <typename MapID, typename Key, typename Value>
     class TypeList {
     public:
-        /// @brief Deleted rule-of-five as this class is a static class.
+        /// Deleted rule-of-five as this class is a static class
         TypeList()                                        = delete;
         virtual ~TypeList()                               = delete;
         TypeList(const TypeList& /*other*/)               = delete;
@@ -42,12 +42,12 @@ namespace util {
         TypeList operator=(TypeList&& /*other*/) noexcept = delete;
 
     private:
-        /// @brief the data variable where the data is stored for this map key.
+        /// The data variable where the data is stored for this map key
         static std::vector<Value> data;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
     public:
         /**
-         * @brief Gets the list that is stored in this type location
+         * Gets the list that is stored in this type location.
          *
          * @return A reference to the vector stored in this location
          */

@@ -30,15 +30,15 @@ namespace dsl {
     namespace store {
 
         /**
-         * @brief Thread local datastore used for out of band communication.
+         * Thread local datastore used for out of band communication.
          *
-         * @details In NUClear, there is a disjoint that must exist between reactions which are opaque and the
-         *          internals of these reactions which are strongly typed to ensure speed. This creates a problem
-         *          where handlers for reactions want to pass data to them but cannot directly access them. This
-         *          datastore is used in this case to provide thread local storage that is typed. Using this
-         *          variable a handler can store a stack variable it has and when it generates a ReactionTask as
-         *          that happens on the same thread, the get functions inside can access this same variable to
-         *          bypass the opaque barrier between the handler and the reaction.
+         * In NUClear, there is a disjoint that must exist between reactions which are opaque and the internals of these
+         * reactions which are strongly typed to ensure speed.
+         * This creates a problem where handlers for reactions want to pass data  but cannot directly access them.
+         * This datastore is used in this case to provide thread local storage that is typed.
+         * Using this variable a handler can store a stack variable it has and when it generates a ReactionTask as that
+         * happens on the same thread, the get functions inside can access this same variable to bypass the opaque
+         * barrier between the handler and the reaction.
          *
          * @tparam DataType the datatype that is to be stored
          * @tparam Index    an optional index that can be used in the event that multiple variables of the same type

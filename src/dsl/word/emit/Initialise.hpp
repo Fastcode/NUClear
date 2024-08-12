@@ -31,26 +31,24 @@ namespace dsl {
         namespace emit {
 
             /**
-             * @brief
-             *  This scope emits data as the system starts up.
+             * This scope emits data as the system starts up.
              *
-             * @details
-             *  @code emit<Scope::INITIALISE>(data, dataType); @endcode
-             *  This should be used to emit any data required during system start up (that is, as the reactor is being
-             *  installed into the powerPlant). When running emissions under this scope, the message will wait until
-             *  all Reactors are installed into the powerPlant before triggering any callbacks based on the emission.
+             *
+             * @code emit<Scope::INITIALISE>(data, dataType); @endcode
+             * This should be used to emit any data required during system start up.
+             * i.e. as the reactor is being installed into the powerPlant.
+             * When running emissions under this scope, the message will wait until `.start()` is called on PowerPlant.
+             * Which should be after all Reactors are installed.
              *
              * @attention
              *  Tasks triggered by data emitted under this scope will only execute while the system is in the
-             *  initialisation phase. These tasks are the final activity which occur before the system shifts into the
-             *  execution phase.  Any emissions under this scope while the system is in the execution phase will be
-             *  ignored.
+             *  initialisation phase.
+             *  These tasks are the final activity which occur before the system shifts into the execution phase.
+             *  Emitting with this scope while the system is in the execution phase will act as normal emits.
              *
-             * @param data
-             *  The data to emit
+             * @tparam DataType The type of the data to be emitted
              *
-             * @tparam DataType
-             *  The type of the data to be emitted
+             * @param data The data to emit
              */
             template <typename DataType>
             struct Initialise {
@@ -68,7 +66,7 @@ namespace dsl {
             };
 
         }  // namespace emit
-    }      // namespace word
+    }  // namespace word
 }  // namespace dsl
 }  // namespace NUClear
 

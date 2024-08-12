@@ -86,7 +86,7 @@ void PowerPlant::emit(std::unique_ptr<T>& data, Arguments&&... args) {
 }
 
 /**
- * @brief This is our Function Fusion wrapper class that allows it to call emit functions
+ * This is our Function Fusion wrapper class that allows it to call emit functions
  *
  * @tparam Handler The emit handler that we are wrapping for
  */

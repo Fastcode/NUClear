@@ -33,7 +33,7 @@ namespace NUClear {
 namespace util {
 
     /**
-     * @brief Generated callback for a task
+     * Generated callback for a task
      */
     struct GeneratedCallback {
         GeneratedCallback() = default;
@@ -42,17 +42,17 @@ namespace util {
                           const ThreadPoolDescriptor& pool,
                           threading::ReactionTask::TaskFunction callback)
             : priority(priority), group(group), pool(pool), callback(std::move(callback)) {}
-        /// @brief the priority this task should run with
+        /// The priority this task should run with
         int priority{0};
-        /// @brief the descriptor for the group the task should run in
+        /// The descriptor for the group the task should run in
         GroupDescriptor group{0, std::numeric_limits<size_t>::max()};
-        /// @brief the descriptor the thread pool and task queue that the should run in
+        /// The descriptor the thread pool and task queue that the should run in
         ThreadPoolDescriptor pool{util::ThreadPoolDescriptor::DEFAULT_THREAD_POOL_ID, 0, true};
-        /// @brief the function that should be executed in order to run the task
+        /// The function that should be executed in order to run the task
         threading::ReactionTask::TaskFunction callback{};
 
         /**
-         * @return true if this represents a valid callback object
+         * @return `true` if this represents a valid callback object
          */
         operator bool() const {
             return bool(callback);

@@ -30,11 +30,11 @@ namespace dsl {
     namespace operation {
 
         /**
-         * @brief Accesses a variable from the shared data cache when used.
+         * Accesses a variable from the shared data cache when used.
          *
-         * @details NUClear maintains a datastore of the latest data emitted of each type in the system.
-         *          This utility type accesses this shared cache and accesses the latest data using get.
-         *          To use this utility inherit from this type with the DataType to listen for.
+         * NUClear maintains a datastore of the latest data emitted of each type in the system.
+         * This utility type accesses this shared cache and accesses the latest data using get.
+         * To use this utility inherit from this type with the DataType to listen for.
          *
          * @tparam DataType the data type that will be accessed from the cache
          */

@@ -44,11 +44,11 @@ namespace dsl {
         struct PoolWords;
 
         /**
-         * @brief Metafunction that extracts all of the Words with a pool function
+         * Metafunction that extracts all of the Words with a pool function.
          *
-         * @tparam Word1        The word we are looking at
-         * @tparam WordN        The words we have yet to look at
-         * @tparam FoundWords   The words we have found with pool functions
+         * @tparam Word1      The word we are looking at
+         * @tparam WordN      The words we have yet to look at
+         * @tparam FoundWords The words we have found with pool functions
          */
         template <typename Word1, typename... WordN, typename... FoundWords>
         struct PoolWords<std::tuple<Word1, WordN...>, std::tuple<FoundWords...>>
@@ -58,7 +58,7 @@ namespace dsl {
                   /*F*/ PoolWords<std::tuple<WordN...>, std::tuple<FoundWords...>>> {};
 
         /**
-         * @brief Termination case for the PoolWords metafunction
+         * Termination case for the PoolWords metafunction.
          *
          * @tparam FoundWords The words we have found with pool functions
          */

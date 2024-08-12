@@ -29,10 +29,10 @@
 namespace NUClear {
 
 /**
- * @brief This class holds the configuration for a PowerPlant.
+ * This class holds the configuration for a PowerPlant.
  */
 struct Configuration {
-    /// @brief The number of threads the system will use
+    /// The number of threads the system will use
     size_t thread_count = std::thread::hardware_concurrency() == 0 ? 2 : std::thread::hardware_concurrency();
 };
 

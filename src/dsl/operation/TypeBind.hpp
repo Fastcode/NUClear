@@ -30,12 +30,12 @@ namespace dsl {
     namespace operation {
 
         /**
-         * @brief Binds a function to execute when a specific type is emitted
+         * Binds a function to execute when a specific type is emitted.
          *
-         * @details A common pattern in NUClear is to execute a function when a particular type is emitted.
-         *          This utility class is used to simplify executing a function when a type is emitted.
-         *          To use this utility inherit from this type with the DataType to listen for.
-         *          If the callback also needs the data emitted you should also extend from CacheGet
+         * A common pattern in NUClear is to execute a function when a particular type is emitted.
+         * This utility class is used to simplify executing a function when a type is emitted.
+         * To use this utility inherit from this type with the DataType to listen for.
+         * If the callback also needs the data emitted you should also extend from CacheGet.
          *
          * @tparam DataType the data type that will be bound to
          */

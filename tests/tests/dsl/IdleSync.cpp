@@ -27,7 +27,7 @@
 
 namespace {
 
-/// @brief A vector of events that have happened
+/// A vector of events that have happened
 std::vector<std::string> events;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
 class TestReactor : public test_util::TestBase<TestReactor, 1000> {

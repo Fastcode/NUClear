@@ -54,7 +54,7 @@ namespace dsl {
 
 namespace {
 
-/// @brief Events that occur during the test
+/// Events that occur during the test
 std::vector<std::string> events;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
 struct TransientGetter : public NUClear::dsl::operation::TypeBind<TransientMessage> {

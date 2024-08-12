@@ -36,8 +36,8 @@ namespace dsl {
     namespace fusion {
 
         /**
-         * @brief Struct to act as a DSL word that does nothing. Used as a placeholder to satisfy some dead template
-         *        branches that are required for the code to compile.
+         * Struct to act as a DSL word that does nothing.
+         * Used as a placeholder to satisfy some dead template branches that are required for the code to compile.
          */
         struct NoOp {
 
@@ -78,8 +78,8 @@ namespace dsl {
         };
 
         /**
-         * @brief Struct to act as Parsed DSL statement that does nothing. Used as a placeholder to satisfy some
-         *        dead template branches that are required for the code to compile.
+         * Struct to act as Parsed DSL statement that does nothing.
+         * Used as a placeholder to satisfy some dead template branches that are required for the code to compile.
          */
         struct ParsedNoOp {
             struct DSL {};

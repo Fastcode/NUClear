@@ -35,7 +35,7 @@
 namespace NUClear {
 namespace dsl {
 
-    /// @brief All of the words from a reaction handle "fused" together into one type
+    /// All of the words from a reaction handle "fused" together into one type
     template <typename... Words>
     struct Fusion
         : public fusion::BindFusion<Words...>

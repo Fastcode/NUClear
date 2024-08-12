@@ -37,7 +37,7 @@ namespace dsl {
     namespace word {
 
         /**
-         * @brief A base type to handle the common code for idling after turning the pool descriptor into an id.
+         * A base type to handle the common code for idling after turning the pool descriptor into an id.
          */
         inline void bind_idle(const std::shared_ptr<threading::Reaction>& reaction,
                               const util::ThreadPoolDescriptor& pool_descriptor) {
@@ -53,18 +53,16 @@ namespace dsl {
         }
 
         /**
-         * @brief Execute a task when there is nothing currently running on the thread pool.
+         * Execute a task when there is nothing currently running on the thread pool.
          *
-         * @details
-         *  @code on<Idle<PoolType>>() @endcode
-         *  When the thread pool is idle, this task will be executed. This is use
+         * @code on<Idle<PoolType>>() @endcode
+         * When the thread pool is idle, this task will be executed.
          *
          * @par Implements
          *  Bind
          *
-         * @tparam PoolType the descriptor that was used to create the thread pool
-         *         void for the default pool
-         *         MainThread for the main thread pool
+         * @tparam PoolType The descriptor that was used to create the thread pool.
+         *                  `void` for the default pool MainThread for the main thread pool.
          */
         template <typename PoolType>
         struct Idle {

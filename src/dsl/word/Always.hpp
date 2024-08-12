@@ -36,19 +36,17 @@ namespace dsl {
     namespace word {
 
         /**
-         * @brief
-         *  This is used to request any continuous reactions in the system.
+         * This is used to request any continuous reactions in the system.
          *
-         * @details
-         *  @code on<Always> @endcode
-         *  This request will ensure a single instance of the associated reaction is running at all times.
-         *  That is, as one instance is completed, a new instance of the task will spawn.
+         * @code on<Always> @endcode
+         * This request will ensure a single instance of the associated reaction is running at all times.
+         * That is, as one instance is completed, a new instance of the task will spawn.
          *
-         *  Any reactions requested using this keyword will initialise upon system start-up and execute continually
-         *  until system shut-down.
+         * Any reactions requested using this keyword will initialise upon system start-up and execute continually
+         * until system shut-down.
          *
-         *  Note that a task spawned from this request will execute in its own unique thread rather than the default
-         *  thread pool.
+         * @note
+         *  A task spawned from this request will execute in its own unique thread rather than the default thread pool.
          *
          * @par Infinite Loops
          *  This word should be used in place of any reactions which would contain an infinite loop. That is,
@@ -96,16 +94,17 @@ namespace dsl {
                     reaction_store = {};
 
                 /**
-                 * Generate a new reaction for an idle task
+                 * Generate a new reaction for an idle task.
+                 *
                  * The purpose of this reaction is to ensure that the always reaction is resubmitted in the event that
-                 * the precondition fails (e.g. on<Always, With<X>> will fail the precondition if there are no X
+                 * the precondition fails. (e.g. on<Always, With<X>> will fail the precondition if there are no X
                  * messages previously emitted)
                  *
                  * In the event that the precondition on the always reaction fails this idle task will run and resubmit
-                 * both the always reaction and the idle reaction
+                 * both the always reaction and the idle reaction.
                  *
                  * The idle reaction must have a lower priority than the always reaction and must also run in the same
-                 * thread pool and group as the always reaction
+                 * thread pool and group as the always reaction.
                  */
                 auto idle_reaction = std::make_shared<threading::Reaction>(
                     always_reaction->reactor,

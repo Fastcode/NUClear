@@ -30,13 +30,13 @@ namespace dsl {
     namespace validation {
 
         /**
-         * @brief Validates the provided DSL is able to be used by the system and give a more sensible error
+         * Validates the provided DSL is able to be used by the system and give a more sensible error.
          *
-         * @details This is where checks to see if the DSL words that were provided make sense and are useable.
-         *          For example, it will check to make sure there is at least one bind function there. If there is
-         *          not a bind function, there is no way the provided callback will ever run.
+         * This is where checks to see if the DSL words that were provided make sense and are useable.
+         * For example, it will check to make sure there is at least one bind function there.
+         * If there is not a bind function, there is no way the provided callback will ever run.
          *
-         * @tparam Words the DSL words to be validated
+         * @tparam Words The DSL words to be validated
          */
         template <typename... Words>
         struct ValidateDSL {

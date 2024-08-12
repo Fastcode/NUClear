@@ -35,8 +35,7 @@ namespace dsl {
     namespace word {
 
         /**
-         * @brief
-         *  This type is used within an every in order to measure a frequency rather then a period.
+         * This type is used within an every in order to measure a frequency rather then a period.
          */
         template <typename period>
         struct Per;
@@ -49,21 +48,19 @@ namespace dsl {
         };
 
         /**
-         * @brief
-         *  This is used to request any periodic reactions in the system.
+         * This is used to request any periodic reactions in the system.
          *
-         * @details
-         *  @code on<Every<ticks, period>>() @endcode
-         *  This request will enact the execution of a task at a periodic rate. To set the timing, simply specify the
-         *  desired period with the request.  For example, to run a task every two seconds, the following request would
-         *  be used:
          *
-         *  @code on<Every<2, std::chrono::seconds>() @endcode
+         * @code on<Every<ticks, period>>() @endcode
+         * This request will enact the execution of a task at a periodic rate.
+         * To set the timing, simply specify the desired period with the request.
+         * For example, to run a task every two seconds, the following request would be used:
+         * @code on<Every<2, std::chrono::seconds>() @endcode
          *
-         *  Note that the period argument can also be wrapped in a Per<> template so that the inverse relation
-         *  can be invoked.  For instance, to execute a callback to initialise two tasks every second, then the
-         *  request would be used:
-         *  @code on<Every<2, Per<std::chrono::seconds>>() @endcode
+         * Note that the period argument can also be wrapped in a Per<> template so that the inverse relation can be
+         * invoked.
+         * For instance, to execute a callback to initialise two tasks every second, then the request would be used:
+         * @code on<Every<2, Per<std::chrono::seconds>>() @endcode
          *
          * @attention
          *  The period which is used to measure the ticks must be greater than or equal to clock::duration or the
@@ -72,13 +69,12 @@ namespace dsl {
          * @par Implements
          *  Bind
          *
-         * @tparam ticks
-         *  the number of ticks of a particular type to wait
-         * @tparam period
-         *  a type of duration (e.g. std::chrono::seconds) to measure the ticks in.  This will default to clock
-         *  duration, but can accept any of the defined std::chrono durations (nanoseconds, microseconds, milliseconds,
-         *  seconds, minutes, hours).  Note that you can also define your own unit:  See
-         *  http://en.cppreference.com/w/cpp/chrono/duration
+         * @tparam ticks  The number of ticks of a particular type to wait
+         * @tparam period A type of duration (e.g. std::chrono::seconds) to measure the ticks in.
+         *                This will default to clock duration, but can accept any of the defined std::chrono durations.
+         *                i.e. nanoseconds, microseconds, milliseconds, seconds, minutes, hours.
+         *                Note that you can also define your own unit.
+         *                See http://en.cppreference.com/w/cpp/chrono/duration
          */
         template <int ticks = 0, class period = std::chrono::milliseconds>
         struct Every;

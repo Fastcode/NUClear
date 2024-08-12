@@ -104,11 +104,11 @@ namespace NUClear {
 namespace util {
 
     /**
-     * @brief Demangles the passed symbol to a string, or returns it if it cannot demangle it
+     * Demangles the passed symbol to a string, or returns it if it cannot demangle it.
      *
      * @param symbol the symbol to demangle
      *
-     * @return the demangled symbol, or the original string if it could not be demangeld
+     * @return the demangled symbol, or the original string if it could not be demangled
      */
     std::string demangle(const char* symbol) {
 
