@@ -27,7 +27,7 @@
 
 namespace NUClear {
 
-/// @brief This type is used when NUClear requires a unique identifier
+/// This type is used when NUClear requires a unique identifier
 using id_t = std::size_t;
 
 }  // namespace NUClear

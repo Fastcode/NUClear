@@ -33,11 +33,11 @@ namespace util {
     namespace network {
 
         /**
-         * @brief Gets the index of the interface that the given ipv6 address is on
+         * Gets the index of the interface that the given ipv6 address is on.
          *
-         * @param ipv6 the ipv6 address to check
+         * @param ipv6 The ipv6 address to check
          *
-         * @return int the index of the interface that the address is on or 0 if the ipv6 address is the any address
+         * @return The index of the interface that the address is on or 0 if the ipv6 address is the any address
          */
         unsigned int if_number_from_address(const sockaddr_in6& ipv6);
 

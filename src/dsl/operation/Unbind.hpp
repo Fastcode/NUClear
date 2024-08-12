@@ -30,17 +30,17 @@ namespace dsl {
     namespace operation {
 
         /**
-         * @brief Signals that the reaction with this id servicing this type should be unbound and its resources
-         *  cleaned up
+         * Signals that the reaction with this id servicing this type should be unbound and its resources cleaned up.
          *
-         * @details When a reaction is finished and won't be run again, this type should be emitted along with the
-         * original DSL word that created it. This signals to its handler to clean it up and not run it again.
+         * When a reaction is finished and won't be run again, this type should be emitted along with the original DSL
+         * word that created it.
+         * This signals to its handler to clean it up and not run it again.
          *
-         * @tparam Word the DSL word that created this binding (or another helper type)
+         * @tparam Word The DSL word that created this binding (or another helper type)
          */
         template <typename Word>
         struct Unbind {
-            explicit Unbind(const NUClear::id_t& id) : id(id){};
+            explicit Unbind(const NUClear::id_t& id) : id(id) {};
 
             /// The id of the task to unbind
             const NUClear::id_t id{0};

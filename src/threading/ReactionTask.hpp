@@ -39,21 +39,21 @@ namespace NUClear {
 namespace threading {
 
     /**
-     * @brief This is a databound call of a Reaction ready to be executed.
+     * This is a databound call of a Reaction ready to be executed.
      *
      * @tparam ReactionType the type of the reaction
      *
-     * @details
-     *  This class holds a reaction that is ready to be executed. It is a Reaction object which has had it's callback
-     *  parameters bound with data. This can then be executed as a function to run the call inside it.
+     * This class holds a reaction that is ready to be executed.
+     * It is a Reaction object which has had it's callback parameters bound with data.
+     * This can then be executed as a function to run the call inside it.
      */
     template <typename ReactionType>
     class Task {
     private:
-        /// @brief a source for task ids, atomically creates longs
+        /// A source for task ids, atomically creates longs
         static std::atomic<NUClear::id_t> task_id_source;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
-        /// @brief the current task that is being executed by this thread (or nullptr if none is)
+        /// The current task that is being executed by this thread (or nullptr if none is)
         static ATTRIBUTE_TLS Task* current_task;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
     public:
@@ -61,22 +61,22 @@ namespace threading {
         using TaskFunction = std::function<void(Task<ReactionType>&)>;
 
         /**
-         * @brief Gets the current executing task, or nullptr if there isn't one.
+         * Gets the current executing task, or nullptr if there isn't one.
          *
-         * @return the current executing task or nullptr if there isn't one
+         * @return The current executing task or nullptr if there isn't one
          */
         static const Task* get_current_task() {
             return current_task;
         }
 
         /**
-         * @brief Creates a new ReactionTask object bound with the parent Reaction object (that created it) and task.
+         * Creates a new ReactionTask object bound with the parent Reaction object (that created it) and task.
          *
-         * @param parent                 the Reaction object that spawned this ReactionTask.
-         * @param priority               the priority to use when executing this task.
-         * @param group_descriptor       the descriptor for the group that this task should run in
-         * @param thread_pool_descriptor the descriptor for the thread pool that this task should be queued in
-         * @param callback               the data bound callback to be executed in the thread pool.
+         * @param parent                 The Reaction object that spawned this ReactionTask
+         * @param priority               The priority to use when executing this task
+         * @param group_descriptor       The descriptor for the group that this task should run in
+         * @param thread_pool_descriptor The descriptor for the thread pool that this task should be queued in
+         * @param callback               The data bound callback to be executed in the thread pool
          */
         Task(ReactionType& parent,
              const int& priority,
@@ -101,11 +101,10 @@ namespace threading {
 
 
         /**
-         * @brief Runs the internal data bound task and times it.
+         * Runs the internal data bound task and times it.
          *
-         * @details
-         *  This runs the internal data bound task and times how long the execution takes. These figures can then be
-         *  used in a debugging context to calculate how long callbacks are taking to run.
+         * This runs the internal data bound task and times how long the execution takes.
+         * These figures can then be used in a debugging context to calculate how long callbacks are taking to run.
          */
         inline void run() {
 
@@ -118,34 +117,35 @@ namespace threading {
         }
 
         /**
-         * @brief Generate a new unique task id
+         * Generate a new unique task id.
          *
-         * @return a new unique task id
+         * @return A new unique task id
          */
         static inline NUClear::id_t new_task_id() {
             return ++task_id_source;
         }
 
-        /// @brief the parent Reaction object which spawned this
+        /// The parent Reaction object which spawned this
         ReactionType& parent;
-        /// @brief the task id of this task (the sequence number of this particular task)
+        /// The task id of this task (the sequence number of this particular task)
         NUClear::id_t id{new_task_id()};
-        /// @brief the priority to run this task at
+        /// The priority to run this task at
         int priority;
-        /// @brief the statistics object that persists after this for information and debugging
+        /// The statistics object that persists after this for information and debugging
         std::shared_ptr<message::ReactionStatistics> stats;
-        /// @brief if these stats are safe to emit. It should start true, and as soon as we are a reaction based on
-        /// reaction statistics becomes false for all created tasks. This is to stop infinite loops of death.
+        /// If these stats are safe to emit. It should start true, and as soon as we are a reaction based on
+        /// reaction statistics becomes false for all created tasks.
+        /// This is to stop infinite loops tasks triggering tasks.
         bool emit_stats;
 
-        /// @brief details about the group that this task will run in
+        /// Details about the group that this task will run in
         util::GroupDescriptor group_descriptor;
 
-        /// @brief details about the thread pool that this task will run from, this will also influence what task queue
-        /// the tasks will be queued on
+        /// Details about the thread pool that this task will run from, this will also influence what task queue the
+        /// tasks will be queued on
         util::ThreadPoolDescriptor thread_pool_descriptor;
 
-        /// @brief the data bound callback to be executed
+        /// The data bound callback to be executed
         /// @attention note this must be last in the list as the this pointer is passed to the callback generator
         TaskFunction callback;
     };

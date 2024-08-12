@@ -30,20 +30,18 @@ namespace dsl {
     namespace word {
 
         /**
-         * @brief
-         *  This is used to specify that up to n instances of the associated reaction can execute during runtime.
+         * This is used to specify that up to n instances of the associated reaction can execute during runtime.
          *
-         * @details
-         *  @code on<Trigger<T, ...>, Buffer<n>>>() @endcode
-         *  In the case above, when the subscribing reaction is triggered, should there be less than <i>n</i> existing
+         * @code on<Trigger<T, ...>, Buffer<n>>>() @endcode
+         * In the case above, when the subscribing reaction is triggered, should there be less than <i>n</i> existing
          * tasks associated with this reaction (either executing or in the queue), then a new task will be created and
-         * scheduled.  However, should <i>n</i> tasks already be allocated, then this new task request will be ignored.
+         * scheduled.
+         * However, should <i>n</i> tasks already be allocated, then this new task request will be ignored.
          *
          * @par Implements
          *  Precondition, Fusion
          *
-         * @tparam n
-         *  the number of tasks (instances of the subscribing reaction) which can be running at a given time.
+         * @tparam n The number of tasks (instances of the subscribing reaction) which can be running at a given time.
          */
         template <int n>
         struct Buffer {

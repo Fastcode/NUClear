@@ -39,15 +39,13 @@ namespace dsl {
         namespace emit {
 
             /**
-             * @brief
-             *  Emits data as a UDP packet over the network.
+             * Emits data as a UDP packet over the network.
              *
-             * @details
-             *  @code emit<Scope::UDP>(data, to_addr, to_port); @endcode
-             *  Emissions under this scope are useful for communicating with third parties. The target of the packet
-             *  can be can be a unicast, broadcast or multicast address, specified as either a host endian int, or as a
-             *  string. Additionally the address and port on the local machine can be specified using a string or host
-             *  endian int.
+             *
+             * @code emit<Scope::UDP>(data, to_addr, to_port); @endcode
+             * Emissions under this scope are useful for communicating with other systems using UDP.
+             * The target of the packet can be can be a unicast, broadcast or multicast address, specified as a string.
+             * Additionally the address and port on the local machine can be specified using a string and port.
              *
              * @attention
              *  Anything emitted over the UDP network must be serialisable.
@@ -175,7 +173,7 @@ namespace dsl {
             };
 
         }  // namespace emit
-    }      // namespace word
+    }  // namespace word
 }  // namespace dsl
 }  // namespace NUClear
 

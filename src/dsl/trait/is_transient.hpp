@@ -28,13 +28,13 @@ namespace dsl {
     namespace trait {
 
         /**
-         * @brief Indicates that a type is transient in the context of data availablity
+         * Indicates that a type is transient in the context of data availability.
          *
-         * @details Often when extending the get dsl attachment point, data from that get is only available when
-         *          that get is run in specific circumstances such as from a ThreadStore.
-         *          When this trait is true, Reactors handle this data being unavaible differently.
-         *          They will instead cache the last copy of the data that was provided and if no new data
-         *          comes from the get function, they will instead provide this cached data.
+         * Often when extending the get dsl attachment point, data from that get is only available when that get is run
+         * in specific circumstances such as from a ThreadStore.
+         * When this trait is true, Reactors handle this data being unavailable differently.
+         * They will instead cache the last copy of the data that was provided and if no new data comes from the get
+         * function, they will instead provide this cached data.
          *
          * @see NUClear::dsl::store::ThreadStore
          *

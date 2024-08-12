@@ -43,15 +43,15 @@ namespace message {
             , bind_address(std::move(bind_address))
             , mtu(mtu) {}
 
-        /// @brief The name of this node when connecting to the NUClear network
+        /// The name of this node when connecting to the NUClear network
         std::string name{};
-        /// @brief The address to announce to the NUClear network
+        /// The address to announce to the NUClear network
         std::string announce_address{};
-        /// @brief The port to announce to the NUClear network
+        /// The port to announce to the NUClear network
         uint16_t announce_port{0};
-        /// @brief The address of the interface to bind to when connecting to the NUClear network
+        /// The address of the interface to bind to when connecting to the NUClear network
         std::string bind_address{};
-        /// @brief The maximum transmission unit for this node
+        /// The maximum transmission unit for this node
         uint16_t mtu{1500};
     };
 

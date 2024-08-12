@@ -43,55 +43,52 @@ namespace dsl {
 #endif
 
         /**
-         * @brief This message is sent to the IO controller to configure a new IO operation.
+         * This message is sent to the IO controller to configure a new IO operation.
          */
         struct IOConfiguration {
             IOConfiguration(fd_t fd, event_t events, std::shared_ptr<threading::Reaction> reaction)
                 : fd(fd), events(events), reaction(std::move(reaction)) {}
-            /// @brief The file descriptor to watch
+            /// The file descriptor to watch
             fd_t fd;
-            /// @brief The events to watch for on this file descriptor
+            /// The events to watch for on this file descriptor
             event_t events;
-            /// @brief The reaction to trigger when this file descriptor has an event
+            /// The reaction to trigger when this file descriptor has an event
             std::shared_ptr<threading::Reaction> reaction;
         };
 
         /**
-         * @brief This is emitted when an IO operation has finished.
+         * This is emitted when an IO operation has finished.
          */
         struct IOFinished {
             explicit IOFinished(const NUClear::id_t& id) : id(id) {}
-            /// @brief The id of the reaction that has finished
+            /// The id of the reaction that has finished
             NUClear::id_t id;
         };
 
         /**
-         * @brief
-         *  This is used to trigger reactions based on standard I/O operations using file descriptors.
+         * This is used to trigger reactions based on standard I/O operations using file descriptors.
          *
-         * @details
-         *  @code on<IO>(file_descriptor) @endcode
-         *  This function works for any I/O communication which uses a file descriptor. The associated reaction is
-         *  triggered when the communication line matches the descriptor.
+         * @code on<IO>(file_descriptor) @endcode
+         * This function works for any I/O communication which uses a file descriptor.
+         * The associated reaction is triggered when the communication line matches the descriptor.
          *
-         *  When using this feature, runtime arguments should be provided, to specify the file descriptor.
+         * When using this feature, runtime arguments should be provided, to specify the file descriptor.
          *
-         *  <b>Example Use</b>
+         * <b>Example Use</b>
          *
-         *  <b>File reading:</b> triggers a reaction when the pipe/stream/communication line has data available to read.
-         *  @code on<IO>(pipe/stream/comms, IO::READ) @endcode
-         *  <b>File writing:</b> triggers a reaction when the pipe/stream/communication line has data to be written.
-         *  @code on<IO>(pipe/stream/comms, IO::WRITE) @endcode
-         *  <b>File close:</b> triggers a reaction when the pipe/stream/communication line is closed.
-         *  @code on<IO>(pipe/stream/comms, IO::CLOSE) @endcode
-         *  <b>File error:</b> triggers a reaction when the pipe/stream/communication line reports an error.
-         *  @code on<IO>(pipe/stream/comms, IO::CLOSE) @endcode
-         *  <b>Multiple states:</b> this feature can trigger a reaction when the pipe/stream/communication line
-         *  matches multiple states.  For example;
-         *  @code on<IO>(pipe/stream/comms, IO::READ | IO::ERROR) @endcode
+         * <b>File reading:</b> triggers a reaction when the file descriptor has data available to read.
+         * @code on<IO>(pipe/stream/comms, IO::READ) @endcode
+         * <b>File writing:</b> triggers a reaction when the file descriptor has data to be written.
+         * @code on<IO>(pipe/stream/comms, IO::WRITE) @endcode
+         * <b>File close:</b> triggers a reaction when the file descriptor is closed.
+         * @code on<IO>(pipe/stream/comms, IO::CLOSE) @endcode
+         * <b>File error:</b> triggers a reaction when the file descriptor reports an error.
+         * @code on<IO>(pipe/stream/comms, IO::CLOSE) @endcode
+         * <b>Multiple states:</b> this feature can trigger a reaction when the file descriptor matches multiple states.
+         * @code on<IO>(pipe/stream/comms, IO::READ | IO::ERROR) @endcode
          *
          * @attention
-         *  Note that reactions triggered by an on<IO> request are implicitly single.
+         *  While a reaction is processing an IO event, no other IO triggers will fire until the reaction has completed.
          *
          * @par Implements
          *  Bind
@@ -118,12 +115,12 @@ namespace dsl {
 #endif
 
             struct Event {
-                /// @brief The file descriptor that this event is for
+                /// The file descriptor that this event is for
                 fd_t fd;
-                /// @brief The events that have occurred on this file descriptor
+                /// The events that have occurred on this file descriptor
                 event_t events;
 
-                /// @brief Returns true if the event is for the given event type
+                /// Returns true if the event is for the given event type
                 operator bool() const {
                     return fd != INVALID_SOCKET;
                 }
@@ -165,11 +162,10 @@ namespace dsl {
     }  // namespace word
 
     namespace trait {
-
         template <>
         struct is_transient<word::IO::Event> : public std::true_type {};
-
     }  // namespace trait
+
 }  // namespace dsl
 }  // namespace NUClear
 

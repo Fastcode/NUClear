@@ -39,11 +39,11 @@ namespace extension {
 
     class IOController : public Reactor {
     private:
-        /// @brief The type that poll uses for events
+        /// The type that poll uses for events
         using event_t = decltype(pollfd::events);
 
         /**
-         * @brief A task that is waiting for an IO event
+         * A task that is waiting for an IO event.
          */
         struct Task {
             Task() = default;
@@ -51,28 +51,27 @@ namespace extension {
             Task(const fd_t& fd, event_t listening_events, std::shared_ptr<threading::Reaction> reaction)
                 : fd(fd), listening_events(listening_events), reaction(std::move(reaction)) {}
 
-            /// @brief The file descriptor we are waiting on
+            /// The file descriptor we are waiting on
             fd_t fd{-1};
-            /// @brief The events that the task is interested in
+            /// The events that the task is interested in
             event_t listening_events{0};
-            /// @brief The events that are waiting to be fired
+            /// The events that are waiting to be fired
             event_t waiting_events{0};
-            /// @brief The events that are currently being processed
+            /// The events that are currently being processed
             event_t processing_events{0};
-            /// @brief The reaction that is waiting for this event
+            /// The reaction that is waiting for this event
             std::shared_ptr<threading::Reaction> reaction{nullptr};
 
             /**
-             * @brief Sorts the tasks by their file descriptor
+             * Sorts the tasks by their file descriptor.
              *
              * The tasks are sorted by file descriptor so that when we rebuild the list of file descriptors to poll we
-             * can assume that if the same file descriptor shows up multiple times it will be next to each other. This
-             * allows the events that are being watched to be or'ed together.
+             * can assume that if the same file descriptor shows up multiple times it will be next to each other.
+             * This allows the events that are being watched to be or'ed together.
              *
              * @param other  the other task to compare to
              *
-             * @return true  if this task is less than the other
-             * @return false if this task is greater than or equal to the other
+             * @return `true` if this task is less than the other
              */
             bool operator<(const Task& other) const {
                 return fd == other.fd ? listening_events < other.listening_events : fd < other.fd;
@@ -80,10 +79,10 @@ namespace extension {
         };
 
         /**
-         * @brief Rebuilds the list of file descriptors to poll
+         * Rebuilds the list of file descriptors to poll.
          *
-         * This function is called when the list of file descriptors to poll changes. It will rebuild the list of file
-         * descriptors used by poll
+         * This function is called when the list of file descriptors to poll changes.
+         * It will rebuild the list of file descriptors used by poll.
          */
         void rebuild_list() {
             // Get the lock so we don't concurrently modify the list
@@ -113,9 +112,9 @@ namespace extension {
         }
 
         /**
-         * @brief Fires the event for the task if it is ready
+         * Fires the event for the task if it is ready.
          *
-         * @param task the task to try to fire the event for
+         * @param task The task to try to fire the event for
          */
         void fire_event(Task& task) {
             if (task.processing_events == 0 && task.waiting_events != 0) {
@@ -154,7 +153,7 @@ namespace extension {
         }
 
         /**
-         * @brief Collects the events that have happened and sets them up to fire
+         * Collects the events that have happened and sets them up to fire.
          */
         void process_events() {
 
@@ -224,7 +223,7 @@ namespace extension {
         }
 
         /**
-         * @brief Bumps the notification pipe to wake up the poll command
+         * Bumps the notification pipe to wake up the poll command
          *
          * If the poll command is waiting it will wait forever if something doesn't happen.
          * When trying to update what to poll or shut down we need to wake it up so it can.
@@ -367,23 +366,23 @@ namespace extension {
         }
 
     private:
-        /// @brief The receive file descriptor for our notification pipe
+        /// The receive file descriptor for our notification pipe
         fd_t notify_recv{-1};
-        /// @brief The send file descriptor for our notification pipe
+        /// The send file descriptor for our notification pipe
         fd_t notify_send{-1};
 
-        /// @brief The mutex to wait on when bumping to ensure poll has returned
+        /// The mutex to wait on when bumping to ensure poll has returned
         std::mutex poll_mutex;
 
-        /// @brief Whether or not we are shutting down
+        /// Whether or not we are shutting down
         std::atomic<bool> shutdown{false};
-        /// @brief The mutex that protects the tasks list
+        /// The mutex that protects the tasks list
         std::mutex tasks_mutex;
-        /// @brief Whether or not the list of file descriptors is dirty compared to tasks
+        /// Whether or not the list of file descriptors is dirty compared to tasks
         bool dirty = true;
-        /// @brief The list of file descriptors to poll
+        /// The list of file descriptors to poll
         std::vector<pollfd> watches{};
-        /// @brief The list of tasks that are waiting for IO events
+        /// The list of tasks that are waiting for IO events
         std::vector<Task> tasks{};
     };
 

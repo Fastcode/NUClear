@@ -28,28 +28,28 @@
 namespace NUClear {
 namespace message {
     /**
-     * @brief This message is used to adjust the time of the system clock and the rate at which time passes.
+     * This message is used to adjust the time of the system clock and the rate at which time passes.
      *
      * Using this message allows the NUClear system to adapt to the change by adjusting any time based operations
      * to the new time and rate.
      */
     struct TimeTravel {
         enum class Action {
-            /// @brief Adjust clock and move all chrono tasks with it
+            /// Adjust clock and move all chrono tasks with it
             RELATIVE,
 
-            /// @brief Adjust clock to target time and leave chrono tasks where they are
+            /// Adjust clock to target time and leave chrono tasks where they are
             ABSOLUTE,
 
-            /// @brief Adjust clock to as close to target as possible without skipping any chrono tasks
+            /// Adjust clock to as close to target as possible without skipping any chrono tasks
             NEAREST,
         };
 
-        /// @brief The target time to set the clock to
+        /// The target time to set the clock to
         clock::time_point target = clock::now();
-        /// @brief The rate at which time should pass
+        /// The rate at which time should pass
         double rtf = 1.0;
-        /// @brief The type of time travel to perform
+        /// The type of time travel to perform
         Action type = Action::RELATIVE;
 
         TimeTravel() = default;

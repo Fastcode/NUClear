@@ -26,16 +26,16 @@
 #include <exception>
 #include <string>
 #include <vector>
-#include "../id.hpp"
 
 #include "../clock.hpp"
+#include "../id.hpp"
 #include "../threading/ReactionIdentifiers.hpp"
 
 namespace NUClear {
 namespace message {
 
     /**
-     * @brief Holds details about reactions that are executed.
+     * Holds details about reactions that are executed.
      */
     struct ReactionStatistics {
 
@@ -58,23 +58,23 @@ namespace message {
             , finished(finish)
             , exception(std::move(exception)) {}
 
-        /// @brief A string containing the username/on arguments/and callback name of the reaction.
+        /// A string containing the username/on arguments/and callback name of the reaction
         threading::ReactionIdentifiers identifiers;
-        /// @brief The id of this reaction.
+        /// The id of this reaction
         NUClear::id_t reaction_id{0};
-        /// @brief The task id of this reaction.
+        /// The task id of this reaction
         NUClear::id_t task_id{0};
-        /// @brief The reaction id of the reaction that caused this one or 0 if there was not one
+        /// The reaction id of the reaction that caused this one or 0 if there was not one
         NUClear::id_t cause_reaction_id{0};
-        /// @brief The reaction id of the task that caused this task or 0 if there was not one
+        /// The reaction id of the task that caused this task or 0 if there was not one
         NUClear::id_t cause_task_id{0};
-        /// @brief The time that this reaction was emitted to the thread pool
+        /// The time that this reaction was emitted to the thread pool
         clock::time_point emitted{};
-        /// @brief The time that execution started on this reaction
+        /// The time that execution started on this reaction
         clock::time_point started{};
-        /// @brief The time that execution finished on this reaction
+        /// The time that execution finished on this reaction
         clock::time_point finished{};
-        /// @brief An exception pointer that can be rethrown (if the reaction threw an exception)
+        /// An exception pointer that can be rethrown (if the reaction threw an exception)
         std::exception_ptr exception{nullptr};
     };
 

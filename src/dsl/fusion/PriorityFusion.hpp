@@ -41,11 +41,11 @@ namespace dsl {
         struct PriorityWords;
 
         /**
-         * @brief Metafunction that extracts all of the Words with a priority function
+         * Metafunction that extracts all of the Words with a priority function.
          *
-         * @tparam Word1        The word we are looking at
-         * @tparam WordN        The words we have yet to look at
-         * @tparam FoundWords   The words we have found with priority functions
+         * @tparam Word1      The word we are looking at
+         * @tparam WordN      The words we have yet to look at
+         * @tparam FoundWords The words we have found with priority functions
          */
         template <typename Word1, typename... WordN, typename... FoundWords>
         struct PriorityWords<std::tuple<Word1, WordN...>, std::tuple<FoundWords...>>
@@ -55,7 +55,7 @@ namespace dsl {
                   /*F*/ PriorityWords<std::tuple<WordN...>, std::tuple<FoundWords...>>> {};
 
         /**
-         * @brief Termination case for the PriorityWords metafunction
+         * Termination case for the PriorityWords metafunction.
          *
          * @tparam FoundWords The words we have found with priority functions
          */

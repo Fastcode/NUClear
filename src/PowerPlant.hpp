@@ -54,12 +54,11 @@ namespace NUClear {
 class Reactor;
 
 /**
- * @brief The PowerPlant is the core of a NUClear system. It holds all Reactors in it and manages their communications.
+ * The PowerPlant is the core of a NUClear system. It holds all Reactors in it and manages their communications.
  *
- * @details
- *  At the centre of every NUClear system is a PowerPlant. A PowerPlant contains all of the reactors that are
- *  used within the system and sets up their reactions. It is also responsible for storing information between
- *  reactions and ensuring that all threading is handled appropriately.
+ * At the centre of every NUClear system is a PowerPlant.
+ * A PowerPlant contains all of the reactors that are used within the system and sets up their reactions.
+ * It is also responsible for storing information between reactions and ensuring threading is handled appropriately.
  */
 class PowerPlant {
     // Reactors and PowerPlants are very tightly linked
@@ -70,15 +69,13 @@ public:
     static PowerPlant* powerplant;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
     /**
-     * @brief
-     *  Constructs a PowerPlant with the given configuration and provides access
-     *  to argv for all reactors.
+     * Constructs a PowerPlant with the given configuration and provides access to argv for all reactors.
      *
-     * @details Arguments passed to this function will be emitted as a CommandLineArguments message.
+     * Arguments passed to this function will be emitted as a CommandLineArguments message.
      *
      * @param config The PowerPlant's configuration
-     * @param argc The number of command line arguments
-     * @param argv The command line argument strings
+     * @param argc   The number of command line arguments
+     * @param argv   The command line argument strings
      */
     // NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays)
     PowerPlant(Configuration config = Configuration(), int argc = 0, const char* argv[] = nullptr);
@@ -91,40 +88,38 @@ public:
     PowerPlant& operator=(const PowerPlant&& other) = delete;
 
     /**
-     * @brief Starts up the PowerPlant's components in order and begins it running.
+     * Starts up the PowerPlant's components in order and begins it running.
      *
-     * @details
-     *  Starts up the PowerPlant instance and starts all the pool threads. This
-     *  method is blocking and will release when the PowerPlant shuts down.
-     *  It should only be called from the main thread so that statics are not
-     *  destructed.
+     * Starts up the PowerPlant instance and starts all the pool threads.
+     * This method is blocking and will release when the PowerPlant shuts down.
+     * It should only be called from the main thread so that statics are not destructed.
      */
     void start();
 
     /**
-     * @brief Shuts down the PowerPlant, tells all component threads to terminate,
-     *  Then releases the main thread.
+     * Shuts down the PowerPlant, tells all component threads to terminate and waits for them to finish.
      */
     void shutdown();
 
     /**
-     * @brief Returns true if the PowerPlant is running or not intending to shut down soon. Returns false otherwise.
+     * Gets the current running state of the PowerPlant.
+     *
+     * @return True if the PowerPlant is running, false if it is shut down, or is in the process of shutting down.
      */
     bool running() const;
 
     /**
-     * @brief Installs a reactor of a particular type to the system.
+     * Installs a reactor of a particular type to the system.
      *
-     * @details
-     *  This function constructs a new Reactor of the template type.
-     *  It passes through the specified LogLevel
-     *  in the environment of that reactor so that it can be used to filter logs.
+     * This function constructs a new Reactor of the template type.
+     * It passes through the specified LogLevel
+     * in the environment of that reactor so that it can be used to filter logs.
      *
-     * @tparam T        The type of the reactor to build and install
-     * @tparam Args     The types of the extra arguments to pass to the reactor constructor
-     * @tparam level    The initial logging level for this reactor to use
+     * @tparam T     The type of the reactor to build and install
+     * @tparam Args  The types of the extra arguments to pass to the reactor constructor
+     * @tparam level The initial logging level for this reactor to use
      *
-     * @param arg       Extra arguments to pass to the reactor constructor
+     * @param arg Extra arguments to pass to the reactor constructor
      *
      * @return A reference to the installed reactor
      */
@@ -132,22 +127,22 @@ public:
     T& install(Args&&... args);
 
     /**
-     * @brief Adds an idle task to the task scheduler.
+     * Adds an idle task to the task scheduler.
      *
      * This function adds an idle task to the task scheduler, which will be executed when the thread pool associated
-     * with the given `pool_id` has no other tasks to execute. The `task` parameter is a callable object that
-     * represents the idle task to be executed.
+     * with the given `pool_id` has no other tasks to execute.
+     * The `task` parameter is a callable object that represents the idle task to be executed.
      *
-     * @param id The ID of the task.
+     * @param id The ID of the task
      * @param pool_descriptor The descriptor for the thread pool to test for idle
-     * @param task The idle task to be executed.
+     * @param task The idle task to be executed
      */
     void add_idle_task(const NUClear::id_t& id,
                        const util::ThreadPoolDescriptor& pool_descriptor,
                        std::function<void()>&& task);
 
     /**
-     * @brief Removes an idle task from the task scheduler.
+     * Removes an idle task from the task scheduler.
      *
      * This function removes an idle task from the task scheduler. The `id` and `pool_id` parameters are used to
      * identify the idle task to be removed.
@@ -158,7 +153,7 @@ public:
     void remove_idle_task(const NUClear::id_t& id, const util::ThreadPoolDescriptor& pool_descriptor);
 
     /**
-     * @brief Generic submit function for submitting tasks to the thread pool.
+     * Generic submit function for submitting tasks to the thread pool.
      *
      * @param id        an id for ordering the task
      * @param priority  the priority of the task between 0 and 1000
@@ -175,20 +170,18 @@ public:
                 std::function<void()>&& task);
 
     /**
-     * @brief Submits a new task to the ThreadPool to be queued and then executed.
+     * Submits a new task to the ThreadPool to be queued and then executed.
      *
-     * @param task The Reaction task to be executed in the thread pool
-     * @param immediate if this task should run immediately in the current thread
+     * @param task      The Reaction task to be executed in the thread pool
+     * @param immediate If this task should run immediately in the current thread
      */
     void submit(std::unique_ptr<threading::ReactionTask>&& task, const bool& immediate = false) noexcept;
 
     /**
-     * @brief Log a message through NUClear's system.
+     * Log a message through NUClear's system.
      *
-     * @details
-     *  Logs a message through the system so the various log handlers
-     *  can access it. The arguments being logged should be able to
-     *  be added into a stringstream.
+     * Logs a message through the system so the various log handlers can access it.
+     * The arguments being logged should be able to be added into a stringstream.
      *
      * @tparam level     The level to log at (defaults to DEBUG)
      * @tparam Arguments The types of the arguments we are logging
@@ -199,10 +192,9 @@ public:
     static void log(Arguments&&... args);
 
     /**
-     * @brief Emits data to the system and routes it to the other systems that use it.
+     * Emits data to the system and routes it to the other systems that use it.
      *
-     * @details
-     *  Emits at Local scope which creates tasks using the thread pool.
+     * Emits at Local scope which creates tasks using the thread pool.
      *
      * @see NUClear::dsl::word::emit::Local for info about Local scope.
      *
@@ -216,23 +208,24 @@ public:
     void emit(std::unique_ptr<T>& data);
 
     /**
-     * @brief Emits data to the system and routes it to the other systems that use it.
+     * Emits data to the system and routes it to the other systems that use it.
      *
-     * @details
-     *  This is for the special case of emitting a shared_ptr. The types are Fused and the reaction is started. If the
-     *  Fusion fails, a static_assert fails.
+     * This is for the special case of emitting a shared_ptr.
+     * The types are Fused and the reaction is started.
+     * If the Fusion fails, a static_assert fails.
      *
-     * @note Emitting shared data can be helpful for forwarding data which has already been emitted and forwarding it on
-     * to external parties, without needing to copy it.
+     * @note
+     *  Emitting shared data can be helpful for forwarding data which has already been emitted and forwarding it on to
+     *  external parties, without needing to copy it.
      *
      * @see NUClear::util::FunctionFusion
      *
      * @warning This shouldn't be used without a specific reason - usually forwarding data.
      *
-     * @tparam First        The first handler to use for this emit
-     * @tparam Remainder    The remaining handlers to use for this emit
-     * @tparam T            The type of the data that we are emitting
-     * @tparam Arguments    The additional arguments that will be provided to the handlers
+     * @tparam First     The first handler to use for this emit
+     * @tparam Remainder The remaining handlers to use for this emit
+     * @tparam T         The type of the data that we are emitting
+     * @tparam Arguments The additional arguments that will be provided to the handlers
      *
      * @param data The data we are emitting
      */
@@ -264,18 +257,18 @@ public:
     void emit(Arguments&&... args);
 
 private:
-    /// @brief A list of tasks that must be run when the powerplant starts up
+    /// A list of tasks that must be run when the powerplant starts up
     std::vector<std::function<void()>> tasks;
-    /// @brief Our TaskScheduler that handles distributing task to the pool threads
+    /// Our TaskScheduler that handles distributing task to the pool threads
     threading::TaskScheduler scheduler;
-    /// @brief Our vector of Reactors, will get destructed when this vector is
+    /// Our vector of Reactors, will get destructed when this vector is
     std::vector<std::unique_ptr<NUClear::Reactor>> reactors;
-    /// @brief True if the powerplant is running
+    /// True if the powerplant is running
     std::atomic<bool> is_running{false};
 };
 
 /**
- * @brief This free floating log function can be called from anywhere and will use the singleton PowerPlant
+ * This free floating log function can be called from anywhere and will use the singleton PowerPlant.
  *
  * @see NUClear::PowerPlant::log()
  *

@@ -31,15 +31,15 @@ namespace NUClear {
 namespace util {
 
     /**
-     * @brief The simplest and fastest map format, It stores a single value and returns it when requested later.
+     * The simplest and fastest map format, It stores a single value and returns it when requested later.
      *
-     * @details
-     *  This map stores a single value in it's store when the set function is called, and when get is later called
-     *  this object will be returned. This map is accessed by template parameters, because of this when the compiler
-     *  compiles this map. It can resolve each of the map accesses into a direct function call. This allows the map to
-     *  be looked up at compile time and optimized to very efficient code. There are several variations of the Map
-     *  provided through the MapType parameter the operation of each of these is described in their individual
-     *  documentation.
+     * This map stores a single value in it's store when the set function is called, and when get is later called this
+     * object will be returned.
+     * This map is accessed by template parameters, because of this when the compiler compiles this map.
+     * It can resolve each of the map accesses into a direct function call.
+     * This allows the map to be looked up at compile time and optimized to very efficient code.
+     * There are several variations of the Map provided through the MapType parameter the operation of each of these is
+     * described in their individual documentation.
      *
      * @attention
      *  Note that because this is an entirely static class, if two maps with the same MapID are used, they access the
@@ -48,7 +48,7 @@ namespace util {
     template <typename MapID, typename Key, typename Value>
     class TypeMap {
     public:
-        /// @brief Deleted rule-of-five as this class is a static class.
+        /// Deleted rule-of-five as this class is a static class.
         TypeMap()                                       = delete;
         virtual ~TypeMap()                              = delete;
         TypeMap(const TypeMap& /*other*/)               = delete;
@@ -57,15 +57,15 @@ namespace util {
         TypeMap operator=(TypeMap&& /*other*/) noexcept = delete;
 
     private:
-        /// @brief the data variable where the data is stored for this map key.
+        /// The data variable where the data is stored for this map key.
         static std::shared_ptr<Value> data;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
         static std::mutex mutex;             // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
     public:
         /**
-         * @brief Stores the passed value in this map.
+         * Stores the passed value in this map.
          *
-         * @param d a pointer to the data to be stored (the map takes ownership)
+         * @param d A pointer to the data to be stored (the map takes ownership)
          */
         static void set(std::shared_ptr<Value> d) {
 
@@ -78,9 +78,9 @@ namespace util {
         }
 
         /**
-         * @brief Gets the value that was previously stored.
+         * Gets the value that was previously stored.
          *
-         * @return a shared_ptr to the data that was previously stored
+         * @return A shared_ptr to the data that was previously stored
          */
         static std::shared_ptr<Value> get() {
 

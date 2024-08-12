@@ -40,28 +40,26 @@ namespace dsl {
     namespace word {
 
         /**
-         * @brief
-         *  This allows a reaction to be triggered based on UDP activity originating from external sources, or UDP
-         *  emissions within the system.
+         * This allows a reaction to be triggered based on UDP activity originating from external sources, or UDP
+         * emissions within the system.
          *
-         * @details
-         *  @code on<UDP>(port) @endcode
-         *  When a connection is identified on the assigned port, the associated reaction will be triggered.  The
-         *  request for a UDP based reaction can use a runtime argument to reference a specific port.  Note that the
-         *  port reference can be changed during the systems execution phase.
+         * @code on<UDP>(port) @endcode
+         * When a connection is identified on the assigned port, the associated reaction will be triggered.
+         * The request for a UDP based reaction can use a runtime argument to reference a specific port.
+         * Note that the port reference cannot be changed during the systems execution phase.
          *
          * @code on<UDP>(port, bind_address) @endcode
-         *  The `bind_address` parameter can be used to specify which interface to bind on. If `bind_address` is an
-         * empty string, the system will bind to any available interface.
+         * The `bind_address` parameter can be used to specify which interface to bind on.
+         * If `bind_address` is an empty string, the system will bind to any available interface.
          *
-         *  @code on<UDP>() @endcode
-         *  Should the port reference be omitted, then the system will bind to a currently unassigned port.
+         * @code on<UDP>() @endcode
+         * Should the port reference be omitted, then the system will bind to a currently unassigned port.
          *
-         *  @code on<UDP:Broadcast>(port)
-         *  on<UDP:Multicast>(multicast_address, port) @endcode
-         *  If needed, this trigger can also listen for UDP activity such as broadcast and multicast.
+         * @code on<UDP:Broadcast>(port)
+         * on<UDP:Multicast>(multicast_address, port) @endcode
+         * If needed, this trigger can also listen for UDP activity such as broadcast and multicast.
          *
-         *  These requests support both IPv4 and IPv6 addressing.
+         * These requests support both IPv4 and IPv6 addressing.
          *
          * @par Implements
          *  Bind
@@ -69,32 +67,32 @@ namespace dsl {
         struct UDP : public IO {
         private:
             /**
-             * @brief This structure is used to configure the UDP connection
+             * This structure is used to configure the UDP connection
              */
             struct ConnectOptions {
-                /// @brief The type of connection we are making
+                /// The type of connection we are making
                 enum class Type { UNICAST, BROADCAST, MULTICAST };
-                /// @brief The type of connection we are making
+                /// The type of connection we are making
                 Type type{};
-                /// @brief The address we are binding to or empty for any
+                /// The address we are binding to or empty for any
                 std::string bind_address{};
-                /// @brief The port we are binding to or 0 for any
+                /// The port we are binding to or 0 for any
                 in_port_t port = 0;
-                /// @brief The multicast address we are listening on or empty for any
+                /// The multicast address we are listening on or empty for any
                 std::string target_address{};
             };
 
             /**
-             * @brief This structure is used to return the result of a recvmsg call
+             * This structure is used to return the result of a recvmsg call
              */
             struct RecvResult {
-                /// @brief If the packet is valid
+                /// If the packet is valid
                 bool valid{false};
-                /// @brief The data that was received
+                /// The data that was received
                 std::vector<uint8_t> payload{};
-                /// @brief The local address that the packet was received on
+                /// The local address that the packet was received on
                 util::network::sock_t local{};
-                /// @brief The remote address that the packet was received from
+                /// The remote address that the packet was received from
                 util::network::sock_t remote{};
             };
 
@@ -102,29 +100,29 @@ namespace dsl {
             struct Packet {
                 Packet() = default;
 
-                /// @brief If the packet is valid (it contains data)
+                /// If the packet is valid (it contains data)
                 bool valid{false};
 
                 struct Target {
                     Target() = default;
                     Target(std::string address, const uint16_t& port) : address(std::move(address)), port(port) {}
 
-                    /// @brief The address of the target
+                    /// The address of the target
                     std::string address{};
-                    /// @brief The port of the target
+                    /// The port of the target
                     uint16_t port{0};
                 };
 
-                /// @brief The information about this packets destination
+                /// The information about this packets destination
                 Target local;
-                /// @brief The information about this packets source
+                /// The information about this packets source
                 Target remote;
 
-                /// @brief The data to be sent in the packet
+                /// The data to be sent in the packet
                 std::vector<uint8_t> payload{};
 
                 /**
-                 * @brief Casts this packet to a boolean to check if it is valid
+                 * Casts this packet to a boolean to check if it is valid
                  *
                  * @return true if the packet is valid
                  */

@@ -28,7 +28,7 @@
 // This namespace is named to make things consistent with the reaction statistics test
 namespace stats_test {
 
-/// @brief Events that occur during the test
+/// Events that occur during the test
 std::vector<std::string> events;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
 template <int id>

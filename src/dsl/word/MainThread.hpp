@@ -31,12 +31,11 @@ namespace dsl {
     namespace word {
 
         /**
-         * @brief
-         *  This is used to specify that the associated task will need to execute using the main thread.
+         * This is used to specify that the associated task will need to execute using the main thread.
          *
-         * @details
-         *  @code on<Trigger<T, ...>, MainThread>() @endcode
-         *  This will most likely be used with graphics related tasks.
+         * @code on<Trigger<T, ...>, MainThread>() @endcode
+         * This can be used with graphics related tasks.
+         * For example, OpenGL requires all calls to be made from the main thread.
          */
         struct MainThread {
 

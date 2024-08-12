@@ -40,11 +40,11 @@ namespace extension {
     namespace network {
 
         /**
-         * @brief Read a single packet from the given udp file descriptor
+         * Read a single packet from the given udp file descriptor.
          *
-         * @param fd the file descriptor to read from
+         * @param fd The file descriptor to read from
          *
-         * @return the data and who it was sent from
+         * @return The data and who it was sent from
          */
         std::pair<util::network::sock_t, std::vector<uint8_t>> read_socket(fd_t fd) {
 

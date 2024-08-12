@@ -156,11 +156,11 @@ The template is used to have multiple static contexts.
 
         using task_ptr = std::unique_ptr<threading::ReactionTask>;
 
-        /// @brief our queue which sorts tasks by priority
+        /// our queue which sorts tasks by priority
         static std::priority_queue<task_ptr> queue;
-        /// @brief how many tasks are currently running
+        /// how many tasks are currently running
         static volatile bool running;
-        /// @brief a mutex to ensure data consistency
+        /// a mutex to ensure data consistency
         static std::mutex mutex;
 
 Now we define the `reschedule` to interrupt any new tasks if we are currently running. Recall that NUClear is
@@ -218,4 +218,3 @@ We need to instantiate our static members outside the class definition.
 
     template <typename SyncGroup>
     std::mutex Sync<SyncGroup>::mutex;
-

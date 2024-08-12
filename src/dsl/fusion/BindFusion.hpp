@@ -33,7 +33,7 @@ namespace dsl {
     namespace fusion {
 
         /**
-         * @brief This is our Function Fusion wrapper class that allows it to call bind functions
+         * This is our Function Fusion wrapper class that allows it to call bind functions.
          *
          * @tparam Function the bind function that we are wrapping for
          * @tparam DSL      the DSL that we pass to our bind function
@@ -42,7 +42,8 @@ namespace dsl {
         struct BindCaller {
 
             /**
-             * @brief This struct is used if there is a return type. It just passes the returned data back up.
+             * This struct is used if there is a return type.
+             * It just passes the returned data back up.
              *
              * @return the data that is returned by the bind call
              */
@@ -54,8 +55,8 @@ namespace dsl {
             };
 
             /**
-             * @brief This struct is used if the return type of the bind function is void. It wraps it into an empty
-             * tuple instead.
+             * This struct is used if the return type of the bind function is void.
+             * It wraps it into an empty tuple instead.
              *
              * @return an empty tuple
              */
@@ -89,11 +90,11 @@ namespace dsl {
         struct BindWords;
 
         /**
-         * @brief Metafunction that extracts all of the Words with a bind function
+         * Metafunction that extracts all of the Words with a bind function.
          *
-         * @tparam Word1        The word we are looking at
-         * @tparam WordN        The words we have yet to look at
-         * @tparam FoundWords   The words we have found with bind functions
+         * @tparam Word1      The word we are looking at
+         * @tparam WordN      The words we have yet to look at
+         * @tparam FoundWords The words we have found with bind functions
          */
         template <typename Word1, typename... WordN, typename... FoundWords>
         struct BindWords<std::tuple<Word1, WordN...>, std::tuple<FoundWords...>>
@@ -102,7 +103,7 @@ namespace dsl {
                                         /*F*/ BindWords<std::tuple<WordN...>, std::tuple<FoundWords...>>> {};
 
         /**
-         * @brief Termination case for the BindWords metafunction
+         * Termination case for the BindWords metafunction
          *
          * @tparam FoundWords The words we have found with bind functions
          */
