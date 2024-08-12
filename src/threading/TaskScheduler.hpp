@@ -280,19 +280,19 @@ namespace threading {
         std::atomic<bool> started{false};
 
         /// A map of group ids to the number of active tasks currently running in that group
-        std::map<NUClear::id_t, size_t> groups{};
+        std::map<NUClear::id_t, size_t> groups;
         /// Mutex for the group map
         std::mutex group_mutex;
 
         /// Mutex for the idle tasks
         std::mutex idle_mutex;
         /// Global idle tasks to be executed when no other tasks are running
-        std::map<NUClear::id_t, std::function<void()>> idle_tasks{};
+        std::map<NUClear::id_t, std::function<void()>> idle_tasks;
         /// The total number of threads that have runnable tasks
         std::atomic<size_t> global_runnable_tasks{0};
 
         /// A map of pool descriptor ids to pool descriptors
-        std::map<NUClear::id_t, std::shared_ptr<PoolQueue>> pool_queues{};
+        std::map<NUClear::id_t, std::shared_ptr<PoolQueue>> pool_queues;
         /// A mutex for when we are modifying the pool_queues map
         std::mutex pool_mutex;
         /// A pointer to the pool_queue for the current thread so it does not have to access via the map

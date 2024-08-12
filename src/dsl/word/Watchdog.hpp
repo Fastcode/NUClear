@@ -203,7 +203,7 @@ namespace dsl {
              * @param data the runtime argument for the current watchdog in the WatchdogGroup/RuntimeType group
              */
             template <typename DSL, typename RuntimeType>
-            static inline void bind(const std::shared_ptr<threading::Reaction>& reaction, const RuntimeType& data) {
+            static void bind(const std::shared_ptr<threading::Reaction>& reaction, const RuntimeType& data) {
 
                 // Make sure the store is initialised
                 WatchdogDataStore<WatchdogGroup, RuntimeType>::init(data);
@@ -230,7 +230,7 @@ namespace dsl {
              * Binder for Watchdog reactions with no runtime argument.
              */
             template <typename DSL>
-            static inline void bind(const std::shared_ptr<threading::Reaction>& reaction) {
+            static void bind(const std::shared_ptr<threading::Reaction>& reaction) {
 
                 // Make sure the store is initialised
                 WatchdogDataStore<WatchdogGroup>::init();

@@ -93,9 +93,9 @@ namespace dsl {
             };
 
             template <typename DSL>
-            static inline std::tuple<in_port_t, fd_t> bind(const std::shared_ptr<threading::Reaction>& reaction,
-                                                           in_port_t port                  = 0,
-                                                           const std::string& bind_address = "") {
+            static std::tuple<in_port_t, fd_t> bind(const std::shared_ptr<threading::Reaction>& reaction,
+                                                    in_port_t port                  = 0,
+                                                    const std::string& bind_address = "") {
 
                 // Resolve the bind address if we have one
                 util::network::sock_t address{};
@@ -161,7 +161,7 @@ namespace dsl {
             }
 
             template <typename DSL>
-            static inline Connection get(threading::Reaction& reaction) {
+            static Connection get(threading::Reaction& reaction) {
 
                 // Get our file descriptor from the magic cache
                 auto event = IO::get<DSL>(reaction);

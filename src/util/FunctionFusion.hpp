@@ -95,7 +95,7 @@ namespace util {
      */
     template <int Shared, typename... Arguments>
     struct FunctionFusionCaller<std::tuple<>, Shared, std::tuple<>, std::tuple<Arguments...>> {
-        static inline std::tuple<> call(Arguments&&... /*args*/) {
+        static std::tuple<> call(Arguments&&... /*args*/) {
             return {};
         }
     };
@@ -137,7 +137,7 @@ namespace util {
          * @return the result of calling this specific function
          */
         template <typename Function, int Start, int End>
-        static inline auto call_one(const Sequence<Start, End>& /*e*/, Arguments&&... args)
+        static auto call_one(const Sequence<Start, End>& /*e*/, Arguments&&... args)
             -> decltype(apply_function_fusion_call<Function, Shared, Start, End>(std::forward_as_tuple(args...))) {
 
             return apply_function_fusion_call<Function, Shared, Start, End>(std::forward_as_tuple(args...));
@@ -168,7 +168,7 @@ namespace util {
          * @return A tuple of the returned values, or if the return value was a tuple fuse it
          */
         template <typename... Args>
-        static inline auto call(Args&&... args)
+        static auto call(Args&&... args)
             -> decltype(std::tuple_cat(tuplify(call_one<CurrentFunction>(CurrentRange(), std::forward<Args>(args)...)),
                                        NextStep::call(std::forward<Args>(args)...))) {
 

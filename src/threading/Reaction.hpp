@@ -72,7 +72,7 @@ namespace threading {
          *
          * @return a unique_ptr to a Task which has the data for it's call bound into it
          */
-        inline std::unique_ptr<ReactionTask> get_task() {
+        std::unique_ptr<ReactionTask> get_task() {
 
             // If we are not enabled, don't run
             if (!enabled) {

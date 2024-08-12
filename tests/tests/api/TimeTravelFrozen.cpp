@@ -64,7 +64,7 @@ public:
     double rtf = 1.0;
 
     // Events
-    std::vector<std::string> events = {};
+    std::vector<std::string> events;
 };
 
 }  // anonymous namespace

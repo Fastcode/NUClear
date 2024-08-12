@@ -59,7 +59,7 @@ namespace extension {
                 std::vector<uint8_t> p(std::move(payload));
 
                 // Store in our thread local cache
-                dsl::store::ThreadStore<std::vector<uint8_t>>::value        = &p;
+                dsl::store::ThreadStore<std::vector<uint8_t>>::value     = &p;
                 dsl::store::ThreadStore<dsl::word::NetworkSource>::value = &src;
 
                 /* Mutex Scope */ {
@@ -76,7 +76,7 @@ namespace extension {
                 }
 
                 // Clear our cache
-                dsl::store::ThreadStore<std::vector<uint8_t>>::value        = nullptr;
+                dsl::store::ThreadStore<std::vector<uint8_t>>::value     = nullptr;
                 dsl::store::ThreadStore<dsl::word::NetworkSource>::value = nullptr;
             });
 
@@ -165,17 +165,17 @@ namespace extension {
 
     private:
         /// Our NUClearNetwork object that handles the networking
-        network::NUClearNetwork network{};
+        network::NUClearNetwork network;
 
         /// The reaction that handles timed events from the network
-        ReactionHandle process_handle{};
+        ReactionHandle process_handle;
         /// The reactions that listen for io
-        std::vector<ReactionHandle> listen_handles{};
+        std::vector<ReactionHandle> listen_handles;
 
         /// Mutex to guard the list of reactions
         std::mutex reaction_mutex;
         /// Map of type hashes to reactions that are interested in them
-        std::multimap<uint64_t, std::shared_ptr<threading::Reaction>> reactions{};
+        std::multimap<uint64_t, std::shared_ptr<threading::Reaction>> reactions;
     };
 
 }  // namespace extension

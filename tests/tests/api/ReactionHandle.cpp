@@ -63,8 +63,8 @@ public:
         });
     }
 
-    ReactionHandle a{};
-    ReactionHandle b{};
+    ReactionHandle a;
+    ReactionHandle b;
 };
 }  // namespace
 

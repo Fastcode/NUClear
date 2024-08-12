@@ -106,7 +106,7 @@ namespace threading {
          * This runs the internal data bound task and times how long the execution takes.
          * These figures can then be used in a debugging context to calculate how long callbacks are taking to run.
          */
-        inline void run() {
+        void run() {
 
             // Update our current task
             const std::shared_ptr<Task> lock(current_task, [](Task* t) { current_task = t; });
@@ -121,7 +121,7 @@ namespace threading {
          *
          * @return A new unique task id
          */
-        static inline NUClear::id_t new_task_id() {
+        static NUClear::id_t new_task_id() {
             return ++task_id_source;
         }
 

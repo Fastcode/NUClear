@@ -156,14 +156,14 @@ namespace dsl {
 
         private:
             template <typename... T, int... Index>
-            static inline auto wrap(std::tuple<T...>&& data, util::Sequence<Index...> /*s*/)
+            static auto wrap(std::tuple<T...>&& data, util::Sequence<Index...> /*s*/)
                 -> decltype(std::make_tuple(LastItemStorage<n, T>(std::move(std::get<Index>(data)))...)) {
                 return std::make_tuple(LastItemStorage<n, T>(std::move(std::get<Index>(data)))...);
             }
 
         public:
             template <typename DSL>
-            static inline auto get(threading::Reaction& reaction)
+            static auto get(threading::Reaction& reaction)
                 -> decltype(wrap(
                     Fusion<DSLWords...>::template get<DSL>(reaction),
                     util::GenerateSequence<
@@ -192,7 +192,7 @@ namespace util {
 
     template <size_t n, typename T>
     struct MergeTransients<dsl::word::LastItemStorage<n, T>> {
-        static inline bool merge(dsl::word::LastItemStorage<n, T>& t, dsl::word::LastItemStorage<n, T>& d) {
+        static bool merge(dsl::word::LastItemStorage<n, T>& t, dsl::word::LastItemStorage<n, T>& d) {
 
             // We put the contents from data into the transient storage list
             t.list.insert(t.list.end(), d.list.begin(), d.list.end());

@@ -41,7 +41,7 @@ namespace dsl {
         };
 
         struct NetworkSource {
-            std::string name{};
+            std::string name;
             util::network::sock_t address{};
             bool reliable{false};
         };
@@ -74,7 +74,7 @@ namespace dsl {
         struct Network {
 
             template <typename DSL>
-            static inline void bind(const std::shared_ptr<threading::Reaction>& reaction) {
+            static void bind(const std::shared_ptr<threading::Reaction>& reaction) {
 
                 auto task = std::make_unique<NetworkListen>();
 
@@ -89,7 +89,7 @@ namespace dsl {
             }
 
             template <typename DSL>
-            static inline std::tuple<std::shared_ptr<NetworkSource>, NetworkData<T>> get(
+            static std::tuple<std::shared_ptr<NetworkSource>, NetworkData<T>> get(
                 const threading::Reaction& /*reaction*/) {
 
                 auto* data   = store::ThreadStore<std::vector<uint8_t>>::value;

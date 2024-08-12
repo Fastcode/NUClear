@@ -98,9 +98,9 @@ inline std::string get_broadcast_addr() {
 }
 
 struct SendTarget {
-    std::string data{};
+    std::string data;
     struct Target {
-        std::string address{};
+        std::string address;
         in_port_t port = 0;
     };
     Target to{};

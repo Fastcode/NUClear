@@ -62,11 +62,11 @@ namespace extension {
                 }
 
                 /// The name of the remote target
-                std::string name{};
+                std::string name;
                 /// The socket address for the remote target
                 sock_t target{};
                 /// When we last received data from the remote target
-                std::chrono::steady_clock::time_point last_update{};
+                std::chrono::steady_clock::time_point last_update;
                 /// A list of the last n packet groups to be received
                 std::array<int, std::numeric_limits<uint8_t>::max()> recent_packets{};
                 /// An index for the recent_packets (circular buffer)
@@ -76,7 +76,7 @@ namespace extension {
                 /// Storage for fragmented packets while we build them
                 std::map<uint16_t,
                          std::pair<std::chrono::steady_clock::time_point, std::map<uint16_t, std::vector<uint8_t>>>>
-                    assemblers{};
+                    assemblers;
 
                 /// Struct storing the kalman filter for round trip time
                 struct RoundTripKF {
@@ -90,7 +90,7 @@ namespace extension {
 
                 std::chrono::steady_clock::duration round_trip_time{std::chrono::seconds(1)};
 
-                inline void measure_round_trip(std::chrono::steady_clock::duration time) {
+                void measure_round_trip(std::chrono::steady_clock::duration time) {
 
                     // Make our measurement into a float seconds type
                     const std::chrono::duration<float> m =
@@ -215,26 +215,26 @@ namespace extension {
                     PacketTarget(std::weak_ptr<NetworkTarget> target, std::vector<uint8_t> acked);
 
                     /// The target we are sending this packet to
-                    std::weak_ptr<NetworkTarget> target{};
+                    std::weak_ptr<NetworkTarget> target;
 
                     /// The bitset of the packets that have been acked
-                    std::vector<uint8_t> acked{};
+                    std::vector<uint8_t> acked;
 
                     /// When we last sent data to this client
-                    std::chrono::steady_clock::time_point last_send{};
+                    std::chrono::steady_clock::time_point last_send;
                 };
 
                 /// Default constructor for the PacketQueue
                 PacketQueue();
 
                 /// The remote targets that want this packet
-                std::list<PacketTarget> targets{};
+                std::list<PacketTarget> targets;
 
                 /// The header of the packet to send
-                DataPacket header{};
+                DataPacket header;
 
                 /// The data to send
-                std::vector<uint8_t> payload{};
+                std::vector<uint8_t> payload;
             };
 
             /**
@@ -310,7 +310,7 @@ namespace extension {
             uint16_t packet_data_mtu{1000};
 
             // Our announce packet
-            std::vector<uint8_t> announce_packet{};
+            std::vector<uint8_t> announce_packet;
 
             /// An atomic source for packet IDs to make sure they are semi unique
             std::atomic<uint16_t> packet_id_source{0};

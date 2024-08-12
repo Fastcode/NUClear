@@ -30,7 +30,7 @@ class TestReactorNoArgs : public NUClear::Reactor {
 public:
     TestReactorNoArgs(std::unique_ptr<NUClear::Environment> environment) : NUClear::Reactor(std::move(environment)) {}
 
-    std::string s{};
+    std::string s;
     bool b{false};
     uint32_t i{0};
 };
@@ -39,7 +39,7 @@ public:
     TestReactorArgs(std::unique_ptr<NUClear::Environment> environment, std::string s, const bool& b, const uint32_t& i)
         : NUClear::Reactor(std::move(environment)), s(std::move(s)), b(b), i(i) {}
 
-    std::string s{};
+    std::string s;
     bool b{false};
     uint32_t i{0};
 };

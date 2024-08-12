@@ -75,11 +75,11 @@ namespace dsl {
                 /// The type of connection we are making
                 Type type{};
                 /// The address we are binding to or empty for any
-                std::string bind_address{};
+                std::string bind_address;
                 /// The port we are binding to or 0 for any
                 in_port_t port = 0;
                 /// The multicast address we are listening on or empty for any
-                std::string target_address{};
+                std::string target_address;
             };
 
             /**
@@ -89,7 +89,7 @@ namespace dsl {
                 /// If the packet is valid
                 bool valid{false};
                 /// The data that was received
-                std::vector<uint8_t> payload{};
+                std::vector<uint8_t> payload;
                 /// The local address that the packet was received on
                 util::network::sock_t local{};
                 /// The remote address that the packet was received from
@@ -108,7 +108,7 @@ namespace dsl {
                     Target(std::string address, const uint16_t& port) : address(std::move(address)), port(port) {}
 
                     /// The address of the target
-                    std::string address{};
+                    std::string address;
                     /// The port of the target
                     uint16_t port{0};
                 };
@@ -119,7 +119,7 @@ namespace dsl {
                 Target remote;
 
                 /// The data to be sent in the packet
-                std::vector<uint8_t> payload{};
+                std::vector<uint8_t> payload;
 
                 /**
                  * Casts this packet to a boolean to check if it is valid
@@ -139,8 +139,8 @@ namespace dsl {
             };
 
             template <typename DSL>
-            static inline std::tuple<in_port_t, fd_t> connect(const std::shared_ptr<threading::Reaction>& reaction,
-                                                              const ConnectOptions& options) {
+            static std::tuple<in_port_t, fd_t> connect(const std::shared_ptr<threading::Reaction>& reaction,
+                                                       const ConnectOptions& options) {
 
                 // Resolve the addresses
                 util::network::sock_t bind_address{};
@@ -338,7 +338,7 @@ namespace dsl {
             }
 
             template <typename DSL>
-            static inline RecvResult read(threading::Reaction& reaction) {
+            static RecvResult read(threading::Reaction& reaction) {
                 // Get our file descriptor from the magic cache
                 auto event = IO::get<DSL>(reaction);
 
@@ -416,14 +416,14 @@ namespace dsl {
             }
 
             template <typename DSL>
-            static inline std::tuple<in_port_t, fd_t> bind(const std::shared_ptr<threading::Reaction>& reaction,
-                                                           const in_port_t& port           = 0,
-                                                           const std::string& bind_address = "") {
+            static std::tuple<in_port_t, fd_t> bind(const std::shared_ptr<threading::Reaction>& reaction,
+                                                    const in_port_t& port           = 0,
+                                                    const std::string& bind_address = "") {
                 return connect<DSL>(reaction, ConnectOptions{ConnectOptions::Type::UNICAST, bind_address, port, ""});
             }
 
             template <typename DSL>
-            static inline Packet get(threading::Reaction& reaction) {
+            static Packet get(threading::Reaction& reaction) {
                 RecvResult result = read<DSL>(reaction);
 
                 Packet p{};
@@ -460,15 +460,15 @@ namespace dsl {
             struct Broadcast : public IO {
 
                 template <typename DSL>
-                static inline std::tuple<in_port_t, fd_t> bind(const std::shared_ptr<threading::Reaction>& reaction,
-                                                               const in_port_t& port           = 0,
-                                                               const std::string& bind_address = "") {
+                static std::tuple<in_port_t, fd_t> bind(const std::shared_ptr<threading::Reaction>& reaction,
+                                                        const in_port_t& port           = 0,
+                                                        const std::string& bind_address = "") {
                     return UDP::connect<DSL>(reaction,
                                              ConnectOptions{ConnectOptions::Type::BROADCAST, bind_address, port, ""});
                 }
 
                 template <typename DSL>
-                static inline Packet get(threading::Reaction& reaction) {
+                static Packet get(threading::Reaction& reaction) {
                     RecvResult result = read<DSL>(reaction);
 
                     // Broadcast is only IPv4
@@ -505,17 +505,17 @@ namespace dsl {
             struct Multicast : public IO {
 
                 template <typename DSL>
-                static inline std::tuple<in_port_t, fd_t> bind(const std::shared_ptr<threading::Reaction>& reaction,
-                                                               const std::string& multicast_group,
-                                                               const in_port_t& port           = 0,
-                                                               const std::string& bind_address = "") {
+                static std::tuple<in_port_t, fd_t> bind(const std::shared_ptr<threading::Reaction>& reaction,
+                                                        const std::string& multicast_group,
+                                                        const in_port_t& port           = 0,
+                                                        const std::string& bind_address = "") {
                     return UDP::connect<DSL>(
                         reaction,
                         ConnectOptions{ConnectOptions::Type::MULTICAST, bind_address, port, multicast_group});
                 }
 
                 template <typename DSL>
-                static inline Packet get(threading::Reaction& reaction) {
+                static Packet get(threading::Reaction& reaction) {
                     RecvResult result = read<DSL>(reaction);
 
                     const auto& a = result.local;

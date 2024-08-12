@@ -43,7 +43,7 @@ namespace dsl {
         struct TypeBind {
 
             template <typename DSL>
-            static inline void bind(const std::shared_ptr<threading::Reaction>& reaction) {
+            static void bind(const std::shared_ptr<threading::Reaction>& reaction) {
 
                 // Our unbinder to remove this reaction
                 reaction->unbinders.push_back([](const threading::Reaction& r) {
@@ -69,7 +69,7 @@ namespace dsl {
         struct TypeBind<message::ReactionStatistics> {
 
             template <typename DSL>
-            static inline void bind(const std::shared_ptr<threading::Reaction>& reaction) {
+            static void bind(const std::shared_ptr<threading::Reaction>& reaction) {
 
                 // Set this reaction as no stats emitting
                 reaction->emit_stats = false;
