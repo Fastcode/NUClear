@@ -51,20 +51,20 @@ namespace util {
             return ThreadPoolDescriptor{"Invalid", NUClear::id_t(-1), -1, false};
         }
 
-        /// the name of this pool
+        /// The name of this pool
         std::string name = "Default";
 
-        /// a unique identifier for this pool
+        /// A unique identifier for this pool
         NUClear::id_t pool_id{ThreadPoolDescriptor::DEFAULT_THREAD_POOL_ID};
 
-        /// the number of threads this thread pool will use
+        /// The number of threads this thread pool will use
         int thread_count{0};
-        /// if these threads count towards system idle
+        /// If these threads count towards system idle
         bool counts_for_idle{true};
 
-        /// the ID of the main thread pool (not to be confused with the ID of the main thread)
+        /// The ID of the main thread pool (not to be confused with the ID of the main thread)
         static constexpr NUClear::id_t MAIN_THREAD_POOL_ID = 0;
-        /// the ID of the default thread pool
+        /// The ID of the default thread pool
         static constexpr NUClear::id_t DEFAULT_THREAD_POOL_ID = 1;
 
         /**

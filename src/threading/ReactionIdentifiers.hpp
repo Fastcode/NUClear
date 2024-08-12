@@ -34,12 +34,12 @@ namespace threading {
     struct ReactionIdentifiers {
 
         /**
-         * Construct a new Identifiers object
+         * Construct a new Identifiers object.
          *
-         * @param name the name of the reaction provided by the user
-         * @param reactor the name of the reactor that this reaction belongs to
-         * @param dsl the DSL that this reaction was created from
-         * @param function the callback function that this reaction is bound to
+         * @param name     The name of the reaction provided by the user
+         * @param reactor  The name of the reactor that this reaction belongs to
+         * @param dsl      The DSL that this reaction was created from
+         * @param function The callback function that this reaction is bound to
          */
         ReactionIdentifiers(std::string name, std::string reactor, std::string dsl, std::string function)
             : name(std::move(name)), reactor(std::move(reactor)), dsl(std::move(dsl)), function(std::move(function)) {}

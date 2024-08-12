@@ -39,17 +39,15 @@ namespace dsl {
         /**
          * This is used to request any continuous reactions in the system.
          *
-         *
          * @code on<Always> @endcode
-         *
          * This request will ensure a single instance of the associated reaction is running at all times.
          * That is, as one instance is completed, a new instance of the task will spawn.
          *
          * Any reactions requested using this keyword will initialise upon system start-up and execute continually
          * until system shut-down.
          *
-         * Note that a task spawned from this request will execute in its own unique thread rather than the default
-         * thread pool.
+         * @note
+         *  A task spawned from this request will execute in its own unique thread rather than the default thread pool.
          *
          * @par Infinite Loops
          *  This word should be used in place of any reactions which would contain an infinite loop. That is,
@@ -143,7 +141,7 @@ namespace dsl {
 
                 return idle_task;
             }
-        };
+        };  // namespace word
 
     }  // namespace word
 }  // namespace dsl

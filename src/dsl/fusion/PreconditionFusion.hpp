@@ -41,11 +41,11 @@ namespace dsl {
         struct PreconditionWords;
 
         /**
-         * Metafunction that extracts all of the Words with a precondition function
+         * Metafunction that extracts all of the Words with a precondition function.
          *
-         * @tparam Word1        The word we are looking at
-         * @tparam WordN        The words we have yet to look at
-         * @tparam FoundWords   The words we have found with precondition functions
+         * @tparam Word1      The word we are looking at
+         * @tparam WordN      The words we have yet to look at
+         * @tparam FoundWords The words we have found with precondition functions
          */
         template <typename Word1, typename... WordN, typename... FoundWords>
         struct PreconditionWords<std::tuple<Word1, WordN...>, std::tuple<FoundWords...>>
@@ -57,7 +57,7 @@ namespace dsl {
                   /*F*/ PreconditionWords<std::tuple<WordN...>, std::tuple<FoundWords...>>> {};
 
         /**
-         * Termination case for the PreconditionWords metafunction
+         * Termination case for the PreconditionWords metafunction.
          *
          * @tparam FoundWords The words we have found with precondition functions
          */

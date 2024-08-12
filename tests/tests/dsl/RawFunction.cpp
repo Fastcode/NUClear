@@ -42,9 +42,10 @@ struct Data {
 
 /**
  * Test a raw function that takes no arguments and has a return type.
+ *
  * The return type should be ignored and this function should run without issue.
  *
- * @return double
+ * @return A value
  */
 double raw_function_test_no_args() {
     events.push_back("Raw function no args");
@@ -54,7 +55,7 @@ double raw_function_test_no_args() {
 /**
  * Raw function that takes one argument (the left side of the trigger)
  *
- * @param msg the message
+ * @param msg The message
  */
 void raw_function_test_left_arg(const Message& msg) {
     events.push_back("Raw function left arg: " + msg.data);
@@ -63,7 +64,7 @@ void raw_function_test_left_arg(const Message& msg) {
 /**
  * Raw function that takes one argument (the right side of the trigger)
  *
- * @param data the data
+ * @param data The data
  */
 void raw_function_test_right_arg(const Data& data) {
     events.push_back("Raw function right arg: " + data.data);
@@ -72,8 +73,8 @@ void raw_function_test_right_arg(const Data& data) {
 /**
  * Raw function that takes both arguments
  *
- * @param msg  the message
- * @param data the data
+ * @param msg  The message
+ * @param data The data
  */
 void raw_function_test_both_args(const Message& msg, const Data& data) {
     events.push_back("Raw function both args: " + msg.data + " " + data.data);

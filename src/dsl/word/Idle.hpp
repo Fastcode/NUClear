@@ -54,15 +54,13 @@ namespace dsl {
          * Execute a task when there is nothing currently running on the thread pool.
          *
          * @code on<Idle<PoolType>>() @endcode
-         *
-         * When the thread pool is idle, this task will be executed. This is use
+         * When the thread pool is idle, this task will be executed.
          *
          * @par Implements
          *  Bind
          *
-         * @tparam PoolType the descriptor that was used to create the thread pool to monitor
-         *         void for the default pool
-         *         MainThread for the main thread pool
+         * @tparam PoolType The descriptor that was used to create the thread pool.
+         *                  `void` for the default pool MainThread for the main thread pool.
          */
         template <typename PoolType>
         struct Idle {

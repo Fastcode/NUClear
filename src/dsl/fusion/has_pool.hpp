@@ -31,7 +31,7 @@ namespace dsl {
     namespace fusion {
 
         /**
-         * SFINAE struct to test if the passed class has a pool function that conforms to the NUClear DSL
+         * SFINAE struct to test if the passed class has a pool function that conforms to the NUClear DSL.
          *
          * @tparam T the class to check
          */

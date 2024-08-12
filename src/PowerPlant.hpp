@@ -61,9 +61,9 @@ namespace dsl {
 /**
  * The PowerPlant is the core of a NUClear system. It holds all Reactors in it and manages their communications.
  *
- * At the centre of every NUClear system is a PowerPlant. A PowerPlant contains all of the reactors that are
- * used within the system and sets up their reactions. It is also responsible for storing information between
- * reactions and ensuring that all threading is handled appropriately.
+ * At the centre of every NUClear system is a PowerPlant.
+ * A PowerPlant contains all of the reactors that are used within the system and sets up their reactions.
+ * It is also responsible for storing information between reactions and ensuring threading is handled appropriately.
  */
 class PowerPlant {
     // Reactors and PowerPlants are very tightly linked
@@ -95,9 +95,9 @@ public:
      *
      * Arguments passed to this function will be emitted as a CommandLineArguments message.
      *
-     * @param config    The PowerPlant's configuration
-     * @param argc      The number of command line arguments
-     * @param argv      The command line argument strings
+     * @param config The PowerPlant's configuration
+     * @param argc   The number of command line arguments
+     * @param argv   The command line argument strings
      */
     // NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays)
     PowerPlant(Configuration config = Configuration(), int argc = 0, const char* argv[] = nullptr);
@@ -112,18 +112,21 @@ public:
     /**
      * Starts up the PowerPlant's components in order and begins it running.
      *
-     * Starts up the PowerPlant instance and starts all the pool threads. This method is blocking and will release when
-     * the PowerPlant shuts down. It should only be called from the main thread so that statics are not destructed.
+     * Starts up the PowerPlant instance and starts all the pool threads.
+     * This method is blocking and will release when the PowerPlant shuts down.
+     * It should only be called from the main thread so that statics are not destructed.
      */
     void start();
 
     /**
-     * Shuts down the PowerPlant, tells all component threads to terminate then releases the main thread.
+     * Shuts down the PowerPlant, tells all component threads to terminate and waits for them to finish.
      */
     void shutdown();
 
     /**
-     * Returns true if the PowerPlant is running or not intending to shut down soon. Returns false otherwise.
+     * Gets the current running state of the PowerPlant.
+     *
+     * @return `true` if the PowerPlant is running, `false` if it is shut down, or is in the process of shutting down.
      */
     bool running() const;
 
@@ -133,11 +136,11 @@ public:
      * This function constructs a new Reactor of the template type.
      * It passes the specified LogLevel in the environment of that reactor so that it can be used to filter logs.
      *
-     * @tparam T        The type of the reactor to build and install
-     * @tparam Args     The types of the extra arguments to pass to the reactor constructor
-     * @tparam level    The initial logging level for this reactor to use
+     * @tparam T     The type of the reactor to build and install
+     * @tparam Args  The types of the extra arguments to pass to the reactor constructor
+     * @tparam level The initial logging level for this reactor to use
      *
-     * @param arg       Extra arguments to pass to the reactor constructor
+     * @param arg Extra arguments to pass to the reactor constructor
      *
      * @return A reference to the installed reactor
      */
@@ -158,8 +161,8 @@ public:
      * Adds an idle task to the task scheduler.
      *
      * This function adds an idle task to the task scheduler, which will be executed when the thread pool associated
-     * with the given `pool_id` has no other tasks to execute. The `task` parameter is a Reaction from which a task will
-     * be submitted when the pool is idle.
+     * with the given `pool_id` has no other tasks to execute.
+     * The `task` parameter is a Reaction from which a task will be submitted when the pool is idle.
      *
      * @param pool_descriptor The descriptor for the thread pool to test for idle
      * @param reaction        The reaction to be executed when idle
@@ -181,8 +184,8 @@ public:
     /**
      * Submits a new task to the ThreadPool to be queued and then executed.
      *
-     * @param task The Reaction task to be executed in the thread pool
-     * @param immediate if this task should run immediately in the current thread
+     * @param task      The Reaction task to be executed in the thread pool
+     * @param immediate If this task should run immediately in the current thread
      */
     void submit(std::unique_ptr<threading::ReactionTask>&& task, const bool& immediate = false) noexcept;
 
@@ -267,20 +270,22 @@ public:
     /**
      * Emits data to the system and routes it to the other systems that use it.
      *
-     * This is for the special case of emitting a shared_ptr. The types are Fused and the reaction is started.
+     * This is for the special case of emitting a shared_ptr.
+     * The types are Fused and the reaction is started.
      * If the Fusion fails, a static_assert fails.
      *
-     * @note Emitting shared data can be helpful for forwarding data which has already been emitted and forwarding it on
-     * to external parties, without needing to copy it.
+     * @note
+     *  Emitting shared data can be helpful for forwarding data which has already been emitted and forwarding it on to
+     *  external parties, without needing to copy it.
      *
      * @see NUClear::util::FunctionFusion
      *
      * @warning This shouldn't be used without a specific reason - usually forwarding data.
      *
-     * @tparam First        The first handler to use for this emit
-     * @tparam Remainder    The remaining handlers to use for this emit
-     * @tparam T            The type of the data that we are emitting
-     * @tparam Arguments    The additional arguments that will be provided to the handlers
+     * @tparam First     The first handler to use for this emit
+     * @tparam Remainder The remaining handlers to use for this emit
+     * @tparam T         The type of the data that we are emitting
+     * @tparam Arguments The additional arguments that will be provided to the handlers
      *
      * @param data The data we are emitting
      */
@@ -335,7 +340,7 @@ public:
 };
 
 /**
- * This free floating log function can be called from anywhere and will use the singleton PowerPlant
+ * This free floating log function can be called from anywhere and will use the singleton PowerPlant.
  *
  * @see NUClear::PowerPlant::log()
  *

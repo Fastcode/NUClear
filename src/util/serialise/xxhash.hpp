@@ -48,9 +48,9 @@ namespace util {
          *
          * This function calculates the 64-bit xxHash of the input data using the specified seed value.
          *
-         * @param input Pointer to the input data.
+         * @param input  Pointer to the input data.
          * @param length Length of the input data in bytes.
-         * @param seed Seed value to use for the hash calculation. Default value is 0.
+         * @param seed   Seed value to use for the hash calculation. Default value is 0.
          *
          * @return The 64-bit xxHash of the input data.
          */

@@ -35,13 +35,13 @@ namespace util {
     /**
      * Dereferences and uses the values from the tuple as the arguments for the function call.
      *
-     * This function uses the values which are stored in the tuple and dereferences them as parameters in
-     * the callback function. It does this using the generated sequence of integers for this tuple. These
-     * values are then used to extract the function parameters in order.
-     *
-     * @param s the Sequence object which is passed in holding the int template pack
+     * This function uses the values which are stored in the tuple and dereferences them as parameters in the callback.
+     * It does this using the generated sequence of integers for this tuple.
+     * These values are then used to extract the function parameters in order.
      *
      * @tparam S the integer pack giving the ordinal position of the tuple value to get
+     *
+     * @param s the Sequence object which is passed in holding the int template pack
      */
     template <typename Function, int... S, typename... Arguments>
     void apply(Function&& function, const std::tuple<Arguments...>&& args, const Sequence<S...>& /*s*/) {

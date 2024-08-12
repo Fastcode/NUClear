@@ -35,8 +35,8 @@ namespace dsl {
          * This is used to specify that the associated task will need to execute using the main thread.
          *
          * @code on<Trigger<T, ...>, MainThread>() @endcode
-         *
-         * This will most likely be used with graphics related tasks.
+         * This can be used with graphics related tasks.
+         * For example, OpenGL requires all calls to be made from the main thread.
          */
         struct MainThread {
 

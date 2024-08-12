@@ -34,10 +34,8 @@ namespace dsl {
          * This is used to specify reactions which should occur only 1 time.
          *
          * @code on<Once>() @endcode
-         *
-         * Any reactions listed with this DSL word will run only once. This is the only time these reactions
-         * will run as the postcondition Unbinds the current reaction, after processing.
-         *
+         * Any reactions listed with this DSL word will run only once.
+         * This is the only time these reactions will run as the postcondition Unbinds the current reaction.
          */
         struct Once : public Single {
 

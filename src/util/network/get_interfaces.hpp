@@ -33,11 +33,11 @@ namespace util {
     namespace network {
 
         /**
-         * A structure that contains information about a network interface
+         * A structure that contains information about a network interface.
          */
         struct Interface {
             /// The name of the interface
-            std::string name;
+            std::string name{};
 
             /// The address that is bound to the interface
             sock_t ip{};
@@ -61,9 +61,9 @@ namespace util {
         };
 
         /**
-         * Gets a list of all the network interfaces on the system with the addresses they are bound to
+         * Gets a list of all the network interfaces on the system with the addresses they are bound to.
          *
-         * @return a list of all the interfaces on the system
+         * @return A list of all the interfaces on the system
          */
         std::vector<Interface> get_interfaces();
 

@@ -32,15 +32,16 @@ namespace dsl {
         /**
          * This is used to specify any reactions/tasks which should occur during shutdown.
          *
-         * @code  on<Shutdown>() @endcode
+         * @code on<Shutdown>() @endcode
          * Once the shutdown command has been emitted to the PowerPlant, all existing tasks within the system will
          * complete their processing as per their current place in the queue.
          *
-         * Any reactions listed with this keyword will then be queued and processed.  Tasks in this queue are ordered
-         * based on their priority level, then their emission timestamp.
+         * Any reactions listed with this keyword will then be queued and processed.
+         * Tasks in this queue are ordered based on their priority level, then their emission timestamp.
          *
          * After the shutdown event is triggered, any other reactions/events which would normally occur based on
-         * system emissions will not be processed. That is, all tasks baring the shutdown tasks will be ignored.
+         * system emissions will not be processed.
+         * That is, all tasks baring the shutdown tasks will be ignored.
          *
          * Once all Shutdown tasks have finished processing, the system will terminate.
          *

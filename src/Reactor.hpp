@@ -134,8 +134,10 @@ namespace dsl {
 /**
  * Base class for any system that wants to react to events/data from the rest of the system.
  *
- * Provides functionality for binding callbacks to incoming data events. Callbacks are executed
- * in a transparent, multithreaded manner. TODO needs to be expanded and updated
+ * Provides functionality for binding callbacks to incoming data events.
+ * Callbacks are executed in a transparent, multithreaded manner.
+ *
+ * TODO needs to be expanded and updated.
  */
 class Reactor {
 public:
@@ -172,8 +174,8 @@ protected:
 
     /***************************************************************************************************************
      * The types here are imported from other contexts so that when extending from the Reactor type in normal      *
-     * usage there does not need to be any namespace declarations on the used types. This affords a simpler API    *
-     * for the user.                                                                                               *
+     * usage there does not need to be any namespace declarations on the used types.                               *
+     * This affords a simpler API for the user.                                                                    *
      **************************************************************************************************************/
 
     /// @copydoc dsl::word::Trigger
@@ -358,8 +360,8 @@ public:
     /**
      * The on function is the method used to create a reaction in the NUClear system.
      *
-     * This function is used to create a Reaction in the system. By providing the correct template parameters, this
-     * function can modify how and when this reaction runs.
+     * This function is used to create a Reaction in the system.
+     * By providing the correct template parameters, this function can modify how and when this reaction runs.
      *
      * @tparam DSL          The NUClear domain specific language information
      * @tparam Arguments    The types of the arguments passed into the function
@@ -381,8 +383,8 @@ public:
      * Emits data into the system so that other reactors can use it.
      *
      * This function emits data to the rest of the system so that it can be used.
-     * This results in it being the new data used when a with is used, and triggering
-     * any reaction that is set to be triggered on this data type.
+     * This results in it being the new data used when a with is used, and triggering any reaction that is set to be
+     * triggered on this data type.
      *
      * @tparam Handlers The handlers for this emit (e.g. LOCAL, NETWORK etc)
      * @tparam T        The type of the data we are emitting, for some handlers (e.g. WATCHDOG) this is optional

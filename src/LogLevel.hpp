@@ -58,8 +58,8 @@ enum LogLevel : uint8_t {
      * Debug contains messages that represent the inputs and outputs of different computation units.
      *
      * If you have a function that performs three steps to do something then it's likely that you will have a message
-     * for the input and output of those three steps. Additionally you would likely have messages that check if it hit
-     * different branches.
+     * for the input and output of those three steps.
+     * Additionally you would likely have messages that check if it hit different branches.
      */
     DEBUG,
 
@@ -75,17 +75,16 @@ enum LogLevel : uint8_t {
      * The warning level is used to notify us that everything might not be working perfectly.
      *
      * Warnings are errors or inconsistencies that aren't fatal and generally do not completely break the system.
-     * However a warning message should require action from someone and should point to a section of the system that
-     * needs attention.
+     * However a warning message should require action and should point to a section of the system that needs attention.
      */
     WARN,
 
     /**
      * The error level is used to report unexpected behavior.
-     *
+
      * This level doesn't need to prefix a program-crashing issue but should be used to report major unexpected branches
-     * in logic or other constraint breaking problems such as failed assertions. All errors should require action from
-     * someone and should be addressed immediately.
+     * in logic or other constraint breaking problems such as failed assertions.
+     * All errors should require action from someone and should be addressed immediately.
      */
     ERROR,
 
@@ -93,8 +92,8 @@ enum LogLevel : uint8_t {
      * Fatal is a program destroying error that needs to be addressed immediately.
      *
      * If a fatal message is sent it should point to something that should never ever happen and ideally provide as much
-     * information as possible as to why it crashed. Fatal messages require action immediately and should always be
-     * addressed.
+     * information as possible as to why it crashed.
+     * Fatal messages require action immediately and should always be addressed.
      */
     FATAL
 };

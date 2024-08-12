@@ -44,7 +44,7 @@ namespace extension {
         enum Type : uint8_t { ANNOUNCE = 1, LEAVE = 2, DATA = 3, DATA_RETRANSMISSION = 4, ACK = 5, NACK = 6 };
 
         /**
-         * The header that is sent with every packet
+         * The header that is sent with every packet.
          */
         PACK(struct PacketHeader {
             explicit PacketHeader(const Type& t) : type(t) {}

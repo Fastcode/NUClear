@@ -37,12 +37,12 @@ namespace message {
     struct LogMessage {
 
         /**
-         * Construct a new Log Message object
+         * Construct a new Log Message object.
          *
-         * @param level          the logging level of the log
-         * @param display_level  the logging level of the reactor that made this log
-         * @param message        the string contents of the message
-         * @param task           the statistics for the currently executing task or nullptr if not in a task
+         * @param level         The logging level of the log
+         * @param display_level The logging level of the reactor that made this log
+         * @param message       The string contents of the message
+         * @param task          The currently executing task that made this message or nullptr if not in a task
          */
         LogMessage(const LogLevel& level,
                    const LogLevel& display_level,
@@ -50,17 +50,17 @@ namespace message {
                    std::shared_ptr<const ReactionStatistics> task)
             : level(level), display_level(display_level), message(std::move(message)), task(std::move(task)) {}
 
-        /// The logging level of the log.
+        /// The logging level of the log
         LogLevel level{};
 
-        /// The logging level of the reactor that made the log (the level to display at).
+        /// The logging level of the reactor that made the log (the level to display at)
         LogLevel display_level{};
 
-        /// The string contents of the message.
-        std::string message;
+        /// The string contents of the message
+        std::string message{};
 
         /// The currently executing task that made this message
-        std::shared_ptr<const ReactionStatistics> task{nullptr};
+        const std::shared_ptr<ReactionStatistics> task{nullptr};
     };
 
 }  // namespace message

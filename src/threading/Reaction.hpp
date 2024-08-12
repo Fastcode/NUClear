@@ -42,11 +42,12 @@ namespace threading {
     struct ReactionIdentifiers;
 
     /**
-     * This class holds the definition of a Reaction (call signature).
+     * This class holds the definition of a Reaction.
      *
-     * A reaction holds the information about a callback. It holds the options as to how to process it in the scheduler.
-     * It also holds a function which is used to generate data-bound Task objects.
-     * I.e. callback with the function arguments already loaded and ready to run.
+     * A reaction holds the information about a callback.
+     * It holds the options as to how to process it in the scheduler.
+     * It also holds a function which is used to generate databound Task objects.
+     * i.e. callback with the function arguments already loaded and ready to run.
      */
     class Reaction : public std::enable_shared_from_this<Reaction> {
         // Reaction handles are given to user code to enable and disable the reaction
@@ -58,11 +59,11 @@ namespace threading {
         using TaskGenerator = std::function<std::unique_ptr<ReactionTask>(const std::shared_ptr<Reaction>&)>;
 
         /**
-         * Constructs a new Reaction with the passed callback generator and options
+         * Constructs a new Reaction with the passed callback generator and options.
          *
-         * @param reactor        the reactor this belongs to
-         * @param identifiers    string identification information for the reaction
-         * @param callback       the callback generator function (creates data-bound callbacks)
+         * @param reactor     The reactor this belongs to
+         * @param identifiers String identification information for the reaction
+         * @param callback    The callback generator function (creates databound callbacks)
          */
         Reaction(Reactor& reactor, ReactionIdentifiers&& identifiers, TaskGenerator&& generator);
 
@@ -76,7 +77,7 @@ namespace threading {
         ~Reaction();
 
         /**
-         * creates a new data-bound callback task that can be executed.
+         * Creates a new databound callback task that can be executed.
          *
          * @return a unique_ptr to a Task which has the data for it's call bound into it
          */

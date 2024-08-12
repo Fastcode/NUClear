@@ -41,11 +41,11 @@ namespace dsl {
         struct PostconditionWords;
 
         /**
-         * Metafunction that extracts all of the Words with a postcondition function
+         * Metafunction that extracts all of the Words with a postcondition function.
          *
-         * @tparam Word1        The word we are looking at
-         * @tparam WordN        The words we have yet to look at
-         * @tparam FoundWords   The words we have found with postcondition functions
+         * @tparam Word1      The word we are looking at
+         * @tparam WordN      The words we have yet to look at
+         * @tparam FoundWords The words we have found with postcondition functions
          */
         template <typename Word1, typename... WordN, typename... FoundWords>
         struct PostconditionWords<std::tuple<Word1, WordN...>, std::tuple<FoundWords...>>
@@ -57,7 +57,7 @@ namespace dsl {
                   /*F*/ PostconditionWords<std::tuple<WordN...>, std::tuple<FoundWords...>>> {};
 
         /**
-         * Termination case for the PostconditionWords metafunction
+         * Termination case for the PostconditionWords metafunction.
          *
          * @tparam PostconditionWords The words we have found with postcondition functions
          */

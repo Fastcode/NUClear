@@ -156,11 +156,11 @@ The template is used to have multiple static contexts.
 
         using task_ptr = std::unique_ptr<threading::ReactionTask>;
 
-        /// our queue which sorts tasks by priority
+        /// Our queue which sorts tasks by priority
         static std::priority_queue<task_ptr> queue;
-        /// how many tasks are currently running
+        /// How many tasks are currently running
         static volatile bool running;
-        /// a mutex to ensure data consistency
+        /// A mutex to ensure data consistency
         static std::mutex mutex;
 
 Now we define the `reschedule` to interrupt any new tasks if we are currently running. Recall that NUClear is

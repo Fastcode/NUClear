@@ -45,11 +45,11 @@ namespace dsl {
         struct GroupWords;
 
         /**
-         * Metafunction that extracts all of the Words with a group function
+         * Metafunction that extracts all of the Words with a group function.
          *
-         * @tparam Word1        The word we are looking at
-         * @tparam WordN        The words we have yet to look at
-         * @tparam FoundWords   The words we have found with group functions
+         * @tparam Word1      The word we are looking at
+         * @tparam WordN      The words we have yet to look at
+         * @tparam FoundWords The words we have found with group functions
          */
         template <typename Word1, typename... WordN, typename... FoundWords>
         struct GroupWords<std::tuple<Word1, WordN...>, std::tuple<FoundWords...>>
@@ -59,7 +59,7 @@ namespace dsl {
                   /*F*/ GroupWords<std::tuple<WordN...>, std::tuple<FoundWords...>>> {};
 
         /**
-         * Termination case for the GroupWords metafunction
+         * Termination case for the GroupWords metafunction.
          *
          * @tparam FoundWords The words we have found with group functions
          */

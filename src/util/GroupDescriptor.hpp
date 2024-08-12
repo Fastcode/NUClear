@@ -34,7 +34,7 @@ namespace NUClear {
 namespace util {
 
     /**
-     * A description of a group
+     * A description of a group.
      */
     struct GroupDescriptor {
         /// a unique identifier for this pool

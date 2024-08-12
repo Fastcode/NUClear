@@ -55,22 +55,20 @@ namespace dsl {
          * NUClear provides a networking protocol to send messages to other devices on the network.
          *
          * @code on<Network<T>>() @endcode
-         *
-         * This request can be used to make a multi-processed NUClear instance, or communicate with other programs
-         * running NUClear.  Note that the serialization and deserialization is handled by NUClear.
+         * This request can be used to communicate with other programs running NUClear.
+         * Note that the serialization and deserialization is handled by NUClear.
          *
          * When the reaction is triggered, read-only access to T will be provided to the triggering unit via a callback.
          *
          * @attention
          *  When using an on<Network<T>> request, the associated reaction will only be triggered when T is emitted to
-         *  the system using the emission Scope::NETWORK.  Should T be emitted to the system under any other scope, this
-         *  reaction will not be triggered.
+         *  the system using the emission Scope::NETWORK.
+         *  Should T be emitted to the system under any other scope, this reaction will not be triggered.
          *
          * @par Implements
          *  Bind, Get
          *
-         * @tparam T
-         *  the datatype on which the reaction callback will be triggered.
+         * @tparam T The datatype on which the reaction callback will be triggered.
          */
         template <typename T>
         struct Network {

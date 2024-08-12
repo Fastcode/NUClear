@@ -83,6 +83,7 @@ namespace util {
 
             /**
              * Rotates the bits of an integral type to the left by a given amount.
+             *
              * @note This function is only enabled for integral types.
              *
              * @tparam T The integral type to rotate.

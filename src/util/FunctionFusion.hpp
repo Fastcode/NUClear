@@ -30,20 +30,22 @@ namespace NUClear {
 namespace util {
 
     /**
-     * Applies a single set of function fusion with expanded arguments
+     * Applies a single set of function fusion with expanded arguments.
+     *
      * Calls the function held in the template type Function.
      * For the arguments it uses the parameter packs Shared and Selected to expand the passed tuple args and forward
-     * those selected arguments to the function. This function is normally called by the other overload of
-     * apply_function_fusion_call to get the expanded parameter packs.
+     * those selected arguments to the function.
+     * This function is normally called by the other overload of apply_function_fusion_call to get the expanded
+     * parameter packs.
      *
-     * @param  args     the arguments that were passed to the super-function
+     * @tparam Function  The struct that holds the call function wrapper to be called
+     * @tparam Shared    The index list of shared arguments at the start of the argument pack to use
+     * @tparam Selected  The index list of selected arguments in the argument pack to use
+     * @tparam Arguments The types of the arguments passed into the function
      *
-     * @tparam Function     the struct that holds the call function wrapper to be called
-     * @tparam Shared       the index list of shared arguments at the start of the argument pack to use
-     * @tparam Selected     the index list of selected arguments in the argument pack to use
-     * @tparam Arguments    the types of the arguments passed into the function
+     * @param  args The arguments that were passed to the superfunction
      *
-     * @return the object returned by the called subfunction
+     * @return The object returned by the called subfunction
      */
     template <typename Function, int... Shared, int... Selected, typename... Arguments>
     auto apply_function_fusion_call(const std::tuple<Arguments...>& args,
@@ -62,11 +64,11 @@ namespace util {
      *
      * @param  args     the arguments that were passed to the super-function
      *
-     * @tparam Function     the struct that holds the call function wrapper to be called
-     * @tparam Shared       the number of parameters (from 0) to use in the call
-     * @tparam Start        the index of the first argument to pass to the function
-     * @tparam End          the index of the element after the last argument to pass to the function
-     * @tparam Arguments    the types of the arguments passed into the function
+     * @tparam Function   The struct that holds the call function wrapper to be called
+     * @tparam Shared     The number of parameters (from 0) to use in the call
+     * @tparam Start      The index of the first argument to pass to the function
+     * @tparam End        The index of the element after the last argument to pass to the function
+     * @tparam Arguments  The types of the arguments passed into the function
      *
      * @return the object returned by the called subfunction
      */
@@ -86,10 +88,10 @@ namespace util {
     /**
      * Termination case for calling a function fusion.
      *
-     * Terminates by just returning an empty tuple
+     * Terminates by just returning an empty tuple.
      *
-     * @tparam Shared the number of arguments (from 0) to use in all of the calls
-     * @tparam Arguments the type of the provided arguments
+     * @tparam Shared    The number of arguments (from 0) to use in all of the calls
+     * @tparam Arguments The type of the provided arguments
      */
     template <int Shared, typename... Arguments>
     struct FunctionFusionCaller<std::tuple<>, Shared, std::tuple<>, std::tuple<Arguments...>> {
@@ -101,17 +103,17 @@ namespace util {
     };
 
     /**
-     * Used to call the result of the function fusion with the given arguments
+     * Used to call the result of the function fusion with the given arguments.
+     *
      * Provides a call function that will split the given arguments amongst the functions according to the provided
      * ranges.
      *
-     * @tparam CurrentFunction  the current function we are calling in this class
-     * @tparam Functions        the remaining functions we are going to call
-     * @tparam Shared           the number of arguments (from 0) to use in all of the calls
-     * @tparam CurrentRange     the range of arguments to use in the current call
-     * @tparam Ranges           a set of pairs of integers that describe the first and last
-     *                          argument provided to each respective function
-     * @tparam Arguments        the type of the provided arguments
+     * @tparam CurrentFunction  The current function we are calling in this class
+     * @tparam Functions        The remaining functions we are going to call
+     * @tparam Shared           The number of arguments (from 0) to use in all of the calls
+     * @tparam CurrentRange     The range of arguments to use in the current call
+     * @tparam Ranges           Pairs of integers that describe the first and last argument provided to each function
+     * @tparam Arguments        The type of the provided arguments
      */
     template <typename CurrentFunction,
               typename... Functions,
@@ -127,12 +129,12 @@ namespace util {
         /**
          * Calls a single function in the function set.
          *
-         * @param e     the range sequence providing the start and end of the relevant arguments
-         * @param args  the arguments to be used to call
+         * @tparam Function  The function that we are going to call
+         * @tparam Start     The index of the first argument to pass to the function
+         * @tparam End       The index of the element after the last argument to pass to the function
          *
-         * @tparam Function  the function that we are going to call
-         * @tparam Start     the index of the first argument to pass to the function
-         * @tparam End       the index of the element after the last argument to pass to the function
+         * @param e     The range sequence providing the start and end of the relevant arguments
+         * @param args  The arguments to be used to call
          *
          * @return the result of calling this specific function
          */
@@ -148,9 +150,9 @@ namespace util {
         /**
          * This function exists unimplemented to absorb incorrect template instantiations.
          *
-         * @param ... swallows arguments
-         *
          * @tparam typename swallows the template parameter
+         *
+         * @param '' swallows arguments
          *
          * @return ignore
          */
@@ -185,11 +187,11 @@ namespace util {
     /**
      * SFINAE test struct to see if a function is callable with the provided arguments.
      *
-     * @tparam Function  the function to be tested
-     * @tparam Shared    the number of parameters (from 0) to use in the call
-     * @tparam Start     the index of the first argument to pass to the function
-     * @tparam End       the index of the element after the last argument to pass to the function
-     * @tparam Arguments the types of the arguments passed into the function
+     * @tparam Function  The function to be tested
+     * @tparam Shared    The number of parameters (from 0) to use in the call
+     * @tparam Start     The index of the first argument to pass to the function
+     * @tparam End       The index of the element after the last argument to pass to the function
+     * @tparam Arguments The types of the arguments passed into the function
      */
     template <typename Function, int Shared, int Start, int End, typename Arguments>
     struct is_callable {
@@ -223,26 +225,25 @@ namespace util {
      * Splits arguments amongst a series of functions.
      *
      * This is the main loop for the function fusion metafunction.
-     * It will do a greedy matching of arguments with function overloads
-     * to try and make all functions callable with the given arguments.
+     * It will do a greedy matching of arguments with function overloads to try and make all functions callable with the
+     * given arguments.
      * It will share the first arguments (up to but not including Shared) across all functions.
      *
      * These functions are provided with a wrapper FunctionWrapper which is a template that takes their type and uses
-     * its ::call function to call the original functions function. This allows fusion of functions without knowing the
-     * name of the function that is being fused.
+     * its ::call function to call the original functions function.
+     * This allows fusion of functions without knowing the name of the function that is being fused.
      *
-     * @tparam CurrentFunction      the current function we are inspecting
-     * @tparam Functions            the remaining functions we are going to call
-     * @tparam Arguments            the arguments we are calling the function with
-     * @tparam FunctionWrapper      the template that is used to wrap the Function objects to be called
-     * @tparam WrapperArgs          template types to be used on the FunctionWrapper in addition to the Fuctions type.
-     *                              May be empty.
-     * @tparam Shared               the number of parameters (from 0) to use in all of the calls
-     * @tparam Start                the current attempted index of the first argument to pass to the function
-     * @tparam End                  the current attempted index of the element after the last argument to pass to the
-     *                              function
-     * @tparam ProcessedFunctions   the list of functions that have had found argument sets
-     * @tparam ArgumentRanges       the respective argument ranges for the processed functions
+     * @tparam CurrentFunction    The current function we are inspecting
+     * @tparam Functions          The remaining functions we are going to call
+     * @tparam Arguments          The arguments we are calling the function with
+     * @tparam FunctionWrapper    The template that is used to wrap the Function objects to be called
+     * @tparam WrapperArgs        Template types to be used on the FunctionWrapper in addition to the Fuctions type.
+     *                            May be empty.
+     * @tparam Shared             The number of parameters (from 0) to use in all of the calls
+     * @tparam Start              The current attempted index of the first argument to pass
+     * @tparam End                The current attempted index of the element after the last argument to pass
+     * @tparam ProcessedFunctions The list of functions that have had found argument sets
+     * @tparam ArgumentRanges     The respective argument ranges for the processed functions
      */
     template <typename CurrentFunction,
               typename... Functions,
@@ -328,8 +329,8 @@ namespace util {
      * The termination case for the FunctionFusion metafunction.
      *
      * This is the termination case for the FunctionFusion metafunction.
-     * if it reaches this point with a successful combination it will extend from the FunctionFusionCaller, otherwise it
-     * will be a false_type to indicate its failure.
+     * If it reaches this point with a successful combination it will extend from the FunctionFusionCaller.
+     * Otherwise it will be a false_type to indicate its failure.
      */
     template <typename... Arguments,
               template <typename, typename...>

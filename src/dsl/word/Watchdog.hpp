@@ -37,16 +37,15 @@ namespace dsl {
     namespace word {
 
         /**
-         * Handles the data store for the case when runtime arguments specified
+         * Handles the data store for the case when runtime arguments specified.
          *
          * @code on<Watchdog<>>(data) @endcode
          * @code emit<Scope::WATCHDOG>(data) @endcode
          *
-         * @tparam WatchdogGroup
-         *  the type/group of tasks the watchdog will track. This needs to be a declared type within the system
-         * (be it a reactor, reaction, or other type).
-         * @tparam RuntimeType
-         *  the type of the runtime argument. const/volatile specifiers are stripped from this type
+         * @tparam WatchdogGroup The type/group of tasks the watchdog will track.
+         *                       This needs to be a declared type within the system.
+         * @tparam RuntimeType   The type of the runtime argument.
+         *                       const/volatile specifiers are stripped from this type.
          */
         template <typename WatchdogGroup, typename RuntimeType = void>
         struct WatchdogDataStore {
@@ -54,7 +53,7 @@ namespace dsl {
             using WatchdogStore = util::TypeMap<WatchdogGroup, MapType, std::map<MapType, NUClear::clock::time_point>>;
 
             /**
-             * Ensures the data store is initialised correctly
+             * Ensures the data store is initialised correctly.
              *
              * @param data The runtime argument for the current watchdog in the WatchdogGroup/RuntimeType group
              */
@@ -94,21 +93,20 @@ namespace dsl {
         };
 
         /**
-         * Handles the data store for the case when no runtime arguments are specified
+         * Handles the data store for the case when no runtime arguments are specified.
          *
          * @code on<Watchdog<>>() @endcode
          * @code emit<Scope::WATCHDOG>() @endcode
          *
-         * @tparam WatchdogGroup
-         *  the type/group of tasks the watchdog will track. This needs to be a declared type within the system
-         *  (be it a reactor, reaction, or other type).
+         * @tparam WatchdogGroup The type/group of tasks the watchdog will track.
+         *                       This needs to be a declared type within the system.
          */
         template <typename WatchdogGroup>
         struct WatchdogDataStore<WatchdogGroup, void> {
             using WatchdogStore = util::TypeMap<WatchdogGroup, void, NUClear::clock::time_point>;
 
             /**
-             * Ensures the data store is initialised correctly
+             * Ensures the data store is initialised correctly.
              */
             static void init() {
                 if (WatchdogStore::get() == nullptr) {
@@ -117,7 +115,7 @@ namespace dsl {
             }
 
             /**
-             * Gets the current service time for the WatchdogGroup watchdog
+             * Gets the current service time for the WatchdogGroup watchdog.
              */
             static const NUClear::clock::time_point& get() {
                 if (WatchdogStore::get() == nullptr) {
@@ -128,7 +126,7 @@ namespace dsl {
             }
 
             /**
-             * Cleans up any allocated storage for the WatchdogGroup watchdog
+             * Cleans up any allocated storage for the WatchdogGroup watchdog.
              */
             static void unbind() {
                 if (WatchdogStore::get() != nullptr) {
@@ -138,16 +136,15 @@ namespace dsl {
         };
 
         /**
-         * This can be used to monitor task(s); if the monitored task(s) have not occurred within a desired time frame,
-         * the watchdog can be serviced to trigger a specified reaction.
+         * This can be used to monitor task(s); if the monitored task(s) have not occurred within a desired timeframe,
+         *  the watchdog can be serviced to trigger a specified reaction.
          *
          * @code on<Watchdog<WatchdogGroup, ticks, period>>() @endcode
-         *
          * This is a useful tool for anything in the system which might stall, and needs to be kick-started.
          *
          * The watchdog can monitor a single task, or group of tasks, over a period of time. If no activity is
-         * detected after the specified time frame, the watchdog will be serviced.  When the watchdog is serviced, the
-         * timer resets.
+         * detected after the specified timeframe, the watchdog will be serviced.
+         * When the watchdog is serviced, the timer resets.
          *
          * @par Single Reaction
          *  @code on<Watchdog<SampleReaction, 10, std::chrono::milliseconds>>() @endcode
@@ -183,27 +180,26 @@ namespace dsl {
          * @par Implements
          *  Bind
          *
-         * @tparam WatchdogGroup
-         *  the type/group of tasks the watchdog will track.   This needs to be a declared type within the system (be it
-         *  a reactor, reaction, or other type).
-         * @tparam ticks
-         *  the number of ticks of a particular type to wait
-         * @tparam period
-         *  a type of duration (e.g. std::chrono::seconds) to measure the ticks in.  This will default to clock
-         *  duration, but can accept any of the defined std::chrono durations (nanoseconds, microseconds, milliseconds,
-         *  seconds, minutes, hours).  Note that you can also define your own unit:  See
-         *  http://en.cppreference.com/w/cpp/chrono/duration
+         * @tparam WatchdogGroup The type/group of tasks the watchdog will track.
+         *                       This needs to be a declared type within the system.
+         *
+         * @tparam ticks The number of ticks of a particular type to wait
+         * @tparam period A type of duration (e.g. std::chrono::seconds) to measure the ticks in.
+         *                This will default to clock duration, but can accept any of the defined std::chrono durations.
+         *                i.e. nanoseconds, microseconds, milliseconds, seconds, minutes, hours.
+         *                Note that you can also define your own unit.
+         *                See http://en.cppreference.com/w/cpp/chrono/duration
          */
         template <typename WatchdogGroup, int ticks, class period>
         struct Watchdog {
 
             /**
-             * Binder for Watchdog reactions with a runtime argument
+             * Binder for Watchdog reactions with a runtime argument.
              *
              * @tparam DSL
              *
-             * @tparam RuntimeType
-             *  the type of the runtime argument. const/volatile specifiers are stripped from this type
+             * @tparam RuntimeType The type of the runtime argument.
+             *                     const/volatile specifiers are stripped from this type.
              * @param reaction the reaction object that we are binding
              * @param data the runtime argument for the current watchdog in the WatchdogGroup/RuntimeType group
              */
@@ -232,7 +228,7 @@ namespace dsl {
             }
 
             /**
-             * Binder for Watchdog reactions with no runtime argument
+             * Binder for Watchdog reactions with no runtime argument.
              */
             template <typename DSL>
             static void bind(const std::shared_ptr<threading::Reaction>& reaction) {
@@ -258,13 +254,13 @@ namespace dsl {
 
         private:
             /**
-             * Updates the service time for the current reaction
+             * updates the service time for the current reaction.
              *
-             * @param reaction the reaction we are servicing
-             * @param service_time the last service time of the watchdog
-             * @param time the time when this watchdog should be checked next
-             * @return true the chrono task should run again
-             * @return false the chrono task should not run again
+             * @param reaction     The reaction we are servicing
+             * @param service_time The last service time of the watchdog
+             * @param time         The time when this watchdog should be checked next
+             *
+             * @return `true` if the chrono task should run again
              */
             static bool chrono_task(const std::shared_ptr<threading::Reaction>& reaction,
                                     const NUClear::clock::time_point& service_time,

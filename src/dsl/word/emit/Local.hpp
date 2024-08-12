@@ -43,9 +43,9 @@ namespace dsl {
              *  Note that this type of emission is the default behaviour when emitting without a specified scope.
              *  @code emit(data, dataType); @endcode
              *
-             * @tparam DataType the datatype of the object to emit
+             * @tparam DataType The datatype of the object to emit
              *
-             * @param data the data to emit
+             * @param data The data to emit
              */
             template <typename DataType>
             struct Local {

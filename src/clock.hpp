@@ -43,32 +43,50 @@ struct clock : public NUCLEAR_CLOCK_TYPE {
 
     /**
      * Get the current time of the clock.
+     *
      * @return The current time of the clock.
      */
     static time_point now();
 
     /**
      * Adjust the clock by a specified duration and real-time factor.
+     *
      * @param adjustment The duration by which to adjust the clock.
-     * @param rtf The real-time factor to apply to the clock.
+     * @param rtf        The real-time factor to apply to the clock.
      */
     static void adjust_clock(const duration& adjustment, const double& rtf = 1.0);
 
     /**
      * Set the clock to a specified time and real-time factor.
+     *
      * @param time The time to set the clock to.
-     * @param rtf The real-time factor to apply to the clock.
+     * @param rtf  The real-time factor to apply to the clock.
      */
     static void set_clock(const time_point& time, const double& rtf = 1.0);
 
 
     /**
      * Get the real-time factor of the clock.
-     * @return The real-time factor of the clock.
+     *
+     * @return The real-time factor of the clock
      */
     static double rtf();
 
 private:
+    /**
+     * Convert a duration to the clock's duration type.
+     *
+     * @tparam T The type of the duration.
+     *
+     * @param t The duration to convert.
+     *
+     * @return The converted duration.
+     */
+    template <typename T>
+    duration static dc(const T& t) {
+        return std::chrono::duration_cast<duration>(t);
+    }
+
     /**
      * Data structure to hold clock information.
      */
@@ -83,13 +101,13 @@ private:
         ClockData() = default;
     };
 
-    /// The mutex to protect the clock data.
+    /// The mutex to protect the clock data
     static std::mutex mutex;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
-    /// The clock data for the system.
+    /// The clock data for the system
     static std::array<ClockData, 3> data;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
-    /// The active clock data index.
+    /// The active clock data index
     static std::atomic<int> active;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 };
 

@@ -44,25 +44,19 @@ namespace dsl {
          * emissions within the system.
          *
          * @code on<UDP>(port) @endcode
-         *
-         * When a connection is identified on the assigned port, the associated reaction will be triggered. The
-         * request for a UDP based reaction can use a runtime argument to reference a specific port. Note that the
-         * port reference can be changed during the systems execution phase.
+         * When a connection is identified on the assigned port, the associated reaction will be triggered.
+         * The request for a UDP based reaction can use a runtime argument to reference a specific port.
+         * Note that the port reference cannot be changed during the systems execution phase.
          *
          * @code on<UDP>(port, bind_address) @endcode
-         *
-         * The `bind_address` parameter can be used to specify which interface to bind on. If `bind_address` is an
-         * empty string, the system will bind to any available interface.
+         * The `bind_address` parameter can be used to specify which interface to bind on.
+         * If `bind_address` is an empty string, the system will bind to any available interface.
          *
          * @code on<UDP>() @endcode
-         *
          * Should the port reference be omitted, then the system will bind to a currently unassigned port.
          *
-         * @code
-         *  on<UDP:Broadcast>(port)
-         *  on<UDP:Multicast>(multicast_address, port)
-         * @endcode
-         *
+         * @code on<UDP:Broadcast>(port)
+         * on<UDP:Multicast>(multicast_address, port) @endcode
          * If needed, this trigger can also listen for UDP activity such as broadcast and multicast.
          *
          * These requests support both IPv4 and IPv6 addressing.

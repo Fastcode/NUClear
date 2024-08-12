@@ -33,18 +33,19 @@ namespace threading {
     /**
      * Gives user code access to control the reaction object.
      *
-     * This object is given to user code when they create a reaction. It contains functions which allow changing of
-     * the reaction after it has been created such as enabling and disabling its execution.
+     * This object is given to user code when they create a reaction.
+     * It contains functions which allow changing of the reaction after it has been created such as enabling and
+     * disabling its execution.
      */
     class ReactionHandle {
     public:
-        /// the reaction that we are managing
+        /// The reaction that we are managing
         std::weak_ptr<Reaction> context;
 
         /**
          * Creates a new ReactionHandle for the reaction that is passed in.
          *
-         * @param context the reaction that we are interacting with.
+         * @param context The reaction that we are interacting with
          */
         explicit ReactionHandle(const std::shared_ptr<Reaction>& context = nullptr);
 
@@ -58,6 +59,8 @@ namespace threading {
          *
          * When disabled, any associated tasks will not be created if triggered.
          * All reaction configuration is still available, so that the reaction can be enabled when required.
+         * Note that a reaction which has been bound by an on<Always> request should not be disabled as it will
+         * continuously spin checking for new tasks.
          */
         ReactionHandle& disable();
 
@@ -79,16 +82,17 @@ namespace threading {
          * Removes a reaction request from the runtime environment.
          *
          * This action is not reversible, once a reaction has been unbound, it is no longer available for further use
-         * during the instance of runtime. This is most commonly used for the unbinding of network configuration before
-         * attempting to re-set configuration details during runtime.
+         * during the instance of runtime.
+         * This is most commonly used for the unbinding of network configuration before attempting to re-set
+         * configuration details during runtime.
          */
         // NOLINTNEXTLINE(readability-make-member-function-const) unbinding modifies the reaction
         void unbind();
 
         /**
-         * Returns if this reaction handle holds a valid pointer (may be already unbound)
+         * Returns if this reaction handle holds a valid pointer (may be already unbound).
          *
-         * @return true if the reaction held in this is not a nullptr
+         * @return true if the reaction is still valid
          */
         operator bool() const;
     };

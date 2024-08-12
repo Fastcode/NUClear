@@ -41,7 +41,7 @@ namespace extension {
 #endif
 
         /**
-         * A task that is waiting for an IO event
+         * A task that is waiting for an IO event.
          */
         struct Task {
             Task() = default;
@@ -77,27 +77,27 @@ namespace extension {
         };
 
         /**
-         * Rebuilds the list of file descriptors to poll
+         * Rebuilds the list of file descriptors to poll.
          *
-         * This function is called when the list of file descriptors to poll changes. It will rebuild the list of file
-         * descriptors used by poll
+         * This function is called when the list of file descriptors to poll changes.
+         * It will rebuild the list of file descriptors used by poll.
          */
         void rebuild_list();
 
         /**
-         * Fires the event for the task if it is ready
+         * Fires the event for the task if it is ready.
          *
-         * @param task the task to try to fire the event for
+         * @param task The task to try to fire the event for
          */
         void fire_event(Task& task);
 
         /**
-         * Collects the events that have happened and sets them up to fire
+         * Collects the events that have happened and sets them up to fire.
          */
         void process_event(const WSAEVENT& event);
 
         /**
-         * Bumps the notification pipe to wake up the poll command
+         * Bumps the notification pipe to wake up the poll command.
          *
          * If the poll command is waiting it will wait forever if something doesn't happen.
          * When trying to update what to poll or shut down we need to wake it up so it can.
@@ -106,11 +106,11 @@ namespace extension {
         void bump();
 
         /**
-         * Removes a task from the list and closes the event
+         * Removes a task from the list and closes the event.
          *
-         * @param it the iterator to the task to remove
+         * @param it The iterator to the task to remove
          *
-         * @return the iterator to the next task
+         * @return The iterator to the next task
          */
         std::map<WSAEVENT, Task>::iterator remove_task(std::map<WSAEVENT, Task>::iterator it);
 

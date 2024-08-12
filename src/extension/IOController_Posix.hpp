@@ -41,7 +41,7 @@ namespace extension {
 #endif
 
         /**
-         * A task that is waiting for an IO event
+         * A task that is waiting for an IO event.
          */
         struct Task {
             Task() = default;
@@ -60,16 +60,15 @@ namespace extension {
             std::shared_ptr<threading::Reaction> reaction{nullptr};
 
             /**
-             * Sorts the tasks by their file descriptor
+             * Sorts the tasks by their file descriptor.
              *
              * The tasks are sorted by file descriptor so that when we rebuild the list of file descriptors to poll we
-             * can assume that if the same file descriptor shows up multiple times it will be next to each other. This
-             * allows the events that are being watched to be or'ed together.
+             * can assume that if the same file descriptor shows up multiple times it will be next to each other.
+             * This allows the events that are being watched to be or'ed together.
              *
              * @param other  the other task to compare to
              *
-             * @return true  if this task is less than the other
-             * @return false if this task is greater than or equal to the other
+             * @return `true` if this task is less than the other
              */
             bool operator<(const Task& other) const {
                 return fd == other.fd ? listening_events < other.listening_events : fd < other.fd;
@@ -77,22 +76,22 @@ namespace extension {
         };
 
         /**
-         * Rebuilds the list of file descriptors to poll
+         * Rebuilds the list of file descriptors to poll.
          *
-         * This function is called when the list of file descriptors to poll changes. It will rebuild the list of file
-         * descriptors used by poll
+         * This function is called when the list of file descriptors to poll changes.
+         * It will rebuild the list of file descriptors used by poll.
          */
         void rebuild_list();
 
         /**
-         * Fires the event for the task if it is ready
+         * Fires the event for the task if it is ready.
          *
-         * @param task the task to try to fire the event for
+         * @param task The task to try to fire the event for
          */
         void fire_event(Task& task);
 
         /**
-         * Collects the events that have happened and sets them up to fire
+         * Collects the events that have happened and sets them up to fire.
          */
         void process_event(pollfd& event);
 

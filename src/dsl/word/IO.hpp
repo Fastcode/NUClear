@@ -69,28 +69,26 @@ namespace dsl {
          * This is used to trigger reactions based on standard I/O operations using file descriptors.
          *
          * @code on<IO>(file_descriptor) @endcode
-         *
-         * This function works for any I/O communication which uses a file descriptor. The associated reaction is
-         * triggered when the communication line matches the descriptor.
+         * This function works for any I/O communication which uses a file descriptor.
+         * The associated reaction is triggered when the communication line matches the descriptor.
          *
          * When using this feature, runtime arguments should be provided, to specify the file descriptor.
          *
          * <b>Example Use</b>
          *
-         * <b>File reading:</b> triggers a reaction when the pipe/stream/communication line has data available to read.
+         * <b>File reading:</b> triggers a reaction when the file descriptor has data available to read.
          * @code on<IO>(pipe/stream/comms, IO::READ) @endcode
-         * <b>File writing:</b> triggers a reaction when the pipe/stream/communication line has data to be written.
+         * <b>File writing:</b> triggers a reaction when the file descriptor has data to be written.
          * @code on<IO>(pipe/stream/comms, IO::WRITE) @endcode
-         * <b>File close:</b> triggers a reaction when the pipe/stream/communication line is closed.
+         * <b>File close:</b> triggers a reaction when the file descriptor is closed.
          * @code on<IO>(pipe/stream/comms, IO::CLOSE) @endcode
-         * <b>File error:</b> triggers a reaction when the pipe/stream/communication line reports an error.
+         * <b>File error:</b> triggers a reaction when the file descriptor reports an error.
          * @code on<IO>(pipe/stream/comms, IO::CLOSE) @endcode
-         * <b>Multiple states:</b> this feature can trigger a reaction when the pipe/stream/communication line
-         * matches multiple states.  For example;
+         * <b>Multiple states:</b> this feature can trigger a reaction when the file descriptor matches multiple states.
          * @code on<IO>(pipe/stream/comms, IO::READ | IO::ERROR) @endcode
          *
          * @attention
-         *  Note that reactions triggered by an on<IO> request are implicitly single.
+         *  While a reaction is processing an IO event, no other IO triggers will fire until the reaction has completed.
          *
          * @par Implements
          *  Bind
@@ -164,11 +162,10 @@ namespace dsl {
     }  // namespace word
 
     namespace trait {
-
         template <>
         struct is_transient<word::IO::Event> : public std::true_type {};
-
     }  // namespace trait
+
 }  // namespace dsl
 }  // namespace NUClear
 

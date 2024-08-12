@@ -60,12 +60,12 @@ namespace util {
         FileDescriptor& operator=(FileDescriptor&& rhs) noexcept;
 
         /**
-         * Destruct the file descriptor, closes the held fd
+         * Destruct the file descriptor, closes the held fd.
          */
         ~FileDescriptor();
 
         /**
-         * Get the currently held file descriptor
+         * Get the currently held file descriptor.
          *
          * @return the file descriptor
          */
@@ -74,29 +74,28 @@ namespace util {
         fd_t get();
 
         /**
-         * Returns if the currently held file descriptor is valid
+         * Returns if the currently held file descriptor is valid.
          *
-         * @return true     if the file descriptor is valid
-         * @return false    if the file descriptor is invalid
+         * @return `true` if the file descriptor is valid
          */
         bool valid() const;
 
         /**
-         * Close the currently held file descriptor
+         * Close the currently held file descriptor.
          */
         void close();
 
         /**
-         * Release the currently held file descriptor
+         * Release the currently held file descriptor.
          *
-         * @return the file descriptor
+         * @return The file descriptor
          */
         fd_t release();
 
         /**
-         * Implicitly convert this class to a file descriptor
+         * Implicitly convert this class to a file descriptor.
          *
-         * @return the file descriptor
+         * @return The file descriptor
          */
         operator fd_t();
 

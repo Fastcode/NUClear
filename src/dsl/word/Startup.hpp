@@ -33,13 +33,8 @@ namespace dsl {
          * This is used to specify reactions which should occur at startup.
          *
          * @code on<Startup>() @endcode
-         *
-         * Any reactions listed with this DSL word will run directly after all reactors have been installed into the
-         * PowerPlant but before the system starts the main execution phase.  This is the only time these reactions
-         * will run.
-         *
-         * Note that this request is generally used by reactor's which require information provided by another
-         * reactor's constructor.
+         * Any reactions listed with this DSL word will run directly after when start is called on the PowerPlant.
+         * However it will execute before the system starts the main execution phase.
          *
          * @par Implements
          *  Bind

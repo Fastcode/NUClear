@@ -42,10 +42,13 @@ namespace message {
 namespace threading {
 
     /**
-     * This is a data-bound call of a Reaction ready to be executed.
+     * This is a databound call of a Reaction ready to be executed.
      *
-     * This class holds a reaction that is ready to be executed. It is a Reaction object which has had it's callback
-     * parameters bound with data. This can then be executed as a function to run the call inside it.
+     * @tparam ReactionType the type of the reaction
+     *
+     * This class holds a reaction that is ready to be executed.
+     * It is a Reaction object which has had it's callback parameters bound with data.
+     * This can then be executed as a function to run the call inside it.
      */
     class ReactionTask {
     private:
@@ -59,17 +62,17 @@ namespace threading {
         /**
          * Gets the current executing task, or nullptr if there isn't one.
          *
-         * @return the current executing task or nullptr if there isn't one
+         * @return The current executing task or nullptr if there isn't one
          */
         static const ReactionTask* get_current_task();
 
         /**
          * Creates a new ReactionTask object bound with the parent Reaction object (that created it) and task.
          *
-         * @param parent            the Reaction object that spawned this ReactionTask.
-         * @param priority          a function that can be called to get the priority of this task
-         * @param pool_descriptor   a function that can be called to get the thread pool descriptor for this task
-         * @param group_descriptors a function that can be called to get the list of group descriptors for this task
+         * @param parent            The Reaction object that spawned this ReactionTask.
+         * @param priority          A function that can be called to get the priority of this task
+         * @param pool_descriptor   A function that can be called to get the thread pool descriptor for this task
+         * @param group_descriptors A function that can be called to get the list of group descriptors for this task
          */
         template <typename GetPriority, typename GetGroups, typename GetThreadPool>
         ReactionTask(const std::shared_ptr<Reaction>& parent,
@@ -116,9 +119,9 @@ namespace threading {
         void run();
 
         /**
-         * Generate a new unique task id
+         * Generate a new unique task id.
          *
-         * @return a new unique task id
+         * @return A new unique task id
          */
         static NUClear::id_t new_task_id();
 

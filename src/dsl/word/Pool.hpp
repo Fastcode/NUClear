@@ -38,15 +38,14 @@ namespace dsl {
          * This is used to specify that this reaction should run in the designated thread pool
          *
          * @code on<Trigger<T, ...>, Pool<PoolType>>() @endcode
-         *
          * This DSL will cause the creation of a new thread pool with a specific number of threads allocated to it.
          *
          * All tasks for this reaction will be queued to run on threads from this thread pool.
          *
          * Tasks in the queue are ordered based on their priority level, then their task id.
          *
-         * When this DSL is not specified the default thread pool will be used. For tasks that need to run on the main
-         * thread use MainThread.
+         * When this DSL is not specified the default thread pool will be used.
+         * For tasks that need to run on the main thread use MainThread.
          *
          * @attention
          *  This DSL should be used sparingly as having an increased number of threads running concurrently on the
@@ -55,9 +54,9 @@ namespace dsl {
          * @par Implements
          *  pool
          *
-         * @tparam PoolType
-         *  A struct that contains the details of the thread pool to create. This struct should contain a static int
-         *  member that sets the number of threads that should be allocated to this pool.
+         * @tparam PoolType A struct that contains the details of the thread pool to create.
+         *                  This struct should contain a static int member that sets the number of threads that should
+         *                  be allocated to this pool.
          *  @code
          *  struct ThreadPool {
          *      static constexpr int thread_count = 2;
@@ -69,11 +68,11 @@ namespace dsl {
 
             static_assert(PoolType::thread_count > 0, "Can not have a thread pool with less than 1 thread");
 
-            /// the description of the thread pool to be used for this PoolType
+            /// The description of the thread pool to be used for this PoolType
             static const util::ThreadPoolDescriptor pool_descriptor;
 
             /**
-             * Sets which thread pool to use for this task
+             * Sets which thread pool to use for any tasks initiated from this reaction.
              *
              * @tparam DSL the DSL used for this reaction
              */

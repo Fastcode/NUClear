@@ -38,18 +38,18 @@ namespace dsl {
              * thread pool, and be executed immediately.
              *
              * @code emit<Scope::DIRECT>(data, dataType); @endcode
-             *
-             * When data is emitted via this scope, the task which is currently executing will be paused. At this time
-             * any tasks created as a result of this emission are executed one at a time sequentially, using the
-             * current thread.  This type of emission will always run even when the system is in its Shutdown process
-             * or before the system has started up to the main phase.
+             * When data is emitted via this scope, the task which is currently executing will be paused.
+             * At this time any tasks created as a result of this emission are executed one at a time sequentially,
+             * using the current thread.
+             * This type of emission will always run even when the system is in its Shutdown process or before the
+             * system has started up to the main phase.
              *
              * @attention
              *  This scope is useful for reactors which emit data to themselves.
              *
-             * @tparam DataType the datatype that is being emitted
+             * @tparam DataType The datatype that is being emitted
              *
-             * @param data the data to emit
+             * @param data The data to emit
              */
             template <typename DataType>
             struct Direct {
