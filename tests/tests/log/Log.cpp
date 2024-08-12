@@ -180,7 +180,7 @@ TEST_CASE("Testing the Log<>() function", "[api][log]") {
         // Test logs from reactions directly
         for (const auto& log_level : levels) {
             if (display_level <= log_level) {
-                const std::string expected = "Direct Reaction " + std::to_string(log_level);
+                const std::string expected = "Direct Reaction " + NUClear::to_string(log_level);
                 REQUIRE(messages[i].message == expected);
                 REQUIRE(messages[i].level == log_level);
                 REQUIRE(messages[i++].from_reaction);
@@ -189,7 +189,7 @@ TEST_CASE("Testing the Log<>() function", "[api][log]") {
         // Test logs from reactions indirectly
         for (const auto& log_level : levels) {
             if (display_level <= log_level) {
-                const std::string expected = "Indirect Reaction " + std::to_string(log_level);
+                const std::string expected = "Indirect Reaction " + NUClear::to_string(log_level);
                 REQUIRE(messages[i].message == expected);
                 REQUIRE(messages[i].level == log_level);
                 REQUIRE(messages[i++].from_reaction);
@@ -198,7 +198,7 @@ TEST_CASE("Testing the Log<>() function", "[api][log]") {
         // Test logs from free floating functions
         for (const auto& log_level : levels) {
             // No filter here, free floating prints everything
-            const std::string expected = "Non Reaction " + std::to_string(log_level);
+            const std::string expected = "Non Reaction " + NUClear::to_string(log_level);
             REQUIRE(messages[i].message == expected);
             REQUIRE(messages[i].level == log_level);
             REQUIRE_FALSE(messages[i++].from_reaction);
@@ -207,7 +207,7 @@ TEST_CASE("Testing the Log<>() function", "[api][log]") {
 
     // Test post-shutdown logs
     {
-        const std::string expected = "Post Powerplant Shutdown " + std::to_string(NUClear::FATAL);
+        const std::string expected = "Post Powerplant Shutdown " + NUClear::to_string(NUClear::FATAL);
         REQUIRE(messages[i].message == expected);
         REQUIRE(messages[i].level == NUClear::FATAL);
         REQUIRE(messages[i++].from_reaction);
@@ -219,7 +219,7 @@ TEST_CASE("Testing the Log<>() function", "[api][log]") {
     // Test logs from free floating functions
     for (const auto& log_level : levels) {
         // No filter here, free floating prints everything
-        const std::string expected = "Non Reaction " + std::to_string(log_level);
+        const std::string expected = "Non Reaction " + NUClear::to_string(log_level);
         REQUIRE(messages[i].message == expected);
         REQUIRE(messages[i].level == log_level);
         REQUIRE_FALSE(messages[i++].from_reaction);

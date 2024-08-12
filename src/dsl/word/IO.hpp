@@ -97,7 +97,7 @@ namespace dsl {
 
 // On windows we use different wait events
 #ifdef _WIN32
-            // NOLINTNEXTLINE(google-runtime-int)
+            // NOLINTNEXTLINE(performance-enum-size) these have to be fixed types based on the api
             enum EventType : event_t {
                 READ  = FD_READ | FD_OOB | FD_ACCEPT,
                 WRITE = FD_WRITE,
@@ -105,7 +105,7 @@ namespace dsl {
                 ERROR = 0,
             };
 #else
-            // NOLINTNEXTLINE(google-runtime-int)
+            // NOLINTNEXTLINE(performance-enum-size) these have to be fixed types based on the api
             enum EventType : event_t {
                 READ  = POLLIN,
                 WRITE = POLLOUT,

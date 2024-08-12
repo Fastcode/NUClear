@@ -48,7 +48,7 @@ namespace util {
      * @return The object returned by the called subfunction
      */
     template <typename Function, int... Shared, int... Selected, typename... Arguments>
-    auto apply_function_fusion_call(std::tuple<Arguments...>&& args,
+    auto apply_function_fusion_call(const std::tuple<Arguments...>& args,
                                     const Sequence<Shared...>& /*shared*/,
                                     const Sequence<Selected...>& /*selected*/)
         -> decltype(Function::call(std::get<Shared>(args)..., std::get<Selected>(args)...)) {
@@ -57,18 +57,18 @@ namespace util {
 
     /**
      * Applies a single set of function fusion with argument ranges
+     *
      * Calls the function held in the template type Function.
-     *          for the arguments it uses the parameter packs Shared and Selected
-     *          to expand the passed tuple args and forward those selected
-     *          arguments to the function.
+     * For the arguments it uses the parameter packs Shared and Selected to expand the passed tuple args and forward
+     * those selected arguments to the function.
      *
-     * @param  args     the arguments that were passed to the superfunction
+     * @tparam Function   The struct that holds the call function wrapper to be called
+     * @tparam Shared     The number of parameters (from 0) to use in the call
+     * @tparam Start      The index of the first argument to pass to the function
+     * @tparam End        The index of the element after the last argument to pass to the function
+     * @tparam Arguments  The types of the arguments passed into the function
      *
-     * @tparam Function     the struct that holds the call function wrapper to be called
-     * @tparam Shared       the number of parameters (from 0) to use in the call
-     * @tparam Start        the index of the first argument to pass to the function
-     * @tparam End          the index of the element after the last argument to pass to the function
-     * @tparam Arguments    the types of the arguments passed into the function
+     * @param  args     the arguments that were passed to the super-function
      *
      * @return the object returned by the called subfunction
      */
@@ -95,6 +95,8 @@ namespace util {
      */
     template <int Shared, typename... Arguments>
     struct FunctionFusionCaller<std::tuple<>, Shared, std::tuple<>, std::tuple<Arguments...>> {
+        // This function is just here to satisfy the templates
+        // NOLINTNEXTLINE(cppcoreguidelines-rvalue-reference-param-not-moved)
         static std::tuple<> call(Arguments&&... /*args*/) {
             return {};
         }
@@ -137,6 +139,8 @@ namespace util {
          * @return the result of calling this specific function
          */
         template <typename Function, int Start, int End>
+        // It is forwarded as a tuple
+        // NOLINTNEXTLINE(cppcoreguidelines-rvalue-reference-param-not-moved)
         static auto call_one(const Sequence<Start, End>& /*e*/, Arguments&&... args)
             -> decltype(apply_function_fusion_call<Function, Shared, Start, End>(std::forward_as_tuple(args...))) {
 
@@ -153,7 +157,7 @@ namespace util {
          * @return ignore
          */
         template <typename>
-        static inline bool call_one(...);
+        static bool call_one(...);
 
         /// The FunctionFusionCaller next step in the recursion
         using NextStep =

@@ -22,9 +22,9 @@
 
 #include "get_interfaces.hpp"
 
-#include <algorithm>
 #include <cstring>
 #include <system_error>
+#include <vector>
 
 #include "../platform.hpp"
 
@@ -177,6 +177,7 @@ namespace util {
                         switch (it->ifa_addr->sa_family) {
                             case AF_INET: std::memcpy(&iface.netmask, it->ifa_netmask, sizeof(sockaddr_in)); break;
                             case AF_INET6: std::memcpy(&iface.netmask, it->ifa_netmask, sizeof(sockaddr_in6)); break;
+                            default: break;  // We don't care about other address families
                         }
                     }
 
@@ -184,6 +185,7 @@ namespace util {
                         switch (it->ifa_addr->sa_family) {
                             case AF_INET: std::memcpy(&iface.broadcast, it->ifa_dstaddr, sizeof(sockaddr_in)); break;
                             case AF_INET6: std::memcpy(&iface.broadcast, it->ifa_dstaddr, sizeof(sockaddr_in6)); break;
+                            default: break;  // We don't care about other address families
                         }
                     }
 

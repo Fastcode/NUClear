@@ -30,7 +30,6 @@
 #include <mutex>
 #include <system_error>
 
-#include "../PowerPlant.hpp"
 #include "../Reactor.hpp"
 #include "../dsl/word/IO.hpp"
 

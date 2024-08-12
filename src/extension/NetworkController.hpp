@@ -27,7 +27,6 @@
 #include <cerrno>
 #include <csignal>
 
-#include "../PowerPlant.hpp"
 #include "../Reactor.hpp"
 #include "../util/get_hostname.hpp"
 #include "network/NUClearNetwork.hpp"

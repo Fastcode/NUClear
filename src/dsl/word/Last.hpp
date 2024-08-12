@@ -26,6 +26,7 @@
 #include <list>
 #include <type_traits>
 
+#include "../../dsl/trait/is_transient.hpp"
 #include "../../threading/Reaction.hpp"
 #include "../../util/MergeTransient.hpp"
 
@@ -156,6 +157,7 @@ namespace dsl {
 
         private:
             template <typename... T, int... Index>
+            // NOLINTNEXTLINE(cppcoreguidelines-rvalue-reference-param-not-moved) the elements in it are moved
             static auto wrap(std::tuple<T...>&& data, util::Sequence<Index...> /*s*/)
                 -> decltype(std::make_tuple(LastItemStorage<n, T>(std::move(std::get<Index>(data)))...)) {
                 return std::make_tuple(LastItemStorage<n, T>(std::move(std::get<Index>(data)))...);

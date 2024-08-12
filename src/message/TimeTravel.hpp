@@ -34,7 +34,7 @@ namespace message {
      * to the new time and rate.
      */
     struct TimeTravel {
-        enum class Action {
+        enum class Action : uint8_t {
             /// Adjust clock and move all chrono tasks with it
             RELATIVE,
 
