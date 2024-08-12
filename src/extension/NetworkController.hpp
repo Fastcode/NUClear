@@ -27,7 +27,6 @@
 #include <cerrno>
 #include <csignal>
 
-#include "../PowerPlant.hpp"
 #include "../Reactor.hpp"
 #include "../message/NetworkConfiguration.hpp"
 #include "../message/NetworkEvent.hpp"

@@ -97,7 +97,7 @@ namespace dsl {
 
 // On windows we use different wait events
 #ifdef _WIN32
-            // NOLINTNEXTLINE(performance-enum-size)
+            // NOLINTNEXTLINE(performance-enum-size) these have to be fixed types based on the api
             enum EventType : event_t {
                 READ  = FD_READ | FD_OOB | FD_ACCEPT,
                 WRITE = FD_WRITE,
@@ -105,7 +105,7 @@ namespace dsl {
                 ERROR = 0,
             };
 #else
-            // NOLINTNEXTLINE(performance-enum-size)
+            // NOLINTNEXTLINE(performance-enum-size) these have to be fixed types based on the api
             enum EventType : event_t {
                 READ  = POLLIN,
                 WRITE = POLLOUT,
@@ -151,19 +151,19 @@ namespace dsl {
 
                 // Otherwise return an invalid event
                 return Event{INVALID_SOCKET, 0};
-            }
+            }  // namespace word
 
             template <typename DSL>
             static void postcondition(threading::ReactionTask& task) {
                 task.parent->reactor.emit<emit::Direct>(std::make_unique<IOFinished>(task.parent->id));
             }
-        };
+        };  // namespace dsl
 
     }  // namespace word
 
     namespace trait {
         template <>
-        struct is_transient<word::IO::Event> : public std::true_type {};
+        struct is_transient<word::IO::Event> : std::true_type {};
     }  // namespace trait
 
 }  // namespace dsl

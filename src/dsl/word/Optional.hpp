@@ -62,7 +62,7 @@ namespace dsl {
          * @tparam DSLWords The DSL word/activity being modified.
          */
         template <typename... DSLWords>
-        struct Optional : public Fusion<DSLWords...> {
+        struct Optional : Fusion<DSLWords...> {
 
         private:
             template <typename... T, int... Index>

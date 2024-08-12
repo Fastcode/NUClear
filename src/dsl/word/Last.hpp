@@ -153,7 +153,7 @@ namespace dsl {
          * @tparam  DSLWords The DSL word/activity being modified.
          */
         template <size_t n, typename... DSLWords>
-        struct Last : public Fusion<DSLWords...> {
+        struct Last : Fusion<DSLWords...> {
 
         private:
             template <typename... T, int... Index>
@@ -185,7 +185,7 @@ namespace dsl {
     namespace trait {
 
         template <size_t n, typename T>
-        struct is_transient<word::LastItemStorage<n, T>> : public std::true_type {};
+        struct is_transient<word::LastItemStorage<n, T>> : std::true_type {};
 
     }  // namespace trait
 }  // namespace dsl

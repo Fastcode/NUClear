@@ -62,13 +62,13 @@ namespace util {
      * For the arguments it uses the parameter packs Shared and Selected to expand the passed tuple args and forward
      * those selected arguments to the function.
      *
-     * @param  args     the arguments that were passed to the super-function
-     *
      * @tparam Function   The struct that holds the call function wrapper to be called
      * @tparam Shared     The number of parameters (from 0) to use in the call
      * @tparam Start      The index of the first argument to pass to the function
      * @tparam End        The index of the element after the last argument to pass to the function
      * @tparam Arguments  The types of the arguments passed into the function
+     *
+     * @param  args     the arguments that were passed to the super-function
      *
      * @return the object returned by the called subfunction
      */
@@ -124,7 +124,7 @@ namespace util {
     struct FunctionFusionCaller<std::tuple<CurrentFunction, Functions...>,
                                 Shared,
                                 std::tuple<CurrentRange, Ranges...>,
-                                std::tuple<Arguments...>> : public std::true_type {
+                                std::tuple<Arguments...>> : std::true_type {
     private:
         /**
          * Calls a single function in the function set.
@@ -265,9 +265,8 @@ namespace util {
                           End,
                           std::tuple<ProcessedFunctions...>,
                           std::tuple<ArgumentRanges...>>
-        : public
-          // Test if we have moved into an invalid range
-          std::conditional_t<
+        // Test if we have moved into an invalid range
+        : std::conditional_t<
               (Start > End),
               // We are in an invalid range which makes this path invalid
               /*T*/ std::false_type,
@@ -350,9 +349,8 @@ namespace util {
                           End,
                           std::tuple<ProcessedFunctions...>,
                           std::tuple<Ranges...>>
-        : public
-          // Check if we used up all of our arguments (and not more than all of our arguments)
-          std::conditional_t<(Start == End && Start == int(sizeof...(Arguments))),
+        // Check if we used up all of our arguments (and not more than all of our arguments)
+        : std::conditional_t<(Start == End && Start == int(sizeof...(Arguments))),
                              // We have used up the exact right number of arguments (and everything by this point should
                              // have been callable)
                              /*T*/

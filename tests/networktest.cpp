@@ -124,7 +124,7 @@ public:
 // NOLINTNEXTLINE(bugprone-exception-escape)
 int main(int argc, const char* argv[]) {
     // NOLINTNEXTLINE(bugprone-signal-handler,cert-msc54-cpp,cert-sig30-c)
-    auto old_sigint = signal(SIGINT, [](int) { NUClear::PowerPlant::powerplant->shutdown(); });
+    auto old_sigint = signal(SIGINT, [](int /*signal*/) { NUClear::PowerPlant::powerplant->shutdown(); });
     if (old_sigint == SIG_ERR) {
         std::cerr << "Failed to set SIGINT handler";
         return -1;

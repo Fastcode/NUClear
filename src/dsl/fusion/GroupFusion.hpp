@@ -53,7 +53,7 @@ namespace dsl {
          */
         template <typename Word1, typename... WordN, typename... FoundWords>
         struct GroupWords<std::tuple<Word1, WordN...>, std::tuple<FoundWords...>>
-            : public std::conditional_t<
+            : std::conditional_t<
                   has_group<typename Group<Word1>::type>::value,
                   /*T*/ GroupWords<std::tuple<WordN...>, std::tuple<FoundWords..., typename Group<Word1>::type>>,
                   /*F*/ GroupWords<std::tuple<WordN...>, std::tuple<FoundWords...>>> {};
@@ -101,7 +101,7 @@ namespace dsl {
         };
 
         template <typename Word1, typename... WordN>
-        struct GroupFusion : public GroupFuser<typename GroupWords<std::tuple<Word1, WordN...>>::type> {};
+        struct GroupFusion : GroupFuser<typename GroupWords<std::tuple<Word1, WordN...>>::type> {};
 
     }  // namespace fusion
 }  // namespace dsl

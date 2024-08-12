@@ -57,7 +57,7 @@ namespace message {
         LogLevel display_level{};
 
         /// The string contents of the message
-        std::string message{};
+        std::string message;
 
         /// The currently executing task that made this message
         const std::shared_ptr<const ReactionStatistics> task{nullptr};

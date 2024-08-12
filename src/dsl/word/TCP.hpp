@@ -25,7 +25,6 @@
 
 #include <cstring>
 
-#include "../../PowerPlant.hpp"
 #include "../../threading/Reaction.hpp"
 #include "../../util/FileDescriptor.hpp"
 #include "../../util/network/resolve.hpp"
@@ -63,7 +62,7 @@ namespace dsl {
          * @par Implements
          *  Bind
          */
-        struct TCP : public IO {
+        struct TCP : IO {
 
             struct Connection {
 
@@ -203,7 +202,7 @@ namespace dsl {
     namespace trait {
 
         template <>
-        struct is_transient<word::TCP::Connection> : public std::false_type {};
+        struct is_transient<word::TCP::Connection> : std::false_type {};
 
     }  // namespace trait
 }  // namespace dsl

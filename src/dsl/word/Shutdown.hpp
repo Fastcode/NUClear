@@ -53,7 +53,7 @@ namespace dsl {
          *  Bind
          */
         struct Shutdown
-            : public operation::TypeBind<Shutdown>
+            : operation::TypeBind<Shutdown>
             , Priority::IDLE {};
 
     }  // namespace word

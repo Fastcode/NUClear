@@ -41,7 +41,7 @@ namespace dsl {
          * @tparam typename the datatype that is to be considered transient
          */
         template <typename DataType>
-        struct is_transient : public std::false_type {};
+        struct is_transient : std::false_type {};
 
     }  // namespace trait
 }  // namespace dsl

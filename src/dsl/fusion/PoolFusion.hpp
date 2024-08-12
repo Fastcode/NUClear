@@ -52,7 +52,7 @@ namespace dsl {
          */
         template <typename Word1, typename... WordN, typename... FoundWords>
         struct PoolWords<std::tuple<Word1, WordN...>, std::tuple<FoundWords...>>
-            : public std::conditional_t<
+            : std::conditional_t<
                   has_pool<typename Pool<Word1>::type>::value,
                   /*T*/ PoolWords<std::tuple<WordN...>, std::tuple<FoundWords..., typename Pool<Word1>::type>>,
                   /*F*/ PoolWords<std::tuple<WordN...>, std::tuple<FoundWords...>>> {};
@@ -95,7 +95,7 @@ namespace dsl {
         };
 
         template <typename Word1, typename... WordN>
-        struct PoolFusion : public PoolFuser<typename PoolWords<std::tuple<Word1, WordN...>>::type> {};
+        struct PoolFusion : PoolFuser<typename PoolWords<std::tuple<Word1, WordN...>>::type> {};
 
     }  // namespace fusion
 }  // namespace dsl

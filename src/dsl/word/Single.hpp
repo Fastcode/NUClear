@@ -39,7 +39,7 @@ namespace dsl {
          * @par Implements
          *  Precondition
          */
-        struct Single : public Buffer<1> {};
+        struct Single : Buffer<1> {};
 
     }  // namespace word
 }  // namespace dsl

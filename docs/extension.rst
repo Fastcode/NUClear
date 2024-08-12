@@ -118,7 +118,7 @@ Transient
 
 .. codeblock:: c++
     template <>
-    struct is_transient<word::IO::Event> : public std::true_type {};
+    struct is_transient<word::IO::Event> : std::true_type {};
 
 When the data returned from a `get` is falsy and its type is marked transient the latest truthy data from the `get`
 return is instead used. If the data is falsy and is either not marked transient or nothing truthy has yet been returned

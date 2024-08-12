@@ -31,7 +31,7 @@ namespace {
 /// Events that occur during the test
 std::vector<std::string> events;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
-enum TestPorts : uint16_t {
+enum TestPorts : in_port_t {
     UNICAST_V4   = 40000,
     UNICAST_V6   = 40001,
     BROADCAST_V4 = 40002,

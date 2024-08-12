@@ -39,7 +39,7 @@ namespace dsl {
          * @par Implements
          *  Bind
          */
-        struct Startup : public operation::TypeBind<Startup> {};
+        struct Startup : operation::TypeBind<Startup> {};
 
     }  // namespace word
 }  // namespace dsl
