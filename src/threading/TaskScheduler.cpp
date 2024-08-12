@@ -56,7 +56,7 @@ namespace threading {
         return false;
     }
 
-    void TaskScheduler::run_task(Task&& task) {
+    void TaskScheduler::run_task(const Task& task) {
         task.run();
 
         // We need to do group counting if this isn't the default group
@@ -204,7 +204,7 @@ namespace threading {
                 runnable = is_runnable(task.group_descriptor);
             }
             if (runnable) {
-                run_task(std::move(task));
+                run_task(task);
                 return;
             }
         }

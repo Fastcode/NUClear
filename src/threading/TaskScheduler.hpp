@@ -258,7 +258,7 @@ namespace threading {
          *
          * @param task  the task to execute
          */
-        void run_task(Task&& task);
+        void run_task(const Task& task);
 
         /**
          * Determines if the given task is able to be executed.
