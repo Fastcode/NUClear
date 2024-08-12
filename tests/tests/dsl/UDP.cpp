@@ -31,7 +31,7 @@ namespace {
 /// Events that occur during the test
 std::vector<std::string> events;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
-enum TestPorts {
+enum TestPorts : in_port_t {
     UNICAST_V4   = 40000,
     UNICAST_V6   = 40001,
     BROADCAST_V4 = 40002,
@@ -59,7 +59,7 @@ in_port_t broad_v4_port = 0;  // NOLINT(cppcoreguidelines-avoid-non-const-global
 in_port_t multi_v4_port = 0;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 in_port_t multi_v6_port = 0;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
-enum TestType {
+enum TestType : uint8_t {
     UNICAST_V4_KNOWN,
     UNICAST_V4_EPHEMERAL,
     UNICAST_V6_KNOWN,
@@ -74,7 +74,7 @@ enum TestType {
 std::vector<TestType> active_tests;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
 inline std::string get_broadcast_addr() {
-    static std::string addr{};
+    static std::string addr;
 
     if (!addr.empty()) {
         return addr;
@@ -98,9 +98,9 @@ inline std::string get_broadcast_addr() {
 }
 
 struct SendTarget {
-    std::string data{};
+    std::string data;
     struct Target {
-        std::string address{};
+        std::string address;
         in_port_t port = 0;
     };
     Target to{};
@@ -371,6 +371,7 @@ TEST_CASE("Testing sending and receiving of UDP messages", "[api][network][udp]"
     NUClear::Configuration config;
     config.thread_count = 1;
     NUClear::PowerPlant plant(config);
+    plant.install<NUClear::extension::IOController>();
     plant.install<TestReactor>();
     plant.start();
 

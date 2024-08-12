@@ -49,7 +49,7 @@ namespace dsl {
              */
             struct Return {
                 template <typename... Arguments>
-                static inline auto call(const std::shared_ptr<threading::Reaction>& reaction, Arguments&&... args) {
+                static auto call(const std::shared_ptr<threading::Reaction>& reaction, Arguments&&... args) {
                     return Function::template bind<DSL>(reaction, std::forward<Arguments>(args)...);
                 }
             };
@@ -62,8 +62,7 @@ namespace dsl {
              */
             struct NoReturn {
                 template <typename... Arguments>
-                static inline std::tuple<> call(const std::shared_ptr<threading::Reaction>& reaction,
-                                                Arguments&&... args) {
+                static std::tuple<> call(const std::shared_ptr<threading::Reaction>& reaction, Arguments&&... args) {
                     Function::template bind<DSL>(reaction, std::forward<Arguments>(args)...);
                     return {};
                 }
@@ -71,7 +70,7 @@ namespace dsl {
 
 
             template <typename... Arguments>
-            static inline auto call(const std::shared_ptr<threading::Reaction>& reaction, Arguments&&... args)
+            static auto call(const std::shared_ptr<threading::Reaction>& reaction, Arguments&&... args)
                 -> decltype(std::conditional_t<std::is_void<decltype(Function::template bind<DSL>(
                                                    reaction,
                                                    std::forward<Arguments>(args)...))>::value,
@@ -98,9 +97,9 @@ namespace dsl {
          */
         template <typename Word1, typename... WordN, typename... FoundWords>
         struct BindWords<std::tuple<Word1, WordN...>, std::tuple<FoundWords...>>
-            : public std::conditional_t<has_bind<Word1>::value,
-                                        /*T*/ BindWords<std::tuple<WordN...>, std::tuple<FoundWords..., Word1>>,
-                                        /*F*/ BindWords<std::tuple<WordN...>, std::tuple<FoundWords...>>> {};
+            : std::conditional_t<has_bind<Word1>::value,
+                                 /*T*/ BindWords<std::tuple<WordN...>, std::tuple<FoundWords..., Word1>>,
+                                 /*F*/ BindWords<std::tuple<WordN...>, std::tuple<FoundWords...>>> {};
 
         /**
          * Termination case for the BindWords metafunction
@@ -127,7 +126,7 @@ namespace dsl {
         struct BindFuser<std::tuple<Word1, WordN...>> {
 
             template <typename DSL, typename... Arguments>
-            static inline auto bind(const std::shared_ptr<threading::Reaction>& reaction, Arguments&&... args)
+            static auto bind(const std::shared_ptr<threading::Reaction>& reaction, Arguments&&... args)
                 -> decltype(util::FunctionFusion<std::tuple<Word1, WordN...>,
                                                  decltype(std::forward_as_tuple(reaction,
                                                                                 std::forward<Arguments>(args)...)),
@@ -146,7 +145,7 @@ namespace dsl {
 
         template <typename Word1, typename... WordN>
         struct BindFusion
-            : public BindFuser<
+            : BindFuser<
                   typename BindWords<std::tuple<typename Bind<Word1>::type, typename Bind<WordN>::type...>>::type> {};
 
     }  // namespace fusion

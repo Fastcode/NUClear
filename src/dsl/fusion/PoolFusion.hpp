@@ -52,7 +52,7 @@ namespace dsl {
          */
         template <typename Word1, typename... WordN, typename... FoundWords>
         struct PoolWords<std::tuple<Word1, WordN...>, std::tuple<FoundWords...>>
-            : public std::conditional_t<
+            : std::conditional_t<
                   has_pool<typename Pool<Word1>::type>::value,
                   /*T*/ PoolWords<std::tuple<WordN...>, std::tuple<FoundWords..., typename Pool<Word1>::type>>,
                   /*F*/ PoolWords<std::tuple<WordN...>, std::tuple<FoundWords...>>> {};
@@ -77,7 +77,7 @@ namespace dsl {
         struct PoolFuser<std::tuple<Word>> {
 
             template <typename DSL>
-            static inline util::ThreadPoolDescriptor pool(threading::Reaction& reaction) {
+            static util::ThreadPoolDescriptor pool(threading::Reaction& reaction) {
 
                 // Return our pool
                 return Word::template pool<DSL>(reaction);
@@ -89,13 +89,13 @@ namespace dsl {
         struct PoolFuser<std::tuple<Word1, Word2, WordN...>> {
 
             template <typename DSL>
-            static inline util::ThreadPoolDescriptor pool(const threading::Reaction& /*reaction*/) {
+            static util::ThreadPoolDescriptor pool(const threading::Reaction& /*reaction*/) {
                 throw std::invalid_argument("Can not be a member of more than one pool");
             }
         };
 
         template <typename Word1, typename... WordN>
-        struct PoolFusion : public PoolFuser<typename PoolWords<std::tuple<Word1, WordN...>>::type> {};
+        struct PoolFusion : PoolFuser<typename PoolWords<std::tuple<Word1, WordN...>>::type> {};
 
     }  // namespace fusion
 }  // namespace dsl

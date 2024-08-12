@@ -33,9 +33,7 @@ std::vector<std::string> events;  // NOLINT(cppcoreguidelines-avoid-non-const-gl
 
 struct BindExtensionTest1 {
     template <typename DSL>
-    static inline int bind(const std::shared_ptr<NUClear::threading::Reaction>& /*unused*/,
-                           const int& v1,
-                           const bool& v2) {
+    static int bind(const std::shared_ptr<NUClear::threading::Reaction>& /*unused*/, const int& v1, const bool& v2) {
         events.push_back("Bind1 with " + std::to_string(v1) + " and " + (v2 ? "true" : "false") + " called");
         return 5;
     }
@@ -43,9 +41,9 @@ struct BindExtensionTest1 {
 
 struct BindExtensionTest2 {
     template <typename DSL>
-    static inline bool bind(const std::shared_ptr<NUClear::threading::Reaction>& /*reaction*/,
-                            const std::string& v1,
-                            const std::chrono::nanoseconds& v2) {
+    static bool bind(const std::shared_ptr<NUClear::threading::Reaction>& /*reaction*/,
+                     const std::string& v1,
+                     const std::chrono::nanoseconds& v2) {
         events.push_back("Bind2 with " + v1 + " and " + std::to_string(v2.count()) + " called");
         return true;
     }
@@ -53,10 +51,10 @@ struct BindExtensionTest2 {
 
 struct BindExtensionTest3 {
     template <typename DSL>
-    static inline std::string bind(const std::shared_ptr<NUClear::threading::Reaction>& /*reaction*/,
-                                   const int& v1,
-                                   const int& v2,
-                                   const std::chrono::nanoseconds& v3) {
+    static std::string bind(const std::shared_ptr<NUClear::threading::Reaction>& /*reaction*/,
+                            const int& v1,
+                            const int& v2,
+                            const std::chrono::nanoseconds& v3) {
         events.push_back("Bind3 with " + std::to_string(v1) + ", " + std::to_string(v2) + " and "
                          + std::to_string(v3.count()) + " called");
         return "return from Bind3";

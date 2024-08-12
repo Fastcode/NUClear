@@ -26,6 +26,7 @@
 #include <list>
 #include <type_traits>
 
+#include "../../dsl/trait/is_transient.hpp"
 #include "../../threading/Reaction.hpp"
 #include "../../util/MergeTransient.hpp"
 
@@ -152,18 +153,19 @@ namespace dsl {
          * @tparam  DSLWords The DSL word/activity being modified.
          */
         template <size_t n, typename... DSLWords>
-        struct Last : public Fusion<DSLWords...> {
+        struct Last : Fusion<DSLWords...> {
 
         private:
             template <typename... T, int... Index>
-            static inline auto wrap(std::tuple<T...>&& data, util::Sequence<Index...> /*s*/)
+            // NOLINTNEXTLINE(cppcoreguidelines-rvalue-reference-param-not-moved) the elements in it are moved
+            static auto wrap(std::tuple<T...>&& data, util::Sequence<Index...> /*s*/)
                 -> decltype(std::make_tuple(LastItemStorage<n, T>(std::move(std::get<Index>(data)))...)) {
                 return std::make_tuple(LastItemStorage<n, T>(std::move(std::get<Index>(data)))...);
             }
 
         public:
             template <typename DSL>
-            static inline auto get(threading::Reaction& reaction)
+            static auto get(threading::Reaction& reaction)
                 -> decltype(wrap(
                     Fusion<DSLWords...>::template get<DSL>(reaction),
                     util::GenerateSequence<
@@ -183,7 +185,7 @@ namespace dsl {
     namespace trait {
 
         template <size_t n, typename T>
-        struct is_transient<word::LastItemStorage<n, T>> : public std::true_type {};
+        struct is_transient<word::LastItemStorage<n, T>> : std::true_type {};
 
     }  // namespace trait
 }  // namespace dsl
@@ -192,7 +194,7 @@ namespace util {
 
     template <size_t n, typename T>
     struct MergeTransients<dsl::word::LastItemStorage<n, T>> {
-        static inline bool merge(dsl::word::LastItemStorage<n, T>& t, dsl::word::LastItemStorage<n, T>& d) {
+        static bool merge(dsl::word::LastItemStorage<n, T>& t, dsl::word::LastItemStorage<n, T>& d) {
 
             // We put the contents from data into the transient storage list
             t.list.insert(t.list.end(), d.list.begin(), d.list.end());

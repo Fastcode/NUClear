@@ -71,7 +71,7 @@ namespace dsl {
         struct Always {
 
             template <typename DSL>
-            static inline util::ThreadPoolDescriptor pool(const threading::Reaction& reaction) {
+            static util::ThreadPoolDescriptor pool(const threading::Reaction& reaction) {
                 static std::map<NUClear::id_t, NUClear::id_t> pool_id;
                 static std::mutex mutex;
 
@@ -83,7 +83,7 @@ namespace dsl {
             }
 
             template <typename DSL>
-            static inline void bind(const std::shared_ptr<threading::Reaction>& always_reaction) {
+            static void bind(const std::shared_ptr<threading::Reaction>& always_reaction) {
                 /**
                  * Static map mapping reaction id (from the always reaction) to a pair of reaction pointers -- one for
                  * the always reaction and one for the idle reaction that we generate in this function
@@ -149,7 +149,7 @@ namespace dsl {
             }
 
             template <typename DSL>
-            static inline void postcondition(threading::ReactionTask& task) {
+            static void postcondition(threading::ReactionTask& task) {
                 // Get a task for the always reaction and submit it to the scheduler
                 task.parent.reactor.powerplant.submit(task.parent.get_task());
             }

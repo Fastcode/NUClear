@@ -25,7 +25,6 @@
 
 #include <stdexcept>
 
-#include "../../../PowerPlant.hpp"
 #include "../../../util/FileDescriptor.hpp"
 #include "../../../util/network/if_number_from_address.hpp"
 #include "../../../util/platform.hpp"
@@ -60,12 +59,12 @@ namespace dsl {
             template <typename DataType>
             struct UDP {
 
-                static inline void emit(const PowerPlant& /*powerplant*/,
-                                        std::shared_ptr<DataType> data,
-                                        const std::string& to_addr,
-                                        in_port_t to_port,
-                                        const std::string& from_addr = "",
-                                        in_port_t from_port          = 0) {
+                static void emit(const PowerPlant& /*powerplant*/,
+                                 std::shared_ptr<DataType> data,
+                                 const std::string& to_addr,
+                                 in_port_t to_port,
+                                 const std::string& from_addr = "",
+                                 in_port_t from_port          = 0) {
 
                     // Resolve our addresses
                     const util::network::sock_t remote = util::network::resolve(to_addr, to_port);

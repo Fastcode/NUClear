@@ -20,31 +20,37 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_DSL_TRAIT_ISTRANSIENT_HPP
-#define NUCLEAR_DSL_TRAIT_ISTRANSIENT_HPP
+#include "LogLevel.hpp"
+
+#include <ostream>
 
 namespace NUClear {
-namespace dsl {
-    namespace trait {
 
-        /**
-         * Indicates that a type is transient in the context of data availability.
-         *
-         * Often when extending the get dsl attachment point, data from that get is only available when that get is run
-         * in specific circumstances such as from a ThreadStore.
-         * When this trait is true, Reactors handle this data being unavailable differently.
-         * They will instead cache the last copy of the data that was provided and if no new data comes from the get
-         * function, they will instead provide this cached data.
-         *
-         * @see NUClear::dsl::store::ThreadStore
-         *
-         * @tparam typename the datatype that is to be considered transient
-         */
-        template <typename DataType>
-        struct is_transient : std::false_type {};
+std::string to_string(const LogLevel& level) {
+    switch (level) {
+        case LogLevel::TRACE: return "TRACE";
+        case LogLevel::DEBUG: return "DEBUG";
+        case LogLevel::INFO: return "INFO";
+        case LogLevel::WARN: return "WARN";
+        case LogLevel::ERROR: return "ERROR";
+        case LogLevel::FATAL: return "FATAL";
+        default:
+        case LogLevel::UNKNOWN: return "UNKNOWN";
+    }
+}
 
-    }  // namespace trait
-}  // namespace dsl
+LogLevel from_string(const std::string& level) {
+    return level == "TRACE"   ? LogLevel::TRACE
+           : level == "DEBUG" ? LogLevel::DEBUG
+           : level == "INFO"  ? LogLevel::INFO
+           : level == "WARN"  ? LogLevel::WARN
+           : level == "ERROR" ? LogLevel::ERROR
+           : level == "FATAL" ? LogLevel::FATAL
+                              : LogLevel::UNKNOWN;
+}
+
+std::ostream& operator<<(std::ostream& os, const LogLevel& level) {
+    return os << to_string(level);
+}
+
 }  // namespace NUClear
-
-#endif  // NUCLEAR_DSL_TRAIT_ISTRANSIENT_HPP

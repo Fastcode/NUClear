@@ -49,12 +49,11 @@ namespace dsl {
          */
         template <typename Word1, typename... WordN, typename... FoundWords>
         struct PostconditionWords<std::tuple<Word1, WordN...>, std::tuple<FoundWords...>>
-            : public std::conditional_t<
-                  has_postcondition<typename Postcondition<Word1>::type>::value,
-                  /*T*/
-                  PostconditionWords<std::tuple<WordN...>,
-                                     std::tuple<FoundWords..., typename Postcondition<Word1>::type>>,
-                  /*F*/ PostconditionWords<std::tuple<WordN...>, std::tuple<FoundWords...>>> {};
+            : std::conditional_t<has_postcondition<typename Postcondition<Word1>::type>::value,
+                                 /*T*/
+                                 PostconditionWords<std::tuple<WordN...>,
+                                                    std::tuple<FoundWords..., typename Postcondition<Word1>::type>>,
+                                 /*F*/ PostconditionWords<std::tuple<WordN...>, std::tuple<FoundWords...>>> {};
 
         /**
          * Termination case for the PostconditionWords metafunction.
@@ -76,7 +75,7 @@ namespace dsl {
         struct PostconditionFuser<std::tuple<Word>> {
 
             template <typename DSL>
-            static inline void postcondition(threading::ReactionTask& task) {
+            static void postcondition(threading::ReactionTask& task) {
 
                 // Run our remaining postcondition
                 Word::template postcondition<DSL>(task);
@@ -88,7 +87,7 @@ namespace dsl {
         struct PostconditionFuser<std::tuple<Word1, Word2, WordN...>> {
 
             template <typename DSL>
-            static inline void postcondition(threading::ReactionTask& task) {
+            static void postcondition(threading::ReactionTask& task) {
 
                 // Run our postcondition
                 Word1::template postcondition<DSL>(task);
@@ -100,7 +99,7 @@ namespace dsl {
 
         template <typename Word1, typename... WordN>
         struct PostconditionFusion
-            : public PostconditionFuser<typename PostconditionWords<std::tuple<Word1, WordN...>>::type> {};
+            : PostconditionFuser<typename PostconditionWords<std::tuple<Word1, WordN...>>::type> {};
 
     }  // namespace fusion
 }  // namespace dsl

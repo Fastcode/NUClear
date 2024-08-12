@@ -42,37 +42,37 @@ namespace dsl {
         struct NoOp {
 
             template <typename DSL, typename... Args>
-            static inline void bind(const std::shared_ptr<threading::Reaction>& /*reaction*/, Args... /*args*/) {
+            static void bind(const std::shared_ptr<threading::Reaction>& /*reaction*/, Args... /*args*/) {
                 // Empty as this is a no-op placeholder
             }
 
             template <typename DSL>
-            static inline std::tuple<> get(const threading::Reaction& /*reaction*/) {
+            static std::tuple<> get(const threading::Reaction& /*reaction*/) {
                 return {};
             }
 
             template <typename DSL>
-            static inline bool precondition(const threading::Reaction& /*reaction*/) {
+            static bool precondition(const threading::Reaction& /*reaction*/) {
                 return true;
             }
 
             template <typename DSL>
-            static inline int priority(const threading::Reaction& /*reaction*/) {
+            static int priority(const threading::Reaction& /*reaction*/) {
                 return word::Priority::NORMAL::value;
             }
 
             template <typename DSL>
-            static inline util::GroupDescriptor group(const threading::Reaction& /*reaction*/) {
+            static util::GroupDescriptor group(const threading::Reaction& /*reaction*/) {
                 return util::GroupDescriptor{};
             }
 
             template <typename DSL>
-            static inline util::ThreadPoolDescriptor pool(const threading::Reaction& /*reaction*/) {
+            static util::ThreadPoolDescriptor pool(const threading::Reaction& /*reaction*/) {
                 return util::ThreadPoolDescriptor{};
             }
 
             template <typename DSL>
-            static inline void postcondition(const threading::ReactionTask& /*task*/) {
+            static void postcondition(const threading::ReactionTask& /*task*/) {
                 // Empty as this is a no-op placeholder
             }
         };

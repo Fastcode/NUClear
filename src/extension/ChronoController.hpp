@@ -23,7 +23,6 @@
 #ifndef NUCLEAR_EXTENSION_CHRONOCONTROLLER
 #define NUCLEAR_EXTENSION_CHRONOCONTROLLER
 
-#include "../PowerPlant.hpp"
 #include "../Reactor.hpp"
 #include "../message/TimeTravel.hpp"
 #include "../util/precise_sleep.hpp"

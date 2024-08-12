@@ -23,7 +23,6 @@
 #ifndef NUCLEAR_DSL_WORD_EMIT_DIRECT_HPP
 #define NUCLEAR_DSL_WORD_EMIT_DIRECT_HPP
 
-#include "../../../PowerPlant.hpp"
 #include "../../store/DataStore.hpp"
 #include "../../store/ThreadStore.hpp"
 #include "../../store/TypeCallbackStore.hpp"

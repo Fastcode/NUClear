@@ -75,6 +75,7 @@ public:
                 case 4:
                     on<Trigger<Message<3>>, Priority::IDLE>().then([] { events.push_back("Idle Message<3>"); });
                     break;
+                default: throw std::invalid_argument("Should be impossible");
             }
         }
 

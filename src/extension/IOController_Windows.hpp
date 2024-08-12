@@ -23,7 +23,6 @@
 #ifndef NUCLEAR_EXTENSION_IOCONTROLLER_WINDOWS_HPP
 #define NUCLEAR_EXTENSION_IOCONTROLLER_WINDOWS_HPP
 
-#include "../PowerPlant.hpp"
 #include "../Reactor.hpp"
 #include "../dsl/word/IO.hpp"
 #include "../util/platform.hpp"

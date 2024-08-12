@@ -37,7 +37,7 @@ namespace dsl {
          * Any reactions listed with this DSL word will run only once.
          * This is the only time these reactions will run as the postcondition Unbinds the current reaction.
          */
-        struct Once : public Single {
+        struct Once : Single {
 
             // Post condition to unbind this reaction.
 

@@ -56,7 +56,7 @@ namespace threading {
         return false;
     }
 
-    void TaskScheduler::run_task(Task&& task) {
+    void TaskScheduler::run_task(const Task& task) {
         task.run();
 
         // We need to do group counting if this isn't the default group
@@ -77,6 +77,7 @@ namespace threading {
                 // Run the next task
                 run_task(get_task());
             }
+            // NOLINTNEXTLINE(bugprone-empty-catch) We definitely don't want to crash here
             catch (...) {
             }
             if (pool->pool_descriptor.counts_for_idle) {
@@ -158,6 +159,7 @@ namespace threading {
                 }
                 // This gets thrown some time if between checking if joinable and joining
                 // the thread is no longer joinable
+                // NOLINTNEXTLINE(bugprone-empty-catch) just ignore the exception
                 catch (const std::system_error&) {
                 }
             }
@@ -202,7 +204,7 @@ namespace threading {
                 runnable = is_runnable(task.group_descriptor);
             }
             if (runnable) {
-                run_task(std::move(task));
+                run_task(task);
                 return;
             }
         }

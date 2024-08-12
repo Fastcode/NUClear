@@ -23,6 +23,8 @@
 #ifndef NUCLEAR_LOGLEVEL_HPP
 #define NUCLEAR_LOGLEVEL_HPP
 
+#include <ostream>
+
 // Why do we need to include platform.hpp here?
 // Because windows defines a bunch of things for legacy reasons, one of which is a #define for ERROR as blank
 // Of course this causes a problem when we define our own token below as error as the preprocessor removes it
@@ -37,7 +39,7 @@ namespace NUClear {
  * Log levels are used to provide different levels of detail on a per-reactor basis.
  * The logging level of a reactor can be changed by setting it in the install function.
  */
-enum LogLevel {
+enum LogLevel : uint8_t {
     /**
      * Don't use this log level when emitting logs, it is for setting reactor log level from non reactor sources.
      *
@@ -96,6 +98,33 @@ enum LogLevel {
      */
     FATAL
 };
+
+/**
+ * This function is used to convert a LogLevel into a string
+ *
+ * @param level the LogLevel to convert
+ *
+ * @return the string representation of the LogLevel
+ */
+std::string to_string(const LogLevel& level);
+
+/**
+ * This function is used to convert a string into a LogLevel
+ *
+ * @param level the string to convert
+ *
+ * @return the LogLevel representation of the string
+ */
+LogLevel from_string(const std::string& level);
+
+/**
+ * This function is used to convert a LogLevel into a string for printing.
+ *
+ * @param os    the output stream to write to
+ * @param level the LogLevel to convert
+ * @return the output stream
+ */
+std::ostream& operator<<(std::ostream& os, const LogLevel& level);
 
 }  // namespace NUClear
 

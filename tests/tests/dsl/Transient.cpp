@@ -47,7 +47,7 @@ namespace NUClear {
 namespace dsl {
     namespace trait {
         template <>
-        struct is_transient<TransientMessage> : public std::true_type {};
+        struct is_transient<TransientMessage> : std::true_type {};
     }  // namespace trait
 }  // namespace dsl
 }  // namespace NUClear
@@ -57,10 +57,10 @@ namespace {
 /// Events that occur during the test
 std::vector<std::string> events;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
-struct TransientGetter : public NUClear::dsl::operation::TypeBind<TransientMessage> {
+struct TransientGetter : NUClear::dsl::operation::TypeBind<TransientMessage> {
 
     template <typename DSL>
-    static inline TransientMessage get(NUClear::threading::Reaction& r) {
+    static TransientMessage get(NUClear::threading::Reaction& r) {
 
         // Get the real message and return it directly so transient can activate
         auto raw = NUClear::dsl::operation::CacheGet<TransientMessage>::get<DSL>(r);

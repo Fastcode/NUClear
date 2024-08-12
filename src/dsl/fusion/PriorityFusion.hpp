@@ -49,7 +49,7 @@ namespace dsl {
          */
         template <typename Word1, typename... WordN, typename... FoundWords>
         struct PriorityWords<std::tuple<Word1, WordN...>, std::tuple<FoundWords...>>
-            : public std::conditional_t<
+            : std::conditional_t<
                   has_priority<typename Priority<Word1>::type>::value,
                   /*T*/ PriorityWords<std::tuple<WordN...>, std::tuple<FoundWords..., typename Priority<Word1>::type>>,
                   /*F*/ PriorityWords<std::tuple<WordN...>, std::tuple<FoundWords...>>> {};
@@ -74,7 +74,7 @@ namespace dsl {
         struct PriorityFuser<std::tuple<Word>> {
 
             template <typename DSL>
-            static inline int priority(threading::Reaction& reaction) {
+            static int priority(threading::Reaction& reaction) {
 
                 // Return our priority
                 return Word::template priority<DSL>(reaction);
@@ -86,7 +86,7 @@ namespace dsl {
         struct PriorityFuser<std::tuple<Word1, Word2, WordN...>> {
 
             template <typename DSL>
-            static inline int priority(threading::Reaction& reaction) {
+            static int priority(threading::Reaction& reaction) {
 
                 // Choose our maximum priority
                 return std::max(Word1::template priority<DSL>(reaction),
@@ -95,7 +95,7 @@ namespace dsl {
         };
 
         template <typename Word1, typename... WordN>
-        struct PriorityFusion : public PriorityFuser<typename PriorityWords<std::tuple<Word1, WordN...>>::type> {};
+        struct PriorityFusion : PriorityFuser<typename PriorityWords<std::tuple<Word1, WordN...>>::type> {};
 
     }  // namespace fusion
 }  // namespace dsl

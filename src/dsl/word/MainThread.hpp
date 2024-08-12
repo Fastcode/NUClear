@@ -40,7 +40,7 @@ namespace dsl {
         struct MainThread {
 
             template <typename DSL>
-            static inline util::ThreadPoolDescriptor pool(const threading::Reaction& /*reaction*/) {
+            static util::ThreadPoolDescriptor pool(const threading::Reaction& /*reaction*/) {
                 return util::ThreadPoolDescriptor{util::ThreadPoolDescriptor::MAIN_THREAD_POOL_ID, 1, true};
             }
         };

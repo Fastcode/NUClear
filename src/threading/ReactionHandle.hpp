@@ -57,7 +57,7 @@ namespace threading {
         /**
          * Enables the reaction so that associated tasks will be scheduled and queued when the reaction is triggered.
          */
-        inline ReactionHandle& enable() {
+        ReactionHandle& enable() {
             auto c = context.lock();
             if (c) {
                 c->enabled = true;
@@ -73,7 +73,7 @@ namespace threading {
          * Note that a reaction which has been bound by an on<Always> request should not be disabled as it will
          * continuously spin checking for new tasks.
          */
-        inline ReactionHandle& disable() {
+        ReactionHandle& disable() {
             auto c = context.lock();
             if (c) {
                 c->enabled = false;
@@ -86,7 +86,7 @@ namespace threading {
          *
          * @param set true for enable, false for disable
          */
-        inline ReactionHandle& enable(const bool& set) {
+        ReactionHandle& enable(const bool& set) {
             auto c = context.lock();
             if (c) {
                 c->enabled = set;
@@ -101,7 +101,7 @@ namespace threading {
          *
          * @return true if enabled, false if disabled
          */
-        inline bool enabled() const {
+        bool enabled() const {
             auto c = context.lock();
             return c ? bool(c->enabled) : false;
         }
@@ -115,7 +115,7 @@ namespace threading {
          * configuration details during runtime.
          */
         // NOLINTNEXTLINE(readability-make-member-function-const) unbinding modifies the reaction
-        inline void unbind() {
+        void unbind() {
             auto c = context.lock();
             if (c) {
                 c->unbind();
@@ -127,7 +127,7 @@ namespace threading {
          *
          * @return true if the reaction is still valid
          */
-        inline operator bool() const {
+        operator bool() const {
             return bool(context.lock());
         }
     };

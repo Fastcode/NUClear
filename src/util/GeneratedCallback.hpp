@@ -49,7 +49,7 @@ namespace util {
         /// The descriptor the thread pool and task queue that the should run in
         ThreadPoolDescriptor pool{util::ThreadPoolDescriptor::DEFAULT_THREAD_POOL_ID, 0, true};
         /// The function that should be executed in order to run the task
-        threading::ReactionTask::TaskFunction callback{};
+        threading::ReactionTask::TaskFunction callback;
 
         /**
          * @return `true` if this represents a valid callback object

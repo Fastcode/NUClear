@@ -49,12 +49,11 @@ namespace dsl {
          */
         template <typename Word1, typename... WordN, typename... FoundWords>
         struct PreconditionWords<std::tuple<Word1, WordN...>, std::tuple<FoundWords...>>
-            : public std::conditional_t<
-                  has_precondition<typename Precondition<Word1>::type>::value,
-                  /*T*/
-                  PreconditionWords<std::tuple<WordN...>,
-                                    std::tuple<FoundWords..., typename Precondition<Word1>::type>>,
-                  /*F*/ PreconditionWords<std::tuple<WordN...>, std::tuple<FoundWords...>>> {};
+            : std::conditional_t<has_precondition<typename Precondition<Word1>::type>::value,
+                                 /*T*/
+                                 PreconditionWords<std::tuple<WordN...>,
+                                                   std::tuple<FoundWords..., typename Precondition<Word1>::type>>,
+                                 /*F*/ PreconditionWords<std::tuple<WordN...>, std::tuple<FoundWords...>>> {};
 
         /**
          * Termination case for the PreconditionWords metafunction.
@@ -76,7 +75,7 @@ namespace dsl {
         struct PreconditionFuser<std::tuple<Word>> {
 
             template <typename DSL>
-            static inline bool precondition(threading::Reaction& reaction) {
+            static bool precondition(threading::Reaction& reaction) {
 
                 // Run our remaining precondition
                 return Word::template precondition<DSL>(reaction);
@@ -88,7 +87,7 @@ namespace dsl {
         struct PreconditionFuser<std::tuple<Word1, Word2, WordN...>> {
 
             template <typename DSL>
-            static inline bool precondition(threading::Reaction& reaction) {
+            static bool precondition(threading::Reaction& reaction) {
 
                 // Perform a recursive and operation ending with the first false
                 return Word1::template precondition<DSL>(reaction)
@@ -97,8 +96,7 @@ namespace dsl {
         };
 
         template <typename Word1, typename... WordN>
-        struct PreconditionFusion
-            : public PreconditionFuser<typename PreconditionWords<std::tuple<Word1, WordN...>>::type> {};
+        struct PreconditionFusion : PreconditionFuser<typename PreconditionWords<std::tuple<Word1, WordN...>>::type> {};
 
     }  // namespace fusion
 }  // namespace dsl

@@ -28,7 +28,7 @@ namespace util {
 
     template <typename T>
     struct MergeTransients {
-        static inline bool merge(T& t, T& d) {
+        static bool merge(T& t, T& d) {
             d = t = d ? d : t;
             return true;
         };

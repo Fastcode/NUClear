@@ -50,7 +50,7 @@ namespace dsl {
          *            Emission of this datatype into the system will trigger the subscribing reaction.
          */
         template <typename... Ts>
-        struct Trigger : public Fusion<operation::TypeBind<Ts>..., operation::CacheGet<Ts>...> {};
+        struct Trigger : Fusion<operation::TypeBind<Ts>..., operation::CacheGet<Ts>...> {};
 
     }  // namespace word
 }  // namespace dsl

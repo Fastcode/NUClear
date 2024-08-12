@@ -67,7 +67,7 @@ namespace dsl {
         template <typename PoolType>
         struct Idle {
             template <typename DSL>
-            static inline void bind(const std::shared_ptr<threading::Reaction>& reaction) {
+            static void bind(const std::shared_ptr<threading::Reaction>& reaction) {
                 bind_idle(reaction, PoolType::template pool<DSL>(*reaction));
             }
         };
@@ -75,7 +75,7 @@ namespace dsl {
         template <>
         struct Idle<void> {
             template <typename DSL>
-            static inline void bind(const std::shared_ptr<threading::Reaction>& reaction) {
+            static void bind(const std::shared_ptr<threading::Reaction>& reaction) {
                 bind_idle(reaction, util::ThreadPoolDescriptor::AllPools());
             }
         };

@@ -69,11 +69,11 @@ namespace message {
         /// The reaction id of the task that caused this task or 0 if there was not one
         NUClear::id_t cause_task_id{0};
         /// The time that this reaction was emitted to the thread pool
-        clock::time_point emitted{};
+        clock::time_point emitted;
         /// The time that execution started on this reaction
-        clock::time_point started{};
+        clock::time_point started;
         /// The time that execution finished on this reaction
-        clock::time_point finished{};
+        clock::time_point finished;
         /// An exception pointer that can be rethrown (if the reaction threw an exception)
         std::exception_ptr exception{nullptr};
     };

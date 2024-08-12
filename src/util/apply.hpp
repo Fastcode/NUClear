@@ -35,8 +35,7 @@ namespace util {
     /**
      * Dereferences and uses the values from the tuple as the arguments for the function call.
      *
-     * This function uses the values which are stored in the tuple and dereferences them as parameters in
-     * the callback function.
+     * This function uses the values which are stored in the tuple and dereferences them as parameters in the callback.
      * It does this using the generated sequence of integers for this tuple.
      * These values are then used to extract the function parameters in order.
      *
@@ -49,7 +48,7 @@ namespace util {
 
         // Get each of the values from the tuple, dereference them and call the function with them
         // Also ensure that each value is a const reference
-        function(Dereferencer<decltype(std::get<S>(args))>(std::get<S>(args))...);
+        std::forward<Function>(function)(Dereferencer<decltype(std::get<S>(args))>(std::get<S>(args))...);
     }
 
     template <typename Function, typename... Arguments>
