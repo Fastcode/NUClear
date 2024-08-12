@@ -11,5 +11,9 @@
   "C_Cpp.preferredPathSeparator": "Forward Slash",
   "editor.rulers": [120],
   "cmake.configureOnOpen": true,
-  "C_Cpp.default.configurationProvider": "vector-of-bool.cmake-tools"
+  "C_Cpp.default.configurationProvider": "vector-of-bool.cmake-tools",
+  "sonarlint.connectedMode.project": {
+    "connectionId": "fastcode",
+    "projectKey": "Fastcode_NUClear"
+  }
 }
