@@ -77,6 +77,7 @@ namespace threading {
                 // Run the next task
                 run_task(get_task());
             }
+            // NOLINTNEXTLINE(bugprone-empty-catch) We definitely don't want to crash here
             catch (...) {
             }
             if (pool->pool_descriptor.counts_for_idle) {
@@ -158,6 +159,7 @@ namespace threading {
                 }
                 // This gets thrown some time if between checking if joinable and joining
                 // the thread is no longer joinable
+                // NOLINTNEXTLINE(bugprone-empty-catch) just ignore the exception
                 catch (const std::system_error&) {
                 }
             }
