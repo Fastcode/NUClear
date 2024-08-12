@@ -64,7 +64,7 @@ namespace dsl {
          * @par Implements
          *  Bind
          */
-        struct UDP : public IO {
+        struct UDP : IO {
         private:
             /**
              * This structure is used to configure the UDP connection
@@ -457,7 +457,7 @@ namespace dsl {
                 return {};
             }
 
-            struct Broadcast : public IO {
+            struct Broadcast : IO {
 
                 template <typename DSL>
                 static std::tuple<in_port_t, fd_t> bind(const std::shared_ptr<threading::Reaction>& reaction,
@@ -502,7 +502,7 @@ namespace dsl {
                 }
             };
 
-            struct Multicast : public IO {
+            struct Multicast : IO {
 
                 template <typename DSL>
                 static std::tuple<in_port_t, fd_t> bind(const std::shared_ptr<threading::Reaction>& reaction,
@@ -544,7 +544,7 @@ namespace dsl {
     namespace trait {
 
         template <>
-        struct is_transient<word::UDP::Packet> : public std::true_type {};
+        struct is_transient<word::UDP::Packet> : std::true_type {};
 
     }  // namespace trait
 }  // namespace dsl

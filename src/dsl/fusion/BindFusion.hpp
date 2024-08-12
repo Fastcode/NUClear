@@ -97,9 +97,9 @@ namespace dsl {
          */
         template <typename Word1, typename... WordN, typename... FoundWords>
         struct BindWords<std::tuple<Word1, WordN...>, std::tuple<FoundWords...>>
-            : public std::conditional_t<has_bind<Word1>::value,
-                                        /*T*/ BindWords<std::tuple<WordN...>, std::tuple<FoundWords..., Word1>>,
-                                        /*F*/ BindWords<std::tuple<WordN...>, std::tuple<FoundWords...>>> {};
+            : std::conditional_t<has_bind<Word1>::value,
+                                 /*T*/ BindWords<std::tuple<WordN...>, std::tuple<FoundWords..., Word1>>,
+                                 /*F*/ BindWords<std::tuple<WordN...>, std::tuple<FoundWords...>>> {};
 
         /**
          * Termination case for the BindWords metafunction
@@ -145,7 +145,7 @@ namespace dsl {
 
         template <typename Word1, typename... WordN>
         struct BindFusion
-            : public BindFuser<
+            : BindFuser<
                   typename BindWords<std::tuple<typename Bind<Word1>::type, typename Bind<WordN>::type...>>::type> {};
 
     }  // namespace fusion

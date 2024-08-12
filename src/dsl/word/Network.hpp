@@ -34,7 +34,7 @@ namespace dsl {
     namespace word {
 
         template <typename T>
-        struct NetworkData : public std::shared_ptr<T> {
+        struct NetworkData : std::shared_ptr<T> {
             NetworkData() : std::shared_ptr<T>() {}
             explicit NetworkData(T* ptr) : std::shared_ptr<T>(ptr) {}
             NetworkData(const std::shared_ptr<T>& ptr) : std::shared_ptr<T>(ptr) {}
@@ -112,10 +112,10 @@ namespace dsl {
     namespace trait {
 
         template <typename T>
-        struct is_transient<typename word::NetworkData<T>> : public std::true_type {};
+        struct is_transient<typename word::NetworkData<T>> : std::true_type {};
 
         template <>
-        struct is_transient<typename std::shared_ptr<word::NetworkSource>> : public std::true_type {};
+        struct is_transient<typename std::shared_ptr<word::NetworkSource>> : std::true_type {};
 
     }  // namespace trait
 }  // namespace dsl

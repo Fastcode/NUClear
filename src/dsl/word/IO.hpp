@@ -163,7 +163,7 @@ namespace dsl {
 
     namespace trait {
         template <>
-        struct is_transient<word::IO::Event> : public std::true_type {};
+        struct is_transient<word::IO::Event> : std::true_type {};
     }  // namespace trait
 
 }  // namespace dsl

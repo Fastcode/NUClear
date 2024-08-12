@@ -38,9 +38,9 @@ namespace dsl {
     namespace operation {
         template <>
         struct DSLProxy<CustomMessage1>
-            : public NUClear::dsl::operation::TypeBind<CustomMessage1>
-            , public NUClear::dsl::operation::CacheGet<CustomMessage2>
-            , public NUClear::dsl::word::Single {};
+            : NUClear::dsl::operation::TypeBind<CustomMessage1>
+            , NUClear::dsl::operation::CacheGet<CustomMessage2>
+            , NUClear::dsl::word::Single {};
     }  // namespace operation
 }  // namespace dsl
 }  // namespace NUClear

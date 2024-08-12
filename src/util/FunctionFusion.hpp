@@ -122,7 +122,7 @@ namespace util {
     struct FunctionFusionCaller<std::tuple<CurrentFunction, Functions...>,
                                 Shared,
                                 std::tuple<CurrentRange, Ranges...>,
-                                std::tuple<Arguments...>> : public std::true_type {
+                                std::tuple<Arguments...>> : std::true_type {
     private:
         /**
          * Calls a single function in the function set.
@@ -261,9 +261,8 @@ namespace util {
                           End,
                           std::tuple<ProcessedFunctions...>,
                           std::tuple<ArgumentRanges...>>
-        : public
-          // Test if we have moved into an invalid range
-          std::conditional_t<
+        // Test if we have moved into an invalid range
+        : std::conditional_t<
               (Start > End),
               // We are in an invalid range which makes this path invalid
               /*T*/ std::false_type,
@@ -346,9 +345,8 @@ namespace util {
                           End,
                           std::tuple<ProcessedFunctions...>,
                           std::tuple<Ranges...>>
-        : public
-          // Check if we used up all of our arguments (and not more than all of our arguments)
-          std::conditional_t<(Start == End && Start == int(sizeof...(Arguments))),
+        // Check if we used up all of our arguments (and not more than all of our arguments)
+        : std::conditional_t<(Start == End && Start == int(sizeof...(Arguments))),
                              // We have used up the exact right number of arguments (and everything by this point should
                              // have been callable)
                              /*T*/

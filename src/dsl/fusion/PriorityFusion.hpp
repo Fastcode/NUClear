@@ -49,7 +49,7 @@ namespace dsl {
          */
         template <typename Word1, typename... WordN, typename... FoundWords>
         struct PriorityWords<std::tuple<Word1, WordN...>, std::tuple<FoundWords...>>
-            : public std::conditional_t<
+            : std::conditional_t<
                   has_priority<typename Priority<Word1>::type>::value,
                   /*T*/ PriorityWords<std::tuple<WordN...>, std::tuple<FoundWords..., typename Priority<Word1>::type>>,
                   /*F*/ PriorityWords<std::tuple<WordN...>, std::tuple<FoundWords...>>> {};
@@ -95,7 +95,7 @@ namespace dsl {
         };
 
         template <typename Word1, typename... WordN>
-        struct PriorityFusion : public PriorityFuser<typename PriorityWords<std::tuple<Word1, WordN...>>::type> {};
+        struct PriorityFusion : PriorityFuser<typename PriorityWords<std::tuple<Word1, WordN...>>::type> {};
 
     }  // namespace fusion
 }  // namespace dsl

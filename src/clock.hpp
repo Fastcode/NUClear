@@ -39,7 +39,7 @@ namespace NUClear {
  * A clock class that extends a base clock type and allows for clock adjustment and setting.
  */
 template <typename = void>
-struct nuclear_clock : public NUCLEAR_CLOCK_TYPE {
+struct nuclear_clock : NUCLEAR_CLOCK_TYPE {
     using base_clock = NUCLEAR_CLOCK_TYPE;
 
     /**

@@ -57,9 +57,9 @@ namespace dsl {
          */
         template <typename Word1, typename... WordN, typename... FoundWords>
         struct GetWords<std::tuple<Word1, WordN...>, std::tuple<FoundWords...>>
-            : public std::conditional_t<has_get<Word1>::value,
-                                        /*T*/ GetWords<std::tuple<WordN...>, std::tuple<FoundWords..., Word1>>,
-                                        /*F*/ GetWords<std::tuple<WordN...>, std::tuple<FoundWords...>>> {};
+            : std::conditional_t<has_get<Word1>::value,
+                                 /*T*/ GetWords<std::tuple<WordN...>, std::tuple<FoundWords..., Word1>>,
+                                 /*F*/ GetWords<std::tuple<WordN...>, std::tuple<FoundWords...>>> {};
 
         /**
          * Termination case for the GetWords metafunction.
@@ -104,8 +104,7 @@ namespace dsl {
 
         template <typename Word1, typename... WordN>
         struct GetFusion
-            : public GetFuser<
-                  typename GetWords<std::tuple<typename Get<Word1>::type, typename Get<WordN>::type...>>::type> {};
+            : GetFuser<typename GetWords<std::tuple<typename Get<Word1>::type, typename Get<WordN>::type...>>::type> {};
 
     }  // namespace fusion
 }  // namespace dsl
