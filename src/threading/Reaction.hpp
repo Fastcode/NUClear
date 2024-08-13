@@ -37,7 +37,7 @@ class Reactor;
 
 namespace util {
     struct GeneratedCallback;
-}
+}  // namespace util
 
 namespace threading {
 
