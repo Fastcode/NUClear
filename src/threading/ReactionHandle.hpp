@@ -24,11 +24,6 @@
 #define NUCLEAR_THREADING_REACTIONHANDLE_HPP
 
 #include <memory>
-#include <mutex>
-#include <queue>
-#include <string>
-#include <typeindex>
-#include <vector>
 
 #include "Reaction.hpp"
 
@@ -52,18 +47,12 @@ namespace threading {
          *
          * @param context The reaction that we are interacting with
          */
-        explicit ReactionHandle(const std::shared_ptr<Reaction>& context = nullptr) : context(context) {}
+        explicit ReactionHandle(const std::shared_ptr<Reaction>& context = nullptr);
 
         /**
          * Enables the reaction so that associated tasks will be scheduled and queued when the reaction is triggered.
          */
-        ReactionHandle& enable() {
-            auto c = context.lock();
-            if (c) {
-                c->enabled = true;
-            }
-            return *this;
-        }
+        ReactionHandle& enable();
 
         /**
          * Disables the reaction.
@@ -73,38 +62,21 @@ namespace threading {
          * Note that a reaction which has been bound by an on<Always> request should not be disabled as it will
          * continuously spin checking for new tasks.
          */
-        ReactionHandle& disable() {
-            auto c = context.lock();
-            if (c) {
-                c->enabled = false;
-            }
-            return *this;
-        }
+        ReactionHandle& disable();
 
         /**
          * Sets the run status of the reaction handle.
          *
          * @param set true for enable, false for disable
          */
-        ReactionHandle& enable(const bool& set) {
-            auto c = context.lock();
-            if (c) {
-                c->enabled = set;
-            }
-            return *this;
-        }
+        ReactionHandle& enable(const bool& set);
 
         /**
-         * Checks if the reaction is currently enabled.
-         *
-         * Will return false if the reaction has been unbound or for an unbound reaction handle.
+         * Informs if the reaction is currently enabled.
          *
          * @return true if enabled, false if disabled
          */
-        bool enabled() const {
-            auto c = context.lock();
-            return c ? bool(c->enabled) : false;
-        }
+        bool enabled() const;
 
         /**
          * Removes a reaction request from the runtime environment.
@@ -115,21 +87,14 @@ namespace threading {
          * configuration details during runtime.
          */
         // NOLINTNEXTLINE(readability-make-member-function-const) unbinding modifies the reaction
-        void unbind() {
-            auto c = context.lock();
-            if (c) {
-                c->unbind();
-            }
-        }
+        void unbind();
 
         /**
-         * Returns if this reaction handle holds a valid pointer (may be already unbound)
+         * Returns if this reaction handle holds a valid pointer (may be already unbound).
          *
          * @return true if the reaction is still valid
          */
-        operator bool() const {
-            return bool(context.lock());
-        }
+        operator bool() const;
     };
 
 }  // namespace threading
