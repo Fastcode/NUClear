@@ -68,7 +68,7 @@ namespace message {
             }
         };
 
-        ReactionStatistics(std::shared_ptr<threading::ReactionIdentifiers> identifiers,
+        ReactionStatistics(std::shared_ptr<const threading::ReactionIdentifiers> identifiers,
                            const IDPair& cause,
                            const IDPair& target,
                            util::ThreadPoolDescriptor target_threadpool,
@@ -82,7 +82,7 @@ namespace message {
 
 
         /// The identifiers for the reaction that was executed
-        std::shared_ptr<threading::ReactionIdentifiers> identifiers;
+        std::shared_ptr<const threading::ReactionIdentifiers> identifiers;
 
         /// The reaction/task pair that caused this reaction or 0s if it was a non NUClear cause
         IDPair cause;
