@@ -38,8 +38,7 @@ namespace NUClear {
 /**
  * A clock class that extends a base clock type and allows for clock adjustment and setting.
  */
-template <typename = void>
-struct nuclear_clock : NUCLEAR_CLOCK_TYPE {
+struct clock : NUCLEAR_CLOCK_TYPE {
     using base_clock = NUCLEAR_CLOCK_TYPE;
 
     /**
@@ -47,10 +46,7 @@ struct nuclear_clock : NUCLEAR_CLOCK_TYPE {
      *
      * @return The current time of the clock.
      */
-    static time_point now() {
-        const ClockData current = data[active.load()];  // Take a copy in case it changes
-        return current.epoch + dc((base_clock::now() - current.base_from) * current.rtf);
-    }
+    static time_point now();
 
     /**
      * Adjust the clock by a specified duration and real-time factor.
@@ -58,20 +54,7 @@ struct nuclear_clock : NUCLEAR_CLOCK_TYPE {
      * @param adjustment The duration by which to adjust the clock.
      * @param rtf        The real-time factor to apply to the clock.
      */
-    static void adjust_clock(const duration& adjustment, const double& rtf = 1.0) {
-        const std::lock_guard<std::mutex> lock(mutex);
-        // Load the current state
-        const auto& current = data[active.load()];
-        const int n         = static_cast<int>((active.load() + 1) % data.size());
-        auto& next          = data[n];
-
-        // Perform the update
-        auto base      = base_clock::now();
-        next.epoch     = current.epoch + adjustment + dc((base - current.base_from) * current.rtf);
-        next.base_from = base;
-        next.rtf       = rtf;
-        active         = n;
-    }
+    static void adjust_clock(const duration& adjustment, const double& rtf = 1.0);
 
     /**
      * Set the clock to a specified time and real-time factor.
@@ -79,45 +62,17 @@ struct nuclear_clock : NUCLEAR_CLOCK_TYPE {
      * @param time The time to set the clock to.
      * @param rtf  The real-time factor to apply to the clock.
      */
-    static void set_clock(const time_point& time, const double& rtf = 1.0) {
-        const std::lock_guard<std::mutex> lock(mutex);
-        // Load the current state
-        const int n = static_cast<int>((active.load() + 1) % data.size());
-        auto& next  = data[n];
-
-        // Perform the update
-        auto base      = base_clock::now();
-        next.epoch     = time;
-        next.base_from = base;
-        next.rtf       = rtf;
-        active         = n;
-    }
+    static void set_clock(const time_point& time, const double& rtf = 1.0);
 
 
     /**
      * Get the real-time factor of the clock.
      *
-     * @return The real-time factor of the clock.
+     * @return The real-time factor of the clock
      */
-    static double rtf() {
-        return data[active.load()].rtf;
-    }
+    static double rtf();
 
 private:
-    /**
-     * Convert a duration to the clock's duration type.
-     *
-     * @tparam T The type of the duration.
-     *
-     * @param t The duration to convert.
-     *
-     * @return  The converted duration.
-     */
-    template <typename T>
-    duration static dc(const T& t) {
-        return std::chrono::duration_cast<duration>(t);
-    }
-
     /**
      * Data structure to hold clock information.
      */
@@ -141,20 +96,6 @@ private:
     /// The active clock data index
     static std::atomic<int> active;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 };
-
-template <typename T>
-// NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
-std::mutex nuclear_clock<T>::mutex;
-template <typename T>
-// NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
-std::array<typename nuclear_clock<T>::ClockData, 3> nuclear_clock<T>::data =
-    std::array<typename nuclear_clock<T>::ClockData, 3>{};
-template <typename T>
-// NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
-std::atomic<int> nuclear_clock<T>::active{0};
-
-using clock = nuclear_clock<>;
-
 
 }  // namespace NUClear
 
