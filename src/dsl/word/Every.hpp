@@ -41,7 +41,7 @@ namespace dsl {
         struct Per;
 
         template <typename Unit, std::intmax_t num, std::intmax_t den>
-        struct Per<std::chrono::duration<Unit, std::ratio<num, den>>> : clock::duration {
+        struct Per<std::chrono::duration<Unit, std::ratio<num, den>>> : public clock::duration {
             explicit Per(int ticks)
                 : clock::duration(std::lround((double(num) / double(ticks * den))
                                               * (double(clock::period::den) / double(clock::period::num)))) {}
@@ -49,7 +49,6 @@ namespace dsl {
 
         /**
          * This is used to request any periodic reactions in the system.
-         *
          *
          * @code on<Every<ticks, period>>() @endcode
          * This request will enact the execution of a task at a periodic rate.

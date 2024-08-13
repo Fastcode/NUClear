@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2023 NUClear Contributors
+ * Copyright (c) 2017 NUClear Contributors
  *
  * This file is part of the NUClear codebase.
  * See https://github.com/Fastcode/NUClear for further info.
@@ -20,33 +20,29 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_UTIL_NETWORK_RESOLVE_HPP
-#define NUCLEAR_UTIL_NETWORK_RESOLVE_HPP
+#include "get_hostname.hpp"
 
-#include <cstdint>
 #include <string>
 
-#include "sock_t.hpp"
+#ifdef _WIN32
 
-namespace NUClear {
-namespace util {
-    namespace network {
+    #include "platform.hpp"
 
-        /**
-         * Resolves a hostname and port into a socket address.
-         *
-         * This function will resolve a hostname and port into a socket address.
-         * It will return a socket address that can be used to connect to the specified host and port.
-         *
-         * @param address The hostname or IP address to resolve
-         * @param port    The port to connect to
-         *
-         * @return A socket address that can be used to connect to the specified host and port
-         */
-        sock_t resolve(const std::string& address, const uint16_t& port);
+std::string NUClear::util::get_hostname() {
+    char n[MAX_COMPUTERNAME_LENGTH + 1];
+    DWORD size = sizeof(n);
+    GetComputerName(n, &size);
+    return std::string(n, size);
+}
 
-    }  // namespace network
-}  // namespace util
-}  // namespace NUClear
+#else
 
-#endif  // NUCLEAR_UTIL_NETWORK_RESOLVE_HPP
+    #include <sys/utsname.h>
+
+std::string NUClear::util::get_hostname() {
+    utsname u{};
+    uname(&u);
+    return u.nodename;
+}
+
+#endif

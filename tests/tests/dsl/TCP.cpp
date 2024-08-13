@@ -218,7 +218,7 @@ TEST_CASE("Testing listening for TCP connections and receiving data messages", "
     plant.start();
 
     // Get the results for the tests we expect
-    std::vector<std::string> expected{};
+    std::vector<std::string> expected;
     for (const auto& t : active_tests) {
         switch (t) {
             case V4_KNOWN:

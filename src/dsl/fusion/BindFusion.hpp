@@ -20,8 +20,8 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_DSL_FUSION_BINDFUSION_HPP
-#define NUCLEAR_DSL_FUSION_BINDFUSION_HPP
+#ifndef NUCLEAR_DSL_FUSION_BIND_FUSION_HPP
+#define NUCLEAR_DSL_FUSION_BIND_FUSION_HPP
 
 #include "../../threading/Reaction.hpp"
 #include "../../util/FunctionFusion.hpp"
@@ -152,4 +152,4 @@ namespace dsl {
 }  // namespace dsl
 }  // namespace NUClear
 
-#endif  // NUCLEAR_DSL_FUSION_BINDFUSION_HPP
+#endif  // NUCLEAR_DSL_FUSION_BIND_FUSION_HPP

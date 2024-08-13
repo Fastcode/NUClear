@@ -23,6 +23,7 @@
 #ifndef NUCLEAR_DSL_WORD_EMIT_LOCAL_HPP
 #define NUCLEAR_DSL_WORD_EMIT_LOCAL_HPP
 
+#include "../../../PowerPlant.hpp"
 #include "../../../util/TypeMap.hpp"
 #include "../../store/DataStore.hpp"
 #include "../../store/ThreadStore.hpp"
@@ -34,8 +35,7 @@ namespace dsl {
         namespace emit {
 
             /**
-             *When emitting data under this scope, tasks are distributed via the thread pool for execution.
-             *
+             * When emitting data under this scope, tasks are distributed via the thread pool for execution.
              *
              * @code emit<Scope::LOCAL>(data, dataType); @endcode
              *

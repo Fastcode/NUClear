@@ -20,8 +20,8 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_MESSAGE_LOGMESSAGE_HPP
-#define NUCLEAR_MESSAGE_LOGMESSAGE_HPP
+#ifndef NUCLEAR_MESSAGE_LOG_MESSAGE_HPP
+#define NUCLEAR_MESSAGE_LOG_MESSAGE_HPP
 
 #include <memory>
 
@@ -47,7 +47,7 @@ namespace message {
         LogMessage(const LogLevel& level,
                    const LogLevel& display_level,
                    std::string message,
-                   std::shared_ptr<ReactionStatistics> task)
+                   std::shared_ptr<const ReactionStatistics> task)
             : level(level), display_level(display_level), message(std::move(message)), task(std::move(task)) {}
 
         /// The logging level of the log
@@ -60,10 +60,10 @@ namespace message {
         std::string message;
 
         /// The currently executing task that made this message
-        const std::shared_ptr<ReactionStatistics> task{nullptr};
+        const std::shared_ptr<const ReactionStatistics> task{nullptr};
     };
 
 }  // namespace message
 }  // namespace NUClear
 
-#endif  // NUCLEAR_MESSAGE_LOGMESSAGE_HPP
+#endif  // NUCLEAR_MESSAGE_LOG_MESSAGE_HPP

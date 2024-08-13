@@ -43,7 +43,7 @@ Bind
 
 .. codeblock:: c++
     template <typename DSL>
-    static inline void bind(const std::shared_ptr<threading::Reaction>& reaction, /*More arguments can be declared*/)
+    static void bind(const std::shared_ptr<threading::Reaction>& reaction, /*More arguments can be declared*/)
 
 This function is called when the reaction is bound, it should be thought of as the constructor. It is used to setup
 anything that is required by the DSL word.
@@ -68,7 +68,7 @@ Get
 
 .. codeblock:: c++
     template <typename DSL>
-    static inline T get(threading::Reaction&)
+    static T get(threading::ReactionTask& task)
 
 This is used to get the data for the callback. The returned value is passed to the callback.
 
@@ -84,7 +84,7 @@ Precondition
 
 .. codeblock:: c++
     template <typename DSL>
-    static inline bool precondition(threading::Reaction& reaction)
+    static bool precondition(threading::ReactionTask& task)
 
 A precondition is used to test if the reaction should run. On a true return the reaction will run as normal. On a false
 return the reaction will be dropped.
@@ -103,7 +103,7 @@ Reschedule
 
 .. codeblock:: c++
     template <typename DSL>
-    static inline std::unique_ptr<threading::ReactionTask> reschedule(std::unique_ptr<threading::ReactionTask>&& task)
+    static std::unique_ptr<threading::ReactionTask> reschedule(std::unique_ptr<threading::ReactionTask>&& task)
 
 The ownership of the reaction task is passed to the DSL word. The task returned will be run instead of the passed in
 reaction task. If the returned task is the one passed in the task will be run normally.
@@ -118,7 +118,7 @@ Transient
 
 .. codeblock:: c++
     template <>
-    struct is_transient<word::IO::Event> : std::true_type {};
+    struct is_transient<word::IO::Event> : public std::true_type {};
 
 When the data returned from a `get` is falsy and its type is marked transient the latest truthy data from the `get`
 return is instead used. If the data is falsy and is either not marked transient or nothing truthy has yet been returned
@@ -167,7 +167,7 @@ Now we define the `reschedule` to interrupt any new tasks if we are currently ru
 multithreaded so a mutex is needed when accessing the static members.
 .. codeblock:: c++
         template <typename DSL>
-        static inline std::unique_ptr<threading::ReactionTask> reschedule(
+        static std::unique_ptr<threading::ReactionTask> reschedule(
             std::unique_ptr<threading::ReactionTask>&& task) {
 
             // Lock our mutex

@@ -29,9 +29,9 @@
 namespace {
 
 // Store our times
-std::vector<NUClear::clock::time_point> every_times{};    // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
-std::vector<NUClear::clock::time_point> per_times{};      // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
-std::vector<NUClear::clock::time_point> dynamic_times{};  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+std::vector<NUClear::clock::time_point> every_times;    // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+std::vector<NUClear::clock::time_point> per_times;      // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+std::vector<NUClear::clock::time_point> dynamic_times;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
 class TestReactor : public test_util::TestBase<TestReactor, 20000> {
 

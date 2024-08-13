@@ -61,13 +61,11 @@ namespace dsl {
          * @par Implements
          *  Group
          *
-         * @tparam GroupType        The type/group to synchronize on.
-         *                          This needs to be a declared type within the system.
-         *                          It is common to simply use the reactors name for a reactor with one group.
-         *                          Should more than one group be required, the developer can declare structs within the
-         *                          system, to act as a group reference.
-         *                          Note that the developer is not limited to the use of a struct; any declared type
-         *                          will work.
+         * @tparam GroupType The type/group to synchronize on.
+         *                   This needs to be a declared type within the system.
+         *                   It is common to simply use the reactors name for a reactor with one group.
+         *                   Should more than one group be required, the developer can declare structs within the
+         *                   system, to act as a group reference.
          */
         template <typename SyncGroup>
         struct Sync : Group<SyncGroup, 1> {};

@@ -33,7 +33,6 @@ namespace dsl {
         /**
          * This is used to define any extra data which should be provided to a subscribing a reaction.
          *
-         *
          * @code on<With<T2>>() @endcode
          * Note that during runtime, the emission of data using this word will not trigger a reaction within the
          * system.

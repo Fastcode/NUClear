@@ -23,11 +23,9 @@
 #ifndef NUCLEAR_REACTOR_HPP
 #define NUCLEAR_REACTOR_HPP
 
-#include <atomic>
 #include <chrono>
 #include <functional>
 #include <regex>
-#include <sstream>
 #include <string>
 #include <typeindex>
 #include <vector>
@@ -40,6 +38,7 @@
 #include "threading/ReactionIdentifiers.hpp"
 #include "util/CallbackGenerator.hpp"
 #include "util/Sequence.hpp"
+#include "util/demangle.hpp"
 #include "util/tuplify.hpp"
 
 namespace NUClear {
@@ -370,7 +369,7 @@ public:
      * This function is used to create a Reaction in the system.
      * By providing the correct template parameters, this function can modify how and when this reaction runs.
      *
-     * @tparam DSL     The NUClear domain specific language information
+     * @tparam DSL          The NUClear domain specific language information
      * @tparam Arguments    The types of the arguments passed into the function
      *
      * @param args      The arguments that will be passed to each of the binding DSL words in order
