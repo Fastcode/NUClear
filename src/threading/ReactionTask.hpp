@@ -38,7 +38,7 @@ namespace NUClear {
 
 namespace message {
     struct ReactionStatistics;
-}
+}  // namespace message
 
 namespace threading {
 
