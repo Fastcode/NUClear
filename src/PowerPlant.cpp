@@ -112,13 +112,13 @@ void PowerPlant::submit(std::unique_ptr<threading::ReactionTask>&& task, const b
     if (task) {
         try {
             const std::shared_ptr<threading::ReactionTask> t(std::move(task));
-            submit(t->id, t->priority, t->group_descriptor, t->thread_pool_descriptor, immediate, [t]() { t->run(); });
+            submit(t->id, t->priority, t->group_descriptor, t->pool_descriptor, immediate, [t]() { t->run(); });
         }
         catch (const std::exception& ex) {
-            task->parent.reactor.log<NUClear::ERROR>("There was an exception while submitting a reaction", ex.what());
+            task->parent->reactor.log<NUClear::ERROR>("There was an exception while submitting a reaction", ex.what());
         }
         catch (...) {
-            task->parent.reactor.log<NUClear::ERROR>("There was an unknown exception while submitting a reaction");
+            task->parent->reactor.log<NUClear::ERROR>("There was an unknown exception while submitting a reaction");
         }
     }
 }
@@ -130,7 +130,7 @@ void PowerPlant::log(const LogLevel& level, std::string message) {
     // Direct emit the log message so that any direct loggers can use it
     emit<dsl::word::emit::Direct>(std::make_unique<message::LogMessage>(
         level,
-        current_task != nullptr ? current_task->parent.reactor.log_level : LogLevel::UNKNOWN,
+        current_task != nullptr ? current_task->parent->reactor.log_level : LogLevel::UNKNOWN,
         std::move(message),
         current_task != nullptr ? current_task->stats : nullptr));
 }

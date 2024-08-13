@@ -51,7 +51,7 @@ namespace util {
     };
 
     template <typename DSL>
-    struct TransientDataElements : ExtractTransient<decltype(DSL::get(std::declval<threading::Reaction&>()))> {};
+    struct TransientDataElements : ExtractTransient<decltype(DSL::get(std::declval<threading::ReactionTask&>()))> {};
 
 }  // namespace util
 }  // namespace NUClear

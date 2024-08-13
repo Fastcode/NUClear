@@ -165,18 +165,18 @@ namespace dsl {
 
         public:
             template <typename DSL>
-            static auto get(threading::Reaction& reaction)
+            static auto get(threading::ReactionTask& task)
                 -> decltype(wrap(
-                    Fusion<DSLWords...>::template get<DSL>(reaction),
+                    Fusion<DSLWords...>::template get<DSL>(task),
                     util::GenerateSequence<
                         0,
-                        std::tuple_size<decltype(Fusion<DSLWords...>::template get<DSL>(reaction))>::value>())) {
+                        std::tuple_size<decltype(Fusion<DSLWords...>::template get<DSL>(task))>::value>())) {
 
                 // Wrap all of our data in last list wrappers
-                return wrap(Fusion<DSLWords...>::template get<DSL>(reaction),
+                return wrap(Fusion<DSLWords...>::template get<DSL>(task),
                             util::GenerateSequence<
                                 0,
-                                std::tuple_size<decltype(Fusion<DSLWords...>::template get<DSL>(reaction))>::value>());
+                                std::tuple_size<decltype(Fusion<DSLWords...>::template get<DSL>(task))>::value>());
             }
         };
 

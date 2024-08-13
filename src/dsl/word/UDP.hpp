@@ -337,9 +337,9 @@ namespace dsl {
             }
 
             template <typename DSL>
-            static RecvResult read(threading::Reaction& reaction) {
+            static RecvResult read(threading::ReactionTask& task) {
                 // Get our file descriptor from the magic cache
-                auto event = IO::get<DSL>(reaction);
+                auto event = IO::get<DSL>(task);
 
                 // If our get is being run without an fd (something else triggered) then short circuit
                 if (!event) {
@@ -422,8 +422,8 @@ namespace dsl {
             }
 
             template <typename DSL>
-            static Packet get(threading::Reaction& reaction) {
-                RecvResult result = read<DSL>(reaction);
+            static Packet get(threading::ReactionTask& task) {
+                RecvResult result = read<DSL>(task);
 
                 Packet p{};
                 p.valid       = result.valid;
@@ -467,8 +467,8 @@ namespace dsl {
                 }
 
                 template <typename DSL>
-                static Packet get(threading::Reaction& reaction) {
-                    RecvResult result = read<DSL>(reaction);
+                static Packet get(threading::ReactionTask& task) {
+                    RecvResult result = read<DSL>(task);
 
                     // Broadcast is only IPv4
                     if (result.local.sock.sa_family == AF_INET) {
@@ -514,8 +514,8 @@ namespace dsl {
                 }
 
                 template <typename DSL>
-                static Packet get(threading::Reaction& reaction) {
-                    RecvResult result = read<DSL>(reaction);
+                static Packet get(threading::ReactionTask& task) {
+                    RecvResult result = read<DSL>(task);
 
                     const auto& a = result.local;
                     const bool multicast =
@@ -538,6 +538,7 @@ namespace dsl {
                 }
             };
         };
+
     }  // namespace word
 
     namespace trait {

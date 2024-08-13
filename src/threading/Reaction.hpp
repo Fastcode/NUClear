@@ -53,14 +53,14 @@ namespace threading {
      * It also holds a function which is used to generate databound Task objects.
      * i.e. callback with the function arguments already loaded and ready to run.
      */
-    class Reaction {
+    class Reaction : public std::enable_shared_from_this<Reaction> {
         // Reaction handles are given to user code to enable and disable the reaction
         friend class ReactionHandle;
         friend class ReactionTask;
 
     public:
         // The type of the generator that is used to create functions for ReactionTask objects
-        using TaskGenerator = std::function<util::GeneratedCallback(Reaction&)>;
+        using TaskGenerator = std::function<std::unique_ptr<ReactionTask>(const std::shared_ptr<Reaction>&)>;
 
         /**
          * Constructs a new Reaction with the passed callback generator and options.

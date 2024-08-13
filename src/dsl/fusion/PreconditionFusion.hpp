@@ -23,7 +23,7 @@
 #ifndef NUCLEAR_DSL_FUSION_PRECONDITION_FUSION_HPP
 #define NUCLEAR_DSL_FUSION_PRECONDITION_FUSION_HPP
 
-#include "../../threading/Reaction.hpp"
+#include "../../threading/ReactionTask.hpp"
 #include "../operation/DSLProxy.hpp"
 #include "has_precondition.hpp"
 
@@ -75,10 +75,10 @@ namespace dsl {
         struct PreconditionFuser<std::tuple<Word>> {
 
             template <typename DSL>
-            static bool precondition(threading::Reaction& reaction) {
+            static bool precondition(threading::ReactionTask& task) {
 
                 // Run our remaining precondition
-                return Word::template precondition<DSL>(reaction);
+                return Word::template precondition<DSL>(task);
             }
         };
 
@@ -87,11 +87,11 @@ namespace dsl {
         struct PreconditionFuser<std::tuple<Word1, Word2, WordN...>> {
 
             template <typename DSL>
-            static bool precondition(threading::Reaction& reaction) {
+            static bool precondition(threading::ReactionTask& task) {
 
                 // Perform a recursive and operation ending with the first false
-                return Word1::template precondition<DSL>(reaction)
-                       && PreconditionFuser<std::tuple<Word2, WordN...>>::template precondition<DSL>(reaction);
+                return Word1::template precondition<DSL>(task)
+                       && PreconditionFuser<std::tuple<Word2, WordN...>>::template precondition<DSL>(task);
             }
         };
 
