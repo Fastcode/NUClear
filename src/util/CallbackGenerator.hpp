@@ -32,7 +32,6 @@
 #include "../util/apply.hpp"
 #include "../util/unpack.hpp"
 #include "../util/update_current_thread_priority.hpp"
-#include "GeneratedCallback.hpp"
 
 namespace NUClear {
 namespace util {
