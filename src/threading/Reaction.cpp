@@ -43,7 +43,6 @@ namespace threading {
     Reaction::~Reaction() = default;
 
     std::unique_ptr<ReactionTask> Reaction::get_task() {
-
         // If we are not enabled, don't run
         if (!enabled) {
             return nullptr;

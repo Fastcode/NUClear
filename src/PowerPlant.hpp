@@ -42,13 +42,11 @@
 
 namespace NUClear {
 
-// Forward declare reactor
+// Forward declarations
 class Reactor;
 namespace util {
-    struct GroupDescriptor;
     struct ThreadPoolDescriptor;
 }  // namespace util
-
 namespace dsl {
     namespace word {
         namespace emit {

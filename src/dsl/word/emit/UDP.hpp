@@ -25,6 +25,7 @@
 
 #include <stdexcept>
 
+#include "../../../PowerPlant.hpp"
 #include "../../../util/FileDescriptor.hpp"
 #include "../../../util/network/if_number_from_address.hpp"
 #include "../../../util/platform.hpp"

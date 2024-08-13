@@ -27,9 +27,9 @@
 #include <cerrno>
 #include <csignal>
 
+#include "../PowerPlant.hpp"
 #include "../Reactor.hpp"
 #include "../message/NetworkConfiguration.hpp"
-#include "../message/NetworkEvent.hpp"
 #include "../util/get_hostname.hpp"
 #include "network/NUClearNetwork.hpp"
 
@@ -37,12 +37,6 @@ namespace NUClear {
 namespace extension {
 
     class NetworkController : public Reactor {
-
-        using NetworkListen        = dsl::word::NetworkListen;
-        using NetworkEmit          = dsl::word::emit::NetworkEmit;
-        using NetworkConfiguration = message::NetworkConfiguration;
-        using Unbind               = dsl::operation::Unbind<NetworkListen>;
-        struct ProcessNetwork {};
 
     public:
         explicit NetworkController(std::unique_ptr<NUClear::Environment> environment);

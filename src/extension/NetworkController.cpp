@@ -22,8 +22,16 @@
 
 #include "NetworkController.hpp"
 
+#include "../message/NetworkEvent.hpp"
+
 namespace NUClear {
 namespace extension {
+
+    using NetworkListen        = dsl::word::NetworkListen;
+    using NetworkEmit          = dsl::word::emit::NetworkEmit;
+    using NetworkConfiguration = message::NetworkConfiguration;
+    using Unbind               = dsl::operation::Unbind<NetworkListen>;
+    struct ProcessNetwork {};
 
     NetworkController::NetworkController(std::unique_ptr<NUClear::Environment> environment)
         : Reactor(std::move(environment)) {

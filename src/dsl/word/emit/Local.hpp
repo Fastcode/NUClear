@@ -23,6 +23,7 @@
 #ifndef NUCLEAR_DSL_WORD_EMIT_LOCAL_HPP
 #define NUCLEAR_DSL_WORD_EMIT_LOCAL_HPP
 
+#include "../../../PowerPlant.hpp"
 #include "../../../util/TypeMap.hpp"
 #include "../../store/DataStore.hpp"
 #include "../../store/ThreadStore.hpp"

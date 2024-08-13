@@ -33,7 +33,7 @@ namespace extension {
         watches.resize(0);
 
         // Insert our notify fd
-        watches.push_back(pollfd{notify_recv, POLLIN, 0});
+        watches.push_back(pollfd{notifier.recv, POLLIN, 0});
 
         for (const auto& r : tasks) {
             // If we are the same fd, then add our interest set and mask out events that are already being processed
@@ -92,7 +92,7 @@ namespace extension {
 
 
         // It's our notification handle
-        if (event.fd == notify_recv) {
+        if (event.fd == notifier.recv) {
             // Read our value to clear it's read status
             char val = 0;
             if (::read(event.fd, &val, sizeof(char)) < 0) {
@@ -149,14 +149,14 @@ namespace extension {
     void IOController::bump() {
         // Check if there was an error
         uint8_t val = 1;
-        if (::write(notify_send, &val, sizeof(val)) < 0) {
+        if (::write(notifier.send, &val, sizeof(val)) < 0) {
             throw std::system_error(network_errno,
                                     std::system_category(),
                                     "There was an error while writing to the notification pipe");
         }
 
         // Locking here will ensure we won't return until poll is not running
-        const std::lock_guard<std::mutex> lock(poll_mutex);
+        const std::lock_guard<std::mutex> lock(notifier.mutex);
     }
 
     IOController::IOController(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
@@ -168,8 +168,8 @@ namespace extension {
                                     std::system_category(),
                                     "We were unable to make the notification pipe for IO");
         }
-        notify_recv = vals[0];
-        notify_send = vals[1];
+        notifier.recv = vals[0];
+        notifier.send = vals[1];
 
         // Start by rebuilding the list
         rebuild_list();
@@ -266,7 +266,7 @@ namespace extension {
 
                 // Wait for an event to happen on one of our file descriptors
                 /* mutex scope */ {
-                    const std::lock_guard<std::mutex> lock(poll_mutex);
+                    const std::lock_guard<std::mutex> lock(notifier.mutex);
                     if (::poll(watches.data(), nfds_t(watches.size()), -1) < 0) {
                         throw std::system_error(network_errno,
                                                 std::system_category(),

@@ -35,6 +35,7 @@
 #include "Reaction.hpp"
 
 namespace NUClear {
+
 namespace message {
     struct ReactionStatistics;
 }  // namespace message
@@ -44,15 +45,13 @@ namespace threading {
     /**
      * This is a databound call of a Reaction ready to be executed.
      *
-     * @tparam ReactionType the type of the reaction
-     *
      * This class holds a reaction that is ready to be executed.
      * It is a Reaction object which has had it's callback parameters bound with data.
      * This can then be executed as a function to run the call inside it.
      */
     class ReactionTask {
     private:
-        /// the current task that is being executed by this thread (or nullptr if none is)
+        /// The current task that is being executed by this thread (or nullptr if none is)
         static ATTRIBUTE_TLS ReactionTask* current_task;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
     public:

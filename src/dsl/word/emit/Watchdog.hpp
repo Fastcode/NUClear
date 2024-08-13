@@ -25,6 +25,7 @@
 
 #include <stdexcept>
 
+#include "../../../PowerPlant.hpp"
 #include "../../../util/TypeMap.hpp"
 #include "../../../util/demangle.hpp"
 

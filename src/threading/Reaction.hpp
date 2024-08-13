@@ -35,6 +35,10 @@ namespace NUClear {
 // Forward declare reactor
 class Reactor;
 
+namespace util {
+    struct GeneratedCallback;
+}  // namespace util
+
 namespace threading {
 
     // Forward declare
@@ -97,7 +101,7 @@ namespace threading {
         Reactor& reactor;
 
         /// This holds the identifying strings for this reaction
-        std::shared_ptr<ReactionIdentifiers> identifiers;
+        std::shared_ptr<const ReactionIdentifiers> identifiers;
 
         /// the unique identifier for this Reaction object
         const NUClear::id_t id{++reaction_id_source};
@@ -115,10 +119,10 @@ namespace threading {
         std::vector<std::function<void(Reaction&)>> unbinders;
 
     private:
-        /// a source for reaction_ids, atomically creates ids
+        /// A source for reaction_ids, atomically creates ids
         // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
         static std::atomic<NUClear::id_t> reaction_id_source;
-        /// the callback generator function (creates data-bound callbacks)
+        /// The callback generator function (creates databound callbacks)
         TaskGenerator generator;
     };
 

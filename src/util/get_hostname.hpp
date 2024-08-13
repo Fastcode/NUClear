@@ -28,7 +28,7 @@ namespace NUClear {
 namespace util {
 
     /**
-     * Get the hostname of the machine
+     * Get the hostname of the machine.
      *
      * @return the hostname of the machine
      */

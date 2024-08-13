@@ -25,6 +25,29 @@
 namespace NUClear {
 namespace extension {
 
+    /**
+     * Removes a task from the list and closes the event
+     *
+     * @param it the iterator to the task to remove
+     *
+     * @return the iterator to the next task
+     */
+    std::map<WSAEVENT, Task>::iterator remove_task(std::map<WSAEvent, Task>& tasks,
+                                                   std::map<WSAEVENT, Task>::iterator it) {
+        // Close the event
+        WSAEVENT event = it->first;
+
+        // Remove the task
+        auto new_it = tasks.erase(it);
+
+        // Try to close the WSA event
+        if (!WSACloseEvent(event)) {
+            throw std::system_error(WSAGetLastError(), std::system_category(), "WSACloseEvent() failed");
+        }
+
+        return new_it;
+    }
+
     void IOController::rebuild_list() {
         // Get the lock so we don't concurrently modify the list
         const std::lock_guard<std::mutex> lock(tasks_mutex);
@@ -114,28 +137,6 @@ namespace extension {
         }
     }
 
-    /**
-     * Removes a task from the list and closes the event
-     *
-     * @param it the iterator to the task to remove
-     *
-     * @return the iterator to the next task
-     */
-    std::map<WSAEVENT, Task>::iterator IOController::remove_task(std::map<WSAEVENT, Task>::iterator it) {
-        // Close the event
-        WSAEVENT event = it->first;
-
-        // Remove the task
-        auto new_it = tasks.erase(it);
-
-        // Try to close the WSA event
-        if (!WSACloseEvent(event)) {
-            throw std::system_error(WSAGetLastError(), std::system_category(), "WSACloseEvent() failed");
-        }
-
-        return new_it;
-    }
-
     IOController::IOController(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
 
         // Create an event to use for the notifier (used for getting out of WSAWaitForMultipleEvents())
@@ -188,7 +189,7 @@ namespace extension {
                 // If the events we were processing included close remove it from the list
                 if (task.processing_events & IO::CLOSE) {
                     dirty = true;
-                    remove_task(it);
+                    remove_task(tasks, it);
                 }
                 else {
                     // We have finished processing events
@@ -212,7 +213,7 @@ namespace extension {
                 });
 
                 if (it != tasks.end()) {
-                    remove_task(it);
+                    remove_task(tasks, it);
                 }
 
                 // Let the poll command know that stuff happened
