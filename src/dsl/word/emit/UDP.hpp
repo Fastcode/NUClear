@@ -25,6 +25,7 @@
 
 #include <stdexcept>
 
+#include "../../../PowerPlant.hpp"
 #include "../../../util/FileDescriptor.hpp"
 #include "../../../util/network/if_number_from_address.hpp"
 #include "../../../util/platform.hpp"
@@ -39,7 +40,6 @@ namespace dsl {
 
             /**
              * Emits data as a UDP packet over the network.
-             *
              *
              * @code emit<Scope::UDP>(data, to_addr, to_port); @endcode
              * Emissions under this scope are useful for communicating with other systems using UDP.

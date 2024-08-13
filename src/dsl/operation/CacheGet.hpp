@@ -20,10 +20,11 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_DSL_OPERATION_CACHEGET_HPP
-#define NUCLEAR_DSL_OPERATION_CACHEGET_HPP
+#ifndef NUCLEAR_DSL_OPERATION_CACHE_GET_HPP
+#define NUCLEAR_DSL_OPERATION_CACHE_GET_HPP
 
 #include "../store/DataStore.hpp"
+#include "../store/ThreadStore.hpp"
 
 namespace NUClear {
 namespace dsl {
@@ -54,4 +55,4 @@ namespace dsl {
 }  // namespace dsl
 }  // namespace NUClear
 
-#endif  // NUCLEAR_DSL_OPERATION_CACHEGET_HPP
+#endif  // NUCLEAR_DSL_OPERATION_CACHE_GET_HPP

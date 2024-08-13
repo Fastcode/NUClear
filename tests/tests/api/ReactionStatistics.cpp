@@ -52,11 +52,11 @@ public:
         on<Trigger<ReactionStatistics>>().then("Reaction Stats Handler", [this](const ReactionStatistics& stats) {
             // Other reactions statistics run on this because of built in NUClear reactors (e.g. chrono controller etc)
             // We want to filter those out so only our own stats are shown
-            if (stats.identifiers.name.empty() || stats.identifiers.reactor != reactor_name) {
+            if (stats.identifiers->name.empty() || stats.identifiers->reactor != reactor_name) {
                 return;
             }
-            events.push_back("Stats for " + stats.identifiers.name + " from " + stats.identifiers.reactor);
-            events.push_back(stats.identifiers.dsl);
+            events.push_back("Stats for " + stats.identifiers->name + " from " + stats.identifiers->reactor);
+            events.push_back(stats.identifiers->dsl);
 
             // Ensure exceptions are passed through correctly in the exception handler
             if (stats.exception) {

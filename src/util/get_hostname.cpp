@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2013 NUClear Contributors
+ * Copyright (c) 2017 NUClear Contributors
  *
  * This file is part of the NUClear codebase.
  * See https://github.com/Fastcode/NUClear for further info.
@@ -20,24 +20,29 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR
-#define NUCLEAR
+#include "get_hostname.hpp"
 
-// Main classes
-#include "${nuclear_include_base_directory}PowerPlant.hpp"
-#include "${nuclear_include_base_directory}Reactor.hpp"
+#include <string>
 
-// Message types
-#include "${nuclear_include_base_directory}message/CommandLineArguments.hpp"
-#include "${nuclear_include_base_directory}message/LogMessage.hpp"
-#include "${nuclear_include_base_directory}message/NetworkConfiguration.hpp"
-#include "${nuclear_include_base_directory}message/NetworkEvent.hpp"
-#include "${nuclear_include_base_directory}message/ReactionStatistics.hpp"
-#include "${nuclear_include_base_directory}message/TimeTravel.hpp"
+#ifdef _WIN32
 
-// Extensions
-#include "${nuclear_include_base_directory}extension/ChronoController.hpp"
-#include "${nuclear_include_base_directory}extension/IOController.hpp"
-#include "${nuclear_include_base_directory}extension/NetworkController.hpp"
+    #include "platform.hpp"
 
-#endif  // NUCLEAR
+std::string NUClear::util::get_hostname() {
+    char n[MAX_COMPUTERNAME_LENGTH + 1];
+    DWORD size = sizeof(n);
+    GetComputerName(n, &size);
+    return std::string(n, size);
+}
+
+#else
+
+    #include <sys/utsname.h>
+
+std::string NUClear::util::get_hostname() {
+    utsname u{};
+    uname(&u);
+    return u.nodename;
+}
+
+#endif

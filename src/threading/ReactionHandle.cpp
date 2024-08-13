@@ -20,31 +20,58 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_DSL_TRAIT_IS_TRANSIENT_HPP
-#define NUCLEAR_DSL_TRAIT_IS_TRANSIENT_HPP
+#include "ReactionHandle.hpp"
+
+#include <memory>
+
+#include "Reaction.hpp"
 
 namespace NUClear {
-namespace dsl {
-    namespace trait {
+namespace threading {
 
-        /**
-         * Indicates that a type is transient in the context of data availability.
-         *
-         * Often when extending the get dsl attachment point, data from that get is only available when that get is run
-         * in specific circumstances such as from a ThreadStore.
-         * When this trait is true, Reactors handle this data being unavailable differently.
-         * They will instead cache the last copy of the data that was provided and if no new data comes from the get
-         * function, they will instead provide this cached data.
-         *
-         * @see NUClear::dsl::store::ThreadStore
-         *
-         * @tparam typename the datatype that is to be considered transient
-         */
-        template <typename DataType>
-        struct is_transient : std::false_type {};
+    ReactionHandle::ReactionHandle(const std::shared_ptr<Reaction>& context) : context(context) {}
 
-    }  // namespace trait
-}  // namespace dsl
+    ReactionHandle& ReactionHandle::enable() {
+        auto c = context.lock();
+        if (c) {
+            c->enabled = true;
+        }
+        return *this;
+    }
+
+    ReactionHandle& ReactionHandle::disable() {
+        auto c = context.lock();
+        if (c) {
+            c->enabled = false;
+        }
+        return *this;
+    }
+
+    ReactionHandle& ReactionHandle::enable(const bool& set) {
+        auto c = context.lock();
+        if (c) {
+            c->enabled = set;
+        }
+        return *this;
+    }
+
+    bool ReactionHandle::enabled() const {
+        auto c = context.lock();
+        return c ? bool(c->enabled) : false;
+    }
+
+    // Unbind mutates the reaction which this is a handle for
+    // NOLINTNEXTLINE(readability-make-member-function-const)
+    void ReactionHandle::unbind() {
+        auto c = context.lock();
+        if (c) {
+            c->unbind();
+        }
+    }
+
+    ReactionHandle::operator bool() const {
+        return bool(context.lock());
+    }
+
+}  // namespace threading
 }  // namespace NUClear
-
-#endif  // NUCLEAR_DSL_TRAIT_IS_TRANSIENT_HPP

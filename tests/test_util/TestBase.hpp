@@ -46,11 +46,6 @@ public:
     template <int i>
     struct Step {};
 
-    /**
-     * Struct to handle shutting down the PowerPlant when the system is idle (i.e. the unit test(s) are finished)
-     */
-    struct ShutdownOnIdle {};
-
     explicit TestBase(std::unique_ptr<NUClear::Environment> environment, const bool& shutdown_on_idle = true)
         : Reactor(std::move(environment)) {
 

@@ -20,11 +20,12 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_DSL_WORD_MAINTHREAD_HPP
-#define NUCLEAR_DSL_WORD_MAINTHREAD_HPP
+#ifndef NUCLEAR_DSL_WORD_MAIN_THREAD_HPP
+#define NUCLEAR_DSL_WORD_MAIN_THREAD_HPP
 
 #include "../../threading/ReactionTask.hpp"
 #include "../../util/ThreadPoolDescriptor.hpp"
+#include "../../util/main_thread_id.hpp"
 
 namespace NUClear {
 namespace dsl {
@@ -49,4 +50,4 @@ namespace dsl {
 }  // namespace dsl
 }  // namespace NUClear
 
-#endif  // NUCLEAR_DSL_WORD_MAINTHREAD_HPP
+#endif  // NUCLEAR_DSL_WORD_MAIN_THREAD_HPP

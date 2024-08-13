@@ -50,7 +50,6 @@ namespace dsl {
         /**
          * This is used to request any periodic reactions in the system.
          *
-         *
          * @code on<Every<ticks, period>>() @endcode
          * This request will enact the execution of a task at a periodic rate.
          * To set the timing, simply specify the desired period with the request.

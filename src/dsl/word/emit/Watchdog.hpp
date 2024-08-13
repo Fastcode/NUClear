@@ -25,6 +25,7 @@
 
 #include <stdexcept>
 
+#include "../../../PowerPlant.hpp"
 #include "../../../util/TypeMap.hpp"
 #include "../../../util/demangle.hpp"
 
@@ -84,7 +85,8 @@ namespace dsl {
             };
 
             /**
-             * Handles the data store for the case when no runtime arguments are specified
+             * Handles the data store for the case when no runtime arguments are specified.
+             *
              * @code on<Watchdog<>>() @endcode
              * @code emit<Scope::WATCHDOG>() @endcode
              *
@@ -141,7 +143,6 @@ namespace dsl {
 
             /**
              * When emitting data under this scope, the service time for the watchdog is updated.
-
              *
              * @code emit<Scope::WATCHDOG>(ServiceWatchdog<WatchdogGroup>(data)); @endcode
              * or

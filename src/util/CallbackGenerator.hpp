@@ -20,19 +20,19 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_UTIL_CALLBACKGENERATOR_HPP
-#define NUCLEAR_UTIL_CALLBACKGENERATOR_HPP
+#ifndef NUCLEAR_UTIL_CALLBACK_GENERATOR_HPP
+#define NUCLEAR_UTIL_CALLBACK_GENERATOR_HPP
 
 #include <type_traits>
 
-#include "../dsl/trait/is_transient.hpp"
 #include "../dsl/word/emit/Direct.hpp"
-#include "../util/GeneratedCallback.hpp"
+#include "../message/ReactionStatistics.hpp"
 #include "../util/MergeTransient.hpp"
 #include "../util/TransientDataElements.hpp"
 #include "../util/apply.hpp"
-#include "../util/demangle.hpp"
+#include "../util/unpack.hpp"
 #include "../util/update_current_thread_priority.hpp"
+#include "GeneratedCallback.hpp"
 
 namespace NUClear {
 namespace util {
@@ -146,4 +146,4 @@ namespace util {
 }  // namespace util
 }  // namespace NUClear
 
-#endif  // NUCLEAR_UTIL_CALLBACKGENERATOR_HPP
+#endif  // NUCLEAR_UTIL_CALLBACK_GENERATOR_HPP

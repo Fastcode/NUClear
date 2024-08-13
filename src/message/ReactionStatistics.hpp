@@ -20,8 +20,8 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_MESSAGE_REACTIONSTATISTICS_HPP
-#define NUCLEAR_MESSAGE_REACTIONSTATISTICS_HPP
+#ifndef NUCLEAR_MESSAGE_REACTION_STATISTICS_HPP
+#define NUCLEAR_MESSAGE_REACTION_STATISTICS_HPP
 
 #include <exception>
 #include <string>
@@ -39,7 +39,7 @@ namespace message {
      */
     struct ReactionStatistics {
 
-        ReactionStatistics(threading::ReactionIdentifiers identifiers,
+        ReactionStatistics(std::shared_ptr<const threading::ReactionIdentifiers> identifiers,
                            const NUClear::id_t& reaction_id,
                            const NUClear::id_t& task_id,
                            const NUClear::id_t& cause_reaction_id,
@@ -59,7 +59,7 @@ namespace message {
             , exception(std::move(exception)) {}
 
         /// A string containing the username/on arguments/and callback name of the reaction
-        threading::ReactionIdentifiers identifiers;
+        std::shared_ptr<const threading::ReactionIdentifiers> identifiers;
         /// The id of this reaction
         NUClear::id_t reaction_id{0};
         /// The task id of this reaction
@@ -81,4 +81,4 @@ namespace message {
 }  // namespace message
 }  // namespace NUClear
 
-#endif  // NUCLEAR_MESSAGE_REACTIONSTATISTICS_HPP
+#endif  // NUCLEAR_MESSAGE_REACTION_STATISTICS_HPP

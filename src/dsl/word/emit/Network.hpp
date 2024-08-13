@@ -47,7 +47,6 @@ namespace dsl {
             /**
              * Emits data over the network to other NUClear environments.
              *
-             *
              * @code emit<Scope::NETWORK>(data, target, reliable, dataType); @endcode
              * Data emitted under this scope can be sent by name to other NUClear systems or to all NUClear systems
              * connected to the NUClear network.
@@ -71,9 +70,10 @@ namespace dsl {
              * @tparam DataType the type of the data to send
              *
              * @param data      the data to emit
-             * @param target    Optional.  The name of the system to send to, or empty for all systems. Defaults to all.
-             *                  (an empty string).
-             * @param reliable  Optional.  True if the delivery of the message should be guaranteed. Defaults to false.
+             * @param target    The name of the system to send to, or empty for all systems.
+             *                  Defaults to all (an empty string).
+             * @param reliable  True if the delivery of the message should be guaranteed.
+             *                  Defaults to false.
              */
             template <typename DataType>
             struct Network {

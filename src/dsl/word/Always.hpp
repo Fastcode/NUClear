@@ -108,10 +108,10 @@ namespace dsl {
                  */
                 auto idle_reaction = std::make_shared<threading::Reaction>(
                     always_reaction->reactor,
-                    threading::ReactionIdentifiers{always_reaction->identifiers.name + " - IDLE Task",
-                                                   always_reaction->identifiers.reactor,
-                                                   always_reaction->identifiers.dsl,
-                                                   always_reaction->identifiers.function},
+                    threading::ReactionIdentifiers{always_reaction->identifiers->name + " - IDLE Task",
+                                                   always_reaction->identifiers->reactor,
+                                                   always_reaction->identifiers->dsl,
+                                                   always_reaction->identifiers->function},
                     [always_reaction](threading::Reaction& ir) -> util::GeneratedCallback {
                         auto callback = [&ir, always_reaction](const threading::ReactionTask& /*task*/) {
                             // Get a task for the always reaction and submit it to the scheduler
