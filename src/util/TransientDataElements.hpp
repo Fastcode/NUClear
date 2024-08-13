@@ -23,6 +23,9 @@
 #ifndef NUCLEAR_UTIL_TRANSIENTDATAELEMENTS_HPP
 #define NUCLEAR_UTIL_TRANSIENTDATAELEMENTS_HPP
 
+#include "../dsl/trait/is_transient.hpp"
+#include "Sequence.hpp"
+
 namespace NUClear {
 namespace util {
 
