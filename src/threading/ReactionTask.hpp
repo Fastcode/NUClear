@@ -26,48 +26,44 @@
 #include <atomic>
 #include <functional>
 #include <memory>
-#include <typeindex>
-#include <vector>
+#include <set>
 
 #include "../id.hpp"
-#include "../message/ReactionStatistics.hpp"
 #include "../util/GroupDescriptor.hpp"
 #include "../util/ThreadPoolDescriptor.hpp"
 #include "../util/platform.hpp"
+#include "Reaction.hpp"
 
 namespace NUClear {
+
+namespace message {
+    struct ReactionStatistics;
+}
+
 namespace threading {
 
     /**
      * This is a databound call of a Reaction ready to be executed.
      *
-     * @tparam ReactionType the type of the reaction
-     *
      * This class holds a reaction that is ready to be executed.
      * It is a Reaction object which has had it's callback parameters bound with data.
      * This can then be executed as a function to run the call inside it.
      */
-    template <typename ReactionType>
-    class Task {
+    class ReactionTask {
     private:
-        /// A source for task ids, atomically creates longs
-        static std::atomic<NUClear::id_t> task_id_source;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
-
         /// The current task that is being executed by this thread (or nullptr if none is)
-        static ATTRIBUTE_TLS Task* current_task;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+        static ATTRIBUTE_TLS ReactionTask* current_task;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
     public:
         /// Type of the functions that ReactionTasks execute
-        using TaskFunction = std::function<void(Task<ReactionType>&)>;
+        using TaskFunction = std::function<void(ReactionTask&)>;
 
         /**
          * Gets the current executing task, or nullptr if there isn't one.
          *
          * @return The current executing task or nullptr if there isn't one
          */
-        static const Task* get_current_task() {
-            return current_task;
-        }
+        static const ReactionTask* get_current_task();
 
         /**
          * Creates a new ReactionTask object bound with the parent Reaction object (that created it) and task.
@@ -78,26 +74,11 @@ namespace threading {
          * @param thread_pool_descriptor The descriptor for the thread pool that this task should be queued in
          * @param callback               The data bound callback to be executed in the thread pool
          */
-        Task(ReactionType& parent,
-             const int& priority,
-             const util::GroupDescriptor& group_descriptor,
-             const util::ThreadPoolDescriptor& thread_pool_descriptor,
-             TaskFunction&& callback)
-            : parent(parent)
-            , priority(priority)
-            , stats(std::make_shared<message::ReactionStatistics>(parent.identifiers,
-                                                                  parent.id,
-                                                                  id,
-                                                                  current_task != nullptr ? current_task->parent.id : 0,
-                                                                  current_task != nullptr ? current_task->id : 0,
-                                                                  clock::now(),
-                                                                  clock::time_point(std::chrono::seconds(0)),
-                                                                  clock::time_point(std::chrono::seconds(0)),
-                                                                  nullptr))
-            , emit_stats(parent.emit_stats && (current_task != nullptr ? current_task->emit_stats : true))
-            , group_descriptor(group_descriptor)
-            , thread_pool_descriptor(thread_pool_descriptor)
-            , callback(std::move(callback)) {}
+        ReactionTask(Reaction& parent,
+                     const int& priority,
+                     const util::GroupDescriptor& group_descriptor,
+                     const util::ThreadPoolDescriptor& thread_pool_descriptor,
+                     TaskFunction&& callback);
 
 
         /**
@@ -106,27 +87,17 @@ namespace threading {
          * This runs the internal data bound task and times how long the execution takes.
          * These figures can then be used in a debugging context to calculate how long callbacks are taking to run.
          */
-        void run() {
-
-            // Update our current task
-            const std::shared_ptr<Task> lock(current_task, [](Task* t) { current_task = t; });
-            current_task = this;
-
-            // Run our callback
-            callback(*this);
-        }
+        void run();
 
         /**
          * Generate a new unique task id.
          *
          * @return A new unique task id
          */
-        static NUClear::id_t new_task_id() {
-            return ++task_id_source;
-        }
+        static NUClear::id_t new_task_id();
 
         /// The parent Reaction object which spawned this
-        ReactionType& parent;
+        Reaction& parent;
         /// The task id of this task (the sequence number of this particular task)
         NUClear::id_t id{new_task_id()};
         /// The priority to run this task at
@@ -149,20 +120,6 @@ namespace threading {
         /// @attention note this must be last in the list as the this pointer is passed to the callback generator
         TaskFunction callback;
     };
-
-    // Initialize our id source
-    template <typename ReactionType>
-    // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
-    std::atomic<NUClear::id_t> Task<ReactionType>::task_id_source(0);
-
-    // Initialize our current task
-    template <typename ReactionType>
-    // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
-    ATTRIBUTE_TLS Task<ReactionType>* Task<ReactionType>::current_task = nullptr;
-
-    // Alias the templated Task so that public API remains intact
-    class Reaction;
-    using ReactionTask = Task<Reaction>;
 
 }  // namespace threading
 }  // namespace NUClear

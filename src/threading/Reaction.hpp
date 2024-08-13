@@ -26,20 +26,24 @@
 #include <atomic>
 #include <functional>
 #include <memory>
-#include <string>
-#include <utility>
+#include <vector>
 
 #include "../id.hpp"
-#include "../util/GeneratedCallback.hpp"
-#include "ReactionIdentifiers.hpp"
-#include "ReactionTask.hpp"
 
 namespace NUClear {
 
 // Forward declare reactor
 class Reactor;
 
+namespace util {
+    struct GeneratedCallback;
+}
+
 namespace threading {
+
+    // Forward declare
+    class ReactionTask;
+    struct ReactionIdentifiers;
 
     /**
      * This class holds the definition of a Reaction.
@@ -52,7 +56,7 @@ namespace threading {
     class Reaction {
         // Reaction handles are given to user code to enable and disable the reaction
         friend class ReactionHandle;
-        friend class Task<Reaction>;
+        friend class ReactionTask;
 
     public:
         // The type of the generator that is used to create functions for ReactionTask objects
@@ -67,44 +71,37 @@ namespace threading {
          */
         Reaction(Reactor& reactor, ReactionIdentifiers&& identifiers, TaskGenerator&& generator);
 
+        // No copying or moving this class
+        Reaction(const Reaction&)            = delete;
+        Reaction(Reaction&&)                 = delete;
+        Reaction& operator=(const Reaction&) = delete;
+        Reaction& operator=(Reaction&&)      = delete;
+
+        // This must go in the c++ file as ReactionTask is an incomplete type at this point
+        ~Reaction();
+
         /**
          * Creates a new databound callback task that can be executed.
          *
          * @return a unique_ptr to a Task which has the data for it's call bound into it
          */
-        std::unique_ptr<ReactionTask> get_task() {
-
-            // If we are not enabled, don't run
-            if (!enabled) {
-                return nullptr;
-            }
-
-            // Run our generator to get a functor we can run
-            auto callback = generator(*this);
-
-            // If our generator returns a valid function
-            if (callback) {
-                return std::make_unique<ReactionTask>(*this,
-                                                      callback.priority,
-                                                      callback.group,
-                                                      callback.pool,
-                                                      std::move(callback.callback));
-            }
-
-            // Otherwise we return a null pointer
-            return nullptr;
-        }
+        std::unique_ptr<ReactionTask> get_task();
 
         /**
          * @return `true` if this reaction is currently enabled
          */
         bool is_enabled() const;
 
+        /**
+         * Unbinds this reaction from it's context
+         */
+        void unbind();
+
         /// the reactor this belongs to
         Reactor& reactor;
 
         /// This holds the identifying strings for this reaction
-        ReactionIdentifiers identifiers;
+        std::shared_ptr<const ReactionIdentifiers> identifiers;
 
         /// the unique identifier for this Reaction object
         const NUClear::id_t id{++reaction_id_source};
@@ -121,16 +118,11 @@ namespace threading {
         /// list of functions to use to unbind the reaction and clean
         std::vector<std::function<void(Reaction&)>> unbinders;
 
-        /**
-         * Unbinds this reaction from it's context
-         */
-        void unbind();
-
     private:
-        /// a source for reaction_ids, atomically creates longs
-        static std::atomic<NUClear::id_t>
-            reaction_id_source;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
-        /// the callback generator function (creates databound callbacks)
+        /// A source for reaction_ids, atomically creates ids
+        // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
+        static std::atomic<NUClear::id_t> reaction_id_source;
+        /// The callback generator function (creates databound callbacks)
         TaskGenerator generator;
     };
 

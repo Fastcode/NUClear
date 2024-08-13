@@ -39,7 +39,7 @@ namespace message {
      */
     struct ReactionStatistics {
 
-        ReactionStatistics(threading::ReactionIdentifiers identifiers,
+        ReactionStatistics(std::shared_ptr<const threading::ReactionIdentifiers> identifiers,
                            const NUClear::id_t& reaction_id,
                            const NUClear::id_t& task_id,
                            const NUClear::id_t& cause_reaction_id,
@@ -59,7 +59,7 @@ namespace message {
             , exception(std::move(exception)) {}
 
         /// A string containing the username/on arguments/and callback name of the reaction
-        threading::ReactionIdentifiers identifiers;
+        std::shared_ptr<const threading::ReactionIdentifiers> identifiers;
         /// The id of this reaction
         NUClear::id_t reaction_id{0};
         /// The task id of this reaction
