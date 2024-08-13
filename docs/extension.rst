@@ -68,7 +68,7 @@ Get
 
 .. codeblock:: c++
     template <typename DSL>
-    static T get(threading::ReactionTask& task)
+    static T get(threading::Reaction& reaction)
 
 This is used to get the data for the callback. The returned value is passed to the callback.
 
@@ -84,7 +84,7 @@ Precondition
 
 .. codeblock:: c++
     template <typename DSL>
-    static bool precondition(threading::ReactionTask& task)
+    static bool precondition(threading::Reaction& reaction)
 
 A precondition is used to test if the reaction should run. On a true return the reaction will run as normal. On a false
 return the reaction will be dropped.
@@ -103,7 +103,7 @@ Reschedule
 
 .. codeblock:: c++
     template <typename DSL>
-    static std::unique_ptr<threading::ReactionTask> reschedule(std::unique_ptr<threading::ReactionTask>&& task)
+    static std::unique_ptr<threading::Reaction> reschedule(std::unique_ptr<threading::Reaction>&& task)
 
 The ownership of the reaction task is passed to the DSL word. The task returned will be run instead of the passed in
 reaction task. If the returned task is the one passed in the task will be run normally.
