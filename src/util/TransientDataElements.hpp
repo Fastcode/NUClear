@@ -25,6 +25,9 @@
 
 #include "../dsl/trait/is_transient.hpp"
 
+#include "../dsl/trait/is_transient.hpp"
+#include "Sequence.hpp"
+
 namespace NUClear {
 namespace util {
 
