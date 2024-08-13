@@ -114,7 +114,9 @@ namespace util {
                 }
 
                 // Our finish time
-                task.stats->finished = clock::now();
+                if (task.stats != nullptr) {
+                    task.stats->finished = clock::now();
+                }
 
                 // Run our postconditions
                 DSL::postcondition(task);
