@@ -22,10 +22,48 @@
 
 #include "PowerPlant.hpp"
 
+#include <exception>
+#include <tuple>
+
+#include "Reactor.hpp"
+#include "dsl/store/DataStore.hpp"
+#include "dsl/word/Shutdown.hpp"
+#include "dsl/word/Startup.hpp"
+#include "dsl/word/emit/Direct.hpp"
+#include "message/CommandLineArguments.hpp"
+#include "message/LogMessage.hpp"
+#include "threading/ReactionTask.hpp"
+
 namespace NUClear {
+namespace util {
+    struct GroupDescriptor;
+    struct ThreadPoolDescriptor;
+}  // namespace util
 
 // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
 PowerPlant* PowerPlant::powerplant = nullptr;
+
+// This is taking argc and argv as given by main so this should not take an array
+// NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays)
+PowerPlant::PowerPlant(Configuration config, int argc, const char* argv[]) : scheduler(config.thread_count) {
+
+    // Stop people from making more then one powerplant
+    if (powerplant != nullptr) {
+        throw std::runtime_error("There is already a powerplant in existence (There should be a single PowerPlant)");
+    }
+
+    // Store our static variable
+    powerplant = this;
+
+    // Emit our arguments if any.
+    message::CommandLineArguments args;
+    for (int i = 0; i < argc; ++i) {
+        args.emplace_back(argv[i]);
+    }
+
+    // Emit our command line arguments
+    emit(std::make_unique<message::CommandLineArguments>(args));
+}
 
 PowerPlant::~PowerPlant() {
     // Make sure reactors are destroyed before anything else
@@ -48,6 +86,16 @@ void PowerPlant::start() {
 
     // Start all of the threads
     scheduler.start();
+}
+
+void PowerPlant::add_idle_task(const NUClear::id_t& id,
+                               const util::ThreadPoolDescriptor& pool_descriptor,
+                               std::function<void()>&& task) {
+    scheduler.add_idle_task(id, pool_descriptor, std::move(task));
+}
+
+void PowerPlant::remove_idle_task(const NUClear::id_t& id, const util::ThreadPoolDescriptor& pool_descriptor) {
+    scheduler.remove_idle_task(id, pool_descriptor);
 }
 
 void PowerPlant::submit(const NUClear::id_t& id,
@@ -75,14 +123,19 @@ void PowerPlant::submit(std::unique_ptr<threading::ReactionTask>&& task, const b
     }
 }
 
-void PowerPlant::add_idle_task(const NUClear::id_t& id,
-                               const util::ThreadPoolDescriptor& pool_descriptor,
-                               std::function<void()>&& task) {
-    scheduler.add_idle_task(id, pool_descriptor, std::move(task));
-}
+void PowerPlant::log(const LogLevel& level, std::string message) {
+    // Get the current task
+    const auto* current_task = threading::ReactionTask::get_current_task();
 
-void PowerPlant::remove_idle_task(const NUClear::id_t& id, const util::ThreadPoolDescriptor& pool_descriptor) {
-    scheduler.remove_idle_task(id, pool_descriptor);
+    // Direct emit the log message so that any direct loggers can use it
+    emit<dsl::word::emit::Direct>(std::make_unique<message::LogMessage>(
+        level,
+        current_task != nullptr ? current_task->parent.reactor.log_level : LogLevel::UNKNOWN,
+        std::move(message),
+        current_task != nullptr ? current_task->stats : nullptr));
+}
+void PowerPlant::log(const LogLevel& level, std::stringstream& message) {
+    log(level, message.str());
 }
 
 void PowerPlant::shutdown() {
@@ -101,4 +154,5 @@ void PowerPlant::shutdown() {
 bool PowerPlant::running() const {
     return is_running.load();
 }
+
 }  // namespace NUClear

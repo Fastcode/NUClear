@@ -20,38 +20,41 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_POWERPLANT_HPP
-#define NUCLEAR_POWERPLANT_HPP
+#ifndef NUCLEAR_POWER_PLANT_HPP
+#define NUCLEAR_POWER_PLANT_HPP
 
 #include <atomic>
-#include <iostream>
-#include <map>
+#include <functional>
 #include <memory>
-#include <mutex>
-#include <queue>
-#include <set>
 #include <sstream>
-#include <string>
-#include <thread>
-#include <typeindex>
+#include <utility>
 #include <vector>
 
 // Utilities
 #include "Configuration.hpp"
+#include "Environment.hpp"
 #include "LogLevel.hpp"
 #include "id.hpp"
-#include "message/LogMessage.hpp"
 #include "threading/ReactionTask.hpp"
 #include "threading/TaskScheduler.hpp"
 #include "util/FunctionFusion.hpp"
 #include "util/demangle.hpp"
-#include "util/main_thread_id.hpp"
-#include "util/unpack.hpp"
 
 namespace NUClear {
 
-// Forward declare reactor
+// Forward declarations
 class Reactor;
+namespace util {
+    struct ThreadPoolDescriptor;
+}  // namespace util
+namespace dsl {
+    namespace word {
+        namespace emit {
+            template <typename T>
+            struct Local;
+        }  // namespace emit
+    }  // namespace word
+}  // namespace dsl
 
 /**
  * The PowerPlant is the core of a NUClear system. It holds all Reactors in it and manages their communications.
@@ -63,6 +66,23 @@ class Reactor;
 class PowerPlant {
     // Reactors and PowerPlants are very tightly linked
     friend class Reactor;
+
+    /**
+     * This is our Function Fusion wrapper class that allows it to call emit functions
+     *
+     * @tparam Handler The emit handler that we are wrapping for
+     */
+    template <typename Handler>
+    struct EmitCaller {
+        template <typename... Arguments>
+        static auto call(Arguments&&... args)
+            // THIS IS VERY IMPORTANT, the return type must be dependent on the function call
+            // otherwise it won't check it's valid in SFINAE (the comma operator does it again!)
+            -> decltype(Handler::emit(std::forward<Arguments>(args)...), true) {
+            Handler::emit(std::forward<Arguments>(args)...);
+            return true;
+        }
+    };
 
 public:
     // There can only be one powerplant, so this is it
@@ -104,7 +124,7 @@ public:
     /**
      * Gets the current running state of the PowerPlant.
      *
-     * @return True if the PowerPlant is running, false if it is shut down, or is in the process of shutting down.
+     * @return `true` if the PowerPlant is running, `false` if it is shut down, or is in the process of shutting down.
      */
     bool running() const;
 
@@ -112,8 +132,7 @@ public:
      * Installs a reactor of a particular type to the system.
      *
      * This function constructs a new Reactor of the template type.
-     * It passes through the specified LogLevel
-     * in the environment of that reactor so that it can be used to filter logs.
+     * It passes the specified LogLevel in the environment of that reactor so that it can be used to filter logs.
      *
      * @tparam T     The type of the reactor to build and install
      * @tparam Args  The types of the extra arguments to pass to the reactor constructor
@@ -124,7 +143,17 @@ public:
      * @return A reference to the installed reactor
      */
     template <typename T, typename... Args>
-    T& install(Args&&... args);
+    T& install(Args&&... args) {
+
+        // Make sure that the class that we received is a reactor
+        static_assert(std::is_base_of<Reactor, T>::value, "You must install Reactors");
+
+        // The reactor constructor should handle subscribing to events
+        reactors.push_back(std::make_unique<T>(std::make_unique<Environment>(*this, util::demangle(typeid(T).name())),
+                                               std::forward<Args>(args)...));
+
+        return static_cast<T&>(*reactors.back());
+    }
 
     /**
      * Adds an idle task to the task scheduler.
@@ -189,7 +218,26 @@ public:
      * @param args The arguments we are logging
      */
     template <enum LogLevel level, typename... Arguments>
-    static void log(Arguments&&... args);
+    void log(Arguments&&... args) {
+        log(level, std::forward<Arguments>(args)...);
+    }
+    template <typename... Arguments>
+    void log(const LogLevel& level, Arguments&&... args) {
+        std::stringstream ss;
+        log(level, ss, std::forward<Arguments>(args)...);
+    }
+    template <typename First, typename... Arguments>
+    void log(const LogLevel& level, std::stringstream& ss, First&& first, Arguments&&... args) {
+        ss << std::forward<First>(first) << " ";
+        log(level, ss, std::forward<Arguments>(args)...);
+    }
+    template <typename Last>
+    void log(const LogLevel& level, std::stringstream& ss, Last&& last) {
+        ss << std::forward<Last>(last);
+        log(level, ss);
+    }
+    void log(const LogLevel& level, std::stringstream& message);
+    void log(const LogLevel& level, std::string message);
 
     /**
      * Emits data to the system and routes it to the other systems that use it.
@@ -203,9 +251,38 @@ public:
      * @param data The data we are emitting
      */
     template <typename T>
-    void emit(std::unique_ptr<T>&& data);
+    void emit(std::unique_ptr<T>&& data) {
+        emit<dsl::word::emit::Local>(std::move(data));
+    }
     template <typename T>
-    void emit(std::unique_ptr<T>& data);
+    void emit(std::unique_ptr<T>& data) {
+        emit<dsl::word::emit::Local>(std::move(data));
+    }
+    template <template <typename> class First,
+              template <typename>
+              class... Remainder,
+              typename T,
+              typename... Arguments>
+    void emit(std::unique_ptr<T>& data, Arguments&&... args) {
+        emit<First, Remainder...>(std::move(data), std::forward<Arguments>(args)...);
+    }
+
+    template <template <typename> class First,
+              template <typename>
+              class... Remainder,
+              typename T,
+              typename... Arguments>
+    void emit(std::unique_ptr<T>&& data, Arguments&&... args) {
+
+        // Release our data from the pointer and wrap it in a shared_ptr
+        emit_shared<First, Remainder...>(std::shared_ptr<T>(std::move(data)), std::forward<Arguments>(args)...);
+    }
+
+    template <template <typename> class First, template <typename> class... Remainder, typename... Arguments>
+    void emit(Arguments&&... args) {
+
+        emit_shared<First, Remainder...>(std::forward<Arguments>(args)...);
+    }
 
     /**
      * Emits data to the system and routes it to the other systems that use it.
@@ -234,29 +311,41 @@ public:
               class... Remainder,
               typename T,
               typename... Arguments>
-    void emit_shared(std::shared_ptr<T> data, Arguments&&... args);
+    void emit_shared(std::shared_ptr<T> data, Arguments&&... args) {
+
+        using Functions      = std::tuple<First<T>, Remainder<T>...>;
+        using ArgumentPack   = decltype(std::forward_as_tuple(*this, data, std::forward<Arguments>(args)...));
+        using CallerArgs     = std::tuple<>;
+        using FusionFunction = util::FunctionFusion<Functions, ArgumentPack, EmitCaller, CallerArgs, 2>;
+
+        // Provide a check to make sure they are passing us the right stuff
+        static_assert(
+            FusionFunction::value,
+            "There was an error with the arguments for the emit function, Check that your scope and arguments "
+            "match what you are trying to do.");
+
+        // Fuse our emit handlers and call the fused function
+        FusionFunction::call(*this, data, std::forward<Arguments>(args)...);
+    }
 
     template <template <typename> class First, template <typename> class... Remainder, typename... Arguments>
-    void emit_shared(Arguments&&... args);
+    void emit_shared(Arguments&&... args) {
 
-    template <template <typename> class First,
-              template <typename>
-              class... Remainder,
-              typename T,
-              typename... Arguments>
-    void emit(std::unique_ptr<T>&& data, Arguments&&... args);
+        using Functions      = std::tuple<First<void>, Remainder<void>...>;
+        using ArgumentPack   = decltype(std::forward_as_tuple(*this, std::forward<Arguments>(args)...));
+        using CallerArgs     = std::tuple<>;
+        using FusionFunction = util::FunctionFusion<Functions, ArgumentPack, EmitCaller, CallerArgs, 1>;
 
-    template <template <typename> class First,
-              template <typename>
-              class... Remainder,
-              typename T,
-              typename... Arguments>
-    void emit(std::unique_ptr<T>& data, Arguments&&... args);
+        // Provide a check to make sure they are passing us the right stuff
+        static_assert(
+            FusionFunction::value,
+            "There was an error with the arguments for the emit function, Check that your scope and arguments "
+            "match what you are trying to do.");
 
-    template <template <typename> class First, template <typename> class... Remainder, typename... Arguments>
-    void emit(Arguments&&... args);
+        // Fuse our emit handlers and call the fused function
+        FusionFunction::call(*this, std::forward<Arguments>(args)...);
+    }
 
-private:
     /// A list of tasks that must be run when the powerplant starts up
     std::vector<std::function<void()>> tasks;
     /// Our TaskScheduler that handles distributing task to the pool threads
@@ -281,21 +370,17 @@ private:
  */
 template <enum LogLevel level = NUClear::DEBUG, typename... Arguments>
 void log(Arguments&&... args) {
-    PowerPlant::log<level>(std::forward<Arguments>(args)...);
+    if (PowerPlant::powerplant != nullptr) {
+        PowerPlant::powerplant->log<level>(std::forward<Arguments>(args)...);
+    }
+}
+template <typename... Arguments>
+void log(const LogLevel& level, Arguments&&... args) {
+    if (PowerPlant::powerplant != nullptr) {
+        PowerPlant::powerplant->log(level, std::forward<Arguments>(args)...);
+    }
 }
 
 }  // namespace NUClear
 
-// Include our Reactor.h first as the tight coupling between powerplant and reactor requires a specific include order
-#include "Reactor.hpp"
-#include "dsl/word/emit/Direct.hpp"
-#include "dsl/word/emit/Initialise.hpp"
-#include "dsl/word/emit/Local.hpp"
-#include "message/CommandLineArguments.hpp"
-#include "message/NetworkConfiguration.hpp"
-#include "message/NetworkEvent.hpp"
-
-// Include all of our implementation files (which use the previously included reactor.h)
-#include "PowerPlant.ipp"
-
-#endif  // NUCLEAR_POWERPLANT_HPP
+#endif  // NUCLEAR_POWER_PLANT_HPP

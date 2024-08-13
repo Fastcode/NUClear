@@ -23,7 +23,7 @@
 #ifndef NUCLEAR_DSL_FUSION_GETFUSION_HPP
 #define NUCLEAR_DSL_FUSION_GETFUSION_HPP
 
-#include "../../threading/ReactionHandle.hpp"
+#include "../../threading/Reaction.hpp"
 #include "../../util/tuplify.hpp"
 #include "../operation/DSLProxy.hpp"
 #include "has_get.hpp"

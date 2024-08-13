@@ -23,8 +23,8 @@
 #ifndef NUCLEAR_DSL_FUSION_BINDFUSION_HPP
 #define NUCLEAR_DSL_FUSION_BINDFUSION_HPP
 
-#include "../../threading/ReactionHandle.hpp"
-#include "../../util/tuplify.hpp"
+#include "../../threading/Reaction.hpp"
+#include "../../util/FunctionFusion.hpp"
 #include "../operation/DSLProxy.hpp"
 #include "has_bind.hpp"
 
