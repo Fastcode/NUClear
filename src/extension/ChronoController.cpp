@@ -22,6 +22,8 @@
 
 #include "ChronoController.hpp"
 
+#include <atomic>
+
 #include "../util/precise_sleep.hpp"
 
 namespace NUClear {
@@ -56,7 +58,7 @@ namespace extension {
             const std::lock_guard<std::mutex> lock(mutex);
 
             // Add our new task to the heap if we are still running
-            if (running.load()) {
+            if (running.load(std::memory_order_acquire)) {
                 tasks.push_back(*task);
                 std::push_heap(tasks.begin(), tasks.end(), std::greater<>());
             }
@@ -89,7 +91,7 @@ namespace extension {
         // When we shutdown we notify so we quit now
         on<Shutdown>().then("Shutdown Chrono Controller", [this] {
             const std::lock_guard<std::mutex> lock(mutex);
-            running = false;
+            running.store(false, std::memory_order_release);
             wait.notify_all();
         });
 
@@ -121,14 +123,14 @@ namespace extension {
 
         on<Always, Priority::REALTIME>().then("Chrono Controller", [this] {
             // Run until we are told to stop
-            while (running.load()) {
+            while (running.load(std::memory_order_acquire)) {
 
                 // Acquire the mutex lock so we can wait on it
                 std::unique_lock<std::mutex> lock(mutex);
 
                 // If we have no chrono tasks wait until we are notified
                 if (tasks.empty()) {
-                    wait.wait(lock, [this] { return !running.load() || !tasks.empty(); });
+                    wait.wait(lock, [this] { return !running.load(std::memory_order_acquire) || !tasks.empty(); });
                 }
                 else {
                     auto start  = NUClear::clock::now();
@@ -157,7 +159,8 @@ namespace extension {
                         if (clock::rtf() == 0.0) {
                             // If we are paused then just wait until we are unpaused
                             wait.wait(lock, [&] {
-                                return !running.load() || clock::rtf() != 0.0 || NUClear::clock::now() != start;
+                                return !running.load(std::memory_order_acquire) || clock::rtf() != 0.0
+                                       || NUClear::clock::now() != start;
                             });
                         }
                         else if (time_until_task > cv_accuracy) {  // A long time in the future

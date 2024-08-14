@@ -40,7 +40,7 @@ namespace threading {
     ReactionTask::~ReactionTask() {
         // Decrement the number of active tasks
         if (parent != nullptr) {
-            --parent->active_tasks;
+            parent->active_tasks.fetch_sub(1, std::memory_order_release);
         }
     }
 
@@ -63,7 +63,7 @@ namespace threading {
 
     NUClear::id_t ReactionTask::new_task_id() {
         static std::atomic<NUClear::id_t> task_id_source(0);
-        return ++task_id_source;
+        return task_id_source.fetch_add(1, std::memory_order_seq_cst);
     }
 
     // Initialize our current task

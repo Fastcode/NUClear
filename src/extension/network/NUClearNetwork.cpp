@@ -727,7 +727,9 @@ namespace extension {
                                              to.size());
 
                                     // Set this packet to have been recently received
-                                    remote->recent_packets[++remote->recent_packets_index] = packet.packet_id;
+                                    remote->recent_packets[remote->recent_packets_index
+                                                               .fetch_add(1, std::memory_order_relaxed)] =
+                                        packet.packet_id;
                                 }
 
                                 packet_callback(*remote, packet.hash, packet.reliable, std::move(out));
@@ -841,7 +843,9 @@ namespace extension {
                                     // If the packet was reliable add that it was recently received
                                     if (packet.reliable) {
                                         // Set this packet to have been recently received
-                                        remote->recent_packets[++remote->recent_packets_index] = packet.packet_id;
+                                        remote->recent_packets[remote->recent_packets_index
+                                                                   .fetch_add(1, std::memory_order_relaxed)] =
+                                            packet.packet_id;
                                     }
 
                                     // We have completed this packet, discard the data

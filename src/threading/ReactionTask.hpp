@@ -23,7 +23,6 @@
 #ifndef NUCLEAR_THREADING_REACTION_TASK_HPP
 #define NUCLEAR_THREADING_REACTION_TASK_HPP
 
-#include <atomic>
 #include <functional>
 #include <memory>
 #include <set>

@@ -36,10 +36,13 @@ namespace extension {
     private:
         // On windows and posix platforms there are slightly different types that are used
 #ifdef _WIN32
-        using event_t    = long;  // NOLINT(google-runtime-int)
-        using watcher_t  = WSAEVENT;
-        using notifier_t = WSAEVENT;
-        using tasks_t    = std::map<WSAEVENT, Task>;
+        using event_t   = long;  // NOLINT(google-runtime-int)
+        using watcher_t = WSAEVENT;
+        using tasks_t   = std::map<WSAEVENT, Task>;
+        struct notifier_t {
+            WSAEVENT notifier{WSA_INVALID_EVENT};  ///< This is the event that is waited on by WSAWaitForMultipleEvents
+            std::mutex mutex;                      ///< This mutex is used to ensure that wait has woken up
+        };
 #else
         using event_t   = decltype(pollfd::events);
         using watcher_t = pollfd;
@@ -122,8 +125,6 @@ namespace extension {
         /// The event that is used to wake up the WaitForMultipleEvents call
         notifier_t notifier;
 
-        /// Whether or not we are shutting down
-        std::atomic<bool> shutdown{false};
         /// The mutex that protects the tasks list
         std::mutex tasks_mutex;
         /// Whether or not the list of file descriptors is dirty compared to tasks
