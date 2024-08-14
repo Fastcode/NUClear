@@ -23,6 +23,7 @@
 #ifndef NUCLEAR_UTIL_TYPEMAP_HPP
 #define NUCLEAR_UTIL_TYPEMAP_HPP
 
+#include <atomic>
 #include <memory>
 #include <mutex>
 #include <vector>
@@ -68,13 +69,7 @@ namespace util {
          * @param d A pointer to the data to be stored (the map takes ownership)
          */
         static void set(std::shared_ptr<Value> d) {
-
-            // Do this once G++ supports it
-            // std::atomic_store_explicit(&data, d, std::memory_order_relaxed);
-
-            // Lock a mutex and set our data
-            const std::lock_guard<std::mutex> lock(mutex);
-            data = std::move(d);
+            std::atomic_store_explicit(&data, std::move(d), std::memory_order_release);
         }
 
         /**
@@ -83,17 +78,7 @@ namespace util {
          * @return A shared_ptr to the data that was previously stored
          */
         static std::shared_ptr<Value> get() {
-
-            // TODO(Trent) do this when gcc supports it
-            // std::atomic_load_explicit(&data, std::memory_order_relaxed);
-
-            std::shared_ptr<Value> d;
-            {
-                const std::lock_guard<std::mutex> lock(mutex);
-                d = data;
-            }
-
-            return d;
+            return std::atomic_load_explicit(&data, std::memory_order_acquire);
         }
     };
 
@@ -101,8 +86,6 @@ namespace util {
     template <typename MapID, typename Key, typename Value>
     std::shared_ptr<Value>
         TypeMap<MapID, Key, Value>::data;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
-    template <typename MapID, typename Key, typename Value>
-    std::mutex TypeMap<MapID, Key, Value>::mutex;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
 }  // namespace util
 }  // namespace NUClear

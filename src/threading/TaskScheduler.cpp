@@ -72,7 +72,7 @@ namespace threading {
         current_queue = &pool;
 
         // When task is nullptr there are no more tasks to get and the scheduler is shutting down
-        while (running.load() || !pool->queue.empty()) {
+        while (running.load(std::memory_order_acquire) || !pool->queue.empty()) {
             try {
                 // Run the next task
                 run_task(get_task());
@@ -119,7 +119,7 @@ namespace threading {
             pool_queues[pool.pool_id] = queue;
 
             // If the scheduler has not yet started then don't start the threads for this pool yet
-            if (started.load()) {
+            if (started.load(std::memory_order_acquire)) {
                 start_threads(queue);
             }
         }
@@ -130,7 +130,7 @@ namespace threading {
     void TaskScheduler::start() {
 
         // The scheduler is now started
-        started.store(true);
+        started.store(true, std::memory_order_release);
 
         // Start all our threads
         for (const auto& pool : pool_queues) {
@@ -167,8 +167,8 @@ namespace threading {
     }
 
     void TaskScheduler::shutdown() {
-        started.store(false);
-        running.store(false);
+        started.store(false, std::memory_order_release);
+        running.store(false, std::memory_order_release);
         for (auto& pool : pool_queues) {
             const std::lock_guard<std::recursive_mutex> lock(pool.second->mutex);
             pool.second->condition.notify_all();
@@ -210,7 +210,7 @@ namespace threading {
         }
 
         // We do not accept new tasks once we are shutdown
-        if (running.load()) {
+        if (running.load(std::memory_order_acquire)) {
             const std::shared_ptr<PoolQueue> pool = get_pool_queue(task.thread_pool_descriptor);
             if (pool->pool_descriptor.counts_for_idle) {
                 ++global_runnable_tasks;
@@ -276,7 +276,7 @@ namespace threading {
         // Keep looking for tasks while the scheduler is still running, or while there are still tasks to process
         std::unique_lock<std::recursive_mutex> lock(pool->mutex);
         bool idle = false;
-        while (running.load() || !queue.empty()) {
+        while (running.load(std::memory_order_acquire) || !queue.empty()) {
 
             // Only one thread can be checking group concurrency at a time otherwise the ordering might not be correct
             /* mutex scope */ {
@@ -312,7 +312,7 @@ namespace threading {
                 // If pool concurrency is greater than group concurrency some threads can be left with nothing to do.
                 // Since running is false there will likely never be anything new to do and we are shutting down anyway.
                 // So if we can't find a task to run we should just quit.
-                if (!running.load()) {
+                if (!running.load(std::memory_order_acquire)) {
                     condition.notify_all();
                     throw ShutdownThreadException();
                 }

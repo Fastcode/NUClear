@@ -49,7 +49,7 @@ namespace util {
         static NUClear::id_t get_unique_group_id() noexcept {
             // Make group 0 the default group
             static std::atomic<NUClear::id_t> source{1};
-            return source++;
+            return source.fetch_add(1, std::memory_order_relaxed);
         }
     };
 
