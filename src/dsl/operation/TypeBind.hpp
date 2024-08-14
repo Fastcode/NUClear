@@ -27,7 +27,7 @@
 
 namespace NUClear {
 
-// Forward declare the ReactionEvent type
+// Forward declarations
 namespace message {
     struct ReactionEvent;
     struct LogMessage;
