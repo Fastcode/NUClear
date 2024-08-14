@@ -1,0 +1,7 @@
+# Make the compiler display colours always (even when we build with ninja)
+if(CMAKE_CXX_COMPILER_ID MATCHES GNU)
+  add_compile_options(-fdiagnostics-color=always)
+endif()
+if(CMAKE_CXX_COMPILER_ID MATCHES Clang)
+  add_compile_options(-fcolor-diagnostics)
+endif()

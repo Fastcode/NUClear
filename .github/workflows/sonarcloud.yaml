@@ -30,7 +30,7 @@ jobs:
         run: pip install gcovr==6.0
 
       - name: Install sonar-scanner and build-wrapper
-        uses: SonarSource/sonarcloud-github-c-cpp@v2
+        uses: SonarSource/sonarcloud-github-c-cpp@v3
 
       - name: Install CMake
         uses: lukka/get-cmake@latest
