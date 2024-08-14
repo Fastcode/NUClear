@@ -28,6 +28,7 @@
 #include <memory>
 #include <set>
 
+#include "../clock.hpp"
 #include "../id.hpp"
 #include "../util/GroupDescriptor.hpp"
 #include "../util/ThreadPoolDescriptor.hpp"

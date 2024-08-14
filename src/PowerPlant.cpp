@@ -30,6 +30,9 @@
 #include "dsl/word/Shutdown.hpp"
 #include "dsl/word/Startup.hpp"
 #include "dsl/word/emit/Direct.hpp"
+#include "extension/ChronoController.hpp"
+#include "extension/IOController.hpp"
+#include "extension/NetworkController.hpp"
 #include "message/CommandLineArguments.hpp"
 #include "message/LogMessage.hpp"
 #include "threading/ReactionTask.hpp"
@@ -54,6 +57,11 @@ PowerPlant::PowerPlant(Configuration config, int argc, const char* argv[]) : sch
 
     // Store our static variable
     powerplant = this;
+
+    // Install the extension controllers
+    install<extension::ChronoController>();
+    install<extension::IOController>();
+    install<extension::NetworkController>();
 
     // Emit our arguments if any.
     message::CommandLineArguments args;
