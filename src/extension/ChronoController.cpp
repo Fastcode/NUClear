@@ -22,6 +22,8 @@
 
 #include "ChronoController.hpp"
 
+#include <atomic>
+
 #include "../util/precise_sleep.hpp"
 
 namespace NUClear {
@@ -56,7 +58,7 @@ namespace extension {
             const std::lock_guard<std::mutex> lock(mutex);
 
             // Add our new task to the heap if we are still running
-            if (running.load(std::std::memory_order_acquire)) {
+            if (running.load(std::memory_order_acquire)) {
                 tasks.push_back(*task);
                 std::push_heap(tasks.begin(), tasks.end(), std::greater<>());
             }
