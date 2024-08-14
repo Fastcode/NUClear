@@ -56,7 +56,7 @@ namespace extension {
         watches.resize(0);
 
         // Insert our notify fd
-        watches.push_back(notifier);
+        watches.push_back(notifier.notifier);
 
         for (const auto& r : tasks) {
             watches.push_back(r.first);
@@ -99,7 +99,7 @@ namespace extension {
         // Get the lock so we don't concurrently modify the list
         const std::lock_guard<std::mutex> lock(tasks_mutex);
 
-        if (event == notifier) {
+        if (event == notifier.notifier) {
             // Reset the notifier signal
             if (!WSAResetEvent(event)) {
                 throw std::system_error(WSAGetLastError(),
@@ -130,17 +130,20 @@ namespace extension {
     }
 
     void IOController::bump() {
-        if (!WSASetEvent(notifier)) {
+        if (!WSASetEvent(notifier.notifier)) {
             throw std::system_error(WSAGetLastError(),
                                     std::system_category(),
                                     "WSASetEvent() for configure io reaction failed");
         }
+
+        // Locking here will ensure we won't return until poll is not running
+        const std::lock_guard<std::mutex> lock(notifier.mutex);
     }
 
     IOController::IOController(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
 
         // Create an event to use for the notifier (used for getting out of WSAWaitForMultipleEvents())
-        notifier = WSACreateEvent();
+        notifier.notifier = WSACreateEvent();
         if (notifier == WSA_INVALID_EVENT) {
             throw std::system_error(WSAGetLastError(), std::system_category(), "WSACreateEvent() for notifier failed");
         }
@@ -221,37 +224,31 @@ namespace extension {
                 bump();
             });
 
-        on<Shutdown>().then("Shutdown IO Controller", [this] {
-            // Set shutdown to true so it won't try to poll again
-            shutdown.store(true);
-            bump();
-        });
+        on<Shutdown>().then("Shutdown IO Controller", [this] { bump(); });
 
         on<Always>().then("IO Controller", [this] {
-            // To make sure we don't get caught in a weird loop
-            // shutdown keeps us out here
-            if (!shutdown.load()) {
+            // Rebuild the list if something changed
+            if (dirty) {
+                rebuild_list();
+            }
 
-                // Rebuild the list if something changed
-                if (dirty) {
-                    rebuild_list();
-                }
-
-                // Wait for events
+            // Wait for events
+            /*mutex scope*/ {
+                const std::lock_guard<std::mutex> lock(notifier.mutex);
                 auto event_index = WSAWaitForMultipleEvents(static_cast<DWORD>(watches.size()),
                                                             watches.data(),
                                                             false,
                                                             WSA_INFINITE,
                                                             false);
+            }
 
-                // Check if the return value is an event in our list
-                if (event_index >= WSA_WAIT_EVENT_0 && event_index < WSA_WAIT_EVENT_0 + watches.size()) {
-                    // Get the signalled event
-                    auto& event = watches[event_index - WSA_WAIT_EVENT_0];
+            // Check if the return value is an event in our list
+            if (event_index >= WSA_WAIT_EVENT_0 && event_index < WSA_WAIT_EVENT_0 + watches.size()) {
+                // Get the signalled event
+                auto& event = watches[event_index - WSA_WAIT_EVENT_0];
 
-                    // Collect the events that happened into the tasks list
-                    process_event(event);
-                }
+                // Collect the events that happened into the tasks list
+                process_event(event);
             }
         });
     }

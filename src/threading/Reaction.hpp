@@ -104,7 +104,7 @@ namespace threading {
         std::shared_ptr<const ReactionIdentifiers> identifiers;
 
         /// the unique identifier for this Reaction object
-        const NUClear::id_t id{++reaction_id_source};
+        const NUClear::id_t id{reaction_id_source.fetch_add(1, std::memory_order_relaxed)};
 
         /// if this is false, we cannot emit ReactionStatistics from any reaction triggered by this one
         bool emit_stats{true};

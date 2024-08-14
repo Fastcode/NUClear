@@ -72,7 +72,7 @@ namespace util {
          */
         static NUClear::id_t get_unique_pool_id() noexcept {
             static std::atomic<NUClear::id_t> source{2};
-            return source++;
+            return source.fetch_add(1, std::memory_order_relaxed);
         }
     };
 

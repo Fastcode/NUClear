@@ -249,40 +249,34 @@ namespace extension {
             });
 
         on<Shutdown>().then("Shutdown IO Controller", [this] {
-            // Set shutdown to true so it won't try to poll again
-            shutdown.store(true);
+            // Ensure the poll command is not waiting
             bump();
         });
 
         on<Always>().then("IO Controller", [this] {
-            // To make sure we don't get caught in a weird loop
-            // shutdown keeps us out here
-            if (!shutdown.load()) {
+            // Rebuild the list if something changed
+            if (dirty) {
+                rebuild_list();
+            }
 
-                // Rebuild the list if something changed
-                if (dirty) {
-                    rebuild_list();
+            // Wait for an event to happen on one of our file descriptors
+            /* mutex scope */ {
+                const std::lock_guard<std::mutex> lock(notifier.mutex);
+                if (::poll(watches.data(), nfds_t(watches.size()), -1) < 0) {
+                    throw std::system_error(network_errno,
+                                            std::system_category(),
+                                            "There was an IO error while attempting to poll the file descriptors");
                 }
+            }
 
-                // Wait for an event to happen on one of our file descriptors
-                /* mutex scope */ {
-                    const std::lock_guard<std::mutex> lock(notifier.mutex);
-                    if (::poll(watches.data(), nfds_t(watches.size()), -1) < 0) {
-                        throw std::system_error(network_errno,
-                                                std::system_category(),
-                                                "There was an IO error while attempting to poll the file descriptors");
-                    }
-                }
+            // Get the lock so we don't concurrently modify the list
+            const std::lock_guard<std::mutex> lock(tasks_mutex);
+            for (auto& fd : watches) {
 
-                // Get the lock so we don't concurrently modify the list
-                const std::lock_guard<std::mutex> lock(tasks_mutex);
-                for (auto& fd : watches) {
-
-                    // Collect the events that happened into the tasks list
-                    // Something happened
-                    if (fd.revents != 0) {
-                        process_event(fd);
-                    }
+                // Collect the events that happened into the tasks list
+                // Something happened
+                if (fd.revents != 0) {
+                    process_event(fd);
                 }
             }
         });

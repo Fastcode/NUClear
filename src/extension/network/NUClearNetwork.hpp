@@ -313,8 +313,8 @@ namespace extension {
             // Our announce packet
             std::vector<uint8_t> announce_packet;
 
-            /// An atomic source for packet IDs to make sure they are semi unique
-            std::atomic<uint16_t> packet_id_source{0};
+            /// An source for packet IDs to make sure they are semi unique
+            uint16_t packet_id_source{0};
 
             /// The callback to execute when a data packet is completed
             std::function<void(const NetworkTarget&, const uint64_t&, const bool&, std::vector<uint8_t>&&)>
