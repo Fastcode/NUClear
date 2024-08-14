@@ -26,8 +26,23 @@
 #include "../store/TypeCallbackStore.hpp"
 
 namespace NUClear {
+
+// Forward declare the ReactionEvent type
+namespace message {
+    struct ReactionEvent;
+    struct LogMessage;
+}  // namespace message
+
 namespace dsl {
     namespace operation {
+
+        // Disable emitting stats for triggers on ReactionEvent and LogMessage
+        template <typename T>
+        struct EmitStats : std::true_type {};
+        template <>
+        struct EmitStats<message::ReactionEvent> : std::false_type {};
+        template <>
+        struct EmitStats<message::LogMessage> : std::false_type {};
 
         /**
          * Binds a function to execute when a specific type is emitted.
@@ -44,6 +59,9 @@ namespace dsl {
 
             template <typename DSL>
             static void bind(const std::shared_ptr<threading::Reaction>& reaction) {
+
+                // Set this reaction as no stats emitting
+                reaction->emit_stats &= EmitStats<DataType>::value;
 
                 // Our unbinder to remove this reaction
                 reaction->unbinders.push_back([](const threading::Reaction& r) {
@@ -65,34 +83,6 @@ namespace dsl {
             }
         };
 
-        template <>
-        struct TypeBind<message::ReactionStatistics> {
-
-            template <typename DSL>
-            static void bind(const std::shared_ptr<threading::Reaction>& reaction) {
-
-                // Set this reaction as no stats emitting
-                reaction->emit_stats = false;
-
-                // Our unbinder to remove this reaction
-                reaction->unbinders.push_back([](const threading::Reaction& r) {
-                    auto& vec = store::TypeCallbackStore<message::ReactionStatistics>::get();
-
-                    auto it = std::find_if(
-                        std::begin(vec),
-                        std::end(vec),
-                        [&r](const std::shared_ptr<threading::Reaction>& item) { return item->id == r.id; });
-
-                    // If the item is in the list erase the item
-                    if (it != std::end(vec)) {
-                        vec.erase(it);
-                    }
-                });
-
-                // Create our reaction and store it in the TypeCallbackStore
-                store::TypeCallbackStore<message::ReactionStatistics>::get().push_back(reaction);
-            }
-        };
 
     }  // namespace operation
 }  // namespace dsl
