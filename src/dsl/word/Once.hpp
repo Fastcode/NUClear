@@ -40,11 +40,10 @@ namespace dsl {
         struct Once : Single {
 
             // Post condition to unbind this reaction.
-
             template <typename DSL>
-            static void postcondition(threading::ReactionTask& reaction) {
+            static void postcondition(threading::ReactionTask& task) {
                 // Unbind:
-                reaction.parent.unbind();
+                task.parent->unbind();
             }
         };
 

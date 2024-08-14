@@ -77,10 +77,10 @@ namespace dsl {
         struct GroupFuser<std::tuple<Word>> {
 
             template <typename DSL>
-            static util::GroupDescriptor group(threading::Reaction& reaction) {
+            static util::GroupDescriptor group(threading::ReactionTask& task) {
 
                 // Return our group
-                return Word::template group<DSL>(reaction);
+                return Word::template group<DSL>(task);
             }
         };
 
@@ -89,7 +89,7 @@ namespace dsl {
         struct GroupFuser<std::tuple<Word1, Word2, WordN...>> {
 
             template <typename DSL>
-            static void group(const threading::Reaction& /*reaction*/) {
+            static void group(const threading::ReactionTask& /*task*/) {
                 throw std::invalid_argument("Can not be a member of more than one group");
             }
         };

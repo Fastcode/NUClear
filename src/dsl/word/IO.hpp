@@ -142,7 +142,7 @@ namespace dsl {
             }
 
             template <typename DSL>
-            static Event get(const threading::Reaction& /*reaction*/) {
+            static Event get(const threading::ReactionTask& /*task*/) {
 
                 // If our thread store has a value
                 if (ThreadEventStore::value) {
@@ -155,7 +155,7 @@ namespace dsl {
 
             template <typename DSL>
             static void postcondition(threading::ReactionTask& task) {
-                task.parent.reactor.emit<emit::Direct>(std::make_unique<IOFinished>(task.parent.id));
+                task.parent->reactor.emit<emit::Direct>(std::make_unique<IOFinished>(task.parent->id));
             }
         };
 

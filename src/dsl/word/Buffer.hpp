@@ -47,9 +47,9 @@ namespace dsl {
         struct Buffer {
 
             template <typename DSL>
-            static bool precondition(const threading::Reaction& reaction) {
+            static bool precondition(const threading::ReactionTask& task) {
                 // We only run if there are less than the target number of active tasks
-                return reaction.active_tasks < (n + 1);
+                return task.parent->active_tasks < (n + 1);
             }
         };
 

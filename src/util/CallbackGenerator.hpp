@@ -32,7 +32,6 @@
 #include "../util/apply.hpp"
 #include "../util/unpack.hpp"
 #include "../util/update_current_thread_priority.hpp"
-#include "GeneratedCallback.hpp"
 
 namespace NUClear {
 namespace util {
@@ -69,22 +68,17 @@ namespace util {
                 std::get<DIndex>(data))...);
         }
 
-        GeneratedCallback operator()(threading::Reaction& r) {
+        std::unique_ptr<threading::ReactionTask> operator()(const std::shared_ptr<threading::Reaction>& r) {
 
-            // Add one to our active tasks
-            ++r.active_tasks;
+            auto task = std::make_unique<threading::ReactionTask>(r, DSL::priority, DSL::pool, DSL::group);
 
             // Check if we should even run
-            if (!DSL::precondition(r)) {
-                // Take one from our active tasks
-                --r.active_tasks;
-
-                // We cancel our execution by returning an empty function
-                return {};
+            if (!DSL::precondition(*task)) {
+                return nullptr;
             }
 
             // Bind our data to a variable (this will run in the dispatching thread)
-            auto data = DSL::get(r);
+            auto data = DSL::get(*task);
 
             // Merge our transient data in
             merge_transients(data,
@@ -93,49 +87,47 @@ namespace util {
 
             // Check if our data is good (all the data exists) otherwise terminate the call
             if (!check_data(data)) {
-                // Take one from our active tasks
-                --r.active_tasks;
-
-                // We cancel our execution by returning an empty function
-                return {};
+                return nullptr;
             }
 
             // We have to make a copy of the callback because the "this" variable can go out of scope
-            auto c = callback;
-            return GeneratedCallback(DSL::priority(r),
-                                     DSL::group(r),
-                                     DSL::pool(r),
-                                     [c, data](threading::ReactionTask& task) noexcept {
-                                         // Update our thread's priority to the correct level
-                                         update_current_thread_priority(task.priority);
+            auto c         = callback;
+            task->callback = [c, data](threading::ReactionTask& task) noexcept {
+                // Update our thread's priority to the correct level
+                update_current_thread_priority(task.priority);
 
-                                         // Record our start time
-                                         task.stats->started = clock::now();
+                // Record our start time
+                if (task.stats != nullptr) {
+                    task.stats->started = clock::now();
+                }
 
-                                         // We have to catch any exceptions
-                                         try {
-                                             // We call with only the relevant arguments to the passed function
-                                             util::apply_relevant(c, std::move(data));
-                                         }
-                                         catch (...) {
-                                             // Catch our exception if it happens
-                                             task.stats->exception = std::current_exception();
-                                         }
+                // We have to catch any exceptions
+                try {
+                    // We call with only the relevant arguments to the passed function
+                    util::apply_relevant(c, std::move(data));
+                }
+                catch (...) {
+                    // Catch our exception if it happens
+                    if (task.stats != nullptr) {
+                        task.stats->exception = std::current_exception();
+                    }
+                }
 
-                                         // Our finish time
-                                         task.stats->finished = clock::now();
+                // Our finish time
+                if (task.stats != nullptr) {
+                    task.stats->finished = clock::now();
+                }
 
-                                         // Run our postconditions
-                                         DSL::postcondition(task);
+                // Run our postconditions
+                DSL::postcondition(task);
 
-                                         // Take one from our active tasks
-                                         --task.parent.active_tasks;
+                // Emit our reaction statistics if it wouldn't cause a loop
+                if (task.stats != nullptr) {
+                    PowerPlant::powerplant->emit_shared<dsl::word::emit::Direct>(task.stats);
+                }
+            };
 
-                                         // Emit our reaction statistics if it wouldn't cause a loop
-                                         if (task.emit_stats) {
-                                             PowerPlant::powerplant->emit_shared<dsl::word::emit::Direct>(task.stats);
-                                         }
-                                     });
+            return task;
         }
 
         Function callback;

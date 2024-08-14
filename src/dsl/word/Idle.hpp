@@ -68,7 +68,10 @@ namespace dsl {
         struct Idle {
             template <typename DSL>
             static void bind(const std::shared_ptr<threading::Reaction>& reaction) {
-                bind_idle(reaction, PoolType::template pool<DSL>(*reaction));
+
+                // Make a fake task to use for finding an appropriate descriptor
+                threading::ReactionTask task(reaction, DSL::priority, DSL::pool, DSL::group);
+                bind_idle(reaction, PoolType::template pool<DSL>(task));
             }
         };
 

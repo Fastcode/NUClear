@@ -24,11 +24,9 @@
 
 #include <atomic>
 #include <functional>
-#include <memory>
 #include <utility>
 
 #include "../id.hpp"
-#include "../message/ReactionStatistics.hpp"
 #include "../util/platform.hpp"
 #include "Reaction.hpp"
 
@@ -39,37 +37,29 @@ namespace threading {
         return current_task;
     }
 
-    ReactionTask::ReactionTask(Reaction& parent,
-                               const int& priority,
-                               const util::GroupDescriptor& group_descriptor,
-                               const util::ThreadPoolDescriptor& thread_pool_descriptor,
-                               TaskFunction&& callback)
-        : parent(parent)
-        , priority(priority)
-        , stats(std::make_shared<message::ReactionStatistics>(parent.identifiers,
-                                                              parent.id,
-                                                              id,
-                                                              current_task != nullptr ? current_task->parent.id : 0,
-                                                              current_task != nullptr ? current_task->id : 0,
-                                                              clock::now(),
-                                                              clock::time_point(std::chrono::seconds(0)),
-                                                              clock::time_point(std::chrono::seconds(0)),
-                                                              nullptr))
-        , emit_stats(parent.emit_stats && (current_task != nullptr ? current_task->emit_stats : true))
-        , group_descriptor(group_descriptor)
-        , thread_pool_descriptor(thread_pool_descriptor)
-        , callback(std::move(callback)) {}
-
-    void ReactionTask::run() {
-
-        // Update our current task
-        const std::shared_ptr<ReactionTask> lock(current_task, [](ReactionTask* t) { current_task = t; });
-        current_task = this;
-
-        // Run our callback
-        callback(*this);
+    ReactionTask::~ReactionTask() {
+        // Decrement the number of active tasks
+        if (parent != nullptr) {
+            --parent->active_tasks;
+        }
     }
 
+    void ReactionTask::run() {
+        // Update the current task
+        auto* t = std::exchange(current_task, this);
+        try {
+            // Run our callback
+            callback(*this);
+        }
+        catch (...) {  // NOLINT(bugprone-empty-catch)
+            // This shouldn't happen, but either way no exceptions should ever leave this function
+            // They should have all been caught and callback is noexcept
+            // However somehow it still happens sometimes so we need to catch it
+        }
+
+        // Restore the current task
+        current_task = t;
+    }
 
     NUClear::id_t ReactionTask::new_task_id() {
         static std::atomic<NUClear::id_t> task_id_source(0);

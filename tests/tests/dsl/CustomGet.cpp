@@ -33,7 +33,7 @@ std::vector<std::string> events;  // NOLINT(cppcoreguidelines-avoid-non-const-gl
 struct CustomGet : NUClear::dsl::operation::TypeBind<CustomGet> {
 
     template <typename DSL>
-    static std::shared_ptr<std::string> get(const NUClear::threading::Reaction& /*unused*/) {
+    static std::shared_ptr<std::string> get(const NUClear::threading::ReactionTask& /*task*/) {
         return std::make_shared<std::string>("Data from a custom getter");
     }
 };

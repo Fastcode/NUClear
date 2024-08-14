@@ -47,27 +47,27 @@ namespace dsl {
             }
 
             template <typename DSL>
-            static std::tuple<> get(const threading::Reaction& /*reaction*/) {
+            static std::tuple<> get(const threading::ReactionTask& /*task*/) {
                 return {};
             }
 
             template <typename DSL>
-            static bool precondition(const threading::Reaction& /*reaction*/) {
+            static bool precondition(const threading::ReactionTask& /*task*/) {
                 return true;
             }
 
             template <typename DSL>
-            static int priority(const threading::Reaction& /*reaction*/) {
+            static int priority(const threading::ReactionTask& /*task*/) {
                 return word::Priority::NORMAL::value;
             }
 
             template <typename DSL>
-            static util::GroupDescriptor group(const threading::Reaction& /*reaction*/) {
-                return util::GroupDescriptor{};
+            static util::GroupDescriptor group(const threading::ReactionTask& /*task*/) {
+                return {};
             }
 
             template <typename DSL>
-            static util::ThreadPoolDescriptor pool(const threading::Reaction& /*reaction*/) {
+            static util::ThreadPoolDescriptor pool(const threading::ReactionTask& /*task*/) {
                 return util::ThreadPoolDescriptor{};
             }
 
@@ -86,15 +86,15 @@ namespace dsl {
 
             static std::tuple<> bind(const std::shared_ptr<threading::Reaction>&);
 
-            static std::tuple<> get(threading::Reaction&);
+            static std::tuple<> get(threading::ReactionTask&);
 
-            static bool precondition(threading::Reaction&);
+            static bool precondition(threading::ReactionTask&);
 
-            static int priority(threading::Reaction&);
+            static int priority(threading::ReactionTask&);
 
-            static util::GroupDescriptor group(threading::Reaction&);
+            static util::GroupDescriptor group(threading::ReactionTask&);
 
-            static util::ThreadPoolDescriptor pool(threading::Reaction&);
+            static util::ThreadPoolDescriptor pool(threading::ReactionTask&);
 
             static void postcondition(threading::ReactionTask&);
         };

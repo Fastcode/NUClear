@@ -40,9 +40,16 @@ namespace dsl {
          */
         struct MainThread {
 
+            /// the description of the thread pool to be used for this PoolType
+            static util::ThreadPoolDescriptor descriptor() {
+                return util::ThreadPoolDescriptor{NUClear::id_t(util::ThreadPoolDescriptor::MAIN_THREAD_POOL_ID),
+                                                  1,
+                                                  true};
+            }
+
             template <typename DSL>
-            static util::ThreadPoolDescriptor pool(const threading::Reaction& /*reaction*/) {
-                return util::ThreadPoolDescriptor{util::ThreadPoolDescriptor::MAIN_THREAD_POOL_ID, 1, true};
+            static util::ThreadPoolDescriptor pool(const threading::ReactionTask& /*task*/) {
+                return descriptor();
             }
         };
 

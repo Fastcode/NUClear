@@ -137,7 +137,6 @@ namespace extension {
         }
     }
 
-
     IOController::IOController(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
 
         // Create an event to use for the notifier (used for getting out of WSAWaitForMultipleEvents())

@@ -26,7 +26,6 @@
 #include <utility>
 
 #include "../id.hpp"
-#include "../util/GeneratedCallback.hpp"
 #include "ReactionIdentifiers.hpp"
 #include "ReactionTask.hpp"
 
@@ -49,20 +48,8 @@ namespace threading {
             return nullptr;
         }
 
-        // Run our generator to get a functor we can run
-        auto callback = generator(*this);
-
-        // If our generator returns a valid function
-        if (callback) {
-            return std::make_unique<ReactionTask>(*this,
-                                                  callback.priority,
-                                                  callback.group,
-                                                  callback.pool,
-                                                  std::move(callback.callback));
-        }
-
-        // Otherwise we return a null pointer
-        return nullptr;
+        // Return the task returned by the generator
+        return generator(this->shared_from_this());
     }
 
     void Reaction::unbind() {
