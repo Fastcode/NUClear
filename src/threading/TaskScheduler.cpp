@@ -92,8 +92,8 @@ namespace threading {
 
     TaskScheduler::TaskScheduler(const size_t& thread_count) {
         // Make the queue for the main thread
-        pool_queues[util::ThreadPoolDescriptor::MAIN_THREAD_POOL_ID] = std::make_shared<PoolQueue>(
-            util::ThreadPoolDescriptor{"Main Thread", util::ThreadPoolDescriptor::MAIN_THREAD_POOL_ID, 1, true});
+        auto main_descriptor                 = dsl::word::MainThread::descriptor();
+        pool_queues[main_descriptor.pool_id] = std::make_shared<PoolQueue>(main_descriptor);
 
         // Make the default pool with the correct number of threads
         auto default_descriptor         = util::ThreadPoolDescriptor{};
@@ -139,7 +139,7 @@ namespace threading {
         }
 
         // Run main thread tasks
-        pool_func(pool_queues.at(util::ThreadPoolDescriptor::MAIN_THREAD_POOL_ID));
+        pool_func(pool_queues.at(NUClear::id_t(util::ThreadPoolDescriptor::MAIN_THREAD_POOL_ID)));
 
         /**
          * Once the main thread reaches this point it is because the powerplant, and by extension the scheduler, have
