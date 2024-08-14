@@ -42,7 +42,8 @@ namespace dsl {
 
             /// the description of the thread pool to be used for this PoolType
             static util::ThreadPoolDescriptor descriptor() {
-                return util::ThreadPoolDescriptor{NUClear::id_t(util::ThreadPoolDescriptor::MAIN_THREAD_POOL_ID),
+                return util::ThreadPoolDescriptor{"Main",
+                                                  NUClear::id_t(util::ThreadPoolDescriptor::MAIN_THREAD_POOL_ID),
                                                   1,
                                                   true};
             }

@@ -37,19 +37,33 @@ namespace util {
      * A description of a group.
      */
     struct GroupDescriptor {
+        /// The name of this group
+        std::string name = "Default";
+
         /// A unique identifier for this group
         NUClear::id_t group_id{0};
 
         /// The maximum number of threads that can run concurrently in this group
-        size_t thread_count{std::numeric_limits<size_t>::max()};
+        int thread_count{1};
 
         /**
-         * @return The next unique ID for a new group
+         * Return the next unique ID for a new group
          */
         static NUClear::id_t get_unique_group_id() noexcept {
             // Make group 0 the default group
             static std::atomic<NUClear::id_t> source{1};
             return source.fetch_add(1, std::memory_order_relaxed);
+        }
+
+        /**
+         * Compare two group descriptors by their group_id to allow for sorting and uniqueness
+         *
+         * @param other the other group descriptor to compare to
+         *
+         * @return true if this group_id is less than the other group_id
+         */
+        bool operator<(const GroupDescriptor& other) const {
+            return group_id < other.group_id;
         }
     };
 

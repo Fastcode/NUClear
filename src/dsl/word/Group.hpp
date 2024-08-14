@@ -29,6 +29,7 @@
 
 #include "../../threading/ReactionTask.hpp"
 #include "../../util/GroupDescriptor.hpp"
+#include "../../util/demangle.hpp"
 
 namespace NUClear {
 namespace dsl {
@@ -72,14 +73,15 @@ namespace dsl {
             static const util::GroupDescriptor group_descriptor;
 
             template <typename DSL>
-            static util::GroupDescriptor group(const threading::ReactionTask& /*task*/) {
-                return group_descriptor;
+            static std::set<util::GroupDescriptor> group(const threading::ReactionTask& /*task*/) {
+                return {group_descriptor};
             }
         };
 
         // Initialise the group descriptor
         template <typename GroupType, int GroupConcurrency>
         const util::GroupDescriptor Group<GroupType, GroupConcurrency>::group_descriptor = {
+            util::demangle(typeid(GroupType).name()),
             util::GroupDescriptor::get_unique_group_id(),
             GroupConcurrency};
 
