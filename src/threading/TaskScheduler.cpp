@@ -93,18 +93,19 @@ namespace threading {
     TaskScheduler::TaskScheduler(const size_t& thread_count) {
         // Make the queue for the main thread
         pool_queues[util::ThreadPoolDescriptor::MAIN_THREAD_POOL_ID] = std::make_shared<PoolQueue>(
-            util::ThreadPoolDescriptor{util::ThreadPoolDescriptor::MAIN_THREAD_POOL_ID, 1, true});
+            util::ThreadPoolDescriptor{"Main Thread", util::ThreadPoolDescriptor::MAIN_THREAD_POOL_ID, 1, true});
 
         // Make the default pool with the correct number of threads
-        get_pool_queue(
-            util::ThreadPoolDescriptor{util::ThreadPoolDescriptor::DEFAULT_THREAD_POOL_ID, thread_count, true});
+        auto default_descriptor         = util::ThreadPoolDescriptor{};
+        default_descriptor.thread_count = thread_count;
+        get_pool_queue(default_descriptor);
     }
 
     void TaskScheduler::start_threads(const std::shared_ptr<PoolQueue>& pool) {
         // The main thread never needs to be started
         if (pool->pool_descriptor.pool_id != util::ThreadPoolDescriptor::MAIN_THREAD_POOL_ID) {
             const std::lock_guard<std::recursive_mutex> lock(pool->mutex);
-            while (pool->threads.size() < pool->pool_descriptor.thread_count) {
+            while (int(pool->threads.size()) < pool->pool_descriptor.thread_count) {
                 pool->threads.emplace_back(std::make_unique<std::thread>(&TaskScheduler::pool_func, this, pool));
             }
         }
