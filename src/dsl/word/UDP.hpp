@@ -341,8 +341,9 @@ namespace dsl {
                 // Get our file descriptor from the magic cache
                 auto event = IO::get<DSL>(task);
 
-                // If our get is being run without an fd (something else triggered) then short circuit
-                if (!event) {
+                // If our get is being run without an fd (something else triggered)
+                // Or if the event is not a read event then short circuit
+                if (!event || (event.events & IO::READ) != IO::READ) {
                     return {};
                 }
 
@@ -366,7 +367,7 @@ namespace dsl {
                 mh.msg_iovlen     = 1;
 
                 // Receive our message
-                ssize_t received = recvmsg(event.fd, &mh, 0);
+                ssize_t received = recvmsg(event.fd, &mh, MSG_DONTWAIT);
                 if (received < 0) {
                     return {};
                 }
