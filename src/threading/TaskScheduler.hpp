@@ -151,7 +151,7 @@ namespace threading {
         /**
          * Constructs a new TaskScheduler instance, and builds the nullptr sync queue.
          */
-        explicit TaskScheduler(const size_t& default_thread_count);
+        explicit TaskScheduler(const int& default_thread_count);
 
         /**
          * Starts the scheduler, and begins executing tasks.

@@ -90,7 +90,7 @@ namespace threading {
         current_queue = nullptr;
     }
 
-    TaskScheduler::TaskScheduler(const size_t& thread_count) {
+    TaskScheduler::TaskScheduler(const int& thread_count) {
         // Make the queue for the main thread
         auto main_descriptor                 = dsl::word::MainThread::descriptor();
         pool_queues[main_descriptor.pool_id] = std::make_shared<PoolQueue>(main_descriptor);
