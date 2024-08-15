@@ -122,13 +122,6 @@ public:
     void shutdown();
 
     /**
-     * Gets the current running state of the PowerPlant.
-     *
-     * @return `true` if the PowerPlant is running, `false` if it is shut down, or is in the process of shutting down.
-     */
-    bool running() const;
-
-    /**
      * Installs a reactor of a particular type to the system.
      *
      * This function constructs a new Reactor of the template type.
@@ -333,8 +326,6 @@ public:
     threading::scheduler::Scheduler scheduler;
     /// Our vector of Reactors, will get destructed when this vector is
     std::vector<std::unique_ptr<NUClear::Reactor>> reactors;
-    /// True if the powerplant is running
-    std::atomic<bool> is_running{false};
 };
 
 /**

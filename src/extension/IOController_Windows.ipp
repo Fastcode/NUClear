@@ -224,32 +224,37 @@ namespace extension {
                 bump();
             });
 
-        on<Shutdown>().then("Shutdown IO Controller", [this] { bump(); });
+        on<Shutdown>().then("Shutdown IO Controller", [this] {
+            running.store(false, std::memory_order_release);
+            bump();
+        });
 
         on<Always>().then("IO Controller", [this] {
-            // Rebuild the list if something changed
-            if (dirty) {
-                rebuild_list();
-            }
+            while (running.load(std::memory_order_acquire)) {
+                // Rebuild the list if something changed
+                if (dirty) {
+                    rebuild_list();
+                }
 
-            // Wait for events
-            DWORD event_index = 0;
-            /*mutex scope*/ {
-                const std::lock_guard<std::mutex> lock(notifier.mutex);
-                event_index = WSAWaitForMultipleEvents(static_cast<DWORD>(watches.size()),
-                                                       watches.data(),
-                                                       false,
-                                                       WSA_INFINITE,
-                                                       false);
-            }
+                // Wait for events
+                DWORD event_index = 0;
+                /*mutex scope*/ {
+                    const std::lock_guard<std::mutex> lock(notifier.mutex);
+                    event_index = WSAWaitForMultipleEvents(static_cast<DWORD>(watches.size()),
+                                                           watches.data(),
+                                                           false,
+                                                           WSA_INFINITE,
+                                                           false);
+                }
 
-            // Check if the return value is an event in our list
-            if (event_index >= WSA_WAIT_EVENT_0 && event_index < WSA_WAIT_EVENT_0 + watches.size()) {
-                // Get the signalled event
-                auto& event = watches[event_index - WSA_WAIT_EVENT_0];
+                // Check if the return value is an event in our list
+                if (event_index >= WSA_WAIT_EVENT_0 && event_index < WSA_WAIT_EVENT_0 + watches.size()) {
+                    // Get the signalled event
+                    auto& event = watches[event_index - WSA_WAIT_EVENT_0];
 
-                // Collect the events that happened into the tasks list
-                process_event(event);
+                    // Collect the events that happened into the tasks list
+                    process_event(event);
+                }
             }
         });
     }

@@ -85,9 +85,6 @@ PowerPlant::~PowerPlant() {
 
 void PowerPlant::start() {
 
-    // We are now running
-    is_running.store(true, std::memory_order_release);
-
     // Direct emit startup event and command line arguments
     emit<dsl::word::emit::Direct>(std::make_unique<dsl::word::Startup>());
     emit_shared<dsl::word::emit::Direct>(dsl::store::DataStore<message::CommandLineArguments>::get());
@@ -129,19 +126,11 @@ void PowerPlant::log(const LogLevel& level, std::stringstream& message) {
 
 void PowerPlant::shutdown() {
 
-    // Stop running before we emit the Shutdown event
-    // Some things such as on<Always> depend on this flag and it's possible to miss it
-    is_running.store(false, std::memory_order_release);
-
     // Emit our shutdown event
     emit(std::make_unique<dsl::word::Shutdown>());
 
     // Shutdown the scheduler
     scheduler.stop();
-}
-
-bool PowerPlant::running() const {
-    return is_running.load(std::memory_order_acquire);
 }
 
 }  // namespace NUClear
