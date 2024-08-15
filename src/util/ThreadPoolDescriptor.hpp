@@ -44,11 +44,7 @@ namespace util {
         /**
          * Makes the default thread pool descriptor
          */
-        ThreadPoolDescriptor() noexcept
-            : name("Default")
-            , pool_id(ThreadPoolDescriptor::DEFAULT_THREAD_POOL_ID)
-            , thread_count(0)
-            , counts_for_idle(true) {};
+        ThreadPoolDescriptor() noexcept : name("Default"), pool_id(ThreadPoolDescriptor::DEFAULT_THREAD_POOL_ID) {};
 
         ThreadPoolDescriptor(std::string name,
                              const NUClear::id_t& pool_id,
@@ -61,10 +57,10 @@ namespace util {
         }
 
         /// The name of this pool
-        std::string name = "Default";
+        std::string name;
 
         /// A unique identifier for this pool
-        NUClear::id_t pool_id = ThreadPoolDescriptor::DEFAULT_THREAD_POOL_ID;
+        NUClear::id_t pool_id;
 
         /// The number of threads this thread pool will use
         int thread_count{0};
