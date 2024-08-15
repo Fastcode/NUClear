@@ -32,7 +32,7 @@ namespace extension {
      *
      * @return the iterator to the next task
      */
-    std::map<WSAEVENT, IOController::Task>::iterator remove_task(std::map<WSAEvent, IOController::Task>& tasks,
+    std::map<WSAEVENT, IOController::Task>::iterator remove_task(std::map<WSAEVENT, IOController::Task>& tasks,
                                                                  std::map<WSAEVENT, IOController::Task>::iterator it) {
         // Close the event
         WSAEVENT event = it->first;
