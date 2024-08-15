@@ -122,7 +122,8 @@ namespace threading {
          * A struct which contains all the information about an individual thread pool.
          */
         struct PoolQueue {
-            explicit PoolQueue(const util::ThreadPoolDescriptor& pool_descriptor) : pool_descriptor(pool_descriptor) {}
+            explicit PoolQueue(util::ThreadPoolDescriptor pool_descriptor)
+                : pool_descriptor(std::move(pool_descriptor)) {}
             /// The descriptor for this thread pool
             const util::ThreadPoolDescriptor pool_descriptor;
             /// The threads which are running in this thread pool
@@ -150,7 +151,7 @@ namespace threading {
         /**
          * Constructs a new TaskScheduler instance, and builds the nullptr sync queue.
          */
-        explicit TaskScheduler(const size_t& default_thread_count);
+        explicit TaskScheduler(const int& default_thread_count);
 
         /**
          * Starts the scheduler, and begins executing tasks.
@@ -280,7 +281,7 @@ namespace threading {
         std::atomic<bool> started{false};
 
         /// A map of group ids to the number of active tasks currently running in that group
-        std::map<NUClear::id_t, size_t> groups;
+        std::map<NUClear::id_t, int> groups;
         /// Mutex for the group map
         std::mutex group_mutex;
 
@@ -289,7 +290,7 @@ namespace threading {
         /// Global idle tasks to be executed when no other tasks are running
         std::map<NUClear::id_t, std::function<void()>> idle_tasks;
         /// The total number of threads that have runnable tasks
-        std::atomic<size_t> global_runnable_tasks{0};
+        std::atomic<int> global_runnable_tasks{0};
 
         /// A map of pool descriptor ids to pool descriptors
         std::map<NUClear::id_t, std::shared_ptr<PoolQueue>> pool_queues;

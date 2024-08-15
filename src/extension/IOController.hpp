@@ -90,7 +90,6 @@ namespace extension {
         };
 
     private:
-
         /**
          * Rebuilds the list of file descriptors to poll.
          *

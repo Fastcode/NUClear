@@ -29,6 +29,7 @@
 
 #include "../../threading/ReactionTask.hpp"
 #include "../../util/ThreadPoolDescriptor.hpp"
+#include "../../util/demangle.hpp"
 
 namespace NUClear {
 namespace dsl {
@@ -94,6 +95,7 @@ namespace dsl {
         // Initialise the thread pool descriptor
         template <typename PoolType>
         const util::ThreadPoolDescriptor Pool<PoolType>::pool_descriptor = {
+            util::demangle(typeid(PoolType).name()),
             util::ThreadPoolDescriptor::get_unique_pool_id(),
             PoolType::thread_count,
             true,
