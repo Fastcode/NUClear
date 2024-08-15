@@ -31,9 +31,9 @@ namespace NUClear {
 namespace extension {
 
     class IOController : public Reactor {
+    public:
         struct Task;
 
-    private:
         // On windows and posix platforms there are slightly different types that are used
 #ifdef _WIN32
         using event_t   = long;  // NOLINT(google-runtime-int)
@@ -88,6 +88,8 @@ namespace extension {
                 return fd == other.fd ? listening_events < other.listening_events : fd < other.fd;
             }
         };
+
+    private:
 
         /**
          * Rebuilds the list of file descriptors to poll.
