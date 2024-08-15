@@ -122,7 +122,8 @@ namespace threading {
          * A struct which contains all the information about an individual thread pool.
          */
         struct PoolQueue {
-            explicit PoolQueue(const util::ThreadPoolDescriptor& pool_descriptor) : pool_descriptor(pool_descriptor) {}
+            explicit PoolQueue(util::ThreadPoolDescriptor pool_descriptor)
+                : pool_descriptor(std::move(pool_descriptor)) {}
             /// The descriptor for this thread pool
             const util::ThreadPoolDescriptor pool_descriptor;
             /// The threads which are running in this thread pool
