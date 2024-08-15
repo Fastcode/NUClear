@@ -94,7 +94,7 @@ namespace extension {
         }
     }
 
-    void IOController::process_event(const WSAEVENT& event) {
+    void IOController::process_event(WSAEVENT& event) {
 
         // Get the lock so we don't concurrently modify the list
         const std::lock_guard<std::mutex> lock(tasks_mutex);
