@@ -33,7 +33,7 @@ namespace NUClear {
  */
 struct Configuration {
     /// The number of threads the system will use
-    size_t thread_count = std::thread::hardware_concurrency() == 0 ? 2 : std::thread::hardware_concurrency();
+    int thread_count = std::thread::hardware_concurrency() == 0 ? 2 : int(std::thread::hardware_concurrency());
 };
 
 }  // namespace NUClear
