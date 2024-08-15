@@ -144,7 +144,7 @@ namespace extension {
 
         // Create an event to use for the notifier (used for getting out of WSAWaitForMultipleEvents())
         notifier.notifier = WSACreateEvent();
-        if (notifier == WSA_INVALID_EVENT) {
+        if (notifier.notifier == WSA_INVALID_EVENT) {
             throw std::system_error(WSAGetLastError(), std::system_category(), "WSACreateEvent() for notifier failed");
         }
 
@@ -233,13 +233,14 @@ namespace extension {
             }
 
             // Wait for events
+            DWORD event_index = 0;
             /*mutex scope*/ {
                 const std::lock_guard<std::mutex> lock(notifier.mutex);
-                auto event_index = WSAWaitForMultipleEvents(static_cast<DWORD>(watches.size()),
-                                                            watches.data(),
-                                                            false,
-                                                            WSA_INFINITE,
-                                                            false);
+                event_index = WSAWaitForMultipleEvents(static_cast<DWORD>(watches.size()),
+                                                       watches.data(),
+                                                       false,
+                                                       WSA_INFINITE,
+                                                       false);
             }
 
             // Check if the return value is an event in our list
