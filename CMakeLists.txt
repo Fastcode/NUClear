@@ -85,14 +85,14 @@ endif(CI_BUILD)
 add_subdirectory(src)
 
 # Add the tests directory
-option(BUILD_TESTS "Builds all of the NUClear unit tests." OFF)
+option(BUILD_TESTS "Builds all of the NUClear unit tests." ON)
 if(BUILD_TESTS)
   enable_testing()
   add_subdirectory(tests)
 endif()
 
 # Add the documentation subdirectory
-option(BUILD_DOCUMENTATION "Create and install the HTML based API documentation (requires Doxygen and Sphinx)" FALSE)
+option(BUILD_DOCUMENTATION "Create and install the HTML based API documentation (requires Doxygen and Sphinx)" OFF)
 if(BUILD_DOCUMENTATION)
   add_subdirectory(docs)
 endif()
