@@ -103,7 +103,6 @@ TEST_CASE("Testing the IO extension", "[api][io]") {
     NUClear::Configuration config;
     config.thread_count = 1;
     NUClear::PowerPlant plant(config);
-    plant.install<NUClear::extension::IOController>();
     plant.install<TestReactor>();
     plant.start();
 

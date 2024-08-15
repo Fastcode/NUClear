@@ -88,7 +88,7 @@ namespace threading {
         std::unique_ptr<ReactionTask> get_task();
 
         /**
-         * returns true if this reaction is currently enabled
+         * @return `true` if this reaction is currently enabled
          */
         bool is_enabled() const;
 

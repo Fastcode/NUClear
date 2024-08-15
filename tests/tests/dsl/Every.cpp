@@ -78,7 +78,6 @@ TEST_CASE("Testing the Every<> DSL word", "[api][every][per]") {
     NUClear::Configuration config;
     config.thread_count = 1;
     NUClear::PowerPlant plant(config);
-    plant.install<NUClear::extension::ChronoController>();
     plant.install<TestReactor>();
     plant.start();
 

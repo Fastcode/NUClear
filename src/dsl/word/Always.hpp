@@ -141,7 +141,7 @@ namespace dsl {
 
                 return idle_task;
             }
-        };  // namespace word
+        };
 
     }  // namespace word
 }  // namespace dsl

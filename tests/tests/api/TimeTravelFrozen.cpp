@@ -74,8 +74,7 @@ TEST_CASE("Test time travel correctly changes the time for non zero rtf", "[time
     using Action = NUClear::message::TimeTravel::Action;
 
     const NUClear::Configuration config;
-    auto plant = std::make_shared<NUClear::PowerPlant>(config);
-    plant->install<NUClear::extension::ChronoController>();
+    auto plant    = std::make_shared<NUClear::PowerPlant>(config);
     auto& reactor = plant->install<TestReactor>();
 
     // Set the reactor fields to the values we want to test

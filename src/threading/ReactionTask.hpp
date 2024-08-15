@@ -68,10 +68,10 @@ namespace threading {
         /**
          * Creates a new ReactionTask object bound with the parent Reaction object (that created it) and task.
          *
-         * @param parent            The Reaction object that spawned this ReactionTask.
-         * @param priority          A function that can be called to get the priority of this task
-         * @param pool_descriptor   A function that can be called to get the thread pool descriptor for this task
-         * @param group_descriptors A function that can be called to get the list of group descriptors for this task
+         * @param parent         The Reaction object that spawned this ReactionTask.
+         * @param priority_fn    A function that can be called to get the priority of this task
+         * @param thread_pool_fn A function that can be called to get the thread pool descriptor for this task
+         * @param group_fn       A function that can be called to get the list of group descriptors for this task
          */
         template <typename GetPriority, typename GetGroups, typename GetThreadPool>
         ReactionTask(const std::shared_ptr<Reaction>& parent,
@@ -124,24 +124,24 @@ namespace threading {
          */
         static NUClear::id_t new_task_id();
 
-        /// the parent Reaction object which spawned this, or nullptr if this is a floating task
+        /// The parent Reaction object which spawned this, or nullptr if this is a floating task
         std::shared_ptr<Reaction> parent;
-        /// the task id of this task (the sequence number of this particular task)
+        /// The task id of this task (the sequence number of this particular task)
         NUClear::id_t id;
 
-        /// the priority to run this task at
+        /// The priority to run this task at
         int priority;
-        /// details about the thread pool that this task will run from, this will also influence what task queue
+        /// Details about the thread pool that this task will run from, this will also influence what task queue
         /// the tasks will be queued on
         util::ThreadPoolDescriptor pool_descriptor;
         /// details about the groups that this task will run in
         std::set<util::GroupDescriptor> group_descriptors;
 
-        /// the statistics object that records run details about this reaction task
-        // This will be nullptr if this task is ineligible to emit stats (e.g. it would cause a loop)
+        /// The statistics object that records run details about this reaction task
+        /// This will be nullptr if this task is ineligible to emit stats (e.g. it would cause a loop)
         std::shared_ptr<message::ReactionStatistics> stats;
 
-        /// the data bound callback to be executed
+        /// The data bound callback to be executed
         /// @attention note this must be last in the list as the this pointer is passed to the callback generator
         TaskFunction callback;
 

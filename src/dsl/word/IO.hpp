@@ -151,13 +151,13 @@ namespace dsl {
 
                 // Otherwise return an invalid event
                 return Event{INVALID_SOCKET, 0};
-            }  // namespace word
+            }
 
             template <typename DSL>
             static void postcondition(threading::ReactionTask& task) {
                 task.parent->reactor.emit<emit::Direct>(std::make_unique<IOFinished>(task.parent->id));
             }
-        };  // namespace dsl
+        };
 
     }  // namespace word
 
