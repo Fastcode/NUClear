@@ -32,8 +32,8 @@ namespace extension {
      *
      * @return the iterator to the next task
      */
-    std::map<WSAEVENT, Task>::iterator remove_task(std::map<WSAEvent, Task>& tasks,
-                                                   std::map<WSAEVENT, Task>::iterator it) {
+    std::map<WSAEVENT, IOController::Task>::iterator remove_task(std::map<WSAEvent, IOController::Task>& tasks,
+                                                                 std::map<WSAEVENT, IOController::Task>::iterator it) {
         // Close the event
         WSAEVENT event = it->first;
 
@@ -94,7 +94,7 @@ namespace extension {
         }
     }
 
-    void IOController::process_event(const WSAEVENT& event) {
+    void IOController::process_event(WSAEVENT& event) {
 
         // Get the lock so we don't concurrently modify the list
         const std::lock_guard<std::mutex> lock(tasks_mutex);
@@ -144,7 +144,7 @@ namespace extension {
 
         // Create an event to use for the notifier (used for getting out of WSAWaitForMultipleEvents())
         notifier.notifier = WSACreateEvent();
-        if (notifier == WSA_INVALID_EVENT) {
+        if (notifier.notifier == WSA_INVALID_EVENT) {
             throw std::system_error(WSAGetLastError(), std::system_category(), "WSACreateEvent() for notifier failed");
         }
 
@@ -233,13 +233,14 @@ namespace extension {
             }
 
             // Wait for events
+            DWORD event_index = 0;
             /*mutex scope*/ {
                 const std::lock_guard<std::mutex> lock(notifier.mutex);
-                auto event_index = WSAWaitForMultipleEvents(static_cast<DWORD>(watches.size()),
-                                                            watches.data(),
-                                                            false,
-                                                            WSA_INFINITE,
-                                                            false);
+                event_index = WSAWaitForMultipleEvents(static_cast<DWORD>(watches.size()),
+                                                       watches.data(),
+                                                       false,
+                                                       WSA_INFINITE,
+                                                       false);
             }
 
             // Check if the return value is an event in our list
