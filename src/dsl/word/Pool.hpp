@@ -29,6 +29,7 @@
 
 #include "../../threading/ReactionTask.hpp"
 #include "../../util/ThreadPoolDescriptor.hpp"
+#include "../../util/demangle.hpp"
 
 namespace NUClear {
 namespace dsl {

@@ -93,4 +93,4 @@ jobs:
       - name: Test
         timeout-minutes: 3
         working-directory: build/tests
-        run: ctest --output-on-failure -E "tests/dsl/UDP"
+        run: ctest --output-on-failure -j$(nproc) -E "dsl/UDP"

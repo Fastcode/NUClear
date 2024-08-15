@@ -36,7 +36,16 @@ namespace util {
      * A description of a thread pool
      */
     struct ThreadPoolDescriptor {
-        ThreadPoolDescriptor() noexcept = default;
+        /// The ID of the main thread pool (not to be confused with the ID of the main thread)
+        static constexpr NUClear::id_t MAIN_THREAD_POOL_ID = 0;
+        /// The ID of the default thread pool
+        static constexpr NUClear::id_t DEFAULT_THREAD_POOL_ID = 1;
+
+        /**
+         * Makes the default thread pool descriptor
+         */
+        ThreadPoolDescriptor() noexcept : name("Default"), pool_id(ThreadPoolDescriptor::DEFAULT_THREAD_POOL_ID) {};
+
         ThreadPoolDescriptor(std::string name,
                              const NUClear::id_t& pool_id,
                              int thread_count     = 1,
@@ -47,25 +56,16 @@ namespace util {
             return ThreadPoolDescriptor{"All", NUClear::id_t(-1), -1, false};
         }
 
-        static ThreadPoolDescriptor Invalid() {
-            return ThreadPoolDescriptor{"Invalid", NUClear::id_t(-1), -1, false};
-        }
-
         /// The name of this pool
-        std::string name = "Default";
+        std::string name;
 
         /// A unique identifier for this pool
-        NUClear::id_t pool_id{ThreadPoolDescriptor::DEFAULT_THREAD_POOL_ID};
+        NUClear::id_t pool_id;
 
         /// The number of threads this thread pool will use
         int thread_count{0};
         /// If these threads count towards system idle
         bool counts_for_idle{true};
-
-        /// The ID of the main thread pool (not to be confused with the ID of the main thread)
-        static constexpr NUClear::id_t MAIN_THREAD_POOL_ID = 0;
-        /// The ID of the default thread pool
-        static constexpr NUClear::id_t DEFAULT_THREAD_POOL_ID = 1;
 
         /**
          * Return the next unique ID for a new thread pool

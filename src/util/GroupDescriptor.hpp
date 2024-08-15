@@ -27,6 +27,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <limits>
+#include <string>
 
 #include "../id.hpp"
 
@@ -37,10 +38,13 @@ namespace util {
      * A description of a group.
      */
     struct GroupDescriptor {
-        /// a unique identifier for this pool
+        /// The name of this group
+        std::string name = "Default";
+
+        /// A unique identifier for this group
         NUClear::id_t group_id{0};
 
-        /// the maximum number of threads that can run concurrently in this group
+        /// The maximum number of threads that can run concurrently in this group
         int thread_count{1};
 
         /**
