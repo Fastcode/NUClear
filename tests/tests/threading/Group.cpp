@@ -31,7 +31,7 @@ namespace threading {
 
         SCENARIO("When there are no tokens available the lock should be false") {
             GIVEN("A group with one token") {
-                auto group                   = std::make_shared<Group>(util::GroupDescriptor{1, 1});
+                auto group                   = std::make_shared<Group>(util::GroupDescriptor{"Test", 1, 1});
                 NUClear::id_t task_id_source = 1;
 
                 WHEN("Creating a lock") {
@@ -55,7 +55,7 @@ namespace threading {
 
         SCENARIO("When locks are released the appropriate watchers should be notified") {
             GIVEN("A group with one token") {
-                auto group                   = std::make_shared<Group>(util::GroupDescriptor{1, 1});
+                auto group                   = std::make_shared<Group>(util::GroupDescriptor{"Test", 1, 1});
                 NUClear::id_t task_id_source = 1;
 
                 WHEN("Creating a lock and locking it") {
@@ -105,7 +105,7 @@ namespace threading {
 
         SCENARIO("When a higher priority task comes in it can gain a lock before a lower priority task") {
             GIVEN("A group with one token") {
-                auto group = std::make_shared<Group>(util::GroupDescriptor{1, 1});
+                auto group = std::make_shared<Group>(util::GroupDescriptor{"Test", 1, 1});
 
                 WHEN("Creating a lock and locking it") {
                     int notified1               = 0;
@@ -138,7 +138,7 @@ namespace threading {
             CAPTURE(n_tokens);
 
             GIVEN("A group with one token") {
-                auto group = std::make_shared<Group>(util::GroupDescriptor{1, n_tokens});
+                auto group = std::make_shared<Group>(util::GroupDescriptor{"Test", 1, n_tokens});
 
                 WHEN("Creating a series of locks out of order") {
 
@@ -186,7 +186,7 @@ namespace threading {
             constexpr int n_locks = 5;
 
             GIVEN("A group with two tokens") {
-                auto group = std::make_shared<Group>(util::GroupDescriptor{1, 2});
+                auto group = std::make_shared<Group>(util::GroupDescriptor{"Test", 1, 2});
 
                 WHEN("Creating a series of locks") {
                     std::array<int, n_locks> notified                = {0, 0, 0, 0, 0};
@@ -279,7 +279,7 @@ namespace threading {
 
         SCENARIO("Unlocked locks before a locked one don't interfere with notifications") {
             GIVEN("A group with two tokens") {
-                auto group = std::make_shared<Group>(util::GroupDescriptor{1, 2});
+                auto group = std::make_shared<Group>(util::GroupDescriptor{"Test", 1, 2});
 
                 WHEN("Creating a series of locks") {
                     std::array<int, 3> notified                = {0, 0, 0};

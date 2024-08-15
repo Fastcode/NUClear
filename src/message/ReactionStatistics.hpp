@@ -46,7 +46,7 @@ namespace message {
         struct Event {
             struct ThreadInfo {
                 std::thread::id thread_id;
-                util::ThreadPoolDescriptor pool{util::ThreadPoolDescriptor::Invalid()};
+                util::ThreadPoolDescriptor pool{util::ThreadPoolDescriptor::AllPools()};
             };
 
             ThreadInfo thread{};
