@@ -35,7 +35,7 @@ template <int id>
 struct Message {};
 struct LoopMessage {};
 
-using NUClear::message::ReactionStatistics;
+using NUClear::message::ReactionEvent;
 
 class TestReactor : public test_util::TestBase<TestReactor> {
 public:
@@ -43,18 +43,26 @@ public:
 
         // This reaction is here to emit something from a ReactionStatistics trigger
         // This shouldn't cause reaction statistics of their own otherwise everything would explode
-        on<Trigger<ReactionStatistics>>().then("Loop Statistics", [this](const ReactionStatistics&) {
+        on<Trigger<ReactionEvent>>().then("Loop Statistics", [this](const ReactionEvent&) {  //
             emit(std::make_unique<LoopMessage>());
         });
         on<Trigger<LoopMessage>>().then("No Statistics", [] {});
 
 
-        on<Trigger<ReactionStatistics>>().then("Reaction Stats Handler", [this](const ReactionStatistics& stats) {
+        on<Trigger<ReactionEvent>>().then("Reaction Stats Handler", [this](const ReactionEvent& event) {
+            const auto& stats = *event.statistics;
+
             // Other reactions statistics run on this because of built in NUClear reactors (e.g. chrono controller etc)
             // We want to filter those out so only our own stats are shown
             if (stats.identifiers->name.empty() || stats.identifiers->reactor != reactor_name) {
                 return;
             }
+
+            // Skip stats until the finished event
+            if (event.type != ReactionEvent::FINISHED) {
+                return;
+            }
+
             events.push_back("Stats for " + stats.identifiers->name + " from " + stats.identifiers->reactor);
             events.push_back(stats.identifiers->dsl);
 

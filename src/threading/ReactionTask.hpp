@@ -84,19 +84,15 @@ namespace threading {
             , pool_descriptor(thread_pool_fn(*this))
             , group_descriptor(group_fn(*this))
             // Only create a stats object if we wouldn't cause an infinite loop of stats
-            , stats(parent != nullptr && parent->emit_stats
-                            && (current_task == nullptr || current_task->stats != nullptr)
-                        ? std::make_shared<message::ReactionStatistics>(
-                              parent->identifiers,
-                              parent->id,
-                              id,
-                              current_task != nullptr ? current_task->parent->id : 0,
-                              current_task != nullptr ? current_task->id : 0,
-                              clock::now(),
-                              clock::time_point(std::chrono::seconds(0)),
-                              clock::time_point(std::chrono::seconds(0)),
-                              nullptr)
-                        : nullptr) {
+            , stats(
+                  parent != nullptr && parent->emit_stats && (current_task == nullptr || current_task->stats != nullptr)
+                      ? std::make_shared<message::ReactionStatistics>(
+                            parent->identifiers,
+                            IDPair{parent->id, id},
+                            current_task != nullptr ? IDPair{current_task->parent->id, current_task->id} : IDPair{0, 0},
+                            pool_descriptor,
+                            group_descriptor)
+                      : nullptr) {
             // Increment the number of active tasks
             if (parent != nullptr) {
                 parent->active_tasks.fetch_add(1, std::memory_order_release);

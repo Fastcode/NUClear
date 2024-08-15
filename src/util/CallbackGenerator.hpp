@@ -74,6 +74,14 @@ namespace util {
 
             // Check if we should even run
             if (!DSL::precondition(*task)) {
+
+                // Set the created status as rejected and emit it
+                if (task->stats != nullptr) {
+                    PowerPlant::powerplant->emit<dsl::word::emit::Direct>(
+                        std::make_unique<message::ReactionEvent>(message::ReactionEvent::BLOCKED, task->stats));
+                }
+
+                // Nothing to run
                 return nullptr;
             }
 
@@ -87,7 +95,21 @@ namespace util {
 
             // Check if our data is good (all the data exists) otherwise terminate the call
             if (!check_data(data)) {
+
+                // Set the created status as no data and emit it
+                if (task->stats != nullptr) {
+                    PowerPlant::powerplant->emit<dsl::word::emit::Direct>(
+                        std::make_unique<message::ReactionEvent>(message::ReactionEvent::MISSING_DATA, task->stats));
+                }
+
+                // Nothing to run
                 return nullptr;
+            }
+
+            // Set the created status as no data and emit it
+            if (task->stats != nullptr) {
+                PowerPlant::powerplant->emit<dsl::word::emit::Direct>(
+                    std::make_unique<message::ReactionEvent>(message::ReactionEvent::CREATED, task->stats));
             }
 
             // We have to make a copy of the callback because the "this" variable can go out of scope
@@ -96,9 +118,10 @@ namespace util {
                 // Update our thread's priority to the correct level
                 update_current_thread_priority(task.priority);
 
-                // Record our start time
                 if (task.stats != nullptr) {
-                    task.stats->started = clock::now();
+                    task.stats->started = message::ReactionStatistics::Event::now();
+                    PowerPlant::powerplant->emit<dsl::word::emit::Direct>(
+                        std::make_unique<message::ReactionEvent>(message::ReactionEvent::STARTED, task.stats));
                 }
 
                 // We have to catch any exceptions
@@ -113,17 +136,14 @@ namespace util {
                     }
                 }
 
-                // Our finish time
-                if (task.stats != nullptr) {
-                    task.stats->finished = clock::now();
-                }
-
                 // Run our postconditions
                 DSL::postcondition(task);
 
                 // Emit our reaction statistics if it wouldn't cause a loop
                 if (task.stats != nullptr) {
-                    PowerPlant::powerplant->emit_shared<dsl::word::emit::Direct>(task.stats);
+                    task.stats->finished = message::ReactionStatistics::Event::now();
+                    PowerPlant::powerplant->emit<dsl::word::emit::Direct>(
+                        std::make_unique<message::ReactionEvent>(message::ReactionEvent::FINISHED, task.stats));
                 }
             };
 

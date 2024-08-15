@@ -29,6 +29,7 @@ namespace NUClear {
 
 // Forward declarations
 namespace message {
+    struct ReactionEvent;
     struct ReactionStatistics;
     struct LogMessage;
 }  // namespace message
@@ -39,6 +40,8 @@ namespace dsl {
         // Disable emitting stats for triggers on types that would cause a loop
         template <typename T>
         struct EmitStats : std::true_type {};
+        template <>
+        struct EmitStats<message::ReactionEvent> : std::false_type {};
         template <>
         struct EmitStats<message::ReactionStatistics> : std::false_type {};
         template <>
