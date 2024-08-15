@@ -125,6 +125,8 @@ namespace extension {
     private:
         /// The event that is used to wake up the WaitForMultipleEvents call
         notifier_t notifier;
+        /// If the IOController should continue running
+        std::atomic<bool> running{true};
 
         /// The mutex that protects the tasks list
         std::mutex tasks_mutex;
