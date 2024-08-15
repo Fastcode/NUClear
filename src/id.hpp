@@ -30,6 +30,12 @@ namespace NUClear {
 /// This type is used when NUClear requires a unique identifier
 using id_t = std::size_t;
 
+/// A reaction and task id pair identify a specific task/reaction combination
+struct IDPair {
+    id_t reaction_id{0};
+    id_t task_id{0};
+};
+
 }  // namespace NUClear
 
 #endif  // NUCLEAR_UTIL_ID_HPP
