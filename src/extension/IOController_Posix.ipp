@@ -33,7 +33,7 @@ namespace extension {
         watches.resize(0);
 
         // Insert our notify fd
-        watches.push_back(pollfd{notifier.recv, POLLIN, 0});
+        watches.push_back(pollfd{notifier.recv, POLLIN | POLLERR | POLLNVAL, 0});
 
         for (const auto& r : tasks) {
             // If we are the same fd, then add our interest set and mask out events that are already being processed
@@ -249,34 +249,37 @@ namespace extension {
             });
 
         on<Shutdown>().then("Shutdown IO Controller", [this] {
-            // Ensure the poll command is not waiting
+            running.store(false, std::memory_order_release);
             bump();
         });
 
         on<Always>().then("IO Controller", [this] {
-            // Rebuild the list if something changed
-            if (dirty) {
-                rebuild_list();
-            }
-
-            // Wait for an event to happen on one of our file descriptors
-            /* mutex scope */ {
-                const std::lock_guard<std::mutex> lock(notifier.mutex);
-                if (::poll(watches.data(), nfds_t(watches.size()), -1) < 0) {
-                    throw std::system_error(network_errno,
-                                            std::system_category(),
-                                            "There was an IO error while attempting to poll the file descriptors");
+            // Stay in this reaction to improve the performance without going back/fourth between reactions
+            if (running.load(std::memory_order_acquire)) {
+                // Rebuild the list if something changed
+                if (dirty) {
+                    rebuild_list();
                 }
-            }
 
-            // Get the lock so we don't concurrently modify the list
-            const std::lock_guard<std::mutex> lock(tasks_mutex);
-            for (auto& fd : watches) {
+                // Wait for an event to happen on one of our file descriptors
+                /* mutex scope */ {
+                    const std::lock_guard<std::mutex> lock(notifier.mutex);
+                    if (::poll(watches.data(), nfds_t(watches.size()), -1) < 0) {
+                        throw std::system_error(network_errno,
+                                                std::system_category(),
+                                                "There was an IO error while attempting to poll the file descriptors");
+                    }
+                }
 
-                // Collect the events that happened into the tasks list
-                // Something happened
-                if (fd.revents != 0) {
-                    process_event(fd);
+                // Get the lock so we don't concurrently modify the list
+                const std::lock_guard<std::mutex> lock(tasks_mutex);
+                for (auto& fd : watches) {
+
+                    // Collect the events that happened into the tasks list
+                    // Something happened
+                    if (fd.revents != 0) {
+                        process_event(fd);
+                    }
                 }
             }
         });

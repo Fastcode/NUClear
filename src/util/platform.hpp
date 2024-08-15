@@ -156,6 +156,9 @@ using socklen_t = int;
     #define msg_controllen Control.len
     #define msg_flags      flags
 
+    // Windows doesn't have this flag, maybe we can implement it later for recvmsg
+    #define MSG_DONTWAIT 0
+
 // Reimplement the recvmsg function
 int recvmsg(fd_t fd, msghdr* msg, int flags);
 
