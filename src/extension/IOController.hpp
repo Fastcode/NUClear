@@ -34,7 +34,6 @@ namespace extension {
     public:
         struct Task;
 
-    private:
         // On windows and posix platforms there are slightly different types that are used
 #ifdef _WIN32
         using event_t   = long;  // NOLINT(google-runtime-int)
