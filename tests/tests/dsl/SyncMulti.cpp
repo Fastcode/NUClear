@@ -64,7 +64,7 @@ public:
 };
 }  // namespace
 
-TEST_CASE("Test that sync works when one thread has multiple groups", "[api][sync]") {
+TEST_CASE("Test that sync works when one thread has multiple groups", "[api][sync][multi]") {
     NUClear::Configuration config;
     config.thread_count = 4;
     NUClear::PowerPlant plant(config);
