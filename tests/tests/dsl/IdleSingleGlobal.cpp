@@ -26,18 +26,31 @@
 #include "test_util/TestBase.hpp"
 #include "test_util/TimeUnit.hpp"
 
+namespace Catch {
+
+template <typename K, typename V>
+struct StringMaker<std::pair<const K, V>> {
+    static std::string convert(const std::pair<const K, V>& entry) {
+        std::ostringstream oss;
+        oss << entry.first << ":" << entry.second;
+        return oss.str();
+    }
+};
+
+}  // namespace Catch
+
 namespace {
 
 constexpr int n_loops = 100;
 
 struct Loop {
-    Loop(int i) : i(i) {}
+    explicit Loop(int i) : i(i) {}
     int i;
 };
 
 class TestReactor : public test_util::TestBase<TestReactor> {
 public:
-    TestReactor(std::unique_ptr<NUClear::Environment> environment) : TestBase(std::move(environment), false) {
+    explicit TestReactor(std::unique_ptr<NUClear::Environment> environment) : TestBase(std::move(environment), false) {
 
         /*
          * Run idle on the default pool, and a task on the main pool.
@@ -75,7 +88,7 @@ TEST_CASE("Test that when a global idle trigger exists it is triggered only once
     NUClear::Configuration config;
     config.thread_count = 1;
     NUClear::PowerPlant plant(config);
-    auto& reactor = plant.install<TestReactor>();
+    const auto& reactor = plant.install<TestReactor>();
     plant.start();
 
     std::array<std::atomic<int>, n_loops> expected{};
@@ -83,18 +96,20 @@ TEST_CASE("Test that when a global idle trigger exists it is triggered only once
         expected[i].store(1, std::memory_order_relaxed);
     }
 
-    // Convert the values to strings for easier comparison
-    auto to_string = [](const std::array<std::atomic<int>, n_loops>& arr) {
-        std::string str;
+    // Convert the values to a list for comparison
+    auto error_points = [](const std::array<std::atomic<int>, n_loops>& arr) {
+        std::map<int, int> hits;
         for (int i = 0; i < n_loops; ++i) {
-            str += arr[i] == 0 ? "-" : arr[i] == 1 ? " " : "X";
+            if (arr[i] != 1) {
+                hits[i] = arr[i];
+            }
         }
-        return str;
+        return hits;
     };
 
-    std::string main_calls     = to_string(reactor.main_calls);
-    std::string idle_calls     = to_string(reactor.idle_calls);
-    std::string expected_calls = to_string(expected);
+    auto main_calls     = error_points(reactor.main_calls);
+    auto idle_calls     = error_points(reactor.idle_calls);
+    auto expected_calls = std::map<int, int>{};
 
     // The reactions should have triggered n_loops times
     CHECK(main_calls == expected_calls);
