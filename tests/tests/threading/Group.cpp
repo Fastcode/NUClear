@@ -230,10 +230,10 @@ namespace threading {
                         AND_WHEN("Deleting the first and second lock") {
                             locks[0].reset();
                             locks[1].reset();
-                            THEN("The second third lock should be notified twice and the fourth lock once") {
+                            THEN("The third and fourth lock should be notified once") {
                                 CHECK(notified[0] == 0);
                                 CHECK(notified[1] == 0);
-                                CHECK(notified[2] == 2);
+                                CHECK(notified[2] == 1);
                                 CHECK(notified[3] == 1);
                                 CHECK(notified[4] == 0);
                             }
@@ -252,9 +252,9 @@ namespace threading {
                         }
                         AND_WHEN("Deleting the third lock") {
                             locks[2].reset();
-                            THEN("No notifications should occur") {
-                                CHECK(notified[0] == 0);
-                                CHECK(notified[1] == 0);
+                            THEN("The first and second locks should be notified") {
+                                CHECK(notified[0] == 1);
+                                CHECK(notified[1] == 1);
                                 CHECK(notified[2] == 0);
                                 CHECK(notified[3] == 0);
                                 CHECK(notified[4] == 0);
@@ -293,8 +293,8 @@ namespace threading {
                         CHECK(locks[1]->lock() == true);
                         locks[1].reset();
 
-                        THEN("The third lock should be notified") {
-                            CHECK(notified[0] == 0);
+                        THEN("The first and third lock should be notified") {
+                            CHECK(notified[0] == 1);
                             CHECK(notified[1] == 0);
                             CHECK(notified[2] == 1);
                         }
