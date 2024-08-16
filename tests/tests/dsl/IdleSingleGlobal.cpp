@@ -35,15 +35,19 @@ struct Loop {
     int i;
 };
 
-struct IdlePool {
-    static constexpr int thread_count = 4;
-};
-
 class TestReactor : public test_util::TestBase<TestReactor> {
 public:
     TestReactor(std::unique_ptr<NUClear::Environment> environment) : TestBase(std::move(environment), false) {
 
-        // Bounce between the main and default thread to try to get idle to fire when it shouldn't
+        /*
+         * Run idle on the default pool, and a task on the main pool.
+         * Default should trigger the idle task and put something in the main threads pool.
+         * The main thread pool should then run, preventing the global system from being idle.
+         * Once it finishes, main should be idle making the whole system idle and triggering a new task.
+         *
+         * At no point should two idle tasks fire as either the system will be idle or the main thread will be running.
+         */
+
         on<Trigger<Loop>, MainThread>().then([this](const Loop& l) {
             main_calls[l.i].fetch_add(1, std::memory_order_relaxed);
             if (l.i >= n_loops) {
