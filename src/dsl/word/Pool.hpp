@@ -69,9 +69,6 @@ namespace dsl {
 
             static_assert(PoolType::thread_count > 0, "Can not have a thread pool with less than 1 thread");
 
-            /// The description of the thread pool to be used for this PoolType
-            static const util::ThreadPoolDescriptor pool_descriptor;
-
             /**
              * Sets which thread pool to use for any tasks initiated from this reaction.
              *
@@ -79,6 +76,12 @@ namespace dsl {
              */
             template <typename DSL>
             static util::ThreadPoolDescriptor pool(const threading::ReactionTask& /*task*/) {
+                static const util::ThreadPoolDescriptor pool_descriptor = util::ThreadPoolDescriptor{
+                    util::demangle(typeid(PoolType).name()),
+                    util::ThreadPoolDescriptor::get_unique_pool_id(),
+                    PoolType::thread_count,
+                    true,
+                };
                 return pool_descriptor;
             }
         };
@@ -90,15 +93,6 @@ namespace dsl {
             static util::ThreadPoolDescriptor pool(const threading::ReactionTask& /*task*/) {
                 return util::ThreadPoolDescriptor{};
             }
-        };
-
-        // Initialise the thread pool descriptor
-        template <typename PoolType>
-        const util::ThreadPoolDescriptor Pool<PoolType>::pool_descriptor = {
-            util::demangle(typeid(PoolType).name()),
-            util::ThreadPoolDescriptor::get_unique_pool_id(),
-            PoolType::thread_count,
-            true,
         };
 
     }  // namespace word
