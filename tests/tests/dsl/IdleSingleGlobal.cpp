@@ -43,12 +43,13 @@ namespace {
 
 constexpr int n_loops = 100;
 
-struct Loop {
-    explicit Loop(int i) : i(i) {}
-    int i;
-};
-
 class TestReactor : public test_util::TestBase<TestReactor> {
+private:
+    struct Loop {
+        explicit Loop(int i) : i(i) {}
+        int i;
+    };
+
 public:
     explicit TestReactor(std::unique_ptr<NUClear::Environment> environment) : TestBase(std::move(environment), false) {
 
@@ -68,8 +69,10 @@ public:
             }
         });
         on<Idle<>, With<Loop>>().then([this](const Loop& l) {
-            idle_calls[l.i].fetch_add(1, std::memory_order_relaxed);
-            emit(std::make_unique<Loop>(l.i + 1));
+            if (l.i < n_loops) {
+                idle_calls[l.i].fetch_add(1, std::memory_order_relaxed);
+                emit(std::make_unique<Loop>(l.i + 1));
+            }
         });
 
 
