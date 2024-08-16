@@ -55,13 +55,18 @@ namespace dsl {
 
                 static void emit(PowerPlant& powerplant, std::shared_ptr<DataType> data) {
 
-                    // Submit a task to the power plant to emit this object
-                    powerplant.submit(threading::ReactionTask::new_task_id(),
-                                      1000,
-                                      util::GroupDescriptor{},
-                                      util::ThreadPoolDescriptor{},
-                                      false,
-                                      [&powerplant, data] { powerplant.emit_shared<dsl::word::emit::Local>(data); });
+                    // Make a floating reaction task to submit which will emit this data
+                    auto emitter = std::make_unique<threading::ReactionTask>(
+                        nullptr,
+                        [](threading::ReactionTask& /*task*/) { return 1000; },
+                        [](threading::ReactionTask& /*task*/) { return util::ThreadPoolDescriptor{}; },
+                        [](threading::ReactionTask& /*task*/) { return std::set<util::GroupDescriptor>{}; });
+                    emitter->callback = [&powerplant, data](threading::ReactionTask& /*task*/) {
+                        powerplant.emit_shared<dsl::word::emit::Local>(data);
+                    };
+
+                    // Submit the task to the power plant
+                    powerplant.submit(std::move(emitter));
                 }
             };
 
