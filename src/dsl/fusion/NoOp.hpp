@@ -62,7 +62,7 @@ namespace dsl {
             }
 
             template <typename DSL>
-            static util::GroupDescriptor group(const threading::ReactionTask& /*task*/) {
+            static std::set<util::GroupDescriptor> group(const threading::ReactionTask& /*task*/) {
                 return {};
             }
 
@@ -92,7 +92,7 @@ namespace dsl {
 
             static int priority(threading::ReactionTask&);
 
-            static util::GroupDescriptor group(threading::ReactionTask&);
+            static std::set<util::GroupDescriptor> group(threading::ReactionTask&);
 
             static util::ThreadPoolDescriptor pool(threading::ReactionTask&);
 

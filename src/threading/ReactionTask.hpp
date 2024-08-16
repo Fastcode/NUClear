@@ -73,16 +73,16 @@ namespace threading {
          * @param thread_pool_fn A function that can be called to get the thread pool descriptor for this task
          * @param group_fn       A function that can be called to get the list of group descriptors for this task
          */
-        template <typename GetPriority, typename GetGroup, typename GetThreadPool>
+        template <typename GetPriority, typename GetGroups, typename GetThreadPool>
         ReactionTask(const std::shared_ptr<Reaction>& parent,
                      const GetPriority& priority_fn,
                      const GetThreadPool& thread_pool_fn,
-                     const GetGroup& group_fn)
+                     const GetGroups& groups_fn)
             : parent(parent)
             , id(new_task_id())
             , priority(priority_fn(*this))
             , pool_descriptor(thread_pool_fn(*this))
-            , group_descriptor(group_fn(*this))
+            , group_descriptors(groups_fn(*this))
             // Only create a stats object if we wouldn't cause an infinite loop of stats
             , stats(
                   parent != nullptr && parent->emit_stats && (current_task == nullptr || current_task->stats != nullptr)
@@ -91,7 +91,7 @@ namespace threading {
                             IDPair{parent->id, id},
                             current_task != nullptr ? IDPair{current_task->parent->id, current_task->id} : IDPair{0, 0},
                             pool_descriptor,
-                            group_descriptor)
+                            group_descriptors)
                       : nullptr) {
             // Increment the number of active tasks
             if (parent != nullptr) {
@@ -134,8 +134,8 @@ namespace threading {
         /// Details about the thread pool that this task will run from, this will also influence what task queue
         /// the tasks will be queued on
         util::ThreadPoolDescriptor pool_descriptor;
-        /// Details about the group that this task will run in
-        util::GroupDescriptor group_descriptor;
+        /// details about the groups that this task will run in
+        std::set<util::GroupDescriptor> group_descriptors;
 
         /// The statistics object that records run details about this reaction task
         /// This will be nullptr if this task is ineligible to emit stats (e.g. it would cause a loop)
