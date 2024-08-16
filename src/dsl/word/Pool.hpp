@@ -69,13 +69,8 @@ namespace dsl {
 
             static_assert(PoolType::thread_count > 0, "Can not have a thread pool with less than 1 thread");
 
-            /**
-             * Sets which thread pool to use for any tasks initiated from this reaction.
-             *
-             * @tparam DSL the DSL used for this reaction
-             */
-            template <typename DSL>
-            static util::ThreadPoolDescriptor pool(const threading::ReactionTask& /*task*/) {
+            // This must be a separate function, otherwise each instance of DSL will be a separate pool
+            static util::ThreadPoolDescriptor descriptor() {
                 static const util::ThreadPoolDescriptor pool_descriptor = util::ThreadPoolDescriptor{
                     util::demangle(typeid(PoolType).name()),
                     util::ThreadPoolDescriptor::get_unique_pool_id(),
@@ -84,14 +79,25 @@ namespace dsl {
                 };
                 return pool_descriptor;
             }
+
+            template <typename DSL>
+            static util::ThreadPoolDescriptor pool(const threading::ReactionTask& /*task*/) {
+                return descriptor();
+            }
         };
 
         // When given void as the pool type we use the default thread pool
         template <>
         struct Pool<void> {
+
+            // This must be a separate function, otherwise each instance of DSL will be a separate pool
+            static util::ThreadPoolDescriptor descriptor() {
+                return util::ThreadPoolDescriptor{};
+            }
+
             template <typename DSL>
             static util::ThreadPoolDescriptor pool(const threading::ReactionTask& /*task*/) {
-                return util::ThreadPoolDescriptor{};
+                return descriptor();
             }
         };
 

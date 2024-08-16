@@ -56,6 +56,11 @@ namespace util {
             return ThreadPoolDescriptor{"All", NUClear::id_t(-1), -1, false};
         }
 
+        /**
+         * @return The next unique ID for a new thread pool
+         */
+        static NUClear::id_t get_unique_pool_id() noexcept;
+
         /// The name of this pool
         std::string name;
 
@@ -66,14 +71,6 @@ namespace util {
         int thread_count{0};
         /// If these threads count towards system idle
         bool counts_for_idle{true};
-
-        /**
-         * @return The next unique ID for a new thread pool
-         */
-        static NUClear::id_t get_unique_pool_id() noexcept {
-            static std::atomic<NUClear::id_t> source{2};
-            return source.fetch_add(1, std::memory_order_relaxed);
-        }
     };
 
 }  // namespace util
