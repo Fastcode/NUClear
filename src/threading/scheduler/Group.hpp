@@ -84,6 +84,8 @@ namespace threading {
                 int priority;
                 /// If this lock has been successfully locked
                 bool locked;
+                /// If this lock has been notified that it can lock
+                bool notified;
                 /// The function to execute when this lock is able to be locked
                 std::function<void()> notify;
             };

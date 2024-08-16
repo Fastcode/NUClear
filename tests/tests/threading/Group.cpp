@@ -328,9 +328,65 @@ namespace threading {
                         AND_WHEN("The first lock is released") {
                             lock1.reset();
 
-                            THEN("The second lock should be notified") {
+                            THEN("The second lock should be notified and be lockable") {
                                 CHECK(notified1 == 0);
                                 CHECK(notified2 == 1);
+                                CHECK(lock2->lock() == true);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        SCENARIO("Locks should be notified again if they lost their priority and regained it") {
+            GIVEN("A group with one token") {
+                auto group = std::make_shared<Group>(util::GroupDescriptor{"Test", 1, 1});
+
+                WHEN("Creating a lock and locking it") {
+                    int notified1               = 0;
+                    std::unique_ptr<Lock> lock1 = group->lock(1, 1, [&] { ++notified1; });
+                    lock1->lock();
+
+                    THEN("The lock should be true") {
+                        CHECK(lock1->lock() == true);
+                    }
+
+                    AND_WHEN("Adding a second lock") {
+                        int notified2               = 0;
+                        std::unique_ptr<Lock> lock2 = group->lock(2, 1, [&] { ++notified2; });
+
+                        THEN("The second lock should be false") {
+                            CHECK(lock2->lock() == false);
+                        }
+
+                        AND_WHEN("Unlocking the first lock") {
+                            lock1.reset();
+
+                            THEN("The second lock should be notified and lockable") {
+                                CHECK(notified1 == 0);
+                                CHECK(notified2 == 1);
+                                CHECK(lock2->lock() == true);
+                            }
+
+                            AND_WHEN("Adding a third lock with higher priority") {
+                                int notified3               = 0;
+                                std::unique_ptr<Lock> lock3 = group->lock(3, 2, [&] { ++notified3; });
+
+                                THEN("The third lock should be lockable and second lock should not") {
+                                    CHECK(lock3->lock() == true);
+                                    CHECK(lock2->lock() == false);
+
+                                    AND_WHEN("Unlocking the third lock") {
+                                        lock3.reset();
+
+                                        THEN("The second lock should be notified and lockable") {
+                                            CHECK(notified3 == 0);
+                                            CHECK(notified2 == 2);
+                                            CHECK(lock2->lock() == true);
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
