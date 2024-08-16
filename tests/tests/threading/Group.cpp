@@ -303,6 +303,41 @@ namespace threading {
             }
         }
 
+        SCENARIO("If a lock is inserted earlier than a locked lock, it should be notified when there are spaces") {
+            GIVEN("A group with one token") {
+                auto group = std::make_shared<Group>(util::GroupDescriptor{"Test", 1, 1});
+
+                WHEN("Creating a lock and locking it") {
+                    int notified1               = 0;
+                    std::unique_ptr<Lock> lock1 = group->lock(1, 1, [&] { ++notified1; });
+                    lock1->lock();
+
+                    THEN("The lock should be true") {
+                        CHECK(lock1->lock() == true);
+                    }
+
+                    AND_WHEN("Creating a second lock with a higher priority") {
+                        int notified2               = 0;
+                        std::unique_ptr<Lock> lock2 = group->lock(2, 2, [&] { ++notified2; });
+
+                        THEN("The new lock should be false") {
+                            CHECK(lock1->lock() == true);
+                            CHECK(lock2->lock() == false);
+                        }
+
+                        AND_WHEN("The first lock is released") {
+                            lock1.reset();
+
+                            THEN("The second lock should be notified") {
+                                CHECK(notified1 == 0);
+                                CHECK(notified2 == 1);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
     }  // namespace scheduler
 }  // namespace threading
 }  // namespace NUClear
