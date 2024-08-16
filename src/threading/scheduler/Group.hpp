@@ -62,8 +62,8 @@ namespace threading {
                  *
                  * @return true if this lock handle should execute before the other
                  */
-                bool operator<(const LockHandle& other) const {
-                    return priority == other.priority ? task_id < other.task_id : priority > other.priority;
+                friend bool operator<(const LockHandle& lhs, const LockHandle& rhs) {
+                    return lhs.priority == rhs.priority ? lhs.task_id < rhs.task_id : lhs.priority > rhs.priority;
                 }
 
                 /**
@@ -94,7 +94,8 @@ namespace threading {
             /**
              * A group lock is the RAII lock object that is used by the Pools to manage the group locking.
              */
-            struct GroupLock : public Lock {
+            class GroupLock : public Lock {
+            public:
                 /**
                  * Construct a new Group Lock object
                  *
