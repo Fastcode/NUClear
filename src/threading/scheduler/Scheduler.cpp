@@ -146,6 +146,10 @@ namespace threading {
         }
 
         void Scheduler::submit(std::unique_ptr<ReactionTask>&& task, const bool& immediate) noexcept {
+            // Ignore null tasks
+            if (task == nullptr) {
+                return;
+            }
 
             // Get the pool and locks for the group group
             auto pool       = get_pool(task->pool_descriptor);

@@ -103,10 +103,7 @@ void PowerPlant::remove_idle_task(const util::ThreadPoolDescriptor& pool_descrip
 }
 
 void PowerPlant::submit(std::unique_ptr<threading::ReactionTask>&& task, const bool& immediate) noexcept {
-    // Only submit non null tasks
-    if (task) {
-        scheduler.submit(std::move(task), immediate);
-    }
+    scheduler.submit(std::move(task), immediate);
 }
 
 void PowerPlant::log(const LogLevel& level, std::string message) {
