@@ -109,12 +109,13 @@ namespace threading {
             /**
              * Compare tasks based on their priority.
              *
-             * @param other the other task to compare to
+             * @param lhs The first task to compare
+             * @param rhs The second task to compare
              *
              * @return `true` if this task has a higher priority than the other task
              */
-            bool operator<(const Task& other) const {
-                return priority == other.priority ? id < other.id : priority > other.priority;
+            friend bool operator<(const Task& lhs, const Task& rhs) {
+                return lhs.priority == rhs.priority ? lhs.id < rhs.id : lhs.priority > rhs.priority;
             }
         };
 
