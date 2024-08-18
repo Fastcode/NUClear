@@ -184,8 +184,8 @@ struct TriviallyCopyable {
     int8_t b;
     std::array<uint8_t, 2> c;
 
-    bool operator==(const TriviallyCopyable& rhs) const {
-        return a == rhs.a && b == rhs.b && c[0] == rhs.c[0] && c[1] == rhs.c[1];
+    friend bool operator==(const TriviallyCopyable& lhs, const TriviallyCopyable& rhs) {
+        return lhs.a == rhs.a && lhs.b == rhs.b && lhs.c[0] == rhs.c[0] && lhs.c[1] == rhs.c[1];
     }
 };
 static_assert(std::is_trivially_copyable<TriviallyCopyable>::value, "This type should be trivially copyable");
