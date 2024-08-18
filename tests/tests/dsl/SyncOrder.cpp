@@ -37,8 +37,6 @@ struct Message {
     Message(int val) : val(val) {};
 };
 
-struct ShutdownOnIdle {};
-
 /// Events that occur during the test
 std::vector<int> events;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
