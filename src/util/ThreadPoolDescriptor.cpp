@@ -20,51 +20,15 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_UTIL_GROUP_DESCRIPTOR_HPP
-#define NUCLEAR_UTIL_GROUP_DESCRIPTOR_HPP
-
-#include <atomic>
-#include <cstddef>
-#include <cstdint>
-#include <limits>
-#include <string>
-
-#include "../id.hpp"
+#include "ThreadPoolDescriptor.hpp"
 
 namespace NUClear {
 namespace util {
 
-    /**
-     * A description of a group.
-     */
-    struct GroupDescriptor {
-        /// The name of this group
-        std::string name = "Default";
-
-        /// A unique identifier for this group
-        NUClear::id_t group_id{0};
-
-        /// The maximum number of threads that can run concurrently in this group
-        int thread_count{1};
-
-        /**
-         * Return the next unique ID for a new group
-         */
-        static NUClear::id_t get_unique_group_id() noexcept;
-
-        /**
-         * Compare two group descriptors by their group_id to allow for sorting and uniqueness
-         *
-         * @param other the other group descriptor to compare to
-         *
-         * @return true if this group_id is less than the other group_id
-         */
-        bool operator<(const GroupDescriptor& other) const {
-            return group_id < other.group_id;
-        }
-    };
+    NUClear::id_t ThreadPoolDescriptor::get_unique_pool_id() noexcept {
+        static std::atomic<NUClear::id_t> source{2};
+        return source.fetch_add(1, std::memory_order_relaxed);
+    }
 
 }  // namespace util
 }  // namespace NUClear
-
-#endif  // NUCLEAR_UTIL_GROUP_DESCRIPTOR_HPP

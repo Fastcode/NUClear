@@ -67,9 +67,11 @@ jobs:
         run: ctest --output-on-failure
 
       - name: Collect coverage into one XML report
+        if: always()
         run: gcovr --exclude-unreachable-branches --exclude-noncode-lines --sonarqube > coverage.xml
 
       - name: Run sonar-scanner
+        if: always()
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}

@@ -147,8 +147,10 @@ public:
 
     explicit Reactor(std::unique_ptr<Environment> environment)
         : powerplant(environment->powerplant), reactor_name(environment->reactor_name) {}
-    Reactor(const Reactor& /*other*/)              = default;
-    Reactor(Reactor&& /*other*/) noexcept          = default;
+
+    // Copying or moving a Reactor is almost certainly a mistake
+    Reactor(const Reactor& /*other*/)              = delete;
+    Reactor(Reactor&& /*other*/) noexcept          = delete;
     Reactor& operator=(const Reactor& /*rhs*/)     = delete;
     Reactor& operator=(Reactor&& /*rhs*/) noexcept = delete;
 
