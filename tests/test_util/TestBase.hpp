@@ -65,7 +65,7 @@ public:
         }
 
         on<Shutdown>().then([this] {
-            std::lock_guard<std::mutex> lock(timeout_mutex);
+            const std::lock_guard<std::mutex> lock(timeout_mutex);
             clean_shutdown = true;
             timeout_cv.notify_all();
         });
