@@ -32,7 +32,7 @@
 
 namespace test_util {
 
-template <typename BaseClass, int timeout = 1000>
+template <typename BaseClass>
 class TestBase : public NUClear::Reactor {
 public:
     /**
@@ -46,7 +46,17 @@ public:
     template <int i>
     struct Step {};
 
-    explicit TestBase(std::unique_ptr<NUClear::Environment> environment, const bool& shutdown_on_idle = true)
+    /**
+     * Emit this struct to fail the test
+     */
+    struct Fail {
+        explicit Fail(std::string message) : message(std::move(message)) {}
+        std::string message;
+    };
+
+    explicit TestBase(std::unique_ptr<NUClear::Environment> environment,
+                      const bool& shutdown_on_idle             = true,
+                      const std::chrono::milliseconds& timeout = std::chrono::milliseconds(1000))
         : Reactor(std::move(environment)) {
 
         // Shutdown if the system is idle
@@ -54,13 +64,35 @@ public:
             on<Idle<>>().then([this] { powerplant.shutdown(); });
         }
 
+        on<Shutdown>().then([this] {
+            std::lock_guard<std::mutex> lock(timeout_mutex);
+            clean_shutdown = true;
+            timeout_cv.notify_all();
+        });
+
         // Timeout if the test doesn't complete in time
-        on<Watchdog<BaseClass, timeout, std::chrono::milliseconds>, MainThread>().then([this] {
-            powerplant.shutdown();
-            INFO("Test timed out");
+        // Typically we would use a watchdog, however it is subject to Time Travel
+        // So instead spawn a thread that will wait for the timeout and then fail the test and shut down
+        on<Always>().then([this, timeout] {
+            std::unique_lock<std::mutex> lock(timeout_mutex);
+            timeout_cv.wait_for(lock, timeout);
+            if (!clean_shutdown) {
+                powerplant.shutdown();
+                emit<Scope::DIRECT>(std::make_unique<Fail>("Test timed out"));
+            }
+        });
+
+        on<Trigger<Fail>, MainThread>().then([this](const Fail& f) {
+            INFO(f.message);
             CHECK(false);
+            powerplant.shutdown();
         });
     }
+
+private:
+    std::mutex timeout_mutex;
+    std::condition_variable timeout_cv;
+    bool clean_shutdown = false;
 };
 
 }  // namespace test_util

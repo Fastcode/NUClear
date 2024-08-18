@@ -57,7 +57,7 @@ struct TestConnection {
 
 struct Finished {};
 
-class TestReactor : public test_util::TestBase<TestReactor, 2000> {
+class TestReactor : public test_util::TestBase<TestReactor> {
 public:
     void handle_data(const std::string& name, const IO::Event& event) {
         // We have data to read
@@ -78,7 +78,8 @@ public:
         }
     }
 
-    TestReactor(std::unique_ptr<NUClear::Environment> environment) : TestBase(std::move(environment), false) {
+    TestReactor(std::unique_ptr<NUClear::Environment> environment)
+        : TestBase(std::move(environment), false, std::chrono::milliseconds(2000)) {
 
         for (const auto& t : active_tests) {
             switch (t) {

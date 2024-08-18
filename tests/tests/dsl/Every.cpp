@@ -33,10 +33,11 @@ std::vector<NUClear::clock::time_point> every_times;    // NOLINT(cppcoreguideli
 std::vector<NUClear::clock::time_point> per_times;      // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 std::vector<NUClear::clock::time_point> dynamic_times;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
-class TestReactor : public test_util::TestBase<TestReactor, 20000> {
+class TestReactor : public test_util::TestBase<TestReactor> {
 
 public:
-    TestReactor(std::unique_ptr<NUClear::Environment> environment) : TestBase(std::move(environment), false) {
+    TestReactor(std::unique_ptr<NUClear::Environment> environment)
+        : TestBase(std::move(environment), false, std::chrono::milliseconds(10000)) {
 
         // Trigger on 3 different types of every
         on<Every<1000, Per<std::chrono::seconds>>>().then([]() { every_times.push_back(NUClear::clock::now()); });

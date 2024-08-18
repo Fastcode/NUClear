@@ -35,10 +35,10 @@ std::vector<std::string> events;  // NOLINT(cppcoreguidelines-avoid-non-const-gl
 template <int I>
 struct Flag {};
 
-class TestReactor : public test_util::TestBase<TestReactor, 10000> {
+class TestReactor : public test_util::TestBase<TestReactor> {
 public:
     TestReactor(std::unique_ptr<NUClear::Environment> environment)
-        : TestBase(std::move(environment), false), start(NUClear::clock::now()) {
+        : TestBase(std::move(environment), false, std::chrono::milliseconds(10000)), start(NUClear::clock::now()) {
 
         on<Watchdog<Flag<1>, 50, std::chrono::milliseconds>>().then([this] {
             events.push_back("Watchdog 1  triggered @ " + floored_time());

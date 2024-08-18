@@ -37,7 +37,7 @@ struct SimpleMessage {
 
 constexpr int time_step = 50;
 
-class TestReactor : public test_util::TestBase<TestReactor, 10000> {
+class TestReactor : public test_util::TestBase<TestReactor> {
 public:
     template <int N>
     struct CustomPool {

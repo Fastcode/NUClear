@@ -51,9 +51,10 @@ struct TargetTimeMessage {
 
 struct FinishTest {};
 
-class TestReactor : public test_util::TestBase<TestReactor, 2000> {
+class TestReactor : public test_util::TestBase<TestReactor> {
 public:
-    TestReactor(std::unique_ptr<NUClear::Environment> environment) : TestBase(std::move(environment), false) {
+    TestReactor(std::unique_ptr<NUClear::Environment> environment)
+        : TestBase(std::move(environment), false, std::chrono::milliseconds(2000)) {
 
         // Measure when messages were sent and received and print those values
         on<Trigger<DelayedMessage>>().then([](const DelayedMessage& m) {
