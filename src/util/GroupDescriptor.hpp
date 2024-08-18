@@ -59,12 +59,13 @@ namespace util {
         /**
          * Compare two group descriptors by their group_id to allow for sorting and uniqueness
          *
-         * @param other the other group descriptor to compare to
+         * @param lhs the left hand side of the comparison
+         * @param rhs the right hand side of the comparison
          *
          * @return true if this group_id is less than the other group_id
          */
-        bool operator<(const GroupDescriptor& other) const {
-            return group_id < other.group_id;
+        friend bool operator<(const GroupDescriptor& lhs, const GroupDescriptor& rhs) {
+            return lhs.group_id < rhs.group_id;
         }
     };
 

@@ -69,8 +69,8 @@ namespace dsl {
              *
              * @return `true` if the other task is after this task
              */
-            bool operator<(const ChronoTask& other) const {
-                return time < other.time;
+            friend bool operator<(const ChronoTask& lhs, const ChronoTask& rhs) {
+                return lhs.time < rhs.time;
             }
 
             /**
@@ -80,8 +80,8 @@ namespace dsl {
              *
              * @return `true` if the other task is before this task
              */
-            bool operator>(const ChronoTask& other) const {
-                return time > other.time;
+            friend bool operator>(const ChronoTask& lhs, const ChronoTask& rhs) {
+                return lhs.time > rhs.time;
             }
 
             /**
@@ -91,8 +91,8 @@ namespace dsl {
              *
              * @return `true` if the other task is at the same time as this task
              */
-            bool operator==(const ChronoTask& other) const {
-                return time == other.time;
+            friend bool operator==(const ChronoTask& lhs, const ChronoTask& rhs) {
+                return lhs.time == rhs.time;
             }
 
             /// The task function, takes the time as a reference so it can be updated for multiple runs
