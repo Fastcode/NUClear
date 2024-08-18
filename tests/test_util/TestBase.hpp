@@ -20,8 +20,8 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef TEST_UTIL_TESTBASE_HPP
-#define TEST_UTIL_TESTBASE_HPP
+#ifndef TEST_UTIL_TEST_BASE_HPP
+#define TEST_UTIL_TEST_BASE_HPP
 
 #include <catch2/catch_test_macros.hpp>
 #include <string>
@@ -74,10 +74,14 @@ public:
         // Typically we would use a watchdog, however it is subject to Time Travel
         // So instead spawn a thread that will wait for the timeout and then fail the test and shut down
         on<Always>().then([this, timeout] {
+            if (clean_shutdown) {
+                return;
+            }
             std::unique_lock<std::mutex> lock(timeout_mutex);
             timeout_cv.wait_for(lock, timeout);
+
             if (!clean_shutdown) {
-                powerplant.shutdown();
+                powerplant.shutdown(true);
                 emit<Scope::DIRECT>(std::make_unique<Fail>("Test timed out"));
             }
         });
@@ -85,7 +89,6 @@ public:
         on<Trigger<Fail>, MainThread>().then([this](const Fail& f) {
             INFO(f.message);
             CHECK(false);
-            powerplant.shutdown();
         });
     }
 
@@ -97,4 +100,4 @@ private:
 
 }  // namespace test_util
 
-#endif  // TEST_UTIL_TESTBASE_HPP
+#endif  // TEST_UTIL_TEST_BASE_HPP

@@ -163,9 +163,11 @@ namespace threading {
         /**
          *
          *  Shuts down the scheduler, all waiting threads are woken, and any attempt to get a task results in an
-         *  exception
+         *  exception.
+         *
+         * @param force If true, the scheduler will be shutdown immediately, and all tasks will be dropped
          */
-        void shutdown();
+        void shutdown(bool force = false);
 
         /**
          * Submit a new task to be executed to the Scheduler.

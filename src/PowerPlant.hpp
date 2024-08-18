@@ -118,8 +118,10 @@ public:
 
     /**
      * Shuts down the PowerPlant, tells all component threads to terminate and waits for them to finish.
+     *
+     * @param force If true, the PowerPlant will shutdown immediately without waiting for tasks to finish
      */
-    void shutdown();
+    void shutdown(bool force = false);
 
     /**
      * Installs a reactor of a particular type to the system.
