@@ -155,12 +155,13 @@ namespace threading {
          * The task with higher priority is considered less.
          * If two tasks have equal priority, the one with the lower ID is considered less.
          *
-         * @param other The other ReactionTask object to compare with.
+         * @param lhs The left hand side of the comparison
+         * @param rhs The right hand side of the comparison
          *
          * @return true if the current object is less than the other object, false otherwise.
          */
-        bool operator<(const ReactionTask& other) const {
-            return priority == other.priority ? id < other.id : priority > other.priority;
+        friend bool operator<(const ReactionTask& lhs, const ReactionTask& rhs) {
+            return lhs.priority == rhs.priority ? lhs.id < rhs.id : lhs.priority > rhs.priority;
         }
     };
 

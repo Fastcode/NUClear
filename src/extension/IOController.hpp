@@ -80,12 +80,13 @@ namespace extension {
              * can assume that if the same file descriptor shows up multiple times it will be next to each other.
              * This allows the events that are being watched to be or'ed together.
              *
-             * @param other  the other task to compare to
+             * @param lhs The left hand side of the comparison
+             * @param rhs The right hand side of the comparison
              *
              * @return `true` if this task is less than the other
              */
-            bool operator<(const Task& other) const {
-                return fd == other.fd ? listening_events < other.listening_events : fd < other.fd;
+            friend bool operator<(const Task& lhs, const Task& rhs) {
+                return lhs.fd == rhs.fd ? lhs.listening_events < rhs.listening_events : lhs.fd < rhs.fd;
             }
         };
 
