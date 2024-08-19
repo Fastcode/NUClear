@@ -41,7 +41,7 @@ struct StringMaker<std::pair<const K, V>> {
 
 namespace {
 
-constexpr int n_loops = 100;
+constexpr int n_loops = 10000;
 
 class TestReactor : public test_util::TestBase<TestReactor> {
 private:
@@ -63,12 +63,14 @@ public:
          */
 
         on<Trigger<Loop>, MainThread>().then([this](const Loop& l) {
-            main_calls[l.i].fetch_add(1, std::memory_order_relaxed);
-            if (l.i >= n_loops) {
+            if (l.i < n_loops) {
+                main_calls[l.i].fetch_add(1, std::memory_order_relaxed);
+            }
+            else {
                 powerplant.shutdown();
             }
         });
-        on<Idle<>, With<Loop>>().then([this](const Loop& l) {
+        on<Idle<>, Pool<>, With<Loop>>().then([this](const Loop& l) {
             if (l.i < n_loops) {
                 idle_calls[l.i].fetch_add(1, std::memory_order_relaxed);
                 emit(std::make_unique<Loop>(l.i + 1));
