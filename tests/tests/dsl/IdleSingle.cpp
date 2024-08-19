@@ -21,7 +21,6 @@
  */
 
 #include <catch2/catch_test_macros.hpp>
-#include <iostream>
 #include <nuclear>
 
 #include "test_util/TestBase.hpp"
@@ -42,7 +41,7 @@ struct StringMaker<std::pair<const K, V>> {
 
 namespace {
 
-constexpr int n_loops = 1000;
+constexpr int n_loops = 250;
 
 struct TaskB {
     explicit TaskB(int i) : i(i) {}
@@ -57,7 +56,7 @@ struct IdlePool {
     static constexpr int thread_count = 1;
 };
 
-class TestReactor : public test_util::TestBase<TestReactor, 1000000> {
+class TestReactor : public test_util::TestBase<TestReactor> {
 public:
     explicit TestReactor(std::unique_ptr<NUClear::Environment> environment) : TestBase(std::move(environment), false) {
 
@@ -70,15 +69,16 @@ public:
         on<Trigger<TaskA>, Pool<>, Sync<TestReactor>>().then([this](const TaskA& t) {
             entry_calls[t.i].fetch_add(1, std::memory_order_relaxed);
             emit(std::make_unique<TaskB>(t.i));
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
         });
 
         // Run this at low priority but have it first
         // This way MainThread will get notified that it has access to Sync but then it will lose it when
         // The other task on the default pool gets created so it'll be notified but unable to act
         on<Trigger<TaskB>, MainThread, Priority::LOW, Sync<TestReactor>>().then([this](const TaskB& t) {
-            if (t.i < n_loops) {
-                main_calls[t.i].fetch_add(1, std::memory_order_relaxed);
+            main_calls[t.i].fetch_add(1, std::memory_order_relaxed);
 
+            if (t.i + 1 < n_loops) {
                 emit(std::make_unique<TaskA>(t.i + 1));
             }
             else {
@@ -96,11 +96,6 @@ public:
         });
 
         on<Startup>().then([this] { emit(std::make_unique<TaskA>(0)); });
-
-        on<Shutdown>().then([this] {
-            for (int i = 0; i < n_loops; ++i) {
-            }
-        });
     }
 
     std::array<std::atomic<int>, n_loops> entry_calls{};
