@@ -37,7 +37,7 @@ class TestReactor : public test_util::TestBase<TestReactor> {
 
 public:
     TestReactor(std::unique_ptr<NUClear::Environment> environment)
-        : TestBase(std::move(environment), false, std::chrono::milliseconds(10000)) {
+        : TestBase(std::move(environment), false, std::chrono::seconds(10)) {
 
         // Trigger on 3 different types of every
         on<Every<1000, Per<std::chrono::seconds>>>().then([]() { every_times.push_back(NUClear::clock::now()); });
