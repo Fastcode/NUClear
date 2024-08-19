@@ -35,7 +35,7 @@ constexpr int time_step = 50;
 
 class TestReactor : public test_util::TestBase<TestReactor> {
 public:
-    TestReactor(std::unique_ptr<NUClear::Environment> environment) : TestBase(std::move(environment), false) {
+    explicit TestReactor(std::unique_ptr<NUClear::Environment> environment) : TestBase(std::move(environment), false) {
 
         on<Trigger<Step<1>>, MainThread>().then([this] {  //
             main_thread_id = std::this_thread::get_id();

@@ -51,7 +51,7 @@ public:
         emit(std::make_unique<Step<N + 1>>());
     }
 
-    TestReactor(std::unique_ptr<NUClear::Environment> environment)
+    explicit TestReactor(std::unique_ptr<NUClear::Environment> environment)
         : TestBase(std::move(environment), false, std::chrono::seconds(2)) {
 
         start_time = NUClear::clock::now();
