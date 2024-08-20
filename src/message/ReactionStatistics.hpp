@@ -55,16 +55,12 @@ namespace message {
             util::cpu_clock::time_point cpu_time;
 
             static Event now() {
-
-                // Get the thread pool information for this thread if it's a NUClear thread
-                Event::ThreadInfo thread_info{
-                    std::this_thread::get_id(),
-                    threading::scheduler::Pool::current() ? threading::scheduler::Pool::current()->descriptor
-                                                          : util::ThreadPoolDescriptor::NonPool(),
-                };
-
                 return Event{
-                    thread_info,
+                    Event::ThreadInfo{
+                        std::this_thread::get_id(),
+                        threading::scheduler::Pool::current() ? threading::scheduler::Pool::current()->descriptor
+                                                              : util::ThreadPoolDescriptor::NonPool(),
+                    },
                     NUClear::clock::now(),
                     std::chrono::steady_clock::now(),
                     util::cpu_clock::now(),

@@ -44,12 +44,12 @@ namespace dsl {
         struct CountsForIdle {
         private:
             template <typename U>
-            static constexpr auto check(int) -> decltype(U::counts_for_idle) {
+            static constexpr auto check(int /*unused*/) -> decltype(U::counts_for_idle) {
                 return U::counts_for_idle;
             }
 
-            template <typename>
-            static constexpr bool check(...) {
+            template <typename, typename... A>
+            static constexpr bool check(A&&... /*unused*/) {
                 return true;
             }
 
