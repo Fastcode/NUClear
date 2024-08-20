@@ -39,7 +39,7 @@ namespace threading {
         Pool::~Pool() {
 
             // Stop the pool threads and wait for them to finish
-            stop();
+            stop(true);
             join();
 
             // One less active pool
@@ -66,9 +66,13 @@ namespace threading {
             }
         }
 
-        void Pool::stop() {
+        void Pool::stop(bool force) {
             // Stop the pool threads
             const std::lock_guard<std::mutex> lock(mutex);
+            if (force) {
+                queue.clear();
+            }
+
             running = false;
             live    = true;
             condition.notify_all();

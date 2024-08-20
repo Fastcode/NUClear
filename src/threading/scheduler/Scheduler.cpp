@@ -61,11 +61,11 @@ namespace threading {
             }
         }
 
-        void Scheduler::stop() {
+        void Scheduler::stop(bool force) {
             running.store(false, std::memory_order_release);
             const std::lock_guard<std::mutex> lock(pools_mutex);
             for (auto& pool : pools) {
-                pool.second->stop();
+                pool.second->stop(force);
             }
         }
 

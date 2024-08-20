@@ -103,7 +103,7 @@ namespace threading {
              * Stops the thread pool, all threads are woken and once the task queue is empty the threads will exit.
              * This function returns immediately, use join to wait for the threads to exit.
              */
-            void stop();
+            void stop(bool force = false);
 
             /**
              * Notify a thread in this pool that there is work to do.
