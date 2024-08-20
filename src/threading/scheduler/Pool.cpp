@@ -37,7 +37,7 @@ namespace threading {
             : descriptor(std::move(descriptor)), scheduler(scheduler) {
 
             // Increase the number of active pools if this pool counts for idle but immediately be idle
-            if (descriptor.counts_for_idle) {
+            if (this->descriptor.counts_for_idle) {
                 scheduler.active_pools.fetch_add(1, std::memory_order_relaxed);
                 pool_idle = std::make_unique<CountingLock>(scheduler.active_pools);
             }

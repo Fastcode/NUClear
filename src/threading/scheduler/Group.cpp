@@ -115,7 +115,7 @@ namespace threading {
                                           const int& priority,
                                           const std::function<void()>& notify) {
 
-            auto handle = std::make_shared<LockHandle>(task_id, priority, false, notify);
+            auto handle = std::make_shared<LockHandle>(task_id, priority, notify);
 
             // Insert sorted into the queue
             const std::lock_guard<std::mutex> lock(mutex);

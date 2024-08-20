@@ -50,10 +50,7 @@ namespace threading {
              * It holds if the lock should currently be locked, as well as ordering which locks should be locked first.
              */
             struct LockHandle {
-                LockHandle(const NUClear::id_t& task_id,
-                           const int& priority,
-                           const bool& locked,
-                           std::function<void()> notify);
+                LockHandle(const NUClear::id_t& task_id, const int& priority, std::function<void()> notify);
 
                 /**
                  * Compare two lock handles by comparing their priority and task id
@@ -83,9 +80,9 @@ namespace threading {
                 /// The priority of the reaction that is waiting, higher priorities run first
                 int priority;
                 /// If this lock has been successfully locked
-                bool locked;
+                bool locked{false};
                 /// If this lock has been notified that it can lock
-                bool notified;
+                bool notified{false};
                 /// The function to execute when this lock is able to be locked
                 std::function<void()> notify;
             };
