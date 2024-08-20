@@ -71,7 +71,7 @@ namespace threading {
          * @param parent         The Reaction object that spawned this ReactionTask.
          * @param priority_fn    A function that can be called to get the priority of this task
          * @param thread_pool_fn A function that can be called to get the thread pool descriptor for this task
-         * @param group_fn       A function that can be called to get the list of group descriptors for this task
+         * @param groups_fn      A function that can be called to get the list of group descriptors for this task
          */
         template <typename GetPriority, typename GetGroups, typename GetThreadPool>
         ReactionTask(const std::shared_ptr<Reaction>& parent,
