@@ -60,7 +60,7 @@ namespace message {
                 Event::ThreadInfo thread_info{
                     std::this_thread::get_id(),
                     threading::scheduler::Pool::current() ? threading::scheduler::Pool::current()->descriptor
-                                                          : util::ThreadPoolDescriptor::AllPools(),
+                                                          : util::ThreadPoolDescriptor::NonPool(),
                 };
 
                 return Event{
