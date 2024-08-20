@@ -51,9 +51,11 @@ namespace threading {
 
             /**
              * Shuts down the scheduler, all waiting threads are woken, and attempting to get a task results in an
-             * exception
+             * exception.
+             *
+             * @param force if true, the scheduler will not wait for all tasks to finish before returning
              */
-            void stop();
+            void stop(bool force = false);
 
             /**
              * Submit a new task to be executed to the Scheduler.
