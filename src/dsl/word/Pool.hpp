@@ -46,7 +46,7 @@ namespace dsl {
             template <typename U>
             static constexpr auto check(int) -> decltype(U::counts_for_idle) {
                 return U::counts_for_idle;
-            };
+            }
 
             template <typename>
             static constexpr bool check(...) {
