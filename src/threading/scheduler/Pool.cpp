@@ -92,7 +92,7 @@ namespace threading {
             condition.notify_one();
         }
 
-        void Pool::join() {
+        void Pool::join() const {
             // Join all the threads
             for (const auto& thread : threads) {
                 if (thread->joinable()) {

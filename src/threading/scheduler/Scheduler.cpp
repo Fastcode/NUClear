@@ -44,7 +44,7 @@ namespace threading {
 
                 started = true;
                 // Start all of the pools except the main thread pool
-                for (auto& pool : pools) {
+                for (const auto& pool : pools) {
                     if (pool.first != NUClear::id_t(util::ThreadPoolDescriptor::MAIN_THREAD_POOL_ID)) {
                         pool.second->start();
                     }
@@ -64,7 +64,7 @@ namespace threading {
         void Scheduler::stop(bool force) {
             running.store(false, std::memory_order_release);
             const std::lock_guard<std::mutex> lock(pools_mutex);
-            for (auto& pool : pools) {
+            for (const auto& pool : pools) {
                 pool.second->stop(force);
             }
         }

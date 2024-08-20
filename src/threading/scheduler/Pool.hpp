@@ -61,12 +61,13 @@ namespace threading {
                 /**
                  * Sorts the tasks by the sort order of the reaction tasks
                  *
-                 * @param other the other task to compare to
+                 * @param lhs The left hand side task
+                 * @param rhs The right hand side task
                  *
                  * @return true if this task should be executed before the other task
                  */
-                bool operator<(const Task& other) const {
-                    return *task < *other.task;
+                friend bool operator<(const Task& lhs, const Task& rhs) {
+                    return *lhs.task < *rhs.task;
                 }
             };
 
@@ -117,7 +118,7 @@ namespace threading {
             /**
              * Wait for all threads in this pool to exit.
              */
-            void join();
+            void join() const;
 
             /**
              * Submit a new task to this thread pool

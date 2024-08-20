@@ -77,7 +77,6 @@ public:
             }
         });
 
-
         on<Startup>().then([this] { emit(std::make_unique<Loop>(0)); });
     }
 

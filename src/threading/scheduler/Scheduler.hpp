@@ -40,7 +40,7 @@ namespace threading {
 
         class Scheduler {
         public:
-            Scheduler(const int& thread_count);
+            explicit Scheduler(const int& thread_count);
 
             /**
              * Starts the scheduler, and begins executing tasks.
