@@ -167,11 +167,14 @@ namespace threading {
         }
     }
 
-    void TaskScheduler::shutdown() {
+    void TaskScheduler::shutdown(bool force) {
         started.store(false, std::memory_order_release);
         running.store(false, std::memory_order_release);
         for (auto& pool : pool_queues) {
             const std::lock_guard<std::recursive_mutex> lock(pool.second->mutex);
+            if (force) {
+                pool.second->queue.clear();
+            }
             pool.second->condition.notify_all();
         }
     }

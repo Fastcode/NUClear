@@ -35,7 +35,7 @@ std::vector<std::string> events;  // NOLINT(cppcoreguidelines-avoid-non-const-gl
 template <int I>
 struct Flag {};
 
-class TestReactor : public test_util::TestBase<TestReactor, 10000> {
+class TestReactor : public test_util::TestBase<TestReactor> {
 public:
     TestReactor(std::unique_ptr<NUClear::Environment> environment)
         : TestBase(std::move(environment), false), start(NUClear::clock::now()) {
