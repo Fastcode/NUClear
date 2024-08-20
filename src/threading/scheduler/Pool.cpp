@@ -34,7 +34,14 @@ namespace threading {
     namespace scheduler {
 
         Pool::Pool(Scheduler& scheduler, util::ThreadPoolDescriptor descriptor)
-            : descriptor(std::move(descriptor)), scheduler(scheduler) {}
+            : descriptor(std::move(descriptor)), scheduler(scheduler) {
+
+            // Increase the number of active pools if this pool counts for idle but immediately be idle
+            if (descriptor.counts_for_idle) {
+                scheduler.active_pools.fetch_add(1, std::memory_order_relaxed);
+                pool_idle = std::make_unique<CountingLock>(scheduler.active_pools);
+            }
+        }
 
         Pool::~Pool() {
 
@@ -49,9 +56,6 @@ namespace threading {
         void Pool::start() {
             // Set the number of active threads to the number of threads in the pool
             active = descriptor.counts_for_idle ? descriptor.thread_count : 0;
-
-            // Increase the number of active pools if this pool counts for idle
-            scheduler.active_pools.fetch_add(descriptor.counts_for_idle ? 1 : 0, std::memory_order_relaxed);
 
             // The main thread never needs to be started
             if (descriptor.pool_id != NUClear::id_t(util::ThreadPoolDescriptor::MAIN_THREAD_POOL_ID)) {
