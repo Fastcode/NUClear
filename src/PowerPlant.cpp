@@ -121,13 +121,13 @@ void PowerPlant::log(const LogLevel& level, std::stringstream& message) {
     log(level, message.str());
 }
 
-void PowerPlant::shutdown() {
+void PowerPlant::shutdown(bool force) {
 
     // Emit our shutdown event
     emit(std::make_unique<dsl::word::Shutdown>());
 
     // Shutdown the scheduler
-    scheduler.stop();
+    scheduler.stop(force);
 }
 
 }  // namespace NUClear

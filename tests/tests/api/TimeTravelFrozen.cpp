@@ -13,7 +13,7 @@ constexpr std::chrono::milliseconds SHUTDOWN_TIME = std::chrono::milliseconds(12
 
 struct WaitForShutdown {};
 
-class TestReactor : public test_util::TestBase<TestReactor, 5000> {
+class TestReactor : public test_util::TestBase<TestReactor> {
 public:
     TestReactor(std::unique_ptr<NUClear::Environment> environment) : TestBase(std::move(environment), false) {
 
