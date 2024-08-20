@@ -35,6 +35,11 @@ namespace NUClear {
 namespace dsl {
     namespace word {
 
+        /**
+         * SFINAE check to see if the pool type has a counts_for_idle member and if so use it otherwise default to true
+         *
+         * @tparam T the type to check for the counts_for_idle member
+         */
         template <typename T>
         struct CountsForIdle {
         private:
