@@ -134,7 +134,7 @@ namespace threading {
         /// Details about the thread pool that this task will run from, this will also influence what task queue
         /// the tasks will be queued on
         util::ThreadPoolDescriptor pool_descriptor;
-        /// details about the groups that this task will run in
+        /// Details about the groups that this task will run in
         std::set<util::GroupDescriptor> group_descriptors;
 
         /// The statistics object that records run details about this reaction task
