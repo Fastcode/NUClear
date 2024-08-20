@@ -140,7 +140,7 @@ namespace threading {
              *
              * @param descriptor The descriptor for this group
              */
-            explicit Group(const util::GroupDescriptor& descriptor);
+            explicit Group(util::GroupDescriptor descriptor);
 
             /**
              * This function will create a new lock for the task and return it.
