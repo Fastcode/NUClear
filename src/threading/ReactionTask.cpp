@@ -44,7 +44,7 @@ namespace threading {
         }
     }
 
-    void ReactionTask::run() {
+    void ReactionTask::run() noexcept {
         // Update the current task
         auto* t = std::exchange(current_task, this);
         try {

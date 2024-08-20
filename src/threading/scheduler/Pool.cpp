@@ -34,7 +34,7 @@ namespace threading {
     namespace scheduler {
 
         Pool::Pool(Scheduler& scheduler, util::ThreadPoolDescriptor descriptor)
-            : scheduler(scheduler), descriptor(std::move(descriptor)) {}
+            : descriptor(std::move(descriptor)), scheduler(scheduler) {}
 
         Pool::~Pool() {
 
@@ -74,25 +74,32 @@ namespace threading {
             condition.notify_all();
         }
 
-        void Pool::notify() {
+        void Pool::notify(bool clear_idle) {
             const std::lock_guard<std::mutex> lock(mutex);
             /// May not be idle anymore, flag this before the thread wakes up
-            live      = true;
-            pool_idle = nullptr;
+            live = true;
+            if (clear_idle) {
+                pool_idle = nullptr;
+            }
             condition.notify_one();
         }
 
         void Pool::join() {
             // Join all the threads
-            for (auto& thread : threads) {
+            for (const auto& thread : threads) {
                 if (thread->joinable()) {
                     thread->join();
                 }
             }
         }
 
-        void Pool::submit(Task&& task) {
+        void Pool::submit(Task&& task, bool clear_idle) {
             const std::lock_guard<std::mutex> lock(mutex);
+
+            // Clear the global idle status if requested
+            if (clear_idle) {
+                pool_idle = nullptr;
+            }
 
             // Insert in sorted order
             queue.insert(std::lower_bound(queue.begin(), queue.end(), task), std::move(task));
@@ -122,23 +129,27 @@ namespace threading {
                 idle_tasks.end());
         }
 
-        void Pool::run() {
+        std::shared_ptr<Pool> Pool::current() {
+            return current_pool == nullptr ? nullptr : current_pool->shared_from_this();
+        }
 
-            // When task is nullptr there are no more tasks to get and the scheduler is shutting down
-            while (true) {
-                try {
+        bool Pool::is_idle() const {
+            return pool_idle != nullptr;
+        }
+
+        void Pool::run() {
+            Pool::current_pool = this;
+            try {
+                while (true) {
                     // Run the next task
                     Task task = get_task();
                     task.task->run();
                 }
-                catch (const ShutdownThreadException&) {
-                    // This thread is shutting down
-                    return;
-                }
-                // No exception should ever reach here, but if it does we do not want to crash the thread
-                catch (...) {  // NOLINT(bugprone-empty-catch)
-                }
             }
+            catch (const ShutdownThreadException&) {
+                // This throw is here for when the pool is stopped
+            }
+            Pool::current_pool = nullptr;
         }
 
         Pool::Task Pool::get_task() {
@@ -225,6 +236,11 @@ namespace threading {
 
             return Task{std::move(task)};
         }
+
+
+        // Initialise the current pool to nullptr if it is not already
+        // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
+        ATTRIBUTE_TLS Pool* Pool::current_pool = nullptr;
 
     }  // namespace scheduler
 }  // namespace threading

@@ -57,7 +57,11 @@ namespace message {
             static Event now() {
 
                 // Get the thread pool information for this thread if it's a NUClear thread
-                const Event::ThreadInfo thread_info;
+                Event::ThreadInfo thread_info{
+                    std::this_thread::get_id(),
+                    threading::scheduler::Pool::current() ? threading::scheduler::Pool::current()->descriptor
+                                                          : util::ThreadPoolDescriptor::AllPools(),
+                };
 
                 return Event{
                     thread_info,

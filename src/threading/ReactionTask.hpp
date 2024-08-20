@@ -115,7 +115,7 @@ namespace threading {
         /**
          * Runs the internal data bound task.
          */
-        void run();
+        void run() noexcept;
 
         /**
          * Generate a new unique task id.

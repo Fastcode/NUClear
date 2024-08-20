@@ -78,7 +78,8 @@ namespace threading {
                     idle_tasks.push_back(reaction);
                 }
                 // Notify the main thread pool just in case there were no global idle tasks and now there are
-                get_pool(dsl::word::MainThread::descriptor())->notify();
+                // Clear idle status so that these tasks are executed immediately
+                get_pool(dsl::word::MainThread::descriptor())->notify(true);
             }
             else {
                 get_pool(desc)->add_idle_task(reaction);
@@ -139,7 +140,10 @@ namespace threading {
             // Make a lock which waits for all the groups to be unlocked
             auto lock = std::make_unique<CombinedLock>();
             for (const auto& desc : descs) {
-                lock->add(get_group(desc)->lock(task_id, priority, [pool] { pool->notify(); }));
+                lock->add(get_group(desc)->lock(task_id, priority, [pool] {
+                    bool current_pool_idle = Pool::current() != nullptr && Pool::current()->is_idle();
+                    pool->notify(!current_pool_idle);
+                }));
             }
 
             return lock;
@@ -163,7 +167,11 @@ namespace threading {
 
             // Submit the task to the appropriate pool
             if (running.load(std::memory_order_acquire)) {
-                pool->submit({std::move(task), std::move(group_lock)});
+                // Clear the idle status only if the current pool is not idle
+                // This hands the job of managing global idle tasks to this other pool if we were about to do it
+                // That way the other pool can decide if it is idle or not
+                bool current_pool_idle = Pool::current() != nullptr && Pool::current()->is_idle();
+                pool->submit({std::move(task), std::move(group_lock)}, !current_pool_idle);
             }
         }
 

@@ -35,6 +35,23 @@ namespace NUClear {
 namespace dsl {
     namespace word {
 
+        template <typename T>
+        struct CountsForIdle {
+        private:
+            template <typename U>
+            static constexpr auto check(int) -> decltype(U::counts_for_idle) {
+                return U::counts_for_idle;
+            };
+
+            template <typename>
+            static constexpr bool check(...) {
+                return true;
+            }
+
+        public:
+            static constexpr bool value = check<T>(0);
+        };
+
         /**
          * This is used to specify that this reaction should run in the designated thread pool
          *
@@ -67,6 +84,9 @@ namespace dsl {
         template <typename PoolType = void>
         struct Pool {
 
+            static constexpr int thread_count     = PoolType::thread_count;
+            static constexpr bool counts_for_idle = CountsForIdle<PoolType>::value;
+
             static_assert(PoolType::thread_count > 0, "Can not have a thread pool with less than 1 thread");
 
             // This must be a separate function, otherwise each instance of DSL will be a separate pool
@@ -74,8 +94,8 @@ namespace dsl {
                 static const util::ThreadPoolDescriptor pool_descriptor = util::ThreadPoolDescriptor{
                     util::demangle(typeid(PoolType).name()),
                     util::ThreadPoolDescriptor::get_unique_pool_id(),
-                    PoolType::thread_count,
-                    true,
+                    thread_count,
+                    counts_for_idle,
                 };
                 return pool_descriptor;
             }
