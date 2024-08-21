@@ -1,4 +1,6 @@
 #include <csignal>
+#include <functional>
+#include <memory>
 #include <thread>
 
 #include "Sleeper.hpp"
