@@ -34,7 +34,7 @@ namespace threading {
     namespace scheduler {
 
         Group::LockHandle::LockHandle(const NUClear::id_t& task_id, const int& priority, std::function<void()> notify)
-            : task_id(task_id), priority(priority), notified(false), notify(std::move(notify)) {}
+            : task_id(task_id), priority(priority), notify(std::move(notify)) {}
 
         Group::GroupLock::GroupLock(Group& group, std::shared_ptr<LockHandle> handle)
             : group(group), handle(std::move(handle)) {}
