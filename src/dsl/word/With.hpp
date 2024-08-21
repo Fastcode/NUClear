@@ -55,8 +55,8 @@ namespace dsl {
          *
          * @tparam T The datatype/s which will be provided to a subscribing reaction when the reaction is triggered.
          */
-        template <typename... T>
-        struct With : Fusion<operation::CacheGet<T>...> {};
+        template <typename T>
+        struct With : Fusion<operation::CacheGet<T>> {};
 
     }  // namespace word
 }  // namespace dsl
