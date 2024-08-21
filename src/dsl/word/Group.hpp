@@ -70,20 +70,19 @@ namespace dsl {
 
             static_assert(GroupConcurrency > 0, "Can not have a group with concurrency less than 1");
 
-            static const util::GroupDescriptor group_descriptor;
-
-            template <typename DSL>
-            static util::GroupDescriptor group(const threading::ReactionTask& /*task*/) {
+            // This must be a separate function, otherwise each instance of DSL will be a separate pool
+            static util::GroupDescriptor descriptor() {
+                static const util::GroupDescriptor group_descriptor{util::demangle(typeid(GroupType).name()),
+                                                                    util::GroupDescriptor::get_unique_group_id(),
+                                                                    GroupConcurrency};
                 return group_descriptor;
             }
-        };
 
-        // Initialise the group descriptor
-        template <typename GroupType, int GroupConcurrency>
-        const util::GroupDescriptor Group<GroupType, GroupConcurrency>::group_descriptor = {
-            util::demangle(typeid(GroupType).name()),
-            util::GroupDescriptor::get_unique_group_id(),
-            GroupConcurrency};
+            template <typename DSL>
+            static std::set<util::GroupDescriptor> group(const threading::ReactionTask& /*task*/) {
+                return {descriptor()};
+            }
+        };
 
     }  // namespace word
 }  // namespace dsl

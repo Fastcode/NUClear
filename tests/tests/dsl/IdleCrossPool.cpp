@@ -24,55 +24,65 @@
 #include <nuclear>
 
 #include "test_util/TestBase.hpp"
+#include "test_util/TimeUnit.hpp"
 
 namespace {
 
 /// A vector of events that have happened
 std::vector<std::string> events;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
+constexpr int time_step = 50;
+
 class TestReactor : public test_util::TestBase<TestReactor> {
 public:
     explicit TestReactor(std::unique_ptr<NUClear::Environment> environment) : TestBase(std::move(environment), false) {
 
-        on<Trigger<Step<1>>, MainThread>().then([this] {
-            emit(std::make_unique<Step<2>>());
-            std::this_thread::sleep_for(std::chrono::milliseconds(100));
-            emit(std::make_unique<Step<3>>());
+        on<Trigger<Step<1>>, MainThread>().then([this] {  //
+            main_thread_id = std::this_thread::get_id();
+            events.push_back("Step<1>");
         });
-
-        // Idle testing for default thread
-        on<Trigger<Step<2>>, Sync<TestReactor>>().then([] {
-            events.push_back("Default Start");
-            std::this_thread::sleep_for(std::chrono::milliseconds(300));
-            events.push_back("Default End");
-        });
-
-        on<Trigger<Step<3>>, Sync<TestReactor>, MainThread>().then([] { events.push_back("Main Task"); });
-
         on<Idle<MainThread>>().then([this] {
-            events.push_back("Idle Main Thread");
+            idle_thread_id = std::this_thread::get_id();
+            events.push_back("Main Idle");
+            emit(std::make_unique<Step<2>>());
+        });
+        on<Trigger<Step<2>>>().then([this] {
+            default_thread_id = std::this_thread::get_id();
+            events.push_back("Step<2>");
+            // Sleep for a bit to coax out any more idle triggers
+            std::this_thread::sleep_for(test_util::TimeUnit(2));
             powerplant.shutdown();
         });
 
         on<Startup>().then([this] { emit(std::make_unique<Step<1>>()); });
     }
+
+    std::thread::id main_thread_id;
+    std::thread::id idle_thread_id;
+    std::thread::id default_thread_id;
 };
 
 }  // namespace
 
-TEST_CASE("Test that pool idle triggers when a waiting task prevents running", "[api][idle]") {
+
+TEST_CASE("Test that idle can fire events for other pools but only runs once", "[api][dsl][Idle][Pool]") {
 
     NUClear::Configuration config;
-    config.thread_count = 4;
+    config.thread_count = 1;
     NUClear::PowerPlant plant(config);
-    plant.install<TestReactor>();
+    auto& reactor = plant.install<TestReactor>();
     plant.start();
 
+    // Check that things ran on the correct thread
+    CAPTURE(std::this_thread::get_id());
+    CHECK(reactor.main_thread_id != reactor.idle_thread_id);
+    CHECK(reactor.main_thread_id != reactor.default_thread_id);
+    CHECK(reactor.idle_thread_id == reactor.default_thread_id);
+
     const std::vector<std::string> expected = {
-        "Default Start",
-        "Idle Main Thread",
-        "Default End",
-        "Main Task",
+        "Step<1>",
+        "Main Idle",
+        "Step<2>",
     };
 
     // Make an info print the diff in an easy to read way if we fail

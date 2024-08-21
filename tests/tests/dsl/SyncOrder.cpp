@@ -32,25 +32,31 @@ namespace {
 
 constexpr int N_EVENTS = 1000;
 
+template <char c>
 struct Message {
     int val;
     Message(int val) : val(val) {};
 };
 
 /// Events that occur during the test
-std::vector<int> events;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+std::vector<std::pair<char, int>> events;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
 class TestReactor : public test_util::TestBase<TestReactor> {
 public:
     TestReactor(std::unique_ptr<NUClear::Environment> environment) : TestBase(std::move(environment)) {
 
-        on<Trigger<Message>, Sync<TestReactor>>().then([](const Message& m) {  //
-            events.push_back(m.val);
+        on<Trigger<Message<'A'>>, Sync<TestReactor>>().then([](const Message<'A'>& m) {  //
+            events.emplace_back('A', m.val);
+        });
+
+        on<Trigger<Message<'B'>>, Sync<TestReactor>, MainThread>().then([](const Message<'B'>& m) {  //
+            events.emplace_back('B', m.val);
         });
 
         on<Startup>().then("Startup", [this] {
             for (int i = 0; i < N_EVENTS; ++i) {
-                emit(std::make_unique<Message>(i));
+                emit(std::make_unique<Message<'A'>>(i));
+                emit(std::make_unique<Message<'B'>>(i));
             }
         });
     }
@@ -65,10 +71,12 @@ TEST_CASE("Sync events execute in order", "[api][sync][priority]") {
     plant.install<TestReactor>();
     plant.start();
 
+    // Expect interleaved A and B events in order
+    std::vector<std::pair<char, int>> expected(events.size());
+    for (int i = 0; i < N_EVENTS; ++i) {
+        expected[2 * i]     = {'A', i};
+        expected[2 * i + 1] = {'B', i};
+    }
 
-    REQUIRE(events.size() == N_EVENTS);
-
-    std::vector<int> expected(events.size());
-    std::iota(expected.begin(), expected.end(), 0);
     REQUIRE(events == expected);
 }

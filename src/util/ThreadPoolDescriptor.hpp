@@ -52,8 +52,22 @@ namespace util {
                              bool counts_for_idle = true) noexcept
             : name(std::move(name)), pool_id(pool_id), thread_count(thread_count), counts_for_idle(counts_for_idle) {}
 
+        /**
+         * Use this descriptor when referring to all thread pools (for example when adding an idle task)
+         *
+         * @return The descriptor for all thread pools
+         */
         static ThreadPoolDescriptor AllPools() {
             return ThreadPoolDescriptor{"All", NUClear::id_t(-1), -1, false};
+        }
+
+        /**
+         * Use this descriptor when you need to refer to a thread that is not in a pool
+         *
+         * @return ThreadPoolDescriptor
+         */
+        static ThreadPoolDescriptor NonPool() {
+            return ThreadPoolDescriptor{"NonPool", NUClear::id_t(-1), -1, false};
         }
 
         /**

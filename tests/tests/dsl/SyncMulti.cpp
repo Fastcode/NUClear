@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2024 NUClear Contributors
+ * Copyright (c) 2015 NUClear Contributors
  *
  * This file is part of the NUClear codebase.
  * See https://github.com/Fastcode/NUClear for further info.
@@ -24,44 +24,47 @@
 #include <nuclear>
 
 #include "test_util/TestBase.hpp"
+#include "test_util/TimeUnit.hpp"
 
 namespace {
 
-/// A vector of events that have happened
+/// Events that occur during the test
 std::vector<std::string> events;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+
+struct A {};
+struct B {};
+
 
 class TestReactor : public test_util::TestBase<TestReactor> {
 public:
-    explicit TestReactor(std::unique_ptr<NUClear::Environment> environment) : TestBase(std::move(environment), false) {
-
-        on<Trigger<Step<1>>, MainThread>().then([this] {
-            emit(std::make_unique<Step<2>>());
-            std::this_thread::sleep_for(std::chrono::milliseconds(100));
-            emit(std::make_unique<Step<3>>());
-        });
-
-        // Idle testing for default thread
-        on<Trigger<Step<2>>, Sync<TestReactor>>().then([] {
-            events.push_back("Default Start");
-            std::this_thread::sleep_for(std::chrono::milliseconds(300));
-            events.push_back("Default End");
-        });
-
-        on<Trigger<Step<3>>, Sync<TestReactor>, MainThread>().then([] { events.push_back("Main Task"); });
-
-        on<Idle<MainThread>>().then([this] {
-            events.push_back("Idle Main Thread");
-            powerplant.shutdown();
-        });
-
-        on<Startup>().then([this] { emit(std::make_unique<Step<1>>()); });
+    void do_task(const std::string& event) {
+        auto start = test_util::round_to_test_units(std::chrono::steady_clock::now() - start_time);
+        events.push_back(event + " started @ " + std::to_string(start.count()));
+        // Sleep for a bit to give a chance for the other threads to cause problems
+        std::this_thread::sleep_for(test_util::TimeUnit(2));
+        auto end = test_util::round_to_test_units(std::chrono::steady_clock::now() - start_time);
+        events.push_back(event + " finished @ " + std::to_string(end.count()));
     }
-};
 
+    TestReactor(std::unique_ptr<NUClear::Environment> environment) : TestBase(std::move(environment)) {
+
+        on<Trigger<A>, Sync<A>>().then([this] { do_task("Sync A"); });
+        on<Trigger<A>, Sync<A>, Sync<B>>().then([this] { do_task("Sync Both"); });
+        on<Trigger<B>, Sync<B>>().then([this] { do_task("Sync B"); });
+
+        on<Startup>().then([this] {
+            start_time = std::chrono::steady_clock::now();
+            // Emitting both A and B at the same time should trigger all the reactions, but they should execute in order
+            emit(std::make_unique<A>());
+            emit(std::make_unique<B>());
+        });
+    }
+
+    std::chrono::steady_clock::time_point start_time;
+};
 }  // namespace
 
-TEST_CASE("Test that pool idle triggers when a waiting task prevents running", "[api][idle]") {
-
+TEST_CASE("Test that sync works when one thread has multiple groups", "[api][sync][multi]") {
     NUClear::Configuration config;
     config.thread_count = 4;
     NUClear::PowerPlant plant(config);
@@ -69,10 +72,12 @@ TEST_CASE("Test that pool idle triggers when a waiting task prevents running", "
     plant.start();
 
     const std::vector<std::string> expected = {
-        "Default Start",
-        "Idle Main Thread",
-        "Default End",
-        "Main Task",
+        "Sync A started @ 0",
+        "Sync A finished @ 2",
+        "Sync Both started @ 2",
+        "Sync Both finished @ 4",
+        "Sync B started @ 4",
+        "Sync B finished @ 6",
     };
 
     // Make an info print the diff in an easy to read way if we fail

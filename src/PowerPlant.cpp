@@ -93,39 +93,17 @@ void PowerPlant::start() {
     scheduler.start();
 }
 
-void PowerPlant::add_idle_task(const NUClear::id_t& id,
-                               const util::ThreadPoolDescriptor& pool_descriptor,
-                               std::function<void()>&& task) {
-    scheduler.add_idle_task(id, pool_descriptor, std::move(task));
+void PowerPlant::add_idle_task(const util::ThreadPoolDescriptor& pool_descriptor,
+                               const std::shared_ptr<threading::Reaction>& reaction) {
+    scheduler.add_idle_task(pool_descriptor, reaction);
 }
 
-void PowerPlant::remove_idle_task(const NUClear::id_t& id, const util::ThreadPoolDescriptor& pool_descriptor) {
-    scheduler.remove_idle_task(id, pool_descriptor);
-}
-
-void PowerPlant::submit(const NUClear::id_t& id,
-                        const int& priority,
-                        const util::GroupDescriptor& group,
-                        const util::ThreadPoolDescriptor& pool,
-                        const bool& immediate,
-                        std::function<void()>&& task) {
-    scheduler.submit(id, priority, group, pool, immediate, std::move(task));
+void PowerPlant::remove_idle_task(const util::ThreadPoolDescriptor& pool_descriptor, const NUClear::id_t& id) {
+    scheduler.remove_idle_task(pool_descriptor, id);
 }
 
 void PowerPlant::submit(std::unique_ptr<threading::ReactionTask>&& task, const bool& immediate) noexcept {
-    // Only submit non null tasks
-    if (task) {
-        try {
-            const std::shared_ptr<threading::ReactionTask> t(std::move(task));
-            submit(t->id, t->priority, t->group_descriptor, t->pool_descriptor, immediate, [t]() { t->run(); });
-        }
-        catch (const std::exception& ex) {
-            task->parent->reactor.log<NUClear::ERROR>("There was an exception while submitting a reaction", ex.what());
-        }
-        catch (...) {
-            task->parent->reactor.log<NUClear::ERROR>("There was an unknown exception while submitting a reaction");
-        }
-    }
+    scheduler.submit(std::move(task), immediate);
 }
 
 void PowerPlant::log(const LogLevel& level, std::string message) {
@@ -149,7 +127,7 @@ void PowerPlant::shutdown(bool force) {
     emit(std::make_unique<dsl::word::Shutdown>());
 
     // Shutdown the scheduler
-    scheduler.shutdown(force);
+    scheduler.stop(force);
 }
 
 }  // namespace NUClear

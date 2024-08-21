@@ -25,7 +25,8 @@ struct Results {
 
 class TestReactor : public test_util::TestBase<TestReactor> {
 public:
-    TestReactor(std::unique_ptr<NUClear::Environment> environment) : TestBase(std::move(environment), false) {
+    TestReactor(std::unique_ptr<NUClear::Environment> environment)
+        : TestBase(std::move(environment), false, std::chrono::seconds(3)) {
 
         on<Startup>().then([this] {
             // Reset clock to zero
