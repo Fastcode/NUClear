@@ -29,7 +29,7 @@
 namespace {
 
 void wait_for_set(const std::atomic<bool>& flag) {
-    while (flag.load(std::memory_order_acquire) == false) {
+    while (!flag.load(std::memory_order_acquire)) {
         std::this_thread::sleep_for(test_util::TimeUnit(1));
     }
 }
