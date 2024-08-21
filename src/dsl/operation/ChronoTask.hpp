@@ -58,7 +58,7 @@ namespace dsl {
              *
              * @return `true` if the task updated the time to run to a new time
              */
-            bool operator()() {
+            bool run() {
                 return task(time);
             }
 
@@ -76,7 +76,8 @@ namespace dsl {
             /**
              * Compares tasks in order of soonest to execute first.
              *
-             * @param other The other task to compare to
+             * @param lhs The first task to compare
+             * @param rhs The second task to compare
              *
              * @return `true` if the other task is before this task
              */
@@ -85,14 +86,15 @@ namespace dsl {
             }
 
             /**
-             * Check if tasks share the same execution time.
+             * Compares tasks in order of soonest to execute first.
              *
-             * @param other The other task to compare to
+             * @param lhs The first task to compare
+             * @param rhs The second task to compare
              *
-             * @return `true` if the other task is at the same time as this task
+             * @return `true` if the other task is after this task
              */
-            friend bool operator==(const ChronoTask& lhs, const ChronoTask& rhs) {
-                return lhs.time == rhs.time;
+            friend bool operator<(const std::shared_ptr<ChronoTask>& lhs, const std::shared_ptr<ChronoTask>& rhs) {
+                return *lhs < *rhs;
             }
 
             /// The task function, takes the time as a reference so it can be updated for multiple runs
