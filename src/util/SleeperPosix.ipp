@@ -32,7 +32,7 @@ namespace util {
 
     void Sleeper::wake() {
         state->interrupted.store(true, std::memory_order_release);
-        if (state->sleeping_thread != nullptr) {
+        if (state->sleeping_thread != pthread_t{}) {
             pthread_kill(state->sleeping_thread, SIGUSR1);
         }
     }
