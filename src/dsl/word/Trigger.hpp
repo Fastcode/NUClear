@@ -38,19 +38,14 @@ namespace dsl {
          * This will enact the execution of a task whenever T is emitted into the system.
          * When this occurs, read-only access to T will be provided to the triggering unit via a callback.
          *
-         * @code on<Trigger<T1, T2, ... >>() @endcode
-         * Note that a this request can handle triggers on multiple types.
-         * When using multiple types in the request the reaction will only be triggered once <b>all</b> of the trigger
-         * types have been emitted (at least once) since the last occurrence of the event.
-         *
          * @par Implements
          *  Bind, Get
          *
          * @tparam Ts The datatype on which a reaction callback will be triggered.
          *            Emission of this datatype into the system will trigger the subscribing reaction.
          */
-        template <typename... Ts>
-        struct Trigger : Fusion<operation::TypeBind<Ts>..., operation::CacheGet<Ts>...> {};
+        template <typename T>
+        struct Trigger : Fusion<operation::TypeBind<T>, operation::CacheGet<T>> {};
 
     }  // namespace word
 }  // namespace dsl

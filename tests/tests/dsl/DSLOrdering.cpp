@@ -46,7 +46,7 @@ public:
             });
 
         // Make sure we can pass an empty function in here
-        on<Trigger<Message<1>>, With<Message<1>, Message<2>>>().then([] { events.push_back("Empty function"); });
+        on<Trigger<Message<1>>, With<Message<1>>, With<Message<2>>>().then([] { events.push_back("Empty function"); });
 
         on<Trigger<Step<1>>, Priority::LOW>().then([this] {
             events.push_back("Emitting 1");
