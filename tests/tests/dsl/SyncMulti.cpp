@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2023 NUClear Contributors
+ * Copyright (c) 2015 NUClear Contributors
  *
  * This file is part of the NUClear codebase.
  * See https://github.com/Fastcode/NUClear for further info.
@@ -24,65 +24,60 @@
 #include <nuclear>
 
 #include "test_util/TestBase.hpp"
+#include "test_util/TimeUnit.hpp"
 
 namespace {
 
 /// Events that occur during the test
 std::vector<std::string> events;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
-template <int I>
-struct Message {
-    Message(std::string data) : data(std::move(data)) {}
-    std::string data;
-};
+struct A {};
+struct B {};
+
 
 class TestReactor : public test_util::TestBase<TestReactor> {
 public:
+    void do_task(const std::string& event) {
+        auto start = test_util::round_to_test_units(std::chrono::steady_clock::now() - start_time);
+        events.push_back(event + " started @ " + std::to_string(start.count()));
+        // Sleep for a bit to give a chance for the other threads to cause problems
+        std::this_thread::sleep_for(test_util::TimeUnit(2));
+        auto end = test_util::round_to_test_units(std::chrono::steady_clock::now() - start_time);
+        events.push_back(event + " finished @ " + std::to_string(end.count()));
+    }
+
     TestReactor(std::unique_ptr<NUClear::Environment> environment) : TestBase(std::move(environment)) {
-        // Check that the lists are combined, and that the function args are in order
-        on<With<Message<1>>, Trigger<Message<3>>, With<Message<2>>>().then(
-            [](const Message<1>& a, const Message<3>& c, const Message<2>& b) {
-                events.push_back("A:" + a.data + " B:" + b.data + " C:" + c.data);
-            });
 
-        // Make sure we can pass an empty function in here
-        on<Trigger<Message<1>>, With<Message<1>>, With<Message<2>>>().then([] { events.push_back("Empty function"); });
-
-        on<Trigger<Step<1>>, Priority::LOW>().then([this] {
-            events.push_back("Emitting 1");
-            emit(std::make_unique<Message<1>>("1"));
-        });
-        on<Trigger<Step<2>>, Priority::LOW>().then([this] {
-            events.push_back("Emitting 2");
-            emit(std::make_unique<Message<2>>("2"));
-        });
-        on<Trigger<Step<3>>, Priority::LOW>().then([this] {
-            events.push_back("Emitting 3");
-            emit(std::make_unique<Message<3>>("3"));
-        });
+        on<Trigger<A>, Sync<A>>().then([this] { do_task("Sync A"); });
+        on<Trigger<A>, Sync<A>, Sync<B>>().then([this] { do_task("Sync Both"); });
+        on<Trigger<B>, Sync<B>>().then([this] { do_task("Sync B"); });
 
         on<Startup>().then([this] {
-            emit(std::make_unique<Step<1>>());
-            emit(std::make_unique<Step<2>>());
-            emit(std::make_unique<Step<3>>());
+            start_time = std::chrono::steady_clock::now();
+            // Emitting both A and B at the same time should trigger all the reactions, but they should execute in order
+            emit(std::make_unique<A>());
+            emit(std::make_unique<B>());
         });
     }
+
+    std::chrono::steady_clock::time_point start_time;
 };
 }  // namespace
 
-TEST_CASE("Testing poorly ordered on arguments", "[api][dsl][order][with]") {
-
+TEST_CASE("Test that sync works when one thread has multiple groups", "[api][sync][multi]") {
     NUClear::Configuration config;
-    config.thread_count = 1;
+    config.thread_count = 4;
     NUClear::PowerPlant plant(config);
     plant.install<TestReactor>();
     plant.start();
 
     const std::vector<std::string> expected = {
-        "Emitting 1",
-        "Emitting 2",
-        "Emitting 3",
-        "A:1 B:2 C:3",
+        "Sync A started @ 0",
+        "Sync A finished @ 2",
+        "Sync Both started @ 2",
+        "Sync Both finished @ 4",
+        "Sync B started @ 4",
+        "Sync B finished @ 6",
     };
 
     // Make an info print the diff in an easy to read way if we fail

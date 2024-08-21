@@ -39,7 +39,7 @@ namespace threading {
         class CombinedLock : public Lock {
         public:
             CombinedLock() = default;
-            CombinedLock(std::unique_ptr<Lock>&& lock);
+            explicit CombinedLock(std::unique_ptr<Lock>&& lock);
             ~CombinedLock() override = default;
 
             CombinedLock(const CombinedLock&)            = delete;

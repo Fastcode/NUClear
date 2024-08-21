@@ -40,7 +40,7 @@ namespace threading {
         // Forward declare the scheduler
         class Scheduler;
 
-        class Pool {
+        class Pool : public std::enable_shared_from_this<Pool> {
         public:
             struct Task {
                 /**
@@ -61,12 +61,13 @@ namespace threading {
                 /**
                  * Sorts the tasks by the sort order of the reaction tasks
                  *
-                 * @param other the other task to compare to
+                 * @param lhs The left hand side task
+                 * @param rhs The right hand side task
                  *
                  * @return true if this task should be executed before the other task
                  */
-                bool operator<(const Task& other) const {
-                    return *task < *other.task;
+                friend bool operator<(const Task& lhs, const Task& rhs) {
+                    return *lhs.task < *rhs.task;
                 }
             };
 
@@ -103,26 +104,29 @@ namespace threading {
              * Stops the thread pool, all threads are woken and once the task queue is empty the threads will exit.
              * This function returns immediately, use join to wait for the threads to exit.
              */
-            void stop();
+            void stop(bool force = false);
 
             /**
              * Notify a thread in this pool that there is work to do.
              *
              * It will wake up a thread if one is waiting for work, otherwise it will be picked up by the next thread.
+             *
+             * @param clear_idle If true, the idle state of the pool will be cleared
              */
-            void notify();
+            void notify(bool clear_idle);
 
             /**
              * Wait for all threads in this pool to exit.
              */
-            void join();
+            void join() const;
 
             /**
              * Submit a new task to this thread pool
              *
-             * @param task the reaction task task to submit
+             * @param task       The reaction task task to submit
+             * @param clear_idle If true, the idle state of the pool will be cleared
              */
-            void submit(Task&& task);
+            void submit(Task&& task, bool clear_idle);
 
             /**
              * Add an idle task to this pool.
@@ -139,6 +143,24 @@ namespace threading {
              * @param id the id of the reaction to remove from the idle task list
              */
             void remove_idle_task(const NUClear::id_t& id);
+
+            /**
+             * Returns the thread pool that the current thread is running in, or nullptr if the current thread is not a
+             * scheduler thread.
+             *
+             * @return the thread pool that the current thread is running in
+             */
+            static std::shared_ptr<Pool> current();
+
+            /**
+             * Returns if the current thread is idle.
+             *
+             * @return true if the current thread is idle
+             */
+            bool is_idle() const;
+
+            /// The descriptor for this thread pool
+            const util::ThreadPoolDescriptor descriptor;
 
         private:
             /**
@@ -180,9 +202,6 @@ namespace threading {
             // The scheduler parent of this pool
             Scheduler& scheduler;
 
-            /// The descriptor for this thread pool
-            const util::ThreadPoolDescriptor descriptor;
-
             /// If running is false this means the pool is shutting down and no more tasks will be accepted
             bool running = true;
 
@@ -210,6 +229,9 @@ namespace threading {
             /// The idle status will be removed when a non idle task is retrieved from the queue
             /// Or when another thread pool notifies this pool, giving its chance at global idle to this pool
             std::unique_ptr<Lock> pool_idle = nullptr;
+
+            /// A thread local pointer to the current pool this thread is running in
+            static ATTRIBUTE_TLS Pool* current_pool;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
         };
 
     }  // namespace scheduler

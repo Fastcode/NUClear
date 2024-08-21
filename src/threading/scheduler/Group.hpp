@@ -50,10 +50,7 @@ namespace threading {
              * It holds if the lock should currently be locked, as well as ordering which locks should be locked first.
              */
             struct LockHandle {
-                LockHandle(const NUClear::id_t& task_id,
-                           const int& priority,
-                           const bool& locked,
-                           std::function<void()> notify);
+                LockHandle(const NUClear::id_t& task_id, const int& priority, std::function<void()> notify);
 
                 /**
                  * Compare two lock handles by comparing their priority and task id
@@ -62,8 +59,8 @@ namespace threading {
                  *
                  * @return true if this lock handle should execute before the other
                  */
-                bool operator<(const LockHandle& other) const {
-                    return priority == other.priority ? task_id < other.task_id : priority > other.priority;
+                friend bool operator<(const LockHandle& lhs, const LockHandle& rhs) {
+                    return lhs.priority == rhs.priority ? lhs.task_id < rhs.task_id : lhs.priority > rhs.priority;
                 }
 
                 /**
@@ -83,7 +80,9 @@ namespace threading {
                 /// The priority of the reaction that is waiting, higher priorities run first
                 int priority;
                 /// If this lock has been successfully locked
-                bool locked;
+                bool locked{false};
+                /// If this lock has been notified that it can lock
+                bool notified{false};
                 /// The function to execute when this lock is able to be locked
                 std::function<void()> notify;
             };
@@ -92,7 +91,8 @@ namespace threading {
             /**
              * A group lock is the RAII lock object that is used by the Pools to manage the group locking.
              */
-            struct GroupLock : public Lock {
+            class GroupLock : public Lock {
+            public:
                 /**
                  * Construct a new Group Lock object
                  *
@@ -137,7 +137,7 @@ namespace threading {
              *
              * @param descriptor The descriptor for this group
              */
-            explicit Group(const util::GroupDescriptor& descriptor);
+            explicit Group(util::GroupDescriptor descriptor);
 
             /**
              * This function will create a new lock for the task and return it.

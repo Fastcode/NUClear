@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2023 NUClear Contributors
+ * Copyright (c) 2024 NUClear Contributors
  *
  * This file is part of the NUClear codebase.
  * See https://github.com/Fastcode/NUClear for further info.
@@ -24,65 +24,65 @@
 #include <nuclear>
 
 #include "test_util/TestBase.hpp"
+#include "test_util/TimeUnit.hpp"
 
 namespace {
 
-/// Events that occur during the test
+/// A vector of events that have happened
 std::vector<std::string> events;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
-template <int I>
-struct Message {
-    Message(std::string data) : data(std::move(data)) {}
-    std::string data;
-};
+constexpr int time_step = 50;
 
 class TestReactor : public test_util::TestBase<TestReactor> {
 public:
-    TestReactor(std::unique_ptr<NUClear::Environment> environment) : TestBase(std::move(environment)) {
-        // Check that the lists are combined, and that the function args are in order
-        on<With<Message<1>>, Trigger<Message<3>>, With<Message<2>>>().then(
-            [](const Message<1>& a, const Message<3>& c, const Message<2>& b) {
-                events.push_back("A:" + a.data + " B:" + b.data + " C:" + c.data);
-            });
+    explicit TestReactor(std::unique_ptr<NUClear::Environment> environment) : TestBase(std::move(environment), false) {
 
-        // Make sure we can pass an empty function in here
-        on<Trigger<Message<1>>, With<Message<1>>, With<Message<2>>>().then([] { events.push_back("Empty function"); });
-
-        on<Trigger<Step<1>>, Priority::LOW>().then([this] {
-            events.push_back("Emitting 1");
-            emit(std::make_unique<Message<1>>("1"));
+        on<Trigger<Step<1>>, MainThread>().then([this] {  //
+            main_thread_id = std::this_thread::get_id();
+            events.push_back("Step<1>");
         });
-        on<Trigger<Step<2>>, Priority::LOW>().then([this] {
-            events.push_back("Emitting 2");
-            emit(std::make_unique<Message<2>>("2"));
-        });
-        on<Trigger<Step<3>>, Priority::LOW>().then([this] {
-            events.push_back("Emitting 3");
-            emit(std::make_unique<Message<3>>("3"));
-        });
-
-        on<Startup>().then([this] {
-            emit(std::make_unique<Step<1>>());
+        on<Idle<MainThread>>().then([this] {
+            idle_thread_id = std::this_thread::get_id();
+            events.push_back("Main Idle");
             emit(std::make_unique<Step<2>>());
-            emit(std::make_unique<Step<3>>());
         });
+        on<Trigger<Step<2>>>().then([this] {
+            default_thread_id = std::this_thread::get_id();
+            events.push_back("Step<2>");
+            // Sleep for a bit to coax out any more idle triggers
+            std::this_thread::sleep_for(test_util::TimeUnit(2));
+            powerplant.shutdown();
+        });
+
+        on<Startup>().then([this] { emit(std::make_unique<Step<1>>()); });
     }
+
+    std::thread::id main_thread_id;
+    std::thread::id idle_thread_id;
+    std::thread::id default_thread_id;
 };
+
 }  // namespace
 
-TEST_CASE("Testing poorly ordered on arguments", "[api][dsl][order][with]") {
+
+TEST_CASE("Test that idle can fire events for other pools but only runs once", "[api][dsl][Idle][Pool]") {
 
     NUClear::Configuration config;
     config.thread_count = 1;
     NUClear::PowerPlant plant(config);
-    plant.install<TestReactor>();
+    auto& reactor = plant.install<TestReactor>();
     plant.start();
 
+    // Check that things ran on the correct thread
+    CAPTURE(std::this_thread::get_id());
+    CHECK(reactor.main_thread_id != reactor.idle_thread_id);
+    CHECK(reactor.main_thread_id != reactor.default_thread_id);
+    CHECK(reactor.idle_thread_id == reactor.default_thread_id);
+
     const std::vector<std::string> expected = {
-        "Emitting 1",
-        "Emitting 2",
-        "Emitting 3",
-        "A:1 B:2 C:3",
+        "Step<1>",
+        "Main Idle",
+        "Step<2>",
     };
 
     // Make an info print the diff in an easy to read way if we fail

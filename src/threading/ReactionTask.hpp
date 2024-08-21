@@ -71,7 +71,7 @@ namespace threading {
          * @param parent         The Reaction object that spawned this ReactionTask.
          * @param priority_fn    A function that can be called to get the priority of this task
          * @param thread_pool_fn A function that can be called to get the thread pool descriptor for this task
-         * @param group_fn       A function that can be called to get the list of group descriptors for this task
+         * @param groups_fn      A function that can be called to get the list of group descriptors for this task
          */
         template <typename GetPriority, typename GetGroups, typename GetThreadPool>
         ReactionTask(const std::shared_ptr<Reaction>& parent,
@@ -115,7 +115,7 @@ namespace threading {
         /**
          * Runs the internal data bound task.
          */
-        void run();
+        void run() noexcept;
 
         /**
          * Generate a new unique task id.
@@ -134,7 +134,7 @@ namespace threading {
         /// Details about the thread pool that this task will run from, this will also influence what task queue
         /// the tasks will be queued on
         util::ThreadPoolDescriptor pool_descriptor;
-        /// details about the groups that this task will run in
+        /// Details about the groups that this task will run in
         std::set<util::GroupDescriptor> group_descriptors;
 
         /// The statistics object that records run details about this reaction task
@@ -155,12 +155,13 @@ namespace threading {
          * The task with higher priority is considered less.
          * If two tasks have equal priority, the one with the lower ID is considered less.
          *
-         * @param other The other ReactionTask object to compare with.
+         * @param lhs The left hand side of the comparison
+         * @param rhs The right hand side of the comparison
          *
          * @return true if the current object is less than the other object, false otherwise.
          */
-        bool operator<(const ReactionTask& other) const {
-            return priority == other.priority ? id < other.id : priority > other.priority;
+        friend bool operator<(const ReactionTask& lhs, const ReactionTask& rhs) {
+            return lhs.priority == rhs.priority ? lhs.id < rhs.id : lhs.priority > rhs.priority;
         }
     };
 

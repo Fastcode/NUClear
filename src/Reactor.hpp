@@ -75,10 +75,10 @@ namespace dsl {
 
         struct NetworkSource;
 
-        template <typename...>
+        template <typename>
         struct Trigger;
 
-        template <typename...>
+        template <typename>
         struct With;
 
         struct Startup;
@@ -145,8 +145,10 @@ public:
 
     explicit Reactor(std::unique_ptr<Environment> environment)
         : powerplant(environment->powerplant), reactor_name(environment->reactor_name) {}
-    Reactor(const Reactor& /*other*/)              = default;
-    Reactor(Reactor&& /*other*/) noexcept          = default;
+
+    // Copying or moving a Reactor is almost certainly a mistake
+    Reactor(const Reactor& /*other*/)              = delete;
+    Reactor(Reactor&& /*other*/) noexcept          = delete;
     Reactor& operator=(const Reactor& /*rhs*/)     = delete;
     Reactor& operator=(Reactor&& /*rhs*/) noexcept = delete;
 
@@ -179,8 +181,8 @@ protected:
      **************************************************************************************************************/
 
     /// @copydoc dsl::word::Trigger
-    template <typename... Ts>
-    using Trigger = dsl::word::Trigger<Ts...>;
+    template <typename T>
+    using Trigger = dsl::word::Trigger<T>;
 
     /// @copydoc dsl::word::Priority
     using Priority = dsl::word::Priority;
@@ -205,8 +207,8 @@ protected:
     using TCP = dsl::word::TCP;
 
     /// @copydoc dsl::word::With
-    template <typename... Ts>
-    using With = dsl::word::With<Ts...>;
+    template <typename T>
+    using With = dsl::word::With<T>;
 
     /// @copydoc dsl::word::Optional
     template <typename... DSL>

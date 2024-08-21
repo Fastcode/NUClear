@@ -50,21 +50,18 @@ namespace util {
         /**
          * Return the next unique ID for a new group
          */
-        static NUClear::id_t get_unique_group_id() noexcept {
-            // Make group 0 the default group
-            static std::atomic<NUClear::id_t> source{1};
-            return source.fetch_add(1, std::memory_order_relaxed);
-        }
+        static NUClear::id_t get_unique_group_id() noexcept;
 
         /**
          * Compare two group descriptors by their group_id to allow for sorting and uniqueness
          *
-         * @param other the other group descriptor to compare to
+         * @param lhs the left hand side of the comparison
+         * @param rhs the right hand side of the comparison
          *
          * @return true if this group_id is less than the other group_id
          */
-        bool operator<(const GroupDescriptor& other) const {
-            return group_id < other.group_id;
+        friend bool operator<(const GroupDescriptor& lhs, const GroupDescriptor& rhs) {
+            return lhs.group_id < rhs.group_id;
         }
     };
 

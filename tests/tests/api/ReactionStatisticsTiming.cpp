@@ -58,7 +58,8 @@ using NUClear::message::ReactionEvent;
 
 class TestReactor : public test_util::TestBase<TestReactor> {
 public:
-    TestReactor(std::unique_ptr<NUClear::Environment> environment) : TestBase(std::move(environment)) {
+    TestReactor(std::unique_ptr<NUClear::Environment> environment)
+        : TestBase(std::move(environment), true, std::chrono::seconds(2)) {
 
         on<Trigger<Step<1>>, Priority::LOW>().then(initial_name + ":" + heavy_name, [this] {
             code_events.emplace_back("Started " + initial_name + ":" + heavy_name, NUClear::clock::now());

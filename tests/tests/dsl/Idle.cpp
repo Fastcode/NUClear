@@ -37,7 +37,7 @@ struct SimpleMessage {
 
 constexpr int time_step = 50;
 
-class TestReactor : public test_util::TestBase<TestReactor, 10000> {
+class TestReactor : public test_util::TestBase<TestReactor> {
 public:
     template <int N>
     struct CustomPool {
@@ -51,7 +51,8 @@ public:
         emit(std::make_unique<Step<N + 1>>());
     }
 
-    TestReactor(std::unique_ptr<NUClear::Environment> environment) : TestBase(std::move(environment), false) {
+    explicit TestReactor(std::unique_ptr<NUClear::Environment> environment)
+        : TestBase(std::move(environment), false, std::chrono::seconds(2)) {
 
         start_time = NUClear::clock::now();
 
