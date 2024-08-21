@@ -16,7 +16,7 @@ namespace util {
         /// If the sleeper has been interrupted
         std::atomic<bool> interrupted{false};
         /// The thread that is currently sleeping
-        pthread_t sleeping_thread{nullptr};
+        pthread_t sleeping_thread{};
     };
 
 
@@ -38,11 +38,12 @@ namespace util {
     }
 
     void Sleeper::sleep_until(const std::chrono::steady_clock::time_point& target) {
+        if (state->sleeping_thread != pthread_t{}) {
+            throw std::runtime_error("Cannot sleep multiple times on the same Sleeper object");
+        }
 
         // Store the current sleeping thread so we can wake it up if we need to
-        std::unique_ptr<std::remove_pointer_t<pthread_t>, std::function<void(pthread_t)>> current_lock(
-            ::pthread_self(),
-            [this](pthread_t) { state->sleeping_thread = nullptr; });
+        state->sleeping_thread = ::pthread_self();
 
         while (!state->interrupted.load(std::memory_order_acquire)) {
             auto now = std::chrono::steady_clock::now();
@@ -59,6 +60,7 @@ namespace util {
         }
 
         // Not interrupted as we are leaving so if we are interrupted before entering we immediately skip
+        state->sleeping_thread = pthread_t{};
         state->interrupted.store(false, std::memory_order_release);
     }
 
