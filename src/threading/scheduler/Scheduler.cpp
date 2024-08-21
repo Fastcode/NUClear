@@ -141,7 +141,7 @@ namespace threading {
             auto lock = std::make_unique<CombinedLock>();
             for (const auto& desc : descs) {
                 lock->add(get_group(desc)->lock(task_id, priority, [pool] {
-                    bool current_pool_idle = Pool::current() != nullptr && Pool::current()->is_idle();
+                    const bool current_pool_idle = Pool::current() != nullptr && Pool::current()->is_idle();
                     pool->notify(!current_pool_idle);
                 }));
             }
@@ -170,7 +170,7 @@ namespace threading {
                 // Clear the idle status only if the current pool is not idle
                 // This hands the job of managing global idle tasks to this other pool if we were about to do it
                 // That way the other pool can decide if it is idle or not
-                bool current_pool_idle = Pool::current() != nullptr && Pool::current()->is_idle();
+                const bool current_pool_idle = Pool::current() != nullptr && Pool::current()->is_idle();
                 pool->submit({std::move(task), std::move(group_lock)}, !current_pool_idle);
             }
         }
