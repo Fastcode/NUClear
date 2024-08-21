@@ -20,7 +20,7 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include <catch.hpp>
+#include <catch2/catch_test_macros.hpp>
 #include <nuclear>
 
 #include "test_util/TestBase.hpp"
@@ -44,7 +44,7 @@ struct PoolFinished {};
 
 static constexpr int POOL_COUNT = 10;
 
-class TestReactor : public test_util::TestBase<TestReactor, 1000> {
+class TestReactor : public test_util::TestBase<TestReactor> {
 public:
     template <int id>
     struct TestPool {
