@@ -61,13 +61,13 @@ namespace util {
         sym_initialised = true;
     }
 
-    std::string demangle(const char* symbol) {
+    std::string demangle(const char* symbol) noexcept {
         // If the symbol is null or the empty string then just return it
         if (symbol == nullptr || symbol[0] == '\0') {
             return "";
         }
 
-        std::lock_guard<std::mutex> lock(symbol_mutex);
+        const std::lock_guard<std::mutex> lock(symbol_mutex);
 
         // Initialise the symbols if we have to
         if (!sym_initialised) {
@@ -104,13 +104,13 @@ namespace NUClear {
 namespace util {
 
     /**
-     * @brief Demangles the passed symbol to a string, or returns it if it cannot demangle it
+     * Demangles the passed symbol to a string, or returns it if it cannot demangle it.
      *
      * @param symbol the symbol to demangle
      *
-     * @return the demangled symbol, or the original string if it could not be demangeld
+     * @return the demangled symbol, or the original string if it could not be demangled
      */
-    std::string demangle(const char* symbol) {
+    std::string demangle(const char* symbol) noexcept {
 
         if (symbol == nullptr) {
             return {};

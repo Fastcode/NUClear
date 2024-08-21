@@ -37,47 +37,46 @@ namespace dsl {
     namespace word {
 
         /**
-         * @brief A base type to handle the common code for idling after turning the pool descriptor into an id.
+         * A base type to handle the common code for idling after turning the pool descriptor into an id.
          */
         inline void bind_idle(const std::shared_ptr<threading::Reaction>& reaction,
                               const util::ThreadPoolDescriptor& pool_descriptor) {
 
             // Our unbinder to remove this reaction
             reaction->unbinders.push_back([pool_descriptor](const threading::Reaction& r) {  //
-                r.reactor.powerplant.remove_idle_task(r.id, pool_descriptor);
+                r.reactor.powerplant.remove_idle_task(pool_descriptor, r.id);
             });
 
-            reaction->reactor.powerplant.add_idle_task(reaction->id, pool_descriptor, [reaction] {
-                reaction->reactor.powerplant.submit(reaction->get_task());
-            });
+            reaction->reactor.powerplant.add_idle_task(pool_descriptor, reaction);
         }
 
         /**
-         * @brief Execute a task when there is nothing currently running on the thread pool.
+         * Execute a task when there is nothing currently running on the thread pool.
          *
-         * @details
-         *  @code on<Idle<PoolType>>() @endcode
-         *  When the thread pool is idle, this task will be executed. This is use
+         * @code on<Idle<PoolType>>() @endcode
+         * When the thread pool is idle, this task will be executed.
          *
          * @par Implements
          *  Bind
          *
-         * @tparam PoolType the descriptor that was used to create the thread pool
-         *         void for the default pool
-         *         MainThread for the main thread pool
+         * @tparam PoolType The descriptor that was used to create the thread pool.
+         *                  `void` for the default pool MainThread for the main thread pool.
          */
         template <typename PoolType>
         struct Idle {
             template <typename DSL>
-            static inline void bind(const std::shared_ptr<threading::Reaction>& reaction) {
-                bind_idle(reaction, PoolType::template pool<DSL>(*reaction));
+            static void bind(const std::shared_ptr<threading::Reaction>& reaction) {
+
+                // Make a fake task to use for finding an appropriate descriptor
+                threading::ReactionTask task(reaction, DSL::priority, DSL::pool, DSL::group);
+                bind_idle(reaction, PoolType::template pool<DSL>(task));
             }
         };
 
         template <>
         struct Idle<void> {
             template <typename DSL>
-            static inline void bind(const std::shared_ptr<threading::Reaction>& reaction) {
+            static void bind(const std::shared_ptr<threading::Reaction>& reaction) {
                 bind_idle(reaction, util::ThreadPoolDescriptor::AllPools());
             }
         };

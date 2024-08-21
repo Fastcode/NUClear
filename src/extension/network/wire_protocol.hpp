@@ -39,12 +39,12 @@ namespace extension {
     namespace network {
 
         /**
-         * @brief A number that is used to represent the type of packet that is being sent/received
+         * A number that is used to represent the type of packet that is being sent/received
          */
         enum Type : uint8_t { ANNOUNCE = 1, LEAVE = 2, DATA = 3, DATA_RETRANSMISSION = 4, ACK = 5, NACK = 6 };
 
         /**
-         * @brief The header that is sent with every packet
+         * The header that is sent with every packet.
          */
         PACK(struct PacketHeader {
             explicit PacketHeader(const Type& t) : type(t) {}
@@ -59,17 +59,17 @@ namespace extension {
         });
 
         PACK(struct AnnouncePacket
-             : public PacketHeader {
+             : PacketHeader {
                  AnnouncePacket() : PacketHeader(ANNOUNCE) {}
 
                  // A null terminated string name for this node (&name)
                  char name{0};
              });
 
-        PACK(struct LeavePacket : public PacketHeader{LeavePacket(): PacketHeader(LEAVE){}});
+        PACK(struct LeavePacket : PacketHeader{LeavePacket(): PacketHeader(LEAVE){}});
 
         PACK(struct DataPacket
-             : public PacketHeader {
+             : PacketHeader {
                  DataPacket() : PacketHeader(DATA) {}
 
                  // A semi-unique identifier for this packet group
@@ -87,7 +87,7 @@ namespace extension {
              });
 
         PACK(struct ACKPacket
-             : public PacketHeader {
+             : PacketHeader {
                  ACKPacket() : PacketHeader(ACK) {}
 
                  /// The packet group identifier we are acknowledging
@@ -101,7 +101,7 @@ namespace extension {
              });
 
         PACK(struct NACKPacket
-             : public PacketHeader {
+             : PacketHeader {
                  NACKPacket() : PacketHeader(NACK) {}
 
                  /// The packet group identifier we are acknowledging

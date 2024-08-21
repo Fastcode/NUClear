@@ -39,15 +39,12 @@ namespace dsl {
         namespace emit {
 
             /**
-             * @brief
-             *  Emits data as a UDP packet over the network.
+             * Emits data as a UDP packet over the network.
              *
-             * @details
-             *  @code emit<Scope::UDP>(data, to_addr, to_port); @endcode
-             *  Emissions under this scope are useful for communicating with third parties. The target of the packet
-             *  can be can be a unicast, broadcast or multicast address, specified as either a host endian int, or as a
-             *  string. Additionally the address and port on the local machine can be specified using a string or host
-             *  endian int.
+             * @code emit<Scope::UDP>(data, to_addr, to_port); @endcode
+             * Emissions under this scope are useful for communicating with other systems using UDP.
+             * The target of the packet can be can be a unicast, broadcast or multicast address, specified as a string.
+             * Additionally the address and port on the local machine can be specified using a string and port.
              *
              * @attention
              *  Anything emitted over the UDP network must be serialisable.
@@ -62,12 +59,12 @@ namespace dsl {
             template <typename DataType>
             struct UDP {
 
-                static inline void emit(const PowerPlant& /*powerplant*/,
-                                        std::shared_ptr<DataType> data,
-                                        const std::string& to_addr,
-                                        in_port_t to_port,
-                                        const std::string& from_addr = "",
-                                        in_port_t from_port          = 0) {
+                static void emit(const PowerPlant& /*powerplant*/,
+                                 std::shared_ptr<DataType> data,
+                                 const std::string& to_addr,
+                                 in_port_t to_port,
+                                 const std::string& from_addr = "",
+                                 in_port_t from_port          = 0) {
 
                     // Resolve our addresses
                     const util::network::sock_t remote = util::network::resolve(to_addr, to_port);
@@ -175,7 +172,7 @@ namespace dsl {
             };
 
         }  // namespace emit
-    }      // namespace word
+    }  // namespace word
 }  // namespace dsl
 }  // namespace NUClear
 

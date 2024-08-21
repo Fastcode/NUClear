@@ -20,8 +20,8 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_THREADING_REACTIONIDENTIFIERS_HPP
-#define NUCLEAR_THREADING_REACTIONIDENTIFIERS_HPP
+#ifndef NUCLEAR_THREADING_REACTION_IDENTIFIERS_HPP
+#define NUCLEAR_THREADING_REACTION_IDENTIFIERS_HPP
 
 #include <string>
 
@@ -29,32 +29,32 @@ namespace NUClear {
 namespace threading {
 
     /**
-     * @brief This struct holds string fields that can be used to identify a reaction.
+     * This struct holds string fields that can be used to identify a reaction.
      */
     struct ReactionIdentifiers {
 
         /**
-         * @brief Construct a new Identifiers object
+         * Construct a new Identifiers object.
          *
-         * @param name the name of the reaction provided by the user
-         * @param reactor the name of the reactor that this reaction belongs to
-         * @param dsl the DSL that this reaction was created from
-         * @param function the callback function that this reaction is bound to
+         * @param name     The name of the reaction provided by the user
+         * @param reactor  The name of the reactor that this reaction belongs to
+         * @param dsl      The DSL that this reaction was created from
+         * @param function The callback function that this reaction is bound to
          */
         ReactionIdentifiers(std::string name, std::string reactor, std::string dsl, std::string function)
             : name(std::move(name)), reactor(std::move(reactor)), dsl(std::move(dsl)), function(std::move(function)) {}
 
-        /// @brief The name of the reaction provided by the user
+        /// The name of the reaction provided by the user
         std::string name;
-        /// @brief The name of the reactor that this reaction belongs to
+        /// The name of the reactor that this reaction belongs to
         std::string reactor;
-        /// @brief The DSL that this reaction was created from
+        /// The DSL that this reaction was created from
         std::string dsl;
-        /// @brief The callback function that this reaction is bound to
+        /// The callback function that this reaction is bound to
         std::string function;
     };
 
 }  // namespace threading
 }  // namespace NUClear
 
-#endif  // NUCLEAR_THREADING_REACTIONIDENTIFIERS_HPP
+#endif  // NUCLEAR_THREADING_REACTION_IDENTIFIERS_HPP

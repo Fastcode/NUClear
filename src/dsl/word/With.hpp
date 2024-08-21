@@ -31,32 +31,32 @@ namespace dsl {
     namespace word {
 
         /**
-         * @brief
-         *  This is used to define any extra data which should be provided to a subscribing a reaction.
+         * This is used to define any extra data which should be provided to a subscribing a reaction.
          *
-         * @details
-         *  @code on<With<T2>>() @endcode
-         *  Note that during runtime, the emission of data using this word will not trigger a reaction within the
-         *  system.  For best use, this word should be fused with at least one other binding DSL word.
+         * @code on<With<T2>>() @endcode
+         * Note that during runtime, the emission of data using this word will not trigger a reaction within the
+         * system.
+         * This word must be fused with at least one other binding DSL word.
          *
-         *  @code on<Trigger<T1>, With<T2>>() @endcode
-         *  In the example above, when T2 is emitted into the system, it will <b>not</b> trigger a callback to the
-         *  triggering reaction. Yet when T1 is emitted into the system, read-only access to the most recent copy of
-         *  both T1 and T2 will be provided via a callback to the reaction.
+         * @code on<Trigger<T1>, With<T2>>() @endcode
+         * In the example above, when T2 is emitted into the system, it will <b>not</b> trigger a callback to the
+         * triggering reaction.
+         * Yet when T1 is emitted into the system, read-only access to the most recent copy of  both T1 and T2 will be
+         * provided via a callback to the reaction.
          *
-         *  If a copy of T2 is not present when T1 is emitted into the system, the task will be dropped (i.e the
-         *  reaction will not run). To override this functionality, include the DSL keyword "Optional" in the request.
-         *  For example:
-         *  @code on<Trigger<T1>, Optional<With<T2>>>() @endcode
+         * If a copy of T2 is not present when T1 is emitted into the system, the task will be dropped (i.e the
+         * reaction will not run).
+         * To override this functionality, include the DSL keyword "Optional" in the request.
+         * For example:
+         * @code on<Trigger<T1>, Optional<With<T2>>>() @endcode
          *
          * @par Implements
          *  Get
          *
-         * @tparam T
-         *  the datatype/s which will be provided to a subscribing reaction when the reaction is triggered.
+         * @tparam T The datatype/s which will be provided to a subscribing reaction when the reaction is triggered.
          */
-        template <typename... T>
-        struct With : public Fusion<operation::CacheGet<T>...> {};
+        template <typename T>
+        struct With : Fusion<operation::CacheGet<T>> {};
 
     }  // namespace word
 }  // namespace dsl

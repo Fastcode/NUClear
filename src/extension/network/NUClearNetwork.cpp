@@ -23,14 +23,13 @@
 #include "NUClearNetwork.hpp"
 
 #include <algorithm>
-#include <cerrno>
 #include <cstring>
-#include <set>
+#include <iterator>
+#include <ratio>
 #include <stdexcept>
 #include <system_error>
 #include <utility>
 
-#include "../../util/network/get_interfaces.hpp"
 #include "../../util/network/if_number_from_address.hpp"
 #include "../../util/network/resolve.hpp"
 #include "../../util/platform.hpp"
@@ -40,11 +39,11 @@ namespace extension {
     namespace network {
 
         /**
-         * @brief Read a single packet from the given udp file descriptor
+         * Read a single packet from the given udp file descriptor.
          *
-         * @param fd the file descriptor to read from
+         * @param fd The file descriptor to read from
          *
-         * @return the data and who it was sent from
+         * @return The data and who it was sent from
          */
         std::pair<util::network::sock_t, std::vector<uint8_t>> read_socket(fd_t fd) {
 
@@ -117,6 +116,8 @@ namespace extension {
                     std::memcpy(key.data(), &address.ipv6.sin6_addr, sizeof(address.ipv6.sin6_addr));
                     key[8] = address.ipv6.sin6_port;
                     break;
+
+                default: throw std::invalid_argument("Unknown address family");
             }
 
             return key;
@@ -726,7 +727,9 @@ namespace extension {
                                              to.size());
 
                                     // Set this packet to have been recently received
-                                    remote->recent_packets[++remote->recent_packets_index] = packet.packet_id;
+                                    remote->recent_packets[remote->recent_packets_index
+                                                               .fetch_add(1, std::memory_order_relaxed)] =
+                                        packet.packet_id;
                                 }
 
                                 packet_callback(*remote, packet.hash, packet.reliable, std::move(out));
@@ -840,7 +843,9 @@ namespace extension {
                                     // If the packet was reliable add that it was recently received
                                     if (packet.reliable) {
                                         // Set this packet to have been recently received
-                                        remote->recent_packets[++remote->recent_packets_index] = packet.packet_id;
+                                        remote->recent_packets[remote->recent_packets_index
+                                                                   .fetch_add(1, std::memory_order_relaxed)] =
+                                            packet.packet_id;
                                     }
 
                                     // We have completed this packet, discard the data

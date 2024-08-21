@@ -20,10 +20,10 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_DSL_FUSION_PRIORITYFUSION_HPP
-#define NUCLEAR_DSL_FUSION_PRIORITYFUSION_HPP
+#ifndef NUCLEAR_DSL_FUSION_PRIORITY_FUSION_HPP
+#define NUCLEAR_DSL_FUSION_PRIORITY_FUSION_HPP
 
-#include "../../threading/Reaction.hpp"
+#include "../../threading/ReactionTask.hpp"
 #include "../operation/DSLProxy.hpp"
 #include "has_priority.hpp"
 
@@ -41,21 +41,21 @@ namespace dsl {
         struct PriorityWords;
 
         /**
-         * @brief Metafunction that extracts all of the Words with a priority function
+         * Metafunction that extracts all of the Words with a priority function.
          *
-         * @tparam Word1        The word we are looking at
-         * @tparam WordN        The words we have yet to look at
-         * @tparam FoundWords   The words we have found with priority functions
+         * @tparam Word1      The word we are looking at
+         * @tparam WordN      The words we have yet to look at
+         * @tparam FoundWords The words we have found with priority functions
          */
         template <typename Word1, typename... WordN, typename... FoundWords>
         struct PriorityWords<std::tuple<Word1, WordN...>, std::tuple<FoundWords...>>
-            : public std::conditional_t<
+            : std::conditional_t<
                   has_priority<typename Priority<Word1>::type>::value,
                   /*T*/ PriorityWords<std::tuple<WordN...>, std::tuple<FoundWords..., typename Priority<Word1>::type>>,
                   /*F*/ PriorityWords<std::tuple<WordN...>, std::tuple<FoundWords...>>> {};
 
         /**
-         * @brief Termination case for the PriorityWords metafunction
+         * Termination case for the PriorityWords metafunction.
          *
          * @tparam FoundWords The words we have found with priority functions
          */
@@ -74,10 +74,10 @@ namespace dsl {
         struct PriorityFuser<std::tuple<Word>> {
 
             template <typename DSL>
-            static inline int priority(threading::Reaction& reaction) {
+            static int priority(threading::ReactionTask& task) {
 
                 // Return our priority
-                return Word::template priority<DSL>(reaction);
+                return Word::template priority<DSL>(task);
             }
         };
 
@@ -86,19 +86,19 @@ namespace dsl {
         struct PriorityFuser<std::tuple<Word1, Word2, WordN...>> {
 
             template <typename DSL>
-            static inline int priority(threading::Reaction& reaction) {
+            static int priority(threading::ReactionTask& task) {
 
                 // Choose our maximum priority
-                return std::max(Word1::template priority<DSL>(reaction),
-                                PriorityFuser<std::tuple<Word2, WordN...>>::template priority<DSL>(reaction));
+                return std::max(Word1::template priority<DSL>(task),
+                                PriorityFuser<std::tuple<Word2, WordN...>>::template priority<DSL>(task));
             }
         };
 
         template <typename Word1, typename... WordN>
-        struct PriorityFusion : public PriorityFuser<typename PriorityWords<std::tuple<Word1, WordN...>>::type> {};
+        struct PriorityFusion : PriorityFuser<typename PriorityWords<std::tuple<Word1, WordN...>>::type> {};
 
     }  // namespace fusion
 }  // namespace dsl
 }  // namespace NUClear
 
-#endif  // NUCLEAR_DSL_FUSION_PRIORITYFUSION_HPP
+#endif  // NUCLEAR_DSL_FUSION_PRIORITY_FUSION_HPP

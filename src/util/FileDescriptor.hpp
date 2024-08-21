@@ -31,20 +31,20 @@ namespace NUClear {
 namespace util {
 
     /**
-     * @brief An RAII file descriptor.
+     * An RAII file descriptor.
      *
-     * @details This class represents an RAII file descriptor.
-     *          It will close the file descriptor it holds on destruction.
+     * This class represents an RAII file descriptor.
+     * It will close the file descriptor it holds on destruction.
      */
     class FileDescriptor {
     public:
         /**
-         * @brief Construct a File Descriptor with an invalid file descriptor.
+         * Construct a File Descriptor with an invalid file descriptor.
          */
         FileDescriptor();
 
         /**
-         * @brief Constructs a new RAII file descriptor.
+         * Constructs a new RAII file descriptor.
          *
          * @param fd the file descriptor to hold
          * @param cleanup an optional cleanup function to call on close
@@ -60,12 +60,12 @@ namespace util {
         FileDescriptor& operator=(FileDescriptor&& rhs) noexcept;
 
         /**
-         * @brief Destruct the file descriptor, closes the held fd
+         * Destruct the file descriptor, closes the held fd.
          */
         ~FileDescriptor();
 
         /**
-         * @brief Get the currently held file descriptor
+         * Get the currently held file descriptor.
          *
          * @return the file descriptor
          */
@@ -74,36 +74,35 @@ namespace util {
         fd_t get();
 
         /**
-         * @brief Returns if the currently held file descriptor is valid
+         * Returns if the currently held file descriptor is valid.
          *
-         * @return true     if the file descriptor is valid
-         * @return false    if the file descriptor is invalid
+         * @return `true` if the file descriptor is valid
          */
         bool valid() const;
 
         /**
-         * @brief Close the currently held file descriptor
+         * Close the currently held file descriptor.
          */
         void close();
 
         /**
-         * @brief Release the currently held file descriptor
+         * Release the currently held file descriptor.
          *
-         * @return the file descriptor
+         * @return The file descriptor
          */
         fd_t release();
 
         /**
-         * @brief Implicitly convert this class to a file descriptor
+         * Implicitly convert this class to a file descriptor.
          *
-         * @return the file descriptor
+         * @return The file descriptor
          */
         operator fd_t();
 
     private:
-        /// @brief The held file descriptor
+        /// The held file descriptor
         fd_t fd{INVALID_SOCKET};
-        /// @brief An optional cleanup function to call on close
+        /// An optional cleanup function to call on close
         std::function<void(fd_t)> cleanup;
     };
 

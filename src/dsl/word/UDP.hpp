@@ -26,7 +26,6 @@
 #include <array>
 #include <stdexcept>
 
-#include "../../PowerPlant.hpp"
 #include "../../threading/Reaction.hpp"
 #include "../../util/FileDescriptor.hpp"
 #include "../../util/network/get_interfaces.hpp"
@@ -40,61 +39,59 @@ namespace dsl {
     namespace word {
 
         /**
-         * @brief
-         *  This allows a reaction to be triggered based on UDP activity originating from external sources, or UDP
-         *  emissions within the system.
+         * This allows a reaction to be triggered based on UDP activity originating from external sources, or UDP
+         * emissions within the system.
          *
-         * @details
-         *  @code on<UDP>(port) @endcode
-         *  When a connection is identified on the assigned port, the associated reaction will be triggered.  The
-         *  request for a UDP based reaction can use a runtime argument to reference a specific port.  Note that the
-         *  port reference can be changed during the systems execution phase.
+         * @code on<UDP>(port) @endcode
+         * When a connection is identified on the assigned port, the associated reaction will be triggered.
+         * The request for a UDP based reaction can use a runtime argument to reference a specific port.
+         * Note that the port reference cannot be changed during the systems execution phase.
          *
          * @code on<UDP>(port, bind_address) @endcode
-         *  The `bind_address` parameter can be used to specify which interface to bind on. If `bind_address` is an
-         * empty string, the system will bind to any available interface.
+         * The `bind_address` parameter can be used to specify which interface to bind on.
+         * If `bind_address` is an empty string, the system will bind to any available interface.
          *
-         *  @code on<UDP>() @endcode
-         *  Should the port reference be omitted, then the system will bind to a currently unassigned port.
+         * @code on<UDP>() @endcode
+         * Should the port reference be omitted, then the system will bind to a currently unassigned port.
          *
-         *  @code on<UDP:Broadcast>(port)
-         *  on<UDP:Multicast>(multicast_address, port) @endcode
-         *  If needed, this trigger can also listen for UDP activity such as broadcast and multicast.
+         * @code on<UDP:Broadcast>(port)
+         * on<UDP:Multicast>(multicast_address, port) @endcode
+         * If needed, this trigger can also listen for UDP activity such as broadcast and multicast.
          *
-         *  These requests support both IPv4 and IPv6 addressing.
+         * These requests support both IPv4 and IPv6 addressing.
          *
          * @par Implements
          *  Bind
          */
-        struct UDP : public IO {
+        struct UDP : IO {
         private:
             /**
-             * @brief This structure is used to configure the UDP connection
+             * This structure is used to configure the UDP connection
              */
             struct ConnectOptions {
-                /// @brief The type of connection we are making
-                enum class Type { UNICAST, BROADCAST, MULTICAST };
-                /// @brief The type of connection we are making
+                /// The type of connection we are making
+                enum class Type : uint8_t { UNICAST, BROADCAST, MULTICAST };
+                /// The type of connection we are making
                 Type type{};
-                /// @brief The address we are binding to or empty for any
-                std::string bind_address{};
-                /// @brief The port we are binding to or 0 for any
+                /// The address we are binding to or empty for any
+                std::string bind_address;
+                /// The port we are binding to or 0 for any
                 in_port_t port = 0;
-                /// @brief The multicast address we are listening on or empty for any
-                std::string target_address{};
+                /// The multicast address we are listening on or empty for any
+                std::string target_address;
             };
 
             /**
-             * @brief This structure is used to return the result of a recvmsg call
+             * This structure is used to return the result of a recvmsg call
              */
             struct RecvResult {
-                /// @brief If the packet is valid
+                /// If the packet is valid
                 bool valid{false};
-                /// @brief The data that was received
-                std::vector<uint8_t> payload{};
-                /// @brief The local address that the packet was received on
+                /// The data that was received
+                std::vector<uint8_t> payload;
+                /// The local address that the packet was received on
                 util::network::sock_t local{};
-                /// @brief The remote address that the packet was received from
+                /// The remote address that the packet was received from
                 util::network::sock_t remote{};
             };
 
@@ -102,29 +99,29 @@ namespace dsl {
             struct Packet {
                 Packet() = default;
 
-                /// @brief If the packet is valid (it contains data)
+                /// If the packet is valid (it contains data)
                 bool valid{false};
 
                 struct Target {
                     Target() = default;
                     Target(std::string address, const uint16_t& port) : address(std::move(address)), port(port) {}
 
-                    /// @brief The address of the target
-                    std::string address{};
-                    /// @brief The port of the target
+                    /// The address of the target
+                    std::string address;
+                    /// The port of the target
                     uint16_t port{0};
                 };
 
-                /// @brief The information about this packets destination
+                /// The information about this packets destination
                 Target local;
-                /// @brief The information about this packets source
+                /// The information about this packets source
                 Target remote;
 
-                /// @brief The data to be sent in the packet
-                std::vector<uint8_t> payload{};
+                /// The data to be sent in the packet
+                std::vector<uint8_t> payload;
 
                 /**
-                 * @brief Casts this packet to a boolean to check if it is valid
+                 * Casts this packet to a boolean to check if it is valid
                  *
                  * @return true if the packet is valid
                  */
@@ -141,8 +138,8 @@ namespace dsl {
             };
 
             template <typename DSL>
-            static inline std::tuple<in_port_t, fd_t> connect(const std::shared_ptr<threading::Reaction>& reaction,
-                                                              const ConnectOptions& options) {
+            static std::tuple<in_port_t, fd_t> connect(const std::shared_ptr<threading::Reaction>& reaction,
+                                                       const ConnectOptions& options) {
 
                 // Resolve the addresses
                 util::network::sock_t bind_address{};
@@ -340,12 +337,13 @@ namespace dsl {
             }
 
             template <typename DSL>
-            static inline RecvResult read(threading::Reaction& reaction) {
+            static RecvResult read(threading::ReactionTask& task) {
                 // Get our file descriptor from the magic cache
-                auto event = IO::get<DSL>(reaction);
+                auto event = IO::get<DSL>(task);
 
-                // If our get is being run without an fd (something else triggered) then short circuit
-                if (!event) {
+                // If our get is being run without an fd (something else triggered)
+                // Or if the event is not a read event then short circuit
+                if (!event || (event.events & IO::READ) != IO::READ) {
                     return {};
                 }
 
@@ -369,7 +367,7 @@ namespace dsl {
                 mh.msg_iovlen     = 1;
 
                 // Receive our message
-                ssize_t received = recvmsg(event.fd, &mh, 0);
+                ssize_t received = recvmsg(event.fd, &mh, MSG_DONTWAIT);
                 if (received < 0) {
                     return {};
                 }
@@ -418,15 +416,15 @@ namespace dsl {
             }
 
             template <typename DSL>
-            static inline std::tuple<in_port_t, fd_t> bind(const std::shared_ptr<threading::Reaction>& reaction,
-                                                           const in_port_t& port           = 0,
-                                                           const std::string& bind_address = "") {
+            static std::tuple<in_port_t, fd_t> bind(const std::shared_ptr<threading::Reaction>& reaction,
+                                                    const in_port_t& port           = 0,
+                                                    const std::string& bind_address = "") {
                 return connect<DSL>(reaction, ConnectOptions{ConnectOptions::Type::UNICAST, bind_address, port, ""});
             }
 
             template <typename DSL>
-            static inline Packet get(threading::Reaction& reaction) {
-                RecvResult result = read<DSL>(reaction);
+            static Packet get(threading::ReactionTask& task) {
+                RecvResult result = read<DSL>(task);
 
                 Packet p{};
                 p.valid       = result.valid;
@@ -459,19 +457,19 @@ namespace dsl {
                 return {};
             }
 
-            struct Broadcast : public IO {
+            struct Broadcast : IO {
 
                 template <typename DSL>
-                static inline std::tuple<in_port_t, fd_t> bind(const std::shared_ptr<threading::Reaction>& reaction,
-                                                               const in_port_t& port           = 0,
-                                                               const std::string& bind_address = "") {
+                static std::tuple<in_port_t, fd_t> bind(const std::shared_ptr<threading::Reaction>& reaction,
+                                                        const in_port_t& port           = 0,
+                                                        const std::string& bind_address = "") {
                     return UDP::connect<DSL>(reaction,
                                              ConnectOptions{ConnectOptions::Type::BROADCAST, bind_address, port, ""});
                 }
 
                 template <typename DSL>
-                static inline Packet get(threading::Reaction& reaction) {
-                    RecvResult result = read<DSL>(reaction);
+                static Packet get(threading::ReactionTask& task) {
+                    RecvResult result = read<DSL>(task);
 
                     // Broadcast is only IPv4
                     if (result.local.sock.sa_family == AF_INET) {
@@ -504,21 +502,21 @@ namespace dsl {
                 }
             };
 
-            struct Multicast : public IO {
+            struct Multicast : IO {
 
                 template <typename DSL>
-                static inline std::tuple<in_port_t, fd_t> bind(const std::shared_ptr<threading::Reaction>& reaction,
-                                                               const std::string& multicast_group,
-                                                               const in_port_t& port           = 0,
-                                                               const std::string& bind_address = "") {
+                static std::tuple<in_port_t, fd_t> bind(const std::shared_ptr<threading::Reaction>& reaction,
+                                                        const std::string& multicast_group,
+                                                        const in_port_t& port           = 0,
+                                                        const std::string& bind_address = "") {
                     return UDP::connect<DSL>(
                         reaction,
                         ConnectOptions{ConnectOptions::Type::MULTICAST, bind_address, port, multicast_group});
                 }
 
                 template <typename DSL>
-                static inline Packet get(threading::Reaction& reaction) {
-                    RecvResult result = read<DSL>(reaction);
+                static Packet get(threading::ReactionTask& task) {
+                    RecvResult result = read<DSL>(task);
 
                     const auto& a = result.local;
                     const bool multicast =
@@ -541,12 +539,13 @@ namespace dsl {
                 }
             };
         };
+
     }  // namespace word
 
     namespace trait {
 
         template <>
-        struct is_transient<word::UDP::Packet> : public std::true_type {};
+        struct is_transient<word::UDP::Packet> : std::true_type {};
 
     }  // namespace trait
 }  // namespace dsl

@@ -78,8 +78,6 @@ jobs:
         run: sccache --show-stats
 
       - name: Test
-        timeout-minutes: 10
-        shell: bash
-        run: |
-          build/tests/test_nuclear.exe
-          for f in build/tests/individual/*; do echo "Testing $f"; ./$f; done
+        timeout-minutes: 5
+        working-directory: build/tests
+        run: ctest --output-on-failure -j$(nproc)

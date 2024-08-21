@@ -29,25 +29,46 @@
 
 #include "../../threading/ReactionTask.hpp"
 #include "../../util/ThreadPoolDescriptor.hpp"
+#include "../../util/demangle.hpp"
 
 namespace NUClear {
 namespace dsl {
     namespace word {
 
         /**
-         * @brief
-         *  This is used to specify that this reaction should run in the designated thread pool
+         * SFINAE check to see if the pool type has a counts_for_idle member and if so use it otherwise default to true
          *
-         * @details
-         *  @code on<Trigger<T, ...>, Pool<PoolType>>() @endcode
-         *  This DSL will cause the creation of a new thread pool with a specific number of threads allocated to it.
+         * @tparam T the type to check for the counts_for_idle member
+         */
+        template <typename T>
+        struct CountsForIdle {
+        private:
+            template <typename U>
+            static constexpr auto check(int /*unused*/) -> decltype(U::counts_for_idle) {
+                return U::counts_for_idle;
+            }
+
+            template <typename, typename... A>
+            static constexpr bool check(A&&... /*unused*/) {
+                return true;
+            }
+
+        public:
+            static constexpr bool value = check<T>(0);
+        };
+
+        /**
+         * This is used to specify that this reaction should run in the designated thread pool
          *
-         *  All tasks for this reaction will be queued to run on threads from this thread pool.
+         * @code on<Trigger<T, ...>, Pool<PoolType>>() @endcode
+         * This DSL will cause the creation of a new thread pool with a specific number of threads allocated to it.
          *
-         *  Tasks in the queue are ordered based on their priority level, then their task id.
+         * All tasks for this reaction will be queued to run on threads from this thread pool.
          *
-         *  When this DSL is not specified the default thread pool will be used. For tasks that need to run on the main
-         *  thread use MainThread.
+         * Tasks in the queue are ordered based on their priority level, then their task id.
+         *
+         * When this DSL is not specified the default thread pool will be used.
+         * For tasks that need to run on the main thread use MainThread.
          *
          * @attention
          *  This DSL should be used sparingly as having an increased number of threads running concurrently on the
@@ -56,9 +77,9 @@ namespace dsl {
          * @par Implements
          *  pool
          *
-         * @tparam PoolType
-         *  A struct that contains the details of the thread pool to create. This struct should contain a static int
-         *  member that sets the number of threads that should be allocated to this pool.
+         * @tparam PoolType A struct that contains the details of the thread pool to create.
+         *                  This struct should contain a static int member that sets the number of threads that should
+         *                  be allocated to this pool.
          *  @code
          *  struct ThreadPool {
          *      static constexpr int thread_count = 2;
@@ -68,37 +89,41 @@ namespace dsl {
         template <typename PoolType = void>
         struct Pool {
 
+            static constexpr int thread_count     = PoolType::thread_count;
+            static constexpr bool counts_for_idle = CountsForIdle<PoolType>::value;
+
             static_assert(PoolType::thread_count > 0, "Can not have a thread pool with less than 1 thread");
 
-            /// @brief the description of the thread pool to be used for this PoolType
-            static const util::ThreadPoolDescriptor pool_descriptor;
-
-            /**
-             * @brief Sets which thread pool to use for any tasks initiated from this reaction
-             *
-             * @tparam DSL the DSL used for this reaction
-             */
-            template <typename DSL>
-            static inline util::ThreadPoolDescriptor pool(const threading::Reaction& /*reaction*/) {
+            // This must be a separate function, otherwise each instance of DSL will be a separate pool
+            static util::ThreadPoolDescriptor descriptor() {
+                static const util::ThreadPoolDescriptor pool_descriptor = util::ThreadPoolDescriptor{
+                    util::demangle(typeid(PoolType).name()),
+                    util::ThreadPoolDescriptor::get_unique_pool_id(),
+                    thread_count,
+                    counts_for_idle,
+                };
                 return pool_descriptor;
+            }
+
+            template <typename DSL>
+            static util::ThreadPoolDescriptor pool(const threading::ReactionTask& /*task*/) {
+                return descriptor();
             }
         };
 
         // When given void as the pool type we use the default thread pool
         template <>
         struct Pool<void> {
-            template <typename DSL>
-            static inline util::ThreadPoolDescriptor pool(const threading::Reaction& /*reaction*/) {
+
+            // This must be a separate function, otherwise each instance of DSL will be a separate pool
+            static util::ThreadPoolDescriptor descriptor() {
                 return util::ThreadPoolDescriptor{};
             }
-        };
 
-        // Initialise the thread pool descriptor
-        template <typename PoolType>
-        const util::ThreadPoolDescriptor Pool<PoolType>::pool_descriptor = {
-            util::ThreadPoolDescriptor::get_unique_pool_id(),
-            PoolType::thread_count,
-            true,
+            template <typename DSL>
+            static util::ThreadPoolDescriptor pool(const threading::ReactionTask& /*task*/) {
+                return descriptor();
+            }
         };
 
     }  // namespace word

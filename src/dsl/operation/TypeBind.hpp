@@ -20,22 +20,40 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_DSL_OPERATION_TYPEBIND_HPP
-#define NUCLEAR_DSL_OPERATION_TYPEBIND_HPP
+#ifndef NUCLEAR_DSL_OPERATION_TYPE_BIND_HPP
+#define NUCLEAR_DSL_OPERATION_TYPE_BIND_HPP
 
 #include "../store/TypeCallbackStore.hpp"
 
 namespace NUClear {
+
+// Forward declarations
+namespace message {
+    struct ReactionEvent;
+    struct ReactionStatistics;
+    struct LogMessage;
+}  // namespace message
+
 namespace dsl {
     namespace operation {
 
+        // Disable emitting stats for triggers on types that would cause a loop
+        template <typename T>
+        struct EmitStats : std::true_type {};
+        template <>
+        struct EmitStats<message::ReactionEvent> : std::false_type {};
+        template <>
+        struct EmitStats<message::ReactionStatistics> : std::false_type {};
+        template <>
+        struct EmitStats<message::LogMessage> : std::false_type {};
+
         /**
-         * @brief Binds a function to execute when a specific type is emitted
+         * Binds a function to execute when a specific type is emitted.
          *
-         * @details A common pattern in NUClear is to execute a function when a particular type is emitted.
-         *          This utility class is used to simplify executing a function when a type is emitted.
-         *          To use this utility inherit from this type with the DataType to listen for.
-         *          If the callback also needs the data emitted you should also extend from CacheGet
+         * A common pattern in NUClear is to execute a function when a particular type is emitted.
+         * This utility class is used to simplify executing a function when a type is emitted.
+         * To use this utility inherit from this type with the DataType to listen for.
+         * If the callback also needs the data emitted you should also extend from CacheGet.
          *
          * @tparam DataType the data type that will be bound to
          */
@@ -43,7 +61,10 @@ namespace dsl {
         struct TypeBind {
 
             template <typename DSL>
-            static inline void bind(const std::shared_ptr<threading::Reaction>& reaction) {
+            static void bind(const std::shared_ptr<threading::Reaction>& reaction) {
+
+                // Set this reaction as no stats emitting
+                reaction->emit_stats &= EmitStats<DataType>::value;
 
                 // Our unbinder to remove this reaction
                 reaction->unbinders.push_back([](const threading::Reaction& r) {
@@ -65,37 +86,9 @@ namespace dsl {
             }
         };
 
-        template <>
-        struct TypeBind<message::ReactionStatistics> {
-
-            template <typename DSL>
-            static inline void bind(const std::shared_ptr<threading::Reaction>& reaction) {
-
-                // Set this reaction as no stats emitting
-                reaction->emit_stats = false;
-
-                // Our unbinder to remove this reaction
-                reaction->unbinders.push_back([](const threading::Reaction& r) {
-                    auto& vec = store::TypeCallbackStore<message::ReactionStatistics>::get();
-
-                    auto it = std::find_if(
-                        std::begin(vec),
-                        std::end(vec),
-                        [&r](const std::shared_ptr<threading::Reaction>& item) { return item->id == r.id; });
-
-                    // If the item is in the list erase the item
-                    if (it != std::end(vec)) {
-                        vec.erase(it);
-                    }
-                });
-
-                // Create our reaction and store it in the TypeCallbackStore
-                store::TypeCallbackStore<message::ReactionStatistics>::get().push_back(reaction);
-            }
-        };
 
     }  // namespace operation
 }  // namespace dsl
 }  // namespace NUClear
 
-#endif  // NUCLEAR_DSL_OPERATION_TYPEBIND_HPP
+#endif  // NUCLEAR_DSL_OPERATION_TYPE_BIND_HPP

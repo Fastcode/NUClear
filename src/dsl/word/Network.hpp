@@ -34,14 +34,14 @@ namespace dsl {
     namespace word {
 
         template <typename T>
-        struct NetworkData : public std::shared_ptr<T> {
+        struct NetworkData : std::shared_ptr<T> {
             NetworkData() : std::shared_ptr<T>() {}
             explicit NetworkData(T* ptr) : std::shared_ptr<T>(ptr) {}
             NetworkData(const std::shared_ptr<T>& ptr) : std::shared_ptr<T>(ptr) {}
         };
 
         struct NetworkSource {
-            std::string name{};
+            std::string name;
             util::network::sock_t address{};
             bool reliable{false};
         };
@@ -52,33 +52,29 @@ namespace dsl {
         };
 
         /**
-         * @brief
-         *  NUClear provides a networking protocol to send messages to other devices on the network.
+         * NUClear provides a networking protocol to send messages to other devices on the network.
          *
-         * @details
-         *  @code on<Network<T>>() @endcode
-         *  This request can be used to make a multi-processed NUClear instance, or communicate with other programs
-         *  running NUClear.  Note that the serialization and deserialization is handled by NUClear.
+         * @code on<Network<T>>() @endcode
+         * This request can be used to communicate with other programs running NUClear.
+         * Note that the serialization and deserialization is handled by NUClear.
          *
-         *  When the reaction is triggered, read-only access to T will be provided to the triggering unit via a
-         *  callback.
+         * When the reaction is triggered, read-only access to T will be provided to the triggering unit via a callback.
          *
          * @attention
          *  When using an on<Network<T>> request, the associated reaction will only be triggered when T is emitted to
-         *  the system using the emission Scope::NETWORK.  Should T be emitted to the system under any other scope, this
-         *  reaction will not be triggered.
+         *  the system using the emission Scope::NETWORK.
+         *  Should T be emitted to the system under any other scope, this reaction will not be triggered.
          *
          * @par Implements
          *  Bind, Get
          *
-         * @tparam T
-         *  the datatype on which the reaction callback will be triggered.
+         * @tparam T The datatype on which the reaction callback will be triggered.
          */
         template <typename T>
         struct Network {
 
             template <typename DSL>
-            static inline void bind(const std::shared_ptr<threading::Reaction>& reaction) {
+            static void bind(const std::shared_ptr<threading::Reaction>& reaction) {
 
                 auto task = std::make_unique<NetworkListen>();
 
@@ -93,8 +89,7 @@ namespace dsl {
             }
 
             template <typename DSL>
-            static inline std::tuple<std::shared_ptr<NetworkSource>, NetworkData<T>> get(
-                const threading::Reaction& /*reaction*/) {
+            static std::tuple<std::shared_ptr<NetworkSource>, NetworkData<T>> get(threading::ReactionTask& /*task*/) {
 
                 auto* data   = store::ThreadStore<std::vector<uint8_t>>::value;
                 auto* source = store::ThreadStore<NetworkSource>::value;
@@ -116,10 +111,10 @@ namespace dsl {
     namespace trait {
 
         template <typename T>
-        struct is_transient<typename word::NetworkData<T>> : public std::true_type {};
+        struct is_transient<typename word::NetworkData<T>> : std::true_type {};
 
         template <>
-        struct is_transient<typename std::shared_ptr<word::NetworkSource>> : public std::true_type {};
+        struct is_transient<typename std::shared_ptr<word::NetworkSource>> : std::true_type {};
 
     }  // namespace trait
 }  // namespace dsl

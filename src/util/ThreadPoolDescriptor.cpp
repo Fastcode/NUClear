@@ -25,8 +25,10 @@
 namespace NUClear {
 namespace util {
 
-    const NUClear::id_t ThreadPoolDescriptor::MAIN_THREAD_POOL_ID    = 0;
-    const NUClear::id_t ThreadPoolDescriptor::DEFAULT_THREAD_POOL_ID = 1;
+    NUClear::id_t ThreadPoolDescriptor::get_unique_pool_id() noexcept {
+        static std::atomic<NUClear::id_t> source{2};
+        return source.fetch_add(1, std::memory_order_relaxed);
+    }
 
 }  // namespace util
 }  // namespace NUClear

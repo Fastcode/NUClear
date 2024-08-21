@@ -23,11 +23,9 @@
 #ifndef NUCLEAR_REACTOR_HPP
 #define NUCLEAR_REACTOR_HPP
 
-#include <atomic>
 #include <chrono>
 #include <functional>
 #include <regex>
-#include <sstream>
 #include <string>
 #include <typeindex>
 #include <vector>
@@ -40,6 +38,7 @@
 #include "threading/ReactionIdentifiers.hpp"
 #include "util/CallbackGenerator.hpp"
 #include "util/Sequence.hpp"
+#include "util/demangle.hpp"
 #include "util/tuplify.hpp"
 
 namespace NUClear {
@@ -76,10 +75,10 @@ namespace dsl {
 
         struct NetworkSource;
 
-        template <typename...>
+        template <typename>
         struct Trigger;
 
-        template <typename...>
+        template <typename>
         struct With;
 
         struct Startup;
@@ -131,15 +130,16 @@ namespace dsl {
             template <typename WatchdogGroup>
             WatchdogServicer<WatchdogGroup, void> ServiceWatchdog();
         }  // namespace emit
-    }      // namespace word
+    }  // namespace word
 }  // namespace dsl
 
 /**
- * @brief Base class for any system that wants to react to events/data from the rest of the system.
+ * Base class for any system that wants to react to events/data from the rest of the system.
  *
- * @details
- *  Provides functionality for binding callbacks to incoming data events. Callbacks are executed
- *  in a transparent, multithreaded manner. TODO needs to be expanded and updated
+ * Provides functionality for binding callbacks to incoming data events.
+ * Callbacks are executed in a transparent, multithreaded manner.
+ *
+ * TODO needs to be expanded and updated.
  */
 class Reactor {
 public:
@@ -147,8 +147,10 @@ public:
 
     explicit Reactor(std::unique_ptr<Environment> environment)
         : powerplant(environment->powerplant), reactor_name(environment->reactor_name) {}
-    Reactor(const Reactor& /*other*/)              = default;
-    Reactor(Reactor&& /*other*/) noexcept          = default;
+
+    // Copying or moving a Reactor is almost certainly a mistake
+    Reactor(const Reactor& /*other*/)              = delete;
+    Reactor(Reactor&& /*other*/) noexcept          = delete;
     Reactor& operator=(const Reactor& /*rhs*/)     = delete;
     Reactor& operator=(Reactor&& /*rhs*/) noexcept = delete;
 
@@ -161,28 +163,28 @@ public:
     }
 
 private:
-    std::vector<threading::ReactionHandle> reaction_handles{};
+    std::vector<threading::ReactionHandle> reaction_handles;
 
 public:
-    /// @brief The powerplant that this reactor is running in
+    /// The powerplant that this reactor is running in
     PowerPlant& powerplant;
 
-    /// @brief The demangled string name of this reactor
-    const std::string reactor_name{};
+    /// The demangled string name of this reactor
+    const std::string reactor_name;
 
 protected:
-    /// @brief The level that this reactor logs at
+    /// The level that this reactor logs at
     LogLevel log_level{LogLevel::INFO};
 
     /***************************************************************************************************************
      * The types here are imported from other contexts so that when extending from the Reactor type in normal      *
-     * usage there does not need to be any namespace declarations on the used types. This affords a simpler API    *
-     * for the user.                                                                                               *
+     * usage there does not need to be any namespace declarations on the used types.                               *
+     * This affords a simpler API for the user.                                                                    *
      **************************************************************************************************************/
 
     /// @copydoc dsl::word::Trigger
-    template <typename... Ts>
-    using Trigger = dsl::word::Trigger<Ts...>;
+    template <typename T>
+    using Trigger = dsl::word::Trigger<T>;
 
     /// @copydoc dsl::word::Priority
     using Priority = dsl::word::Priority;
@@ -207,8 +209,8 @@ protected:
     using TCP = dsl::word::TCP;
 
     /// @copydoc dsl::word::With
-    template <typename... Ts>
-    using With = dsl::word::With<Ts...>;
+    template <typename T>
+    using With = dsl::word::With<T>;
 
     /// @copydoc dsl::word::Optional
     template <typename... DSL>
@@ -304,7 +306,7 @@ protected:
         using WATCHDOG = dsl::word::emit::Watchdog<T>;
     };
 
-    /// @brief This provides functions to modify how an on statement runs after it has been created
+    /// This provides functions to modify how an on statement runs after it has been created
     using ReactionHandle = threading::ReactionHandle;
 
 public:
@@ -364,13 +366,12 @@ public:
     // FUNCTIONS
 
     /**
-     * @brief The on function is the method used to create a reaction in the NUClear system.
+     * The on function is the method used to create a reaction in the NUClear system.
      *
-     * @details
-     *  This function is used to create a Reaction in the system. By providing the correct
-     *  template parameters, this function can modify how and when this reaction runs.
+     * This function is used to create a Reaction in the system.
+     * By providing the correct template parameters, this function can modify how and when this reaction runs.
      *
-     * @tparam DSL     The NUClear domain specific language information
+     * @tparam DSL          The NUClear domain specific language information
      * @tparam Arguments    The types of the arguments passed into the function
      *
      * @param args      The arguments that will be passed to each of the binding DSL words in order
@@ -387,13 +388,11 @@ public:
     }
 
     /**
-     * @brief Emits data into the system so that other reactors can use it.
+     * Emits data into the system so that other reactors can use it.
      *
-     * @details
-     *  This function emits data to the rest of the system so that it can be used.
-     *  This results in it being the new data used when a with is used, and triggering
-     *  any reaction that is set to be triggered on this data type.
-     *
+     * This function emits data to the rest of the system so that it can be used.
+     * This results in it being the new data used when a with is used, and triggering any reaction that is set to be
+     * triggered on this data type.
      *
      * @tparam Handlers The handlers for this emit (e.g. LOCAL, NETWORK etc)
      * @tparam T        The type of the data we are emitting, for some handlers (e.g. WATCHDOG) this is optional
@@ -414,11 +413,9 @@ public:
     }
 
     /**
-     * @brief Log a message through NUClear's system.
+     * Log a message through NUClear's system.
      *
-     * @details
-     *  Logs a message through the system so the various log handlers
-     *  can access it.
+     * Logs a message through the system so the various log handlers can access it.
      *
      * @tparam level The level to log at (defaults to DEBUG)
      * @tparam Arguments The types of the arguments we are logging
@@ -429,7 +426,24 @@ public:
     void log(Arguments&&... args) const {
 
         // If the log is above or equal to our log level
-        PowerPlant::log<level>(std::forward<Arguments>(args)...);
+        powerplant.log<level>(std::forward<Arguments>(args)...);
+    }
+
+    /**
+     * Log a message through NUClear's system.
+     *
+     * Logs a message through the system so the various log handlers can access it.
+     *
+     * @tparam Arguments The types of the arguments we are logging
+     *
+     * @param level The level to log at
+     * @param args The arguments we are logging
+     */
+    template <typename... Arguments>
+    void log(const LogLevel& level, Arguments&&... args) const {
+
+        // If the log is above or equal to our log level
+        powerplant.log(level, std::forward<Arguments>(args)...);
     }
 };
 

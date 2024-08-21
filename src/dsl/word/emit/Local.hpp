@@ -35,20 +35,17 @@ namespace dsl {
         namespace emit {
 
             /**
-             * @brief
-             *  When emitting data under this scope, tasks are distributed via the thread pool for execution.
+             * When emitting data under this scope, tasks are distributed via the thread pool for execution.
              *
-             * @details
-             *  @code emit<Scope::LOCAL>(data, dataType); @endcode
+             * @code emit<Scope::LOCAL>(data, dataType); @endcode
              *
              * @attention
              *  Note that this type of emission is the default behaviour when emitting without a specified scope.
              *  @code emit(data, dataType); @endcode
              *
-             * @param data
-             *  the data to emit
-             * @tparam DataType
-             *  the datatype of the object to emit
+             * @tparam DataType The datatype of the object to emit
+             *
+             * @param data The data to emit
              */
             template <typename DataType>
             struct Local {
@@ -72,7 +69,7 @@ namespace dsl {
             };
 
         }  // namespace emit
-    }      // namespace word
+    }  // namespace word
 }  // namespace dsl
 }  // namespace NUClear
 

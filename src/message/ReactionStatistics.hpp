@@ -20,65 +20,102 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_MESSAGE_REACTIONSTATISTICS_HPP
-#define NUCLEAR_MESSAGE_REACTIONSTATISTICS_HPP
+#ifndef NUCLEAR_MESSAGE_REACTION_STATISTICS_HPP
+#define NUCLEAR_MESSAGE_REACTION_STATISTICS_HPP
 
 #include <exception>
 #include <string>
+#include <thread>
 #include <vector>
-#include "../id.hpp"
 
 #include "../clock.hpp"
+#include "../id.hpp"
 #include "../threading/ReactionIdentifiers.hpp"
+#include "../util/GroupDescriptor.hpp"
+#include "../util/ThreadPoolDescriptor.hpp"
+#include "../util/usage_clock.hpp"
 
 namespace NUClear {
 namespace message {
 
     /**
-     * @brief Holds details about reactions that are executed.
+     * Holds details about reactions that are executed.
      */
     struct ReactionStatistics {
 
-        ReactionStatistics(threading::ReactionIdentifiers identifiers,
-                           const NUClear::id_t& reaction_id,
-                           const NUClear::id_t& task_id,
-                           const NUClear::id_t& cause_reaction_id,
-                           const NUClear::id_t& cause_task_id,
-                           const clock::time_point& emitted,
-                           const clock::time_point& start,
-                           const clock::time_point& finish,
-                           std::exception_ptr exception)
-            : identifiers(std::move(identifiers))
-            , reaction_id(reaction_id)
-            , task_id(task_id)
-            , cause_reaction_id(cause_reaction_id)
-            , cause_task_id(cause_task_id)
-            , emitted(emitted)
-            , started(start)
-            , finished(finish)
-            , exception(std::move(exception)) {}
+        struct Event {
+            struct ThreadInfo {
+                std::thread::id thread_id;
+                util::ThreadPoolDescriptor pool{util::ThreadPoolDescriptor::AllPools()};
+            };
 
-        /// @brief A string containing the username/on arguments/and callback name of the reaction.
-        threading::ReactionIdentifiers identifiers;
-        /// @brief The id of this reaction.
-        NUClear::id_t reaction_id{0};
-        /// @brief The task id of this reaction.
-        NUClear::id_t task_id{0};
-        /// @brief The reaction id of the reaction that caused this one or 0 if there was not one
-        NUClear::id_t cause_reaction_id{0};
-        /// @brief The reaction id of the task that caused this task or 0 if there was not one
-        NUClear::id_t cause_task_id{0};
-        /// @brief The time that this reaction was emitted to the thread pool
-        clock::time_point emitted{};
-        /// @brief The time that execution started on this reaction
-        clock::time_point started{};
-        /// @brief The time that execution finished on this reaction
-        clock::time_point finished{};
-        /// @brief An exception pointer that can be rethrown (if the reaction threw an exception)
-        std::exception_ptr exception{nullptr};
+            ThreadInfo thread{};
+            NUClear::clock::time_point nuclear_time;
+            std::chrono::steady_clock::time_point realtime;
+            util::cpu_clock::time_point cpu_time;
+
+            static Event now() {
+                return Event{
+                    Event::ThreadInfo{
+                        std::this_thread::get_id(),
+                        threading::scheduler::Pool::current() ? threading::scheduler::Pool::current()->descriptor
+                                                              : util::ThreadPoolDescriptor::NonPool(),
+                    },
+                    NUClear::clock::now(),
+                    std::chrono::steady_clock::now(),
+                    util::cpu_clock::now(),
+                };
+            }
+        };
+
+        ReactionStatistics(std::shared_ptr<const threading::ReactionIdentifiers> identifiers,
+                           const IDPair& cause,
+                           const IDPair& target,
+                           util::ThreadPoolDescriptor target_threadpool,
+                           std::set<util::GroupDescriptor> target_groups)
+            : identifiers(std::move(identifiers))
+            , cause(cause)
+            , target(target)
+            , target_threadpool(std::move(target_threadpool))
+            , target_groups(std::move(target_groups))
+            , created(Event::now()) {};
+
+
+        /// The identifiers for the reaction that was executed
+        std::shared_ptr<const threading::ReactionIdentifiers> identifiers;
+
+        /// The reaction/task pair that caused this reaction or 0s if it was a non NUClear cause
+        IDPair cause;
+        /// The reaction/task pair that was executed
+        IDPair target;
+
+        /// The thread pool that this reaction was intended to run on
+        util::ThreadPoolDescriptor target_threadpool;
+        /// The group that this reaction was intended to run in
+        std::set<util::GroupDescriptor> target_groups;
+
+        /// The time and thread information for when this reaction was created
+        Event created;
+        /// The time and thread information for when this reaction was started
+        Event started;
+        /// The time and thread information for when this reaction was finished
+        Event finished;
+
+        /// The exception that was thrown by this reaction or nullptr if no exception was thrown
+        std::exception_ptr exception;
+    };
+
+    struct ReactionEvent {
+        enum Event : uint8_t { CREATED, MISSING_DATA, BLOCKED, STARTED, FINISHED };
+
+        ReactionEvent(const Event& type, std::shared_ptr<ReactionStatistics> statistics)
+            : type(type), statistics(std::move(statistics)) {}
+
+        Event type;
+        std::shared_ptr<ReactionStatistics> statistics;
     };
 
 }  // namespace message
 }  // namespace NUClear
 
-#endif  // NUCLEAR_MESSAGE_REACTIONSTATISTICS_HPP
+#endif  // NUCLEAR_MESSAGE_REACTION_STATISTICS_HPP

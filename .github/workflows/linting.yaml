@@ -48,6 +48,34 @@ jobs:
           key: ${{ github.job }}
           max-size: 100M
 
+      # Install ctcache
+      - name: Install ctcache
+        shell: bash
+        run: |
+          CTCACHE_REF=debfea68152c5221d8f409cbef85dc5d0f98071d
+          curl --location https://raw.githubusercontent.com/matus-chochlik/ctcache/${CTCACHE_REF}/clang-tidy-cache | sudo tee /usr/local/bin/clang-tidy-cache > /dev/null
+
+          echo #!/bin/bash | sudo tee /usr/local/bin/clang-tidy > /dev/null
+          echo /usr/local/bin/clang-tidy-cache '"${CTCACHE_CLANG_TIDY}"' '"$@"' | sudo tee -a /usr/local/bin/clang-tidy > /dev/null
+
+          sudo chmod +x /usr/local/bin/clang-tidy-cache /usr/local/bin/clang-tidy
+
+          mkdir -p ${{ github.workspace }}/.ctcache
+
+          echo CTCACHE_CLANG_TIDY='/usr/bin/clang-tidy-15' >> "$GITHUB_ENV"
+          echo CTCACHE_LOCAL=1 >> "$GITHUB_ENV"
+          echo CTCACHE_SAVE_OUTPUT=1 >> "$GITHUB_ENV"
+          echo CTCACHE_DIR='${{github.workspace}}/.ctcache' >> "$GITHUB_ENV"
+          echo "CTCACHE_NOW=$(date -u +"%Y-%m-%dT%H:%M:%S.%3NZ")" >> $GITHUB_ENV
+
+      - name: Setup caching for ctcache
+        uses: actions/cache@v4
+        with:
+          key: ctcache-${{ github.workflow }}-${{ github.job }}-${{ env.CTCACHE_NOW }}
+          path: ${{ env.CTCACHE_DIR }}
+          restore-keys: ctcache-${{ github.workflow }}-${{ github.job }}-
+          save-always: true
+
       - name: Configure CMake
         run: |
           cmake -E make_directory build
@@ -56,14 +84,16 @@ jobs:
             -DCMAKE_C_COMPILER_LAUNCHER=ccache \
             -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
             -DBUILD_TESTS=ON \
-            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_BUILD_TYPE=Debug \
             -DCI_BUILD=ON \
             -DENABLE_CLANG_TIDY=ON
 
       - name: Build
         timeout-minutes: 30
-        # Execute the build.  You can specify a specific target with "--target <NAME>"
-        run: cmake --build build --config Release --parallel 2
+        run: cmake --build build --config Debug --parallel 2
 
       - name: CCache Stats
         run: ccache --show-stats
+
+      - name: CTCache Stats
+        run: clang-tidy-cache --show-stats

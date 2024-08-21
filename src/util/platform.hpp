@@ -117,6 +117,7 @@
 #ifdef _WIN32
 
     #include <cstdint>
+
 using ssize_t   = SSIZE_T;
 using in_port_t = uint16_t;
 using in_addr_t = uint32_t;
@@ -155,13 +156,16 @@ using socklen_t = int;
     #define msg_controllen Control.len
     #define msg_flags      flags
 
+    // Windows doesn't have this flag, maybe we can implement it later for recvmsg
+    #define MSG_DONTWAIT 0
+
 // Reimplement the recvmsg function
 int recvmsg(fd_t fd, msghdr* msg, int flags);
 
 int sendmsg(fd_t fd, msghdr* msg, int flags);
 
 /**
- * @brief This struct is used to setup WSA on windows in a single place so we don't have to worry about it
+ * This struct is used to setup WSA on windows in a single place so we don't have to worry about it.
  *
  * A single instance of this struct will be created statically at startup which will ensure that WSA is setup for the
  * lifetime of the program and torn down as it exits.

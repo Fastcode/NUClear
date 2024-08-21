@@ -36,36 +36,36 @@ namespace dsl {
     namespace word {
 
         /**
-         * @brief
-         *  This is used to specify that only one reaction in this SyncGroup can run concurrently.
+         * This is used to specify that only one reaction in this SyncGroup can run concurrently.
          *
-         * @details
-         *  @code on<Trigger<T, ...>, Sync<SyncGroup>>() @endcode
-         *  When a group of tasks has been synchronised, only one task from the group will execute at a given time.
          *
-         *  Should another task from this group be scheduled/requested (during execution of the current task), it will
-         *  be sidelined into the task queue.
+         * @code on<Trigger<T, ...>, Sync<SyncGroup>>() @endcode
+         * When a group of tasks has been synchronised, only one task from the group will execute at a given time.
          *
-         *  Tasks in the queue are ordered based on their priority level, then their task id.
+         * Should another task from this group be scheduled/requested (during execution of the current task), it will
+         * be sidelined into the task queue.
+         *
+         * Tasks in the queue are ordered based on their priority level, then their task id.
          *
          * @par When should I use Sync
-         *  Consider a reactor with a number of a reactions which modify its state.  It would be unwise to allow the
-         *  reactions to run concurrently. To avoid race conditions, it is recommended that any reactions which modify
-         *  the state be synced.
+         *  Consider a reactor with a number of a reactions which modify its state.
+         *  It would be unwise to allow the reactions to run concurrently.
+         *  To avoid race conditions, it is recommended that any reactions which modify the state be synced.
          *
          * @attention
-         *  When using NUClear, developers should not make use of devices like a mutex. In the case of a mutex, threads
-         *  will run and then block (leading to wasted resources on a number of inactive threads).  By using Sync,
-         *  NUClear will have task and thread control so that system resources can be efficiently managed.
+         *  When using NUClear, developers should avoid using blocking features such as mutexes.
+         *  In the case of a mutex, threads  will run and then block.
+         *  As they are using a thread pool, this can lead to wasted resources by the of inactive threads.
+         * By using Sync, NUClear will have task and thread control so that system resources can be efficiently managed.
          *
          * @par Implements
          *  Group
          *
-         * @tparam SyncGroup
-         *  the type/group to synchronize on.  This needs to be a declared type within the system.  It is common to
-         *  simply use the reactors name (i.e; if the reactor is only syncing with one group).  Should more than one
-         *  group be required, the developer can declare structs within the system, to act as a group reference.
-         *  Note that the developer is not limited to the use of a struct; any declared type will work.
+         * @tparam GroupType The type/group to synchronize on.
+         *                   This needs to be a declared type within the system.
+         *                   It is common to simply use the reactors name for a reactor with one group.
+         *                   Should more than one group be required, the developer can declare structs within the
+         *                   system, to act as a group reference.
          */
         template <typename SyncGroup>
         struct Sync : Group<SyncGroup, 1> {};

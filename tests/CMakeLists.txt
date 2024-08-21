@@ -20,61 +20,57 @@ COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER I
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ]]
 
-find_package(CATCH)
+# Get catch2 using FetchContent
+include(FetchContent)
+FetchContent_Declare(
+  Catch2
+  SYSTEM DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+  URL https://github.com/catchorg/Catch2/archive/refs/tags/v3.6.0.tar.gz
+)
+FetchContent_MakeAvailable(Catch2)
 
-if(CATCH_FOUND)
-  # Supported options:
-  option(BUILD_TESTS "Builds all of the NUClear unit tests." TRUE)
+# Silence clang-tidy warnings from catch2
+get_target_property(catch2_target Catch2::Catch2 ALIASED_TARGET)
+set_target_properties(${catch2_target} PROPERTIES CXX_CLANG_TIDY "")
+set_target_properties(${catch2_target} PROPERTIES CXX_CLANG_TIDY "")
+get_target_property(catch2_with_main_target Catch2::Catch2WithMain ALIASED_TARGET)
+set_target_properties(${catch2_with_main_target} PROPERTIES CXX_CLANG_TIDY "")
+set_target_properties(${catch2_with_main_target} PROPERTIES CXX_CLANG_TIDY "")
 
-  if(BUILD_TESTS)
-    enable_testing()
+# Create a test_util library that is used by all tests
+file(GLOB_RECURSE test_util_src "test_util/*.cpp")
+add_library(test_util OBJECT ${test_util_src})
+target_link_libraries(test_util INTERFACE "$<LINK_LIBRARY:WHOLE_ARCHIVE,NUClear::nuclear>")
+target_link_libraries(test_util PUBLIC Catch2::Catch2)
+target_include_directories(test_util PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(
+  test_util SYSTEM PUBLIC ${CATCH_INCLUDE_DIRS} ${PROJECT_BINARY_DIR}/include "${PROJECT_SOURCE_DIR}/src"
+)
 
-    add_compile_definitions(CATCH_CONFIG_CONSOLE_WIDTH=120)
+# Create a test binary for each test file
+file(GLOB_RECURSE test_sources "tests/*.cpp")
+foreach(test_file ${test_sources})
+  get_filename_component(test_name ${test_file} NAME_WE)
+  get_filename_component(test_dir ${test_file} DIRECTORY)
+  file(RELATIVE_PATH test_dir "${CMAKE_CURRENT_SOURCE_DIR}/tests" ${test_dir})
 
-    file(
-      GLOB
-      test_src
-      test.cpp
-      "api/*.cpp"
-      "dsl/*.cpp"
-      "dsl/emit/*.cpp"
-      "log/*.cpp"
-      "util/*.cpp"
-      "util/network/*.cpp"
-      "util/serialise/*.cpp"
-    )
+  add_executable(${test_name} ${test_file})
+  target_include_directories(${test_name} PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
+  target_link_libraries(${test_name} test_util)
+  target_link_libraries(${test_name} Catch2::Catch2WithMain)
 
-    file(GLOB test_util_src "test_util/*.cpp")
-    add_library(test_util STATIC ${test_util_src})
-    target_link_libraries(test_util PUBLIC NUClear::nuclear)
-    target_include_directories(
-      test_util SYSTEM PUBLIC ${CATCH_INCLUDE_DIRS} ${PROJECT_BINARY_DIR}/include "${PROJECT_SOURCE_DIR}/src"
-    )
+  set_property(TARGET ${test_name} PROPERTY FOLDER "tests/${test_dir}")
+  set_property(TARGET ${test_name} PROPERTY RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/${test_dir}")
 
-    # Some tests must be executed as individual binaries
-    file(GLOB individual_tests "${CMAKE_CURRENT_SOURCE_DIR}/individual/*.cpp")
+  # Add the test
+  add_test(
+    NAME "${test_dir}/${test_name}"
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+    COMMAND ${CMAKE_CURRENT_BINARY_DIR}/${test_dir}/${test_name} --order rand
+  )
+endforeach()
 
-    foreach(test_src ${individual_tests})
-      get_filename_component(test_name ${test_src} NAME_WE)
-
-      add_executable(${test_name} ${test_src})
-      target_link_libraries(${test_name} test_util)
-      set_target_properties(${test_name} PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/individual")
-      target_include_directories(${test_name} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
-      # Enable warnings, and all warnings are errors
-
-      add_test(${test_name} test_nuclear)
-
-    endforeach(test_src)
-
-    add_executable(test_nuclear ${test_src})
-    target_include_directories(test_nuclear PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
-    target_link_libraries(test_nuclear test_util)
-    add_test(test_nuclear test_nuclear)
-
-    add_executable(test_network networktest.cpp)
-    target_link_libraries(test_network test_util)
-    target_include_directories(test_network PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
-
-  endif(BUILD_TESTS)
-endif(CATCH_FOUND)
+# Special test binary for testing NUClearNet
+add_executable(test_network networktest.cpp)
+target_link_libraries(test_network test_util)
+target_include_directories(test_network PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})

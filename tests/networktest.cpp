@@ -23,6 +23,7 @@
 #include <array>
 #include <csignal>
 #include <cstdlib>
+#include <iostream>
 #include <nuclear>
 
 namespace {
@@ -37,34 +38,11 @@ public:
     TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
 
         on<Trigger<NetworkJoin>, Sync<TestReactor>>().then([this](const NetworkJoin& join) {
+            auto state = join.address.address();
             std::cout << "Connected To" << std::endl;
-            std::cout << "\tName: " << join.name << std::endl;
-
-            std::array<char, 255> c = {0};
-
-            switch (join.address.sock.sa_family) {
-                case AF_INET:
-
-                    std::cout << "\tAddress: "
-                              << ::inet_ntop(join.address.sock.sa_family,
-                                             &join.address.ipv4.sin_addr,
-                                             c.data(),
-                                             c.size())
-                              << std::endl;
-                    std::cout << "\tPort: " << ntohs(join.address.ipv4.sin_port) << std::endl;
-                    break;
-
-                case AF_INET6:
-                    std::cout << "\tAddress: "
-                              << ::inet_ntop(join.address.sock.sa_family,
-                                             &join.address.ipv6.sin6_addr,
-                                             c.data(),
-                                             c.size())
-                              << std::endl;
-                    std::cout << "\tPort: " << ntohs(join.address.ipv6.sin6_port) << std::endl;
-                    break;
-            }
-
+            std::cout << "\tName:    " << join.name << std::endl;
+            std::cout << "\tAddress: " << state.first << std::endl;
+            std::cout << "\tPort:    " << state.second << std::endl;
 
             // Send some data to our new friend
 
@@ -85,33 +63,11 @@ public:
         });
 
         on<Trigger<NetworkLeave>, Sync<TestReactor>>().then([](const NetworkLeave& leave) {
+            auto state = leave.address.address();
             std::cout << "Disconnected from" << std::endl;
             std::cout << "\tName: " << leave.name << std::endl;
-
-            std::array<char, 255> c = {0};
-
-            switch (leave.address.sock.sa_family) {
-                case AF_INET:
-
-                    std::cout << "\tAddress: "
-                              << ::inet_ntop(leave.address.sock.sa_family,
-                                             &leave.address.ipv4.sin_addr,
-                                             c.data(),
-                                             c.size())
-                              << std::endl;
-                    std::cout << "\tPort: " << ntohs(leave.address.ipv4.sin_port) << std::endl;
-                    break;
-
-                case AF_INET6:
-                    std::cout << "\tAddress: "
-                              << ::inet_ntop(leave.address.sock.sa_family,
-                                             &leave.address.ipv6.sin6_addr,
-                                             c.data(),
-                                             c.size())
-                              << std::endl;
-                    std::cout << "\tPort: " << ntohs(leave.address.ipv6.sin6_port) << std::endl;
-                    break;
-            }
+            std::cout << "\tAddress: " << state.first << std::endl;
+            std::cout << "\tPort:    " << state.second << std::endl;
         });
 
         on<Network<std::string>, Sync<TestReactor>>().then(
@@ -168,6 +124,7 @@ public:
 
 // NOLINTNEXTLINE(bugprone-exception-escape)
 int main(int argc, const char* argv[]) {
+    // NOLINTNEXTLINE(bugprone-signal-handler,cert-msc54-cpp,cert-sig30-c)
     auto old_sigint = signal(SIGINT, [](int /*signal*/) { NUClear::PowerPlant::powerplant->shutdown(); });
     if (old_sigint == SIG_ERR) {
         std::cerr << "Failed to set SIGINT handler";

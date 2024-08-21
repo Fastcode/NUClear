@@ -30,29 +30,31 @@ namespace dsl {
     namespace word {
 
         /**
-         * @brief
-         *  Task priority can be controlled using an assigned setting.
+         * Task priority can be controlled using an assigned setting.
          *
-         * @details
-         *  @code on<Trigger<T, ...>, Priority::HIGH>() @endcode
-         *  The PowerPlant uses this setting to determine the scheduling order (for the associated task) in the
-         *  threadpool, as well as assign a priority to the thread.
+         * @code on<Trigger<T, ...>, Priority::HIGH>() @endcode
+         * The PowerPlant uses this setting to determine the scheduling order in the threadpool, as well as assign a
+         * priority to the thread on the OS.
          *
-         *  The available priority settings are:
+         * The available priority settings are:
          *
-         *  <b>REALTIME:</b>  Tasks assigned with this will be queued with all other REALTIME tasks.
+         * <b>REALTIME:</b>  Tasks assigned with this will be queued with all other REALTIME tasks.
          *
-         *  <b>HIGH:</b>  Tasks assigned with this will be queued with all other HIGH tasks.  They will be scheduled for
-         *  execution when there are no REALTIME tasks in the queue.
+         * <b>HIGH:</b>
+         * Tasks assigned with this will be queued with all other HIGH tasks.
+         * They will be scheduled for execution when there are no REALTIME tasks in the queue.
          *
-         *  <b>NORMAL:</b> Tasks assigned with this will be queued with all other NORMAL tasks.  They will be scheduled
-         *  for execution when there are no REALTIME and HIGH tasks in the queue.
+         * <b>NORMAL:</b>
+         * Tasks assigned with this will be queued with all other NORMAL tasks.
+         * They will be scheduled for execution when there are no REALTIME and HIGH tasks in the queue.
          *
-         *  <b>LOW:</b>  Tasks assigned with this will be queued with all other LOW tasks.  They will be scheduled for
-         *  execution when there are no REALTIME, HIGH and NORMAL tasks in the queue.
+         * <b>LOW:</b>
+         * Tasks assigned with this will be queued with all other LOW tasks.
+         * They will be scheduled for execution when there are no REALTIME, HIGH and NORMAL tasks in the queue.
          *
-         *  <b>IDLE:</b>  Tasks assigned with this priority will be queued with all other IDLE tasks.  They will be
-         *  scheduled for execution when there are no other tasks running in the system.
+         * <b>IDLE:</b>
+         * Tasks assigned with this priority will be queued with all other IDLE tasks.
+         * They will be scheduled for execution when there are no other tasks running in the system.
          *
          * @par Default Behaviour
          *  @code on<Trigger<T>>() @endcode
@@ -72,7 +74,7 @@ namespace dsl {
                 static constexpr int value = 1000;
 
                 template <typename DSL>
-                static inline int priority(const threading::Reaction& /*reaction*/) {
+                static int priority(const threading::ReactionTask& /*task*/) {
                     return value;
                 }
             };
@@ -82,7 +84,7 @@ namespace dsl {
                 static constexpr int value = 750;
 
                 template <typename DSL>
-                static inline int priority(const threading::Reaction& /*reaction*/) {
+                static int priority(const threading::ReactionTask& /*task*/) {
                     return value;
                 }
             };
@@ -92,7 +94,7 @@ namespace dsl {
                 static constexpr int value = 500;
 
                 template <typename DSL>
-                static inline int priority(const threading::Reaction& /*reaction*/) {
+                static int priority(const threading::ReactionTask& /*task*/) {
                     return value;
                 }
             };
@@ -102,7 +104,7 @@ namespace dsl {
                 static constexpr int value = 250;
 
                 template <typename DSL>
-                static inline int priority(const threading::Reaction& /*reaction*/) {
+                static int priority(const threading::ReactionTask& /*task*/) {
                     return value;
                 }
             };
@@ -112,7 +114,7 @@ namespace dsl {
                 static constexpr int value = 0;
 
                 template <typename DSL>
-                static inline int priority(const threading::Reaction& /*reaction*/) {
+                static int priority(const threading::ReactionTask& /*task*/) {
                     return value;
                 }
             };

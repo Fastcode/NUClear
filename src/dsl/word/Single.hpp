@@ -30,18 +30,16 @@ namespace dsl {
     namespace word {
 
         /**
-         * @brief
-         *  This is used to specify that only one instance of the associated reaction can execute during runtime.
+         * This is used to specify that only one instance of the associated reaction can execute during runtime.
          *
-         * @details
-         *  @code on<Trigger<T, ...>, Single>() @endcode
-         *  When this keyword is used, if the subscribing reaction is triggered while an existing task for this reaction
-         *  is either in the queue or still executing, then the new task request will be ignored/dropped.
+         * @code on<Trigger<T, ...>, Single>() @endcode
+         * When this keyword is used, if the subscribing reaction is triggered while an existing task for this reaction
+         * is either in the queue or still executing, then the new task request will be ignored/dropped.
          *
          * @par Implements
          *  Precondition
          */
-        struct Single : public Buffer<1> {};
+        struct Single : Buffer<1> {};
 
     }  // namespace word
 }  // namespace dsl

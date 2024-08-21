@@ -23,7 +23,7 @@
 #ifndef NUCLEAR_DSL_FUSION_HAS_PRIORITY_HPP
 #define NUCLEAR_DSL_FUSION_HAS_PRIORITY_HPP
 
-#include "../../threading/Reaction.hpp"
+#include "../../threading/ReactionTask.hpp"
 #include "NoOp.hpp"
 
 namespace NUClear {
@@ -31,7 +31,7 @@ namespace dsl {
     namespace fusion {
 
         /**
-         * @brief SFINAE struct to test if the passed class has a priority function that conforms to the NUClear DSL
+         * SFINAE struct to test if the passed class has a priority function that conforms to the NUClear DSL.
          *
          * @tparam T the class to check
          */
@@ -43,7 +43,7 @@ namespace dsl {
 
             template <typename U>
             static auto test(int)
-                -> decltype(U::template priority<ParsedNoOp>(std::declval<threading::Reaction&>()), yes());
+                -> decltype(U::template priority<ParsedNoOp>(std::declval<threading::ReactionTask&>()), yes());
             template <typename>
             static no test(...);
 

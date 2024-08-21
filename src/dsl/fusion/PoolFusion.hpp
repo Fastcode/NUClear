@@ -20,13 +20,13 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_DSL_FUSION_POOLFUSION_HPP
-#define NUCLEAR_DSL_FUSION_POOLFUSION_HPP
+#ifndef NUCLEAR_DSL_FUSION_POOL_FUSION_HPP
+#define NUCLEAR_DSL_FUSION_POOL_FUSION_HPP
 
 #include <algorithm>
 #include <stdexcept>
 
-#include "../../threading/Reaction.hpp"
+#include "../../threading/ReactionTask.hpp"
 #include "../operation/DSLProxy.hpp"
 #include "has_pool.hpp"
 
@@ -44,21 +44,21 @@ namespace dsl {
         struct PoolWords;
 
         /**
-         * @brief Metafunction that extracts all of the Words with a pool function
+         * Metafunction that extracts all of the Words with a pool function.
          *
-         * @tparam Word1        The word we are looking at
-         * @tparam WordN        The words we have yet to look at
-         * @tparam FoundWords   The words we have found with pool functions
+         * @tparam Word1      The word we are looking at
+         * @tparam WordN      The words we have yet to look at
+         * @tparam FoundWords The words we have found with pool functions
          */
         template <typename Word1, typename... WordN, typename... FoundWords>
         struct PoolWords<std::tuple<Word1, WordN...>, std::tuple<FoundWords...>>
-            : public std::conditional_t<
+            : std::conditional_t<
                   has_pool<typename Pool<Word1>::type>::value,
                   /*T*/ PoolWords<std::tuple<WordN...>, std::tuple<FoundWords..., typename Pool<Word1>::type>>,
                   /*F*/ PoolWords<std::tuple<WordN...>, std::tuple<FoundWords...>>> {};
 
         /**
-         * @brief Termination case for the PoolWords metafunction
+         * Termination case for the PoolWords metafunction.
          *
          * @tparam FoundWords The words we have found with pool functions
          */
@@ -77,10 +77,10 @@ namespace dsl {
         struct PoolFuser<std::tuple<Word>> {
 
             template <typename DSL>
-            static inline util::ThreadPoolDescriptor pool(threading::Reaction& reaction) {
+            static util::ThreadPoolDescriptor pool(threading::ReactionTask& task) {
 
                 // Return our pool
-                return Word::template pool<DSL>(reaction);
+                return Word::template pool<DSL>(task);
             }
         };
 
@@ -89,16 +89,16 @@ namespace dsl {
         struct PoolFuser<std::tuple<Word1, Word2, WordN...>> {
 
             template <typename DSL>
-            static inline util::ThreadPoolDescriptor pool(const threading::Reaction& /*reaction*/) {
+            static util::ThreadPoolDescriptor pool(const threading::ReactionTask& /*task*/) {
                 throw std::invalid_argument("Can not be a member of more than one pool");
             }
         };
 
         template <typename Word1, typename... WordN>
-        struct PoolFusion : public PoolFuser<typename PoolWords<std::tuple<Word1, WordN...>>::type> {};
+        struct PoolFusion : PoolFuser<typename PoolWords<std::tuple<Word1, WordN...>>::type> {};
 
     }  // namespace fusion
 }  // namespace dsl
 }  // namespace NUClear
 
-#endif  // NUCLEAR_DSL_FUSION_POOLFUSION_HPP
+#endif  // NUCLEAR_DSL_FUSION_POOL_FUSION_HPP

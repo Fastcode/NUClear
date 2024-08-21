@@ -33,37 +33,37 @@ namespace util {
     namespace network {
 
         /**
-         * @brief A structure that contains information about a network interface
+         * A structure that contains information about a network interface.
          */
         struct Interface {
-            /// @brief The name of the interface
-            std::string name{};
+            /// The name of the interface
+            std::string name;
 
-            /// @brief The address that is bound to the interface
+            /// The address that is bound to the interface
             sock_t ip{};
-            /// @brief The netmask of the interface
+            /// The netmask of the interface
             sock_t netmask{};
-            /// @brief The broadcast address of the interface or point to point address
+            /// The broadcast address of the interface or point to point address
             sock_t broadcast{};
 
             struct Flags {
-                /// @brief True if the interface is a broadcast interface
+                /// True if the interface is a broadcast interface
                 bool broadcast{false};
-                /// @brief True if the interface is a loopback interface
+                /// True if the interface is a loopback interface
                 bool loopback{false};
-                /// @brief True if the interface is a point to point interface
+                /// True if the interface is a point to point interface
                 bool pointtopoint{false};
-                /// @brief True if the interface is a multicast interface
+                /// True if the interface is a multicast interface
                 bool multicast{false};
             };
-            /// @brief The flags that are set on the interface
+            /// The flags that are set on the interface
             Flags flags;
         };
 
         /**
-         * @brief Gets a list of all the network interfaces on the system with the addresses they are bound to
+         * Gets a list of all the network interfaces on the system with the addresses they are bound to.
          *
-         * @return a list of all the interfaces on the system
+         * @return A list of all the interfaces on the system
          */
         std::vector<Interface> get_interfaces();
 

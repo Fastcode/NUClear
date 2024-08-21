@@ -35,16 +35,16 @@
 namespace NUClear {
 namespace dsl {
 
-    /// @brief All of the words from a reaction handle "fused" together into one type
+    /// All of the words from a reaction handle "fused" together into one type
     template <typename... Words>
     struct Fusion
-        : public fusion::BindFusion<Words...>
-        , public fusion::GetFusion<Words...>
-        , public fusion::PreconditionFusion<Words...>
-        , public fusion::PriorityFusion<Words...>
-        , public fusion::GroupFusion<Words...>
-        , public fusion::PoolFusion<Words...>
-        , public fusion::PostconditionFusion<Words...> {};
+        : fusion::BindFusion<Words...>
+        , fusion::GetFusion<Words...>
+        , fusion::PreconditionFusion<Words...>
+        , fusion::PriorityFusion<Words...>
+        , fusion::GroupFusion<Words...>
+        , fusion::PoolFusion<Words...>
+        , fusion::PostconditionFusion<Words...> {};
 
 }  // namespace dsl
 }  // namespace NUClear

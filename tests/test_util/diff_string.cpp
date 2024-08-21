@@ -22,7 +22,9 @@
 
 #include "diff_string.hpp"
 
+#include <algorithm>
 #include <cstring>
+#include <utility>
 
 #include "lcs.hpp"
 

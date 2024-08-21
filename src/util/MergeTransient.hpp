@@ -20,15 +20,15 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_UTIL_MERGETRANSIENT_HPP
-#define NUCLEAR_UTIL_MERGETRANSIENT_HPP
+#ifndef NUCLEAR_UTIL_MERGE_TRANSIENT_HPP
+#define NUCLEAR_UTIL_MERGE_TRANSIENT_HPP
 
 namespace NUClear {
 namespace util {
 
     template <typename T>
     struct MergeTransients {
-        static inline bool merge(T& t, T& d) {
+        static bool merge(T& t, T& d) {
             d = t = d ? d : t;
             return true;
         };
@@ -37,4 +37,4 @@ namespace util {
 }  // namespace util
 }  // namespace NUClear
 
-#endif  // NUCLEAR_UTIL_MERGETRANSIENT_HPP
+#endif  // NUCLEAR_UTIL_MERGE_TRANSIENT_HPP

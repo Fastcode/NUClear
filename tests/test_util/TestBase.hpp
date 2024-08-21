@@ -20,10 +20,10 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef TEST_UTIL_TESTBASE_HPP
-#define TEST_UTIL_TESTBASE_HPP
+#ifndef TEST_UTIL_TEST_BASE_HPP
+#define TEST_UTIL_TEST_BASE_HPP
 
-#include <catch.hpp>
+#include <catch2/catch_test_macros.hpp>
 #include <string>
 #include <utility>
 
@@ -32,12 +32,14 @@
 
 namespace test_util {
 
-template <typename BaseClass, int timeout = 1000>
+template <typename BaseClass>
 class TestBase : public NUClear::Reactor {
 public:
     /**
-     * @brief Struct to use to emit each step of the test, by doing each step in a separate reaction with low priority,
-     * it will ensure that everything has finished changing before the next step is run
+     * Struct to use to emit each step of the test.
+     *
+     * By doing each step in a separate reaction with low priority it will ensure that everything has finished changing
+     * before the next step is run
      *
      * @tparam i the number of the step
      */
@@ -45,11 +47,16 @@ public:
     struct Step {};
 
     /**
-     * @brief Struct to handle shutting down the powerplant when the system is idle (i.e. the unit test(s) are finished)
+     * Emit this struct to fail the test
      */
-    struct ShutdownOnIdle {};
+    struct Fail {
+        explicit Fail(std::string message) : message(std::move(message)) {}
+        std::string message;
+    };
 
-    explicit TestBase(std::unique_ptr<NUClear::Environment> environment, const bool& shutdown_on_idle = true)
+    explicit TestBase(std::unique_ptr<NUClear::Environment> environment,
+                      const bool& shutdown_on_idle             = true,
+                      const std::chrono::milliseconds& timeout = std::chrono::milliseconds(1000))
         : Reactor(std::move(environment)) {
 
         // Shutdown if the system is idle
@@ -57,15 +64,40 @@ public:
             on<Idle<>>().then([this] { powerplant.shutdown(); });
         }
 
+        on<Shutdown>().then([this] {
+            const std::lock_guard<std::mutex> lock(timeout_mutex);
+            clean_shutdown = true;
+            timeout_cv.notify_all();
+        });
+
         // Timeout if the test doesn't complete in time
-        on<Watchdog<BaseClass, timeout, std::chrono::milliseconds>, MainThread>().then([this] {
-            powerplant.shutdown();
-            INFO("Test timed out");
+        // Typically we would use a watchdog, however it is subject to Time Travel
+        // So instead spawn a thread that will wait for the timeout and then fail the test and shut down
+        on<Always>().then([this, timeout] {
+            if (clean_shutdown) {
+                return;
+            }
+            std::unique_lock<std::mutex> lock(timeout_mutex);
+            timeout_cv.wait_for(lock, timeout);
+
+            if (!clean_shutdown) {
+                powerplant.shutdown(true);
+                emit<Scope::DIRECT>(std::make_unique<Fail>("Test timed out"));
+            }
+        });
+
+        on<Trigger<Fail>, MainThread>().then([this](const Fail& f) {
+            INFO(f.message);
             CHECK(false);
         });
     }
+
+private:
+    std::mutex timeout_mutex;
+    std::condition_variable timeout_cv;
+    bool clean_shutdown = false;
 };
 
 }  // namespace test_util
 
-#endif  // TEST_UTIL_TESTBASE_HPP
+#endif  // TEST_UTIL_TEST_BASE_HPP

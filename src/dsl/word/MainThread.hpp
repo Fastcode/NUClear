@@ -20,29 +20,37 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_DSL_WORD_MAINTHREAD_HPP
-#define NUCLEAR_DSL_WORD_MAINTHREAD_HPP
+#ifndef NUCLEAR_DSL_WORD_MAIN_THREAD_HPP
+#define NUCLEAR_DSL_WORD_MAIN_THREAD_HPP
 
 #include "../../threading/ReactionTask.hpp"
 #include "../../util/ThreadPoolDescriptor.hpp"
+#include "../../util/main_thread_id.hpp"
 
 namespace NUClear {
 namespace dsl {
     namespace word {
 
         /**
-         * @brief
-         *  This is used to specify that the associated task will need to execute using the main thread.
+         * This is used to specify that the associated task will need to execute using the main thread.
          *
-         * @details
-         *  @code on<Trigger<T, ...>, MainThread>() @endcode
-         *  This will most likely be used with graphics related tasks.
+         * @code on<Trigger<T, ...>, MainThread>() @endcode
+         * This can be used with graphics related tasks.
+         * For example, OpenGL requires all calls to be made from the main thread.
          */
         struct MainThread {
 
+            /// the description of the thread pool to be used for this PoolType
+            static util::ThreadPoolDescriptor descriptor() {
+                return util::ThreadPoolDescriptor{"Main",
+                                                  NUClear::id_t(util::ThreadPoolDescriptor::MAIN_THREAD_POOL_ID),
+                                                  1,
+                                                  true};
+            }
+
             template <typename DSL>
-            static inline util::ThreadPoolDescriptor pool(const threading::Reaction& /*reaction*/) {
-                return util::ThreadPoolDescriptor{util::ThreadPoolDescriptor::MAIN_THREAD_POOL_ID, 1, true};
+            static util::ThreadPoolDescriptor pool(const threading::ReactionTask& /*task*/) {
+                return descriptor();
             }
         };
 
@@ -50,4 +58,4 @@ namespace dsl {
 }  // namespace dsl
 }  // namespace NUClear
 
-#endif  // NUCLEAR_DSL_WORD_MAINTHREAD_HPP
+#endif  // NUCLEAR_DSL_WORD_MAIN_THREAD_HPP

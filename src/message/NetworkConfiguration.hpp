@@ -20,8 +20,8 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_MESSAGE_NETWORKCONFIGURATION_HPP
-#define NUCLEAR_MESSAGE_NETWORKCONFIGURATION_HPP
+#ifndef NUCLEAR_MESSAGE_NETWORK_CONFIGURATION_HPP
+#define NUCLEAR_MESSAGE_NETWORK_CONFIGURATION_HPP
 
 #include <string>
 
@@ -43,19 +43,19 @@ namespace message {
             , bind_address(std::move(bind_address))
             , mtu(mtu) {}
 
-        /// @brief The name of this node when connecting to the NUClear network
-        std::string name{};
-        /// @brief The address to announce to the NUClear network
-        std::string announce_address{};
-        /// @brief The port to announce to the NUClear network
+        /// The name of this node when connecting to the NUClear network
+        std::string name;
+        /// The address to announce to the NUClear network
+        std::string announce_address;
+        /// The port to announce to the NUClear network
         uint16_t announce_port{0};
-        /// @brief The address of the interface to bind to when connecting to the NUClear network
-        std::string bind_address{};
-        /// @brief The maximum transmission unit for this node
+        /// The address of the interface to bind to when connecting to the NUClear network
+        std::string bind_address;
+        /// The maximum transmission unit for this node
         uint16_t mtu{1500};
     };
 
 }  // namespace message
 }  // namespace NUClear
 
-#endif  // NUCLEAR_MESSAGE_NETWORKCONFIGURATION_HPP
+#endif  // NUCLEAR_MESSAGE_NETWORK_CONFIGURATION_HPP
