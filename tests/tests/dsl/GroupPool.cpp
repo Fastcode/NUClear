@@ -33,7 +33,7 @@ std::vector<std::string> events;  // NOLINT(cppcoreguidelines-avoid-non-const-gl
 /// @brief Add an event to the event list
 void add_event(const std::string& event) {
     static std::mutex events_mutex;
-    std::lock_guard<std::mutex> lock(events_mutex);
+    const std::lock_guard<std::mutex> lock(events_mutex);
     events.push_back(event);
 }
 
@@ -42,7 +42,7 @@ struct Synced {};
 template <int id>
 struct PoolFinished {};
 
-static constexpr int POOL_COUNT = 10;
+constexpr int POOL_COUNT = 10;
 
 class TestReactor : public test_util::TestBase<TestReactor> {
 public:
@@ -52,7 +52,7 @@ public:
     };
 
     template <int... ID>
-    void register_callbacks(NUClear::util::Sequence<ID...>) {
+    void register_callbacks(NUClear::util::Sequence<ID...> /*unused*/) {
 
         NUClear::util::unpack(on<Trigger<Synced>, Pool<TestPool<ID>>, Sync<TestReactor>>().then([this] {
             add_event("Pool Message");
