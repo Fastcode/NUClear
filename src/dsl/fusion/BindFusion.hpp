@@ -25,8 +25,8 @@
 
 #include "../../threading/Reaction.hpp"
 #include "../../util/FunctionFusion.hpp"
-#include "../../util/meta/Filter.hpp"
 #include "../operation/DSLProxy.hpp"
+#include "FindWords.hpp"
 #include "has_bind.hpp"
 
 namespace NUClear {
@@ -86,14 +86,6 @@ namespace dsl {
             }
         };
 
-        /// Redirect types without a bind function to their proxy type
-        template <typename Word>
-        using Bind = std::conditional_t<has_bind<Word>::value, Word, operation::DSLProxy<Word>>;
-
-        /// Filter down DSL words to only those that have a bind function
-        template <typename... Words>
-        using BindWords = Filter<has_bind, Bind<Words>...>;
-
         // Default case where there are no bind words
         template <typename Words>
         struct BindFuser {};
@@ -121,7 +113,7 @@ namespace dsl {
         };
 
         template <typename Word1, typename... WordN>
-        struct BindFusion : BindFuser<BindWords<Word1, WordN...>> {};
+        struct BindFusion : BindFuser<FindWords<has_bind, Word1, WordN...>> {};
 
     }  // namespace fusion
 }  // namespace dsl

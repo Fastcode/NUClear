@@ -24,21 +24,13 @@
 #define NUCLEAR_DSL_FUSION_PRIORITY_FUSION_HPP
 
 #include "../../threading/ReactionTask.hpp"
-#include "../../util/meta/Filter.hpp"
 #include "../operation/DSLProxy.hpp"
+#include "FindWords.hpp"
 #include "has_priority.hpp"
 
 namespace NUClear {
 namespace dsl {
     namespace fusion {
-
-        /// Type that redirects types without a priority function to their proxy type
-        template <typename Word>
-        using Priority = std::conditional_t<has_priority<Word>::value, Word, operation::DSLProxy<Word>>;
-
-        /// Filter down DSL words to only those that have a priority function
-        template <typename... Words>
-        using PriorityWords = Filter<has_priority, Priority<Words>...>;
 
         // Default case where there are no priority words
         template <typename Words>
@@ -70,7 +62,7 @@ namespace dsl {
         };
 
         template <typename Word1, typename... WordN>
-        struct PriorityFusion : PriorityFuser<PriorityWords<Word1, WordN...>> {};
+        struct PriorityFusion : PriorityFuser<FindWords<has_priority, Word1, WordN...>> {};
 
     }  // namespace fusion
 }  // namespace dsl

@@ -28,21 +28,13 @@
 #include <stdexcept>
 
 #include "../../threading/Reaction.hpp"
-#include "../../util/meta/Filter.hpp"
 #include "../operation/DSLProxy.hpp"
+#include "FindWords.hpp"
 #include "has_group.hpp"
 
 namespace NUClear {
 namespace dsl {
     namespace fusion {
-
-        /// Redirect types without a group function to their proxy type
-        template <typename Word>
-        using Group = std::conditional_t<has_group<Word>::value, Word, operation::DSLProxy<Word>>;
-
-        /// Filter down DSL words to only those that have a group function
-        template <typename... Words>
-        using GroupWords = Filter<has_group, Group<Words>...>;
 
         // Default case where there are no group words
         template <typename Words>
@@ -76,7 +68,7 @@ namespace dsl {
         };
 
         template <typename Word1, typename... WordN>
-        struct GroupFusion : GroupFuser<GroupWords<Word1, WordN...>> {};
+        struct GroupFusion : GroupFuser<FindWords<has_group, Word1, WordN...>> {};
 
     }  // namespace fusion
 }  // namespace dsl

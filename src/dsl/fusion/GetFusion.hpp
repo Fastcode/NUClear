@@ -24,9 +24,9 @@
 #define NUCLEAR_DSL_FUSION_GET_FUSION_HPP
 
 #include "../../threading/Reaction.hpp"
-#include "../../util/meta/Filter.hpp"
 #include "../../util/tuplify.hpp"
 #include "../operation/DSLProxy.hpp"
+#include "FindWords.hpp"
 #include "has_get.hpp"
 
 namespace NUClear {
@@ -45,14 +45,6 @@ namespace dsl {
                 return Function::template get<DSL>(task);
             }
         };
-
-        /// Redirect types without a get function to their proxy type
-        template <typename Word>
-        using Get = std::conditional_t<has_get<Word>::value, Word, operation::DSLProxy<Word>>;
-
-        /// Filter down DSL words to only those that have a get function
-        template <typename... Words>
-        using GetWords = Filter<has_get, Get<Words>...>;
 
         // Default case where there are no get words
         template <typename Words>
@@ -80,7 +72,7 @@ namespace dsl {
         };
 
         template <typename Word1, typename... WordN>
-        struct GetFusion : GetFuser<GetWords<Word1, WordN...>> {};
+        struct GetFusion : GetFuser<FindWords<has_get, Word1, WordN...>> {};
 
     }  // namespace fusion
 }  // namespace dsl

@@ -24,21 +24,13 @@
 #define NUCLEAR_DSL_FUSION_PRECONDITION_FUSION_HPP
 
 #include "../../threading/ReactionTask.hpp"
-#include "../../util/meta/Filter.hpp"
 #include "../operation/DSLProxy.hpp"
+#include "FindWords.hpp"
 #include "has_precondition.hpp"
 
 namespace NUClear {
 namespace dsl {
     namespace fusion {
-
-        /// Redirect types without a precondition function to their proxy type
-        template <typename Word>
-        using Precondition = std::conditional_t<has_precondition<Word>::value, Word, operation::DSLProxy<Word>>;
-
-        /// Filter down DSL words to only those that have a precondition function
-        template <typename... Words>
-        using PreconditionWords = Filter<has_precondition, Precondition<Words>...>;
 
         // Default case where there are no precondition words
         template <typename Words>
@@ -70,7 +62,7 @@ namespace dsl {
         };
 
         template <typename Word1, typename... WordN>
-        struct PreconditionFusion : PreconditionFuser<PreconditionWords<Word1, WordN...>> {};
+        struct PreconditionFusion : PreconditionFuser<FindWords<has_precondition, Word1, WordN...>> {};
 
     }  // namespace fusion
 }  // namespace dsl

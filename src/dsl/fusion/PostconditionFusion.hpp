@@ -24,21 +24,13 @@
 #define NUCLEAR_DSL_FUSION_POSTCONDITION_FUSION_HPP
 
 #include "../../threading/ReactionTask.hpp"
-#include "../../util/meta/Filter.hpp"
 #include "../operation/DSLProxy.hpp"
+#include "FindWords.hpp"
 #include "has_postcondition.hpp"
 
 namespace NUClear {
 namespace dsl {
     namespace fusion {
-
-        /// Redirect types without a postcondition function to their proxy type
-        template <typename Word>
-        using Postcondition = std::conditional_t<has_postcondition<Word>::value, Word, operation::DSLProxy<Word>>;
-
-        /// Filter down DSL words to only those that have a postcondition function
-        template <typename... Words>
-        using PostconditionWords = Filter<has_postcondition, Postcondition<Words>...>;
 
         // Default case where there are no postcondition words
         template <typename Words>
@@ -72,7 +64,7 @@ namespace dsl {
         };
 
         template <typename Word1, typename... WordN>
-        struct PostconditionFusion : PostconditionFuser<PostconditionWords<Word1, WordN...>> {};
+        struct PostconditionFusion : PostconditionFuser<FindWords<has_postcondition, Word1, WordN...>> {};
 
     }  // namespace fusion
 }  // namespace dsl

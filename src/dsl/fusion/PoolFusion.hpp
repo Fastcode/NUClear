@@ -27,21 +27,13 @@
 #include <stdexcept>
 
 #include "../../threading/ReactionTask.hpp"
-#include "../../util/meta/Filter.hpp"
 #include "../operation/DSLProxy.hpp"
+#include "FindWords.hpp"
 #include "has_pool.hpp"
 
 namespace NUClear {
 namespace dsl {
     namespace fusion {
-
-        /// Redirect types without a pool function to their proxy type
-        template <typename Word>
-        using Pool = std::conditional_t<has_pool<Word>::value, Word, operation::DSLProxy<Word>>;
-
-        /// Filter down DSL words to only those that have a pool function
-        template <typename... Words>
-        using PoolWords = Filter<has_pool, Pool<Words>...>;
 
         // Default case where there are no pool words
         template <typename Words>
@@ -70,7 +62,7 @@ namespace dsl {
         };
 
         template <typename Word1, typename... WordN>
-        struct PoolFusion : PoolFuser<PoolWords<Word1, WordN...>> {};
+        struct PoolFusion : PoolFuser<FindWords<has_pool, Word1, WordN...>> {};
 
     }  // namespace fusion
 }  // namespace dsl
