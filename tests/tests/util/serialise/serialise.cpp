@@ -100,6 +100,7 @@ SCENARIO("Serialisation works correctly on single primitives", "[util][serialise
     }
 }
 
+
 TEMPLATE_TEST_CASE("Scenario: Serialisation works correctly on iterables of primitives",
                    "[util][serialise][multiple][primitive]",
                    std::vector<uint32_t>,
@@ -177,8 +178,6 @@ TEMPLATE_TEST_CASE("Scenario: Serialisation works correctly on iterables of prim
     }
 }
 
-namespace {
-
 struct TriviallyCopyable {
     uint8_t a;
     int8_t b;
@@ -189,8 +188,6 @@ struct TriviallyCopyable {
     }
 };
 static_assert(std::is_trivially_copyable<TriviallyCopyable>::value, "This type should be trivially copyable");
-
-}  // namespace
 
 SCENARIO("Serialisation works correctly on single trivially copyable types", "[util][serialise][single][trivial]") {
 

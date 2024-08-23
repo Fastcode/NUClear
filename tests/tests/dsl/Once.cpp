@@ -25,18 +25,13 @@
 
 #include "test_util/TestBase.hpp"
 
-namespace {
-
-// Events that occur during the test
-std::vector<std::string> events;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
-
-struct SimpleMessage {
-    SimpleMessage(int run) : run(run) {}
-    int run = 0;
-};
-
 class TestReactor : public NUClear::Reactor {
 public:
+    struct SimpleMessage {
+        SimpleMessage(int run) : run(run) {}
+        int run = 0;
+    };
+
     TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
 
         // Make this priority high so it will always run first if it is able
@@ -61,15 +56,18 @@ public:
             emit(std::make_unique<SimpleMessage>(0));
         });
     }
+
+    /// Events that occur during the test
+    std::vector<std::string> events;
 };
-}  // namespace
+
 
 TEST_CASE("Reactions with the Once DSL keyword only execute once", "[api][once]") {
 
     NUClear::Configuration config;
     config.thread_count = 1;
     NUClear::PowerPlant plant(config);
-    plant.install<TestReactor>();
+    const auto& reactor = plant.install<TestReactor>();
     plant.start();
 
     const std::vector<std::string> expected = {
@@ -88,8 +86,8 @@ TEST_CASE("Reactions with the Once DSL keyword only execute once", "[api][once]"
     };
 
     // Make an info print the diff in an easy to read way if we fail
-    INFO(test_util::diff_string(expected, events));
+    INFO(test_util::diff_string(expected, reactor.events));
 
     // Check the events fired in order and only those events
-    REQUIRE(events == expected);
+    REQUIRE(reactor.events == expected);
 }

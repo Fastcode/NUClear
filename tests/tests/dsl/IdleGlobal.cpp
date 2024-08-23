@@ -26,14 +26,6 @@
 #include "test_util/TestBase.hpp"
 #include "test_util/TimeUnit.hpp"
 
-namespace {
-
-void wait_for_set(const std::atomic<bool>& flag) {
-    while (!flag.load(std::memory_order_acquire)) {
-        std::this_thread::sleep_for(test_util::TimeUnit(1));
-    }
-}
-
 class TestReactor : public test_util::TestBase<TestReactor> {
 public:
     // A pool to use for monitoring which does not interact with idleness
@@ -105,14 +97,18 @@ public:
         });
     }
 
+    void wait_for_set(const std::atomic<bool>& flag) {
+        while (!flag.load(std::memory_order_acquire)) {
+            std::this_thread::sleep_for(test_util::TimeUnit(1));
+        }
+    }
+
     std::atomic<int> idles_fired{0};
 
     std::atomic<bool> sync_obtained{false};
     std::atomic<bool> main_idle{false};
     std::atomic<bool> default_idle{false};
 };
-
-}  // namespace
 
 
 TEST_CASE("Test that Idle won't fire when an already idle pool goes idle again", "[api][dsl][Idle][Pool]") {

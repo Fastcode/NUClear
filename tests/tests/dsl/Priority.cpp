@@ -26,16 +26,11 @@
 
 #include "test_util/TestBase.hpp"
 
-namespace {
-
-/// Events that occur during the test
-std::vector<std::string> events;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
-
-template <int I>
-struct Message {};
-
 class TestReactor : public test_util::TestBase<TestReactor> {
 public:
+    template <int I>
+    struct Message {};
+
     TestReactor(std::unique_ptr<NUClear::Environment> environment) : TestBase(std::move(environment)) {
 
         // Declare in the order you'd expect them to fire
@@ -85,8 +80,10 @@ public:
             emit(std::make_unique<Message<3>>());
         });
     }
+
+    /// Events that occur during the test
+    std::vector<std::string> events;
 };
-}  // namespace
 
 
 TEST_CASE("Tests that priority orders the tasks appropriately", "[api][priority]") {
@@ -94,7 +91,7 @@ TEST_CASE("Tests that priority orders the tasks appropriately", "[api][priority]
     NUClear::Configuration config;
     config.thread_count = 1;
     NUClear::PowerPlant plant(config);
-    plant.install<TestReactor>();
+    const auto& reactor = plant.install<TestReactor>();
     plant.start();
 
     const std::vector<std::string> expected = {
@@ -119,8 +116,8 @@ TEST_CASE("Tests that priority orders the tasks appropriately", "[api][priority]
     };
 
     // Make an info print the diff in an easy to read way if we fail
-    INFO(test_util::diff_string(expected, events));
+    INFO(test_util::diff_string(expected, reactor.events));
 
     // Check the events fired in order and only those events
-    REQUIRE(events == expected);
+    REQUIRE(reactor.events == expected);
 }

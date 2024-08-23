@@ -25,19 +25,13 @@
 
 #include "test_util/TestBase.hpp"
 
-// Anonymous namespace to keep everything file local
-namespace {
-
-/// Events that occur during the test
-std::vector<std::string> events;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
-
-struct TestMessage {
-    TestMessage(std::string data) : data(std::move(data)) {}
-    std::string data;
-};
-
 class TestReactor : public test_util::TestBase<TestReactor> {
 public:
+    struct TestMessage {
+        TestMessage(std::string data) : data(std::move(data)) {}
+        std::string data;
+    };
+
     TestReactor(std::unique_ptr<NUClear::Environment> environment) : TestBase(std::move(environment)) {
         emit<Scope::INITIALIZE>(std::make_unique<TestMessage>("Initialise before trigger"));
         emit(std::make_unique<TestMessage>("Normal before trigger"));
@@ -60,14 +54,17 @@ public:
             emit(std::make_unique<Step<2>>());
         });
     }
+
+    /// Events that occur during the test
+    std::vector<std::string> events;
 };
-}  // namespace
+
 
 TEST_CASE("Testing the Initialize scope", "[api][emit][initialize]") {
     NUClear::Configuration config;
     config.thread_count = 1;
     NUClear::PowerPlant plant(config);
-    plant.install<TestReactor>();
+    const auto& reactor = plant.install<TestReactor>();
     plant.start();
 
     const std::vector<std::string> expected = {
@@ -78,8 +75,8 @@ TEST_CASE("Testing the Initialize scope", "[api][emit][initialize]") {
     };
 
     // Make an info print the diff in an easy to read way if we fail
-    INFO(test_util::diff_string(expected, events));
+    INFO(test_util::diff_string(expected, reactor.events));
 
     // Check the events fired in order and only those events
-    REQUIRE(events == expected);
+    REQUIRE(reactor.events == expected);
 }

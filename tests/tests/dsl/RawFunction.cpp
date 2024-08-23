@@ -25,8 +25,6 @@
 
 #include "test_util/TestBase.hpp"
 
-namespace {
-
 /// Events that occur during the test
 std::vector<std::string> events;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
@@ -80,7 +78,6 @@ void raw_function_test_both_args(const Message& msg, const Data& data) {
     events.push_back("Raw function both args: " + msg.data + " " + data.data);
 }
 
-
 class TestReactor : public test_util::TestBase<TestReactor> {
 public:
     TestReactor(std::unique_ptr<NUClear::Environment> environment) : TestBase(std::move(environment)) {
@@ -103,7 +100,7 @@ public:
         });
     }
 };
-}  // namespace
+
 
 TEST_CASE("Test reaction can take a raw function instead of just a lambda", "[api][raw_function]") {
 

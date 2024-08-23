@@ -26,29 +26,27 @@
 
 #include "test_util/TestBase.hpp"
 
-namespace {
-
-// Store our times
-std::vector<NUClear::clock::time_point> every_times;    // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
-std::vector<NUClear::clock::time_point> per_times;      // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
-std::vector<NUClear::clock::time_point> dynamic_times;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
-
 class TestReactor : public test_util::TestBase<TestReactor> {
-
 public:
     TestReactor(std::unique_ptr<NUClear::Environment> environment)
         : TestBase(std::move(environment), false, std::chrono::seconds(10)) {
 
         // Trigger on 3 different types of every
-        on<Every<1000, Per<std::chrono::seconds>>>().then([]() { every_times.push_back(NUClear::clock::now()); });
-        on<Every<1, std::chrono::milliseconds>>().then([]() { per_times.push_back(NUClear::clock::now()); });
-        on<Every<>>(std::chrono::milliseconds(1)).then([]() { dynamic_times.push_back(NUClear::clock::now()); });
+        on<Every<1000, Per<std::chrono::seconds>>>().then([this]() { every_times.push_back(NUClear::clock::now()); });
+        on<Every<1, std::chrono::milliseconds>>().then([this]() { per_times.push_back(NUClear::clock::now()); });
+        on<Every<>>(std::chrono::milliseconds(1)).then([this]() { dynamic_times.push_back(NUClear::clock::now()); });
 
         // Gather data for some amount of time
         on<Watchdog<TestReactor, 5, std::chrono::seconds>>().then([this] { powerplant.shutdown(); });
     }
+
+    /// Times that the every trigger has been called
+    std::vector<NUClear::clock::time_point> every_times;
+    /// Times that the every per trigger has been called
+    std::vector<NUClear::clock::time_point> per_times;
+    /// Times that the dynamic every trigger has been called
+    std::vector<NUClear::clock::time_point> dynamic_times;
 };
-}  // namespace
 
 void test_results(const std::vector<NUClear::clock::time_point>& times) {
 
@@ -74,26 +72,27 @@ void test_results(const std::vector<NUClear::clock::time_point>& times) {
     REQUIRE(std::abs(mean + stddev * 2) < 0.008);
 }
 
+
 TEST_CASE("Testing the Every<> DSL word", "[api][every][per]") {
 
     NUClear::Configuration config;
     config.thread_count = 1;
     NUClear::PowerPlant plant(config);
-    plant.install<TestReactor>();
+    const auto& reactor = plant.install<TestReactor>();
     plant.start();
 
     {
         INFO("Testing Every");
-        test_results(every_times);
+        test_results(reactor.every_times);
     }
 
     {
         INFO("Testing Every Per");
-        test_results(per_times);
+        test_results(reactor.per_times);
     }
 
     {
         INFO("Testing Dynamic Every every");
-        test_results(dynamic_times);
+        test_results(reactor.dynamic_times);
     }
 }

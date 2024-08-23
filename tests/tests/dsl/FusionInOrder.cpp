@@ -23,10 +23,6 @@
 #include <catch2/catch_test_macros.hpp>
 #include <nuclear>
 
-namespace {
-
-std::vector<int> events;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
-
 template <int i>
 struct Extension {
     template <typename DSL>
@@ -41,9 +37,9 @@ public:
 
         on<Extension<0>, Extension<1>, Extension<2>, Extension<3>, Extension<4>>().then([] {});
     }
-};
 
-}  // namespace
+    std::vector<int> events;
+};
 
 
 TEST_CASE("Testing that the bind functions of extensions are executed in order", "[api][extension][bind]") {
@@ -51,7 +47,7 @@ TEST_CASE("Testing that the bind functions of extensions are executed in order",
     NUClear::Configuration config;
     config.thread_count = 1;
     NUClear::PowerPlant plant(config);
-    plant.install<TestReactor>();
+    const auto& reactor = plant.install<TestReactor>();
 
-    REQUIRE(events == std::vector<int>{0, 1, 2, 3, 4});
+    REQUIRE(reactor.events == std::vector<int>{0, 1, 2, 3, 4});
 }

@@ -26,11 +26,6 @@
 
 #include "test_util/TestBase.hpp"
 
-namespace {
-
-/// Events that occur during the test
-std::vector<std::string> events;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
-
 struct BindExtensionTest1 {
     template <typename DSL>
     static int bind(const std::shared_ptr<NUClear::threading::Reaction>& /*unused*/, const int& v1, const bool& v2) {
@@ -83,15 +78,18 @@ public:
         events.push_back(std::string("Bind2 returned ") + (b ? "true" : "false"));
         events.push_back("Bind3 returned " + c);
     }
+
+    /// Events that occur during the test
+    std::vector<std::string> events;
 };
-}  // namespace
+
 
 TEST_CASE("Testing distributing arguments to multiple bind functions (NUClear Fission)", "[api][dsl][fission]") {
 
     NUClear::Configuration config;
     config.thread_count = 1;
     NUClear::PowerPlant plant(config);
-    plant.install<TestReactor>();
+    const auto& reactor = plant.install<TestReactor>();
     plant.start();
 
     const std::vector<std::string> expected = {
@@ -104,8 +102,8 @@ TEST_CASE("Testing distributing arguments to multiple bind functions (NUClear Fi
     };
 
     // Make an info print the diff in an easy to read way if we fail
-    INFO(test_util::diff_string(expected, events));
+    INFO(test_util::diff_string(expected, reactor.events));
 
     // Check the events fired in order and only those events
-    REQUIRE(events == expected);
+    REQUIRE(reactor.events == expected);
 }

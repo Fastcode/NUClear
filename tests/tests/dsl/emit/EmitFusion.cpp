@@ -26,12 +26,6 @@
 
 #include "test_util/TestBase.hpp"
 
-// Anonymous namespace to keep everything file local
-namespace {
-
-/// Events that occur during the test
-std::vector<std::string> events;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
-
 template <typename T>
 struct E1 {
     static void emit(const NUClear::PowerPlant& /*powerplant*/,
@@ -80,15 +74,18 @@ public:
         emit<E1, E2>(std::make_unique<std::string>("message5"), 5, "test5a", 10, "test5b");  // 1a, 2b
         events.push_back("End test 5");
     }
+
+    /// Events that occur during the test
+    std::vector<std::string> events;
 };
-}  // namespace
+
 
 TEST_CASE("Testing emit function fusion", "[api][emit][fusion]") {
 
     NUClear::Configuration config;
     config.thread_count = 1;
     NUClear::PowerPlant plant(config);
-    plant.install<TestReactor>();
+    const auto& reactor = plant.install<TestReactor>();
 
     const std::vector<std::string> expected = {
         "E1b message1 test1",
@@ -108,8 +105,8 @@ TEST_CASE("Testing emit function fusion", "[api][emit][fusion]") {
     };
 
     // Make an info print the diff in an easy to read way if we fail
-    INFO(test_util::diff_string(expected, events));
+    INFO(test_util::diff_string(expected, reactor.events));
 
     // Check the events fired in order and only those events
-    REQUIRE(events == expected);
+    REQUIRE(reactor.events == expected);
 }

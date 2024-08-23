@@ -27,6 +27,9 @@ FetchContent_Declare(
   SYSTEM DOWNLOAD_EXTRACT_TIMESTAMP TRUE
   URL https://github.com/catchorg/Catch2/archive/refs/tags/v3.6.0.tar.gz
 )
+
+# Add CATCH_CONFIG_CONSOLE_WIDTH=120 to cmake options
+set(CATCH_CONFIG_CONSOLE_WIDTH 120)
 FetchContent_MakeAvailable(Catch2)
 
 # Silence clang-tidy warnings from catch2

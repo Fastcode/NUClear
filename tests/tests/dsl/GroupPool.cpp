@@ -25,27 +25,15 @@
 
 #include "test_util/TestBase.hpp"
 
-namespace {
-
-/// @brief A vector of events that have happened
-std::vector<std::string> events;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
-
-/// @brief Add an event to the event list
-void add_event(const std::string& event) {
-    static std::mutex events_mutex;
-    std::lock_guard<std::mutex> lock(events_mutex);
-    events.push_back(event);
-}
-
-struct StartTest {};
-struct Synced {};
-template <int id>
-struct PoolFinished {};
-
-static constexpr int POOL_COUNT = 10;
-
 class TestReactor : public test_util::TestBase<TestReactor> {
 public:
+    struct StartTest {};
+    struct Synced {};
+    template <int id>
+    struct PoolFinished {};
+
+    static constexpr int POOL_COUNT = 10;
+
     template <int id>
     struct TestPool {
         static constexpr int thread_count = 1;
@@ -81,9 +69,17 @@ public:
         // Register all the callbacks and a final callback to gather the results
         register_callbacks(NUClear::util::GenerateSequence<0, POOL_COUNT>());
     }
-};
 
-}  // namespace
+    /// Add an event to the event list
+    void add_event(const std::string& event) {
+        static std::mutex events_mutex;
+        std::lock_guard<std::mutex> lock(events_mutex);
+        events.push_back(event);
+    }
+
+    /// A vector of events that have happened
+    std::vector<std::string> events;
+};
 
 
 TEST_CASE("Test that if a pool has nothing to do because of a sync group it will recover", "[api][pool][group]") {
@@ -91,21 +87,21 @@ TEST_CASE("Test that if a pool has nothing to do because of a sync group it will
     NUClear::Configuration config;
     config.thread_count = 1;
     NUClear::PowerPlant plant(config);
-    plant.install<TestReactor>();
+    const auto& reactor = plant.install<TestReactor>();
     plant.start();
 
     std::vector<std::string> expected = {
         "Startup",
         "Send Synced Message",
     };
-    for (int i = 0; i < POOL_COUNT; ++i) {
+    for (int i = 0; i < TestReactor::POOL_COUNT; ++i) {
         expected.push_back("Pool Message");
     }
     expected.push_back("Finished");
 
     // Make an info print the diff in an easy to read way if we fail
-    INFO(test_util::diff_string(expected, events));
+    INFO(test_util::diff_string(expected, reactor.events));
 
     // Check the events fired in order and only those events
-    REQUIRE(events == expected);
+    REQUIRE(reactor.events == expected);
 }
