@@ -24,6 +24,7 @@
 #define NUCLEAR_DSL_FUSION_PRECONDITION_FUSION_HPP
 
 #include "../../threading/ReactionTask.hpp"
+#include "../../util/meta/Filter.hpp"
 #include "../operation/DSLProxy.hpp"
 #include "has_precondition.hpp"
 
@@ -31,40 +32,13 @@ namespace NUClear {
 namespace dsl {
     namespace fusion {
 
-        /// Type that redirects types without a precondition function to their proxy type
+        /// Redirect types without a precondition function to their proxy type
         template <typename Word>
-        struct Precondition {
-            using type = std::conditional_t<has_precondition<Word>::value, Word, operation::DSLProxy<Word>>;
-        };
+        using Precondition = std::conditional_t<has_precondition<Word>::value, Word, operation::DSLProxy<Word>>;
 
-        template <typename, typename = std::tuple<>>
-        struct PreconditionWords;
-
-        /**
-         * Metafunction that extracts all of the Words with a precondition function.
-         *
-         * @tparam Word1      The word we are looking at
-         * @tparam WordN      The words we have yet to look at
-         * @tparam FoundWords The words we have found with precondition functions
-         */
-        template <typename Word1, typename... WordN, typename... FoundWords>
-        struct PreconditionWords<std::tuple<Word1, WordN...>, std::tuple<FoundWords...>>
-            : std::conditional_t<has_precondition<typename Precondition<Word1>::type>::value,
-                                 /*T*/
-                                 PreconditionWords<std::tuple<WordN...>,
-                                                   std::tuple<FoundWords..., typename Precondition<Word1>::type>>,
-                                 /*F*/ PreconditionWords<std::tuple<WordN...>, std::tuple<FoundWords...>>> {};
-
-        /**
-         * Termination case for the PreconditionWords metafunction.
-         *
-         * @tparam FoundWords The words we have found with precondition functions
-         */
-        template <typename... FoundWords>
-        struct PreconditionWords<std::tuple<>, std::tuple<FoundWords...>> {
-            using type = std::tuple<FoundWords...>;
-        };
-
+        /// Filter down DSL words to only those that have a precondition function
+        template <typename... Words>
+        using PreconditionWords = Filter<has_precondition, Precondition<Words>...>;
 
         // Default case where there are no precondition words
         template <typename Words>
@@ -96,7 +70,7 @@ namespace dsl {
         };
 
         template <typename Word1, typename... WordN>
-        struct PreconditionFusion : PreconditionFuser<typename PreconditionWords<std::tuple<Word1, WordN...>>::type> {};
+        struct PreconditionFusion : PreconditionFuser<PreconditionWords<Word1, WordN...>> {};
 
     }  // namespace fusion
 }  // namespace dsl

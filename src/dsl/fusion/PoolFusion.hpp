@@ -27,6 +27,7 @@
 #include <stdexcept>
 
 #include "../../threading/ReactionTask.hpp"
+#include "../../util/meta/Filter.hpp"
 #include "../operation/DSLProxy.hpp"
 #include "has_pool.hpp"
 
@@ -34,39 +35,13 @@ namespace NUClear {
 namespace dsl {
     namespace fusion {
 
-        /// Type that redirects types without a pool function to their proxy type
+        /// Redirect types without a pool function to their proxy type
         template <typename Word>
-        struct Pool {
-            using type = std::conditional_t<has_pool<Word>::value, Word, operation::DSLProxy<Word>>;
-        };
+        using Pool = std::conditional_t<has_pool<Word>::value, Word, operation::DSLProxy<Word>>;
 
-        template <typename, typename = std::tuple<>>
-        struct PoolWords;
-
-        /**
-         * Metafunction that extracts all of the Words with a pool function.
-         *
-         * @tparam Word1      The word we are looking at
-         * @tparam WordN      The words we have yet to look at
-         * @tparam FoundWords The words we have found with pool functions
-         */
-        template <typename Word1, typename... WordN, typename... FoundWords>
-        struct PoolWords<std::tuple<Word1, WordN...>, std::tuple<FoundWords...>>
-            : std::conditional_t<
-                  has_pool<typename Pool<Word1>::type>::value,
-                  /*T*/ PoolWords<std::tuple<WordN...>, std::tuple<FoundWords..., typename Pool<Word1>::type>>,
-                  /*F*/ PoolWords<std::tuple<WordN...>, std::tuple<FoundWords...>>> {};
-
-        /**
-         * Termination case for the PoolWords metafunction.
-         *
-         * @tparam FoundWords The words we have found with pool functions
-         */
-        template <typename... FoundWords>
-        struct PoolWords<std::tuple<>, std::tuple<FoundWords...>> {
-            using type = std::tuple<FoundWords...>;
-        };
-
+        /// Filter down DSL words to only those that have a pool function
+        template <typename... Words>
+        using PoolWords = Filter<has_pool, Pool<Words>...>;
 
         // Default case where there are no pool words
         template <typename Words>
@@ -95,7 +70,7 @@ namespace dsl {
         };
 
         template <typename Word1, typename... WordN>
-        struct PoolFusion : PoolFuser<typename PoolWords<std::tuple<Word1, WordN...>>::type> {};
+        struct PoolFusion : PoolFuser<PoolWords<Word1, WordN...>> {};
 
     }  // namespace fusion
 }  // namespace dsl

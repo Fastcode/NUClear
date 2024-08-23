@@ -28,6 +28,7 @@
 #include <stdexcept>
 
 #include "../../threading/Reaction.hpp"
+#include "../../util/meta/Filter.hpp"
 #include "../operation/DSLProxy.hpp"
 #include "has_group.hpp"
 
@@ -35,39 +36,13 @@ namespace NUClear {
 namespace dsl {
     namespace fusion {
 
-        /// Type that redirects types without a group function to their proxy type
+        /// Redirect types without a group function to their proxy type
         template <typename Word>
-        struct Group {
-            using type = std::conditional_t<has_group<Word>::value, Word, operation::DSLProxy<Word>>;
-        };
+        using Group = std::conditional_t<has_group<Word>::value, Word, operation::DSLProxy<Word>>;
 
-        template <typename, typename = std::tuple<>>
-        struct GroupWords;
-
-        /**
-         * Metafunction that extracts all of the Words with a group function.
-         *
-         * @tparam Word1      The word we are looking at
-         * @tparam WordN      The words we have yet to look at
-         * @tparam FoundWords The words we have found with group functions
-         */
-        template <typename Word1, typename... WordN, typename... FoundWords>
-        struct GroupWords<std::tuple<Word1, WordN...>, std::tuple<FoundWords...>>
-            : std::conditional_t<
-                  has_group<typename Group<Word1>::type>::value,
-                  /*T*/ GroupWords<std::tuple<WordN...>, std::tuple<FoundWords..., typename Group<Word1>::type>>,
-                  /*F*/ GroupWords<std::tuple<WordN...>, std::tuple<FoundWords...>>> {};
-
-        /**
-         * Termination case for the GroupWords metafunction.
-         *
-         * @tparam FoundWords The words we have found with group functions
-         */
-        template <typename... FoundWords>
-        struct GroupWords<std::tuple<>, std::tuple<FoundWords...>> {
-            using type = std::tuple<FoundWords...>;
-        };
-
+        /// Filter down DSL words to only those that have a group function
+        template <typename... Words>
+        using GroupWords = Filter<has_group, Group<Words>...>;
 
         // Default case where there are no group words
         template <typename Words>
@@ -101,7 +76,7 @@ namespace dsl {
         };
 
         template <typename Word1, typename... WordN>
-        struct GroupFusion : GroupFuser<typename GroupWords<std::tuple<Word1, WordN...>>::type> {};
+        struct GroupFusion : GroupFuser<GroupWords<Word1, WordN...>> {};
 
     }  // namespace fusion
 }  // namespace dsl
