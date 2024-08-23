@@ -33,7 +33,7 @@ std::vector<std::string> events;  // NOLINT(cppcoreguidelines-avoid-non-const-gl
 /// @brief Add an event to the event list
 void add_event(const std::string& event) {
     static std::mutex events_mutex;
-    std::lock_guard<std::mutex> lock(events_mutex);
+    const std::lock_guard<std::mutex> lock(events_mutex);
     events.push_back(event);
 }
 
@@ -42,7 +42,7 @@ struct Synced {};
 template <int id>
 struct PoolFinished {};
 
-static constexpr int POOL_COUNT = 10;
+constexpr int POOL_COUNT = 10;
 
 class TestReactor : public test_util::TestBase<TestReactor> {
 public:
@@ -51,15 +51,23 @@ public:
         static constexpr int thread_count = 1;
     };
 
-    template <int... ID>
-    void register_callbacks(NUClear::util::Sequence<ID...>) {
+    void register_pool_callbacks(NUClear::util::Sequence<> /*unused*/) {}
 
-        NUClear::util::unpack(on<Trigger<Synced>, Pool<TestPool<ID>>, Sync<TestReactor>>().then([this] {
+    template <int ID, int... IDs>
+    void register_pool_callbacks(NUClear::util::Sequence<ID, IDs...> /*unused*/) {
+        on<Trigger<Synced>, Pool<TestPool<ID>>, Sync<TestReactor>>().then([this] {
             add_event("Pool Message");
             emit(std::make_unique<PoolFinished<ID>>());
-        })...);
+        });
 
-        on<Trigger<PoolFinished<ID>>...>().then([this] {
+        register_pool_callbacks(NUClear::util::Sequence<IDs...>());
+    }
+
+    template <int... IDs>
+    void register_callbacks(NUClear::util::Sequence<IDs...> /*unused*/) {
+        register_pool_callbacks(NUClear::util::Sequence<IDs...>());
+
+        on<Trigger<PoolFinished<IDs>>...>().then([this] {
             add_event("Finished");
             powerplant.shutdown();
         });
