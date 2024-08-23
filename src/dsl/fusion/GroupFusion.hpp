@@ -78,7 +78,7 @@ namespace dsl {
         struct GroupFuser<std::tuple<Word>> {
 
             template <typename DSL>
-            static std::set<util::GroupDescriptor> group(threading::ReactionTask& task) {
+            static std::set<std::shared_ptr<const util::GroupDescriptor>> group(threading::ReactionTask& task) {
 
                 // Return our group
                 return Word::template group<DSL>(task);
@@ -90,9 +90,9 @@ namespace dsl {
         struct GroupFuser<std::tuple<Word1, Word2, WordN...>> {
 
             template <typename DSL>
-            static std::set<util::GroupDescriptor> group(threading::ReactionTask& task) {
+            static std::set<std::shared_ptr<const util::GroupDescriptor>> group(threading::ReactionTask& task) {
                 // Merge the list of groups together
-                std::set<util::GroupDescriptor> groups = Word1::template group<DSL>(task);
+                std::set<std::shared_ptr<const util::GroupDescriptor>> groups = Word1::template group<DSL>(task);
                 auto remainder = GroupFuser<std::tuple<Word2, WordN...>>::template group<DSL>(task);
                 groups.insert(remainder.begin(), remainder.end());
 

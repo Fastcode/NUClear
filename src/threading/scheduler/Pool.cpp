@@ -23,6 +23,8 @@
 
 #include <algorithm>
 
+#include "../../dsl/word/MainThread.hpp"
+#include "../../dsl/word/Pool.hpp"
 #include "../../message/ReactionStatistics.hpp"
 #include "../ReactionTask.hpp"
 #include "CombinedLock.hpp"
@@ -33,11 +35,11 @@ namespace NUClear {
 namespace threading {
     namespace scheduler {
 
-        Pool::Pool(Scheduler& scheduler, util::ThreadPoolDescriptor descriptor)
+        Pool::Pool(Scheduler& scheduler, std::shared_ptr<const util::ThreadPoolDescriptor> descriptor)
             : descriptor(std::move(descriptor)), scheduler(scheduler) {
 
             // Increase the number of active pools if this pool counts for idle but immediately be idle
-            if (this->descriptor.counts_for_idle) {
+            if (this->descriptor->counts_for_idle) {
                 scheduler.active_pools.fetch_add(1, std::memory_order_relaxed);
                 pool_idle = std::make_unique<CountingLock>(scheduler.active_pools);
             }
@@ -50,23 +52,28 @@ namespace threading {
             join();
 
             // One less active pool
-            scheduler.active_pools.fetch_sub(descriptor.counts_for_idle ? 1 : 0, std::memory_order_relaxed);
+            scheduler.active_pools.fetch_sub(descriptor->counts_for_idle ? 1 : 0, std::memory_order_relaxed);
         }
 
         void Pool::start() {
-            // Set the number of active threads to the number of threads in the pool
-            active = descriptor.counts_for_idle ? descriptor.thread_count : 0;
+            // Default thread pool gets its thread count from the configuration rather than the descriptor
+            int n_threads = descriptor == dsl::word::Pool<>::descriptor() ? scheduler.default_thread_count
+                                                                          : descriptor->thread_count;
 
-            // The main thread never needs to be started
-            if (descriptor.pool_id != NUClear::id_t(util::ThreadPoolDescriptor::MAIN_THREAD_POOL_ID)) {
-                const std::lock_guard<std::mutex> lock(mutex);
-                while (int(threads.size()) < descriptor.thread_count) {
-                    threads.emplace_back(std::make_unique<std::thread>(&Pool::run, this));
-                }
+            // Set the number of active threads to the number of threads in the pool
+            active = descriptor->counts_for_idle ? n_threads : 0;
+
+            // Main thread pool just executes run
+            // This assumes the thread calling start() is the main thread
+            if (descriptor == dsl::word::MainThread::descriptor()) {
+                run();
             }
             else {
-                // The main thread is the current thread so we can just run it
-                run();
+                // Make n threads for the pool
+                const std::lock_guard<std::mutex> lock(mutex);
+                for (int i = 0; i < n_threads; ++i) {
+                    threads.emplace_back(std::make_unique<std::thread>(&Pool::run, this));
+                }
             }
         }
 
@@ -195,7 +202,7 @@ namespace threading {
 
         Pool::Task Pool::get_idle_task() {
             // Don't idle when shutting down, don't idle if we can't idle, don't idle if we are already idle
-            if (!running || !descriptor.counts_for_idle) {
+            if (!running || !descriptor->counts_for_idle) {
                 return Task{};
             }
 
@@ -233,8 +240,8 @@ namespace threading {
             auto task = std::make_unique<ReactionTask>(
                 nullptr,
                 [](const ReactionTask&) { return 0; },
-                [](const ReactionTask&) { return util::ThreadPoolDescriptor{}; },
-                [](const ReactionTask&) { return std::set<util::GroupDescriptor>{}; });
+                [](const ReactionTask&) { return dsl::word::Pool<>::descriptor(); },
+                [](const ReactionTask&) { return std::set<std::shared_ptr<const util::GroupDescriptor>>{}; });
             task->callback = [this, tasks = std::move(tasks)](const ReactionTask& /*task*/) {
                 for (const auto& idle_task : tasks) {
                     // Submit all the idle tasks to the scheduler

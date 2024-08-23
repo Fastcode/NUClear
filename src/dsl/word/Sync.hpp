@@ -68,7 +68,7 @@ namespace dsl {
          *                   system, to act as a group reference.
          */
         template <typename SyncGroup>
-        struct Sync : Group<SyncGroup, 1> {};
+        struct Sync : Group<SyncGroup> {};
 
     }  // namespace word
 }  // namespace dsl

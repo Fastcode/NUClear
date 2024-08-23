@@ -24,18 +24,25 @@
 #define NUCLEAR_MESSAGE_REACTION_STATISTICS_HPP
 
 #include <exception>
+#include <set>
 #include <string>
 #include <thread>
-#include <vector>
 
 #include "../clock.hpp"
 #include "../id.hpp"
-#include "../threading/ReactionIdentifiers.hpp"
-#include "../util/GroupDescriptor.hpp"
-#include "../util/ThreadPoolDescriptor.hpp"
 #include "../util/usage_clock.hpp"
 
 namespace NUClear {
+
+// Forward declarations
+namespace util {
+    struct ThreadPoolDescriptor;
+    struct GroupDescriptor;
+}  // namespace util
+namespace threading {
+    struct ReactionIdentifiers;
+}  // namespace threading
+
 namespace message {
 
     /**
@@ -45,41 +52,34 @@ namespace message {
 
         struct Event {
             struct ThreadInfo {
+                /// The thread id that this event occurred on
                 std::thread::id thread_id;
-                util::ThreadPoolDescriptor pool{util::ThreadPoolDescriptor::AllPools()};
+                /// The thread pool that this event occurred on or nullptr if it was not on a thread pool
+                std::shared_ptr<const util::ThreadPoolDescriptor> pool = nullptr;
             };
 
+            /// The thread that this event occurred on
             ThreadInfo thread{};
+            /// The time that this event occurred in NUClear time
             NUClear::clock::time_point nuclear_time;
+            /// The time that this event occurred in real time
             std::chrono::steady_clock::time_point realtime;
+            /// The time that this event occurred in CPU thread time
             util::cpu_clock::time_point cpu_time;
 
-            static Event now() {
-                return Event{
-                    Event::ThreadInfo{
-                        std::this_thread::get_id(),
-                        threading::scheduler::Pool::current() ? threading::scheduler::Pool::current()->descriptor
-                                                              : util::ThreadPoolDescriptor::NonPool(),
-                    },
-                    NUClear::clock::now(),
-                    std::chrono::steady_clock::now(),
-                    util::cpu_clock::now(),
-                };
-            }
+            /**
+             * Creates a new Event object with the current time and thread information.
+             *
+             * @return The new Event object.
+             */
+            static Event now();
         };
 
         ReactionStatistics(std::shared_ptr<const threading::ReactionIdentifiers> identifiers,
                            const IDPair& cause,
                            const IDPair& target,
-                           util::ThreadPoolDescriptor target_threadpool,
-                           std::set<util::GroupDescriptor> target_groups)
-            : identifiers(std::move(identifiers))
-            , cause(cause)
-            , target(target)
-            , target_threadpool(std::move(target_threadpool))
-            , target_groups(std::move(target_groups))
-            , created(Event::now()) {};
-
+                           std::shared_ptr<const util::ThreadPoolDescriptor> target_threadpool,
+                           std::set<std::shared_ptr<const util::GroupDescriptor>> target_groups);
 
         /// The identifiers for the reaction that was executed
         std::shared_ptr<const threading::ReactionIdentifiers> identifiers;
@@ -90,9 +90,9 @@ namespace message {
         IDPair target;
 
         /// The thread pool that this reaction was intended to run on
-        util::ThreadPoolDescriptor target_threadpool;
-        /// The group that this reaction was intended to run in
-        std::set<util::GroupDescriptor> target_groups;
+        std::shared_ptr<const util::ThreadPoolDescriptor> target_threadpool;
+        /// The groups that this reaction was intended to run in
+        std::set<std::shared_ptr<const util::GroupDescriptor>> target_groups;
 
         /// The time and thread information for when this reaction was created
         Event created;

@@ -35,27 +35,16 @@ namespace NUClear {
 namespace dsl {
     namespace word {
 
-        /**
-         * SFINAE check to see if the pool type has a counts_for_idle member and if so use it otherwise default to true
-         *
-         * @tparam T the type to check for the counts_for_idle member
-         */
-        template <typename T>
-        struct CountsForIdle {
-        private:
-            template <typename U>
-            static constexpr auto check(int /*unused*/) -> decltype(U::counts_for_idle) {
-                return U::counts_for_idle;
-            }
-
-            template <typename, typename... A>
-            static constexpr bool check(A&&... /*unused*/) {
-                return true;
-            }
-
-        public:
-            static constexpr bool value = check<T>(0);
-        };
+        namespace pool {
+            /**
+             * Thread pool descriptor for the default thread pool
+             */
+            struct Default {
+                static constexpr const char* name     = "Default";
+                static constexpr int thread_count     = 0;
+                static constexpr bool counts_for_idle = true;
+            };
+        }  // namespace pool
 
         /**
          * This is used to specify that this reaction should run in the designated thread pool
@@ -78,51 +67,54 @@ namespace dsl {
          *  pool
          *
          * @tparam PoolType A struct that contains the details of the thread pool to create.
-         *                  This struct should contain a static int member that sets the number of threads that should
-         *                  be allocated to this pool.
+         *                  This struct should contain a static int member that sets the number of threads that
+         * should be allocated to this pool.
          *  @code
          *  struct ThreadPool {
          *      static constexpr int thread_count = 2;
          *  };
          *  @endcode
          */
-        template <typename PoolType = void>
+        template <typename PoolType = pool::Default>
         struct Pool {
 
-            static constexpr int thread_count     = PoolType::thread_count;
-            static constexpr bool counts_for_idle = CountsForIdle<PoolType>::value;
-
-            static_assert(PoolType::thread_count > 0, "Can not have a thread pool with less than 1 thread");
-
             // This must be a separate function, otherwise each instance of DSL will be a separate pool
-            static util::ThreadPoolDescriptor descriptor() {
-                static const util::ThreadPoolDescriptor pool_descriptor = util::ThreadPoolDescriptor{
-                    util::demangle(typeid(PoolType).name()),
-                    util::ThreadPoolDescriptor::get_unique_pool_id(),
-                    thread_count,
-                    counts_for_idle,
-                };
+            static std::shared_ptr<const util::ThreadPoolDescriptor> descriptor() {
+                static const auto pool_descriptor =
+                    std::make_shared<const util::ThreadPoolDescriptor>(name<PoolType>(),
+                                                                       thread_count<PoolType>(),
+                                                                       counts_for_idle<PoolType>());
                 return pool_descriptor;
             }
 
             template <typename DSL>
-            static util::ThreadPoolDescriptor pool(const threading::ReactionTask& /*task*/) {
+            static std::shared_ptr<const util::ThreadPoolDescriptor> pool(const threading::ReactionTask& /*task*/) {
                 return descriptor();
             }
-        };
 
-        // When given void as the pool type we use the default thread pool
-        template <>
-        struct Pool<void> {
-
-            // This must be a separate function, otherwise each instance of DSL will be a separate pool
-            static util::ThreadPoolDescriptor descriptor() {
-                return util::ThreadPoolDescriptor{};
+        private:
+            template <typename U>
+            static auto name() -> decltype(U::name) {
+                return U::name;
+            }
+            template <typename U, typename... A>
+            static std::string name(const A&... /*unused*/) {
+                return util::demangle(typeid(U).name());
             }
 
-            template <typename DSL>
-            static util::ThreadPoolDescriptor pool(const threading::ReactionTask& /*task*/) {
-                return descriptor();
+            template <typename U>
+            static constexpr auto thread_count() -> decltype(U::thread_count) {
+                return U::thread_count;
+            }
+            // No default for thread count
+
+            template <typename U>
+            static constexpr auto counts_for_idle() -> decltype(U::counts_for_idle) {
+                return U::counts_for_idle;
+            }
+            template <typename U, typename... A>
+            static constexpr bool counts_for_idle(const A&... /*unused*/) {
+                return true;
             }
         };
 

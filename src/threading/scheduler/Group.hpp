@@ -137,7 +137,7 @@ namespace threading {
              *
              * @param descriptor The descriptor for this group
              */
-            explicit Group(util::GroupDescriptor descriptor);
+            explicit Group(std::shared_ptr<const util::GroupDescriptor> descriptor);
 
             /**
              * This function will create a new lock for the task and return it.
@@ -160,13 +160,13 @@ namespace threading {
                                        const std::function<void()>& notify);
 
             /// The descriptor for this group
-            const util::GroupDescriptor descriptor;
+            const std::shared_ptr<const util::GroupDescriptor> descriptor;
 
         private:
             /// The mutex which protects the queue
             std::mutex mutex;
             /// The number of tokens that are available for this group
-            int tokens = descriptor.thread_count;
+            int tokens = descriptor->thread_count;
             /// The queue of tasks for this specific thread pool and if they are group blocked
             std::vector<std::shared_ptr<LockHandle>> queue;
         };

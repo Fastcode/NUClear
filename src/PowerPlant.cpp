@@ -93,13 +93,14 @@ void PowerPlant::start() {
     scheduler.start();
 }
 
-void PowerPlant::add_idle_task(const util::ThreadPoolDescriptor& pool_descriptor,
-                               const std::shared_ptr<threading::Reaction>& reaction) {
-    scheduler.add_idle_task(pool_descriptor, reaction);
+void PowerPlant::add_idle_task(const std::shared_ptr<threading::Reaction>& reaction,
+                               const std::shared_ptr<const util::ThreadPoolDescriptor>& pool_descriptor) {
+    scheduler.add_idle_task(reaction, pool_descriptor);
 }
 
-void PowerPlant::remove_idle_task(const util::ThreadPoolDescriptor& pool_descriptor, const NUClear::id_t& id) {
-    scheduler.remove_idle_task(pool_descriptor, id);
+void PowerPlant::remove_idle_task(const NUClear::id_t& id,
+                                  const std::shared_ptr<const util::ThreadPoolDescriptor>& pool_descriptor) {
+    scheduler.remove_idle_task(id, pool_descriptor);
 }
 
 void PowerPlant::submit(std::unique_ptr<threading::ReactionTask>&& task, const bool& immediate) noexcept {

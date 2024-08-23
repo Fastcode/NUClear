@@ -57,12 +57,12 @@ namespace dsl {
                 Parse<Sentence...>>(task);
         }
 
-        static std::set<util::GroupDescriptor> group(threading::ReactionTask& task) {
+        static std::set<std::shared_ptr<const util::GroupDescriptor>> group(threading::ReactionTask& task) {
             return std::conditional_t<fusion::has_group<DSL>::value, DSL, fusion::NoOp>::template group<
                 Parse<Sentence...>>(task);
         }
 
-        static util::ThreadPoolDescriptor pool(threading::ReactionTask& task) {
+        static std::shared_ptr<const util::ThreadPoolDescriptor> pool(threading::ReactionTask& task) {
             return std::conditional_t<fusion::has_pool<DSL>::value, DSL, fusion::NoOp>::template pool<
                 Parse<Sentence...>>(task);
         }

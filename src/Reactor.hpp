@@ -105,7 +105,7 @@ namespace dsl {
         template <typename>
         struct Pool;
 
-        template <typename, int>
+        template <typename>
         struct Group;
 
         namespace emit {
@@ -241,8 +241,8 @@ protected:
     using Pool = dsl::word::Pool<T>;
 
     /// @copydoc dsl::word::Group
-    template <typename T, int I>
-    using Group = dsl::word::Group<T, I>;
+    template <typename T>
+    using Group = dsl::word::Group<T>;
 
     /// @copydoc dsl::word::Every
     template <int ticks = 0, class period = std::chrono::milliseconds>

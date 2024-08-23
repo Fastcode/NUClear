@@ -77,7 +77,7 @@ namespace dsl {
         struct PoolFuser<std::tuple<Word>> {
 
             template <typename DSL>
-            static util::ThreadPoolDescriptor pool(threading::ReactionTask& task) {
+            static std::shared_ptr<const util::ThreadPoolDescriptor> pool(threading::ReactionTask& task) {
 
                 // Return our pool
                 return Word::template pool<DSL>(task);
