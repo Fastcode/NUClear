@@ -25,45 +25,12 @@
 
 #include "../../threading/ReactionTask.hpp"
 #include "../operation/DSLProxy.hpp"
+#include "FindWords.hpp"
 #include "has_priority.hpp"
 
 namespace NUClear {
 namespace dsl {
     namespace fusion {
-
-        /// Type that redirects types without a priority function to their proxy type
-        template <typename Word>
-        struct Priority {
-            using type = std::conditional_t<has_priority<Word>::value, Word, operation::DSLProxy<Word>>;
-        };
-
-        template <typename, typename = std::tuple<>>
-        struct PriorityWords;
-
-        /**
-         * Metafunction that extracts all of the Words with a priority function.
-         *
-         * @tparam Word1      The word we are looking at
-         * @tparam WordN      The words we have yet to look at
-         * @tparam FoundWords The words we have found with priority functions
-         */
-        template <typename Word1, typename... WordN, typename... FoundWords>
-        struct PriorityWords<std::tuple<Word1, WordN...>, std::tuple<FoundWords...>>
-            : std::conditional_t<
-                  has_priority<typename Priority<Word1>::type>::value,
-                  /*T*/ PriorityWords<std::tuple<WordN...>, std::tuple<FoundWords..., typename Priority<Word1>::type>>,
-                  /*F*/ PriorityWords<std::tuple<WordN...>, std::tuple<FoundWords...>>> {};
-
-        /**
-         * Termination case for the PriorityWords metafunction.
-         *
-         * @tparam FoundWords The words we have found with priority functions
-         */
-        template <typename... FoundWords>
-        struct PriorityWords<std::tuple<>, std::tuple<FoundWords...>> {
-            using type = std::tuple<FoundWords...>;
-        };
-
 
         // Default case where there are no priority words
         template <typename Words>
@@ -95,7 +62,7 @@ namespace dsl {
         };
 
         template <typename Word1, typename... WordN>
-        struct PriorityFusion : PriorityFuser<typename PriorityWords<std::tuple<Word1, WordN...>>::type> {};
+        struct PriorityFusion : PriorityFuser<FindWords<has_priority, Word1, WordN...>> {};
 
     }  // namespace fusion
 }  // namespace dsl

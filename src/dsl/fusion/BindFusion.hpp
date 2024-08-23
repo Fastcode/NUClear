@@ -26,6 +26,7 @@
 #include "../../threading/Reaction.hpp"
 #include "../../util/FunctionFusion.hpp"
 #include "../operation/DSLProxy.hpp"
+#include "FindWords.hpp"
 #include "has_bind.hpp"
 
 namespace NUClear {
@@ -85,38 +86,6 @@ namespace dsl {
             }
         };
 
-        template <typename, typename = std::tuple<>>
-        struct BindWords;
-
-        /**
-         * Metafunction that extracts all of the Words with a bind function.
-         *
-         * @tparam Word1      The word we are looking at
-         * @tparam WordN      The words we have yet to look at
-         * @tparam FoundWords The words we have found with bind functions
-         */
-        template <typename Word1, typename... WordN, typename... FoundWords>
-        struct BindWords<std::tuple<Word1, WordN...>, std::tuple<FoundWords...>>
-            : std::conditional_t<has_bind<Word1>::value,
-                                 /*T*/ BindWords<std::tuple<WordN...>, std::tuple<FoundWords..., Word1>>,
-                                 /*F*/ BindWords<std::tuple<WordN...>, std::tuple<FoundWords...>>> {};
-
-        /**
-         * Termination case for the BindWords metafunction
-         *
-         * @tparam FoundWords The words we have found with bind functions
-         */
-        template <typename... FoundWords>
-        struct BindWords<std::tuple<>, std::tuple<FoundWords...>> {
-            using type = std::tuple<FoundWords...>;
-        };
-
-        /// Type that redirects types without a bind function to their proxy type
-        template <typename Word>
-        struct Bind {
-            using type = std::conditional_t<has_bind<Word>::value, Word, operation::DSLProxy<Word>>;
-        };
-
         // Default case where there are no bind words
         template <typename Words>
         struct BindFuser {};
@@ -144,9 +113,7 @@ namespace dsl {
         };
 
         template <typename Word1, typename... WordN>
-        struct BindFusion
-            : BindFuser<
-                  typename BindWords<std::tuple<typename Bind<Word1>::type, typename Bind<WordN>::type...>>::type> {};
+        struct BindFusion : BindFuser<FindWords<has_bind, Word1, WordN...>> {};
 
     }  // namespace fusion
 }  // namespace dsl
