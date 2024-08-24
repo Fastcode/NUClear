@@ -37,21 +37,28 @@ public:
 
         // Idle testing for default thread
         on<Trigger<Step<2>>, Sync<TestReactor>>().then([this] {
-            events.push_back("Default Start");
+            add_event("Default Start");
             std::this_thread::sleep_for(std::chrono::milliseconds(300));
-            events.push_back("Default End");
+            add_event("Default End");
         });
 
-        on<Trigger<Step<3>>, Sync<TestReactor>, MainThread>().then([this] { events.push_back("Main Task"); });
+        on<Trigger<Step<3>>, Sync<TestReactor>, MainThread>().then([this] { add_event("Main Task"); });
 
         on<Idle<MainThread>>().then([this] {
-            events.push_back("Idle Main Thread");
+            add_event("Idle Main Thread");
             powerplant.shutdown();
         });
 
         on<Startup>().then([this] { emit(std::make_unique<Step<1>>()); });
     }
 
+    void add_event(const std::string& event) {
+        std::lock_guard<std::mutex> lock(events_mutex);
+        events.emplace_back(event);
+    }
+
+    /// A mutex to protect the events vector
+    std::mutex events_mutex;
     /// A vector of events that have happened
     std::vector<std::string> events;
 };

@@ -41,6 +41,8 @@ public:
     template <int N>
     void do_step(const std::string& name) {
         std::this_thread::sleep_until(start_time + test_util::TimeUnit(N));
+
+        std::lock_guard<std::mutex> lock(events_mutex);
         events.push_back(name + " " + std::to_string(N));
         emit(std::make_unique<Step<N + 1>>());
     }
@@ -98,6 +100,8 @@ public:
         });
     }
 
+    /// A mutex to protect the events vector
+    std::mutex events_mutex;
     /// A vector of events that have happened
     std::vector<std::string> events;
 

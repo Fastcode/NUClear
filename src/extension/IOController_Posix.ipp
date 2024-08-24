@@ -49,7 +49,7 @@ namespace extension {
         }
 
         // We just cleaned the list!
-        dirty = false;
+        dirty.store(false, std::memory_order_release);
     }
 
     void IOController::fire_event(Task& task) {
@@ -125,7 +125,7 @@ namespace extension {
             // There are no tasks for this!
             if (range.first == tasks.end()) {
                 // If this happens then our list is definitely dirty...
-                dirty = true;
+                dirty.store(true, std::memory_order_release);
             }
             else {
                 // Loop through our values
@@ -187,7 +187,7 @@ namespace extension {
                 std::sort(tasks.begin(), tasks.end());
 
                 // Let the poll command know that stuff happened
-                dirty = true;
+                dirty.store(true, std::memory_order_release);
                 bump();
             });
 
@@ -203,7 +203,7 @@ namespace extension {
             if (task != tasks.end()) {
                 // If the events we were processing included close remove it from the list
                 if ((task->processing_events & IO::CLOSE) != 0) {
-                    dirty = true;
+                    dirty.store(true, std::memory_order_release);
                     tasks.erase(task);
                 }
                 else {
@@ -244,7 +244,7 @@ namespace extension {
                 }
 
                 // Let the poll command know that stuff happened
-                dirty = true;
+                dirty.store(true, std::memory_order_release);
                 bump();
             });
 
@@ -257,7 +257,7 @@ namespace extension {
             // Stay in this reaction to improve the performance without going back/fourth between reactions
             if (running.load(std::memory_order_acquire)) {
                 // Rebuild the list if something changed
-                if (dirty) {
+                if (dirty.load(std::memory_order_acquire)) {
                     rebuild_list();
                 }
 

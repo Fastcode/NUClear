@@ -63,7 +63,7 @@ namespace extension {
         }
 
         // We just cleaned the list!
-        dirty = false;
+        dirty.store(false, std::memory_order_release);
     }
 
     void IOController::fire_event(Task& task) {
@@ -124,7 +124,7 @@ namespace extension {
             }
             // If we can't find the event then our list is dirty
             else {
-                dirty = true;
+                dirty.store(true, std::memory_order_release);
             }
         }
     }
@@ -172,7 +172,7 @@ namespace extension {
 
                 // Add all the information to the list and mark the list as dirty, to sync with the list of events
                 tasks.insert(std::make_pair(event, Task{config.fd, config.events, config.reaction}));
-                dirty = true;
+                dirty.store(true, std::memory_order_release);
 
                 bump();
             });
@@ -191,7 +191,7 @@ namespace extension {
                 auto& task = it->second;
                 // If the events we were processing included close remove it from the list
                 if (task.processing_events & IO::CLOSE) {
-                    dirty = true;
+                    dirty.store(true, std::memory_order_release););
                     remove_task(tasks, it);
                 }
                 else {
@@ -220,7 +220,7 @@ namespace extension {
                 }
 
                 // Let the poll command know that stuff happened
-                dirty = true;
+                dirty.store(true, std::memory_order_release);
                 bump();
             });
 
@@ -232,7 +232,7 @@ namespace extension {
         on<Always>().then("IO Controller", [this] {
             while (running.load(std::memory_order_acquire)) {
                 // Rebuild the list if something changed
-                if (dirty) {
+                if (dirty.load(std::memory_order_acquire)) {
                     rebuild_list();
                 }
 
