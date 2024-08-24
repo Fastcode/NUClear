@@ -49,7 +49,7 @@ namespace dsl {
             }
 
             template <typename, typename... A>
-            static constexpr bool check(A&&... /*unused*/) {
+            static constexpr bool check(const A&... /*unused*/) {
                 return true;
             }
 

@@ -23,7 +23,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include <nuclear>
 
-std::vector<int> events;
+std::vector<int> events;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables,-warnings-as-errors)
 
 template <int i>
 struct Extension {

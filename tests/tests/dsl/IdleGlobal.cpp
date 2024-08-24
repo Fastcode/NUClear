@@ -97,7 +97,7 @@ public:
         });
     }
 
-    void wait_for_set(const std::atomic<bool>& flag) {
+    static void wait_for_set(const std::atomic<bool>& flag) {
         while (!flag.load(std::memory_order_acquire)) {
             std::this_thread::sleep_for(test_util::TimeUnit(1));
         }
