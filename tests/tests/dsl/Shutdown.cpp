@@ -25,17 +25,11 @@
 
 #include "test_util/TestBase.hpp"
 
-// Anonymous namespace to keep everything file local
-namespace {
-
-/// Events that occur during the test
-std::vector<std::string> events;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
-
 class TestReactor : public test_util::TestBase<TestReactor> {
 public:
     TestReactor(std::unique_ptr<NUClear::Environment> environment) : TestBase(std::move(environment), false) {
 
-        on<Shutdown>().then([] {  //
+        on<Shutdown>().then([this] {  //
             events.push_back("Shutdown task executed");
         });
 
@@ -49,15 +43,18 @@ public:
             emit(std::make_unique<Step<1>>());
         });
     }
+
+    /// Events that occur during the test
+    std::vector<std::string> events;
 };
-}  // namespace
+
 
 TEST_CASE("A test that a shutdown message is emitted when the system shuts down", "[api][shutdown]") {
 
     NUClear::Configuration config;
     config.thread_count = 1;
     NUClear::PowerPlant plant(config);
-    plant.install<TestReactor>();
+    const auto& reactor = plant.install<TestReactor>();
     plant.start();
 
     const std::vector<std::string> expected = {
@@ -67,8 +64,8 @@ TEST_CASE("A test that a shutdown message is emitted when the system shuts down"
     };
 
     // Make an info print the diff in an easy to read way if we fail
-    INFO(test_util::diff_string(expected, events));
+    INFO(test_util::diff_string(expected, reactor.events));
 
     // Check the events fired in order and only those events
-    REQUIRE(events == expected);
+    REQUIRE(reactor.events == expected);
 }

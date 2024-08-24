@@ -25,28 +25,26 @@
 
 #include "test_util/TestBase.hpp"
 
-namespace {
-
-/// Events that occur during the test
-std::vector<std::string> events;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
-
-template <int I>
-struct Message {
-    Message(std::string data) : data(std::move(data)) {}
-    std::string data;
-};
 
 class TestReactor : public test_util::TestBase<TestReactor> {
 public:
+    template <int I>
+    struct Message {
+        Message(std::string data) : data(std::move(data)) {}
+        std::string data;
+    };
+
     TestReactor(std::unique_ptr<NUClear::Environment> environment) : TestBase(std::move(environment)) {
         // Check that the lists are combined, and that the function args are in order
         on<With<Message<1>>, Trigger<Message<3>>, With<Message<2>>>().then(
-            [](const Message<1>& a, const Message<3>& c, const Message<2>& b) {
+            [this](const Message<1>& a, const Message<3>& c, const Message<2>& b) {
                 events.push_back("A:" + a.data + " B:" + b.data + " C:" + c.data);
             });
 
         // Make sure we can pass an empty function in here
-        on<Trigger<Message<1>>, With<Message<1>>, With<Message<2>>>().then([] { events.push_back("Empty function"); });
+        on<Trigger<Message<1>>, With<Message<1>>, With<Message<2>>>().then([this] {  //
+            events.push_back("Empty function");
+        });
 
         on<Trigger<Step<1>>, Priority::LOW>().then([this] {
             events.push_back("Emitting 1");
@@ -67,15 +65,18 @@ public:
             emit(std::make_unique<Step<3>>());
         });
     }
+
+    /// Events that occur during the test
+    std::vector<std::string> events;
 };
-}  // namespace
+
 
 TEST_CASE("Testing poorly ordered on arguments", "[api][dsl][order][with]") {
 
     NUClear::Configuration config;
     config.thread_count = 1;
     NUClear::PowerPlant plant(config);
-    plant.install<TestReactor>();
+    const auto& reactor = plant.install<TestReactor>();
     plant.start();
 
     const std::vector<std::string> expected = {
@@ -86,8 +87,8 @@ TEST_CASE("Testing poorly ordered on arguments", "[api][dsl][order][with]") {
     };
 
     // Make an info print the diff in an easy to read way if we fail
-    INFO(test_util::diff_string(expected, events));
+    INFO(test_util::diff_string(expected, reactor.events));
 
     // Check the events fired in order and only those events
-    REQUIRE(events == expected);
+    REQUIRE(reactor.events == expected);
 }

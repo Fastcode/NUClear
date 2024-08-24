@@ -5,8 +5,6 @@
 #include "test_util/TestBase.hpp"
 #include "test_util/TimeUnit.hpp"
 
-namespace {
-
 using TimeUnit = test_util::TimeUnit;
 
 constexpr int64_t EVENT_1_TIME = 4;
@@ -73,7 +71,6 @@ public:
     Results results;
 };
 
-}  // anonymous namespace
 
 TEST_CASE("Test time travel correctly changes the time for non zero rtf", "[time_travel][chrono_controller]") {
 

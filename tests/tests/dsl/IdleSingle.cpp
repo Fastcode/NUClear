@@ -39,25 +39,24 @@ struct StringMaker<std::pair<const K, V>> {
 
 }  // namespace Catch
 
-namespace {
-
-constexpr int n_loops = 250;
-
-struct TaskB {
-    explicit TaskB(int i) : i(i) {}
-    int i;
-};
-struct TaskA {
-    explicit TaskA(int i) : i(i) {}
-    int i;
-};
-
-struct IdlePool {
-    static constexpr int thread_count = 1;
-};
 
 class TestReactor : public test_util::TestBase<TestReactor> {
 public:
+    static constexpr int n_loops = 250;
+
+    struct TaskB {
+        explicit TaskB(int i) : i(i) {}
+        int i;
+    };
+    struct TaskA {
+        explicit TaskA(int i) : i(i) {}
+        int i;
+    };
+
+    struct IdlePool {
+        static constexpr int thread_count = 1;
+    };
+
     explicit TestReactor(std::unique_ptr<NUClear::Environment> environment) : TestBase(std::move(environment), false) {
 
         /*
@@ -104,8 +103,6 @@ public:
     std::array<std::atomic<int>, n_loops> idle_calls{};
 };
 
-}  // namespace
-
 
 TEST_CASE("Test that when a global idle trigger exists it is triggered only once", "[api][dsl][Idle][Sync]") {
 
@@ -115,6 +112,7 @@ TEST_CASE("Test that when a global idle trigger exists it is triggered only once
     const auto& reactor = plant.install<TestReactor>();
     plant.start();
 
+    constexpr int n_loops = TestReactor::n_loops;
     std::array<std::atomic<int>, n_loops> expected{};
     for (int i = 0; i < n_loops; ++i) {
         expected[i].store(1, std::memory_order_relaxed);

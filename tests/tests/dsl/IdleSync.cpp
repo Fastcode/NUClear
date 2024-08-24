@@ -25,11 +25,6 @@
 
 #include "test_util/TestBase.hpp"
 
-namespace {
-
-/// A vector of events that have happened
-std::vector<std::string> events;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
-
 class TestReactor : public test_util::TestBase<TestReactor> {
 public:
     explicit TestReactor(std::unique_ptr<NUClear::Environment> environment) : TestBase(std::move(environment), false) {
@@ -41,13 +36,13 @@ public:
         });
 
         // Idle testing for default thread
-        on<Trigger<Step<2>>, Sync<TestReactor>>().then([] {
+        on<Trigger<Step<2>>, Sync<TestReactor>>().then([this] {
             events.push_back("Default Start");
             std::this_thread::sleep_for(std::chrono::milliseconds(300));
             events.push_back("Default End");
         });
 
-        on<Trigger<Step<3>>, Sync<TestReactor>, MainThread>().then([] { events.push_back("Main Task"); });
+        on<Trigger<Step<3>>, Sync<TestReactor>, MainThread>().then([this] { events.push_back("Main Task"); });
 
         on<Idle<MainThread>>().then([this] {
             events.push_back("Idle Main Thread");
@@ -56,16 +51,18 @@ public:
 
         on<Startup>().then([this] { emit(std::make_unique<Step<1>>()); });
     }
+
+    /// A vector of events that have happened
+    std::vector<std::string> events;
 };
 
-}  // namespace
 
 TEST_CASE("Test that pool idle triggers when a waiting task prevents running", "[api][idle]") {
 
     NUClear::Configuration config;
     config.thread_count = 4;
     NUClear::PowerPlant plant(config);
-    plant.install<TestReactor>();
+    const auto& reactor = plant.install<TestReactor>();
     plant.start();
 
     const std::vector<std::string> expected = {
@@ -76,8 +73,8 @@ TEST_CASE("Test that pool idle triggers when a waiting task prevents running", "
     };
 
     // Make an info print the diff in an easy to read way if we fail
-    INFO(test_util::diff_string(expected, events));
+    INFO(test_util::diff_string(expected, reactor.events));
 
     // Check the events fired in order and only those events
-    REQUIRE(events == expected);
+    REQUIRE(reactor.events == expected);
 }

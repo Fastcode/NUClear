@@ -26,13 +26,6 @@
 #include "test_util/TestBase.hpp"
 #include "test_util/TimeUnit.hpp"
 
-namespace {
-
-/// A vector of events that have happened
-std::vector<std::string> events;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
-
-constexpr int time_step = 50;
-
 class TestReactor : public test_util::TestBase<TestReactor> {
 public:
     explicit TestReactor(std::unique_ptr<NUClear::Environment> environment) : TestBase(std::move(environment), false) {
@@ -60,9 +53,10 @@ public:
     std::thread::id main_thread_id;
     std::thread::id idle_thread_id;
     std::thread::id default_thread_id;
-};
 
-}  // namespace
+    /// A vector of events that have happened
+    std::vector<std::string> events;
+};
 
 
 TEST_CASE("Test that idle can fire events for other pools but only runs once", "[api][dsl][Idle][Pool]") {
@@ -86,8 +80,8 @@ TEST_CASE("Test that idle can fire events for other pools but only runs once", "
     };
 
     // Make an info print the diff in an easy to read way if we fail
-    INFO(test_util::diff_string(expected, events));
+    INFO(test_util::diff_string(expected, reactor.events));
 
     // Check the events fired in order and only those events
-    REQUIRE(events == expected);
+    REQUIRE(reactor.events == expected);
 }

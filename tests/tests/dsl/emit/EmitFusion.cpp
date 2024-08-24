@@ -26,11 +26,8 @@
 
 #include "test_util/TestBase.hpp"
 
-// Anonymous namespace to keep everything file local
-namespace {
-
 /// Events that occur during the test
-std::vector<std::string> events;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+std::vector<std::string> events;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables,-warnings-as-errors)
 
 template <typename T>
 struct E1 {
@@ -81,7 +78,7 @@ public:
         events.push_back("End test 5");
     }
 };
-}  // namespace
+
 
 TEST_CASE("Testing emit function fusion", "[api][emit][fusion]") {
 

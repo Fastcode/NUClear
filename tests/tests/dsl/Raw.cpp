@@ -23,22 +23,18 @@
 #include <catch2/catch_test_macros.hpp>
 #include <nuclear>
 
-namespace {
-
-struct TypeA {
-    TypeA(int x) : x(x) {}
-
-    int x;
-};
-
-struct TypeB {
-    TypeB(int x) : x(x) {}
-
-    int x;
-};
-
 class TestReactor : public NUClear::Reactor {
 private:
+    struct TypeA {
+        TypeA(int x) : x(x) {}
+        int x;
+    };
+
+    struct TypeB {
+        TypeB(int x) : x(x) {}
+        int x;
+    };
+
     std::vector<std::shared_ptr<const TypeA>> stored;
 
 public:
@@ -72,7 +68,7 @@ public:
         on<Startup>().then([this] { emit(std::make_unique<TypeA>(0)); });
     }
 };
-}  // namespace
+
 
 TEST_CASE("Testing the raw type conversions work properly", "[api][raw]") {
 

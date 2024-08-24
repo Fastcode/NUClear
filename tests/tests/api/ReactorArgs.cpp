@@ -23,9 +23,6 @@
 #include <catch2/catch_test_macros.hpp>
 #include <nuclear>
 
-// Anonymous namespace to keep everything file local
-namespace {
-
 class TestReactorNoArgs : public NUClear::Reactor {
 public:
     TestReactorNoArgs(std::unique_ptr<NUClear::Environment> environment) : NUClear::Reactor(std::move(environment)) {}
@@ -44,7 +41,6 @@ public:
     uint32_t i{0};
 };
 
-}  // namespace
 
 TEST_CASE("Testing Reactor installation arguments", "[api][reactorargs]") {
     NUClear::Configuration config;

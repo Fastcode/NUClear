@@ -25,23 +25,18 @@
 
 #include "test_util/TestBase.hpp"
 
-// Anonymous namespace to keep everything file local
-namespace {
-
-/// Events that occur during the test
-std::vector<std::string> events;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
-
-struct Message {
-    Message(int i) : i(i) {}
-    int i;
-};
 
 class TestReactor : public test_util::TestBase<TestReactor> {
 public:
+    struct Message {
+        Message(int i) : i(i) {}
+        int i;
+    };
+
     TestReactor(std::unique_ptr<NUClear::Environment> environment) : TestBase(std::move(environment)) {
 
         // Make an always disabled reaction
-        a = on<Trigger<Message>, Priority::HIGH>().then([](const Message& msg) {  //
+        a = on<Trigger<Message>, Priority::HIGH>().then([this](const Message& msg) {  //
             events.push_back("Executed disabled reaction " + std::to_string(msg.i));
         });
         a.disable();
@@ -53,7 +48,7 @@ public:
             emit(std::make_unique<Message>(1));
         });
 
-        on<Trigger<Message>>().then([](const Message& msg) {  //
+        on<Trigger<Message>>().then([this](const Message& msg) {  //
             events.push_back("Executed enabled reaction " + std::to_string(msg.i));
         });
 
@@ -65,14 +60,17 @@ public:
 
     ReactionHandle a;
     ReactionHandle b;
+
+    /// Events that occur during the test
+    std::vector<std::string> events;
 };
-}  // namespace
+
 
 TEST_CASE("Testing reaction handle functionality", "[api][reactionhandle]") {
     NUClear::Configuration config;
     config.thread_count = 1;
     NUClear::PowerPlant plant(config);
-    plant.install<TestReactor>();
+    const auto& reactor = plant.install<TestReactor>();
     plant.start();
 
     const std::vector<std::string> expected = {
@@ -82,8 +80,8 @@ TEST_CASE("Testing reaction handle functionality", "[api][reactionhandle]") {
     };
 
     // Make an info print the diff in an easy to read way if we fail
-    INFO(test_util::diff_string(expected, events));
+    INFO(test_util::diff_string(expected, reactor.events));
 
     // Check the events fired in order and only those events
-    REQUIRE(events == expected);
+    REQUIRE(reactor.events == expected);
 }

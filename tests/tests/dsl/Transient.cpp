@@ -25,8 +25,6 @@
 
 #include "test_util/TestBase.hpp"
 
-namespace {
-
 struct Message {
     Message(std::string msg) : msg(std::move(msg)) {}
     std::string msg;
@@ -41,7 +39,6 @@ struct TransientMessage {
         return valid;
     }
 };
-}  // namespace
 
 namespace NUClear {
 namespace dsl {
@@ -51,11 +48,6 @@ namespace dsl {
     }  // namespace trait
 }  // namespace dsl
 }  // namespace NUClear
-
-namespace {
-
-/// Events that occur during the test
-std::vector<std::string> events;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
 struct TransientGetter : NUClear::dsl::operation::TypeBind<TransientMessage> {
 
@@ -75,8 +67,9 @@ class TestReactor : public test_util::TestBase<TestReactor> {
 public:
     TestReactor(std::unique_ptr<NUClear::Environment> environment) : TestBase(std::move(environment)) {
 
-        on<Trigger<Message>, TransientGetter>().then(
-            [](const Message& m, const TransientMessage& t) { events.push_back(m.msg + " : " + t.msg); });
+        on<Trigger<Message>, TransientGetter>().then([this](const Message& m, const TransientMessage& t) {  //
+            events.push_back(m.msg + " : " + t.msg);
+        });
 
         on<Trigger<Step<1>>, Priority::LOW>().then([this] {
             events.push_back("Emitting Message 1");
@@ -127,14 +120,17 @@ public:
             emit(std::make_unique<Step<9>>());
         });
     }
+
+    /// Events that occur during the test
+    std::vector<std::string> events;
 };
-}  // namespace
+
 
 TEST_CASE("Testing whether getters that return transient data can cache between calls", "[api][transient]") {
     NUClear::Configuration config;
     config.thread_count = 1;
     NUClear::PowerPlant plant(config);
-    plant.install<TestReactor>();
+    const auto& reactor = plant.install<TestReactor>();
     plant.start();
 
     const std::vector<std::string> expected = {
@@ -158,8 +154,8 @@ TEST_CASE("Testing whether getters that return transient data can cache between 
     };
 
     // Make an info print the diff in an easy to read way if we fail
-    INFO(test_util::diff_string(expected, events));
+    INFO(test_util::diff_string(expected, reactor.events));
 
     // Check the events fired in order and only those events
-    REQUIRE(events == expected);
+    REQUIRE(reactor.events == expected);
 }
