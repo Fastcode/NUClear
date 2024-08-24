@@ -34,20 +34,20 @@ public:
     TestReactor(std::unique_ptr<NUClear::Environment> environment) : TestBase(std::move(environment)) {
 
         // Declare in the order you'd expect them to fire
-        on<Trigger<Message<1>>, Priority::REALTIME>().then([] { events.push_back("Realtime Message<1>"); });
-        on<Trigger<Message<1>>, Priority::HIGH>().then("High", [] { events.push_back("High Message<1>"); });
-        on<Trigger<Message<1>>>().then([] { events.push_back("Default Message<1>"); });
-        on<Trigger<Message<1>>, Priority::NORMAL>().then("Normal", [] { events.push_back("Normal Message<1>"); });
-        on<Trigger<Message<1>>, Priority::LOW>().then("Low", [] { events.push_back("Low Message<1>"); });
-        on<Trigger<Message<1>>, Priority::IDLE>().then([] { events.push_back("Idle Message<1>"); });
+        on<Trigger<Message<1>>, Priority::REALTIME>().then([this] { events.push_back("Realtime Message<1>"); });
+        on<Trigger<Message<1>>, Priority::HIGH>().then("High", [this] { events.push_back("High Message<1>"); });
+        on<Trigger<Message<1>>>().then([this] { events.push_back("Default Message<1>"); });
+        on<Trigger<Message<1>>, Priority::NORMAL>().then("Normal", [this] { events.push_back("Normal Message<1>"); });
+        on<Trigger<Message<1>>, Priority::LOW>().then("Low", [this] { events.push_back("Low Message<1>"); });
+        on<Trigger<Message<1>>, Priority::IDLE>().then([this] { events.push_back("Idle Message<1>"); });
 
         // Declare in the opposite order to what you'd expect them to fire
-        on<Trigger<Message<2>>, Priority::IDLE>().then([] { events.push_back("Idle Message<2>"); });
-        on<Trigger<Message<2>>, Priority::LOW>().then([] { events.push_back("Low Message<2>"); });
-        on<Trigger<Message<2>>, Priority::NORMAL>().then([] { events.push_back("Normal Message<2>"); });
-        on<Trigger<Message<2>>>().then([] { events.push_back("Default Message<2>"); });
-        on<Trigger<Message<2>>, Priority::HIGH>().then([] { events.push_back("High Message<2>"); });
-        on<Trigger<Message<2>>, Priority::REALTIME>().then([] { events.push_back("Realtime Message<2>"); });
+        on<Trigger<Message<2>>, Priority::IDLE>().then([this] { events.push_back("Idle Message<2>"); });
+        on<Trigger<Message<2>>, Priority::LOW>().then([this] { events.push_back("Low Message<2>"); });
+        on<Trigger<Message<2>>, Priority::NORMAL>().then([this] { events.push_back("Normal Message<2>"); });
+        on<Trigger<Message<2>>>().then([this] { events.push_back("Default Message<2>"); });
+        on<Trigger<Message<2>>, Priority::HIGH>().then([this] { events.push_back("High Message<2>"); });
+        on<Trigger<Message<2>>, Priority::REALTIME>().then([this] { events.push_back("Realtime Message<2>"); });
 
         // Declare in a random order
         std::array<int, 5> order = {0, 1, 2, 3, 4};
@@ -55,20 +55,21 @@ public:
         for (const auto& i : order) {
             switch (i) {
                 case 0:
-                    on<Trigger<Message<3>>, Priority::REALTIME>().then([] { events.push_back("Realtime Message<3>"); });
+                    on<Trigger<Message<3>>, Priority::REALTIME>().then(
+                        [this] { events.push_back("Realtime Message<3>"); });
                     break;
                 case 1:
-                    on<Trigger<Message<3>>, Priority::HIGH>().then([] { events.push_back("High Message<3>"); });
+                    on<Trigger<Message<3>>, Priority::HIGH>().then([this] { events.push_back("High Message<3>"); });
                     break;
                 case 2:
-                    on<Trigger<Message<3>>, Priority::NORMAL>().then([] { events.push_back("Normal Message<3>"); });
-                    on<Trigger<Message<3>>>().then([] { events.push_back("Default Message<3>"); });
+                    on<Trigger<Message<3>>, Priority::NORMAL>().then([this] { events.push_back("Normal Message<3>"); });
+                    on<Trigger<Message<3>>>().then([this] { events.push_back("Default Message<3>"); });
                     break;
                 case 3:
-                    on<Trigger<Message<3>>, Priority::LOW>().then([] { events.push_back("Low Message<3>"); });
+                    on<Trigger<Message<3>>, Priority::LOW>().then([this] { events.push_back("Low Message<3>"); });
                     break;
                 case 4:
-                    on<Trigger<Message<3>>, Priority::IDLE>().then([] { events.push_back("Idle Message<3>"); });
+                    on<Trigger<Message<3>>, Priority::IDLE>().then([this] { events.push_back("Idle Message<3>"); });
                     break;
                 default: throw std::invalid_argument("Should be impossible");
             }

@@ -34,7 +34,7 @@ public:
 
     TestReactor(std::unique_ptr<NUClear::Environment> environment) : TestBase(std::move(environment)) {
 
-        on<Trigger<SimpleMessage>>().then([](const SimpleMessage& message) {  //
+        on<Trigger<SimpleMessage>>().then([this](const SimpleMessage& message) {  //
             events.push_back("SimpleMessage triggered with " + std::to_string(message.data));
         });
 

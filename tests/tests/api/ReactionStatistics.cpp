@@ -104,14 +104,14 @@ TEST_CASE("Testing reaction statistics functionality", "[api][reactionstatistics
 
     const std::vector<std::string> expected = {
         "Running Startup Handler",
-        "Stats for Startup Handler from ::TestReactor",
+        "Stats for Startup Handler from TestReactor",
         "NUClear::Reactor::on<NUClear::dsl::word::Startup>",
         "Running Message Handler",
-        "Stats for Message Handler from ::TestReactor",
-        "NUClear::Reactor::on<NUClear::dsl::word::Trigger<::Message<0>>>",
+        "Stats for Message Handler from TestReactor",
+        "NUClear::Reactor::on<NUClear::dsl::word::Trigger<TestReactor::Message<0>>>",
         "Running Exception Handler",
-        "Stats for Exception Handler from ::TestReactor",
-        "NUClear::Reactor::on<NUClear::dsl::word::Trigger<::Message<1>>>",
+        "Stats for Exception Handler from TestReactor",
+        "NUClear::Reactor::on<NUClear::dsl::word::Trigger<TestReactor::Message<1>>>",
         "Exception received: \"Text in an exception\"",
     };
 

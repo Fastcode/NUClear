@@ -36,7 +36,7 @@ public:
     TestReactor(std::unique_ptr<NUClear::Environment> environment) : TestBase(std::move(environment)) {
 
         on<Trigger<Message<1>>, With<Message<2>>, With<Message<3>>, With<Message<4>>>().then(
-            [](const Message<2>& m2, const Message<4>& m4) {
+            [this](const Message<2>& m2, const Message<4>& m4) {
                 events.push_back("Message<2>: " + std::to_string(m2.val));
                 events.push_back("Message<4>: " + std::to_string(m4.val));
             });

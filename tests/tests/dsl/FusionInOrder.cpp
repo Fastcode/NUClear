@@ -23,6 +23,8 @@
 #include <catch2/catch_test_macros.hpp>
 #include <nuclear>
 
+std::vector<int> events;
+
 template <int i>
 struct Extension {
     template <typename DSL>
@@ -37,8 +39,6 @@ public:
 
         on<Extension<0>, Extension<1>, Extension<2>, Extension<3>, Extension<4>>().then([] {});
     }
-
-    std::vector<int> events;
 };
 
 
@@ -47,7 +47,7 @@ TEST_CASE("Testing that the bind functions of extensions are executed in order",
     NUClear::Configuration config;
     config.thread_count = 1;
     NUClear::PowerPlant plant(config);
-    const auto& reactor = plant.install<TestReactor>();
+    plant.install<TestReactor>();
 
-    REQUIRE(reactor.events == std::vector<int>{0, 1, 2, 3, 4});
+    REQUIRE(events == std::vector<int>{0, 1, 2, 3, 4});
 }

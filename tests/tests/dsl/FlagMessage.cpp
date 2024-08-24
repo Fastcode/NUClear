@@ -40,12 +40,12 @@ public:
             emit(std::make_unique<MessageB>());
         });
 
-        on<Trigger<MessageB>>().then([] {  //
+        on<Trigger<MessageB>>().then([this] {  //
             events.push_back("MessageB triggered");
         });
 
         // This should never run
-        on<Trigger<MessageA>, With<MessageB>>().then([](const MessageA&, const MessageB&) {  //
+        on<Trigger<MessageA>, With<MessageB>>().then([this](const MessageA&, const MessageB&) {  //
             events.push_back("MessageA with MessageB triggered");
         });
 

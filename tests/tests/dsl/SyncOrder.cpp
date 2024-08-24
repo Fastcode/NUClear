@@ -40,11 +40,11 @@ public:
 
     TestReactor(std::unique_ptr<NUClear::Environment> environment) : TestBase(std::move(environment)) {
 
-        on<Trigger<Message<'A'>>, Sync<TestReactor>>().then([](const Message<'A'>& m) {  //
+        on<Trigger<Message<'A'>>, Sync<TestReactor>>().then([this](const Message<'A'>& m) {  //
             events.emplace_back('A', m.val);
         });
 
-        on<Trigger<Message<'B'>>, Sync<TestReactor>, MainThread>().then([](const Message<'B'>& m) {  //
+        on<Trigger<Message<'B'>>, Sync<TestReactor>, MainThread>().then([this](const Message<'B'>& m) {  //
             events.emplace_back('B', m.val);
         });
 

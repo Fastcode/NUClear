@@ -36,7 +36,7 @@ public:
         emit<Scope::INITIALIZE>(std::make_unique<TestMessage>("Initialise before trigger"));
         emit(std::make_unique<TestMessage>("Normal before trigger"));
 
-        on<Trigger<TestMessage>>().then([](const TestMessage& v) {  //
+        on<Trigger<TestMessage>>().then([this](const TestMessage& v) {  //
             events.push_back("Triggered " + v.data);
         });
 

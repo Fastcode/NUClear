@@ -26,6 +26,9 @@
 
 #include "test_util/TestBase.hpp"
 
+/// Events that occur during the test
+std::vector<std::string> events;
+
 template <typename T>
 struct E1 {
     static void emit(const NUClear::PowerPlant& /*powerplant*/,
@@ -74,9 +77,6 @@ public:
         emit<E1, E2>(std::make_unique<std::string>("message5"), 5, "test5a", 10, "test5b");  // 1a, 2b
         events.push_back("End test 5");
     }
-
-    /// Events that occur during the test
-    std::vector<std::string> events;
 };
 
 
@@ -85,7 +85,7 @@ TEST_CASE("Testing emit function fusion", "[api][emit][fusion]") {
     NUClear::Configuration config;
     config.thread_count = 1;
     NUClear::PowerPlant plant(config);
-    const auto& reactor = plant.install<TestReactor>();
+    plant.install<TestReactor>();
 
     const std::vector<std::string> expected = {
         "E1b message1 test1",
@@ -105,8 +105,8 @@ TEST_CASE("Testing emit function fusion", "[api][emit][fusion]") {
     };
 
     // Make an info print the diff in an easy to read way if we fail
-    INFO(test_util::diff_string(expected, reactor.events));
+    INFO(test_util::diff_string(expected, events));
 
     // Check the events fired in order and only those events
-    REQUIRE(reactor.events == expected);
+    REQUIRE(events == expected);
 }

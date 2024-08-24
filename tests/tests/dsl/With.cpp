@@ -38,7 +38,7 @@ public:
 
     TestReactor(std::unique_ptr<NUClear::Environment> environment) : TestBase(std::move(environment)) {
         // Check that the lists are combined, and that the function args are in order
-        on<Trigger<Message>, With<Data>>().then([](const Message& m, const Data& d) {  //
+        on<Trigger<Message>, With<Data>>().then([this](const Message& m, const Data& d) {  //
             events.push_back("Message: " + m.data + " Data: " + d.data);
         });
 

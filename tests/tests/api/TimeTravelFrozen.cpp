@@ -109,5 +109,5 @@ TEST_CASE("Test time travel correctly changes the time for non zero rtf", "[time
     }
 
     INFO(test_util::diff_string(expected, reactor.events));
-    CHECK(reactor.events, expected);
+    CHECK(reactor.events == expected);
 }

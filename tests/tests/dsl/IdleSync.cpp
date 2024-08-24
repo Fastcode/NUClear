@@ -36,13 +36,13 @@ public:
         });
 
         // Idle testing for default thread
-        on<Trigger<Step<2>>, Sync<TestReactor>>().then([] {
+        on<Trigger<Step<2>>, Sync<TestReactor>>().then([this] {
             events.push_back("Default Start");
             std::this_thread::sleep_for(std::chrono::milliseconds(300));
             events.push_back("Default End");
         });
 
-        on<Trigger<Step<3>>, Sync<TestReactor>, MainThread>().then([] { events.push_back("Main Task"); });
+        on<Trigger<Step<3>>, Sync<TestReactor>, MainThread>().then([this] { events.push_back("Main Task"); });
 
         on<Idle<MainThread>>().then([this] {
             events.push_back("Idle Main Thread");
