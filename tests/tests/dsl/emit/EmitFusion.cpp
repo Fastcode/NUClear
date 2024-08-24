@@ -27,7 +27,7 @@
 #include "test_util/TestBase.hpp"
 
 /// Events that occur during the test
-std::vector<std::string> events;
+std::vector<std::string> events;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables,-warnings-as-errors)
 
 template <typename T>
 struct E1 {
