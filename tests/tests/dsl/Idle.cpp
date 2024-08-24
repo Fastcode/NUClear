@@ -40,7 +40,7 @@ public:
 
     template <int N>
     void do_step(const std::string& name) {
-        std::this_thread::sleep_until(start_time + test_util::TimeUnit(2 * N));
+        std::this_thread::sleep_until(start_time + test_util::TimeUnit(N));
         events.push_back(name + " " + std::to_string(N));
         emit(std::make_unique<Step<N + 1>>());
     }
