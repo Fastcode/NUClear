@@ -68,7 +68,7 @@ public:
 
 private:
     void add_event(const std::string& event) {
-        std::lock_guard<std::mutex> lock(event_mutex);
+        const std::lock_guard<std::mutex> lock(event_mutex);
         events.emplace_back(event);
     }
 };
