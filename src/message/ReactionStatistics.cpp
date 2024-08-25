@@ -51,7 +51,7 @@ namespace message {
         , target(target)
         , target_threadpool(std::move(target_threadpool))
         , target_groups(std::move(target_groups))
-        , created(Event::now()) {};
+        , created(Event::now()) {}
 
 }  // namespace message
 }  // namespace NUClear
