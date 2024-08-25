@@ -98,7 +98,7 @@ TEST_CASE("Test that when a global idle trigger exists it is triggered only once
     }
 
     // Convert the values to a list for comparison
-    auto error_points = [](const std::array<std::atomic<int>, n_loops>& arr) {
+    auto error_points = [&](const std::array<std::atomic<int>, n_loops>& arr) {
         std::map<int, int> hits;
         for (int i = 0; i < n_loops; ++i) {
             if (arr[i] != 1) {
