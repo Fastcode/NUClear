@@ -191,7 +191,7 @@ namespace extension {
                 auto& task = it->second;
                 // If the events we were processing included close remove it from the list
                 if (task.processing_events & IO::CLOSE) {
-                    dirty.store(true, std::memory_order_release););
+                    dirty.store(true, std::memory_order_release);
                     remove_task(tasks, it);
                 }
                 else {
