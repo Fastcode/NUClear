@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2014 NUClear Contributors
+ * Copyright (c) 2024 NUClear Contributors
  *
  * This file is part of the NUClear codebase.
  * See https://github.com/Fastcode/NUClear for further info.
@@ -20,14 +20,31 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include "main_thread_id.hpp"
+#ifndef NUCLEAR_DSL_FUSION_FIND_WORDS_HPP
+#define NUCLEAR_DSL_FUSION_FIND_WORDS_HPP
 
-#include <thread>
+#include "../../util/meta/Filter.hpp"
 
 namespace NUClear {
-namespace util {
+namespace dsl {
+    namespace fusion {
 
-    const std::thread::id main_thread_id = std::this_thread::get_id();
+        /**
+         * Filters the DSL words to only those that have the correct function.
+         *
+         * It will:
+         * - Attempt to use the word directly
+         * - If the word does not have the correct function, it will try the DSLProxy for that word
+         * - If neither have the correct function, it will remove the word from the list
+         *
+         * @tparam Check The function to check for
+         * @tparam Ts    The words to check
+         */
+        template <template <typename> class Check, typename... Ts>
+        using FindWords = Filter<Check, std::conditional_t<Check<Ts>::value, Ts, operation::DSLProxy<Ts>>...>;
 
-}  // namespace util
+    }  // namespace fusion
+}  // namespace dsl
 }  // namespace NUClear
+
+#endif  // NUCLEAR_DSL_FUSION_FIND_WORDS_HPP

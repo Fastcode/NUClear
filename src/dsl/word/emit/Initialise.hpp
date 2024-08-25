@@ -59,8 +59,10 @@ namespace dsl {
                     auto emitter = std::make_unique<threading::ReactionTask>(
                         nullptr,
                         [](threading::ReactionTask& /*task*/) { return 1000; },
-                        [](threading::ReactionTask& /*task*/) { return util::ThreadPoolDescriptor{}; },
-                        [](threading::ReactionTask& /*task*/) { return std::set<util::GroupDescriptor>{}; });
+                        [](threading::ReactionTask& /*task*/) { return Pool<>::descriptor(); },
+                        [](threading::ReactionTask& /*task*/) {
+                            return std::set<std::shared_ptr<const util::GroupDescriptor>>{};
+                        });
                     emitter->callback = [&powerplant, data](threading::ReactionTask& /*task*/) {
                         powerplant.emit_shared<dsl::word::emit::Local>(data);
                     };

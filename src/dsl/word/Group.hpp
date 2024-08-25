@@ -23,10 +23,6 @@
 #ifndef NUCLEAR_DSL_WORD_GROUP_HPP
 #define NUCLEAR_DSL_WORD_GROUP_HPP
 
-#include <map>
-#include <mutex>
-#include <typeindex>
-
 #include "../../threading/ReactionTask.hpp"
 #include "../../util/GroupDescriptor.hpp"
 #include "../../util/demangle.hpp"
@@ -65,22 +61,39 @@ namespace dsl {
          * @tparam GroupConcurrency The number of tasks that should be allowed to run concurrently in this group.
          *                          It is an error to specify a group concurrency less than 1.
          */
-        template <typename GroupType, int GroupConcurrency = 1>
+        template <typename GroupType>
         struct Group {
 
-            static_assert(GroupConcurrency > 0, "Can not have a group with concurrency less than 1");
-
             // This must be a separate function, otherwise each instance of DSL will be a separate pool
-            static util::GroupDescriptor descriptor() {
-                static const util::GroupDescriptor group_descriptor{util::demangle(typeid(GroupType).name()),
-                                                                    util::GroupDescriptor::get_unique_group_id(),
-                                                                    GroupConcurrency};
+            static std::shared_ptr<const util::GroupDescriptor> descriptor() {
+                static const auto group_descriptor =
+                    std::make_shared<const util::GroupDescriptor>(name<GroupType>(), thread_count<GroupType>());
                 return group_descriptor;
             }
 
             template <typename DSL>
-            static std::set<util::GroupDescriptor> group(const threading::ReactionTask& /*task*/) {
+            static std::set<std::shared_ptr<const util::GroupDescriptor>> group(
+                const threading::ReactionTask& /*task*/) {
                 return {descriptor()};
+            }
+
+        private:
+            template <typename U>
+            static auto name() -> decltype(U::name) {
+                return U::name;
+            }
+            template <typename U, typename... A>
+            static std::string name(const A&... /*unused*/) {
+                return util::demangle(typeid(U).name());
+            }
+
+            template <typename U>
+            static constexpr auto thread_count() -> decltype(U::thread_count) {
+                return U::thread_count;
+            }
+            template <typename U, typename... A>
+            static constexpr int thread_count(const A&... /*unused*/) {
+                return 1;
             }
         };
 

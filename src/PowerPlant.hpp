@@ -157,11 +157,11 @@ public:
      * with the given `pool_id` has no other tasks to execute.
      * The `task` parameter is a Reaction from which a task will be submitted when the pool is idle.
      *
-     * @param pool_descriptor The descriptor for the thread pool to test for idle
      * @param reaction        The reaction to be executed when idle
+     * @param pool_descriptor The descriptor for the thread pool to test for idle or nullptr for all pools
      */
-    void add_idle_task(const util::ThreadPoolDescriptor& pool_descriptor,
-                       const std::shared_ptr<threading::Reaction>& reaction);
+    void add_idle_task(const std::shared_ptr<threading::Reaction>& reaction,
+                       const std::shared_ptr<const util::ThreadPoolDescriptor>& pool_descriptor = nullptr);
 
     /**
      * Removes an idle task from the task scheduler.
@@ -169,10 +169,11 @@ public:
      * This function removes an idle task from the task scheduler. The `id` and `pool_id` parameters are used to
      * identify the idle task to be removed.
      *
-     * @param pool_descriptor The descriptor for the thread pool to test for idle
      * @param id              The reaction id of the task to be removed
+     * @param pool_descriptor The descriptor for the thread pool to test for idle
      */
-    void remove_idle_task(const util::ThreadPoolDescriptor& pool_descriptor, const NUClear::id_t& id);
+    void remove_idle_task(const NUClear::id_t& id,
+                          const std::shared_ptr<const util::ThreadPoolDescriptor>& pool_descriptor = nullptr);
 
     /**
      * Submits a new task to the ThreadPool to be queued and then executed.

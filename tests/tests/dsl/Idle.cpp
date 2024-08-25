@@ -24,21 +24,15 @@
 #include <nuclear>
 
 #include "test_util/TestBase.hpp"
-
-namespace {
-
-/// A vector of events that have happened
-std::vector<std::string> events;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
-
-struct SimpleMessage {
-    SimpleMessage(int data) : data(data) {}
-    int data;
-};
-
-constexpr int time_step = 50;
+#include "test_util/TimeUnit.hpp"
 
 class TestReactor : public test_util::TestBase<TestReactor> {
 public:
+    struct SimpleMessage {
+        SimpleMessage(int data) : data(data) {}
+        int data;
+    };
+
     template <int N>
     struct CustomPool {
         static constexpr int thread_count = 2;
@@ -46,13 +40,15 @@ public:
 
     template <int N>
     void do_step(const std::string& name) {
-        std::this_thread::sleep_until(start_time + std::chrono::milliseconds(time_step * N));
+        std::this_thread::sleep_until(start_time + test_util::TimeUnit(N));
+
+        const std::lock_guard<std::mutex> lock(events_mutex);
         events.push_back(name + " " + std::to_string(N));
         emit(std::make_unique<Step<N + 1>>());
     }
 
     explicit TestReactor(std::unique_ptr<NUClear::Environment> environment)
-        : TestBase(std::move(environment), false, std::chrono::seconds(2)) {
+        : TestBase(std::move(environment), false, std::chrono::seconds(5)) {
 
         start_time = NUClear::clock::now();
 
@@ -104,6 +100,11 @@ public:
         });
     }
 
+    /// A mutex to protect the events vector
+    std::mutex events_mutex;
+    /// A vector of events that have happened
+    std::vector<std::string> events;
+
 private:
     NUClear::clock::time_point start_time;
     NUClear::threading::ReactionHandle drh;
@@ -112,15 +113,13 @@ private:
     NUClear::threading::ReactionHandle grh;
 };
 
-}  // namespace
-
 
 TEST_CASE("Test that pool idle triggers when nothing is running", "[api][idle]") {
 
     NUClear::Configuration config;
     config.thread_count = 4;
     NUClear::PowerPlant plant(config);
-    plant.install<TestReactor>();
+    const auto& reactor = plant.install<TestReactor>();
     plant.start();
 
     const std::vector<std::string> expected = {
@@ -133,8 +132,8 @@ TEST_CASE("Test that pool idle triggers when nothing is running", "[api][idle]")
     };
 
     // Make an info print the diff in an easy to read way if we fail
-    INFO(test_util::diff_string(expected, events));
+    INFO(test_util::diff_string(expected, reactor.events));
 
     // Check the events fired in order and only those events
-    REQUIRE(events == expected);
+    REQUIRE(reactor.events == expected);
 }

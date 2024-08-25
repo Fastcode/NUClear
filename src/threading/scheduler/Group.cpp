@@ -106,7 +106,7 @@ namespace threading {
             return false;
         }
 
-        Group::Group(util::GroupDescriptor descriptor) : descriptor(std::move(descriptor)) {}
+        Group::Group(std::shared_ptr<const util::GroupDescriptor> descriptor) : descriptor(std::move(descriptor)) {}
 
         std::unique_ptr<Lock> Group::lock(const NUClear::id_t& task_id,
                                           const int& priority,

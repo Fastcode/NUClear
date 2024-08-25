@@ -26,8 +26,6 @@
 
 #include "test_util/TestBase.hpp"
 
-namespace {
-
 /// Events that occur during the test
 std::vector<std::string> events;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
@@ -84,7 +82,7 @@ public:
         events.push_back("Bind3 returned " + c);
     }
 };
-}  // namespace
+
 
 TEST_CASE("Testing distributing arguments to multiple bind functions (NUClear Fission)", "[api][dsl][fission]") {
 

@@ -25,19 +25,14 @@
 
 #include "test_util/TestBase.hpp"
 
-namespace {
-
-/// Events that occur during the test
-std::vector<std::string> events;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
-
-template <int i>
-struct Message {
-    Message(std::string data) : data(std::move(data)) {};
-    std::string data;
-};
-
 class TestReactor : public test_util::TestBase<TestReactor> {
 public:
+    template <int i>
+    struct Message {
+        Message(std::string data) : data(std::move(data)) {};
+        std::string data;
+    };
+
     TestReactor(std::unique_ptr<NUClear::Environment> environment) : TestBase(std::move(environment)) {
 
         on<Trigger<Message<0>>, Sync<TestReactor>>().then([this](const Message<0>& m) {
@@ -95,14 +90,17 @@ public:
             emit(std::make_unique<Message<0>>("From Startup"));
         });
     }
+
+    /// Events that occur during the test
+    std::vector<std::string> events;
 };
-}  // namespace
+
 
 TEST_CASE("Testing that the Sync word works correctly", "[api][sync]") {
     NUClear::Configuration config;
     config.thread_count = 4;
     NUClear::PowerPlant plant(config);
-    plant.install<TestReactor>();
+    const auto& reactor = plant.install<TestReactor>();
     plant.start();
 
     const std::vector<std::string> expected = {
@@ -121,8 +119,8 @@ TEST_CASE("Testing that the Sync word works correctly", "[api][sync]") {
     };
 
     // Make an info print the diff in an easy to read way if we fail
-    INFO(test_util::diff_string(expected, events));
+    INFO(test_util::diff_string(expected, reactor.events));
 
     // Check the events fired in order and only those events
-    REQUIRE(events == expected);
+    REQUIRE(reactor.events == expected);
 }

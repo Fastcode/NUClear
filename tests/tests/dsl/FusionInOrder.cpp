@@ -23,9 +23,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include <nuclear>
 
-namespace {
-
-std::vector<int> events;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+std::vector<int> events;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables,-warnings-as-errors)
 
 template <int i>
 struct Extension {
@@ -42,8 +40,6 @@ public:
         on<Extension<0>, Extension<1>, Extension<2>, Extension<3>, Extension<4>>().then([] {});
     }
 };
-
-}  // namespace
 
 
 TEST_CASE("Testing that the bind functions of extensions are executed in order", "[api][extension][bind]") {

@@ -32,13 +32,6 @@
 
     #include <nuclear>
 
-namespace {
-
-/// Events that occur during the test reading
-std::vector<std::string> read_events;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
-/// Events that occur during the test writing
-std::vector<std::string> write_events;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
-
 class TestReactor : public test_util::TestBase<TestReactor> {
 public:
     TestReactor(std::unique_ptr<NUClear::Environment> environment) : TestBase(std::move(environment), false) {
@@ -95,15 +88,20 @@ public:
     NUClear::util::FileDescriptor out;
     int char_no{0};
     ReactionHandle writer;
+
+    /// Events that occur during the test reading
+    std::vector<std::string> read_events;
+    /// Events that occur during the test writing
+    std::vector<std::string> write_events;
 };
-}  // namespace
+
 
 TEST_CASE("Testing the IO extension", "[api][io]") {
 
     NUClear::Configuration config;
     config.thread_count = 1;
     NUClear::PowerPlant plant(config);
-    plant.install<TestReactor>();
+    const auto& reactor = plant.install<TestReactor>();
     plant.start();
 
     const std::vector<std::string> read_expected = {
@@ -116,7 +114,7 @@ TEST_CASE("Testing the IO extension", "[api][io]") {
     };
 
     // Make an info print the diff in an easy to read way if we fail
-    INFO("Read Events\n" << test_util::diff_string(read_expected, read_events));
+    INFO("Read Events\n" << test_util::diff_string(read_expected, reactor.read_events));
 
     const std::vector<std::string> write_expected{
         "Wrote 1 bytes (H) to pipe",
@@ -127,14 +125,15 @@ TEST_CASE("Testing the IO extension", "[api][io]") {
     };
 
     // Make an info print the diff in an easy to read way if we fail
-    INFO("Write Events\n" << test_util::diff_string(write_expected, write_events));
+    INFO("Write Events\n" << test_util::diff_string(write_expected, reactor.write_events));
 
     // Check the events fired in order and only those events
-    REQUIRE(read_events == read_expected);
-    REQUIRE(write_events == write_expected);
+    REQUIRE(reactor.read_events == read_expected);
+    REQUIRE(reactor.write_events == write_expected);
 }
 
 #else
+
 
 TEST_CASE("Testing the IO extension", "[api][io]") {
     SUCCEED("This test is not supported on Windows");

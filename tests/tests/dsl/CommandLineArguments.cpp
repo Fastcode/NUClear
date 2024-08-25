@@ -26,11 +26,6 @@
 
 #include "test_util/TestBase.hpp"
 
-namespace {
-
-// Events that occur during the test
-std::vector<std::string> events;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
-
 class TestReactor : public test_util::TestBase<TestReactor> {
 private:
     using CommandLineArguments = NUClear::message::CommandLineArguments;
@@ -38,7 +33,7 @@ private:
 public:
     TestReactor(std::unique_ptr<NUClear::Environment> environment) : TestBase(std::move(environment)) {
 
-        on<Trigger<CommandLineArguments>>().then([](const CommandLineArguments& args) {
+        on<Trigger<CommandLineArguments>>().then([this](const CommandLineArguments& args) {
             std::stringstream output;
             for (const auto& arg : args) {
                 output << arg << " ";
@@ -46,8 +41,11 @@ public:
             events.push_back("CommandLineArguments: " + output.str());
         });
     }
+
+    /// Events that occur during the test
+    std::vector<std::string> events;
 };
-}  // namespace
+
 
 TEST_CASE("Testing the Command Line argument capturing", "[api][command_line_arguments]") {
     const int argc     = 2;
@@ -55,14 +53,14 @@ TEST_CASE("Testing the Command Line argument capturing", "[api][command_line_arg
     NUClear::Configuration config;
     config.thread_count = 1;
     NUClear::PowerPlant plant(config, argc, argv);
-    plant.install<TestReactor>();
+    const auto& reactor = plant.install<TestReactor>();
     plant.start();
 
     const std::vector<std::string> expected = {"CommandLineArguments: Hello World "};
 
     // Make an info print the diff in an easy to read way if we fail
-    INFO(test_util::diff_string(expected, events));
+    INFO(test_util::diff_string(expected, reactor.events));
 
     // Check the events fired in order and only those events
-    REQUIRE(events == expected);
+    REQUIRE(reactor.events == expected);
 }

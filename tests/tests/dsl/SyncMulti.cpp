@@ -26,17 +26,11 @@
 #include "test_util/TestBase.hpp"
 #include "test_util/TimeUnit.hpp"
 
-namespace {
-
-/// Events that occur during the test
-std::vector<std::string> events;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
-
-struct A {};
-struct B {};
-
-
 class TestReactor : public test_util::TestBase<TestReactor> {
 public:
+    struct A {};
+    struct B {};
+
     void do_task(const std::string& event) {
         auto start = test_util::round_to_test_units(std::chrono::steady_clock::now() - start_time);
         events.push_back(event + " started @ " + std::to_string(start.count()));
@@ -61,14 +55,17 @@ public:
     }
 
     std::chrono::steady_clock::time_point start_time;
+
+    /// Events that occur during the test
+    std::vector<std::string> events;
 };
-}  // namespace
+
 
 TEST_CASE("Test that sync works when one thread has multiple groups", "[api][sync][multi]") {
     NUClear::Configuration config;
     config.thread_count = 4;
     NUClear::PowerPlant plant(config);
-    plant.install<TestReactor>();
+    const auto& reactor = plant.install<TestReactor>();
     plant.start();
 
     const std::vector<std::string> expected = {
@@ -81,8 +78,8 @@ TEST_CASE("Test that sync works when one thread has multiple groups", "[api][syn
     };
 
     // Make an info print the diff in an easy to read way if we fail
-    INFO(test_util::diff_string(expected, events));
+    INFO(test_util::diff_string(expected, reactor.events));
 
     // Check the events fired in order and only those events
-    REQUIRE(events == expected);
+    REQUIRE(reactor.events == expected);
 }

@@ -26,52 +26,48 @@
 #include <string>
 
 #include "test_util/TestBase.hpp"
-
-namespace {
-
-/// Events that occur during the test
-std::vector<std::string> events;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
-
-template <int I>
-struct Flag {};
+#include "test_util/TimeUnit.hpp"
 
 class TestReactor : public test_util::TestBase<TestReactor> {
 public:
-    TestReactor(std::unique_ptr<NUClear::Environment> environment)
-        : TestBase(std::move(environment), false), start(NUClear::clock::now()) {
+    template <int I>
+    struct Flag {};
 
-        on<Watchdog<Flag<1>, 50, std::chrono::milliseconds>>().then([this] {
-            events.push_back("Watchdog 1  triggered @ " + floored_time());
+    TestReactor(std::unique_ptr<NUClear::Environment> environment)
+        : TestBase(std::move(environment), false, test_util::TimeUnit(40)), start(NUClear::clock::now()) {
+
+        on<Watchdog<Flag<1>, 5, test_util::TimeUnit>>().then([this] {
+            events.push_back("Watchdog 1  triggered @ " + units_since_start());
             powerplant.shutdown();
         });
 
-        on<Watchdog<Flag<2>, 40, std::chrono::milliseconds>>().then([this] {
+        on<Watchdog<Flag<2>, 4, test_util::TimeUnit>>().then([this] {
             if (flag2++ < 3) {
-                events.push_back("Watchdog 2  triggered @ " + floored_time());
+                events.push_back("Watchdog 2  triggered @ " + units_since_start());
                 emit<Scope::WATCHDOG>(ServiceWatchdog<Flag<1>>());
             }
         });
 
         // Watchdog with subtypes
-        on<Watchdog<Flag<3>, 30, std::chrono::milliseconds>>('a').then([this] {
+        on<Watchdog<Flag<3>, 3, test_util::TimeUnit>>('a').then([this] {
             if (flag3a++ < 3) {
-                events.push_back("Watchdog 3A triggered @ " + floored_time());
+                events.push_back("Watchdog 3A triggered @ " + units_since_start());
                 emit<Scope::WATCHDOG>(ServiceWatchdog<Flag<1>>());
                 emit<Scope::WATCHDOG>(ServiceWatchdog<Flag<2>>());
             }
         });
-        on<Watchdog<Flag<3>, 20, std::chrono::milliseconds>>('b').then([this] {
+        on<Watchdog<Flag<3>, 2, test_util::TimeUnit>>('b').then([this] {
             if (flag3b++ < 3) {
-                events.push_back("Watchdog 3B triggered @ " + floored_time());
+                events.push_back("Watchdog 3B triggered @ " + units_since_start());
                 emit<Scope::WATCHDOG>(ServiceWatchdog<Flag<1>>());
                 emit<Scope::WATCHDOG>(ServiceWatchdog<Flag<2>>());
                 emit<Scope::WATCHDOG>(ServiceWatchdog<Flag<3>>('a'));
             }
         });
 
-        on<Watchdog<Flag<4>, 10, std::chrono::milliseconds>>().then([this] {
+        on<Watchdog<Flag<4>, 1, test_util::TimeUnit>>().then([this] {
             if (flag4++ < 3) {
-                events.push_back("Watchdog 4  triggered @ " + floored_time());
+                events.push_back("Watchdog 4  triggered @ " + units_since_start());
                 emit<Scope::WATCHDOG>(ServiceWatchdog<Flag<1>>());
                 emit<Scope::WATCHDOG>(ServiceWatchdog<Flag<2>>());
                 emit<Scope::WATCHDOG>(ServiceWatchdog<Flag<3>>('a'));
@@ -80,11 +76,8 @@ public:
         });
     }
 
-    std::string floored_time() const {
-        using namespace std::chrono;  // NOLINT(google-build-using-namespace) fine in function scope
-        const double diff = duration_cast<duration<double>>(NUClear::clock::now() - start).count();
-        // Round to 100ths of a second
-        return std::to_string(int(std::floor(diff * 100)));
+    std::string units_since_start() const {
+        return std::to_string(test_util::round_to_test_units(NUClear::clock::now() - start).count());
     }
 
     NUClear::clock::time_point start;
@@ -92,16 +85,18 @@ public:
     int flag3a{0};
     int flag3b{0};
     int flag4{0};
+
+    /// Events that occur during the test
+    std::vector<std::string> events;
 };
 
-}  // namespace
 
 TEST_CASE("Testing the Watchdog Smart Type", "[api][watchdog]") {
 
     NUClear::Configuration config;
     config.thread_count = 1;
     NUClear::PowerPlant plant(config);
-    plant.install<TestReactor>();
+    const auto& reactor = plant.install<TestReactor>();
     plant.start();
 
     const std::vector<std::string> expected = {
@@ -121,8 +116,8 @@ TEST_CASE("Testing the Watchdog Smart Type", "[api][watchdog]") {
     };
 
     // Make an info print the diff in an easy to read way if we fail
-    INFO(test_util::diff_string(expected, events));
+    INFO(test_util::diff_string(expected, reactor.events));
 
     // Check the events fired in order and only those events
-    REQUIRE(events == expected);
+    REQUIRE(reactor.events == expected);
 }

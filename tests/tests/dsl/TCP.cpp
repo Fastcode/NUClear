@@ -26,8 +26,6 @@
 #include "test_util/TestBase.hpp"
 #include "test_util/has_ipv6.hpp"
 
-namespace {
-
 /// Events that occur during the test
 std::vector<std::string> events;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
@@ -200,7 +198,6 @@ private:
     NUClear::util::FileDescriptor ephemeral_port_fd;
 };
 
-}  // namespace
 
 TEST_CASE("Testing listening for TCP connections and receiving data messages", "[api][network][tcp]") {
 

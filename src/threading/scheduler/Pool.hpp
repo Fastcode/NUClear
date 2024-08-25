@@ -77,7 +77,7 @@ namespace threading {
              * @param scheduler  the scheduler parent of this pool
              * @param descriptor the descriptor for this thread pool
              */
-            explicit Pool(Scheduler& scheduler, util::ThreadPoolDescriptor descriptor);
+            explicit Pool(Scheduler& scheduler, std::shared_ptr<const util::ThreadPoolDescriptor> descriptor);
 
             // No moving or copying
             Pool(const Pool&)            = delete;
@@ -160,7 +160,7 @@ namespace threading {
             bool is_idle() const;
 
             /// The descriptor for this thread pool
-            const util::ThreadPoolDescriptor descriptor;
+            const std::shared_ptr<const util::ThreadPoolDescriptor> descriptor;
 
         private:
             /**
@@ -213,7 +213,7 @@ namespace threading {
             /// A boolean which is set to true when the queue is modified and set to false when there was no work to do
             bool live = true;
             /// The mutex which protects the queue and idle tasks
-            std::mutex mutex;
+            mutable std::mutex mutex;
             /// The condition variable which threads wait on if they can't get a task
             std::condition_variable condition;
 

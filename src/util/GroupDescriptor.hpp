@@ -38,31 +38,13 @@ namespace util {
      * A description of a group.
      */
     struct GroupDescriptor {
+        GroupDescriptor(std::string name, const int& thread_count)
+            : name(std::move(name)), thread_count(thread_count) {}
+
         /// The name of this group
-        std::string name = "Default";
-
-        /// A unique identifier for this group
-        NUClear::id_t group_id{0};
-
+        std::string name;
         /// The maximum number of threads that can run concurrently in this group
-        int thread_count{1};
-
-        /**
-         * Return the next unique ID for a new group
-         */
-        static NUClear::id_t get_unique_group_id() noexcept;
-
-        /**
-         * Compare two group descriptors by their group_id to allow for sorting and uniqueness
-         *
-         * @param lhs the left hand side of the comparison
-         * @param rhs the right hand side of the comparison
-         *
-         * @return true if this group_id is less than the other group_id
-         */
-        friend bool operator<(const GroupDescriptor& lhs, const GroupDescriptor& rhs) {
-            return lhs.group_id < rhs.group_id;
-        }
+        int thread_count;
     };
 
 }  // namespace util

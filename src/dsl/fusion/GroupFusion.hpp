@@ -29,45 +29,12 @@
 
 #include "../../threading/Reaction.hpp"
 #include "../operation/DSLProxy.hpp"
+#include "FindWords.hpp"
 #include "has_group.hpp"
 
 namespace NUClear {
 namespace dsl {
     namespace fusion {
-
-        /// Type that redirects types without a group function to their proxy type
-        template <typename Word>
-        struct Group {
-            using type = std::conditional_t<has_group<Word>::value, Word, operation::DSLProxy<Word>>;
-        };
-
-        template <typename, typename = std::tuple<>>
-        struct GroupWords;
-
-        /**
-         * Metafunction that extracts all of the Words with a group function.
-         *
-         * @tparam Word1      The word we are looking at
-         * @tparam WordN      The words we have yet to look at
-         * @tparam FoundWords The words we have found with group functions
-         */
-        template <typename Word1, typename... WordN, typename... FoundWords>
-        struct GroupWords<std::tuple<Word1, WordN...>, std::tuple<FoundWords...>>
-            : std::conditional_t<
-                  has_group<typename Group<Word1>::type>::value,
-                  /*T*/ GroupWords<std::tuple<WordN...>, std::tuple<FoundWords..., typename Group<Word1>::type>>,
-                  /*F*/ GroupWords<std::tuple<WordN...>, std::tuple<FoundWords...>>> {};
-
-        /**
-         * Termination case for the GroupWords metafunction.
-         *
-         * @tparam FoundWords The words we have found with group functions
-         */
-        template <typename... FoundWords>
-        struct GroupWords<std::tuple<>, std::tuple<FoundWords...>> {
-            using type = std::tuple<FoundWords...>;
-        };
-
 
         // Default case where there are no group words
         template <typename Words>
@@ -78,7 +45,7 @@ namespace dsl {
         struct GroupFuser<std::tuple<Word>> {
 
             template <typename DSL>
-            static std::set<util::GroupDescriptor> group(threading::ReactionTask& task) {
+            static std::set<std::shared_ptr<const util::GroupDescriptor>> group(threading::ReactionTask& task) {
 
                 // Return our group
                 return Word::template group<DSL>(task);
@@ -90,9 +57,9 @@ namespace dsl {
         struct GroupFuser<std::tuple<Word1, Word2, WordN...>> {
 
             template <typename DSL>
-            static std::set<util::GroupDescriptor> group(threading::ReactionTask& task) {
+            static std::set<std::shared_ptr<const util::GroupDescriptor>> group(threading::ReactionTask& task) {
                 // Merge the list of groups together
-                std::set<util::GroupDescriptor> groups = Word1::template group<DSL>(task);
+                std::set<std::shared_ptr<const util::GroupDescriptor>> groups = Word1::template group<DSL>(task);
                 auto remainder = GroupFuser<std::tuple<Word2, WordN...>>::template group<DSL>(task);
                 groups.insert(remainder.begin(), remainder.end());
 
@@ -101,7 +68,7 @@ namespace dsl {
         };
 
         template <typename Word1, typename... WordN>
-        struct GroupFusion : GroupFuser<typename GroupWords<std::tuple<Word1, WordN...>>::type> {};
+        struct GroupFusion : GroupFuser<FindWords<has_group, Word1, WordN...>> {};
 
     }  // namespace fusion
 }  // namespace dsl

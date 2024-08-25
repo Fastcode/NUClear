@@ -25,11 +25,6 @@
 
 #include "test_util/TestBase.hpp"
 
-namespace {
-
-/// A vector of events that have happened
-std::vector<std::string> events;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
-
 class TestReactor : public test_util::TestBase<TestReactor> {
 public:
     explicit TestReactor(std::unique_ptr<NUClear::Environment> environment) : TestBase(std::move(environment), false) {
@@ -41,31 +36,40 @@ public:
         });
 
         // Idle testing for default thread
-        on<Trigger<Step<2>>, Sync<TestReactor>>().then([] {
-            events.push_back("Default Start");
+        on<Trigger<Step<2>>, Sync<TestReactor>>().then([this] {
+            add_event("Default Start");
             std::this_thread::sleep_for(std::chrono::milliseconds(300));
-            events.push_back("Default End");
+            add_event("Default End");
         });
 
-        on<Trigger<Step<3>>, Sync<TestReactor>, MainThread>().then([] { events.push_back("Main Task"); });
+        on<Trigger<Step<3>>, Sync<TestReactor>, MainThread>().then([this] { add_event("Main Task"); });
 
         on<Idle<MainThread>>().then([this] {
-            events.push_back("Idle Main Thread");
+            add_event("Idle Main Thread");
             powerplant.shutdown();
         });
 
         on<Startup>().then([this] { emit(std::make_unique<Step<1>>()); });
     }
+
+    void add_event(const std::string& event) {
+        const std::lock_guard<std::mutex> lock(events_mutex);
+        events.emplace_back(event);
+    }
+
+    /// A mutex to protect the events vector
+    std::mutex events_mutex;
+    /// A vector of events that have happened
+    std::vector<std::string> events;
 };
 
-}  // namespace
 
 TEST_CASE("Test that pool idle triggers when a waiting task prevents running", "[api][idle]") {
 
     NUClear::Configuration config;
     config.thread_count = 4;
     NUClear::PowerPlant plant(config);
-    plant.install<TestReactor>();
+    const auto& reactor = plant.install<TestReactor>();
     plant.start();
 
     const std::vector<std::string> expected = {
@@ -76,8 +80,8 @@ TEST_CASE("Test that pool idle triggers when a waiting task prevents running", "
     };
 
     // Make an info print the diff in an easy to read way if we fail
-    INFO(test_util::diff_string(expected, events));
+    INFO(test_util::diff_string(expected, reactor.events));
 
     // Check the events fired in order and only those events
-    REQUIRE(events == expected);
+    REQUIRE(reactor.events == expected);
 }
