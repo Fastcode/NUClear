@@ -59,12 +59,12 @@ public:
         });
     }
 
+    /// Events that occur during the test
+    std::vector<std::string> events;
+
 private:
     /// Set to the thread that was used during construction as it will be the main thread
     std::thread::id main_thread_id = std::this_thread::get_id();
-
-    /// Events that occur during the test
-    std::vector<std::string> events;
 };
 
 

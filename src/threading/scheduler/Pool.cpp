@@ -57,8 +57,8 @@ namespace threading {
 
         void Pool::start() {
             // Default thread pool gets its thread count from the configuration rather than the descriptor
-            int n_threads = descriptor == dsl::word::Pool<>::descriptor() ? scheduler.default_thread_count
-                                                                          : descriptor->thread_count;
+            const int n_threads = descriptor == dsl::word::Pool<>::descriptor() ? scheduler.default_thread_count
+                                                                                : descriptor->thread_count;
 
             // Set the number of active threads to the number of threads in the pool
             active = descriptor->counts_for_idle ? n_threads : 0;
