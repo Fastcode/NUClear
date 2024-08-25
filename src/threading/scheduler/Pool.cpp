@@ -142,6 +142,7 @@ namespace threading {
         }
 
         bool Pool::is_idle() const {
+            const std::lock_guard<std::mutex> lock(mutex);
             return pool_idle != nullptr;
         }
 
