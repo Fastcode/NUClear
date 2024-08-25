@@ -78,6 +78,6 @@ jobs:
         run: sccache --show-stats
 
       - name: Test
-        timeout-minutes: 5
+        timeout-minutes: 2
         working-directory: build/tests
         run: ctest --output-on-failure
