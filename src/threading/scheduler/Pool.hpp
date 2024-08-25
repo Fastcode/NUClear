@@ -213,7 +213,7 @@ namespace threading {
             /// A boolean which is set to true when the queue is modified and set to false when there was no work to do
             bool live = true;
             /// The mutex which protects the queue and idle tasks
-            std::mutex mutex;
+            mutable std::mutex mutex;
             /// The condition variable which threads wait on if they can't get a task
             std::condition_variable condition;
 

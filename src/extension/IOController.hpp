@@ -132,7 +132,7 @@ namespace extension {
         /// The mutex that protects the tasks list
         std::mutex tasks_mutex;
         /// Whether or not the list of file descriptors is dirty compared to tasks
-        bool dirty = true;
+        std::atomic<bool> dirty{true};
         /// The list of events that are being watched
         std::vector<watcher_t> watches;
         /// The list of tasks that are waiting for IO events

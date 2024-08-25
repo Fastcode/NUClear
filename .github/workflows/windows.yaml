@@ -80,4 +80,4 @@ jobs:
       - name: Test
         timeout-minutes: 5
         working-directory: build/tests
-        run: ctest --output-on-failure -j$(nproc)
+        run: ctest --output-on-failure

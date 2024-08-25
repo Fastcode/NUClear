@@ -91,6 +91,6 @@ jobs:
         run: ccache --show-stats
 
       - name: Test
-        timeout-minutes: 5
+        timeout-minutes: 2
         working-directory: build/tests
-        run: ctest --output-on-failure -j$(nproc) -E "dsl/UDP"
+        run: ctest --output-on-failure -E "dsl/UDP"

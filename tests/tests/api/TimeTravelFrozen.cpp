@@ -9,10 +9,11 @@ constexpr std::chrono::milliseconds EVENT_1_TIME  = std::chrono::milliseconds(4)
 constexpr std::chrono::milliseconds EVENT_2_TIME  = std::chrono::milliseconds(8);
 constexpr std::chrono::milliseconds SHUTDOWN_TIME = std::chrono::milliseconds(12);
 
-struct WaitForShutdown {};
 
 class TestReactor : public test_util::TestBase<TestReactor> {
 public:
+    struct WaitForShutdown {};
+
     TestReactor(std::unique_ptr<NUClear::Environment> environment) : TestBase(std::move(environment), false) {
 
         on<Startup>().then([this] {
@@ -22,7 +23,7 @@ public:
             // Emit a chrono task to run at time EVENT_1_TIME
             emit<Scope::DIRECT>(std::make_unique<NUClear::dsl::operation::ChronoTask>(
                 [this](NUClear::clock::time_point&) {
-                    events.push_back("Event 1");
+                    add_event("Event 1");
                     return false;
                 },
                 NUClear::clock::time_point(EVENT_1_TIME),
@@ -31,7 +32,7 @@ public:
             // Emit a chrono task to run at time EVENT_2_TIME
             emit<Scope::DIRECT>(std::make_unique<NUClear::dsl::operation::ChronoTask>(
                 [this](NUClear::clock::time_point&) {
-                    events.push_back("Event 2");
+                    add_event("Event 2");
                     return false;
                 },
                 NUClear::clock::time_point(EVENT_2_TIME),
@@ -47,7 +48,7 @@ public:
 
         on<Trigger<WaitForShutdown>>().then([this] {
             std::this_thread::sleep_for(SHUTDOWN_TIME);
-            events.push_back("Finished");
+            add_event("Finished");
             powerplant.shutdown();
         });
     }
@@ -61,8 +62,15 @@ public:
     // Real-time factor
     double rtf = 1.0;
 
-    // Events
+    /// Events that occur during the test
+    std::mutex event_mutex;
     std::vector<std::string> events;
+
+private:
+    void add_event(const std::string& event) {
+        const std::lock_guard<std::mutex> lock(event_mutex);
+        events.emplace_back(event);
+    }
 };
 
 
