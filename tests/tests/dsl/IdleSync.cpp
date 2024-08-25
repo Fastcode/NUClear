@@ -53,7 +53,7 @@ public:
     }
 
     void add_event(const std::string& event) {
-        std::lock_guard<std::mutex> lock(events_mutex);
+        const std::lock_guard<std::mutex> lock(events_mutex);
         events.emplace_back(event);
     }
 
