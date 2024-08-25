@@ -24,6 +24,7 @@
 #define NUCLEAR_MESSAGE_REACTION_STATISTICS_HPP
 
 #include <exception>
+#include <memory>
 #include <set>
 #include <string>
 #include <thread>
