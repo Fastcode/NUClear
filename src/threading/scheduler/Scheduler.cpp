@@ -24,18 +24,14 @@
 #include <algorithm>
 
 #include "../../dsl/word/MainThread.hpp"
+#include "../../dsl/word/Pool.hpp"
 #include "CombinedLock.hpp"
 
 namespace NUClear {
 namespace threading {
     namespace scheduler {
 
-        Scheduler::Scheduler(const int& thread_count) {
-            // Make the default pool with the correct number of threads
-            auto default_descriptor         = util::ThreadPoolDescriptor{};
-            default_descriptor.thread_count = thread_count;
-            get_pool(default_descriptor);
-        }
+        Scheduler::Scheduler(const int& thread_count) : default_thread_count(thread_count) {}
 
         void Scheduler::start() {
             // We have to scope this mutex, otherwise the main thread will hold the mutex while it is running
@@ -45,7 +41,7 @@ namespace threading {
                 started = true;
                 // Start all of the pools except the main thread pool
                 for (const auto& pool : pools) {
-                    if (pool.first != NUClear::id_t(util::ThreadPoolDescriptor::MAIN_THREAD_POOL_ID)) {
+                    if (pool.first != dsl::word::MainThread::descriptor()) {
                         pool.second->start();
                     }
                 }
@@ -69,10 +65,10 @@ namespace threading {
             }
         }
 
-        void Scheduler::add_idle_task(const util::ThreadPoolDescriptor& desc,
-                                      const std::shared_ptr<Reaction>& reaction) {
-            // If this is the "ALL" pool then add it to the schedulers list of tasks
-            if (desc.pool_id == util::ThreadPoolDescriptor::AllPools().pool_id) {
+        void Scheduler::add_idle_task(const std::shared_ptr<Reaction>& reaction,
+                                      const std::shared_ptr<const util::ThreadPoolDescriptor>& desc) {
+            // If this doesn't have a pool specifier it's for all pools
+            if (desc == nullptr) {
                 /*mutex scope*/ {
                     const std::lock_guard<std::mutex> lock(idle_mutex);
                     idle_tasks.push_back(reaction);
@@ -86,9 +82,10 @@ namespace threading {
             }
         }
 
-        void Scheduler::remove_idle_task(const util::ThreadPoolDescriptor& desc, const NUClear::id_t& id) {
-            // If this is the "ALL" pool then remove it from the schedulers list of tasks
-            if (desc.pool_id == util::ThreadPoolDescriptor::AllPools().pool_id) {
+        void Scheduler::remove_idle_task(const NUClear::id_t& id,
+                                         const std::shared_ptr<const util::ThreadPoolDescriptor>& desc) {
+            // If this doesn't have a pool specifier it's for all pools
+            if (desc == nullptr) {
                 const std::lock_guard<std::mutex> lock(idle_mutex);
                 idle_tasks.erase(
                     std::remove_if(idle_tasks.begin(), idle_tasks.end(), [&](const auto& r) { return r->id == id; }),
@@ -99,38 +96,39 @@ namespace threading {
             }
         }
 
-        std::shared_ptr<Pool> Scheduler::get_pool(const util::ThreadPoolDescriptor& desc) {
+        std::shared_ptr<Pool> Scheduler::get_pool(const std::shared_ptr<const util::ThreadPoolDescriptor>& desc) {
             const std::lock_guard<std::mutex> lock(pools_mutex);
             // If the pool does not exist, create it
-            if (pools.count(desc.pool_id) == 0) {
+            if (pools.count(desc) == 0) {
                 // Create the pool
-                auto pool           = std::make_shared<Pool>(*this, desc);
-                pools[desc.pool_id] = pool;
+                auto pool   = std::make_shared<Pool>(*this, desc);
+                pools[desc] = pool;
 
                 // Don't start the main thread here, it will be started in the start function
                 // If the scheduler has not yet started then don't start the threads for this pool yet
-                if (desc.pool_id != util::ThreadPoolDescriptor::MAIN_THREAD_POOL_ID && started) {
+                if (desc != dsl::word::MainThread::descriptor() && started) {
                     pool->start();
                 }
             }
 
-            return pools.at(desc.pool_id);
+            return pools.at(desc);
         }
 
-        std::shared_ptr<Group> Scheduler::get_group(const util::GroupDescriptor& desc) {
+        std::shared_ptr<Group> Scheduler::get_group(const std::shared_ptr<const util::GroupDescriptor>& desc) {
             const std::lock_guard<std::mutex> lock(groups_mutex);
             // If the group does not exist, create it
-            if (groups.count(desc.group_id) == 0) {
-                groups[desc.group_id] = std::make_shared<Group>(desc);
+            if (groups.count(desc) == 0) {
+                groups[desc] = std::make_shared<Group>(desc);
             }
 
-            return groups.at(desc.group_id);
+            return groups.at(desc);
         }
 
-        std::unique_ptr<Lock> Scheduler::get_groups_lock(const NUClear::id_t& task_id,
-                                                         const int& priority,
-                                                         const std::shared_ptr<Pool>& pool,
-                                                         const std::set<util::GroupDescriptor>& descs) {
+        std::unique_ptr<Lock> Scheduler::get_groups_lock(
+            const NUClear::id_t& task_id,
+            const int& priority,
+            const std::shared_ptr<Pool>& pool,
+            const std::set<std::shared_ptr<const util::GroupDescriptor>>& descs) {
 
             // No groups
             if (descs.empty()) {

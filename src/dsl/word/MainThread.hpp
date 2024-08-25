@@ -23,13 +23,22 @@
 #ifndef NUCLEAR_DSL_WORD_MAIN_THREAD_HPP
 #define NUCLEAR_DSL_WORD_MAIN_THREAD_HPP
 
-#include "../../threading/ReactionTask.hpp"
-#include "../../util/ThreadPoolDescriptor.hpp"
-#include "../../util/main_thread_id.hpp"
+#include "Pool.hpp"
 
 namespace NUClear {
 namespace dsl {
     namespace word {
+
+        namespace pool {
+            /**
+             * This struct is here to define the main thread pool.
+             */
+            struct Main {
+                static constexpr const char* name     = "Main";
+                static constexpr int thread_count     = 1;
+                static constexpr bool counts_for_idle = true;
+            };
+        }  // namespace pool
 
         /**
          * This is used to specify that the associated task will need to execute using the main thread.
@@ -38,21 +47,7 @@ namespace dsl {
          * This can be used with graphics related tasks.
          * For example, OpenGL requires all calls to be made from the main thread.
          */
-        struct MainThread {
-
-            /// the description of the thread pool to be used for this PoolType
-            static util::ThreadPoolDescriptor descriptor() {
-                return util::ThreadPoolDescriptor{"Main",
-                                                  NUClear::id_t(util::ThreadPoolDescriptor::MAIN_THREAD_POOL_ID),
-                                                  1,
-                                                  true};
-            }
-
-            template <typename DSL>
-            static util::ThreadPoolDescriptor pool(const threading::ReactionTask& /*task*/) {
-                return descriptor();
-            }
-        };
+        struct MainThread : Pool<pool::Main> {};
 
     }  // namespace word
 }  // namespace dsl

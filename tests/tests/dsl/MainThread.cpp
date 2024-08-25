@@ -34,9 +34,9 @@ public:
 
         // Run a task without MainThread to make sure it isn't on the main thread
         on<Trigger<MessageA>>().then("Non-MainThread reaction", [this] {
-            events.push_back(std::string("MessageA triggered ")
-                             + (NUClear::util::main_thread_id == std::this_thread::get_id() ? "on main thread"
-                                                                                            : "on non-main thread"));
+            events.push_back(
+                std::string("MessageA triggered ")
+                + (main_thread_id == std::this_thread::get_id() ? "on main thread" : "on non-main thread"));
 
             events.push_back("Emitting MessageB");
             emit(std::make_unique<MessageB>());
@@ -44,9 +44,9 @@ public:
 
         // Run a task with MainThread and ensure that it is on the main thread
         on<Trigger<MessageB>, MainThread>().then("MainThread reaction", [this] {
-            events.push_back(std::string("MessageB triggered ")
-                             + (NUClear::util::main_thread_id == std::this_thread::get_id() ? "on main thread"
-                                                                                            : "on non-main thread"));
+            events.push_back(
+                std::string("MessageB triggered ")
+                + (main_thread_id == std::this_thread::get_id() ? "on main thread" : "on non-main thread"));
 
             // Since we are a multithreaded test with MainThread we need to shutdown the test ourselves
             powerplant.shutdown();
@@ -61,6 +61,10 @@ public:
 
     /// Events that occur during the test
     std::vector<std::string> events;
+
+private:
+    /// Set to the thread that was used during construction as it will be the main thread
+    std::thread::id main_thread_id = std::this_thread::get_id();
 };
 
 

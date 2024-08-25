@@ -29,6 +29,7 @@
 #include "../../threading/ReactionTask.hpp"
 #include "../../util/GroupDescriptor.hpp"
 #include "../../util/ThreadPoolDescriptor.hpp"
+#include "../word/Pool.hpp"
 #include "../word/Priority.hpp"
 
 namespace NUClear {
@@ -62,13 +63,14 @@ namespace dsl {
             }
 
             template <typename DSL>
-            static std::set<util::GroupDescriptor> group(const threading::ReactionTask& /*task*/) {
+            static std::set<std::shared_ptr<const util::GroupDescriptor>> group(
+                const threading::ReactionTask& /*task*/) {
                 return {};
             }
 
             template <typename DSL>
-            static util::ThreadPoolDescriptor pool(const threading::ReactionTask& /*task*/) {
-                return util::ThreadPoolDescriptor{};
+            static std::shared_ptr<const util::ThreadPoolDescriptor> pool(const threading::ReactionTask& /*task*/) {
+                return word::Pool<>::descriptor();
             }
 
             template <typename DSL>
@@ -92,9 +94,9 @@ namespace dsl {
 
             static int priority(threading::ReactionTask&);
 
-            static std::set<util::GroupDescriptor> group(threading::ReactionTask&);
+            static std::set<std::shared_ptr<const util::GroupDescriptor>> group(threading::ReactionTask&);
 
-            static util::ThreadPoolDescriptor pool(threading::ReactionTask&);
+            static std::shared_ptr<const util::ThreadPoolDescriptor> pool(threading::ReactionTask&);
 
             static void postcondition(threading::ReactionTask&);
         };

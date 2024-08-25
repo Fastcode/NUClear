@@ -133,9 +133,9 @@ namespace threading {
         int priority;
         /// Details about the thread pool that this task will run from, this will also influence what task queue
         /// the tasks will be queued on
-        util::ThreadPoolDescriptor pool_descriptor;
+        std::shared_ptr<const util::ThreadPoolDescriptor> pool_descriptor;
         /// Details about the groups that this task will run in
-        std::set<util::GroupDescriptor> group_descriptors;
+        std::set<std::shared_ptr<const util::GroupDescriptor>> group_descriptors;
 
         /// The statistics object that records run details about this reaction task
         /// This will be nullptr if this task is ineligible to emit stats (e.g. it would cause a loop)

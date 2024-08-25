@@ -72,26 +72,21 @@ namespace dsl {
         struct Always {
 
             template <typename DSL>
-            static util::ThreadPoolDescriptor pool(const threading::ReactionTask& task) {
-                static std::map<NUClear::id_t, NUClear::id_t> pool_ids;
+            static std::shared_ptr<const util::ThreadPoolDescriptor> pool(const threading::ReactionTask& task) {
+                static std::map<NUClear::id_t, std::shared_ptr<util::ThreadPoolDescriptor>> pools;
                 static std::mutex mutex;
-
                 const auto& reaction = *task.parent;
-                id_t pool_id         = 0;
 
-                /*mutex scope*/ {
-                    const std::lock_guard<std::mutex> lock(mutex);
-                    if (pool_ids.count(reaction.id) == 0) {
-                        pool_ids[reaction.id] = util::ThreadPoolDescriptor::get_unique_pool_id();
-                    }
-                    pool_id = pool_ids.at(reaction.id);
+                const std::lock_guard<std::mutex> lock(mutex);
+                if (pools.count(reaction.id) == 0) {
+
+                    const std::string pool_name = !reaction.identifiers->name.empty()
+                                                      ? std::string(reaction.identifiers->name)
+                                                      : std::string("Always[") + std::to_string(reaction.id) + "]";
+
+                    pools[reaction.id] = std::make_shared<util::ThreadPoolDescriptor>(pool_name, 1, false);
                 }
-
-                // Use the reaction name as the pool name otherwise default to "Always<pool_id>"
-                const std::string pool_name = !reaction.identifiers->name.empty()
-                                                  ? std::string(reaction.identifiers->name)
-                                                  : std::string("Always<") + std::to_string(pool_id) + ">";
-                return util::ThreadPoolDescriptor{pool_name, pool_id, 1, false};
+                return pools.at(reaction.id);
             }
 
             template <typename DSL>

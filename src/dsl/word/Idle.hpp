@@ -38,16 +38,19 @@ namespace dsl {
 
         /**
          * A base type to handle the common code for idling after turning the pool descriptor into an id.
+         *
+         * @param reaction        The reaction to bind the idle task to
+         * @param pool_descriptor The descriptor that was used to create the thread pool.
          */
         inline void bind_idle(const std::shared_ptr<threading::Reaction>& reaction,
-                              const util::ThreadPoolDescriptor& pool_descriptor) {
+                              const std::shared_ptr<const util::ThreadPoolDescriptor>& pool_descriptor) {
 
             // Our unbinder to remove this reaction
             reaction->unbinders.push_back([pool_descriptor](const threading::Reaction& r) {  //
-                r.reactor.powerplant.remove_idle_task(pool_descriptor, r.id);
+                r.reactor.powerplant.remove_idle_task(r.id, pool_descriptor);
             });
 
-            reaction->reactor.powerplant.add_idle_task(pool_descriptor, reaction);
+            reaction->reactor.powerplant.add_idle_task(reaction, pool_descriptor);
         }
 
         /**
@@ -77,7 +80,7 @@ namespace dsl {
         struct Idle<void> {
             template <typename DSL>
             static void bind(const std::shared_ptr<threading::Reaction>& reaction) {
-                bind_idle(reaction, util::ThreadPoolDescriptor::AllPools());
+                bind_idle(reaction, nullptr);
             }
         };
 

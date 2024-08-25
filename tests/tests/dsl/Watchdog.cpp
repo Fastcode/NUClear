@@ -76,7 +76,7 @@ public:
         });
     }
 
-    std::string units_since_start() {
+    std::string units_since_start() const {
         return std::to_string(test_util::round_to_test_units(NUClear::clock::now() - start).count());
     }
 

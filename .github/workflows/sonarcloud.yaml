@@ -27,7 +27,7 @@ jobs:
           fetch-depth: 0 # Shallow clones should be disabled for a better relevancy of analysis
 
       - name: Install gcovr
-        run: pip install gcovr==6.0
+        run: pip install gcovr==7.2
 
       - name: Install sonar-scanner and build-wrapper
         uses: SonarSource/sonarcloud-github-c-cpp@v3
@@ -68,7 +68,7 @@ jobs:
 
       - name: Collect coverage into one XML report
         if: always()
-        run: gcovr --exclude-unreachable-branches --exclude-noncode-lines --sonarqube > coverage.xml
+        run: gcovr --gcov-ignore-parse-errors=negative_hits.warn_once_per_file --exclude-unreachable-branches --exclude-noncode-lines --sonarqube > coverage.xml
 
       - name: Run sonar-scanner
         if: always()
