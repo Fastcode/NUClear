@@ -42,7 +42,7 @@ public:
     void do_step(const std::string& name) {
         std::this_thread::sleep_until(start_time + test_util::TimeUnit(N));
 
-        std::lock_guard<std::mutex> lock(events_mutex);
+        const std::lock_guard<std::mutex> lock(events_mutex);
         events.push_back(name + " " + std::to_string(N));
         emit(std::make_unique<Step<N + 1>>());
     }
