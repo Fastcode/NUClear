@@ -1,5 +1,5 @@
 # Continuous Integration tests
-name: GCC
+name: Sanitizers
 
 on:
   push:
@@ -16,7 +16,7 @@ concurrency:
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 jobs:
-  linux-gcc:
+  sanitizers:
     strategy:
       matrix:
         sanitiser:
@@ -26,7 +26,7 @@ jobs:
           - THREAD
           - UNDEFINED
 
-    name: Sanitising ${{ matrix.sanitiser }}
+    name: Sanitizing ${{ matrix.sanitiser }}
     runs-on: ubuntu-latest
     continue-on-error: true
 
