@@ -25,33 +25,28 @@
 
 #include "test_util/TestBase.hpp"
 
-namespace {
-
-/// Events that occur during the test
-std::vector<std::string> events;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
-
-struct Message {
-    Message(int i) : i(i) {}
-    int i;
-};
-
 class TestReactor : public test_util::TestBase<TestReactor> {
 public:
+    struct Message {
+        Message(int i) : i(i) {}
+        int i;
+    };
+
     TestReactor(std::unique_ptr<NUClear::Environment> environment) : TestBase(std::move(environment)) {
 
-        on<Trigger<Message>>().then([](const Message& msg) {  //
+        on<Trigger<Message>>().then([this](const Message& msg) {  //
             events.push_back("Trigger reaction " + std::to_string(msg.i));
         });
-        on<Trigger<Message>, Single>().then([](const Message& msg) {  //
+        on<Trigger<Message>, Single>().then([this](const Message& msg) {  //
             events.push_back("Single reaction " + std::to_string(msg.i));
         });
-        on<Trigger<Message>, Buffer<2>>().then([](const Message& msg) {  //
+        on<Trigger<Message>, Buffer<2>>().then([this](const Message& msg) {  //
             events.push_back("Buffer<2> reaction " + std::to_string(msg.i));
         });
-        on<Trigger<Message>, Buffer<3>>().then([](const Message& msg) {  //
+        on<Trigger<Message>, Buffer<3>>().then([this](const Message& msg) {  //
             events.push_back("Buffer<3> reaction " + std::to_string(msg.i));
         });
-        on<Trigger<Message>, Buffer<4>>().then([](const Message& msg) {  //
+        on<Trigger<Message>, Buffer<4>>().then([this](const Message& msg) {  //
             events.push_back("Buffer<4> reaction " + std::to_string(msg.i));
         });
 
@@ -94,15 +89,18 @@ public:
             emit(std::make_unique<Step<5>>());
         });
     }
+
+    /// Events that occur during the test
+    std::vector<std::string> events;
 };
-}  // namespace
+
 
 TEST_CASE("Test that Buffer and Single limit the number of concurrent executions", "[api][precondition][single]") {
 
     NUClear::Configuration config;
     config.thread_count = 1;
     NUClear::PowerPlant plant(config);
-    plant.install<TestReactor>();
+    const auto& reactor = plant.install<TestReactor>();
     plant.start();
 
     const std::vector<std::string> expected = {
@@ -169,8 +167,8 @@ TEST_CASE("Test that Buffer and Single limit the number of concurrent executions
     };
 
     // Make an info print the diff in an easy to read way if we fail
-    INFO(test_util::diff_string(expected, events));
+    INFO(test_util::diff_string(expected, reactor.events));
 
     // Check the events fired in order and only those events
-    REQUIRE(events == expected);
+    REQUIRE(reactor.events == expected);
 }

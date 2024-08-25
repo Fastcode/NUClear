@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2015 NUClear Contributors
+ * Copyright (c) 2024 NUClear Contributors
  *
  * This file is part of the NUClear codebase.
  * See https://github.com/Fastcode/NUClear for further info.
@@ -20,39 +20,31 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include <catch2/catch_test_macros.hpp>
-#include <nuclear>
+#ifndef NUCLEAR_DSL_FUSION_FIND_WORDS_HPP
+#define NUCLEAR_DSL_FUSION_FIND_WORDS_HPP
 
-class TestReactorNoArgs : public NUClear::Reactor {
-public:
-    TestReactorNoArgs(std::unique_ptr<NUClear::Environment> environment) : NUClear::Reactor(std::move(environment)) {}
+#include "../../util/meta/Filter.hpp"
 
-    std::string s;
-    bool b{false};
-    uint32_t i{0};
-};
-class TestReactorArgs : public NUClear::Reactor {
-public:
-    TestReactorArgs(std::unique_ptr<NUClear::Environment> environment, std::string s, const bool& b, const uint32_t& i)
-        : NUClear::Reactor(std::move(environment)), s(std::move(s)), b(b), i(i) {}
+namespace NUClear {
+namespace dsl {
+    namespace fusion {
 
-    std::string s;
-    bool b{false};
-    uint32_t i{0};
-};
+        /**
+         * Filters the DSL words to only those that have the correct function.
+         *
+         * It will:
+         * - Attempt to use the word directly
+         * - If the word does not have the correct function, it will try the DSLProxy for that word
+         * - If neither have the correct function, it will remove the word from the list
+         *
+         * @tparam Check The function to check for
+         * @tparam Ts    The words to check
+         */
+        template <template <typename> class Check, typename... Ts>
+        using FindWords = Filter<Check, std::conditional_t<Check<Ts>::value, Ts, operation::DSLProxy<Ts>>...>;
 
+    }  // namespace fusion
+}  // namespace dsl
+}  // namespace NUClear
 
-TEST_CASE("Testing Reactor installation arguments", "[api][reactorargs]") {
-    NUClear::Configuration config;
-    config.thread_count = 1;
-    NUClear::PowerPlant plant(config);
-    const TestReactorArgs& r1   = plant.install<TestReactorArgs>("Hello NUClear", true, 0x00E298A2);
-    const TestReactorNoArgs& r2 = plant.install<TestReactorNoArgs>();
-
-    REQUIRE(r1.s == "Hello NUClear");
-    REQUIRE(r1.b);
-    REQUIRE(r1.i == 0x00E298A2);
-    REQUIRE(r2.s.empty());
-    REQUIRE(!r2.b);
-    REQUIRE(r2.i == 0);
-}
+#endif  // NUCLEAR_DSL_FUSION_FIND_WORDS_HPP

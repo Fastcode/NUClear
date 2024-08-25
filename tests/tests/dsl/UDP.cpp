@@ -26,8 +26,6 @@
 #include "test_util/TestBase.hpp"
 #include "test_util/has_ipv6.hpp"
 
-namespace {
-
 /// Events that occur during the test
 std::vector<std::string> events;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
@@ -348,7 +346,6 @@ private:
     size_t test_no = 0;
 };
 
-}  // namespace
 
 TEST_CASE("Testing sending and receiving of UDP messages", "[api][network][udp]") {
 

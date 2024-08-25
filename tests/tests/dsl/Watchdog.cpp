@@ -27,16 +27,11 @@
 
 #include "test_util/TestBase.hpp"
 
-namespace {
-
-/// Events that occur during the test
-std::vector<std::string> events;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
-
-template <int I>
-struct Flag {};
-
 class TestReactor : public test_util::TestBase<TestReactor> {
 public:
+    template <int I>
+    struct Flag {};
+
     TestReactor(std::unique_ptr<NUClear::Environment> environment)
         : TestBase(std::move(environment), false), start(NUClear::clock::now()) {
 
@@ -92,16 +87,18 @@ public:
     int flag3a{0};
     int flag3b{0};
     int flag4{0};
+
+    /// Events that occur during the test
+    std::vector<std::string> events;
 };
 
-}  // namespace
 
 TEST_CASE("Testing the Watchdog Smart Type", "[api][watchdog]") {
 
     NUClear::Configuration config;
     config.thread_count = 1;
     NUClear::PowerPlant plant(config);
-    plant.install<TestReactor>();
+    const auto& reactor = plant.install<TestReactor>();
     plant.start();
 
     const std::vector<std::string> expected = {
@@ -121,8 +118,8 @@ TEST_CASE("Testing the Watchdog Smart Type", "[api][watchdog]") {
     };
 
     // Make an info print the diff in an easy to read way if we fail
-    INFO(test_util::diff_string(expected, events));
+    INFO(test_util::diff_string(expected, reactor.events));
 
     // Check the events fired in order and only those events
-    REQUIRE(events == expected);
+    REQUIRE(reactor.events == expected);
 }

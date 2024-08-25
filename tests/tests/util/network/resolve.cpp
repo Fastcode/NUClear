@@ -25,6 +25,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include <string>
 
+
 TEST_CASE("resolve function returns expected socket address", "[util][network][resolve]") {
 
     SECTION("IPv4 address") {

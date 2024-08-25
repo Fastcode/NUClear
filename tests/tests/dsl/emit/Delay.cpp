@@ -26,38 +26,31 @@
 #include "test_util/TestBase.hpp"
 #include "test_util/TimeUnit.hpp"
 
-// Anonymous namespace to keep everything file local
-namespace {
-
-using TimeUnit = test_util::TimeUnit;
-
-/// Events that occur during the test
-std::vector<std::string> events;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
-
-/// Perform this many different time points for the test
-constexpr int test_loops = 5;
-
-struct DelayedMessage {
-    DelayedMessage(const NUClear::clock::duration& delay) : time(NUClear::clock::now()), delay(delay) {}
-    NUClear::clock::time_point time;
-    NUClear::clock::duration delay;
-};
-
-struct TargetTimeMessage {
-    TargetTimeMessage(const NUClear::clock::time_point& target) : time(NUClear::clock::now()), target(target) {}
-    NUClear::clock::time_point time;
-    NUClear::clock::time_point target;
-};
-
-struct FinishTest {};
-
 class TestReactor : public test_util::TestBase<TestReactor> {
 public:
+    using TimeUnit = test_util::TimeUnit;
+
+    /// Perform this many different time points for the test
+    static constexpr int test_loops = 5;
+
+    struct DelayedMessage {
+        DelayedMessage(const NUClear::clock::duration& delay) : time(NUClear::clock::now()), delay(delay) {}
+        NUClear::clock::time_point time;
+        NUClear::clock::duration delay;
+    };
+
+    struct TargetTimeMessage {
+        TargetTimeMessage(const NUClear::clock::time_point& target) : time(NUClear::clock::now()), target(target) {}
+        NUClear::clock::time_point time;
+        NUClear::clock::time_point target;
+    };
+
+    struct FinishTest {};
     TestReactor(std::unique_ptr<NUClear::Environment> environment)
         : TestBase(std::move(environment), false, std::chrono::seconds(2)) {
 
         // Measure when messages were sent and received and print those values
-        on<Trigger<DelayedMessage>>().then([](const DelayedMessage& m) {
+        on<Trigger<DelayedMessage>>().then([this](const DelayedMessage& m) {
             auto true_delta = test_util::round_to_test_units(NUClear::clock::now() - m.time);
             auto delta      = test_util::round_to_test_units(m.delay);
 
@@ -66,7 +59,7 @@ public:
                              + std::to_string(delta.count()));
         });
 
-        on<Trigger<TargetTimeMessage>>().then([](const TargetTimeMessage& m) {
+        on<Trigger<TargetTimeMessage>>().then([this](const TargetTimeMessage& m) {
             auto true_delta = test_util::round_to_test_units(NUClear::clock::now() - m.time);
             auto delta      = test_util::round_to_test_units(m.target - m.time);
 
@@ -95,14 +88,17 @@ public:
 
         on<Startup>().then([this] { emit(std::make_unique<Step<1>>()); });
     }
+
+    /// Events that occur during the test
+    std::vector<std::string> events;
 };
-}  // namespace
+
 
 TEST_CASE("Testing the delay emit", "[api][emit][delay]") {
     NUClear::Configuration config;
     config.thread_count = 1;
     NUClear::PowerPlant plant(config);
-    plant.install<TestReactor>();
+    const auto& reactor = plant.install<TestReactor>();
     plant.start();
 
     const std::vector<std::string> expected = {
@@ -120,8 +116,8 @@ TEST_CASE("Testing the delay emit", "[api][emit][delay]") {
     };
 
     // Make an info print the diff in an easy to read way if we fail
-    INFO(test_util::diff_string(expected, events));
+    INFO(test_util::diff_string(expected, reactor.events));
 
     // Check the events fired in order and only those events
-    REQUIRE(events == expected);
+    REQUIRE(reactor.events == expected);
 }

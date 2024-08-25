@@ -23,9 +23,6 @@
 #include <catch2/catch_test_macros.hpp>
 #include <nuclear>
 
-// Anonymous namespace to keep everything file local
-namespace {
-
 // This is a free floating function that we can use to test the log function when not in a reactor
 template <NUClear::LogLevel level, typename... Args>
 void free_floating_log(const Args&... args) {
@@ -38,7 +35,7 @@ struct LogTestOutput {
     bool from_reaction;
 };
 
-// Store all the log messages we received
+/// All the log messages received
 std::vector<LogTestOutput> messages;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
 // All the log levels
@@ -134,7 +131,7 @@ public:
         });
     }
 };
-}  // namespace
+
 
 TEST_CASE("Testing the Log<>() function", "[api][log]") {
 

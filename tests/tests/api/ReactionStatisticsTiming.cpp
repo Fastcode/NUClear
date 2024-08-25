@@ -26,9 +26,6 @@
 #include "test_util/TestBase.hpp"
 #include "test_util/TimeUnit.hpp"
 
-// Anonymous namespace to keep everything file local
-namespace {
-
 using TimeUnit = test_util::TimeUnit;
 
 /// Events that occur during the test and the time they occur
@@ -118,7 +115,7 @@ public:
         });
     }
 };
-}  // namespace
+
 
 TEST_CASE("Testing reaction statistics timing", "[api][reactionstatistics][timing]") {
 

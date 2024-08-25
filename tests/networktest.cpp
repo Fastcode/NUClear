@@ -26,7 +26,6 @@
 #include <iostream>
 #include <nuclear>
 
-namespace {
 struct PerformEmits {};
 
 using NUClear::message::CommandLineArguments;
@@ -119,8 +118,6 @@ public:
         });
     }
 };
-}  // namespace
-
 
 // NOLINTNEXTLINE(bugprone-exception-escape)
 int main(int argc, const char* argv[]) {

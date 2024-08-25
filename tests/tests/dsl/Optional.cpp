@@ -25,19 +25,14 @@
 
 #include "test_util/TestBase.hpp"
 
-namespace {
-
-/// Events that occur during the test
-std::vector<std::string> events;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
-
-struct MessageA {};
-struct MessageB {};
-
 class TestReactor : public test_util::TestBase<TestReactor> {
 public:
+    struct MessageA {};
+    struct MessageB {};
+
     TestReactor(std::unique_ptr<NUClear::Environment> environment) : TestBase(std::move(environment)) {
 
-        on<Trigger<MessageA>, With<MessageB>>().then([](const MessageA&, const MessageB&) {  //
+        on<Trigger<MessageA>, With<MessageB>>().then([this](const MessageA&, const MessageB&) {  //
             events.push_back("Executed reaction with A and B");
         });
 
@@ -48,13 +43,13 @@ public:
             emit(std::make_unique<MessageB>());
         });
 
-        on<Trigger<MessageB>, With<MessageA>>().then([] {  //
+        on<Trigger<MessageB>, With<MessageA>>().then([this] {  //
             events.push_back("Executed reaction with B and A");
         });
 
         // Double trigger test (to ensure that it can handle multiple DSL words
         on<Optional<Trigger<MessageA>, Trigger<MessageB>>>().then(
-            [](const std::shared_ptr<const MessageA>& a, const std::shared_ptr<const MessageB>& b) {  //
+            [this](const std::shared_ptr<const MessageA>& a, const std::shared_ptr<const MessageB>& b) {  //
                 events.push_back(std::string("Executed reaction with optional A and B with A") + (a ? "+" : "-")
                                  + " and B" + (b ? "+" : "-"));
             });
@@ -65,15 +60,18 @@ public:
             emit(std::make_unique<MessageA>());
         });
     }
+
+    /// Events that occur during the test
+    std::vector<std::string> events;
 };
-}  // namespace
+
 
 TEST_CASE("Testing that optional is able to let data through even if it's invalid", "[api][optional]") {
 
     NUClear::Configuration config;
     config.thread_count = 1;
     NUClear::PowerPlant plant(config);
-    plant.install<TestReactor>();
+    const auto& reactor = plant.install<TestReactor>();
     plant.start();
 
     const std::vector<std::string> expected = {
@@ -86,8 +84,8 @@ TEST_CASE("Testing that optional is able to let data through even if it's invali
     };
 
     // Make an info print the diff in an easy to read way if we fail
-    INFO(test_util::diff_string(expected, events));
+    INFO(test_util::diff_string(expected, reactor.events));
 
     // Check the events fired in order and only those events
-    REQUIRE(events == expected);
+    REQUIRE(reactor.events == expected);
 }

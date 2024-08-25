@@ -26,19 +26,15 @@
 #include "test_util/TestBase.hpp"
 
 // This namespace is named to make things consistent with the reaction statistics test
-namespace stats_test {
-
-/// Events that occur during the test
-std::vector<std::string> events;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
-
-template <int id>
-struct Message {};
-struct LoopMessage {};
 
 using NUClear::message::ReactionEvent;
 
 class TestReactor : public test_util::TestBase<TestReactor> {
 public:
+    template <int id>
+    struct Message {};
+    struct LoopMessage {};
+
     TestReactor(std::unique_ptr<NUClear::Environment> environment) : TestBase(std::move(environment)) {
 
         // This reaction is here to emit something from a ReactionStatistics trigger
@@ -77,7 +73,7 @@ public:
             }
         });
 
-        on<Trigger<Message<1>>>().then("Exception Handler", [] {
+        on<Trigger<Message<1>>>().then("Exception Handler", [this] {
             events.push_back("Running Exception Handler");
             throw std::runtime_error("Text in an exception");
         });
@@ -92,33 +88,36 @@ public:
             emit(std::make_unique<Message<0>>());
         });
     }
+
+    /// Events that occur during the test
+    std::vector<std::string> events;
 };
-}  // namespace stats_test
+
 
 TEST_CASE("Testing reaction statistics functionality", "[api][reactionstatistics]") {
 
     NUClear::Configuration config;
     config.thread_count = 1;
     NUClear::PowerPlant plant(config);
-    plant.install<stats_test::TestReactor>();
+    const auto& reactor = plant.install<TestReactor>();
     plant.start();
 
     const std::vector<std::string> expected = {
         "Running Startup Handler",
-        "Stats for Startup Handler from stats_test::TestReactor",
+        "Stats for Startup Handler from TestReactor",
         "NUClear::Reactor::on<NUClear::dsl::word::Startup>",
         "Running Message Handler",
-        "Stats for Message Handler from stats_test::TestReactor",
-        "NUClear::Reactor::on<NUClear::dsl::word::Trigger<stats_test::Message<0>>>",
+        "Stats for Message Handler from TestReactor",
+        "NUClear::Reactor::on<NUClear::dsl::word::Trigger<TestReactor::Message<0>>>",
         "Running Exception Handler",
-        "Stats for Exception Handler from stats_test::TestReactor",
-        "NUClear::Reactor::on<NUClear::dsl::word::Trigger<stats_test::Message<1>>>",
+        "Stats for Exception Handler from TestReactor",
+        "NUClear::Reactor::on<NUClear::dsl::word::Trigger<TestReactor::Message<1>>>",
         "Exception received: \"Text in an exception\"",
     };
 
     // Make an info print the diff in an easy to read way if we fail
-    INFO(test_util::diff_string(expected, stats_test::events));
+    INFO(test_util::diff_string(expected, reactor.events));
 
     // Check the events fired in order and only those events
-    REQUIRE(stats_test::events == expected);
+    REQUIRE(reactor.events == expected);
 }

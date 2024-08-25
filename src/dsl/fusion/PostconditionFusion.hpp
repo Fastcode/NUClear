@@ -25,46 +25,12 @@
 
 #include "../../threading/ReactionTask.hpp"
 #include "../operation/DSLProxy.hpp"
+#include "FindWords.hpp"
 #include "has_postcondition.hpp"
 
 namespace NUClear {
 namespace dsl {
     namespace fusion {
-
-        /// Type that redirects types without a postcondition function to their proxy type
-        template <typename Word>
-        struct Postcondition {
-            using type = std::conditional_t<has_postcondition<Word>::value, Word, operation::DSLProxy<Word>>;
-        };
-
-        template <typename, typename = std::tuple<>>
-        struct PostconditionWords;
-
-        /**
-         * Metafunction that extracts all of the Words with a postcondition function.
-         *
-         * @tparam Word1      The word we are looking at
-         * @tparam WordN      The words we have yet to look at
-         * @tparam FoundWords The words we have found with postcondition functions
-         */
-        template <typename Word1, typename... WordN, typename... FoundWords>
-        struct PostconditionWords<std::tuple<Word1, WordN...>, std::tuple<FoundWords...>>
-            : std::conditional_t<has_postcondition<typename Postcondition<Word1>::type>::value,
-                                 /*T*/
-                                 PostconditionWords<std::tuple<WordN...>,
-                                                    std::tuple<FoundWords..., typename Postcondition<Word1>::type>>,
-                                 /*F*/ PostconditionWords<std::tuple<WordN...>, std::tuple<FoundWords...>>> {};
-
-        /**
-         * Termination case for the PostconditionWords metafunction.
-         *
-         * @tparam PostconditionWords The words we have found with postcondition functions
-         */
-        template <typename... FoundWords>
-        struct PostconditionWords<std::tuple<>, std::tuple<FoundWords...>> {
-            using type = std::tuple<FoundWords...>;
-        };
-
 
         // Default case where there are no postcondition words
         template <typename Words>
@@ -98,8 +64,7 @@ namespace dsl {
         };
 
         template <typename Word1, typename... WordN>
-        struct PostconditionFusion
-            : PostconditionFuser<typename PostconditionWords<std::tuple<Word1, WordN...>>::type> {};
+        struct PostconditionFusion : PostconditionFuser<FindWords<has_postcondition, Word1, WordN...>> {};
 
     }  // namespace fusion
 }  // namespace dsl

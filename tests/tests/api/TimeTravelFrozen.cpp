@@ -5,8 +5,6 @@
 
 #include "test_util/TestBase.hpp"
 
-namespace {
-
 constexpr std::chrono::milliseconds EVENT_1_TIME  = std::chrono::milliseconds(4);
 constexpr std::chrono::milliseconds EVENT_2_TIME  = std::chrono::milliseconds(8);
 constexpr std::chrono::milliseconds SHUTDOWN_TIME = std::chrono::milliseconds(12);
@@ -67,7 +65,6 @@ public:
     std::vector<std::string> events;
 };
 
-}  // anonymous namespace
 
 TEST_CASE("Test time travel correctly changes the time for non zero rtf", "[time_travel][chrono_controller]") {
 
@@ -112,5 +109,5 @@ TEST_CASE("Test time travel correctly changes the time for non zero rtf", "[time
     }
 
     INFO(test_util::diff_string(expected, reactor.events));
-    CHECK(expected == reactor.events);
+    CHECK(reactor.events == expected);
 }

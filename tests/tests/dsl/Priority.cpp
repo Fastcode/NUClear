@@ -26,33 +26,28 @@
 
 #include "test_util/TestBase.hpp"
 
-namespace {
-
-/// Events that occur during the test
-std::vector<std::string> events;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
-
-template <int I>
-struct Message {};
-
 class TestReactor : public test_util::TestBase<TestReactor> {
 public:
+    template <int I>
+    struct Message {};
+
     TestReactor(std::unique_ptr<NUClear::Environment> environment) : TestBase(std::move(environment)) {
 
         // Declare in the order you'd expect them to fire
-        on<Trigger<Message<1>>, Priority::REALTIME>().then([] { events.push_back("Realtime Message<1>"); });
-        on<Trigger<Message<1>>, Priority::HIGH>().then("High", [] { events.push_back("High Message<1>"); });
-        on<Trigger<Message<1>>>().then([] { events.push_back("Default Message<1>"); });
-        on<Trigger<Message<1>>, Priority::NORMAL>().then("Normal", [] { events.push_back("Normal Message<1>"); });
-        on<Trigger<Message<1>>, Priority::LOW>().then("Low", [] { events.push_back("Low Message<1>"); });
-        on<Trigger<Message<1>>, Priority::IDLE>().then([] { events.push_back("Idle Message<1>"); });
+        on<Trigger<Message<1>>, Priority::REALTIME>().then([this] { events.push_back("Realtime Message<1>"); });
+        on<Trigger<Message<1>>, Priority::HIGH>().then("High", [this] { events.push_back("High Message<1>"); });
+        on<Trigger<Message<1>>>().then([this] { events.push_back("Default Message<1>"); });
+        on<Trigger<Message<1>>, Priority::NORMAL>().then("Normal", [this] { events.push_back("Normal Message<1>"); });
+        on<Trigger<Message<1>>, Priority::LOW>().then("Low", [this] { events.push_back("Low Message<1>"); });
+        on<Trigger<Message<1>>, Priority::IDLE>().then([this] { events.push_back("Idle Message<1>"); });
 
         // Declare in the opposite order to what you'd expect them to fire
-        on<Trigger<Message<2>>, Priority::IDLE>().then([] { events.push_back("Idle Message<2>"); });
-        on<Trigger<Message<2>>, Priority::LOW>().then([] { events.push_back("Low Message<2>"); });
-        on<Trigger<Message<2>>, Priority::NORMAL>().then([] { events.push_back("Normal Message<2>"); });
-        on<Trigger<Message<2>>>().then([] { events.push_back("Default Message<2>"); });
-        on<Trigger<Message<2>>, Priority::HIGH>().then([] { events.push_back("High Message<2>"); });
-        on<Trigger<Message<2>>, Priority::REALTIME>().then([] { events.push_back("Realtime Message<2>"); });
+        on<Trigger<Message<2>>, Priority::IDLE>().then([this] { events.push_back("Idle Message<2>"); });
+        on<Trigger<Message<2>>, Priority::LOW>().then([this] { events.push_back("Low Message<2>"); });
+        on<Trigger<Message<2>>, Priority::NORMAL>().then([this] { events.push_back("Normal Message<2>"); });
+        on<Trigger<Message<2>>>().then([this] { events.push_back("Default Message<2>"); });
+        on<Trigger<Message<2>>, Priority::HIGH>().then([this] { events.push_back("High Message<2>"); });
+        on<Trigger<Message<2>>, Priority::REALTIME>().then([this] { events.push_back("Realtime Message<2>"); });
 
         // Declare in a random order
         std::array<int, 5> order = {0, 1, 2, 3, 4};
@@ -60,20 +55,21 @@ public:
         for (const auto& i : order) {
             switch (i) {
                 case 0:
-                    on<Trigger<Message<3>>, Priority::REALTIME>().then([] { events.push_back("Realtime Message<3>"); });
+                    on<Trigger<Message<3>>, Priority::REALTIME>().then(
+                        [this] { events.push_back("Realtime Message<3>"); });
                     break;
                 case 1:
-                    on<Trigger<Message<3>>, Priority::HIGH>().then([] { events.push_back("High Message<3>"); });
+                    on<Trigger<Message<3>>, Priority::HIGH>().then([this] { events.push_back("High Message<3>"); });
                     break;
                 case 2:
-                    on<Trigger<Message<3>>, Priority::NORMAL>().then([] { events.push_back("Normal Message<3>"); });
-                    on<Trigger<Message<3>>>().then([] { events.push_back("Default Message<3>"); });
+                    on<Trigger<Message<3>>, Priority::NORMAL>().then([this] { events.push_back("Normal Message<3>"); });
+                    on<Trigger<Message<3>>>().then([this] { events.push_back("Default Message<3>"); });
                     break;
                 case 3:
-                    on<Trigger<Message<3>>, Priority::LOW>().then([] { events.push_back("Low Message<3>"); });
+                    on<Trigger<Message<3>>, Priority::LOW>().then([this] { events.push_back("Low Message<3>"); });
                     break;
                 case 4:
-                    on<Trigger<Message<3>>, Priority::IDLE>().then([] { events.push_back("Idle Message<3>"); });
+                    on<Trigger<Message<3>>, Priority::IDLE>().then([this] { events.push_back("Idle Message<3>"); });
                     break;
                 default: throw std::invalid_argument("Should be impossible");
             }
@@ -85,8 +81,10 @@ public:
             emit(std::make_unique<Message<3>>());
         });
     }
+
+    /// Events that occur during the test
+    std::vector<std::string> events;
 };
-}  // namespace
 
 
 TEST_CASE("Tests that priority orders the tasks appropriately", "[api][priority]") {
@@ -94,7 +92,7 @@ TEST_CASE("Tests that priority orders the tasks appropriately", "[api][priority]
     NUClear::Configuration config;
     config.thread_count = 1;
     NUClear::PowerPlant plant(config);
-    plant.install<TestReactor>();
+    const auto& reactor = plant.install<TestReactor>();
     plant.start();
 
     const std::vector<std::string> expected = {
@@ -119,8 +117,8 @@ TEST_CASE("Tests that priority orders the tasks appropriately", "[api][priority]
     };
 
     // Make an info print the diff in an easy to read way if we fail
-    INFO(test_util::diff_string(expected, events));
+    INFO(test_util::diff_string(expected, reactor.events));
 
     // Check the events fired in order and only those events
-    REQUIRE(events == expected);
+    REQUIRE(reactor.events == expected);
 }
