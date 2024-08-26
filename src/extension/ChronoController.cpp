@@ -40,8 +40,7 @@ namespace extension {
     }
 
     void ChronoController::add(const std::shared_ptr<dsl::operation::ChronoTask>& task) {
-
-        std::lock_guard<std::mutex> lock(mutex);
+        const std::lock_guard<std::mutex> lock(mutex);
 
         // Add our new task to the heap if we are still running
         if (running.load(std::memory_order_acquire)) {
@@ -51,7 +50,8 @@ namespace extension {
     }
 
     void ChronoController::remove(const NUClear::id_t& id) {
-        std::lock_guard<std::mutex> lock(mutex);
+        const std::lock_guard<std::mutex> lock(mutex);
+
         // Find the task
         auto it = std::find_if(tasks.begin(), tasks.end(), [&](const auto& task) { return task->id == id; });
 
@@ -66,7 +66,8 @@ namespace extension {
     }
 
     NUClear::clock::time_point ChronoController::next() {
-        std::lock_guard<std::mutex> lock(mutex);
+        const std::lock_guard<std::mutex> lock(mutex);
+
         // If we have no tasks return a nullptr
         if (tasks.empty()) {
             return NUClear::clock::time_point::max();

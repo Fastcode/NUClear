@@ -44,6 +44,11 @@ namespace util {
         Sleeper();
         ~Sleeper();
 
+        Sleeper(const Sleeper& other)            = delete;
+        Sleeper& operator=(const Sleeper& other) = delete;
+        Sleeper(Sleeper&& other)                 = delete;
+        Sleeper& operator=(Sleeper&& other)      = delete;
+
         /**
          * Sleep for the specified duration.
          *
