@@ -28,7 +28,15 @@ namespace util {
     struct SleeperState {
         SleeperState() {
             // Create a waitable timer and an event to wake up the sleeper prematurely
-            timer = ::CreateWaitableTimer(nullptr, TRUE, nullptr);
+            if (
+#ifdef CREATE_WAITABLE_TIMER_HIGH_RESOLUTION
+                (timer = CreateWaitableTimerEx(NULL, NULL, CREATE_WAITABLE_TIMER_HIGH_RESOLUTION, TIMER_ALL_ACCESS))
+                    == NULL
+                &&
+#endif
+                (timer = CreateWaitableTimer(NULL, TRUE, NULL)) == NULL) {
+                throw std::runtime_error("Failed to create waitable timer");
+            }
             waker = ::CreateEvent(nullptr, FALSE, FALSE, nullptr);
         }
         ~SleeperState() {
@@ -48,9 +56,6 @@ namespace util {
 
         std::chrono::nanoseconds ns = target - now;
         ::LARGE_INTEGER ft;
-        // TODO if ns is negative make it 0 as otherwise it'll become absolute time
-        // Negative for relative time, positive for absolute time
-        // Measures in 100ns increments so divide by 100
         ft.QuadPart = -static_cast<int64_t>(ns.count() / 100);
 
         ::SetWaitableTimer(state->timer, &ft, 0, nullptr, nullptr, 0);
