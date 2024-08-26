@@ -33,6 +33,7 @@
 #endif
 
 #include <chrono>
+#include <cmath>
 
 namespace test_util {
 

@@ -23,6 +23,7 @@
 #include <csignal>
 #include <functional>
 #include <memory>
+#include <stdexcept>
 #include <thread>
 
 #include "Sleeper.hpp"
@@ -63,7 +64,7 @@ namespace util {
 
     void Sleeper::sleep_until(const std::chrono::steady_clock::time_point& target) {
         if (state->sleeping_thread != pthread_t{}) {
-            throw std::runtime_error("Cannot sleep multiple times on the same Sleeper object");
+            throw std::logic_error("Sleeper object cannot be used to sleep multiple times");
         }
 
         // Store the current sleeping thread so we can wake it up if we need to
