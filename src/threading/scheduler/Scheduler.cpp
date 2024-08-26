@@ -31,7 +31,10 @@ namespace NUClear {
 namespace threading {
     namespace scheduler {
 
-        Scheduler::Scheduler(const int& thread_count) : default_thread_count(thread_count) {}
+        Scheduler::Scheduler(const int& thread_count) : default_thread_count(thread_count) {
+            // Create the main thread pool and assign it as our "current pool" so things we do pre startup are assigned
+            Pool::current_pool = get_pool(dsl::word::MainThread::descriptor()).get();
+        }
 
         void Scheduler::start() {
             // We have to scope this mutex, otherwise the main thread will hold the mutex while it is running
