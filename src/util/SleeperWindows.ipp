@@ -50,6 +50,10 @@ namespace util {
         ::HANDLE waker;
     };
 
+    Sleeper::Sleeper() : state(std::make_unique<SleeperState>()) {}
+    Sleeper::~Sleeper() = default;
+
+
     void Sleeper::sleep_until(const std::chrono::steady_clock::time_point& target) {
         auto now = std::chrono::steady_clock::now();
 
