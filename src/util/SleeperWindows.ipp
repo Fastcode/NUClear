@@ -20,6 +20,8 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+#include <stdexcept>
+
 #include "platform.hpp"
 
 namespace NUClear {
@@ -47,7 +49,7 @@ namespace util {
         ::HANDLE waker;
     };
 
-    void Sleeper::sleep_until(const std::chrono::steady_clock& target) {
+    void Sleeper::sleep_until(const std::chrono::steady_clock::time_point& target) {
         auto now = std::chrono::steady_clock::now();
 
         if (now - target > std::chrono::nanoseconds(0)) {
