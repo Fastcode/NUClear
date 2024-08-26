@@ -27,6 +27,7 @@
 #include <utility>
 
 #include "../id.hpp"
+#include "../message/ReactionStatistics.hpp"
 #include "../util/platform.hpp"
 #include "Reaction.hpp"
 
@@ -61,9 +62,33 @@ namespace threading {
         current_task = t;
     }
 
-    NUClear::id_t ReactionTask::new_task_id() {
-        static std::atomic<NUClear::id_t> task_id_source(0);
-        return task_id_source.fetch_add(1, std::memory_order_seq_cst);
+    NUClear::id_t ReactionTask::next_id() {
+        // Start at 1 to make 0 an invalid id
+        static std::atomic<NUClear::id_t> id_source(1);
+        return id_source.fetch_add(1, std::memory_order_seq_cst);
+    }
+
+    std::shared_ptr<message::ReactionStatistics> ReactionTask::make_stats() {
+
+        // Stats are disabled if they are disabled in the parent or in the causing task
+        if ((parent != nullptr && !parent->emit_stats) || (current_task != nullptr && current_task->stats == nullptr)) {
+            return nullptr;
+        }
+
+        // Identifiers come from the parent reaction if there is one
+        auto identifiers = parent != nullptr ? parent->identifiers : nullptr;
+
+        const auto* ct                = current_task;
+        const auto cause_reaction_id  = ct != nullptr && ct->parent != nullptr ? ct->parent->id : 0;
+        const auto cause_task_id      = current_task != nullptr ? current_task->id : 0;
+        const auto target_reaction_id = parent != nullptr ? parent->id : 0;
+        const auto target_task_id     = id;
+
+        return std::make_shared<message::ReactionStatistics>(identifiers,
+                                                             IDPair{cause_reaction_id, cause_task_id},
+                                                             IDPair{target_reaction_id, target_task_id},
+                                                             pool_descriptor,
+                                                             group_descriptors);
     }
 
     // Initialize our current task

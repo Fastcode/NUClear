@@ -79,20 +79,11 @@ namespace threading {
                      const GetThreadPool& thread_pool_fn,
                      const GetGroups& groups_fn)
             : parent(parent)
-            , id(new_task_id())
+            , id(next_id())
             , priority(priority_fn(*this))
             , pool_descriptor(thread_pool_fn(*this))
             , group_descriptors(groups_fn(*this))
-            // Only create a stats object if we wouldn't cause an infinite loop of stats
-            , stats(
-                  parent != nullptr && parent->emit_stats && (current_task == nullptr || current_task->stats != nullptr)
-                      ? std::make_shared<message::ReactionStatistics>(
-                            parent->identifiers,
-                            IDPair{parent->id, id},
-                            current_task != nullptr ? IDPair{current_task->parent->id, current_task->id} : IDPair{0, 0},
-                            pool_descriptor,
-                            group_descriptors)
-                      : nullptr) {
+            , stats(make_stats()) {
             // Increment the number of active tasks
             if (parent != nullptr) {
                 parent->active_tasks.fetch_add(1, std::memory_order_release);
@@ -122,7 +113,7 @@ namespace threading {
          *
          * @return A new unique task id
          */
-        static NUClear::id_t new_task_id();
+        static NUClear::id_t next_id();
 
         /// The parent Reaction object which spawned this, or nullptr if this is a floating task
         std::shared_ptr<Reaction> parent;
@@ -163,6 +154,14 @@ namespace threading {
         friend bool operator<(const ReactionTask& lhs, const ReactionTask& rhs) {
             return lhs.priority == rhs.priority ? lhs.id < rhs.id : lhs.priority > rhs.priority;
         }
+
+    private:
+        /**
+         * Creates a new ReactionStatistics object for this task.
+         *
+         * @return A new ReactionStatistics object for this task
+         */
+        std::shared_ptr<message::ReactionStatistics> make_stats();
     };
 
 }  // namespace threading

@@ -32,9 +32,6 @@
 namespace NUClear {
 namespace threading {
 
-    // Initialize our reaction source
-    std::atomic<NUClear::id_t> Reaction::reaction_id_source(0);  // NOLINT
-
     Reaction::Reaction(Reactor& reactor, ReactionIdentifiers&& identifiers, TaskGenerator&& generator)
         : reactor(reactor)
         , identifiers(std::make_shared<ReactionIdentifiers>(std::move(identifiers)))
@@ -62,5 +59,12 @@ namespace threading {
     bool Reaction::is_enabled() const {
         return enabled;
     }
+
+    NUClear::id_t Reaction::next_id() {
+        // Start at 1 to make 0 an invalid id
+        static std::atomic<NUClear::id_t> id_source(1);
+        return id_source.fetch_add(1, std::memory_order_seq_cst);
+    }
+
 }  // namespace threading
 }  // namespace NUClear

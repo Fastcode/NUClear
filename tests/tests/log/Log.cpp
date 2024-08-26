@@ -57,7 +57,8 @@ public:
         // Capture the log messages
         on<Trigger<NUClear::message::LogMessage>>().then([](const NUClear::message::LogMessage& log_message) {
             if (log_message.level >= log_message.display_level) {
-                messages.push_back(LogTestOutput{log_message.message, log_message.level, log_message.task != nullptr});
+                messages.push_back(
+                    LogTestOutput{log_message.message, log_message.level, log_message.statistics != nullptr});
             }
         });
 
