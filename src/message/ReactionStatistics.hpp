@@ -109,11 +109,11 @@ namespace message {
     struct ReactionEvent {
         enum Event : uint8_t { CREATED, MISSING_DATA, BLOCKED, STARTED, FINISHED };
 
-        ReactionEvent(const Event& type, std::shared_ptr<ReactionStatistics> statistics)
+        ReactionEvent(const Event& type, std::shared_ptr<const ReactionStatistics> statistics)
             : type(type), statistics(std::move(statistics)) {}
 
         Event type;
-        std::shared_ptr<ReactionStatistics> statistics;
+        std::shared_ptr<const ReactionStatistics> statistics;
     };
 
 }  // namespace message

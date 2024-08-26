@@ -104,7 +104,7 @@ namespace threading {
         std::shared_ptr<const ReactionIdentifiers> identifiers;
 
         /// the unique identifier for this Reaction object
-        const NUClear::id_t id{reaction_id_source.fetch_add(1, std::memory_order_relaxed)};
+        const NUClear::id_t id{next_id()};
 
         /// if this is false, we cannot emit ReactionStatistics from any reaction triggered by this one
         bool emit_stats{true};
@@ -119,9 +119,13 @@ namespace threading {
         std::vector<std::function<void(Reaction&)>> unbinders;
 
     private:
-        /// A source for reaction_ids, atomically creates ids
-        // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
-        static std::atomic<NUClear::id_t> reaction_id_source;
+        /**
+         * Generate a new unique reaction id.
+         *
+         * @return A new unique reaction id
+         */
+        static NUClear::id_t next_id();
+
         /// The callback generator function (creates databound callbacks)
         TaskGenerator generator;
     };
