@@ -29,7 +29,7 @@
 #include "Sleeper.hpp"
 
 extern "C" {
-static void signal_handler(int) {
+static void signal_handler(int /*unused*/) {
     // Do nothing, we just want to interrupt the sleep
 }
 }
@@ -48,7 +48,7 @@ namespace util {
     Sleeper::Sleeper() : state(std::make_unique<SleeperState>()) {
         struct sigaction act {};
         // If the signal is default handler, replace it with an ignore handler
-        if (!::sigaction(SIGUSR1, nullptr, &act) && act.sa_handler == SIG_DFL) {
+        if (::sigaction(SIGUSR1, nullptr, &act) == 0 && act.sa_handler == SIG_DFL) {
             act.sa_handler = signal_handler;
             ::sigaction(SIGUSR1, &act, nullptr);
         }
@@ -77,7 +77,7 @@ namespace util {
             }
 
             // Sleep for the remaining time
-            std::chrono::nanoseconds ns = target - now;
+            const std::chrono::nanoseconds ns = target - now;
             timespec ts{};
             ts.tv_sec  = std::chrono::duration_cast<std::chrono::seconds>(ns).count();
             ts.tv_nsec = (ns - std::chrono::seconds(ts.tv_sec)).count();
