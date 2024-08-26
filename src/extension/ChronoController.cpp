@@ -78,8 +78,8 @@ namespace extension {
 
         // Run the task if we are at or past the target time
         if (target <= now) {
-            auto task  = tasks.front();
-            bool renew = task->run();
+            auto task        = tasks.front();
+            const bool renew = task->run();
             std::pop_heap(tasks.begin(), tasks.end(), std::greater<>());
 
             if (renew) {
@@ -149,7 +149,7 @@ namespace extension {
                 auto now = NUClear::clock::now();
                 if (target > now) {
                     // Calculate the real time to sleep given the rate at which time passes
-                    NUClear::clock::duration nuclear_sleep_time = target - now;
+                    const NUClear::clock::duration nuclear_sleep_time = target - now;
                     const auto time_until_task =
                         clock::rtf() == 0.0 ? std::chrono::steady_clock::time_point::max()
                                             : std::chrono::steady_clock::now() + ns(nuclear_sleep_time / clock::rtf());
