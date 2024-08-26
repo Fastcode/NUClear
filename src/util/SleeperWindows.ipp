@@ -63,8 +63,8 @@ namespace util {
 
         ::SetWaitableTimer(state->timer, &ft, 0, nullptr, nullptr, 0);
         std::array<const ::HANDLE, 2> items = {state->timer, state->waker};
-        ::WaitForMultipleObjects(2, items, FALSE, INFINITE);
-        ::ClearEvent(state->waker);
+        ::WaitForMultipleObjects(2, items.data(), FALSE, INFINITE);
+        ::ResetEvent(state->waker);
     }
 
     void Sleeper::wake() {
