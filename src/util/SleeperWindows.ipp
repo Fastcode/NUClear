@@ -46,7 +46,7 @@ namespace util {
             return;
         }
 
-        auto ns = target - now;
+        std::chrono::nanoseconds ns = target - now;
         ::LARGE_INTEGER ft;
         // TODO if ns is negative make it 0 as otherwise it'll become absolute time
         // Negative for relative time, positive for absolute time
@@ -56,6 +56,11 @@ namespace util {
         ::SetWaitableTimer(state->timer, &ft, 0, nullptr, nullptr, 0);
         std::array<const ::HANDLE, 2> items = {state->timer, state->waker};
         ::WaitForMultipleObjects(2, items, FALSE, INFINITE);
+        ::ClearEvent(state->waker);
+    }
+
+    void Sleeper::wake() {
+        ::SetEvent(state->waker);
     }
 
 }  // namespace util
