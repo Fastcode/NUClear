@@ -212,6 +212,7 @@ TEST_CASE("Testing listening for TCP connections and receiving data messages", "
     NUClear::Configuration config;
     config.thread_count = 2;
     NUClear::PowerPlant plant(config);
+    plant.install<NUClear::extension::IOController>();
     plant.install<TestReactor>();
     plant.start();
 

@@ -58,18 +58,13 @@ PowerPlant::PowerPlant(Configuration config, int argc, const char* argv[]) : sch
     // Store our static variable
     powerplant = this;
 
-    // Install the extension controllers
-    install<extension::ChronoController>();
-    install<extension::IOController>();
-    install<extension::NetworkController>();
-
     // Emit our arguments if any.
     message::CommandLineArguments args;
     for (int i = 0; i < argc; ++i) {
         args.emplace_back(argv[i]);
     }
 
-    // Emit our command line arguments
+    // Emit the command line arguments so they are available for any With clauses.
     emit(std::make_unique<message::CommandLineArguments>(args));
 }
 
