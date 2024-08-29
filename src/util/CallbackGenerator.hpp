@@ -98,7 +98,7 @@ namespace util {
 
                 // Set the created status as no data and emit it
                 if (task->stats != nullptr) {
-                    PowerPlant::powerplant->emit<dsl::word::emit::Direct>(
+                    PowerPlant::powerplant->emit<dsl::word::emit::Local>(
                         std::make_unique<message::ReactionEvent>(message::ReactionEvent::MISSING_DATA, task->stats));
                 }
 
@@ -108,7 +108,7 @@ namespace util {
 
             // Set the created status as no data and emit it
             if (task->stats != nullptr) {
-                PowerPlant::powerplant->emit<dsl::word::emit::Direct>(
+                PowerPlant::powerplant->emit<dsl::word::emit::Local>(
                     std::make_unique<message::ReactionEvent>(message::ReactionEvent::CREATED, task->stats));
             }
 
@@ -120,7 +120,7 @@ namespace util {
 
                 if (task.stats != nullptr) {
                     task.stats->started = message::ReactionStatistics::Event::now();
-                    PowerPlant::powerplant->emit<dsl::word::emit::Direct>(
+                    PowerPlant::powerplant->emit<dsl::word::emit::Local>(
                         std::make_unique<message::ReactionEvent>(message::ReactionEvent::STARTED, task.stats));
                 }
 
@@ -139,10 +139,9 @@ namespace util {
                 // Run our postconditions
                 DSL::postcondition(task);
 
-                // Emit our reaction statistics if it wouldn't cause a loop
                 if (task.stats != nullptr) {
                     task.stats->finished = message::ReactionStatistics::Event::now();
-                    PowerPlant::powerplant->emit<dsl::word::emit::Direct>(
+                    PowerPlant::powerplant->emit<dsl::word::emit::Local>(
                         std::make_unique<message::ReactionEvent>(message::ReactionEvent::FINISHED, task.stats));
                 }
             };
