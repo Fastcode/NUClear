@@ -47,7 +47,7 @@ namespace threading {
 
         Pool::~Pool() {
 
-            // Stop the pool threads and wait for them to finish
+            // Force stop the pool threads and wait for them to finish
             stop(true);
             join();
 
@@ -78,15 +78,18 @@ namespace threading {
         }
 
         void Pool::stop(bool force) {
-            // Stop the pool threads
             const std::lock_guard<std::mutex> lock(mutex);
+
+            // When forcing a shutdown, clear the queue and stop the pool immediately even if it ignores shutdown
             if (force) {
                 queue.clear();
+                running = false;
             }
-
-            running = false;
-            live    = true;
-            condition.notify_all();
+            // Otherwise if this pool does not continue on shutdown, stop the pool
+            else if (!descriptor->continue_on_shutdown) {
+                running = false;
+                condition.notify_all();
+            }
         }
 
         void Pool::notify(bool clear_idle) {
@@ -100,6 +103,11 @@ namespace threading {
         }
 
         void Pool::join() const {
+            // Just pretend we finished if we continue on shutdown (until we are forced to stop)
+            if (running && descriptor->continue_on_shutdown) {
+                return;
+            }
+
             // Join all the threads
             for (const auto& thread : threads) {
                 if (thread->joinable()) {
@@ -110,6 +118,9 @@ namespace threading {
 
         void Pool::submit(Task&& task, bool clear_idle) {
             const std::lock_guard<std::mutex> lock(mutex);
+            if (!running) {
+                return;
+            }
 
             // Clear the global idle status if requested
             if (clear_idle) {

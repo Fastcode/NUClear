@@ -135,9 +135,6 @@ namespace threading {
             /// The number of threads that will be in the default thread pool
             const int default_thread_count;
 
-            /// If running is false this means the scheduler is shutting down and no more tasks will be accepted
-            std::atomic<bool> running{true};
-
             /// A mutex for when we are modifying groups
             std::mutex groups_mutex;
             /// A map of group ids to the number of active tasks currently running in that group

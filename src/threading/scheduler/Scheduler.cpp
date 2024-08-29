@@ -61,7 +61,6 @@ namespace threading {
         }
 
         void Scheduler::stop(bool force) {
-            running.store(false, std::memory_order_release);
             const std::lock_guard<std::mutex> lock(pools_mutex);
             for (const auto& pool : pools) {
                 pool.second->stop(force);
@@ -161,19 +160,18 @@ namespace threading {
             auto group_lock = get_groups_lock(task->id, task->priority, pool, task->group_descriptors);
 
             // If this task should run immediately and not limited by the group lock
-            if (immediate && (group_lock == nullptr || group_lock->lock())) {
+            if (immediate && !task->pool_descriptor->tasks_must_run_on_pool
+                && (group_lock == nullptr || group_lock->lock())) {
                 task->run();
                 return;
             }
 
             // Submit the task to the appropriate pool
-            if (running.load(std::memory_order_acquire)) {
-                // Clear the idle status only if the current pool is not idle
-                // This hands the job of managing global idle tasks to this other pool if we were about to do it
-                // That way the other pool can decide if it is idle or not
-                const bool current_pool_idle = Pool::current() != nullptr && Pool::current()->is_idle();
-                pool->submit({std::move(task), std::move(group_lock)}, !current_pool_idle);
-            }
+            // Clear the idle status only if the current pool is not idle
+            // This hands the job of managing global idle tasks to this other pool if we were about to do it
+            // That way the other pool can decide if it is idle or not
+            const bool current_pool_idle = Pool::current() != nullptr && Pool::current()->is_idle();
+            pool->submit({std::move(task), std::move(group_lock)}, !current_pool_idle);
         }
 
     }  // namespace scheduler

@@ -199,7 +199,6 @@ namespace extension {
         }
     }
 
-
     uint64_t TraceController::category(const std::string& name) {
         if (category_iids.find(name) != category_iids.end()) {
             return category_iids.at(name);
