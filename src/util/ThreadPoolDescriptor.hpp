@@ -38,14 +38,12 @@ namespace util {
     struct ThreadPoolDescriptor {
 
         ThreadPoolDescriptor(std::string name,
-                             const int& thread_count            = 1,
-                             const bool& counts_for_idle        = true,
-                             const bool& tasks_must_run_on_pool = false,
-                             const bool& continue_on_shutdown   = false) noexcept
+                             const int& thread_count          = 1,
+                             const bool& counts_for_idle      = true,
+                             const bool& continue_on_shutdown = false) noexcept
             : name(std::move(name))
             , thread_count(thread_count)
             , counts_for_idle(counts_for_idle)
-            , tasks_must_run_on_pool(tasks_must_run_on_pool)
             , continue_on_shutdown(continue_on_shutdown) {}
 
         /// The name of this pool
@@ -54,8 +52,6 @@ namespace util {
         int thread_count;
         /// If these threads count towards system idle
         bool counts_for_idle;
-        /// If tasks which are bound to this pool must be run on this pool (no Direct on their own thread)
-        bool tasks_must_run_on_pool;
         /// If this thread pool will continue to accept tasks after shutdown and only stop on scheduler destruction
         bool continue_on_shutdown;
     };

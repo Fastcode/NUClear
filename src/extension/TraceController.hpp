@@ -42,8 +42,6 @@ namespace extension {
             static constexpr int thread_count = 1;
             /// This pool shouldn't interfere with the system idle time
             static constexpr bool counts_for_idle = false;
-            /// Make sure trace tasks execute on the trace pool even if direct emitted (e.g. logs)
-            static constexpr bool tasks_must_run_on_pool = true;
             /// So we can trace events all the way to after shutdown, this pool must not shut down until destruction
             static constexpr bool continue_on_shutdown = true;
         };
