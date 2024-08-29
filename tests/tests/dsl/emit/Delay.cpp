@@ -98,6 +98,8 @@ TEST_CASE("Testing the delay emit", "[api][emit][delay]") {
     NUClear::Configuration config;
     config.thread_count = 1;
     NUClear::PowerPlant plant(config);
+    plant.install<NUClear::extension::TraceController>();
+    plant.emit<NUClear::dsl::word::emit::Direct>(std::make_unique<NUClear::message::BeginTrace>());
     plant.install<NUClear::extension::ChronoController>();
     const auto& reactor = plant.install<TestReactor>();
     plant.start();

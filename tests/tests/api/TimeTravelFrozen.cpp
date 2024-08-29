@@ -80,6 +80,8 @@ TEST_CASE("Test time travel correctly changes the time for non zero rtf", "[time
 
     const NUClear::Configuration config;
     NUClear::PowerPlant plant(config);
+    plant.install<NUClear::extension::TraceController>();
+    plant.emit<NUClear::dsl::word::emit::Direct>(std::make_unique<NUClear::message::BeginTrace>());
     plant.install<NUClear::extension::ChronoController>();
     auto& reactor = plant.install<TestReactor>();
 

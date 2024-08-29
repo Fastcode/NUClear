@@ -71,6 +71,8 @@ TEST_CASE("Testing emitting types that are flag types (Have no contents)", "[api
     NUClear::Configuration config;
     config.thread_count = 1;
     NUClear::PowerPlant plant(config);
+    plant.install<NUClear::extension::TraceController>();
+    plant.emit<NUClear::dsl::word::emit::Direct>(std::make_unique<NUClear::message::BeginTrace>());
     const auto& reactor = plant.install<TestReactor>();
     plant.start();
 
