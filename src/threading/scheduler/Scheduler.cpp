@@ -54,16 +54,28 @@ namespace threading {
             get_pool(dsl::word::MainThread::descriptor())->start();
 
             // The main thread will reach this point when the PowerPlant is shutting down
-            // Calling stop on each pool will wait for each pool to finish processing all tasks before returning
+            // Sort the pools so that the pools that ignore shutdown are last to be forced to stop
+            std::vector<std::shared_ptr<Pool>> pools_to_stop;
             for (const auto& pool : pools) {
-                pool.second->join();
+                pools_to_stop.push_back(pool.second);
+            }
+            std::sort(pools_to_stop.begin(), pools_to_stop.end(), [](const auto& a, const auto& b) {
+                return a->descriptor->continue_on_shutdown < b->descriptor->continue_on_shutdown;
+            });
+            for (const auto& pool : pools_to_stop) {
+                // This is the final stop call
+                // By this point we have waited for all tasks to finish on the pools that don't ignore shutdown
+                // So now we can tell the pools that ignore shutdown to stop
+                pool->stop(Pool::StopType::FINAL);
+                pool->join();
             }
         }
 
         void Scheduler::stop(bool force) {
+            running.store(false, std::memory_order_release);
             const std::lock_guard<std::mutex> lock(pools_mutex);
             for (const auto& pool : pools) {
-                pool.second->stop(force);
+                pool.second->stop(force ? Pool::StopType::FORCE : Pool::StopType::NORMAL);
             }
         }
 
@@ -102,6 +114,11 @@ namespace threading {
             const std::lock_guard<std::mutex> lock(pools_mutex);
             // If the pool does not exist, create it
             if (pools.count(desc) == 0) {
+                // Don't make new pools if we are shutting down
+                if (!running.load(std::memory_order_acquire)) {
+                    throw std::runtime_error("Cannot create new pools after the scheduler has started shutting down");
+                }
+
                 // Create the pool
                 auto pool   = std::make_shared<Pool>(*this, desc);
                 pools[desc] = pool;
