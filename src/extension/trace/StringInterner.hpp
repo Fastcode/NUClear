@@ -74,7 +74,7 @@ namespace extension {
                     return it->second;
                 }
 
-                uint64_t iid = interned.emplace(key, interned.size() + 1).first->second;
+                const uint64_t iid = interned.emplace(key, interned.size() + 1).first->second;
                 std::vector<char> data;
                 {
                     const protobuf::SubMessage packet(1, data);              // packet:1

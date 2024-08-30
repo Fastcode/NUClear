@@ -210,8 +210,8 @@ namespace extension {
             default: break;
         }
 
-        auto ids          = msg_stats != nullptr ? msg_stats->identifiers : nullptr;
-        std::string rname = ids == nullptr ? "PowerPlant" : msg_stats->identifiers->reactor;
+        auto ids                = msg_stats != nullptr ? msg_stats->identifiers : nullptr;
+        const std::string rname = ids == nullptr ? "PowerPlant" : msg_stats->identifiers->reactor;
 
         std::vector<char> data;
         {
