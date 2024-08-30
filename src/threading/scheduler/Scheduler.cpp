@@ -61,8 +61,10 @@ namespace threading {
             for (const auto& pool : pools) {
                 pools_to_stop.push_back(pool.second);
             }
-            std::sort(pools_to_stop.begin(), pools_to_stop.end(), [](const auto& a, const auto& b) {
-                return a->descriptor->continue_on_shutdown < b->descriptor->continue_on_shutdown;
+            std::sort(pools_to_stop.begin(), pools_to_stop.end(), [](const auto& lhs, const auto& rhs) {
+                const bool& a = lhs->descriptor->continue_on_shutdown;
+                const bool& b = rhs->descriptor->continue_on_shutdown;
+                return !a && b;
             });
             for (const auto& pool : pools_to_stop) {
                 // This is the final stop call
