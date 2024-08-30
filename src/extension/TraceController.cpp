@@ -208,7 +208,9 @@ namespace extension {
                 trace::protobuf::uint64(3, categories["reaction"], data);         // category_iids:3:uint64
                 trace::protobuf::uint64(31, thread_time_uuid, data);              // extra_counter_track_uuids:31:uint64
                 trace::protobuf::int64(12, ts(relevant.cpu_time).count(), data);  // extra_counter_values:12:int64
-                trace::protobuf::fixed64(47, task_id, data);                      // flow_ids:47:fixed64
+                if (event.type == ReactionEvent::CREATED || event.type == ReactionEvent::STARTED) {
+                    trace::protobuf::uint64(47, task_id, data);  // flow_ids:47:fixed64
+                }
             }
         }
         write_trace_packet(data);
