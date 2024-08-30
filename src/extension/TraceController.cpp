@@ -300,28 +300,47 @@ namespace extension {
         return iid;
     }
 
-    uint64_t TraceController::process() {
-        if (process_uuid_set) {
-            return 1;
-        }
-
-        process_uuid_set = true;
-        std::vector<char> data;
-        {
-            SubMessage packet(1, data);  // packet:1
+    uint64_t TraceController::nuclear_process() {
+        if (nuclear_process_uuid == 0) {
+            nuclear_process_uuid = 1;
+            std::vector<char> data;
             {
-                SubMessage track_descriptor(60, data);  // track_descriptor:60
-                field::uint64(1, 1, data);              // uuid:1:uint64
+                SubMessage packet(1, data);  // packet:1
                 {
-                    SubMessage process(3, data);        // process:3
-                    field::int32(1, 1, data);           // pid:1:int32
-                    field::string(6, "NUClear", data);  // name:6:string
+                    SubMessage track_descriptor(60, data);  // track_descriptor:60
+                    field::uint64(1, 1, data);              // uuid:1:uint64
+                    {
+                        SubMessage process(3, data);        // process:3
+                        field::int32(1, 1, data);           // pid:1:int32
+                        field::string(6, "NUClear", data);  // name:6:string
+                    }
                 }
             }
+            trace_file.write(data.data(), data.size());
         }
-        trace_file.write(data.data(), data.size());
 
-        return 1;
+        return nuclear_process_uuid;
+    }
+
+    uint64_t TraceController::non_nuclear_process() {
+        if (non_nuclear_process_uuid == 0) {
+            non_nuclear_process_uuid = 2;
+            std::vector<char> data;
+            {
+                SubMessage packet(1, data);  // packet:1
+                {
+                    SubMessage track_descriptor(60, data);  // track_descriptor:60
+                    field::uint64(1, 1, data);              // uuid:1:uint64
+                    {
+                        SubMessage process(3, data);            // process:3
+                        field::int32(1, 2, data);               // pid:1:int32
+                        field::string(6, "Non NUClear", data);  // name:6:string
+                    }
+                }
+            }
+            trace_file.write(data.data(), data.size());
+        }
+        return non_nuclear_process_uuid;
     }
 
     uint64_t TraceController::thread(const ReactionStatistics::Event::ThreadInfo& info) {
@@ -329,9 +348,9 @@ namespace extension {
             return thread_uuids.at(info.thread_id);
         }
 
-        auto parent_uuid = process();
-
+        auto parent_uuid = info.pool != nullptr ? nuclear_process() : non_nuclear_process();
         uint64_t uuid = thread_uuids[info.thread_id] = next_uuid.fetch_add(2, std::memory_order::memory_order_relaxed);
+        std::string name                             = info.pool == nullptr ? "Non NUClear" : info.pool->name;
 
         std::vector<char> data;
         {
@@ -344,7 +363,7 @@ namespace extension {
                     SubMessage thread(4, data);                   // thread:4
                     field::int32(1, int32_t(parent_uuid), data);  // pid:1:int32
                     field::int32(2, int32_t(uuid), data);         // tid:2:int32
-                    field::string(5, info.pool->name, data);      // name:5:string
+                    field::string(5, name, data);                 // name:5:string
                 }
             }
         }
@@ -432,12 +451,7 @@ namespace extension {
                                      const LogMessage& msg) {
 
         const auto& msg_stats = msg.statistics;
-
-        auto thread_uuid = thread(msg.statistics->started.thread);
-        // TODO could be null?
-        // TODO should I go back to always stats optional emit?
-        // TODO if no stats assume it's trace silent anyway?
-        // TODO powerplant logs shouldn't be trace silent
+        auto thread_uuid      = thread(log_stats->created.thread);
 
         int32_t prio = PRIO_UNSPECIFIED;
         switch (msg.level) {
@@ -450,8 +464,8 @@ namespace extension {
             default: break;
         }
 
-        std::string rname =
-            msg_stats == nullptr || msg_stats->identifiers == nullptr ? "PowerPlant" : msg_stats->identifiers->reactor;
+        auto ids          = msg_stats != nullptr ? msg_stats->identifiers : nullptr;
+        std::string rname = ids == nullptr ? "PowerPlant" : msg_stats->identifiers->reactor;
 
         std::vector<char> data;
         {
@@ -461,19 +475,21 @@ namespace extension {
                           data);                                  // trusted_packet_sequence_id:10:uint32
             field::int32(13, SEQ_NEEDS_INCREMENTAL_STATE, data);  // sequence_flags:13:int32
             {
-                SubMessage track_event(11, data);         // track_event:11
-                field::uint64(11, thread_uuid, data);     // track_uuid:11:uint64
-                field::uint64(3, category(rname), data);  // category_iids:3:uint64
-                field::uint64(3, category("log"), data);  // category_iids:3:uint64
-                field::int32(9, TYPE_INSTANT, data);      // type:9:int32
+                SubMessage track_event(11, data);          // track_event:11
+                field::uint64(11, thread_uuid, data);      // track_uuid:11:uint64
+                field::uint64(10, event_name(ids), data);  // name_iid:10:uint64
+                field::uint64(3, category(rname), data);   // category_iids:3:uint64
+                field::uint64(3, category("log"), data);   // category_iids:3:uint64
+                field::int32(9, TYPE_INSTANT, data);       // type:9:int32
                 {
-                    SubMessage log_message(21, data);                                 // log_message:21
-                    field::uint64(1, source_location(msg_stats->identifiers), data);  // source_location_iid:1:uint64
-                    field::uint64(2, log_message_body(msg.message), data);            // body_iid:2:uint64
-                    field::int32(3, prio, data);                                      // prio:3:int32
+                    SubMessage log_message(21, data);                       // log_message:21
+                    field::uint64(1, source_location(ids), data);           // source_location_iid:1:uint64
+                    field::uint64(2, log_message_body(msg.message), data);  // body_iid:2:uint64
+                    field::int32(3, prio, data);                            // prio:3:int32
                 }
             }
         }
+        trace_file.write(data.data(), data.size());
     }
 
     TraceController::TraceController(std::unique_ptr<NUClear::Environment> environment)
@@ -507,7 +523,8 @@ namespace extension {
                 log_handle =
                     on<Trigger<LogMessage>, Pool<TracePool>, Inline::NEVER>().then([this](const LogMessage& msg) {
                         // Statistics for the log message task itself
-                        auto log_stats = threading::ReactionTask::get_current_task()->stats;
+                        auto current_task = threading::ReactionTask::get_current_task();
+                        auto log_stats    = threading::ReactionTask::get_current_task()->stats;
                         encode_log(log_stats, msg);
                     });
             }

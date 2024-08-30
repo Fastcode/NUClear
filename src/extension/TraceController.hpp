@@ -85,12 +85,20 @@ namespace extension {
         uint64_t log_message_body(const std::string& name);
 
         /**
-         * Returns a unique id for the process track descriptor creating and writing it to the trace file if it does not
-         * exist.
+         * Returns a unique id for the nuclear process track descriptor creating and writing it to the trace file if it
+         * does not exist.
          *
          * @return The unique id for the process track descriptor
          */
-        uint64_t process();
+        uint64_t nuclear_process();
+
+        /**
+         * Returns a unique id for the non nuclear process track descriptor creating and writing it to the trace file if
+         * it does not exist.
+         *
+         * @return The unique id for the process track descriptor
+         */
+        uint64_t non_nuclear_process();
 
         /**
          * Returns a unique id for the thread track descriptor creating and writing it to the trace file if it does not
@@ -127,7 +135,8 @@ namespace extension {
         ReactionHandle event_handle;
         ReactionHandle log_handle;
 
-        bool process_uuid_set = false;
+        uint64_t nuclear_process_uuid     = 0;
+        uint64_t non_nuclear_process_uuid = 0;
         std::map<std::shared_ptr<const util::ThreadPoolDescriptor>, uint64_t> pool_uuids;
         std::map<std::thread::id, uint64_t> thread_uuids;
         std::map<std::string, uint64_t, std::less<>> category_iids;
