@@ -163,7 +163,6 @@ namespace extension {
         const uint64_t thread_time_uuid = thread_uuid + 1;
         const auto& ids                 = event.statistics->identifiers;
 
-        const auto& name         = ids->name;
         const std::string rname  = event.statistics == nullptr || event.statistics->identifiers == nullptr
                                        ? "PowerPlant"
                                        : event.statistics->identifiers->reactor;
