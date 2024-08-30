@@ -24,6 +24,7 @@
 #include <nuclear>
 
 #include "test_util/TestBase.hpp"
+#include "test_util/common.hpp"
 #include "test_util/has_ipv6.hpp"
 
 /// Events that occur during the test
@@ -368,6 +369,8 @@ TEST_CASE("Testing sending and receiving of UDP messages", "[api][network][udp]"
     NUClear::Configuration config;
     config.thread_count = 1;
     NUClear::PowerPlant plant(config);
+    test_util::add_tracing(plant);
+    plant.install<NUClear::extension::IOController>();
     plant.install<TestReactor>();
     plant.start();
 

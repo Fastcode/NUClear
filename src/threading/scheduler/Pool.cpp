@@ -26,6 +26,7 @@
 #include "../../dsl/word/MainThread.hpp"
 #include "../../dsl/word/Pool.hpp"
 #include "../../message/ReactionStatistics.hpp"
+#include "../../util/Inline.hpp"
 #include "../ReactionTask.hpp"
 #include "CombinedLock.hpp"
 #include "CountingLock.hpp"
@@ -47,8 +48,8 @@ namespace threading {
 
         Pool::~Pool() {
 
-            // Stop the pool threads and wait for them to finish
-            stop(true);
+            // Force stop the pool threads and wait for them to finish
+            stop(Pool::StopType::FORCE);
             join();
 
             // One less active pool
@@ -77,15 +78,25 @@ namespace threading {
             }
         }
 
-        void Pool::stop(bool force) {
-            // Stop the pool threads
+        void Pool::stop(const StopType& type) {
             const std::lock_guard<std::mutex> lock(mutex);
-            if (force) {
-                queue.clear();
-            }
 
-            running = false;
-            live    = true;
+            live   = true;                              // Live so the thread will wake from sleep
+            accept = descriptor->continue_on_shutdown;  // Always accept if continue on shutdown otherwise stop
+
+            switch (type) {
+                case StopType::NORMAL: {
+                    running = descriptor->continue_on_shutdown;  // Keep running if we continue on shutdown
+                } break;
+                case StopType::FINAL: {
+                    running = false;  // Always stop running on the final stop
+                } break;
+                case StopType::FORCE: {
+                    // Clear the queue and stop the pool immediately
+                    queue.clear();
+                    running = false;
+                } break;
+            }
             condition.notify_all();
         }
 
@@ -110,6 +121,11 @@ namespace threading {
 
         void Pool::submit(Task&& task, bool clear_idle) {
             const std::lock_guard<std::mutex> lock(mutex);
+
+            // Not accepting new tasks
+            if (!accept) {
+                return;
+            }
 
             // Clear the global idle status if requested
             if (clear_idle) {
@@ -240,13 +256,15 @@ namespace threading {
             // Make a reaction task which will submit all the idle tasks to the scheduler
             auto task = std::make_unique<ReactionTask>(
                 nullptr,
+                true,
                 [](const ReactionTask&) { return 0; },
+                [](const ReactionTask&) { return util::Inline::ALWAYS; },
                 [](const ReactionTask&) { return dsl::word::Pool<>::descriptor(); },
                 [](const ReactionTask&) { return std::set<std::shared_ptr<const util::GroupDescriptor>>{}; });
-            task->callback = [this, tasks = std::move(tasks)](const ReactionTask& /*task*/) {
-                for (const auto& idle_task : tasks) {
+            task->callback = [this, t = std::move(tasks)](const ReactionTask& /*task*/) {
+                for (const auto& idle_task : t) {
                     // Submit all the idle tasks to the scheduler
-                    scheduler.submit(idle_task->get_task(), false);
+                    scheduler.submit(idle_task->get_task());
                 }
             };
 

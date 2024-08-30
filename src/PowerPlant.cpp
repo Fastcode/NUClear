@@ -29,7 +29,7 @@
 #include "dsl/store/DataStore.hpp"
 #include "dsl/word/Shutdown.hpp"
 #include "dsl/word/Startup.hpp"
-#include "dsl/word/emit/Direct.hpp"
+#include "dsl/word/emit/Inline.hpp"
 #include "extension/ChronoController.hpp"
 #include "extension/IOController.hpp"
 #include "extension/NetworkController.hpp"
@@ -58,18 +58,13 @@ PowerPlant::PowerPlant(Configuration config, int argc, const char* argv[]) : sch
     // Store our static variable
     powerplant = this;
 
-    // Install the extension controllers
-    install<extension::ChronoController>();
-    install<extension::IOController>();
-    install<extension::NetworkController>();
-
     // Emit our arguments if any.
     message::CommandLineArguments args;
     for (int i = 0; i < argc; ++i) {
         args.emplace_back(argv[i]);
     }
 
-    // Emit our command line arguments
+    // Emit the command line arguments so they are available for any With clauses.
     emit(std::make_unique<message::CommandLineArguments>(args));
 }
 
@@ -85,9 +80,9 @@ PowerPlant::~PowerPlant() {
 
 void PowerPlant::start() {
 
-    // Direct emit startup event and command line arguments
-    emit<dsl::word::emit::Direct>(std::make_unique<dsl::word::Startup>());
-    emit_shared<dsl::word::emit::Direct>(dsl::store::DataStore<message::CommandLineArguments>::get());
+    // Inline emit startup event and command line arguments
+    emit<dsl::word::emit::Inline>(std::make_unique<dsl::word::Startup>());
+    emit_shared<dsl::word::emit::Inline>(dsl::store::DataStore<message::CommandLineArguments>::get());
 
     // Start all of the threads
     scheduler.start();
@@ -103,16 +98,16 @@ void PowerPlant::remove_idle_task(const NUClear::id_t& id,
     scheduler.remove_idle_task(id, pool_descriptor);
 }
 
-void PowerPlant::submit(std::unique_ptr<threading::ReactionTask>&& task, const bool& immediate) noexcept {
-    scheduler.submit(std::move(task), immediate);
+void PowerPlant::submit(std::unique_ptr<threading::ReactionTask>&& task) noexcept {
+    scheduler.submit(std::move(task));
 }
 
 void PowerPlant::log(const LogLevel& level, std::string message) {
     // Get the current task
     const auto* current_task = threading::ReactionTask::get_current_task();
 
-    // Direct emit the log message so that any direct loggers can use it
-    emit<dsl::word::emit::Direct>(std::make_unique<message::LogMessage>(
+    // Inline emit the log message to default handlers to pause the current task until the log message is processed
+    emit<dsl::word::emit::Inline>(std::make_unique<message::LogMessage>(
         level,
         current_task != nullptr ? current_task->parent->reactor.log_level : LogLevel::UNKNOWN,
         std::move(message),

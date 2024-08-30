@@ -25,6 +25,7 @@
 
 #include "test_util/TestBase.hpp"
 #include "test_util/TimeUnit.hpp"
+#include "test_util/common.hpp"
 
 using TimeUnit = test_util::TimeUnit;
 
@@ -122,6 +123,7 @@ TEST_CASE("Testing reaction statistics timing", "[api][reactionstatistics][timin
     NUClear::Configuration config;
     config.thread_count = 1;
     NUClear::PowerPlant plant(config);
+    test_util::add_tracing(plant);
     plant.install<TestReactor>();
     plant.start();
 

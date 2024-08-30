@@ -179,9 +179,8 @@ public:
      * Submits a new task to the ThreadPool to be queued and then executed.
      *
      * @param task      The Reaction task to be executed in the thread pool
-     * @param immediate If this task should run immediately in the current thread
      */
-    void submit(std::unique_ptr<threading::ReactionTask>&& task, const bool& immediate = false) noexcept;
+    void submit(std::unique_ptr<threading::ReactionTask>&& task) noexcept;
 
     /**
      * Log a message through NUClear's system.

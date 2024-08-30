@@ -22,6 +22,7 @@
 #include "Scheduler.hpp"
 
 #include <algorithm>
+#include <stdexcept>
 
 #include "../../dsl/word/MainThread.hpp"
 #include "../../dsl/word/Pool.hpp"
@@ -54,9 +55,23 @@ namespace threading {
             get_pool(dsl::word::MainThread::descriptor())->start();
 
             // The main thread will reach this point when the PowerPlant is shutting down
-            // Calling stop on each pool will wait for each pool to finish processing all tasks before returning
+            // Sort the pools so that the pools that ignore shutdown are last to be forced to stop
+            std::vector<std::shared_ptr<Pool>> pools_to_stop;
+            pools_to_stop.reserve(pools.size());
             for (const auto& pool : pools) {
-                pool.second->join();
+                pools_to_stop.push_back(pool.second);
+            }
+            std::sort(pools_to_stop.begin(), pools_to_stop.end(), [](const auto& lhs, const auto& rhs) {
+                const bool& a = lhs->descriptor->continue_on_shutdown;
+                const bool& b = rhs->descriptor->continue_on_shutdown;
+                return !a && b;
+            });
+            for (const auto& pool : pools_to_stop) {
+                // This is the final stop call
+                // By this point we have waited for all tasks to finish on the pools that don't ignore shutdown
+                // So now we can tell the pools that ignore shutdown to stop
+                pool->stop(Pool::StopType::FINAL);
+                pool->join();
             }
         }
 
@@ -64,7 +79,7 @@ namespace threading {
             running.store(false, std::memory_order_release);
             const std::lock_guard<std::mutex> lock(pools_mutex);
             for (const auto& pool : pools) {
-                pool.second->stop(force);
+                pool.second->stop(force ? Pool::StopType::FORCE : Pool::StopType::NORMAL);
             }
         }
 
@@ -103,6 +118,12 @@ namespace threading {
             const std::lock_guard<std::mutex> lock(pools_mutex);
             // If the pool does not exist, create it
             if (pools.count(desc) == 0) {
+                // Don't make new pools if we are shutting down
+                if (!running.load(std::memory_order_acquire)) {
+                    throw std::invalid_argument(
+                        "Cannot create new pools after the scheduler has started shutting down");
+                }
+
                 // Create the pool
                 auto pool   = std::make_shared<Pool>(*this, desc);
                 pools[desc] = pool;
@@ -150,7 +171,7 @@ namespace threading {
             return lock;
         }
 
-        void Scheduler::submit(std::unique_ptr<ReactionTask>&& task, const bool& immediate) noexcept {
+        void Scheduler::submit(std::unique_ptr<ReactionTask>&& task) noexcept {
             // Ignore null tasks
             if (task == nullptr) {
                 return;
@@ -161,13 +182,11 @@ namespace threading {
             auto group_lock = get_groups_lock(task->id, task->priority, pool, task->group_descriptors);
 
             // If this task should run immediately and not limited by the group lock
-            if (immediate && (group_lock == nullptr || group_lock->lock())) {
+            if (task->run_inline && (group_lock == nullptr || group_lock->lock())) {
                 task->run();
-                return;
             }
-
-            // Submit the task to the appropriate pool
-            if (running.load(std::memory_order_acquire)) {
+            else {
+                // Submit the task to the appropriate pool
                 // Clear the idle status only if the current pool is not idle
                 // This hands the job of managing global idle tasks to this other pool if we were about to do it
                 // That way the other pool can decide if it is idle or not

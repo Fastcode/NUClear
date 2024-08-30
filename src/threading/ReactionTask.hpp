@@ -30,6 +30,7 @@
 #include "../clock.hpp"
 #include "../id.hpp"
 #include "../util/GroupDescriptor.hpp"
+#include "../util/Inline.hpp"
 #include "../util/ThreadPoolDescriptor.hpp"
 #include "../util/platform.hpp"
 #include "Reaction.hpp"
@@ -68,25 +69,37 @@ namespace threading {
         /**
          * Creates a new ReactionTask object bound with the parent Reaction object (that created it) and task.
          *
-         * @param parent         The Reaction object that spawned this ReactionTask.
-         * @param priority_fn    A function that can be called to get the priority of this task
-         * @param thread_pool_fn A function that can be called to get the thread pool descriptor for this task
-         * @param groups_fn      A function that can be called to get the list of group descriptors for this task
+         * @param parent            The Reaction object that spawned this ReactionTask.
+         * @param request_inline    If this task should try to execute inline if should_inline allows it
+         * @param priority_fn       A function that can be called to get the priority of this task
+         * @param inline_fn         A function that can be called to get if this task can be executed inline
+         * @param thread_pool_fn    A function that can be called to get the thread pool descriptor for this task
+         * @param groups_fn         A function that can be called to get the list of group descriptors for this task
          */
-        template <typename GetPriority, typename GetGroups, typename GetThreadPool>
+        template <typename GetPriority, typename GetInline, typename GetGroups, typename GetThreadPool>
         ReactionTask(const std::shared_ptr<Reaction>& parent,
+                     const bool& request_inline,
                      const GetPriority& priority_fn,
+                     const GetInline& inline_fn,
                      const GetThreadPool& thread_pool_fn,
                      const GetGroups& groups_fn)
             : parent(parent)
             , id(next_id())
             , priority(priority_fn(*this))
+            , should_inline(inline_fn(*this))
             , pool_descriptor(thread_pool_fn(*this))
             , group_descriptors(groups_fn(*this))
             , stats(make_stats()) {
             // Increment the number of active tasks
             if (parent != nullptr) {
                 parent->active_tasks.fetch_add(1, std::memory_order_release);
+            }
+
+            // Calculate inline running
+            switch (should_inline) {
+                case util::Inline::NEVER: run_inline = false; break;
+                case util::Inline::ALWAYS: run_inline = true; break;
+                case util::Inline::NEUTRAL: run_inline = request_inline; break;
             }
         }
 
@@ -119,9 +132,13 @@ namespace threading {
         std::shared_ptr<Reaction> parent;
         /// The task id of this task (the sequence number of this particular task)
         NUClear::id_t id;
+        /// If the task should execute inline
+        bool run_inline{false};
 
         /// The priority to run this task at
         int priority;
+        /// If the task should be executed inline (in the current thread) or not
+        util::Inline should_inline{util::Inline::NEUTRAL};
         /// Details about the thread pool that this task will run from, this will also influence what task queue
         /// the tasks will be queued on
         std::shared_ptr<const util::ThreadPoolDescriptor> pool_descriptor;
@@ -131,6 +148,7 @@ namespace threading {
         /// The statistics object that records run details about this reaction task
         /// This will be nullptr if this task is ineligible to emit stats (e.g. it would cause a loop)
         std::shared_ptr<message::ReactionStatistics> stats;
+
 
         /// The data bound callback to be executed
         /// @attention note this must be last in the list as the this pointer is passed to the callback generator

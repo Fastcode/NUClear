@@ -25,6 +25,7 @@
 
 #include "test_util/TestBase.hpp"
 #include "test_util/TimeUnit.hpp"
+#include "test_util/common.hpp"
 
 class TestReactor : public test_util::TestBase<TestReactor> {
 public:
@@ -119,6 +120,7 @@ TEST_CASE("Test that pool idle triggers when nothing is running", "[api][idle]")
     NUClear::Configuration config;
     config.thread_count = 4;
     NUClear::PowerPlant plant(config);
+    test_util::add_tracing(plant);
     const auto& reactor = plant.install<TestReactor>();
     plant.start();
 

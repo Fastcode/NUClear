@@ -25,7 +25,7 @@
 
 #include <type_traits>
 
-#include "../dsl/word/emit/Direct.hpp"
+#include "../dsl/word/emit/Inline.hpp"
 #include "../message/ReactionStatistics.hpp"
 #include "../util/MergeTransient.hpp"
 #include "../util/TransientDataElements.hpp"
@@ -68,16 +68,22 @@ namespace util {
                 std::get<DIndex>(data))...);
         }
 
-        std::unique_ptr<threading::ReactionTask> operator()(const std::shared_ptr<threading::Reaction>& r) {
+        std::unique_ptr<threading::ReactionTask> operator()(const std::shared_ptr<threading::Reaction>& r,
+                                                            const bool& request_inline) {
 
-            auto task = std::make_unique<threading::ReactionTask>(r, DSL::priority, DSL::pool, DSL::group);
+            auto task = std::make_unique<threading::ReactionTask>(r,
+                                                                  request_inline,
+                                                                  DSL::priority,
+                                                                  DSL::run_inline,
+                                                                  DSL::pool,
+                                                                  DSL::group);
 
             // Check if we should even run
             if (!DSL::precondition(*task)) {
 
                 // Set the created status as rejected and emit it
                 if (task->stats != nullptr) {
-                    PowerPlant::powerplant->emit<dsl::word::emit::Direct>(
+                    PowerPlant::powerplant->emit(
                         std::make_unique<message::ReactionEvent>(message::ReactionEvent::BLOCKED, task->stats));
                 }
 
@@ -98,7 +104,7 @@ namespace util {
 
                 // Set the created status as no data and emit it
                 if (task->stats != nullptr) {
-                    PowerPlant::powerplant->emit<dsl::word::emit::Direct>(
+                    PowerPlant::powerplant->emit(
                         std::make_unique<message::ReactionEvent>(message::ReactionEvent::MISSING_DATA, task->stats));
                 }
 
@@ -108,7 +114,7 @@ namespace util {
 
             // Set the created status as no data and emit it
             if (task->stats != nullptr) {
-                PowerPlant::powerplant->emit<dsl::word::emit::Direct>(
+                PowerPlant::powerplant->emit(
                     std::make_unique<message::ReactionEvent>(message::ReactionEvent::CREATED, task->stats));
             }
 
@@ -120,7 +126,7 @@ namespace util {
 
                 if (task.stats != nullptr) {
                     task.stats->started = message::ReactionStatistics::Event::now();
-                    PowerPlant::powerplant->emit<dsl::word::emit::Direct>(
+                    PowerPlant::powerplant->emit(
                         std::make_unique<message::ReactionEvent>(message::ReactionEvent::STARTED, task.stats));
                 }
 
@@ -139,10 +145,9 @@ namespace util {
                 // Run our postconditions
                 DSL::postcondition(task);
 
-                // Emit our reaction statistics if it wouldn't cause a loop
                 if (task.stats != nullptr) {
                     task.stats->finished = message::ReactionStatistics::Event::now();
-                    PowerPlant::powerplant->emit<dsl::word::emit::Direct>(
+                    PowerPlant::powerplant->emit(
                         std::make_unique<message::ReactionEvent>(message::ReactionEvent::FINISHED, task.stats));
                 }
             };

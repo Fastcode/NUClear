@@ -73,7 +73,7 @@ public:
         // Timeout if the test doesn't complete in time
         // Typically we would use a watchdog, however it is subject to Time Travel
         // So instead spawn a thread that will wait for the timeout and then fail the test and shut down
-        on<Always>().then([this, timeout] {
+        on<Always>().then("Test Timeout", [this, timeout] {
             if (clean_shutdown) {
                 return;
             }
@@ -82,7 +82,7 @@ public:
 
             if (!clean_shutdown) {
                 powerplant.shutdown(true);
-                emit<Scope::DIRECT>(std::make_unique<Fail>("Test timed out"));
+                emit<Scope::INLINE>(std::make_unique<Fail>("Test timed out"));
             }
         });
 

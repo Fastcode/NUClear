@@ -39,14 +39,14 @@ namespace threading {
 
     Reaction::~Reaction() = default;
 
-    std::unique_ptr<ReactionTask> Reaction::get_task() {
+    std::unique_ptr<ReactionTask> Reaction::get_task(const bool& request_inline) {
         // If we are not enabled, don't run
         if (!enabled) {
             return nullptr;
         }
 
         // Return the task returned by the generator
-        return generator(this->shared_from_this());
+        return generator(this->shared_from_this(), request_inline);
     }
 
     void Reaction::unbind() {

@@ -24,6 +24,7 @@
 #include <nuclear>
 
 #include "test_util/TestBase.hpp"
+#include "test_util/common.hpp"
 
 struct CustomGet : NUClear::dsl::operation::TypeBind<CustomGet> {
 
@@ -59,6 +60,7 @@ TEST_CASE("Test a custom reactor that returns a type that needs dereferencing", 
     NUClear::Configuration config;
     config.thread_count = 1;
     NUClear::PowerPlant plant(config);
+    test_util::add_tracing(plant);
     const auto& reactor = plant.install<TestReactor>();
     plant.start();
 

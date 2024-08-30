@@ -34,10 +34,12 @@
 #include "${nuclear_include_base_directory}message/NetworkEvent.hpp"
 #include "${nuclear_include_base_directory}message/ReactionStatistics.hpp"
 #include "${nuclear_include_base_directory}message/TimeTravel.hpp"
+#include "${nuclear_include_base_directory}message/Trace.hpp"
 
 // Extensions
 #include "${nuclear_include_base_directory}extension/ChronoController.hpp"
 #include "${nuclear_include_base_directory}extension/IOController.hpp"
 #include "${nuclear_include_base_directory}extension/NetworkController.hpp"
+#include "${nuclear_include_base_directory}extension/TraceController.hpp"
 
 #endif  // NUCLEAR

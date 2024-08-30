@@ -31,7 +31,6 @@ namespace NUClear {
 namespace message {
     struct ReactionEvent;
     struct ReactionStatistics;
-    struct LogMessage;
 }  // namespace message
 
 namespace dsl {
@@ -44,8 +43,6 @@ namespace dsl {
         struct EmitStats<message::ReactionEvent> : std::false_type {};
         template <>
         struct EmitStats<message::ReactionStatistics> : std::false_type {};
-        template <>
-        struct EmitStats<message::LogMessage> : std::false_type {};
 
         /**
          * Binds a function to execute when a specific type is emitted.

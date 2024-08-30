@@ -24,6 +24,7 @@
 #include <nuclear>
 
 #include "test_util/TestBase.hpp"
+#include "test_util/common.hpp"
 
 /// Events that occur during the test
 std::vector<std::string> events;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
@@ -107,6 +108,7 @@ TEST_CASE("Test reaction can take a raw function instead of just a lambda", "[ap
     NUClear::Configuration config;
     config.thread_count = 1;
     NUClear::PowerPlant plant(config);
+    test_util::add_tracing(plant);
     plant.install<TestReactor>();
     plant.start();
 

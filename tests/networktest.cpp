@@ -94,7 +94,7 @@ public:
 
             std::cout << "Testing network with node " << net_config->name << std::endl;
 
-            emit<Scope::DIRECT>(net_config);
+            emit<Scope::INLINE>(net_config);
             emit(std::make_unique<PerformEmits>());
         });
 
