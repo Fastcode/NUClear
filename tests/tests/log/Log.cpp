@@ -21,7 +21,10 @@
  */
 
 #include <catch2/catch_test_macros.hpp>
+#include <iostream>
 #include <nuclear>
+
+#include "test_util/executable_path.hpp"
 
 // This is a free floating function that we can use to test the log function when not in a reactor
 template <NUClear::LogLevel level, typename... Args>
@@ -148,6 +151,7 @@ TEST_CASE("Testing the Log<>() function", "[api][log]") {
         NUClear::PowerPlant plant(config);
 
         // Install the test reactor
+        std::cout << "Binary Is At: " << test_util::get_executable_path() << std::endl;
         plant.install<NUClear::extension::TraceController>();
         plant.emit<NUClear::dsl::word::emit::Inline>(std::make_unique<NUClear::message::BeginTrace>());
         plant.install<TestReactor>();

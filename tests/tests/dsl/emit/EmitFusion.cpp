@@ -25,6 +25,7 @@
 #include <utility>
 
 #include "test_util/TestBase.hpp"
+#include "test_util/common.hpp"
 
 /// Events that occur during the test
 std::vector<std::string> events;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables,-warnings-as-errors)

@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2023 NUClear Contributors
+ * Copyright (c) 2024 NUClear Contributors
  *
  * This file is part of the NUClear codebase.
  * See https://github.com/Fastcode/NUClear for further info.
@@ -20,13 +20,20 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef TEST_UTIL_HAS_IPV6_HPP
-#define TEST_UTIL_HAS_IPV6_HPP
+#ifndef TEST_UTIL_GET_EXECUTABLE_PATH_HPP
+#define TEST_UTIL_GET_EXECUTABLE_PATH_HPP
+
+#include <string>
 
 namespace test_util {
 
-bool has_ipv6();
+/**
+ * Gets the path to the currently running executable.
+ *
+ * @return std::string
+ */
+std::string get_executable_path();
 
 }  // namespace test_util
 
-#endif  // TEST_UTIL_HAS_IPV6_HPP
+#endif  // TEST_UTIL_GET_EXECUTABLE_PATH_HPP

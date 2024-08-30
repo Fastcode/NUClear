@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2023 NUClear Contributors
+ * Copyright (c) 2024 NUClear Contributors
  *
  * This file is part of the NUClear codebase.
  * See https://github.com/Fastcode/NUClear for further info.
@@ -20,13 +20,22 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef TEST_UTIL_HAS_IPV6_HPP
-#define TEST_UTIL_HAS_IPV6_HPP
+#ifndef TEST_UTIL_COMMON_HPP
+#define TEST_UTIL_COMMON_HPP
+
+#include <nuclear>
+
+#include "executable_path.hpp"
 
 namespace test_util {
 
-bool has_ipv6();
+inline void add_tracing(NUClear::PowerPlant& plant) {
+    auto test_binary_path = get_executable_path();
+    plant.install<NUClear::extension::TraceController>();
+    plant.emit<NUClear::dsl::word::emit::Inline>(
+        std::make_unique<NUClear::message::BeginTrace>(test_binary_path + ".trace"));
+}
 
 }  // namespace test_util
 
-#endif  // TEST_UTIL_HAS_IPV6_HPP
+#endif  // TEST_UTIL_COMMON_HPP

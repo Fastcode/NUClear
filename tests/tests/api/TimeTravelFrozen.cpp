@@ -4,6 +4,7 @@
 #include <nuclear>
 
 #include "test_util/TestBase.hpp"
+#include "test_util/common.hpp"
 
 constexpr std::chrono::milliseconds EVENT_1_TIME  = std::chrono::milliseconds(4);
 constexpr std::chrono::milliseconds EVENT_2_TIME  = std::chrono::milliseconds(8);
@@ -80,8 +81,7 @@ TEST_CASE("Test time travel correctly changes the time for non zero rtf", "[time
 
     const NUClear::Configuration config;
     NUClear::PowerPlant plant(config);
-    plant.install<NUClear::extension::TraceController>();
-    plant.emit<NUClear::dsl::word::emit::Inline>(std::make_unique<NUClear::message::BeginTrace>());
+    test_util::add_tracing(plant);
     plant.install<NUClear::extension::ChronoController>();
     auto& reactor = plant.install<TestReactor>();
 

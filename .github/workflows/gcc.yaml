@@ -94,3 +94,16 @@ jobs:
         timeout-minutes: 2
         working-directory: build/tests
         run: ctest --output-on-failure -E "dsl/UDP"
+
+      - name: Find and zip trace files
+        if: always()
+        working-directory: build/tests
+        run: find . -name "*.trace" | zip traces.zip -@
+
+      - name: Upload artifact
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: traces
+          path: build/tests/traces.zip
+          retention-days: 1 # This sets the artifact TTL to 1 day (minimum is 1 day)

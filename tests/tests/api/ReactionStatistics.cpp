@@ -24,6 +24,7 @@
 #include <nuclear>
 
 #include "test_util/TestBase.hpp"
+#include "test_util/common.hpp"
 
 // This namespace is named to make things consistent with the reaction statistics test
 
@@ -99,8 +100,7 @@ TEST_CASE("Testing reaction statistics functionality", "[api][reactionstatistics
     NUClear::Configuration config;
     config.thread_count = 1;
     NUClear::PowerPlant plant(config);
-    plant.install<NUClear::extension::TraceController>();
-    plant.emit<NUClear::dsl::word::emit::Inline>(std::make_unique<NUClear::message::BeginTrace>());
+    test_util::add_tracing(plant);
     const auto& reactor = plant.install<TestReactor>();
     plant.start();
 

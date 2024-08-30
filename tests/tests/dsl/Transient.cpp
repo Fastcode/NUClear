@@ -24,6 +24,7 @@
 #include <nuclear>
 
 #include "test_util/TestBase.hpp"
+#include "test_util/common.hpp"
 
 struct Message {
     Message(std::string msg) : msg(std::move(msg)) {}
@@ -130,8 +131,7 @@ TEST_CASE("Testing whether getters that return transient data can cache between 
     NUClear::Configuration config;
     config.thread_count = 1;
     NUClear::PowerPlant plant(config);
-    plant.install<NUClear::extension::TraceController>();
-    plant.emit<NUClear::dsl::word::emit::Inline>(std::make_unique<NUClear::message::BeginTrace>());
+    test_util::add_tracing(plant);
     const auto& reactor = plant.install<TestReactor>();
     plant.start();
 

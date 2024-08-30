@@ -24,6 +24,7 @@
 #include <catch2/catch_test_macros.hpp>
 
 #include "test_util/TestBase.hpp"
+#include "test_util/common.hpp"
 
 // Windows can't do this test as it doesn't have file descriptors
 #ifndef _WIN32
@@ -101,8 +102,7 @@ TEST_CASE("Testing the IO extension", "[api][io]") {
     NUClear::Configuration config;
     config.thread_count = 1;
     NUClear::PowerPlant plant(config);
-    plant.install<NUClear::extension::TraceController>();
-    plant.emit<NUClear::dsl::word::emit::Inline>(std::make_unique<NUClear::message::BeginTrace>());
+    test_util::add_tracing(plant);
     plant.install<NUClear::extension::IOController>();
     const auto& reactor = plant.install<TestReactor>();
     plant.start();

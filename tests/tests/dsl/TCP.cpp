@@ -24,6 +24,7 @@
 #include <nuclear>
 
 #include "test_util/TestBase.hpp"
+#include "test_util/common.hpp"
 #include "test_util/has_ipv6.hpp"
 
 /// Events that occur during the test
@@ -212,8 +213,7 @@ TEST_CASE("Testing listening for TCP connections and receiving data messages", "
     NUClear::Configuration config;
     config.thread_count = 2;
     NUClear::PowerPlant plant(config);
-    plant.install<NUClear::extension::TraceController>();
-    plant.emit<NUClear::dsl::word::emit::Inline>(std::make_unique<NUClear::message::BeginTrace>());
+    test_util::add_tracing(plant);
     plant.install<NUClear::extension::IOController>();
     plant.install<TestReactor>();
     plant.start();
