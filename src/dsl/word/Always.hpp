@@ -30,6 +30,7 @@
 #include "../../id.hpp"
 #include "../../threading/ReactionIdentifiers.hpp"
 #include "../../threading/ReactionTask.hpp"
+#include "../../util/Inline.hpp"
 #include "../../util/ThreadPoolDescriptor.hpp"
 
 namespace NUClear {
@@ -90,6 +91,11 @@ namespace dsl {
             }
 
             template <typename DSL>
+            static util::Inline run_inline(const threading::ReactionTask& /*task*/) {
+                return util::Inline::NEVER;
+            }
+
+            template <typename DSL>
             static void bind(const std::shared_ptr<threading::Reaction>& reaction) {
 
                 // Create an unbinder for the always reaction
@@ -124,7 +130,9 @@ namespace dsl {
 
                 auto idle_task = std::make_unique<threading::ReactionTask>(
                     reaction,
+                    false,
                     [](threading::ReactionTask& task) { return DSL::priority(task) - 1; },
+                    DSL::run_inline,
                     DSL::pool,
                     DSL::group);
 

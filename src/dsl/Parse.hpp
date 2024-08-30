@@ -47,6 +47,16 @@ namespace dsl {
                 task);
         }
 
+        static std::set<std::shared_ptr<const util::GroupDescriptor>> group(threading::ReactionTask& task) {
+            return std::conditional_t<fusion::has_group<DSL>::value, DSL, fusion::NoOp>::template group<
+                Parse<Sentence...>>(task);
+        }
+
+        static util::Inline run_inline(threading::ReactionTask& task) {
+            return std::conditional_t<fusion::has_run_inline<DSL>::value, DSL, fusion::NoOp>::template run_inline<
+                Parse<Sentence...>>(task);
+        }
+
         static bool precondition(threading::ReactionTask& task) {
             return std::conditional_t<fusion::has_precondition<DSL>::value, DSL, fusion::NoOp>::template precondition<
                 Parse<Sentence...>>(task);
@@ -54,11 +64,6 @@ namespace dsl {
 
         static int priority(threading::ReactionTask& task) {
             return std::conditional_t<fusion::has_priority<DSL>::value, DSL, fusion::NoOp>::template priority<
-                Parse<Sentence...>>(task);
-        }
-
-        static std::set<std::shared_ptr<const util::GroupDescriptor>> group(threading::ReactionTask& task) {
-            return std::conditional_t<fusion::has_group<DSL>::value, DSL, fusion::NoOp>::template group<
                 Parse<Sentence...>>(task);
         }
 

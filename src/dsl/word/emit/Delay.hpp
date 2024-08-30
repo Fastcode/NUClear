@@ -24,7 +24,7 @@
 #define NUCLEAR_DSL_WORD_EMIT_DELAY_HPP
 
 #include "../../operation/ChronoTask.hpp"
-#include "Direct.hpp"
+#include "Inline.hpp"
 
 namespace NUClear {
 namespace dsl {
@@ -63,7 +63,7 @@ namespace dsl {
                         -1);  // Our ID is -1 as we will remove ourselves
 
                     // Send this straight to the chrono controller
-                    emit::Direct<operation::ChronoTask>::emit(powerplant, msg);
+                    emit::Inline<operation::ChronoTask>::emit(powerplant, msg);
                 }
 
                 static void emit(PowerPlant& powerplant,
@@ -83,7 +83,7 @@ namespace dsl {
                         -1);  // Our ID is -1 as we will remove ourselves
 
                     // Send this straight to the chrono controller
-                    emit::Direct<operation::ChronoTask>::emit(powerplant, msg);
+                    emit::Inline<operation::ChronoTask>::emit(powerplant, msg);
                 }
             };
 
