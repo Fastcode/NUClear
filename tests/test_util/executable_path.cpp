@@ -32,8 +32,8 @@
 
 namespace test_util {
 std::string get_executable_path() {
-    std::array < char buffer[MAX_PATH];
-    DWORD size = GetModuleFileName(NULL, buffer, MAX_PATH);
+    std::array < char, MAX_PATH> buffer;
+    DWORD size = GetModuleFileName(NULL, buffer.data(), buffer.size());
     if (size) {
         return std::string(buffer);
     }
@@ -49,7 +49,7 @@ std::string get_executable_path() {
 namespace test_util {
 std::string get_executable_path() {
     std::array<char, PATH_MAX> buffer{};
-    uint32_t size = PATH_MAX;
+    uint32_t size = buffer.size();
     if (::_NSGetExecutablePath(buffer.data(), &size) == 0) {
         return std::string(buffer.data());
     }
@@ -65,7 +65,7 @@ std::string get_executable_path() {
 namespace test_util {
 std::string get_executable_path() {
     std::array<char, PATH_MAX> buffer{};
-    ssize_t size = ::readlink("/proc/self/exe", buffer.data(), PATH_MAX);
+    ssize_t size = ::readlink("/proc/self/exe", buffer.data(), buffer.size());
     if (size != -1) {
         return std::string(buffer, size);
     }
