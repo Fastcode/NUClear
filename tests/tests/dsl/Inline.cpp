@@ -74,10 +74,11 @@ public:
     }
 
     void log_interaction(const SimpleMessage& source, const std::string& target) {
-        std::lock_guard<std::mutex> lock(mutex);
+        const std::lock_guard<std::mutex> lock(mutex);
         const auto& pool = NUClear::threading::scheduler::Pool::current();
         events[source.data][target] =
-            pool->descriptor->name + " " + std::to_string(source.emitter == std::this_thread::get_id());
+            pool->descriptor->name + " "
+            + (source.emitter == std::this_thread::get_id() ? "same thread" : "different thread");
     }
 
     /// A vector of events that have happened
@@ -95,18 +96,30 @@ TEST_CASE("Test the interactions between inline emits and the Inline dsl keyword
     plant.start();
 
     const std::vector<std::string> expected = {
-        "Default Inline -> Default Always on Default 1", "Default Inline -> Default Neutral on Default 1",
-        "Default Inline -> Default Never on Default 0",  "Default Inline -> Main Always on Default 1",
-        "Default Inline -> Main Neutral on Default 1",   "Default Inline -> Main Never on Main 0",
-        "Default Local -> Default Always on Default 1",  "Default Local -> Default Neutral on Default 0",
-        "Default Local -> Default Never on Default 0",   "Default Local -> Main Always on Default 1",
-        "Default Local -> Main Neutral on Main 0",       "Default Local -> Main Never on Main 0",
-        "Main Inline -> Default Always on Main 1",       "Main Inline -> Default Neutral on Main 1",
-        "Main Inline -> Default Never on Default 0",     "Main Inline -> Main Always on Main 1",
-        "Main Inline -> Main Neutral on Main 1",         "Main Inline -> Main Never on Main 1",
-        "Main Local -> Default Always on Main 1",        "Main Local -> Default Neutral on Default 0",
-        "Main Local -> Default Never on Default 0",      "Main Local -> Main Always on Main 1",
-        "Main Local -> Main Neutral on Main 1",          "Main Local -> Main Never on Main 1",
+        "Default Inline -> Default Always on Default same thread",
+        "Default Inline -> Default Neutral on Default same thread",
+        "Default Inline -> Default Never on Default different thread",
+        "Default Inline -> Main Always on Default same thread",
+        "Default Inline -> Main Neutral on Default same thread",
+        "Default Inline -> Main Never on Main different thread",
+        "Default Local -> Default Always on Default same thread",
+        "Default Local -> Default Neutral on Default different thread",
+        "Default Local -> Default Never on Default different thread",
+        "Default Local -> Main Always on Default same thread",
+        "Default Local -> Main Neutral on Main different thread",
+        "Default Local -> Main Never on Main different thread",
+        "Main Inline -> Default Always on Main same thread",
+        "Main Inline -> Default Neutral on Main same thread",
+        "Main Inline -> Default Never on Default different thread",
+        "Main Inline -> Main Always on Main same thread",
+        "Main Inline -> Main Neutral on Main same thread",
+        "Main Inline -> Main Never on Main same thread",
+        "Main Local -> Default Always on Main same thread",
+        "Main Local -> Default Neutral on Default different thread",
+        "Main Local -> Default Never on Default different thread",
+        "Main Local -> Main Always on Main same thread",
+        "Main Local -> Main Neutral on Main same thread",
+        "Main Local -> Main Never on Main same thread",
     };
 
     std::vector<std::string> actual;
