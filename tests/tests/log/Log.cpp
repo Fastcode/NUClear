@@ -24,6 +24,7 @@
 #include <iostream>
 #include <nuclear>
 
+#include "test_util/common.hpp"
 #include "test_util/executable_path.hpp"
 
 // This is a free floating function that we can use to test the log function when not in a reactor
@@ -151,9 +152,7 @@ TEST_CASE("Testing the Log<>() function", "[api][log]") {
         NUClear::PowerPlant plant(config);
 
         // Install the test reactor
-        std::cout << "Binary Is At: " << test_util::get_executable_path() << std::endl;
-        plant.install<NUClear::extension::TraceController>();
-        plant.emit<NUClear::dsl::word::emit::Inline>(std::make_unique<NUClear::message::BeginTrace>());
+        test_util::add_tracing(plant);
         plant.install<TestReactor>();
         plant.start();
     }
