@@ -133,7 +133,7 @@ namespace extension {
             SubMessage::~SubMessage() {
                 // Update the length of the SubMessage
                 auto size = uint32_t(data.size() - start - varint_bytes);
-                auto it   = std::next(data.begin(), start);
+                auto it   = std::next(data.begin(), ptrdiff_t(start));
                 encode::redundant_varint(size, varint_bytes, it);
             }
 
