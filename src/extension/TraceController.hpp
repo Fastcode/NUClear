@@ -55,12 +55,14 @@ namespace extension {
         void write_trace_packet(const std::vector<char>& packet);
 
         /**
-         * Returns a unique id for the nuclear process track descriptor creating and writing it to the trace file if it
-         * does not exist.
+         * Returns a unique id for the process track descriptor creating and writing it to the trace file if it does not
+         * exist.
+         *
+         * @param pool The thread pool descriptor to create the track descriptor for
          *
          * @return The unique id for the process track descriptor
          */
-        uint64_t nuclear_process();
+        uint64_t process(const std::shared_ptr<const util::ThreadPoolDescriptor>& pool);
 
         /**
          * Returns a unique id for the non nuclear process track descriptor creating and writing it to the trace file if
@@ -100,14 +102,14 @@ namespace extension {
 
         std::ofstream trace_file;
 
-        std::atomic<uint64_t> next_uuid{2};  // Start at 2 as 1 is reserved for the process track descriptor
+        std::atomic<uint64_t> next_uuid{1};  // Start at 1 as 0 is invalid
 
         ReactionHandle event_handle;
         ReactionHandle log_handle;
 
-        uint64_t nuclear_process_uuid     = 0;
-        uint64_t non_nuclear_process_uuid = 0;
-        std::map<std::shared_ptr<const util::ThreadPoolDescriptor>, uint64_t> pool_uuids;
+        /// The uuids for the processes
+        std::map<std::shared_ptr<const util::ThreadPoolDescriptor>, uint64_t> process_uuids;
+        /// The uuids for the threads
         std::map<std::thread::id, uint64_t> thread_uuids;
 
         /// The interned category names

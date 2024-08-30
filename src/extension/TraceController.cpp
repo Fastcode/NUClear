@@ -57,284 +57,258 @@ namespace extension {
         PRIO_FATAL       = 7,
     };
 
+    template <int32_t ID>
+    using Message = trace::protobuf::Message<ID>;
+    template <int32_t ID>
+    using uint64 = trace::protobuf::uint64<ID>;
+    template <int32_t ID>
+    using int64 = trace::protobuf::int64<ID>;
+    template <int32_t ID>
+    using fixed64 = trace::protobuf::fixed64<ID>;
+    template <int32_t ID>
+    using uint32 = trace::protobuf::uint32<ID>;
+    template <int32_t ID>
+    using int32 = trace::protobuf::int32<ID>;
+    template <int32_t ID>
+    using string = trace::protobuf::string<ID>;
+
+
     template <typename T>
     std::chrono::nanoseconds ts(const T& timestamp) {
         return std::chrono::duration_cast<std::chrono::nanoseconds>(timestamp.time_since_epoch());
     }
-}  // namespace
 
-
-void TraceController::write_trace_packet(const std::vector<char>& packet) {
-    // Write the packet to the file
-    trace_file.write(packet.data(), packet.size());
-}
-
-std::string name_for_id(const std::shared_ptr<const NUClear::threading::ReactionIdentifiers>& ids) {
-    if (ids == nullptr) {
-        // With no identifiers we can't do anything
-        return "";
-    }
-    else if (ids->name.empty()) {
-        // Remove the namespace from the DSL with a regex
-        return std::regex_replace(ids->dsl, std::regex("[A-Za-z_][A-Za-z0-9_]+::"), "");
-    }
-    else {
-        return ids->name;
-    }
-}
-
-uint64_t TraceController::nuclear_process() {
-    if (nuclear_process_uuid == 0) {
-        nuclear_process_uuid = 1;
-        std::vector<char> data;
-        {
-            trace::protobuf::SubMessage packet(1, data);  // packet:1
-            {
-                trace::protobuf::SubMessage track_descriptor(60, data);  // track_descriptor:60
-                trace::protobuf::uint64(1, 1, data);                     // uuid:1:uint64
-                {
-                    trace::protobuf::SubMessage process(3, data);  // process:3
-                    trace::protobuf::int32(1, 1, data);            // pid:1:int32
-                    trace::protobuf::string(6, "NUClear", data);   // name:6:string
-                }
-            }
+    std::string name_for_id(const std::shared_ptr<const NUClear::threading::ReactionIdentifiers>& ids) {
+        if (ids == nullptr) {
+            // With no identifiers we can't do anything
+            return "";
         }
-        write_trace_packet(data);
-    }
-
-    return nuclear_process_uuid;
-}
-
-uint64_t TraceController::non_nuclear_process() {
-    if (non_nuclear_process_uuid == 0) {
-        non_nuclear_process_uuid = 2;
-        std::vector<char> data;
-        {
-            trace::protobuf::SubMessage packet(1, data);  // packet:1
-            {
-                trace::protobuf::SubMessage track_descriptor(60, data);  // track_descriptor:60
-                trace::protobuf::uint64(1, 1, data);                     // uuid:1:uint64
-                {
-                    trace::protobuf::SubMessage process(3, data);     // process:3
-                    trace::protobuf::int32(1, 2, data);               // pid:1:int32
-                    trace::protobuf::string(6, "Non NUClear", data);  // name:6:string
-                }
-            }
+        else if (ids->name.empty()) {
+            // Remove the namespace from the DSL with a regex
+            return std::regex_replace(ids->dsl, std::regex("[A-Za-z_][A-Za-z0-9_]+::"), "");
         }
-        write_trace_packet(data);
-    }
-    return non_nuclear_process_uuid;
-}
-
-uint64_t TraceController::thread(const ReactionStatistics::Event::ThreadInfo& info) {
-    if (thread_uuids.find(info.thread_id) != thread_uuids.end()) {
-        return thread_uuids.at(info.thread_id);
-    }
-
-    auto parent_uuid = info.pool != nullptr ? nuclear_process() : non_nuclear_process();
-    uint64_t uuid = thread_uuids[info.thread_id] = next_uuid.fetch_add(2, std::memory_order::memory_order_relaxed);
-    std::string name                             = info.pool == nullptr ? "Non NUClear" : info.pool->name;
-
-    std::vector<char> data;
-    {
-        trace::protobuf::SubMessage packet(1, data);  // packet:1
-        {
-            trace::protobuf::SubMessage track_descriptor(60, data);  // track_descriptor:60
-            trace::protobuf::uint64(1, uuid, data);                  // uuid:1:uint64
-            trace::protobuf::uint64(5, parent_uuid, data);           // parent_uuid:5:uint64
-            {
-                trace::protobuf::SubMessage thread(4, data);            // thread:4
-                trace::protobuf::int32(1, int32_t(parent_uuid), data);  // pid:1:int32
-                trace::protobuf::int32(2, int32_t(uuid), data);         // tid:2:int32
-                trace::protobuf::string(5, name, data);                 // name:5:string
-            }
+        else {
+            return ids->name;
         }
     }
-    {
-        trace::protobuf::SubMessage packet(1, data);  // packet:1
-        {
-            trace::protobuf::SubMessage track_descriptor(60, data);  // track_descriptor:60
-            trace::protobuf::uint64(1, uuid + 1, data);              // uuid:1:uint64
-            trace::protobuf::uint64(5, uuid, data);                  // parent_uuid:5:uint64
-            {
-                trace::protobuf::SubMessage counter(8, data);             // counter:8
-                trace::protobuf::int32(1, COUNTER_THREAD_TIME_NS, data);  // type:1:int32
-            }
+
+    void TraceController::write_trace_packet(const std::vector<char>& packet) {
+        // Write the packet to the file
+        trace_file.write(packet.data(), packet.size());
+    }
+
+    uint64_t TraceController::process(const std::shared_ptr<const util::ThreadPoolDescriptor>& pool) {
+        // Pool is either nullptr or a valid pointer
+        if (process_uuids.find(pool) != process_uuids.end()) {
+            return process_uuids.at(pool);
         }
-    }
-    write_trace_packet(data);
 
-    return uuid;
-}
+        uint64_t uuid = process_uuids.emplace(pool, next_uuid.fetch_add(1, std::memory_order_relaxed)).first->second;
 
-const ReactionStatistics::Event& relevant_event(const ReactionEvent& event) {
-    auto& statistics = *event.statistics;
-    switch (event.type) {
-        case ReactionEvent::BLOCKED:
-        case ReactionEvent::MISSING_DATA:
-        case ReactionEvent::CREATED: return statistics.created;
-        case ReactionEvent::STARTED: return statistics.started;
-        case ReactionEvent::FINISHED: return statistics.finished;
-        default: throw std::invalid_argument("Unknown event type");
-    }
-}
-
-void TraceController::encode_event(const ReactionEvent& event) {
-
-    const auto& relevant  = relevant_event(event);
-    auto task_id          = event.statistics->target.task_id;
-    auto thread_uuid      = thread(relevant.thread);
-    auto thread_time_uuid = thread_uuid + 1;
-    const auto& ids       = event.statistics->identifiers;
-
-    auto name         = ids->name;
-    std::string rname = event.statistics == nullptr || event.statistics->identifiers == nullptr
-                            ? "PowerPlant"
-                            : event.statistics->identifiers->reactor;
-
-    std::vector<char> data;
-    {
-        trace::protobuf::SubMessage packet(1, data);                      // packet:1
-        trace::protobuf::uint64(8, ts(relevant.realtime).count(), data);  // timestamp:8:uint64
-        trace::protobuf::uint32(10, trusted_packet_sequence_id, data);    // trusted_packet_sequence_id:10:uint32
-        trace::protobuf::int32(13, SEQ_NEEDS_INCREMENTAL_STATE, data);    // sequence_flags:13:int32
-        {
-            trace::protobuf::SubMessage track_event(11, data);                // track_event:11
-            trace::protobuf::uint64(11, thread_uuid, data);                   // track_uuid:11:uint64
-            trace::protobuf::uint64(10, event_names[ids], data);              // name_iid:10:uint64
-            trace::protobuf::uint64(3, categories[rname], data);              // category_iids:3:uint64
-            trace::protobuf::uint64(3, categories["reaction"], data);         // category_iids:3:uint64
-            trace::protobuf::uint64(31, thread_time_uuid, data);              // extra_counter_track_uuids:31:uint64
-            trace::protobuf::int64(12, ts(relevant.cpu_time).count(), data);  // extra_counter_values:12:int64
-
-            switch (event.type) {
-                case ReactionEvent::CREATED: {
-                    trace::protobuf::int32(9, TYPE_INSTANT, data);  // type:9:int32
-                    trace::protobuf::fixed64(47, task_id, data);    // flow_ids:47:fixed64
-                } break;
-                case ReactionEvent::STARTED: {
-                    trace::protobuf::int32(9, TYPE_SLICE_BEGIN, data);  // type:9:int32
-                    trace::protobuf::fixed64(47, task_id, data);        // flow_ids:47:fixed64
-                } break;
-                case ReactionEvent::FINISHED: {
-                    trace::protobuf::int32(9, TYPE_SLICE_END, data);  // type:9:int32
-                } break;
-                case ReactionEvent::BLOCKED:
-                case ReactionEvent::MISSING_DATA: {
-                    trace::protobuf::int32(9, TYPE_INSTANT, data);  // type:9:int32
-                    // TODO extra data about the block
-                } break;
-            }
-        }
-    }
-    write_trace_packet(data);
-}
-
-void TraceController::encode_log(const std::shared_ptr<const message::ReactionStatistics>& log_stats,
-                                 const LogMessage& msg) {
-
-    const auto& msg_stats = msg.statistics;
-    auto thread_uuid      = thread(log_stats->created.thread);
-
-    int32_t prio = PRIO_UNSPECIFIED;
-    switch (msg.level) {
-        case LogLevel::TRACE: prio = PRIO_VERBOSE; break;
-        case LogLevel::DEBUG: prio = PRIO_DEBUG; break;
-        case LogLevel::INFO: prio = PRIO_INFO; break;
-        case LogLevel::WARN: prio = PRIO_WARN; break;
-        case LogLevel::ERROR: prio = PRIO_ERROR; break;
-        case LogLevel::FATAL: prio = PRIO_FATAL; break;
-        default: break;
-    }
-
-    auto ids          = msg_stats != nullptr ? msg_stats->identifiers : nullptr;
-    std::string rname = ids == nullptr ? "PowerPlant" : msg_stats->identifiers->reactor;
-
-    std::vector<char> data;
-    {
-        trace::protobuf::SubMessage packet(1, data);
-        trace::protobuf::uint64(8, ts(log_stats->created.realtime).count(), data);  // timestamp:8:uint64
-        trace::protobuf::uint32(10, trusted_packet_sequence_id,
-                                data);                                  // trusted_packet_sequence_id:10:uint32
-        trace::protobuf::int32(13, SEQ_NEEDS_INCREMENTAL_STATE, data);  // sequence_flags:13:int32
-        {
-            trace::protobuf::SubMessage track_event(11, data);    // track_event:11
-            trace::protobuf::uint64(11, thread_uuid, data);       // track_uuid:11:uint64
-            trace::protobuf::uint64(10, event_names[ids], data);  // name_iid:10:uint64
-            trace::protobuf::uint64(3, categories[rname], data);  // category_iids:3:uint64
-            trace::protobuf::uint64(3, categories["log"], data);  // category_iids:3:uint64
-            trace::protobuf::int32(9, TYPE_INSTANT, data);        // type:9:int32
-            {
-                trace::protobuf::SubMessage log_message(21, data);  // log_message:21
-                // trace::protobuf::uint64(1, source_locations[ids], data);            //
-                // source_location_iid:1:uint64
-                trace::protobuf::uint64(2, log_message_bodies[msg.message], data);  // body_iid:2:uint64
-                trace::protobuf::int32(3, prio, data);                              // prio:3:int32
-            }
-        }
-    }
-    write_trace_packet(data);
-}
-
-TraceController::TraceController(std::unique_ptr<NUClear::Environment> environment)
-    : Reactor(std::move(environment))
-    , categories(  //
-          trusted_packet_sequence_id,
-          [](const auto& key) { return key; },
-          [this](const auto& data) { write_trace_packet(data); })
-    , event_names(  //
-          trusted_packet_sequence_id,
-          name_for_id,
-          [this](const auto& data) { write_trace_packet(data); })
-    , source_locations(  //
-          trusted_packet_sequence_id,
-          name_for_id,
-          [this](const auto& data) { write_trace_packet(data); })
-    , log_message_bodies(  //
-          trusted_packet_sequence_id,
-          [](const auto& key) { return key; },
-          [this](const auto& data) { write_trace_packet(data); }) {
-
-    on<Trigger<BeginTrace>, Pool<TracePool>>().then([this](const BeginTrace& e) {
-        // Clean up any current trace
-        event_handle.unbind();
-        log_handle.unbind();
-        trace_file.close();
-
-        // Open a new file in the target location
-        trace_file.open(e.file, std::ios::binary);
-
-        // Write a reset packet so that incremental state works
-        std::vector<char> data;
-        {
-            trace::protobuf::SubMessage packet(1, data);
-            trace::protobuf::uint32(10, trusted_packet_sequence_id, data);    // trusted_packet_sequence_id:10:uint32
-            trace::protobuf::int32(87, true, data);                           // first_packet_on_sequence:87:bool
-            trace::protobuf::int32(42, true, data);                           // previous_packet_dropped:42:bool
-            trace::protobuf::int32(13, SEQ_INCREMENTAL_STATE_CLEARED, data);  // sequence flags:13:int32
-        }
-        write_trace_packet(data);
-
-        // Bind new handles
-        event_handle = on<Trigger<ReactionEvent>, Pool<TracePool>>().then([this](const ReactionEvent& e) {  //
-            encode_event(e);
+        write_trace_packet(Message<1>{
+            // packet
+            Message<60>{
+                // track_descriptor
+                uint64<1>(uuid),  // uuid
+                Message<3>{
+                    // process
+                    int32<1>(int32_t(uuid)),                                  // pid
+                    string<6>(pool == nullptr ? "Non NUClear" : pool->name),  // name
+                },
+            },
         });
-        if (e.logs) {
-            log_handle = on<Trigger<LogMessage>, Pool<TracePool>, Inline::NEVER>().then([this](const LogMessage& msg) {
-                // Statistics for the log message task itself
-                auto log_stats = threading::ReactionTask::get_current_task()->stats;
-                encode_log(log_stats, msg);
-            });
-        }
-    });
 
-    on<Trigger<EndTrace>, Pool<TracePool>>().then([this] {
-        // Unbind the handles and close the file
-        event_handle.unbind();
-        log_handle.unbind();
-        trace_file.close();
-    });
-}
+        return uuid;
+    }
+
+    uint64_t TraceController::thread(const ReactionStatistics::Event::ThreadInfo& info) {
+        if (thread_uuids.find(info.thread_id) != thread_uuids.end()) {
+            return thread_uuids.at(info.thread_id);
+        }
+
+        auto parent_uuid = process(info.pool);
+        uint64_t uuid =
+            thread_uuids.emplace(info.thread_id, next_uuid.fetch_add(2, std::memory_order_relaxed)).first->second;
+        std::string name = info.pool == nullptr ? "Non NUClear" : info.pool->name;
+
+        write_trace_packet(Message<1>{
+            // packet
+            Message<60>{
+                // track_descriptor
+                uint64<1>(uuid),         // uuid
+                uint64<5>(parent_uuid),  // parent_uuid
+                Message<4>{
+                    // thread
+                    int32<1>(parent_uuid),  // pid
+                    int32<2>(uuid),         // tid
+                    string<5>(name),        // name
+                },
+            },
+        });
+        write_trace_packet(Message<1>{
+            // packet
+            Message<60>{
+                // track_descriptor
+                uint64<1>(uuid + 1),  // uuid
+                uint64<5>(uuid),      // parent_uuid
+                Message<8>{
+                    // counter
+                    int32<1>(COUNTER_THREAD_TIME_NS),  // type
+                },
+            },
+        });
+
+        return uuid;
+    }
+
+    const ReactionStatistics::Event& relevant_event(const ReactionEvent& event) {
+        auto& statistics = *event.statistics;
+        switch (event.type) {
+            case ReactionEvent::BLOCKED:
+            case ReactionEvent::MISSING_DATA:
+            case ReactionEvent::CREATED: return statistics.created;
+            case ReactionEvent::STARTED: return statistics.started;
+            case ReactionEvent::FINISHED: return statistics.finished;
+            default: throw std::invalid_argument("Unknown event type");
+        }
+    }
+
+    void TraceController::encode_event(const ReactionEvent& event) {
+
+        const auto& relevant  = relevant_event(event);
+        auto task_id          = event.statistics->target.task_id;
+        auto thread_uuid      = thread(relevant.thread);
+        auto thread_time_uuid = thread_uuid + 1;
+        const auto& ids       = event.statistics->identifiers;
+
+        auto name         = ids->name;
+        std::string rname = event.statistics == nullptr || event.statistics->identifiers == nullptr
+                                ? "PowerPlant"
+                                : event.statistics->identifiers->reactor;
+
+        int32_t event_type = event.type == ReactionEvent::STARTED    ? TYPE_SLICE_BEGIN
+                             : event.type == ReactionEvent::FINISHED ? TYPE_SLICE_END
+                                                                     : TYPE_INSTANT;
+
+        write_trace_packet(Message<1>{
+            // packet
+            uint64<8>(ts(relevant.realtime).count()),  // timestamp
+            uint32<10>(trusted_packet_sequence_id),    // trusted_packet_sequence_id
+            int32<13>(SEQ_NEEDS_INCREMENTAL_STATE),    // sequence_flags
+            Message<11>{
+                // track_event
+                uint64<11>(thread_uuid),                   // track_uuid
+                uint64<10>(event_names[ids]),              // name_iid
+                uint64<3>(categories[rname]),              // category_iids
+                uint64<3>(categories["reaction"]),         // category_iids
+                uint64<31>(thread_time_uuid),              // extra_counter_track_uuids
+                int64<12>(ts(relevant.cpu_time).count()),  // extra_counter_values
+                int32<9>(event_type),                      // type
+                fixed64<47>(task_id),                      // flow_ids
+            },
+        });
+    }
+
+    void TraceController::encode_log(const std::shared_ptr<const message::ReactionStatistics>& log_stats,
+                                     const LogMessage& msg) {
+
+        const auto& msg_stats = msg.statistics;
+        auto thread_uuid      = thread(log_stats->created.thread);
+
+        int32_t prio = PRIO_UNSPECIFIED;
+        switch (msg.level) {
+            case LogLevel::TRACE: prio = PRIO_VERBOSE; break;
+            case LogLevel::DEBUG: prio = PRIO_DEBUG; break;
+            case LogLevel::INFO: prio = PRIO_INFO; break;
+            case LogLevel::WARN: prio = PRIO_WARN; break;
+            case LogLevel::ERROR: prio = PRIO_ERROR; break;
+            case LogLevel::FATAL: prio = PRIO_FATAL; break;
+            default: break;
+        }
+
+        auto ids          = msg_stats != nullptr ? msg_stats->identifiers : nullptr;
+        std::string rname = ids == nullptr ? "PowerPlant" : msg_stats->identifiers->reactor;
+
+        write_trace_packet(Message<1>{
+            // packet
+            uint64<8>(ts(log_stats->created.realtime).count()),  // timestamp
+            uint32<10>(trusted_packet_sequence_id),              // trusted_packet_sequence_id
+            int32<13>(SEQ_NEEDS_INCREMENTAL_STATE),              // sequence_flags
+            Message<11>{
+                // track_event
+                uint64<11>(thread_uuid),       // track_uuid
+                uint64<10>(event_names[ids]),  // name_iid
+                uint64<3>(categories[rname]),  // category_iids
+                uint64<3>(categories["log"]),  // category_iids
+                int32<9>(TYPE_INSTANT),        // type
+                Message<21>{
+                    // log_message
+                    // uint64<1>(source_locations[ids]),            // source_location_iid
+                    uint64<2>(log_message_bodies[msg.message]),  // body_iid
+                    int32<3>(prio),                              // prio
+                },
+            },
+        });
+    }
+
+    TraceController::TraceController(std::unique_ptr<NUClear::Environment> environment)
+        : Reactor(std::move(environment))
+        , categories(  //
+              trusted_packet_sequence_id,
+              [](const auto& key) { return key; },
+              [this](const auto& data) { write_trace_packet(data); })
+        , event_names(  //
+              trusted_packet_sequence_id,
+              name_for_id,
+              [this](const auto& data) { write_trace_packet(data); })
+        , source_locations(  //
+              trusted_packet_sequence_id,
+              name_for_id,
+              [this](const auto& data) { write_trace_packet(data); })
+        , log_message_bodies(  //
+              trusted_packet_sequence_id,
+              [](const auto& key) { return key; },
+              [this](const auto& data) { write_trace_packet(data); }) {
+
+        on<Trigger<BeginTrace>, Pool<TracePool>>().then([this](const BeginTrace& e) {
+            // Clean up any current trace
+            event_handle.unbind();
+            log_handle.unbind();
+            trace_file.close();
+
+            // Open a new file in the target location
+            trace_file.open(e.file, std::ios::binary);
+
+            // Write a reset packet so that incremental state works
+            write_trace_packet(Message<1>{
+                // packet
+                uint32<10>(trusted_packet_sequence_id),    // trusted_packet_sequence_id
+                int32<87>(true),                           // first_packet_on_sequence
+                int32<42>(true),                           // previous_packet_dropped
+                int32<13>(SEQ_INCREMENTAL_STATE_CLEARED),  // sequence flags
+            });
+
+            // Bind new handles
+            event_handle = on<Trigger<ReactionEvent>, Pool<TracePool>>().then([this](const ReactionEvent& e) {  //
+                encode_event(e);
+            });
+            if (e.logs) {
+                log_handle =
+                    on<Trigger<LogMessage>, Pool<TracePool>, Inline::NEVER>().then([this](const LogMessage& msg) {
+                        // Statistics for the log message task itself
+                        auto log_stats = threading::ReactionTask::get_current_task()->stats;
+                        encode_log(log_stats, msg);
+                    });
+            }
+        });
+
+        on<Trigger<EndTrace>, Pool<TracePool>>().then([this] {
+            // Unbind the handles and close the file
+            event_handle.unbind();
+            log_handle.unbind();
+            trace_file.close();
+        });
+    }
 
 }  // namespace extension
 }  // namespace NUClear
