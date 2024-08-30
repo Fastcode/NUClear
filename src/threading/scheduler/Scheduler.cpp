@@ -57,6 +57,7 @@ namespace threading {
             // The main thread will reach this point when the PowerPlant is shutting down
             // Sort the pools so that the pools that ignore shutdown are last to be forced to stop
             std::vector<std::shared_ptr<Pool>> pools_to_stop;
+            pools_to_stop.reserve(pools.size());
             for (const auto& pool : pools) {
                 pools_to_stop.push_back(pool.second);
             }
