@@ -127,7 +127,7 @@ namespace extension {
                 encode::varint(uint32_t(id << 3 | 2), std::back_inserter(data));  // Type and id
                 // C'mon clang-tidy I literally just changed the vector on the line above
                 // NOLINTNEXTLINE(cppcoreguidelines-prefer-member-initializer)
-                start = ssize_t(data.size());  // Store the current position so we can write the length later
+                start = data.size();  // Store the current position so we can write the length later
                 data.insert(data.end(), varint_bytes, 0);  // Reserve space for the length
             }
             SubMessage::~SubMessage() {

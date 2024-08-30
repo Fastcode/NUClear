@@ -70,7 +70,7 @@ namespace extension {
                 /// The number of bytes to reserve for the varint encoding the size of the sub-message
                 size_t varint_bytes;
                 /// The position in the data vector where the size of the sub-message is stored
-                ssize_t start;
+                size_t start;
             };
 
             /**
