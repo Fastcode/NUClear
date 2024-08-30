@@ -48,8 +48,6 @@ struct TestLevel {
     NUClear::LogLevel level;
 };
 
-struct ShutdownOnIdle {};
-
 class TestReactor : public NUClear::Reactor {
 public:
     TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
@@ -95,7 +93,7 @@ public:
         });
 
         // Shutdown when we have no tasks running
-        on<Trigger<ShutdownOnIdle>, Priority::IDLE>().then([this] {
+        on<Idle<>>().then([this] {
             powerplant.shutdown();
 
             free_floating_log<NUClear::TRACE>("Post Powerplant Shutdown", NUClear::TRACE);
@@ -127,8 +125,6 @@ public:
             for (const auto& level : levels) {
                 emit(std::make_unique<TestLevel>(level));
             }
-
-            emit(std::make_unique<ShutdownOnIdle>());
         });
     }
 };
