@@ -23,6 +23,7 @@
 #include "executable_path.hpp"
 
 #include <array>
+#include <climits>
 #include <stdexcept>
 #include <string>
 #include <system_error>
