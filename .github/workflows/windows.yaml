@@ -89,3 +89,4 @@ jobs:
           name: traces
           path: build/tests/**/*.trace
           retention-days: 1 # This sets the artifact TTL to 1 day (minimum is 1 day)
+          overwrite: true
