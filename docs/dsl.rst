@@ -207,9 +207,9 @@ Scope::LOCAL
 ````````````
 .. doxygenstruct:: NUClear::dsl::word::emit::Local
 
-Scope::DIRECT
+Scope::INLINE
 `````````````
-.. doxygenstruct:: NUClear::dsl::word::emit::Direct
+.. doxygenstruct:: NUClear::dsl::word::emit::Inline
 
 Scope::Initialise
 ``````````````````
