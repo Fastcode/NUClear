@@ -42,7 +42,7 @@ namespace threading {
 
         class Pool : public std::enable_shared_from_this<Pool> {
         public:
-            enum StopType {
+            enum class StopType : uint8_t {
                 /// Normal stop, wait for all tasks to finish and accept no more tasks
                 /// Pools which ignore shutdown will continue to accept tasks
                 NORMAL,

@@ -22,6 +22,7 @@
 #include "Scheduler.hpp"
 
 #include <algorithm>
+#include <stdexcept>
 
 #include "../../dsl/word/MainThread.hpp"
 #include "../../dsl/word/Pool.hpp"
@@ -56,11 +57,14 @@ namespace threading {
             // The main thread will reach this point when the PowerPlant is shutting down
             // Sort the pools so that the pools that ignore shutdown are last to be forced to stop
             std::vector<std::shared_ptr<Pool>> pools_to_stop;
+            pools_to_stop.reserve(pools.size());
             for (const auto& pool : pools) {
                 pools_to_stop.push_back(pool.second);
             }
-            std::sort(pools_to_stop.begin(), pools_to_stop.end(), [](const auto& a, const auto& b) {
-                return a->descriptor->continue_on_shutdown < b->descriptor->continue_on_shutdown;
+            std::sort(pools_to_stop.begin(), pools_to_stop.end(), [](const auto& lhs, const auto& rhs) {
+                const bool& a = lhs->descriptor->continue_on_shutdown;
+                const bool& b = rhs->descriptor->continue_on_shutdown;
+                return !a && b;
             });
             for (const auto& pool : pools_to_stop) {
                 // This is the final stop call
@@ -116,7 +120,8 @@ namespace threading {
             if (pools.count(desc) == 0) {
                 // Don't make new pools if we are shutting down
                 if (!running.load(std::memory_order_acquire)) {
-                    throw std::runtime_error("Cannot create new pools after the scheduler has started shutting down");
+                    throw std::invalid_argument(
+                        "Cannot create new pools after the scheduler has started shutting down");
                 }
 
                 // Create the pool
