@@ -24,6 +24,7 @@
 #define NUCLEAR_EXTENSION_TRACE_PROTOBUF_HPP
 
 #include <cstdint>
+#include <string>
 #include <type_traits>
 #include <vector>
 
