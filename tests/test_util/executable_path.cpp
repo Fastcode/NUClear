@@ -32,10 +32,10 @@
 
 namespace test_util {
 std::string get_executable_path() {
-    std::array < char, MAX_PATH> buffer;
+    std::array<char, MAX_PATH> buffer;
     DWORD size = GetModuleFileName(NULL, buffer.data(), buffer.size());
     if (size) {
-        return std::string(buffer);
+        return std::string(buffer.data(), size);
     }
     throw std::runtime_error("Could not get executable path");
 }
@@ -67,7 +67,7 @@ std::string get_executable_path() {
     std::array<char, PATH_MAX> buffer{};
     ssize_t size = ::readlink("/proc/self/exe", buffer.data(), buffer.size());
     if (size != -1) {
-        return std::string(buffer, size);
+        return std::string(buffer.data(), size);
     }
     throw std::runtime_error("Could not get executable path");
 }
