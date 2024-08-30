@@ -75,20 +75,15 @@ namespace extension {
                 }
 
                 uint64_t iid = interned.emplace(key, interned.size() + 1).first->second;
-                std::vector<char> data;
-                {
-                    protobuf::SubMessage packet(1, data);                    // packet:1
-                    protobuf::uint32(10, trusted_packet_sequence_id, data);  // trusted_packet_sequence_id:10:uint32
-                    {
-                        protobuf::SubMessage interned_data(12, data);  // interned_data:12
-                        {
-                            protobuf::SubMessage interned_type(ID, data);  // interned_type:{ID}
-                            protobuf::uint64(1, iid, data);                // iid:1:uint64
-                            protobuf::string(2, make(key), data);          // name:2:string
-                        }
-                    }
-                }
-                write(data);
+                write(protobuf::Message<1>({
+                    // packet
+                    protobuf::uint32<10>(trusted_packet_sequence_id),  // trusted_packet_sequence_id
+                    protobuf::Message<12>({
+                        // interned_data
+                        protobuf::uint64<ID>{iid},       // interned_type
+                        protobuf::string<2>{make(key)},  // name
+                    }),
+                }));
 
                 return iid;
             }

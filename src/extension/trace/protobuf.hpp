@@ -27,103 +27,126 @@
 #include <type_traits>
 #include <vector>
 
+#include "../../util/unpack.hpp"
+
 namespace NUClear {
 namespace extension {
     namespace trace {
         namespace protobuf {
 
-            /**
-             * An RAII type which will encode the size of a sub-message after it has been inserted.
-             *
-             * When constructing this type it will take note of where in the data vector it is and store it.
-             * Then when it is destructed it will write back the size of the sub-message to the correct location.
-             * It will ensure that enough storage space is available for the size by encoding it using a redundant
-             * varint.
-             *
-             * This redundant varint will always take up the same number of bytes so the vector does not need to be
-             * resized.
-             *
-             * By default it reserves 2 bytes for the varint which will allow a maximum size of 16384 (2^14) bytes.
-             * If the sub-message is larger than this then the vector will be resized and the varint will be updated.
-             */
-            class SubMessage {
-            public:
-                /**
-                 * Construct a new Sub Message RAII object
-                 *
-                 * @param id The protobuf id of the sub-message field
-                 * @param data The data vector to write the sub-message to
-                 * @param varint_bytes The number of bytes to reserve for the varint encoding the size of the
-                 * sub-message
-                 */
-                SubMessage(const uint32_t& id, std::vector<char>& data, size_t varint_bytes = 2);
-                ~SubMessage();
-                SubMessage(const SubMessage&)            = delete;
-                SubMessage(SubMessage&&)                 = delete;
-                SubMessage& operator=(const SubMessage&) = delete;
-                SubMessage& operator=(SubMessage&&)      = delete;
+            namespace encode {
+                template <typename T, typename OutputIterator, std::enable_if_t<std::is_integral<T>::value, int> = 0>
+                OutputIterator redundant_varint(const T& value, const size_t& n_bytes, OutputIterator out) {
+                    // Encode the value as a varint
+                    uint32_t v = value;
+                    for (unsigned i = 0; i < n_bytes - 1; i++) {
+                        *out++ = (v & 0x7F) | 0x80;
+                        v >>= 7;
+                    }
+                    *out++ = v & 0x7F;
+                    return out;
+                }
 
-            private:
-                /// The data vector to write the sub-message to
-                std::vector<char>& data;
-                /// The number of bytes to reserve for the varint encoding the size of the sub-message
-                size_t varint_bytes;
-                /// The position in the data vector where the size of the sub-message is stored
-                size_t start;
+                template <typename T, typename OutputIterator, std::enable_if_t<std::is_integral<T>::value, int> = 0>
+                OutputIterator varint(const T& value, OutputIterator out) {
+                    // Cast the value down to its unsigned type and encode it as a varint
+                    std::make_unsigned_t<T> v(value);
+                    while (v >= 0x80) {
+                        *out++ = (v & 0x7F) | 0x80;
+                        v >>= 7;
+                    }
+                    *out++ = v;
+                    return out;
+                }
+
+                template <typename T, typename OutputIterator, std::enable_if_t<std::is_integral<T>::value, int> = 0>
+                OutputIterator fixed(const T& value, OutputIterator out) {
+                    // Cast the value down to its unsigned type and encode it as fixed
+                    std::make_unsigned_t<T> v(value);
+                    for (size_t i = 0; i < sizeof(T); ++i) {
+                        *out++ = (v >> (i * 8)) & 0xFF;
+                    }
+                    return out;
+                }
+
+                template <typename Iterator, typename OutputIterator>
+                OutputIterator length_delimited(Iterator begin, Iterator end, OutputIterator out) {
+                    // Encode the value as a varint length and then the string
+                    out = varint(uint32_t(std::distance(begin, end)), out);
+                    out = std::copy(begin, end, out);
+                    return out;
+                }
+            }  // namespace encode
+
+            template <int32_t ID>
+            struct Message {
+                template <typename... Members>
+                Message(Members&&... members) {}  //: members(std::forward<Members>(members)...) {}
+
+                // template <int... Is>
+                // void encode(std::vector<char>& data, std::index_sequence<Is...>) {
+                //     util::unpack((std::get<Is>(members).encode(data), 0)...);
+                // }
+
+                void encode(std::vector<char>& data) {
+                    // data.insert(data.end(), 2, 0);
+                    // size_t start = data.size();
+
+                    // // Call encode on each member
+                    // encode(data, std::index_sequence_for<Members...>());
+
+                    // encode::redundant_varint(uint32_t(ID << 3 | 2), 2, std::next(data.begin(), start));
+                }
+                operator std::vector<char>() {
+                    std::vector<char> data;
+                    // encode(data);
+                    return data;
+                }
+                // std::tuple<Members...> members;
             };
 
-            /**
-             * Encodes a uint64 value into the data vector.
-             *
-             * @param id    The protobuf id of the field
-             * @param value The uint64 value to encode
-             * @param data  The data vector to write the encoded value to
-             */
-            void uint64(const uint32_t& id, const uint64_t& value, std::vector<char>& data);
-            /**
-             * Encodes a int64 value into the data vector.
-             *
-             * @param id    The protobuf id of the field
-             * @param value The int64 value to encode
-             * @param data  The data vector to write the encoded value to
-             */
-            void int64(const uint32_t& id, const int64_t& value, std::vector<char>& data);
-            /**
-             * Encodes a fixed64 value into the data vector.
-             *
-             * @param id    The protobuf id of the field
-             * @param value The fixed64 value to encode
-             * @param data  The data vector to write the encoded value to
-             */
-            void fixed64(const uint32_t& id, const uint64_t& value, std::vector<char>& data);
+            template <typename T, int32_t ID>
+            struct VarInt {
+                VarInt(const T& value) : value(value) {}
+                void encode(std::vector<char>& data) {
+                    encode::varint(uint32_t(ID << 3 | 0), value, std::back_inserter(data));
+                    encode::varint(value, std::back_inserter(data));
+                }
+                T value;
+            };
 
-            /**
-             * Encodes a uint32 value into the data vector.
-             *
-             * @param id    The protobuf id of the field
-             * @param value The uint32 value to encode
-             * @param data  The data vector to write the encoded value to
-             */
-            void uint32(const uint32_t& id, const uint32_t& value, std::vector<char>& data);
+            template <typename T, int32_t ID>
+            struct Fixed {
+                Fixed(const T& value) : value(value) {}
+                void encode(std::vector<char>& data) {
+                    encode::varint(uint32_t(ID << 3 | 1), value, std::back_inserter(data));
+                    encode::fixed(value, std::back_inserter(data));
+                }
+                T value;
+            };
 
-            /**
-             * Encodes a int32 value into the data vector.
-             *
-             * @param id    The protobuf id of the field
-             * @param value The int32 value to encode
-             * @param data  The data vector to write the encoded value to
-             */
-            void int32(const uint32_t& id, const int32_t& value, std::vector<char>& data);
+            template <int32_t ID>
+            struct string {
+                string(std::string value) : value(value) {}
+                void encode(std::vector<char>& data) {
+                    encode::varint(uint32_t(ID << 3 | 2),
+                                   std::distance(value.begin(), value.end()),
+                                   std::back_inserter(data));
+                    encode::length_delimited(value.begin(), value.end(), std::back_inserter(data));
+                }
+                std::string value;
+            };
 
-            /**
-             * Encodes a string value into the data vector.
-             *
-             * @param id    The protobuf id of the field
-             * @param value The string value to encode
-             * @param data  The data vector to write the encoded value to
-             */
-            void string(const uint32_t& id, const std::string& value, std::vector<char>& data);
-
+            template <int ID>
+            using uint64 = VarInt<uint64_t, ID>;
+            template <int ID>
+            using int64 = VarInt<int64_t, ID>;
+            template <int ID>
+            using uint32 = VarInt<uint32_t, ID>;
+            template <int ID>
+            using int32 = VarInt<int32_t, ID>;
+            template <int ID>
+            using fixed64 = Fixed<uint64_t, ID>;
 
         }  // namespace protobuf
     }  // namespace trace
