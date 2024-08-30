@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2013 NUClear Contributors
+ * Copyright (c) 2014 NUClear Contributors
  *
  * This file is part of the NUClear codebase.
  * See https://github.com/Fastcode/NUClear for further info.
@@ -20,26 +20,39 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR
-#define NUCLEAR
+#ifndef NUCLEAR_DSL_FUSION_HAS_INLINABLE_HPP
+#define NUCLEAR_DSL_FUSION_HAS_INLINABLE_HPP
 
-// Main classes
-#include "${nuclear_include_base_directory}PowerPlant.hpp"
-#include "${nuclear_include_base_directory}Reactor.hpp"
+#include "../../threading/ReactionTask.hpp"
+#include "NoOp.hpp"
 
-// Message types
-#include "${nuclear_include_base_directory}message/CommandLineArguments.hpp"
-#include "${nuclear_include_base_directory}message/LogMessage.hpp"
-#include "${nuclear_include_base_directory}message/NetworkConfiguration.hpp"
-#include "${nuclear_include_base_directory}message/NetworkEvent.hpp"
-#include "${nuclear_include_base_directory}message/ReactionStatistics.hpp"
-#include "${nuclear_include_base_directory}message/TimeTravel.hpp"
-#include "${nuclear_include_base_directory}message/Trace.hpp"
+namespace NUClear {
+namespace dsl {
+    namespace fusion {
 
-// Extensions
-#include "${nuclear_include_base_directory}extension/ChronoController.hpp"
-#include "${nuclear_include_base_directory}extension/IOController.hpp"
-#include "${nuclear_include_base_directory}extension/NetworkController.hpp"
-#include "${nuclear_include_base_directory}extension/TraceController.hpp"
+        /**
+         * SFINAE struct to test if the passed class has a run_inline function that conforms to the NUClear DSL.
+         *
+         * @tparam T the class to check
+         */
+        template <typename T>
+        struct has_run_inline {
+        private:
+            using yes = std::true_type;
+            using no  = std::false_type;
 
-#endif  // NUCLEAR
+            template <typename U>
+            static auto test(int)
+                -> decltype(U::template run_inline<ParsedNoOp>(std::declval<threading::ReactionTask&>()), yes());
+            template <typename>
+            static no test(...);
+
+        public:
+            static constexpr bool value = std::is_same<decltype(test<T>(0)), yes>::value;
+        };
+
+    }  // namespace fusion
+}  // namespace dsl
+}  // namespace NUClear
+
+#endif  // NUCLEAR_DSL_FUSION_HAS_INLINABLE_HPP

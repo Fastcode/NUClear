@@ -82,7 +82,7 @@ public:
 
             if (!clean_shutdown) {
                 powerplant.shutdown(true);
-                emit<Scope::DIRECT>(std::make_unique<Fail>("Test timed out"));
+                emit<Scope::INLINE>(std::make_unique<Fail>("Test timed out"));
             }
         });
 

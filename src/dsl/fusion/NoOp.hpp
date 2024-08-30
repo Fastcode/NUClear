@@ -28,6 +28,7 @@
 #include "../../threading/Reaction.hpp"
 #include "../../threading/ReactionTask.hpp"
 #include "../../util/GroupDescriptor.hpp"
+#include "../../util/Inline.hpp"
 #include "../../util/ThreadPoolDescriptor.hpp"
 #include "../word/Pool.hpp"
 #include "../word/Priority.hpp"
@@ -53,6 +54,17 @@ namespace dsl {
             }
 
             template <typename DSL>
+            static std::set<std::shared_ptr<const util::GroupDescriptor>> group(
+                const threading::ReactionTask& /*task*/) {
+                return {};
+            }
+
+            template <typename DSL>
+            static util::Inline run_inline(const threading::ReactionTask& /*task*/) {
+                return util::Inline::NEUTRAL;
+            }
+
+            template <typename DSL>
             static bool precondition(const threading::ReactionTask& /*task*/) {
                 return true;
             }
@@ -60,12 +72,6 @@ namespace dsl {
             template <typename DSL>
             static int priority(const threading::ReactionTask& /*task*/) {
                 return word::Priority::NORMAL::value;
-            }
-
-            template <typename DSL>
-            static std::set<std::shared_ptr<const util::GroupDescriptor>> group(
-                const threading::ReactionTask& /*task*/) {
-                return {};
             }
 
             template <typename DSL>
@@ -90,11 +96,13 @@ namespace dsl {
 
             static std::tuple<> get(threading::ReactionTask&);
 
+            static std::set<std::shared_ptr<const util::GroupDescriptor>> group(threading::ReactionTask&);
+
+            static util::Inline run_inline(threading::ReactionTask&);
+
             static bool precondition(threading::ReactionTask&);
 
             static int priority(threading::ReactionTask&);
-
-            static std::set<std::shared_ptr<const util::GroupDescriptor>> group(threading::ReactionTask&);
 
             static std::shared_ptr<const util::ThreadPoolDescriptor> pool(threading::ReactionTask&);
 

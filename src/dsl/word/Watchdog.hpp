@@ -30,7 +30,7 @@
 #include "../operation/ChronoTask.hpp"
 #include "../operation/Unbind.hpp"
 #include "../store/DataStore.hpp"
-#include "emit/Direct.hpp"
+#include "emit/Inline.hpp"
 
 namespace NUClear {
 namespace dsl {
@@ -213,11 +213,11 @@ namespace dsl {
                 reaction->unbinders.push_back([data](const threading::Reaction& r) {
                     // Remove the active service time from the data store
                     WatchdogDataStore<WatchdogGroup, RuntimeType>::unbind(data);
-                    r.reactor.emit<emit::Direct>(std::make_unique<operation::Unbind<operation::ChronoTask>>(r.id));
+                    r.reactor.emit<emit::Inline>(std::make_unique<operation::Unbind<operation::ChronoTask>>(r.id));
                 });
 
                 // Send our configuration out
-                reaction->reactor.emit<emit::Direct>(std::make_unique<operation::ChronoTask>(
+                reaction->reactor.emit<emit::Inline>(std::make_unique<operation::ChronoTask>(
                     [reaction, data](NUClear::clock::time_point& time) {
                         return Watchdog::chrono_task(reaction,
                                                      WatchdogDataStore<WatchdogGroup, RuntimeType>::get(data),
@@ -240,11 +240,11 @@ namespace dsl {
                 reaction->unbinders.push_back([](const threading::Reaction& r) {
                     // Remove the active service time from the data store
                     WatchdogDataStore<WatchdogGroup>::unbind();
-                    r.reactor.emit<emit::Direct>(std::make_unique<operation::Unbind<operation::ChronoTask>>(r.id));
+                    r.reactor.emit<emit::Inline>(std::make_unique<operation::Unbind<operation::ChronoTask>>(r.id));
                 });
 
                 // Send our configuration out
-                reaction->reactor.emit<emit::Direct>(std::make_unique<operation::ChronoTask>(
+                reaction->reactor.emit<emit::Inline>(std::make_unique<operation::ChronoTask>(
                     [reaction](NUClear::clock::time_point& time) {
                         return Watchdog::chrono_task(reaction, WatchdogDataStore<WatchdogGroup>::get(), time);
                     },

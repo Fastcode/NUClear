@@ -27,6 +27,7 @@
 #include "fusion/BindFusion.hpp"
 #include "fusion/GetFusion.hpp"
 #include "fusion/GroupFusion.hpp"
+#include "fusion/InlineFusion.hpp"
 #include "fusion/PoolFusion.hpp"
 #include "fusion/PostconditionFusion.hpp"
 #include "fusion/PreconditionFusion.hpp"
@@ -40,9 +41,10 @@ namespace dsl {
     struct Fusion
         : fusion::BindFusion<Words...>
         , fusion::GetFusion<Words...>
+        , fusion::GroupFusion<Words...>
+        , fusion::InlineFusion<Words...>
         , fusion::PreconditionFusion<Words...>
         , fusion::PriorityFusion<Words...>
-        , fusion::GroupFusion<Words...>
         , fusion::PoolFusion<Words...>
         , fusion::PostconditionFusion<Words...> {};
 

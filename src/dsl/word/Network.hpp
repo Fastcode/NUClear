@@ -80,12 +80,12 @@ namespace dsl {
 
                 task->hash = util::serialise::Serialise<T>::hash();
                 reaction->unbinders.push_back([](const threading::Reaction& r) {
-                    r.reactor.emit<emit::Direct>(std::make_unique<operation::Unbind<NetworkListen>>(r.id));
+                    r.reactor.emit<emit::Inline>(std::make_unique<operation::Unbind<NetworkListen>>(r.id));
                 });
 
                 task->reaction = reaction;
 
-                reaction->reactor.emit<emit::Direct>(task);
+                reaction->reactor.emit<emit::Inline>(task);
             }
 
             template <typename DSL>

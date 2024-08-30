@@ -60,7 +60,8 @@ namespace threading {
 
     public:
         // The type of the generator that is used to create functions for ReactionTask objects
-        using TaskGenerator = std::function<std::unique_ptr<ReactionTask>(const std::shared_ptr<Reaction>&)>;
+        using TaskGenerator =
+            std::function<std::unique_ptr<ReactionTask>(const std::shared_ptr<Reaction>&, const bool&)>;
 
         /**
          * Constructs a new Reaction with the passed callback generator and options.
@@ -83,9 +84,11 @@ namespace threading {
         /**
          * Creates a new databound callback task that can be executed.
          *
+         * @param request_inline if this is true, attempt to execute the current task inline on the curren thread
+         *
          * @return a unique_ptr to a Task which has the data for it's call bound into it
          */
-        std::unique_ptr<ReactionTask> get_task();
+        std::unique_ptr<ReactionTask> get_task(const bool& request_inline = false);
 
         /**
          * @return `true` if this reaction is currently enabled

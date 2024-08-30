@@ -90,7 +90,7 @@ namespace dsl {
                     e->payload  = util::serialise::Serialise<DataType>::serialise(*data);
                     e->reliable = reliable;
 
-                    powerplant.emit<Direct>(e);
+                    powerplant.emit<Inline>(e);
                 }
 
                 static void emit(PowerPlant& powerplant, std::shared_ptr<DataType> data, bool reliable) {

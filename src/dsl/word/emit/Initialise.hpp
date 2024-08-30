@@ -58,7 +58,9 @@ namespace dsl {
                     // Make a floating reaction task to submit which will emit this data
                     auto emitter = std::make_unique<threading::ReactionTask>(
                         nullptr,
+                        false,
                         [](threading::ReactionTask& /*task*/) { return 1000; },
+                        [](threading::ReactionTask& /*task*/) { return util::Inline::NEVER; },
                         [](threading::ReactionTask& /*task*/) { return Pool<>::descriptor(); },
                         [](threading::ReactionTask& /*task*/) {
                             return std::set<std::shared_ptr<const util::GroupDescriptor>>{};

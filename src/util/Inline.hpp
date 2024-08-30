@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2013 NUClear Contributors
+ * Copyright (c) 2023 NUClear Contributors
  *
  * This file is part of the NUClear codebase.
  * See https://github.com/Fastcode/NUClear for further info.
@@ -20,26 +20,30 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR
-#define NUCLEAR
+#ifndef NUCLEAR_UTIL_INLINE_HPP
+#define NUCLEAR_UTIL_INLINE_HPP
 
-// Main classes
-#include "${nuclear_include_base_directory}PowerPlant.hpp"
-#include "${nuclear_include_base_directory}Reactor.hpp"
+#include <atomic>
+#include <cstddef>
+#include <cstdint>
+#include <limits>
+#include <string>
 
-// Message types
-#include "${nuclear_include_base_directory}message/CommandLineArguments.hpp"
-#include "${nuclear_include_base_directory}message/LogMessage.hpp"
-#include "${nuclear_include_base_directory}message/NetworkConfiguration.hpp"
-#include "${nuclear_include_base_directory}message/NetworkEvent.hpp"
-#include "${nuclear_include_base_directory}message/ReactionStatistics.hpp"
-#include "${nuclear_include_base_directory}message/TimeTravel.hpp"
-#include "${nuclear_include_base_directory}message/Trace.hpp"
+#include "../id.hpp"
 
-// Extensions
-#include "${nuclear_include_base_directory}extension/ChronoController.hpp"
-#include "${nuclear_include_base_directory}extension/IOController.hpp"
-#include "${nuclear_include_base_directory}extension/NetworkController.hpp"
-#include "${nuclear_include_base_directory}extension/TraceController.hpp"
+namespace NUClear {
+namespace util {
 
-#endif  // NUCLEAR
+    enum class Inline : uint8_t {
+        /// Never inline this reaction, always execute it within its target thread pool
+        NEVER,
+        /// Inlining is left to the creator of the reaction
+        NEUTRAL,
+        /// Always inline this reaction, even if it was not emitted directly
+        ALWAYS
+    };
+
+}  // namespace util
+}  // namespace NUClear
+
+#endif  // NUCLEAR_UTIL_INLINE_HPP
