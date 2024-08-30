@@ -53,7 +53,7 @@ namespace extension {
                         *out++ = (v & 0x7F) | 0x80;
                         v >>= 7;
                     }
-                    *out++ = v;
+                    *out++ = v & 0x7F;
                     return out;
                 }
 
