@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2014 NUClear Contributors
+ * Copyright (c) 2024 NUClear Contributors
  *
  * This file is part of the NUClear codebase.
  * See https://github.com/Fastcode/NUClear for further info.
@@ -27,6 +27,9 @@
 #include <set>
 
 #include "../Reactor.hpp"
+#include "../message/LogMessage.hpp"
+#include "trace/StringInterner.hpp"
+#include "trace/protobuf.hpp"
 
 namespace NUClear {
 namespace extension {
@@ -47,42 +50,9 @@ namespace extension {
         };
 
         /**
-         * Returns an interned id for the category name creating and writing it to the trace file if it does not exist.
-         *
-         * @param name The name of the category
-         *
-         * @return The interned id for the category
+         * Writes a trace packet to the trace file.
          */
-        uint64_t category(const std::string& name);
-
-        /**
-         * Returns an interned id for the event name creating and writing it to the trace file if it does not exist.
-         *
-         * @param ids The identifiers for the event
-         *
-         * @return The interned id for the event
-         */
-        uint64_t event_name(const std::shared_ptr<const NUClear::threading::ReactionIdentifiers>& ids);
-
-        /**
-         * Returns an interned id for the source location creating and writing it to the trace file if it does not
-         * exist.
-         *
-         * @param ids The identifiers for the source location
-         *
-         * @return  The interned id for the source location
-         */
-        uint64_t source_location(const std::shared_ptr<const NUClear::threading::ReactionIdentifiers>& ids);
-
-        /**
-         * Returns an interned id for the log message body creating and writing it to the trace file if it does not
-         * exist.
-         *
-         * @param name The name of the log message body
-         *
-         * @return The interned id for the log message body
-         */
-        uint64_t log_message_body(const std::string& name);
+        void write_trace_packet(const std::vector<char>& packet);
 
         /**
          * Returns a unique id for the nuclear process track descriptor creating and writing it to the trace file if it
@@ -139,11 +109,15 @@ namespace extension {
         uint64_t non_nuclear_process_uuid = 0;
         std::map<std::shared_ptr<const util::ThreadPoolDescriptor>, uint64_t> pool_uuids;
         std::map<std::thread::id, uint64_t> thread_uuids;
-        std::map<std::string, uint64_t, std::less<>> category_iids;
-        std::map<std::shared_ptr<const NUClear::threading::ReactionIdentifiers>, uint64_t> event_name_iids;
 
-        std::map<std::shared_ptr<const NUClear::threading::ReactionIdentifiers>, uint64_t> source_location_iids;
-        std::map<std::string, uint64_t, std::less<>> log_message_body_iids;
+        /// The interned category names
+        trace::StringInterner<std::string, 1> categories;
+        /// The interned event names
+        trace::StringInterner<std::shared_ptr<const NUClear::threading::ReactionIdentifiers>, 2> event_names;
+        /// The interned source locations
+        trace::StringInterner<std::shared_ptr<const NUClear::threading::ReactionIdentifiers>, 4> source_locations;
+        /// The interned log message bodies
+        trace::StringInterner<std::string, 20> log_message_bodies;
     };
 
 }  // namespace extension
