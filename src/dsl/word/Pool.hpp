@@ -40,9 +40,8 @@ namespace dsl {
              * Thread pool descriptor for the default thread pool
              */
             struct Default {
-                static constexpr const char* name     = "Default";
-                static constexpr int thread_count     = 0;
-                static constexpr bool counts_for_idle = true;
+                static constexpr const char* name = "Default";
+                static constexpr int thread_count = 0;
             };
         }  // namespace pool
 
@@ -83,7 +82,8 @@ namespace dsl {
                 static const auto pool_descriptor =
                     std::make_shared<const util::ThreadPoolDescriptor>(name<PoolType>(),
                                                                        thread_count<PoolType>(),
-                                                                       counts_for_idle<PoolType>());
+                                                                       counts_for_idle<PoolType>(),
+                                                                       continue_on_shutdown<PoolType>());
                 return pool_descriptor;
             }
 
@@ -115,6 +115,15 @@ namespace dsl {
             template <typename U, typename... A>
             static constexpr bool counts_for_idle(const A&... /*unused*/) {
                 return true;
+            }
+
+            template <typename U>
+            static constexpr auto continue_on_shutdown() -> decltype(U::continue_on_shutdown) {
+                return U::continue_on_shutdown;
+            }
+            template <typename U, typename... A>
+            static constexpr bool continue_on_shutdown(const A&... /*unused*/) {
+                return false;
             }
         };
 
