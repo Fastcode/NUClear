@@ -31,7 +31,7 @@ namespace message {
      * This message will start recording a trace of the system to the specified file.
      */
     struct BeginTrace {
-        BeginTrace(std::string file = "trace.trace", const bool& logs = true) : file(file), logs(logs) {}
+        BeginTrace(std::string file = "trace.trace", const bool& logs = true) : file(std::move(file)), logs(logs) {}
         /// The file to write the trace to
         std::string file;
         /// If log messages should be included in the trace

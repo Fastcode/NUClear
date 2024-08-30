@@ -64,7 +64,7 @@ namespace extension {
 
     void TraceController::write_trace_packet(const std::vector<char>& packet) {
         // Write the packet to the file
-        trace_file.write(packet.data(), packet.size());
+        trace_file.write(packet.data(), ssize_t(packet.size()));
     }
 
     std::string name_for_id(const std::shared_ptr<const NUClear::threading::ReactionIdentifiers>& ids) {
@@ -72,13 +72,11 @@ namespace extension {
             // With no identifiers we can't do anything
             return "";
         }
-        else if (ids->name.empty()) {
+        if (ids->name.empty()) {
             // Remove the namespace from the DSL with a regex
             return std::regex_replace(ids->dsl, std::regex("[A-Za-z_][A-Za-z0-9_]+::"), "");
         }
-        else {
-            return ids->name;
-        }
+        return ids->name;
     }
 
     uint64_t TraceController::process() {
@@ -108,9 +106,10 @@ namespace extension {
             return thread_uuids.at(info.thread_id);
         }
 
-        auto parent_uuid = process();
-        uint64_t uuid = thread_uuids[info.thread_id] = next_uuid.fetch_add(2, std::memory_order::memory_order_relaxed);
-        std::string name                             = info.pool == nullptr ? "Non NUClear" : info.pool->name;
+        const uint64_t parent_uuid = process();
+        const uint64_t uuid =
+            thread_uuids.emplace(info.thread_id, next_uuid.fetch_add(2, std::memory_order_relaxed)).first->second;
+        const std::string name = info.pool == nullptr ? "Non NUClear" : info.pool->name;
 
         std::vector<char> data;
         {
@@ -145,7 +144,7 @@ namespace extension {
     }
 
     const ReactionStatistics::Event& relevant_event(const ReactionEvent& event) {
-        auto& statistics = *event.statistics;
+        const auto& statistics = *event.statistics;
         switch (event.type) {
             case ReactionEvent::BLOCKED:
             case ReactionEvent::MISSING_DATA:
@@ -158,19 +157,19 @@ namespace extension {
 
     void TraceController::encode_event(const ReactionEvent& event) {
 
-        const auto& relevant  = relevant_event(event);
-        auto task_id          = event.statistics->target.task_id;
-        auto thread_uuid      = thread(relevant.thread);
-        auto thread_time_uuid = thread_uuid + 1;
-        const auto& ids       = event.statistics->identifiers;
+        const auto& relevant            = relevant_event(event);
+        const auto& task_id             = event.statistics->target.task_id;
+        const uint64_t thread_uuid      = thread(relevant.thread);
+        const uint64_t thread_time_uuid = thread_uuid + 1;
+        const auto& ids                 = event.statistics->identifiers;
 
-        auto name         = ids->name;
-        std::string rname = event.statistics == nullptr || event.statistics->identifiers == nullptr
-                                ? "PowerPlant"
-                                : event.statistics->identifiers->reactor;
-        auto event_type   = event.type == ReactionEvent::STARTED    ? TYPE_SLICE_BEGIN
-                            : event.type == ReactionEvent::FINISHED ? TYPE_SLICE_END
-                                                                    : TYPE_INSTANT;
+        const auto& name         = ids->name;
+        const std::string rname  = event.statistics == nullptr || event.statistics->identifiers == nullptr
+                                       ? "PowerPlant"
+                                       : event.statistics->identifiers->reactor;
+        const int32_t event_type = event.type == ReactionEvent::STARTED    ? TYPE_SLICE_BEGIN
+                                   : event.type == ReactionEvent::FINISHED ? TYPE_SLICE_END
+                                                                           : TYPE_INSTANT;
 
         std::vector<char> data;
         {
@@ -198,8 +197,8 @@ namespace extension {
     void TraceController::encode_log(const std::shared_ptr<const message::ReactionStatistics>& log_stats,
                                      const LogMessage& msg) {
 
-        const auto& msg_stats = msg.statistics;
-        auto thread_uuid      = thread(log_stats->created.thread);
+        const auto& msg_stats      = msg.statistics;
+        const uint64_t thread_uuid = thread(log_stats->created.thread);
 
         int32_t prio = PRIO_UNSPECIFIED;
         switch (msg.level) {
@@ -267,8 +266,8 @@ namespace extension {
             {
                 const trace::protobuf::SubMessage packet(1, data);
                 trace::protobuf::uint32(10, trusted_packet_sequence_id, data);  // trusted_packet_sequence_id:10:uint32
-                trace::protobuf::int32(87, true, data);                         // first_packet_on_sequence:87:bool
-                trace::protobuf::int32(42, true, data);                         // previous_packet_dropped:42:bool
+                trace::protobuf::int32(87, 1, data);                            // first_packet_on_sequence:87:bool
+                trace::protobuf::int32(42, 1, data);                            // previous_packet_dropped:42:bool
                 trace::protobuf::int32(13, SEQ_INCREMENTAL_STATE_CLEARED, data);  // sequence flags:13:int32
             }
             write_trace_packet(data);
