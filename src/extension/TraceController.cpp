@@ -86,14 +86,14 @@ namespace extension {
             process_uuid = 1;
             std::vector<char> data;
             {
-                trace::protobuf::SubMessage packet(1, data);  // packet:1
+                const trace::protobuf::SubMessage packet(1, data);  // packet:1
                 {
-                    trace::protobuf::SubMessage track_descriptor(60, data);  // track_descriptor:60
-                    trace::protobuf::uint64(1, 1, data);                     // uuid:1:uint64
+                    const trace::protobuf::SubMessage track_descriptor(60, data);  // track_descriptor:60
+                    trace::protobuf::uint64(1, 1, data);                           // uuid:1:uint64
                     {
-                        trace::protobuf::SubMessage process(3, data);  // process:3
-                        trace::protobuf::int32(1, 1, data);            // pid:1:int32
-                        trace::protobuf::string(6, "NUClear", data);   // name:6:string
+                        const trace::protobuf::SubMessage process(3, data);  // process:3
+                        trace::protobuf::int32(1, 1, data);                  // pid:1:int32
+                        trace::protobuf::string(6, "NUClear", data);         // name:6:string
                     }
                 }
             }
@@ -114,13 +114,13 @@ namespace extension {
 
         std::vector<char> data;
         {
-            trace::protobuf::SubMessage packet(1, data);  // packet:1
+            const trace::protobuf::SubMessage packet(1, data);  // packet:1
             {
-                trace::protobuf::SubMessage track_descriptor(60, data);  // track_descriptor:60
-                trace::protobuf::uint64(1, uuid, data);                  // uuid:1:uint64
-                trace::protobuf::uint64(5, parent_uuid, data);           // parent_uuid:5:uint64
+                const trace::protobuf::SubMessage track_descriptor(60, data);  // track_descriptor:60
+                trace::protobuf::uint64(1, uuid, data);                        // uuid:1:uint64
+                trace::protobuf::uint64(5, parent_uuid, data);                 // parent_uuid:5:uint64
                 {
-                    trace::protobuf::SubMessage thread(4, data);            // thread:4
+                    const trace::protobuf::SubMessage thread(4, data);      // thread:4
                     trace::protobuf::int32(1, int32_t(parent_uuid), data);  // pid:1:int32
                     trace::protobuf::int32(2, int32_t(uuid), data);         // tid:2:int32
                     trace::protobuf::string(5, name, data);                 // name:5:string
@@ -128,13 +128,13 @@ namespace extension {
             }
         }
         {
-            trace::protobuf::SubMessage packet(1, data);  // packet:1
+            const trace::protobuf::SubMessage packet(1, data);  // packet:1
             {
-                trace::protobuf::SubMessage track_descriptor(60, data);  // track_descriptor:60
-                trace::protobuf::uint64(1, uuid + 1, data);              // uuid:1:uint64
-                trace::protobuf::uint64(5, uuid, data);                  // parent_uuid:5:uint64
+                const trace::protobuf::SubMessage track_descriptor(60, data);  // track_descriptor:60
+                trace::protobuf::uint64(1, uuid + 1, data);                    // uuid:1:uint64
+                trace::protobuf::uint64(5, uuid, data);                        // parent_uuid:5:uint64
                 {
-                    trace::protobuf::SubMessage counter(8, data);             // counter:8
+                    const trace::protobuf::SubMessage counter(8, data);       // counter:8
                     trace::protobuf::int32(1, COUNTER_THREAD_TIME_NS, data);  // type:1:int32
                 }
             }
@@ -174,12 +174,12 @@ namespace extension {
 
         std::vector<char> data;
         {
-            trace::protobuf::SubMessage packet(1, data);                      // packet:1
+            const trace::protobuf::SubMessage packet(1, data);                // packet:1
             trace::protobuf::uint64(8, ts(relevant.realtime).count(), data);  // timestamp:8:uint64
             trace::protobuf::uint32(10, trusted_packet_sequence_id, data);    // trusted_packet_sequence_id:10:uint32
             trace::protobuf::int32(13, SEQ_NEEDS_INCREMENTAL_STATE, data);    // sequence_flags:13:int32
             {
-                trace::protobuf::SubMessage track_event(11, data);                // track_event:11
+                const trace::protobuf::SubMessage track_event(11, data);          // track_event:11
                 trace::protobuf::int32(9, event_type, data);                      // type:9:int32
                 trace::protobuf::uint64(11, thread_uuid, data);                   // track_uuid:11:uint64
                 trace::protobuf::uint64(10, event_names[ids], data);              // name_iid:10:uint64
@@ -217,19 +217,19 @@ namespace extension {
 
         std::vector<char> data;
         {
-            trace::protobuf::SubMessage packet(1, data);
+            const trace::protobuf::SubMessage packet(1, data);
             trace::protobuf::uint64(8, ts(log_stats->created.realtime).count(), data);  // timestamp:8:uint64
             trace::protobuf::uint32(10, trusted_packet_sequence_id, data);  // trusted_packet_sequence_id:10:uint32
             trace::protobuf::int32(13, SEQ_NEEDS_INCREMENTAL_STATE, data);  // sequence_flags:13:int32
             {
-                trace::protobuf::SubMessage track_event(11, data);    // track_event:11
-                trace::protobuf::uint64(11, thread_uuid, data);       // track_uuid:11:uint64
-                trace::protobuf::uint64(10, event_names[ids], data);  // name_iid:10:uint64
-                trace::protobuf::uint64(3, categories[rname], data);  // category_iids:3:uint64
-                trace::protobuf::uint64(3, categories["log"], data);  // category_iids:3:uint64
-                trace::protobuf::int32(9, TYPE_INSTANT, data);        // type:9:int32
+                const trace::protobuf::SubMessage track_event(11, data);  // track_event:11
+                trace::protobuf::uint64(11, thread_uuid, data);           // track_uuid:11:uint64
+                trace::protobuf::uint64(10, event_names[ids], data);      // name_iid:10:uint64
+                trace::protobuf::uint64(3, categories[rname], data);      // category_iids:3:uint64
+                trace::protobuf::uint64(3, categories["log"], data);      // category_iids:3:uint64
+                trace::protobuf::int32(9, TYPE_INSTANT, data);            // type:9:int32
                 {
-                    trace::protobuf::SubMessage log_message(21, data);                  // log_message:21
+                    const trace::protobuf::SubMessage log_message(21, data);            // log_message:21
                     trace::protobuf::uint64(2, log_message_bodies[msg.message], data);  // body_iid:2:uint64
                     trace::protobuf::int32(3, prio, data);                              // prio:3:int32
                 }
@@ -265,7 +265,7 @@ namespace extension {
             // Write a reset packet so that incremental state works
             std::vector<char> data;
             {
-                trace::protobuf::SubMessage packet(1, data);
+                const trace::protobuf::SubMessage packet(1, data);
                 trace::protobuf::uint32(10, trusted_packet_sequence_id, data);  // trusted_packet_sequence_id:10:uint32
                 trace::protobuf::int32(87, true, data);                         // first_packet_on_sequence:87:bool
                 trace::protobuf::int32(42, true, data);                         // previous_packet_dropped:42:bool
