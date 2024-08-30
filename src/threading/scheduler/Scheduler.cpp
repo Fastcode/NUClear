@@ -22,6 +22,7 @@
 #include "Scheduler.hpp"
 
 #include <algorithm>
+#include <stdexcept>
 
 #include "../../dsl/word/MainThread.hpp"
 #include "../../dsl/word/Pool.hpp"
@@ -116,7 +117,8 @@ namespace threading {
             if (pools.count(desc) == 0) {
                 // Don't make new pools if we are shutting down
                 if (!running.load(std::memory_order_acquire)) {
-                    throw std::runtime_error("Cannot create new pools after the scheduler has started shutting down");
+                    throw std::invalid_argument(
+                        "Cannot create new pools after the scheduler has started shutting down");
                 }
 
                 // Create the pool
