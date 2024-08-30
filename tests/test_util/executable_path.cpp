@@ -23,11 +23,11 @@
 #include "executable_path.hpp"
 
 #include <array>
+#include <stdexcept>
 #include <string>
+#include <system_error>
 
 #if defined(_WIN32)
-    #include <array>
-
     #include "util/platform.hpp"
 
 namespace test_util {
@@ -37,14 +37,13 @@ std::string get_executable_path() {
     if (size) {
         return std::string(buffer.data(), size);
     }
-    throw std::runtime_error("Could not get executable path");
+    throw std::system_error(std::make_error_code(std::errc::no_such_file_or_directory),
+                            "Could not get executable path");
 }
 }  // namespace test_util
 
 #elif defined(__APPLE__)
     #include <mach-o/dyld.h>
-
-    #include <climits>
 
 namespace test_util {
 std::string get_executable_path() {
@@ -53,14 +52,13 @@ std::string get_executable_path() {
     if (::_NSGetExecutablePath(buffer.data(), &size) == 0) {
         return std::string(buffer.data());
     }
-    throw std::runtime_error("Could not get executable path");
+    throw std::system_error(std::make_error_code(std::errc::no_such_file_or_directory),
+                            "Could not get executable path");
 }
 }  // namespace test_util
 
 #elif defined(__linux__)
     #include <unistd.h>
-
-    #include <climits>
 
 namespace test_util {
 std::string get_executable_path() {
@@ -69,7 +67,8 @@ std::string get_executable_path() {
     if (size != -1) {
         return std::string(buffer.data(), size);
     }
-    throw std::runtime_error("Could not get executable path");
+    throw std::system_error(std::make_error_code(std::errc::no_such_file_or_directory),
+                            "Could not get executable path");
 }
 }  // namespace test_util
 
