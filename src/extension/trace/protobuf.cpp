@@ -60,7 +60,7 @@ namespace extension {
                 template <typename T, typename OutputIterator, std::enable_if_t<std::is_integral<T>::value, int> = 0>
                 OutputIterator fixed(const T& value, OutputIterator out) {
                     // Cast the value down to its unsigned type and encode it as fixed
-                    std::make_unsigned_t<T> v(value);
+                    const std::make_unsigned_t<T> v(value);
                     for (size_t i = 0; i < sizeof(T); ++i) {
                         *out++ = (v >> (i * 8)) & 0xFF;
                     }
@@ -125,7 +125,9 @@ namespace extension {
             SubMessage::SubMessage(const uint32_t& id, std::vector<char>& data, size_t varint_bytes)
                 : data(data), varint_bytes(varint_bytes) {
                 encode::varint(uint32_t(id << 3 | 2), std::back_inserter(data));  // Type and id
-                start = data.size();  // Store the current position so we can write the length later
+                // C'mon clang-tidy I literally just changed the vector on the line above
+                // NOLINTNEXTLINE(cppcoreguidelines-prefer-member-initializer)
+                start = ssize_t(data.size());  // Store the current position so we can write the length later
                 data.insert(data.end(), varint_bytes, 0);  // Reserve space for the length
             }
             SubMessage::~SubMessage() {
