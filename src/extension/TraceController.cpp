@@ -81,9 +81,9 @@ namespace extension {
         }
     }
 
-    uint64_t TraceController::nuclear_process() {
-        if (nuclear_process_uuid == 0) {
-            nuclear_process_uuid = 1;
+    uint64_t TraceController::process() {
+        if (process_uuid == 0) {
+            process_uuid = 1;
             std::vector<char> data;
             {
                 trace::protobuf::SubMessage packet(1, data);  // packet:1
@@ -100,28 +100,7 @@ namespace extension {
             write_trace_packet(data);
         }
 
-        return nuclear_process_uuid;
-    }
-
-    uint64_t TraceController::non_nuclear_process() {
-        if (non_nuclear_process_uuid == 0) {
-            non_nuclear_process_uuid = 2;
-            std::vector<char> data;
-            {
-                trace::protobuf::SubMessage packet(1, data);  // packet:1
-                {
-                    trace::protobuf::SubMessage track_descriptor(60, data);  // track_descriptor:60
-                    trace::protobuf::uint64(1, 1, data);                     // uuid:1:uint64
-                    {
-                        trace::protobuf::SubMessage process(3, data);     // process:3
-                        trace::protobuf::int32(1, 2, data);               // pid:1:int32
-                        trace::protobuf::string(6, "Non NUClear", data);  // name:6:string
-                    }
-                }
-            }
-            write_trace_packet(data);
-        }
-        return non_nuclear_process_uuid;
+        return process_uuid;
     }
 
     uint64_t TraceController::thread(const ReactionStatistics::Event::ThreadInfo& info) {
@@ -129,7 +108,7 @@ namespace extension {
             return thread_uuids.at(info.thread_id);
         }
 
-        auto parent_uuid = info.pool != nullptr ? nuclear_process() : non_nuclear_process();
+        auto parent_uuid = process();
         uint64_t uuid = thread_uuids[info.thread_id] = next_uuid.fetch_add(2, std::memory_order::memory_order_relaxed);
         std::string name                             = info.pool == nullptr ? "Non NUClear" : info.pool->name;
 
