@@ -34,9 +34,8 @@ namespace dsl {
              * This struct is here to define the main thread pool.
              */
             struct Main {
-                static constexpr const char* name     = "Main";
-                static constexpr int thread_count     = 1;
-                static constexpr bool counts_for_idle = true;
+                static constexpr const char* name = "Main";
+                static constexpr int thread_count = 1;
             };
         }  // namespace pool
 

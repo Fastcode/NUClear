@@ -42,6 +42,17 @@ namespace threading {
 
         class Pool : public std::enable_shared_from_this<Pool> {
         public:
+            enum class StopType : uint8_t {
+                /// Normal stop, wait for all tasks to finish and accept no more tasks
+                /// Pools which ignore shutdown will continue to accept tasks
+                NORMAL,
+                /// Final stop request, pools which ignore shutdown will finish when all tasks are done
+                /// However they will continue to accept tasks
+                FINAL,
+                /// Force stop, the queue will be cleared and all threads will be woken
+                FORCE
+            };
+
             struct Task {
                 /**
                  * @brief Construct a new Task object
@@ -103,8 +114,10 @@ namespace threading {
             /**
              * Stops the thread pool, all threads are woken and once the task queue is empty the threads will exit.
              * This function returns immediately, use join to wait for the threads to exit.
+             *
+             * @param type the type of stop to perform
              */
-            void stop(bool force = false);
+            void stop(const StopType& type);
 
             /**
              * Notify a thread in this pool that there is work to do.
@@ -204,6 +217,8 @@ namespace threading {
 
             /// If running is false this means the pool is shutting down and no more tasks will be accepted
             bool running = true;
+            /// If accept is false this pool will no longer accept new tasks
+            bool accept = true;
 
             /// The threads which are running in this thread pool
             std::vector<std::unique_ptr<std::thread>> threads;
