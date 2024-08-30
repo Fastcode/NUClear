@@ -27,6 +27,7 @@
 
 #include "test_util/TestBase.hpp"
 #include "test_util/TimeUnit.hpp"
+#include "test_util/common.hpp"
 
 class TestReactor : public test_util::TestBase<TestReactor> {
 public:
@@ -96,6 +97,7 @@ TEST_CASE("Testing the Watchdog Smart Type", "[api][watchdog]") {
     NUClear::Configuration config;
     config.thread_count = 1;
     NUClear::PowerPlant plant(config);
+    test_util::add_tracing(plant);
     plant.install<NUClear::extension::ChronoController>();
     const auto& reactor = plant.install<TestReactor>();
     plant.start();

@@ -25,6 +25,7 @@
 #include <sstream>
 
 #include "test_util/TestBase.hpp"
+#include "test_util/common.hpp"
 
 class TestReactor : public test_util::TestBase<TestReactor> {
 private:
@@ -53,6 +54,7 @@ TEST_CASE("Testing the Command Line argument capturing", "[api][command_line_arg
     NUClear::Configuration config;
     config.thread_count = 1;
     NUClear::PowerPlant plant(config, argc, argv);
+    test_util::add_tracing(plant);
     const auto& reactor = plant.install<TestReactor>();
     plant.start();
 

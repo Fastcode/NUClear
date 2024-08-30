@@ -24,6 +24,7 @@
 #include <nuclear>
 
 #include "test_util/TestBase.hpp"
+#include "test_util/common.hpp"
 
 class TestReactor : public NUClear::Reactor {
 public:
@@ -67,6 +68,7 @@ TEST_CASE("Reactions with the Once DSL keyword only execute once", "[api][once]"
     NUClear::Configuration config;
     config.thread_count = 1;
     NUClear::PowerPlant plant(config);
+    test_util::add_tracing(plant);
     const auto& reactor = plant.install<TestReactor>();
     plant.start();
 

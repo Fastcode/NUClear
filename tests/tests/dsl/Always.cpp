@@ -24,6 +24,7 @@
 #include <nuclear>
 
 #include "test_util/TestBase.hpp"
+#include "test_util/common.hpp"
 
 class TestReactor : public test_util::TestBase<TestReactor> {
 public:

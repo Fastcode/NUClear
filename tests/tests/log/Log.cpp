@@ -21,7 +21,11 @@
  */
 
 #include <catch2/catch_test_macros.hpp>
+#include <iostream>
 #include <nuclear>
+
+#include "test_util/common.hpp"
+#include "test_util/executable_path.hpp"
 
 // This is a free floating function that we can use to test the log function when not in a reactor
 template <NUClear::LogLevel level, typename... Args>
@@ -47,8 +51,6 @@ struct TestLevel {
     TestLevel(NUClear::LogLevel level) : level(level) {}
     NUClear::LogLevel level;
 };
-
-struct ShutdownOnIdle {};
 
 class TestReactor : public NUClear::Reactor {
 public:
@@ -95,7 +97,7 @@ public:
         });
 
         // Shutdown when we have no tasks running
-        on<Trigger<ShutdownOnIdle>, Priority::IDLE>().then([this] {
+        on<Idle<>>().then([this] {
             powerplant.shutdown();
 
             free_floating_log<NUClear::TRACE>("Post Powerplant Shutdown", NUClear::TRACE);
@@ -127,8 +129,6 @@ public:
             for (const auto& level : levels) {
                 emit(std::make_unique<TestLevel>(level));
             }
-
-            emit(std::make_unique<ShutdownOnIdle>());
         });
     }
 };
@@ -152,6 +152,7 @@ TEST_CASE("Testing the Log<>() function", "[api][log]") {
         NUClear::PowerPlant plant(config);
 
         // Install the test reactor
+        test_util::add_tracing(plant);
         plant.install<TestReactor>();
         plant.start();
     }

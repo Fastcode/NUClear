@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2013 NUClear Contributors
+ * Copyright (c) 2024 NUClear Contributors
  *
  * This file is part of the NUClear codebase.
  * See https://github.com/Fastcode/NUClear for further info.
@@ -20,26 +20,30 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR
-#define NUCLEAR
+#ifndef NUCLEAR_MESSAGE_TRACE_HPP
+#define NUCLEAR_MESSAGE_TRACE_HPP
 
-// Main classes
-#include "${nuclear_include_base_directory}PowerPlant.hpp"
-#include "${nuclear_include_base_directory}Reactor.hpp"
+#include "../clock.hpp"
 
-// Message types
-#include "${nuclear_include_base_directory}message/CommandLineArguments.hpp"
-#include "${nuclear_include_base_directory}message/LogMessage.hpp"
-#include "${nuclear_include_base_directory}message/NetworkConfiguration.hpp"
-#include "${nuclear_include_base_directory}message/NetworkEvent.hpp"
-#include "${nuclear_include_base_directory}message/ReactionStatistics.hpp"
-#include "${nuclear_include_base_directory}message/TimeTravel.hpp"
-#include "${nuclear_include_base_directory}message/Trace.hpp"
+namespace NUClear {
+namespace message {
+    /**
+     * This message will start recording a trace of the system to the specified file.
+     */
+    struct BeginTrace {
+        BeginTrace(std::string file = "trace.trace", const bool& logs = true) : file(std::move(file)), logs(logs) {}
+        /// The file to write the trace to
+        std::string file;
+        /// If log messages should be included in the trace
+        bool logs;
+    };
 
-// Extensions
-#include "${nuclear_include_base_directory}extension/ChronoController.hpp"
-#include "${nuclear_include_base_directory}extension/IOController.hpp"
-#include "${nuclear_include_base_directory}extension/NetworkController.hpp"
-#include "${nuclear_include_base_directory}extension/TraceController.hpp"
+    /**
+     * This message will stop recording the trace of the system.
+     */
+    struct EndTrace {};
 
-#endif  // NUCLEAR
+}  // namespace message
+}  // namespace NUClear
+
+#endif  // NUCLEAR_MESSAGE_TRACE_HPP

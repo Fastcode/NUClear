@@ -4,6 +4,7 @@
 
 #include "test_util/TestBase.hpp"
 #include "test_util/TimeUnit.hpp"
+#include "test_util/common.hpp"
 
 using TimeUnit = test_util::TimeUnit;
 
@@ -78,6 +79,7 @@ TEST_CASE("Test time travel correctly changes the time for non zero rtf", "[time
 
     const NUClear::Configuration config;
     NUClear::PowerPlant plant(config);
+    test_util::add_tracing(plant);
     plant.install<NUClear::extension::ChronoController>();
     auto& reactor = plant.install<TestReactor>();
 

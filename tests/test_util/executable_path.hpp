@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2013 NUClear Contributors
+ * Copyright (c) 2024 NUClear Contributors
  *
  * This file is part of the NUClear codebase.
  * See https://github.com/Fastcode/NUClear for further info.
@@ -20,26 +20,20 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR
-#define NUCLEAR
+#ifndef TEST_UTIL_GET_EXECUTABLE_PATH_HPP
+#define TEST_UTIL_GET_EXECUTABLE_PATH_HPP
 
-// Main classes
-#include "${nuclear_include_base_directory}PowerPlant.hpp"
-#include "${nuclear_include_base_directory}Reactor.hpp"
+#include <string>
 
-// Message types
-#include "${nuclear_include_base_directory}message/CommandLineArguments.hpp"
-#include "${nuclear_include_base_directory}message/LogMessage.hpp"
-#include "${nuclear_include_base_directory}message/NetworkConfiguration.hpp"
-#include "${nuclear_include_base_directory}message/NetworkEvent.hpp"
-#include "${nuclear_include_base_directory}message/ReactionStatistics.hpp"
-#include "${nuclear_include_base_directory}message/TimeTravel.hpp"
-#include "${nuclear_include_base_directory}message/Trace.hpp"
+namespace test_util {
 
-// Extensions
-#include "${nuclear_include_base_directory}extension/ChronoController.hpp"
-#include "${nuclear_include_base_directory}extension/IOController.hpp"
-#include "${nuclear_include_base_directory}extension/NetworkController.hpp"
-#include "${nuclear_include_base_directory}extension/TraceController.hpp"
+/**
+ * Gets the path to the currently running executable.
+ *
+ * @return std::string
+ */
+std::string get_executable_path();
 
-#endif  // NUCLEAR
+}  // namespace test_util
+
+#endif  // TEST_UTIL_GET_EXECUTABLE_PATH_HPP

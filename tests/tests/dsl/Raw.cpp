@@ -23,8 +23,11 @@
 #include <catch2/catch_test_macros.hpp>
 #include <nuclear>
 
-class TestReactor : public NUClear::Reactor {
-private:
+#include "test_util/TestBase.hpp"
+#include "test_util/common.hpp"
+
+class TestReactor : public test_util::TestBase<TestReactor> {
+public:
     struct TypeA {
         TypeA(int x) : x(x) {}
         int x;
@@ -35,13 +38,10 @@ private:
         int x;
     };
 
-    std::vector<std::shared_ptr<const TypeA>> stored;
-
-public:
-    TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
+    TestReactor(std::unique_ptr<NUClear::Environment> environment) : TestBase(std::move(environment)) {
 
         // Trigger on TypeA and store the result
-        on<Trigger<TypeA>>().then([this](const std::shared_ptr<const TypeA>& a) {
+        on<Trigger<TypeA>, MainThread>().then([this](const std::shared_ptr<const TypeA>& a) {
             stored.push_back(a);
 
             // Wait until we have 10 elements
@@ -53,7 +53,7 @@ public:
             }
         });
 
-        on<Trigger<TypeB>>().then([this](const TypeB&) {
+        on<Trigger<TypeB>, MainThread>().then([this](const TypeB&) {
             // Make sure that our type a list has numbers 0 to 9
 
             REQUIRE(stored.size() == 10);
@@ -61,12 +61,12 @@ public:
             for (int i = 0; i < int(stored.size()); ++i) {
                 REQUIRE(stored[i]->x == i);
             }
-
-            powerplant.shutdown();
         });
 
         on<Startup>().then([this] { emit(std::make_unique<TypeA>(0)); });
     }
+
+    std::vector<std::shared_ptr<const TypeA>> stored;
 };
 
 
@@ -75,6 +75,7 @@ TEST_CASE("Testing the raw type conversions work properly", "[api][raw]") {
     NUClear::Configuration config;
     config.thread_count = 1;
     NUClear::PowerPlant plant(config);
+    test_util::add_tracing(plant);
     plant.install<TestReactor>();
 
     plant.start();

@@ -24,6 +24,7 @@
 #include <nuclear>
 
 #include "test_util/TestBase.hpp"
+#include "test_util/common.hpp"
 
 class TestReactor : public test_util::TestBase<TestReactor> {
 public:
@@ -67,6 +68,7 @@ TEST_CASE("Testing that when an on statement does not have it's data satisfied i
     NUClear::Configuration config;
     config.thread_count = 1;
     NUClear::PowerPlant plant(config);
+    test_util::add_tracing(plant);
     const auto& reactor = plant.install<TestReactor>();
     plant.start();
 

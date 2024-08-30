@@ -149,6 +149,7 @@ namespace threading {
         /// This will be nullptr if this task is ineligible to emit stats (e.g. it would cause a loop)
         std::shared_ptr<message::ReactionStatistics> stats;
 
+
         /// The data bound callback to be executed
         /// @attention note this must be last in the list as the this pointer is passed to the callback generator
         TaskFunction callback;

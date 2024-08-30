@@ -83,7 +83,7 @@ namespace util {
 
                 // Set the created status as rejected and emit it
                 if (task->stats != nullptr) {
-                    PowerPlant::powerplant->emit<dsl::word::emit::Inline>(
+                    PowerPlant::powerplant->emit(
                         std::make_unique<message::ReactionEvent>(message::ReactionEvent::BLOCKED, task->stats));
                 }
 
@@ -104,7 +104,7 @@ namespace util {
 
                 // Set the created status as no data and emit it
                 if (task->stats != nullptr) {
-                    PowerPlant::powerplant->emit<dsl::word::emit::Inline>(
+                    PowerPlant::powerplant->emit(
                         std::make_unique<message::ReactionEvent>(message::ReactionEvent::MISSING_DATA, task->stats));
                 }
 
@@ -114,7 +114,7 @@ namespace util {
 
             // Set the created status as no data and emit it
             if (task->stats != nullptr) {
-                PowerPlant::powerplant->emit<dsl::word::emit::Inline>(
+                PowerPlant::powerplant->emit(
                     std::make_unique<message::ReactionEvent>(message::ReactionEvent::CREATED, task->stats));
             }
 
@@ -126,7 +126,7 @@ namespace util {
 
                 if (task.stats != nullptr) {
                     task.stats->started = message::ReactionStatistics::Event::now();
-                    PowerPlant::powerplant->emit<dsl::word::emit::Inline>(
+                    PowerPlant::powerplant->emit(
                         std::make_unique<message::ReactionEvent>(message::ReactionEvent::STARTED, task.stats));
                 }
 
@@ -147,7 +147,7 @@ namespace util {
 
                 if (task.stats != nullptr) {
                     task.stats->finished = message::ReactionStatistics::Event::now();
-                    PowerPlant::powerplant->emit<dsl::word::emit::Inline>(
+                    PowerPlant::powerplant->emit(
                         std::make_unique<message::ReactionEvent>(message::ReactionEvent::FINISHED, task.stats));
                 }
             };

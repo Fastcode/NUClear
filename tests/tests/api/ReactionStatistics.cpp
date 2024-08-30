@@ -24,6 +24,7 @@
 #include <nuclear>
 
 #include "test_util/TestBase.hpp"
+#include "test_util/common.hpp"
 
 // This namespace is named to make things consistent with the reaction statistics test
 
@@ -39,13 +40,13 @@ public:
 
         // This reaction is here to emit something from a ReactionStatistics trigger
         // This shouldn't cause reaction statistics of their own otherwise everything would explode
-        on<Trigger<ReactionEvent>>().then("Loop Statistics", [this](const ReactionEvent&) {  //
+        on<Trigger<ReactionEvent>, Priority::HIGH>().then("Loop Statistics", [this](const ReactionEvent&) {  //
             emit(std::make_unique<LoopMessage>());
         });
         on<Trigger<LoopMessage>>().then("No Statistics", [] {});
 
 
-        on<Trigger<ReactionEvent>>().then("Reaction Stats Handler", [this](const ReactionEvent& event) {
+        on<Trigger<ReactionEvent>, Priority::HIGH>().then("Reaction Stats Handler", [this](const ReactionEvent& event) {
             const auto& stats = *event.statistics;
 
             // Other reactions statistics run on this because of built in NUClear reactors (e.g. chrono controller etc)
@@ -99,6 +100,7 @@ TEST_CASE("Testing reaction statistics functionality", "[api][reactionstatistics
     NUClear::Configuration config;
     config.thread_count = 1;
     NUClear::PowerPlant plant(config);
+    test_util::add_tracing(plant);
     const auto& reactor = plant.install<TestReactor>();
     plant.start();
 
