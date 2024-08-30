@@ -166,7 +166,7 @@ namespace threading {
             return lock;
         }
 
-        void Scheduler::submit(std::unique_ptr<ReactionTask>&& task, const bool& immediate) noexcept {
+        void Scheduler::submit(std::unique_ptr<ReactionTask>&& task) noexcept {
             // Ignore null tasks
             if (task == nullptr) {
                 return;
@@ -177,7 +177,7 @@ namespace threading {
             auto group_lock = get_groups_lock(task->id, task->priority, pool, task->group_descriptors);
 
             // If this task should run immediately and not limited by the group lock
-            if (immediate && (group_lock == nullptr || group_lock->lock())) {
+            if (task->run_inline && (group_lock == nullptr || group_lock->lock())) {
                 task->run();
             }
             else {

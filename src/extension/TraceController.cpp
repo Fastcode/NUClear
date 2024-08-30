@@ -504,14 +504,12 @@ namespace extension {
                 encode_event(e);
             });
             if (e.logs) {
-                log_handle = on<Trigger<LogMessage>, Pool<TracePool>>().then([this](const LogMessage& msg) {
-                    // TODO need a way to force this to go to the TracePool
-                    // Basically a "no direct" dsl word
-
-                    // Statistics for the log message task itself
-                    auto log_stats = threading::ReactionTask::get_current_task()->stats;
-                    encode_log(log_stats, msg);
-                });
+                log_handle =
+                    on<Trigger<LogMessage>, Pool<TracePool>, Inline::NEVER>().then([this](const LogMessage& msg) {
+                        // Statistics for the log message task itself
+                        auto log_stats = threading::ReactionTask::get_current_task()->stats;
+                        encode_log(log_stats, msg);
+                    });
             }
         });
 

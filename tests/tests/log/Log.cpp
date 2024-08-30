@@ -153,7 +153,7 @@ TEST_CASE("Testing the Log<>() function", "[api][log]") {
 
         // Install the test reactor
         plant.install<NUClear::extension::TraceController>();
-        plant.emit<NUClear::dsl::word::emit::Direct>(std::make_unique<NUClear::message::BeginTrace>());
+        plant.emit<NUClear::dsl::word::emit::Inline>(std::make_unique<NUClear::message::BeginTrace>());
         plant.install<TestReactor>();
         plant.start();
     }

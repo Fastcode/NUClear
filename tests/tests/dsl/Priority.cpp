@@ -93,7 +93,7 @@ TEST_CASE("Tests that priority orders the tasks appropriately", "[api][priority]
     config.thread_count = 1;
     NUClear::PowerPlant plant(config);
     plant.install<NUClear::extension::TraceController>();
-    plant.emit<NUClear::dsl::word::emit::Direct>(std::make_unique<NUClear::message::BeginTrace>());
+    plant.emit<NUClear::dsl::word::emit::Inline>(std::make_unique<NUClear::message::BeginTrace>());
     const auto& reactor = plant.install<TestReactor>();
     plant.start();
 

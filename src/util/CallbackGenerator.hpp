@@ -25,7 +25,7 @@
 
 #include <type_traits>
 
-#include "../dsl/word/emit/Direct.hpp"
+#include "../dsl/word/emit/Inline.hpp"
 #include "../message/ReactionStatistics.hpp"
 #include "../util/MergeTransient.hpp"
 #include "../util/TransientDataElements.hpp"
@@ -68,16 +68,22 @@ namespace util {
                 std::get<DIndex>(data))...);
         }
 
-        std::unique_ptr<threading::ReactionTask> operator()(const std::shared_ptr<threading::Reaction>& r) {
+        std::unique_ptr<threading::ReactionTask> operator()(const std::shared_ptr<threading::Reaction>& r,
+                                                            const bool& request_inline) {
 
-            auto task = std::make_unique<threading::ReactionTask>(r, DSL::priority, DSL::pool, DSL::group);
+            auto task = std::make_unique<threading::ReactionTask>(r,
+                                                                  request_inline,
+                                                                  DSL::priority,
+                                                                  DSL::run_inline,
+                                                                  DSL::pool,
+                                                                  DSL::group);
 
             // Check if we should even run
             if (!DSL::precondition(*task)) {
 
                 // Set the created status as rejected and emit it
                 if (task->stats != nullptr) {
-                    PowerPlant::powerplant->emit<dsl::word::emit::Direct>(
+                    PowerPlant::powerplant->emit<dsl::word::emit::Inline>(
                         std::make_unique<message::ReactionEvent>(message::ReactionEvent::BLOCKED, task->stats));
                 }
 

@@ -75,6 +75,8 @@ namespace dsl {
 
         struct NetworkSource;
 
+        struct Inline;
+
         template <typename>
         struct Trigger;
 
@@ -112,7 +114,7 @@ namespace dsl {
             template <typename T>
             struct Local;
             template <typename T>
-            struct Direct;
+            struct Inline;
             template <typename T>
             struct Delay;
             template <typename T>
@@ -233,6 +235,9 @@ protected:
     /// @copydoc dsl::word::Network
     using NetworkSource = dsl::word::NetworkSource;
 
+    /// @copydoc dsl::word::Inline
+    using Inline = dsl::word::Inline;
+
     /// @copydoc dsl::word::Shutdown
     using Shutdown = dsl::word::Shutdown;
 
@@ -281,9 +286,9 @@ protected:
         template <typename T>
         using LOCAL = dsl::word::emit::Local<T>;
 
-        /// @copydoc dsl::word::emit::Direct
+        /// @copydoc dsl::word::emit::Inline
         template <typename T>
-        using DIRECT = dsl::word::emit::Direct<T>;
+        using INLINE = dsl::word::emit::Inline<T>;
 
         /// @copydoc dsl::word::emit::Delay
         template <typename T>
@@ -456,6 +461,7 @@ public:
 #include "dsl/word/Group.hpp"
 #include "dsl/word/IO.hpp"
 #include "dsl/word/Idle.hpp"
+#include "dsl/word/Inline.hpp"
 #include "dsl/word/Last.hpp"
 #include "dsl/word/MainThread.hpp"
 #include "dsl/word/Network.hpp"
@@ -473,8 +479,8 @@ public:
 #include "dsl/word/Watchdog.hpp"
 #include "dsl/word/With.hpp"
 #include "dsl/word/emit/Delay.hpp"
-#include "dsl/word/emit/Direct.hpp"
 #include "dsl/word/emit/Initialise.hpp"
+#include "dsl/word/emit/Inline.hpp"
 #include "dsl/word/emit/Local.hpp"
 #include "dsl/word/emit/Network.hpp"
 #include "dsl/word/emit/UDP.hpp"

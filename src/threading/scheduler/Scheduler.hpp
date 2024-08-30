@@ -70,10 +70,8 @@ namespace threading {
              * be processed.
              *
              * @param task the reaction task task to submit
-             * @param immediate if this task should run immediately in the current thread. If immediate execution of
-             * this task is not possible (e.g. due to group concurrency restrictions) this task will be queued as normal
              */
-            void submit(std::unique_ptr<ReactionTask>&& task, const bool& immediate = false) noexcept;
+            void submit(std::unique_ptr<ReactionTask>&& task) noexcept;
 
             /**
              * Adds a task to the idle task list.

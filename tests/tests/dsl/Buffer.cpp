@@ -101,7 +101,7 @@ TEST_CASE("Test that Buffer and Single limit the number of concurrent executions
     config.thread_count = 1;
     NUClear::PowerPlant plant(config);
     plant.install<NUClear::extension::TraceController>();
-    plant.emit<NUClear::dsl::word::emit::Direct>(std::make_unique<NUClear::message::BeginTrace>());
+    plant.emit<NUClear::dsl::word::emit::Inline>(std::make_unique<NUClear::message::BeginTrace>());
     const auto& reactor = plant.install<TestReactor>();
     plant.start();
 

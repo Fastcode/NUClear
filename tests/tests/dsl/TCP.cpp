@@ -213,7 +213,7 @@ TEST_CASE("Testing listening for TCP connections and receiving data messages", "
     config.thread_count = 2;
     NUClear::PowerPlant plant(config);
     plant.install<NUClear::extension::TraceController>();
-    plant.emit<NUClear::dsl::word::emit::Direct>(std::make_unique<NUClear::message::BeginTrace>());
+    plant.emit<NUClear::dsl::word::emit::Inline>(std::make_unique<NUClear::message::BeginTrace>());
     plant.install<NUClear::extension::IOController>();
     plant.install<TestReactor>();
     plant.start();

@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2013 NUClear Contributors
+ * Copyright (c) 2023 NUClear Contributors
  *
  * This file is part of the NUClear codebase.
  * See https://github.com/Fastcode/NUClear for further info.
@@ -20,51 +20,30 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include "Reaction.hpp"
+#ifndef NUCLEAR_UTIL_INLINE_HPP
+#define NUCLEAR_UTIL_INLINE_HPP
 
-#include <memory>
-#include <utility>
+#include <atomic>
+#include <cstddef>
+#include <cstdint>
+#include <limits>
+#include <string>
 
 #include "../id.hpp"
-#include "ReactionIdentifiers.hpp"
-#include "ReactionTask.hpp"
 
 namespace NUClear {
-namespace threading {
+namespace util {
 
-    Reaction::Reaction(Reactor& reactor, ReactionIdentifiers&& identifiers, TaskGenerator&& generator)
-        : reactor(reactor)
-        , identifiers(std::make_shared<ReactionIdentifiers>(std::move(identifiers)))
-        , generator(std::move(generator)) {}
+    enum class Inline : uint8_t {
+        /// Never inline this reaction, always execute it within its target thread pool
+        NEVER,
+        /// Inlining is left to the creator of the reaction
+        NEUTRAL,
+        /// Always inline this reaction, even if it was not emitted directly
+        ALWAYS
+    };
 
-    Reaction::~Reaction() = default;
-
-    std::unique_ptr<ReactionTask> Reaction::get_task(const bool& request_inline) {
-        // If we are not enabled, don't run
-        if (!enabled) {
-            return nullptr;
-        }
-
-        // Return the task returned by the generator
-        return generator(this->shared_from_this(), request_inline);
-    }
-
-    void Reaction::unbind() {
-        // Unbind
-        for (auto& u : unbinders) {
-            u(*this);
-        }
-    }
-
-    bool Reaction::is_enabled() const {
-        return enabled;
-    }
-
-    NUClear::id_t Reaction::next_id() {
-        // Start at 1 to make 0 an invalid id
-        static std::atomic<NUClear::id_t> id_source(1);
-        return id_source.fetch_add(1, std::memory_order_seq_cst);
-    }
-
-}  // namespace threading
+}  // namespace util
 }  // namespace NUClear
+
+#endif  // NUCLEAR_UTIL_INLINE_HPP

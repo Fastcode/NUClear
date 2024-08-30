@@ -28,7 +28,7 @@
 #include "../../threading/Reaction.hpp"
 #include "../operation/ChronoTask.hpp"
 #include "../operation/Unbind.hpp"
-#include "emit/Direct.hpp"
+#include "emit/Inline.hpp"
 
 namespace NUClear {
 namespace dsl {
@@ -85,11 +85,11 @@ namespace dsl {
             static void bind(const std::shared_ptr<threading::Reaction>& reaction, NUClear::clock::duration jump) {
 
                 reaction->unbinders.push_back([](const threading::Reaction& r) {
-                    r.reactor.emit<emit::Direct>(std::make_unique<operation::Unbind<operation::ChronoTask>>(r.id));
+                    r.reactor.emit<emit::Inline>(std::make_unique<operation::Unbind<operation::ChronoTask>>(r.id));
                 });
 
                 // Send our configuration out
-                reaction->reactor.emit<emit::Direct>(std::make_unique<operation::ChronoTask>(
+                reaction->reactor.emit<emit::Inline>(std::make_unique<operation::ChronoTask>(
                     [reaction, jump](NUClear::clock::time_point& time) {
                         // submit the reaction to the thread pool
                         reaction->reactor.powerplant.submit(reaction->get_task());

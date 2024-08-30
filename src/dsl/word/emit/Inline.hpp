@@ -20,8 +20,8 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_DSL_WORD_EMIT_DIRECT_HPP
-#define NUCLEAR_DSL_WORD_EMIT_DIRECT_HPP
+#ifndef NUCLEAR_DSL_WORD_EMIT_INLINE_HPP
+#define NUCLEAR_DSL_WORD_EMIT_INLINE_HPP
 
 #include "../../../PowerPlant.hpp"
 #include "../../store/DataStore.hpp"
@@ -35,9 +35,10 @@ namespace dsl {
 
             /**
              * When emitting data under this scope, the tasks created as a result of this emission will bypass the
-             * thread pool, and be executed immediately.
+             * thread pool, and be executed immediately if they can be.
+             * If a task specifies that it is not inlinable, it will be executed in the thread pool as normal.
              *
-             * @code emit<Scope::DIRECT>(data, dataType); @endcode
+             * @code emit<Scope::INLINE>(data, dataType); @endcode
              * When data is emitted via this scope, the task which is currently executing will be paused.
              * At this time any tasks created as a result of this emission are executed one at a time sequentially,
              * using the current thread.
@@ -52,15 +53,15 @@ namespace dsl {
              * @param data The data to emit
              */
             template <typename DataType>
-            struct Direct {
+            struct Inline {
 
                 static void emit(PowerPlant& powerplant, std::shared_ptr<DataType> data) {
 
                     // Run all our reactions that are interested
                     for (auto& reaction : store::TypeCallbackStore<DataType>::get()) {
-                        // Set our thread local store data each time (as during direct it can be overwritten)
+                        // Set our thread local store data each time (as during inline it can be overwritten)
                         store::ThreadStore<std::shared_ptr<DataType>>::value = &data;
-                        powerplant.submit(reaction->get_task(), true);
+                        powerplant.submit(reaction->get_task(true));
                     }
 
                     // Unset our thread local store data
@@ -76,4 +77,4 @@ namespace dsl {
 }  // namespace dsl
 }  // namespace NUClear
 
-#endif  // NUCLEAR_DSL_WORD_EMIT_DIRECT_HPP
+#endif  // NUCLEAR_DSL_WORD_EMIT_INLINE_HPP

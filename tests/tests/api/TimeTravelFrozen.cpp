@@ -21,7 +21,7 @@ public:
             NUClear::clock::set_clock(NUClear::clock::time_point(), 0.0);
 
             // Emit a chrono task to run at time EVENT_1_TIME
-            emit<Scope::DIRECT>(std::make_unique<NUClear::dsl::operation::ChronoTask>(
+            emit<Scope::INLINE>(std::make_unique<NUClear::dsl::operation::ChronoTask>(
                 [this](NUClear::clock::time_point&) {
                     add_event("Event 1");
                     return false;
@@ -30,7 +30,7 @@ public:
                 1));
 
             // Emit a chrono task to run at time EVENT_2_TIME
-            emit<Scope::DIRECT>(std::make_unique<NUClear::dsl::operation::ChronoTask>(
+            emit<Scope::INLINE>(std::make_unique<NUClear::dsl::operation::ChronoTask>(
                 [this](NUClear::clock::time_point&) {
                     add_event("Event 2");
                     return false;
@@ -39,7 +39,7 @@ public:
                 2));
 
             // Time travel
-            emit<Scope::DIRECT>(
+            emit<Scope::INLINE>(
                 std::make_unique<NUClear::message::TimeTravel>(NUClear::clock::time_point(adjustment), rtf, action));
 
             // Shutdown after steady clock amount of time
@@ -81,7 +81,7 @@ TEST_CASE("Test time travel correctly changes the time for non zero rtf", "[time
     const NUClear::Configuration config;
     NUClear::PowerPlant plant(config);
     plant.install<NUClear::extension::TraceController>();
-    plant.emit<NUClear::dsl::word::emit::Direct>(std::make_unique<NUClear::message::BeginTrace>());
+    plant.emit<NUClear::dsl::word::emit::Inline>(std::make_unique<NUClear::message::BeginTrace>());
     plant.install<NUClear::extension::ChronoController>();
     auto& reactor = plant.install<TestReactor>();
 

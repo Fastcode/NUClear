@@ -117,7 +117,7 @@ TEST_CASE("Test that Idle won't fire when an already idle pool goes idle again",
     config.thread_count = 1;
     NUClear::PowerPlant plant(config);
     plant.install<NUClear::extension::TraceController>();
-    plant.emit<NUClear::dsl::word::emit::Direct>(std::make_unique<NUClear::message::BeginTrace>());
+    plant.emit<NUClear::dsl::word::emit::Inline>(std::make_unique<NUClear::message::BeginTrace>());
     auto& reactor = plant.install<TestReactor>();
     plant.start();
 

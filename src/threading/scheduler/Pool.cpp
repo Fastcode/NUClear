@@ -26,6 +26,7 @@
 #include "../../dsl/word/MainThread.hpp"
 #include "../../dsl/word/Pool.hpp"
 #include "../../message/ReactionStatistics.hpp"
+#include "../../util/Inline.hpp"
 #include "../ReactionTask.hpp"
 #include "CombinedLock.hpp"
 #include "CountingLock.hpp"
@@ -255,13 +256,15 @@ namespace threading {
             // Make a reaction task which will submit all the idle tasks to the scheduler
             auto task = std::make_unique<ReactionTask>(
                 nullptr,
+                true,
                 [](const ReactionTask&) { return 0; },
+                [](const ReactionTask&) { return util::Inline::ALWAYS; },
                 [](const ReactionTask&) { return dsl::word::Pool<>::descriptor(); },
                 [](const ReactionTask&) { return std::set<std::shared_ptr<const util::GroupDescriptor>>{}; });
-            task->callback = [this, tasks = std::move(tasks)](const ReactionTask& /*task*/) {
-                for (const auto& idle_task : tasks) {
+            task->callback = [this, t = std::move(tasks)](const ReactionTask& /*task*/) {
+                for (const auto& idle_task : t) {
                     // Submit all the idle tasks to the scheduler
-                    scheduler.submit(idle_task->get_task(), false);
+                    scheduler.submit(idle_task->get_task());
                 }
             };
 
