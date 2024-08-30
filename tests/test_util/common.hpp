@@ -29,6 +29,16 @@
 
 namespace test_util {
 
+/**
+ * Adds tracing functionality to the given NUClear::PowerPlant.
+ *
+ * This function installs the NUClear::extension::TraceController extension into the power plant
+ * and emits a NUClear::message::BeginTrace message to start tracing.
+ *
+ * The trace file will be written to the same location as the test binary with a .trace extension.
+ *
+ * @param plant The NUClear::PowerPlant to add tracing to.
+ */
 inline void add_tracing(NUClear::PowerPlant& plant) {
     auto test_binary_path = get_executable_path();
     plant.install<NUClear::extension::TraceController>();
