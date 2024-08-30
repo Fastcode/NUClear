@@ -124,7 +124,6 @@ namespace extension {
              */
             void string(const uint32_t& id, const std::string& value, std::vector<char>& data);
 
-
         }  // namespace protobuf
     }  // namespace trace
 }  // namespace extension

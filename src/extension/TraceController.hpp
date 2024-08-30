@@ -114,8 +114,6 @@ namespace extension {
         trace::StringInterner<std::string, 1> categories;
         /// The interned event names
         trace::StringInterner<std::shared_ptr<const NUClear::threading::ReactionIdentifiers>, 2> event_names;
-        /// The interned source locations
-        trace::StringInterner<std::shared_ptr<const NUClear::threading::ReactionIdentifiers>, 4> source_locations;
         /// The interned log message bodies
         trace::StringInterner<std::string, 20> log_message_bodies;
     };
