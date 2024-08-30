@@ -34,9 +34,9 @@
 namespace test_util {
 std::string get_executable_path() {
     std::array<char, MAX_PATH> buffer;
-    DWORD size = GetModuleFileName(NULL, buffer.data(), buffer.size());
+    const DWORD size = GetModuleFileName(NULL, buffer.data(), buffer.size());
     if (size) {
-        return std::string(buffer.data(), size);
+        return {buffer.data(), size};
     }
     throw std::system_error(std::make_error_code(std::errc::no_such_file_or_directory),
                             "Could not get executable path");
@@ -51,7 +51,7 @@ std::string get_executable_path() {
     std::array<char, PATH_MAX> buffer{};
     uint32_t size = buffer.size();
     if (::_NSGetExecutablePath(buffer.data(), &size) == 0) {
-        return std::string(buffer.data());
+        return {buffer.data(), size};
     }
     throw std::system_error(std::make_error_code(std::errc::no_such_file_or_directory),
                             "Could not get executable path");
@@ -64,9 +64,9 @@ std::string get_executable_path() {
 namespace test_util {
 std::string get_executable_path() {
     std::array<char, PATH_MAX> buffer{};
-    ssize_t size = ::readlink("/proc/self/exe", buffer.data(), buffer.size());
+    const ssize_t size = ::readlink("/proc/self/exe", buffer.data(), buffer.size());
     if (size != -1) {
-        return std::string(buffer.data(), size);
+        return {buffer.data(), size};
     }
     throw std::system_error(std::make_error_code(std::errc::no_such_file_or_directory),
                             "Could not get executable path");
