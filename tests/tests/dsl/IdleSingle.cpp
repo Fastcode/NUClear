@@ -58,7 +58,8 @@ public:
         static constexpr int thread_count = 1;
     };
 
-    explicit TestReactor(std::unique_ptr<NUClear::Environment> environment) : TestBase(std::move(environment), false) {
+    explicit TestReactor(std::unique_ptr<NUClear::Environment> environment)
+        : TestBase(std::move(environment), false, std::chrono::seconds(2)) {
 
         /*
          * Runs a sync task so that a task can be triggered while the pool is idle.
