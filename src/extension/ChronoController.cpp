@@ -90,8 +90,8 @@ namespace extension {
 
         // When we shutdown we notify so we quit now
         on<Shutdown>().then("Shutdown Chrono Controller", [this] {
-            const std::lock_guard<std::mutex> lock(mutex);
             running.store(false, std::memory_order_release);
+            const std::lock_guard<std::mutex> lock(mutex);
             wait.notify_all();
         });
 
