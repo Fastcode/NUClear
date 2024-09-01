@@ -24,7 +24,9 @@
 #include <nuclear>
 
 #include "test_util/TestBase.hpp"
+#include "test_util/TimeUnit.hpp"
 #include "test_util/common.hpp"
+#include "util/precise_sleep.hpp"
 
 class TestReactor : public test_util::TestBase<TestReactor> {
 public:
@@ -32,14 +34,14 @@ public:
 
         on<Trigger<Step<1>>, MainThread>().then([this] {
             emit(std::make_unique<Step<2>>());
-            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+            NUClear::util::precise_sleep(test_util::TimeUnit(1));
             emit(std::make_unique<Step<3>>());
         });
 
         // Idle testing for default thread
         on<Trigger<Step<2>>, Sync<TestReactor>>().then([this] {
             add_event("Default Start");
-            std::this_thread::sleep_for(std::chrono::milliseconds(300));
+            NUClear::util::precise_sleep(test_util::TimeUnit(3));
             add_event("Default End");
         });
 

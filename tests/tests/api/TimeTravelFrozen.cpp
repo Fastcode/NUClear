@@ -5,6 +5,7 @@
 
 #include "test_util/TestBase.hpp"
 #include "test_util/common.hpp"
+#include "util/precise_sleep.hpp"
 
 constexpr std::chrono::milliseconds EVENT_1_TIME  = std::chrono::milliseconds(4);
 constexpr std::chrono::milliseconds EVENT_2_TIME  = std::chrono::milliseconds(8);
@@ -48,7 +49,7 @@ public:
         });
 
         on<Trigger<WaitForShutdown>>().then([this] {
-            std::this_thread::sleep_for(SHUTDOWN_TIME);
+            NUClear::util::precise_sleep(SHUTDOWN_TIME);
             add_event("Finished");
             powerplant.shutdown();
         });

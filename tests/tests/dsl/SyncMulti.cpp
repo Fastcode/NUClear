@@ -26,6 +26,7 @@
 #include "test_util/TestBase.hpp"
 #include "test_util/TimeUnit.hpp"
 #include "test_util/common.hpp"
+#include "util/precise_sleep.hpp"
 
 class TestReactor : public test_util::TestBase<TestReactor> {
 public:
@@ -36,7 +37,7 @@ public:
         auto start = test_util::round_to_test_units(std::chrono::steady_clock::now() - start_time);
         events.push_back(event + " started @ " + std::to_string(start.count()));
         // Sleep for a bit to give a chance for the other threads to cause problems
-        std::this_thread::sleep_for(test_util::TimeUnit(2));
+        NUClear::util::precise_sleep(test_util::TimeUnit(2));
         auto end = test_util::round_to_test_units(std::chrono::steady_clock::now() - start_time);
         events.push_back(event + " finished @ " + std::to_string(end.count()));
     }

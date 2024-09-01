@@ -50,7 +50,8 @@ private:
 public:
     static constexpr int n_loops = 10000;
 
-    explicit TestReactor(std::unique_ptr<NUClear::Environment> environment) : TestBase(std::move(environment), false) {
+    explicit TestReactor(std::unique_ptr<NUClear::Environment> environment)
+        : TestBase(std::move(environment), false, std::chrono::seconds(2)) {
 
         /*
          * Run idle on the default pool, and a task on the main pool.
