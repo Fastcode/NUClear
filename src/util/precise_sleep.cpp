@@ -26,6 +26,7 @@
 
     #include <chrono>
     #include <cstdint>
+    #include <stdexcept>
 
     #include "platform.hpp"
 
@@ -38,8 +39,17 @@ namespace util {
         // Negative for relative time, positive for absolute time
         // Measures in 100ns increments so divide by 100
         ft.QuadPart = -static_cast<int64_t>(ns.count() / 100);
+        // Create a waitable timer with as high resolution as possible
+        ::HANDLE timer{};
+        if (
+    #ifdef CREATE_WAITABLE_TIMER_HIGH_RESOLUTION
+            (timer = CreateWaitableTimerEx(NULL, NULL, CREATE_WAITABLE_TIMER_HIGH_RESOLUTION, TIMER_ALL_ACCESS)) == NULL
+            &&
+    #endif
+            (timer = CreateWaitableTimer(NULL, TRUE, NULL)) == NULL) {
+            throw std::runtime_error("Failed to create waitable timer");
+        }
 
-        ::HANDLE timer = ::CreateWaitableTimer(nullptr, TRUE, nullptr);
         ::SetWaitableTimer(timer, &ft, 0, nullptr, nullptr, 0);
         ::WaitForSingleObject(timer, INFINITE);
         ::CloseHandle(timer);

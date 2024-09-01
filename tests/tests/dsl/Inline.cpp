@@ -26,6 +26,7 @@
 #include "test_util/TestBase.hpp"
 #include "test_util/TimeUnit.hpp"
 #include "test_util/common.hpp"
+#include "util/precise_sleep.hpp"
 
 class TestReactor : public test_util::TestBase<TestReactor> {
 public:
@@ -60,12 +61,12 @@ public:
         on<Trigger<Step<1>>, MainThread>().then([this] {
             emit(std::make_unique<SimpleMessage>("Main Local"));
             emit<Scope::INLINE>(std::make_unique<SimpleMessage>("Main Inline"));
-            std::this_thread::sleep_for(test_util::TimeUnit(2));  // Sleep for a bit to give other threads a chance
+            NUClear::util::precise_sleep(test_util::TimeUnit(2));  // Sleep for a bit to give other threads a chance
         });
         on<Trigger<Step<2>>, Pool<>>().then([this] {
             emit(std::make_unique<SimpleMessage>("Default Local"));
             emit<Scope::INLINE>(std::make_unique<SimpleMessage>("Default Inline"));
-            std::this_thread::sleep_for(test_util::TimeUnit(2));  // Sleep for a bit to give other threads a chance
+            NUClear::util::precise_sleep(test_util::TimeUnit(2));  // Sleep for a bit to give other threads a chance
         });
 
         on<Startup>().then([this] {
