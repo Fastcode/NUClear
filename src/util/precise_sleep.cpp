@@ -26,6 +26,7 @@
 
     #include <chrono>
     #include <cstdint>
+    #include <stdexcept>
 
     #include "platform.hpp"
 
