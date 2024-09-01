@@ -1,0 +1,3 @@
+- Talk about how NUClear is built on extensions
+- Show some examples of extensions
+- Show how new extensions can be created
