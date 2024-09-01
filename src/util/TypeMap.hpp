@@ -60,7 +60,6 @@ namespace util {
     private:
         /// The data variable where the data is stored for this map key.
         static std::shared_ptr<Value> data;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
-        static std::mutex mutex;             // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
     public:
         /**
