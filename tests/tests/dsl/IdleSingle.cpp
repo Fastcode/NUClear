@@ -26,6 +26,7 @@
 #include "test_util/TestBase.hpp"
 #include "test_util/TimeUnit.hpp"
 #include "test_util/common.hpp"
+#include "util/precise_sleep.hpp"
 
 namespace Catch {
 
@@ -58,8 +59,7 @@ public:
         static constexpr int thread_count = 1;
     };
 
-    explicit TestReactor(std::unique_ptr<NUClear::Environment> environment)
-        : TestBase(std::move(environment), false, std::chrono::seconds(2)) {
+    explicit TestReactor(std::unique_ptr<NUClear::Environment> environment) : TestBase(std::move(environment), false) {
 
         /*
          * Runs a sync task so that a task can be triggered while the pool is idle.
@@ -70,7 +70,7 @@ public:
         on<Trigger<TaskA>, Pool<>, Sync<TestReactor>>().then([this](const TaskA& t) {
             entry_calls[t.i].fetch_add(1, std::memory_order_relaxed);
             emit(std::make_unique<TaskB>(t.i));
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+            NUClear::util::precise_sleep(std::chrono::milliseconds(1));
         });
 
         // Run this at low priority but have it first
