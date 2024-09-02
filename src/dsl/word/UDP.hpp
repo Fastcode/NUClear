@@ -132,7 +132,7 @@ namespace dsl {
                 // We can cast ourselves to a reference type so long as
                 // that reference type is plain old data
                 template <typename T>
-                operator std::enable_if_t<std::is_pod<T>::value, const T&>() {
+                operator std::enable_if_t<std::is_trivially_copyable<T>::value, const T&>() {
                     return *reinterpret_cast<const T*>(payload.data());
                 }
             };
