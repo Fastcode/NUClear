@@ -57,7 +57,7 @@ namespace threading {
 
     public:
         /// Type of the functions that ReactionTasks execute
-        using TaskFunction = std::function<void(ReactionTask&) noexcept>;
+        using TaskFunction = std::function<void(ReactionTask&)>;
 
         /**
          * Gets the current executing task, or nullptr if there isn't one.
