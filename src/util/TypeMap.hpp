@@ -86,7 +86,7 @@ namespace util {
          */
         static std::shared_ptr<Value> get() {
 #if __cplusplus >= 202002L
-       return     data.load(std::memory_order_acquire);
+            return data.load(std::memory_order_acquire);
 #else
             return std::atomic_load_explicit(&data, std::memory_order_acquire);
 #endif
@@ -96,8 +96,10 @@ namespace util {
     /// Initialize our shared_ptr data
     template <typename MapID, typename Key, typename Value>
 #if __cplusplus >= 202002L
+    // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
     std::atomic<std::shared_ptr<Value>> TypeMap<MapID, Key, Value>::data;
 #else
+    // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
     std::shared_ptr<Value> TypeMap<MapID, Key, Value>::data;
 #endif
 
