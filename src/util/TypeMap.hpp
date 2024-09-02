@@ -58,8 +58,12 @@ namespace util {
         TypeMap operator=(TypeMap&& /*other*/) noexcept = delete;
 
     private:
-        /// The data variable where the data is stored for this map key.
+/// The data variable where the data is stored for this map key.
+#if __cplusplus >= 202002L
+        static std::atomic<std::shared_ptr<Value>> data;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+#else
         static std::shared_ptr<Value> data;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+#endif
 
     public:
         /**
@@ -68,7 +72,11 @@ namespace util {
          * @param d A pointer to the data to be stored (the map takes ownership)
          */
         static void set(std::shared_ptr<Value> d) {
+#if __cplusplus >= 202002L
+            data.store(std::move(d), std::memory_order_release);
+#else
             std::atomic_store_explicit(&data, std::move(d), std::memory_order_release);
+#endif
         }
 
         /**
@@ -77,14 +85,21 @@ namespace util {
          * @return A shared_ptr to the data that was previously stored
          */
         static std::shared_ptr<Value> get() {
+#if __cplusplus >= 202002L
+       return     data.load(std::memory_order_acquire);
+#else
             return std::atomic_load_explicit(&data, std::memory_order_acquire);
+#endif
         }
     };
 
     /// Initialize our shared_ptr data
     template <typename MapID, typename Key, typename Value>
-    std::shared_ptr<Value>
-        TypeMap<MapID, Key, Value>::data;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+#if __cplusplus >= 202002L
+    std::atomic<std::shared_ptr<Value>> TypeMap<MapID, Key, Value>::data;
+#else
+    std::shared_ptr<Value> TypeMap<MapID, Key, Value>::data;
+#endif
 
 }  // namespace util
 }  // namespace NUClear
