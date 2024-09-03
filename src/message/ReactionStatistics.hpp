@@ -79,7 +79,7 @@ namespace message {
         ReactionStatistics(std::shared_ptr<const threading::ReactionIdentifiers> identifiers,
                            const IDPair& cause,
                            const IDPair& target,
-                           std::shared_ptr<const util::ThreadPoolDescriptor> target_threadpool,
+                           std::shared_ptr<const util::ThreadPoolDescriptor> target_pool,
                            std::set<std::shared_ptr<const util::GroupDescriptor>> target_groups);
 
         /// The identifiers for the reaction that was executed
@@ -91,7 +91,7 @@ namespace message {
         IDPair target;
 
         /// The thread pool that this reaction was intended to run on
-        std::shared_ptr<const util::ThreadPoolDescriptor> target_threadpool;
+        std::shared_ptr<const util::ThreadPoolDescriptor> target_pool;
         /// The groups that this reaction was intended to run in
         std::set<std::shared_ptr<const util::GroupDescriptor>> target_groups;
 
