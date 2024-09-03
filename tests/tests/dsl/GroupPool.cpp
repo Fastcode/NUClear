@@ -37,7 +37,7 @@ public:
 
     template <int id>
     struct TestPool {
-        static constexpr int thread_count = 1;
+        static constexpr int concurrency = 1;
     };
 
     void register_pool_callbacks(NUClear::util::Sequence<> /*unused*/) {}
@@ -94,7 +94,7 @@ public:
 TEST_CASE("Test that if a pool has nothing to do because of a sync group it will recover", "[api][pool][group]") {
 
     NUClear::Configuration config;
-    config.thread_count = 1;
+    config.default_pool_concurrency = 1;
     NUClear::PowerPlant plant(config);
     test_util::add_tracing(plant);
     const auto& reactor = plant.install<TestReactor>();

@@ -52,7 +52,7 @@ TEST_CASE("Testing the Command Line argument capturing", "[api][command_line_arg
     const int argc     = 2;
     const char* argv[] = {"Hello", "World"};  // NOLINT(cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays)
     NUClear::Configuration config;
-    config.thread_count = 1;
+    config.default_pool_concurrency = 1;
     NUClear::PowerPlant plant(config, argc, argv);
     test_util::add_tracing(plant);
     const auto& reactor = plant.install<TestReactor>();

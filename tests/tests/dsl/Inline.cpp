@@ -92,7 +92,7 @@ public:
 TEST_CASE("Test the interactions between inline emits and the Inline dsl keyword") {
 
     NUClear::Configuration config;
-    config.thread_count = 4;
+    config.default_pool_concurrency = 4;
     NUClear::PowerPlant plant(config);
     test_util::add_tracing(plant);
     const auto& reactor = plant.install<TestReactor>();

@@ -64,7 +64,7 @@ public:
 TEST_CASE("Test that idle can fire events for other pools but only runs once", "[api][dsl][Idle][Pool]") {
 
     NUClear::Configuration config;
-    config.thread_count = 1;
+    config.default_pool_concurrency = 1;
     NUClear::PowerPlant plant(config);
     test_util::add_tracing(plant);
     auto& reactor = plant.install<TestReactor>();

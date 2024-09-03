@@ -211,7 +211,7 @@ TEST_CASE("Testing listening for TCP connections and receiving data messages", "
     }
 
     NUClear::Configuration config;
-    config.thread_count = 2;
+    config.default_pool_concurrency = 2;
     NUClear::PowerPlant plant(config);
     test_util::add_tracing(plant);
     plant.install<NUClear::extension::IOController>();

@@ -38,22 +38,22 @@ namespace util {
     struct ThreadPoolDescriptor {
 
         ThreadPoolDescriptor(std::string name,
-                             const int& thread_count          = 1,
-                             const bool& counts_for_idle      = true,
-                             const bool& continue_on_shutdown = false) noexcept
+                             const int& concurrency      = 1,
+                             const bool& counts_for_idle = true,
+                             const bool& persistent      = false) noexcept
             : name(std::move(name))
-            , thread_count(thread_count)
+            , concurrency(concurrency)
             , counts_for_idle(counts_for_idle)
-            , continue_on_shutdown(continue_on_shutdown) {}
+            , persistent(persistent) {}
 
         /// The name of this pool
         std::string name;
         /// The number of threads this thread pool will use
-        int thread_count;
+        int concurrency;
         /// If these threads count towards system idle
         bool counts_for_idle;
-        /// If this thread pool will continue to accept tasks after shutdown and only stop on scheduler destruction
-        bool continue_on_shutdown;
+        /// If this thread pool will continue to accept tasks after shutdown and only stop when there are no more tasks
+        bool persistent;
     };
 
 }  // namespace util

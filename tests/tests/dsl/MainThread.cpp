@@ -71,7 +71,7 @@ private:
 
 TEST_CASE("Testing that the MainThread keyword runs tasks on the main thread", "[api][dsl][main_thread]") {
     NUClear::Configuration config;
-    config.thread_count = 1;
+    config.default_pool_concurrency = 1;
     NUClear::PowerPlant plant(config);
     test_util::add_tracing(plant);
     const auto& reactor = plant.install<TestReactor>();

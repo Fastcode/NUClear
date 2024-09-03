@@ -42,11 +42,11 @@ namespace extension {
         struct TracePool {
             static constexpr const char* name = "Trace";
             /// Single thread to avoid multithreading concerns
-            static constexpr int thread_count = 1;
+            static constexpr int concurrency = 1;
             /// This pool shouldn't interfere with the system idle time
             static constexpr bool counts_for_idle = false;
             /// So we can trace events all the way to after shutdown, this pool must not shut down until destruction
-            static constexpr bool continue_on_shutdown = true;
+            static constexpr bool persistent = true;
         };
 
         /**

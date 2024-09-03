@@ -38,13 +38,12 @@ namespace util {
      * A description of a group.
      */
     struct GroupDescriptor {
-        GroupDescriptor(std::string name, const int& thread_count)
-            : name(std::move(name)), thread_count(thread_count) {}
+        GroupDescriptor(std::string name, const int& concurrency) : name(std::move(name)), concurrency(concurrency) {}
 
         /// The name of this group
         std::string name;
         /// The maximum number of threads that can run concurrently in this group
-        int thread_count;
+        int concurrency;
     };
 
 }  // namespace util
