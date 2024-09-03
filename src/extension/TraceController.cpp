@@ -172,19 +172,19 @@ namespace extension {
 
         std::vector<char> data;
         {
-            const trace::protobuf::SubMessage packet(1, data);                // packet:1
-            trace::protobuf::uint64(8, ts(relevant.realtime).count(), data);  // timestamp:8:uint64
-            trace::protobuf::uint32(10, trusted_packet_sequence_id, data);    // trusted_packet_sequence_id:10:uint32
-            trace::protobuf::int32(13, SEQ_NEEDS_INCREMENTAL_STATE, data);    // sequence_flags:13:int32
+            const trace::protobuf::SubMessage packet(1, data);                 // packet:1
+            trace::protobuf::uint64(8, ts(relevant.real_time).count(), data);  // timestamp:8:uint64
+            trace::protobuf::uint32(10, trusted_packet_sequence_id, data);     // trusted_packet_sequence_id:10:uint32
+            trace::protobuf::int32(13, SEQ_NEEDS_INCREMENTAL_STATE, data);     // sequence_flags:13:int32
             {
-                const trace::protobuf::SubMessage track_event(11, data);          // track_event:11
-                trace::protobuf::int32(9, event_type, data);                      // type:9:int32
-                trace::protobuf::uint64(11, thread_uuid, data);                   // track_uuid:11:uint64
-                trace::protobuf::uint64(10, event_names[ids], data);              // name_iid:10:uint64
-                trace::protobuf::uint64(3, categories[rname], data);              // category_iids:3:uint64
-                trace::protobuf::uint64(3, categories["reaction"], data);         // category_iids:3:uint64
-                trace::protobuf::uint64(31, thread_time_uuid, data);              // extra_counter_track_uuids:31:uint64
-                trace::protobuf::int64(12, ts(relevant.cpu_time).count(), data);  // extra_counter_values:12:int64
+                const trace::protobuf::SubMessage track_event(11, data);   // track_event:11
+                trace::protobuf::int32(9, event_type, data);               // type:9:int32
+                trace::protobuf::uint64(11, thread_uuid, data);            // track_uuid:11:uint64
+                trace::protobuf::uint64(10, event_names[ids], data);       // name_iid:10:uint64
+                trace::protobuf::uint64(3, categories[rname], data);       // category_iids:3:uint64
+                trace::protobuf::uint64(3, categories["reaction"], data);  // category_iids:3:uint64
+                trace::protobuf::uint64(31, thread_time_uuid, data);       // extra_counter_track_uuids:31:uint64
+                trace::protobuf::int64(12, ts(relevant.thread_time).count(), data);  // extra_counter_values:12:int64
                 if (event.type == ReactionEvent::CREATED || event.type == ReactionEvent::STARTED) {
                     trace::protobuf::uint64(47, task_id, data);  // flow_ids:47:fixed64
                 }
@@ -196,8 +196,10 @@ namespace extension {
     void TraceController::encode_log(const std::shared_ptr<const message::ReactionStatistics>& log_stats,
                                      const LogMessage& msg) {
 
-        const auto& msg_stats      = msg.statistics;
-        const uint64_t thread_uuid = thread(log_stats->created.thread);
+        const auto& msg_stats           = msg.statistics;
+        const auto& created             = log_stats->created;
+        const uint64_t thread_uuid      = thread(created.thread);
+        const uint64_t thread_time_uuid = thread_uuid + 1;
 
         int32_t prio = PRIO_UNSPECIFIED;
         switch (msg.level) {
@@ -216,9 +218,9 @@ namespace extension {
         std::vector<char> data;
         {
             const trace::protobuf::SubMessage packet(1, data);
-            trace::protobuf::uint64(8, ts(log_stats->created.realtime).count(), data);  // timestamp:8:uint64
-            trace::protobuf::uint32(10, trusted_packet_sequence_id, data);  // trusted_packet_sequence_id:10:uint32
-            trace::protobuf::int32(13, SEQ_NEEDS_INCREMENTAL_STATE, data);  // sequence_flags:13:int32
+            trace::protobuf::uint64(8, ts(created.real_time).count(), data);  // timestamp:8:uint64
+            trace::protobuf::uint32(10, trusted_packet_sequence_id, data);    // trusted_packet_sequence_id:10:uint32
+            trace::protobuf::int32(13, SEQ_NEEDS_INCREMENTAL_STATE, data);    // sequence_flags:13:int32
             {
                 const trace::protobuf::SubMessage track_event(11, data);  // track_event:11
                 trace::protobuf::uint64(11, thread_uuid, data);           // track_uuid:11:uint64
@@ -226,6 +228,8 @@ namespace extension {
                 trace::protobuf::uint64(3, categories[rname], data);      // category_iids:3:uint64
                 trace::protobuf::uint64(3, categories["log"], data);      // category_iids:3:uint64
                 trace::protobuf::int32(9, TYPE_INSTANT, data);            // type:9:int32
+                trace::protobuf::uint64(31, thread_time_uuid, data);      // extra_counter_track_uuids:31:uint64
+                trace::protobuf::int64(12, ts(created.thread_time).count(), data);  // extra_counter_values:12:int64
                 {
                     const trace::protobuf::SubMessage log_message(21, data);            // log_message:21
                     trace::protobuf::uint64(2, log_message_bodies[msg.message], data);  // body_iid:2:uint64
@@ -279,7 +283,7 @@ namespace extension {
                 log_handle =
                     on<Trigger<LogMessage>, Pool<TracePool>, Inline::NEVER>().then([this](const LogMessage& msg) {
                         // Statistics for the log message task itself
-                        auto log_stats = threading::ReactionTask::get_current_task()->stats;
+                        auto log_stats = threading::ReactionTask::get_current_task()->statistics;
                         encode_log(log_stats, msg);
                     });
             }

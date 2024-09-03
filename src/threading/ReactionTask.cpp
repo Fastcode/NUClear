@@ -68,10 +68,11 @@ namespace threading {
         return id_source.fetch_add(1, std::memory_order_seq_cst);
     }
 
-    std::shared_ptr<message::ReactionStatistics> ReactionTask::make_stats() {
+    std::shared_ptr<message::ReactionStatistics> ReactionTask::make_statistics() {
 
         // Stats are disabled if they are disabled in the parent or in the causing task
-        if ((parent != nullptr && !parent->emit_stats) || (current_task != nullptr && current_task->stats == nullptr)) {
+        if ((parent != nullptr && !parent->emit_stats)
+            || (current_task != nullptr && current_task->statistics == nullptr)) {
             return nullptr;
         }
 

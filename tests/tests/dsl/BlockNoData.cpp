@@ -66,7 +66,7 @@ public:
 TEST_CASE("Testing that when an on statement does not have it's data satisfied it does not run", "[api][nodata]") {
 
     NUClear::Configuration config;
-    config.thread_count = 1;
+    config.default_pool_concurrency = 1;
     NUClear::PowerPlant plant(config);
     test_util::add_tracing(plant);
     const auto& reactor = plant.install<TestReactor>();

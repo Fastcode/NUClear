@@ -45,7 +45,7 @@ namespace threading {
 
         class Scheduler {
         public:
-            explicit Scheduler(const int& thread_count);
+            explicit Scheduler(const int& default_pool_concurrency);
 
             /**
              * Starts the scheduler, and begins executing tasks.
@@ -131,7 +131,7 @@ namespace threading {
                                                   const std::set<std::shared_ptr<const util::GroupDescriptor>>& descs);
 
             /// The number of threads that will be in the default thread pool
-            const int default_thread_count;
+            const int default_pool_concurrency;
 
             /// If running is false this means the scheduler is shutting down and no new pools will be created
             std::atomic<bool> running{true};

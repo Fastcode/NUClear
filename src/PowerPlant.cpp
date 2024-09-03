@@ -48,7 +48,8 @@ PowerPlant* PowerPlant::powerplant = nullptr;
 
 // This is taking argc and argv as given by main so this should not take an array
 // NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays)
-PowerPlant::PowerPlant(Configuration config, int argc, const char* argv[]) : scheduler(config.thread_count) {
+PowerPlant::PowerPlant(Configuration config, int argc, const char* argv[])
+    : scheduler(config.default_pool_concurrency) {
 
     // Stop people from making more then one powerplant
     if (powerplant != nullptr) {
@@ -111,7 +112,7 @@ void PowerPlant::log(const LogLevel& level, std::string message) {
         level,
         current_task != nullptr ? current_task->parent->reactor.log_level : LogLevel::UNKNOWN,
         std::move(message),
-        current_task != nullptr ? current_task->stats : nullptr));
+        current_task != nullptr ? current_task->statistics : nullptr));
 }
 void PowerPlant::log(const LogLevel& level, std::stringstream& message) {
     log(level, message.str());

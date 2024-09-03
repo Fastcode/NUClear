@@ -67,7 +67,7 @@ namespace dsl {
             // This must be a separate function, otherwise each instance of DSL will be a separate pool
             static std::shared_ptr<const util::GroupDescriptor> descriptor() {
                 static const auto group_descriptor =
-                    std::make_shared<const util::GroupDescriptor>(name<GroupType>(), thread_count<GroupType>());
+                    std::make_shared<const util::GroupDescriptor>(name<GroupType>(), concurrency<GroupType>());
                 return group_descriptor;
             }
 
@@ -88,11 +88,11 @@ namespace dsl {
             }
 
             template <typename U>
-            static constexpr auto thread_count() -> decltype(U::thread_count) {
-                return U::thread_count;
+            static constexpr auto concurrency() -> decltype(U::concurrency) {
+                return U::concurrency;
             }
             template <typename U, typename... A>
-            static constexpr int thread_count(const A&... /*unused*/) {
+            static constexpr int concurrency(const A&... /*unused*/) {
                 return 1;
             }
         };

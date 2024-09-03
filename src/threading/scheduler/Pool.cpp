@@ -58,8 +58,8 @@ namespace threading {
 
         void Pool::start() {
             // Default thread pool gets its thread count from the configuration rather than the descriptor
-            const int n_threads = descriptor == dsl::word::Pool<>::descriptor() ? scheduler.default_thread_count
-                                                                                : descriptor->thread_count;
+            const int n_threads = descriptor == dsl::word::Pool<>::descriptor() ? scheduler.default_pool_concurrency
+                                                                                : descriptor->concurrency;
 
             // Set the number of active threads to the number of threads in the pool
             active = descriptor->counts_for_idle ? n_threads : 0;
@@ -81,12 +81,12 @@ namespace threading {
         void Pool::stop(const StopType& type) {
             const std::lock_guard<std::mutex> lock(mutex);
 
-            live   = true;                              // Live so the thread will wake from sleep
-            accept = descriptor->continue_on_shutdown;  // Always accept if continue on shutdown otherwise stop
+            live   = true;                    // Live so the thread will wake from sleep
+            accept = descriptor->persistent;  // Always accept if persistent otherwise stop
 
             switch (type) {
                 case StopType::NORMAL: {
-                    running = descriptor->continue_on_shutdown;  // Keep running if we continue on shutdown
+                    running = descriptor->persistent;  // Keep running if we persistent
                 } break;
                 case StopType::FINAL: {
                     running = false;  // Always stop running on the final stop

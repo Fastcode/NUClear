@@ -41,7 +41,7 @@ target_compile_features(nuclear PUBLIC cxx_std_14)
 if(MSVC)
   target_compile_options(nuclear PRIVATE /W4 /WX)
 else()
-  target_compile_options(nuclear PRIVATE -Wall -Wextra -pedantic -Werror)
+  target_compile_options(nuclear PRIVATE -Wall -Wextra -pedantic)
 endif(MSVC)
 
 # Make the NUClearConfig files

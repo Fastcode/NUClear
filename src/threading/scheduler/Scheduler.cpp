@@ -32,7 +32,7 @@ namespace NUClear {
 namespace threading {
     namespace scheduler {
 
-        Scheduler::Scheduler(const int& thread_count) : default_thread_count(thread_count) {
+        Scheduler::Scheduler(const int& default_pool_concurrency) : default_pool_concurrency(default_pool_concurrency) {
             // Create the main thread pool and assign it as our "current pool" so things we do pre startup are assigned
             Pool::current_pool = get_pool(dsl::word::MainThread::descriptor()).get();
         }
@@ -62,8 +62,8 @@ namespace threading {
                 pools_to_stop.push_back(pool.second);
             }
             std::sort(pools_to_stop.begin(), pools_to_stop.end(), [](const auto& lhs, const auto& rhs) {
-                const bool& a = lhs->descriptor->continue_on_shutdown;
-                const bool& b = rhs->descriptor->continue_on_shutdown;
+                const bool& a = lhs->descriptor->persistent;
+                const bool& b = rhs->descriptor->persistent;
                 return !a && b;
             });
             for (const auto& pool : pools_to_stop) {

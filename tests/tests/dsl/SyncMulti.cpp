@@ -65,7 +65,7 @@ public:
 
 TEST_CASE("Test that sync works when one thread has multiple groups", "[api][sync][multi]") {
     NUClear::Configuration config;
-    config.thread_count = 4;
+    config.default_pool_concurrency = 4;
     NUClear::PowerPlant plant(config);
     test_util::add_tracing(plant);
     const auto& reactor = plant.install<TestReactor>();

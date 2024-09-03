@@ -129,7 +129,7 @@ public:
 
 TEST_CASE("Testing whether getters that return transient data can cache between calls", "[api][transient]") {
     NUClear::Configuration config;
-    config.thread_count = 1;
+    config.default_pool_concurrency = 1;
     NUClear::PowerPlant plant(config);
     test_util::add_tracing(plant);
     const auto& reactor = plant.install<TestReactor>();

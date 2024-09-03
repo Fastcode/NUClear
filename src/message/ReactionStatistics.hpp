@@ -64,9 +64,9 @@ namespace message {
             /// The time that this event occurred in NUClear time
             NUClear::clock::time_point nuclear_time;
             /// The time that this event occurred in real time
-            std::chrono::steady_clock::time_point realtime;
+            std::chrono::steady_clock::time_point real_time;
             /// The time that this event occurred in CPU thread time
-            util::cpu_clock::time_point cpu_time;
+            util::cpu_clock::time_point thread_time;
 
             /**
              * Creates a new Event object with the current time and thread information.

@@ -129,7 +129,7 @@ int main(int argc, const char* argv[]) {
     }
 
     NUClear::Configuration config;
-    config.thread_count = 4;
+    config.default_pool_concurrency = 4;
     NUClear::PowerPlant plant(config, argc, argv);
     plant.install<TestReactor>();
 
