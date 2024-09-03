@@ -44,12 +44,12 @@ namespace message {
     ReactionStatistics::ReactionStatistics(std::shared_ptr<const threading::ReactionIdentifiers> identifiers,
                                            const IDPair& cause,
                                            const IDPair& target,
-                                           std::shared_ptr<const util::ThreadPoolDescriptor> target_threadpool,
+                                           std::shared_ptr<const util::ThreadPoolDescriptor> target_pool,
                                            std::set<std::shared_ptr<const util::GroupDescriptor>> target_groups)
         : identifiers(std::move(identifiers))
         , cause(cause)
         , target(target)
-        , target_threadpool(std::move(target_threadpool))
+        , target_pool(std::move(target_pool))
         , target_groups(std::move(target_groups))
         , created(Event::now()) {}
 
