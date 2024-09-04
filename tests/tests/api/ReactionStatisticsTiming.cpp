@@ -101,8 +101,8 @@ public:
                         break;
                     case ReactionEvent::FINISHED:
                         stat_events.emplace_back("Finished " + stats.identifiers->name, stats.finished.nuclear_time);
-                        usage.real[stats.identifiers->name] = stats.finished.realtime - stats.started.realtime;
-                        usage.cpu[stats.identifiers->name]  = stats.finished.cpu_time - stats.started.cpu_time;
+                        usage.real[stats.identifiers->name] = stats.finished.real_time - stats.started.real_time;
+                        usage.cpu[stats.identifiers->name]  = stats.finished.thread_time - stats.started.thread_time;
                         break;
                     default: break;
                 }
@@ -122,7 +122,7 @@ public:
 TEST_CASE("Testing reaction statistics timing", "[api][reactionstatistics][timing]") {
 
     NUClear::Configuration config;
-    config.thread_count = 1;
+    config.default_pool_concurrency = 1;
     NUClear::PowerPlant plant(config);
     test_util::add_tracing(plant);
     plant.install<TestReactor>();

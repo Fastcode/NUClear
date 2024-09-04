@@ -101,7 +101,7 @@ public:
 
 TEST_CASE("Testing that the Sync word works correctly", "[api][sync]") {
     NUClear::Configuration config;
-    config.thread_count = 4;
+    config.default_pool_concurrency = 4;
     NUClear::PowerPlant plant(config);
     test_util::add_tracing(plant);
     const auto& reactor = plant.install<TestReactor>();

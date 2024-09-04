@@ -148,7 +148,7 @@ TEST_CASE("Testing the Log<>() function", "[api][log]") {
     {
         // Build with one thread
         NUClear::Configuration config;
-        config.thread_count = 1;
+        config.default_pool_concurrency = 1;
         NUClear::PowerPlant plant(config);
 
         // Install the test reactor

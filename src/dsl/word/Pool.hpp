@@ -41,7 +41,7 @@ namespace dsl {
              */
             struct Default {
                 static constexpr const char* name = "Default";
-                static constexpr int thread_count = 0;
+                static constexpr int concurrency  = 0;
             };
         }  // namespace pool
 
@@ -70,7 +70,7 @@ namespace dsl {
          * should be allocated to this pool.
          *  @code
          *  struct ThreadPool {
-         *      static constexpr int thread_count = 2;
+         *      static constexpr int concurrency = 2;
          *  };
          *  @endcode
          */
@@ -81,9 +81,9 @@ namespace dsl {
             static std::shared_ptr<const util::ThreadPoolDescriptor> descriptor() {
                 static const auto pool_descriptor =
                     std::make_shared<const util::ThreadPoolDescriptor>(name<PoolType>(),
-                                                                       thread_count<PoolType>(),
+                                                                       concurrency<PoolType>(),
                                                                        counts_for_idle<PoolType>(),
-                                                                       continue_on_shutdown<PoolType>());
+                                                                       persistent<PoolType>());
                 return pool_descriptor;
             }
 
@@ -103,8 +103,8 @@ namespace dsl {
             }
 
             template <typename U>
-            static constexpr auto thread_count() -> decltype(U::thread_count) {
-                return U::thread_count;
+            static constexpr auto concurrency() -> decltype(U::concurrency) {
+                return U::concurrency;
             }
             // No default for thread count
 
@@ -118,11 +118,11 @@ namespace dsl {
             }
 
             template <typename U>
-            static constexpr auto continue_on_shutdown() -> decltype(U::continue_on_shutdown) {
-                return U::continue_on_shutdown;
+            static constexpr auto persistent() -> decltype(U::persistent) {
+                return U::persistent;
             }
             template <typename U, typename... A>
-            static constexpr bool continue_on_shutdown(const A&... /*unused*/) {
+            static constexpr bool persistent(const A&... /*unused*/) {
                 return false;
             }
         };

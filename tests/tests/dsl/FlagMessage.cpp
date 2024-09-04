@@ -70,7 +70,7 @@ public:
 TEST_CASE("Testing emitting types that are flag types (Have no contents)", "[api][flag]") {
 
     NUClear::Configuration config;
-    config.thread_count = 1;
+    config.default_pool_concurrency = 1;
     NUClear::PowerPlant plant(config);
     test_util::add_tracing(plant);
     const auto& reactor = plant.install<TestReactor>();

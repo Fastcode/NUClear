@@ -36,7 +36,7 @@ public:
 
     template <int N>
     struct CustomPool {
-        static constexpr int thread_count = 2;
+        static constexpr int concurrency = 2;
     };
 
     template <int N>
@@ -118,7 +118,7 @@ private:
 TEST_CASE("Test that pool idle triggers when nothing is running", "[api][idle]") {
 
     NUClear::Configuration config;
-    config.thread_count = 4;
+    config.default_pool_concurrency = 4;
     NUClear::PowerPlant plant(config);
     test_util::add_tracing(plant);
     const auto& reactor = plant.install<TestReactor>();

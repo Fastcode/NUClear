@@ -1,4 +1,4 @@
-include .special.rst
+.. include:: .special.rst
 
 
 NUClear DSL
@@ -10,18 +10,14 @@ On Statements
 On statements are used by :ref:`Reactors` wishing to make subscriptions to the :ref:`PowerPlant`.  Using this statement,
 developers can set the conditions under which desired :ref:`Reactions` will run.
 
-anatomy of an on statement
+Anatomy of an on statement
 --------------------------
 The on statement can be seen as containing three main parts.  The DSL Request, the Runtime Arguments, and the Callback.
 
-.. raw:: html
+:blue:`On<Dsl, Word(s)>`\(:red:`Runtime, Args`).then(:green:`CallbackFunction`);
 
-    <font color="blue">On<...></font><font color="red">(Runtime, ... )</font><font color="green">.then(function);</font>
-    <br /><br />
-    <font color="blue">DSL Request</font><br />
-
-This is :red:`red !` And :blue:`this part is blue`.
-
+:blue:`DSL Request`
+-------------------
 The DSL request can be fused together through any combination of DSL words.  The combination of these words will define
 the kind of reaction which is being requested (for example, :ref:`Trigger` will define a reaction that should occur when
 a required data type is emitted, while :ref:`Every` will define periodic reactions).
@@ -30,22 +26,18 @@ For reactions to occur, at least one Binding DSL word should be present in the D
 those which are binding are: :ref:`Trigger`, :ref:`With`, :ref:`Every`, :ref:`Always`, :ref:`Startup`, :ref:`Shutdown`,
 :ref:`TCP`, :ref:`UDP` and :ref:`Network`
 
-.. raw:: html
-
-    <font color="red">Runtime Arguments</font>
-
+:red:`Runtime Arguments`
+------------------------
 Some DSL words will provide the ability to make changes to the system during runtime.  This means that NUClear avoids
 the need for a system restart should a configuration, port number, or file need to be changed while the system is
 running.
 
 From the provided DSL words, those which take runtime arguments are: :ref:`IO`, :ref:`TCP`, and :ref:`UDP`
 
-.. raw:: html
-
-    <font color="green">Callback</font>
-
+:green:`Callback`
+-----------------
 Finally, the developer can define the callback which will execute when the reaction is triggered during runtime.  The
-callback can be defined using a C++ lambda function.
+callback can be defined using a C++ lambda expression.
 
 During system runtime, the argument selection for the callback works on the principle of fission, in that the arguments
 provided with the callback can be deduced as needed.  For example:
@@ -142,7 +134,7 @@ Always
 .. doxygenstruct:: NUClear::dsl::word::Always
 
 Watchdog
-`````````
+````````
 .. doxygenstruct:: NUClear::dsl::word::Watchdog
 
 
@@ -195,13 +187,8 @@ Note that data can be emitted under varying scopes:
 Local Emitting
 --------------
 
-These emissions send data to the local instance of the NUClear powerplant.  There are a number of scopes under which
+These emissions send data to the local instance of the NUClear PowerPlant.  There are a number of scopes under which
 these emissions can take place:
-
-.. todo::
-
-    Trent - I need to decide and get consistent on what we will call the powerPlant.  Should it be PowerPlant or
-    powerPlant - what will you prefer
 
 Scope::LOCAL
 ````````````
