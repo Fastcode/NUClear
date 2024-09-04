@@ -43,6 +43,17 @@ namespace util {
      * described in their individual documentation.
      *
      * @attention
+     * To future me and others who look at this code.
+     * You would think that you should use an atomic shared pointer rather than a mutex protected shared pointer.
+     * That would make sense, then you would potentially have a lock free implementation!
+     *
+     * However the implementation as seen in libc++ and libstdc++ is to use a mutex protected shared pointer anyway.
+     * But worse than that, it just uses a hashmap of mutexes to protect the shared pointers.
+     * Specifically it looks like they just have 0xF mutexes and they hash the pointer addresses to pick one.
+     * Having only a few mutexes for the entire map is a terrible idea and causes a lot of contention.
+     * This is strictly worse than the already separated mutex per type that is achieved by this implementation.
+     *
+     * @attention
      *  Note that because this is an entirely static class, if two maps with the same MapID are used, they access the
      *  same map
      */
@@ -58,12 +69,10 @@ namespace util {
         TypeMap operator=(TypeMap&& /*other*/) noexcept = delete;
 
     private:
-/// The data variable where the data is stored for this map key.
-#if __cplusplus >= 202002L
-        static std::atomic<std::shared_ptr<Value>> data;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
-#else
+        /// The data variable where the data is stored for this map key.
         static std::shared_ptr<Value> data;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
-#endif
+        /// The mutex that protects the data variable
+        static std::mutex data_mutex;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
     public:
         /**
@@ -72,11 +81,8 @@ namespace util {
          * @param d A pointer to the data to be stored (the map takes ownership)
          */
         static void set(std::shared_ptr<Value> d) {
-#if __cplusplus >= 202002L
-            data.store(std::move(d), std::memory_order_release);
-#else
-            std::atomic_store_explicit(&data, std::move(d), std::memory_order_release);
-#endif
+            std::lock_guard<std::mutex> lock(data_mutex);
+            data = d;
         }
 
         /**
@@ -85,23 +91,18 @@ namespace util {
          * @return A shared_ptr to the data that was previously stored
          */
         static std::shared_ptr<Value> get() {
-#if __cplusplus >= 202002L
-            return data.load(std::memory_order_acquire);
-#else
-            return std::atomic_load_explicit(&data, std::memory_order_acquire);
-#endif
+            std::lock_guard<std::mutex> lock(data_mutex);
+            return data;
         }
     };
 
     /// Initialize our shared_ptr data
     template <typename MapID, typename Key, typename Value>
-#if __cplusplus >= 202002L
-    // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
-    std::atomic<std::shared_ptr<Value>> TypeMap<MapID, Key, Value>::data;
-#else
     // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
     std::shared_ptr<Value> TypeMap<MapID, Key, Value>::data;
-#endif
+    template <typename MapID, typename Key, typename Value>
+    // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
+    std::mutex TypeMap<MapID, Key, Value>::data_mutex;
 
 }  // namespace util
 }  // namespace NUClear
