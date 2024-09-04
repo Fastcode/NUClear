@@ -81,7 +81,7 @@ namespace util {
          * @param d A pointer to the data to be stored (the map takes ownership)
          */
         static void set(std::shared_ptr<Value> d) {
-            std::lock_guard<std::mutex> lock(data_mutex);
+            const std::lock_guard<std::mutex> lock(data_mutex);
             data = d;
         }
 
@@ -91,7 +91,7 @@ namespace util {
          * @return A shared_ptr to the data that was previously stored
          */
         static std::shared_ptr<Value> get() {
-            std::lock_guard<std::mutex> lock(data_mutex);
+            const std::lock_guard<std::mutex> lock(data_mutex);
             return data;
         }
     };
