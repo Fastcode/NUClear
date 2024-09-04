@@ -1,0 +1,5 @@
+- Talk about the DSL
+- Show some examples
+- Explain how things interact
+- Talk about how words implement concepts
+- Talk about how concepts are implemented in code
