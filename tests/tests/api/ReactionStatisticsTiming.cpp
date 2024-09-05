@@ -26,7 +26,7 @@
 #include "test_util/TestBase.hpp"
 #include "test_util/TimeUnit.hpp"
 #include "test_util/common.hpp"
-#include "util/precise_sleep.hpp"
+#include "util/Sleeper.hpp"
 
 using TimeUnit = test_util::TimeUnit;
 
@@ -82,7 +82,7 @@ public:
         });
         on<Trigger<LightTask>>().then(light_name, [] {
             code_events.emplace_back("Started " + light_name, NUClear::clock::now());
-            NUClear::util::precise_sleep(TimeUnit(scale));
+            NUClear::util::Sleeper().sleep_for(TimeUnit(scale));
             code_events.emplace_back("Finished " + light_name, NUClear::clock::now());
         });
 
