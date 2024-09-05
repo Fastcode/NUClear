@@ -26,7 +26,7 @@
 #include "test_util/TestBase.hpp"
 #include "test_util/TimeUnit.hpp"
 #include "test_util/common.hpp"
-#include "util/precise_sleep.hpp"
+#include "util/Sleeper.hpp"
 
 namespace Catch {
 
@@ -70,7 +70,7 @@ public:
         on<Trigger<TaskA>, Pool<>, Sync<TestReactor>>().then([this](const TaskA& t) {
             entry_calls[t.i].fetch_add(1, std::memory_order_relaxed);
             emit(std::make_unique<TaskB>(t.i));
-            NUClear::util::precise_sleep(std::chrono::milliseconds(1));
+            NUClear::util::Sleeper().sleep_for(std::chrono::milliseconds(1));
         });
 
         // Run this at low priority but have it first

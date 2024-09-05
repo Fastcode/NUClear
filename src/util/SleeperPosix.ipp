@@ -29,6 +29,7 @@
 #include "Sleeper.hpp"
 
 extern "C" {
+// NOLINTNEXTLINE(misc-use-anonymous-namespace)
 static void signal_handler(int /*unused*/) {
     // Do nothing, we just want to interrupt the sleep
 }
