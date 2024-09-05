@@ -2,6 +2,7 @@
 
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/generators/catch_generators.hpp>
+#include <iostream>
 #include <thread>
 
 #include "test_util/TimeUnit.hpp"
@@ -119,6 +120,27 @@ namespace util {
                     }
                 }
             }
+        }
+    }
+
+    SCENARIO("Test sleep accuracy distribution") {
+        // This test isn't actually a test, it's a benchmark to see how accurate the sleep is on this platform
+        // It will print out the distribution of the sleep times by the millisecond
+        // This is useful for determining how accurate the sleep is on a given platform and what to use for filtering
+
+        /// Set the priority to maximum to enable realtime to make more accurate sleeps
+        update_current_thread_priority(1000);
+
+        Sleeper sleeper;
+
+        for (int i = 0; i < 10000; ++i) {
+            auto start_time = std::chrono::steady_clock::now();
+            sleeper.sleep_for(std::chrono::milliseconds(1));
+            auto end_time = std::chrono::steady_clock::now();
+
+            auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time);
+
+            std::cout << duration.count() << std::endl;
         }
     }
 
