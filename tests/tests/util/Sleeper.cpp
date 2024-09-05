@@ -134,13 +134,14 @@ namespace util {
         Sleeper sleeper;
 
         for (int i = 0; i < 10000; ++i) {
+            int sleep_time  = 1 + (i % 5);  // Sleep for between 1 and 5 milliseconds
             auto start_time = std::chrono::steady_clock::now();
-            sleeper.sleep_for(std::chrono::milliseconds(1));
+            sleeper.sleep_for(std::chrono::milliseconds(sleep_time));
             auto end_time = std::chrono::steady_clock::now();
 
             auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time);
 
-            std::cout << duration.count() << std::endl;
+            std::cout << (1 + (i % 5)) << "," << duration.count() << std::endl;
         }
     }
 
