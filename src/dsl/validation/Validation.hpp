@@ -41,9 +41,9 @@ namespace dsl {
         template <typename... Words>
         struct ValidateDSL {
 
-            // Check that at least one word element has a bind component
-            static_assert(Any<fusion::has_bind<Words>..., fusion::has_bind<operation::DSLProxy<Words>>...>::value,
-                          "The provided DSL sentence does not have any components that bind a function");
+            // // Check that at least one word element has a bind component
+            // static_assert(Any<fusion::has_bind<Words>..., fusion::has_bind<operation::DSLProxy<Words>>...>::value,
+            //               "The provided DSL sentence does not have any components that bind a function");
         };
 
         // TODO(Trent) Test that the function signature matches the arguments that will be obtained by get

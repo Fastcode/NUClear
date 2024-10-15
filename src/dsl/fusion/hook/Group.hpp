@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2021 NUClear Contributors
+ * Copyright (c) 2024 NUClear Contributors
  *
  * This file is part of the NUClear codebase.
  * See https://github.com/Fastcode/NUClear for further info.
@@ -19,36 +19,43 @@
  * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+#ifndef NUCLEAR_DSL_FUSION_HOOK_GROUP_HPP
+#define NUCLEAR_DSL_FUSION_HOOK_GROUP_HPP
 
-#ifndef NUCLEAR_DSL_WORD_ONCE_HPP
-#define NUCLEAR_DSL_WORD_ONCE_HPP
+#include <memory>
+#include <set>
 
-#include "../../threading/ReactionTask.hpp"
-#include "Single.hpp"
+#include "../../../util/GroupDescriptor.hpp"
 
 namespace NUClear {
 namespace dsl {
-    namespace word {
+    namespace fusion {
+        namespace hook {
 
-        /**
-         * This is used to specify reactions which should occur only 1 time.
-         *
-         * @code on<Once>() @endcode
-         * Any reactions listed with this DSL word will run only once.
-         * This is the only time these reactions will run as the post_run Unbinds the current reaction.
-         */
-        struct Once : Single {
+            template <typename Word>
+            struct Group {
+            private:
+                using GroupSet = std::set<std::shared_ptr<const util::GroupDescriptor>>;
 
-            // Post condition to unbind this reaction.
-            template <typename DSL>
-            static void post_run(threading::ReactionTask& task) {
-                // Unbind:
-                task.parent->unbind();
-            }
-        };
+            public:
+                template <typename DSL, typename... Args>
+                static auto call(Args&&... args) -> decltype(Word::template group<DSL>(std::forward<Args>(args)...),
+                                                             std::declval<GroupSet>()) {
+                    return Word::template group<DSL>(std::forward<Args>(args)...);
+                }
 
-    }  // namespace word
+                template <typename DSL>
+                static GroupSet merge(const GroupSet& lhs, const GroupSet& rhs) {
+                    GroupSet groups;
+                    groups.insert(lhs.begin(), lhs.end());
+                    groups.insert(rhs.begin(), rhs.end());
+                    return groups;
+                }
+            };
+
+        }  // namespace hook
+    }  // namespace fusion
 }  // namespace dsl
 }  // namespace NUClear
 
-#endif  // NUCLEAR_DSL_WORD_ONCE_HPP
+#endif  // NUCLEAR_DSL_FUSION_HOOK_GROUP_HPP

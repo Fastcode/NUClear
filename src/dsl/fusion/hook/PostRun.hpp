@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2014 NUClear Contributors
+ * Copyright (c) 2024 NUClear Contributors
  *
  * This file is part of the NUClear codebase.
  * See https://github.com/Fastcode/NUClear for further info.
@@ -19,40 +19,27 @@
  * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-
-#ifndef NUCLEAR_DSL_FUSION_HAS_POSTCONDITION_HPP
-#define NUCLEAR_DSL_FUSION_HAS_POSTCONDITION_HPP
-
-#include "../../threading/ReactionTask.hpp"
-#include "NoOp.hpp"
+#ifndef NUCLEAR_DSL_FUSION_HOOK_POST_RUN_HPP
+#define NUCLEAR_DSL_FUSION_HOOK_POST_RUN_HPP
 
 namespace NUClear {
 namespace dsl {
     namespace fusion {
+        namespace hook {
 
-        /**
-         * SFINAE struct to test if the passed class has a postcondition function that conforms to the NUClear DSL.
-         *
-         * @tparam T the class to check
-         */
-        template <typename T>
-        struct has_postcondition {
-        private:
-            using yes = std::true_type;
-            using no  = std::false_type;
+            template <typename Word>
+            struct PostRun {
+            public:
+                template <typename DSL, typename... Args>
+                static auto call(Args&&... args)
+                    -> decltype(Word::template post_run<DSL>(std::forward<Args>(args)...)) {
+                    return Word::template post_run<DSL>(std::forward<Args>(args)...);
+                }
+            };
 
-            template <typename U>
-            static auto test(int)
-                -> decltype(U::template postcondition<ParsedNoOp>(std::declval<threading::ReactionTask&>()), yes());
-            template <typename>
-            static no test(...);
-
-        public:
-            static constexpr bool value = std::is_same<decltype(test<T>(0)), yes>::value;
-        };
-
+        }  // namespace hook
     }  // namespace fusion
 }  // namespace dsl
 }  // namespace NUClear
 
-#endif  // NUCLEAR_DSL_FUSION_HAS_POSTCONDITION_HPP
+#endif  // NUCLEAR_DSL_FUSION_HOOK_POST_RUN_HPP

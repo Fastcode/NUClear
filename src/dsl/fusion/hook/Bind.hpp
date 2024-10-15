@@ -19,40 +19,36 @@
  * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+#ifndef NUCLEAR_DSL_FUSION_HOOK_BIND_HPP
+#define NUCLEAR_DSL_FUSION_HOOK_BIND_HPP
 
-#ifndef NUCLEAR_DSL_FUSION_HAS_PRECONDITION_HPP
-#define NUCLEAR_DSL_FUSION_HAS_PRECONDITION_HPP
+#include <tuple>
 
-#include "../../threading/ReactionTask.hpp"
-#include "NoOp.hpp"
+#include "../../../util/tuplify.hpp"
 
 namespace NUClear {
 namespace dsl {
     namespace fusion {
+        namespace hook {
 
-        /**
-         * SFINAE struct to test if the passed class has a precondition function that conforms to the NUClear DSL.
-         *
-         * @tparam T the class to check
-         */
-        template <typename T>
-        struct has_precondition {
-        private:
-            using yes = std::true_type;
-            using no  = std::false_type;
+            template <typename Word>
+            struct Bind {
+            public:
+                template <typename DSL, typename... Args>
+                static auto call(Args&&... args) -> decltype(Word::template bind<DSL>(std::forward<Args>(args)...)) {
+                    // TODO mark the pointer that we give to the bind function with the Word type
+                    return util::tuplify(Word::template bind<DSL>(std::forward<Args>(args)...));
+                }
 
-            template <typename U>
-            static auto test(int)
-                -> decltype(U::template precondition<ParsedNoOp>(std::declval<threading::ReactionTask&>()), yes());
-            template <typename>
-            static no test(...);
+                template <typename DSL, typename LHS, typename RHS>
+                static auto merge(LHS&& lhs, RHS&& rhs) -> decltype(std::tuple_cat(lhs, rhs)) {
+                    return std::tuple_cat(lhs, rhs);
+                }
+            };
 
-        public:
-            static constexpr bool value = std::is_same<decltype(test<T>(0)), yes>::value;
-        };
-
+        }  // namespace hook
     }  // namespace fusion
 }  // namespace dsl
 }  // namespace NUClear
 
-#endif  // NUCLEAR_DSL_FUSION_HAS_PRECONDITION_HPP
+#endif  // NUCLEAR_DSL_FUSION_HOOK_BIND_HPP

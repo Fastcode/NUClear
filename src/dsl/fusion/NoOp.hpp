@@ -80,7 +80,17 @@ namespace dsl {
             }
 
             template <typename DSL>
-            static void postcondition(const threading::ReactionTask& /*task*/) {
+            static void post_run(const threading::ReactionTask& /*task*/) {
+                // Empty as this is a no-op placeholder
+            }
+
+            template <typename DSL>
+            static void pre_run(const threading::ReactionTask& /*task*/) {
+                // Empty as this is a no-op placeholder
+            }
+
+            template <typename DSL>
+            static void scope(const threading::ReactionTask& /*task*/) {
                 // Empty as this is a no-op placeholder
             }
         };
@@ -106,7 +116,9 @@ namespace dsl {
 
             static std::shared_ptr<const util::ThreadPoolDescriptor> pool(threading::ReactionTask&);
 
-            static void postcondition(threading::ReactionTask&);
+            static void pre_run(threading::ReactionTask&);
+
+            static void post_run(threading::ReactionTask&);
         };
 
     }  // namespace fusion

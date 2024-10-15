@@ -19,32 +19,32 @@
  * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-
-#ifndef NUCLEAR_DSL_FUSION_FIND_WORDS_HPP
-#define NUCLEAR_DSL_FUSION_FIND_WORDS_HPP
-
-#include "../../util/meta/Filter.hpp"
+#ifndef NUCLEAR_DSL_FUSION_HOOK_PRIORITY_HPP
+#define NUCLEAR_DSL_FUSION_HOOK_PRIORITY_HPP
 
 namespace NUClear {
 namespace dsl {
     namespace fusion {
+        namespace hook {
 
-        /**
-         * Filters the DSL words to only those that have the correct function.
-         *
-         * It will:
-         * - Attempt to use the word directly
-         * - If the word does not have the correct function, it will try the DSLProxy for that word
-         * - If neither have the correct function, it will remove the word from the list
-         *
-         * @tparam Check The function to check for
-         * @tparam Ts    The words to check
-         */
-        template <template <typename> class Check, typename... Ts>
-        using FindWords = Filter<Check, std::conditional_t<Check<Ts>::value, Ts, operation::DSLProxy<Ts>>...>;
+            template <typename Word>
+            struct Priority {
+            public:
+                template <typename DSL, typename... Args>
+                static auto call(Args&&... args)
+                    -> decltype(Word::template priority<DSL>(std::forward<Args>(args)...)) {
+                    return Word::template priority<DSL>(std::forward<Args>(args)...);
+                }
 
+                template <typename DSL>
+                static int merge(const int& lhs, const int& rhs) {
+                    return std::max(lhs, rhs);
+                }
+            };
+
+        }  // namespace hook
     }  // namespace fusion
 }  // namespace dsl
 }  // namespace NUClear
 
-#endif  // NUCLEAR_DSL_FUSION_FIND_WORDS_HPP
+#endif  // NUCLEAR_DSL_FUSION_HOOK_PRIORITY_HPP

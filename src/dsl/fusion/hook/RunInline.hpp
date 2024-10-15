@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2023 NUClear Contributors
+ * Copyright (c) 2024 NUClear Contributors
  *
  * This file is part of the NUClear codebase.
  * See https://github.com/Fastcode/NUClear for further info.
@@ -19,40 +19,39 @@
  * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-
-#ifndef NUCLEAR_DSL_FUSION_HAS_GROUP_HPP
-#define NUCLEAR_DSL_FUSION_HAS_GROUP_HPP
-
-#include "../../threading/ReactionTask.hpp"
-#include "NoOp.hpp"
+#ifndef NUCLEAR_DSL_FUSION_HOOK_RUN_INLINE_HPP
+#define NUCLEAR_DSL_FUSION_HOOK_RUN_INLINE_HPP
 
 namespace NUClear {
 namespace dsl {
     namespace fusion {
+        namespace hook {
 
-        /**
-         * SFINAE struct to test if the passed class has a group function that conforms to the NUClear DSL.
-         *
-         * @tparam T the class to check
-         */
-        template <typename T>
-        struct has_group {
-        private:
-            using yes = std::true_type;
-            using no  = std::false_type;
+            template <typename Word>
+            struct RunInline {
+            public:
+                template <typename DSL, typename... Args>
+                static auto call(Args&&... args)
+                    -> decltype(Word::template run_inline<DSL>(std::forward<Args>(args)...)) {
+                    return Word::template run_inline<DSL>(std::forward<Args>(args)...);
+                }
 
-            template <typename U>
-            static auto test(int) -> decltype(U::template group<ParsedNoOp>(std::declval<threading::ReactionTask&>()),
-                                              yes());
-            template <typename>
-            static no test(...);
+                template <typename DSL>
+                static util::Inline merge(const util::Inline& lhs, const util::Inline& rhs) {
+                    // Must agree or make a choice
+                    if ((lhs == util::Inline::ALWAYS && rhs == util::Inline::NEVER)
+                        || (lhs == util::Inline::NEVER && rhs == util::Inline::ALWAYS)) {
+                        throw std::logic_error("Cannot both always and never inline a reaction");
+                    }
 
-        public:
-            static constexpr bool value = std::is_same<decltype(test<T>(0)), yes>::value;
-        };
+                    // Otherwise return the one that made lhs choice
+                    return lhs == util::Inline::NEUTRAL ? rhs : lhs;
+                }
+            };
 
+        }  // namespace hook
     }  // namespace fusion
 }  // namespace dsl
 }  // namespace NUClear
 
-#endif  // NUCLEAR_DSL_FUSION_HAS_GROUP_HPP
+#endif  // NUCLEAR_DSL_FUSION_HOOK_RUN_INLINE_HPP

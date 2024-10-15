@@ -20,52 +20,25 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_DSL_FUSION_POOL_FUSION_HPP
-#define NUCLEAR_DSL_FUSION_POOL_FUSION_HPP
+#ifndef NUCLEAR_DSL_FUSION_FUSE_HPP
+#define NUCLEAR_DSL_FUSION_FUSE_HPP
 
 #include <algorithm>
 #include <stdexcept>
 
-#include "../../threading/ReactionTask.hpp"
-#include "../operation/DSLProxy.hpp"
-#include "FindWords.hpp"
-#include "has_pool.hpp"
+#include "fusion/FindWords.hpp"
+#include "fusion/Fuser.hpp"
+#include "fusion/is_dsl_word.hpp"
 
 namespace NUClear {
 namespace dsl {
     namespace fusion {
 
-        // Default case where there are no pool words
-        template <typename Words>
-        struct PoolFuser {};
-
-        // Case where there is only a single word remaining
-        template <typename Word>
-        struct PoolFuser<std::tuple<Word>> {
-
-            template <typename DSL>
-            static std::shared_ptr<const util::ThreadPoolDescriptor> pool(threading::ReactionTask& task) {
-
-                // Return our pool
-                return Word::template pool<DSL>(task);
-            }
-        };
-
-        // Case where there are 2 or more words remaining
-        template <typename Word1, typename Word2, typename... WordN>
-        struct PoolFuser<std::tuple<Word1, Word2, WordN...>> {
-
-            template <typename DSL>
-            static util::ThreadPoolDescriptor pool(const threading::ReactionTask& /*task*/) {
-                throw std::invalid_argument("Can not be a member of more than one pool");
-            }
-        };
-
-        template <typename Word1, typename... WordN>
-        struct PoolFusion : PoolFuser<FindWords<has_pool, Word1, WordN...>> {};
+        template <template <typename> class Hook, typename Word1, typename... WordN>
+        using Fuse = Fuser<Hook, FindWords<Hook, Word1, WordN...>>;
 
     }  // namespace fusion
 }  // namespace dsl
 }  // namespace NUClear
 
-#endif  // NUCLEAR_DSL_FUSION_POOL_FUSION_HPP
+#endif  // NUCLEAR_DSL_FUSION_FUSE_HPP
