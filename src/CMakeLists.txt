@@ -37,6 +37,15 @@ target_link_libraries(nuclear ${CMAKE_THREAD_LIBS_INIT})
 set_target_properties(nuclear PROPERTIES POSITION_INDEPENDENT_CODE ON)
 target_compile_features(nuclear PUBLIC cxx_std_14)
 
+option(ENABLE_COVERAGE "Compile with coverage support enabled.")
+if(ENABLE_COVERAGE)
+  if(NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
+    message(WARNING "Coverage is enabled but not build in debug mode. Coverage results may be misleading.")
+  endif()
+  target_compile_options(nuclear PUBLIC -fprofile-arcs -ftest-coverage -fprofile-abs-path -fprofile-update=atomic)
+  target_link_options(nuclear PUBLIC -fprofile-arcs)
+endif(ENABLE_COVERAGE)
+
 # Enable warnings, and all warnings are errors
 if(MSVC)
   target_compile_options(nuclear PRIVATE /W4 /WX)
