@@ -89,6 +89,7 @@ option(BUILD_TESTS "Builds all of the NUClear unit tests." ON)
 if(BUILD_TESTS)
   enable_testing()
   add_subdirectory(tests)
+  include(TestRunner)
 endif()
 
 # Add the documentation subdirectory
