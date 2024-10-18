@@ -27,11 +27,14 @@
 #include "../../util/FunctionFusion.hpp"
 #include "../operation/DSLProxy.hpp"
 #include "FindWords.hpp"
-#include "has_bind.hpp"
+#include "has_nuclear_dsl_method.hpp"
 
 namespace NUClear {
 namespace dsl {
     namespace fusion {
+
+        /// Make a SFINAE type to check if a word has a run_inline method
+        HAS_NUCLEAR_DSL_METHOD(bind);
 
         /**
          * This is our Function Fusion wrapper class that allows it to call bind functions.

@@ -26,11 +26,14 @@
 #include "../../threading/ReactionTask.hpp"
 #include "../operation/DSLProxy.hpp"
 #include "FindWords.hpp"
-#include "has_precondition.hpp"
+#include "has_nuclear_dsl_method.hpp"
 
 namespace NUClear {
 namespace dsl {
     namespace fusion {
+
+        /// Make a SFINAE type to check if a word has a precondition method
+        HAS_NUCLEAR_DSL_METHOD(precondition);
 
         // Default case where there are no precondition words
         template <typename Words>
