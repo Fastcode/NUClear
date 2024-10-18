@@ -101,7 +101,7 @@ jobs:
             --define sonar.coverageReportPaths=coverage.xml
 
       - name: Upload Traces
-        if: ${{ !cancelled }}
+        if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v4
         with:
           name: traces-sonar
