@@ -77,7 +77,8 @@ public:
             if (clean_shutdown) {
                 return;
             }
-            else if (should_shutdown) {
+
+            if (should_shutdown) {
                 powerplant.shutdown(true);
             }
             else {
