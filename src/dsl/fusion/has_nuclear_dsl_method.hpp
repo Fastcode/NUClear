@@ -37,6 +37,8 @@
  * @note This macro assumes that the method being checked for is a template method that can be instantiated with
  * `ParsedNoOp`.
  */
+// If you can find a way to do SFINAE in a constexpr for a variable function name let me know
+// NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
 #define HAS_NUCLEAR_DSL_METHOD(Method)                                                 \
     template <typename Word>                                                           \
     struct has_##Method {                                                              \
@@ -45,7 +47,8 @@
         static auto test_func(R (*)(A...)) -> std::true_type;                          \
         static auto test_func(...) -> std::false_type;                                 \
                                                                                        \
-        template <typename U>                                                          \
+        /* Parenthesis would literally break this code*/                               \
+        template <typename U> /* NOLINTNEXTLINE(bugprone-macro-parentheses) */         \
         static auto test(int) -> decltype(test_func(&U::template Method<ParsedNoOp>)); \
         template <typename>                                                            \
         static auto test(...) -> std::false_type;                                      \
