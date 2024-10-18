@@ -60,7 +60,7 @@ jobs:
 
       - name: Test
         timeout-minutes: 5
-        working-directory: build/tests
+        working-directory: build
         run: ninja run_all_tests -k 0
 
       - name: Test Summary
