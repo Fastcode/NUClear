@@ -30,6 +30,7 @@
 #include "../../threading/Reaction.hpp"
 #include "../operation/DSLProxy.hpp"
 #include "FindWords.hpp"
+#include "has_nuclear_dsl_method.hpp"
 
 namespace NUClear {
 namespace dsl {
