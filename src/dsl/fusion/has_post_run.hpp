@@ -20,39 +20,39 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_DSL_FUSION_HPP
-#define NUCLEAR_DSL_FUSION_HPP
+#ifndef NUCLEAR_DSL_FUSION_HAS_POST_RUN_HPP
+#define NUCLEAR_DSL_FUSION_HAS_POST_RUN_HPP
 
-#include "../threading/ReactionHandle.hpp"
-#include "fusion/BindFusion.hpp"
-#include "fusion/GetFusion.hpp"
-#include "fusion/GroupFusion.hpp"
-#include "fusion/InlineFusion.hpp"
-#include "fusion/PoolFusion.hpp"
-#include "fusion/PostRunFusion.hpp"
-#include "fusion/PreRunFusion.hpp"
-#include "fusion/PreconditionFusion.hpp"
-#include "fusion/PriorityFusion.hpp"
-#include "fusion/ScopeFusion.hpp"
+#include "../../threading/ReactionTask.hpp"
+#include "NoOp.hpp"
 
 namespace NUClear {
 namespace dsl {
+    namespace fusion {
 
-    /// All of the words from a reaction handle "fused" together into one type
-    template <typename... Words>
-    struct Fusion
-        : fusion::BindFusion<Words...>
-        , fusion::GetFusion<Words...>
-        , fusion::GroupFusion<Words...>
-        , fusion::InlineFusion<Words...>
-        , fusion::PoolFusion<Words...>
-        , fusion::PostRunFusion<Words...>
-        , fusion::PreRunFusion<Words...>
-        , fusion::PreconditionFusion<Words...>
-        , fusion::PriorityFusion<Words...>
-        , fusion::ScopeFusion<Words...> {};
+        /**
+         * SFINAE struct to test if the passed class has a post_run function that conforms to the NUClear DSL.
+         *
+         * @tparam T the class to check
+         */
+        template <typename T>
+        struct has_post_run {
+        private:
+            using yes = std::true_type;
+            using no  = std::false_type;
 
+            template <typename U>
+            static auto test(int)
+                -> decltype(U::template post_run<ParsedNoOp>(std::declval<threading::ReactionTask&>()), yes());
+            template <typename>
+            static no test(...);
+
+        public:
+            static constexpr bool value = std::is_same<decltype(test<T>(0)), yes>::value;
+        };
+
+    }  // namespace fusion
 }  // namespace dsl
 }  // namespace NUClear
 
-#endif  // NUCLEAR_DSL_FUSION_HPP
+#endif  // NUCLEAR_DSL_FUSION_HAS_POST_RUN_HPP

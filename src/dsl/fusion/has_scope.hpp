@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2014 NUClear Contributors
+ * Copyright (c) 2024 NUClear Contributors
  *
  * This file is part of the NUClear codebase.
  * See https://github.com/Fastcode/NUClear for further info.
@@ -20,8 +20,8 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_DSL_FUSION_HAS_POSTCONDITION_HPP
-#define NUCLEAR_DSL_FUSION_HAS_POSTCONDITION_HPP
+#ifndef NUCLEAR_DSL_FUSION_HAS_SCOPE_HPP
+#define NUCLEAR_DSL_FUSION_HAS_SCOPE_HPP
 
 #include "../../threading/ReactionTask.hpp"
 #include "NoOp.hpp"
@@ -31,19 +31,19 @@ namespace dsl {
     namespace fusion {
 
         /**
-         * SFINAE struct to test if the passed class has a postcondition function that conforms to the NUClear DSL.
+         * SFINAE struct to test if the passed class has a scope function that conforms to the NUClear DSL.
          *
          * @tparam T the class to check
          */
         template <typename T>
-        struct has_postcondition {
+        struct has_scope {
         private:
             using yes = std::true_type;
             using no  = std::false_type;
 
             template <typename U>
-            static auto test(int)
-                -> decltype(U::template postcondition<ParsedNoOp>(std::declval<threading::ReactionTask&>()), yes());
+            static auto test(int) -> decltype(U::template scope<ParsedNoOp>(std::declval<threading::ReactionTask&>()),
+                                              yes());
             template <typename>
             static no test(...);
 
@@ -55,4 +55,4 @@ namespace dsl {
 }  // namespace dsl
 }  // namespace NUClear
 
-#endif  // NUCLEAR_DSL_FUSION_HAS_POSTCONDITION_HPP
+#endif  // NUCLEAR_DSL_FUSION_HAS_SCOPE_HPP
