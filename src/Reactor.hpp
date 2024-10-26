@@ -70,6 +70,9 @@ namespace dsl {
 
         struct MainThread;
 
+        template <typename T>
+        struct TaskScope;
+
         template <typename>
         struct Network;
 
@@ -224,6 +227,10 @@ protected:
 
     /// @copydoc dsl::word::MainThread
     using MainThread = dsl::word::MainThread;
+
+    /// @copydoc dsl::word::TaskScope
+    template <typename T>
+    using TaskScope = dsl::word::TaskScope<T>;
 
     /// @copydoc dsl::word::Startup
     using Startup = dsl::word::Startup;
@@ -474,6 +481,7 @@ public:
 #include "dsl/word/Startup.hpp"
 #include "dsl/word/Sync.hpp"
 #include "dsl/word/TCP.hpp"
+#include "dsl/word/TaskScope.hpp"
 #include "dsl/word/Trigger.hpp"
 #include "dsl/word/UDP.hpp"
 #include "dsl/word/Watchdog.hpp"

@@ -20,8 +20,8 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_DSL_FUSION_PRECONDITION_FUSION_HPP
-#define NUCLEAR_DSL_FUSION_PRECONDITION_FUSION_HPP
+#ifndef NUCLEAR_DSL_FUSION_POST_RUN_FUSION_HPP
+#define NUCLEAR_DSL_FUSION_POST_RUN_FUSION_HPP
 
 #include "../../threading/ReactionTask.hpp"
 #include "../operation/DSLProxy.hpp"
@@ -32,43 +32,45 @@ namespace NUClear {
 namespace dsl {
     namespace fusion {
 
-        /// Make a SFINAE type to check if a word has a precondition method
-        HAS_NUCLEAR_DSL_METHOD(precondition);
+        /// Make a SFINAE type to check if a word has a post_run method
+        HAS_NUCLEAR_DSL_METHOD(post_run);
 
-        // Default case where there are no precondition words
+        // Default case where there are no post_run words
         template <typename Words>
-        struct PreconditionFuser {};
+        struct PostRunFuser {};
 
         // Case where there is only a single word remaining
         template <typename Word>
-        struct PreconditionFuser<std::tuple<Word>> {
+        struct PostRunFuser<std::tuple<Word>> {
 
             template <typename DSL>
-            static bool precondition(threading::ReactionTask& task) {
+            static void post_run(threading::ReactionTask& task) {
 
-                // Run our remaining precondition
-                return Word::template precondition<DSL>(task);
+                // Run our remaining post_run
+                Word::template post_run<DSL>(task);
             }
         };
 
         // Case where there is more 2 more more words remaining
         template <typename Word1, typename Word2, typename... WordN>
-        struct PreconditionFuser<std::tuple<Word1, Word2, WordN...>> {
+        struct PostRunFuser<std::tuple<Word1, Word2, WordN...>> {
 
             template <typename DSL>
-            static bool precondition(threading::ReactionTask& task) {
+            static void post_run(threading::ReactionTask& task) {
 
-                // Perform a recursive and operation ending with the first false
-                return Word1::template precondition<DSL>(task)
-                       && PreconditionFuser<std::tuple<Word2, WordN...>>::template precondition<DSL>(task);
+                // Run our post_run
+                Word1::template post_run<DSL>(task);
+
+                // Run the rest of our post_runs
+                PostRunFuser<std::tuple<Word2, WordN...>>::template post_run<DSL>(task);
             }
         };
 
         template <typename Word1, typename... WordN>
-        struct PreconditionFusion : PreconditionFuser<FindWords<has_precondition, Word1, WordN...>> {};
+        struct PostRunFusion : PostRunFuser<FindWords<has_post_run, Word1, WordN...>> {};
 
     }  // namespace fusion
 }  // namespace dsl
 }  // namespace NUClear
 
-#endif  // NUCLEAR_DSL_FUSION_PRECONDITION_FUSION_HPP
+#endif  // NUCLEAR_DSL_FUSION_POST_RUN_FUSION_HPP

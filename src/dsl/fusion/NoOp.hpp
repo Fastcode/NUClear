@@ -70,6 +70,16 @@ namespace dsl {
             }
 
             template <typename DSL>
+            static void post_run(const threading::ReactionTask& /*task*/) {
+                // Empty as this is a no-op placeholder
+            }
+
+            template <typename DSL>
+            static void pre_run(const threading::ReactionTask& /*task*/) {
+                // Empty as this is a no-op placeholder
+            }
+
+            template <typename DSL>
             static int priority(const threading::ReactionTask& /*task*/) {
                 return word::Priority::NORMAL::value;
             }
@@ -80,8 +90,8 @@ namespace dsl {
             }
 
             template <typename DSL>
-            static void postcondition(const threading::ReactionTask& /*task*/) {
-                // Empty as this is a no-op placeholder
+            static std::tuple<> scope(const threading::ReactionTask& /*task*/) {
+                return {};
             }
         };
 
@@ -102,11 +112,15 @@ namespace dsl {
 
             static bool precondition(threading::ReactionTask&);
 
+            static void post_run(threading::ReactionTask&);
+
+            static void pre_run(threading::ReactionTask&);
+
             static int priority(threading::ReactionTask&);
 
             static std::shared_ptr<const util::ThreadPoolDescriptor> pool(threading::ReactionTask&);
 
-            static void postcondition(threading::ReactionTask&);
+            static std::tuple<> scope(threading::ReactionTask&);
         };
 
     }  // namespace fusion

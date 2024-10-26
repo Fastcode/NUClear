@@ -35,13 +35,13 @@ namespace dsl {
          *
          * @code on<Once>() @endcode
          * Any reactions listed with this DSL word will run only once.
-         * This is the only time these reactions will run as the postcondition Unbinds the current reaction.
+         * This is the only time these reactions will run as the post_run Unbinds the current reaction.
          */
         struct Once : Single {
 
             // Post condition to unbind this reaction.
             template <typename DSL>
-            static void postcondition(threading::ReactionTask& task) {
+            static void post_run(threading::ReactionTask& task) {
                 // Unbind:
                 task.parent->unbind();
             }

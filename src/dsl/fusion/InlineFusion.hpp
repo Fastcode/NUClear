@@ -27,11 +27,14 @@
 #include "../../util/Inline.hpp"
 #include "../operation/DSLProxy.hpp"
 #include "FindWords.hpp"
-#include "has_run_inline.hpp"
+#include "has_nuclear_dsl_method.hpp"
 
 namespace NUClear {
 namespace dsl {
     namespace fusion {
+
+        /// Make a SFINAE type to check if a word has a run_inline method
+        HAS_NUCLEAR_DSL_METHOD(run_inline);
 
         // Default case where there are no Inline words
         template <typename Words>
