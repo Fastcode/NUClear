@@ -77,19 +77,13 @@ public:
             if (clean_shutdown) {
                 return;
             }
+            std::unique_lock<std::mutex> lock(timeout_mutex);
+            timeout_cv.wait_for(lock, timeout);
 
-            if (should_shutdown) {
+            if (!clean_shutdown) {
                 powerplant.shutdown(true);
-            }
-            else {
-                std::unique_lock<std::mutex> lock(timeout_mutex);
-                timeout_cv.wait_for(lock, timeout);
-
-                if (!clean_shutdown) {
-                    should_shutdown = true;
-                    emit<Scope::INLINE>(
-                        std::make_unique<Fail>("Test timed out after " + std::to_string(timeout.count()) + " ms"));
-                }
+                emit<Scope::INLINE>(
+                    std::make_unique<Fail>("Test timed out after " + std::to_string(timeout.count()) + " ms"));
             }
         });
 
@@ -102,8 +96,7 @@ public:
 private:
     std::mutex timeout_mutex;
     std::condition_variable timeout_cv;
-    bool clean_shutdown  = false;
-    bool should_shutdown = false;
+    bool clean_shutdown = false;
 };
 
 }  // namespace test_util
