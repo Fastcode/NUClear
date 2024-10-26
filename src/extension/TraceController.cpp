@@ -275,6 +275,11 @@ namespace extension {
             }
             write_trace_packet(data);
 
+            // Write the trace events that happened before the trace started
+            auto current_stats = threading::ReactionTask::get_current_task()->statistics;
+            encode_event(ReactionEvent(ReactionEvent::CREATED, current_stats));
+            encode_event(ReactionEvent(ReactionEvent::STARTED, current_stats));
+
             // Bind new handles
             event_handle = on<Trigger<ReactionEvent>, Pool<TracePool>>().then([this](const ReactionEvent& e) {  //
                 encode_event(e);
