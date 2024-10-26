@@ -48,7 +48,7 @@ namespace dsl {
              * Locks the current task id to the word until the lock goes out of scope
              */
             struct Lock {
-                Lock(NUClear::id_t old_id) : old_id(old_id) {}
+                explicit Lock(NUClear::id_t old_id) : old_id(old_id) {}
 
                 // No copying the lock
                 Lock(const Lock&)            = delete;

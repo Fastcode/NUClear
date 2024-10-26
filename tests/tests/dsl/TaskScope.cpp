@@ -66,28 +66,26 @@ public:
     template <int Current, int Scope, typename Message>
     void process_step(const Message& d) {
 
-        // Get the scope state before the inline event
-        std::array<bool, 3> pre_scopes = {
-            TaskScope<Data<0>>::in_scope(),
-            TaskScope<Data<1>>::in_scope(),
-            TaskScope<Data<2>>::in_scope(),
-        };
+        using NextData = Data<Current + 1>;
 
-        Data<Current + 1> next_inline_data;
-        next_inline_data.steps          = d.steps;
-        next_inline_data.steps[Current] = {Scope, true, pre_scopes};
-        emit<Scope::INLINE>(std::make_unique<Data<Current + 1>>(next_inline_data));
+        // Get the scope state before the inline event
+        auto next_inline            = std::make_unique<NextData>();
+        next_inline->steps          = d.steps;
+        next_inline->steps[Current] = {
+            Scope,
+            true,
+            {TaskScope<Data<0>>::in_scope(), TaskScope<Data<1>>::in_scope(), TaskScope<Data<2>>::in_scope()},
+        };
+        emit<Scope::INLINE>(next_inline);
 
         // Get the scope state after the inline event
-        std::array<bool, 3> post_scopes = {
-            TaskScope<Data<0>>::in_scope(),
-            TaskScope<Data<1>>::in_scope(),
-            TaskScope<Data<2>>::in_scope(),
-        };
-        Data<Current + 1> next_normal_data;
-        next_normal_data.steps          = d.steps;
-        next_normal_data.steps[Current] = {Scope, false, post_scopes};
-        emit(std::make_unique<Data<Current + 1>>(next_normal_data));
+        auto next_normal            = std::make_unique<NextData>();
+        next_normal->steps          = d.steps;
+        next_normal->steps[Current] = {
+            Scope,
+            false,
+            {TaskScope<Data<0>>::in_scope(), TaskScope<Data<1>>::in_scope(), TaskScope<Data<2>>::in_scope()}};
+        emit(next_normal);
     }
 
     TestReactor(std::unique_ptr<NUClear::Environment> environment) : TestBase(std::move(environment)) {
