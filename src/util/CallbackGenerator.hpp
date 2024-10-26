@@ -132,8 +132,11 @@ namespace util {
 
                 // We have to catch any exceptions
                 try {
-                    // We call with only the relevant arguments to the passed function
-                    util::apply_relevant(c, std::move(data));
+                    auto scope = DSL::scope(task);             // Acquire the scope
+                    DSL::pre_run(task);                        // Pre run tasks
+                    util::apply_relevant(c, std::move(data));  // Run the callback
+                    DSL::post_run(task);                       // Post run tasks
+                    std::ignore = scope;                       // Ignore unused variable warning
                 }
                 catch (...) {
                     // Catch our exception if it happens
@@ -141,9 +144,6 @@ namespace util {
                         task.statistics->exception = std::current_exception();
                     }
                 }
-
-                // Run our postconditions
-                DSL::postcondition(task);
 
                 if (task.statistics != nullptr) {
                     task.statistics->finished = message::ReactionStatistics::Event::now();
