@@ -36,11 +36,10 @@ namespace dsl {
          *
          * For example, if you want to have a DSL word that modifies how events are emitted within that task you can use
          * this to track when the current task is one with that word.
-         * It utilises pre_run and post_run to track when the task is running by storing the task id in a thread local
-         * variable.
-         * Then when another system needs to know if it is running in that context it can call the is_running function.
+         * It utilises scope to track when the task is running by storing the task id in a thread local variable.
+         * Then when another system needs to know if it is running in that context it can call the in_scope function.
          *
-         * @tparam Group a unique type to identify this group of tasks
+         * @tparam Group a unique type to identify this scope
          */
         template <typename Group>
         struct TaskScope {
