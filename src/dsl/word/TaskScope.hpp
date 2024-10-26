@@ -55,11 +55,8 @@ namespace dsl {
                 Lock& operator=(const Lock&) = delete;
 
                 // Moving the lock must invalidate the old lock
-                Lock(Lock&& other) noexcept {
-                    valid  = std::exchange(other.valid, false);
-                    old_id = other.old_id;
-                }
-                Lock& operator=(Lock&& other) {
+                Lock(Lock&& other) noexcept : valid(std::exchange(other.valid, false)), old_id(other.old_id) {}
+                Lock& operator=(Lock&& other) noexcept {
                     if (this != &other) {
                         valid  = std::exchange(other.valid, false);
                         old_id = other.old_id;
@@ -88,7 +85,7 @@ namespace dsl {
 
             static bool in_scope() {
                 // Get the current task id
-                auto* task = threading::ReactionTask::get_current_task();
+                const auto* task = threading::ReactionTask::get_current_task();
 
                 // Check if the current task id is the word
                 return task != nullptr && task->id == current_task_id;
@@ -96,11 +93,12 @@ namespace dsl {
 
         private:
             /// The current task id that is running
+            // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
             static ATTRIBUTE_TLS NUClear::id_t current_task_id;
         };
 
         // Initialise the current task id
-        template <typename Group>
+        template <typename Group>  // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
         ATTRIBUTE_TLS NUClear::id_t TaskScope<Group>::current_task_id{0};
 
     }  // namespace word
