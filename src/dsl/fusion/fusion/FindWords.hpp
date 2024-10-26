@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2014 NUClear Contributors
+ * Copyright (c) 2024 NUClear Contributors
  *
  * This file is part of the NUClear codebase.
  * See https://github.com/Fastcode/NUClear for further info.
@@ -20,42 +20,35 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_DSL_FUSION_HAS_BIND_HPP
-#define NUCLEAR_DSL_FUSION_HAS_BIND_HPP
+#ifndef NUCLEAR_DSL_FUSION_FUSION_FIND_WORDS_HPP
+#define NUCLEAR_DSL_FUSION_FUSION_FIND_WORDS_HPP
 
-#include "../../threading/ReactionHandle.hpp"
-#include "NoOp.hpp"
+#include "../../../util/meta/Filter.hpp"
+#include "../../operation/DSLProxy.hpp"
+#include "is_dsl_word.hpp"
 
 namespace NUClear {
 namespace dsl {
     namespace fusion {
 
         /**
-         * SFINAE struct to test if the passed class has a bind function that conforms to the NUClear DSL.
+         * Filters the DSL words to only those that have the correct function.
          *
-         * @tparam T the class to check
+         * It will:
+         * - Attempt to use the word directly
+         * - If the word does not have the correct function, it will try the DSLProxy for that word
+         * - If neither have the correct function, it will remove the word from the list
+         *
+         * @tparam Hook  The hook to check for valid functions
+         * @tparam Words The words to check
          */
-        template <typename T>
-        struct has_bind {
-        private:
-            using yes = std::true_type;
-            using no  = std::false_type;
-
-            template <typename R, typename... A>
-            static yes test_func(R (*)(const std::shared_ptr<threading::Reaction>&, A...));
-            static no test_func(...);
-
-            template <typename U>
-            static auto test(int) -> decltype(test_func(U::template bind<ParsedNoOp>));
-            template <typename>
-            static no test(...);
-
-        public:
-            static constexpr bool value = std::is_same<decltype(test<T>(0)), yes>::value;
-        };
+        template <template <typename> class Hook, typename... Words>
+        using FindWords = Filter<
+            is_dsl_word<Hook>::template check,
+            std::conditional_t<is_dsl_word<Hook>::template check<Words>::value, Words, operation::DSLProxy<Words>>...>;
 
     }  // namespace fusion
 }  // namespace dsl
 }  // namespace NUClear
 
-#endif  // NUCLEAR_DSL_FUSION_HASBIND_HPP
+#endif  // NUCLEAR_DSL_FUSION_FUSION_FIND_WORDS_HPP

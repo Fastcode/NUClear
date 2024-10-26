@@ -24,6 +24,7 @@
 #define NUCLEAR_DSL_PARSE_HPP
 
 #include "Fusion.hpp"
+#include "fusion/NoOp.hpp"
 #include "validation/Validation.hpp"
 
 namespace NUClear {
@@ -32,7 +33,7 @@ namespace dsl {
     template <typename... Sentence>
     struct Parse {
 
-        using DSL = Fusion<Sentence...>;
+        using DSL = Fusion<Sentence..., fusion::NoOp>;
 
         template <typename... Arguments>
         static auto bind(const std::shared_ptr<threading::Reaction>& r, Arguments&&... args)
@@ -40,41 +41,44 @@ namespace dsl {
             return DSL::template bind<Parse<Sentence...>>(r, std::forward<Arguments>(args)...);
         }
 
-        static auto get(threading::ReactionTask& task)
-            -> decltype(std::conditional_t<fusion::has_get<DSL>::value, DSL, fusion::NoOp>::template get<
-                        Parse<Sentence...>>(task)) {
-            return std::conditional_t<fusion::has_get<DSL>::value, DSL, fusion::NoOp>::template get<Parse<Sentence...>>(
-                task);
+        static auto get(threading::ReactionTask& task) -> decltype(DSL::template get<Parse<Sentence...>>(task)) {
+            return DSL::template get<Parse<Sentence...>>(task);
         }
 
-        static std::set<std::shared_ptr<const util::GroupDescriptor>> group(threading::ReactionTask& task) {
-            return std::conditional_t<fusion::has_group<DSL>::value, DSL, fusion::NoOp>::template group<
-                Parse<Sentence...>>(task);
+        static auto group(threading::ReactionTask& task) -> decltype(DSL::template group<Parse<Sentence...>>(task)) {
+            return DSL::template group<Parse<Sentence...>>(task);
         }
 
-        static util::Inline run_inline(threading::ReactionTask& task) {
-            return std::conditional_t<fusion::has_run_inline<DSL>::value, DSL, fusion::NoOp>::template run_inline<
-                Parse<Sentence...>>(task);
+        static auto pool(threading::ReactionTask& task) -> decltype(DSL::template pool<Parse<Sentence...>>(task)) {
+            return DSL::template pool<Parse<Sentence...>>(task);
         }
 
-        static bool precondition(threading::ReactionTask& task) {
-            return std::conditional_t<fusion::has_precondition<DSL>::value, DSL, fusion::NoOp>::template precondition<
-                Parse<Sentence...>>(task);
+        static auto postrun(threading::ReactionTask& task)
+            -> decltype(DSL::template postrun<Parse<Sentence...>>(task)) {
+            return DSL::template postrun<Parse<Sentence...>>(task);
         }
 
-        static int priority(threading::ReactionTask& task) {
-            return std::conditional_t<fusion::has_priority<DSL>::value, DSL, fusion::NoOp>::template priority<
-                Parse<Sentence...>>(task);
+        static auto prerun(threading::ReactionTask& task) -> decltype(DSL::template prerun<Parse<Sentence...>>(task)) {
+            return DSL::template prerun<Parse<Sentence...>>(task);
         }
 
-        static std::shared_ptr<const util::ThreadPoolDescriptor> pool(threading::ReactionTask& task) {
-            return std::conditional_t<fusion::has_pool<DSL>::value, DSL, fusion::NoOp>::template pool<
-                Parse<Sentence...>>(task);
+        static auto precondition(threading::ReactionTask& task)
+            -> decltype(DSL::template precondition<Parse<Sentence...>>(task)) {
+            return DSL::template precondition<Parse<Sentence...>>(task);
         }
 
-        static void postcondition(threading::ReactionTask& task) {
-            std::conditional_t<fusion::has_postcondition<DSL>::value, DSL, fusion::NoOp>::template postcondition<
-                Parse<Sentence...>>(task);
+        static auto priority(threading::ReactionTask& task)
+            -> decltype(DSL::template priority<Parse<Sentence...>>(task)) {
+            return DSL::template priority<Parse<Sentence...>>(task);
+        }
+
+        static auto run_inline(threading::ReactionTask& task)
+            -> decltype(DSL::template run_inline<Parse<Sentence...>>(task)) {
+            return DSL::template run_inline<Parse<Sentence...>>(task);
+        }
+
+        static auto scope(threading::ReactionTask& task) -> decltype(DSL::template scope<Parse<Sentence...>>(task)) {
+            return DSL::template scope<Parse<Sentence...>>(task);
         }
     };
 

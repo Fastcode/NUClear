@@ -28,7 +28,6 @@
 #include <typeindex>
 
 #include "../../threading/ReactionTask.hpp"
-#include "../fusion/NoOp.hpp"
 #include "MainThread.hpp"
 #include "Pool.hpp"
 

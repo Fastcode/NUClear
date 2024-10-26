@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2023 NUClear Contributors
+ * Copyright (c) 2024 NUClear Contributors
  *
  * This file is part of the NUClear codebase.
  * See https://github.com/Fastcode/NUClear for further info.
@@ -19,40 +19,36 @@
  * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+#ifndef NUCLEAR_DSL_FUSION_HOOK_SCOPE_HPP
+#define NUCLEAR_DSL_FUSION_HOOK_SCOPE_HPP
 
-#ifndef NUCLEAR_DSL_FUSION_HAS_POOL_HPP
-#define NUCLEAR_DSL_FUSION_HAS_POOL_HPP
+#include <tuple>
 
-#include "../../threading/ReactionTask.hpp"
-#include "NoOp.hpp"
+#include "../../../util/tuplify.hpp"
 
 namespace NUClear {
 namespace dsl {
     namespace fusion {
+        namespace hook {
 
-        /**
-         * SFINAE struct to test if the passed class has a pool function that conforms to the NUClear DSL.
-         *
-         * @tparam T the class to check
-         */
-        template <typename T>
-        struct has_pool {
-        private:
-            using yes = std::true_type;
-            using no  = std::false_type;
+            template <typename Word>
+            struct Scope {
+            public:
+                template <typename DSL, typename... Args>
+                static auto call(Args&&... args)
+                    -> decltype(util::tuplify(Word::template scope<DSL>(std::forward<Args>(args)...))) {
+                    return util::tuplify(Word::template scope<DSL>(std::forward<Args>(args)...));
+                }
 
-            template <typename U>
-            static auto test(int) -> decltype(U::template pool<ParsedNoOp>(std::declval<threading::ReactionTask&>()),
-                                              yes());
-            template <typename>
-            static no test(...);
+                template <typename DSL, typename LHS, typename RHS>
+                static auto merge(LHS&& lhs, RHS&& rhs) -> decltype(std::tuple_cat(lhs, rhs)) {
+                    return std::tuple_cat(lhs, rhs);
+                }
+            };
 
-        public:
-            static constexpr bool value = std::is_same<decltype(test<T>(0)), yes>::value;
-        };
-
+        }  // namespace hook
     }  // namespace fusion
 }  // namespace dsl
 }  // namespace NUClear
 
-#endif  // NUCLEAR_DSL_FUSION_HAS_POOL_HPP
+#endif  // NUCLEAR_DSL_FUSION_HOOK_SCOPE_HPP

@@ -110,7 +110,7 @@ namespace dsl {
             }
 
             template <typename DSL>
-            static void postcondition(threading::ReactionTask& task) {
+            static void post_run(threading::ReactionTask& task) {
                 // Get a task for the always reaction and submit it to the scheduler
                 PowerPlant::powerplant->submit(task.parent->get_task());
             }

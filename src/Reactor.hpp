@@ -33,6 +33,7 @@
 #include "Environment.hpp"
 #include "LogLevel.hpp"
 #include "dsl/Parse.hpp"
+#include "dsl/word/Pool.hpp"
 #include "threading/Reaction.hpp"
 #include "threading/ReactionHandle.hpp"
 #include "threading/ReactionIdentifiers.hpp"

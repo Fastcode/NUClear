@@ -154,7 +154,7 @@ namespace dsl {
             }
 
             template <typename DSL>
-            static void postcondition(threading::ReactionTask& task) {
+            static void post_run(threading::ReactionTask& task) {
                 task.parent->reactor.emit<emit::Inline>(std::make_unique<IOFinished>(task.parent->id));
             }
         };
