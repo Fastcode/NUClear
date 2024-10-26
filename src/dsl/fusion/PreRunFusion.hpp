@@ -26,11 +26,14 @@
 #include "../../threading/ReactionTask.hpp"
 #include "../operation/DSLProxy.hpp"
 #include "FindWords.hpp"
-#include "has_pre_run.hpp"
+#include "has_nuclear_dsl_method.hpp"
 
 namespace NUClear {
 namespace dsl {
     namespace fusion {
+
+        /// Make a SFINAE type to check if a word has a pre_run method
+        HAS_NUCLEAR_DSL_METHOD(pre_run);
 
         // Default case where there are no pre_run words
         template <typename Words>

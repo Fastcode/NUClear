@@ -32,7 +32,7 @@ namespace NUClear {
 namespace dsl {
     namespace fusion {
 
-        /// Make a SFINAE type to check if a word has a postcondition method
+        /// Make a SFINAE type to check if a word has a post_run method
         HAS_NUCLEAR_DSL_METHOD(post_run);
 
         // Default case where there are no post_run words
