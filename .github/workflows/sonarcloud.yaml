@@ -64,7 +64,7 @@ jobs:
       - name: Run tests to generate coverage statistics
         timeout-minutes: 10
         working-directory: build
-        run: ninja run_all_tests -k 0
+        run: ninja run_all_tests -j1 -k 0
 
       - name: Test Summary
         if: ${{ !cancelled() }}
