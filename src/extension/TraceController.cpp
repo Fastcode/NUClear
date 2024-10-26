@@ -264,10 +264,16 @@ namespace extension {
             // Open a new file in the target location
             trace_file.open(e.file, std::ios::binary);
 
-            // Write the trace events that happened before the trace started
-            auto current_stats = threading::ReactionTask::get_current_task()->statistics;
-            encode_event(ReactionEvent(ReactionEvent::CREATED, current_stats));
-            encode_event(ReactionEvent(ReactionEvent::STARTED, current_stats));
+            // Write a reset packet so that incremental state works
+            std::vector<char> data;
+            {
+                const trace::protobuf::SubMessage packet(1, data);
+                trace::protobuf::uint32(10, trusted_packet_sequence_id, data);  // trusted_packet_sequence_id:10:uint32
+                trace::protobuf::int32(87, 1, data);                            // first_packet_on_sequence:87:bool
+                trace::protobuf::int32(42, 1, data);                            // previous_packet_dropped:42:bool
+                trace::protobuf::int32(13, SEQ_INCREMENTAL_STATE_CLEARED, data);  // sequence flags:13:int32
+            }
+            write_trace_packet(data);
 
             // Write the trace events that happened before the trace started
             auto current_stats = threading::ReactionTask::get_current_task()->statistics;
