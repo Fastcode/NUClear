@@ -63,7 +63,7 @@ public:
         std::map<int, StepData> steps;  ///< The steps that have been run
     };
 
-    template <int Current, int Scope, typename Message>
+    template <int Current, int ScopeID, typename Message>
     void process_step(const Message& d) {
 
         using NextData = Data<Current + 1>;
@@ -72,7 +72,7 @@ public:
         auto next_inline            = std::make_unique<NextData>();
         next_inline->steps          = d.steps;
         next_inline->steps[Current] = {
-            Scope,
+            ScopeID,
             true,
             {TaskScope<Data<0>>::in_scope(), TaskScope<Data<1>>::in_scope(), TaskScope<Data<2>>::in_scope()},
         };
@@ -82,7 +82,7 @@ public:
         auto next_normal            = std::make_unique<NextData>();
         next_normal->steps          = d.steps;
         next_normal->steps[Current] = {
-            Scope,
+            ScopeID,
             false,
             {TaskScope<Data<0>>::in_scope(), TaskScope<Data<1>>::in_scope(), TaskScope<Data<2>>::in_scope()}};
         emit(next_normal);
