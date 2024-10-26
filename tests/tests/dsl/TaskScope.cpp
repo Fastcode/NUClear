@@ -95,15 +95,15 @@ public:
         on<Trigger<Data<0>>, TaskScope<Data<1>>>().then([this](const Data<0>& m) { process_step<0, 1>(m); });
         on<Trigger<Data<0>>, TaskScope<Data<2>>>().then([this](const Data<0>& m) { process_step<0, 2>(m); });
 
-        on<Trigger<Data<1>>>().then([this](const Data<1> m) { process_step<1, -1>(m); });
-        on<Trigger<Data<1>>, TaskScope<Data<0>>>().then([this](const Data<1> m) { process_step<1, 0>(m); });
-        on<Trigger<Data<1>>, TaskScope<Data<1>>>().then([this](const Data<1> m) { process_step<1, 1>(m); });
-        on<Trigger<Data<1>>, TaskScope<Data<2>>>().then([this](const Data<1> m) { process_step<1, 2>(m); });
+        on<Trigger<Data<1>>>().then([this](const Data<1>& m) { process_step<1, -1>(m); });
+        on<Trigger<Data<1>>, TaskScope<Data<0>>>().then([this](const Data<1>& m) { process_step<1, 0>(m); });
+        on<Trigger<Data<1>>, TaskScope<Data<1>>>().then([this](const Data<1>& m) { process_step<1, 1>(m); });
+        on<Trigger<Data<1>>, TaskScope<Data<2>>>().then([this](const Data<1>& m) { process_step<1, 2>(m); });
 
-        on<Trigger<Data<2>>>().then([this](const Data<2> m) { process_step<2, -1>(m); });
-        on<Trigger<Data<2>>, TaskScope<Data<0>>>().then([this](const Data<2> m) { process_step<2, 0>(m); });
-        on<Trigger<Data<2>>, TaskScope<Data<1>>>().then([this](const Data<2> m) { process_step<2, 1>(m); });
-        on<Trigger<Data<2>>, TaskScope<Data<2>>>().then([this](const Data<2> m) { process_step<2, 2>(m); });
+        on<Trigger<Data<2>>>().then([this](const Data<2>& m) { process_step<2, -1>(m); });
+        on<Trigger<Data<2>>, TaskScope<Data<0>>>().then([this](const Data<2>& m) { process_step<2, 0>(m); });
+        on<Trigger<Data<2>>, TaskScope<Data<1>>>().then([this](const Data<2>& m) { process_step<2, 1>(m); });
+        on<Trigger<Data<2>>, TaskScope<Data<2>>>().then([this](const Data<2>& m) { process_step<2, 2>(m); });
 
         // Store the results of the test
         on<Trigger<Data<3>>>().then([this](const Data<3>& m) { events.push_back(m.steps); });
