@@ -55,7 +55,7 @@ namespace dsl {
         struct ScopeFuser<std::tuple<Word1, WordN...>> {
 
             template <typename DSL, typename U = Word1>
-            static auto get(threading::ReactionTask& task)
+            static auto scope(threading::ReactionTask& task)
                 -> decltype(util::FunctionFusion<std::tuple<Word1, WordN...>,
                                                  decltype(std::forward_as_tuple(task)),
                                                  ScopeCaller,
