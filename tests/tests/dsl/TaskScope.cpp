@@ -65,7 +65,6 @@ public:
 
     template <int Current, int Scope, typename Message>
     void process_step(const Message& d) {
-        constexpr int Next = Current + 1;
 
         // Get the scope state before the inline event
         std::array<bool, 3> pre_scopes = {
@@ -74,10 +73,10 @@ public:
             TaskScope<Data<2>>::in_scope(),
         };
 
-        Data<Next> next_inline_data;
+        Data<Current + 1> next_inline_data;
         next_inline_data.steps          = d.steps;
         next_inline_data.steps[Current] = {Scope, true, pre_scopes};
-        emit<Scope::INLINE>(std::make_unique<Data<Next>>(next_inline_data));
+        emit<Scope::INLINE>(std::make_unique<Data<Current + 1>>(next_inline_data));
 
         // Get the scope state after the inline event
         std::array<bool, 3> post_scopes = {
@@ -85,10 +84,10 @@ public:
             TaskScope<Data<1>>::in_scope(),
             TaskScope<Data<2>>::in_scope(),
         };
-        Data<Next> next_normal_data;
+        Data<Current + 1> next_normal_data;
         next_normal_data.steps          = d.steps;
         next_normal_data.steps[Current] = {Scope, false, post_scopes};
-        emit(std::make_unique<Data<Next>>(next_normal_data));
+        emit(std::make_unique<Data<Current + 1>>(next_normal_data));
     }
 
     TestReactor(std::unique_ptr<NUClear::Environment> environment) : TestBase(std::move(environment)) {
