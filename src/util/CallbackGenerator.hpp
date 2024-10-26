@@ -132,19 +132,11 @@ namespace util {
 
                 // We have to catch any exceptions
                 try {
-                    // Create the scope object that wraps the execution of the callback
-                    auto scope = DSL::scope(task);
-
-                    DSL::pre_run(task);
-
-                    // We call with only the relevant arguments to the passed function
-                    util::apply_relevant(c, std::move(data));
-
-                    // Run our postconditions
-                    DSL::post_run(task);
-
-                    // Get rid of unused variable warning
-                    std::ignore = scope;
+                    auto scope = DSL::scope(task);             // Acquire the scope
+                    DSL::pre_run(task);                        // Pre run tasks
+                    util::apply_relevant(c, std::move(data));  // Run the callback
+                    DSL::post_run(task);                       // Post run tasks
+                    std::ignore = scope;                       // Ignore unused variable warning
                 }
                 catch (...) {
                     // Catch our exception if it happens
