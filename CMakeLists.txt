@@ -29,70 +29,77 @@ project(
   LANGUAGES C CXX
 )
 
-# We use additional modules that cmake needs to know about
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/" "${CMAKE_SOURCE_DIR}/cmake/Modules/")
-
-# Output the compilation database
-set(CMAKE_EXPORT_COMPILE_COMMANDS
-    ON
-    CACHE STRING "Enable/Disable output of compile commands during generation." FORCE
-)
-
-# Set a default build type if none was specified
-set(default_build_type "Release")
-if(EXISTS "${CMAKE_SOURCE_DIR}/.git")
-  set(default_build_type "Debug")
-endif()
-
-if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
-  message(STATUS "Setting build type to '${default_build_type}' as none was specified.")
-  set(CMAKE_BUILD_TYPE
-      ${default_build_type}
-      CACHE STRING "Choose the type of build." FORCE
-  )
-  # Set the possible values of build type for cmake-gui
-  set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release" "MinSizeRel" "RelWithDebInfo")
-endif()
-
-# NUClear targets c++14
-set(CMAKE_CXX_STANDARD 14)
-
 # Determine if NUClear is built as a subproject (using add_subdirectory) or if it is the master project.
 set(MASTER_PROJECT OFF)
 if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
   set(MASTER_PROJECT ON)
 endif()
 
-# If this option is set we are building using continous integration
-option(CI_BUILD "Enable build options for building in the CI server" OFF)
+if(MASTER_PROJECT)
 
-# Include files to set up the compiler options
-include(ClangTidy)
-include(CompilerOptions)
-include(Sanitizers)
+  # We use additional modules that cmake needs to know about
+  set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/" "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 
-# If we are doing a CI build then we want to enable -Werror when compiling warnings are bad. We will also make it fail
-# if clang-tidy has an error
-if(CI_BUILD)
-  if(CMAKE_CXX_COMPILER_ID MATCHES MSVC)
-    add_compile_options(/WX)
-  else()
-    add_compile_options(-Werror)
+  # Output the compilation database
+  set(CMAKE_EXPORT_COMPILE_COMMANDS
+      ON
+      CACHE STRING "Enable/Disable output of compile commands during generation." FORCE
+  )
+
+  # Set a default build type if none was specified
+  set(default_build_type "Release")
+  if(EXISTS "${CMAKE_SOURCE_DIR}/.git")
+    set(default_build_type "Debug")
   endif()
-endif(CI_BUILD)
+
+  if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+    message(STATUS "Setting build type to '${default_build_type}' as none was specified.")
+    set(CMAKE_BUILD_TYPE
+        ${default_build_type}
+        CACHE STRING "Choose the type of build." FORCE
+    )
+    # Set the possible values of build type for cmake-gui
+    set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release" "MinSizeRel" "RelWithDebInfo")
+  endif()
+
+  # NUClear targets c++14
+  set(CMAKE_CXX_STANDARD 14)
+  set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+  # If this option is set we are building using continous integration
+  option(CI_BUILD "Enable build options for building in the CI server" OFF)
+
+  # Include files to set up the compiler options
+  include(ClangTidy)
+  include(CompilerOptions)
+  include(Sanitizers)
+
+  # If we are doing a CI build then we want to enable -Werror when compiling warnings are bad. We will also make it fail
+  # if clang-tidy has an error
+  if(CI_BUILD)
+    if(CMAKE_CXX_COMPILER_ID MATCHES MSVC)
+      add_compile_options(/WX)
+    else()
+      add_compile_options(-Werror)
+    endif()
+  endif(CI_BUILD)
+
+endif()
 
 # Add the src directory
 add_subdirectory(src)
 
-# Add the tests directory
-option(BUILD_TESTS "Builds all of the NUClear unit tests." ON)
-if(BUILD_TESTS)
-  enable_testing()
-  add_subdirectory(tests)
-endif()
+if(MASTER_PROJECT)
+  # Add the tests directory
+  option(BUILD_TESTS "Builds all of the NUClear unit tests." ON)
+  if(BUILD_TESTS)
+    enable_testing()
+    add_subdirectory(tests)
+  endif()
 
-# Add the documentation subdirectory
-option(BUILD_DOCUMENTATION "Create and install the HTML based API documentation (requires Doxygen and Sphinx)" OFF)
-if(BUILD_DOCUMENTATION)
-  add_subdirectory(docs)
+  # Add the documentation subdirectory
+  option(BUILD_DOCUMENTATION "Create and install the HTML based API documentation (requires Doxygen and Sphinx)" OFF)
+  if(BUILD_DOCUMENTATION)
+    add_subdirectory(docs)
+  endif()
 endif()
