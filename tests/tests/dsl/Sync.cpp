@@ -26,7 +26,7 @@
 #include "test_util/TestBase.hpp"
 #include "test_util/TimeUnit.hpp"
 #include "test_util/common.hpp"
-#include "util/precise_sleep.hpp"
+#include "util/Sleeper.hpp"
 
 class TestReactor : public test_util::TestBase<TestReactor> {
 public:
@@ -42,14 +42,14 @@ public:
             events.push_back("Sync A " + m.data);
 
             // Sleep for some time to be safe
-            NUClear::util::precise_sleep(test_util::TimeUnit(1));
+            NUClear::util::Sleeper().sleep_for(test_util::TimeUnit(1));
 
             // Emit a message 1 here, it should not run yet
             events.push_back("Sync A emitting");
             emit(std::make_unique<Message<1>>("From Sync A"));
 
             // Sleep for some time again
-            NUClear::util::precise_sleep(test_util::TimeUnit(1));
+            NUClear::util::Sleeper().sleep_for(test_util::TimeUnit(1));
 
             events.push_back("Sync A " + m.data + " finished");
         });
@@ -58,14 +58,14 @@ public:
             events.push_back("Sync B " + m.data);
 
             // Sleep for some time to be safe
-            NUClear::util::precise_sleep(test_util::TimeUnit(1));
+            NUClear::util::Sleeper().sleep_for(test_util::TimeUnit(1));
 
             // Emit a message 1 here, it should not run yet
             events.push_back("Sync B emitting");
             emit(std::make_unique<Message<1>>("From Sync B"));
 
             // Sleep for some time again
-            NUClear::util::precise_sleep(test_util::TimeUnit(1));
+            NUClear::util::Sleeper().sleep_for(test_util::TimeUnit(1));
 
             events.push_back("Sync B " + m.data + " finished");
         });
@@ -74,13 +74,13 @@ public:
             events.push_back("Sync C " + m.data);
 
             // Sleep for some time to be safe
-            NUClear::util::precise_sleep(test_util::TimeUnit(1));
+            NUClear::util::Sleeper().sleep_for(test_util::TimeUnit(1));
 
             // Emit a message 1 here, it should not run yet
             events.push_back("Sync C waiting");
 
             // Sleep for some time again
-            NUClear::util::precise_sleep(test_util::TimeUnit(1));
+            NUClear::util::Sleeper().sleep_for(test_util::TimeUnit(1));
 
             events.push_back("Sync C " + m.data + " finished");
 

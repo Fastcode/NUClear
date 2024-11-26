@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2014 NUClear Contributors
+ * Copyright (c) 2023 NUClear Contributors
  *
  * This file is part of the NUClear codebase.
  * See https://github.com/Fastcode/NUClear for further info.
@@ -20,17 +20,10 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_UTIL_SLEEPER_HPP
-#define NUCLEAR_UTIL_SLEEPER_HPP
+#include "Sleeper.hpp"
 
-#include <chrono>
-
-namespace NUClear {
-namespace util {
-
-    void precise_sleep(const std::chrono::nanoseconds& ns);
-
-}  // namespace util
-}  // namespace NUClear
-
-#endif  // NUCLEAR_UTIL_SLEEPER_HPP
+#if defined(_WIN32)
+    #include "SleeperWindows.ipp"
+#else
+    #include "SleeperPosix.ipp"
+#endif
