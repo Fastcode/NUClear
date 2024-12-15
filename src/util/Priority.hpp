@@ -30,13 +30,18 @@
 namespace NUClear {
 namespace util {
 
+    /**
+     * The priority value for Priority dsl word
+     */
     enum class Priority : uint8_t { LOWEST = 0, LOW = 1, NORMAL = 2, HIGH = 3, HIGHEST = 4 };
+    /**
+     * Gets one lower priority unless already lowest
+     */
     inline Priority prev(Priority value) {
         value = static_cast<Priority>(static_cast<std::underlying_type_t<Priority>>(value) - 1);
         value = std::min(value, Priority::LOWEST);
         return value;
     }
-    constexpr Priority MAX_PRIORITY = Priority::HIGHEST;
 
 }  // namespace util
 }  // namespace NUClear

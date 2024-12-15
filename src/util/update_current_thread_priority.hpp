@@ -33,7 +33,7 @@ inline void update_current_thread_priority(NUClear::util::Priority priority) {
     auto priority_int = static_cast<std::underlying_type_t<NUClear::util::Priority>>(priority);
 
     auto step = (sched_get_priority_max(SCHED_RR) - sched_get_priority_min(SCHED_RR))
-                / static_cast<std::underlying_type_t<NUClear::util::Priority>>(NUClear::util::MAX_PRIORITY);
+                / static_cast<std::underlying_type_t<NUClear::util::Priority>>(NUClear::util::Priority::HIGHEST);
     auto sched_priority = priority_int * step;
 
     sched_param p{};
