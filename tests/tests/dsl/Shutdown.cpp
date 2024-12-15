@@ -34,7 +34,7 @@ public:
             events.push_back("Shutdown task executed");
         });
 
-        on<Trigger<Step<1>>, Priority::LOW>().then([this] {
+        on<Trigger<Step<1>>, Priority<NUClear::util::Priority::LOW>>().then([this] {
             events.push_back("Requesting shutdown");
             powerplant.shutdown();
         });

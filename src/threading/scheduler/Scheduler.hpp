@@ -126,7 +126,7 @@ namespace threading {
              * @return a combined lock representing the state of all the groups
              */
             std::unique_ptr<Lock> get_groups_lock(const NUClear::id_t& task_id,
-                                                  const int& priority,
+                                                  const util::Priority& priority,
                                                   const std::shared_ptr<Pool>& pool,
                                                   const std::set<std::shared_ptr<const util::GroupDescriptor>>& descs);
 

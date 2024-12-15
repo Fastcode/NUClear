@@ -51,6 +51,7 @@ namespace dsl {
 
         struct Once;
 
+        template <util::Priority>
         struct Priority;
 
         template <typename>
@@ -192,7 +193,8 @@ protected:
     using Trigger = dsl::word::Trigger<T>;
 
     /// @copydoc dsl::word::Priority
-    using Priority = dsl::word::Priority;
+    template <util::Priority value>
+    using Priority = dsl::word::Priority<value>;
 
     /// @copydoc dsl::word::Always
     using Always = dsl::word::Always;

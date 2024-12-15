@@ -76,7 +76,7 @@ public:
         // Run this at low priority but have it first
         // This way MainThread will get notified that it has access to Sync but then it will lose it when
         // The other task on the default pool gets created so it'll be notified but unable to act
-        on<Trigger<TaskB>, MainThread, Priority::LOW, Sync<TestReactor>>().then([this](const TaskB& t) {
+        on<Trigger<TaskB>, MainThread, Priority<NUClear::util::Priority::LOW>, Sync<TestReactor>>().then([this](const TaskB& t) {
             main_calls[t.i].fetch_add(1, std::memory_order_relaxed);
 
             if (t.i + 1 < n_loops) {
@@ -87,7 +87,7 @@ public:
             }
         });
         // This is the high priority task that preempts the main thread and makes it go idle again
-        on<Trigger<TaskB>, Pool<>, Priority::HIGH, Sync<TestReactor>>().then([this](const TaskB& t) {  //
+        on<Trigger<TaskB>, Pool<>, Priority<NUClear::util::Priority::HIGH>, Sync<TestReactor>>().then([this](const TaskB& t) {  //
             default_calls[t.i].fetch_add(1, std::memory_order_relaxed);
         });
 

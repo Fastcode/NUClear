@@ -29,6 +29,7 @@
 #include "../message/ReactionStatistics.hpp"
 #include "../util/MergeTransient.hpp"
 #include "../util/TransientDataElements.hpp"
+#include "../util/Priority.hpp"
 #include "../util/apply.hpp"
 #include "../util/unpack.hpp"
 #include "../util/update_current_thread_priority.hpp"
