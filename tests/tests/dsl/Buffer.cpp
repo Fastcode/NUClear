@@ -51,29 +51,29 @@ public:
             events.push_back("Buffer<4> reaction " + std::to_string(msg.i));
         });
 
-        on<Trigger<Step<1>>, Priority::LOW>().then([this] {
+        on<Trigger<Step<1>>, Priority<NUClear::util::Priority::LOW>>().then([this] {
             events.push_back("Step 1");
             emit(std::make_unique<Message>(1));
         });
-        on<Trigger<Step<2>>, Priority::LOW>().then([this] {
+        on<Trigger<Step<2>>, Priority<NUClear::util::Priority::LOW>>().then([this] {
             events.push_back("Step 2");
             emit(std::make_unique<Message>(2));
             emit(std::make_unique<Message>(3));
         });
-        on<Trigger<Step<3>>, Priority::LOW>().then([this] {
+        on<Trigger<Step<3>>, Priority<NUClear::util::Priority::LOW>>().then([this] {
             events.push_back("Step 3");
             emit(std::make_unique<Message>(4));
             emit(std::make_unique<Message>(5));
             emit(std::make_unique<Message>(6));
         });
-        on<Trigger<Step<4>>, Priority::LOW>().then([this] {
+        on<Trigger<Step<4>>, Priority<NUClear::util::Priority::LOW>>().then([this] {
             events.push_back("Step 4");
             emit(std::make_unique<Message>(7));
             emit(std::make_unique<Message>(8));
             emit(std::make_unique<Message>(9));
             emit(std::make_unique<Message>(10));
         });
-        on<Trigger<Step<5>>, Priority::LOW>().then([this] {
+        on<Trigger<Step<5>>, Priority<NUClear::util::Priority::LOW>>().then([this] {
             events.push_back("Step 5");
             emit(std::make_unique<Message>(11));
             emit(std::make_unique<Message>(12));

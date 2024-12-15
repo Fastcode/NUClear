@@ -88,10 +88,10 @@ public:
         on<Trigger<Message>, Trigger<Data>>().then(raw_function_test_right_arg);
         on<Trigger<Message>, Trigger<Data>>().then(raw_function_test_both_args);
 
-        on<Trigger<Step<1>>, Priority::LOW>().then([this] { emit(std::make_unique<Data>("D1")); });
-        on<Trigger<Step<2>>, Priority::LOW>().then([this] { emit(std::make_unique<Message>("M2")); });
-        on<Trigger<Step<3>>, Priority::LOW>().then([this] { emit(std::make_unique<Data>("D3")); });
-        on<Trigger<Step<4>>, Priority::LOW>().then([this] { emit(std::make_unique<Message>("M4")); });
+        on<Trigger<Step<1>>, Priority<NUClear::util::Priority::LOW>>().then([this] { emit(std::make_unique<Data>("D1")); });
+        on<Trigger<Step<2>>, Priority<NUClear::util::Priority::LOW>>().then([this] { emit(std::make_unique<Message>("M2")); });
+        on<Trigger<Step<3>>, Priority<NUClear::util::Priority::LOW>>().then([this] { emit(std::make_unique<Data>("D3")); });
+        on<Trigger<Step<4>>, Priority<NUClear::util::Priority::LOW>>().then([this] { emit(std::make_unique<Message>("M4")); });
 
         on<Startup>().then([this] {
             emit(std::make_unique<Step<1>>());

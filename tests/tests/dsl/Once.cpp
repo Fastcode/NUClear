@@ -36,7 +36,7 @@ public:
     TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
 
         // Make this priority high so it will always run first if it is able
-        on<Trigger<SimpleMessage>, Priority::HIGH, Once>().then([this](const SimpleMessage& msg) {  //
+        on<Trigger<SimpleMessage>, Priority<NUClear::util::Priority::HIGH>, Once>().then([this](const SimpleMessage& msg) {  //
             events.push_back("Once Trigger executed " + std::to_string(msg.run));
         });
 
