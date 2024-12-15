@@ -76,7 +76,7 @@ namespace dsl {
                 Parse<Sentence...>>(task);
         }
 
-        static int priority(threading::ReactionTask& task) {
+        static util::Priority priority(threading::ReactionTask& task) {
             return std::conditional_t<fusion::has_priority<DSL>::value, DSL, fusion::NoOp>::template priority<
                 Parse<Sentence...>>(task);
         }

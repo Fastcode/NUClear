@@ -23,18 +23,18 @@
 #ifndef NUCLEAR_UTIL_UPDATE_CURRENT_THREAD_PRIORITY_HPP
 #define NUCLEAR_UTIL_UPDATE_CURRENT_THREAD_PRIORITY_HPP
 
+#include "../util/Priority.hpp"
+
 #ifndef _WIN32
 
     #include <pthread.h>
 
-inline void update_current_thread_priority(int priority) {
+inline void update_current_thread_priority(NUClear::util::Priority priority) {
+    auto priority_int = static_cast<std::underlying_type_t<NUClear::util::Priority>>(priority);
 
-    // TODO(Trent) SCHED_NORMAL for normal threads
-    // TODO(Trent) SCHED_FIFO for realtime threads
-    // TODO(Trent) SCHED_RR for high priority threads
-
-    auto sched_priority = sched_get_priority_min(SCHED_RR)
-                          + (priority / (sched_get_priority_max(SCHED_RR) - sched_get_priority_min(SCHED_RR)));
+    auto step = (sched_get_priority_max(SCHED_RR) - sched_get_priority_min(SCHED_RR))
+                / static_cast<std::underlying_type_t<NUClear::util::Priority>>(NUClear::util::MAX_PRIORITY);
+    auto sched_priority = priority_int * step;
 
     sched_param p{};
     p.sched_priority = sched_priority;
@@ -46,29 +46,23 @@ inline void update_current_thread_priority(int priority) {
 
     #include "platform.hpp"
 
-inline void update_current_thread_priority(int priority) {
+inline void update_current_thread_priority(NUClear::util::Priority priority) {
 
-    switch ((priority * 7) / 1000) {
-        case 0: {
-            SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_IDLE);
-        } break;
-        case 1: {
+    switch (priority) {
+        case LOWEST: {
             SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_LOWEST);
         } break;
-        case 2: {
+        case LOW: {
             SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_BELOW_NORMAL);
         } break;
-        case 3: {
+        case NORMAL: {
             SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_NORMAL);
         } break;
-        case 4: {
+        case HIGH: {
             SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_ABOVE_NORMAL);
         } break;
-        case 5: {
+        case HIGHEST: {
             SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_HIGHEST);
-        } break;
-        case 6: {
-            SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL);
         } break;
     }
 }

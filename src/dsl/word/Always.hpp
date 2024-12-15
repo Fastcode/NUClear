@@ -131,7 +131,7 @@ namespace dsl {
                 auto idle_task = std::make_unique<threading::ReactionTask>(
                     reaction,
                     false,
-                    [](threading::ReactionTask& task) { return DSL::priority(task) - 1; },
+                    [](threading::ReactionTask& task) { return prev(DSL::priority(task)); },
                     DSL::run_inline,
                     DSL::pool,
                     DSL::group);

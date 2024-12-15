@@ -121,7 +121,7 @@ namespace extension {
             wait.notify_all();
         });
 
-        on<Always, Priority::REALTIME>().then("Chrono Controller", [this] {
+        on<Always, Priority<util::Priority::HIGHEST>>().then("Chrono Controller", [this] {
             // Run until we are told to stop
             while (running.load(std::memory_order_acquire)) {
 
