@@ -177,10 +177,12 @@ public:
     /// The demangled string name of this reactor
     const std::string reactor_name;
 
-protected:
-    /// The level that this reactor logs at
+    /// The display level above which logs from this reactor will be displayed
     LogLevel log_level{LogLevel::INFO};
+    /// The minimum log level that will be always emitted (if log_level is below this those will be emitted too)
+    LogLevel min_log_level{LogLevel::DEBUG};
 
+protected:
     /***************************************************************************************************************
      * The types here are imported from other contexts so that when extending from the Reactor type in normal      *
      * usage there does not need to be any namespace declarations on the used types.                               *
@@ -436,9 +438,7 @@ public:
      */
     template <enum LogLevel level = DEBUG, typename... Arguments>
     void log(Arguments&&... args) const {
-
-        // If the log is above or equal to our log level
-        powerplant.log<level>(std::forward<Arguments>(args)...);
+        powerplant.log<level>(this, std::forward<Arguments>(args)...);
     }
 
     /**
@@ -453,9 +453,7 @@ public:
      */
     template <typename... Arguments>
     void log(const LogLevel& level, Arguments&&... args) const {
-
-        // If the log is above or equal to our log level
-        powerplant.log(level, std::forward<Arguments>(args)...);
+        powerplant.log(this, level, std::forward<Arguments>(args)...);
     }
 };
 

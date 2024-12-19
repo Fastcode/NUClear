@@ -42,15 +42,19 @@ namespace message {
          * @param level         The logging level of the log
          * @param display_level The logging level of the reactor that made this log
          * @param message       The string contents of the message
+         * @param reactor_name  The name of the reactor that made this if it was from a reactor's log function or a
+         *                      reaction belonging to that reactor
          * @param statistics    The statistics of the currently executing task or nullptr if not in a task
          */
         LogMessage(const LogLevel& level,
                    const LogLevel& display_level,
                    std::string message,
+                   std::string reactor_name,
                    std::shared_ptr<const ReactionStatistics> statistics)
             : level(level)
             , display_level(display_level)
             , message(std::move(message))
+            , reactor_name(std::move(reactor_name))
             , statistics(std::move(statistics)) {}
 
         /// The logging level of the log
@@ -61,6 +65,9 @@ namespace message {
 
         /// The string contents of the message
         std::string message;
+
+        /// The name of the reactor that made this log message if it was from a reactor's log function
+        std::string reactor_name{};
 
         /// The statistics of the currently executing task that made this message
         const std::shared_ptr<const ReactionStatistics> statistics{nullptr};
