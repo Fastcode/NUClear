@@ -438,7 +438,10 @@ public:
      */
     template <enum LogLevel level = DEBUG, typename... Arguments>
     void log(Arguments&&... args) const {
-        log(level, std::forward<Arguments>(args)...);
+        // Short circuit here before going to the more expensive log function
+        if (level >= min_log_level || level >= log_level) {
+            powerplant.log<level>(this, std::forward<Arguments>(args)...);
+        }
     }
 
     /**

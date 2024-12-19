@@ -20,7 +20,7 @@ namespace util {
             return calling_reactor;
         }
         // Get the current task
-        auto current_task = threading::ReactionTask::get_current_task();
+        const auto current_task = threading::ReactionTask::get_current_task();
         return current_task != nullptr && current_task->parent != nullptr ? &current_task->parent->reactor : nullptr;
     }
 
