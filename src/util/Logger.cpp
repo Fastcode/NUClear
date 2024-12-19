@@ -26,7 +26,7 @@ namespace util {
 
     Logger::LogLevels Logger::get_current_log_levels(const Reactor* calling_reactor) {
         // Get the current reactor either from the passed in reactor or the current task
-        auto* reactor = get_current_reactor(calling_reactor);
+        const auto* reactor = get_current_reactor(calling_reactor);
         return reactor != nullptr ? LogLevels(reactor->log_level, reactor->min_log_level)
                                   : LogLevels(LogLevel::UNKNOWN, LogLevel::UNKNOWN);
     }
