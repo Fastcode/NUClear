@@ -67,7 +67,7 @@ namespace message {
         std::string message;
 
         /// The name of the reactor that made this log message if it was from a reactor's log function
-        std::string reactor_name{};
+        std::string reactor_name;
 
         /// The statistics of the currently executing task that made this message
         const std::shared_ptr<const ReactionStatistics> statistics{nullptr};
