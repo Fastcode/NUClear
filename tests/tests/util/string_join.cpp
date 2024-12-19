@@ -28,7 +28,7 @@
 #include <typeinfo>
 
 struct TestSymbol {
-    friend std::ostream& operator<<(std::ostream& os, const TestSymbol&) {
+    friend std::ostream& operator<<(std::ostream& os, const TestSymbol& /*symbol*/) {
         return os << typeid(TestSymbol).name();
     }
 };
@@ -37,7 +37,7 @@ struct TestSymbol {
 SCENARIO("Test string_join correctly joins strings", "[util][string_join]") {
 
     GIVEN("An empty set of arguments") {
-        std::string delimiter = GENERATE("", ",", " ");
+        const std::string delimiter = GENERATE("", ",", " ");
 
         WHEN("string_join is called") {
             const std::string result = NUClear::util::string_join(delimiter);
@@ -49,8 +49,8 @@ SCENARIO("Test string_join correctly joins strings", "[util][string_join]") {
     }
 
     GIVEN("A single string argument") {
-        std::string delimiter = GENERATE("", ",", " ");
-        std::string arg       = GENERATE("test", "string", "join");
+        const std::string delimiter = GENERATE("", ",", " ");
+        const std::string arg       = GENERATE("test", "string", "join");
 
         WHEN("string_join is called") {
             const std::string result = NUClear::util::string_join(delimiter, arg);
@@ -62,9 +62,9 @@ SCENARIO("Test string_join correctly joins strings", "[util][string_join]") {
     }
 
     GIVEN("Two string arguments") {
-        std::string delimiter = GENERATE("", ",", " ");
-        std::string arg1      = GENERATE("test", "string", "join");
-        std::string arg2      = GENERATE("test", "string", "join");
+        const std::string delimiter = GENERATE("", ",", " ");
+        const std::string arg1      = GENERATE("test", "string", "join");
+        const std::string arg2      = GENERATE("test", "string", "join");
 
         WHEN("string_join is called") {
             const std::string result = NUClear::util::string_join(delimiter, arg1, arg2);
@@ -76,10 +76,10 @@ SCENARIO("Test string_join correctly joins strings", "[util][string_join]") {
     }
 
     GIVEN("Three string arguments") {
-        std::string delimiter = GENERATE("", ",", " ");
-        std::string arg1      = GENERATE("test", "string", "join");
-        std::string arg2      = GENERATE("test", "string", "join");
-        std::string arg3      = GENERATE("test", "string", "join");
+        const std::string delimiter = GENERATE("", ",", " ");
+        const std::string arg1      = GENERATE("test", "string", "join");
+        const std::string arg2      = GENERATE("test", "string", "join");
+        const std::string arg3      = GENERATE("test", "string", "join");
 
         WHEN("string_join is called") {
             const std::string result = NUClear::util::string_join(delimiter, arg1, arg2, arg3);
@@ -91,10 +91,10 @@ SCENARIO("Test string_join correctly joins strings", "[util][string_join]") {
     }
 
     GIVEN("A mix of string and non-string arguments") {
-        std::string delimiter = GENERATE("", ",", " ");
-        std::string arg1      = GENERATE("test", "string", "join");
-        std::string arg2      = GENERATE("test", "string", "join");
-        int arg3              = GENERATE(1, 2, 3);
+        const std::string delimiter = GENERATE("", ",", " ");
+        const std::string arg1      = GENERATE("test", "string", "join");
+        const std::string arg2      = GENERATE("test", "string", "join");
+        const int arg3              = GENERATE(1, 2, 3);
 
         WHEN("string_join is called") {
             const std::string result = NUClear::util::string_join(delimiter, arg1, arg2, arg3);
@@ -106,9 +106,9 @@ SCENARIO("Test string_join correctly joins strings", "[util][string_join]") {
     }
 
     GIVEN("A class with an overloaded operator<<") {
-        std::string delimiter = GENERATE("", ",", " ");
-        TestSymbol arg1;
-        TestSymbol arg2;
+        const std::string delimiter = GENERATE("", ",", " ");
+        const TestSymbol arg1;
+        const TestSymbol arg2;
 
         WHEN("string_join is called") {
             const std::string result = NUClear::util::string_join(delimiter, arg1, arg2);
