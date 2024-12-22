@@ -24,100 +24,43 @@
 #define NUCLEAR_DSL_WORD_PRIORITY_HPP
 
 #include "../../threading/Reaction.hpp"
+#include "../../util/Priority.hpp"
 
 namespace NUClear {
 namespace dsl {
     namespace word {
-
         /**
          * Task priority can be controlled using an assigned setting.
          *
-         * @code on<Trigger<T, ...>, Priority::HIGH>() @endcode
+         * @code on<Trigger<T, ...>, Priority<util::Priority::HIGH>>() @endcode
          * The PowerPlant uses this setting to determine the scheduling order in the threadpool, as well as assign a
          * priority to the thread on the OS.
          *
          * The available priority settings are:
          *
-         * <b>REALTIME:</b>  Tasks assigned with this will be queued with all other REALTIME tasks.
-         *
+         * <b>HIGHEST:</b>
          * <b>HIGH:</b>
-         * Tasks assigned with this will be queued with all other HIGH tasks.
-         * They will be scheduled for execution when there are no REALTIME tasks in the queue.
-         *
          * <b>NORMAL:</b>
-         * Tasks assigned with this will be queued with all other NORMAL tasks.
-         * They will be scheduled for execution when there are no REALTIME and HIGH tasks in the queue.
-         *
          * <b>LOW:</b>
-         * Tasks assigned with this will be queued with all other LOW tasks.
-         * They will be scheduled for execution when there are no REALTIME, HIGH and NORMAL tasks in the queue.
-         *
-         * <b>IDLE:</b>
-         * Tasks assigned with this priority will be queued with all other IDLE tasks.
-         * They will be scheduled for execution when there are no other tasks running in the system.
+         * <b>LOWEST:</b>
          *
          * @par Default Behaviour
          *  @code on<Trigger<T>>() @endcode
          *  When the priority is not specified, tasks will be assigned a default setting; NORMAL.
          *
          * @attention
-         *  If the OS allows the user to set thread priority, this word can also be used to assign the priority of the
+         *  If the OS allows the user to set thread priority, this word will also be used to assign the priority of the
          *  thread in its runtime environment.
          *
          * @par Implements
          *  Fusion
          */
+        template <util::Priority value>
         struct Priority {
-
-            struct REALTIME {
-                /// Realtime priority runs with 1000 value
-                static constexpr int value = 1000;
-
-                template <typename DSL>
-                static int priority(const threading::ReactionTask& /*task*/) {
-                    return value;
-                }
-            };
-
-            struct HIGH {
-                /// High priority runs with 750 value
-                static constexpr int value = 750;
-
-                template <typename DSL>
-                static int priority(const threading::ReactionTask& /*task*/) {
-                    return value;
-                }
-            };
-
-            struct NORMAL {
-                /// Normal priority runs with 500 value
-                static constexpr int value = 500;
-
-                template <typename DSL>
-                static int priority(const threading::ReactionTask& /*task*/) {
-                    return value;
-                }
-            };
-
-            struct LOW {
-                /// Low priority runs with 250 value
-                static constexpr int value = 250;
-
-                template <typename DSL>
-                static int priority(const threading::ReactionTask& /*task*/) {
-                    return value;
-                }
-            };
-
-            struct IDLE {
-                /// Idle tasks run with 0 priority, they run when there is free time
-                static constexpr int value = 0;
-
-                template <typename DSL>
-                static int priority(const threading::ReactionTask& /*task*/) {
-                    return value;
-                }
-            };
+            template <typename DSL>
+            static util::Priority priority(const threading::ReactionTask& /*task*/) {
+                return value;
+            }
         };
 
     }  // namespace word

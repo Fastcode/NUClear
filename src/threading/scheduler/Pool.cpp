@@ -257,7 +257,7 @@ namespace threading {
             auto task = std::make_unique<ReactionTask>(
                 nullptr,
                 true,
-                [](const ReactionTask&) { return 0; },
+                [](const ReactionTask&) { return util::Priority::LOWEST; },
                 [](const ReactionTask&) { return util::Inline::ALWAYS; },
                 [](const ReactionTask&) { return dsl::word::Pool<>::descriptor(); },
                 [](const ReactionTask&) { return std::set<std::shared_ptr<const util::GroupDescriptor>>{}; });
