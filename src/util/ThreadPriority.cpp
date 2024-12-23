@@ -22,6 +22,8 @@
 
 #include "ThreadPriority.hpp"
 
+#include <stdexcept>
+
 namespace NUClear {
 namespace util {
 
