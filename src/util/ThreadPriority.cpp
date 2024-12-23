@@ -22,56 +22,14 @@
 
 #include "ThreadPriority.hpp"
 
-#include <stdexcept>
+#include <iostream>
 
 namespace NUClear {
 namespace util {
 
 
     namespace {
-#ifndef _WIN32
-
-    #include <pthread.h>
-
-        /// The minimum priority level for the SCHED_RR policy
-        const int min_rr_priority = sched_get_priority_min(SCHED_RR);
-        /// The maximum priority level for the SCHED_RR policy
-        const int max_rr_priority = sched_get_priority_max(SCHED_RR);
-        /// The maximum priority level for the SCHED_FIFO policy
-        const int max_fifo_priority = sched_get_priority_max(SCHED_FIFO);
-
-        void set_priority(const PriorityLevel& priority) {
-
-            sched_param param{};
-            switch (priority) {
-    #ifdef SHED_IDLE
-                case PriorityLevel::IDLE: {  // Use the idle scheduler if it exists
-                    pthread_setschedparam(pthread_self(), SCHED_IDLE, &param);
-                } break;
-    #else
-                case PriorityLevel::IDLE:
-    #endif
-                case PriorityLevel::LOW:
-                case PriorityLevel::NORMAL: {  // Uses the default scheduler and lets NUClear order tasks
-                    pthread_setschedparam(pthread_self(), SCHED_OTHER, &param);
-                } break;
-                case PriorityLevel::HIGH: {
-                    // The round-robin scheduler gives time slices to each thread and will preempt any thread with a
-                    // lower priority
-                    param.sched_priority = (min_rr_priority + max_rr_priority) / 2;
-                    pthread_setschedparam(pthread_self(), SCHED_RR, &param);
-                } break;
-                case PriorityLevel::REALTIME: {
-                    // The FIFO scheduler will run the thread until it yields or is preempted by a higher priority
-                    // thread
-                    param.sched_priority = max_fifo_priority;
-                    pthread_setschedparam(pthread_self(), SCHED_FIFO, &param);
-                } break;
-            }
-        }  // namespace
-
-#else
-
+#ifdef _WIN32
     #include "platform.hpp"
 
         void set_priority(const PriorityLevel& priority) {
@@ -86,6 +44,51 @@ namespace util {
             }
         }
 
+#elif defined(__linux__)
+
+    #include <pthread.h>
+
+        /// The minimum priority level for the SCHED_RR policy
+        const int min_rr_priority = sched_get_priority_min(SCHED_RR);
+        /// The maximum priority level for the SCHED_RR policy
+        const int max_rr_priority = sched_get_priority_max(SCHED_RR);
+        /// The maximum priority level for the SCHED_FIFO policy
+        const int max_fifo_priority = sched_get_priority_max(SCHED_FIFO);
+
+        void set_priority(const PriorityLevel& priority) {
+
+            sched_param param{};
+            switch (priority) {
+                case PriorityLevel::IDLE: pthread_setschedparam(pthread_self(), SCHED_IDLE, &param); break;
+                case PriorityLevel::LOW:
+                case PriorityLevel::NORMAL: pthread_setschedparam(pthread_self(), SCHED_OTHER, &param); break;
+                case PriorityLevel::HIGH:
+                    param.sched_priority = (min_rr_priority + max_rr_priority) / 2;
+                    pthread_setschedparam(pthread_self(), SCHED_RR, &param);
+                    break;
+                case PriorityLevel::REALTIME:
+                    param.sched_priority = max_fifo_priority;
+                    pthread_setschedparam(pthread_self(), SCHED_FIFO, &param);
+                    break;
+            }
+        }  // namespace
+
+#elif defined(__APPLE__)
+
+    #include <pthread.h>
+
+        void set_priority(const PriorityLevel& priority) {
+            switch (priority) {
+                case PriorityLevel::IDLE: pthread_set_qos_class_self_np(QOS_CLASS_BACKGROUND, 0); break;
+                case PriorityLevel::LOW:
+                case PriorityLevel::NORMAL: pthread_set_qos_class_self_np(QOS_CLASS_DEFAULT, 0); break;
+                case PriorityLevel::HIGH: pthread_set_qos_class_self_np(QOS_CLASS_USER_INITIATED, 0); break;
+                case PriorityLevel::REALTIME: pthread_set_qos_class_self_np(QOS_CLASS_USER_INTERACTIVE, 0); break;
+            }
+        }
+
+#else
+    #error "Unsupported platform"
 #endif  // def _WIN32
     }  // namespace
 
