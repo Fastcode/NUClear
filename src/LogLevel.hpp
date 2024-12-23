@@ -115,7 +115,7 @@ public:
      *
      * @param level The string to construct the LogLevel from
      */
-    constexpr LogLevel(const std::string& level)
+    LogLevel(const std::string& level)
         : value(level == "TRACE"   ? LogLevel::TRACE
                 : level == "DEBUG" ? LogLevel::DEBUG
                 : level == "INFO"  ? LogLevel::INFO
@@ -178,6 +178,7 @@ public:
     friend constexpr bool operator>=(const LogLevel& lhs, const LogLevel& rhs) { return lhs.value >= rhs.value; }
     friend constexpr bool operator==(const LogLevel& lhs, const LogLevel& rhs) { return lhs.value == rhs.value; }
     friend constexpr bool operator!=(const LogLevel& lhs, const LogLevel& rhs) { return lhs.value != rhs.value; }
+
     friend constexpr bool operator<(const LogLevel& lhs, const Value& rhs) { return lhs.value < rhs; }
     friend constexpr bool operator>(const LogLevel& lhs, const Value& rhs) { return lhs.value > rhs; }
     friend constexpr bool operator<=(const LogLevel& lhs, const Value& rhs) { return lhs.value <= rhs; }
@@ -190,6 +191,19 @@ public:
     friend constexpr bool operator>=(const Value& lhs, const LogLevel& rhs) { return lhs >= rhs.value; }
     friend constexpr bool operator==(const Value& lhs, const LogLevel& rhs) { return lhs == rhs.value; }
     friend constexpr bool operator!=(const Value& lhs, const LogLevel& rhs) { return lhs != rhs.value; }
+
+    friend  bool operator<(const LogLevel& lhs, const std::string& rhs) { return static_cast<std::string>(lhs) < rhs; }
+    friend  bool operator>(const LogLevel& lhs, const std::string& rhs) { return static_cast<std::string>(lhs) > rhs; }
+    friend  bool operator<=(const LogLevel& lhs, const std::string& rhs) { return static_cast<std::string>(lhs) <= rhs; }
+    friend  bool operator>=(const LogLevel& lhs, const std::string& rhs) { return static_cast<std::string>(lhs) >= rhs; }
+    friend  bool operator==(const LogLevel& lhs, const std::string& rhs) { return static_cast<std::string>(lhs) == rhs; }
+    friend  bool operator!=(const LogLevel& lhs, const std::string& rhs) { return static_cast<std::string>(lhs) != rhs; }
+    friend  bool operator<(const std::string& lhs, const LogLevel& rhs) { return lhs < static_cast<std::string>(rhs); }
+    friend  bool operator>(const std::string& lhs, const LogLevel& rhs) { return lhs > static_cast<std::string>(rhs); }
+    friend  bool operator<=(const std::string& lhs, const LogLevel& rhs) { return lhs <= static_cast<std::string>(rhs); }
+    friend  bool operator>=(const std::string& lhs, const LogLevel& rhs) { return lhs >= static_cast<std::string>(rhs); }
+    friend  bool operator==(const std::string& lhs, const LogLevel& rhs) { return lhs == static_cast<std::string>(rhs); }
+    friend  bool operator!=(const std::string& lhs, const LogLevel& rhs) { return lhs != static_cast<std::string>(rhs); }
     // clang-format on
 
 
