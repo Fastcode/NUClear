@@ -3,80 +3,65 @@
 
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/generators/catch_generators.hpp>
+#include <catch2/generators/catch_generators_all.hpp>
 #include <ostream>
 #include <sstream>
+#include <tuple>
 
-SCENARIO("LogLevel can be constructed from Value") {
-    GIVEN("A LogLevel constructed from a Value") {
-        auto value = GENERATE(NUClear::LogLevel::TRACE,
-                              NUClear::LogLevel::DEBUG,
-                              NUClear::LogLevel::INFO,
-                              NUClear::LogLevel::WARN,
-                              NUClear::LogLevel::ERROR,
-                              NUClear::LogLevel::FATAL);
-        const NUClear::LogLevel log_level(value);
+SCENARIO("LogLevel smart enum values can be constructed and converted appropriately") {
+    GIVEN("A LogLevel and a corresponding string representation") {
+        const auto test = GENERATE(
+            table<std::string, NUClear::LogLevel::Value>({std::make_tuple("TRACE", NUClear::LogLevel::TRACE),
+                                                          std::make_tuple("DEBUG", NUClear::LogLevel::DEBUG),
+                                                          std::make_tuple("INFO", NUClear::LogLevel::INFO),
+                                                          std::make_tuple("WARN", NUClear::LogLevel::WARN),
+                                                          std::make_tuple("ERROR", NUClear::LogLevel::ERROR),
+                                                          std::make_tuple("FATAL", NUClear::LogLevel::FATAL)}));
 
-        WHEN("the value is retrieved") {
-            auto retrieved_value = log_level();
+        const auto& expected_str   = std::get<0>(test);
+        const auto& expected_value = std::get<1>(test);
 
-            THEN("it should be equal to the original value") {
-                REQUIRE(retrieved_value == value);
-            }
-        }
-    }
-}
-
-SCENARIO("LogLevel can be constructed from a string") {
-    GIVEN("A LogLevel constructed from a string") {
-        const std::string str = GENERATE("TRACE", "DEBUG", "INFO", "WARN", "ERROR", "FATAL");
-        const NUClear::LogLevel log_level(str);
-
-        WHEN("the value is retrieved") {
-            auto value = log_level();
-
-            THEN("it should be equal to the corresponding Value") {
-                REQUIRE(log_level == str);
-            }
-        }
-    }
-}
-
-SCENARIO("LogLevel can be converted to a string") {
-    GIVEN("A LogLevel") {
-        const auto value = GENERATE(NUClear::LogLevel::TRACE,
-                                    NUClear::LogLevel::DEBUG,
-                                    NUClear::LogLevel::INFO,
-                                    NUClear::LogLevel::WARN,
-                                    NUClear::LogLevel::ERROR,
-                                    NUClear::LogLevel::FATAL);
-        const NUClear::LogLevel log_level(value);
-
-        WHEN("it is converted to a string") {
-            std::string str = log_level;
+        WHEN("constructing a LogLevel from the Value") {
+            const NUClear::LogLevel log_level(expected_value);
 
             THEN("it should be equal to the corresponding string representation") {
-                REQUIRE(str == log_level);
+                REQUIRE(static_cast<std::string>(log_level) == expected_str);
             }
         }
-    }
-}
 
-SCENARIO("LogLevel can be streamed to an ostream") {
-    GIVEN("A LogLevel") {
-        const auto value = GENERATE(NUClear::LogLevel::TRACE,
-                                    NUClear::LogLevel::DEBUG,
-                                    NUClear::LogLevel::INFO,
-                                    NUClear::LogLevel::WARN,
-                                    NUClear::LogLevel::ERROR,
-                                    NUClear::LogLevel::FATAL);
-        const NUClear::LogLevel log_level(value);
+        WHEN("constructing a LogLevel from the string") {
+            const NUClear::LogLevel log_level(expected_str);
 
-        WHEN("it is streamed to an ostream") {
+            THEN("it should be equal to the corresponding Value") {
+                REQUIRE(log_level() == expected_value);
+                REQUIRE(log_level == expected_value);
+                REQUIRE(log_level == NUClear::LogLevel(expected_value));
+            }
+        }
+
+        WHEN("constructing a LogLevel from the Value") {
+            const NUClear::LogLevel log_level(expected_value);
+
+            THEN("it should be equal to the corresponding string representation") {
+                REQUIRE(static_cast<std::string>(log_level) == expected_str);
+                REQUIRE(log_level == expected_str);
+            }
+        }
+
+        WHEN("streaming the LogLevel to an ostream") {
             std::ostringstream os;
-            os << log_level;
+            os << NUClear::LogLevel(expected_value);
 
             THEN("the output should be the corresponding string representation") {
-                REQUIRE(os.str() == log_level);
+                REQUIRE(os.str() == expected_str);
+            }
+        }
+
+        WHEN("converting the LogLevel to a string") {
+            const std::string str = NUClear::LogLevel(expected_value);
+
+            THEN("it should be equal to the corresponding string representation") {
+                REQUIRE(str == expected_str);
             }
         }
     }
@@ -97,7 +82,7 @@ SCENARIO("LogLevel comparison operators work correctly") {
                                                      NUClear::LogLevel::ERROR,
                                                      NUClear::LogLevel::FATAL);
 
-        WHEN("two smart enum value is constructed") {
+        WHEN("one smart enum value is constructed") {
             const NUClear::LogLevel ll1(v1);
             AND_WHEN("they are compared using ==") {
                 THEN("the result should be correct") {
@@ -170,12 +155,14 @@ SCENARIO("LogLevel comparison operators work correctly") {
 
 SCENARIO("LogLevel can be used in switch statements") {
     GIVEN("A LogLevel") {
-        const auto value = GENERATE(NUClear::LogLevel::TRACE,
-                                    NUClear::LogLevel::DEBUG,
-                                    NUClear::LogLevel::INFO,
-                                    NUClear::LogLevel::WARN,
-                                    NUClear::LogLevel::ERROR,
-                                    NUClear::LogLevel::FATAL);
+        auto test         = GENERATE(table<std::string, NUClear::LogLevel::Value>({{"TRACE", NUClear::LogLevel::TRACE},
+                                                                                   {"DEBUG", NUClear::LogLevel::DEBUG},
+                                                                                   {"INFO", NUClear::LogLevel::INFO},
+                                                                                   {"WARN", NUClear::LogLevel::WARN},
+                                                                                   {"ERROR", NUClear::LogLevel::ERROR},
+                                                                                   {"FATAL", NUClear::LogLevel::FATAL}}));
+        const auto& str   = std::get<0>(test);
+        const auto& value = std::get<1>(test);
         const NUClear::LogLevel log_level(value);
 
         WHEN("used in a switch statement") {
@@ -191,7 +178,7 @@ SCENARIO("LogLevel can be used in switch statements") {
             }
 
             THEN("the result should be the corresponding string representation") {
-                REQUIRE(result == log_level);
+                REQUIRE(result == str);
             }
         }
     }
