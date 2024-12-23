@@ -36,7 +36,7 @@ namespace util {
         /// The maximum priority level for the SCHED_RR policy
         static const int max_rr_priority = sched_get_priority_max(SCHED_RR);
         /// The maximum priority level for the SCHED_FIFO policy
-        static const int max_fifo_priority = {sched_get_priority_max(SCHED_FIFO)};
+        static const int max_fifo_priority = sched_get_priority_max(SCHED_FIFO);
 
         void set_priority(const PriorityLevel& priority) {
 

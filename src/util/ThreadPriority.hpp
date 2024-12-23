@@ -50,6 +50,8 @@ namespace util {
     private:
         /// The priority level to restore to
         PriorityLevel previous_priority;
+
+        /// The current priority level as set by an instance of this class
         static ATTRIBUTE_TLS PriorityLevel current_priority;
     };
 

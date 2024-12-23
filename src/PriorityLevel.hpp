@@ -44,7 +44,7 @@ public:
      *
      * @param level The string to construct the PriorityLevel from
      */
-    constexpr PriorityLevel(const std::string& level)
+    PriorityLevel(const std::string& level)
         : value(level == "IDLE"       ? Value::IDLE
                 : level == "LOW"      ? Value::LOW
                 : level == "NORMAL"   ? Value::NORMAL
@@ -96,43 +96,42 @@ public:
     friend std::ostream& operator<<(std::ostream& os, const PriorityLevel& level) {
         return os << static_cast<std::string>(level);
     }
-    friend constexpr bool operator<(const PriorityLevel& lhs, const PriorityLevel& rhs) {
-        return lhs.value < rhs.value;
-    }
-    friend constexpr bool operator>(const PriorityLevel& lhs, const PriorityLevel& rhs) {
-        return lhs.value > rhs.value;
-    }
-    friend constexpr bool operator<=(const PriorityLevel& lhs, const PriorityLevel& rhs) {
-        return lhs.value <= rhs.value;
-    }
-    friend constexpr bool operator>=(const PriorityLevel& lhs, const PriorityLevel& rhs) {
-        return lhs.value >= rhs.value;
-    }
-    friend constexpr bool operator==(const PriorityLevel& lhs, const PriorityLevel& rhs) {
-        return lhs.value == rhs.value;
-    }
-    friend constexpr bool operator!=(const PriorityLevel& lhs, const PriorityLevel& rhs) {
-        return lhs.value != rhs.value;
-    }
-    friend constexpr bool operator<(const PriorityLevel& lhs, const Value& rhs) {
-        return lhs.value < rhs;
-    }
-    friend constexpr bool operator>(const PriorityLevel& lhs, const Value& rhs) {
-        return lhs.value > rhs;
-    }
-    friend constexpr bool operator<=(const PriorityLevel& lhs, const Value& rhs) {
-        return lhs.value <= rhs;
-    }
-    friend constexpr bool operator>=(const PriorityLevel& lhs, const Value& rhs) {
-        return lhs.value >= rhs;
-    }
-    friend constexpr bool operator==(const PriorityLevel& lhs, const Value& rhs) {
-        return lhs.value == rhs;
-    }
-    friend constexpr bool operator!=(const PriorityLevel& lhs, const Value& rhs) {
-        return lhs.value != rhs;
-    }
 
+    // Operators to compare PriorityLevel values and PriorityLevel to Value
+    // clang-format off
+    friend constexpr bool operator<(const PriorityLevel& lhs, const PriorityLevel& rhs) { return lhs.value < rhs.value; }
+    friend constexpr bool operator>(const PriorityLevel& lhs, const PriorityLevel& rhs) { return lhs.value > rhs.value; }
+    friend constexpr bool operator<=(const PriorityLevel& lhs, const PriorityLevel& rhs) { return lhs.value <= rhs.value; }
+    friend constexpr bool operator>=(const PriorityLevel& lhs, const PriorityLevel& rhs) { return lhs.value >= rhs.value; }
+    friend constexpr bool operator==(const PriorityLevel& lhs, const PriorityLevel& rhs) { return lhs.value == rhs.value; }
+    friend constexpr bool operator!=(const PriorityLevel& lhs, const PriorityLevel& rhs) { return lhs.value != rhs.value; }
+
+    friend constexpr bool operator<(const PriorityLevel& lhs, const Value& rhs) { return lhs.value < rhs; }
+    friend constexpr bool operator>(const PriorityLevel& lhs, const Value& rhs) { return lhs.value > rhs; }
+    friend constexpr bool operator<=(const PriorityLevel& lhs, const Value& rhs) { return lhs.value <= rhs; }
+    friend constexpr bool operator>=(const PriorityLevel& lhs, const Value& rhs) { return lhs.value >= rhs; }
+    friend constexpr bool operator==(const PriorityLevel& lhs, const Value& rhs) { return lhs.value == rhs; }
+    friend constexpr bool operator!=(const PriorityLevel& lhs, const Value& rhs) { return lhs.value != rhs; }
+    friend constexpr bool operator<(const Value& lhs, const PriorityLevel& rhs) { return lhs < rhs.value; }
+    friend constexpr bool operator>(const Value& lhs, const PriorityLevel& rhs) { return lhs > rhs.value; }
+    friend constexpr bool operator<=(const Value& lhs, const PriorityLevel& rhs) { return lhs <= rhs.value; }
+    friend constexpr bool operator>=(const Value& lhs, const PriorityLevel& rhs) { return lhs >= rhs.value; }
+    friend constexpr bool operator==(const Value& lhs, const PriorityLevel& rhs) { return lhs == rhs.value; }
+    friend constexpr bool operator!=(const Value& lhs, const PriorityLevel& rhs) { return lhs != rhs.value; }
+
+    friend  bool operator<(const PriorityLevel& lhs, const std::string& rhs) { return static_cast<std::string>(lhs) < rhs; }
+    friend  bool operator>(const PriorityLevel& lhs, const std::string& rhs) { return static_cast<std::string>(lhs) > rhs; }
+    friend  bool operator<=(const PriorityLevel& lhs, const std::string& rhs) { return static_cast<std::string>(lhs) <= rhs; }
+    friend  bool operator>=(const PriorityLevel& lhs, const std::string& rhs) { return static_cast<std::string>(lhs) >= rhs; }
+    friend  bool operator==(const PriorityLevel& lhs, const std::string& rhs) { return static_cast<std::string>(lhs) == rhs; }
+    friend  bool operator!=(const PriorityLevel& lhs, const std::string& rhs) { return static_cast<std::string>(lhs) != rhs; }
+    friend  bool operator<(const std::string& lhs, const PriorityLevel& rhs) { return lhs < static_cast<std::string>(rhs); }
+    friend  bool operator>(const std::string& lhs, const PriorityLevel& rhs) { return lhs > static_cast<std::string>(rhs); }
+    friend  bool operator<=(const std::string& lhs, const PriorityLevel& rhs) { return lhs <= static_cast<std::string>(rhs); }
+    friend  bool operator>=(const std::string& lhs, const PriorityLevel& rhs) { return lhs >= static_cast<std::string>(rhs); }
+    friend  bool operator==(const std::string& lhs, const PriorityLevel& rhs) { return lhs == static_cast<std::string>(rhs); }
+    friend  bool operator!=(const std::string& lhs, const PriorityLevel& rhs) { return lhs != static_cast<std::string>(rhs); }
+    // clang-format on
 
 private:
     /// The stored enum value
