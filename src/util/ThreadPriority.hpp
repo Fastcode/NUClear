@@ -58,6 +58,7 @@ namespace util {
         PriorityLevel previous_priority;
 
         /// The current priority level as set by an instance of this class
+        // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
         static ATTRIBUTE_TLS PriorityLevel current_priority;
     };
 

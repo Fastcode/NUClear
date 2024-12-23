@@ -102,6 +102,7 @@ namespace util {
         set_priority(previous_priority);
     }
 
+    // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
     ATTRIBUTE_TLS PriorityLevel ThreadPriority::current_priority = PriorityLevel::NORMAL;
 
 }  // namespace util
