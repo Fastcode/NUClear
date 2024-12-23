@@ -28,7 +28,7 @@ SCENARIO("LogLevel can be constructed from Value") {
 
 SCENARIO("LogLevel can be constructed from a string") {
     GIVEN("A LogLevel constructed from a string") {
-        const auto str = GENERATE("TRACE", "DEBUG", "INFO", "WARN", "ERROR", "FATAL");
+        const std::string str = GENERATE("TRACE", "DEBUG", "INFO", "WARN", "ERROR", "FATAL");
         const NUClear::LogLevel log_level(str);
 
         WHEN("the value is retrieved") {
