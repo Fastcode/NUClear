@@ -76,7 +76,7 @@ namespace dsl {
                 Parse<Sentence...>>(task);
         }
 
-        static util::Priority priority(threading::ReactionTask& task) {
+        static PriorityLevel priority(threading::ReactionTask& task) {
             return std::conditional_t<fusion::has_priority<DSL>::value, DSL, fusion::NoOp>::template priority<
                 Parse<Sentence...>>(task);
         }
@@ -84,8 +84,8 @@ namespace dsl {
         static auto scope(threading::ReactionTask& task)
             -> decltype(std::conditional_t<fusion::has_scope<DSL>::value, DSL, fusion::NoOp>::template scope<
                         Parse<Sentence...>>(task)) {
-            return std::conditional_t<fusion::has_scope<DSL>::value, DSL, fusion::NoOp>::template scope<Parse<Sentence...>>(
-                task);
+            return std::conditional_t<fusion::has_scope<DSL>::value, DSL, fusion::NoOp>::template scope<
+                Parse<Sentence...>>(task);
         }
     };
 

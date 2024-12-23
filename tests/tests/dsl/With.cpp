@@ -43,27 +43,27 @@ public:
             events.push_back("Message: " + m.data + " Data: " + d.data);
         });
 
-        on<Trigger<Step<1>>, Priority<NUClear::util::Priority::LOW>>().then([this] {
+        on<Trigger<Step<1>>, Priority::LOW>().then([this] {
             events.push_back("Emitting Data 1");
             emit(std::make_unique<Data>("D1"));
         });
 
-        on<Trigger<Step<2>>, Priority<NUClear::util::Priority::LOW>>().then([this] {
+        on<Trigger<Step<2>>, Priority::LOW>().then([this] {
             events.push_back("Emitting Data 2");
             emit(std::make_unique<Data>("D2"));
         });
 
-        on<Trigger<Step<3>>, Priority<NUClear::util::Priority::LOW>>().then([this] {
+        on<Trigger<Step<3>>, Priority::LOW>().then([this] {
             events.push_back("Emitting Message 1");
             emit(std::make_unique<Message>("M1"));
         });
 
-        on<Trigger<Step<4>>, Priority<NUClear::util::Priority::LOW>>().then([this] {
+        on<Trigger<Step<4>>, Priority::LOW>().then([this] {
             events.push_back("Emitting Data 3");
             emit(std::make_unique<Data>("D3"));
         });
 
-        on<Trigger<Step<5>>, Priority<NUClear::util::Priority::LOW>>().then([this] {
+        on<Trigger<Step<5>>, Priority::LOW>().then([this] {
             events.push_back("Emitting Message 2");
             emit(std::make_unique<Message>("M2"));
         });

@@ -193,7 +193,7 @@ public:
      *
      * @param args The arguments we are logging
      */
-    template <enum LogLevel level, typename... Arguments>
+    template <LogLevel::Value level, typename... Arguments>
     void log(Arguments&&... args) {
         log(level, std::forward<Arguments>(args)...);
     }
@@ -235,8 +235,7 @@ public:
         emit<dsl::word::emit::Local>(std::move(data));
     }
     template <template <typename> class First,
-              template <typename>
-              class... Remainder,
+              template <typename> class... Remainder,
               typename T,
               typename... Arguments>
     void emit(std::unique_ptr<T>& data, Arguments&&... args) {
@@ -244,8 +243,7 @@ public:
     }
 
     template <template <typename> class First,
-              template <typename>
-              class... Remainder,
+              template <typename> class... Remainder,
               typename T,
               typename... Arguments>
     void emit(std::unique_ptr<T>&& data, Arguments&&... args) {
@@ -283,8 +281,7 @@ public:
      * @param data The data we are emitting
      */
     template <template <typename> class First,
-              template <typename>
-              class... Remainder,
+              template <typename> class... Remainder,
               typename T,
               typename... Arguments>
     void emit_shared(std::shared_ptr<T> data, Arguments&&... args) {
@@ -340,14 +337,14 @@ public:
  *
  * @param args The arguments to log.
  */
-template <enum LogLevel level = NUClear::DEBUG, typename... Arguments>
+template <LogLevel::Value level = NUClear::LogLevel::DEBUG, typename... Arguments>
 void log(Arguments&&... args) {
     if (PowerPlant::powerplant != nullptr) {
         PowerPlant::powerplant->log<level>(std::forward<Arguments>(args)...);
     }
 }
 template <typename... Arguments>
-void log(const LogLevel& level, Arguments&&... args) {
+void log(LogLevel level, Arguments&&... args) {
     if (PowerPlant::powerplant != nullptr) {
         PowerPlant::powerplant->log(level, std::forward<Arguments>(args)...);
     }

@@ -80,8 +80,8 @@ namespace dsl {
             }
 
             template <typename DSL>
-            static util::Priority priority(const threading::ReactionTask& /*task*/) {
-                return util::Priority::NORMAL;
+            static PriorityLevel priority(const threading::ReactionTask& /*task*/) {
+                return PriorityLevel::NORMAL;
             }
 
             template <typename DSL>

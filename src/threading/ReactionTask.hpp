@@ -27,12 +27,12 @@
 #include <memory>
 #include <set>
 
+#include "../PriorityLevel.hpp"
 #include "../clock.hpp"
 #include "../id.hpp"
 #include "../util/GroupDescriptor.hpp"
 #include "../util/Inline.hpp"
 #include "../util/ThreadPoolDescriptor.hpp"
-#include "../util/Priority.hpp"
 #include "../util/platform.hpp"
 #include "Reaction.hpp"
 
@@ -137,7 +137,7 @@ namespace threading {
         bool run_inline{false};
 
         /// The priority to run this task at
-        util::Priority priority;
+        PriorityLevel priority;
         /// If the task should be executed inline (in the current thread) or not
         util::Inline should_inline{util::Inline::NEUTRAL};
         /// Details about the thread pool that this task will run from, this will also influence what task queue

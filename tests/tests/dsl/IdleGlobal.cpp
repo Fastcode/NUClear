@@ -89,7 +89,7 @@ public:
         });
 
         // At low priority shutdown, this will run after all the global idles (should be 1) have been fired
-        on<Trigger<Step<2>>, Priority<NUClear::util::Priority::LOW>>().then([this] { powerplant.shutdown(); });
+        on<Trigger<Step<2>>, Priority::LOW>().then([this] { powerplant.shutdown(); });
 
         // This shutdown is here in case the test times out so all the spinlocks don't hang the test
         on<Shutdown, Pool<NonIdlePool>>().then([this] {

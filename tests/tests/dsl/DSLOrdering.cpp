@@ -47,15 +47,15 @@ public:
             events.push_back("Empty function");
         });
 
-        on<Trigger<Step<1>>, Priority<NUClear::util::Priority::LOW>>().then([this] {
+        on<Trigger<Step<1>>, Priority::LOW>().then([this] {
             events.push_back("Emitting 1");
             emit(std::make_unique<Message<1>>("1"));
         });
-        on<Trigger<Step<2>>, Priority<NUClear::util::Priority::LOW>>().then([this] {
+        on<Trigger<Step<2>>, Priority::LOW>().then([this] {
             events.push_back("Emitting 2");
             emit(std::make_unique<Message<2>>("2"));
         });
-        on<Trigger<Step<3>>, Priority<NUClear::util::Priority::LOW>>().then([this] {
+        on<Trigger<Step<3>>, Priority::LOW>().then([this] {
             events.push_back("Emitting 3");
             emit(std::make_unique<Message<3>>("3"));
         });

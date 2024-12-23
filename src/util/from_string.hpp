@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2013 NUClear Contributors
+ * Copyright (c) 2015 NUClear Contributors
  *
  * This file is part of the NUClear codebase.
  * See https://github.com/Fastcode/NUClear for further info.
@@ -20,37 +20,23 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include "LogLevel.hpp"
+#ifndef NUCLEAR_UTIL_FROM_STRING_HPP
+#define NUCLEAR_UTIL_FROM_STRING_HPP
 
-#include <ostream>
+#include <sstream>
+#include <string>
 
 namespace NUClear {
+namespace util {
 
-std::string to_string(const LogLevel& level) {
-    switch (level) {
-        case LogLevel::TRACE: return "TRACE";
-        case LogLevel::DEBUG: return "DEBUG";
-        case LogLevel::INFO: return "INFO";
-        case LogLevel::WARN: return "WARN";
-        case LogLevel::ERROR: return "ERROR";
-        case LogLevel::FATAL: return "FATAL";
-        default:
-        case LogLevel::UNKNOWN: return "UNKNOWN";
+    template <typename T>
+    T from_string(const std::string& str) {
+        T value;
+        std::istringstream(str) >> value;
+        return value;
     }
-}
 
-LogLevel from_string(const std::string& level) {
-    return level == "TRACE"   ? LogLevel::TRACE
-           : level == "DEBUG" ? LogLevel::DEBUG
-           : level == "INFO"  ? LogLevel::INFO
-           : level == "WARN"  ? LogLevel::WARN
-           : level == "ERROR" ? LogLevel::ERROR
-           : level == "FATAL" ? LogLevel::FATAL
-                              : LogLevel::UNKNOWN;
-}
-
-std::ostream& operator<<(std::ostream& os, const LogLevel& level) {
-    return os << to_string(level);
-}
-
+}  // namespace util
 }  // namespace NUClear
+
+#endif  // NUCLEAR_UTIL_FROM_STRING_HPP

@@ -24,7 +24,6 @@
 #define NUCLEAR_DSL_WORD_SHUTDOWN_HPP
 
 #include "../operation/TypeBind.hpp"
-#include "../../util/Priority.hpp"
 
 namespace NUClear {
 namespace dsl {
@@ -53,9 +52,7 @@ namespace dsl {
          * @par Implements
          *  Bind
          */
-        struct Shutdown
-            : operation::TypeBind<Shutdown>
-            , Priority<util::Priority::LOWEST> {};
+        struct Shutdown : operation::TypeBind<Shutdown> {};
 
     }  // namespace word
 }  // namespace dsl

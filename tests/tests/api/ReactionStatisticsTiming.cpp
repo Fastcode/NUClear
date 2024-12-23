@@ -60,7 +60,7 @@ public:
     TestReactor(std::unique_ptr<NUClear::Environment> environment)
         : TestBase(std::move(environment), true, std::chrono::seconds(2)) {
 
-        on<Trigger<Step<1>>, Priority<NUClear::util::Priority::LOW>>().then(initial_name + ":" + heavy_name, [this] {
+        on<Trigger<Step<1>>, Priority::LOW>().then(initial_name + ":" + heavy_name, [this] {
             code_events.emplace_back("Started " + initial_name + ":" + heavy_name, NUClear::clock::now());
             code_events.emplace_back("Created " + heavy_name, NUClear::clock::now());
             emit(std::make_unique<HeavyTask>());
@@ -74,7 +74,7 @@ public:
             code_events.emplace_back("Finished " + heavy_name, NUClear::clock::now());
         });
 
-        on<Trigger<Step<1>>, Priority<NUClear::util::Priority::LOW>>().then(initial_name + ":" + light_name, [this] {
+        on<Trigger<Step<1>>, Priority::LOW>().then(initial_name + ":" + light_name, [this] {
             code_events.emplace_back("Started " + initial_name + ":" + light_name, NUClear::clock::now());
             code_events.emplace_back("Created " + light_name, NUClear::clock::now());
             emit(std::make_unique<LightTask>());

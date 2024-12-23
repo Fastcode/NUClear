@@ -23,8 +23,8 @@
 #ifndef NUCLEAR_DSL_WORD_PRIORITY_HPP
 #define NUCLEAR_DSL_WORD_PRIORITY_HPP
 
+#include "../../PriorityLevel.hpp"
 #include "../../threading/Reaction.hpp"
-#include "../../util/Priority.hpp"
 
 namespace NUClear {
 namespace dsl {
@@ -32,17 +32,32 @@ namespace dsl {
         /**
          * Task priority can be controlled using an assigned setting.
          *
-         * @code on<Trigger<T, ...>, Priority<util::Priority::HIGH>>() @endcode
+         * @code on<Trigger<T, ...>, Priority::HIGH>() @endcode
          * The PowerPlant uses this setting to determine the scheduling order in the threadpool, as well as assign a
          * priority to the thread on the OS.
          *
          * The available priority settings are:
          *
-         * <b>HIGHEST:</b>
+         * <b>REALTIME:</b>
+         * Tasks will attempt to run as soon as possible preempting other threads if possible.
+         * Be very careful with this word as once a realtime task is running it will not give up control of its
+         * thread until it is finished.
+         *
          * <b>HIGH:</b>
+         * Tasks assigned with higher priority and will be queued with all other HIGH tasks.
+         * Will preempt other tasks in the queue except REALTIME tasks.
+         *
          * <b>NORMAL:</b>
+         * Tasks assigned with this will be queued with all other NORMAL tasks.
+         * Will execute using normal scheduling rules as far as the OS is concerned.
+         *
          * <b>LOW:</b>
-         * <b>LOWEST:</b>
+         * Tasks assigned with this priority will be queued with all other LOW tasks.
+         * They may be executed with lower or equal OS thread priority compared to NORMAL tasks.
+         *
+         * <b>IDLE:</b>
+         * Tasks assigned with this priority will be queued with all other IDLE tasks.
+         * If possible will be treated as a background task by the OS as well.
          *
          * @par Default Behaviour
          *  @code on<Trigger<T>>() @endcode
@@ -55,12 +70,20 @@ namespace dsl {
          * @par Implements
          *  Fusion
          */
-        template <util::Priority value>
         struct Priority {
-            template <typename DSL>
-            static util::Priority priority(const threading::ReactionTask& /*task*/) {
-                return value;
-            }
+            template <PriorityLevel::Value value>
+            struct Value {
+                template <typename DSL>
+                static PriorityLevel priority(const threading::ReactionTask& /*task*/) {
+                    return value;
+                }
+            };
+
+            using IDLE     = Value<PriorityLevel::IDLE>;
+            using LOW      = Value<PriorityLevel::LOW>;
+            using NORMAL   = Value<PriorityLevel::NORMAL>;
+            using HIGH     = Value<PriorityLevel::HIGH>;
+            using REALTIME = Value<PriorityLevel::REALTIME>;
         };
 
     }  // namespace word

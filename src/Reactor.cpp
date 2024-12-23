@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2024 NUClear Contributors
+ * Copyright (c) 2013 NUClear Contributors
  *
  * This file is part of the NUClear codebase.
  * See https://github.com/Fastcode/NUClear for further info.
@@ -20,30 +20,15 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_UTIL_PRIORITY_HPP
-#define NUCLEAR_UTIL_PRIORITY_HPP
-
-#include <algorithm>
-#include <cstdint>
-#include <type_traits>
+#include "Reactor.hpp"
 
 namespace NUClear {
-namespace util {
 
-    /**
-     * The priority value for Priority dsl word
-     */
-    enum class Priority : uint8_t { LOWEST = 0, LOW = 1, NORMAL = 2, HIGH = 3, HIGHEST = 4 };
-    /**
-     * Gets one lower priority unless already lowest
-     */
-    inline Priority prev(Priority value) {
-        value = static_cast<Priority>(static_cast<std::underlying_type_t<Priority>>(value) - 1);
-        value = std::min(value, Priority::LOWEST);
-        return value;
-    }
+constexpr LogLevel Reactor::TRACE;
+constexpr LogLevel Reactor::DEBUG;
+constexpr LogLevel Reactor::INFO;
+constexpr LogLevel Reactor::WARN;
+constexpr LogLevel Reactor::ERROR;
+constexpr LogLevel Reactor::FATAL;
 
-}  // namespace util
 }  // namespace NUClear
-
-#endif  // NUCLEAR_UTIL_PRIORITY_HPP

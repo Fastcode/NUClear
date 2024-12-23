@@ -42,14 +42,14 @@ namespace threading {
                 NUClear::id_t task_id_source = 1;
 
                 WHEN("Creating a lock") {
-                    std::unique_ptr<Lock> lock1 = group->lock(++task_id_source, util::Priority::LOW, [] {});
+                    std::unique_ptr<Lock> lock1 = group->lock(++task_id_source, PriorityLevel::LOW, [] {});
 
                     THEN("The lock should be true") {
                         CHECK(lock1->lock() == true);
                     }
 
                     AND_WHEN("Creating a second lock") {
-                        std::unique_ptr<Lock> lock2 = group->lock(++task_id_source, util::Priority::LOW, [] {});
+                        std::unique_ptr<Lock> lock2 = group->lock(++task_id_source, PriorityLevel::LOW, [] {});
 
                         THEN("The lock should be false") {
                             CHECK(lock1->lock() == true);
@@ -66,8 +66,9 @@ namespace threading {
                 NUClear::id_t task_id_source = 1;
 
                 WHEN("Creating a lock and locking it") {
-                    int notified1               = 0;
-                    std::unique_ptr<Lock> lock1 = group->lock(task_id_source++, util::Priority::LOW, [&] { ++notified1; });
+                    int notified1 = 0;
+                    std::unique_ptr<Lock> lock1 =
+                        group->lock(task_id_source++, PriorityLevel::LOW, [&] { ++notified1; });
                     lock1->lock();
 
                     THEN("The lock should be true") {
@@ -75,10 +76,12 @@ namespace threading {
                     }
 
                     AND_WHEN("Creating two more locks") {
-                        int notified2               = 0;
-                        int notified3               = 0;
-                        std::unique_ptr<Lock> lock2 = group->lock(task_id_source++, util::Priority::LOW, [&] { ++notified2; });
-                        std::unique_ptr<Lock> lock3 = group->lock(task_id_source++, util::Priority::LOW, [&] { ++notified3; });
+                        int notified2 = 0;
+                        int notified3 = 0;
+                        std::unique_ptr<Lock> lock2 =
+                            group->lock(task_id_source++, PriorityLevel::LOW, [&] { ++notified2; });
+                        std::unique_ptr<Lock> lock3 =
+                            group->lock(task_id_source++, PriorityLevel::LOW, [&] { ++notified3; });
 
                         THEN("The new locks should be false") {
                             CHECK(lock1->lock() == true);
@@ -116,11 +119,11 @@ namespace threading {
 
                 WHEN("Creating a lock and locking it") {
                     int notified1               = 0;
-                    std::unique_ptr<Lock> lock1 = group->lock(1, util::Priority::LOW, [&] { ++notified1; });
+                    std::unique_ptr<Lock> lock1 = group->lock(1, PriorityLevel::LOW, [&] { ++notified1; });
 
                     AND_WHEN("Locking the lock and creating a higher priority task") {
                         lock1->lock();
-                        std::unique_ptr<Lock> lock2 = group->lock(2, util::Priority::NORMAL, [] {});
+                        std::unique_ptr<Lock> lock2 = group->lock(2, PriorityLevel::NORMAL, [] {});
 
                         THEN("The new lock should be false") {
                             CHECK(lock1->lock() == true);
@@ -128,7 +131,7 @@ namespace threading {
                         }
                     }
                     AND_WHEN("Not locking the lock and creating a higher priority task") {
-                        std::unique_ptr<Lock> lock2 = group->lock(2, util::Priority::NORMAL, [] {});
+                        std::unique_ptr<Lock> lock2 = group->lock(2, PriorityLevel::NORMAL, [] {});
 
                         THEN("The new lock should be true") {
                             CHECK(lock1->lock() == false);
@@ -151,11 +154,11 @@ namespace threading {
 
                     std::array<int, n_locks> notified = {0, 0, 0, 0, 0};
                     std::array<std::unique_ptr<Lock>, n_locks> locks;
-                    locks[3] = group->lock(3, util::Priority::LOW, [&] { ++notified[3]; });
-                    locks[1] = group->lock(1, util::Priority::LOW, [&] { ++notified[1]; });
-                    locks[4] = group->lock(4, util::Priority::LOW, [&] { ++notified[4]; });
-                    locks[0] = group->lock(0, util::Priority::LOW, [&] { ++notified[0]; });
-                    locks[2] = group->lock(2, util::Priority::LOW, [&] { ++notified[2]; });
+                    locks[3] = group->lock(3, PriorityLevel::LOW, [&] { ++notified[3]; });
+                    locks[1] = group->lock(1, PriorityLevel::LOW, [&] { ++notified[1]; });
+                    locks[4] = group->lock(4, PriorityLevel::LOW, [&] { ++notified[4]; });
+                    locks[0] = group->lock(0, PriorityLevel::LOW, [&] { ++notified[0]; });
+                    locks[2] = group->lock(2, PriorityLevel::LOW, [&] { ++notified[2]; });
 
                     THEN("The locks should be lockable in the proper order") {
                         CHECK(locks[0]->lock() == (0 < n_tokens));
@@ -198,11 +201,11 @@ namespace threading {
                 WHEN("Creating a series of locks") {
                     std::array<int, n_locks> notified                = {0, 0, 0, 0, 0};
                     std::array<std::unique_ptr<Lock>, n_locks> locks = {
-                        group->lock(0, util::Priority::LOW, [&] { ++notified[0]; }),
-                        group->lock(1, util::Priority::LOW, [&] { ++notified[1]; }),
-                        group->lock(2, util::Priority::LOW, [&] { ++notified[2]; }),
-                        group->lock(3, util::Priority::LOW, [&] { ++notified[3]; }),
-                        group->lock(4, util::Priority::LOW, [&] { ++notified[4]; }),
+                        group->lock(0, PriorityLevel::LOW, [&] { ++notified[0]; }),
+                        group->lock(1, PriorityLevel::LOW, [&] { ++notified[1]; }),
+                        group->lock(2, PriorityLevel::LOW, [&] { ++notified[2]; }),
+                        group->lock(3, PriorityLevel::LOW, [&] { ++notified[3]; }),
+                        group->lock(4, PriorityLevel::LOW, [&] { ++notified[4]; }),
                     };
 
                     // Note that because this is in a scope, for the rest of the AND_WHEN calls, no locks have been
@@ -291,9 +294,9 @@ namespace threading {
                 WHEN("Creating a series of locks") {
                     std::array<int, 3> notified                = {0, 0, 0};
                     std::array<std::unique_ptr<Lock>, 3> locks = {
-                        group->lock(0, util::Priority::LOW, [&] { ++notified[0]; }),
-                        group->lock(1, util::Priority::LOW, [&] { ++notified[1]; }),
-                        group->lock(2, util::Priority::LOW, [&] { ++notified[2]; }),
+                        group->lock(0, PriorityLevel::LOW, [&] { ++notified[0]; }),
+                        group->lock(1, PriorityLevel::LOW, [&] { ++notified[1]; }),
+                        group->lock(2, PriorityLevel::LOW, [&] { ++notified[2]; }),
                     };
 
                     THEN("Locking and then unlocking the second lock") {
@@ -316,7 +319,7 @@ namespace threading {
 
                 WHEN("Creating a lock and locking it") {
                     int notified1               = 0;
-                    std::unique_ptr<Lock> lock1 = group->lock(1, util::Priority::LOW, [&] { ++notified1; });
+                    std::unique_ptr<Lock> lock1 = group->lock(1, PriorityLevel::LOW, [&] { ++notified1; });
                     lock1->lock();
 
                     THEN("The lock should be true") {
@@ -325,7 +328,7 @@ namespace threading {
 
                     AND_WHEN("Creating a second lock with a higher priority") {
                         int notified2               = 0;
-                        std::unique_ptr<Lock> lock2 = group->lock(2, util::Priority::NORMAL, [&] { ++notified2; });
+                        std::unique_ptr<Lock> lock2 = group->lock(2, PriorityLevel::NORMAL, [&] { ++notified2; });
 
                         THEN("The new lock should be false") {
                             CHECK(lock1->lock() == true);
@@ -352,7 +355,7 @@ namespace threading {
 
                 WHEN("Creating a lock and locking it") {
                     int notified1               = 0;
-                    std::unique_ptr<Lock> lock1 = group->lock(1, util::Priority::LOW, [&] { ++notified1; });
+                    std::unique_ptr<Lock> lock1 = group->lock(1, PriorityLevel::LOW, [&] { ++notified1; });
                     lock1->lock();
 
                     THEN("The lock should be true") {
@@ -361,7 +364,7 @@ namespace threading {
 
                     AND_WHEN("Adding a second lock") {
                         int notified2               = 0;
-                        std::unique_ptr<Lock> lock2 = group->lock(2, util::Priority::LOW, [&] { ++notified2; });
+                        std::unique_ptr<Lock> lock2 = group->lock(2, PriorityLevel::LOW, [&] { ++notified2; });
 
                         THEN("The second lock should be false") {
                             CHECK(lock2->lock() == false);
@@ -377,8 +380,9 @@ namespace threading {
                             }
 
                             AND_WHEN("Adding a third lock with higher priority") {
-                                int notified3               = 0;
-                                std::unique_ptr<Lock> lock3 = group->lock(3, util::Priority::NORMAL, [&] { ++notified3; });
+                                int notified3 = 0;
+                                std::unique_ptr<Lock> lock3 =
+                                    group->lock(3, PriorityLevel::NORMAL, [&] { ++notified3; });
 
                                 THEN("The third lock should be lockable and second lock should not") {
                                     CHECK(lock3->lock() == true);

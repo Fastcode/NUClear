@@ -44,7 +44,7 @@ namespace dsl {
         struct PriorityFuser<std::tuple<Word>> {
 
             template <typename DSL>
-            static util::Priority priority(threading::ReactionTask& task) {
+            static PriorityLevel priority(threading::ReactionTask& task) {
 
                 // Return our priority
                 return Word::template priority<DSL>(task);
@@ -56,7 +56,7 @@ namespace dsl {
         struct PriorityFuser<std::tuple<Word1, Word2, WordN...>> {
 
             template <typename DSL>
-            static util::Priority priority(threading::ReactionTask& task) {
+            static PriorityLevel priority(threading::ReactionTask& task) {
 
                 // Choose our maximum priority
                 return std::max(Word1::template priority<DSL>(task),

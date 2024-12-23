@@ -59,7 +59,7 @@ namespace dsl {
                     auto emitter = std::make_unique<threading::ReactionTask>(
                         nullptr,
                         false,
-                        [](threading::ReactionTask& /*task*/) { return NUClear::util::Priority::HIGHEST; },
+                        [](threading::ReactionTask& /*task*/) { return NUClear::PriorityLevel::REALTIME; },
                         [](threading::ReactionTask& /*task*/) { return util::Inline::NEVER; },
                         [](threading::ReactionTask& /*task*/) { return Pool<>::descriptor(); },
                         [](threading::ReactionTask& /*task*/) {

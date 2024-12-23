@@ -27,6 +27,7 @@
 #include "../../dsl/word/Pool.hpp"
 #include "../../message/ReactionStatistics.hpp"
 #include "../../util/Inline.hpp"
+#include "../../util/ThreadPriority.hpp"
 #include "../ReactionTask.hpp"
 #include "CombinedLock.hpp"
 #include "CountingLock.hpp"
@@ -172,6 +173,8 @@ namespace threading {
         void Pool::run() {
             Pool::current_pool = this;
             try {
+                // Set the thread priority to realtime while getting tasks
+                auto priority_lock = util::ThreadPriority(PriorityLevel::REALTIME);
                 while (true) {
                     // Run the next task
                     Task task = get_task();
@@ -185,7 +188,6 @@ namespace threading {
         }
 
         Pool::Task Pool::get_task() {
-
             std::unique_lock<std::mutex> lock(mutex);
             while (running || !queue.empty()) {
                 if (live) {
@@ -257,7 +259,7 @@ namespace threading {
             auto task = std::make_unique<ReactionTask>(
                 nullptr,
                 true,
-                [](const ReactionTask&) { return util::Priority::LOWEST; },
+                [](const ReactionTask&) { return PriorityLevel::REALTIME; },
                 [](const ReactionTask&) { return util::Inline::ALWAYS; },
                 [](const ReactionTask&) { return dsl::word::Pool<>::descriptor(); },
                 [](const ReactionTask&) { return std::set<std::shared_ptr<const util::GroupDescriptor>>{}; });

@@ -72,39 +72,39 @@ public:
             events.push_back(m.msg + " : " + t.msg);
         });
 
-        on<Trigger<Step<1>>, Priority<NUClear::util::Priority::LOW>>().then([this] {
+        on<Trigger<Step<1>>, Priority::LOW>().then([this] {
             events.push_back("Emitting Message 1");
             emit(std::make_unique<Message>("S1"));
         });
-        on<Trigger<Step<2>>, Priority<NUClear::util::Priority::LOW>>().then([this] {
+        on<Trigger<Step<2>>, Priority::LOW>().then([this] {
             events.push_back("Emitting Transient 1");
             emit(std::make_unique<TransientMessage>("T1", true));
         });
-        on<Trigger<Step<3>>, Priority<NUClear::util::Priority::LOW>>().then([this] {
+        on<Trigger<Step<3>>, Priority::LOW>().then([this] {
             events.push_back("Emitting Message 2");
             emit(std::make_unique<Message>("S2"));
         });
-        on<Trigger<Step<4>>, Priority<NUClear::util::Priority::LOW>>().then([this] {
+        on<Trigger<Step<4>>, Priority::LOW>().then([this] {
             events.push_back("Emitting Invalid Transient 2");
             emit(std::make_unique<TransientMessage>("T2", false));
         });
-        on<Trigger<Step<5>>, Priority<NUClear::util::Priority::LOW>>().then([this] {
+        on<Trigger<Step<5>>, Priority::LOW>().then([this] {
             events.push_back("Emitting Message 3");
             emit(std::make_unique<Message>("S3"));
         });
-        on<Trigger<Step<6>>, Priority<NUClear::util::Priority::LOW>>().then([this] {
+        on<Trigger<Step<6>>, Priority::LOW>().then([this] {
             events.push_back("Emitting Transient 3");
             emit(std::make_unique<TransientMessage>("T3", true));
         });
-        on<Trigger<Step<7>>, Priority<NUClear::util::Priority::LOW>>().then([this] {
+        on<Trigger<Step<7>>, Priority::LOW>().then([this] {
             events.push_back("Emitting Transient 4");
             emit(std::make_unique<TransientMessage>("T4", true));
         });
-        on<Trigger<Step<8>>, Priority<NUClear::util::Priority::LOW>>().then([this] {
+        on<Trigger<Step<8>>, Priority::LOW>().then([this] {
             events.push_back("Emitting Invalid Transient 5");
             emit(std::make_unique<TransientMessage>("T5", false));
         });
-        on<Trigger<Step<9>>, Priority<NUClear::util::Priority::LOW>>().then([this] {
+        on<Trigger<Step<9>>, Priority::LOW>().then([this] {
             events.push_back("Emitting Message 4");
             emit(std::make_unique<Message>("S4"));
         });

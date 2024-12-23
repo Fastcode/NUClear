@@ -25,14 +25,14 @@
 
 #include <type_traits>
 
+#include "../PriorityLevel.hpp"
 #include "../dsl/word/emit/Inline.hpp"
 #include "../message/ReactionStatistics.hpp"
 #include "../util/MergeTransient.hpp"
+#include "../util/ThreadPriority.hpp"
 #include "../util/TransientDataElements.hpp"
-#include "../util/Priority.hpp"
 #include "../util/apply.hpp"
 #include "../util/unpack.hpp"
-#include "../util/update_current_thread_priority.hpp"
 
 namespace NUClear {
 namespace util {
@@ -124,7 +124,7 @@ namespace util {
             auto c         = callback;
             task->callback = [c, data](threading::ReactionTask& task) noexcept {
                 // Update our thread's priority to the correct level
-                update_current_thread_priority(task.priority);
+                auto priority_lock = util::ThreadPriority(task.priority);
 
                 if (task.statistics != nullptr) {
                     task.statistics->started = message::ReactionStatistics::Event::now();

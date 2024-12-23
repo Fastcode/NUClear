@@ -37,13 +37,13 @@ public:
     TestReactor(std::unique_ptr<NUClear::Environment> environment) : TestBase(std::move(environment)) {
 
         // Make an always disabled reaction
-        a = on<Trigger<Message>, Priority<NUClear::util::Priority::HIGH>>().then([this](const Message& msg) {  //
+        a = on<Trigger<Message>, Priority::HIGH>().then([this](const Message& msg) {  //
             events.push_back("Executed disabled reaction " + std::to_string(msg.i));
         });
         a.disable();
 
         // Make a reaction that we toggle on and off
-        b = on<Trigger<Message>, Priority<NUClear::util::Priority::HIGH>>().then([this](const Message& msg) {  //
+        b = on<Trigger<Message>, Priority::HIGH>().then([this](const Message& msg) {  //
             events.push_back("Executed toggled reaction " + std::to_string(msg.i));
             b.disable();
             emit(std::make_unique<Message>(1));

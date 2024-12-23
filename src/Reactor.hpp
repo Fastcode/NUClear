@@ -51,7 +51,6 @@ namespace dsl {
 
         struct Once;
 
-        template <util::Priority>
         struct Priority;
 
         template <typename>
@@ -193,8 +192,7 @@ protected:
     using Trigger = dsl::word::Trigger<T>;
 
     /// @copydoc dsl::word::Priority
-    template <util::Priority value>
-    using Priority = dsl::word::Priority<value>;
+    using Priority = dsl::word::Priority;
 
     /// @copydoc dsl::word::Always
     using Always = dsl::word::Always;
@@ -320,6 +318,19 @@ protected:
         using WATCHDOG = dsl::word::emit::Watchdog<T>;
     };
 
+    /// @copydoc NUClear::LogLevel::Value::TRACE
+    static constexpr LogLevel TRACE = LogLevel::TRACE;
+    // @copydoc NUClear::LogLevel::Value::DEBUG
+    static constexpr LogLevel DEBUG = LogLevel::DEBUG;
+    // @copydoc NUClear::LogLevel::Value::INFO
+    static constexpr LogLevel INFO = LogLevel::INFO;
+    // @copydoc NUClear::LogLevel::Value::WARN
+    static constexpr LogLevel WARN = LogLevel::WARN;
+    // @copydoc NUClear::LogLevel::Value::ERROR
+    static constexpr LogLevel ERROR = LogLevel::ERROR;
+    // @copydoc NUClear::LogLevel::Value::FATAL
+    static constexpr LogLevel FATAL = LogLevel::FATAL;
+
     /// This provides functions to modify how an on statement runs after it has been created
     using ReactionHandle = threading::ReactionHandle;
 
@@ -436,7 +447,7 @@ public:
      *
      * @param args The arguments we are logging
      */
-    template <enum LogLevel level = DEBUG, typename... Arguments>
+    template <LogLevel::Value level = DEBUG, typename... Arguments>
     void log(Arguments&&... args) const {
 
         // If the log is above or equal to our log level
@@ -454,7 +465,7 @@ public:
      * @param args The arguments we are logging
      */
     template <typename... Arguments>
-    void log(const LogLevel& level, Arguments&&... args) const {
+    void log(LogLevel level, Arguments&&... args) const {
 
         // If the log is above or equal to our log level
         powerplant.log(level, std::forward<Arguments>(args)...);

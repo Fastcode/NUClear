@@ -50,7 +50,7 @@ public:
             events.push_back("MessageA with MessageB triggered");
         });
 
-        on<Trigger<Step<1>>, Priority<NUClear::util::Priority::LOW>>().then([this] {
+        on<Trigger<Step<1>>, Priority::LOW>().then([this] {
             events.push_back("Step<1> triggered");
             events.push_back("Emitting MessageA");
             emit(std::make_unique<MessageA>());

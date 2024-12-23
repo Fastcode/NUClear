@@ -28,7 +28,7 @@
 #include "test_util/executable_path.hpp"
 
 // This is a free floating function that we can use to test the log function when not in a reactor
-template <NUClear::LogLevel level, typename... Args>
+template <NUClear::LogLevel::Value level, typename... Args>
 void free_floating_log(const Args&... args) {
     NUClear::log<level>(args...);
 }
@@ -44,8 +44,12 @@ std::vector<LogTestOutput> messages;  // NOLINT(cppcoreguidelines-avoid-non-cons
 
 // All the log levels
 // NOLINTNEXTLINE(cert-err58-cpp,cppcoreguidelines-avoid-non-const-global-variables)
-const std::vector<NUClear::LogLevel> levels =
-    {NUClear::TRACE, NUClear::DEBUG, NUClear::INFO, NUClear::WARN, NUClear::ERROR, NUClear::FATAL};
+const std::vector<NUClear::LogLevel> levels = {NUClear::LogLevel::TRACE,
+                                               NUClear::LogLevel::DEBUG,
+                                               NUClear::LogLevel::INFO,
+                                               NUClear::LogLevel::WARN,
+                                               NUClear::LogLevel::ERROR,
+                                               NUClear::LogLevel::FATAL};
 
 struct TestLevel {
     TestLevel(NUClear::LogLevel level) : level(level) {}
@@ -70,29 +74,29 @@ public:
             this->log_level = l.level;
 
             // Test logs from a reaction
-            log<NUClear::TRACE>("Direct Reaction", NUClear::TRACE);
-            log<NUClear::DEBUG>("Direct Reaction", NUClear::DEBUG);
-            log<NUClear::INFO>("Direct Reaction", NUClear::INFO);
-            log<NUClear::WARN>("Direct Reaction", NUClear::WARN);
-            log<NUClear::ERROR>("Direct Reaction", NUClear::ERROR);
-            log<NUClear::FATAL>("Direct Reaction", NUClear::FATAL);
+            log<TRACE>("Direct Reaction", TRACE);
+            log<DEBUG>("Direct Reaction", DEBUG);
+            log<INFO>("Direct Reaction", INFO);
+            log<WARN>("Direct Reaction", WARN);
+            log<ERROR>("Direct Reaction", ERROR);
+            log<FATAL>("Direct Reaction", FATAL);
 
             // Test logs from a free floating function (called from a reaction)
-            free_floating_log<NUClear::TRACE>("Indirect Reaction", NUClear::TRACE);
-            free_floating_log<NUClear::DEBUG>("Indirect Reaction", NUClear::DEBUG);
-            free_floating_log<NUClear::INFO>("Indirect Reaction", NUClear::INFO);
-            free_floating_log<NUClear::WARN>("Indirect Reaction", NUClear::WARN);
-            free_floating_log<NUClear::ERROR>("Indirect Reaction", NUClear::ERROR);
-            free_floating_log<NUClear::FATAL>("Indirect Reaction", NUClear::FATAL);
+            free_floating_log<TRACE>("Indirect Reaction", TRACE);
+            free_floating_log<DEBUG>("Indirect Reaction", DEBUG);
+            free_floating_log<INFO>("Indirect Reaction", INFO);
+            free_floating_log<WARN>("Indirect Reaction", WARN);
+            free_floating_log<ERROR>("Indirect Reaction", ERROR);
+            free_floating_log<FATAL>("Indirect Reaction", FATAL);
 
             // Test logs called from a free floating function in another thread
             std::thread([] {
-                free_floating_log<NUClear::TRACE>("Non Reaction", NUClear::TRACE);
-                free_floating_log<NUClear::DEBUG>("Non Reaction", NUClear::DEBUG);
-                free_floating_log<NUClear::INFO>("Non Reaction", NUClear::INFO);
-                free_floating_log<NUClear::WARN>("Non Reaction", NUClear::WARN);
-                free_floating_log<NUClear::ERROR>("Non Reaction", NUClear::ERROR);
-                free_floating_log<NUClear::FATAL>("Non Reaction", NUClear::FATAL);
+                free_floating_log<TRACE>("Non Reaction", TRACE);
+                free_floating_log<DEBUG>("Non Reaction", DEBUG);
+                free_floating_log<INFO>("Non Reaction", INFO);
+                free_floating_log<WARN>("Non Reaction", WARN);
+                free_floating_log<ERROR>("Non Reaction", ERROR);
+                free_floating_log<FATAL>("Non Reaction", FATAL);
             }).join();
         });
 
@@ -100,27 +104,27 @@ public:
         on<Idle<>>().then([this] {
             powerplant.shutdown();
 
-            free_floating_log<NUClear::TRACE>("Post Powerplant Shutdown", NUClear::TRACE);
-            free_floating_log<NUClear::DEBUG>("Post Powerplant Shutdown", NUClear::DEBUG);
-            free_floating_log<NUClear::INFO>("Post Powerplant Shutdown", NUClear::INFO);
-            free_floating_log<NUClear::WARN>("Post Powerplant Shutdown", NUClear::WARN);
-            free_floating_log<NUClear::ERROR>("Post Powerplant Shutdown", NUClear::ERROR);
-            free_floating_log<NUClear::FATAL>("Post Powerplant Shutdown", NUClear::FATAL);
+            free_floating_log<TRACE>("Post Powerplant Shutdown", TRACE);
+            free_floating_log<DEBUG>("Post Powerplant Shutdown", DEBUG);
+            free_floating_log<INFO>("Post Powerplant Shutdown", INFO);
+            free_floating_log<WARN>("Post Powerplant Shutdown", WARN);
+            free_floating_log<ERROR>("Post Powerplant Shutdown", ERROR);
+            free_floating_log<FATAL>("Post Powerplant Shutdown", FATAL);
 
-            log<NUClear::TRACE>("Post Powerplant Shutdown", NUClear::TRACE);
-            log<NUClear::DEBUG>("Post Powerplant Shutdown", NUClear::DEBUG);
-            log<NUClear::INFO>("Post Powerplant Shutdown", NUClear::INFO);
-            log<NUClear::WARN>("Post Powerplant Shutdown", NUClear::WARN);
-            log<NUClear::ERROR>("Post Powerplant Shutdown", NUClear::ERROR);
-            log<NUClear::FATAL>("Post Powerplant Shutdown", NUClear::FATAL);
+            log<TRACE>("Post Powerplant Shutdown", TRACE);
+            log<DEBUG>("Post Powerplant Shutdown", DEBUG);
+            log<INFO>("Post Powerplant Shutdown", INFO);
+            log<WARN>("Post Powerplant Shutdown", WARN);
+            log<ERROR>("Post Powerplant Shutdown", ERROR);
+            log<FATAL>("Post Powerplant Shutdown", FATAL);
 
             std::thread([] {
-                free_floating_log<NUClear::TRACE>("Non Reaction", NUClear::TRACE);
-                free_floating_log<NUClear::DEBUG>("Non Reaction", NUClear::DEBUG);
-                free_floating_log<NUClear::INFO>("Non Reaction", NUClear::INFO);
-                free_floating_log<NUClear::WARN>("Non Reaction", NUClear::WARN);
-                free_floating_log<NUClear::ERROR>("Non Reaction", NUClear::ERROR);
-                free_floating_log<NUClear::FATAL>("Non Reaction", NUClear::FATAL);
+                free_floating_log<TRACE>("Non Reaction", TRACE);
+                free_floating_log<DEBUG>("Non Reaction", DEBUG);
+                free_floating_log<INFO>("Non Reaction", INFO);
+                free_floating_log<WARN>("Non Reaction", WARN);
+                free_floating_log<ERROR>("Non Reaction", ERROR);
+                free_floating_log<FATAL>("Non Reaction", FATAL);
             }).join();
         });
 
@@ -136,13 +140,15 @@ public:
 
 TEST_CASE("Testing the Log<>() function", "[api][log]") {
 
+    using LogLevel = NUClear::LogLevel;
+
     // Try to call log before constructing a powerplant
-    free_floating_log<NUClear::TRACE>("Pre Powerplant Construction", NUClear::TRACE);
-    free_floating_log<NUClear::DEBUG>("Pre Powerplant Construction", NUClear::DEBUG);
-    free_floating_log<NUClear::INFO>("Pre Powerplant Construction", NUClear::INFO);
-    free_floating_log<NUClear::WARN>("Pre Powerplant Construction", NUClear::WARN);
-    free_floating_log<NUClear::ERROR>("Pre Powerplant Construction", NUClear::ERROR);
-    free_floating_log<NUClear::FATAL>("Pre Powerplant Construction", NUClear::FATAL);
+    free_floating_log<NUClear::LogLevel::TRACE>("Pre Powerplant Construction", LogLevel(LogLevel::TRACE));
+    free_floating_log<NUClear::LogLevel::DEBUG>("Pre Powerplant Construction", LogLevel(LogLevel::DEBUG));
+    free_floating_log<NUClear::LogLevel::INFO>("Pre Powerplant Construction", LogLevel(LogLevel::INFO));
+    free_floating_log<NUClear::LogLevel::WARN>("Pre Powerplant Construction", LogLevel(LogLevel::WARN));
+    free_floating_log<NUClear::LogLevel::ERROR>("Pre Powerplant Construction", LogLevel(LogLevel::ERROR));
+    free_floating_log<NUClear::LogLevel::FATAL>("Pre Powerplant Construction", LogLevel(LogLevel::FATAL));
 
     // Local scope to force powerplant destruction
     {
@@ -158,12 +164,12 @@ TEST_CASE("Testing the Log<>() function", "[api][log]") {
     }
 
     // Try to call log after destructing the powerplant
-    free_floating_log<NUClear::TRACE>("Post Powerplant Destruction", NUClear::TRACE);
-    free_floating_log<NUClear::DEBUG>("Post Powerplant Destruction", NUClear::DEBUG);
-    free_floating_log<NUClear::INFO>("Post Powerplant Destruction", NUClear::INFO);
-    free_floating_log<NUClear::WARN>("Post Powerplant Destruction", NUClear::WARN);
-    free_floating_log<NUClear::ERROR>("Post Powerplant Destruction", NUClear::ERROR);
-    free_floating_log<NUClear::FATAL>("Post Powerplant Destruction", NUClear::FATAL);
+    free_floating_log<NUClear::LogLevel::TRACE>("Post Powerplant Destruction", LogLevel(LogLevel::TRACE));
+    free_floating_log<NUClear::LogLevel::DEBUG>("Post Powerplant Destruction", LogLevel(LogLevel::DEBUG));
+    free_floating_log<NUClear::LogLevel::INFO>("Post Powerplant Destruction", LogLevel(LogLevel::INFO));
+    free_floating_log<NUClear::LogLevel::WARN>("Post Powerplant Destruction", LogLevel(LogLevel::WARN));
+    free_floating_log<NUClear::LogLevel::ERROR>("Post Powerplant Destruction", LogLevel(LogLevel::ERROR));
+    free_floating_log<NUClear::LogLevel::FATAL>("Post Powerplant Destruction", LogLevel(LogLevel::FATAL));
 
     // Test that we have the correct number of messages
     size_t expected_count = 0;
@@ -179,7 +185,7 @@ TEST_CASE("Testing the Log<>() function", "[api][log]") {
         // Test logs from reactions directly
         for (const auto& log_level : levels) {
             if (display_level <= log_level) {
-                const std::string expected = "Direct Reaction " + NUClear::to_string(log_level);
+                const std::string expected = "Direct Reaction " + static_cast<std::string>(log_level);
                 REQUIRE(messages[i].message == expected);
                 REQUIRE(messages[i].level == log_level);
                 REQUIRE(messages[i++].from_reaction);
@@ -188,7 +194,7 @@ TEST_CASE("Testing the Log<>() function", "[api][log]") {
         // Test logs from reactions indirectly
         for (const auto& log_level : levels) {
             if (display_level <= log_level) {
-                const std::string expected = "Indirect Reaction " + NUClear::to_string(log_level);
+                const std::string expected = "Indirect Reaction " + static_cast<std::string>(log_level);
                 REQUIRE(messages[i].message == expected);
                 REQUIRE(messages[i].level == log_level);
                 REQUIRE(messages[i++].from_reaction);
@@ -197,7 +203,7 @@ TEST_CASE("Testing the Log<>() function", "[api][log]") {
         // Test logs from free floating functions
         for (const auto& log_level : levels) {
             // No filter here, free floating prints everything
-            const std::string expected = "Non Reaction " + NUClear::to_string(log_level);
+            const std::string expected = "Non Reaction " + static_cast<std::string>(log_level);
             REQUIRE(messages[i].message == expected);
             REQUIRE(messages[i].level == log_level);
             REQUIRE_FALSE(messages[i++].from_reaction);
@@ -206,19 +212,19 @@ TEST_CASE("Testing the Log<>() function", "[api][log]") {
 
     // Test post-shutdown logs
     {
-        const std::string expected = "Post Powerplant Shutdown " + NUClear::to_string(NUClear::FATAL);
+        const std::string expected = "Post Powerplant Shutdown " + static_cast<std::string>(LogLevel(LogLevel::FATAL));
         REQUIRE(messages[i].message == expected);
-        REQUIRE(messages[i].level == NUClear::FATAL);
+        REQUIRE(messages[i].level == LogLevel::FATAL);
         REQUIRE(messages[i++].from_reaction);
         REQUIRE(messages[i].message == expected);
-        REQUIRE(messages[i].level == NUClear::FATAL);
+        REQUIRE(messages[i].level == LogLevel::FATAL);
         REQUIRE(messages[i++].from_reaction);
     }
 
     // Test logs from free floating functions
     for (const auto& log_level : levels) {
         // No filter here, free floating prints everything
-        const std::string expected = "Non Reaction " + NUClear::to_string(log_level);
+        const std::string expected = "Non Reaction " + static_cast<std::string>(log_level);
         REQUIRE(messages[i].message == expected);
         REQUIRE(messages[i].level == log_level);
         REQUIRE_FALSE(messages[i++].from_reaction);
