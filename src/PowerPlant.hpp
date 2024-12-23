@@ -38,6 +38,7 @@
 #include "threading/ReactionTask.hpp"
 #include "threading/scheduler/Scheduler.hpp"
 #include "util/FunctionFusion.hpp"
+#include "util/Logger.hpp"
 #include "util/demangle.hpp"
 
 namespace NUClear {
@@ -188,32 +189,41 @@ public:
      * Logs a message through the system so the various log handlers can access it.
      * The arguments being logged should be able to be added into a stringstream.
      *
-     * @tparam level     The level to log at (defaults to DEBUG)
+     * @tparam level     The level to log at
      * @tparam Arguments The types of the arguments we are logging
      *
      * @param args The arguments we are logging
      */
-    template <enum LogLevel level, typename... Arguments>
+    template <LogLevel::Value level, typename... Arguments>
     void log(Arguments&&... args) {
-        log(level, std::forward<Arguments>(args)...);
+        logger.log(nullptr, level, std::forward<Arguments>(args)...);
     }
     template <typename... Arguments>
     void log(const LogLevel& level, Arguments&&... args) {
-        std::stringstream ss;
-        log(level, ss, std::forward<Arguments>(args)...);
+        logger.log(nullptr, level, std::forward<Arguments>(args)...);
     }
-    template <typename First, typename... Arguments>
-    void log(const LogLevel& level, std::stringstream& ss, First&& first, Arguments&&... args) {
-        ss << std::forward<First>(first) << " ";
-        log(level, ss, std::forward<Arguments>(args)...);
+
+    /**
+     * Log a message through NUClear's system.
+     *
+     * This version of log takes a pointer to a reactor as an argument.
+     * When logging from a reactor's log function, even if it's not logging within a reactor needs the context to add
+     * the extra information about the reactors name.
+     *
+     * @tparam level     The level to log at (defaults to DEBUG)
+     * @tparam Arguments The types of the arguments we are logging
+     *
+     * @param reactor The reactor that is logging
+     * @param args    The arguments we are logging
+     */
+    template <LogLevel::Value level, typename... Arguments>
+    void log(const Reactor* reactor, Arguments&&... args) {
+        logger.log(reactor, level, std::forward<Arguments>(args)...);
     }
-    template <typename Last>
-    void log(const LogLevel& level, std::stringstream& ss, Last&& last) {
-        ss << std::forward<Last>(last);
-        log(level, ss);
+    template <typename... Arguments>
+    void log(const Reactor* reactor, const LogLevel& level, Arguments&&... args) {
+        logger.log(reactor, level, std::forward<Arguments>(args)...);
     }
-    void log(const LogLevel& level, std::stringstream& message);
-    void log(const LogLevel& level, std::string message);
 
     /**
      * Emits data to the system and routes it to the other systems that use it.
@@ -235,8 +245,7 @@ public:
         emit<dsl::word::emit::Local>(std::move(data));
     }
     template <template <typename> class First,
-              template <typename>
-              class... Remainder,
+              template <typename> class... Remainder,
               typename T,
               typename... Arguments>
     void emit(std::unique_ptr<T>& data, Arguments&&... args) {
@@ -244,8 +253,7 @@ public:
     }
 
     template <template <typename> class First,
-              template <typename>
-              class... Remainder,
+              template <typename> class... Remainder,
               typename T,
               typename... Arguments>
     void emit(std::unique_ptr<T>&& data, Arguments&&... args) {
@@ -283,8 +291,7 @@ public:
      * @param data The data we are emitting
      */
     template <template <typename> class First,
-              template <typename>
-              class... Remainder,
+              template <typename> class... Remainder,
               typename T,
               typename... Arguments>
     void emit_shared(std::shared_ptr<T> data, Arguments&&... args) {
@@ -326,6 +333,8 @@ public:
     threading::scheduler::Scheduler scheduler;
     /// Our vector of Reactors, will get destructed when this vector is
     std::vector<std::unique_ptr<NUClear::Reactor>> reactors;
+    /// Our logger that handles logging messages
+    util::Logger logger;
 };
 
 /**
@@ -340,7 +349,7 @@ public:
  *
  * @param args The arguments to log.
  */
-template <enum LogLevel level = NUClear::DEBUG, typename... Arguments>
+template <LogLevel::Value level = NUClear::LogLevel::DEBUG, typename... Arguments>
 void log(Arguments&&... args) {
     if (PowerPlant::powerplant != nullptr) {
         PowerPlant::powerplant->log<level>(std::forward<Arguments>(args)...);

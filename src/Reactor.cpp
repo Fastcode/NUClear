@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2023 NUClear Contributors
+ * Copyright (c) 2013 NUClear Contributors
  *
  * This file is part of the NUClear codebase.
  * See https://github.com/Fastcode/NUClear for further info.
@@ -20,39 +20,15 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_DSL_FUSION_HAS_POOL_HPP
-#define NUCLEAR_DSL_FUSION_HAS_POOL_HPP
-
-#include "../../threading/ReactionTask.hpp"
-#include "NoOp.hpp"
+#include "Reactor.hpp"
 
 namespace NUClear {
-namespace dsl {
-    namespace fusion {
 
-        /**
-         * SFINAE struct to test if the passed class has a pool function that conforms to the NUClear DSL.
-         *
-         * @tparam T the class to check
-         */
-        template <typename T>
-        struct has_pool {
-        private:
-            using yes = std::true_type;
-            using no  = std::false_type;
+constexpr LogLevel Reactor::TRACE;
+constexpr LogLevel Reactor::DEBUG;
+constexpr LogLevel Reactor::INFO;
+constexpr LogLevel Reactor::WARN;
+constexpr LogLevel Reactor::ERROR;
+constexpr LogLevel Reactor::FATAL;
 
-            template <typename U>
-            static auto test(int) -> decltype(U::template pool<ParsedNoOp>(std::declval<threading::ReactionTask&>()),
-                                              yes());
-            template <typename>
-            static no test(...);
-
-        public:
-            static constexpr bool value = std::is_same<decltype(test<T>(0)), yes>::value;
-        };
-
-    }  // namespace fusion
-}  // namespace dsl
 }  // namespace NUClear
-
-#endif  // NUCLEAR_DSL_FUSION_HAS_POOL_HPP

@@ -57,6 +57,20 @@ namespace dsl {
                 Parse<Sentence...>>(task);
         }
 
+        static std::shared_ptr<const util::ThreadPoolDescriptor> pool(threading::ReactionTask& task) {
+            return std::conditional_t<fusion::has_pool<DSL>::value, DSL, fusion::NoOp>::template pool<
+                Parse<Sentence...>>(task);
+        }
+
+        static void post_run(threading::ReactionTask& task) {
+            std::conditional_t<fusion::has_post_run<DSL>::value, DSL, fusion::NoOp>::template post_run<
+                Parse<Sentence...>>(task);
+        }
+        static void pre_run(threading::ReactionTask& task) {
+            std::conditional_t<fusion::has_pre_run<DSL>::value, DSL, fusion::NoOp>::template pre_run<
+                Parse<Sentence...>>(task);
+        }
+
         static bool precondition(threading::ReactionTask& task) {
             return std::conditional_t<fusion::has_precondition<DSL>::value, DSL, fusion::NoOp>::template precondition<
                 Parse<Sentence...>>(task);
@@ -67,14 +81,11 @@ namespace dsl {
                 Parse<Sentence...>>(task);
         }
 
-        static std::shared_ptr<const util::ThreadPoolDescriptor> pool(threading::ReactionTask& task) {
-            return std::conditional_t<fusion::has_pool<DSL>::value, DSL, fusion::NoOp>::template pool<
-                Parse<Sentence...>>(task);
-        }
-
-        static void postcondition(threading::ReactionTask& task) {
-            std::conditional_t<fusion::has_postcondition<DSL>::value, DSL, fusion::NoOp>::template postcondition<
-                Parse<Sentence...>>(task);
+        static auto scope(threading::ReactionTask& task)
+            -> decltype(std::conditional_t<fusion::has_scope<DSL>::value, DSL, fusion::NoOp>::template scope<
+                        Parse<Sentence...>>(task)) {
+            return std::conditional_t<fusion::has_scope<DSL>::value, DSL, fusion::NoOp>::template scope<Parse<Sentence...>>(
+                task);
         }
     };
 

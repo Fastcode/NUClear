@@ -49,7 +49,7 @@ PowerPlant* PowerPlant::powerplant = nullptr;
 // This is taking argc and argv as given by main so this should not take an array
 // NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays)
 PowerPlant::PowerPlant(Configuration config, int argc, const char* argv[])
-    : scheduler(config.default_pool_concurrency) {
+    : scheduler(config.default_pool_concurrency), logger(*this) {
 
     // Stop people from making more then one powerplant
     if (powerplant != nullptr) {
@@ -101,21 +101,6 @@ void PowerPlant::remove_idle_task(const NUClear::id_t& id,
 
 void PowerPlant::submit(std::unique_ptr<threading::ReactionTask>&& task) noexcept {
     scheduler.submit(std::move(task));
-}
-
-void PowerPlant::log(const LogLevel& level, std::string message) {
-    // Get the current task
-    const auto* current_task = threading::ReactionTask::get_current_task();
-
-    // Inline emit the log message to default handlers to pause the current task until the log message is processed
-    emit<dsl::word::emit::Inline>(std::make_unique<message::LogMessage>(
-        level,
-        current_task != nullptr ? current_task->parent->reactor.log_level : LogLevel::UNKNOWN,
-        std::move(message),
-        current_task != nullptr ? current_task->statistics : nullptr));
-}
-void PowerPlant::log(const LogLevel& level, std::stringstream& message) {
-    log(level, message.str());
 }
 
 void PowerPlant::shutdown(bool force) {
