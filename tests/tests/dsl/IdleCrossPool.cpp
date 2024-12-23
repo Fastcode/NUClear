@@ -26,7 +26,7 @@
 #include "test_util/TestBase.hpp"
 #include "test_util/TimeUnit.hpp"
 #include "test_util/common.hpp"
-#include "util/precise_sleep.hpp"
+#include "util/Sleeper.hpp"
 
 class TestReactor : public test_util::TestBase<TestReactor> {
 public:
@@ -45,7 +45,7 @@ public:
             default_thread_id = std::this_thread::get_id();
             events.push_back("Step<2>");
             // Sleep for a bit to coax out any more idle triggers
-            NUClear::util::precise_sleep(test_util::TimeUnit(2));
+            NUClear::util::Sleeper().sleep_for(test_util::TimeUnit(2));
             powerplant.shutdown();
         });
 

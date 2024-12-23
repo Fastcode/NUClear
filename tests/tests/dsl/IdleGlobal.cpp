@@ -26,7 +26,7 @@
 #include "test_util/TestBase.hpp"
 #include "test_util/TimeUnit.hpp"
 #include "test_util/common.hpp"
-#include "util/precise_sleep.hpp"
+#include "util/Sleeper.hpp"
 
 class TestReactor : public test_util::TestBase<TestReactor> {
 public:
@@ -101,7 +101,7 @@ public:
 
     static void wait_for_set(const std::atomic<bool>& flag) {
         while (!flag.load(std::memory_order_acquire)) {
-            NUClear::util::precise_sleep(test_util::TimeUnit(1));
+            NUClear::util::Sleeper().sleep_for(test_util::TimeUnit(1));
         }
     }
 
