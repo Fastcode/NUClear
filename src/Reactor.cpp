@@ -20,37 +20,15 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include "LogLevel.hpp"
-
-#include <ostream>
+#include "Reactor.hpp"
 
 namespace NUClear {
 
-std::string to_string(const LogLevel& level) {
-    switch (level) {
-        case LogLevel::TRACE: return "TRACE";
-        case LogLevel::DEBUG: return "DEBUG";
-        case LogLevel::INFO: return "INFO";
-        case LogLevel::WARN: return "WARN";
-        case LogLevel::ERROR: return "ERROR";
-        case LogLevel::FATAL: return "FATAL";
-        default:
-        case LogLevel::UNKNOWN: return "UNKNOWN";
-    }
-}
-
-LogLevel from_string(const std::string& level) {
-    return level == "TRACE"   ? LogLevel::TRACE
-           : level == "DEBUG" ? LogLevel::DEBUG
-           : level == "INFO"  ? LogLevel::INFO
-           : level == "WARN"  ? LogLevel::WARN
-           : level == "ERROR" ? LogLevel::ERROR
-           : level == "FATAL" ? LogLevel::FATAL
-                              : LogLevel::UNKNOWN;
-}
-
-std::ostream& operator<<(std::ostream& os, const LogLevel& level) {
-    return os << to_string(level);
-}
+constexpr LogLevel Reactor::TRACE;
+constexpr LogLevel Reactor::DEBUG;
+constexpr LogLevel Reactor::INFO;
+constexpr LogLevel Reactor::WARN;
+constexpr LogLevel Reactor::ERROR;
+constexpr LogLevel Reactor::FATAL;
 
 }  // namespace NUClear

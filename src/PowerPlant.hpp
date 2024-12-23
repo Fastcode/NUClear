@@ -194,7 +194,7 @@ public:
      *
      * @param args The arguments we are logging
      */
-    template <enum LogLevel level, typename... Arguments>
+    template <LogLevel::Value level, typename... Arguments>
     void log(Arguments&&... args) {
         logger.log(nullptr, level, std::forward<Arguments>(args)...);
     }
@@ -216,7 +216,7 @@ public:
      * @param reactor The reactor that is logging
      * @param args    The arguments we are logging
      */
-    template <enum LogLevel level, typename... Arguments>
+    template <LogLevel::Value level, typename... Arguments>
     void log(const Reactor* reactor, Arguments&&... args) {
         logger.log(reactor, level, std::forward<Arguments>(args)...);
     }
@@ -349,7 +349,7 @@ public:
  *
  * @param args The arguments to log.
  */
-template <enum LogLevel level = NUClear::DEBUG, typename... Arguments>
+template <LogLevel::Value level = NUClear::LogLevel::DEBUG, typename... Arguments>
 void log(Arguments&&... args) {
     if (PowerPlant::powerplant != nullptr) {
         PowerPlant::powerplant->log<level>(std::forward<Arguments>(args)...);
