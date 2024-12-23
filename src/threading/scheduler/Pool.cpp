@@ -174,7 +174,7 @@ namespace threading {
             Pool::current_pool = this;
             try {
                 // Set the thread priority to realtime while getting tasks
-                util::ThreadPriority priority_lock(PriorityLevel::REALTIME);
+                const util::ThreadPriority priority_lock(PriorityLevel::REALTIME);
                 while (true) {
                     // Run the next task
                     Task task = get_task();

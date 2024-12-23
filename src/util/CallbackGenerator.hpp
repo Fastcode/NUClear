@@ -124,7 +124,7 @@ namespace util {
             auto c         = callback;
             task->callback = [c, data](threading::ReactionTask& task) noexcept {
                 // Update our thread's priority to the correct level
-                util::ThreadPriority priority_lock(task.priority);
+                const util::ThreadPriority priority_lock(task.priority);
 
                 if (task.statistics != nullptr) {
                     task.statistics->started = message::ReactionStatistics::Event::now();
