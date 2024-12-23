@@ -33,14 +33,14 @@
 
 namespace NUClear {
 
+/**
+ * LogLevel defines the different levels log messages can be set to.
+ *
+ * Log levels are used to provide different levels of detail on a per-reactor basis.
+ * The logging level of a reactor can be changed by setting it in the install function.
+ */
 class LogLevel {
 public:
-    /**
-     * LogLevel defines the different levels log messages can be set to.
-     *
-     * Log levels are used to provide different levels of detail on a per-reactor basis.
-     * The logging level of a reactor can be changed by setting it in the install function.
-     */
     enum Value : uint8_t {
         /**
          * Don't use this log level when emitting logs, it is for setting reactor log level from non reactor sources.
@@ -170,39 +170,27 @@ public:
         return os << static_cast<std::string>(level);
     }
 
-    friend constexpr bool operator<(const LogLevel& lhs, const LogLevel& rhs) {
-        return lhs.value < rhs.value;
-    }
-    friend constexpr bool operator>(const LogLevel& lhs, const LogLevel& rhs) {
-        return lhs.value > rhs.value;
-    }
-    friend constexpr bool operator<=(const LogLevel& lhs, const LogLevel& rhs) {
-        return lhs.value <= rhs.value;
-    }
-    friend constexpr bool operator>=(const LogLevel& lhs, const LogLevel& rhs) {
-        return lhs.value >= rhs.value;
-    }
-    friend constexpr bool operator==(const LogLevel& lhs, const LogLevel& rhs) {
-        return lhs.value == rhs.value;
-    }
-    friend constexpr bool operator!=(const LogLevel& lhs, const LogLevel& rhs) {
-        return lhs.value != rhs.value;
-    }
-    friend constexpr bool operator<(const LogLevel& lhs, const Value& rhs) {
-        return lhs.value < rhs;
-    }
-    friend constexpr bool operator>(const LogLevel& lhs, const Value& rhs) {
-        return lhs.value > rhs;
-    }
-    friend constexpr bool operator<=(const LogLevel& lhs, const Value& rhs) {
-        return lhs.value <= rhs;
-    }
-    friend constexpr bool operator>=(const LogLevel& lhs, const Value& rhs) {
-        return lhs.value >= rhs;
-    }
-    friend constexpr bool operator==(const LogLevel& lhs, const Value& rhs) {
-        return lhs.value == rhs;
-    }
+    // Operators to compare LogLevel values and LogLevel to Value
+    // clang-format off
+    friend constexpr bool operator<(const LogLevel& lhs, const LogLevel& rhs) { return lhs.value < rhs.value; }
+    friend constexpr bool operator>(const LogLevel& lhs, const LogLevel& rhs) { return lhs.value > rhs.value; }
+    friend constexpr bool operator<=(const LogLevel& lhs, const LogLevel& rhs) { return lhs.value <= rhs.value; }
+    friend constexpr bool operator>=(const LogLevel& lhs, const LogLevel& rhs) { return lhs.value >= rhs.value; }
+    friend constexpr bool operator==(const LogLevel& lhs, const LogLevel& rhs) { return lhs.value == rhs.value; }
+    friend constexpr bool operator!=(const LogLevel& lhs, const LogLevel& rhs) { return lhs.value != rhs.value; }
+    friend constexpr bool operator<(const LogLevel& lhs, const Value& rhs) { return lhs.value < rhs; }
+    friend constexpr bool operator>(const LogLevel& lhs, const Value& rhs) { return lhs.value > rhs; }
+    friend constexpr bool operator<=(const LogLevel& lhs, const Value& rhs) { return lhs.value <= rhs; }
+    friend constexpr bool operator>=(const LogLevel& lhs, const Value& rhs) { return lhs.value >= rhs; }
+    friend constexpr bool operator==(const LogLevel& lhs, const Value& rhs) { return lhs.value == rhs; }
+    friend constexpr bool operator!=(const LogLevel& lhs, const Value& rhs) { return lhs.value != rhs; }
+    friend constexpr bool operator<(const Value& lhs, const LogLevel& rhs) { return lhs < rhs.value; }
+    friend constexpr bool operator>(const Value& lhs, const LogLevel& rhs) { return lhs > rhs.value; }
+    friend constexpr bool operator<=(const Value& lhs, const LogLevel& rhs) { return lhs <= rhs.value; }
+    friend constexpr bool operator>=(const Value& lhs, const LogLevel& rhs) { return lhs >= rhs.value; }
+    friend constexpr bool operator==(const Value& lhs, const LogLevel& rhs) { return lhs == rhs.value; }
+    friend constexpr bool operator!=(const Value& lhs, const LogLevel& rhs) { return lhs != rhs.value; }
+    // clang-format on
 
 
 private:
