@@ -37,7 +37,7 @@ public:
      *
      * @param value The value to construct the PriorityLevel from
      */
-    constexpr PriorityLevel(const Value& value = Value::NORMAL) : value(value) {}
+    constexpr PriorityLevel(const Value& value = Value::NORMAL) noexcept : value(value) {}
 
     /**
      * Construct a PriorityLevel from a string
