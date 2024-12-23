@@ -25,7 +25,6 @@
 namespace NUClear {
 namespace util {
 
-
     namespace {
 #ifdef _WIN32
     #include "platform.hpp"
