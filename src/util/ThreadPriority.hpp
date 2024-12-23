@@ -51,7 +51,7 @@ namespace util {
         /**
          * Restore the current thread to its previous priority level
          */
-        ~ThreadPriority();
+        ~ThreadPriority() noexcept;
 
     private:
         /// The priority level to restore to

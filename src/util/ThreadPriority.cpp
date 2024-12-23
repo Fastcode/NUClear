@@ -44,13 +44,13 @@ namespace util {
 
             sched_param param{};
             switch (priority) {
-                case PriorityLevel::IDLE: {  // Use the idle scheduler if it exists
     #ifdef SHED_IDLE
+                case PriorityLevel::IDLE: {  // Use the idle scheduler if it exists
                     pthread_setschedparam(pthread_self(), SCHED_IDLE, &param);
-    #else
-                    pthread_setschedparam(pthread_self(), SCHED_OTHER, &param);
-    #endif
                 } break;
+    #else
+                case PriorityLevel::IDLE:
+    #endif
                 case PriorityLevel::LOW:
                 case PriorityLevel::NORMAL: {  // Uses the default scheduler and lets NUClear order tasks
                     pthread_setschedparam(pthread_self(), SCHED_OTHER, &param);
@@ -67,9 +67,6 @@ namespace util {
                     param.sched_priority = max_fifo_priority;
                     pthread_setschedparam(pthread_self(), SCHED_FIFO, &param);
                 } break;
-                default: {
-                    throw std::runtime_error("Unknown priority level");
-                }
             }
         }  // namespace
 
@@ -98,7 +95,7 @@ namespace util {
         set_priority(priority);
     }
 
-    ThreadPriority::~ThreadPriority() {
+    ThreadPriority::~ThreadPriority() noexcept {
         set_priority(previous_priority);
     }
 
