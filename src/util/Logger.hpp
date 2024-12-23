@@ -67,7 +67,7 @@ namespace util {
          * Describes the log levels for a particular reactor.
          */
         struct LogLevels {
-            LogLevels(LogLevel display_log_level, LogLevel min_log_level)
+            LogLevels(const LogLevel& display_log_level, const LogLevel& min_log_level)
                 : display_log_level(display_log_level), min_log_level(min_log_level) {}
 
             /// The log level that should be displayed
