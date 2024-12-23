@@ -78,7 +78,7 @@ namespace util {
         void set_priority(const PriorityLevel& priority) {
             switch (priority) {
                 case PriorityLevel::IDLE: pthread_set_qos_class_self_np(QOS_CLASS_BACKGROUND, 0); break;
-                case PriorityLevel::LOW:
+                case PriorityLevel::LOW: pthread_set_qos_class_self_np(QOS_CLASS_DEFAULT, 1); break;
                 case PriorityLevel::NORMAL: pthread_set_qos_class_self_np(QOS_CLASS_DEFAULT, 0); break;
                 case PriorityLevel::HIGH: pthread_set_qos_class_self_np(QOS_CLASS_USER_INITIATED, 0); break;
                 case PriorityLevel::REALTIME: pthread_set_qos_class_self_np(QOS_CLASS_USER_INTERACTIVE, 0); break;
@@ -87,7 +87,8 @@ namespace util {
 
 #else
     #error "Unsupported platform"
-#endif  // def _WIN32
+#endif
+
     }  // namespace
 
 
