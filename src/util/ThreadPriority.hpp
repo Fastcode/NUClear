@@ -42,6 +42,12 @@ namespace util {
          */
         ThreadPriority(const PriorityLevel& priority);
 
+        // No copying or moving so this stays strictly stack based
+        ThreadPriority(const ThreadPriority&)             = delete;
+        ThreadPriority& operator=(const ThreadPriority&)  = delete;
+        ThreadPriority(ThreadPriority&& other)            = delete;
+        ThreadPriority& operator=(ThreadPriority&& other) = delete;
+
         /**
          * Restore the current thread to its previous priority level
          */
