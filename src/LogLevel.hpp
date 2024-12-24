@@ -104,6 +104,7 @@ public:
          */
         FATAL
     };
+
     /**
      * Construct a LogLevel from a Value
      *
