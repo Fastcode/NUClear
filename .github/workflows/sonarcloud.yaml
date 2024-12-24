@@ -27,7 +27,7 @@ jobs:
           fetch-depth: 0 # Shallow clones should be disabled for a better relevancy of analysis
 
       - name: Install gcovr
-        run: pip install gcovr==7.2
+        run: pip install gcovr==8.2
 
       - name: Install sonar-scanner and build-wrapper
         uses: SonarSource/sonarcloud-github-c-cpp@v3
@@ -69,6 +69,15 @@ jobs:
       - name: Collect coverage into one XML report
         if: always()
         run: gcovr --gcov-ignore-parse-errors=negative_hits.warn_once_per_file --exclude-unreachable-branches --exclude-noncode-lines --sonarqube > coverage.xml
+
+      -name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-sonar
+          path: coverage.xml
+          retention-days: 1 # This sets the artifact TTL to 1 day (minimum is 1 day)
+          overwrite: true
 
       - name: Run sonar-scanner
         if: always()
