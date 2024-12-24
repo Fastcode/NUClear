@@ -20,7 +20,7 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include "LogLevel.hpp"
+#include "PriorityLevel.hpp"
 
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/generators/catch_generators.hpp>
@@ -29,40 +29,39 @@
 #include <sstream>
 #include <tuple>
 
-SCENARIO("LogLevel smart enum values can be constructed and converted appropriately") {
-    GIVEN("A LogLevel and a corresponding string representation") {
-        const auto test = GENERATE(table<std::string, NUClear::LogLevel::Value>({
-            std::make_tuple("TRACE", NUClear::LogLevel::TRACE),
-            std::make_tuple("DEBUG", NUClear::LogLevel::DEBUG),
-            std::make_tuple("INFO", NUClear::LogLevel::INFO),
-            std::make_tuple("WARN", NUClear::LogLevel::WARN),
-            std::make_tuple("ERROR", NUClear::LogLevel::ERROR),
-            std::make_tuple("FATAL", NUClear::LogLevel::FATAL),
+SCENARIO("PriorityLevel smart enum values can be constructed and converted appropriately") {
+    GIVEN("A PriorityLevel and a corresponding string representation") {
+        const auto test = GENERATE(table<std::string, NUClear::PriorityLevel::Value>({
+            std::make_tuple("IDLE", NUClear::PriorityLevel::IDLE),
+            std::make_tuple("LOW", NUClear::PriorityLevel::LOW),
+            std::make_tuple("NORMAL", NUClear::PriorityLevel::NORMAL),
+            std::make_tuple("HIGH", NUClear::PriorityLevel::HIGH),
+            std::make_tuple("REALTIME", NUClear::PriorityLevel::REALTIME),
         }));
 
         const auto& expected_str   = std::get<0>(test);
         const auto& expected_value = std::get<1>(test);
 
-        WHEN("constructing a LogLevel from the Value") {
-            const NUClear::LogLevel log_level(expected_value);
+        WHEN("constructing a PriorityLevel from the Value") {
+            const NUClear::PriorityLevel log_level(expected_value);
 
             THEN("it should be equal to the corresponding string representation") {
                 REQUIRE(static_cast<std::string>(log_level) == expected_str);
             }
         }
 
-        WHEN("constructing a LogLevel from the string") {
-            const NUClear::LogLevel log_level(expected_str);
+        WHEN("constructing a PriorityLevel from the string") {
+            const NUClear::PriorityLevel log_level(expected_str);
 
             THEN("it should be equal to the corresponding Value") {
                 REQUIRE(log_level() == expected_value);
                 REQUIRE(log_level == expected_value);
-                REQUIRE(log_level == NUClear::LogLevel(expected_value));
+                REQUIRE(log_level == NUClear::PriorityLevel(expected_value));
             }
         }
 
-        WHEN("constructing a LogLevel from the Value") {
-            const NUClear::LogLevel log_level(expected_value);
+        WHEN("constructing a PriorityLevel from the Value") {
+            const NUClear::PriorityLevel log_level(expected_value);
 
             THEN("it should be equal to the corresponding string representation") {
                 REQUIRE(static_cast<std::string>(log_level) == expected_str);
@@ -70,17 +69,17 @@ SCENARIO("LogLevel smart enum values can be constructed and converted appropriat
             }
         }
 
-        WHEN("streaming the LogLevel to an ostream") {
+        WHEN("streaming the PriorityLevel to an ostream") {
             std::ostringstream os;
-            os << NUClear::LogLevel(expected_value);
+            os << NUClear::PriorityLevel(expected_value);
 
             THEN("the output should be the corresponding string representation") {
                 REQUIRE(os.str() == expected_str);
             }
         }
 
-        WHEN("converting the LogLevel to a string") {
-            const std::string str = NUClear::LogLevel(expected_value);
+        WHEN("converting the PriorityLevel to a string") {
+            const std::string str = NUClear::PriorityLevel(expected_value);
 
             THEN("it should be equal to the corresponding string representation") {
                 REQUIRE(str == expected_str);
@@ -89,23 +88,21 @@ SCENARIO("LogLevel smart enum values can be constructed and converted appropriat
     }
 }
 
-SCENARIO("LogLevel comparison operators work correctly") {
-    GIVEN("Two LogLevel enum values") {
-        const NUClear::LogLevel::Value v1 = GENERATE(NUClear::LogLevel::TRACE,
-                                                     NUClear::LogLevel::DEBUG,
-                                                     NUClear::LogLevel::INFO,
-                                                     NUClear::LogLevel::WARN,
-                                                     NUClear::LogLevel::ERROR,
-                                                     NUClear::LogLevel::FATAL);
-        const NUClear::LogLevel::Value v2 = GENERATE(NUClear::LogLevel::TRACE,
-                                                     NUClear::LogLevel::DEBUG,
-                                                     NUClear::LogLevel::INFO,
-                                                     NUClear::LogLevel::WARN,
-                                                     NUClear::LogLevel::ERROR,
-                                                     NUClear::LogLevel::FATAL);
+SCENARIO("PriorityLevel comparison operators work correctly") {
+    GIVEN("Two PriorityLevel enum values") {
+        const NUClear::PriorityLevel::Value v1 = GENERATE(NUClear::PriorityLevel::IDLE,
+                                                          NUClear::PriorityLevel::LOW,
+                                                          NUClear::PriorityLevel::NORMAL,
+                                                          NUClear::PriorityLevel::HIGH,
+                                                          NUClear::PriorityLevel::REALTIME);
+        const NUClear::PriorityLevel::Value v2 = GENERATE(NUClear::PriorityLevel::IDLE,
+                                                          NUClear::PriorityLevel::LOW,
+                                                          NUClear::PriorityLevel::NORMAL,
+                                                          NUClear::PriorityLevel::HIGH,
+                                                          NUClear::PriorityLevel::REALTIME);
 
         WHEN("one smart enum value is constructed") {
-            const NUClear::LogLevel ll1(v1);
+            const NUClear::PriorityLevel ll1(v1);
             AND_WHEN("they are compared using ==") {
                 THEN("the result should be correct") {
                     REQUIRE((ll1 == v2) == (v1 == v2));
@@ -139,8 +136,8 @@ SCENARIO("LogLevel comparison operators work correctly") {
         }
 
         WHEN("two smart enum values are constructed") {
-            const NUClear::LogLevel ll1(v1);
-            const NUClear::LogLevel ll2(v2);
+            const NUClear::PriorityLevel ll1(v1);
+            const NUClear::PriorityLevel ll2(v2);
             AND_WHEN("they are compared using ==") {
                 THEN("the result should be correct") {
                     REQUIRE((ll1 == ll2) == (v1 == v2));
@@ -175,30 +172,29 @@ SCENARIO("LogLevel comparison operators work correctly") {
     }
 }
 
-SCENARIO("LogLevel can be used in switch statements") {
-    GIVEN("A LogLevel") {
-        auto test = GENERATE(table<std::string, NUClear::LogLevel::Value>({
-            {"TRACE", NUClear::LogLevel::TRACE},
-            {"DEBUG", NUClear::LogLevel::DEBUG},
-            {"INFO", NUClear::LogLevel::INFO},
-            {"WARN", NUClear::LogLevel::WARN},
-            {"ERROR", NUClear::LogLevel::ERROR},
-            {"FATAL", NUClear::LogLevel::FATAL},
+SCENARIO("PriorityLevel can be used in switch statements") {
+    GIVEN("A PriorityLevel") {
+        auto test = GENERATE(table<std::string, NUClear::PriorityLevel::Value>({
+            {"IDLE", NUClear::PriorityLevel::IDLE},
+            {"LOW", NUClear::PriorityLevel::LOW},
+            {"NORMAL", NUClear::PriorityLevel::NORMAL},
+            {"HIGH", NUClear::PriorityLevel::HIGH},
+            {"REALTIME", NUClear::PriorityLevel::REALTIME},
         }));
 
         const auto& str   = std::get<0>(test);
         const auto& value = std::get<1>(test);
-        const NUClear::LogLevel log_level(value);
+        const NUClear::PriorityLevel log_level(value);
 
         WHEN("used in a switch statement") {
             std::string result;
             switch (log_level) {
-                case NUClear::LogLevel::TRACE: result = "TRACE"; break;
-                case NUClear::LogLevel::DEBUG: result = "DEBUG"; break;
-                case NUClear::LogLevel::INFO: result = "INFO"; break;
-                case NUClear::LogLevel::WARN: result = "WARN"; break;
-                case NUClear::LogLevel::ERROR: result = "ERROR"; break;
-                case NUClear::LogLevel::FATAL: result = "FATAL"; break;
+                case NUClear::PriorityLevel::IDLE: result = "IDLE"; break;
+                case NUClear::PriorityLevel::LOW: result = "LOW"; break;
+                case NUClear::PriorityLevel::NORMAL: result = "NORMAL"; break;
+                case NUClear::PriorityLevel::HIGH: result = "HIGH"; break;
+                case NUClear::PriorityLevel::REALTIME: result = "REALTIME"; break;
+                case NUClear::PriorityLevel::FATAL: result = "FATAL"; break;
                 default: result = "UNKNOWN"; break;
             }
 
