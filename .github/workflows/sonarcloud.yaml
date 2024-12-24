@@ -68,7 +68,7 @@ jobs:
 
       - name: Collect coverage into one XML report
         if: always()
-        run: gcovr --gcov-ignore-parse-errors=negative_hits.warn_once_per_file --exclude-unreachable-branches --exclude-noncode-lines --sonarqube > coverage.xml
+        run: gcovr --gcov-ignore-parse-errors=negative_hits.warn_once_per_file --gcov-ignore-errors=no_working_dir_found --exclude-unreachable-branches --exclude-noncode-lines --sonarqube > coverage.xml
 
       - name: Upload coverage report
         if: always()
