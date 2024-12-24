@@ -194,7 +194,6 @@ SCENARIO("PriorityLevel can be used in switch statements") {
                 case NUClear::PriorityLevel::NORMAL: result = "NORMAL"; break;
                 case NUClear::PriorityLevel::HIGH: result = "HIGH"; break;
                 case NUClear::PriorityLevel::REALTIME: result = "REALTIME"; break;
-                case NUClear::PriorityLevel::FATAL: result = "FATAL"; break;
                 default: result = "UNKNOWN"; break;
             }
 
