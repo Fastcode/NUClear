@@ -49,12 +49,12 @@ jobs:
           cmake -E make_directory build
           cmake -S . -B build \
             -GNinja \
-            -DCMAKE_CXX_FLAGS="-fprofile-arcs -ftest-coverage -fprofile-abs-path" \
             -DCMAKE_C_COMPILER_LAUNCHER=ccache \
             -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
             -DBUILD_TESTS=ON \
             -DCMAKE_BUILD_TYPE=Debug \
             -DCI_BUILD=ON \
+            -DENABLE_COVERAGE=ON \
             -DENABLE_CLANG_TIDY=OFF
 
       - name: Build the code in debug mode
