@@ -36,7 +36,7 @@ jobs:
             version: "7"
 
     name: Linux GCC-${{ matrix.toolchain.version }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     continue-on-error: true
 
     # Use the container for this specific version of gcc
