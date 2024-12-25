@@ -23,7 +23,9 @@
 #ifndef NUCLEAR_LOGLEVEL_HPP
 #define NUCLEAR_LOGLEVEL_HPP
 
+#include <cstdint>
 #include <ostream>
+#include <string>
 
 // Why do we need to include platform.hpp here?
 // Because windows defines a bunch of things for legacy reasons, one of which is a #define for ERROR as blank
@@ -108,7 +110,7 @@ public:
      *
      * @param value The value to construct the LogLevel from
      */
-    constexpr LogLevel(const Value& value = Value::UNKNOWN) : value(value) {};
+    constexpr LogLevel(const Value& value = Value::UNKNOWN) noexcept : value(value) {}
 
     /**
      * Construct a LogLevel from a string
@@ -166,7 +168,7 @@ public:
      *
      * @return The ostream that was passed in
      */
-    friend std::ostream& operator<<(std::ostream& os, LogLevel level) {
+    friend std::ostream& operator<<(std::ostream& os, const LogLevel& level) {
         return os << static_cast<std::string>(level);
     }
 
@@ -206,11 +208,11 @@ public:
     friend  bool operator!=(const std::string& lhs, const LogLevel& rhs) { return lhs != static_cast<std::string>(rhs); }
     // clang-format on
 
-
 private:
     /// The stored enum value
     Value value;
 };
+
 }  // namespace NUClear
 
 #endif  // NUCLEAR_LOGLEVEL_HPP

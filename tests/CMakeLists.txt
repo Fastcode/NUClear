@@ -32,11 +32,12 @@ FetchContent_MakeAvailable(Catch2)
 
 # Silence clang-tidy warnings from catch2
 get_target_property(catch2_target Catch2::Catch2 ALIASED_TARGET)
-set_target_properties(${catch2_target} PROPERTIES CXX_CLANG_TIDY "")
-set_target_properties(${catch2_target} PROPERTIES CXX_CLANG_TIDY "")
 get_target_property(catch2_with_main_target Catch2::Catch2WithMain ALIASED_TARGET)
-set_target_properties(${catch2_with_main_target} PROPERTIES CXX_CLANG_TIDY "")
-set_target_properties(${catch2_with_main_target} PROPERTIES CXX_CLANG_TIDY "")
+set(catch2_targets ${catch2_target} ${catch2_with_main_target})
+
+set_target_properties(${catch2_targets} PROPERTIES CXX_CLANG_TIDY "")
+set_target_properties(${catch2_targets} PROPERTIES CXX_CLANG_TIDY "")
+set_target_properties(${catch2_target} PROPERTIES CMAKE_CXX_FLAGS "")
 
 # Create a test_util library that is used by all tests
 file(GLOB_RECURSE test_util_src "test_util/*.cpp")
