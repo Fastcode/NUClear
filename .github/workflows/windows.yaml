@@ -81,11 +81,17 @@ jobs:
 
       - name: Test
         timeout-minutes: 5
-        working-directory: build/tests
-        run: ctest --output-on-failure
+        working-directory: build
+        run: ninja run_all_tests -k 0
+
+      - name: Test Summary
+        if: ${{ !cancelled() }}
+        uses: test-summary/action@v2
+        with:
+          paths: "build/reports/tests/*.junit.xml"
 
       - name: Upload Traces
-        if: always()
+        if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v4
         with:
           name: traces-windows-${{ matrix.toolchain.name }}
