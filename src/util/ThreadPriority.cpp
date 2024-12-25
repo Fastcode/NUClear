@@ -22,86 +22,94 @@
 
 #include "ThreadPriority.hpp"
 
-namespace NUClear {
-namespace util {
+#include "../NUClear::PriorityLevel.hpp"
 
-    namespace {
 #ifdef _WIN32
     #include "platform.hpp"
 
-        void set_priority(const PriorityLevel& priority) {
+namespace {
+void set_priority(const NUClear::PriorityLevel& priority) {
 
-            switch (priority) {
-                case IDLE: SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_IDLE); break;
-                case LOW: SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_LOWEST); break;
-                default:
-                case NORMAL: SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_NORMAL); break;
-                case HIGH: SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_HIGHEST); break;
-                case REALTIME: SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL); break;
-            }
-        }
+    switch (priority) {
+        case IDLE: SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_IDLE); break;
+        case LOW: SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_LOWEST); break;
+        default:
+        case NORMAL: SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_NORMAL); break;
+        case HIGH: SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_HIGHEST); break;
+        case REALTIME: SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL); break;
+    }
+}
+}  // namespace
 
 #elif defined(__linux__)
 
     #include <pthread.h>
 
-        /// The minimum priority level for the SCHED_RR policy
-        const int min_rr_priority = sched_get_priority_min(SCHED_RR);
-        /// The maximum priority level for the SCHED_RR policy
-        const int max_rr_priority = sched_get_priority_max(SCHED_RR);
-        /// The maximum priority level for the SCHED_FIFO policy
-        const int max_fifo_priority = sched_get_priority_max(SCHED_FIFO);
+namespace {
 
-        void set_priority(const PriorityLevel& priority) {
+/// The minimum priority level for the SCHED_RR policy
+const int min_rr_priority = sched_get_priority_min(SCHED_RR);
+/// The maximum priority level for the SCHED_RR policy
+const int max_rr_priority = sched_get_priority_max(SCHED_RR);
+/// The maximum priority level for the SCHED_FIFO policy
+const int max_fifo_priority = sched_get_priority_max(SCHED_FIFO);
 
-            sched_param param{};
-            switch (priority) {
-                case PriorityLevel::IDLE: pthread_setschedparam(pthread_self(), SCHED_IDLE, &param); break;
-                case PriorityLevel::LOW:
-                case PriorityLevel::NORMAL: pthread_setschedparam(pthread_self(), SCHED_OTHER, &param); break;
-                case PriorityLevel::HIGH:
-                    param.sched_priority = (min_rr_priority + max_rr_priority) / 2;
-                    pthread_setschedparam(pthread_self(), SCHED_RR, &param);
-                    break;
-                case PriorityLevel::REALTIME:
-                    param.sched_priority = max_fifo_priority;
-                    pthread_setschedparam(pthread_self(), SCHED_FIFO, &param);
-                    break;
-            }
-        }  // namespace
+void set_priority(const NUClear::PriorityLevel& priority) {
+
+    sched_param param{};
+    switch (priority) {
+        case NUClear::PriorityLevel::IDLE: pthread_setschedparam(pthread_self(), SCHED_IDLE, &param); break;
+        case NUClear::PriorityLevel::LOW:
+        case NUClear::PriorityLevel::NORMAL: pthread_setschedparam(pthread_self(), SCHED_OTHER, &param); break;
+        case NUClear::PriorityLevel::HIGH:
+            param.sched_priority = (min_rr_priority + max_rr_priority) / 2;
+            pthread_setschedparam(pthread_self(), SCHED_RR, &param);
+            break;
+        case NUClear::PriorityLevel::REALTIME:
+            param.sched_priority = max_fifo_priority;
+            pthread_setschedparam(pthread_self(), SCHED_FIFO, &param);
+            break;
+    }
+}
+
+}  // namespace
 
 #elif defined(__APPLE__)
 
     #include <pthread.h>
 
-        void set_priority(const PriorityLevel& priority) {
-            switch (priority) {
-                case PriorityLevel::IDLE: pthread_set_qos_class_self_np(QOS_CLASS_BACKGROUND, 0); break;
-                case PriorityLevel::LOW: pthread_set_qos_class_self_np(QOS_CLASS_DEFAULT, 1); break;
-                case PriorityLevel::NORMAL: pthread_set_qos_class_self_np(QOS_CLASS_DEFAULT, 0); break;
-                case PriorityLevel::HIGH: pthread_set_qos_class_self_np(QOS_CLASS_USER_INITIATED, 0); break;
-                case PriorityLevel::REALTIME: pthread_set_qos_class_self_np(QOS_CLASS_USER_INTERACTIVE, 0); break;
-            }
-        }
+namespace {
+
+void set_priority(const NUClear::PriorityLevel& priority) {
+    switch (priority) {
+        case NUClear::PriorityLevel::IDLE: pthread_set_qos_class_self_np(QOS_CLASS_BACKGROUND, 0); break;
+        case NUClear::PriorityLevel::LOW: pthread_set_qos_class_self_np(QOS_CLASS_DEFAULT, 1); break;
+        case NUClear::PriorityLevel::NORMAL: pthread_set_qos_class_self_np(QOS_CLASS_DEFAULT, 0); break;
+        case NUClear::PriorityLevel::HIGH: pthread_set_qos_class_self_np(QOS_CLASS_USER_INITIATED, 0); break;
+        case NUClear::PriorityLevel::REALTIME: pthread_set_qos_class_self_np(QOS_CLASS_USER_INTERACTIVE, 0); break;
+    }
+}
+
+}  // namespace
 
 #else
     #error "Unsupported platform"
 #endif
 
-    }  // namespace
+namespace NUClear {
+namespace util {
 
-
-    ThreadPriority::ThreadPriority(const PriorityLevel& priority) : previous_priority(current_priority) {
+    ThreadPriority::ThreadPriority(const NUClear::PriorityLevel& priority) : previous_priority(current_priority) {
         current_priority = priority;
-        set_priority(priority);
+        ::set_priority(priority);
     }
 
     ThreadPriority::~ThreadPriority() noexcept {
-        set_priority(previous_priority);
+        ::set_priority(previous_priority);
     }
 
     // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
-    ATTRIBUTE_TLS PriorityLevel ThreadPriority::current_priority = PriorityLevel::NORMAL;
+    ATTRIBUTE_TLS NUClear::PriorityLevel ThreadPriority::current_priority = NUClear::PriorityLevel::NORMAL;
 
 }  // namespace util
 }  // namespace NUClear
