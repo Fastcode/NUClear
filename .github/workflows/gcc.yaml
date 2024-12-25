@@ -96,7 +96,7 @@ jobs:
         run: ctest --output-on-failure -E "dsl/UDP"
 
       - name: Upload Traces
-        if: always()
+        if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v4
         with:
           name: traces-gcc-${{ matrix.toolchain.version }}

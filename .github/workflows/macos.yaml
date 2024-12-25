@@ -64,7 +64,7 @@ jobs:
         run: ctest --output-on-failure
 
       - name: Upload Traces
-        if: always()
+        if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v4
         with:
           name: traces-macos
