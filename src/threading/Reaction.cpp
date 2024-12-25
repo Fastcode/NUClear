@@ -51,7 +51,7 @@ namespace threading {
 
     void Reaction::unbind() {
         // Unbind
-        for (auto& u : unbinders) {
+        for (const auto& u : unbinders) {
             u(*this);
         }
     }

@@ -58,7 +58,7 @@ namespace util {
             auto log_levels = get_current_log_levels(reactor);
             if (level >= log_levels.display_log_level || level >= log_levels.min_log_level) {
                 // Collapse the arguments into a string and perform the log action
-                do_log(reactor, level, string_join(" ", std::forward<const Arguments&>(args)...));
+                do_log(reactor, level, string_join(" ", args...));
             }
         }
 

@@ -189,7 +189,7 @@ namespace extension {
             // Work out what type of announce we are doing as it will influence how we make the socket
             const bool multicast =
                 (announce_target.sock.sa_family == AF_INET
-                 && (ntohl(announce_target.ipv4.sin_addr.s_addr) & 0xF0000000) == 0xE0000000)
+                 && (ntohl(announce_target.ipv4.sin_addr.s_addr) & 0xF0000000U) == 0xE0000000)
                 || (announce_target.sock.sa_family == AF_INET6 && announce_target.ipv6.sin6_addr.s6_addr[0] == 0xFF);
 
             // Make our socket
@@ -920,7 +920,7 @@ namespace extension {
                                                                      ? 0xFF
                                                                      : 0xFF >> (8 - (packet.packet_count % 8));
 
-                                        all_acked &= static_cast<int>((s->acked[i] & expected) == expected);
+                                        all_acked = all_acked && ((s->acked[i] & expected) == expected);
                                     }
 
                                     // The remote has received this entire packet we can erase our sender

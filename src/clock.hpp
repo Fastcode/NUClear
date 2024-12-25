@@ -23,11 +23,6 @@
 #ifndef NUCLEAR_CLOCK_HPP
 #define NUCLEAR_CLOCK_HPP
 
-// Default to using the system clock but allow it to be overridden by the user
-#ifndef NUCLEAR_CLOCK_TYPE
-    #define NUCLEAR_CLOCK_TYPE std::chrono::system_clock
-#endif  // NUCLEAR_CLOCK_TYPE
-
 #include <array>
 #include <atomic>
 #include <chrono>
@@ -35,11 +30,17 @@
 
 namespace NUClear {
 
+// Default to using the system clock but allow it to be overridden by the user
+#ifdef NUCLEAR_CLOCK_TYPE
+using base_clock = NUCLEAR_CLOCK_TYPE;
+#else
+using base_clock = std::chrono::steady_clock;
+#endif  // NUCLEAR_CLOCK_TYPE
+
 /**
  * A clock class that extends a base clock type and allows for clock adjustment and setting.
  */
-struct clock : NUCLEAR_CLOCK_TYPE {
-    using base_clock = NUCLEAR_CLOCK_TYPE;
+struct clock : base_clock {
 
     /**
      * Get the current time of the clock.

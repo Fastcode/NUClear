@@ -329,7 +329,7 @@ namespace dsl {
 
                 // Generate a reaction for the IO system that closes on death
                 const fd_t cfd = fd.release();
-                reaction->unbinders.push_back([cfd](const threading::Reaction&) { ::close(cfd); });
+                reaction->unbinders.emplace_back([cfd](const threading::Reaction&) { ::close(cfd); });
                 IO::bind<DSL>(reaction, cfd, IO::READ | IO::CLOSE);
 
                 // Return our handles and our bound port
@@ -520,7 +520,7 @@ namespace dsl {
 
                     const auto& a = result.local;
                     const bool multicast =
-                        (a.sock.sa_family == AF_INET && (ntohl(a.ipv4.sin_addr.s_addr) & 0xF0000000) == 0xE0000000)
+                        (a.sock.sa_family == AF_INET && (ntohl(a.ipv4.sin_addr.s_addr) & 0xF0000000U) == 0xE0000000U)
                         || (a.sock.sa_family == AF_INET6 && a.ipv6.sin6_addr.s6_addr[0] == 0xFF);
 
                     // Only return multicast packets
