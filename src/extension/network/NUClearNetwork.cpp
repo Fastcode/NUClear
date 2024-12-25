@@ -920,7 +920,7 @@ namespace extension {
                                                                      ? 0xFF
                                                                      : 0xFF >> (8 - (packet.packet_count % 8));
 
-                                        all_acked = all_acked && static_cast<int>((s->acked[i] & expected) == expected);
+                                        all_acked = all_acked && ((s->acked[i] & expected) == expected);
                                     }
 
                                     // The remote has received this entire packet we can erase our sender
