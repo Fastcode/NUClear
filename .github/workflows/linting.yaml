@@ -32,7 +32,7 @@ jobs:
           echo "deb http://apt.llvm.org/noble/ llvm-toolchain-noble-19 main" | sudo tee /etc/apt/sources.list.d/llvm-19
           echo "deb-src http://apt.llvm.org/noble/ llvm-toolchain-noble-19 main" | sudo tee -a /etc/apt/sources.list.d/llvm-19
           sudo apt-get update
-          sudo apt-get install -y clang-tidy-19
+          sudo apt-get install -y clang-tidy-20
 
       # Download and install cmake
       - name: Install CMake
@@ -62,7 +62,7 @@ jobs:
 
           mkdir -p ${{ github.workspace }}/.ctcache
 
-          echo CTCACHE_CLANG_TIDY='/usr/bin/clang-tidy-19' >> "$GITHUB_ENV"
+          echo CTCACHE_CLANG_TIDY='/usr/bin/clang-tidy-20' >> "$GITHUB_ENV"
           echo CTCACHE_LOCAL=1 >> "$GITHUB_ENV"
           echo CTCACHE_SAVE_OUTPUT=1 >> "$GITHUB_ENV"
           echo CTCACHE_DIR='${{github.workspace}}/.ctcache' >> "$GITHUB_ENV"
