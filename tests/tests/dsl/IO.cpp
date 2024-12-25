@@ -36,7 +36,7 @@
 
     #include <unistd.h>
 
-    #include <nuclear>
+    #include "nuclear"
 
 class TestReactor : public test_util::TestBase<TestReactor> {
 public:

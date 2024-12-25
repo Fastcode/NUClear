@@ -5,10 +5,10 @@
 #include <cstdint>
 #include <memory>
 #include <mutex>
-#include <nuclear>
 #include <utility>
 #include <vector>
 
+#include "nuclear"
 #include "test_util/TestBase.hpp"
 #include "test_util/common.hpp"
 #include "util/precise_sleep.hpp"

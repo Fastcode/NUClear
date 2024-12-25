@@ -27,11 +27,11 @@
 #include <chrono>
 #include <map>
 #include <memory>
-#include <nuclear>
 #include <sstream>
 #include <string>
 #include <utility>
 
+#include "nuclear"
 #include "test_util/TestBase.hpp"
 #include "test_util/common.hpp"
 #include "util/precise_sleep.hpp"

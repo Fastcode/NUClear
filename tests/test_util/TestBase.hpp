@@ -24,10 +24,10 @@
 #define TEST_UTIL_TEST_BASE_HPP
 
 #include <catch2/catch_test_macros.hpp>
-#include <nuclear>
 #include <string>
 #include <utility>
 
+#include "nuclear"
 #include "test_util/diff_string.hpp"  // IWYU pragma: export
 
 namespace test_util {

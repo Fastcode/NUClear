@@ -23,7 +23,8 @@
 #include "has_ipv6.hpp"
 
 #include <algorithm>
-#include <nuclear>
+
+#include "nuclear"
 
 namespace test_util {
 

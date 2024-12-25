@@ -28,11 +28,11 @@
 #include <cstdint>
 #include <exception>
 #include <memory>
-#include <nuclear>
 #include <string>
 #include <utility>
 #include <vector>
 
+#include "nuclear"
 #include "test_util/TestBase.hpp"
 #include "test_util/common.hpp"
 #include "test_util/has_ipv6.hpp"

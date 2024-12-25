@@ -24,10 +24,10 @@
 #include <catch2/catch_test_macros.hpp>
 #include <memory>
 #include <mutex>
-#include <nuclear>
 #include <utility>
 #include <vector>
 
+#include "nuclear"
 #include "test_util/TestBase.hpp"
 #include "test_util/TimeUnit.hpp"
 #include "test_util/common.hpp"

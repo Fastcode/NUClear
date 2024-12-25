@@ -26,12 +26,12 @@
 #include <catch2/catch_tostring.hpp>
 #include <map>
 #include <memory>
-#include <nuclear>
 #include <sstream>
 #include <string>
 #include <utility>
 #include <vector>
 
+#include "nuclear"
 #include "test_util/TestBase.hpp"
 #include "test_util/common.hpp"
 

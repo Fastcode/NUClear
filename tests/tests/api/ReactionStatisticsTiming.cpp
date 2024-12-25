@@ -26,12 +26,12 @@
 #include <chrono>
 #include <map>
 #include <memory>
-#include <nuclear>
 #include <string>
 #include <util/usage_clock.hpp>
 #include <utility>
 #include <vector>
 
+#include "nuclear"
 #include "test_util/TestBase.hpp"
 #include "test_util/TimeUnit.hpp"
 #include "test_util/common.hpp"

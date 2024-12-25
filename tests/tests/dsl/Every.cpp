@@ -28,11 +28,11 @@
 #include <cstdlib>
 #include <iterator>
 #include <memory>
-#include <nuclear>
 #include <numeric>
 #include <utility>
 #include <vector>
 
+#include "nuclear"
 #include "test_util/TestBase.hpp"
 #include "test_util/common.hpp"
 
