@@ -31,7 +31,9 @@ namespace util {
 
     namespace detail {
         // No argument base case
-        inline void do_string_join(std::stringstream& /*out*/, const std::string& /*delimiter*/) {}
+        inline void do_string_join(std::stringstream& /*out*/, const std::string& /*delimiter*/) {
+            // Terminating case with no arguments, do nothing
+        }
 
         // Single argument case
         template <typename Last>

@@ -84,7 +84,7 @@ namespace dsl {
             template <typename DSL>
             static void bind(const std::shared_ptr<threading::Reaction>& reaction, NUClear::clock::duration jump) {
 
-                reaction->unbinders.push_back([](const threading::Reaction& r) {
+                reaction->unbinders.emplace_back([](const threading::Reaction& r) {
                     r.reactor.emit<emit::Inline>(std::make_unique<operation::Unbind<operation::ChronoTask>>(r.id));
                 });
 

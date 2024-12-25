@@ -46,7 +46,7 @@ namespace dsl {
                               const std::shared_ptr<const util::ThreadPoolDescriptor>& pool_descriptor) {
 
             // Our unbinder to remove this reaction
-            reaction->unbinders.push_back([pool_descriptor](const threading::Reaction& r) {  //
+            reaction->unbinders.emplace_back([pool_descriptor](const threading::Reaction& r) {  //
                 r.reactor.powerplant.remove_idle_task(r.id, pool_descriptor);
             });
 

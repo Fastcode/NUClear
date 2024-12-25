@@ -210,7 +210,7 @@ namespace dsl {
                 WatchdogDataStore<WatchdogGroup, RuntimeType>::init(data);
 
                 // Create our unbinder
-                reaction->unbinders.push_back([data](const threading::Reaction& r) {
+                reaction->unbinders.emplace_back([data](const threading::Reaction& r) {
                     // Remove the active service time from the data store
                     WatchdogDataStore<WatchdogGroup, RuntimeType>::unbind(data);
                     r.reactor.emit<emit::Inline>(std::make_unique<operation::Unbind<operation::ChronoTask>>(r.id));
@@ -237,7 +237,7 @@ namespace dsl {
                 WatchdogDataStore<WatchdogGroup>::init();
 
                 // Create our unbinder
-                reaction->unbinders.push_back([](const threading::Reaction& r) {
+                reaction->unbinders.emplace_back([](const threading::Reaction& r) {
                     // Remove the active service time from the data store
                     WatchdogDataStore<WatchdogGroup>::unbind();
                     r.reactor.emit<emit::Inline>(std::make_unique<operation::Unbind<operation::ChronoTask>>(r.id));

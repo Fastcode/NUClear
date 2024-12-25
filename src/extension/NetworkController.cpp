@@ -107,11 +107,11 @@ namespace extension {
             const std::lock_guard<std::mutex> lock(reaction_mutex);
 
             // Find and delete this reaction
-            for (auto it = reactions.begin(); it != reactions.end(); ++it) {
-                if (it->second->id == unbind.id) {
-                    reactions.erase(it);
-                    break;
-                }
+            auto it = std::find_if(reactions.begin(), reactions.end(), [&](const auto& r) {
+                return r.second->id == unbind.id;
+            });
+            if (it != reactions.end()) {
+                reactions.erase(it);
             }
         });
 
