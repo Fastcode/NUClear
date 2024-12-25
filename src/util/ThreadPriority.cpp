@@ -22,7 +22,7 @@
 
 #include "ThreadPriority.hpp"
 
-#include "../NUClear::PriorityLevel.hpp"
+#include "../PriorityLevel.hpp"
 
 #ifdef _WIN32
     #include "platform.hpp"
