@@ -24,18 +24,22 @@
 #define NUCLEAR_REACTOR_HPP
 
 #include <chrono>
-#include <functional>
+#include <cstddef>
+#include <memory>
 #include <regex>
 #include <string>
-#include <typeindex>
+#include <tuple>
+#include <utility>
 #include <vector>
 
-#include "Environment.hpp"
-#include "LogLevel.hpp"
+#include "Environment.hpp"  // IWYU pragma: export
+#include "LogLevel.hpp"     // IWYU pragma: export
+#include "clock.hpp"        // IWYU pragma: export
 #include "dsl/Parse.hpp"
-#include "threading/Reaction.hpp"
-#include "threading/ReactionHandle.hpp"
-#include "threading/ReactionIdentifiers.hpp"
+#include "id.hpp"                             // IWYU pragma: export
+#include "threading/Reaction.hpp"             // IWYU pragma: export
+#include "threading/ReactionHandle.hpp"       // IWYU pragma: export
+#include "threading/ReactionIdentifiers.hpp"  // IWYU pragma: export
 #include "util/CallbackGenerator.hpp"
 #include "util/Sequence.hpp"
 #include "util/demangle.hpp"

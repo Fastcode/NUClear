@@ -24,7 +24,7 @@
 
 #include <array>
 #include <climits>
-#include <stdexcept>
+#include <cstddef>
 #include <string>
 #include <system_error>
 

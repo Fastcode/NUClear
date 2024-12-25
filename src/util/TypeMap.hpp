@@ -80,7 +80,7 @@ namespace util {
          *
          * @param d A pointer to the data to be stored (the map takes ownership)
          */
-        static void set(std::shared_ptr<Value> d) {
+        static void set(const std::shared_ptr<Value>& d) {
             const std::lock_guard<std::mutex> lock(data_mutex);
             data = d;
         }

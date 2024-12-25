@@ -1,6 +1,15 @@
+#include <algorithm>
+#include <array>
+#include <catch2/catch_message.hpp>
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/generators/catch_generators.hpp>
+#include <chrono>
+#include <clock.hpp>
+#include <cmath>
+#include <cstdint>
+#include <memory>
 #include <nuclear>
+#include <utility>
 
 #include "test_util/TestBase.hpp"
 #include "test_util/TimeUnit.hpp"

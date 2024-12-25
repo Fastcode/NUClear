@@ -200,8 +200,8 @@ namespace util {
         using no  = std::false_type;
 
         template <typename F>
-        static auto test(int) -> decltype(apply_function_fusion_call<F, Shared, Start, End>(std::declval<Arguments>()),
-                                          yes());
+        static auto test(int)
+            -> decltype(apply_function_fusion_call<F, Shared, Start, End>(std::declval<Arguments>()), yes());
         template <typename>
         static no test(...);
 
@@ -211,8 +211,7 @@ namespace util {
 
     template <typename Functions,
               typename Arguments,
-              template <typename, typename...>
-              class FunctionWrapper,
+              template <typename, typename...> class FunctionWrapper,
               typename WrapperArgs,
               int Shared                  = 0,
               int Start                   = Shared,
@@ -248,8 +247,7 @@ namespace util {
     template <typename CurrentFunction,
               typename... Functions,
               typename... Arguments,
-              template <typename, typename...>
-              class FunctionWrapper,
+              template <typename, typename...> class FunctionWrapper,
               typename... WrapperArgs,
               int Shared,
               int Start,
@@ -332,8 +330,7 @@ namespace util {
      * Otherwise it will be a false_type to indicate its failure.
      */
     template <typename... Arguments,
-              template <typename, typename...>
-              class FunctionWrapper,
+              template <typename, typename...> class FunctionWrapper,
               typename... WrapperArgs,
               int Shared,
               int Start,

@@ -20,9 +20,18 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+#include <catch2/catch_message.hpp>
 #include <catch2/catch_test_macros.hpp>
+#include <chrono>
+#include <cmath>
+#include <cstddef>
+#include <cstdlib>
+#include <iterator>
+#include <memory>
 #include <nuclear>
 #include <numeric>
+#include <utility>
+#include <vector>
 
 #include "test_util/TestBase.hpp"
 #include "test_util/common.hpp"
@@ -49,6 +58,8 @@ public:
     std::vector<NUClear::clock::time_point> dynamic_times;
 };
 
+namespace {
+
 void test_results(const std::vector<NUClear::clock::time_point>& times) {
 
     // Build up our difference vector
@@ -73,6 +84,7 @@ void test_results(const std::vector<NUClear::clock::time_point>& times) {
     REQUIRE(std::abs(mean + stddev * 2) < 0.008);
 }
 
+}  // namespace
 
 TEST_CASE("Testing the Every<> DSL word", "[api][every][per]") {
 

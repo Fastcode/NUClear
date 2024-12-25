@@ -20,8 +20,11 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+#include <atomic>
 #include <catch2/catch_test_macros.hpp>
+#include <memory>
 #include <nuclear>
+#include <utility>
 
 #include "test_util/TestBase.hpp"
 #include "test_util/TimeUnit.hpp"

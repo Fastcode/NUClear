@@ -23,9 +23,17 @@
 #ifndef NUCLEAR
 #define NUCLEAR
 
+// IWYU pragma: begin_exports
+
 // Main classes
 #include "${nuclear_include_base_directory}PowerPlant.hpp"
 #include "${nuclear_include_base_directory}Reactor.hpp"
+#include "${nuclear_include_base_directory}threading/Reaction.hpp"
+#include "${nuclear_include_base_directory}threading/ReactionTask.hpp"
+
+// Base types
+#include "${nuclear_include_base_directory}clock.hpp"
+#include "${nuclear_include_base_directory}id.hpp"
 
 // Message types
 #include "${nuclear_include_base_directory}message/CommandLineArguments.hpp"
@@ -41,5 +49,7 @@
 #include "${nuclear_include_base_directory}extension/IOController.hpp"
 #include "${nuclear_include_base_directory}extension/NetworkController.hpp"
 #include "${nuclear_include_base_directory}extension/TraceController.hpp"
+
+// IWYU pragma: end_exports
 
 #endif  // NUCLEAR

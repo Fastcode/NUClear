@@ -21,7 +21,12 @@
  */
 
 #include <catch2/catch_test_macros.hpp>
+#include <memory>
 #include <nuclear>
+#include <utility>
+#include <vector>
+
+namespace {  // Make everything here internal linkage
 
 std::vector<int> events;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables,-warnings-as-errors)
 
@@ -36,11 +41,11 @@ struct Extension {
 class TestReactor : public NUClear::Reactor {
 public:
     TestReactor(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
-
         on<Extension<0>, Extension<1>, Extension<2>, Extension<3>, Extension<4>>().then([] {});
     }
 };
 
+}  // namespace
 
 TEST_CASE("Testing that the bind functions of extensions are executed in order", "[api][extension][bind]") {
 

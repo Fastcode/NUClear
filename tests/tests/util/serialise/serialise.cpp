@@ -28,7 +28,6 @@
 #include <cstdint>
 #include <iterator>
 #include <list>
-#include <ostream>
 #include <stdexcept>
 #include <string>
 #include <type_traits>

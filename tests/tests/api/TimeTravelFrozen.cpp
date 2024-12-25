@@ -1,7 +1,13 @@
+#include <catch2/catch_message.hpp>
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/generators/catch_generators.hpp>
-#include <future>
+#include <chrono>
+#include <cstdint>
+#include <memory>
+#include <mutex>
 #include <nuclear>
+#include <utility>
+#include <vector>
 
 #include "test_util/TestBase.hpp"
 #include "test_util/common.hpp"

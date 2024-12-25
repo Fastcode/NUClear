@@ -22,6 +22,7 @@
 
 #include "Reaction.hpp"
 
+#include <atomic>
 #include <memory>
 #include <utility>
 

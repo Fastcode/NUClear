@@ -21,9 +21,9 @@
  */
 
 #include <catch2/catch_test_macros.hpp>
+#include <memory>
 #include <nuclear>
-#include <numeric>
-#include <string>
+#include <utility>
 #include <vector>
 
 #include "test_util/TestBase.hpp"

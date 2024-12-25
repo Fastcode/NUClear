@@ -22,13 +22,22 @@
 #include "Pool.hpp"
 
 #include <algorithm>
+#include <atomic>
+#include <memory>
+#include <mutex>
+#include <set>
+#include <thread>
+#include <utility>
+#include <vector>
 
 #include "../../dsl/word/MainThread.hpp"
 #include "../../dsl/word/Pool.hpp"
+#include "../../id.hpp"
 #include "../../message/ReactionStatistics.hpp"
+#include "../../threading/Reaction.hpp"
 #include "../../util/Inline.hpp"
+#include "../../util/platform.hpp"
 #include "../ReactionTask.hpp"
-#include "CombinedLock.hpp"
 #include "CountingLock.hpp"
 #include "Scheduler.hpp"
 

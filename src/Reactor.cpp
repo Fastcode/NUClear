@@ -22,6 +22,8 @@
 
 #include "Reactor.hpp"
 
+#include "LogLevel.hpp"
+
 namespace NUClear {
 
 constexpr LogLevel Reactor::TRACE;

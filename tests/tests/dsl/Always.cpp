@@ -20,8 +20,13 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+#include <catch2/catch_message.hpp>
 #include <catch2/catch_test_macros.hpp>
+#include <memory>
 #include <nuclear>
+#include <string>
+#include <utility>
+#include <vector>
 
 #include "test_util/TestBase.hpp"
 #include "test_util/common.hpp"
@@ -62,6 +67,7 @@ TEST_CASE("The Always DSL keyword runs continuously when it can", "[api][always]
     NUClear::Configuration config;
     config.default_pool_concurrency = 1;
     NUClear::PowerPlant plant(config);
+    test_util::add_tracing(plant);
     auto& reactor = plant.install<TestReactor>();
     plant.start();
 

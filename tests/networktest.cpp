@@ -20,11 +20,17 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include <array>
+#include <chrono>
 #include <csignal>
+#include <cstdint>
 #include <cstdlib>
 #include <iostream>
+#include <limits>
+#include <memory>
 #include <nuclear>
+#include <string>
+#include <thread>
+#include <utility>
 
 struct PerformEmits {};
 

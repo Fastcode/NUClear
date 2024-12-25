@@ -58,10 +58,10 @@ namespace message {
             , statistics(std::move(statistics)) {}
 
         /// The logging level of the log
-        LogLevel level{};
+        LogLevel level;
 
         /// The logging level of the reactor that made the log (the level to display at)
-        LogLevel display_level{};
+        LogLevel display_level;
 
         /// The string contents of the message
         std::string message;

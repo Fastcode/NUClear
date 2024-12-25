@@ -23,7 +23,6 @@
 #ifndef NUCLEAR_CONFIGURATION_HPP
 #define NUCLEAR_CONFIGURATION_HPP
 
-#include <cstddef>
 #include <thread>
 
 namespace NUClear {

@@ -27,6 +27,9 @@
 #include "../store/ThreadStore.hpp"
 
 namespace NUClear {
+namespace threading {
+    class ReactionTask;  // Forward declare ReactionTask
+}  // namespace threading
 namespace dsl {
     namespace operation {
 
@@ -41,6 +44,7 @@ namespace dsl {
          */
         template <typename DataType>
         struct CacheGet {
+            CacheGet() = delete;  // Ensure that DSL words are not instantiated
 
             template <typename DSL, typename T = DataType>
             static std::shared_ptr<const T> get(const threading::ReactionTask& /*task*/) {
