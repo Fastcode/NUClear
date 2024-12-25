@@ -37,6 +37,13 @@ target_link_libraries(nuclear ${CMAKE_THREAD_LIBS_INIT})
 set_target_properties(nuclear PROPERTIES POSITION_INDEPENDENT_CODE ON)
 target_compile_features(nuclear PUBLIC cxx_std_14)
 
+# When enabling coverage, just set it on the nuclear target so it doesn't end up on catch2
+option(ENABLE_COVERAGE "Enable coverage support" OFF)
+if(ENABLE_COVERAGE)
+  target_compile_options(nuclear PUBLIC "-fprofile-arcs" "-ftest-coverage" "-fprofile-abs-path")
+  target_link_options(nuclear PUBLIC "-fprofile-arcs" "-ftest-coverage" "-fprofile-abs-path")
+endif()
+
 # Enable warnings, and all warnings are errors
 if(MSVC)
   target_compile_options(nuclear PRIVATE /W4 /WX)
