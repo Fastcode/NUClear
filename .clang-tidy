@@ -34,6 +34,7 @@ Checks: >
   -readability-function-size,
   -readability-identifier-length,
   -readability-magic-numbers,
+  -readability-math-missing-parentheses,
   -readability-uppercase-literal-suffix,
   modernize-*,
   -modernize-use-trailing-return-type,

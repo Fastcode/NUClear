@@ -367,7 +367,7 @@ namespace dsl {
                 mh.msg_iovlen     = 1;
 
                 // Receive our message
-                ssize_t received = recvmsg(event.fd, &mh, MSG_DONTWAIT);
+                const ssize_t received = recvmsg(event.fd, &mh, MSG_DONTWAIT);
                 if (received < 0) {
                     return {};
                 }

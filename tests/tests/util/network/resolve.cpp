@@ -26,6 +26,8 @@
 #include <cstdint>
 #include <string>
 
+#include "util/platform.hpp"
+
 
 TEST_CASE("resolve function returns expected socket address", "[util][network][resolve]") {
 

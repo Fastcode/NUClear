@@ -24,7 +24,8 @@
 
 #include <algorithm>
 
-#include "nuclear"
+#include "util/network/get_interfaces.hpp"
+#include "util/platform.hpp"
 
 namespace test_util {
 

@@ -27,6 +27,7 @@
 #include <utility>
 #include <vector>
 
+#include "dsl/operation/TypeBind.hpp"
 #include "nuclear"
 #include "test_util/TestBase.hpp"
 #include "test_util/common.hpp"

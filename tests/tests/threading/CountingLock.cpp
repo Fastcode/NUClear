@@ -41,8 +41,8 @@ namespace threading {
                 std::atomic<int> active{2 * base + offset};
 
                 WHEN("Two locks are attempted") {
-                    std::unique_ptr<Lock> a1 = std::make_unique<CountingLock>(active, -base, offset);
-                    std::unique_ptr<Lock> a2 = std::make_unique<CountingLock>(active, -base, offset);
+                    auto a1 = std::make_unique<CountingLock>(active, -base, offset);
+                    auto a2 = std::make_unique<CountingLock>(active, -base, offset);
 
                     THEN("The last lock should obtain the lock") {
                         CHECK(a1->lock() == false);
@@ -51,7 +51,7 @@ namespace threading {
 
                     AND_WHEN("The locked lock is released and a third lock is attempted") {
                         a2.reset();
-                        std::unique_ptr<Lock> a3 = std::make_unique<CountingLock>(active, -base, offset);
+                        auto a3 = std::make_unique<CountingLock>(active, -base, offset);
 
                         THEN("Only the third lock should obtain the lock") {
                             CHECK(a1->lock() == false);
@@ -61,7 +61,7 @@ namespace threading {
 
                     AND_WHEN("The unlocked lock is released and a third lock is attempted") {
                         a1.reset();
-                        std::unique_ptr<Lock> a3 = std::make_unique<CountingLock>(active, -base, offset);
+                        auto a3 = std::make_unique<CountingLock>(active, -base, offset);
 
                         THEN("The third lock should obtain the lock as well") {
                             CHECK(a2->lock() == true);

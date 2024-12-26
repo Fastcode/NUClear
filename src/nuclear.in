@@ -50,6 +50,10 @@
 #include "${nuclear_include_base_directory}extension/NetworkController.hpp"
 #include "${nuclear_include_base_directory}extension/TraceController.hpp"
 
+// Publicly available utilities
+#include "${nuclear_include_base_directory}util/demangle.hpp"
+#include "${nuclear_include_base_directory}dsl/operation/ChronoTask.hpp"
+
 // IWYU pragma: end_exports
 
 #endif  // NUCLEAR

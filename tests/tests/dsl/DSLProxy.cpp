@@ -20,6 +20,8 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+#include "dsl/operation/DSLProxy.hpp"
+
 #include <catch2/catch_message.hpp>
 #include <catch2/catch_test_macros.hpp>
 #include <memory>
@@ -28,6 +30,7 @@
 #include <vector>
 
 #include "dsl/operation/CacheGet.hpp"
+#include "dsl/operation/TypeBind.hpp"
 #include "nuclear"
 #include "test_util/TestBase.hpp"
 #include "test_util/common.hpp"

@@ -35,6 +35,10 @@
 #include "test_util/TestBase.hpp"
 #include "test_util/common.hpp"
 #include "test_util/has_ipv6.hpp"
+#include "util/FileDescriptor.hpp"
+#include "util/network/resolve.hpp"
+#include "util/network/sock_t.hpp"
+#include "util/platform.hpp"
 
 enum TestPorts : in_port_t {
     KNOWN_V4_PORT = 40010,

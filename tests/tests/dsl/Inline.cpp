@@ -34,6 +34,7 @@
 #include "test_util/TestBase.hpp"
 #include "test_util/TimeUnit.hpp"
 #include "test_util/common.hpp"
+#include "threading/scheduler/Pool.hpp"
 #include "util/precise_sleep.hpp"
 
 class TestReactor : public test_util::TestBase<TestReactor> {

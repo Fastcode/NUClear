@@ -20,23 +20,24 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include <array>
-#include <catch2/catch_message.hpp>
-#include <catch2/catch_test_macros.hpp>
-#include <memory>
-#include <string>
-#include <utility>
-#include <vector>
-
-#include "test_util/TestBase.hpp"
-#include "test_util/common.hpp"
-
 // Windows can't do this test as it doesn't have file descriptors
 #ifndef _WIN32
 
+    #include <fcntl.h>
+    #include <sys/types.h>
     #include <unistd.h>
 
+    #include <array>
+    #include <catch2/catch_message.hpp>
+    #include <catch2/catch_test_macros.hpp>
+    #include <memory>
+    #include <string>
+    #include <utility>
+    #include <vector>
+
     #include "nuclear"
+    #include "test_util/TestBase.hpp"
+    #include "test_util/common.hpp"
 
 class TestReactor : public test_util::TestBase<TestReactor> {
 public:

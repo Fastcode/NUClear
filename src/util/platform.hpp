@@ -182,16 +182,16 @@ struct WSAHolder {
 
     // Include real networking stuff
     #include <arpa/inet.h>
-    #include <fcntl.h>
-    #include <ifaddrs.h>
-    #include <net/if.h>
-    #include <netdb.h>
-    #include <netinet/in.h>
-    #include <poll.h>
-    #include <sys/ioctl.h>
-    #include <sys/socket.h>
-    #include <sys/types.h>
-    #include <unistd.h>
+    #include <fcntl.h>       // IWYU pragma: export
+    #include <ifaddrs.h>     // IWYU pragma: export
+    #include <net/if.h>      // IWYU pragma: export
+    #include <netdb.h>       // IWYU pragma: export
+    #include <netinet/in.h>  // IWYU pragma: export
+    #include <poll.h>        // IWYU pragma: export
+    #include <sys/ioctl.h>   // IWYU pragma: export
+    #include <sys/socket.h>  // IWYU pragma: export
+    #include <sys/types.h>   // IWYU pragma: export
+    #include <unistd.h>      // IWYU pragma: export
 
     #include <cerrno>
 

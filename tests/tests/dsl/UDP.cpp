@@ -36,6 +36,8 @@
 #include "test_util/TestBase.hpp"
 #include "test_util/common.hpp"
 #include "test_util/has_ipv6.hpp"
+#include "util/network/get_interfaces.hpp"
+#include "util/platform.hpp"
 
 namespace {  // Anonymous namespace to ensure internal linkage
 
