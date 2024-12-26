@@ -195,6 +195,8 @@ struct WSAHolder {
 
     #include <cerrno>
 
+struct iovec;  // IWYU pragma: export
+
     // Move errno so it can be used in windows
     #define network_errno  errno
     #define INVALID_SOCKET (-1)
