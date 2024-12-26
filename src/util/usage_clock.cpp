@@ -1,6 +1,9 @@
 #include "usage_clock.hpp"
 
+#include <time.h>  // NOLINT(modernize-deprecated-headers) Technically clock_gettime lives in time.h not ctime
+
 #include <chrono>
+#include <ctime>
 
 // Windows
 #if defined(_WIN32)
@@ -27,8 +30,6 @@ namespace util {
 }  // namespace NUClear
 
 #else
-
-    #include <ctime>
 
 namespace NUClear {
 namespace util {

@@ -22,6 +22,8 @@
 
 #include "precise_sleep.hpp"
 
+#include <time.h>  // NOLINT(modernize-deprecated-headers) Technically nanosleep lives in time.h not ctime
+
 #include <chrono>
 #include <ctime>
 
