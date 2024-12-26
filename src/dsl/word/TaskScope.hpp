@@ -21,7 +21,6 @@
  */
 #ifndef NUCLEAR_DSL_WORD_TASK_SCOPE_HPP
 #define NUCLEAR_DSL_WORD_TASK_SCOPE_HPP
-#include <iostream>
 
 #include "../../id.hpp"
 #include "../../threading/ReactionTask.hpp"
