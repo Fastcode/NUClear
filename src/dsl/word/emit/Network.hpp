@@ -95,7 +95,7 @@ namespace dsl {
                 }
 
                 static void emit(PowerPlant& powerplant, const std::shared_ptr<DataType>& data, bool reliable) {
-                    emit(powerplant, std::move(data), "", reliable);
+                    emit(powerplant, data, "", reliable);
                 }
             };
 
