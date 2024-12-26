@@ -188,9 +188,9 @@ namespace threading {
                 }
             }
             catch (const ShutdownThreadException&) {
-                // This throw is here for when the pool is stopped
+                Pool::current_pool = nullptr;
+                return;
             }
-            Pool::current_pool = nullptr;
         }
 
         Pool::Task Pool::get_task() {
