@@ -143,6 +143,8 @@ TEST_CASE("Testing the IO extension", "[api][io]") {
 
 #else
 
+    #include <catch2/catch_message.hpp>
+    #include <catch2/catch_test_macros.hpp>
 
 TEST_CASE("Testing the IO extension", "[api][io]") {
     SUCCEED("This test is not supported on Windows");
