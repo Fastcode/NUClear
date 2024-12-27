@@ -42,6 +42,16 @@ void perfect_forwarding(T&& v) {
     std::vector<int> v2 = std::forward<T>(v);
 }
 
+template <typename T>
+void perfect_forwarding_to_assign(T&& v) {
+    assign(std::forward<T>(v));
+}
+
+template <typename T>
+void perfect_forwarding_to_assign_with_move(T&& v) {
+    assign_with_move(std::forward<T>(v));
+}
+
 }  // namespace
 
 SCENARIO("Testing how rvalues are handled") {
@@ -80,6 +90,22 @@ SCENARIO("Testing how rvalues are handled") {
             perfect_forwarding(v1);
             THEN("the vector still has the data") {
                 REQUIRE(v1 == std::vector<int>{0, 1});
+            }
+        }
+
+        WHEN("moving it to a function that assigns with perfect forwarding") {
+            perfect_forwarding_to_assign(std::move(v1));
+            THEN("the vector is not empty") {
+                REQUIRE(v1 == std::vector<int>{0, 1});
+            }
+        }
+
+        WHEN(
+            "moving it to a function as an rvalue and assigns it to a new vector with std::move with perfect "
+            "forwarding") {
+            perfect_forwarding_to_assign_with_move(std::move(v1));
+            THEN("the vector is empty") {
+                REQUIRE(v1 == std::vector<int>{});
             }
         }
     }
