@@ -177,11 +177,7 @@ namespace util {
                                        NextStep::call(std::forward<Args>(args)...))) {
 
             // Call each on a separate line to preserve order of execution
-            // TODO(thouliston) this is a legitimate bug, fix it in a future PR and add a test to ensure it doesn't
-            // regress
-            // NOLINTNEXTLINE(bugprone-use-after-move)
-            auto current = tuplify(call_one<CurrentFunction>(CurrentRange(), std::forward<Args>(args)...));
-            // NOLINTNEXTLINE(bugprone-use-after-move)
+            auto current   = tuplify(call_one<CurrentFunction>(CurrentRange(), std::forward<Args>(args)...));
             auto remainder = NextStep::call(std::forward<Args>(args)...);
 
             return std::tuple_cat(std::move(current), std::move(remainder));
