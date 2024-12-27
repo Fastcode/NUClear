@@ -20,8 +20,8 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_UTIL_FUNCTIONFUSION_HPP
-#define NUCLEAR_UTIL_FUNCTIONFUSION_HPP
+#ifndef NUCLEAR_UTIL_FUNCTION_FUSION_HPP
+#define NUCLEAR_UTIL_FUNCTION_FUSION_HPP
 
 #include "Sequence.hpp"
 #include "tuplify.hpp"
@@ -140,11 +140,12 @@ namespace util {
          */
         template <typename Function, int Start, int End>
         // It is forwarded as a tuple
-        // NOLINTNEXTLINE(cppcoreguidelines-rvalue-reference-param-not-moved)
         static auto call_one(const Sequence<Start, End>& /*e*/, Arguments&&... args)
-            -> decltype(apply_function_fusion_call<Function, Shared, Start, End>(std::forward_as_tuple(args...))) {
+            -> decltype(apply_function_fusion_call<Function, Shared, Start, End>(
+                std::forward_as_tuple(std::forward<Arguments>(args)...))) {
 
-            return apply_function_fusion_call<Function, Shared, Start, End>(std::forward_as_tuple(args...));
+            return apply_function_fusion_call<Function, Shared, Start, End>(
+                std::forward_as_tuple(std::forward<Arguments>(args)...));
         }
 
         /**
@@ -361,4 +362,4 @@ namespace util {
 }  // namespace util
 }  // namespace NUClear
 
-#endif  // NUCLEAR_UTIL_FUNCTIONFUSION_HPP
+#endif  // NUCLEAR_UTIL_FUNCTION_FUSION_HPP
