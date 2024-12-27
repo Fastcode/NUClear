@@ -23,7 +23,9 @@
 #ifndef NUCLEAR_LOGLEVEL_HPP
 #define NUCLEAR_LOGLEVEL_HPP
 
-#include <ostream>
+#include <cstdint>
+#include <iosfwd>
+#include <string>
 
 // Why do we need to include platform.hpp here?
 // Because windows defines a bunch of things for legacy reasons, one of which is a #define for ERROR as blank

@@ -22,7 +22,22 @@
 
 #include "NetworkController.hpp"
 
+#include <algorithm>
+#include <chrono>
+#include <cstdint>
+#include <memory>
+#include <mutex>
+#include <utility>
+#include <vector>
+
+#include "../Reactor.hpp"
+#include "../dsl/operation/Unbind.hpp"
+#include "../dsl/store/ThreadStore.hpp"
+#include "../dsl/word/Network.hpp"
+#include "../dsl/word/emit/Network.hpp"
+#include "../message/NetworkConfiguration.hpp"
 #include "../message/NetworkEvent.hpp"
+#include "../util/get_hostname.hpp"
 
 namespace NUClear {
 namespace extension {

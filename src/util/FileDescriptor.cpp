@@ -22,6 +22,7 @@
 
 #include "FileDescriptor.hpp"
 
+#include <cerrno>
 #include <functional>
 #include <utility>
 

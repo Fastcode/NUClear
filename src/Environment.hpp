@@ -24,8 +24,8 @@
 #define NUCLEAR_ENVIRONMENT_HPP
 
 #include <string>
+#include <utility>
 
-#include "LogLevel.hpp"
 
 namespace NUClear {
 

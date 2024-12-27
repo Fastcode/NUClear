@@ -23,18 +23,18 @@
 #ifndef NUCLEAR_POWER_PLANT_HPP
 #define NUCLEAR_POWER_PLANT_HPP
 
-#include <atomic>
-#include <functional>
 #include <memory>
-#include <sstream>
+#include <tuple>
+#include <type_traits>
 #include <utility>
 #include <vector>
 
 // Utilities
-#include "Configuration.hpp"
+#include "Configuration.hpp"  // IWYU pragma: export
 #include "Environment.hpp"
 #include "LogLevel.hpp"
 #include "id.hpp"
+#include "threading/Reaction.hpp"
 #include "threading/ReactionTask.hpp"
 #include "threading/scheduler/Scheduler.hpp"
 #include "util/FunctionFusion.hpp"

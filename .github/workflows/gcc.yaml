@@ -36,7 +36,7 @@ jobs:
             version: "7"
 
     name: Linux GCC-${{ matrix.toolchain.version }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     continue-on-error: true
 
     # Use the container for this specific version of gcc
@@ -96,7 +96,7 @@ jobs:
         run: ctest --output-on-failure -E "dsl/UDP"
 
       - name: Upload Traces
-        if: always()
+        if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v4
         with:
           name: traces-gcc-${{ matrix.toolchain.version }}

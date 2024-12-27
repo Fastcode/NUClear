@@ -22,7 +22,16 @@
 
 #include "ReactionStatistics.hpp"
 
+#include <chrono>
+#include <memory>
+#include <set>
+#include <thread>
+#include <utility>
+
+#include "../clock.hpp"
+#include "../id.hpp"
 #include "../threading/scheduler/Pool.hpp"
+#include "../util/usage_clock.hpp"
 
 namespace NUClear {
 namespace message {

@@ -1,6 +1,9 @@
 #include "usage_clock.hpp"
 
+#include <time.h>  // NOLINT(modernize-deprecated-headers) Technically clock_gettime lives in time.h not ctime
+
 #include <chrono>
+#include <ctime>
 
 // Windows
 #if defined(_WIN32)
@@ -27,14 +30,15 @@ namespace util {
 }  // namespace NUClear
 
 #else
-    #include <ctime>
 
 namespace NUClear {
 namespace util {
 
     cpu_clock::time_point cpu_clock::now() noexcept {
         ::timespec ts{};
-        ::clock_gettime(CLOCK_THREAD_CPUTIME_ID, &ts);
+        if (::clock_gettime(CLOCK_THREAD_CPUTIME_ID, &ts) != 0) {
+            return time_point{};  // Error, return a default time point
+        }
         return time_point(std::chrono::seconds(ts.tv_sec) + std::chrono::nanoseconds(ts.tv_nsec));
     }
 

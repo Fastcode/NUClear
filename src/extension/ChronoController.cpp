@@ -22,8 +22,16 @@
 
 #include "ChronoController.hpp"
 
+#include <algorithm>
 #include <atomic>
+#include <chrono>
+#include <memory>
+#include <mutex>
+#include <utility>
 
+#include "../Reactor.hpp"
+#include "../dsl/operation/Unbind.hpp"
+#include "../message/TimeTravel.hpp"
 #include "../util/precise_sleep.hpp"
 
 namespace NUClear {

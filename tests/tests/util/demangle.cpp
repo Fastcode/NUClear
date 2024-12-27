@@ -20,12 +20,19 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+#include "util/demangle.hpp"
+
 #include <catch2/catch_test_macros.hpp>
-#include <nuclear>
 #include <string>
 #include <typeinfo>
 
 struct TestSymbol {};
+
+namespace symbol {
+namespace in_a_namespace {
+    struct NamespacedSymbol {};
+}  // namespace in_a_namespace
+}  // namespace symbol
 
 template <typename T>
 struct TestTemplate {};
@@ -97,8 +104,8 @@ SCENARIO("Test the demangle function correctly demangles symbols", "[util][deman
     }
 
     GIVEN("A symbol in a namespace") {
-        const char* symbol         = typeid(NUClear::message::CommandLineArguments).name();
-        const std::string expected = "NUClear::message::CommandLineArguments";
+        const char* symbol         = typeid(symbol::in_a_namespace::NamespacedSymbol).name();
+        const std::string expected = "symbol::in_a_namespace::NamespacedSymbol";
 
         WHEN("Demangle is called") {
             const std::string result = NUClear::util::demangle(symbol);

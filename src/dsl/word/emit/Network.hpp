@@ -24,6 +24,7 @@
 #define NUCLEAR_DSL_WORD_EMIT_NETWORK_HPP
 
 #include <array>
+#include <utility>
 
 #include "../../../util/serialise/Serialise.hpp"
 
@@ -79,7 +80,7 @@ namespace dsl {
             struct Network {
 
                 static void emit(PowerPlant& powerplant,
-                                 std::shared_ptr<DataType> data,
+                                 const std::shared_ptr<DataType>& data,
                                  std::string target = "",
                                  bool reliable      = false) {
 
@@ -93,7 +94,7 @@ namespace dsl {
                     powerplant.emit<Inline>(e);
                 }
 
-                static void emit(PowerPlant& powerplant, std::shared_ptr<DataType> data, bool reliable) {
+                static void emit(PowerPlant& powerplant, const std::shared_ptr<DataType>& data, bool reliable) {
                     emit(powerplant, data, "", reliable);
                 }
             };

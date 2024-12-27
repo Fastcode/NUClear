@@ -67,11 +67,11 @@ jobs:
         run: ctest --output-on-failure
 
       - name: Collect coverage into one XML report
-        if: always()
+        if: ${{ !cancelled() }}
         run: gcovr --gcov-ignore-parse-errors=negative_hits.warn_once_per_file --exclude-unreachable-branches --exclude-noncode-lines --sonarqube > coverage.xml
 
       - name: Upload coverage report
-        if: always()
+        if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v4
         with:
           name: coverage-sonar
@@ -80,7 +80,7 @@ jobs:
           overwrite: true
 
       - name: Run sonar-scanner
-        if: always()
+        if: ${{ !cancelled() }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -90,7 +90,7 @@ jobs:
             --define sonar.coverageReportPaths=coverage.xml
 
       - name: Upload Traces
-        if: always()
+        if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v4
         with:
           name: traces-sonar

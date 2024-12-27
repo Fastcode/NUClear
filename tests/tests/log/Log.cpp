@@ -21,11 +21,16 @@
  */
 
 #include <catch2/catch_test_macros.hpp>
-#include <iostream>
-#include <nuclear>
+#include <cstddef>
+#include <memory>
+#include <string>
+#include <utility>
+#include <vector>
 
+#include "nuclear"
 #include "test_util/common.hpp"
-#include "test_util/executable_path.hpp"
+
+namespace {  // Anonymous namespace for internal linkage
 
 // This is a free floating function that we can use to test the log function when not in a reactor
 template <NUClear::LogLevel::Value level, typename... Args>
@@ -41,6 +46,8 @@ struct LogTestOutput {
 
 /// All the log messages received
 std::vector<LogTestOutput> messages;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+
+}  // namespace
 
 // All the log levels
 // NOLINTNEXTLINE(cert-err58-cpp,cppcoreguidelines-avoid-non-const-global-variables)

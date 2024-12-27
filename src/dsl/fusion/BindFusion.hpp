@@ -79,13 +79,13 @@ namespace dsl {
                                                    reaction,
                                                    std::forward<Arguments>(args)...))>::value,
                                                NoReturn,
-                                               Return>::template call(reaction, std::forward<Arguments>(args)...)) {
+                                               Return>::call(reaction, std::forward<Arguments>(args)...)) {
 
                 return std::conditional_t<
                     std::is_void<decltype(Function::template bind<DSL>(reaction,
                                                                        std::forward<Arguments>(args)...))>::value,
                     NoReturn,
-                    Return>::template call(reaction, std::forward<Arguments>(args)...);
+                    Return>::call(reaction, std::forward<Arguments>(args)...);
             }
         };
 
