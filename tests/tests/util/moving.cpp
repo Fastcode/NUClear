@@ -54,7 +54,24 @@ void perfect_forwarding_to_assign_with_move(T&& v) {
 
 }  // namespace
 
-SCENARIO("Testing how rvalues are handled") {
+/**
+ * This test is mostly here to encode an understanding of l/r values in code.
+ *
+ * When a function receives a value as an "rvalue reference" it is still an lvalue as it has a name even though it's an
+ * lvalue reference to an rvalue. To make it back into an rvalue reference you need to do a static cast to an rvalue.
+ * Typically this is done with std::move or std::forward.
+ *
+ * These casts don't actually do anything to the underlying data, they just change the type of the reference.
+ * So if you do one of these casts, but then don't actually do anything with the reference, the data will still be in
+ * the same state as it was before the cast.
+ *
+ * As a result, if you std::move a variable into a function but that function doesn't do anything with the variable, the
+ * result will be no change to the variable.
+ *
+ * Therefore if you are std::forwarding variables and you know that the variables will not be used in multiple places
+ * (e.g. function fusion) then these casts won't cause problems.
+ */
+SCENARIO("Test to ensure that l and r values operate according to the standard") {
     GIVEN("a vector with some data") {
         std::vector<int> v1 = {0, 1};
 
