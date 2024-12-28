@@ -91,8 +91,6 @@ template <typename T>
 struct AppendCaller {
     template <typename... Args>
     static auto call(Args&&... args) -> decltype(T::append(std::forward<Args>(args)...)) {
-
-        std::cout << "Received: " << NUClear::util::demangle(typeid(std::tuple<Args...>).name()) << std::endl;
         return T::append(std::forward<Args>(args)...);
     }
 };

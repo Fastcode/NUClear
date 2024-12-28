@@ -51,9 +51,15 @@ namespace util {
     auto apply_function_fusion_call(std::tuple<Arguments...>&& args,
                                     const Sequence<Shared...>& /*shared*/,
                                     const Sequence<Selected...>& /*selected*/)
-        -> decltype(Function::call(std::get<Shared>(args)..., std::get<Selected>(args)...)) {
+        -> decltype(Function::call(
+            std::get<Shared>(args)...,
+            static_cast<std::tuple_element_t<Selected, std::tuple<Arguments...>>>(std::get<Selected>(args))...)) {
+
         return Function::call(
-            static_cast<std::tuple_element_t<Shared, std::tuple<Arguments...>>>(std::get<Shared>(args))...,
+            // By not moving/forwarding the shared arguments they will always end up as lvalues even if they were
+            // rvalues originally. That allows them to be used in multiple function calls without the first one being
+            // able to steal them via a move constructor etc
+            std::get<Shared>(args)...,
             static_cast<std::tuple_element_t<Selected, std::tuple<Arguments...>>>(std::get<Selected>(args))...);
     }
 
@@ -180,8 +186,14 @@ namespace util {
                                        NextStep::call(std::forward<Args>(args)...))) {
 
             // Call each on a separate line to preserve order of execution
+            // The std::forwards here are fine even though they are passed to multiple functions.
+            // As part of function fusion before, all of the shared arguments are enforced to be lvalues and only the
+            // selected arguments will be potentially rvalues. These rvalues are then only passed to a single target
+            // function, even if they are forwarded multiple times to the functions which select the right arguments.
+            // As shown in the moving test, casting to an rvalue, but then not using it won't change the result.
+            // NOLINTNEXTLINE(bugprone-use-after-move)
             auto current   = tuplify(call_one<CurrentFunction>(CurrentRange(), std::forward<Args>(args)...));
-            auto remainder = NextStep::call(std::forward<Args>(args)...);
+            auto remainder = NextStep::call(std::forward<Args>(args)...);  // NOLINT(bugprone-use-after-move)
 
             return std::tuple_cat(std::move(current), std::move(remainder));
         }
