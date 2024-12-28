@@ -135,9 +135,9 @@ namespace dsl {
             template <typename WatchdogGroup, typename RuntimeType>
             struct WatchdogServicer;
             template <typename WatchdogGroup, typename RuntimeType>
-            WatchdogServicer<WatchdogGroup, RuntimeType> ServiceWatchdog(RuntimeType&& data);
+            std::unique_ptr<WatchdogServicer<WatchdogGroup, RuntimeType>> ServiceWatchdog(RuntimeType&& data);
             template <typename WatchdogGroup>
-            WatchdogServicer<WatchdogGroup, void> ServiceWatchdog();
+            std::unique_ptr<WatchdogServicer<WatchdogGroup, void>> ServiceWatchdog();
         }  // namespace emit
     }  // namespace word
 }  // namespace dsl
@@ -272,10 +272,7 @@ protected:
 
     /// @copydoc dsl::word::emit::ServiceWatchdog
     template <typename WatchdogGroup, typename... Arguments>
-    auto ServiceWatchdog(Arguments&&... args)
-        // THIS IS VERY IMPORTANT, the return type must be dependent on the function call
-        // otherwise it won't check it's valid in SFINAE
-        -> decltype(dsl::word::emit::ServiceWatchdog<WatchdogGroup>(std::forward<Arguments>(args)...)) {
+    auto ServiceWatchdog(Arguments&&... args) {
         return dsl::word::emit::ServiceWatchdog<WatchdogGroup>(std::forward<Arguments>(args)...);
     }
 
@@ -368,7 +365,7 @@ public:
                 util::CallbackGenerator<DSL, Function>(std::forward<Function>(callback)));
 
             // Get our tuple from binding our reaction
-            auto tuple = DSL::bind(reaction, std::get<Index>(args)...);
+            auto tuple = DSL::bind(reaction, std::move(std::get<Index>(args))...);
 
             auto handle = threading::ReactionHandle(reaction);
             reactor.reaction_handles.push_back(handle);

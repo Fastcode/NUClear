@@ -48,11 +48,13 @@ namespace util {
      * @return The object returned by the called subfunction
      */
     template <typename Function, int... Shared, int... Selected, typename... Arguments>
-    auto apply_function_fusion_call(const std::tuple<Arguments...>& args,
+    auto apply_function_fusion_call(std::tuple<Arguments...>&& args,
                                     const Sequence<Shared...>& /*shared*/,
                                     const Sequence<Selected...>& /*selected*/)
         -> decltype(Function::call(std::get<Shared>(args)..., std::get<Selected>(args)...)) {
-        return Function::call(std::get<Shared>(args)..., std::get<Selected>(args)...);
+        return Function::call(
+            static_cast<std::tuple_element_t<Shared, std::tuple<Arguments...>>>(std::get<Shared>(args))...,
+            static_cast<std::tuple_element_t<Selected, std::tuple<Arguments...>>>(std::get<Selected>(args))...);
     }
 
     /**
