@@ -146,14 +146,14 @@ namespace util {
          *
          * @return the result of calling this specific function
          */
-        template <typename Function, int Start, int End>
+        template <typename Function, int Start, int End, typename... Args>
         // It is forwarded as a tuple
-        static auto call_one(const Sequence<Start, End>& /*e*/, Arguments&&... args)
+        static auto call_one(const Sequence<Start, End>& /*e*/, Args&&... args)
             -> decltype(apply_function_fusion_call<Function, Shared, Start, End>(
-                std::forward_as_tuple(std::forward<Arguments>(args)...))) {
+                std::forward_as_tuple(std::forward<Args>(args)...))) {
 
             return apply_function_fusion_call<Function, Shared, Start, End>(
-                std::forward_as_tuple(std::forward<Arguments>(args)...));
+                std::forward_as_tuple(std::forward<Args>(args)...));
         }
 
         /**
