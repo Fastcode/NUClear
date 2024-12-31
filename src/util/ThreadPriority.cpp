@@ -32,10 +32,11 @@ void set_priority(const NUClear::PriorityLevel& priority) {
 
     switch (priority) {
         case IDLE: SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_IDLE); break;
-        case LOW: SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_LOWEST); break;
-        default:
+        case LOWEST: SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_LOWEST); break;
+        case LOW: SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_BELOW_NORMAL); break;
         case NORMAL: SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_NORMAL); break;
-        case HIGH: SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_HIGHEST); break;
+        case HIGH: SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_ABOVE_NORMAL); break;
+        case HIGHEST: SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_HIGHEST); break;
         case REALTIME: SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL); break;
     }
 }
@@ -59,14 +60,22 @@ void set_priority(const NUClear::PriorityLevel& priority) {
     sched_param param{};
     switch (priority) {
         case NUClear::PriorityLevel::IDLE: pthread_setschedparam(pthread_self(), SCHED_IDLE, &param); break;
-        case NUClear::PriorityLevel::LOW:
-        case NUClear::PriorityLevel::NORMAL: pthread_setschedparam(pthread_self(), SCHED_OTHER, &param); break;
+        case NUClear::PriorityLevel::LOWEST:
+        case NUClear::PriorityLevel::LOW: pthread_setschedparam(pthread_self(), SCHED_OTHER, &param); break;
+        case NUClear::PriorityLevel::NORMAL:
+            param.sched_priority = min_rr_priority;
+            pthread_setschedparam(pthread_self(), SCHED_RR, &param);  // Min realtime beats all non-realtime
+            break;
         case NUClear::PriorityLevel::HIGH:
-            param.sched_priority = (min_rr_priority + max_rr_priority) / 2;
+            param.sched_priority = (min_rr_priority + max_rr_priority + 1) / 2;  // Halfway between min and max
+            pthread_setschedparam(pthread_self(), SCHED_RR, &param);
+            break;
+        case NUClear::PriorityLevel::HIGHEST:
+            param.sched_priority = max_rr_priority - 1;  // One less than max so it can be preempted by realtime
             pthread_setschedparam(pthread_self(), SCHED_RR, &param);
             break;
         case NUClear::PriorityLevel::REALTIME:
-            param.sched_priority = max_fifo_priority;
+            param.sched_priority = max_fifo_priority;  // Max priority for SCHED_FIFO
             pthread_setschedparam(pthread_self(), SCHED_FIFO, &param);
             break;
     }
@@ -83,9 +92,11 @@ namespace {
 void set_priority(const NUClear::PriorityLevel& priority) {
     switch (priority) {
         case NUClear::PriorityLevel::IDLE: pthread_set_qos_class_self_np(QOS_CLASS_BACKGROUND, 0); break;
-        case NUClear::PriorityLevel::LOW: pthread_set_qos_class_self_np(QOS_CLASS_DEFAULT, 1); break;
+        case NUClear::PriorityLevel::LOWEST: pthread_set_qos_class_self_np(QOS_CLASS_UTILITY, 1); break;
+        case NUClear::PriorityLevel::LOW: pthread_set_qos_class_self_np(QOS_CLASS_UTILITY, 0); break;
         case NUClear::PriorityLevel::NORMAL: pthread_set_qos_class_self_np(QOS_CLASS_DEFAULT, 0); break;
-        case NUClear::PriorityLevel::HIGH: pthread_set_qos_class_self_np(QOS_CLASS_USER_INITIATED, 0); break;
+        case NUClear::PriorityLevel::HIGH: pthread_set_qos_class_self_np(QOS_CLASS_USER_INITIATED, 1); break;
+        case NUClear::PriorityLevel::HIGHEST: pthread_set_qos_class_self_np(QOS_CLASS_USER_INITIATED, 0); break;
         case NUClear::PriorityLevel::REALTIME: pthread_set_qos_class_self_np(QOS_CLASS_USER_INTERACTIVE, 0); break;
     }
 }

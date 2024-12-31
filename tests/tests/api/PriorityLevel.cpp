@@ -33,9 +33,11 @@ SCENARIO("PriorityLevel smart enum values can be constructed and converted appro
     GIVEN("A PriorityLevel and a corresponding string representation") {
         const auto test = GENERATE(table<std::string, NUClear::PriorityLevel::Value>({
             std::make_tuple("IDLE", NUClear::PriorityLevel::IDLE),
+            std::make_tuple("LOWEST", NUClear::PriorityLevel::LOWEST),
             std::make_tuple("LOW", NUClear::PriorityLevel::LOW),
             std::make_tuple("NORMAL", NUClear::PriorityLevel::NORMAL),
             std::make_tuple("HIGH", NUClear::PriorityLevel::HIGH),
+            std::make_tuple("HIGHEST", NUClear::PriorityLevel::HIGHEST),
             std::make_tuple("REALTIME", NUClear::PriorityLevel::REALTIME),
         }));
 
@@ -90,16 +92,17 @@ SCENARIO("PriorityLevel smart enum values can be constructed and converted appro
 
 SCENARIO("PriorityLevel comparison operators work correctly") {
     GIVEN("Two PriorityLevel enum values") {
-        const NUClear::PriorityLevel::Value v1 = GENERATE(NUClear::PriorityLevel::IDLE,
-                                                          NUClear::PriorityLevel::LOW,
-                                                          NUClear::PriorityLevel::NORMAL,
-                                                          NUClear::PriorityLevel::HIGH,
-                                                          NUClear::PriorityLevel::REALTIME);
-        const NUClear::PriorityLevel::Value v2 = GENERATE(NUClear::PriorityLevel::IDLE,
-                                                          NUClear::PriorityLevel::LOW,
-                                                          NUClear::PriorityLevel::NORMAL,
-                                                          NUClear::PriorityLevel::HIGH,
-                                                          NUClear::PriorityLevel::REALTIME);
+        std::vector<NUClear::PriorityLevel::Value> levels = {
+            NUClear::PriorityLevel::IDLE,
+            NUClear::PriorityLevel::LOW,
+            NUClear::PriorityLevel::LOWEST,
+            NUClear::PriorityLevel::NORMAL,
+            NUClear::PriorityLevel::HIGH,
+            NUClear::PriorityLevel::HIGHEST,
+            NUClear::PriorityLevel::REALTIME,
+        };
+        const NUClear::PriorityLevel::Value v1 = GENERATE_COPY(from_range(levels));
+        const NUClear::PriorityLevel::Value v2 = GENERATE_COPY(from_range(levels));
 
         WHEN("one smart enum value is constructed") {
             const NUClear::PriorityLevel ll1(v1);
@@ -176,9 +179,11 @@ SCENARIO("PriorityLevel can be used in switch statements") {
     GIVEN("A PriorityLevel") {
         auto test = GENERATE(table<std::string, NUClear::PriorityLevel::Value>({
             {"IDLE", NUClear::PriorityLevel::IDLE},
+            {"LOWEST", NUClear::PriorityLevel::LOWEST},
             {"LOW", NUClear::PriorityLevel::LOW},
             {"NORMAL", NUClear::PriorityLevel::NORMAL},
             {"HIGH", NUClear::PriorityLevel::HIGH},
+            {"HIGHEST", NUClear::PriorityLevel::HIGHEST},
             {"REALTIME", NUClear::PriorityLevel::REALTIME},
         }));
 
@@ -190,9 +195,11 @@ SCENARIO("PriorityLevel can be used in switch statements") {
             std::string result;
             switch (log_level) {
                 case NUClear::PriorityLevel::IDLE: result = "IDLE"; break;
+                case NUClear::PriorityLevel::LOWEST: result = "LOWEST"; break;
                 case NUClear::PriorityLevel::LOW: result = "LOW"; break;
                 case NUClear::PriorityLevel::NORMAL: result = "NORMAL"; break;
                 case NUClear::PriorityLevel::HIGH: result = "HIGH"; break;
+                case NUClear::PriorityLevel::HIGHEST: result = "HIGHEST"; break;
                 case NUClear::PriorityLevel::REALTIME: result = "REALTIME"; break;
                 default: result = "UNKNOWN"; break;
             }

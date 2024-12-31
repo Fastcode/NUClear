@@ -91,18 +91,16 @@ SCENARIO("LogLevel smart enum values can be constructed and converted appropriat
 
 SCENARIO("LogLevel comparison operators work correctly") {
     GIVEN("Two LogLevel enum values") {
-        const NUClear::LogLevel::Value v1 = GENERATE(NUClear::LogLevel::TRACE,
-                                                     NUClear::LogLevel::DEBUG,
-                                                     NUClear::LogLevel::INFO,
-                                                     NUClear::LogLevel::WARN,
-                                                     NUClear::LogLevel::ERROR,
-                                                     NUClear::LogLevel::FATAL);
-        const NUClear::LogLevel::Value v2 = GENERATE(NUClear::LogLevel::TRACE,
-                                                     NUClear::LogLevel::DEBUG,
-                                                     NUClear::LogLevel::INFO,
-                                                     NUClear::LogLevel::WARN,
-                                                     NUClear::LogLevel::ERROR,
-                                                     NUClear::LogLevel::FATAL);
+        const std::vector<NUClear::LogLevel::Value> levels = {
+            NUClear::LogLevel::TRACE,
+            NUClear::LogLevel::DEBUG,
+            NUClear::LogLevel::INFO,
+            NUClear::LogLevel::WARN,
+            NUClear::LogLevel::ERROR,
+            NUClear::LogLevel::FATAL,
+        };
+        const NUClear::LogLevel::Value v1 = GENERATE_COPY(from_range(levels));
+        const NUClear::LogLevel::Value v2 = GENERATE_COPY(from_range(levels));
 
         WHEN("one smart enum value is constructed") {
             const NUClear::LogLevel ll1(v1);
