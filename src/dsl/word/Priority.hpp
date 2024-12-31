@@ -80,9 +80,11 @@ namespace dsl {
             };
 
             using IDLE     = Value<PriorityLevel::IDLE>;
+            using LOWEST   = Value<PriorityLevel::LOWEST>;
             using LOW      = Value<PriorityLevel::LOW>;
             using NORMAL   = Value<PriorityLevel::NORMAL>;
             using HIGH     = Value<PriorityLevel::HIGH>;
+            using HIGHEST  = Value<PriorityLevel::HIGHEST>;
             using REALTIME = Value<PriorityLevel::REALTIME>;
         };
 

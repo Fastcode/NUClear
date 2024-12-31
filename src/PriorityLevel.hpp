@@ -30,7 +30,7 @@ namespace NUClear {
 
 class PriorityLevel {
 public:
-    enum Value : uint8_t { IDLE = 0, LOW = 1, NORMAL = 2, HIGH = 3, REALTIME = 4 };
+    enum Value : uint8_t { IDLE = 0, LOWEST = 1, LOW = 2, NORMAL = 3, HIGH = 4, HIGHEST = 5, REALTIME = 6 };
 
     /**
      * Construct a PriorityLevel from a Value
@@ -46,9 +46,11 @@ public:
      */
     PriorityLevel(const std::string& level)
         : value(level == "IDLE"       ? Value::IDLE
+                : level == "LOWEST"   ? Value::LOWEST
                 : level == "LOW"      ? Value::LOW
                 : level == "NORMAL"   ? Value::NORMAL
                 : level == "HIGH"     ? Value::HIGH
+                : level == "HIGHEST"  ? Value::HIGHEST
                 : level == "REALTIME" ? Value::REALTIME
                                       : Value::NORMAL) {}
 
@@ -78,9 +80,11 @@ public:
      */
     operator std::string() const {
         return value == Value::IDLE       ? "IDLE"
+               : value == Value::LOWEST   ? "LOWEST"
                : value == Value::LOW      ? "LOW"
                : value == Value::NORMAL   ? "NORMAL"
                : value == Value::HIGH     ? "HIGH"
+               : value == Value::HIGHEST  ? "HIGHEST"
                : value == Value::REALTIME ? "REALTIME"
                                           : "UNKNOWN";
     }
