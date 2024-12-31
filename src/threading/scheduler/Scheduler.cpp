@@ -22,11 +22,22 @@
 #include "Scheduler.hpp"
 
 #include <algorithm>
+#include <atomic>
+#include <memory>
+#include <mutex>
+#include <set>
 #include <stdexcept>
+#include <utility>
+#include <vector>
 
 #include "../../dsl/word/MainThread.hpp"
-#include "../../dsl/word/Pool.hpp"
+#include "../../id.hpp"
+#include "../../threading/Reaction.hpp"
+#include "../../threading/ReactionTask.hpp"
 #include "CombinedLock.hpp"
+#include "Group.hpp"
+#include "Lock.hpp"
+#include "Pool.hpp"
 
 namespace NUClear {
 namespace threading {

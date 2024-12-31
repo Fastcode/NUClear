@@ -99,7 +99,7 @@ namespace dsl {
             static void bind(const std::shared_ptr<threading::Reaction>& reaction) {
 
                 // Create an unbinder for the always reaction
-                reaction->unbinders.push_back([](threading::Reaction& r) {
+                reaction->unbinders.emplace_back([](threading::Reaction& r) {
                     r.enabled = false;
                     // TODO(Alex/Trent) Clean up thread pool too
                 });

@@ -24,7 +24,7 @@
 
 #include <array>
 #include <climits>
-#include <stdexcept>
+#include <cstddef>
 #include <string>
 #include <system_error>
 
@@ -59,6 +59,8 @@ std::string get_executable_path() {
 }  // namespace test_util
 
 #elif defined(__linux__)
+    #include <linux/limits.h>
+    #include <sys/types.h>
     #include <unistd.h>
 
 namespace test_util {

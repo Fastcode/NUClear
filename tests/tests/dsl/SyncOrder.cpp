@@ -21,11 +21,11 @@
  */
 
 #include <catch2/catch_test_macros.hpp>
-#include <nuclear>
-#include <numeric>
-#include <string>
+#include <memory>
+#include <utility>
 #include <vector>
 
+#include "nuclear"
 #include "test_util/TestBase.hpp"
 #include "test_util/common.hpp"
 

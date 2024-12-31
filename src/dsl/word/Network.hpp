@@ -79,7 +79,7 @@ namespace dsl {
                 auto task = std::make_unique<NetworkListen>();
 
                 task->hash = util::serialise::Serialise<T>::hash();
-                reaction->unbinders.push_back([](const threading::Reaction& r) {
+                reaction->unbinders.emplace_back([](const threading::Reaction& r) {
                     r.reactor.emit<emit::Inline>(std::make_unique<operation::Unbind<NetworkListen>>(r.id));
                 });
 

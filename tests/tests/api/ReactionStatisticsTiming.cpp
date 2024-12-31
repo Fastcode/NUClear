@@ -20,43 +20,42 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+#include <algorithm>
+#include <catch2/catch_message.hpp>
 #include <catch2/catch_test_macros.hpp>
-#include <nuclear>
+#include <chrono>
+#include <map>
+#include <memory>
+#include <string>
+#include <util/usage_clock.hpp>
+#include <utility>
+#include <vector>
 
+#include "nuclear"
 #include "test_util/TestBase.hpp"
 #include "test_util/TimeUnit.hpp"
 #include "test_util/common.hpp"
 #include "util/precise_sleep.hpp"
 
-using TimeUnit = test_util::TimeUnit;
-
-/// Events that occur during the test and the time they occur
-/// NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
-std::vector<std::pair<std::string, NUClear::clock::time_point>> code_events;
-/// NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
-std::vector<std::pair<std::string, NUClear::clock::time_point>> stat_events;
-
-struct Usage {
-    std::map<std::string, std::chrono::steady_clock::duration> real;
-    std::map<std::string, NUClear::util::cpu_clock::duration> cpu;
-};
-
-// NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
-Usage usage;
-
-struct DoTest {};
-struct HeavyTask {};
-struct LightTask {};
-
-const std::string heavy_name   = "Heavy";    // NOLINT(cert-err58-cpp)
-const std::string light_name   = "Light";    // NOLINT(cert-err58-cpp)
-const std::string initial_name = "Initial";  // NOLINT(cert-err58-cpp)
-constexpr int scale            = 5;          // Number of time units to sleep/wait for
-
 using NUClear::message::ReactionEvent;
+using test_util::TimeUnit;
 
 class TestReactor : public test_util::TestBase<TestReactor> {
 public:
+    struct Usage {
+        std::map<std::string, std::chrono::steady_clock::duration> real;
+        std::map<std::string, NUClear::util::cpu_clock::duration> cpu;
+    };
+
+    struct DoTest {};
+    struct HeavyTask {};
+    struct LightTask {};
+
+    const std::string heavy_name   = "Heavy";    // NOLINT(cert-err58-cpp)
+    const std::string light_name   = "Light";    // NOLINT(cert-err58-cpp)
+    const std::string initial_name = "Initial";  // NOLINT(cert-err58-cpp)
+    static constexpr int scale     = 5;          // Number of time units to sleep/wait for
+
     TestReactor(std::unique_ptr<NUClear::Environment> environment)
         : TestBase(std::move(environment), true, std::chrono::seconds(2)) {
 
@@ -66,7 +65,7 @@ public:
             emit(std::make_unique<HeavyTask>());
             code_events.emplace_back("Finished " + initial_name + ":" + heavy_name, NUClear::clock::now());
         });
-        on<Trigger<HeavyTask>>().then(heavy_name, [] {
+        on<Trigger<HeavyTask>>().then(heavy_name, [this] {
             code_events.emplace_back("Started " + heavy_name, NUClear::clock::now());
             auto start = NUClear::clock::now();
             while (NUClear::clock::now() - start < TimeUnit(scale)) {
@@ -80,13 +79,13 @@ public:
             emit(std::make_unique<LightTask>());
             code_events.emplace_back("Finished " + initial_name + ":" + light_name, NUClear::clock::now());
         });
-        on<Trigger<LightTask>>().then(light_name, [] {
+        on<Trigger<LightTask>>().then(light_name, [this] {
             code_events.emplace_back("Started " + light_name, NUClear::clock::now());
             NUClear::util::precise_sleep(TimeUnit(scale));
             code_events.emplace_back("Finished " + light_name, NUClear::clock::now());
         });
 
-        on<Trigger<ReactionEvent>>().then([](const ReactionEvent& event) {
+        on<Trigger<ReactionEvent>>().then([this](const ReactionEvent& event) {
             const auto& stats = *event.statistics;
             // Check the name ends with light_name or heavy_name
             if (stats.identifiers->name.substr(stats.identifiers->name.size() - light_name.size()) == light_name
@@ -116,7 +115,16 @@ public:
             emit(std::make_unique<Step<1>>());
         });
     }
+
+    /// Code events that occur during the test and the time they occur
+    std::vector<std::pair<std::string, NUClear::clock::time_point>> code_events;
+    /// Statistic events that occur during the test and the time they occur
+    std::vector<std::pair<std::string, NUClear::clock::time_point>> stat_events;
+    /// Usage statistics for the heavy and light tasks
+    Usage usage;
 };
+// Needed because until c++17 this value will cause a linker error if it is not defined in a cpp file
+constexpr int TestReactor::scale;
 
 
 TEST_CASE("Testing reaction statistics timing", "[api][reactionstatistics][timing]") {
@@ -125,8 +133,16 @@ TEST_CASE("Testing reaction statistics timing", "[api][reactionstatistics][timin
     config.default_pool_concurrency = 1;
     NUClear::PowerPlant plant(config);
     test_util::add_tracing(plant);
-    plant.install<TestReactor>();
+    auto& reactor = plant.install<TestReactor>();
     plant.start();
+
+    // Extract variables
+    const auto& code_events = reactor.code_events;
+    auto& stat_events       = reactor.stat_events;
+    const auto& usage       = reactor.usage;
+    constexpr int scale     = TestReactor::scale;
+    const auto& heavy_name  = reactor.heavy_name;
+    const auto& light_name  = reactor.light_name;
 
     // Sort the stats events by timestamp as they are not always going to be in order due to how stats are processed
     std::stable_sort(stat_events.begin(), stat_events.end(), [](const auto& lhs, const auto& rhs) {
@@ -134,7 +150,7 @@ TEST_CASE("Testing reaction statistics timing", "[api][reactionstatistics][timin
     });
 
 
-    auto make_delta = [](const std::vector<std::pair<std::string, NUClear::clock::time_point>>& events) {
+    auto make_delta = [&](const std::vector<std::pair<std::string, NUClear::clock::time_point>>& events) {
         std::vector<std::string> delta_events;
         auto first = events.front().second;
         for (const auto& event : events) {
@@ -175,8 +191,8 @@ TEST_CASE("Testing reaction statistics timing", "[api][reactionstatistics][timin
     }
 
     // Most of heavy real time should be cpu time
-    REQUIRE(usage.cpu[heavy_name] > usage.real[heavy_name] / 2);
+    REQUIRE(usage.cpu.at(heavy_name) > usage.real.at(heavy_name) / 2);
 
     // Most of light real time should be sleeping
-    REQUIRE(usage.cpu[light_name] < usage.real[light_name] / 2);
+    REQUIRE(usage.cpu.at(light_name) < usage.real.at(light_name) / 2);
 }

@@ -181,6 +181,8 @@ struct WSAHolder {
 #else
 
     // Include real networking stuff
+    // export with IWYU as this is the header that should be used for these functions
+    // IWYU pragma: begin_exports
     #include <arpa/inet.h>
     #include <fcntl.h>
     #include <ifaddrs.h>
@@ -192,6 +194,7 @@ struct WSAHolder {
     #include <sys/socket.h>
     #include <sys/types.h>
     #include <unistd.h>
+    // IWYU pragma: end_exports
 
     #include <cerrno>
 

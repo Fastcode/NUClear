@@ -20,12 +20,20 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+#include <catch2/catch_message.hpp>
 #include <catch2/catch_test_macros.hpp>
-#include <nuclear>
+#include <chrono>
+#include <memory>
+#include <string>
+#include <tuple>
 #include <utility>
+#include <vector>
 
+#include "nuclear"
 #include "test_util/TestBase.hpp"
 #include "test_util/common.hpp"
+
+namespace {  // Make everything in this file have internal linkage
 
 /// Events that occur during the test
 std::vector<std::string> events;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
@@ -84,6 +92,7 @@ public:
     }
 };
 
+}  // namespace
 
 TEST_CASE("Testing distributing arguments to multiple bind functions (NUClear Fission)", "[api][dsl][fission]") {
 

@@ -25,9 +25,12 @@
 #include <functional>
 #include <memory>
 #include <mutex>
+#include <utility>
 #include <vector>
 
 #include "../../id.hpp"
+#include "../../util/GroupDescriptor.hpp"
+#include "Lock.hpp"
 
 namespace NUClear {
 namespace threading {

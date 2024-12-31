@@ -21,7 +21,6 @@
  */
 #ifndef NUCLEAR_DSL_WORD_TASK_SCOPE_HPP
 #define NUCLEAR_DSL_WORD_TASK_SCOPE_HPP
-#include <iostream>
 
 #include "../../id.hpp"
 #include "../../threading/ReactionTask.hpp"
@@ -76,7 +75,7 @@ namespace dsl {
             template <typename DSL>
             static Lock scope(const threading::ReactionTask& task) {
                 // Store the old task id
-                NUClear::id_t old_id = current_task_id;
+                const NUClear::id_t old_id = current_task_id;
                 // Set the current task id to the word
                 current_task_id = task.id;
                 // Return a lock that will restore the old task id

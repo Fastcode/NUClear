@@ -28,7 +28,7 @@
 #include <utility>
 
 #include "nuclear"
-#include "test_util/diff_string.hpp"
+#include "test_util/diff_string.hpp"  // IWYU pragma: export
 
 namespace test_util {
 
@@ -54,6 +54,7 @@ public:
         std::string message;
     };
 
+private:
     explicit TestBase(std::unique_ptr<NUClear::Environment> environment,
                       const bool& shutdown_on_idle             = true,
                       const std::chrono::milliseconds& timeout = std::chrono::milliseconds(1000))
@@ -93,10 +94,15 @@ public:
         });
     }
 
-private:
+    /// Mutex to wait on for the test timeout
     std::mutex timeout_mutex;
+    /// Condition variable to wait on for the test timeout
     std::condition_variable timeout_cv;
+    /// If the shutdown was clean
     bool clean_shutdown = false;
+
+    // CRTP subclass is a friend of the base class so it can access the constructor
+    friend BaseClass;
 };
 
 }  // namespace test_util

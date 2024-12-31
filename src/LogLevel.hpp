@@ -24,7 +24,7 @@
 #define NUCLEAR_LOGLEVEL_HPP
 
 #include <cstdint>
-#include <ostream>
+#include <iosfwd>
 #include <string>
 
 // Why do we need to include platform.hpp here?

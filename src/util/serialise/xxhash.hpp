@@ -31,9 +31,9 @@ namespace util {
     namespace serialise {
 
         /**
-         * Calculates the 32-bit xxHash of the input data.
+         * Calculates the 32-bit xxhash of the input data.
          *
-         * This function calculates the 32-bit xxHash of the input data using the specified seed value.
+         * This function calculates the 32-bit xxhash of the input data using the specified seed value.
          *
          * @param input  Pointer to the input data.
          * @param length Length of the input data in bytes.
@@ -41,12 +41,17 @@ namespace util {
          *
          * @return The 32-bit xxHash of the input data.
          */
-        uint32_t xxhash32(const void* input, const size_t& length, const uint32_t& seed = 0);
+        uint32_t xxhash32(const char* input, const size_t& length, const uint32_t& seed = 0);
+
+        template <typename T>
+        uint32_t xxhash32(const T* input, const uint32_t& seed = 0) {
+            return xxhash32(reinterpret_cast<const char*>(input), sizeof(T), seed);
+        }
 
         /**
-         * Calculates the 64-bit xxHash of the input data.
+         * Calculates the 64-bit xxhash of the input data.
          *
-         * This function calculates the 64-bit xxHash of the input data using the specified seed value.
+         * This function calculates the 64-bit xxhash of the input data using the specified seed value.
          *
          * @param input  Pointer to the input data.
          * @param length Length of the input data in bytes.
@@ -54,7 +59,12 @@ namespace util {
          *
          * @return The 64-bit xxHash of the input data.
          */
-        uint64_t xxhash64(const void* input, const size_t& length, const uint64_t& seed = 0);
+        uint64_t xxhash64(const char* input, const size_t& length, const uint64_t& seed = 0);
+
+        template <typename T>
+        uint64_t xxhash64(const T* input, const uint64_t& seed = 0) {
+            return xxhash64(reinterpret_cast<const char*>(input), sizeof(T), seed);
+        }
 
     }  // namespace serialise
 }  // namespace util

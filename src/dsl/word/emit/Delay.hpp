@@ -47,7 +47,7 @@ namespace dsl {
             struct Delay {
 
                 static void emit(PowerPlant& powerplant,
-                                 std::shared_ptr<DataType> data,
+                                 const std::shared_ptr<DataType>& data,
                                  NUClear::clock::duration delay) {
 
                     // Our chrono task is just to do a normal emit in the amount of time
@@ -67,7 +67,7 @@ namespace dsl {
                 }
 
                 static void emit(PowerPlant& powerplant,
-                                 std::shared_ptr<DataType> data,
+                                 const std::shared_ptr<DataType>& data,
                                  NUClear::clock::time_point at_time) {
 
                     // Our chrono task is just to do a normal emit in the amount of time

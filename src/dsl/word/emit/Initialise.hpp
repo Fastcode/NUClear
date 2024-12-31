@@ -53,7 +53,7 @@ namespace dsl {
             template <typename DataType>
             struct Initialise {
 
-                static void emit(PowerPlant& powerplant, std::shared_ptr<DataType> data) {
+                static void emit(PowerPlant& powerplant, const std::shared_ptr<DataType>& data) {
 
                     // Make a floating reaction task to submit which will emit this data
                     auto emitter = std::make_unique<threading::ReactionTask>(

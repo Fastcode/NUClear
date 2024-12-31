@@ -177,7 +177,11 @@ namespace util {
                                        NextStep::call(std::forward<Args>(args)...))) {
 
             // Call each on a separate line to preserve order of execution
-            auto current   = tuplify(call_one<CurrentFunction>(CurrentRange(), std::forward<Args>(args)...));
+            // TODO(thouliston) this is a legitimate bug, fix it in a future PR and add a test to ensure it doesn't
+            // regress
+            // NOLINTNEXTLINE(bugprone-use-after-move)
+            auto current = tuplify(call_one<CurrentFunction>(CurrentRange(), std::forward<Args>(args)...));
+            // NOLINTNEXTLINE(bugprone-use-after-move)
             auto remainder = NextStep::call(std::forward<Args>(args)...);
 
             return std::tuple_cat(std::move(current), std::move(remainder));
@@ -200,8 +204,8 @@ namespace util {
         using no  = std::false_type;
 
         template <typename F>
-        static auto test(int) -> decltype(apply_function_fusion_call<F, Shared, Start, End>(std::declval<Arguments>()),
-                                          yes());
+        static auto test(int)
+            -> decltype(apply_function_fusion_call<F, Shared, Start, End>(std::declval<Arguments>()), yes());
         template <typename>
         static no test(...);
 
@@ -211,8 +215,7 @@ namespace util {
 
     template <typename Functions,
               typename Arguments,
-              template <typename, typename...>
-              class FunctionWrapper,
+              template <typename, typename...> class FunctionWrapper,
               typename WrapperArgs,
               int Shared                  = 0,
               int Start                   = Shared,
@@ -248,8 +251,7 @@ namespace util {
     template <typename CurrentFunction,
               typename... Functions,
               typename... Arguments,
-              template <typename, typename...>
-              class FunctionWrapper,
+              template <typename, typename...> class FunctionWrapper,
               typename... WrapperArgs,
               int Shared,
               int Start,
@@ -332,8 +334,7 @@ namespace util {
      * Otherwise it will be a false_type to indicate its failure.
      */
     template <typename... Arguments,
-              template <typename, typename...>
-              class FunctionWrapper,
+              template <typename, typename...> class FunctionWrapper,
               typename... WrapperArgs,
               int Shared,
               int Start,

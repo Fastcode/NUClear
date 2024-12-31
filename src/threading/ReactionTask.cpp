@@ -24,6 +24,7 @@
 
 #include <atomic>
 #include <functional>
+#include <memory>
 #include <utility>
 
 #include "../id.hpp"

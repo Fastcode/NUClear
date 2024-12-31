@@ -22,19 +22,18 @@
 
 #include "PowerPlant.hpp"
 
-#include <exception>
-#include <tuple>
+#include <memory>
+#include <utility>
 
+#include "Configuration.hpp"
 #include "Reactor.hpp"
 #include "dsl/store/DataStore.hpp"
 #include "dsl/word/Shutdown.hpp"
 #include "dsl/word/Startup.hpp"
 #include "dsl/word/emit/Inline.hpp"
-#include "extension/ChronoController.hpp"
-#include "extension/IOController.hpp"
-#include "extension/NetworkController.hpp"
+#include "id.hpp"
 #include "message/CommandLineArguments.hpp"
-#include "message/LogMessage.hpp"
+#include "threading/Reaction.hpp"
 #include "threading/ReactionTask.hpp"
 
 namespace NUClear {

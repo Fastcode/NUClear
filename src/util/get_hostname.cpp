@@ -40,8 +40,8 @@ std::string NUClear::util::get_hostname() {
     #include <sys/utsname.h>
 
 std::string NUClear::util::get_hostname() {
-    utsname u{};
-    uname(&u);
+    ::utsname u{};
+    ::uname(&u);
     return u.nodename;
 }
 

@@ -45,7 +45,7 @@ void clock::adjust_clock(const duration& adjustment, const double& rtf) {
     // Load the current state
     const int c         = active.load(std::memory_order_relaxed);
     const auto& current = data[c];
-    const int n         = int((c + 1) % data.size());
+    const auto n        = int((c + 1) % data.size());
     auto& next          = data[n];
 
     // Perform the update
