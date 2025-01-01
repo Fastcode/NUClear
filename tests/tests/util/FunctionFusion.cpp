@@ -49,8 +49,10 @@ struct Appender {
         const std::vector<char> x1 = std::move(x);
         const std::vector<char> y1 = std::move(y);
 
-        std::vector<char> out = {'r', 'r'};
-        out.insert(out.end(), x1.begin(), x1.end());
+        std::vector<char> out;
+        out.push_back('r');
+        out.push_back('r');
+        out.insert(out.end(), x1.begin(), x1.end());  // HERE
         out.insert(out.end(), y1.begin(), y1.end());
 
         return out;
@@ -61,7 +63,9 @@ struct Appender {
         const std::vector<char> x1 = std::move(x);
         const auto& y1             = y;
 
-        std::vector<char> out = {'l', 'r'};
+        std::vector<char> out;
+        out.push_back('r');
+        out.push_back('l');
         out.insert(out.end(), x1.begin(), x1.end());
         out.insert(out.end(), y1.begin(), y1.end());
 
@@ -73,8 +77,10 @@ struct Appender {
         const auto& x1             = x;
         const std::vector<char> y1 = std::move(y);
 
-        std::vector<char> out = {'l', 'r'};
-        out.insert(out.end(), x1.begin(), x1.end());
+        std::vector<char> out;
+        out.push_back('l');
+        out.push_back('r');
+        out.insert(out.end(), x1.begin(), x1.end());  // HERE
         out.insert(out.end(), y1.begin(), y1.end());
 
         return out;
@@ -85,7 +91,9 @@ struct Appender {
         const auto& x1 = x;
         const auto& y1 = y;
 
-        std::vector<char> out = {'l', 'l'};
+        std::vector<char> out;
+        out.push_back('l');
+        out.push_back('l');
         out.insert(out.end(), x.begin(), x.end());
         out.insert(out.end(), y.begin(), y.end());
 
