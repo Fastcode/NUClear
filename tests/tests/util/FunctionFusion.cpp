@@ -20,12 +20,18 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+#include "util/FunctionFusion.hpp"
+
 #include <catch2/catch_test_macros.hpp>
-#include <memory>
+#include <tuple>
 #include <utility>
 #include <vector>
 
-#include "nuclear"
+
+// There are several linting rules from clang-tidy that will trigger in this code.
+// However as the point of these tests is to show what the behaviour is in these situations they are suppressed for this
+// file
+// NOLINTBEGIN(bugprone-use-after-move)
 
 namespace {  // Make everything here internal linkage
 
@@ -40,8 +46,8 @@ struct Appender {
 
     /// rvalue/rvalue
     static std::vector<char> append(std::vector<char>&& x, std::vector<char>&& y) {
-        std::vector<char> x1 = std::move(x);
-        std::vector<char> y1 = std::move(y);
+        const std::vector<char> x1 = std::move(x);
+        const std::vector<char> y1 = std::move(y);
 
         std::vector<char> out = {'r', 'r'};
         out.insert(out.end(), x1.begin(), x1.end());
@@ -52,8 +58,8 @@ struct Appender {
 
     /// rvalue/lvalue
     static std::vector<char> append(std::vector<char>&& x, const std::vector<char>& y) {
-        std::vector<char> x1 = std::move(x);
-        const auto& y1       = y;
+        const std::vector<char> x1 = std::move(x);
+        const auto& y1             = y;
 
         std::vector<char> out = {'l', 'r'};
         out.insert(out.end(), x1.begin(), x1.end());
@@ -64,8 +70,8 @@ struct Appender {
 
     /// lvalue/rvalue
     static std::vector<char> append(const std::vector<char>& x, std::vector<char>&& y) {
-        const auto& x1       = x;
-        std::vector<char> y1 = std::move(y);
+        const auto& x1             = x;
+        const std::vector<char> y1 = std::move(y);
 
         std::vector<char> out = {'l', 'r'};
         out.insert(out.end(), x1.begin(), x1.end());
@@ -154,3 +160,5 @@ SCENARIO("Shared arguments to FunctionFusion are not moved", "[util][FunctionFus
         }
     }
 }
+
+// NOLINTEND(bugprone-use-after-move)

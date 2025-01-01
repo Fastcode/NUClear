@@ -21,7 +21,13 @@
  */
 
 #include <catch2/catch_test_macros.hpp>
+#include <utility>
 #include <vector>
+
+// There are several linting rules from clang-tidy that will trigger in this code.
+// However as the point of these tests is to show what the behaviour is in these situations they are suppressed for this
+// file
+// NOLINTBEGIN(bugprone-use-after-move,cppcoreguidelines-rvalue-reference-param-not-moved,performance-unnecessary-copy-initialization)
 
 namespace {  // Internal linkage
 
@@ -30,16 +36,16 @@ void do_nothing(std::vector<int>&& v) {
 }
 
 void assign(std::vector<int>&& v) {
-    std::vector<int> v2 = v;
+    const std::vector<int> v2 = v;
 }
 
 void assign_with_move(std::vector<int>&& v) {
-    std::vector<int> v2 = std::move(v);
+    const std::vector<int> v2 = std::move(v);
 }
 
 template <typename T>
 void perfect_forwarding(T&& v) {
-    std::vector<int> v2 = std::forward<T>(v);
+    const std::vector<int> v2 = std::forward<T>(v);
 }
 
 template <typename T>
@@ -92,14 +98,14 @@ SCENARIO("Test to ensure that l and r values operate according to the standard")
         WHEN("moving it to a function that assigns with perfect forwarding") {
             perfect_forwarding(std::move(v1));
             THEN("the vector is empty") {
-                REQUIRE(v1 == std::vector<int>{});
+                REQUIRE(v1.empty());
             }
         }
 
         WHEN("moving it to a function as an rvalue and assigns it to a new vector with std::move") {
             assign_with_move(std::move(v1));
             THEN("the vector is empty") {
-                REQUIRE(v1 == std::vector<int>{});
+                REQUIRE(v1.empty());
             }
         }
 
@@ -118,12 +124,14 @@ SCENARIO("Test to ensure that l and r values operate according to the standard")
         }
 
         WHEN(
-            "moving it to a function as an rvalue and assigns it to a new vector with std::move with perfect "
+            "moving it to a function as an rvalue and assigning to a new vector with std::move with perfect "
             "forwarding") {
             perfect_forwarding_to_assign_with_move(std::move(v1));
             THEN("the vector is empty") {
-                REQUIRE(v1 == std::vector<int>{});
+                REQUIRE(v1.empty());
             }
         }
     }
 }
+
+// NOLINTEND(bugprone-use-after-move,cppcoreguidelines-rvalue-reference-param-not-moved,performance-unnecessary-copy-initialization)
