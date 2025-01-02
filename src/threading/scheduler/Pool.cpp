@@ -37,6 +37,7 @@
 #include "../../threading/Reaction.hpp"
 #include "../../util/Inline.hpp"
 #include "../../util/platform.hpp"
+#include "../../util/ThreadPriority.hpp"
 #include "../ReactionTask.hpp"
 #include "CountingLock.hpp"
 #include "Scheduler.hpp"
@@ -181,6 +182,9 @@ namespace threading {
         void Pool::run() {
             Pool::current_pool = this;
             try {
+                // Set the thread priority to highest while getting tasks
+                // This means that this thread will be a FIFO queued task on linux so it won't timeslice
+                const util::ThreadPriority priority_lock(PriorityLevel::HIGHEST);
                 while (true) {
                     // Run the next task
                     Task task = get_task();
@@ -194,7 +198,6 @@ namespace threading {
         }
 
         Pool::Task Pool::get_task() {
-
             std::unique_lock<std::mutex> lock(mutex);
             while (running || !queue.empty()) {
                 if (live) {
@@ -266,7 +269,7 @@ namespace threading {
             auto task = std::make_unique<ReactionTask>(
                 nullptr,
                 true,
-                [](const ReactionTask&) { return 0; },
+                [](const ReactionTask&) { return PriorityLevel::REALTIME; },
                 [](const ReactionTask&) { return util::Inline::ALWAYS; },
                 [](const ReactionTask&) { return dsl::word::Pool<>::descriptor(); },
                 [](const ReactionTask&) { return std::set<std::shared_ptr<const util::GroupDescriptor>>{}; });

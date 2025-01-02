@@ -28,6 +28,7 @@
 #include <utility>
 #include <vector>
 
+#include "../../PriorityLevel.hpp"
 #include "../../id.hpp"
 #include "../../util/GroupDescriptor.hpp"
 #include "Lock.hpp"
@@ -36,7 +37,9 @@ namespace NUClear {
 namespace threading {
     namespace scheduler {
 
-        Group::LockHandle::LockHandle(const NUClear::id_t& task_id, const int& priority, std::function<void()> notify)
+        Group::LockHandle::LockHandle(const NUClear::id_t& task_id,
+                                      const PriorityLevel& priority,
+                                      std::function<void()> notify)
             : task_id(task_id), priority(priority), notify(std::move(notify)) {}
 
         Group::GroupLock::GroupLock(Group& group, std::shared_ptr<LockHandle> handle)
@@ -112,7 +115,7 @@ namespace threading {
         Group::Group(std::shared_ptr<const util::GroupDescriptor> descriptor) : descriptor(std::move(descriptor)) {}
 
         std::unique_ptr<Lock> Group::lock(const NUClear::id_t& task_id,
-                                          const int& priority,
+                                          const PriorityLevel& priority,
                                           const std::function<void()>& notify) {
 
             auto handle = std::make_shared<LockHandle>(task_id, priority, notify);
