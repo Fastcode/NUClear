@@ -30,6 +30,7 @@
 #include <utility>
 #include <vector>
 
+#include "../../PriorityLevel.hpp"
 #include "../../dsl/word/MainThread.hpp"
 #include "../../id.hpp"
 #include "../../threading/Reaction.hpp"
