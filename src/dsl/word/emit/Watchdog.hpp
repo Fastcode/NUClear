@@ -125,8 +125,8 @@ namespace dsl {
              * @return A WatchdogServicer object which will update the service time of the specified watchdog
              */
             template <typename WatchdogGroup, typename RuntimeType>
-            WatchdogServicer<WatchdogGroup, RuntimeType> ServiceWatchdog(RuntimeType&& data) {
-                return WatchdogServicer<WatchdogGroup, RuntimeType>(std::forward<RuntimeType>(data));
+            std::unique_ptr<WatchdogServicer<WatchdogGroup, RuntimeType>> ServiceWatchdog(RuntimeType&& data) {
+                return std::make_unique<WatchdogServicer<WatchdogGroup, RuntimeType>>(std::forward<RuntimeType>(data));
             }
 
             /**
@@ -137,8 +137,8 @@ namespace dsl {
              * @return WatchdogServicer<WatchdogGroup, void>
              */
             template <typename WatchdogGroup>
-            WatchdogServicer<WatchdogGroup, void> ServiceWatchdog() {
-                return WatchdogServicer<WatchdogGroup, void>();
+            std::unique_ptr<WatchdogServicer<WatchdogGroup, void>> ServiceWatchdog() {
+                return std::make_unique<WatchdogServicer<WatchdogGroup, void>>();
             }
 
             /**
@@ -158,9 +158,9 @@ namespace dsl {
 
                 template <typename WatchdogGroup, typename RuntimeType>
                 static void emit(const PowerPlant& /*powerplant*/,
-                                 WatchdogServicer<WatchdogGroup, RuntimeType>& servicer) {
+                                 const std::shared_ptr<WatchdogServicer<WatchdogGroup, RuntimeType>>& servicer) {
                     // Update our service time
-                    servicer.service();
+                    servicer->service();
                 }
             };
 
