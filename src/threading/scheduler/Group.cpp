@@ -28,6 +28,7 @@
 #include <utility>
 #include <vector>
 
+#include "../../PriorityLevel.hpp"
 #include "../../id.hpp"
 #include "../../util/GroupDescriptor.hpp"
 #include "Lock.hpp"
