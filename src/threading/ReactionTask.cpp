@@ -29,7 +29,6 @@
 
 #include "../id.hpp"
 #include "../message/ReactionStatistics.hpp"
-#include "../util/platform.hpp"
 #include "Reaction.hpp"
 
 namespace NUClear {
