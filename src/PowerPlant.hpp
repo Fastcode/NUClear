@@ -311,24 +311,6 @@ public:
         FusionFunction::call(*this, data, std::forward<Arguments>(args)...);
     }
 
-    template <template <typename> class First, template <typename> class... Remainder, typename... Arguments>
-    void emit_shared(Arguments&&... args) {
-
-        using Functions      = std::tuple<First<void>, Remainder<void>...>;
-        using ArgumentPack   = decltype(std::forward_as_tuple(*this, std::forward<Arguments>(args)...));
-        using CallerArgs     = std::tuple<>;
-        using FusionFunction = util::FunctionFusion<Functions, ArgumentPack, EmitCaller, CallerArgs, 1>;
-
-        // Provide a check to make sure they are passing us the right stuff
-        static_assert(
-            FusionFunction::value,
-            "There was an error with the arguments for the emit function, Check that your scope and arguments "
-            "match what you are trying to do.");
-
-        // Fuse our emit handlers and call the fused function
-        FusionFunction::call(*this, std::forward<Arguments>(args)...);
-    }
-
     /// Our TaskScheduler that handles distributing task to the pool threads
     threading::scheduler::Scheduler scheduler;
     /// Our vector of Reactors, will get destructed when this vector is
