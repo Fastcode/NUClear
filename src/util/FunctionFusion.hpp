@@ -20,8 +20,8 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_UTIL_FUNCTIONFUSION_HPP
-#define NUCLEAR_UTIL_FUNCTIONFUSION_HPP
+#ifndef NUCLEAR_UTIL_FUNCTION_FUSION_HPP
+#define NUCLEAR_UTIL_FUNCTION_FUSION_HPP
 
 #include "Sequence.hpp"
 #include "tuplify.hpp"
@@ -51,8 +51,16 @@ namespace util {
     auto apply_function_fusion_call(const std::tuple<Arguments...>& args,
                                     const Sequence<Shared...>& /*shared*/,
                                     const Sequence<Selected...>& /*selected*/)
-        -> decltype(Function::call(std::get<Shared>(args)..., std::get<Selected>(args)...)) {
-        return Function::call(std::get<Shared>(args)..., std::get<Selected>(args)...);
+        -> decltype(Function::call(
+            std::get<Shared>(args)...,
+            static_cast<std::tuple_element_t<Selected, std::tuple<Arguments...>>>(std::get<Selected>(args))...)) {
+
+        return Function::call(
+            // By not moving/forwarding the shared arguments they will always end up as lvalues even if they were
+            // rvalues originally. That allows them to be used in multiple function calls without the first one being
+            // able to steal them via a move constructor etc
+            std::get<Shared>(args)...,
+            static_cast<std::tuple_element_t<Selected, std::tuple<Arguments...>>>(std::get<Selected>(args))...);
     }
 
     /**
@@ -138,13 +146,14 @@ namespace util {
          *
          * @return the result of calling this specific function
          */
-        template <typename Function, int Start, int End>
+        template <typename Function, int Start, int End, typename... Args>
         // It is forwarded as a tuple
-        // NOLINTNEXTLINE(cppcoreguidelines-rvalue-reference-param-not-moved)
-        static auto call_one(const Sequence<Start, End>& /*e*/, Arguments&&... args)
-            -> decltype(apply_function_fusion_call<Function, Shared, Start, End>(std::forward_as_tuple(args...))) {
+        static auto call_one(const Sequence<Start, End>& /*e*/, Args&&... args)
+            -> decltype(apply_function_fusion_call<Function, Shared, Start, End>(
+                std::forward_as_tuple(std::forward<Args>(args)...))) {
 
-            return apply_function_fusion_call<Function, Shared, Start, End>(std::forward_as_tuple(args...));
+            return apply_function_fusion_call<Function, Shared, Start, End>(
+                std::forward_as_tuple(std::forward<Args>(args)...));
         }
 
         /**
@@ -177,8 +186,14 @@ namespace util {
                                        NextStep::call(std::forward<Args>(args)...))) {
 
             // Call each on a separate line to preserve order of execution
+            // The std::forwards here are fine even though they are passed to multiple functions.
+            // As part of function fusion before, all of the shared arguments are enforced to be lvalues and only the
+            // selected arguments will be potentially rvalues. These rvalues are then only passed to a single target
+            // function, even if they are forwarded multiple times to the functions which select the right arguments.
+            // As shown in the moving test, casting to an rvalue, but then not using it won't change the result.
+            // NOLINTNEXTLINE(bugprone-use-after-move)
             auto current   = tuplify(call_one<CurrentFunction>(CurrentRange(), std::forward<Args>(args)...));
-            auto remainder = NextStep::call(std::forward<Args>(args)...);
+            auto remainder = NextStep::call(std::forward<Args>(args)...);  // NOLINT(bugprone-use-after-move)
 
             return std::tuple_cat(std::move(current), std::move(remainder));
         }
@@ -200,8 +215,8 @@ namespace util {
         using no  = std::false_type;
 
         template <typename F>
-        static auto test(int) -> decltype(apply_function_fusion_call<F, Shared, Start, End>(std::declval<Arguments>()),
-                                          yes());
+        static auto test(int)
+            -> decltype(apply_function_fusion_call<F, Shared, Start, End>(std::declval<Arguments>()), yes());
         template <typename>
         static no test(...);
 
@@ -211,8 +226,7 @@ namespace util {
 
     template <typename Functions,
               typename Arguments,
-              template <typename, typename...>
-              class FunctionWrapper,
+              template <typename, typename...> class FunctionWrapper,
               typename WrapperArgs,
               int Shared                  = 0,
               int Start                   = Shared,
@@ -248,8 +262,7 @@ namespace util {
     template <typename CurrentFunction,
               typename... Functions,
               typename... Arguments,
-              template <typename, typename...>
-              class FunctionWrapper,
+              template <typename, typename...> class FunctionWrapper,
               typename... WrapperArgs,
               int Shared,
               int Start,
@@ -332,8 +345,7 @@ namespace util {
      * Otherwise it will be a false_type to indicate its failure.
      */
     template <typename... Arguments,
-              template <typename, typename...>
-              class FunctionWrapper,
+              template <typename, typename...> class FunctionWrapper,
               typename... WrapperArgs,
               int Shared,
               int Start,
@@ -364,4 +376,4 @@ namespace util {
 }  // namespace util
 }  // namespace NUClear
 
-#endif  // NUCLEAR_UTIL_FUNCTIONFUSION_HPP
+#endif  // NUCLEAR_UTIL_FUNCTION_FUSION_HPP

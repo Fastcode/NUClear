@@ -22,9 +22,17 @@
 
 #include "TraceController.hpp"
 
+#include <atomic>
 #include <chrono>
+#include <cstdint>
+#include <ios>
+#include <memory>
 #include <regex>
+#include <string>
+#include <utility>
+#include <vector>
 
+#include "../Reactor.hpp"
 #include "../message/LogMessage.hpp"
 #include "../message/ReactionStatistics.hpp"
 #include "../message/Trace.hpp"
@@ -39,44 +47,60 @@ namespace extension {
     using message::ReactionEvent;
     using message::ReactionStatistics;
 
-    /// Use a constant sequence id as there will only be one writer, 0 is invalid so 1 is the first valid id
-    constexpr uint32_t trusted_packet_sequence_id = 1;
+    namespace {  // Anonymous namespace for internal linkage
 
-    // Extracted from the chromium trace format
-    enum SequenceFlags : int32_t { SEQ_NEEDS_INCREMENTAL_STATE = 2, SEQ_INCREMENTAL_STATE_CLEARED = 1 };
-    enum TrackDescriptorType : int32_t { TYPE_SLICE_BEGIN = 1, TYPE_SLICE_END = 2, TYPE_INSTANT = 3 };
-    enum BuiltinCounterType : int32_t { COUNTER_THREAD_TIME_NS = 1 };
-    enum LogMessagePriority : int32_t {
-        PRIO_UNSPECIFIED = 0,
-        PRIO_UNUSED      = 1,
-        PRIO_VERBOSE     = 2,
-        PRIO_DEBUG       = 3,
-        PRIO_INFO        = 4,
-        PRIO_WARN        = 5,
-        PRIO_ERROR       = 6,
-        PRIO_FATAL       = 7,
-    };
+        /// Use a constant sequence id as there will only be one writer, 0 is invalid so 1 is the first valid id
+        constexpr uint32_t trusted_packet_sequence_id = 1;
 
-    template <typename T>
-    std::chrono::nanoseconds ts(const T& timestamp) {
-        return std::chrono::duration_cast<std::chrono::nanoseconds>(timestamp.time_since_epoch());
-    }
+        // Extracted from the chromium trace format
+        enum SequenceFlags : int8_t { SEQ_NEEDS_INCREMENTAL_STATE = 2, SEQ_INCREMENTAL_STATE_CLEARED = 1 };
+        enum TrackDescriptorType : int8_t { TYPE_SLICE_BEGIN = 1, TYPE_SLICE_END = 2, TYPE_INSTANT = 3 };
+        enum BuiltinCounterType : int8_t { COUNTER_THREAD_TIME_NS = 1 };
+        enum LogMessagePriority : int8_t {
+            PRIO_UNSPECIFIED = 0,
+            PRIO_UNUSED      = 1,
+            PRIO_VERBOSE     = 2,
+            PRIO_DEBUG       = 3,
+            PRIO_INFO        = 4,
+            PRIO_WARN        = 5,
+            PRIO_ERROR       = 6,
+            PRIO_FATAL       = 7,
+        };
+
+        template <typename T>
+        std::chrono::nanoseconds ts(const T& timestamp) {
+            return std::chrono::duration_cast<std::chrono::nanoseconds>(timestamp.time_since_epoch());
+        }
+
+        std::string name_for_id(const std::shared_ptr<const NUClear::threading::ReactionIdentifiers>& ids) {
+            if (ids == nullptr) {
+                // With no identifiers we can't do anything
+                return "";
+            }
+            if (ids->name.empty()) {
+                // Remove the namespace from the DSL with a regex
+                return std::regex_replace(ids->dsl, std::regex("[A-Za-z_][A-Za-z0-9_]+::"), "");
+            }
+            return ids->name;
+        }
+
+        const ReactionStatistics::Event& relevant_event(const ReactionEvent& event) {
+            const auto& statistics = *event.statistics;
+            switch (event.type) {
+                case ReactionEvent::BLOCKED:
+                case ReactionEvent::MISSING_DATA:
+                case ReactionEvent::CREATED: return statistics.created;
+                case ReactionEvent::STARTED: return statistics.started;
+                case ReactionEvent::FINISHED: return statistics.finished;
+                default: throw std::invalid_argument("Unknown event type");
+            }
+        }
+
+    }  // namespace
 
     void TraceController::write_trace_packet(const std::vector<char>& packet) {
         // Write the packet to the file
-        trace_file.write(packet.data(), ssize_t(packet.size()));
-    }
-
-    std::string name_for_id(const std::shared_ptr<const NUClear::threading::ReactionIdentifiers>& ids) {
-        if (ids == nullptr) {
-            // With no identifiers we can't do anything
-            return "";
-        }
-        if (ids->name.empty()) {
-            // Remove the namespace from the DSL with a regex
-            return std::regex_replace(ids->dsl, std::regex("[A-Za-z_][A-Za-z0-9_]+::"), "");
-        }
-        return ids->name;
+        trace_file.write(packet.data(), std::streamsize(packet.size()));
     }
 
     uint64_t TraceController::process() {
@@ -141,18 +165,6 @@ namespace extension {
         write_trace_packet(data);
 
         return uuid;
-    }
-
-    const ReactionStatistics::Event& relevant_event(const ReactionEvent& event) {
-        const auto& statistics = *event.statistics;
-        switch (event.type) {
-            case ReactionEvent::BLOCKED:
-            case ReactionEvent::MISSING_DATA:
-            case ReactionEvent::CREATED: return statistics.created;
-            case ReactionEvent::STARTED: return statistics.started;
-            case ReactionEvent::FINISHED: return statistics.finished;
-            default: throw std::invalid_argument("Unknown event type");
-        }
     }
 
     void TraceController::encode_event(const ReactionEvent& event) {

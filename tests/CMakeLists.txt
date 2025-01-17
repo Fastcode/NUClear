@@ -32,21 +32,22 @@ FetchContent_MakeAvailable(Catch2)
 
 # Silence clang-tidy warnings from catch2
 get_target_property(catch2_target Catch2::Catch2 ALIASED_TARGET)
-set_target_properties(${catch2_target} PROPERTIES CXX_CLANG_TIDY "")
-set_target_properties(${catch2_target} PROPERTIES CXX_CLANG_TIDY "")
 get_target_property(catch2_with_main_target Catch2::Catch2WithMain ALIASED_TARGET)
-set_target_properties(${catch2_with_main_target} PROPERTIES CXX_CLANG_TIDY "")
-set_target_properties(${catch2_with_main_target} PROPERTIES CXX_CLANG_TIDY "")
+set(catch2_targets ${catch2_target} ${catch2_with_main_target})
+
+set_target_properties(${catch2_targets} PROPERTIES CXX_CLANG_TIDY "")
+set_target_properties(${catch2_targets} PROPERTIES CXX_CLANG_TIDY "")
+set_target_properties(${catch2_target} PROPERTIES CMAKE_CXX_FLAGS "")
 
 # Create a test_util library that is used by all tests
 file(GLOB_RECURSE test_util_src "test_util/*.cpp")
 add_library(test_util OBJECT ${test_util_src})
+# This is linking WHOLE_ARCHIVE as otherwise the linker will remove the WSAHolder from the final binary
+# As a result the WSA initialisation code won't run and the network tests will fail
 target_link_libraries(test_util INTERFACE "$<LINK_LIBRARY:WHOLE_ARCHIVE,NUClear::nuclear>")
 target_link_libraries(test_util PUBLIC Catch2::Catch2)
+target_include_directories(test_util PUBLIC ${PROJECT_BINARY_DIR}/include ${PROJECT_SOURCE_DIR}/src)
 target_include_directories(test_util PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-target_include_directories(
-  test_util SYSTEM PUBLIC ${CATCH_INCLUDE_DIRS} ${PROJECT_BINARY_DIR}/include "${PROJECT_SOURCE_DIR}/src"
-)
 
 # Create a test binary for each test file
 file(GLOB_RECURSE test_sources "tests/*.cpp")

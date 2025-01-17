@@ -147,7 +147,7 @@ namespace dsl {
                 // Generate a reaction for the IO system that closes on death
                 const fd_t cfd = fd.release();
 
-                reaction->unbinders.push_back([cfd](const threading::Reaction&) {
+                reaction->unbinders.emplace_back([cfd](const threading::Reaction&) {
                     ::shutdown(cfd, SHUT_RDWR);
                     ::close(cfd);
                 });

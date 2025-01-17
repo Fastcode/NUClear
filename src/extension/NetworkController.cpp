@@ -22,7 +22,22 @@
 
 #include "NetworkController.hpp"
 
+#include <algorithm>
+#include <chrono>
+#include <cstdint>
+#include <memory>
+#include <mutex>
+#include <utility>
+#include <vector>
+
+#include "../Reactor.hpp"
+#include "../dsl/operation/Unbind.hpp"
+#include "../dsl/store/ThreadStore.hpp"
+#include "../dsl/word/Network.hpp"
+#include "../dsl/word/emit/Network.hpp"
+#include "../message/NetworkConfiguration.hpp"
 #include "../message/NetworkEvent.hpp"
+#include "../util/get_hostname.hpp"
 
 namespace NUClear {
 namespace extension {
@@ -107,11 +122,11 @@ namespace extension {
             const std::lock_guard<std::mutex> lock(reaction_mutex);
 
             // Find and delete this reaction
-            for (auto it = reactions.begin(); it != reactions.end(); ++it) {
-                if (it->second->id == unbind.id) {
-                    reactions.erase(it);
-                    break;
-                }
+            auto it = std::find_if(reactions.begin(), reactions.end(), [&](const auto& r) {
+                return r.second->id == unbind.id;
+            });
+            if (it != reactions.end()) {
+                reactions.erase(it);
             }
         });
 

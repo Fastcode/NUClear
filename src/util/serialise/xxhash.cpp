@@ -100,7 +100,7 @@ namespace util {
 
         }  // namespace
 
-        uint32_t xxhash32(const void* input_v, const size_t& length, const uint32_t& seed) {
+        uint32_t xxhash32(const char* input, const size_t& length, const uint32_t& seed) {
 
             static constexpr uint32_t PRIME1 = 0x9E3779B1U;
             static constexpr uint32_t PRIME2 = 0x85EBCA77U;
@@ -108,8 +108,6 @@ namespace util {
             static constexpr uint32_t PRIME4 = 0x27D4EB2FU;
             static constexpr uint32_t PRIME5 = 0x165667B1U;
 
-            // Cast the input pointer to a character pointer.
-            const auto* input = static_cast<const char*>(input_v);
             /// The hash value being calculated.
             uint32_t h{};
             /// A pointer to the current position in the input buffer.
@@ -156,7 +154,7 @@ namespace util {
             return h;
         }
 
-        uint64_t xxhash64(const void* input_v, const size_t& length, const uint64_t& seed) {
+        uint64_t xxhash64(const char* input, const size_t& length, const uint64_t& seed) {
 
             static constexpr uint64_t PRIME1 = 11400714785074694791ULL;
             static constexpr uint64_t PRIME2 = 14029467366897019727ULL;
@@ -164,8 +162,6 @@ namespace util {
             static constexpr uint64_t PRIME4 = 9650029242287828579ULL;
             static constexpr uint64_t PRIME5 = 2870177450012600261ULL;
 
-            // Cast the input pointer to a character pointer.
-            const auto* input = static_cast<const char*>(input_v);
             /// The hash value being calculated.
             uint64_t h{};
             /// A pointer to the current position in the input buffer.

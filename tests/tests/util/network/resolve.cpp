@@ -23,7 +23,10 @@
 #include "util/network/resolve.hpp"
 
 #include <catch2/catch_test_macros.hpp>
+#include <cstdint>
 #include <string>
+
+#include "util/platform.hpp"
 
 
 TEST_CASE("resolve function returns expected socket address", "[util][network][resolve]") {

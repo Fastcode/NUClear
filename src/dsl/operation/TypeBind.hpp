@@ -23,6 +23,8 @@
 #ifndef NUCLEAR_DSL_OPERATION_TYPE_BIND_HPP
 #define NUCLEAR_DSL_OPERATION_TYPE_BIND_HPP
 
+#include <algorithm>
+
 #include "../store/TypeCallbackStore.hpp"
 
 namespace NUClear {
@@ -56,15 +58,16 @@ namespace dsl {
          */
         template <typename DataType>
         struct TypeBind {
+            TypeBind() = delete;  // Ensure that DSL words are not instantiated
 
             template <typename DSL>
             static void bind(const std::shared_ptr<threading::Reaction>& reaction) {
 
                 // Set this reaction as no stats emitting
-                reaction->emit_stats &= EmitStats<DataType>::value;
+                reaction->emit_stats = reaction->emit_stats && EmitStats<DataType>::value;
 
                 // Our unbinder to remove this reaction
-                reaction->unbinders.push_back([](const threading::Reaction& r) {
+                reaction->unbinders.emplace_back([](const threading::Reaction& r) {
                     auto& vec = store::TypeCallbackStore<DataType>::get();
 
                     auto it = std::find_if(

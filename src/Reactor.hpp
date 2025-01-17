@@ -24,18 +24,22 @@
 #define NUCLEAR_REACTOR_HPP
 
 #include <chrono>
-#include <functional>
+#include <cstddef>
+#include <memory>
 #include <regex>
 #include <string>
-#include <typeindex>
+#include <tuple>
+#include <utility>
 #include <vector>
 
-#include "Environment.hpp"
-#include "LogLevel.hpp"
+#include "Environment.hpp"  // IWYU pragma: export
+#include "LogLevel.hpp"     // IWYU pragma: export
+#include "clock.hpp"        // IWYU pragma: export
 #include "dsl/Parse.hpp"
-#include "threading/Reaction.hpp"
-#include "threading/ReactionHandle.hpp"
-#include "threading/ReactionIdentifiers.hpp"
+#include "id.hpp"                             // IWYU pragma: export
+#include "threading/Reaction.hpp"             // IWYU pragma: export
+#include "threading/ReactionHandle.hpp"       // IWYU pragma: export
+#include "threading/ReactionIdentifiers.hpp"  // IWYU pragma: export
 #include "util/CallbackGenerator.hpp"
 #include "util/Sequence.hpp"
 #include "util/demangle.hpp"
@@ -131,9 +135,9 @@ namespace dsl {
             template <typename WatchdogGroup, typename RuntimeType>
             struct WatchdogServicer;
             template <typename WatchdogGroup, typename RuntimeType>
-            WatchdogServicer<WatchdogGroup, RuntimeType> ServiceWatchdog(RuntimeType&& data);
+            std::unique_ptr<WatchdogServicer<WatchdogGroup, RuntimeType>> ServiceWatchdog(RuntimeType&& data);
             template <typename WatchdogGroup>
-            WatchdogServicer<WatchdogGroup, void> ServiceWatchdog();
+            std::unique_ptr<WatchdogServicer<WatchdogGroup, void>> ServiceWatchdog();
         }  // namespace emit
     }  // namespace word
 }  // namespace dsl
@@ -177,10 +181,12 @@ public:
     /// The demangled string name of this reactor
     const std::string reactor_name;
 
-protected:
-    /// The level that this reactor logs at
+    /// The display level above which logs from this reactor will be displayed
     LogLevel log_level{LogLevel::INFO};
+    /// The minimum log level that will be always emitted (if log_level is below this those will be emitted too)
+    LogLevel min_log_level{LogLevel::DEBUG};
 
+protected:
     /***************************************************************************************************************
      * The types here are imported from other contexts so that when extending from the Reactor type in normal      *
      * usage there does not need to be any namespace declarations on the used types.                               *
@@ -266,10 +272,7 @@ protected:
 
     /// @copydoc dsl::word::emit::ServiceWatchdog
     template <typename WatchdogGroup, typename... Arguments>
-    auto ServiceWatchdog(Arguments&&... args)
-        // THIS IS VERY IMPORTANT, the return type must be dependent on the function call
-        // otherwise it won't check it's valid in SFINAE
-        -> decltype(dsl::word::emit::ServiceWatchdog<WatchdogGroup>(std::forward<Arguments>(args)...)) {
+    auto ServiceWatchdog(Arguments&&... args) {
         return dsl::word::emit::ServiceWatchdog<WatchdogGroup>(std::forward<Arguments>(args)...);
     }
 
@@ -318,6 +321,19 @@ protected:
         using WATCHDOG = dsl::word::emit::Watchdog<T>;
     };
 
+    /// @copydoc NUClear::LogLevel::Value::TRACE
+    static constexpr LogLevel TRACE = LogLevel::TRACE;
+    // @copydoc NUClear::LogLevel::Value::DEBUG
+    static constexpr LogLevel DEBUG = LogLevel::DEBUG;
+    // @copydoc NUClear::LogLevel::Value::INFO
+    static constexpr LogLevel INFO = LogLevel::INFO;
+    // @copydoc NUClear::LogLevel::Value::WARN
+    static constexpr LogLevel WARN = LogLevel::WARN;
+    // @copydoc NUClear::LogLevel::Value::ERROR
+    static constexpr LogLevel ERROR = LogLevel::ERROR;
+    // @copydoc NUClear::LogLevel::Value::FATAL
+    static constexpr LogLevel FATAL = LogLevel::FATAL;
+
     /// This provides functions to modify how an on statement runs after it has been created
     using ReactionHandle = threading::ReactionHandle;
 
@@ -349,7 +365,7 @@ public:
                 util::CallbackGenerator<DSL, Function>(std::forward<Function>(callback)));
 
             // Get our tuple from binding our reaction
-            auto tuple = DSL::bind(reaction, std::get<Index>(args)...);
+            auto tuple = DSL::bind(reaction, std::move(std::get<Index>(args))...);
 
             auto handle = threading::ReactionHandle(reaction);
             reactor.reaction_handles.push_back(handle);
@@ -360,7 +376,8 @@ public:
         }
 
     public:
-        Binder(Reactor& r, Arguments&&... args) : reactor(r), args(args...) {}
+        template <typename... Args>
+        Binder(Reactor& r, Args&&... args) : reactor(r), args(std::forward<Args>(args)...) {}
 
         template <typename Label, typename Function>
         auto then(Label&& label, Function&& callback) {
@@ -434,11 +451,12 @@ public:
      *
      * @param args The arguments we are logging
      */
-    template <enum LogLevel level = DEBUG, typename... Arguments>
+    template <LogLevel::Value level = DEBUG, typename... Arguments>
     void log(Arguments&&... args) const {
-
-        // If the log is above or equal to our log level
-        powerplant.log<level>(std::forward<Arguments>(args)...);
+        // Short circuit here before going to the more expensive log function
+        if (level >= min_log_level || level >= log_level) {
+            powerplant.log<level>(this, std::forward<Arguments>(args)...);
+        }
     }
 
     /**
@@ -453,9 +471,10 @@ public:
      */
     template <typename... Arguments>
     void log(const LogLevel& level, Arguments&&... args) const {
-
-        // If the log is above or equal to our log level
-        powerplant.log(level, std::forward<Arguments>(args)...);
+        // Short circuit here before going to the more expensive log function
+        if (level >= min_log_level || level >= log_level) {
+            powerplant.log(this, level, std::forward<Arguments>(args)...);
+        }
     }
 };
 

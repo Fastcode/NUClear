@@ -20,13 +20,24 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+#include <catch2/catch_message.hpp>
 #include <catch2/catch_test_macros.hpp>
-#include <nuclear>
+#include <memory>
+#include <string>
+#include <utility>
+#include <vector>
 
+#include "dsl/operation/TypeBind.hpp"
+#include "nuclear"
 #include "test_util/TestBase.hpp"
 #include "test_util/common.hpp"
 
-struct CustomGet : NUClear::dsl::operation::TypeBind<CustomGet> {
+struct CustomGet {
+
+    template <typename DSL>
+    static void bind(const std::shared_ptr<NUClear::threading::Reaction>& reaction) {
+        NUClear::dsl::operation::TypeBind<CustomGet>::template bind<DSL>(reaction);
+    }
 
     template <typename DSL>
     static std::shared_ptr<std::string> get(const NUClear::threading::ReactionTask& /*task*/) {

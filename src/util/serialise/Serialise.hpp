@@ -115,7 +115,7 @@ namespace util {
             static uint64_t hash() {
 
                 // Serialise based on the demangled class name
-                std::string type_name = demangle(typeid(T).name());
+                const std::string type_name = demangle(typeid(T).name());
                 return xxhash64(type_name.c_str(), type_name.size(), 0x4e55436c);
             }
         };

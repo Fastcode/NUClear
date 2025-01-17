@@ -20,11 +20,18 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+#include <catch2/catch_message.hpp>
 #include <catch2/catch_test_macros.hpp>
-#include <nuclear>
+#include <memory>
+#include <string>
+#include <utility>
+#include <vector>
 
+#include "nuclear"
 #include "test_util/TestBase.hpp"
 #include "test_util/common.hpp"
+
+namespace {  // Anonymous namespace to ensure internal linkage
 
 /// Events that occur during the test
 std::vector<std::string> events;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
@@ -78,6 +85,8 @@ void raw_function_test_right_arg(const Data& data) {
 void raw_function_test_both_args(const Message& msg, const Data& data) {
     events.push_back("Raw function both args: " + msg.data + " " + data.data);
 }
+
+}  // namespace
 
 class TestReactor : public test_util::TestBase<TestReactor> {
 public:

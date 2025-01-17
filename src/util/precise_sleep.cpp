@@ -22,9 +22,13 @@
 
 #include "precise_sleep.hpp"
 
+#include <time.h>  // NOLINT(modernize-deprecated-headers) Technically nanosleep lives in time.h not ctime
+
+#include <chrono>
+#include <ctime>
+
 #if defined(_WIN32)
 
-    #include <chrono>
     #include <cstdint>
     #include <stdexcept>
 
@@ -61,8 +65,6 @@ namespace util {
 #else
 
     #include <cerrno>
-    #include <cstdint>
-    #include <ctime>
 
 namespace NUClear {
 namespace util {

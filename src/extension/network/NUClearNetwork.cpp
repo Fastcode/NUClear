@@ -23,52 +23,66 @@
 #include "NUClearNetwork.hpp"
 
 #include <algorithm>
+#include <array>
+#include <atomic>
+#include <chrono>
+#include <cstdint>
 #include <cstring>
+#include <functional>
 #include <iterator>
-#include <ratio>
+#include <memory>
+#include <mutex>
 #include <stdexcept>
+#include <string>
 #include <system_error>
 #include <utility>
+#include <vector>
 
 #include "../../util/network/if_number_from_address.hpp"
 #include "../../util/network/resolve.hpp"
+#include "../../util/network/sock_t.hpp"
 #include "../../util/platform.hpp"
+#include "wire_protocol.hpp"
 
 namespace NUClear {
 namespace extension {
     namespace network {
 
-        /**
-         * Read a single packet from the given udp file descriptor.
-         *
-         * @param fd The file descriptor to read from
-         *
-         * @return The data and who it was sent from
-         */
-        std::pair<util::network::sock_t, std::vector<uint8_t>> read_socket(fd_t fd) {
+        namespace {  // Anonymous namespace for internal linkage
 
-            // Allocate a vector that can hold a datagram
-            std::vector<uint8_t> payload(1500);
-            iovec iov{};
-            iov.iov_base = reinterpret_cast<char*>(payload.data());
-            iov.iov_len  = static_cast<decltype(iov.iov_len)>(payload.size());
+            /**
+             * Read a single packet from the given udp file descriptor.
+             *
+             * @param fd The file descriptor to read from
+             *
+             * @return The data and who it was sent from
+             */
+            std::pair<util::network::sock_t, std::vector<uint8_t>> read_socket(fd_t fd) {
 
-            // Who we are receiving from
-            util::network::sock_t from{};
+                // Allocate a vector that can hold a datagram
+                std::vector<uint8_t> payload(1500);
+                iovec iov{};
+                iov.iov_base = reinterpret_cast<char*>(payload.data());
+                iov.iov_len  = static_cast<decltype(iov.iov_len)>(payload.size());
 
-            // Setup our message header to receive
-            msghdr mh{};
-            mh.msg_name    = &from.sock;
-            mh.msg_namelen = sizeof(from);
-            mh.msg_iov     = &iov;
-            mh.msg_iovlen  = 1;
+                // Who we are receiving from
+                util::network::sock_t from{};
 
-            // Now read the data for real
-            const ssize_t received = recvmsg(fd, &mh, 0);
-            payload.resize(received);
+                // Setup our message header to receive
+                msghdr mh{};
+                mh.msg_name    = &from.sock;
+                mh.msg_namelen = sizeof(from);
+                mh.msg_iov     = &iov;
+                mh.msg_iovlen  = 1;
 
-            return {from, std::move(payload)};
-        }
+                // Now read the data for real
+                const ssize_t received = recvmsg(fd, &mh, 0);
+                payload.resize(received);
+
+                return {from, std::move(payload)};
+            }
+
+        }  // namespace
 
         NUClearNetwork::PacketQueue::PacketTarget::PacketTarget(std::weak_ptr<NetworkTarget> target,
                                                                 std::vector<uint8_t> acked)
@@ -189,7 +203,7 @@ namespace extension {
             // Work out what type of announce we are doing as it will influence how we make the socket
             const bool multicast =
                 (announce_target.sock.sa_family == AF_INET
-                 && (ntohl(announce_target.ipv4.sin_addr.s_addr) & 0xF0000000) == 0xE0000000)
+                 && (ntohl(announce_target.ipv4.sin_addr.s_addr) & 0xF0000000U) == 0xE0000000)
                 || (announce_target.sock.sa_family == AF_INET6 && announce_target.ipv6.sin6_addr.s6_addr[0] == 0xFF);
 
             // Make our socket
@@ -851,6 +865,15 @@ namespace extension {
                                     // We have completed this packet, discard the data
                                     assemblers.erase(assemblers.find(packet.packet_id));
                                 }
+
+                                // Check for and delete any timed out packets
+                                for (auto it = assemblers.begin(); it != assemblers.end();) {
+                                    const auto now              = std::chrono::steady_clock::now();
+                                    const auto timeout          = remote->round_trip_time * 10.0;
+                                    const auto& last_chunk_time = it->second.first;
+
+                                    it = now > last_chunk_time + timeout ? assemblers.erase(it) : std::next(it);
+                                }
                             }
                         }
                     } break;
@@ -911,7 +934,7 @@ namespace extension {
                                                                      ? 0xFF
                                                                      : 0xFF >> (8 - (packet.packet_count % 8));
 
-                                        all_acked &= static_cast<int>((s->acked[i] & expected) == expected);
+                                        all_acked = all_acked && ((s->acked[i] & expected) == expected);
                                     }
 
                                     // The remote has received this entire packet we can erase our sender

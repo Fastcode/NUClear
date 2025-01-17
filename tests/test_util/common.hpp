@@ -23,9 +23,8 @@
 #ifndef TEST_UTIL_COMMON_HPP
 #define TEST_UTIL_COMMON_HPP
 
-#include <nuclear>
-
 #include "executable_path.hpp"
+#include "nuclear"
 
 namespace test_util {
 

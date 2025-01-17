@@ -22,7 +22,10 @@
 
 #include "has_ipv6.hpp"
 
-#include <nuclear>
+#include <algorithm>
+
+#include "util/network/get_interfaces.hpp"
+#include "util/platform.hpp"
 
 namespace test_util {
 

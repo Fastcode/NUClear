@@ -18,7 +18,7 @@ concurrency:
 jobs:
   sonarcloud:
     name: SonarCloud
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     env:
       BUILD_WRAPPER_OUT_DIR: build_wrapper_output_directory # Directory where build-wrapper output will be placed
     steps:
@@ -85,6 +85,15 @@ jobs:
             --exclude-noncode-lines \
             --gcov-ignore-parse-errors negative_hits.warn \
             --sonarqube "coverage.xml"
+
+      - name: Upload coverage report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-sonar
+          path: coverage.xml
+          retention-days: 1 # This sets the artifact TTL to 1 day (minimum is 1 day)
+          overwrite: true
 
       - name: Run sonar-scanner
         if: ${{ !cancelled() }}

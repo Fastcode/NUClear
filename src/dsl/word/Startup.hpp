@@ -39,9 +39,17 @@ namespace dsl {
          * @par Implements
          *  Bind
          */
-        struct Startup : operation::TypeBind<Startup> {};
+        struct Startup {};
 
     }  // namespace word
+
+    namespace operation {
+
+        template <>
+        struct DSLProxy<word::Startup> : operation::TypeBind<word::Startup> {};
+
+    }  // namespace operation
+
 }  // namespace dsl
 }  // namespace NUClear
 

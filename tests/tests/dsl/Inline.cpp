@@ -20,12 +20,21 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+#include <catch2/catch_message.hpp>
 #include <catch2/catch_test_macros.hpp>
-#include <nuclear>
+#include <map>
+#include <memory>
+#include <mutex>
+#include <string>
+#include <thread>
+#include <utility>
+#include <vector>
 
+#include "nuclear"
 #include "test_util/TestBase.hpp"
 #include "test_util/TimeUnit.hpp"
 #include "test_util/common.hpp"
+#include "threading/scheduler/Pool.hpp"
 #include "util/precise_sleep.hpp"
 
 class TestReactor : public test_util::TestBase<TestReactor> {
