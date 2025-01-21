@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2023 NUClear Contributors
+ * Copyright (c) 2025 NUClear Contributors
  *
  * This file is part of the NUClear codebase.
  * See https://github.com/Fastcode/NUClear for further info.
@@ -29,7 +29,7 @@
 
 namespace test_util {
 
-bool has_ipv6() {
+bool has_ipv4_multicast() {
     // See if any interface has multicast ipv4
     auto ifaces = NUClear::util::network::get_interfaces();
     return std::any_of(ifaces.begin(), ifaces.end(), [](const auto& iface) {
