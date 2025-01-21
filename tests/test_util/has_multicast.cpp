@@ -20,13 +20,27 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef TEST_UTIL_HAS_IPV4_MULTICAST_HPP
-#define TEST_UTIL_HAS_IPV4_MULTICAST_HPP
+#include <algorithm>
+
+#include "has_ipv4_multicast.hpp"
+#include "util/network/get_interfaces.hpp"
+#include "util/platform.hpp"
 
 namespace test_util {
 
-bool has_ipv4_multicast();
+bool has_ipv4_multicast() {
+    // See if any interface has multicast ipv4
+    auto ifaces = NUClear::util::network::get_interfaces();
+    return std::any_of(ifaces.begin(), ifaces.end(), [](const auto& iface) {
+        return iface.ip.sock.sa_family == AF_INET && iface.flags.multicast;
+    });
+}
+
+bool has_ipv6_multicast() {
+    // See if any interface has multicast ipv6
+    auto ifaces = NUClear::util::network::get_interfaces();
+    return std::any_of(ifaces.begin(), ifaces.end(), [](const auto& iface) {
+        return iface.ip.sock.sa_family == AF_INET6 && iface.flags.multicast;
+    });
 
 }  // namespace test_util
-
-#endif  // TEST_UTIL_HAS_IPV4_MULTICAST_HPP
