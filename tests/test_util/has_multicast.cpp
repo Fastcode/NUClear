@@ -20,9 +20,10 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+#include "has_multicast.hpp"
+
 #include <algorithm>
 
-#include "has_ipv4_multicast.hpp"
 #include "util/network/get_interfaces.hpp"
 #include "util/platform.hpp"
 
