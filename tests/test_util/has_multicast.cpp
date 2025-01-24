@@ -43,5 +43,6 @@ bool has_ipv6_multicast() {
     return std::any_of(ifaces.begin(), ifaces.end(), [](const auto& iface) {
         return iface.ip.sock.sa_family == AF_INET6 && iface.flags.multicast;
     });
+}
 
 }  // namespace test_util
