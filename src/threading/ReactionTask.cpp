@@ -29,7 +29,6 @@
 
 #include "../id.hpp"
 #include "../message/ReactionStatistics.hpp"
-#include "../util/platform.hpp"
 #include "Reaction.hpp"
 
 namespace NUClear {
@@ -95,7 +94,7 @@ namespace threading {
 
     // Initialize our current task
     // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
-    ATTRIBUTE_TLS ReactionTask* ReactionTask::current_task = nullptr;
+    thread_local ReactionTask* ReactionTask::current_task = nullptr;
 
 }  // namespace threading
 }  // namespace NUClear

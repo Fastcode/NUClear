@@ -24,7 +24,6 @@
 
 #include "../../id.hpp"
 #include "../../threading/ReactionTask.hpp"
-#include "../../util/platform.hpp"
 
 namespace NUClear {
 namespace dsl {
@@ -93,12 +92,12 @@ namespace dsl {
         private:
             /// The current task id that is running
             // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
-            static ATTRIBUTE_TLS NUClear::id_t current_task_id;
+            static thread_local NUClear::id_t current_task_id;
         };
 
         // Initialise the current task id
         template <typename Group>  // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
-        ATTRIBUTE_TLS NUClear::id_t TaskScope<Group>::current_task_id{0};
+        thread_local NUClear::id_t TaskScope<Group>::current_task_id{0};
 
     }  // namespace word
 }  // namespace dsl
