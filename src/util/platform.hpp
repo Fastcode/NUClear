@@ -97,17 +97,6 @@
 #endif  // _WIN32
 
 /*******************************************
- *      SHIM FOR THREAD LOCAL STORAGE      *
- *******************************************/
-#if defined(__GNUC__)
-    #define ATTRIBUTE_TLS __thread
-#elif defined(_WIN32)
-    #define ATTRIBUTE_TLS __declspec(thread)
-#else  // !__GNUC__ && !_MSC_VER
-    #error "Define a thread local storage qualifier for your compiler/platform!"
-#endif
-
-/*******************************************
  *           SHIM FOR NETWORKING           *
  *******************************************/
 #if defined(__APPLE__) && defined(__MACH__)
