@@ -32,7 +32,6 @@
 #include "../util/GroupDescriptor.hpp"
 #include "../util/Inline.hpp"
 #include "../util/ThreadPoolDescriptor.hpp"
-#include "../util/platform.hpp"
 #include "Reaction.hpp"
 
 namespace NUClear {
@@ -53,7 +52,7 @@ namespace threading {
     class ReactionTask {
     private:
         /// The current task that is being executed by this thread (or nullptr if none is)
-        static ATTRIBUTE_TLS ReactionTask* current_task;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+        static thread_local ReactionTask* current_task;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
     public:
         /// Type of the functions that ReactionTasks execute
