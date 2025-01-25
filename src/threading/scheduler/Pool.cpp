@@ -36,7 +36,6 @@
 #include "../../message/ReactionStatistics.hpp"
 #include "../../threading/Reaction.hpp"
 #include "../../util/Inline.hpp"
-#include "../../util/platform.hpp"
 #include "../../util/ThreadPriority.hpp"
 #include "../ReactionTask.hpp"
 #include "CountingLock.hpp"
@@ -286,7 +285,7 @@ namespace threading {
 
         // Initialise the current pool to nullptr if it is not already
         // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
-        ATTRIBUTE_TLS Pool* Pool::current_pool = nullptr;
+        thread_local Pool* Pool::current_pool = nullptr;
 
     }  // namespace scheduler
 }  // namespace threading
