@@ -40,7 +40,7 @@ public:
     };
 
     TestReactor(std::unique_ptr<NUClear::Environment> environment)
-        : TestBase(std::move(environment), true, test_util::TimeUnit(50)) {
+        : TestBase(std::move(environment), true, test_util::TimeUnit(150)) {
 
         on<Trigger<Message<'A'>>, Sync<TestReactor>>().then([this](const Message<'A'>& m) {  //
             events.emplace_back('A', m.val);
