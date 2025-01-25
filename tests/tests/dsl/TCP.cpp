@@ -84,7 +84,7 @@ public:
     }
 
     TestReactor(std::unique_ptr<NUClear::Environment> environment, const std::vector<TestType>& active_tests_)
-        : TestBase(std::move(environment), false, std::chrono::seconds(2)), active_tests(active_tests_) {
+        : TestBase(std::move(environment), false, test_util::TimeUnit(50)), active_tests(active_tests_) {
 
         for (const auto& t : active_tests) {
             switch (t) {

@@ -54,7 +54,7 @@ public:
 
     struct FinishTest {};
     TestReactor(std::unique_ptr<NUClear::Environment> environment)
-        : TestBase(std::move(environment), false, std::chrono::seconds(2)) {
+        : TestBase(std::move(environment), false, test_util::TimeUnit(50)) {
 
         // Measure when messages were sent and received and print those values
         on<Trigger<DelayedMessage>>().then([this](const DelayedMessage& m) {

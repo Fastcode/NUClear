@@ -57,7 +57,7 @@ public:
     }
 
     explicit TestReactor(std::unique_ptr<NUClear::Environment> environment)
-        : TestBase(std::move(environment), false, std::chrono::seconds(5)) {
+        : TestBase(std::move(environment), false, test_util::TimeUnit(100)) {
 
         start_time = NUClear::clock::now();
 
