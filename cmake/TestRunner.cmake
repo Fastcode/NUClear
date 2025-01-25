@@ -47,6 +47,7 @@ foreach(target ${all_targets})
     COMMAND $<TARGET_FILE:${target}> --reporter console --reporter SonarQube::out=${sonarqube_report_file} --reporter
             JUnit::out=${junit_report_file}
     WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
+    USES_TERMINAL
     COMMENT "Running test ${target}"
   )
 endforeach()
