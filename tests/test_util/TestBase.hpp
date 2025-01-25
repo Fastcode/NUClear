@@ -28,6 +28,7 @@
 #include <utility>
 
 #include "nuclear"
+#include "test_util/TimeUnit.hpp"     // IWYU pragma: export
 #include "test_util/diff_string.hpp"  // IWYU pragma: export
 
 namespace test_util {
@@ -57,7 +58,7 @@ public:
 private:
     explicit TestBase(std::unique_ptr<NUClear::Environment> environment,
                       const bool& shutdown_on_idle             = true,
-                      const std::chrono::milliseconds& timeout = std::chrono::milliseconds(1000))
+                      const std::chrono::milliseconds& timeout = TimeUnit(20))
         : Reactor(std::move(environment)) {
 
         // Shutdown if the system is idle

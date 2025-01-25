@@ -33,9 +33,9 @@ jobs:
         uses: SonarSource/sonarcloud-github-c-cpp@v3
 
       - name: Install CMake
-        uses: lukka/get-cmake@latest
+        uses: lukka/get-cmake@v3.30.5
         with:
-          cmakeVersion: 3.27.1
+          cmakeVersion: 3.30.5
           ninjaVersion: 1.11.1
 
       - name: Setup CCache
@@ -45,14 +45,16 @@ jobs:
           max-size: 100M
 
       - name: Configure CMake
+        env:
+          CXXFLAGS: -DNUCLEAR_TEST_TIME_UNIT_DEN=10
         run: |
           cmake -E make_directory build
           cmake -S . -B build \
             -GNinja \
             -DCMAKE_C_COMPILER_LAUNCHER=ccache \
             -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
-            -DBUILD_TESTS=ON \
             -DCMAKE_BUILD_TYPE=Debug \
+            -DBUILD_TESTS=ON \
             -DCI_BUILD=ON \
             -DENABLE_COVERAGE=ON \
             -DENABLE_CLANG_TIDY=OFF
@@ -63,12 +65,28 @@ jobs:
 
       - name: Run tests to generate coverage statistics
         timeout-minutes: 10
-        working-directory: build/tests
-        run: ctest --output-on-failure
+        working-directory: build
+        run: ninja run_all_tests -j1 -k 0
+
+      - name: Test Summary
+        if: ${{ !cancelled() }}
+        uses: test-summary/action@v2
+        with:
+          paths: "build/reports/tests/*.junit.xml"
 
       - name: Collect coverage into one XML report
         if: ${{ !cancelled() }}
-        run: gcovr --gcov-ignore-parse-errors=negative_hits.warn_once_per_file --exclude-unreachable-branches --exclude-noncode-lines --sonarqube > coverage.xml
+        run: |
+          gcovr \
+            --root . \
+            --object-directory build \
+            --force-color \
+            --no-markers \
+            --decisions \
+            --calls \
+            --exclude-noncode-lines \
+            --gcov-ignore-parse-errors negative_hits.warn \
+            --sonarqube "coverage.xml"
 
       - name: Upload coverage report
         if: ${{ !cancelled() }}
@@ -86,6 +104,10 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
           sonar-scanner \
+            --define sonar.projectKey=Fastcode_NUClear \
+            --define sonar.organization=fastcode \
+            --define sonar.sources=src \
+            --define sonar.tests=tests \
             --define sonar.cfamily.compile-commands=build/compile_commands.json \
             --define sonar.coverageReportPaths=coverage.xml
 
