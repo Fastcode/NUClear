@@ -184,7 +184,7 @@ public:
     /// The display level above which logs from this reactor will be displayed
     LogLevel log_level{LogLevel::INFO};
     /// The minimum log level that will be always emitted (if log_level is below this those will be emitted too)
-    LogLevel min_log_level{LogLevel::DEBUG};
+    LogLevel min_log_level{LogLevel::FATAL};
 
 protected:
     /***************************************************************************************************************
