@@ -45,6 +45,7 @@ void set_priority(const NUClear::PriorityLevel& priority) {
 #elif defined(__linux__)
 
     #include <pthread.h>
+    #include <sched.h>
 
 namespace {
 
