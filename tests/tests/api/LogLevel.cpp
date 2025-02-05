@@ -28,6 +28,7 @@
 #include <sstream>
 #include <string>
 #include <tuple>
+#include <vector>
 
 SCENARIO("LogLevel smart enum values can be constructed and converted appropriately") {
     GIVEN("A LogLevel and a corresponding string representation") {

@@ -25,9 +25,9 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/generators/catch_generators.hpp>
 #include <catch2/generators/catch_generators_range.hpp>
-#include <ostream>
 #include <sstream>
 #include <tuple>
+#include <vector>
 
 SCENARIO("PriorityLevel smart enum values can be constructed and converted appropriately") {
     GIVEN("A PriorityLevel and a corresponding string representation") {
@@ -92,7 +92,7 @@ SCENARIO("PriorityLevel smart enum values can be constructed and converted appro
 
 SCENARIO("PriorityLevel comparison operators work correctly") {
     GIVEN("Two PriorityLevel enum values") {
-        std::vector<NUClear::PriorityLevel::Value> levels = {
+        const std::vector<NUClear::PriorityLevel::Value> levels = {
             NUClear::PriorityLevel::IDLE,
             NUClear::PriorityLevel::LOW,
             NUClear::PriorityLevel::LOWEST,
