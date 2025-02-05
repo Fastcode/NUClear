@@ -34,7 +34,7 @@ namespace NUClear {
 #ifdef NUCLEAR_CLOCK_TYPE
 using base_clock = NUCLEAR_CLOCK_TYPE;
 #else
-using base_clock = std::chrono::steady_clock;
+using base_clock = std::chrono::system_clock;
 #endif  // NUCLEAR_CLOCK_TYPE
 
 /**
