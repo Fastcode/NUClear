@@ -24,7 +24,6 @@
 #define NUCLEAR_UTIL_THREAD_PRIORITY_HPP
 
 #include "../PriorityLevel.hpp"
-#include "platform.hpp"
 
 namespace NUClear {
 namespace util {
@@ -59,7 +58,7 @@ namespace util {
 
         /// The current priority level as set by an instance of this class
         // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
-        static ATTRIBUTE_TLS PriorityLevel current_priority;
+        static thread_local PriorityLevel current_priority;
     };
 
 }  // namespace util

@@ -120,7 +120,7 @@ namespace util {
     }
 
     // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
-    ATTRIBUTE_TLS NUClear::PriorityLevel ThreadPriority::current_priority = NUClear::PriorityLevel::NORMAL;
+    thread_local NUClear::PriorityLevel ThreadPriority::current_priority = NUClear::PriorityLevel::NORMAL;
 
 }  // namespace util
 }  // namespace NUClear
