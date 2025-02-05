@@ -63,6 +63,7 @@ void set_priority(const NUClear::PriorityLevel& priority) {
         case NUClear::PriorityLevel::IDLE: pthread_setschedparam(pthread_self(), SCHED_IDLE, &param); break;
         case NUClear::PriorityLevel::LOWEST:
         case NUClear::PriorityLevel::LOW: pthread_setschedparam(pthread_self(), SCHED_OTHER, &param); break;
+        default:  // Default to normal if someone broke the enum
         case NUClear::PriorityLevel::NORMAL:
             param.sched_priority = min_rr_priority;
             pthread_setschedparam(pthread_self(), SCHED_RR, &param);  // Min realtime beats all non-realtime
