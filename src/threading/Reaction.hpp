@@ -46,7 +46,7 @@ namespace threading {
     struct ReactionIdentifiers;
     namespace scheduler {
         class Scheduler;
-    }
+    }  // namespace scheduler
 
     /**
      * This class holds the definition of a Reaction.
