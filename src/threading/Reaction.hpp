@@ -44,6 +44,9 @@ namespace threading {
     // Forward declare
     class ReactionTask;
     struct ReactionIdentifiers;
+    namespace scheduler {
+        class Scheduler;
+    }  // namespace scheduler
 
     /**
      * This class holds the definition of a Reaction.
@@ -131,6 +134,10 @@ namespace threading {
 
         /// The callback generator function (creates databound callbacks)
         TaskGenerator generator;
+
+        /// Cached data for this reaction added by the scheduler
+        std::shared_ptr<void> scheduler_data;
+        friend class scheduler::Scheduler;  /// Let the scheduler mess with reaction objects
     };
 
 }  // namespace threading
