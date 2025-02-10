@@ -43,7 +43,6 @@ void set_priority(const NUClear::PriorityLevel& priority) {
 }  // namespace
 
 #elif defined(__linux__)
-
     #include <pthread.h>
     #include <sched.h>
 
@@ -91,28 +90,16 @@ void set_priority(const NUClear::PriorityLevel& priority) {
 
 namespace {
 
-/// The minimum priority level for the SCHED_RR policy
-const int min_rr_priority = sched_get_priority_min(SCHED_RR);
-/// The maximum priority level for the SCHED_RR policy
-const int max_rr_priority = sched_get_priority_max(SCHED_RR);
-
 void set_priority(const NUClear::PriorityLevel& priority) {
-    auto sched_priority = min_rr_priority + (priority / (max_rr_priority - min_rr_priority));
-
-    sched_param p{};
-    p.sched_priority = sched_priority;
-    pthread_setschedparam(pthread_self(), SCHED_RR, &p);
-
-    // TODO this fails in CI maybe the system calls are too much?
-    // switch (priority) {
-    //     case NUClear::PriorityLevel::IDLE: pthread_set_qos_class_self_np(QOS_CLASS_BACKGROUND, 0); break;
-    //     case NUClear::PriorityLevel::LOWEST: pthread_set_qos_class_self_np(QOS_CLASS_UTILITY, 1); break;
-    //     case NUClear::PriorityLevel::LOW: pthread_set_qos_class_self_np(QOS_CLASS_UTILITY, 0); break;
-    //     case NUClear::PriorityLevel::NORMAL: pthread_set_qos_class_self_np(QOS_CLASS_DEFAULT, 0); break;
-    //     case NUClear::PriorityLevel::HIGH: pthread_set_qos_class_self_np(QOS_CLASS_USER_INITIATED, 1); break;
-    //     case NUClear::PriorityLevel::HIGHEST: pthread_set_qos_class_self_np(QOS_CLASS_USER_INITIATED, 0); break;
-    //     case NUClear::PriorityLevel::REALTIME: pthread_set_qos_class_self_np(QOS_CLASS_USER_INTERACTIVE, 0); break;
-    // }
+    switch (priority) {
+        case NUClear::PriorityLevel::IDLE: pthread_set_qos_class_self_np(QOS_CLASS_BACKGROUND, 0); break;
+        case NUClear::PriorityLevel::LOWEST: pthread_set_qos_class_self_np(QOS_CLASS_UTILITY, 1); break;
+        case NUClear::PriorityLevel::LOW: pthread_set_qos_class_self_np(QOS_CLASS_UTILITY, 0); break;
+        case NUClear::PriorityLevel::NORMAL: pthread_set_qos_class_self_np(QOS_CLASS_DEFAULT, 0); break;
+        case NUClear::PriorityLevel::HIGH: pthread_set_qos_class_self_np(QOS_CLASS_USER_INITIATED, 1); break;
+        case NUClear::PriorityLevel::HIGHEST: pthread_set_qos_class_self_np(QOS_CLASS_USER_INITIATED, 0); break;
+        case NUClear::PriorityLevel::REALTIME: pthread_set_qos_class_self_np(QOS_CLASS_USER_INTERACTIVE, 0); break;
+    }
 }
 
 }  // namespace
