@@ -113,12 +113,17 @@ namespace NUClear {
 namespace util {
 
     ThreadPriority::ThreadPriority(const NUClear::PriorityLevel& priority) : previous_priority(current_priority) {
-        current_priority = priority;
-        ::set_priority(priority);
+        if (previous_priority != current_priority) {
+            current_priority = priority;
+            ::set_priority(current_priority);
+        }
     }
 
     ThreadPriority::~ThreadPriority() noexcept {
-        ::set_priority(previous_priority);
+        if (current_priority != previous_priority) {
+            current_priority = previous_priority;
+            ::set_priority(current_priority);
+        }
     }
 
     // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
