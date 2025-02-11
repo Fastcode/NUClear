@@ -91,15 +91,16 @@ void set_priority(const NUClear::PriorityLevel& priority) {
 namespace {
 
 void set_priority(const NUClear::PriorityLevel& priority) {
-    switch (priority) {
-        case NUClear::PriorityLevel::IDLE: pthread_set_qos_class_self_np(QOS_CLASS_BACKGROUND, 0); break;
-        case NUClear::PriorityLevel::LOWEST: pthread_set_qos_class_self_np(QOS_CLASS_UTILITY, 1); break;
-        case NUClear::PriorityLevel::LOW: pthread_set_qos_class_self_np(QOS_CLASS_UTILITY, 0); break;
-        case NUClear::PriorityLevel::NORMAL: pthread_set_qos_class_self_np(QOS_CLASS_DEFAULT, 0); break;
-        case NUClear::PriorityLevel::HIGH: pthread_set_qos_class_self_np(QOS_CLASS_USER_INITIATED, 1); break;
-        case NUClear::PriorityLevel::HIGHEST: pthread_set_qos_class_self_np(QOS_CLASS_USER_INITIATED, 0); break;
-        case NUClear::PriorityLevel::REALTIME: pthread_set_qos_class_self_np(QOS_CLASS_USER_INTERACTIVE, 0); break;
-    }
+    // TODO try doing nothing, see if it works without setting any priority
+    // switch (priority) {
+    //     case NUClear::PriorityLevel::IDLE: pthread_set_qos_class_self_np(QOS_CLASS_BACKGROUND, 0); break;
+    //     case NUClear::PriorityLevel::LOWEST: pthread_set_qos_class_self_np(QOS_CLASS_UTILITY, 1); break;
+    //     case NUClear::PriorityLevel::LOW: pthread_set_qos_class_self_np(QOS_CLASS_UTILITY, 0); break;
+    //     case NUClear::PriorityLevel::NORMAL: pthread_set_qos_class_self_np(QOS_CLASS_DEFAULT, 0); break;
+    //     case NUClear::PriorityLevel::HIGH: pthread_set_qos_class_self_np(QOS_CLASS_USER_INITIATED, 1); break;
+    //     case NUClear::PriorityLevel::HIGHEST: pthread_set_qos_class_self_np(QOS_CLASS_USER_INITIATED, 0); break;
+    //     case NUClear::PriorityLevel::REALTIME: pthread_set_qos_class_self_np(QOS_CLASS_USER_INTERACTIVE, 0); break;
+    // }
 }
 
 }  // namespace
