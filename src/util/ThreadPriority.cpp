@@ -90,7 +90,7 @@ void set_priority(const NUClear::PriorityLevel& priority) {
 
 namespace {
 
-void set_priority(const NUClear::PriorityLevel& priority) {
+void set_priority(const NUClear::PriorityLevel& /*priority*/) {
     // TODO try doing nothing, see if it works without setting any priority
     // switch (priority) {
     //     case NUClear::PriorityLevel::IDLE: pthread_set_qos_class_self_np(QOS_CLASS_BACKGROUND, 0); break;
