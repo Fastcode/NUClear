@@ -40,7 +40,9 @@ jobs:
     continue-on-error: true
 
     # Use the container for this specific version of gcc
-    container: ${{ matrix.toolchain.container }}
+    container:
+      image: ${{ matrix.toolchain.container }}
+      options: --privileged
 
     steps:
       - name: Checkout Code
