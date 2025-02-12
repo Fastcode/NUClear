@@ -32,6 +32,7 @@
 #include "../Reactor.hpp"
 #include "../dsl/operation/Unbind.hpp"
 #include "../message/TimeTravel.hpp"
+#include "../util/ThreadPriority.hpp"
 #include "../util/precise_sleep.hpp"
 
 namespace NUClear {
