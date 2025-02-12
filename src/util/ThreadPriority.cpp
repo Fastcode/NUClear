@@ -30,7 +30,7 @@
 namespace NUClear {
 namespace util {
 
-    void set_current_thread_priority(const PriorityLevel& priority) {
+    void set_current_thread_priority(const PriorityLevel& priority) noexcept {
 
         switch (priority) {
             case IDLE: SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_IDLE); break;
@@ -45,7 +45,7 @@ namespace util {
     }
 
 
-    PriorityLevel get_current_thread_priority() {
+    PriorityLevel get_current_thread_priority() noexcept {
         int priority = GetThreadPriority(GetCurrentThread());
         switch (priority) {
             case THREAD_PRIORITY_IDLE: return PriorityLevel::IDLE;
@@ -84,7 +84,7 @@ namespace util {
         const int step_fifo_priority = (max_fifo_priority - min_fifo_priority) / 6;
     }  // namespace
 
-    PriorityLevel get_current_thread_priority() {
+    PriorityLevel get_current_thread_priority() noexcept {
         int policy{};
         sched_param param{};
         pthread_getschedparam(pthread_self(), &policy, &param);
@@ -120,7 +120,7 @@ namespace util {
         return PriorityLevel::UNKNOWN;
     }
 
-    void set_current_thread_priority(const PriorityLevel& priority) {
+    void set_current_thread_priority(const PriorityLevel& priority) noexcept {
         sched_param param{};
         switch (priority) {
             case PriorityLevel::IDLE:
@@ -165,7 +165,7 @@ namespace util {
 namespace NUClear {
 namespace util {
 
-    PriorityLevel get_current_thread_priority() {
+    PriorityLevel get_current_thread_priority() noexcept {
         qos_class_t qos{};
         int relative_priority{};
         pthread_get_qos_class_np(pthread_self(), &qos, &relative_priority);
@@ -180,7 +180,7 @@ namespace util {
                                                                              : PriorityLevel::UNKNOWN;
     }
 
-    void set_current_thread_priority(const PriorityLevel& priority) {
+    void set_current_thread_priority(const PriorityLevel& priority) noexcept {
         switch (priority) {
             case PriorityLevel::IDLE: pthread_set_qos_class_self_np(QOS_CLASS_BACKGROUND, 0); break;
             case PriorityLevel::LOWEST: pthread_set_qos_class_self_np(QOS_CLASS_UTILITY, 0); break;

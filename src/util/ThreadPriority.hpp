@@ -33,14 +33,14 @@ namespace util {
      *
      * @return The current thread's priority level.
      */
-    PriorityLevel get_current_thread_priority();
+    PriorityLevel get_current_thread_priority() noexcept;
 
     /**
      * Sets the current thread's priority level.
      *
      * @param priority The priority level to set for the current thread.
      */
-    void set_current_thread_priority(const PriorityLevel& priority);
+    void set_current_thread_priority(const PriorityLevel& priority) noexcept;
 
     /**
      * An RAII class to lock the current thread to a specific priority level and then restore it when the lock goes out
