@@ -183,7 +183,7 @@ namespace threading {
             try {
                 // Set the thread priority to highest while getting tasks
                 // This means that this thread will be a FIFO queued task on linux so it won't timeslice
-                // const util::ThreadPriority priority_lock(PriorityLevel::HIGHEST);
+                const util::ThreadPriority priority_lock(PriorityLevel::HIGHEST);
                 while (true) {
                     // Run the next task
                     Task task = get_task();
