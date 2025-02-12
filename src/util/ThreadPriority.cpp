@@ -112,8 +112,9 @@ namespace util {
                 }
                 break;
             case SCHED_FIFO:
-                if (param.sched_priority == min_fifo_priority + 6 * step_fifo_priority)
+                if (param.sched_priority == min_fifo_priority + 6 * step_fifo_priority) {
                     return PriorityLevel::REALTIME;
+                }
                 break;
         }
 
