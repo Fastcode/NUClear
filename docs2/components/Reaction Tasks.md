@@ -1,0 +1,6 @@
+- What is a reaction task
+- How are they created
+- When and where will they run
+  - Inline
+  - Thread Pool
+  - Priority

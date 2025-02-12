@@ -1,0 +1,5 @@
+- What is the scheduler
+- How does it decide what to run
+- When are tasks submitted
+- Are they accepted
+- Scheduler flows
