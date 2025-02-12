@@ -30,6 +30,7 @@ namespace util {
 
     SCENARIO("ThreadPriority sets and restores thread priority levels") {
 
+        set_current_thread_priority(PriorityLevel::NORMAL);  // Set initially to normal
         PriorityLevel initial = get_current_thread_priority();
         GIVEN("A thread with initially " << initial << " priority") {
 
