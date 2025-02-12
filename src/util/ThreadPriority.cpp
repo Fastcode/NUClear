@@ -114,7 +114,7 @@ namespace NUClear {
 namespace util {
 
     ThreadPriority::ThreadPriority(const NUClear::PriorityLevel& priority) : previous_priority(current_priority) {
-        if (previous_priority != current_priority) {
+        if (priority != current_priority) {
             current_priority = priority;
             ::set_priority(current_priority);
         }
