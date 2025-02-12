@@ -74,53 +74,82 @@ namespace util {
         const int min_rr_priority = sched_get_priority_min(SCHED_RR);
         /// The maximum priority level for the SCHED_RR policy
         const int max_rr_priority = sched_get_priority_max(SCHED_RR);
+        /// The step unit to use for the SCHED_RR policy
+        const int step_rr_priority = (max_rr_priority - min_rr_priority) / 6;
+        /// The minimum priority level for the SCHED_FIFO policy
+        const int min_fifo_priority = sched_get_priority_min(SCHED_FIFO);
         /// The maximum priority level for the SCHED_FIFO policy
         const int max_fifo_priority = sched_get_priority_max(SCHED_FIFO);
+        /// The step unit to use for the SCHED_FIFO policy
+        const int step_fifo_priority = (max_fifo_priority - min_fifo_priority) / 6;
     }  // namespace
 
     PriorityLevel get_current_thread_priority() {
-        int policy;
-        sched_param param;
+        int policy{};
+        sched_param param{};
         pthread_getschedparam(pthread_self(), &policy, &param);
-        if (policy == SCHED_IDLE)
-            return PriorityLevel::IDLE;
-        if (policy == SCHED_OTHER)
-            return PriorityLevel::LOW;
-        if (policy == SCHED_RR) {
-            if (param.sched_priority == sched_get_priority_min(SCHED_RR))
-                return PriorityLevel::NORMAL;
-            if (param.sched_priority == (sched_get_priority_min(SCHED_RR) + sched_get_priority_max(SCHED_RR) + 1) / 2)
-                return PriorityLevel::HIGH;
-            if (param.sched_priority == sched_get_priority_max(SCHED_RR) - 1)
-                return PriorityLevel::HIGHEST;
+
+        switch (policy) {
+            default: return PriorityLevel::UNKNOWN;
+            case SCHED_RR:
+                if (param.sched_priority == min_rr_priority + 0 * step_rr_priority) {
+                    return PriorityLevel::IDLE;
+                }
+                if (param.sched_priority == min_rr_priority + 1 * step_rr_priority) {
+                    return PriorityLevel::LOWEST;
+                }
+                if (param.sched_priority == min_rr_priority + 2 * step_rr_priority) {
+                    return PriorityLevel::LOW;
+                }
+                if (param.sched_priority == min_rr_priority + 3 * step_rr_priority) {
+                    return PriorityLevel::NORMAL;
+                }
+                if (param.sched_priority == min_rr_priority + 4 * step_rr_priority) {
+                    return PriorityLevel::HIGH;
+                }
+                if (param.sched_priority == min_rr_priority + 5 * step_rr_priority) {
+                    return PriorityLevel::HIGHEST;
+                }
+                break;
+            case SCHED_FIFO:
+                if (param.sched_priority == max_fifo_priority)
+                    return PriorityLevel::REALTIME;
+                break;
         }
-        if (policy == SCHED_FIFO && param.sched_priority == sched_get_priority_max(SCHED_FIFO))
-            return PriorityLevel::REALTIME;
-        return PriorityLevel::NORMAL;
+
+        return PriorityLevel::UNKNOWN;
     }
 
     void set_current_thread_priority(const PriorityLevel& priority) {
-
         sched_param param{};
         switch (priority) {
-            case PriorityLevel::IDLE: pthread_setschedparam(pthread_self(), SCHED_IDLE, &param); break;
+            case PriorityLevel::IDLE:
+                param.sched_priority = min_rr_priority + 0 * step_rr_priority;
+                pthread_setschedparam(pthread_self(), SCHED_RR, &param);
+                break;
             case PriorityLevel::LOWEST:
-            case PriorityLevel::LOW: pthread_setschedparam(pthread_self(), SCHED_OTHER, &param); break;
+                param.sched_priority = min_rr_priority + 1 * step_rr_priority;
+                pthread_setschedparam(pthread_self(), SCHED_RR, &param);
+                break;
+            case PriorityLevel::LOW:
+                param.sched_priority = min_rr_priority + 2 * step_rr_priority;
+                pthread_setschedparam(pthread_self(), SCHED_RR, &param);
+                break;
             default:  // Default to normal if someone broke the enum
             case PriorityLevel::NORMAL:
-                param.sched_priority = min_rr_priority;
-                pthread_setschedparam(pthread_self(), SCHED_RR, &param);  // Min realtime beats all non-realtime
+                param.sched_priority = min_rr_priority + 3 * step_rr_priority;
+                pthread_setschedparam(pthread_self(), SCHED_RR, &param);
                 break;
             case PriorityLevel::HIGH:
-                param.sched_priority = (min_rr_priority + max_rr_priority + 1) / 2;  // Halfway between min and max
+                param.sched_priority = min_rr_priority + 4 * step_rr_priority;
                 pthread_setschedparam(pthread_self(), SCHED_RR, &param);
                 break;
             case PriorityLevel::HIGHEST:
-                param.sched_priority = max_rr_priority - 1;  // One less than max so it can be preempted by realtime
+                param.sched_priority = min_rr_priority + 5 * step_rr_priority;
                 pthread_setschedparam(pthread_self(), SCHED_RR, &param);
                 break;
             case PriorityLevel::REALTIME:
-                param.sched_priority = max_fifo_priority;  // Max priority for SCHED_FIFO
+                param.sched_priority = min_fifo_priority + 6 * step_fifo_priority;
                 pthread_setschedparam(pthread_self(), SCHED_FIFO, &param);
                 break;
         }
@@ -148,7 +177,7 @@ namespace util {
                : qos == QOS_CLASS_USER_INITIATED && relative_priority == 0   ? PriorityLevel::HIGH
                : qos == QOS_CLASS_USER_INITIATED && relative_priority == -1  ? PriorityLevel::HIGHEST
                : qos == QOS_CLASS_USER_INTERACTIVE && relative_priority == 0 ? PriorityLevel::REALTIME
-                                                                             : PriorityLevel::NORMAL;
+                                                                             : PriorityLevel::UNKNOWN;
     }
 
     void set_current_thread_priority(const PriorityLevel& priority) {

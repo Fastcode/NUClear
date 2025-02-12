@@ -90,6 +90,9 @@ jobs:
       - name: CCache Stats
         run: ccache --show-stats
 
+      - name: Add capabilities for scheduler
+        run: find build/tests -type f -executable -exec sudo setcap cap_sys_nice=eip {} \; || true
+
       - name: Test
         timeout-minutes: 2
         working-directory: build

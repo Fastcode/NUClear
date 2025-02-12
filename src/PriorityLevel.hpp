@@ -30,7 +30,16 @@ namespace NUClear {
 
 class PriorityLevel {
 public:
-    enum Value : uint8_t { IDLE = 0, LOWEST = 1, LOW = 2, NORMAL = 3, HIGH = 4, HIGHEST = 5, REALTIME = 6 };
+    enum Value : uint8_t {
+        UNKNOWN  = 0,
+        IDLE     = 1,
+        LOWEST   = 2,
+        LOW      = 3,
+        NORMAL   = 4,
+        HIGH     = 5,
+        HIGHEST  = 6,
+        REALTIME = 7
+    };
 
     /**
      * Construct a PriorityLevel from a Value
