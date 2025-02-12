@@ -42,7 +42,7 @@ namespace extension {
 
         // Estimate the accuracy of our cv wait and precise sleep
         {
-            const util::ThreadPriority priority_lock(PriorityLevel::HIGHEST);
+            const util::ThreadPriority priority_lock(PriorityLevel::REALTIME);
             for (int i = 0; i < 3; ++i) {
                 // Estimate the accuracy of our cv wait
                 std::mutex test;
