@@ -152,16 +152,15 @@ namespace util {
     }
 
     void set_current_thread_priority(const PriorityLevel& priority) {
-        int error = -1;
         switch (priority) {
-            case PriorityLevel::IDLE: error = pthread_set_qos_class_self_np(QOS_CLASS_BACKGROUND, 0); break;
-            case PriorityLevel::LOWEST: error = pthread_set_qos_class_self_np(QOS_CLASS_UTILITY, 0); break;
-            case PriorityLevel::LOW: error = pthread_set_qos_class_self_np(QOS_CLASS_UTILITY, -1); break;
+            case PriorityLevel::IDLE: pthread_set_qos_class_self_np(QOS_CLASS_BACKGROUND, 0); break;
+            case PriorityLevel::LOWEST: pthread_set_qos_class_self_np(QOS_CLASS_UTILITY, 0); break;
+            case PriorityLevel::LOW: pthread_set_qos_class_self_np(QOS_CLASS_UTILITY, -1); break;
             default:  // Default to normal if someone broke the enum
-            case PriorityLevel::NORMAL: error = pthread_set_qos_class_self_np(QOS_CLASS_DEFAULT, 0); break;
-            case PriorityLevel::HIGH: error = pthread_set_qos_class_self_np(QOS_CLASS_USER_INITIATED, 0); break;
-            case PriorityLevel::HIGHEST: error = pthread_set_qos_class_self_np(QOS_CLASS_USER_INITIATED, -1); break;
-            case PriorityLevel::REALTIME: error = pthread_set_qos_class_self_np(QOS_CLASS_USER_INTERACTIVE, 0); break;
+            case PriorityLevel::NORMAL: pthread_set_qos_class_self_np(QOS_CLASS_DEFAULT, 0); break;
+            case PriorityLevel::HIGH: pthread_set_qos_class_self_np(QOS_CLASS_USER_INITIATED, 0); break;
+            case PriorityLevel::HIGHEST: pthread_set_qos_class_self_np(QOS_CLASS_USER_INITIATED, -1); break;
+            case PriorityLevel::REALTIME: pthread_set_qos_class_self_np(QOS_CLASS_USER_INTERACTIVE, 0); break;
         }
     }
 
