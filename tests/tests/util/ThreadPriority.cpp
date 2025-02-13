@@ -51,14 +51,14 @@ namespace util {
 
             WHEN("ThreadPriority is set to " << priority_1) {
                 {
-                    ThreadPriority priority_lock_1(priority_1);
+                    const ThreadPriority priority_lock_1(priority_1);
 
                     THEN("The thread priority should be " << priority_1) {
                         REQUIRE(get_current_thread_priority() == priority_1);
                     }
                     AND_WHEN("ThreadPriority is set to " << priority_2) {
                         {
-                            ThreadPriority priority_lock_2(priority_2);
+                            const ThreadPriority priority_lock_2(priority_2);
                             THEN("The thread priority should be " << priority_2) {
                                 REQUIRE(get_current_thread_priority() == priority_2);
                             }
