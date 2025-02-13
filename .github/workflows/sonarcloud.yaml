@@ -63,6 +63,9 @@ jobs:
         timeout-minutes: 30
         run: cmake --build build/ --config Debug
 
+      - name: Add capabilities for scheduler
+        run: find build/tests -type f -executable -exec sudo setcap cap_sys_nice=eip {} \; || true
+
       - name: Run tests to generate coverage statistics
         timeout-minutes: 10
         working-directory: build

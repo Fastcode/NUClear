@@ -57,7 +57,7 @@ public:
     static constexpr int scale     = 5;          // Number of time units to sleep/wait for
 
     TestReactor(std::unique_ptr<NUClear::Environment> environment)
-        : TestBase(std::move(environment), true, std::chrono::seconds(2)) {
+        : TestBase(std::move(environment), true, TimeUnit(20)) {
 
         on<Trigger<Step<1>>, Priority::LOW>().then(initial_name + ":" + heavy_name, [this] {
             code_events.emplace_back("Started " + initial_name + ":" + heavy_name, NUClear::clock::now());
