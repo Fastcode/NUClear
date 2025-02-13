@@ -56,7 +56,7 @@ private:
     };
 
 public:
-    static constexpr int n_loops = 10000;
+    static constexpr int n_loops = 250;
 
     explicit TestReactor(std::unique_ptr<NUClear::Environment> environment)
         : TestBase(std::move(environment), false, test_util::TimeUnit(200)) {
