@@ -27,16 +27,6 @@ jobs:
         with:
           fetch-depth: 0 # Shallow clones should be disabled for a better relevancy of analysis
 
-      - name: Install Prerequisites
-        run: |
-          apt-get update
-          apt-get install -y --no-install-recommends \
-            curl \
-            unzip
-
-      - name: Install Build Wrapper
-        uses: SonarSource/sonarqube-scan-action/install-build-wrapper@v4
-
       - name: Install CMake
         uses: lukka/get-cmake@v3.30.5
         with:
@@ -90,18 +80,18 @@ jobs:
           retention-days: 1 # This sets the artifact TTL to 1 day (minimum is 1 day)
           overwrite: true
 
-      - name: Run sonar-scanner
+      - name: SonarQube Scan
+        uses: SonarSource/sonarqube-scan-action@<action version>
         if: ${{ !cancelled() }}
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: |
-          sonar-scanner \
-            --define sonar.projectKey=Fastcode_NUClear \
-            --define sonar.organization=fastcode \
-            --define sonar.sources=src \
-            --define sonar.tests=tests \
-            --define sonar.cfamily.compile-commands=build/compile_commands.json \
+        with:
+          args: >
+            --define sonar.projectKey=Fastcode_NUClear
+            --define sonar.organization=fastcode
+            --define sonar.sources=src
+            --define sonar.tests=tests
+            --define sonar.cfamily.compile-commands=build/compile_commands.json
             --define sonar.cfamily.llvm-cov.reportPath=build/reports/coverage.txt
 
       - name: Upload Traces
