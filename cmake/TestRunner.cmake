@@ -70,8 +70,8 @@ foreach(target ${all_targets})
 
     add_custom_command(
       OUTPUT ${coverage_report}
-      COMMAND llvm-cov show --show-branches=count -Xdemangler c++filt
-              -instr-profile=${CMAKE_CURRENT_BINARY_DIR}/coverage.profdata $<TARGET_FILE:${target}> > ${coverage_report}
+      COMMAND llvm-cov show --show-branches=count -Xdemangler c++filt -instr-profile=${indexed_coverage}
+              $<TARGET_FILE:${target}> > ${coverage_report}
       DEPENDS ${indexed_coverage}
     )
   endif()
