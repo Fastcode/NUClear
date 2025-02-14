@@ -19,6 +19,7 @@ jobs:
   sonarcloud:
     name: SonarCloud
     runs-on: ubuntu-24.04
+    container: silkeh/clang:18
     env:
       BUILD_WRAPPER_OUT_DIR: build_wrapper_output_directory # Directory where build-wrapper output will be placed
     steps:
@@ -28,11 +29,6 @@ jobs:
 
       - name: Install sonar-scanner and build-wrapper
         uses: SonarSource/sonarcloud-github-c-cpp@v3
-
-      - name: Install LLVM and Clang
-        uses: KyleMayes/install-llvm-action@v2
-        with:
-          version: "18"
 
       - name: Install CMake
         uses: lukka/get-cmake@v3.30.5
