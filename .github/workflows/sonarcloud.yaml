@@ -27,7 +27,7 @@ jobs:
           fetch-depth: 0 # Shallow clones should be disabled for a better relevancy of analysis
 
       - name: Install dependencies
-        run: sudo apt-get install -y llvm-profdata llvm-cov
+        run: sudo apt-get-update && sudo apt-get install -y llvm-profdata llvm-cov
 
       - name: Install sonar-scanner and build-wrapper
         uses: SonarSource/sonarcloud-github-c-cpp@v3
