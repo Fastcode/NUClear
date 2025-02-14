@@ -81,7 +81,7 @@ jobs:
           overwrite: true
 
       - name: SonarQube Scan
-        uses: SonarSource/sonarqube-scan-action@<action version>
+        uses: SonarSource/sonarqube-scan-action@v4
         if: ${{ !cancelled() }}
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
