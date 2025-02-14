@@ -34,7 +34,7 @@ jobs:
             curl
 
       - name: Install Build Wrapper
-        uses: SonarSource/sonarqube-scan-action/install-build-wrapper@4
+        uses: SonarSource/sonarqube-scan-action/install-build-wrapper@v4
 
       - name: Install CMake
         uses: lukka/get-cmake@v3.30.5
