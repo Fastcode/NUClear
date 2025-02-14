@@ -26,11 +26,13 @@ jobs:
         with:
           fetch-depth: 0 # Shallow clones should be disabled for a better relevancy of analysis
 
-      - name: Install dependencies
-        run: sudo apt-get update && sudo apt-get install -y llvm-18
-
       - name: Install sonar-scanner and build-wrapper
         uses: SonarSource/sonarcloud-github-c-cpp@v3
+
+      - name: Install LLVM and Clang
+        uses: KyleMayes/install-llvm-action@v2
+        with:
+          version: "18"
 
       - name: Install CMake
         uses: lukka/get-cmake@v3.30.5
