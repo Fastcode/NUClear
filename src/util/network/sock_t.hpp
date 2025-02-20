@@ -58,9 +58,9 @@ namespace util {
                 const int result = ::getnameinfo(reinterpret_cast<const sockaddr*>(&storage),
                                                  size(),
                                                  host.data(),
-                                                 host.size(),
+                                                 static_cast<socklen_t>(host.size()),
                                                  service.data(),
-                                                 service.size(),
+                                                 static_cast<socklen_t>(service.size()),
                                                  NI_NUMERICSERV | (numeric_host ? NI_NUMERICHOST : 0));
                 if (result != 0) {
                     throw std::system_error(
