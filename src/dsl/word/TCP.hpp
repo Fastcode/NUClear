@@ -66,17 +66,10 @@ namespace dsl {
 
             struct Connection {
 
-                struct Target {
-                    /// The address of the connection
-                    std::string address;
-                    /// The port of the connection
-                    uint16_t port;
-                };
-
                 /// The local address of the connection
-                Target local;
+                util::network::sock_t local;
                 /// The remote address of the connection
-                Target remote;
+                util::network::sock_t remote;
 
                 /// The file descriptor for the connection
                 fd_t fd;
@@ -187,10 +180,7 @@ namespace dsl {
                     return Connection{};
                 }
 
-                auto local_s  = local.address();
-                auto remote_s = remote.address();
-
-                return Connection{{local_s.first, local_s.second}, {remote_s.first, remote_s.second}, fd.release()};
+                return Connection{local, remote, fd.release()};
             }
         };
 

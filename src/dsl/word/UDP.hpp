@@ -102,20 +102,10 @@ namespace dsl {
                 /// If the packet is valid (it contains data)
                 bool valid{false};
 
-                struct Target {
-                    Target() = default;
-                    Target(std::string address, const uint16_t& port) : address(std::move(address)), port(port) {}
-
-                    /// The address of the target
-                    std::string address;
-                    /// The port of the target
-                    uint16_t port{0};
-                };
-
                 /// The information about this packets destination
-                Target local;
+                util::network::sock_t local;
                 /// The information about this packets source
-                Target remote;
+                util::network::sock_t remote;
 
                 /// The data to be sent in the packet
                 std::vector<uint8_t> payload;
@@ -427,12 +417,10 @@ namespace dsl {
                 RecvResult result = read<DSL>(task);
 
                 Packet p{};
-                p.valid       = result.valid;
-                p.payload     = std::move(result.payload);
-                auto local_s  = result.local.address();
-                auto remote_s = result.remote.address();
-                p.local       = Packet::Target{local_s.first, local_s.second};
-                p.remote      = Packet::Target{remote_s.first, remote_s.second};
+                p.valid   = result.valid;
+                p.payload = std::move(result.payload);
+                p.local   = result.local;
+                p.remote  = result.remote;
 
                 // Confirm that this packet was sent to one of our local addresses
                 for (const auto& iface : util::network::get_interfaces()) {
@@ -475,12 +463,10 @@ namespace dsl {
                     if (result.local.sock.sa_family == AF_INET) {
 
                         Packet p{};
-                        p.valid       = result.valid;
-                        p.payload     = std::move(result.payload);
-                        auto local_s  = result.local.address();
-                        auto remote_s = result.remote.address();
-                        p.local       = Packet::Target{local_s.first, local_s.second};
-                        p.remote      = Packet::Target{remote_s.first, remote_s.second};
+                        p.valid   = result.valid;
+                        p.payload = std::move(result.payload);
+                        p.local   = result.local;
+                        p.remote  = result.remote;
 
                         // 255.255.255.255 is always a valid broadcast address
                         if (result.local.ipv4.sin_addr.s_addr == htonl(INADDR_BROADCAST)) {
@@ -526,12 +512,10 @@ namespace dsl {
                     // Only return multicast packets
                     if (multicast) {
                         Packet p{};
-                        p.valid       = result.valid;
-                        p.payload     = std::move(result.payload);
-                        auto local_s  = result.local.address();
-                        auto remote_s = result.remote.address();
-                        p.local       = Packet::Target{local_s.first, local_s.second};
-                        p.remote      = Packet::Target{remote_s.first, remote_s.second};
+                        p.valid   = result.valid;
+                        p.payload = std::move(result.payload);
+                        p.local   = result.local;
+                        p.remote  = result.remote;
                         return p;
                     }
 
