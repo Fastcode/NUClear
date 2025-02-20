@@ -174,8 +174,9 @@ public:
     void handle_data(const std::string& name, const UDP::Packet& packet) {
         const std::string data(packet.payload.begin(), packet.payload.end());
 
-        // Convert IP address to string in dotted decimal format
-        const std::string local = packet.local.address + ":" + std::to_string(packet.local.port);
+        // Convert IP address to a numeric string
+        auto s                  = packet.local.address(true);
+        const std::string local = s.first + ":" + std::to_string(s.second);
 
         events.push_back(name + " <- " + data + " (" + local + ")");
 
