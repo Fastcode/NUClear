@@ -103,9 +103,9 @@ namespace dsl {
                 bool valid{false};
 
                 /// The information about this packets destination
-                util::network::sock_t local;
+                util::network::sock_t local{};
                 /// The information about this packets source
-                util::network::sock_t remote;
+                util::network::sock_t remote{};
 
                 /// The data to be sent in the packet
                 std::vector<uint8_t> payload;

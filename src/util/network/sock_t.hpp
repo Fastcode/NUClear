@@ -55,13 +55,13 @@ namespace util {
             std::pair<std::string, in_port_t> address(bool numeric_host = false) const {
                 std::array<char, NI_MAXHOST> host{};
                 std::array<char, NI_MAXSERV> service{};
-                int result = ::getnameinfo(reinterpret_cast<const sockaddr*>(&storage),
-                                           size(),
-                                           host.data(),
-                                           host.size(),
-                                           service.data(),
-                                           service.size(),
-                                           NI_NUMERICSERV | (numeric_host ? NI_NUMERICHOST : 0));
+                const int result = ::getnameinfo(reinterpret_cast<const sockaddr*>(&storage),
+                                                 size(),
+                                                 host.data(),
+                                                 host.size(),
+                                                 service.data(),
+                                                 service.size(),
+                                                 NI_NUMERICSERV | (numeric_host ? NI_NUMERICHOST : 0));
                 if (result != 0) {
                     throw std::system_error(
                         network_errno,
