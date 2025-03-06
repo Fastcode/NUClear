@@ -57,10 +57,10 @@ namespace extension {
                                            const bool& reliable,
                                            std::vector<uint8_t>&& payload) {
             // Construct our NetworkSource information
-            dsl::word::NetworkSource src{remote.name, remote.target, reliable};
+            const dsl::word::NetworkSource src{remote.name, remote.target, reliable};
 
             // Move the payload in as we are stealing it
-            std::vector<uint8_t> p(std::move(payload));
+            const std::vector<uint8_t> p(std::move(payload));
 
             /* Mutex Scope */ {
                 // Lock our reaction mutex
