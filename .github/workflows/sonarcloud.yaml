@@ -19,6 +19,7 @@ jobs:
   sonarcloud:
     name: SonarCloud
     runs-on: ubuntu-24.04
+    container: silkeh/clang:18
     env:
       BUILD_WRAPPER_OUT_DIR: build_wrapper_output_directory # Directory where build-wrapper output will be placed
     steps:
@@ -26,11 +27,12 @@ jobs:
         with:
           fetch-depth: 0 # Shallow clones should be disabled for a better relevancy of analysis
 
-      - name: Install gcovr
-        run: pip install gcovr==8.2
-
-      - name: Install sonar-scanner and build-wrapper
-        uses: SonarSource/sonarcloud-github-c-cpp@v3
+      - name: Install Prerequisites
+        run: |
+          apt-get update
+          apt-get install -y \
+            ccache \
+            unzip
 
       - name: Install CMake
         uses: lukka/get-cmake@v3.30.5
@@ -53,15 +55,17 @@ jobs:
             -GNinja \
             -DCMAKE_C_COMPILER_LAUNCHER=ccache \
             -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
-            -DCMAKE_BUILD_TYPE=Debug \
+            -DCMAKE_C_COMPILER=clang \
+            -DCMAKE_CXX_COMPILER=clang++ \
+            -DCMAKE_BUILD_TYPE=Release \
             -DBUILD_TESTS=ON \
             -DCI_BUILD=ON \
             -DENABLE_COVERAGE=ON \
             -DENABLE_CLANG_TIDY=OFF
 
-      - name: Build the code in debug mode
+      - name: Build the code
         timeout-minutes: 30
-        run: cmake --build build/ --config Debug
+        run: cmake --build build/ --config Release
 
       - name: Add capabilities for scheduler
         run: find build/tests -type f -executable -exec sudo setcap cap_sys_nice=eip {} \; || true
@@ -69,7 +73,7 @@ jobs:
       - name: Run tests to generate coverage statistics
         timeout-minutes: 10
         working-directory: build
-        run: ninja run_all_tests -j1 -k 0
+        run: ninja coverage -k 0
 
       - name: Test Summary
         if: ${{ !cancelled() }}
@@ -77,42 +81,28 @@ jobs:
         with:
           paths: "build/reports/tests/*.junit.xml"
 
-      - name: Collect coverage into one XML report
-        if: ${{ !cancelled() }}
-        run: |
-          gcovr \
-            --root . \
-            --object-directory build \
-            --force-color \
-            --no-markers \
-            --decisions \
-            --calls \
-            --exclude-noncode-lines \
-            --gcov-ignore-parse-errors negative_hits.warn \
-            --sonarqube "coverage.xml"
-
       - name: Upload coverage report
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v4
         with:
-          name: coverage-sonar
-          path: coverage.xml
+          name: coverage
+          path: build/reports/coverage.txt
           retention-days: 1 # This sets the artifact TTL to 1 day (minimum is 1 day)
           overwrite: true
 
-      - name: Run sonar-scanner
+      - name: SonarQube Scan
+        uses: SonarSource/sonarqube-scan-action@v5
         if: ${{ !cancelled() }}
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: |
-          sonar-scanner \
-            --define sonar.projectKey=Fastcode_NUClear \
-            --define sonar.organization=fastcode \
-            --define sonar.sources=src \
-            --define sonar.tests=tests \
-            --define sonar.cfamily.compile-commands=build/compile_commands.json \
-            --define sonar.coverageReportPaths=coverage.xml
+        with:
+          args: >
+            --define sonar.projectKey=Fastcode_NUClear
+            --define sonar.organization=fastcode
+            --define sonar.sources=src
+            --define sonar.tests=tests
+            --define sonar.cfamily.compile-commands=build/compile_commands.json
+            --define sonar.cfamily.llvm-cov.reportPath=build/reports/coverage.txt
 
       - name: Upload Traces
         if: ${{ !cancelled() }}

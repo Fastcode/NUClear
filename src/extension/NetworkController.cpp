@@ -57,14 +57,10 @@ namespace extension {
                                            const bool& reliable,
                                            std::vector<uint8_t>&& payload) {
             // Construct our NetworkSource information
-            dsl::word::NetworkSource src{remote.name, remote.target, reliable};
+            const dsl::word::NetworkSource src{remote.name, remote.target, reliable};
 
             // Move the payload in as we are stealing it
-            std::vector<uint8_t> p(std::move(payload));
-
-            // Store in our thread local cache
-            dsl::store::ThreadStore<std::vector<uint8_t>>::value     = &p;
-            dsl::store::ThreadStore<dsl::word::NetworkSource>::value = &src;
+            const std::vector<uint8_t> p(std::move(payload));
 
             /* Mutex Scope */ {
                 // Lock our reaction mutex
@@ -75,13 +71,17 @@ namespace extension {
 
                 // Execute on our interested reactions
                 for (auto it = rs.first; it != rs.second; ++it) {
+                    // Store in our thread local cache
+                    dsl::store::ThreadStore<const std::vector<uint8_t>>::value     = &p;
+                    dsl::store::ThreadStore<const dsl::word::NetworkSource>::value = &src;
+
                     powerplant.submit(it->second->get_task());
                 }
-            }
 
-            // Clear our cache
-            dsl::store::ThreadStore<std::vector<uint8_t>>::value     = nullptr;
-            dsl::store::ThreadStore<dsl::word::NetworkSource>::value = nullptr;
+                // Clear our cache
+                dsl::store::ThreadStore<const std::vector<uint8_t>>::value     = nullptr;
+                dsl::store::ThreadStore<const dsl::word::NetworkSource>::value = nullptr;
+            }
         });
 
         // Set our join callback
