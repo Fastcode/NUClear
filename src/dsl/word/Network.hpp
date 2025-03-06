@@ -91,8 +91,8 @@ namespace dsl {
             template <typename DSL>
             static std::tuple<std::shared_ptr<NetworkSource>, NetworkData<T>> get(threading::ReactionTask& /*task*/) {
 
-                auto* data   = store::ThreadStore<std::vector<uint8_t>>::value;
-                auto* source = store::ThreadStore<NetworkSource>::value;
+                const auto* data   = store::ThreadStore<const std::vector<uint8_t>>::value;
+                const auto* source = store::ThreadStore<const NetworkSource>::value;
 
                 if (data && source) {
 
