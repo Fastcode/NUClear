@@ -23,6 +23,8 @@
 #ifndef NUCLEAR_UTIL_SEQUENCE_HPP
 #define NUCLEAR_UTIL_SEQUENCE_HPP
 
+#include <type_traits>
+
 namespace NUClear {
 namespace util {
 

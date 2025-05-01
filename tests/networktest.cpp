@@ -20,11 +20,18 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include <array>
+#include <chrono>
 #include <csignal>
+#include <cstdint>
 #include <cstdlib>
 #include <iostream>
-#include <nuclear>
+#include <limits>
+#include <memory>
+#include <string>
+#include <thread>
+#include <utility>
+
+#include "nuclear"
 
 struct PerformEmits {};
 
@@ -129,7 +136,7 @@ int main(int argc, const char* argv[]) {
     }
 
     NUClear::Configuration config;
-    config.thread_count = 4;
+    config.default_pool_concurrency = 4;
     NUClear::PowerPlant plant(config, argc, argv);
     plant.install<TestReactor>();
 

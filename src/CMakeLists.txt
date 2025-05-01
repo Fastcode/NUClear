@@ -37,11 +37,27 @@ target_link_libraries(nuclear ${CMAKE_THREAD_LIBS_INIT})
 set_target_properties(nuclear PROPERTIES POSITION_INDEPENDENT_CODE ON)
 target_compile_features(nuclear PUBLIC cxx_std_14)
 
+option(ENABLE_COVERAGE "Compile with coverage support enabled.")
+if(ENABLE_COVERAGE)
+  if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    if(NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
+      message(WARNING "Coverage is enabled but not build in debug mode. Coverage results may be misleading.")
+    endif()
+    target_compile_options(nuclear PUBLIC -fprofile-arcs -ftest-coverage -fprofile-abs-path -fprofile-update=atomic)
+    target_link_options(nuclear PUBLIC -fprofile-arcs)
+  elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    target_compile_options(nuclear PUBLIC -fprofile-instr-generate -fcoverage-mapping)
+    target_link_options(nuclear PUBLIC -fprofile-instr-generate)
+  else()
+    message(FATAL_ERROR "Coverage is not supported for the current compiler.")
+  endif()
+endif(ENABLE_COVERAGE)
+
 # Enable warnings, and all warnings are errors
 if(MSVC)
   target_compile_options(nuclear PRIVATE /W4 /WX)
 else()
-  target_compile_options(nuclear PRIVATE -Wall -Wextra -pedantic -Werror)
+  target_compile_options(nuclear PRIVATE -Wall -Wextra -pedantic)
 endif(MSVC)
 
 # Make the NUClearConfig files

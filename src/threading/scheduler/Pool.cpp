@@ -22,13 +22,21 @@
 #include "Pool.hpp"
 
 #include <algorithm>
+#include <atomic>
+#include <memory>
+#include <mutex>
+#include <set>
+#include <thread>
+#include <utility>
+#include <vector>
 
 #include "../../dsl/word/MainThread.hpp"
 #include "../../dsl/word/Pool.hpp"
+#include "../../id.hpp"
 #include "../../message/ReactionStatistics.hpp"
+#include "../../threading/Reaction.hpp"
 #include "../../util/Inline.hpp"
 #include "../ReactionTask.hpp"
-#include "CombinedLock.hpp"
 #include "CountingLock.hpp"
 #include "Scheduler.hpp"
 
@@ -58,8 +66,8 @@ namespace threading {
 
         void Pool::start() {
             // Default thread pool gets its thread count from the configuration rather than the descriptor
-            const int n_threads = descriptor == dsl::word::Pool<>::descriptor() ? scheduler.default_thread_count
-                                                                                : descriptor->thread_count;
+            const int n_threads = descriptor == dsl::word::Pool<>::descriptor() ? scheduler.default_pool_concurrency
+                                                                                : descriptor->concurrency;
 
             // Set the number of active threads to the number of threads in the pool
             active = descriptor->counts_for_idle ? n_threads : 0;
@@ -81,12 +89,12 @@ namespace threading {
         void Pool::stop(const StopType& type) {
             const std::lock_guard<std::mutex> lock(mutex);
 
-            live   = true;                              // Live so the thread will wake from sleep
-            accept = descriptor->continue_on_shutdown;  // Always accept if continue on shutdown otherwise stop
+            live   = true;                    // Live so the thread will wake from sleep
+            accept = descriptor->persistent;  // Always accept if persistent otherwise stop
 
             switch (type) {
                 case StopType::NORMAL: {
-                    running = descriptor->continue_on_shutdown;  // Keep running if we continue on shutdown
+                    running = descriptor->persistent;  // Keep running if we persistent
                 } break;
                 case StopType::FINAL: {
                     running = false;  // Always stop running on the final stop
@@ -179,9 +187,9 @@ namespace threading {
                 }
             }
             catch (const ShutdownThreadException&) {
-                // This throw is here for when the pool is stopped
+                Pool::current_pool = nullptr;
+                return;
             }
-            Pool::current_pool = nullptr;
         }
 
         Pool::Task Pool::get_task() {
@@ -274,7 +282,7 @@ namespace threading {
 
         // Initialise the current pool to nullptr if it is not already
         // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
-        ATTRIBUTE_TLS Pool* Pool::current_pool = nullptr;
+        thread_local Pool* Pool::current_pool = nullptr;
 
     }  // namespace scheduler
 }  // namespace threading

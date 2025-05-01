@@ -20,15 +20,25 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+#include <array>
+#include <catch2/catch_message.hpp>
 #include <catch2/catch_test_macros.hpp>
-#include <nuclear>
+#include <chrono>
+#include <cstddef>
+#include <cstdint>
+#include <memory>
+#include <string>
+#include <utility>
+#include <vector>
 
+#include "nuclear"
 #include "test_util/TestBase.hpp"
 #include "test_util/common.hpp"
 #include "test_util/has_ipv6.hpp"
-
-/// Events that occur during the test
-std::vector<std::string> events;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+#include "util/FileDescriptor.hpp"
+#include "util/network/resolve.hpp"
+#include "util/network/sock_t.hpp"
+#include "util/platform.hpp"
 
 enum TestPorts : in_port_t {
     KNOWN_V4_PORT = 40010,
@@ -41,23 +51,19 @@ enum TestType : uint8_t {
     V6_KNOWN,
     V6_EPHEMERAL,
 };
-std::vector<TestType> active_tests;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
-
-in_port_t v4_port = 0;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
-in_port_t v6_port = 0;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
-
-struct TestConnection {
-    TestConnection(std::string name, std::string address, in_port_t port)
-        : name(std::move(name)), address(std::move(address)), port(port) {}
-    std::string name;
-    std::string address;
-    in_port_t port;
-};
-
-struct Finished {};
 
 class TestReactor : public test_util::TestBase<TestReactor> {
 public:
+    struct TestConnection {
+        TestConnection(std::string name, std::string address, in_port_t port)
+            : name(std::move(name)), address(std::move(address)), port(port) {}
+        std::string name;
+        std::string address;
+        in_port_t port;
+    };
+
+    struct Finished {};
+
     void handle_data(const std::string& name, const IO::Event& event) {
         // We have data to read
         if ((event.events & IO::READ) != 0) {
@@ -77,8 +83,8 @@ public:
         }
     }
 
-    TestReactor(std::unique_ptr<NUClear::Environment> environment)
-        : TestBase(std::move(environment), false, std::chrono::seconds(2)) {
+    TestReactor(std::unique_ptr<NUClear::Environment> environment, const std::vector<TestType>& active_tests_)
+        : TestBase(std::move(environment), false, test_util::TimeUnit(50)), active_tests(active_tests_) {
 
         for (const auto& t : active_tests) {
             switch (t) {
@@ -122,7 +128,7 @@ public:
         }
 
         // Send a test message to the known port
-        on<Trigger<TestConnection>, Sync<TestReactor>>().then([](const TestConnection& target) {
+        on<Trigger<TestConnection>, Sync<TestReactor>>().then([this](const TestConnection& target) {
             // Resolve the target address
             const NUClear::util::network::sock_t address = NUClear::util::network::resolve(target.address, target.port);
 
@@ -193,7 +199,18 @@ public:
         });
     }
 
+    /// Events that occur during the test
+    std::vector<std::string> events;
+
 private:
+    /// The active tests to run
+    std::vector<TestType> active_tests;
+
+    /// The bound ephemeral port for IPv4
+    in_port_t v4_port = 0;
+    /// The bound ephemeral port for IPv6
+    in_port_t v6_port = 0;
+
     size_t test_no = 0;
     NUClear::util::FileDescriptor known_port_fd;
     NUClear::util::FileDescriptor ephemeral_port_fd;
@@ -203,6 +220,7 @@ private:
 TEST_CASE("Testing listening for TCP connections and receiving data messages", "[api][network][tcp]") {
 
     // First work out what tests will be active
+    std::vector<TestType> active_tests;
     active_tests.push_back(V4_KNOWN);
     active_tests.push_back(V4_EPHEMERAL);
     if (test_util::has_ipv6()) {
@@ -211,11 +229,11 @@ TEST_CASE("Testing listening for TCP connections and receiving data messages", "
     }
 
     NUClear::Configuration config;
-    config.thread_count = 2;
+    config.default_pool_concurrency = 2;
     NUClear::PowerPlant plant(config);
     test_util::add_tracing(plant);
     plant.install<NUClear::extension::IOController>();
-    plant.install<TestReactor>();
+    auto& reactor = plant.install<TestReactor>(active_tests);
     plant.start();
 
     // Get the results for the tests we expect
@@ -251,8 +269,8 @@ TEST_CASE("Testing listening for TCP connections and receiving data messages", "
     expected.push_back("Finishing Test");
 
     // Make an info print the diff in an easy to read way if we fail
-    INFO(test_util::diff_string(expected, events));
+    INFO(test_util::diff_string(expected, reactor.events));
 
     // Check the events fired in order and only those events
-    REQUIRE(events == expected);
+    REQUIRE(reactor.events == expected);
 }

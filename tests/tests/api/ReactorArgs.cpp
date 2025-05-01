@@ -21,7 +21,12 @@
  */
 
 #include <catch2/catch_test_macros.hpp>
-#include <nuclear>
+#include <cstdint>
+#include <memory>
+#include <string>
+#include <utility>
+
+#include "nuclear"
 
 class TestReactorNoArgs : public NUClear::Reactor {
 public:
@@ -44,7 +49,7 @@ public:
 
 TEST_CASE("Testing Reactor installation arguments", "[api][reactorargs]") {
     NUClear::Configuration config;
-    config.thread_count = 1;
+    config.default_pool_concurrency = 1;
     NUClear::PowerPlant plant(config);
     const TestReactorArgs& r1   = plant.install<TestReactorArgs>("Hello NUClear", true, 0x00E298A2);
     const TestReactorNoArgs& r2 = plant.install<TestReactorNoArgs>();

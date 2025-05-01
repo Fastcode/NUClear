@@ -52,11 +52,19 @@ namespace dsl {
          * @par Implements
          *  Bind
          */
-        struct Shutdown
-            : operation::TypeBind<Shutdown>
-            , Priority::IDLE {};
+        struct Shutdown {};
 
     }  // namespace word
+
+    namespace operation {
+
+        template <>
+        struct DSLProxy<word::Shutdown>
+            : operation::TypeBind<word::Shutdown>
+            , word::Priority::IDLE {};
+
+    }  // namespace operation
+
 }  // namespace dsl
 }  // namespace NUClear
 

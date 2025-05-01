@@ -20,9 +20,17 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+#include <catch2/catch_message.hpp>
 #include <catch2/catch_test_macros.hpp>
-#include <nuclear>
+#include <chrono>
+#include <memory>
+#include <mutex>
+#include <string>
+#include <thread>
+#include <utility>
+#include <vector>
 
+#include "nuclear"
 #include "test_util/TestBase.hpp"
 #include "test_util/TimeUnit.hpp"
 #include "test_util/common.hpp"
@@ -36,7 +44,7 @@ public:
 
     template <int N>
     struct CustomPool {
-        static constexpr int thread_count = 2;
+        static constexpr int concurrency = 2;
     };
 
     template <int N>
@@ -49,7 +57,7 @@ public:
     }
 
     explicit TestReactor(std::unique_ptr<NUClear::Environment> environment)
-        : TestBase(std::move(environment), false, std::chrono::seconds(5)) {
+        : TestBase(std::move(environment), false, test_util::TimeUnit(100)) {
 
         start_time = NUClear::clock::now();
 
@@ -118,7 +126,7 @@ private:
 TEST_CASE("Test that pool idle triggers when nothing is running", "[api][idle]") {
 
     NUClear::Configuration config;
-    config.thread_count = 4;
+    config.default_pool_concurrency = 4;
     NUClear::PowerPlant plant(config);
     test_util::add_tracing(plant);
     const auto& reactor = plant.install<TestReactor>();

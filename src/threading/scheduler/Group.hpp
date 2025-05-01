@@ -166,7 +166,7 @@ namespace threading {
             /// The mutex which protects the queue
             std::mutex mutex;
             /// The number of tokens that are available for this group
-            int tokens = descriptor->thread_count;
+            int tokens = descriptor->concurrency;
             /// The queue of tasks for this specific thread pool and if they are group blocked
             std::vector<std::shared_ptr<LockHandle>> queue;
         };

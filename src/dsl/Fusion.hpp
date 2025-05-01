@@ -29,9 +29,11 @@
 #include "fusion/GroupFusion.hpp"
 #include "fusion/InlineFusion.hpp"
 #include "fusion/PoolFusion.hpp"
-#include "fusion/PostconditionFusion.hpp"
+#include "fusion/PostRunFusion.hpp"
+#include "fusion/PreRunFusion.hpp"
 #include "fusion/PreconditionFusion.hpp"
 #include "fusion/PriorityFusion.hpp"
+#include "fusion/ScopeFusion.hpp"
 
 namespace NUClear {
 namespace dsl {
@@ -43,10 +45,12 @@ namespace dsl {
         , fusion::GetFusion<Words...>
         , fusion::GroupFusion<Words...>
         , fusion::InlineFusion<Words...>
+        , fusion::PoolFusion<Words...>
+        , fusion::PostRunFusion<Words...>
+        , fusion::PreRunFusion<Words...>
         , fusion::PreconditionFusion<Words...>
         , fusion::PriorityFusion<Words...>
-        , fusion::PoolFusion<Words...>
-        , fusion::PostconditionFusion<Words...> {};
+        , fusion::ScopeFusion<Words...> {};
 
 }  // namespace dsl
 }  // namespace NUClear

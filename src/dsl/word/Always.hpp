@@ -99,7 +99,7 @@ namespace dsl {
             static void bind(const std::shared_ptr<threading::Reaction>& reaction) {
 
                 // Create an unbinder for the always reaction
-                reaction->unbinders.push_back([](threading::Reaction& r) {
+                reaction->unbinders.emplace_back([](threading::Reaction& r) {
                     r.enabled = false;
                     // TODO(Alex/Trent) Clean up thread pool too
                 });
@@ -110,7 +110,7 @@ namespace dsl {
             }
 
             template <typename DSL>
-            static void postcondition(threading::ReactionTask& task) {
+            static void post_run(threading::ReactionTask& task) {
                 // Get a task for the always reaction and submit it to the scheduler
                 PowerPlant::powerplant->submit(task.parent->get_task());
             }

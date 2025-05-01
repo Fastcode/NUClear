@@ -24,7 +24,7 @@
 
 #include <array>
 #include <climits>
-#include <stdexcept>
+#include <cstddef>
 #include <string>
 #include <system_error>
 
@@ -51,7 +51,7 @@ std::string get_executable_path() {
     std::array<char, PATH_MAX> buffer{};
     uint32_t size = buffer.size();
     if (::_NSGetExecutablePath(buffer.data(), &size) == 0) {
-        return {buffer.data(), size};
+        return {buffer.data()};
     }
     throw std::system_error(std::make_error_code(std::errc::no_such_file_or_directory),
                             "Could not get executable path");
@@ -59,6 +59,8 @@ std::string get_executable_path() {
 }  // namespace test_util
 
 #elif defined(__linux__)
+    #include <linux/limits.h>
+    #include <sys/types.h>
     #include <unistd.h>
 
 namespace test_util {

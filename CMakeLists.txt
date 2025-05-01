@@ -63,7 +63,7 @@ if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
   set(MASTER_PROJECT ON)
 endif()
 
-# If this option is set we are building using continous integration
+# If this option is set we are building using continuous integration
 option(CI_BUILD "Enable build options for building in the CI server" OFF)
 
 # Include files to set up the compiler options
@@ -89,6 +89,7 @@ option(BUILD_TESTS "Builds all of the NUClear unit tests." ON)
 if(BUILD_TESTS)
   enable_testing()
   add_subdirectory(tests)
+  include(TestRunner)
 endif()
 
 # Add the documentation subdirectory

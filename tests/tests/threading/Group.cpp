@@ -22,8 +22,14 @@
 #include "threading/scheduler/Group.hpp"
 
 #include <array>
+#include <catch2/catch_message.hpp>
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/generators/catch_generators.hpp>
+#include <memory>
+
+#include "id.hpp"
+#include "threading/scheduler/Lock.hpp"
+#include "util/GroupDescriptor.hpp"
 
 namespace NUClear {
 namespace threading {

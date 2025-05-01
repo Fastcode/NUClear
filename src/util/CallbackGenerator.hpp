@@ -71,6 +71,9 @@ namespace util {
         std::unique_ptr<threading::ReactionTask> operator()(const std::shared_ptr<threading::Reaction>& r,
                                                             const bool& request_inline) {
 
+            using ReactionEvent = message::ReactionEvent;
+            using Event         = message::ReactionEvent::Event;
+
             auto task = std::make_unique<threading::ReactionTask>(r,
                                                                   request_inline,
                                                                   DSL::priority,
@@ -82,9 +85,8 @@ namespace util {
             if (!DSL::precondition(*task)) {
 
                 // Set the created status as rejected and emit it
-                if (task->stats != nullptr) {
-                    PowerPlant::powerplant->emit(
-                        std::make_unique<message::ReactionEvent>(message::ReactionEvent::BLOCKED, task->stats));
+                if (task->statistics != nullptr) {
+                    PowerPlant::powerplant->emit(std::make_unique<ReactionEvent>(Event::BLOCKED, task->statistics));
                 }
 
                 // Nothing to run
@@ -103,9 +105,9 @@ namespace util {
             if (!check_data(data)) {
 
                 // Set the created status as no data and emit it
-                if (task->stats != nullptr) {
+                if (task->statistics != nullptr) {
                     PowerPlant::powerplant->emit(
-                        std::make_unique<message::ReactionEvent>(message::ReactionEvent::MISSING_DATA, task->stats));
+                        std::make_unique<ReactionEvent>(Event::MISSING_DATA, task->statistics));
                 }
 
                 // Nothing to run
@@ -113,9 +115,8 @@ namespace util {
             }
 
             // Set the created status as no data and emit it
-            if (task->stats != nullptr) {
-                PowerPlant::powerplant->emit(
-                    std::make_unique<message::ReactionEvent>(message::ReactionEvent::CREATED, task->stats));
+            if (task->statistics != nullptr) {
+                PowerPlant::powerplant->emit(std::make_unique<ReactionEvent>(Event::CREATED, task->statistics));
             }
 
             // We have to make a copy of the callback because the "this" variable can go out of scope
@@ -124,31 +125,30 @@ namespace util {
                 // Update our thread's priority to the correct level
                 update_current_thread_priority(task.priority);
 
-                if (task.stats != nullptr) {
-                    task.stats->started = message::ReactionStatistics::Event::now();
-                    PowerPlant::powerplant->emit(
-                        std::make_unique<message::ReactionEvent>(message::ReactionEvent::STARTED, task.stats));
+                if (task.statistics != nullptr) {
+                    task.statistics->started = message::ReactionStatistics::Event::now();
+                    PowerPlant::powerplant->emit(std::make_unique<ReactionEvent>(Event::STARTED, task.statistics));
                 }
 
                 // We have to catch any exceptions
                 try {
-                    // We call with only the relevant arguments to the passed function
-                    util::apply_relevant(c, std::move(data));
+                    auto scope = DSL::scope(task);             // Acquire the scope
+                    DSL::pre_run(task);                        // Pre run tasks
+                    util::apply_relevant(c, std::move(data));  // Run the callback
+                    DSL::post_run(task);                       // Post run tasks
+                    std::ignore = scope;                       // Ignore unused variable warning
                 }
                 catch (...) {
                     // Catch our exception if it happens
-                    if (task.stats != nullptr) {
-                        task.stats->exception = std::current_exception();
+                    if (task.statistics != nullptr) {
+                        task.statistics->exception = std::current_exception();
                     }
                 }
 
-                // Run our postconditions
-                DSL::postcondition(task);
-
-                if (task.stats != nullptr) {
-                    task.stats->finished = message::ReactionStatistics::Event::now();
-                    PowerPlant::powerplant->emit(
-                        std::make_unique<message::ReactionEvent>(message::ReactionEvent::FINISHED, task.stats));
+                if (task.statistics != nullptr) {
+                    task.statistics->finished = message::ReactionStatistics::Event::now();
+                    PowerPlant::powerplant->emit(std::make_unique<ReactionEvent>(Event::FINISHED, task.statistics));
+                    PowerPlant::powerplant->emit_shared<dsl::word::emit::Local>(task.statistics);
                 }
             };
 

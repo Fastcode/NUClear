@@ -20,12 +20,17 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+#include <catch2/catch_message.hpp>
 #include <catch2/catch_test_macros.hpp>
-#include <nuclear>
+#include <memory>
+#include <string>
 #include <utility>
+#include <vector>
 
+#include "nuclear"
 #include "test_util/TestBase.hpp"
-#include "test_util/common.hpp"
+
+namespace {  // Anonymous namespace for internal linkage
 
 /// Events that occur during the test
 std::vector<std::string> events;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables,-warnings-as-errors)
@@ -33,30 +38,32 @@ std::vector<std::string> events;  // NOLINT(cppcoreguidelines-avoid-non-const-gl
 template <typename T>
 struct E1 {
     static void emit(const NUClear::PowerPlant& /*powerplant*/,
-                     std::shared_ptr<T> p,
+                     const std::shared_ptr<T>& p,
                      const int& a,
                      const std::string& b) {
         events.push_back("E1a " + *p + " " + std::to_string(a) + " " + b);
     }
 
-    static void emit(const NUClear::PowerPlant& /*powerplant*/, std::shared_ptr<T> p, const std::string& c) {
+    static void emit(const NUClear::PowerPlant& /*powerplant*/, const std::shared_ptr<T>& p, const std::string& c) {
         events.push_back("E1b " + *p + " " + c);
     }
 };
 
 template <typename T>
 struct E2 {
-    static void emit(const NUClear::PowerPlant& /*powerplant*/, std::shared_ptr<T> p, const bool& d) {
+    static void emit(const NUClear::PowerPlant& /*powerplant*/, const std::shared_ptr<T>& p, const bool& d) {
         events.push_back("E2a " + *p + " " + (d ? "true" : "false"));
     }
 
     static void emit(const NUClear::PowerPlant& /*powerplant*/,
-                     std::shared_ptr<T> p,
+                     const std::shared_ptr<T>& p,
                      const int& e,
                      const std::string& f) {
         events.push_back("E2b " + *p + " " + std::to_string(e) + " " + f);
     }
 };
+
+}  // namespace
 
 class TestReactor : public test_util::TestBase<TestReactor> {
 public:
@@ -84,7 +91,7 @@ public:
 TEST_CASE("Testing emit function fusion", "[api][emit][fusion]") {
 
     NUClear::Configuration config;
-    config.thread_count = 1;
+    config.default_pool_concurrency = 1;
     NUClear::PowerPlant plant(config);
     plant.install<TestReactor>();
 

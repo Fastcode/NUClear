@@ -79,7 +79,7 @@ namespace dsl {
                 auto task = std::make_unique<NetworkListen>();
 
                 task->hash = util::serialise::Serialise<T>::hash();
-                reaction->unbinders.push_back([](const threading::Reaction& r) {
+                reaction->unbinders.emplace_back([](const threading::Reaction& r) {
                     r.reactor.emit<emit::Inline>(std::make_unique<operation::Unbind<NetworkListen>>(r.id));
                 });
 
@@ -91,8 +91,8 @@ namespace dsl {
             template <typename DSL>
             static std::tuple<std::shared_ptr<NetworkSource>, NetworkData<T>> get(threading::ReactionTask& /*task*/) {
 
-                auto* data   = store::ThreadStore<std::vector<uint8_t>>::value;
-                auto* source = store::ThreadStore<NetworkSource>::value;
+                const auto* data   = store::ThreadStore<const std::vector<uint8_t>>::value;
+                const auto* source = store::ThreadStore<const NetworkSource>::value;
 
                 if (data && source) {
 

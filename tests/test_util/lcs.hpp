@@ -74,7 +74,7 @@ std::pair<std::vector<bool>, std::vector<bool>> lcs(const std::vector<T>& a, con
                 a[x] == b[y] ? (x == 0 ? (y + 1) * insert_weight : last_weights[x - 1]) : 0x7FFFFFFF;
 
             // Find the smallest weight
-            const int min_weight = std::min(std::min(weight_from_left, weight_from_top), weight_from_diagonal);
+            const int min_weight = std::min({weight_from_left, weight_from_top, weight_from_diagonal});
             curr_weights[x]      = min_weight;
 
             const int direction = (min_weight == weight_from_diagonal ? 0x01 : 0x0)  //

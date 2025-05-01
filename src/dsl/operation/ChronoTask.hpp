@@ -23,6 +23,8 @@
 #ifndef NUCLEAR_DSL_OPERATION_CHRONO_TASK_HPP
 #define NUCLEAR_DSL_OPERATION_CHRONO_TASK_HPP
 
+#include <functional>
+
 #include "../../clock.hpp"
 #include "../../id.hpp"
 

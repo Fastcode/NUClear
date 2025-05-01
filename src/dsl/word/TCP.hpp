@@ -66,17 +66,10 @@ namespace dsl {
 
             struct Connection {
 
-                struct Target {
-                    /// The address of the connection
-                    std::string address;
-                    /// The port of the connection
-                    uint16_t port;
-                };
-
                 /// The local address of the connection
-                Target local;
+                util::network::sock_t local;
                 /// The remote address of the connection
-                Target remote;
+                util::network::sock_t remote;
 
                 /// The file descriptor for the connection
                 fd_t fd;
@@ -147,7 +140,7 @@ namespace dsl {
                 // Generate a reaction for the IO system that closes on death
                 const fd_t cfd = fd.release();
 
-                reaction->unbinders.push_back([cfd](const threading::Reaction&) {
+                reaction->unbinders.emplace_back([cfd](const threading::Reaction&) {
                     ::shutdown(cfd, SHUT_RDWR);
                     ::close(cfd);
                 });
@@ -187,10 +180,7 @@ namespace dsl {
                     return Connection{};
                 }
 
-                auto local_s  = local.address();
-                auto remote_s = remote.address();
-
-                return Connection{{local_s.first, local_s.second}, {remote_s.first, remote_s.second}, fd.release()};
+                return Connection{local, remote, fd.release()};
             }
         };
 

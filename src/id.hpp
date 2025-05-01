@@ -23,7 +23,7 @@
 #ifndef NUCLEAR_UTIL_ID_HPP
 #define NUCLEAR_UTIL_ID_HPP
 
-#include <cstdint>
+#include <cstddef>
 
 namespace NUClear {
 

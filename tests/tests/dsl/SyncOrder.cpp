@@ -21,11 +21,11 @@
  */
 
 #include <catch2/catch_test_macros.hpp>
-#include <nuclear>
-#include <numeric>
-#include <string>
+#include <memory>
+#include <utility>
 #include <vector>
 
+#include "nuclear"
 #include "test_util/TestBase.hpp"
 #include "test_util/common.hpp"
 
@@ -39,7 +39,8 @@ public:
         Message(int val) : val(val) {};
     };
 
-    TestReactor(std::unique_ptr<NUClear::Environment> environment) : TestBase(std::move(environment)) {
+    TestReactor(std::unique_ptr<NUClear::Environment> environment)
+        : TestBase(std::move(environment), true, test_util::TimeUnit(150)) {
 
         on<Trigger<Message<'A'>>, Sync<TestReactor>>().then([this](const Message<'A'>& m) {  //
             events.emplace_back('A', m.val);
@@ -64,7 +65,7 @@ public:
 
 TEST_CASE("Sync events execute in order", "[api][sync][priority]") {
     NUClear::Configuration config;
-    config.thread_count = 4;
+    config.default_pool_concurrency = 4;
     NUClear::PowerPlant plant(config);
     test_util::add_tracing(plant);
     const auto& reactor = plant.install<TestReactor>();

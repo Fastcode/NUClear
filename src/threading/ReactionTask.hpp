@@ -32,7 +32,6 @@
 #include "../util/GroupDescriptor.hpp"
 #include "../util/Inline.hpp"
 #include "../util/ThreadPoolDescriptor.hpp"
-#include "../util/platform.hpp"
 #include "Reaction.hpp"
 
 namespace NUClear {
@@ -53,11 +52,11 @@ namespace threading {
     class ReactionTask {
     private:
         /// The current task that is being executed by this thread (or nullptr if none is)
-        static ATTRIBUTE_TLS ReactionTask* current_task;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+        static thread_local ReactionTask* current_task;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
     public:
         /// Type of the functions that ReactionTasks execute
-        using TaskFunction = std::function<void(ReactionTask&) noexcept>;
+        using TaskFunction = std::function<void(ReactionTask&)>;
 
         /**
          * Gets the current executing task, or nullptr if there isn't one.
@@ -89,7 +88,7 @@ namespace threading {
             , should_inline(inline_fn(*this))
             , pool_descriptor(thread_pool_fn(*this))
             , group_descriptors(groups_fn(*this))
-            , stats(make_stats()) {
+            , statistics(make_statistics()) {
             // Increment the number of active tasks
             if (parent != nullptr) {
                 parent->active_tasks.fetch_add(1, std::memory_order_release);
@@ -147,8 +146,7 @@ namespace threading {
 
         /// The statistics object that records run details about this reaction task
         /// This will be nullptr if this task is ineligible to emit stats (e.g. it would cause a loop)
-        std::shared_ptr<message::ReactionStatistics> stats;
-
+        std::shared_ptr<message::ReactionStatistics> statistics;
 
         /// The data bound callback to be executed
         /// @attention note this must be last in the list as the this pointer is passed to the callback generator
@@ -179,7 +177,7 @@ namespace threading {
          *
          * @return A new ReactionStatistics object for this task
          */
-        std::shared_ptr<message::ReactionStatistics> make_stats();
+        std::shared_ptr<message::ReactionStatistics> make_statistics();
     };
 
 }  // namespace threading

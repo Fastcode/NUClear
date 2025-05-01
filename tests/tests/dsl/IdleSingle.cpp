@@ -20,11 +20,19 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+#include <array>
+#include <atomic>
 #include <catch2/catch_test_macros.hpp>
-#include <nuclear>
+#include <catch2/catch_tostring.hpp>
+#include <chrono>
+#include <map>
+#include <memory>
+#include <sstream>
+#include <string>
+#include <utility>
 
+#include "nuclear"
 #include "test_util/TestBase.hpp"
-#include "test_util/TimeUnit.hpp"
 #include "test_util/common.hpp"
 #include "util/precise_sleep.hpp"
 
@@ -56,7 +64,7 @@ public:
     };
 
     struct IdlePool {
-        static constexpr int thread_count = 1;
+        static constexpr int concurrency = 1;
     };
 
     explicit TestReactor(std::unique_ptr<NUClear::Environment> environment) : TestBase(std::move(environment), false) {
@@ -109,7 +117,7 @@ public:
 TEST_CASE("Test that when a global idle trigger exists it is triggered only once", "[api][dsl][Idle][Sync]") {
 
     NUClear::Configuration config;
-    config.thread_count = 1;
+    config.default_pool_concurrency = 1;
     NUClear::PowerPlant plant(config);
     test_util::add_tracing(plant);
     const auto& reactor = plant.install<TestReactor>();

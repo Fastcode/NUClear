@@ -24,11 +24,11 @@
 
 #include <atomic>
 #include <functional>
+#include <memory>
 #include <utility>
 
 #include "../id.hpp"
 #include "../message/ReactionStatistics.hpp"
-#include "../util/platform.hpp"
 #include "Reaction.hpp"
 
 namespace NUClear {
@@ -68,10 +68,11 @@ namespace threading {
         return id_source.fetch_add(1, std::memory_order_seq_cst);
     }
 
-    std::shared_ptr<message::ReactionStatistics> ReactionTask::make_stats() {
+    std::shared_ptr<message::ReactionStatistics> ReactionTask::make_statistics() {
 
         // Stats are disabled if they are disabled in the parent or in the causing task
-        if ((parent != nullptr && !parent->emit_stats) || (current_task != nullptr && current_task->stats == nullptr)) {
+        if ((parent != nullptr && !parent->emit_stats)
+            || (current_task != nullptr && current_task->statistics == nullptr)) {
             return nullptr;
         }
 
@@ -93,7 +94,7 @@ namespace threading {
 
     // Initialize our current task
     // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
-    ATTRIBUTE_TLS ReactionTask* ReactionTask::current_task = nullptr;
+    thread_local ReactionTask* ReactionTask::current_task = nullptr;
 
 }  // namespace threading
 }  // namespace NUClear

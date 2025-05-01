@@ -22,17 +22,28 @@
 #include "Scheduler.hpp"
 
 #include <algorithm>
+#include <atomic>
+#include <memory>
+#include <mutex>
+#include <set>
 #include <stdexcept>
+#include <utility>
+#include <vector>
 
 #include "../../dsl/word/MainThread.hpp"
-#include "../../dsl/word/Pool.hpp"
+#include "../../id.hpp"
+#include "../../threading/Reaction.hpp"
+#include "../../threading/ReactionTask.hpp"
 #include "CombinedLock.hpp"
+#include "Group.hpp"
+#include "Lock.hpp"
+#include "Pool.hpp"
 
 namespace NUClear {
 namespace threading {
     namespace scheduler {
 
-        Scheduler::Scheduler(const int& thread_count) : default_thread_count(thread_count) {
+        Scheduler::Scheduler(const int& default_pool_concurrency) : default_pool_concurrency(default_pool_concurrency) {
             // Create the main thread pool and assign it as our "current pool" so things we do pre startup are assigned
             Pool::current_pool = get_pool(dsl::word::MainThread::descriptor()).get();
         }
@@ -62,8 +73,8 @@ namespace threading {
                 pools_to_stop.push_back(pool.second);
             }
             std::sort(pools_to_stop.begin(), pools_to_stop.end(), [](const auto& lhs, const auto& rhs) {
-                const bool& a = lhs->descriptor->continue_on_shutdown;
-                const bool& b = rhs->descriptor->continue_on_shutdown;
+                const bool& a = lhs->descriptor->persistent;
+                const bool& b = rhs->descriptor->persistent;
                 return !a && b;
             });
             for (const auto& pool : pools_to_stop) {
@@ -177,8 +188,23 @@ namespace threading {
                 return;
             }
 
-            // Get the pool and locks for the group group
-            auto pool       = get_pool(task->pool_descriptor);
+            // If we have run this task before, we know which pool it should be submitted to and cached it
+            // This avoids every single submit having to lock a mutex to find the pool
+            std::shared_ptr<Pool> pool;
+            if (task->parent) {
+                if (task->parent->scheduler_data) {
+                    pool = std::static_pointer_cast<Pool>(task->parent->scheduler_data);
+                }
+                else {
+                    pool                         = get_pool(task->pool_descriptor);
+                    task->parent->scheduler_data = pool;
+                }
+            }
+            else {
+                pool = get_pool(task->pool_descriptor);
+            }
+
+            // Get any locks that are required for this task
             auto group_lock = get_groups_lock(task->id, task->priority, pool, task->group_descriptors);
 
             // If this task should run immediately and not limited by the group lock

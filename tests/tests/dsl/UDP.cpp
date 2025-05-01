@@ -20,15 +20,27 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+#include <algorithm>
+#include <array>
+#include <catch2/catch_message.hpp>
 #include <catch2/catch_test_macros.hpp>
-#include <nuclear>
+#include <cstddef>
+#include <cstdint>
+#include <exception>
+#include <memory>
+#include <string>
+#include <utility>
+#include <vector>
 
+#include "nuclear"
 #include "test_util/TestBase.hpp"
 #include "test_util/common.hpp"
 #include "test_util/has_ipv6.hpp"
+#include "test_util/has_multicast.hpp"
+#include "util/network/get_interfaces.hpp"
+#include "util/platform.hpp"
 
-/// Events that occur during the test
-std::vector<std::string> events;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+namespace {  // Anonymous namespace to ensure internal linkage
 
 enum TestPorts : in_port_t {
     UNICAST_V4   = 40000,
@@ -51,13 +63,6 @@ const std::string IPV6_BIND = "::1";  // NOLINT(cert-err58-cpp)
 const std::string IPV6_BIND = "::";  // NOLINT(cert-err58-cpp)
 #endif
 
-// Ephemeral ports that we will use
-in_port_t uni_v4_port   = 0;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
-in_port_t uni_v6_port   = 0;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
-in_port_t broad_v4_port = 0;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
-in_port_t multi_v4_port = 0;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
-in_port_t multi_v6_port = 0;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
-
 enum TestType : uint8_t {
     UNICAST_V4_KNOWN,
     UNICAST_V4_EPHEMERAL,
@@ -70,9 +75,8 @@ enum TestType : uint8_t {
     MULTICAST_V6_KNOWN,
     MULTICAST_V6_EPHEMERAL,
 };
-std::vector<TestType> active_tests;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
-inline std::string get_broadcast_addr() {
+std::string get_broadcast_addr() {
     static std::string addr;
 
     if (!addr.empty()) {
@@ -96,78 +100,83 @@ inline std::string get_broadcast_addr() {
     return addr;
 }
 
-struct SendTarget {
-    std::string data;
-    struct Target {
-        std::string address;
-        in_port_t port = 0;
-    };
-    Target to{};
-    Target from{};
-};
-std::vector<SendTarget> send_targets(const std::string& type, in_port_t port) {
-    std::vector<SendTarget> results;
-
-    // Loop through the active tests and add the send targets
-    // Make sure that the type we are actually after is sent last
-    for (const auto& t : active_tests) {
-        switch (t) {
-            case UNICAST_V4_KNOWN:
-            case UNICAST_V4_EPHEMERAL: {
-                results.push_back(SendTarget{type + ":Uv4", {"127.0.0.1", port}, {}});
-            } break;
-            case UNICAST_V6_KNOWN:
-            case UNICAST_V6_EPHEMERAL: {
-                results.push_back(SendTarget{type + ":Uv6", {"::1", port}, {}});
-            } break;
-            case BROADCAST_V4_KNOWN:
-            case BROADCAST_V4_EPHEMERAL: {
-                results.push_back(SendTarget{type + ":Bv4", {get_broadcast_addr(), port}, {}});
-            } break;
-            case MULTICAST_V4_KNOWN:
-            case MULTICAST_V4_EPHEMERAL: {
-                results.push_back(SendTarget{type + ":Mv4", {IPV4_MULTICAST_ADDRESS, port}, {}});
-            } break;
-            case MULTICAST_V6_KNOWN:
-            case MULTICAST_V6_EPHEMERAL: {
-                results.push_back(SendTarget{type + ":Mv6", {IPV6_MULTICAST_ADDRESS, port}, {IPV6_BIND, 0}});
-            } break;
-        }
-    }
-
-    // remove duplicates
-    results.erase(std::unique(results.begin(),
-                              results.end(),
-                              [](const SendTarget& a, const SendTarget& b) {
-                                  return a.to.address == b.to.address && a.to.port == b.to.port && a.data == b.data
-                                         && a.from.address == b.from.address && a.from.port == b.from.port;
-                              }),
-                  results.end());
-
-    // Stable sort so that the type we are after is last
-    std::stable_sort(results.begin(), results.end(), [](const SendTarget& /*a*/, const SendTarget& b) {
-        // We want to sort such that the one we are after is last and everything else is unmodified
-        // That means that every comparision except one should be false
-        // This is because equality is implied if a < b == false and b < a == false
-        // The only time we should return true is when b is our target (which would make a less than it)
-        return b.data.substr(0, 3) == b.data.substr(5, 8);
-    });
-
-    return results;
-}
-
-struct Finished {
-    Finished(std::string name) : name(std::move(name)) {}
-    std::string name;
-};
+}  // namespace
 
 class TestReactor : public test_util::TestBase<TestReactor> {
-private:
+public:
+    struct Finished {
+        Finished(std::string name) : name(std::move(name)) {}
+        std::string name;
+    };
+
+
+    struct SendTarget {
+        std::string data;
+        struct Target {
+            std::string address;
+            in_port_t port = 0;
+        };
+        Target to{};
+        Target from{};
+    };
+
+    std::vector<SendTarget> send_targets(const std::string& type, in_port_t port) const {
+        std::vector<SendTarget> results;
+
+        // Loop through the active tests and add the send targets
+        // Make sure that the type we are actually after is sent last
+        for (const auto& t : active_tests) {
+            switch (t) {
+                case UNICAST_V4_KNOWN:
+                case UNICAST_V4_EPHEMERAL: {
+                    results.push_back(SendTarget{type + ":Uv4", {"127.0.0.1", port}, {}});
+                } break;
+                case UNICAST_V6_KNOWN:
+                case UNICAST_V6_EPHEMERAL: {
+                    results.push_back(SendTarget{type + ":Uv6", {"::1", port}, {}});
+                } break;
+                case BROADCAST_V4_KNOWN:
+                case BROADCAST_V4_EPHEMERAL: {
+                    results.push_back(SendTarget{type + ":Bv4", {get_broadcast_addr(), port}, {}});
+                } break;
+                case MULTICAST_V4_KNOWN:
+                case MULTICAST_V4_EPHEMERAL: {
+                    results.push_back(SendTarget{type + ":Mv4", {IPV4_MULTICAST_ADDRESS, port}, {}});
+                } break;
+                case MULTICAST_V6_KNOWN:
+                case MULTICAST_V6_EPHEMERAL: {
+                    results.push_back(SendTarget{type + ":Mv6", {IPV6_MULTICAST_ADDRESS, port}, {IPV6_BIND, 0}});
+                } break;
+            }
+        }
+
+        // remove duplicates
+        results.erase(std::unique(results.begin(),
+                                  results.end(),
+                                  [](const SendTarget& a, const SendTarget& b) {
+                                      return a.to.address == b.to.address && a.to.port == b.to.port && a.data == b.data
+                                             && a.from.address == b.from.address && a.from.port == b.from.port;
+                                  }),
+                      results.end());
+
+        // Stable sort so that the type we are after is last
+        std::stable_sort(results.begin(), results.end(), [](const SendTarget& /*a*/, const SendTarget& b) {
+            // We want to sort such that the one we are after is last and everything else is unmodified
+            // That means that every comparision except one should be false
+            // This is because equality is implied if a < b == false and b < a == false
+            // The only time we should return true is when b is our target (which would make a less than it)
+            return b.data.substr(0, 3) == b.data.substr(5, 8);
+        });
+
+        return results;
+    }
+
     void handle_data(const std::string& name, const UDP::Packet& packet) {
         const std::string data(packet.payload.begin(), packet.payload.end());
 
-        // Convert IP address to string in dotted decimal format
-        const std::string local = packet.local.address + ":" + std::to_string(packet.local.port);
+        // Convert IP address to a numeric string
+        auto s                  = packet.local.address(true);
+        const std::string local = s.first + ":" + std::to_string(s.second);
 
         events.push_back(name + " <- " + data + " (" + local + ")");
 
@@ -176,8 +185,8 @@ private:
         }
     }
 
-public:
-    TestReactor(std::unique_ptr<NUClear::Environment> environment) : TestBase(std::move(environment), false) {
+    TestReactor(std::unique_ptr<NUClear::Environment> environment, const std::vector<TestType>& active_tests_)
+        : TestBase(std::move(environment), false), active_tests(active_tests_) {
 
         for (const auto& t : active_tests) {
             switch (t) {
@@ -343,7 +352,17 @@ public:
         });
     }
 
+    /// Events that occur during the test
+    std::vector<std::string> events;
+
+    in_port_t uni_v4_port   = 0;  // Ephemeral port for IPv4 unicast
+    in_port_t uni_v6_port   = 0;  // Ephemeral port for IPv6 unicast
+    in_port_t broad_v4_port = 0;  // Ephemeral port for IPv4 broadcast
+    in_port_t multi_v4_port = 0;  // Ephemeral port for IPv4 multicast
+    in_port_t multi_v6_port = 0;  // Ephemeral port for IPv6 multicast
+
 private:
+    std::vector<TestType> active_tests;  // The active tests to run
     size_t test_no = 0;
 };
 
@@ -351,6 +370,7 @@ private:
 TEST_CASE("Testing sending and receiving of UDP messages", "[api][network][udp]") {
 
     // Build up the list of active tests based on what we have available
+    std::vector<TestType> active_tests;
     active_tests.push_back(UNICAST_V4_KNOWN);
     active_tests.push_back(UNICAST_V4_EPHEMERAL);
     if (test_util::has_ipv6()) {
@@ -359,19 +379,21 @@ TEST_CASE("Testing sending and receiving of UDP messages", "[api][network][udp]"
     }
     active_tests.push_back(BROADCAST_V4_KNOWN);
     active_tests.push_back(BROADCAST_V4_EPHEMERAL);
-    active_tests.push_back(MULTICAST_V4_KNOWN);
-    active_tests.push_back(MULTICAST_V4_EPHEMERAL);
-    if (test_util::has_ipv6()) {
+    if (test_util::has_ipv4_multicast()) {
+        active_tests.push_back(MULTICAST_V4_KNOWN);
+        active_tests.push_back(MULTICAST_V4_EPHEMERAL);
+    }
+    if (test_util::has_ipv6() && test_util::has_ipv6_multicast()) {
         active_tests.push_back(MULTICAST_V6_KNOWN);
         active_tests.push_back(MULTICAST_V6_EPHEMERAL);
     }
 
     NUClear::Configuration config;
-    config.thread_count = 1;
+    config.default_pool_concurrency = 1;
     NUClear::PowerPlant plant(config);
     test_util::add_tracing(plant);
     plant.install<NUClear::extension::IOController>();
-    plant.install<TestReactor>();
+    const auto& reactor = plant.install<TestReactor>(active_tests);
     plant.start();
 
     std::vector<std::string> expected;
@@ -379,7 +401,7 @@ TEST_CASE("Testing sending and receiving of UDP messages", "[api][network][udp]"
         switch (t) {
             case UNICAST_V4_KNOWN: {
                 expected.push_back("- Known Unicast V4 Test -");
-                for (const auto& line : send_targets("Uv4K", UNICAST_V4)) {
+                for (const auto& line : reactor.send_targets("Uv4K", UNICAST_V4)) {
                     expected.push_back(" -> " + line.to.address + ":" + std::to_string(line.to.port));
                 }
                 expected.push_back("Uv4K <- Uv4K:Uv4 (127.0.0.1:" + std::to_string(UNICAST_V4) + ")");
@@ -387,15 +409,15 @@ TEST_CASE("Testing sending and receiving of UDP messages", "[api][network][udp]"
 
             case UNICAST_V4_EPHEMERAL: {
                 expected.push_back("- Ephemeral Unicast V4 Test -");
-                for (const auto& line : send_targets("Uv4E", uni_v4_port)) {
+                for (const auto& line : reactor.send_targets("Uv4E", reactor.uni_v4_port)) {
                     expected.push_back(" -> " + line.to.address + ":" + std::to_string(line.to.port));
                 }
-                expected.push_back("Uv4E <- Uv4E:Uv4 (127.0.0.1:" + std::to_string(uni_v4_port) + ")");
+                expected.push_back("Uv4E <- Uv4E:Uv4 (127.0.0.1:" + std::to_string(reactor.uni_v4_port) + ")");
             } break;
 
             case UNICAST_V6_KNOWN: {
                 expected.push_back("- Known Unicast V6 Test -");
-                for (const auto& line : send_targets("Uv6K", UNICAST_V6)) {
+                for (const auto& line : reactor.send_targets("Uv6K", UNICAST_V6)) {
                     expected.push_back(" -> " + line.to.address + ":" + std::to_string(line.to.port));
                 }
                 expected.push_back("Uv6K <- Uv6K:Uv6 (::1:" + std::to_string(UNICAST_V6) + ")");
@@ -403,15 +425,15 @@ TEST_CASE("Testing sending and receiving of UDP messages", "[api][network][udp]"
 
             case UNICAST_V6_EPHEMERAL: {
                 expected.push_back("- Ephemeral Unicast V6 Test -");
-                for (const auto& line : send_targets("Uv6E", uni_v6_port)) {
+                for (const auto& line : reactor.send_targets("Uv6E", reactor.uni_v6_port)) {
                     expected.push_back(" -> " + line.to.address + ":" + std::to_string(line.to.port));
                 }
-                expected.push_back("Uv6E <- Uv6E:Uv6 (::1:" + std::to_string(uni_v6_port) + ")");
+                expected.push_back("Uv6E <- Uv6E:Uv6 (::1:" + std::to_string(reactor.uni_v6_port) + ")");
             } break;
 
             case BROADCAST_V4_KNOWN: {
                 expected.push_back("- Known Broadcast V4 Test -");
-                for (const auto& line : send_targets("Bv4K", BROADCAST_V4)) {
+                for (const auto& line : reactor.send_targets("Bv4K", BROADCAST_V4)) {
                     expected.push_back(" -> " + line.to.address + ":" + std::to_string(line.to.port));
                 }
                 expected.push_back("Bv4K <- Bv4K:Bv4 (" + get_broadcast_addr() + ":" + std::to_string(BROADCAST_V4)
@@ -420,16 +442,16 @@ TEST_CASE("Testing sending and receiving of UDP messages", "[api][network][udp]"
 
             case BROADCAST_V4_EPHEMERAL: {
                 expected.push_back("- Ephemeral Broadcast V4 Test -");
-                for (const auto& line : send_targets("Bv4E", broad_v4_port)) {
+                for (const auto& line : reactor.send_targets("Bv4E", reactor.broad_v4_port)) {
                     expected.push_back(" -> " + line.to.address + ":" + std::to_string(line.to.port));
                 }
-                expected.push_back("Bv4E <- Bv4E:Bv4 (" + get_broadcast_addr() + ":" + std::to_string(broad_v4_port)
-                                   + ")");
+                expected.push_back("Bv4E <- Bv4E:Bv4 (" + get_broadcast_addr() + ":"
+                                   + std::to_string(reactor.broad_v4_port) + ")");
             } break;
 
             case MULTICAST_V4_KNOWN: {
                 expected.push_back("- Known Multicast V4 Test -");
-                for (const auto& line : send_targets("Mv4K", MULTICAST_V4)) {
+                for (const auto& line : reactor.send_targets("Mv4K", MULTICAST_V4)) {
                     expected.push_back(" -> " + line.to.address + ":" + std::to_string(line.to.port));
                 }
                 expected.push_back("Mv4K <- Mv4K:Mv4 (" + IPV4_MULTICAST_ADDRESS + ":" + std::to_string(MULTICAST_V4)
@@ -438,16 +460,16 @@ TEST_CASE("Testing sending and receiving of UDP messages", "[api][network][udp]"
 
             case MULTICAST_V4_EPHEMERAL: {
                 expected.push_back("- Ephemeral Multicast V4 Test -");
-                for (const auto& line : send_targets("Mv4E", multi_v4_port)) {
+                for (const auto& line : reactor.send_targets("Mv4E", reactor.multi_v4_port)) {
                     expected.push_back(" -> " + line.to.address + ":" + std::to_string(line.to.port));
                 }
-                expected.push_back("Mv4E <- Mv4E:Mv4 (" + IPV4_MULTICAST_ADDRESS + ":" + std::to_string(multi_v4_port)
-                                   + ")");
+                expected.push_back("Mv4E <- Mv4E:Mv4 (" + IPV4_MULTICAST_ADDRESS + ":"
+                                   + std::to_string(reactor.multi_v4_port) + ")");
             } break;
 
             case MULTICAST_V6_KNOWN: {
                 expected.push_back("- Known Multicast V6 Test -");
-                for (const auto& line : send_targets("Mv6K", MULTICAST_V6)) {
+                for (const auto& line : reactor.send_targets("Mv6K", MULTICAST_V6)) {
                     expected.push_back(" -> " + line.to.address + ":" + std::to_string(line.to.port));
                 }
                 expected.push_back("Mv6K <- Mv6K:Mv6 (" + IPV6_MULTICAST_ADDRESS + ":" + std::to_string(MULTICAST_V6)
@@ -456,18 +478,18 @@ TEST_CASE("Testing sending and receiving of UDP messages", "[api][network][udp]"
 
             case MULTICAST_V6_EPHEMERAL: {
                 expected.push_back("- Ephemeral Multicast V6 Test -");
-                for (const auto& line : send_targets("Mv6E", multi_v6_port)) {
+                for (const auto& line : reactor.send_targets("Mv6E", reactor.multi_v6_port)) {
                     expected.push_back(" -> " + line.to.address + ":" + std::to_string(line.to.port));
                 }
-                expected.push_back("Mv6E <- Mv6E:Mv6 (" + IPV6_MULTICAST_ADDRESS + ":" + std::to_string(multi_v6_port)
-                                   + ")");
+                expected.push_back("Mv6E <- Mv6E:Mv6 (" + IPV6_MULTICAST_ADDRESS + ":"
+                                   + std::to_string(reactor.multi_v6_port) + ")");
             } break;
         }
     }
 
     // Make an info print the diff in an easy to read way if we fail
-    INFO(test_util::diff_string(expected, events));
+    INFO(test_util::diff_string(expected, reactor.events));
 
     // Check the events fired in order and only those events
-    REQUIRE(events == expected);
+    REQUIRE(reactor.events == expected);
 }

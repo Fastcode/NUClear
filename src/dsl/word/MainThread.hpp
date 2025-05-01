@@ -35,7 +35,7 @@ namespace dsl {
              */
             struct Main {
                 static constexpr const char* name = "Main";
-                static constexpr int thread_count = 1;
+                static constexpr int concurrency  = 1;
             };
         }  // namespace pool
 

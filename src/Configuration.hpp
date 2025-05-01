@@ -23,7 +23,6 @@
 #ifndef NUCLEAR_CONFIGURATION_HPP
 #define NUCLEAR_CONFIGURATION_HPP
 
-#include <cstddef>
 #include <thread>
 
 namespace NUClear {
@@ -32,8 +31,9 @@ namespace NUClear {
  * This class holds the configuration for a PowerPlant.
  */
 struct Configuration {
-    /// The number of threads the system will use
-    int thread_count = std::thread::hardware_concurrency() == 0 ? 2 : int(std::thread::hardware_concurrency());
+    /// The number of threads the system will use for the default thread pool
+    int default_pool_concurrency =
+        std::thread::hardware_concurrency() == 0 ? 2 : int(std::thread::hardware_concurrency());
 };
 
 }  // namespace NUClear

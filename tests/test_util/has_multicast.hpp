@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2014 NUClear Contributors
+ * Copyright (c) 2025 NUClear Contributors
  *
  * This file is part of the NUClear codebase.
  * See https://github.com/Fastcode/NUClear for further info.
@@ -20,39 +20,14 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_DSL_FUSION_HAS_RUN_INLINE_HPP
-#define NUCLEAR_DSL_FUSION_HAS_RUN_INLINE_HPP
+#ifndef TEST_UTIL_HAS_IPV4_MULTICAST_HPP
+#define TEST_UTIL_HAS_IPV4_MULTICAST_HPP
 
-#include "../../threading/ReactionTask.hpp"
-#include "NoOp.hpp"
+namespace test_util {
 
-namespace NUClear {
-namespace dsl {
-    namespace fusion {
+bool has_ipv4_multicast();
+bool has_ipv6_multicast();
 
-        /**
-         * SFINAE struct to test if the passed class has a run_inline function that conforms to the NUClear DSL.
-         *
-         * @tparam T the class to check
-         */
-        template <typename T>
-        struct has_run_inline {
-        private:
-            using yes = std::true_type;
-            using no  = std::false_type;
+}  // namespace test_util
 
-            template <typename U>
-            static auto test(int)
-                -> decltype(U::template run_inline<ParsedNoOp>(std::declval<threading::ReactionTask&>()), yes());
-            template <typename>
-            static no test(...);
-
-        public:
-            static constexpr bool value = std::is_same<decltype(test<T>(0)), yes>::value;
-        };
-
-    }  // namespace fusion
-}  // namespace dsl
-}  // namespace NUClear
-
-#endif  // NUCLEAR_DSL_FUSION_HAS_RUN_INLINE_HPP
+#endif  // TEST_UTIL_HAS_IPV4_MULTICAST_HPP

@@ -20,9 +20,15 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+#include <catch2/catch_message.hpp>
 #include <catch2/catch_test_macros.hpp>
-#include <nuclear>
+#include <chrono>
+#include <memory>
+#include <string>
+#include <utility>
+#include <vector>
 
+#include "nuclear"
 #include "test_util/TestBase.hpp"
 #include "test_util/TimeUnit.hpp"
 #include "test_util/common.hpp"
@@ -48,7 +54,7 @@ public:
 
     struct FinishTest {};
     TestReactor(std::unique_ptr<NUClear::Environment> environment)
-        : TestBase(std::move(environment), false, std::chrono::seconds(2)) {
+        : TestBase(std::move(environment), false, test_util::TimeUnit(50)) {
 
         // Measure when messages were sent and received and print those values
         on<Trigger<DelayedMessage>>().then([this](const DelayedMessage& m) {
@@ -97,7 +103,7 @@ public:
 
 TEST_CASE("Testing the delay emit", "[api][emit][delay]") {
     NUClear::Configuration config;
-    config.thread_count = 1;
+    config.default_pool_concurrency = 1;
     NUClear::PowerPlant plant(config);
     test_util::add_tracing(plant);
     plant.install<NUClear::extension::ChronoController>();

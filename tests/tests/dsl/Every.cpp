@@ -20,17 +20,26 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+#include <catch2/catch_message.hpp>
 #include <catch2/catch_test_macros.hpp>
-#include <nuclear>
+#include <chrono>
+#include <cmath>
+#include <cstddef>
+#include <cstdlib>
+#include <iterator>
+#include <memory>
 #include <numeric>
+#include <utility>
+#include <vector>
 
+#include "nuclear"
 #include "test_util/TestBase.hpp"
 #include "test_util/common.hpp"
 
 class TestReactor : public test_util::TestBase<TestReactor> {
 public:
     TestReactor(std::unique_ptr<NUClear::Environment> environment)
-        : TestBase(std::move(environment), false, std::chrono::seconds(10)) {
+        : TestBase(std::move(environment), false, test_util::TimeUnit(200)) {
 
         // Trigger on 3 different types of every
         on<Every<1000, Per<std::chrono::seconds>>>().then([this]() { every_times.push_back(NUClear::clock::now()); });
@@ -48,6 +57,8 @@ public:
     /// Times that the dynamic every trigger has been called
     std::vector<NUClear::clock::time_point> dynamic_times;
 };
+
+namespace {
 
 void test_results(const std::vector<NUClear::clock::time_point>& times) {
 
@@ -73,11 +84,12 @@ void test_results(const std::vector<NUClear::clock::time_point>& times) {
     REQUIRE(std::abs(mean + stddev * 2) < 0.008);
 }
 
+}  // namespace
 
 TEST_CASE("Testing the Every<> DSL word", "[api][every][per]") {
 
     NUClear::Configuration config;
-    config.thread_count = 1;
+    config.default_pool_concurrency = 1;
     NUClear::PowerPlant plant(config);
     test_util::add_tracing(plant);
     plant.install<NUClear::extension::ChronoController>();

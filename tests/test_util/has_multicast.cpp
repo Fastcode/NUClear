@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2023 NUClear Contributors
+ * Copyright (c) 2025 NUClear Contributors
  *
  * This file is part of the NUClear codebase.
  * See https://github.com/Fastcode/NUClear for further info.
@@ -20,39 +20,29 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_DSL_FUSION_HAS_POOL_HPP
-#define NUCLEAR_DSL_FUSION_HAS_POOL_HPP
+#include "has_multicast.hpp"
 
-#include "../../threading/ReactionTask.hpp"
-#include "NoOp.hpp"
+#include <algorithm>
 
-namespace NUClear {
-namespace dsl {
-    namespace fusion {
+#include "util/network/get_interfaces.hpp"
+#include "util/platform.hpp"
 
-        /**
-         * SFINAE struct to test if the passed class has a pool function that conforms to the NUClear DSL.
-         *
-         * @tparam T the class to check
-         */
-        template <typename T>
-        struct has_pool {
-        private:
-            using yes = std::true_type;
-            using no  = std::false_type;
+namespace test_util {
 
-            template <typename U>
-            static auto test(int) -> decltype(U::template pool<ParsedNoOp>(std::declval<threading::ReactionTask&>()),
-                                              yes());
-            template <typename>
-            static no test(...);
+bool has_ipv4_multicast() {
+    // See if any interface has multicast ipv4
+    auto ifaces = NUClear::util::network::get_interfaces();
+    return std::any_of(ifaces.begin(), ifaces.end(), [](const auto& iface) {
+        return iface.ip.sock.sa_family == AF_INET && iface.flags.multicast;
+    });
+}
 
-        public:
-            static constexpr bool value = std::is_same<decltype(test<T>(0)), yes>::value;
-        };
+bool has_ipv6_multicast() {
+    // See if any interface has multicast ipv6
+    auto ifaces = NUClear::util::network::get_interfaces();
+    return std::any_of(ifaces.begin(), ifaces.end(), [](const auto& iface) {
+        return iface.ip.sock.sa_family == AF_INET6 && iface.flags.multicast;
+    });
+}
 
-    }  // namespace fusion
-}  // namespace dsl
-}  // namespace NUClear
-
-#endif  // NUCLEAR_DSL_FUSION_HAS_POOL_HPP
+}  // namespace test_util

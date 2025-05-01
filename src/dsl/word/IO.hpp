@@ -131,7 +131,7 @@ namespace dsl {
             template <typename DSL>
             static void bind(const std::shared_ptr<threading::Reaction>& reaction, fd_t fd, event_t watch_set) {
 
-                reaction->unbinders.push_back([](const threading::Reaction& r) {
+                reaction->unbinders.emplace_back([](const threading::Reaction& r) {
                     r.reactor.emit<emit::Inline>(std::make_unique<operation::Unbind<IO>>(r.id));
                 });
 
@@ -154,7 +154,7 @@ namespace dsl {
             }
 
             template <typename DSL>
-            static void postcondition(threading::ReactionTask& task) {
+            static void post_run(threading::ReactionTask& task) {
                 task.parent->reactor.emit<emit::Inline>(std::make_unique<IOFinished>(task.parent->id));
             }
         };

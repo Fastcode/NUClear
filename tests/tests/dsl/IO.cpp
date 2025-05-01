@@ -20,18 +20,24 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include <array>
-#include <catch2/catch_test_macros.hpp>
-
-#include "test_util/TestBase.hpp"
-#include "test_util/common.hpp"
-
 // Windows can't do this test as it doesn't have file descriptors
 #ifndef _WIN32
 
+    #include <fcntl.h>
+    #include <sys/types.h>
     #include <unistd.h>
 
-    #include <nuclear>
+    #include <array>
+    #include <catch2/catch_message.hpp>
+    #include <catch2/catch_test_macros.hpp>
+    #include <memory>
+    #include <string>
+    #include <utility>
+    #include <vector>
+
+    #include "nuclear"
+    #include "test_util/TestBase.hpp"
+    #include "test_util/common.hpp"
 
 class TestReactor : public test_util::TestBase<TestReactor> {
 public:
@@ -100,7 +106,7 @@ public:
 TEST_CASE("Testing the IO extension", "[api][io]") {
 
     NUClear::Configuration config;
-    config.thread_count = 1;
+    config.default_pool_concurrency = 1;
     NUClear::PowerPlant plant(config);
     test_util::add_tracing(plant);
     plant.install<NUClear::extension::IOController>();
@@ -137,6 +143,8 @@ TEST_CASE("Testing the IO extension", "[api][io]") {
 
 #else
 
+    #include <catch2/catch_message.hpp>
+    #include <catch2/catch_test_macros.hpp>
 
 TEST_CASE("Testing the IO extension", "[api][io]") {
     SUCCEED("This test is not supported on Windows");

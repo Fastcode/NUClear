@@ -23,8 +23,6 @@
 #ifndef NUCLEAR_DSL_STORE_THREADSTORE_HPP
 #define NUCLEAR_DSL_STORE_THREADSTORE_HPP
 
-#include "../../util/platform.hpp"
-
 namespace NUClear {
 namespace dsl {
     namespace store {
@@ -46,12 +44,12 @@ namespace dsl {
          */
         template <typename DataType, int Index = 0>
         struct ThreadStore {
-            static ATTRIBUTE_TLS DataType* value;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+            static thread_local DataType* value;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
         };
 
         template <typename DataType, int index>
         // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
-        ATTRIBUTE_TLS DataType* ThreadStore<DataType, index>::value = nullptr;
+        thread_local DataType* ThreadStore<DataType, index>::value = nullptr;
 
     }  // namespace store
 }  // namespace dsl

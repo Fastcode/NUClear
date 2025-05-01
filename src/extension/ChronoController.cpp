@@ -22,8 +22,16 @@
 
 #include "ChronoController.hpp"
 
+#include <algorithm>
 #include <atomic>
+#include <chrono>
+#include <memory>
+#include <mutex>
+#include <utility>
 
+#include "../Reactor.hpp"
+#include "../dsl/operation/Unbind.hpp"
+#include "../message/TimeTravel.hpp"
 #include "../util/precise_sleep.hpp"
 
 namespace NUClear {
@@ -158,7 +166,7 @@ namespace extension {
 
                         if (clock::rtf() == 0.0) {
                             // If we are paused then just wait until we are unpaused
-                            wait.wait(lock, [&] {
+                            wait.wait(lock, [this, &start] {
                                 return !running.load(std::memory_order_acquire) || clock::rtf() != 0.0
                                        || NUClear::clock::now() != start;
                             });

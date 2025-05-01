@@ -246,7 +246,7 @@ namespace threading {
             std::unique_ptr<Lock> pool_idle = nullptr;
 
             /// A thread local pointer to the current pool this thread is running in
-            static ATTRIBUTE_TLS Pool* current_pool;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+            static thread_local Pool* current_pool;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
             friend class Scheduler;
         };
