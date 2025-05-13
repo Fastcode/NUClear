@@ -166,10 +166,7 @@ namespace extension {
 
                         if (clock::rtf() == 0.0) {
                             // If we are paused then just wait until we are unpaused
-                            wait.wait(lock, [this, &start] {
-                                return !running.load(std::memory_order_acquire) || clock::rtf() != 0.0
-                                       || NUClear::clock::now() != start;
-                            });
+                            wait.wait(lock);
                         }
                         else if (time_until_task > cv_accuracy) {  // A long time in the future
                             // Wait on the cv
