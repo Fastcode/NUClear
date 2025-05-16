@@ -501,7 +501,7 @@ namespace extension {
                     if (ptr) {
 
                         auto now     = std::chrono::steady_clock::now();
-                        auto timeout = it->last_send + ptr->round_trip_time;
+                        auto timeout = it->last_send + ptr->rtt.timeout();
 
                         // Check if we should have expected an ack by now for some packets
                         if (timeout < now) {
@@ -510,7 +510,7 @@ namespace extension {
                             it->last_send = now;
 
                             // The next time we should check for a timeout
-                            auto next_timeout = now + ptr->round_trip_time;
+                            auto next_timeout = now + ptr->rtt.timeout();
                             if (next_timeout < next_event) {
                                 next_event = next_timeout;
                                 next_event_callback(next_event);
@@ -869,7 +869,7 @@ namespace extension {
                                 // Check for and delete any timed out packets
                                 for (auto it = assemblers.begin(); it != assemblers.end();) {
                                     const auto now              = std::chrono::steady_clock::now();
-                                    const auto timeout          = remote->round_trip_time * 10.0;
+                                    const auto timeout          = remote->rtt.timeout() * 10.0;
                                     const auto& last_chunk_time = it->second.first;
 
                                     it = now > last_chunk_time + timeout ? assemblers.erase(it) : std::next(it);
@@ -919,8 +919,7 @@ namespace extension {
 
                                     // Approximate how long the round trip is to this remote so we can work out how
                                     // long before retransmitting
-                                    // We use a baby kalman filter to help smooth out jitter
-                                    remote->measure_round_trip(round_trip);
+                                    remote->rtt.measure(round_trip);
 
                                     // Update our acks
                                     bool all_acked = true;
@@ -987,7 +986,7 @@ namespace extension {
                                     s->last_send = std::chrono::steady_clock::now();
 
                                     // The next time we should check for a timeout
-                                    auto next_timeout = s->last_send + remote->round_trip_time;
+                                    auto next_timeout = s->last_send + remote->rtt.timeout();
                                     if (next_timeout < next_event) {
                                         next_event = next_timeout;
                                         next_event_callback(next_event);
@@ -1108,7 +1107,7 @@ namespace extension {
                         queue.targets.emplace_back(it->second, acks);
 
                         // The next time we should check for a timeout
-                        auto next_timeout = std::chrono::steady_clock::now() + it->second->round_trip_time;
+                        auto next_timeout = std::chrono::steady_clock::now() + it->second->rtt.timeout();
                         if (next_timeout < next_event) {
                             next_event = next_timeout;
                             next_event_callback(next_event);

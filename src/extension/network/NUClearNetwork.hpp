@@ -39,6 +39,7 @@
 
 #include "../../util/network/sock_t.hpp"
 #include "../../util/platform.hpp"
+#include "RTTEstimator.hpp"
 #include "wire_protocol.hpp"
 
 namespace NUClear {
@@ -79,41 +80,8 @@ namespace extension {
                          std::pair<std::chrono::steady_clock::time_point, std::map<uint16_t, std::vector<uint8_t>>>>
                     assemblers;
 
-                /// Struct storing the kalman filter for round trip time
-                struct RoundTripKF {
-                    float process_noise     = 1e-6f;
-                    float measurement_noise = 1e-1f;
-                    float variance          = 1.0f;
-                    float mean              = 1.0f;
-                };
-                /// A little kalman filter for estimating round trip time
-                RoundTripKF round_trip_kf{};
-
-                std::chrono::steady_clock::duration round_trip_time{std::chrono::seconds(1)};
-
-                void measure_round_trip(std::chrono::steady_clock::duration time) {
-
-                    // Make our measurement into a float seconds type
-                    const std::chrono::duration<float> m =
-                        std::chrono::duration_cast<std::chrono::duration<float>>(time);
-
-                    // Alias variables
-                    const auto& Q = round_trip_kf.process_noise;
-                    const auto& R = round_trip_kf.measurement_noise;
-                    auto& P       = round_trip_kf.variance;
-                    auto& X       = round_trip_kf.mean;
-
-                    // Calculate our kalman gain
-                    const float K = (P + Q) / (P + Q + R);
-
-                    // Do filter
-                    P = R * (P + Q) / (R + P + Q);
-                    X = X + (m.count() - X) * K;
-
-                    // Put result into our variable
-                    round_trip_time = std::chrono::duration_cast<std::chrono::steady_clock::duration>(
-                        std::chrono::duration<float>(X));
-                }
+                /// RTT estimator for this network target
+                RTTEstimator rtt;
             };
 
             NUClearNetwork() = default;
