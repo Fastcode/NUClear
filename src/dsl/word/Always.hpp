@@ -128,13 +128,16 @@ namespace dsl {
             static std::unique_ptr<threading::ReactionTask> make_idle_task(
                 const std::shared_ptr<threading::Reaction>& reaction) {
 
-                auto idle_task = std::make_unique<threading::ReactionTask>(
-                    reaction,
-                    false,
-                    [](threading::ReactionTask& task) { return DSL::priority(task) - 1; },
-                    DSL::run_inline,
-                    DSL::pool,
-                    DSL::group);
+                auto idle_task = std::make_unique<threading::ReactionTask>(reaction,
+                                                                           false,
+                                                                           DSL::priority,
+                                                                           DSL::run_inline,
+                                                                           DSL::pool,
+                                                                           DSL::group);
+
+
+                // Manipulate the id so it always runs after the always task
+                idle_task->id = std::numeric_limits<NUClear::id_t>::max();
 
                 idle_task->callback = [](threading::ReactionTask& task) {
                     // Submit the always and idle tasks to the scheduler

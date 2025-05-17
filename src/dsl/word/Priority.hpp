@@ -23,12 +23,12 @@
 #ifndef NUCLEAR_DSL_WORD_PRIORITY_HPP
 #define NUCLEAR_DSL_WORD_PRIORITY_HPP
 
+#include "../../PriorityLevel.hpp"
 #include "../../threading/Reaction.hpp"
 
 namespace NUClear {
 namespace dsl {
     namespace word {
-
         /**
          * Task priority can be controlled using an assigned setting.
          *
@@ -38,86 +38,54 @@ namespace dsl {
          *
          * The available priority settings are:
          *
-         * <b>REALTIME:</b>  Tasks assigned with this will be queued with all other REALTIME tasks.
+         * <b>REALTIME:</b>
+         * Tasks will attempt to run as soon as possible preempting other threads if possible.
+         * Be very careful with this word as once a realtime task is running it will not give up control of its
+         * thread until it is finished.
          *
          * <b>HIGH:</b>
-         * Tasks assigned with this will be queued with all other HIGH tasks.
-         * They will be scheduled for execution when there are no REALTIME tasks in the queue.
+         * Tasks assigned with higher priority and will be queued with all other HIGH tasks.
+         * Will preempt other tasks in the queue except REALTIME tasks.
          *
          * <b>NORMAL:</b>
          * Tasks assigned with this will be queued with all other NORMAL tasks.
-         * They will be scheduled for execution when there are no REALTIME and HIGH tasks in the queue.
+         * Will execute using normal scheduling rules as far as the OS is concerned.
          *
          * <b>LOW:</b>
-         * Tasks assigned with this will be queued with all other LOW tasks.
-         * They will be scheduled for execution when there are no REALTIME, HIGH and NORMAL tasks in the queue.
+         * Tasks assigned with this priority will be queued with all other LOW tasks.
+         * They may be executed with lower or equal OS thread priority compared to NORMAL tasks.
          *
          * <b>IDLE:</b>
          * Tasks assigned with this priority will be queued with all other IDLE tasks.
-         * They will be scheduled for execution when there are no other tasks running in the system.
+         * If possible will be treated as a background task by the OS as well.
          *
          * @par Default Behaviour
          *  @code on<Trigger<T>>() @endcode
          *  When the priority is not specified, tasks will be assigned a default setting; NORMAL.
          *
          * @attention
-         *  If the OS allows the user to set thread priority, this word can also be used to assign the priority of the
+         *  If the OS allows the user to set thread priority, this word will also be used to assign the priority of the
          *  thread in its runtime environment.
          *
          * @par Implements
          *  Fusion
          */
         struct Priority {
-
-            struct REALTIME {
-                /// Realtime priority runs with 1000 value
-                static constexpr int value = 1000;
-
+            template <PriorityLevel::Value value>
+            struct Value {
                 template <typename DSL>
-                static int priority(const threading::ReactionTask& /*task*/) {
+                static PriorityLevel priority(const threading::ReactionTask& /*task*/) {
                     return value;
                 }
             };
 
-            struct HIGH {
-                /// High priority runs with 750 value
-                static constexpr int value = 750;
-
-                template <typename DSL>
-                static int priority(const threading::ReactionTask& /*task*/) {
-                    return value;
-                }
-            };
-
-            struct NORMAL {
-                /// Normal priority runs with 500 value
-                static constexpr int value = 500;
-
-                template <typename DSL>
-                static int priority(const threading::ReactionTask& /*task*/) {
-                    return value;
-                }
-            };
-
-            struct LOW {
-                /// Low priority runs with 250 value
-                static constexpr int value = 250;
-
-                template <typename DSL>
-                static int priority(const threading::ReactionTask& /*task*/) {
-                    return value;
-                }
-            };
-
-            struct IDLE {
-                /// Idle tasks run with 0 priority, they run when there is free time
-                static constexpr int value = 0;
-
-                template <typename DSL>
-                static int priority(const threading::ReactionTask& /*task*/) {
-                    return value;
-                }
-            };
+            using IDLE     = Value<PriorityLevel::IDLE>;
+            using LOWEST   = Value<PriorityLevel::LOWEST>;
+            using LOW      = Value<PriorityLevel::LOW>;
+            using NORMAL   = Value<PriorityLevel::NORMAL>;
+            using HIGH     = Value<PriorityLevel::HIGH>;
+            using HIGHEST  = Value<PriorityLevel::HIGHEST>;
+            using REALTIME = Value<PriorityLevel::REALTIME>;
         };
 
     }  // namespace word
