@@ -57,7 +57,7 @@ namespace extension {
             /// Whether we've seen any packets yet
             bool initialized{false};
             /// The newest packet ID we've seen
-            uint16_t newest_seen;
+            uint16_t newest_seen{0};
             /// The 256-bit window of seen packets (newest at 0, older at higher indices)
             std::bitset<256> window;
         };

@@ -25,7 +25,7 @@ namespace NUClear {
 namespace extension {
     namespace network {
 
-        PacketDeduplicator::PacketDeduplicator() : newest_seen(0) {}
+        PacketDeduplicator::PacketDeduplicator() {}
 
         bool PacketDeduplicator::is_duplicate(uint16_t packet_id) const {
             // If we haven't seen any packets yet, nothing is a duplicate
@@ -34,7 +34,7 @@ namespace extension {
             }
 
             // Calculate relative position in window using unsigned subtraction
-            uint16_t relative_id = newest_seen - packet_id;
+            const uint16_t relative_id = newest_seen - packet_id;
 
             // If the packet is too old or too new, it's not a duplicate
             if (relative_id >= 256) {
@@ -54,12 +54,12 @@ namespace extension {
             }
 
             // Calculate relative position in window using unsigned subtraction
-            uint16_t relative_id = newest_seen - packet_id;
+            const uint16_t relative_id = newest_seen - packet_id;
 
             // If the distance is more than half the range, the packet is newer than our newest_seen
             if (relative_id > 32768) {
                 // Calculate how far to shift to make this packet our newest
-                uint16_t shift_amount = packet_id - newest_seen;
+                const uint16_t shift_amount = packet_id - newest_seen;
                 window <<= shift_amount;
                 newest_seen = packet_id;
                 window[0]   = true;
