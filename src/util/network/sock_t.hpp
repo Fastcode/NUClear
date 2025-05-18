@@ -26,6 +26,7 @@
 #include <array>
 #include <cstdint>
 #include <cstring>
+#include <ostream>
 #include <stdexcept>
 #include <string>
 #include <system_error>
@@ -104,11 +105,11 @@ namespace util {
 
                 switch (a.sock.sa_family) {
                     case AF_INET:
-                        return std::tie(a.ipv4.sin_addr.s_addr, a.ipv4.sin_port)
-                               < std::tie(b.ipv4.sin_addr.s_addr, b.ipv4.sin_port);
+                        return std::forward_as_tuple(a.ipv4.sin_addr.s_addr, ntohs(a.ipv4.sin_port))
+                               < std::forward_as_tuple(b.ipv4.sin_addr.s_addr, ntohs(b.ipv4.sin_port));
                     case AF_INET6: {
                         int cmp = std::memcmp(&a.ipv6.sin6_addr, &b.ipv6.sin6_addr, sizeof(in6_addr));
-                        return cmp < 0 || (cmp == 0 && a.ipv6.sin6_port < b.ipv6.sin6_port);
+                        return cmp < 0 || (cmp == 0 && ntohs(a.ipv6.sin6_port) < ntohs(b.ipv6.sin6_port));
                     }
                     default:
                         throw std::system_error(EAFNOSUPPORT, std::system_category(), "Unsupported address family");
@@ -134,6 +135,19 @@ namespace util {
              * @throws std::system_error if the address cannot be resolved
              */
             std::pair<std::string, in_port_t> address(bool numeric = false) const;
+
+            /**
+             * Output stream operator for sock_t.
+             * Outputs the address in the format "{host}:{port}"
+             *
+             * @param os The output stream to write to
+             * @param addr The socket address to output
+             * @return The output stream
+             */
+            friend std::ostream& operator<<(std::ostream& os, const sock_t& addr) {
+                auto addr_pair = addr.address(true);
+                return os << addr_pair.first << ":" << addr_pair.second;
+            }
         };
 
     }  // namespace network
