@@ -63,20 +63,20 @@ namespace util {
              * @return true if the addresses are equal, false otherwise.
              */
             friend bool operator==(const sock_t& a, const sock_t& b) {
+                if ((a.sock.sa_family != AF_INET && a.sock.sa_family != AF_INET6)
+                    || (b.sock.sa_family != AF_INET && b.sock.sa_family != AF_INET6)) {
+                    throw std::system_error(EAFNOSUPPORT, std::system_category(), "Unsupported address family");
+                }
+
                 if (a.sock.sa_family != b.sock.sa_family) {
                     return false;
                 }
-
-                switch (a.sock.sa_family) {
-                    case AF_INET:
-                        return a.ipv4.sin_port == b.ipv4.sin_port && a.ipv4.sin_addr.s_addr == b.ipv4.sin_addr.s_addr;
-                    case AF_INET6:
-                        return a.ipv6.sin6_port == b.ipv6.sin6_port
-                               && std::memcmp(&a.ipv6.sin6_addr, &b.ipv6.sin6_addr, sizeof(in6_addr)) == 0;
-                    default:
-                        throw std::system_error(EAFNOSUPPORT, std::system_category(), "Unsupported address family");
-                }
+                return a.sock.sa_family == AF_INET
+                           ? a.ipv4.sin_port == b.ipv4.sin_port && a.ipv4.sin_addr.s_addr == b.ipv4.sin_addr.s_addr
+                           : a.ipv6.sin6_port == b.ipv6.sin6_port
+                                 && std::memcmp(&a.ipv6.sin6_addr, &b.ipv6.sin6_addr, sizeof(in6_addr)) == 0;
             }
+
 
             /**
              * Inequality comparison operator for sock_t.
@@ -99,21 +99,21 @@ namespace util {
              * @return true if a is less than b, false otherwise
              */
             friend bool operator<(const sock_t& a, const sock_t& b) {
+                if ((a.sock.sa_family != AF_INET && a.sock.sa_family != AF_INET6)
+                    || (b.sock.sa_family != AF_INET && b.sock.sa_family != AF_INET6)) {
+                    throw std::system_error(EAFNOSUPPORT, std::system_category(), "Unsupported address family");
+                }
+
                 if (a.sock.sa_family != b.sock.sa_family) {
                     return a.sock.sa_family < b.sock.sa_family;
                 }
 
-                switch (a.sock.sa_family) {
-                    case AF_INET:
-                        return std::forward_as_tuple(a.ipv4.sin_addr.s_addr, ntohs(a.ipv4.sin_port))
-                               < std::forward_as_tuple(b.ipv4.sin_addr.s_addr, ntohs(b.ipv4.sin_port));
-                    case AF_INET6: {
-                        int cmp = std::memcmp(&a.ipv6.sin6_addr, &b.ipv6.sin6_addr, sizeof(in6_addr));
-                        return cmp < 0 || (cmp == 0 && ntohs(a.ipv6.sin6_port) < ntohs(b.ipv6.sin6_port));
-                    }
-                    default:
-                        throw std::system_error(EAFNOSUPPORT, std::system_category(), "Unsupported address family");
-                }
+                return a.sock.sa_family == AF_INET
+                           ? std::forward_as_tuple(a.ipv4.sin_addr.s_addr, ntohs(a.ipv4.sin_port))
+                                 < std::forward_as_tuple(b.ipv4.sin_addr.s_addr, ntohs(b.ipv4.sin_port))
+                           : std::memcmp(&a.ipv6.sin6_addr, &b.ipv6.sin6_addr, sizeof(in6_addr)) < 0
+                                 || (std::memcmp(&a.ipv6.sin6_addr, &b.ipv6.sin6_addr, sizeof(in6_addr)) == 0
+                                     && ntohs(a.ipv6.sin6_port) < ntohs(b.ipv6.sin6_port));
             }
 
             /**

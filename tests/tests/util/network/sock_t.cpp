@@ -376,6 +376,38 @@ SCENARIO("Address resolution handles errors", "[sock_t]") {
         THEN("attempting to resolve it should throw") {
             REQUIRE_THROWS_AS(addr.address(), std::system_error);
         }
+
+        THEN("equality comparison should throw") {
+            sock_t other{};
+            other.sock.sa_family = AF_UNSPEC;
+            REQUIRE_THROWS_AS(addr == other, std::system_error);
+            REQUIRE_THROWS_AS(addr != other, std::system_error);
+        }
+
+        THEN("less than comparison should throw") {
+            sock_t other{};
+            other.sock.sa_family = AF_UNSPEC;
+            REQUIRE_THROWS_AS(addr < other, std::system_error);
+        }
+    }
+
+    GIVEN("A socket with an unsupported address family compared with a valid socket") {
+        sock_t invalid_addr{};
+        invalid_addr.sock.sa_family = AF_UNSPEC;
+
+        sock_t valid_addr{};
+        valid_addr.sock.sa_family       = AF_INET;
+        valid_addr.ipv4.sin_addr.s_addr = htonl(0xC0A80101);  // 192.168.1.1
+        valid_addr.ipv4.sin_port        = htons(12345);
+
+        THEN("equality comparison should throw") {
+            REQUIRE_THROWS_AS(invalid_addr == valid_addr, std::system_error);
+            REQUIRE_THROWS_AS(invalid_addr != valid_addr, std::system_error);
+        }
+
+        THEN("less than comparison should throw") {
+            REQUIRE_THROWS_AS(invalid_addr < valid_addr, std::system_error);
+        }
     }
 }
 
