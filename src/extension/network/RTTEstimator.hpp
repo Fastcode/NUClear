@@ -66,25 +66,7 @@ namespace extension {
                          float initial_rtt     = 1.0f,
                          float initial_rtt_var = 0.0f,
                          float min_rto         = 0.1f,
-                         float max_rto         = 60.0f)
-                : alpha(alpha)
-                , beta(beta)
-                , min_rto(min_rto)
-                , max_rto(max_rto)
-                , smoothed_rtt(initial_rtt)
-                , rtt_var(initial_rtt_var)
-                , rto(std::min(std::max(initial_rtt + 4 * initial_rtt_var, min_rto), max_rto)) {
-
-                if (alpha < 0.0f || alpha > 1.0f) {
-                    throw std::invalid_argument("alpha must be in range [0,1]");
-                }
-                if (beta < 0.0f || beta > 1.0f) {
-                    throw std::invalid_argument("beta must be in range [0,1]");
-                }
-                if (min_rto >= max_rto) {
-                    throw std::invalid_argument("min_rto must be less than max_rto");
-                }
-            }
+                         float max_rto         = 60.0f);
 
             /**
              * Update the RTT estimate with a new measurement

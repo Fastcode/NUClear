@@ -29,6 +29,31 @@ namespace NUClear {
 namespace extension {
     namespace network {
 
+        RTTEstimator::RTTEstimator(float alpha,
+                                   float beta,
+                                   float initial_rtt,
+                                   float initial_rtt_var,
+                                   float min_rto,
+                                   float max_rto)
+            : alpha(alpha)
+            , beta(beta)
+            , min_rto(min_rto)
+            , max_rto(max_rto)
+            , smoothed_rtt(initial_rtt)
+            , rtt_var(initial_rtt_var)
+            , rto(std::min(std::max(initial_rtt + 4 * initial_rtt_var, min_rto), max_rto)) {
+
+            if (alpha < 0.0f || alpha > 1.0f) {
+                throw std::invalid_argument("alpha must be in range [0,1]");
+            }
+            if (beta < 0.0f || beta > 1.0f) {
+                throw std::invalid_argument("beta must be in range [0,1]");
+            }
+            if (min_rto >= max_rto) {
+                throw std::invalid_argument("min_rto must be less than max_rto");
+            }
+        }
+
         void RTTEstimator::measure(std::chrono::steady_clock::duration time) {
             // Convert measurement to float seconds
             const std::chrono::duration<float> m = std::chrono::duration_cast<std::chrono::duration<float>>(time);
