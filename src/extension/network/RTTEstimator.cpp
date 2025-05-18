@@ -21,6 +21,8 @@
  */
 #include "RTTEstimator.hpp"
 
+#include <algorithm>
+#include <chrono>
 #include <cmath>
 
 namespace NUClear {
