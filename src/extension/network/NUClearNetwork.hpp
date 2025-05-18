@@ -39,6 +39,7 @@
 
 #include "../../util/network/sock_t.hpp"
 #include "../../util/platform.hpp"
+#include "PacketDeduplicator.hpp"
 #include "RTTEstimator.hpp"
 #include "wire_protocol.hpp"
 
@@ -57,11 +58,7 @@ namespace extension {
                     std::string name,
                     const sock_t& target,
                     const std::chrono::steady_clock::time_point& last_update = std::chrono::steady_clock::now())
-                    : name(std::move(name)), target(target), last_update(last_update) {
-
-                    // Set our recent packets to an invalid value
-                    recent_packets.fill(-1);
-                }
+                    : name(std::move(name)), target(target), last_update(last_update) {}
 
                 /// The name of the remote target
                 std::string name;
@@ -69,10 +66,6 @@ namespace extension {
                 sock_t target{};
                 /// When we last received data from the remote target
                 std::chrono::steady_clock::time_point last_update;
-                /// A list of the last n packet groups to be received
-                std::array<int, std::numeric_limits<uint8_t>::max()> recent_packets{};
-                /// An index for the recent_packets (circular buffer)
-                std::atomic<uint8_t> recent_packets_index{0};
                 /// Mutex to protect the fragmented packet storage
                 std::mutex assemblers_mutex;
                 /// Storage for fragmented packets while we build them
@@ -82,6 +75,9 @@ namespace extension {
 
                 /// RTT estimator for this network target
                 RTTEstimator rtt;
+
+                /// Packet deduplicator for this network target
+                PacketDeduplicator deduplicator;
             };
 
             NUClearNetwork() = default;
