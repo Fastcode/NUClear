@@ -25,6 +25,7 @@
 #include <sys/socket.h>
 
 #include <catch2/catch_test_macros.hpp>
+#include <sstream>
 #include <tuple>
 
 using namespace NUClear::util::network;
@@ -199,13 +200,27 @@ SCENARIO("Addresses can be ordered", "[sock_t]") {
         addr1.ipv4.sin_port = htons(12345);
         addr2.ipv4.sin_port = htons(12345);
 
-        // For IPv4 address ordering
-        bool ipv4_less = (addr1.sock.sa_family < addr2.sock.sa_family)
-                         || (addr1.sock.sa_family == addr2.sock.sa_family
-                             && (addr1.ipv4.sin_addr.s_addr < addr2.ipv4.sin_addr.s_addr
-                                 || (addr1.ipv4.sin_addr.s_addr == addr2.ipv4.sin_addr.s_addr
-                                     && addr1.ipv4.sin_port < addr2.ipv4.sin_port)));
-        REQUIRE(ipv4_less);
+        THEN("addr1 should be less than addr2") {
+            REQUIRE(addr1 < addr2);
+        }
+    }
+
+    GIVEN("Two IPv4 addresses with same IP but different ports") {
+        sock_t addr1{};
+        sock_t addr2{};
+
+        addr1.sock.sa_family = AF_INET;
+        addr2.sock.sa_family = AF_INET;
+
+        addr1.ipv4.sin_addr.s_addr = htonl(0xC0A80101);  // 192.168.1.1
+        addr2.ipv4.sin_addr.s_addr = htonl(0xC0A80101);  // 192.168.1.1
+
+        addr1.ipv4.sin_port = htons(12345);
+        addr2.ipv4.sin_port = htons(54321);
+
+        THEN("addr1 should be less than addr2") {
+            REQUIRE(addr1 < addr2);
+        }
     }
 
     GIVEN("Two IPv6 addresses with different IPs") {
@@ -227,12 +242,30 @@ SCENARIO("Addresses can be ordered", "[sock_t]") {
         addr1.ipv6.sin6_port = htons(54321);
         addr2.ipv6.sin6_port = htons(54321);
 
-        // For IPv6 address ordering
-        int cmp        = std::memcmp(&addr1.ipv6.sin6_addr, &addr2.ipv6.sin6_addr, sizeof(in6_addr));
-        bool ipv6_less = (addr1.sock.sa_family < addr2.sock.sa_family)
-                         || (addr1.sock.sa_family == addr2.sock.sa_family
-                             && (cmp < 0 || (cmp == 0 && addr1.ipv6.sin6_port < addr2.ipv6.sin6_port)));
-        REQUIRE(ipv6_less);
+        THEN("addr1 should be less than addr2") {
+            REQUIRE(addr1 < addr2);
+        }
+    }
+
+    GIVEN("Two IPv6 addresses with same IP but different ports") {
+        sock_t addr1{};
+        sock_t addr2{};
+
+        addr1.sock.sa_family = AF_INET6;
+        addr2.sock.sa_family = AF_INET6;
+
+        // 2001:db8::1
+        uint8_t ipv6_addr[16] =
+            {0x20, 0x01, 0x0d, 0xb8, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01};
+        std::memcpy(&addr1.ipv6.sin6_addr, ipv6_addr, sizeof(ipv6_addr));
+        std::memcpy(&addr2.ipv6.sin6_addr, ipv6_addr, sizeof(ipv6_addr));
+
+        addr1.ipv6.sin6_port = htons(12345);
+        addr2.ipv6.sin6_port = htons(54321);
+
+        THEN("addr1 should be less than addr2") {
+            REQUIRE(addr1 < addr2);
+        }
     }
 
     GIVEN("An IPv4 and an IPv6 address") {
@@ -243,7 +276,146 @@ SCENARIO("Addresses can be ordered", "[sock_t]") {
         addr2.sock.sa_family = AF_INET6;
 
         THEN("IPv4 should be less than IPv6") {
-            REQUIRE(addr1.sock.sa_family < addr2.sock.sa_family);
+            REQUIRE(addr1 < addr2);
+        }
+    }
+}
+
+SCENARIO("Address equality operators handle all conditions", "[sock_t]") {
+    GIVEN("Two IPv4 addresses with different ports") {
+        sock_t addr1{};
+        sock_t addr2{};
+
+        addr1.sock.sa_family = AF_INET;
+        addr2.sock.sa_family = AF_INET;
+
+        addr1.ipv4.sin_addr.s_addr = htonl(0xC0A80101);  // 192.168.1.1
+        addr2.ipv4.sin_addr.s_addr = htonl(0xC0A80101);  // 192.168.1.1
+
+        addr1.ipv4.sin_port = htons(12345);
+        addr2.ipv4.sin_port = htons(54321);
+
+        THEN("they should not be equal") {
+            REQUIRE_FALSE(addr1 == addr2);
+            REQUIRE(addr1 != addr2);
+        }
+    }
+
+    GIVEN("Two IPv4 addresses with different IPs but same port") {
+        sock_t addr1{};
+        sock_t addr2{};
+
+        addr1.sock.sa_family = AF_INET;
+        addr2.sock.sa_family = AF_INET;
+
+        addr1.ipv4.sin_addr.s_addr = htonl(0xC0A80101);  // 192.168.1.1
+        addr2.ipv4.sin_addr.s_addr = htonl(0xC0A80102);  // 192.168.1.2
+
+        addr1.ipv4.sin_port = htons(12345);
+        addr2.ipv4.sin_port = htons(12345);
+
+        THEN("they should not be equal") {
+            REQUIRE_FALSE(addr1 == addr2);
+            REQUIRE(addr1 != addr2);
+        }
+    }
+
+    GIVEN("Two IPv6 addresses with different ports") {
+        sock_t addr1{};
+        sock_t addr2{};
+
+        addr1.sock.sa_family = AF_INET6;
+        addr2.sock.sa_family = AF_INET6;
+
+        // 2001:db8::1
+        uint8_t ipv6_addr[16] =
+            {0x20, 0x01, 0x0d, 0xb8, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01};
+        std::memcpy(&addr1.ipv6.sin6_addr, ipv6_addr, sizeof(ipv6_addr));
+        std::memcpy(&addr2.ipv6.sin6_addr, ipv6_addr, sizeof(ipv6_addr));
+
+        addr1.ipv6.sin6_port = htons(12345);
+        addr2.ipv6.sin6_port = htons(54321);
+
+        THEN("they should not be equal") {
+            REQUIRE_FALSE(addr1 == addr2);
+            REQUIRE(addr1 != addr2);
+        }
+    }
+
+    GIVEN("Two IPv6 addresses with different IPs but same port") {
+        sock_t addr1{};
+        sock_t addr2{};
+
+        addr1.sock.sa_family = AF_INET6;
+        addr2.sock.sa_family = AF_INET6;
+
+        // 2001:db8::1
+        uint8_t ipv6_addr1[16] =
+            {0x20, 0x01, 0x0d, 0xb8, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01};
+        // 2001:db8::2
+        uint8_t ipv6_addr2[16] =
+            {0x20, 0x01, 0x0d, 0xb8, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02};
+        std::memcpy(&addr1.ipv6.sin6_addr, ipv6_addr1, sizeof(ipv6_addr1));
+        std::memcpy(&addr2.ipv6.sin6_addr, ipv6_addr2, sizeof(ipv6_addr2));
+
+        addr1.ipv6.sin6_port = htons(54321);
+        addr2.ipv6.sin6_port = htons(54321);
+
+        THEN("they should not be equal") {
+            REQUIRE_FALSE(addr1 == addr2);
+            REQUIRE(addr1 != addr2);
+        }
+    }
+}
+
+SCENARIO("Address resolution handles errors", "[sock_t]") {
+    GIVEN("An unsupported address family") {
+        sock_t addr{};
+        addr.sock.sa_family = AF_UNSPEC;  // Unsupported address family
+
+        THEN("attempting to resolve it should throw") {
+            REQUIRE_THROWS_AS(addr.address(), std::system_error);
+        }
+    }
+}
+
+SCENARIO("Socket addresses can be streamed", "[sock_t]") {
+    GIVEN("An IPv4 address") {
+        sock_t addr{};
+        addr.sock.sa_family       = AF_INET;
+        addr.ipv4.sin_addr.s_addr = htonl(0xC0A80101);  // 192.168.1.1
+        addr.ipv4.sin_port        = htons(12345);
+
+        THEN("it should stream in the correct format") {
+            std::stringstream ss;
+            ss << addr;
+            REQUIRE(ss.str() == "192.168.1.1:12345");
+        }
+    }
+
+    GIVEN("An IPv6 address") {
+        sock_t addr{};
+        addr.sock.sa_family = AF_INET6;
+        // 2001:db8::1
+        uint8_t ipv6_addr[16] =
+            {0x20, 0x01, 0x0d, 0xb8, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01};
+        std::memcpy(&addr.ipv6.sin6_addr, ipv6_addr, sizeof(ipv6_addr));
+        addr.ipv6.sin6_port = htons(54321);
+
+        THEN("it should stream in the correct format") {
+            std::stringstream ss;
+            ss << addr;
+            REQUIRE(ss.str() == "2001:db8::1:54321");
+        }
+    }
+
+    GIVEN("An unsupported address family") {
+        sock_t addr{};
+        addr.sock.sa_family = AF_UNSPEC;  // Unsupported address family
+
+        THEN("streaming should throw") {
+            std::stringstream ss;
+            REQUIRE_THROWS_AS(ss << addr, std::system_error);
         }
     }
 }
