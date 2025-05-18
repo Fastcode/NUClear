@@ -24,9 +24,12 @@
 #define NUCLEAR_UTIL_NETWORK_SOCK_T_HPP
 
 #include <array>
+#include <cstdint>
 #include <cstring>
 #include <stdexcept>
+#include <string>
 #include <system_error>
+#include <tuple>
 
 #include "../platform.hpp"
 
@@ -34,42 +37,103 @@ namespace NUClear {
 namespace util {
     namespace network {
 
+        /**
+         * A struct representing a socket address, supporting both IPv4 and IPv6.
+         * This struct provides a unified interface for handling socket addresses across different address families.
+         */
         struct sock_t {
+            /**
+             * A union of socket address structures, allowing access to the address in different formats.
+             * This union includes sockaddr_storage, sockaddr, sockaddr_in, and sockaddr_in6.
+             */
             union {
-                sockaddr_storage storage;
-                sockaddr sock;
-                sockaddr_in ipv4;
-                sockaddr_in6 ipv6;
+                sockaddr_storage storage;  //< The storage for the socket address
+                sockaddr sock;             //< The socket address
+                sockaddr_in ipv4;          //< The IPv4 address
+                sockaddr_in6 ipv6;         //< The IPv6 address
             };
 
-            socklen_t size() const {
-                switch (sock.sa_family) {
-                    case AF_INET: return sizeof(sockaddr_in);
-                    case AF_INET6: return sizeof(sockaddr_in6);
+            /**
+             * Equality comparison operator for sock_t.
+             *
+             * @param a The first sock_t object
+             * @param b The second sock_t object
+             *
+             * @return true if the addresses are equal, false otherwise.
+             */
+            friend bool operator==(const sock_t& a, const sock_t& b) {
+                if (a.sock.sa_family != b.sock.sa_family) {
+                    return false;
+                }
+
+                switch (a.sock.sa_family) {
+                    case AF_INET:
+                        return a.ipv4.sin_port == b.ipv4.sin_port && a.ipv4.sin_addr.s_addr == b.ipv4.sin_addr.s_addr;
+                    case AF_INET6:
+                        return a.ipv6.sin6_port == b.ipv6.sin6_port
+                               && std::memcmp(&a.ipv6.sin6_addr, &b.ipv6.sin6_addr, sizeof(in6_addr)) == 0;
                     default:
-                        throw std::runtime_error("Cannot get size for socket address family "
-                                                 + std::to_string(sock.sa_family));
+                        throw std::system_error(EAFNOSUPPORT, std::system_category(), "Unsupported address family");
                 }
             }
 
-            std::pair<std::string, in_port_t> address(bool numeric_host = false) const {
-                std::array<char, NI_MAXHOST> host{};
-                std::array<char, NI_MAXSERV> service{};
-                const int result = ::getnameinfo(reinterpret_cast<const sockaddr*>(&storage),
-                                                 size(),
-                                                 host.data(),
-                                                 static_cast<socklen_t>(host.size()),
-                                                 service.data(),
-                                                 static_cast<socklen_t>(service.size()),
-                                                 NI_NUMERICSERV | (numeric_host ? NI_NUMERICHOST : 0));
-                if (result != 0) {
-                    throw std::system_error(
-                        network_errno,
-                        std::system_category(),
-                        "Cannot get address for socket address family " + std::to_string(sock.sa_family));
-                }
-                return std::make_pair(std::string(host.data()), static_cast<in_port_t>(std::stoi(service.data())));
+            /**
+             * Inequality comparison operator for sock_t.
+             *
+             * @param a The first sock_t object
+             * @param b The second sock_t object
+             *
+             * @return true if the addresses are not equal, false otherwise
+             */
+            friend bool operator!=(const sock_t& a, const sock_t& b) {
+                return !(a == b);
             }
+
+            /**
+             * Less-than comparison operator for sock_t.
+             *
+             * @param a The first sock_t object
+             * @param b The second sock_t object
+             *
+             * @return true if a is less than b, false otherwise
+             */
+            friend bool operator<(const sock_t& a, const sock_t& b) {
+                if (a.sock.sa_family != b.sock.sa_family) {
+                    return a.sock.sa_family < b.sock.sa_family;
+                }
+
+                switch (a.sock.sa_family) {
+                    case AF_INET:
+                        return std::tie(a.ipv4.sin_addr.s_addr, a.ipv4.sin_port)
+                               < std::tie(b.ipv4.sin_addr.s_addr, b.ipv4.sin_port);
+                    case AF_INET6: {
+                        int cmp = std::memcmp(&a.ipv6.sin6_addr, &b.ipv6.sin6_addr, sizeof(in6_addr));
+                        return cmp < 0 || (cmp == 0 && a.ipv6.sin6_port < b.ipv6.sin6_port);
+                    }
+                    default:
+                        throw std::system_error(EAFNOSUPPORT, std::system_category(), "Unsupported address family");
+                }
+            }
+
+            /**
+             * Returns the size of the socket address structure.
+             *
+             * @return The size of the socket address structure
+             *
+             * @throws std::system_error if the address family is unsupported
+             */
+            socklen_t size() const;
+
+            /**
+             * Resolves the socket address to a hostname and port.
+             *
+             * @param numeric If true, returns the numeric IP address instead of the hostname
+             *
+             * @return A pair containing the hostname (or numeric IP) and the port
+             *
+             * @throws std::system_error if the address cannot be resolved
+             */
+            std::pair<std::string, in_port_t> address(bool numeric = false) const;
         };
 
     }  // namespace network

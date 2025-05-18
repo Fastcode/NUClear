@@ -112,37 +112,11 @@ namespace extension {
             next_event_callback = std::move(f);
         }
 
-        std::array<uint16_t, 9> NUClearNetwork::udp_key(const sock_t& address) {
-
-            // Get our keys for our maps, it will be the ip and then port
-            std::array<uint16_t, 9> key = {0};
-
-            switch (address.sock.sa_family) {
-                case AF_INET:
-                    // The first chars are 0 (ipv6) and after that is our address and then port
-                    std::memcpy(&key[6], &address.ipv4.sin_addr, sizeof(address.ipv4.sin_addr));
-                    key[8] = address.ipv4.sin_port;
-                    break;
-
-                case AF_INET6:
-                    // IPv6 address then port
-                    std::memcpy(key.data(), &address.ipv6.sin6_addr, sizeof(address.ipv6.sin6_addr));
-                    key[8] = address.ipv6.sin6_port;
-                    break;
-
-                default: throw std::invalid_argument("Unknown address family");
-            }
-
-            return key;
-        }
-
-
         void NUClearNetwork::remove_target(const std::shared_ptr<NetworkTarget>& target) {
 
             // Erase udp
-            auto key = udp_key(target->target);
-            if (udp_target.find(key) != udp_target.end()) {
-                udp_target.erase(udp_target.find(key));
+            if (udp_target.find(target->target) != udp_target.end()) {
+                udp_target.erase(udp_target.find(target->target));
             }
 
             // Erase name
@@ -160,7 +134,6 @@ namespace extension {
                 targets.erase(t);
             }
         }
-
 
         void NUClearNetwork::open_data(const sock_t& bind_address) {
 
@@ -383,7 +356,7 @@ namespace extension {
             auto all_target = std::make_shared<NetworkTarget>("", announce_target);
             targets.push_front(all_target);
             name_target.insert(std::make_pair("", all_target));
-            udp_target.insert(std::make_pair(udp_key(announce_target), all_target));
+            udp_target.insert(std::make_pair(announce_target, all_target));
 
             // Work out our MTU for udp packets
             packet_data_mtu = network_mtu;              // Start with the total mtu
@@ -570,14 +543,11 @@ namespace extension {
                 // This is a real packet! get our header information
                 const PacketHeader& header = *reinterpret_cast<const PacketHeader*>(payload.data());
 
-                // Get the map key for this device
-                auto key = udp_key(address);
-
                 // From here on, we are doing things with our target lists that if changed would make us sad
                 std::shared_ptr<NetworkTarget> remote;
                 /* Mutex scope */ {
                     const std::lock_guard<std::mutex> lock(target_mutex);
-                    auto r = udp_target.find(key);
+                    auto r = udp_target.find(address);
                     remote = r == udp_target.end() ? nullptr : r->second;
                 }
 
@@ -601,10 +571,10 @@ namespace extension {
                                     const std::lock_guard<std::mutex> lock(target_mutex);
 
                                     // Double check they are new
-                                    if (udp_target.count(key) == 0) {
+                                    if (udp_target.count(address) == 0) {
                                         new_connection = true;
                                         targets.push_back(ptr);
-                                        udp_target.insert(std::make_pair(key, ptr));
+                                        udp_target.insert(std::make_pair(address, ptr));
                                         name_target.insert(std::make_pair(name, ptr));
 
                                         // Say hi back!
@@ -639,7 +609,7 @@ namespace extension {
                                 const std::lock_guard<std::mutex> lock(target_mutex);
 
                                 // Double check they are gone after locking before removal
-                                if (udp_target.count(key) > 0) {
+                                if (udp_target.count(address) > 0) {
                                     left = true;
                                     remove_target(remote);
                                 }
