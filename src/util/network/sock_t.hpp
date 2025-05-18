@@ -77,7 +77,6 @@ namespace util {
                                  && std::memcmp(&a.ipv6.sin6_addr, &b.ipv6.sin6_addr, sizeof(in6_addr)) == 0;
             }
 
-
             /**
              * Inequality comparison operator for sock_t.
              *
