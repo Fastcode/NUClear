@@ -41,13 +41,15 @@ namespace util {
             std::array<char, NI_MAXHOST> host{};
             std::array<char, NI_MAXSERV> service{};
 
+            auto flags = NI_NUMERICSERV | (numeric ? NI_NUMERICHOST : 0);
+
             if (::getnameinfo(&sock,
                               size(),
                               host.data(),
                               static_cast<socklen_t>(host.size()),
                               service.data(),
                               static_cast<socklen_t>(service.size()),
-                              NI_NUMERICSERV | (numeric ? NI_NUMERICHOST : 0))
+                              flags)
                 != 0) {
                 throw std::system_error(
                     network_errno,

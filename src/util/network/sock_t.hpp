@@ -71,10 +71,13 @@ namespace util {
                 if (a.sock.sa_family != b.sock.sa_family) {
                     return false;
                 }
-                return a.sock.sa_family == AF_INET
-                           ? a.ipv4.sin_port == b.ipv4.sin_port && a.ipv4.sin_addr.s_addr == b.ipv4.sin_addr.s_addr
-                           : a.ipv6.sin6_port == b.ipv6.sin6_port
-                                 && std::memcmp(&a.ipv6.sin6_addr, &b.ipv6.sin6_addr, sizeof(in6_addr)) == 0;
+
+                if (a.sock.sa_family == AF_INET) {
+                    return a.ipv4.sin_port == b.ipv4.sin_port && a.ipv4.sin_addr.s_addr == b.ipv4.sin_addr.s_addr;
+                }
+
+                return a.ipv6.sin6_port == b.ipv6.sin6_port
+                       && std::memcmp(&a.ipv6.sin6_addr.s6_addr, &b.ipv6.sin6_addr.s6_addr, sizeof(in6_addr)) == 0;
             }
 
             /**
@@ -106,13 +109,17 @@ namespace util {
                 if (a.sock.sa_family != b.sock.sa_family) {
                     return a.sock.sa_family < b.sock.sa_family;
                 }
+                if (a.sock.sa_family == AF_INET) {
+                    return std::forward_as_tuple(ntohl(a.ipv4.sin_addr.s_addr), ntohs(a.ipv4.sin_port))
+                           < std::forward_as_tuple(ntohl(b.ipv4.sin_addr.s_addr), ntohs(b.ipv4.sin_port));
+                }
 
-                return a.sock.sa_family == AF_INET
-                           ? std::forward_as_tuple(a.ipv4.sin_addr.s_addr, ntohs(a.ipv4.sin_port))
-                                 < std::forward_as_tuple(b.ipv4.sin_addr.s_addr, ntohs(b.ipv4.sin_port))
-                           : std::memcmp(&a.ipv6.sin6_addr, &b.ipv6.sin6_addr, sizeof(in6_addr)) < 0
-                                 || (std::memcmp(&a.ipv6.sin6_addr, &b.ipv6.sin6_addr, sizeof(in6_addr)) == 0
-                                     && ntohs(a.ipv6.sin6_port) < ntohs(b.ipv6.sin6_port));
+                auto cmp = std::memcmp(a.ipv6.sin6_addr.s6_addr, b.ipv6.sin6_addr.s6_addr, sizeof(a.ipv6.sin6_addr));
+                if (cmp != 0) {
+                    return cmp < 0;
+                }
+
+                return ntohs(a.ipv6.sin6_port) < ntohs(b.ipv6.sin6_port);
             }
 
             /**

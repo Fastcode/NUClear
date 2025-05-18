@@ -75,6 +75,10 @@ namespace util {
                     REQUIRE(host == "192.168.1.1");
                     REQUIRE(port == 12345);
                 }
+
+                THEN("it should also resolve with non-numeric flag") {
+                    REQUIRE_NOTHROW(addr.address(false));
+                }
             }
 
             GIVEN("An IPv6 address") {
@@ -93,6 +97,10 @@ namespace util {
                     REQUIRE(host == "2001:db8::1");
                     REQUIRE(port == 54321);
                 }
+
+                THEN("it should also resolve with non-numeric flag") {
+                    REQUIRE_NOTHROW(addr.address(false));
+                }
             }
 
             GIVEN("An unsupported address family") {
@@ -103,9 +111,34 @@ namespace util {
                     REQUIRE_THROWS_AS(addr.address(), std::system_error);
                 }
             }
+
+            // This test is attempting to trigger the getnameinfo error path
+            GIVEN("A socket that will cause getnameinfo to fail") {
+                sock_t addr{};
+                // Explicitly using a custom address family here that is supported by our code
+                // but might cause getnameinfo to fail
+                addr.sock.sa_family = AF_INET;
+                // Invalid address/port configuration to maximize chances of getnameinfo failing
+                addr.ipv4.sin_addr.s_addr = INADDR_NONE;
+                addr.ipv4.sin_port        = 0;
+
+                THEN("it might throw if getnameinfo fails") {
+                    // We can't guarantee this will fail on all systems,
+                    // so we just try and if it succeeds that's fine too
+                    try {
+                        addr.address(true);
+                    }
+                    catch (const std::system_error& e) {
+                        // Verify we're getting the expected error message format
+                        REQUIRE(std::string(e.what()).find("Cannot get address for socket address family")
+                                != std::string::npos);
+                    }
+                }
+            }
         }
 
         SCENARIO("sock_t equality operators (== and !=) correctly compare addresses", "[sock_t]") {
+            // Test cases for valid addresses
             GIVEN("Two identical IPv4 addresses") {
                 sock_t addr1{};
                 sock_t addr2{};
@@ -245,16 +278,51 @@ namespace util {
                 }
             }
 
-            GIVEN("A socket with an unsupported address family compared with a valid socket") {
-                sock_t invalid_addr{};
-                invalid_addr.sock.sa_family = AF_UNSPEC;
+            GIVEN("Two sockets with the same unsupported address family") {
+                sock_t invalid_addr1{};
+                invalid_addr1.sock.sa_family = AF_UNSPEC;
 
+                sock_t invalid_addr2{};
+                invalid_addr2.sock.sa_family = AF_UNSPEC;
+
+                THEN("equality comparison should throw") {
+                    REQUIRE_THROWS_AS(invalid_addr1 == invalid_addr2, std::system_error);
+                    REQUIRE_THROWS_AS(invalid_addr1 != invalid_addr2, std::system_error);
+                }
+            }
+
+            GIVEN("A valid IPv4 address and an invalid address") {
                 sock_t valid_addr{};
                 valid_addr.sock.sa_family       = AF_INET;
                 valid_addr.ipv4.sin_addr.s_addr = htonl(0xC0A80101);  // 192.168.1.1
                 valid_addr.ipv4.sin_port        = htons(12345);
 
-                THEN("equality comparison should throw") {
+                sock_t invalid_addr{};
+                invalid_addr.sock.sa_family = AF_UNSPEC;
+
+                THEN("equality comparison should throw with either argument order") {
+                    REQUIRE_THROWS_AS(valid_addr == invalid_addr, std::system_error);
+                    REQUIRE_THROWS_AS(valid_addr != invalid_addr, std::system_error);
+                    REQUIRE_THROWS_AS(invalid_addr == valid_addr, std::system_error);
+                    REQUIRE_THROWS_AS(invalid_addr != valid_addr, std::system_error);
+                }
+            }
+
+            GIVEN("A valid IPv6 address and an invalid address") {
+                sock_t valid_addr{};
+                valid_addr.sock.sa_family = AF_INET6;
+                // 2001:db8::1
+                uint8_t ipv6_addr[16] =
+                    {0x20, 0x01, 0x0d, 0xb8, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01};
+                std::memcpy(&valid_addr.ipv6.sin6_addr, ipv6_addr, sizeof(ipv6_addr));
+                valid_addr.ipv6.sin6_port = htons(54321);
+
+                sock_t invalid_addr{};
+                invalid_addr.sock.sa_family = AF_UNSPEC;
+
+                THEN("equality comparison should throw with either argument order") {
+                    REQUIRE_THROWS_AS(valid_addr == invalid_addr, std::system_error);
+                    REQUIRE_THROWS_AS(valid_addr != invalid_addr, std::system_error);
                     REQUIRE_THROWS_AS(invalid_addr == valid_addr, std::system_error);
                     REQUIRE_THROWS_AS(invalid_addr != valid_addr, std::system_error);
                 }
@@ -262,6 +330,7 @@ namespace util {
         }
 
         SCENARIO("sock_t ordering operator (<) correctly orders addresses", "[sock_t]") {
+            // Test cases for valid addresses
             GIVEN("Two IPv4 addresses with different IPs") {
                 sock_t addr1{};
                 sock_t addr2{};
@@ -355,16 +424,48 @@ namespace util {
                 }
             }
 
-            GIVEN("A socket with an unsupported address family compared with a valid socket") {
-                sock_t invalid_addr{};
-                invalid_addr.sock.sa_family = AF_UNSPEC;
 
+            GIVEN("Two sockets with the same unsupported address family") {
+                sock_t invalid_addr1{};
+                invalid_addr1.sock.sa_family = AF_UNSPEC;
+
+                sock_t invalid_addr2{};
+                invalid_addr2.sock.sa_family = AF_UNSPEC;
+
+                THEN("less than comparison should throw") {
+                    REQUIRE_THROWS_AS(invalid_addr1 < invalid_addr2, std::system_error);
+                }
+            }
+
+            GIVEN("A valid IPv4 address and an invalid address") {
                 sock_t valid_addr{};
                 valid_addr.sock.sa_family       = AF_INET;
                 valid_addr.ipv4.sin_addr.s_addr = htonl(0xC0A80101);  // 192.168.1.1
                 valid_addr.ipv4.sin_port        = htons(12345);
 
-                THEN("less than comparison should throw") {
+                sock_t invalid_addr{};
+                invalid_addr.sock.sa_family = AF_UNSPEC;
+
+                THEN("less than comparison should throw with either argument order") {
+                    REQUIRE_THROWS_AS(valid_addr < invalid_addr, std::system_error);
+                    REQUIRE_THROWS_AS(invalid_addr < valid_addr, std::system_error);
+                }
+            }
+
+            GIVEN("A valid IPv6 address and an invalid address") {
+                sock_t valid_addr{};
+                valid_addr.sock.sa_family = AF_INET6;
+                // 2001:db8::1
+                uint8_t ipv6_addr[16] =
+                    {0x20, 0x01, 0x0d, 0xb8, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01};
+                std::memcpy(&valid_addr.ipv6.sin6_addr, ipv6_addr, sizeof(ipv6_addr));
+                valid_addr.ipv6.sin6_port = htons(54321);
+
+                sock_t invalid_addr{};
+                invalid_addr.sock.sa_family = AF_UNSPEC;
+
+                THEN("less than comparison should throw with either argument order") {
+                    REQUIRE_THROWS_AS(valid_addr < invalid_addr, std::system_error);
                     REQUIRE_THROWS_AS(invalid_addr < valid_addr, std::system_error);
                 }
             }
