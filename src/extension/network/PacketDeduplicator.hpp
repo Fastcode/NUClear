@@ -35,8 +35,6 @@ namespace extension {
          */
         class PacketDeduplicator {
         public:
-            PacketDeduplicator();
-
             /**
              * Check if a packet ID has been seen recently
              *

@@ -21,11 +21,12 @@
  */
 #include "PacketDeduplicator.hpp"
 
+#include <cstdint>
+
 namespace NUClear {
 namespace extension {
     namespace network {
 
-        PacketDeduplicator::PacketDeduplicator() {}
 
         bool PacketDeduplicator::is_duplicate(uint16_t packet_id) const {
             // If we haven't seen any packets yet, nothing is a duplicate
