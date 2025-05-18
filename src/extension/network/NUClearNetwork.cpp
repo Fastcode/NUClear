@@ -672,41 +672,38 @@ namespace extension {
                             remote->last_update = std::chrono::steady_clock::now();
 
                             // Check if this packet is a retransmission of data
-                            if (header.type == DATA_RETRANSMISSION) {
+                            if (header.type == DATA_RETRANSMISSION
+                                && remote->deduplicator.is_duplicate(packet.packet_id)) {
 
-                                // We recently processed this packet, this is just a failed ack
-                                if (remote->deduplicator.is_duplicate(packet.packet_id)) {
+                                // Send the ack again if it was reliable
+                                if (packet.reliable) {
+                                    // Allocate room for the whole ack packet
+                                    std::vector<uint8_t> r(sizeof(ACKPacket) + (packet.packet_count / 8), 0);
+                                    ACKPacket& response   = *reinterpret_cast<ACKPacket*>(r.data());
+                                    response              = ACKPacket();
+                                    response.packet_id    = packet.packet_id;
+                                    response.packet_no    = packet.packet_no;
+                                    response.packet_count = packet.packet_count;
 
-                                    // Send the ack again if it was reliable
-                                    if (packet.reliable) {
-                                        // Allocate room for the whole ack packet
-                                        std::vector<uint8_t> r(sizeof(ACKPacket) + (packet.packet_count / 8), 0);
-                                        ACKPacket& response   = *reinterpret_cast<ACKPacket*>(r.data());
-                                        response              = ACKPacket();
-                                        response.packet_id    = packet.packet_id;
-                                        response.packet_no    = packet.packet_no;
-                                        response.packet_count = packet.packet_count;
-
-                                        // Set the bits for all packets (we got the whole thing)
-                                        for (int i = 0; i < packet.packet_count; ++i) {
-                                            (&response.packets)[i / 8] |= uint8_t(1 << (i % 8));
-                                        }
-
-                                        // Make who we are sending it to into a useable address
-                                        const sock_t& to = remote->target;
-
-                                        // Send the packet
-                                        ::sendto(data_fd,
-                                                 reinterpret_cast<const char*>(r.data()),
-                                                 static_cast<socklen_t>(r.size()),
-                                                 0,
-                                                 &to.sock,
-                                                 to.size());
+                                    // Set the bits for all packets (we got the whole thing)
+                                    for (int i = 0; i < packet.packet_count; ++i) {
+                                        (&response.packets)[i / 8] |= uint8_t(1 << (i % 8));
                                     }
 
-                                    // We don't need to process this packet we already did
-                                    return;
+                                    // Make who we are sending it to into a useable address
+                                    const sock_t& to = remote->target;
+
+                                    // Send the packet
+                                    ::sendto(data_fd,
+                                             reinterpret_cast<const char*>(r.data()),
+                                             static_cast<socklen_t>(r.size()),
+                                             0,
+                                             &to.sock,
+                                             to.size());
                                 }
+
+                                // We don't need to process this packet we already did
+                                return;
                             }
 
                             // If this is a solo packet (in a single chunk)
