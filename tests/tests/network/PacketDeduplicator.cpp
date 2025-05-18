@@ -184,6 +184,21 @@ namespace extension {
             }
         }
 
+        SCENARIO("PacketDeduplicator handles adding old packets", "[network]") {
+            GIVEN("a PacketDeduplicator with a high packet ID") {
+                PacketDeduplicator dedup;
+                dedup.add_packet(512);  // Start with a high packet ID
+
+                WHEN("we try to add a much older packet") {
+                    dedup.add_packet(1);  // Try to add a packet that's more than 256 behind
+
+                    THEN("the old packet should not be marked as seen") {
+                        REQUIRE_FALSE(dedup.is_duplicate(1));
+                    }
+                }
+            }
+        }
+
     }  // namespace network
 }  // namespace extension
 }  // namespace NUClear
