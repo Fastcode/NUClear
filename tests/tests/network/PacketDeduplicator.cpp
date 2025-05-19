@@ -125,16 +125,16 @@ namespace extension {
                 PacketDeduplicator dedup;
 
                 WHEN("we add packets near the uint16_t wrap around point") {
-                    uint16_t start = 65530;
+                    const uint16_t start = 65530;
 
                     for (uint16_t i = 0; i < 10; ++i) {
-                        uint16_t packet_id = (start + i) % 65536;
+                        const uint16_t packet_id = (start + i) % 65536;
                         dedup.add_packet(packet_id);
                     }
 
                     THEN("all added packets should be marked as duplicates") {
                         for (uint16_t i = 0; i < 10; ++i) {
-                            uint16_t packet_id = (start + i) % 65536;
+                            const uint16_t packet_id = (start + i) % 65536;
                             REQUIRE(dedup.is_duplicate(packet_id));
                         }
                     }
@@ -175,7 +175,7 @@ namespace extension {
                 PacketDeduplicator dedup;
 
                 WHEN("The first packet ID is greater than uint16_t max/2") {
-                    uint16_t high_id = 40000;  // > 32768
+                    const uint16_t high_id = 40000;  // > 32768
                     dedup.add_packet(high_id);
 
                     THEN("The first packet should be marked as a duplicate") {
