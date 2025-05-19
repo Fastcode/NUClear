@@ -40,7 +40,7 @@ set_target_properties(${catch2_targets} PROPERTIES CXX_CLANG_TIDY "")
 set_target_properties(${catch2_target} PROPERTIES CMAKE_CXX_FLAGS "")
 
 # Create a test_util library that is used by all tests
-file(GLOB_RECURSE test_util_src "test_util/*.cpp")
+file(GLOB_RECURSE test_util_src CONFIGURE_DEPENDS "test_util/*.cpp")
 add_library(test_util OBJECT ${test_util_src})
 # This is linking WHOLE_ARCHIVE as otherwise the linker will remove the WSAHolder from the final binary
 # As a result the WSA initialisation code won't run and the network tests will fail
@@ -50,7 +50,7 @@ target_include_directories(test_util PUBLIC ${PROJECT_BINARY_DIR}/include ${PROJ
 target_include_directories(test_util PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
 # Create a test binary for each test file
-file(GLOB_RECURSE test_sources "tests/*.cpp")
+file(GLOB_RECURSE test_sources CONFIGURE_DEPENDS "tests/*.cpp")
 foreach(test_file ${test_sources})
   get_filename_component(test_name ${test_file} NAME_WE)
   get_filename_component(test_dir ${test_file} DIRECTORY)

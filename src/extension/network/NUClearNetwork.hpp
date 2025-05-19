@@ -39,6 +39,8 @@
 
 #include "../../util/network/sock_t.hpp"
 #include "../../util/platform.hpp"
+#include "PacketDeduplicator.hpp"
+#include "RTTEstimator.hpp"
 #include "wire_protocol.hpp"
 
 namespace NUClear {
@@ -56,11 +58,7 @@ namespace extension {
                     std::string name,
                     const sock_t& target,
                     const std::chrono::steady_clock::time_point& last_update = std::chrono::steady_clock::now())
-                    : name(std::move(name)), target(target), last_update(last_update) {
-
-                    // Set our recent packets to an invalid value
-                    recent_packets.fill(-1);
-                }
+                    : name(std::move(name)), target(target), last_update(last_update) {}
 
                 /// The name of the remote target
                 std::string name;
@@ -68,10 +66,6 @@ namespace extension {
                 sock_t target{};
                 /// When we last received data from the remote target
                 std::chrono::steady_clock::time_point last_update;
-                /// A list of the last n packet groups to be received
-                std::array<int, std::numeric_limits<uint8_t>::max()> recent_packets{};
-                /// An index for the recent_packets (circular buffer)
-                std::atomic<uint8_t> recent_packets_index{0};
                 /// Mutex to protect the fragmented packet storage
                 std::mutex assemblers_mutex;
                 /// Storage for fragmented packets while we build them
@@ -79,41 +73,11 @@ namespace extension {
                          std::pair<std::chrono::steady_clock::time_point, std::map<uint16_t, std::vector<uint8_t>>>>
                     assemblers;
 
-                /// Struct storing the kalman filter for round trip time
-                struct RoundTripKF {
-                    float process_noise     = 1e-6f;
-                    float measurement_noise = 1e-1f;
-                    float variance          = 1.0f;
-                    float mean              = 1.0f;
-                };
-                /// A little kalman filter for estimating round trip time
-                RoundTripKF round_trip_kf{};
+                /// RTT estimator for this network target
+                RTTEstimator rtt;
 
-                std::chrono::steady_clock::duration round_trip_time{std::chrono::seconds(1)};
-
-                void measure_round_trip(std::chrono::steady_clock::duration time) {
-
-                    // Make our measurement into a float seconds type
-                    const std::chrono::duration<float> m =
-                        std::chrono::duration_cast<std::chrono::duration<float>>(time);
-
-                    // Alias variables
-                    const auto& Q = round_trip_kf.process_noise;
-                    const auto& R = round_trip_kf.measurement_noise;
-                    auto& P       = round_trip_kf.variance;
-                    auto& X       = round_trip_kf.mean;
-
-                    // Calculate our kalman gain
-                    const float K = (P + Q) / (P + Q + R);
-
-                    // Do filter
-                    P = R * (P + Q) / (R + P + Q);
-                    X = X + (m.count() - X) * K;
-
-                    // Put result into our variable
-                    round_trip_time = std::chrono::duration_cast<std::chrono::steady_clock::duration>(
-                        std::chrono::duration<float>(X));
-                }
+                /// Packet deduplicator for this network target
+                PacketDeduplicator deduplicator;
             };
 
             NUClearNetwork() = default;
