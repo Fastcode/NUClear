@@ -23,6 +23,7 @@
 
 #include <catch2/catch_approx.hpp>
 #include <catch2/catch_test_macros.hpp>
+#include <stdexcept>
 
 namespace NUClear {
 namespace extension {
@@ -32,7 +33,7 @@ namespace extension {
 
         SCENARIO("RTTEstimator initial state", "[network]") {
             GIVEN("a new RTTEstimator") {
-                RTTEstimator rtt(0.125f, 0.25f, 1.0f, 0.0f);
+                const RTTEstimator rtt(0.125f, 0.25f, 1.0f, 0.0f);
 
                 THEN("the initial timeout should be 1 second") {
                     REQUIRE(rtt.timeout() == 1s);
