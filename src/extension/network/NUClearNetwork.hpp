@@ -310,8 +310,8 @@ namespace extension {
             /// A map of string names to targets with that name
             std::multimap<std::string, std::shared_ptr<NetworkTarget>, std::less<>> name_target;
 
-            /// A map of ip/port pairs to the network target they belong to
-            std::map<std::array<uint16_t, 9>, std::shared_ptr<NetworkTarget>> udp_target;
+            /// A map of socket addresses to the network target they belong to
+            std::map<sock_t, std::shared_ptr<NetworkTarget>> udp_target;
         };
 
     }  // namespace network
