@@ -103,6 +103,24 @@ namespace dsl {
                         throw std::system_error(network_errno, std::system_category(), "Unable to open the UDP socket");
                     }
 
+                    int yes = 1;
+                    // Set reuse address and port so that emit can use the same port multiple times
+                    if (::setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, reinterpret_cast<const char*>(&yes), sizeof(yes))
+                        < 0) {
+                        throw std::system_error(network_errno,
+                                                std::system_category(),
+                                                "Unable to set the reuse address option on the UDP socket");
+                    }
+#ifdef SO_REUSEPORT
+                    // If SO_REUSEPORT is available set it too
+                    if (::setsockopt(fd, SOL_SOCKET, SO_REUSEPORT, reinterpret_cast<const char*>(&yes), sizeof(yes))
+                        < 0) {
+                        throw std::system_error(network_errno,
+                                                std::system_category(),
+                                                "Unable to set the reuse port option on the UDP socket");
+                    }
+#endif
+
                     // If we are using multicast and we have a specific from_addr we need to tell the system to use the
                     // correct interface
                     if (multicast && !from_addr.empty()) {
