@@ -163,7 +163,6 @@ namespace dsl {
                     }
 
                     // Assume that if the user is sending a broadcast they want to enable broadcasting
-                    int yes = 1;
                     if (::setsockopt(fd, SOL_SOCKET, SO_BROADCAST, reinterpret_cast<const char*>(&yes), sizeof(yes))
                         < 0) {
                         throw std::system_error(network_errno,
