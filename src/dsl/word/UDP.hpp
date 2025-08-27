@@ -199,32 +199,20 @@ namespace dsl {
                     }
                 }
 
-                // Broadcast and multicast reuse address and port
-                if (options.type == ConnectOptions::Type::BROADCAST
-                    || options.type == ConnectOptions::Type::MULTICAST) {
-
-                    if (::setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, reinterpret_cast<char*>(&yes), sizeof(yes)) < 0) {
-                        throw std::system_error(network_errno,
-                                                std::system_category(),
-                                                "Unable to reuse address on the socket");
-                    }
+                if (::setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, reinterpret_cast<char*>(&yes), sizeof(yes)) < 0) {
+                    throw std::system_error(network_errno,
+                                            std::system_category(),
+                                            "Unable to reuse address on the socket");
+                }
 
 // If SO_REUSEPORT is available set it too
 #ifdef SO_REUSEPORT
-                    if (::setsockopt(fd, SOL_SOCKET, SO_REUSEPORT, reinterpret_cast<char*>(&yes), sizeof(yes)) < 0) {
-                        throw std::system_error(network_errno,
-                                                std::system_category(),
-                                                "Unable to reuse port on the socket");
-                    }
-#endif
-
-                    // We enable SO_BROADCAST since sometimes we need to send broadcast packets
-                    if (::setsockopt(fd, SOL_SOCKET, SO_BROADCAST, reinterpret_cast<char*>(&yes), sizeof(yes)) < 0) {
-                        throw std::system_error(network_errno,
-                                                std::system_category(),
-                                                "Unable to set broadcast on the socket");
-                    }
+                if (::setsockopt(fd, SOL_SOCKET, SO_REUSEPORT, reinterpret_cast<char*>(&yes), sizeof(yes)) < 0) {
+                    throw std::system_error(network_errno,
+                                            std::system_category(),
+                                            "Unable to reuse port on the socket");
                 }
+#endif
 
                 // Bind to the address
                 if (::bind(fd, &bind_address.sock, bind_address.size()) != 0) {
