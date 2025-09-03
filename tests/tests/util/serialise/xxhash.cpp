@@ -207,16 +207,18 @@ namespace util {
             WHEN("xxhash32 is called with a string literal") {
                 THEN("it matches the expected seedless and seeded values (no NUL terminator)") {
                     // Match with and without seed
-                    REQUIRE(xxhash32("FooBar") == xxhash32("FooBar", std::strlen("FooBar")));
-                    REQUIRE(xxhash32("FooBar", fixed_seed) == xxhash32("FooBar", std::strlen("FooBar"), fixed_seed));
+                    const char* str = "FooBar";
+                    CHECK(xxhash32("FooBar") == xxhash32(str, std::strlen(str)));
+                    CHECK(xxhash32("FooBar", fixed_seed) == xxhash32(str, std::strlen(str), fixed_seed));
                 }
             }
 
             WHEN("xxhash64 is called with a string literal") {
                 THEN("it matches the expected seedless and seeded values (no NUL terminator)") {
                     // Match with and without seed
-                    REQUIRE(xxhash64("FooBar") == xxhash64("FooBar", std::strlen("FooBar")));
-                    REQUIRE(xxhash64("FooBar", fixed_seed) == xxhash64("FooBar", std::strlen("FooBar"), fixed_seed));
+                    const char* str = "FooBar";
+                    CHECK(xxhash64("FooBar") == xxhash64(str, std::strlen(str)));
+                    CHECK(xxhash64("FooBar", uint64_t(fixed_seed)) == xxhash64(str, std::strlen(str), fixed_seed));
                 }
             }
         }
