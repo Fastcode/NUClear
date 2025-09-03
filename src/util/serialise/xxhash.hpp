@@ -48,6 +48,7 @@ namespace util {
             return xxhash32(reinterpret_cast<const char*>(&input), sizeof(T), seed);
         }
         template <uint32_t S = 0, size_t N>
+        // NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays)
         uint32_t xxhash32(const char (&input)[N]) {
             return xxhash32(input, N - 1, S);
         }
@@ -70,6 +71,7 @@ namespace util {
             return xxhash64(reinterpret_cast<const char*>(&input), sizeof(T), seed);
         }
         template <uint64_t S = 0, size_t N>
+        // NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays)
         uint64_t xxhash64(const char (&input)[N]) {
             return xxhash64(input, N - 1, S);
         }
