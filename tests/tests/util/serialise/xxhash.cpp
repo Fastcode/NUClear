@@ -209,7 +209,7 @@ namespace util {
                     // Match with and without seed
                     const char* str = "FooBar";
                     CHECK(xxhash32("FooBar") == xxhash32(str, std::strlen(str)));
-                    CHECK(xxhash32("FooBar", fixed_seed) == xxhash32(str, std::strlen(str), fixed_seed));
+                    CHECK(xxhash32<fixed_seed>("FooBar") == xxhash32(str, std::strlen(str), fixed_seed));
                 }
             }
 
@@ -218,7 +218,7 @@ namespace util {
                     // Match with and without seed
                     const char* str = "FooBar";
                     CHECK(xxhash64("FooBar") == xxhash64(str, std::strlen(str)));
-                    CHECK(xxhash64("FooBar", uint64_t(fixed_seed)) == xxhash64(str, std::strlen(str), fixed_seed));
+                    CHECK(xxhash64<fixed_seed>("FooBar") == xxhash64(str, std::strlen(str), fixed_seed));
                 }
             }
         }

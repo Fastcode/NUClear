@@ -47,9 +47,9 @@ namespace util {
         uint32_t xxhash32(const T& input, const uint32_t& seed = 0) {
             return xxhash32(reinterpret_cast<const char*>(&input), sizeof(T), seed);
         }
-        template <size_t N>
-        uint32_t xxhash32(const char (&input)[N], const uint32_t& seed = 0) {
-            return xxhash32(input, N - 1, seed);
+        template <uint32_t S = 0, size_t N>
+        uint32_t xxhash32(const char (&input)[N]) {
+            return xxhash32(input, N - 1, S);
         }
 
         /**
@@ -69,9 +69,9 @@ namespace util {
         uint64_t xxhash64(const T& input, const uint64_t& seed = 0) {
             return xxhash64(reinterpret_cast<const char*>(&input), sizeof(T), seed);
         }
-        template <size_t N>
-        uint64_t xxhash64(const char (&input)[N], const uint64_t& seed = 0) {
-            return xxhash64(input, N - 1, seed);
+        template <uint64_t S = 0, size_t N>
+        uint64_t xxhash64(const char (&input)[N]) {
+            return xxhash64(input, N - 1, S);
         }
 
     }  // namespace serialise
