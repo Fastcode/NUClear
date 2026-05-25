@@ -30,8 +30,8 @@
 #include "../PowerPlant.hpp"
 #include "../Reactor.hpp"
 #include "../message/NetworkConfiguration.hpp"
+#include "../nuclear_net/NUClearNet.hpp"
 #include "../util/get_hostname.hpp"
-#include "network/NUClearNetwork.hpp"
 
 namespace NUClear {
 namespace extension {
@@ -42,8 +42,8 @@ namespace extension {
         explicit NetworkController(std::unique_ptr<NUClear::Environment> environment);
 
     private:
-        /// Our NUClearNetwork object that handles the networking
-        network::NUClearNetwork network;
+        /// Our NUClearNet object that handles the networking
+        network::NUClearNet net;
 
         /// The reaction that handles timed events from the network
         ReactionHandle process_handle;

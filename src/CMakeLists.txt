@@ -28,14 +28,14 @@ configure_file(nuclear.in ${PROJECT_BINARY_DIR}/nuclear)
 
 # Build the library
 find_package(Threads REQUIRED)
-file(GLOB_RECURSE src "*.c" "*.cpp" "*.hpp" "*.ipp")
+file(GLOB_RECURSE src CONFIGURE_DEPENDS "*.c" "*.cpp" "*.hpp" "*.ipp")
 add_library(nuclear STATIC ${src})
 add_library(NUClear::nuclear ALIAS nuclear)
 
 # Set compile options for NUClear
 target_link_libraries(nuclear ${CMAKE_THREAD_LIBS_INIT})
 set_target_properties(nuclear PROPERTIES POSITION_INDEPENDENT_CODE ON)
-target_compile_features(nuclear PUBLIC cxx_std_14)
+target_compile_features(nuclear PUBLIC cxx_std_17)
 
 option(ENABLE_COVERAGE "Compile with coverage support enabled.")
 if(ENABLE_COVERAGE)

@@ -52,12 +52,13 @@ namespace extension {
         : Reactor(std::move(environment)) {
 
         // Set our function callback
-        network.set_packet_callback([this](const network::NUClearNetwork::NetworkTarget& remote,
-                                           const uint64_t& hash,
-                                           const bool& reliable,
-                                           std::vector<uint8_t>&& payload) {
+        net.set_packet_callback([this](const network::NUClearNet::sock_t& source,
+                                       const std::string& peer_name,
+                                       uint64_t hash,
+                                       bool reliable,
+                                       std::vector<uint8_t>&& payload) {
             // Construct our NetworkSource information
-            const dsl::word::NetworkSource src{remote.name, remote.target, reliable};
+            const dsl::word::NetworkSource src{peer_name, source, reliable};
 
             // Move the payload in as we are stealing it
             const std::vector<uint8_t> p(std::move(payload));
@@ -85,23 +86,23 @@ namespace extension {
         });
 
         // Set our join callback
-        network.set_join_callback([this](const network::NUClearNetwork::NetworkTarget& remote) {
+        net.set_join_callback([this](const network::PeerInfo& peer) {
             auto l     = std::make_unique<message::NetworkJoin>();
-            l->name    = remote.name;
-            l->address = remote.target;
+            l->name    = peer.name;
+            l->address = peer.address;
             emit(l);
         });
 
         // Set our leave callback
-        network.set_leave_callback([this](const network::NUClearNetwork::NetworkTarget& remote) {
+        net.set_leave_callback([this](const network::PeerInfo& peer) {
             auto l     = std::make_unique<message::NetworkLeave>();
-            l->name    = remote.name;
-            l->address = remote.target;
+            l->name    = peer.name;
+            l->address = peer.address;
             emit(l);
         });
 
         // Set our event timer callback
-        network.set_next_event_callback([this](std::chrono::steady_clock::time_point t) {
+        net.set_event_callback([this](std::chrono::steady_clock::time_point t) {
             const std::chrono::steady_clock::duration emit_offset = t - std::chrono::steady_clock::now();
             emit<Scope::DELAY>(std::make_unique<ProcessNetwork>(),
                                std::chrono::duration_cast<NUClear::clock::duration>(emit_offset));
@@ -114,6 +115,9 @@ namespace extension {
 
             // Insert our new reaction
             reactions.insert(std::make_pair(l.hash, l.reaction));
+
+            // Add subscription so peers know to send us this type
+            net.add_subscription(l.hash);
         });
 
         // Stop listening for a network type
@@ -128,13 +132,20 @@ namespace extension {
             if (it != reactions.end()) {
                 reactions.erase(it);
             }
+
+            // Rebuild subscriptions from remaining reactions
+            std::set<uint64_t> subs;
+            for (const auto& r : reactions) {
+                subs.insert(r.first);
+            }
+            net.set_subscriptions(subs);
         });
 
-        on<Trigger<NetworkEmit>>().then("Network Emit", [this](const NetworkEmit& emit) {
-            network.send(emit.hash, emit.payload, emit.target, emit.reliable);
+        on<Trigger<NetworkEmit>>().then("Network Emit", [this](const NetworkEmit& e) {
+            net.send(e.hash, e.payload.data(), e.payload.size(), e.target, e.reliable);
         });
 
-        on<Shutdown>().then("Shutdown Network", [this] { network.shutdown(); });
+        on<Shutdown>().then("Shutdown Network", [this] { net.shutdown(); });
 
         // Configure the NUClearNetwork options
         on<Trigger<NetworkConfiguration>>().then([this](const NetworkConfiguration& config) {
@@ -151,17 +162,32 @@ namespace extension {
                 listen_handles.clear();
             }
 
-            // Name becomes hostname by default if not set
-            const std::string name = config.name.empty() ? util::get_hostname() : config.name;
+            // Build configuration
+            network::NetworkConfig net_config;
+            net_config.name             = config.name.empty() ? util::get_hostname() : config.name;
+            net_config.announce_address = config.announce_address;
+            net_config.announce_port    = config.announce_port;
+            net_config.bind_address     = config.bind_address;
+            net_config.mtu              = config.mtu;
+
+            // Collect current subscriptions
+            {
+                const std::lock_guard<std::mutex> lock(reaction_mutex);
+                std::set<uint64_t> subs;
+                for (const auto& r : reactions) {
+                    subs.insert(r.first);
+                }
+                net.set_subscriptions(subs);
+            }
 
             // Reset our network using this configuration
-            network.reset(name, config.announce_address, config.announce_port, config.bind_address, config.mtu);
+            net.reset(net_config);
 
             // Execution handle
-            process_handle = on<Trigger<ProcessNetwork>>().then("Network processing", [this] { network.process(); });
+            process_handle = on<Trigger<ProcessNetwork>>().then("Network processing", [this] { net.process(); });
 
-            for (auto& fd : network.listen_fds()) {
-                listen_handles.push_back(on<IO>(fd, IO::READ).then("Packet", [this] { network.process(); }));
+            for (auto& fd : net.listen_fds()) {
+                listen_handles.push_back(on<IO>(fd, IO::READ).then("Packet", [this] { net.process(); }));
             }
         });
     }

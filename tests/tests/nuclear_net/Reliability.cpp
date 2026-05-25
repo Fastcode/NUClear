@@ -1,0 +1,197 @@
+/*
+ * MIT License
+ *
+ * Copyright (c) 2025 NUClear Contributors
+ *
+ * This file is part of the NUClear codebase.
+ * See https://github.com/Fastcode/NUClear for further info.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+ * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
+ * rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the
+ * Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+ * WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+ * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+
+#include "nuclear_net/Reliability.hpp"
+
+#include <catch2/catch_test_macros.hpp>
+#include <chrono>
+#include <cstdint>
+#include <cstring>
+#include <thread>
+#include <vector>
+
+#include "util/platform.hpp"
+
+using NUClear::network::Reliability;
+using NUClear::util::network::sock_t;
+
+namespace {
+sock_t make_addr(uint32_t ip, uint16_t port) {
+    sock_t addr{};
+    addr.ipv4.sin_family      = AF_INET;
+    addr.ipv4.sin_port        = htons(port);
+    addr.ipv4.sin_addr.s_addr = htonl(ip);
+    return addr;
+}
+}  // namespace
+
+TEST_CASE("Reliability tracks sent packet and requests retransmission after timeout", "[nuclear_net][reliability]") {
+    Reliability rel(3);  // max 3 retransmits
+
+    sock_t target = make_addr(0x0A000001, 5000);
+    std::vector<uint8_t> payload(200, 0xAB);
+
+    // Track a 2-fragment packet
+    rel.track_packet(target, 1, 2, 0x1234, 0x01, payload.data(), payload.size());
+
+    // Immediately, no retransmissions (timeout not elapsed)
+    auto retransmissions = rel.check_retransmissions(100);
+    REQUIRE(retransmissions.empty());
+
+    // Inject an RTT measurement to reduce the timeout to min_rto (100ms)
+    rel.get_rtt(target).measure(std::chrono::milliseconds(10));
+
+    // Wait for the RTO to expire (min_rto = 100ms)
+    std::this_thread::sleep_for(std::chrono::milliseconds(150));
+
+    retransmissions = rel.check_retransmissions(100);
+    REQUIRE(retransmissions.size() == 2);  // Both fragments unacked
+    REQUIRE(retransmissions[0].packet_no == 0);
+    REQUIRE(retransmissions[1].packet_no == 1);
+    REQUIRE(retransmissions[0].data.size() == 100);
+    REQUIRE(retransmissions[1].data.size() == 100);
+}
+
+TEST_CASE("Reliability stops retransmitting ACKed fragments", "[nuclear_net][reliability]") {
+    Reliability rel(10);
+
+    sock_t target = make_addr(0x0A000001, 5000);
+    std::vector<uint8_t> payload(200, 0xCC);
+
+    rel.track_packet(target, 1, 2, 0x1234, 0x01, payload.data(), payload.size());
+
+    // ACK fragment 0 (bitset: bit 0 set)
+    uint8_t ack_bits = 0x01;  // fragment 0 received
+    rel.process_ack(target, 1, 2, &ack_bits, 1);
+
+    // Force a retransmission check by injecting short RTT and waiting past min_rto
+    rel.get_rtt(target).measure(std::chrono::milliseconds(5));
+    std::this_thread::sleep_for(std::chrono::milliseconds(150));
+
+    auto retransmissions = rel.check_retransmissions(100);
+    // Only fragment 1 should be retransmitted (fragment 0 was ACKed)
+    REQUIRE(retransmissions.size() == 1);
+    REQUIRE(retransmissions[0].packet_no == 1);
+}
+
+TEST_CASE("Reliability removes tracked packet when all fragments ACKed", "[nuclear_net][reliability]") {
+    Reliability rel(10);
+
+    sock_t target = make_addr(0x0A000001, 5000);
+    std::vector<uint8_t> payload(100, 0xDD);
+
+    rel.track_packet(target, 5, 1, 0x5678, 0x01, payload.data(), payload.size());
+
+    // ACK all fragments
+    uint8_t ack_bits = 0x01;  // fragment 0 received (only 1 fragment total)
+    rel.process_ack(target, 5, 1, &ack_bits, 1);
+
+    // Wait past min_rto and check — nothing to retransmit
+    rel.get_rtt(target).measure(std::chrono::milliseconds(5));
+    std::this_thread::sleep_for(std::chrono::milliseconds(150));
+
+    auto retransmissions = rel.check_retransmissions(100);
+    REQUIRE(retransmissions.empty());
+}
+
+TEST_CASE("Reliability gives up after max_retransmits", "[nuclear_net][reliability]") {
+    Reliability rel(2);  // Only allow 2 retransmission attempts
+
+    sock_t target = make_addr(0x0A000001, 5000);
+    std::vector<uint8_t> payload(50, 0xEE);
+
+    rel.track_packet(target, 1, 1, 0x1234, 0x01, payload.data(), payload.size());
+
+    // Inject short RTT
+    rel.get_rtt(target).measure(std::chrono::milliseconds(10));
+
+    // First retransmission (wait past min_rto of 100ms)
+    std::this_thread::sleep_for(std::chrono::milliseconds(150));
+    auto r1 = rel.check_retransmissions(100);
+    REQUIRE(r1.size() == 1);
+
+    // Second retransmission
+    std::this_thread::sleep_for(std::chrono::milliseconds(150));
+    auto r2 = rel.check_retransmissions(100);
+    REQUIRE(r2.size() == 1);
+
+    // Third attempt should give up (max_retransmits = 2)
+    std::this_thread::sleep_for(std::chrono::milliseconds(150));
+    auto r3 = rel.check_retransmissions(100);
+    REQUIRE(r3.empty());  // Packet dropped after max retransmits
+}
+
+TEST_CASE("Reliability build_ack_packet encodes bitset correctly", "[nuclear_net][reliability]") {
+    std::vector<bool> received = {true, false, true, true, false, false, false, true};  // 0b10001101 = 0x8D
+    auto ack = Reliability::build_ack_packet(42, 8, received);
+
+    // The packet should contain a header + 1 byte of bitset
+    // Verify the bitset byte
+    REQUIRE(ack.size() > 0);
+    // The last byte(s) should be the bitset
+    uint8_t bitset_byte = ack.back();
+    REQUIRE(bitset_byte == 0x8D);
+}
+
+TEST_CASE("Reliability build_nack_packet encodes missing fragments", "[nuclear_net][reliability]") {
+    std::vector<bool> missing = {false, true, false, true};  // bits 1,3 set = 0b00001010 = 0x0A
+    auto nack = Reliability::build_nack_packet(7, 4, missing);
+
+    REQUIRE(nack.size() > 0);
+    uint8_t bitset_byte = nack.back();
+    REQUIRE(bitset_byte == 0x0A);
+}
+
+TEST_CASE("Reliability remove_peer removes all tracked state", "[nuclear_net][reliability]") {
+    Reliability rel(10);
+
+    sock_t target = make_addr(0x0A000001, 5000);
+    std::vector<uint8_t> payload(100, 0xFF);
+
+    rel.track_packet(target, 1, 1, 0x1234, 0x01, payload.data(), payload.size());
+    rel.get_rtt(target).measure(std::chrono::milliseconds(50));
+
+    rel.remove_peer(target);
+
+    // After removing, no retransmissions should occur
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    auto retransmissions = rel.check_retransmissions(100);
+    REQUIRE(retransmissions.empty());
+}
+
+TEST_CASE("Reliability NACK forces immediate retransmission", "[nuclear_net][reliability]") {
+    Reliability rel(10);
+
+    sock_t target = make_addr(0x0A000001, 5000);
+    std::vector<uint8_t> payload(100, 0x11);
+
+    rel.track_packet(target, 1, 1, 0x1234, 0x01, payload.data(), payload.size());
+
+    // Process a NACK — should force immediate retransmission regardless of RTO
+    uint8_t nack_bits = 0x01;  // fragment 0 missing
+    rel.process_nack(target, 1, 1, &nack_bits, 1);
+
+    // Should retransmit immediately (last_send set to epoch)
+    auto retransmissions = rel.check_retransmissions(100);
+    REQUIRE(retransmissions.size() == 1);
+    REQUIRE(retransmissions[0].packet_no == 0);
+}

@@ -25,8 +25,10 @@
 
 #include <array>
 #include <cstring>
+#include <ostream>
 #include <stdexcept>
 #include <system_error>
+#include <tuple>
 
 #include "../platform.hpp"
 
@@ -41,6 +43,52 @@ namespace util {
                 sockaddr_in ipv4;
                 sockaddr_in6 ipv6;
             };
+
+            /// Equality comparison operator
+            friend bool operator==(const sock_t& a, const sock_t& b) {
+                if (a.sock.sa_family != b.sock.sa_family) {
+                    return false;
+                }
+                if (a.sock.sa_family == AF_INET) {
+                    return a.ipv4.sin_port == b.ipv4.sin_port
+                           && a.ipv4.sin_addr.s_addr == b.ipv4.sin_addr.s_addr;
+                }
+                if (a.sock.sa_family == AF_INET6) {
+                    return a.ipv6.sin6_port == b.ipv6.sin6_port
+                           && std::memcmp(&a.ipv6.sin6_addr, &b.ipv6.sin6_addr, sizeof(in6_addr)) == 0;
+                }
+                return false;
+            }
+
+            /// Inequality comparison operator
+            friend bool operator!=(const sock_t& a, const sock_t& b) {
+                return !(a == b);
+            }
+
+            /// Less-than comparison for use as map key
+            friend bool operator<(const sock_t& a, const sock_t& b) {
+                if (a.sock.sa_family != b.sock.sa_family) {
+                    return a.sock.sa_family < b.sock.sa_family;
+                }
+                if (a.sock.sa_family == AF_INET) {
+                    return std::forward_as_tuple(ntohl(a.ipv4.sin_addr.s_addr), ntohs(a.ipv4.sin_port))
+                           < std::forward_as_tuple(ntohl(b.ipv4.sin_addr.s_addr), ntohs(b.ipv4.sin_port));
+                }
+                if (a.sock.sa_family == AF_INET6) {
+                    int cmp = std::memcmp(&a.ipv6.sin6_addr, &b.ipv6.sin6_addr, sizeof(in6_addr));
+                    if (cmp != 0) {
+                        return cmp < 0;
+                    }
+                    return ntohs(a.ipv6.sin6_port) < ntohs(b.ipv6.sin6_port);
+                }
+                return false;
+            }
+
+            /// Stream output operator
+            friend std::ostream& operator<<(std::ostream& os, const sock_t& addr) {
+                auto addr_pair = addr.address(true);
+                return os << addr_pair.first << ":" << addr_pair.second;
+            }
 
             socklen_t size() const {
                 switch (sock.sa_family) {
