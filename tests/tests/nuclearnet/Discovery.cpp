@@ -156,7 +156,7 @@ SCENARIO("Discovery check_timeouts removes stale peers", "[nuclearnet][discovery
 }
 
 SCENARIO("Discovery touch_peer resets timeout", "[nuclearnet][discovery]") {
-    Discovery disc(std::chrono::milliseconds(50));
+    Discovery disc(std::chrono::milliseconds(200));
 
     sock_t peer_addr = make_addr(0x0A000001, 5000);
 
@@ -164,11 +164,11 @@ SCENARIO("Discovery touch_peer resets timeout", "[nuclearnet][discovery]") {
     disc.process_announce(peer_addr, announce.data(), announce.size());
 
     // Wait part of the timeout, then touch
-    std::this_thread::sleep_for(std::chrono::milliseconds(30));
+    std::this_thread::sleep_for(std::chrono::milliseconds(120));
     disc.touch_peer(peer_addr);
 
     // Wait another partial timeout (total would have expired without touch)
-    std::this_thread::sleep_for(std::chrono::milliseconds(30));
+    std::this_thread::sleep_for(std::chrono::milliseconds(120));
 
     auto removed = disc.check_timeouts();
     REQUIRE(removed.empty());

@@ -75,7 +75,7 @@ namespace util {
                            < std::forward_as_tuple(ntohl(b.ipv4.sin_addr.s_addr), ntohs(b.ipv4.sin_port));
                 }
                 if (a.sock.sa_family == AF_INET6) {
-                    int cmp = std::memcmp(&a.ipv6.sin6_addr, &b.ipv6.sin6_addr, sizeof(in6_addr));
+                    const int cmp = std::memcmp(&a.ipv6.sin6_addr, &b.ipv6.sin6_addr, sizeof(in6_addr));
                     if (cmp != 0) {
                         return cmp < 0;
                     }

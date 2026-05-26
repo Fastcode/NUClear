@@ -25,9 +25,7 @@
 
 #include <catch2/catch_test_macros.hpp>
 #include <algorithm>
-#include <atomic>
 #include <chrono>
-#include <condition_variable>
 #include <cstdint>
 #include <functional>
 #include <mutex>
@@ -78,38 +76,8 @@ bool wait_for(const std::function<bool()>& predicate,
 struct NetworkPair {
     NUClearNet a;
     NUClearNet b;
-    std::thread worker_a;
-    std::thread worker_b;
-    std::atomic<bool> running{false};
-
-    void start() {
-        running = true;
-        worker_a = std::thread([this] {
-            while (running) {
-                a.process();
-                std::this_thread::sleep_for(5ms);
-            }
-        });
-        worker_b = std::thread([this] {
-            while (running) {
-                b.process();
-                std::this_thread::sleep_for(5ms);
-            }
-        });
-    }
-
-    void stop() {
-        running = false;
-        if (worker_a.joinable()) {
-            worker_a.join();
-        }
-        if (worker_b.joinable()) {
-            worker_b.join();
-        }
-    }
 
     ~NetworkPair() {
-        stop();
         a.shutdown();
         b.shutdown();
     }
@@ -140,7 +108,6 @@ SCENARIO("Two NUClearNet instances discover and exchange messages", "[nuclearnet
     net.b.set_subscriptions({HASH_A});
 
     std::mutex mutex;
-    std::condition_variable cv;
     std::vector<std::string> join_events;
     std::vector<std::string> leave_events;
     std::vector<std::pair<std::string, std::vector<uint8_t>>> received;
@@ -148,23 +115,19 @@ SCENARIO("Two NUClearNet instances discover and exchange messages", "[nuclearnet
     net.a.set_join_callback([&](const PeerInfo& peer) {
         std::lock_guard<std::mutex> lock(mutex);
         join_events.push_back("a:" + peer.name);
-        cv.notify_all();
     });
     net.b.set_join_callback([&](const PeerInfo& peer) {
         std::lock_guard<std::mutex> lock(mutex);
         join_events.push_back("b:" + peer.name);
-        cv.notify_all();
     });
 
     net.a.set_leave_callback([&](const PeerInfo& peer) {
         std::lock_guard<std::mutex> lock(mutex);
         leave_events.push_back("a:" + peer.name);
-        cv.notify_all();
     });
     net.b.set_leave_callback([&](const PeerInfo& peer) {
         std::lock_guard<std::mutex> lock(mutex);
         leave_events.push_back("b:" + peer.name);
-        cv.notify_all();
     });
 
     net.a.set_packet_callback([&](const sock_t&, const std::string& peer_name, uint64_t hash, bool reliable,
@@ -172,17 +135,13 @@ SCENARIO("Two NUClearNet instances discover and exchange messages", "[nuclearnet
         std::lock_guard<std::mutex> lock(mutex);
         received.emplace_back("a:" + peer_name + ":" + std::to_string(hash) + ":" + (reliable ? "1" : "0"),
                               std::move(payload));
-        cv.notify_all();
     });
     net.b.set_packet_callback([&](const sock_t&, const std::string& peer_name, uint64_t hash, bool reliable,
                                   std::vector<uint8_t>&& payload) {
         std::lock_guard<std::mutex> lock(mutex);
         received.emplace_back("b:" + peer_name + ":" + std::to_string(hash) + ":" + (reliable ? "1" : "0"),
                               std::move(payload));
-        cv.notify_all();
     });
-
-    net.start();
 
     REQUIRE(wait_for([&] {
         std::lock_guard<std::mutex> lock(mutex);
@@ -234,10 +193,7 @@ SCENARIO("Two NUClearNet instances discover and exchange messages", "[nuclearnet
         return std::find(leave_events.begin(), leave_events.end(), "a:bravo") != leave_events.end();
     }, 5s, [&] {
         net.a.process();
-        net.b.process();
     }));
-
-    net.stop();
 }
 
 SCENARIO("NUClearNet handles bidirectional reliable traffic", "[nuclearnet][integration]") {
@@ -276,8 +232,6 @@ SCENARIO("NUClearNet handles bidirectional reliable traffic", "[nuclearnet][inte
         b_received.push_back(std::move(payload));
     });
 
-    net.start();
-
     REQUIRE(wait_for([&] {
         std::lock_guard<std::mutex> lock(mutex);
         return std::find(join_events.begin(), join_events.end(), "a:right") != join_events.end()
@@ -306,6 +260,4 @@ SCENARIO("NUClearNet handles bidirectional reliable traffic", "[nuclearnet][inte
         REQUIRE(a_received[0] == small_payload);
         REQUIRE(b_received[0] == large_payload);
     }
-
-    net.stop();
 }
