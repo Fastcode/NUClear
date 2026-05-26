@@ -23,6 +23,7 @@
 #include "has_multicast.hpp"
 
 #include <algorithm>
+#include <cstring>
 
 #include "util/network/get_interfaces.hpp"
 #include "util/platform.hpp"
@@ -163,10 +164,18 @@ bool test_multicast_roundtrip(int af, const char* group_addr) {
 
     int ready = ::select(static_cast<int>(recv_fd) + 1, &read_fds, nullptr, nullptr, &tv);
 
+    bool success = false;
+    if (ready > 0) {
+        // Verify the received data matches what we sent to avoid false positives
+        char buf[64] = {0};
+        ssize_t n    = ::recvfrom(recv_fd, buf, sizeof(buf), 0, nullptr, nullptr);
+        success      = (n == static_cast<ssize_t>(sizeof(test_msg)) && std::memcmp(buf, test_msg, sizeof(test_msg)) == 0);
+    }
+
     ::close(send_fd);
     ::close(recv_fd);
 
-    return ready > 0;
+    return success;
 }
 
 }  // namespace

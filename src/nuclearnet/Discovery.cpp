@@ -23,8 +23,12 @@
 
 #include "Discovery.hpp"
 
-#include <algorithm>
+#include <chrono>
+#include <cstdint>
 #include <cstring>
+#include <string>
+#include <utility>
+#include <vector>
 
 #include "wire_protocol.hpp"
 
@@ -49,8 +53,8 @@
                                                               const std::vector<uint64_t>& subscriptions) {
             // Calculate total size:
             // PacketHeader(5) + name_length(2) + name(variable) + num_subscriptions(2) + subscriptions(8 each)
-            std::size_t size = sizeof(PacketHeader) + sizeof(uint16_t) + name.size() + sizeof(uint16_t)
-                               + subscriptions.size() * sizeof(uint64_t);
+            const std::size_t size = sizeof(PacketHeader) + sizeof(uint16_t) + name.size() + sizeof(uint16_t)
+                                     + subscriptions.size() * sizeof(uint64_t);
 
             std::vector<uint8_t> packet(size);
             uint8_t* ptr = packet.data();
@@ -168,17 +172,35 @@
 
             // Fire callbacks outside the lock
             if (is_new && join_callback) {
-                const std::lock_guard<std::mutex> lock(peers_mutex);
-                auto it = peers.find(source);
-                if (it != peers.end()) {
-                    join_callback(it->second);
+                PeerInfo info;
+                {
+                    const std::lock_guard<std::mutex> lock(peers_mutex);
+                    auto it = peers.find(source);
+                    if (it != peers.end()) {
+                        info = it->second;
+                    }
+                    else {
+                        is_new = false;
+                    }
+                }
+                if (is_new) {
+                    join_callback(info);
                 }
             }
             if (subs_changed && subscription_change_callback) {
-                const std::lock_guard<std::mutex> lock(peers_mutex);
-                auto it = peers.find(source);
-                if (it != peers.end()) {
-                    subscription_change_callback(it->second);
+                PeerInfo info;
+                {
+                    const std::lock_guard<std::mutex> lock(peers_mutex);
+                    auto it = peers.find(source);
+                    if (it != peers.end()) {
+                        info = it->second;
+                    }
+                    else {
+                        subs_changed = false;
+                    }
+                }
+                if (subs_changed) {
+                    subscription_change_callback(info);
                 }
             }
         }

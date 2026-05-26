@@ -81,6 +81,11 @@
                 rtt_estimators[source].measure(rtt);
             }
 
+            // Validate that the ACK's packet_count matches our tracked packet
+            if (packet_count != tp.packet_count) {
+                return;
+            }
+
             // Update acked bitset
             bool all_acked = true;
             for (uint16_t i = 0; i < packet_count && i < tp.acked.size(); ++i) {

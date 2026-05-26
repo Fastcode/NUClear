@@ -78,7 +78,7 @@ namespace network {
      *
      * Wire layout (variable):
      *   [0-4]   PacketHeader (type = ANNOUNCE)
-     *   [5-6]   name_length (uint16_t, network byte order)
+     *   [5-6]   name_length (uint16_t)
      *   [7..7+name_length-1]  name (UTF-8, NOT null-terminated)
      *   [next 2 bytes]  num_subscriptions (uint16_t)
      *   [next num_subscriptions*8 bytes]  subscription hashes (uint64_t each)
@@ -137,7 +137,7 @@ namespace network {
     /**
      * ACK packet — acknowledges receipt of data fragments.
      *
-     * Wire layout (11+ bytes):
+     * Wire layout (10+ bytes):
      *   [0-4]   PacketHeader (type = ACK)
      *   [5-6]   packet_id (uint16_t)
      *   [7-8]   packet_count (uint16_t)

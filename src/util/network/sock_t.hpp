@@ -27,6 +27,7 @@
 #include <cstring>
 #include <ostream>
 #include <stdexcept>
+#include <string>
 #include <system_error>
 #include <tuple>
 

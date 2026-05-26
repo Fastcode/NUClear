@@ -54,7 +54,7 @@ foreach(target ${all_targets})
   list(APPEND report_outputs ${junit_report_file})
   add_custom_command(
     OUTPUT ${junit_report_file} ${raw_coverage}
-    COMMAND ${command_prefix} $<TARGET_FILE:${target}> --skip-returncode 0 --reporter console --reporter JUnit::out=${junit_report_file}
+    COMMAND ${command_prefix} $<TARGET_FILE:${target}> --reporter console --reporter JUnit::out=${junit_report_file}
     WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
     DEPENDS ${target}
     USES_TERMINAL

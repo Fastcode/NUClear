@@ -412,12 +412,12 @@ namespace network {
 
         switch (header->type) {
             case ANNOUNCE: {
+                // Check if this is a new peer before processing (which adds them)
+                const bool is_new_peer = !discovery->has_peer(source);
                 discovery->process_announce(source, data, length);
 
                 // If this is a new peer, respond with our own announce
-                if (!discovery->has_peer(source)) {
-                    // The process_announce call above would have added them
-                    // Send our announce directly to the new peer
+                if (is_new_peer) {
                     auto subs = routing.get_local_subscriptions();
                     auto pkt = Discovery::build_announce_packet(node_name, subs);
                     send_buf(data_fd, source, pkt.data(), pkt.size());
