@@ -1,0 +1,173 @@
+site_name: NUClear Documentation
+site_description: Documentation for the NUClear C++ reactive framework
+site_author: NUClear Team
+site_url: https://nuclear.readthedocs.io/
+
+repo_name: Fastcode/NUClear
+repo_url: https://github.com/Fastcode/NUClear
+
+theme:
+  name: material
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - navigation.indexes
+    - search.highlight
+    - search.suggest
+    - content.code.copy
+    - content.code.annotate
+  palette:
+    - scheme: default
+      primary: deep purple
+      accent: deep purple
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: deep purple
+      accent: deep purple
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  icon:
+    repo: fontawesome/brands/github
+
+docs_dir: docs2
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - toc:
+      permalink: true
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.betterem:
+      smart_enable: all
+  - pymdownx.caret
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.keys
+  - pymdownx.mark
+  - pymdownx.smartsymbols
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.tilde
+
+plugins:
+  - search
+  - mkdoxy:
+      projects:
+        nuclear:
+          src-dirs: src
+          full-doc: true
+          doxy-cfg:
+            FILE_PATTERNS: "*.hpp"
+            RECURSIVE: "YES"
+            JAVADOC_AUTOBRIEF: "YES"
+            EXTRACT_ALL: "NO"
+            EXTRACT_PRIVATE: "NO"
+            EXTRACT_STATIC: "YES"
+            HIDE_UNDOC_MEMBERS: "YES"
+            HIDE_UNDOC_CLASSES: "YES"
+
+nav:
+  - Home: index.md
+  - Tutorials:
+      - tutorials/index.md
+      - Installation: tutorials/installation.md
+      - Your First Reactor: tutorials/first-reactor.md
+      - Message Passing: tutorials/message-passing.md
+      - Periodic Tasks: tutorials/periodic-tasks.md
+  - How-to Guides:
+      - how-to/index.md
+      - Custom Thread Pools: how-to/custom-thread-pool.md
+      - IO Events: how-to/io-events.md
+      - Networking: how-to/networking.md
+      - TCP & UDP: how-to/tcp-udp.md
+      - Managing Reactions: how-to/manage-reactions.md
+      - Watchdog Timeouts: how-to/watchdog-timeouts.md
+      - Synchronization: how-to/synchronization.md
+      - Logging: how-to/logging.md
+      - Testing Reactors: how-to/testing.md
+      - Extending the DSL: how-to/extending-dsl.md
+  - Reference:
+      - reference/index.md
+      - API:
+          - PowerPlant: reference/api/power-plant.md
+          - Reactor: reference/api/reactor.md
+          - Configuration: reference/api/configuration.md
+          - ReactionHandle: reference/api/reaction-handle.md
+          - Log Levels: reference/api/log-levels.md
+      - DSL Words:
+          - reference/dsl/index.md
+          - Always: reference/dsl/always.md
+          - Buffer: reference/dsl/buffer.md
+          - Every: reference/dsl/every.md
+          - Group: reference/dsl/group.md
+          - Idle: reference/dsl/idle.md
+          - Inline: reference/dsl/inline.md
+          - IO: reference/dsl/io.md
+          - Last: reference/dsl/last.md
+          - MainThread: reference/dsl/main-thread.md
+          - Network: reference/dsl/network.md
+          - Once: reference/dsl/once.md
+          - Optional: reference/dsl/optional.md
+          - Pool: reference/dsl/pool.md
+          - Priority: reference/dsl/priority.md
+          - Shutdown: reference/dsl/shutdown.md
+          - Single: reference/dsl/single.md
+          - Startup: reference/dsl/startup.md
+          - Sync: reference/dsl/sync.md
+          - TaskScope: reference/dsl/task-scope.md
+          - TCP: reference/dsl/tcp.md
+          - Trigger: reference/dsl/trigger.md
+          - UDP: reference/dsl/udp.md
+          - Watchdog: reference/dsl/watchdog.md
+          - With: reference/dsl/with.md
+      - Emit Scopes:
+          - reference/emit/index.md
+          - Local: reference/emit/local.md
+          - Inline: reference/emit/inline.md
+          - Delay: reference/emit/delay.md
+          - Initialise: reference/emit/initialise.md
+          - Network: reference/emit/network.md
+          - UDP: reference/emit/udp.md
+          - Watchdog: reference/emit/watchdog.md
+      - Extension System:
+          - reference/extensions/index.md
+          - Extension Points: reference/extensions/extension-points.md
+          - Fusion Engine: reference/extensions/fusion-engine.md
+          - Data Stores: reference/extensions/data-stores.md
+          - Built-in Extensions: reference/extensions/built-in-extensions.md
+  - Explanation:
+      - explanation/index.md
+      - Architecture: explanation/architecture.md
+      - Threading Model: explanation/threading.md
+      - Lifecycle: explanation/lifecycle.md
+      - The DSL System: explanation/dsl-system.md
+      - Message Flow: explanation/message-flow.md
+      - NUClearNet: explanation/nuclear-net.md
+      - Serialization: explanation/serialization.md
+  - Contributing:
+      - contributing/index.md
+      - Development Setup: contributing/development.md
+      - Code Style: contributing/code-style.md
