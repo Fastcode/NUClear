@@ -34,7 +34,7 @@ theme:
   icon:
     repo: fontawesome/brands/github
 
-docs_dir: docs2
+docs_dir: docs
 
 markdown_extensions:
   - admonition

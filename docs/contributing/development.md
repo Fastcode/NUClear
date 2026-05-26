@@ -23,7 +23,7 @@ Tests use [Catch2](https://github.com/catchorg/Catch2) and are automatically dow
 ## Build Documentation
 
 ```bash
-pip install -r docs2/requirements.txt
+pip install -r docs/requirements.txt
 mkdocs serve
 ```
 
@@ -39,7 +39,7 @@ The docs will be available at `http://127.0.0.1:8000`.
 | `src/threading/` | Scheduler, reactions, and thread pool management |
 | `tests/` | Test suite organized by feature area |
 | `tests/test_util/` | Shared test utilities (TestBase, TimeUnit, etc.) |
-| `docs2/` | MkDocs documentation source |
+| `docs/` | MkDocs documentation source |
 | `cmake/` | CMake modules and configuration templates |
 
 ## Adding a New DSL Word
