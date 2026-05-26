@@ -27,6 +27,8 @@
 #include <cstdint>
 #include <memory>
 #include <mutex>
+#include <set>
+#include <string>
 #include <utility>
 #include <vector>
 
@@ -37,6 +39,8 @@
 #include "../dsl/word/emit/Network.hpp"
 #include "../message/NetworkConfiguration.hpp"
 #include "../message/NetworkEvent.hpp"
+#include "../nuclearnet/Discovery.hpp"
+#include "../nuclearnet/NUClearNet.hpp"
 #include "../util/get_hostname.hpp"
 
 namespace NUClear {

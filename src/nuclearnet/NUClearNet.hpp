@@ -183,8 +183,8 @@ namespace network {
 
         /// Send a single contiguous buffer to a target
         void send_buf(fd_t fd, const sock_t& target, const uint8_t* data, std::size_t length) {
-            struct iovec iov;
-            iov.iov_base = const_cast<void*>(static_cast<const void*>(data));
+            struct iovec iov{};
+            iov.iov_base = const_cast<void*>(static_cast<const void*>(data));  // NOLINT(cppcoreguidelines-pro-type-const-cast)
             iov.iov_len  = length;
             send_iov(fd, target, &iov, 1);
         }
@@ -213,7 +213,7 @@ namespace network {
         uint16_t next_packet_id{0};
 
         // Timing
-        std::chrono::steady_clock::time_point last_announce{};
+        std::chrono::steady_clock::time_point last_announce;
         static const std::chrono::milliseconds ANNOUNCE_INTERVAL;
 
         // Callbacks

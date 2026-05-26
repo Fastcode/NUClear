@@ -81,8 +81,8 @@
 
             /// Release ownership without closing
             fd_t release() {
-                fd_t old = fd;
-                fd       = INVALID_SOCKET;
+                const fd_t old = fd;
+                fd             = INVALID_SOCKET;
                 return old;
             }
 
