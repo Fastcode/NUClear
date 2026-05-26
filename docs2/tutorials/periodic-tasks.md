@@ -207,7 +207,7 @@ on<Always>().then([]() {
 });
 ```
 
-`Always` is the replacement for infinite loops. It allows NUClear to cleanly shut down the task when the system stops, rather than having a `while(true)` that can't be interrupted.
+`Always` is the replacement for infinite loops. It allows NUClear to cleanly shut down the task when the system stops, rather than having a `while(true)` that can't be interrupted. However, the callback must not block indefinitely — it should periodically return or use timeouts on blocking calls so that NUClear can shut down the thread gracefully.
 
 !!! warning "Always gets its own thread"
 
@@ -407,7 +407,7 @@ Periodic reactions run in the normal thread pool (except `Always`, which gets it
 
 !!! warning "Thread pool starvation"
 
-    If you have more concurrent reactions than thread pool threads, periodic tasks may not fire on time. For example, with a pool of 4 threads and 4 `Always` reactions... wait, `Always` gets its own thread. But 4 long-running `Every` callbacks _could_ block other timers.
+    If you have more concurrent reactions than thread pool threads, periodic tasks may not fire on time. For example, 4 long-running `Every` callbacks on a pool of 4 threads would block all other timers from firing. Note that `Always` is not affected since it runs in its own dedicated thread outside the pool.
 
     Mitigations:
 

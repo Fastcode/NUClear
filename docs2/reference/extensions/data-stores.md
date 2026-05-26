@@ -28,7 +28,7 @@ flowchart LR
     G --> CB
 ```
 
-## DataStore\<T\>
+## DataStore&lt;T&gt;
 
 A global singleton store keyed by type. Holds the most recently emitted value of each type as a `shared_ptr<const T>`.
 
@@ -54,7 +54,7 @@ DataStore<T>::set(std::make_shared<const T>(data));
 auto ptr = DataStore<T>::get();  // shared_ptr<const T>
 ```
 
-## ThreadStore\<T\>
+## ThreadStore&lt;T&gt;
 
 A thread-local pointer store used for out-of-band communication between an emit handler and the `get` methods it triggers on the same thread.
 
@@ -86,7 +86,7 @@ auto* data = ThreadStore<T>::value;
 
 This is essential for scenarios where multiple emits of the same type happen rapidly — the `ThreadStore` ensures each task gets the specific data that triggered it, not whatever was emitted most recently.
 
-## TypeCallbackStore\<T\>
+## TypeCallbackStore&lt;T&gt;
 
 A registry of reactions that should be triggered when type `T` is emitted. Stored as a list of shared pointers to `Reaction` objects.
 

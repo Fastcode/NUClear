@@ -52,12 +52,57 @@ public:
 | Field              | Type       | Default            | Description                                      |
 | ------------------ | ---------- | ------------------ | ------------------------------------------------ |
 | `name`             | `string`   | —                  | Unique name for this node on the network         |
-| `announce_address` | `string`   | —                  | Multicast address for node discovery             |
+| `announce_address` | `string`   | —                  | Address for node discovery announcements         |
 | `announce_port`    | `uint16_t` | —                  | Port for announce messages                       |
 | `bind_address`     | `string`   | `""` (all)         | Local interface to bind to                       |
-| `mtu`              | `uint16_t` | `1500`             | Maximum transmission unit (fragments if larger)  |
+| `mtu`             | `uint16_t` | `1500`             | Maximum transmission unit (fragments if larger)  |
 
-The default multicast address `239.226.152.162` with port `7447` is a conventional choice for LAN discovery. All nodes that share the same announce address and port will discover each other.
+### Network Modes
+
+NUClearNet supports several discovery modes depending on the `announce_address` you configure:
+
+| Mode | Address Type | Example | Use Case |
+|------|-------------|---------|----------|
+| **Multicast IPv4** | `239.x.x.x` | `239.226.152.162` | LAN discovery, multiple nodes |
+| **Multicast IPv6** | `ff02::x` | `ff02::1` | IPv6 LAN discovery |
+| **Broadcast IPv4** | `x.x.x.255` | `192.168.1.255` | Simple LAN, all nodes on subnet |
+| **Unicast IPv4/IPv6** | Specific IP | `192.168.1.50` | Point-to-point, two nodes |
+
+#### Multicast (Default)
+
+Multicast is the most common mode. All nodes join a multicast group and discover each other automatically:
+
+```cpp
+emit(std::make_unique<NUClear::message::NetworkConfiguration>(
+    "my-node", "239.226.152.162", 7447));
+```
+
+The default multicast address `239.226.152.162` with port `7447` is a conventional choice. All nodes that share the same announce address and port will discover each other.
+
+#### Broadcast
+
+For simpler networks, use a broadcast address. All nodes on the subnet will receive announce messages:
+
+```cpp
+emit(std::make_unique<NUClear::message::NetworkConfiguration>(
+    "my-node", "192.168.1.255", 7447));
+```
+
+#### Unicast (Point-to-Point)
+
+For direct connections between exactly two nodes, use unicast. Each node sets its announce address to the other node's IP:
+
+```cpp
+// On Node A (IP: 192.168.1.10)
+emit(std::make_unique<NUClear::message::NetworkConfiguration>(
+    "node-a", "192.168.1.20", 7447));  // Point to Node B
+
+// On Node B (IP: 192.168.1.20)
+emit(std::make_unique<NUClear::message::NetworkConfiguration>(
+    "node-b", "192.168.1.10", 7447));  // Point to Node A
+```
+
+In unicast mode, each peer announces directly to the other. This is useful when multicast/broadcast is unavailable (e.g., across subnets or VPNs).
 
 ## 2. Send Messages
 
@@ -180,7 +225,7 @@ public:
 | Mode         | Behavior                                                     | Use when                          |
 | ------------ | ------------------------------------------------------------ | --------------------------------- |
 | Unreliable   | Fire-and-forget. No retransmission. Lowest latency.          | Streaming data, periodic updates  |
-| Reliable     | Retransmits until acknowledged. Ordered delivery guaranteed. | Commands, configuration, events   |
+| Reliable     | Retransmits until acknowledged. Delivery guaranteed.         | Commands, configuration, events   |
 
 Pass `true` as the reliability argument to `emit<Scope::NETWORK>`:
 

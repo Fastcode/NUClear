@@ -221,8 +221,8 @@ public:
     explicit HelloReactor(std::unique_ptr<NUClear::Environment> environment)
         : NUClear::Reactor(std::move(environment)) {
 
-        on<Startup>().then([] {
-            NUClear::log<NUClear::INFO>("NUClear is installed and working!");
+        on<Startup>().then([this] {
+            log<INFO>("NUClear is installed and working!");
             // Request shutdown after printing
         });
     }

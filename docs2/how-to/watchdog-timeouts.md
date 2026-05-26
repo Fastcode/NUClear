@@ -36,7 +36,7 @@ Use `on<`[`Watchdog`](../reference/dsl/watchdog.md)`<Group, ticks, period>>()` t
 
 ```cpp
 on<Watchdog<HeartbeatMonitor, 5, std::chrono::seconds>>().then([this] {
-    log<NUClear::WARN>("Heartbeat lost! Attempting recovery...");
+    log<WARN>("Heartbeat lost! Attempting recovery...");
     emit(std::make_unique<RecoveryCommand>());
 });
 ```
@@ -69,7 +69,7 @@ public:
 
         // Fire if no heartbeat for 3 seconds
         on<Watchdog<HeartbeatMonitor, 3, std::chrono::seconds>>().then([this] {
-            log<NUClear::WARN>("Sensor heartbeat lost!");
+            log<WARN>("Sensor heartbeat lost!");
             emit(std::make_unique<RecoveryCommand>());
         });
 
@@ -98,7 +98,7 @@ You can monitor multiple instances of the same group using a runtime argument. E
 ```cpp
 // Monitor each motor independently
 on<Watchdog<MotorMonitor, 500, std::chrono::milliseconds>>(motor_id).then([this] {
-    log<NUClear::WARN>("Motor", motor_id, "stopped responding");
+    log<WARN>("Motor", motor_id, "stopped responding");
 });
 
 // Service a specific motor's watchdog
@@ -144,3 +144,13 @@ Common period types: `std::chrono::milliseconds`, `std::chrono::seconds`, `std::
 - The watchdog starts timing from the moment `bind` is called (when the `on<>` statement runs). Service it early if you need a grace period at startup.
 - If the watchdog fires, the timer resets automatically — it will fire again after another timeout unless serviced.
 - Use specific group types to avoid accidentally servicing the wrong watchdog.
+- If a reactor only needs a single watchdog, you can use the reactor type itself as the group instead of creating a separate tag type:
+    ```cpp
+    class SensorReader : public NUClear::Reactor {
+        // ...
+        on<Watchdog<SensorReader, 5, std::chrono::seconds>>().then([this] {
+            log<WARN>("Sensor timeout!");
+        });
+        // Service with: emit<Scope::WATCHDOG>(ServiceWatchdog<SensorReader>());
+    };
+    ```

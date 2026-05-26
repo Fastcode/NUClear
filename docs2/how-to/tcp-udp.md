@@ -2,7 +2,7 @@
 
 > How to use raw TCP and UDP sockets to talk to non-NUClear systems.
 
-## When to Use This vs Network\<T\>
+## When to Use This vs Network&lt;T&gt;
 
 | Feature | `Network<T>` | `TCP` / `UDP` |
 |---------|-------------|---------------|

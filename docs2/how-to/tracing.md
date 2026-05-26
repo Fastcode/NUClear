@@ -7,6 +7,27 @@ NUClear includes a built-in tracing system that records reaction execution, sche
 - The `TraceController` extension must be installed in your PowerPlant
 - The output `.trace` file can be viewed in [Perfetto UI](https://ui.perfetto.dev/) or Chrome's `chrome://tracing`
 
+## Installing the TraceController
+
+The `TraceController` must be installed before you can start tracing. Add it to your PowerPlant setup:
+
+```cpp
+#include <nuclear>
+
+int main(int argc, const char* argv[]) {
+    NUClear::Configuration config;
+    NUClear::PowerPlant plant(config, argc, argv);
+
+    // Install the trace controller
+    plant.install<NUClear::extension::TraceController>();
+
+    // Install your reactors
+    plant.install<MyApp>();
+
+    plant.start();
+}
+```
+
 ## Starting a Trace
 
 To begin recording, emit a `BeginTrace` message. This opens a trace file and starts capturing all reaction events:
@@ -43,27 +64,6 @@ emit(std::make_unique<NUClear::message::EndTrace>());
 ```
 
 This closes the trace file cleanly. If you don't emit `EndTrace`, the file will be closed when the PowerPlant shuts down, but may be incomplete.
-
-## Installing the TraceController
-
-The `TraceController` must be installed before you can start tracing. Add it to your PowerPlant setup:
-
-```cpp
-#include <nuclear>
-
-int main(int argc, const char* argv[]) {
-    NUClear::Configuration config;
-    NUClear::PowerPlant plant(config, argc, argv);
-
-    // Install the trace controller
-    plant.install<NUClear::extension::TraceController>();
-
-    // Install your reactors
-    plant.install<MyApp>();
-
-    plant.start();
-}
-```
 
 ## Viewing the Trace
 

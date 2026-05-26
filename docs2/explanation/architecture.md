@@ -129,11 +129,14 @@ graph TB
     S -->|dispatch| TP3
 ```
 
-The **PowerPlant** is the container for the entire system. It:
+The hierarchy is straightforward:
 
-- Holds all **Reactors** (your components)
-- Reactors register **Reactions** (event handlers declared with `on<>().then()`)
-- When data is emitted, the **Scheduler** creates tasks and dispatches them to **Thread Pools**
+- A **PowerPlant** is the top-level container for the entire system
+- A PowerPlant contains **Reactors** — your self-contained components
+- Each Reactor declares **Reactions** — event handlers registered with `on<>().then()`
+- When a Reaction runs, it can **emit messages** that trigger other Reactions
+
+This creates a data-driven execution model: components don't call each other directly. Instead, they emit data, and the scheduler dispatches reactions in response.
 
 ## Design Philosophy
 

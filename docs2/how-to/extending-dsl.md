@@ -58,7 +58,7 @@ struct LogTiming {
         auto us = std::chrono::duration_cast<std::chrono::microseconds>(elapsed).count();
 
         if (us > 1000) {  // Only log if > 1ms
-            NUClear::log<NUClear::WARN>("Slow reaction:",
+            NUClear::log<NUClear::LogLevel::WARN>("Slow reaction:",
                                          task.reaction->identifiers->name,
                                          "took", us, "µs");
         }
@@ -190,9 +190,26 @@ The Fusion Engine walks the inheritance tree and collects all extension points f
 
 See [Extension Points Reference](../reference/extensions/extension-points.md) and [Fusion Engine](../reference/extensions/fusion-engine.md) for full details.
 
+## Thread Context
+
+Different extension points run in different thread contexts. This is critical to understand when using `thread_local` storage or sharing state:
+
+| Point          | Runs on                                     | Notes                                              |
+| -------------- | ------------------------------------------- | -------------------------------------------------- |
+| `bind`         | The thread that calls `on<>()`              | Usually the main thread during reactor construction |
+| `get`          | The thread that **created** the task        | Often different from the execution thread          |
+| `precondition` | The thread that **created** the task        | Same thread as `get`                               |
+| `pre_run`      | The **execution** thread                    | Same thread as the callback                        |
+| `post_run`     | The **execution** thread                    | Same thread as the callback                        |
+| `scope`        | The **execution** thread                    | RAII object lives for callback duration            |
+
+!!! warning "thread_local in get vs pre_run/post_run"
+    Because `get` runs on the task-creation thread (not the execution thread), `thread_local` variables set in `get` will **not** be visible in `pre_run`, `post_run`, or the callback itself. If you need per-execution state, use `pre_run`/`post_run` or the `scope` extension point, which provides RAII objects that persist for the lifetime of the reaction execution.
+
 ## Tips
 
 - Words are never instantiated — delete the constructor to make this clear.
-- Use `thread_local` storage for per-execution state in `pre_run`/`post_run`.
+- Use `thread_local` storage for per-execution state in `pre_run`/`post_run` only — not in `get`.
+- Use the `scope` extension point if you need state that persists across the reaction execution with RAII semantics.
 - Template parameters on your word become compile-time configuration (like `RateLimit<10, seconds>`).
 - Test custom words the same way you test any reactor — single-threaded plant with assertions.

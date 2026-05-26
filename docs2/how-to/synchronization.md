@@ -76,12 +76,12 @@ private:
 
 ```mermaid
 sequenceDiagram
-    participant T1 as Task A (Sync<X>)
     participant S as Scheduler
+    participant T1 as Task A (Sync<X>)
     participant T2 as Task B (Sync<X>)
     participant T3 as Task C (Sync<X>)
 
-    T1->>S: Start executing
+    S->>T1: Execute
     T2->>S: Request execution
     Note over S: X is locked, queue B
     T3->>S: Request execution

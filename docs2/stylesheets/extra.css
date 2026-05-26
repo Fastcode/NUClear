@@ -1,0 +1,4 @@
+/* Fix letter-spacing in inline code for template angle brackets */
+code {
+    letter-spacing: normal !important;
+}

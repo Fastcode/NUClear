@@ -28,7 +28,7 @@ public:
 
         on<Trigger<SensorData>>().then([this](const SensorData& data) {
             if (data.temperature > 100.0) {
-                log<NUClear::LogLevel::WARN>("Temperature critical:", data.temperature);
+                log<WARN>("Temperature critical:", data.temperature);
             }
         });
     }

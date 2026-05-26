@@ -135,4 +135,97 @@ public:
 
 !!! note "Default log level"
 
-    Reactors default to `log_level = INFO`. Set it in your constructor to change the threshold.
+    Reactors default to `log_level = DEBUG`. Set it in your constructor to change the threshold.
+
+## How the Log System Works
+
+```mermaid
+sequenceDiagram
+    participant R as Reactor
+    participant P as PowerPlant
+    participant H as Log Handler Reactions
+
+    R->>R: log<WARN>("message")
+    Note over R: Check: WARN >= reactor.log_level?
+    R->>P: Emit LogMessage
+    P->>H: Trigger all on<Trigger<LogMessage>> reactions
+    Note over H: Handler decides what to display/store
+```
+
+The log system is entirely message-driven:
+
+1. A `log<Level>(...)` call in a reactor checks whether `Level` meets the reactor's `log_level` threshold
+2. If it passes, a `LogMessage` is emitted into the system
+3. Any reaction bound to `Trigger<LogMessage>` receives it
+4. **Without a log handler installed, no output appears** — you must install a reactor that handles `LogMessage`
+
+### Per-Reactor vs System Log Level
+
+There are two filtering levels:
+
+- **`log_level`** (per-reactor) — set in each reactor's constructor. Messages below this level are not emitted by that reactor.
+- **`min_log_level`** (system-wide) — set in `NUClear::Configuration`. Messages below this level are discarded regardless of the reactor's setting.
+
+A message is emitted only if its level meets **both** thresholds.
+
+### The `display_level` Field
+
+Each `LogMessage` carries a `display_level` field equal to the emitting reactor's `log_level`. This allows handlers to implement display filtering — a handler can choose to only display messages where `msg.level >= msg.display_level`, letting each reactor control its own verbosity without affecting other reactors.
+
+## Writing Custom Log Handlers
+
+Since log handling is just a reaction to `LogMessage`, you can write handlers that log to files, send to a network service, buffer output, or anything else:
+
+### File Logger
+
+```cpp
+#include <nuclear>
+#include <fstream>
+
+class FileLogger : public NUClear::Reactor {
+public:
+    explicit FileLogger(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
+
+        on<Trigger<NUClear::message::LogMessage>>().then([this](const NUClear::message::LogMessage& msg) {
+            if (msg.level >= msg.display_level) {
+                file << "[" << msg.level << "] "
+                     << msg.reactor_name << ": "
+                     << msg.message << "\n";
+                file.flush();
+            }
+        });
+    }
+
+private:
+    std::ofstream file{"application.log"};
+};
+```
+
+### Filtered Handler
+
+You can create handlers that only process certain severity levels:
+
+```cpp
+class ErrorReporter : public NUClear::Reactor {
+public:
+    explicit ErrorReporter(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
+
+        on<Trigger<NUClear::message::LogMessage>>().then([this](const NUClear::message::LogMessage& msg) {
+            if (msg.level >= ERROR) {
+                // Send errors to external monitoring
+                send_to_monitoring_service(msg.message);
+            }
+        });
+    }
+};
+```
+
+### Logging from Outside a Reactor
+
+If you need to log from code that isn't inside a reactor (e.g., a utility function called from `main()`), use the free function with full qualification:
+
+```cpp
+NUClear::log<NUClear::LogLevel::INFO>("Starting up...");
+```
+
+This requires a PowerPlant to be running. The message will have no associated reactor name.
