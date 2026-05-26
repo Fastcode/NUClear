@@ -43,12 +43,12 @@ sequenceDiagram
     R->>C: Invoke callback with latest T from cache
 ```
 
-### Implementation
+### Extension Points
 
-`Trigger<T>` is composed of two operations via `Fusion`:
+`Trigger<T>` implements two extension points:
 
-- **`TypeBind<T>`** — registers the reaction in the callback store so it is notified on emission of `T`.
-- **`CacheGet<T>`** — retrieves the most recent `T` from the data store at task execution time.
+- **`bind`** — registers the reaction so it is notified on emission of `T`.
+- **`get`** — retrieves the most recent `T` from the data store at task execution time.
 
 Data access is thread-safe; the underlying `std::shared_ptr<const T>` ensures the data remains valid for the lifetime of the callback.
 
