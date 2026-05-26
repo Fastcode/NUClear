@@ -123,30 +123,34 @@ nav:
           - Log Levels: reference/api/log-levels.md
       - DSL Words:
           - reference/dsl/index.md
-          - Always: reference/dsl/always.md
-          - Buffer: reference/dsl/buffer.md
-          - Every: reference/dsl/every.md
-          - Group: reference/dsl/group.md
-          - Idle: reference/dsl/idle.md
-          - Inline: reference/dsl/inline.md
-          - IO: reference/dsl/io.md
-          - Last: reference/dsl/last.md
-          - MainThread: reference/dsl/main-thread.md
-          - Network: reference/dsl/network.md
-          - Once: reference/dsl/once.md
-          - Optional: reference/dsl/optional.md
-          - Pool: reference/dsl/pool.md
-          - Priority: reference/dsl/priority.md
-          - Shutdown: reference/dsl/shutdown.md
-          - Single: reference/dsl/single.md
-          - Startup: reference/dsl/startup.md
-          - Sync: reference/dsl/sync.md
-          - TaskScope: reference/dsl/task-scope.md
-          - TCP: reference/dsl/tcp.md
-          - Trigger: reference/dsl/trigger.md
-          - UDP: reference/dsl/udp.md
-          - Watchdog: reference/dsl/watchdog.md
-          - With: reference/dsl/with.md
+          - Triggering:
+              - Trigger: reference/dsl/trigger.md
+              - Startup: reference/dsl/startup.md
+              - Shutdown: reference/dsl/shutdown.md
+              - Every: reference/dsl/every.md
+              - Always: reference/dsl/always.md
+              - IO: reference/dsl/io.md
+              - Network: reference/dsl/network.md
+              - TCP: reference/dsl/tcp.md
+              - UDP: reference/dsl/udp.md
+              - Watchdog: reference/dsl/watchdog.md
+              - Idle: reference/dsl/idle.md
+          - Data Access:
+              - With: reference/dsl/with.md
+              - Optional: reference/dsl/optional.md
+              - Last: reference/dsl/last.md
+          - Scheduling:
+              - Priority: reference/dsl/priority.md
+              - Pool: reference/dsl/pool.md
+              - Group: reference/dsl/group.md
+              - Sync: reference/dsl/sync.md
+              - Inline: reference/dsl/inline.md
+              - MainThread: reference/dsl/main-thread.md
+          - Task Modifiers:
+              - Single: reference/dsl/single.md
+              - Buffer: reference/dsl/buffer.md
+              - Once: reference/dsl/once.md
+              - TaskScope: reference/dsl/task-scope.md
       - Emit Scopes:
           - reference/emit/index.md
           - Local: reference/emit/local.md

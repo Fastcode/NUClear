@@ -48,6 +48,7 @@ public:
 
 - Shutdown fires only once — it cannot re-trigger.
 - The thread pool is still active during Shutdown, so tasks execute normally.
+- **After shutdown begins, no new non-inline tasks can be submitted.** If a Shutdown reaction emits a message (non-inline), the triggered reactions will not execute. Only `emit<Scope::INLINE>` works during shutdown.
 - Common uses: close connections, flush buffers, save state, log shutdown info.
 - After all Shutdown reactions complete, threads are joined and the PowerPlant exits.
 

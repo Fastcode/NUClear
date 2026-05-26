@@ -348,45 +348,32 @@ Here's how the different periodic mechanisms interact at runtime:
 
 ```mermaid
 gantt
-    title Periodic Task Timing (first 2 seconds)
+    title Periodic Task Timing (first 1 second)
     dateFormat X
     axisFormat %L ms
 
-    section DataGenerator
-    Reading 1   :0, 100
-    Reading 2   :100, 200
-    Reading 3   :200, 300
-    Reading 4   :300, 400
-    Reading 5   :400, 500
-    Reading 6   :500, 600
-    Reading 7   :600, 700
-    Reading 8   :700, 800
-    Reading 9   :800, 900
-    Reading 10  :900, 1000
-    Reading 11  :1000, 1100
-    Reading 12  :1100, 1200
-    Reading 13  :1200, 1300
-    Reading 14  :1300, 1400
-    Reading 15  :1400, 1500
-    Reading 16  :1500, 1600
-    Reading 17  :1600, 1700
-    Reading 18  :1700, 1800
-    Reading 19  :1800, 1900
-    Reading 20  :1900, 2000
+    section DataGenerator (Every 100ms)
+    emit Reading  :milestone, 0, 0
+    emit Reading  :milestone, 100, 100
+    emit Reading  :milestone, 200, 200
+    emit Reading  :milestone, 300, 300
+    emit Reading  :milestone, 400, 400
+    emit Reading  :milestone, 500, 500
+    emit Reading  :milestone, 600, 600
+    emit Reading  :milestone, 700, 700
+    emit Reading  :milestone, 800, 800
+    emit Reading  :milestone, 900, 900
+    emit Reading  :milestone, 1000, 1000
 
-    section RateMonitor
-    Report (10 Hz)   :crit, 1000, 1010
-    Report (10 Hz)   :crit, 2000, 2010
+    section RateMonitor (Every 1s)
+    Report stats  :crit, 1000, 1005
 
-    section HealthChecker
-    Watchdog reset  :active, 0, 100
-    Watchdog reset  :active, 100, 200
-    Watchdog reset  :active, 200, 300
-    Watchdog reset  :active, 300, 400
-    Watchdog reset  :active, 400, 500
+    section HealthChecker (Watchdog 500ms)
+    Timer active  :active, 0, 500
+    Timer active  :active, 500, 1000
 ```
 
-Each sensor reading resets the watchdog timer. As long as readings arrive within 500ms of each other, the watchdog never fires.
+Each sensor reading resets the watchdog timer. The DataGenerator emits at 100ms intervals (shown as milestones), so the 500ms watchdog is always serviced well within its deadline.
 
 ## Tips and Gotchas
 

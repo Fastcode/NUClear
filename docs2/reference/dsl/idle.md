@@ -5,8 +5,8 @@ Executes a task when a thread pool has no other work to process.
 ## Syntax
 
 ```cpp
-on<Idle<PoolType>>().then(callback);
-on<Idle<>>().then(callback);
+on<Idle<PoolType>>().then(callback);  // Fires when PoolType's pool is idle
+on<Idle<>>().then(callback);          // Fires when the default pool is idle
 ```
 
 ## Parameters
@@ -21,6 +21,17 @@ on<Idle<>>().then(callback);
 - The task executes on the targeted pool's threads when no higher-priority work is queued
 - When new work arrives for the pool, running idle tasks yield execution
 - The task may be invoked repeatedly whenever the pool becomes idle again
+
+### Pool-Specific Idle vs Default Pool Idle
+
+There are distinct idle states in NUClear:
+
+| Variant | Meaning |
+|---------|---------|
+| `Idle<>` | The **default** thread pool has no queued tasks |
+| `Idle<MyPool>` | A **specific** named pool has no queued tasks |
+
+Each pool tracks its own idle state independently. A specific pool being idle does not mean the default pool is idle, and vice versa. If you have multiple pools, each can have its own `Idle` reactions that fire independently when that specific pool has no work.
 
 ## Example
 
@@ -37,7 +48,7 @@ struct ComputePool {
 };
 
 on<Idle<ComputePool>>().then([] {
-    // Background work on ComputePool threads
+    // Background work on ComputePool threads when it has nothing else to do
 });
 ```
 

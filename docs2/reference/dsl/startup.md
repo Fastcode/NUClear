@@ -12,19 +12,20 @@ on<Startup>().then([] {
 
 ## Behavior
 
-`Startup` fires after all reactors have been installed and `PowerPlant::start()` is called, but before the system enters its main execution loop. At the point Startup reactions run, the thread pool is active and all reactor bindings are in place.
+`Startup` fires after all reactors have been installed and `PowerPlant::start()` is called. All Startup reactions execute **before** the scheduler begins processing the general task queue. This guarantees that any data emitted during Startup is available before normal reactions begin executing.
 
 ```mermaid
 graph LR
     A[Install Reactors] --> B["PowerPlant::start()"]
     B --> C[Startup reactions fire]
-    C --> D[Normal execution]
-    D --> E["PowerPlant::shutdown()"]
-    E --> F[Shutdown reactions fire]
-    F --> G[Threads joined]
+    C --> D[Scheduler starts]
+    D --> E[Normal execution]
+    E --> F["PowerPlant::shutdown()"]
+    F --> G[Shutdown reactions fire]
+    G --> H[Threads joined]
 ```
 
-Startup tasks are submitted to the default thread pool. Each Startup reaction runs exactly once per PowerPlant lifecycle.
+Startup is emitted inline, meaning all Startup reactions complete before `start()` returns control to the scheduler. Each Startup reaction runs exactly once per PowerPlant lifecycle.
 
 ## Example
 

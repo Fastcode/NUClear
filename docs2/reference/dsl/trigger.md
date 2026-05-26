@@ -7,7 +7,7 @@
 ```cpp
 on<Trigger<T>>().then([](const T& value) { /* ... */ });
 
-on<Trigger<T1, T2>>().then([](const T1& a, const T2& b) { /* ... */ });
+on<Trigger<T1>, Trigger<T2>>().then([](const T1& a, const T2& b) { /* ... */ });
 ```
 
 ## Parameters
@@ -16,7 +16,7 @@ on<Trigger<T1, T2>>().then([](const T1& a, const T2& b) { /* ... */ });
 | --------- | ------------------------------------ |
 | `T`       | The datatype that triggers the reaction when emitted |
 
-Multiple types may be provided as separate template arguments: `Trigger<T1, T2, ...>`.
+Multiple triggers are specified as separate `Trigger<>` words: `Trigger<T1>, Trigger<T2>, ...`.
 
 ## Behavior
 
@@ -27,7 +27,7 @@ If `T` has never been emitted, the task is dropped and the callback is not invok
 
 ### Multi-Trigger
 
-`Trigger<T1, T2>` fires when **any** of the listed types is emitted.
+`Trigger<T1>, Trigger<T2>` fires when **any** of the listed types is emitted.
 Regardless of which type triggered the reaction, the latest data for **all** listed types is provided to the callback.
 If any of the triggered types has never been emitted, the task is dropped.
 
@@ -68,8 +68,8 @@ on<Trigger<SensorReading>>().then([](const SensorReading& reading) {
     // Fires every time a SensorReading is emitted
 });
 
-// Multi-trigger
-on<Trigger<SensorReading, Command>>().then([](const SensorReading& reading, const Command& cmd) {
+// Multi-trigger — fires when EITHER type is emitted
+on<Trigger<SensorReading>, Trigger<Command>>().then([](const SensorReading& reading, const Command& cmd) {
     // Fires when EITHER SensorReading or Command is emitted
     // Both arguments always contain the most recent data
 });
@@ -77,10 +77,10 @@ on<Trigger<SensorReading, Command>>().then([](const SensorReading& reading, cons
 
 ## Notes
 
-- The callback argument is a reference into a shared pointer. Do not store the reference beyond the callback's lifetime; copy the data or capture the shared pointer via [With](with.md) if needed.
+- The callback argument is a reference into a shared pointer. Do not store the reference beyond the callback's lifetime; copy the data or take it as `std::shared_ptr<const T>` if you need to retain it (see below).
 - To access data without triggering on it, use [With](with.md).
 - To allow missing data instead of dropping the task, wrap the type in [Optional](optional.md).
-- `Trigger<T1, T2>` is equivalent to `Trigger<T1>, Trigger<T2>` — both fire on any of the listed types.
+- `Trigger<T1>, Trigger<T2>` is the canonical form for multi-trigger. `Trigger<T1, T2>` is also supported but less idiomatic.
 
 ## See Also
 

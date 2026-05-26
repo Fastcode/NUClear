@@ -12,6 +12,34 @@ DSL words combine freely in a single `on<>` statement. The runtime fuses their s
 
 For a deeper explanation of how the DSL system works, see [DSL System](../../explanation/dsl-system.md). To create custom DSL words, see [Extensions](../extensions/index.md).
 
+## Callback Argument Matching
+
+NUClear uses **greedy argument matching** to connect DSL data to your callback parameters. The data types produced by DSL words (in declaration order) are matched left-to-right against your callback signature. You can:
+
+- **Take fewer arguments** — you don't have to accept every data type the DSL provides:
+  ```cpp
+  // Network<T> provides NetworkSource and T, but you can take just T
+  on<Network<SensorData>>().then([](const SensorData& data) {
+      // NetworkSource is available but not taken
+  });
+  ```
+
+- **Take by `const T&`** — the default, valid for the lifetime of the callback:
+  ```cpp
+  on<Trigger<Image>>().then([](const Image& img) { /* valid only during callback */ });
+  ```
+
+- **Take by `std::shared_ptr<const T>`** — extends the lifetime beyond the callback. Use this when you need to store data beyond the reaction's execution:
+  ```cpp
+  on<Trigger<Image>>().then([this](const std::shared_ptr<const Image>& img) {
+      // Can store img and it remains valid after the callback returns
+      last_image = img;
+  });
+  ```
+
+!!! tip "When to use shared_ptr"
+    If you plan to store data beyond the lifetime of the callback (e.g., caching the last value, passing to another thread), take it as `std::shared_ptr<const T>`. This keeps the data alive without copying. Taking by `const T&` is a convenience dereference — the shared_ptr is the true owner.
+
 ```mermaid
 mindmap
   root((DSL Words))

@@ -1,6 +1,6 @@
 # Last
 
-> Stores the last N emissions of a type and provides them as an ordered list.
+> Stores the last N values that were provided when the reaction triggered and provides them as an ordered list.
 
 ## Syntax
 
@@ -13,17 +13,20 @@ on<Trigger<T1>, Last<N, With<T2>>>()
 
 | Parameter    | Description                                          |
 | ------------ | ---------------------------------------------------- |
-| `N`          | The maximum number of recent emissions to store.     |
+| `N`          | The maximum number of recent values to store.        |
 | `DSLWords…`  | The DSL word to wrap (`Trigger<T>` or `With<T>`).    |
 
 ## Behavior
 
-`Last` maintains a sliding window of the most recent N emissions of the wrapped type. When the reaction executes, the callback receives the full window as a `std::list<std::shared_ptr<const T>>`, ordered oldest first.
+`Last` maintains a sliding window of the most recent N values that were provided to the reaction when it triggered. When the reaction executes, the callback receives the full window as a `std::list<std::shared_ptr<const T>>`, ordered oldest first.
 
-- If fewer than N items have been emitted, the list contains only what is available.
-- When a new emission arrives and the window is full, the oldest item is discarded.
+- If fewer than N triggers have occurred, the list contains only what has been collected so far.
+- When a new trigger occurs and the window is full, the oldest item is discarded.
 - When wrapping `Trigger`, the reaction still fires on every emission of `T`.
 - When wrapping `With`, the list is retrieved as supplementary data without triggering.
+
+!!! warning "Last stores triggered values, not all emissions"
+    `Last` records the value that was present each time the reaction was triggered — it does **not** track every emission of the type. If you combine `Last<N, Trigger<T>>` with `Single`, missed emissions (those that arrived while the reaction was already running) will not appear in the window. This is a subtle but important distinction: `Last` records "what the reaction saw", not "what was emitted".
 
 ```mermaid
 graph LR
@@ -32,8 +35,8 @@ graph LR
         A["oldest"] --- B["…"] --- C["…"] --- D["newest"]
     end
 
-    E["new emission"] -->|pushes out oldest| A
-    E -->|appended| D
+    E["reaction triggers"] -->|pushes out oldest| A
+    E -->|current value appended| D
 ```
 
 ## Example
