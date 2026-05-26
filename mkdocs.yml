@@ -107,6 +107,7 @@ nav:
       - Watchdog Timeouts: how-to/watchdog-timeouts.md
       - Synchronization: how-to/synchronization.md
       - Logging: how-to/logging.md
+      - Tracing Reactions: how-to/tracing.md
       - Testing Reactors: how-to/testing.md
       - Extending the DSL: how-to/extending-dsl.md
   - Reference:

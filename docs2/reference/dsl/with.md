@@ -54,7 +54,7 @@ The reaction triggers only on `SensorData` emissions. The current `Config` value
 
 ## Notes
 
-- `With` uses only `CacheGet` internally — it has no type binding and cannot trigger a reaction.
+- `With` implements the `get` extension point — retrieving the latest value from NUClear's data cache without binding to the type or triggering a reaction.
 - Data is captured at task creation time, not at execution time.
 - If you need the reaction to trigger on `T`, use `Trigger<T>` instead.
 - For data that may not yet exist, use `Optional<With<T>>` to receive a `nullptr` rather than dropping the task.

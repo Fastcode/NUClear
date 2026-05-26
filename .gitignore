@@ -28,3 +28,4 @@ docs/doxygen
 docs/doxygen_sqlite3.db
 *.sublime-workspace
 .DS_Store
+site/
