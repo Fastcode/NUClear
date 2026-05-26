@@ -20,13 +20,13 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include "nuclear_net/PacketDeduplicator.hpp"
+#include "nuclearnet/PacketDeduplicator.hpp"
 
 #include <catch2/catch_test_macros.hpp>
 
 using NUClear::network::PacketDeduplicator;
 
-TEST_CASE("PacketDeduplicator rejects duplicate packet IDs", "[nuclear_net][deduplicator]") {
+SCENARIO("PacketDeduplicator rejects duplicate packet IDs", "[nuclearnet][deduplicator]") {
     PacketDeduplicator dedup;
 
     // First time seeing packet 42 — not a duplicate
@@ -39,7 +39,7 @@ TEST_CASE("PacketDeduplicator rejects duplicate packet IDs", "[nuclear_net][dedu
     REQUIRE(dedup.is_duplicate(42));
 }
 
-TEST_CASE("PacketDeduplicator accepts distinct packet IDs", "[nuclear_net][deduplicator]") {
+SCENARIO("PacketDeduplicator accepts distinct packet IDs", "[nuclearnet][deduplicator]") {
     PacketDeduplicator dedup;
 
     dedup.add_packet(1);
@@ -51,7 +51,7 @@ TEST_CASE("PacketDeduplicator accepts distinct packet IDs", "[nuclear_net][dedup
     REQUIRE_FALSE(dedup.is_duplicate(255));
 }
 
-TEST_CASE("PacketDeduplicator sliding window advances and forgets old IDs", "[nuclear_net][deduplicator]") {
+SCENARIO("PacketDeduplicator sliding window advances and forgets old IDs", "[nuclearnet][deduplicator]") {
     PacketDeduplicator dedup;
 
     // Add packet 0
@@ -68,7 +68,7 @@ TEST_CASE("PacketDeduplicator sliding window advances and forgets old IDs", "[nu
     REQUIRE(dedup.is_duplicate(0));
 }
 
-TEST_CASE("PacketDeduplicator handles sequential packet IDs", "[nuclear_net][deduplicator]") {
+SCENARIO("PacketDeduplicator handles sequential packet IDs", "[nuclearnet][deduplicator]") {
     PacketDeduplicator dedup;
 
     // Process packets 0-99 in order
@@ -83,7 +83,7 @@ TEST_CASE("PacketDeduplicator handles sequential packet IDs", "[nuclear_net][ded
     }
 }
 
-TEST_CASE("PacketDeduplicator handles uint16_t wraparound", "[nuclear_net][deduplicator]") {
+SCENARIO("PacketDeduplicator handles uint16_t wraparound", "[nuclearnet][deduplicator]") {
     PacketDeduplicator dedup;
 
     // Start near the max value
@@ -101,7 +101,7 @@ TEST_CASE("PacketDeduplicator handles uint16_t wraparound", "[nuclear_net][dedup
     REQUIRE(dedup.is_duplicate(63));  // 65500 + 99 - 65536 = 63
 }
 
-TEST_CASE("PacketDeduplicator handles out-of-order within window", "[nuclear_net][deduplicator]") {
+SCENARIO("PacketDeduplicator handles out-of-order within window", "[nuclearnet][deduplicator]") {
     PacketDeduplicator dedup;
 
     // Add packet 10 first (advances window)

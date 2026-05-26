@@ -20,7 +20,7 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include "nuclear_net/RTTEstimator.hpp"
+#include "nuclearnet/RTTEstimator.hpp"
 
 #include <catch2/catch_test_macros.hpp>
 #include <chrono>
@@ -29,7 +29,7 @@
 using NUClear::network::RTTEstimator;
 using namespace std::chrono_literals;
 
-TEST_CASE("RTTEstimator initial timeout is 1 second", "[nuclear_net][rtt]") {
+SCENARIO("RTTEstimator initial timeout is 1 second", "[nuclearnet][rtt]") {
     RTTEstimator rtt;
     // RFC 6298: initial RTO should be generous (we use 1s default)
     auto timeout = rtt.timeout();
@@ -37,7 +37,7 @@ TEST_CASE("RTTEstimator initial timeout is 1 second", "[nuclear_net][rtt]") {
     REQUIRE(timeout <= 1100ms);
 }
 
-TEST_CASE("RTTEstimator converges towards measured RTT", "[nuclear_net][rtt]") {
+SCENARIO("RTTEstimator converges towards measured RTT", "[nuclearnet][rtt]") {
     RTTEstimator rtt;
 
     // Simulate stable 50ms RTT for several measurements
@@ -54,7 +54,7 @@ TEST_CASE("RTTEstimator converges towards measured RTT", "[nuclear_net][rtt]") {
     REQUIRE(timeout >= 50ms);
 }
 
-TEST_CASE("RTTEstimator increases timeout with variable measurements", "[nuclear_net][rtt]") {
+SCENARIO("RTTEstimator increases timeout with variable measurements", "[nuclearnet][rtt]") {
     RTTEstimator rtt;
 
     // First establish a baseline
@@ -73,7 +73,7 @@ TEST_CASE("RTTEstimator increases timeout with variable measurements", "[nuclear
     REQUIRE(variable_timeout > stable_timeout);
 }
 
-TEST_CASE("RTTEstimator first measurement sets initial estimates", "[nuclear_net][rtt]") {
+SCENARIO("RTTEstimator first measurement sets initial estimates", "[nuclearnet][rtt]") {
     RTTEstimator rtt;
 
     // First measurement: SRTT = R, RTTVAR = R/2, RTO = SRTT + 4*RTTVAR = R + 2R = 3R

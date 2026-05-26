@@ -99,16 +99,19 @@ namespace network {
          * @param flags       Packet flags
          * @param data        The fragment payload
          *
-         * @return If all fragments are now received, returns the assembled packet. Otherwise empty optional.
+         * @param out_packet  Filled with the assembled packet when reassembly completes
+         *
+         * @return true if all fragments are now received and @p out_packet is valid, false otherwise
          */
-        std::optional<AssembledPacket> submit_fragment(uint64_t source_key,
-                                                       uint16_t packet_id,
-                                                       uint16_t packet_no,
-                                                       uint16_t packet_count,
-                                                       uint64_t hash,
-                                                       uint8_t flags,
-                                                       const uint8_t* data,
-                                                       std::size_t data_length);
+        bool submit_fragment(uint64_t source_key,
+                             uint16_t packet_id,
+                             uint16_t packet_no,
+                             uint16_t packet_count,
+                             uint64_t hash,
+                             uint8_t flags,
+                             const uint8_t* data,
+                             std::size_t data_length,
+                             AssembledPacket& out_packet);
 
         /**
          * Clean up assemblies that have timed out.

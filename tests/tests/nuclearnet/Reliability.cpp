@@ -20,7 +20,7 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include "nuclear_net/Reliability.hpp"
+#include "nuclearnet/Reliability.hpp"
 
 #include <catch2/catch_test_macros.hpp>
 #include <chrono>
@@ -44,7 +44,7 @@ sock_t make_addr(uint32_t ip, uint16_t port) {
 }
 }  // namespace
 
-TEST_CASE("Reliability tracks sent packet and requests retransmission after timeout", "[nuclear_net][reliability]") {
+SCENARIO("Reliability tracks sent packet and requests retransmission after timeout", "[nuclearnet][reliability]") {
     Reliability rel(3);  // max 3 retransmits
 
     sock_t target = make_addr(0x0A000001, 5000);
@@ -71,7 +71,7 @@ TEST_CASE("Reliability tracks sent packet and requests retransmission after time
     REQUIRE(retransmissions[1].data.size() == 100);
 }
 
-TEST_CASE("Reliability stops retransmitting ACKed fragments", "[nuclear_net][reliability]") {
+SCENARIO("Reliability stops retransmitting ACKed fragments", "[nuclearnet][reliability]") {
     Reliability rel(10);
 
     sock_t target = make_addr(0x0A000001, 5000);
@@ -93,7 +93,7 @@ TEST_CASE("Reliability stops retransmitting ACKed fragments", "[nuclear_net][rel
     REQUIRE(retransmissions[0].packet_no == 1);
 }
 
-TEST_CASE("Reliability removes tracked packet when all fragments ACKed", "[nuclear_net][reliability]") {
+SCENARIO("Reliability removes tracked packet when all fragments ACKed", "[nuclearnet][reliability]") {
     Reliability rel(10);
 
     sock_t target = make_addr(0x0A000001, 5000);
@@ -113,7 +113,7 @@ TEST_CASE("Reliability removes tracked packet when all fragments ACKed", "[nucle
     REQUIRE(retransmissions.empty());
 }
 
-TEST_CASE("Reliability gives up after max_retransmits", "[nuclear_net][reliability]") {
+SCENARIO("Reliability gives up after max_retransmits", "[nuclearnet][reliability]") {
     Reliability rel(2);  // Only allow 2 retransmission attempts
 
     sock_t target = make_addr(0x0A000001, 5000);
@@ -140,7 +140,7 @@ TEST_CASE("Reliability gives up after max_retransmits", "[nuclear_net][reliabili
     REQUIRE(r3.empty());  // Packet dropped after max retransmits
 }
 
-TEST_CASE("Reliability build_ack_packet encodes bitset correctly", "[nuclear_net][reliability]") {
+SCENARIO("Reliability build_ack_packet encodes bitset correctly", "[nuclearnet][reliability]") {
     std::vector<bool> received = {true, false, true, true, false, false, false, true};  // 0b10001101 = 0x8D
     auto ack = Reliability::build_ack_packet(42, 8, received);
 
@@ -152,7 +152,7 @@ TEST_CASE("Reliability build_ack_packet encodes bitset correctly", "[nuclear_net
     REQUIRE(bitset_byte == 0x8D);
 }
 
-TEST_CASE("Reliability build_nack_packet encodes missing fragments", "[nuclear_net][reliability]") {
+SCENARIO("Reliability build_nack_packet encodes missing fragments", "[nuclearnet][reliability]") {
     std::vector<bool> missing = {false, true, false, true};  // bits 1,3 set = 0b00001010 = 0x0A
     auto nack = Reliability::build_nack_packet(7, 4, missing);
 
@@ -161,7 +161,7 @@ TEST_CASE("Reliability build_nack_packet encodes missing fragments", "[nuclear_n
     REQUIRE(bitset_byte == 0x0A);
 }
 
-TEST_CASE("Reliability remove_peer removes all tracked state", "[nuclear_net][reliability]") {
+SCENARIO("Reliability remove_peer removes all tracked state", "[nuclearnet][reliability]") {
     Reliability rel(10);
 
     sock_t target = make_addr(0x0A000001, 5000);
@@ -178,7 +178,7 @@ TEST_CASE("Reliability remove_peer removes all tracked state", "[nuclear_net][re
     REQUIRE(retransmissions.empty());
 }
 
-TEST_CASE("Reliability NACK forces immediate retransmission", "[nuclear_net][reliability]") {
+SCENARIO("Reliability NACK forces immediate retransmission", "[nuclearnet][reliability]") {
     Reliability rel(10);
 
     sock_t target = make_addr(0x0A000001, 5000);

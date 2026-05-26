@@ -21,7 +21,7 @@
  * SOFTWARE.
  */
 
-#include "nuclear_net/NUClearNet.hpp"
+#include "nuclearnet/NUClearNet.hpp"
 
 #include <catch2/catch_test_macros.hpp>
 #include <algorithm>
@@ -125,7 +125,7 @@ std::vector<uint8_t> make_payload(std::size_t size, uint8_t seed) {
 
 }  // namespace
 
-TEST_CASE("Two NUClearNet instances discover and exchange messages", "[nuclear_net][integration]") {
+SCENARIO("Two NUClearNet instances discover and exchange messages", "[nuclearnet][integration]") {
     if (!test_util::has_ipv4_multicast()) {
         SKIP("IPv4 multicast is unavailable on this system");
     }
@@ -240,7 +240,7 @@ TEST_CASE("Two NUClearNet instances discover and exchange messages", "[nuclear_n
     net.stop();
 }
 
-TEST_CASE("NUClearNet handles bidirectional reliable traffic", "[nuclear_net][integration]") {
+SCENARIO("NUClearNet handles bidirectional reliable traffic", "[nuclearnet][integration]") {
     if (!test_util::has_ipv4_multicast()) {
         SKIP("IPv4 multicast is unavailable on this system");
     }

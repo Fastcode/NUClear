@@ -214,7 +214,7 @@ namespace network {
 
         // Timing
         std::chrono::steady_clock::time_point last_announce{};
-        static constexpr auto ANNOUNCE_INTERVAL = std::chrono::milliseconds(500);
+        static const std::chrono::milliseconds ANNOUNCE_INTERVAL;
 
         // Callbacks
         PacketCallback packet_callback;

@@ -24,7 +24,7 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # independent of the NUClear reactor framework.
 #
 # Usage (standalone):
-#   cmake -S src/nuclear_net -B build_net
+#   cmake -S src/nuclearnet -B build_net
 #   cmake --build build_net
 #
 # When built as part of the main NUClear project, these sources are included
@@ -48,7 +48,7 @@ target_include_directories(nuclearnet
 )
 
 target_link_libraries(nuclearnet PUBLIC Threads::Threads)
-target_compile_features(nuclearnet PUBLIC cxx_std_17)
+target_compile_features(nuclearnet PUBLIC cxx_std_14)
 set_target_properties(nuclearnet PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 # Platform-specific linking

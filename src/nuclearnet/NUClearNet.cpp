@@ -33,6 +33,8 @@
 namespace NUClear {
 namespace network {
 
+    const std::chrono::milliseconds NUClearNet::ANNOUNCE_INTERVAL(500);
+
     NUClearNet::NUClearNet()
         : discovery(std::make_unique<Discovery>(std::chrono::seconds(2)))
         , fragmentation(std::make_unique<Fragmentation>(1452))
@@ -266,7 +268,8 @@ namespace network {
 
         if (target.empty()) {
             // Send to all peers that subscribe to this hash
-            for (const auto& [addr, info] : peers) {
+            for (const auto& peer : peers) {
+                const auto& addr = peer.first;
                 if (routing.should_send(addr, hash)) {
                     targets.push_back(addr);
                 }
@@ -274,7 +277,9 @@ namespace network {
         }
         else {
             // Send to specific named peer(s)
-            for (const auto& [addr, info] : peers) {
+            for (const auto& peer : peers) {
+                const auto& addr = peer.first;
+                const auto& info = peer.second;
                 if (info.name == target && routing.should_send(addr, hash)) {
                     targets.push_back(addr);
                 }
@@ -455,9 +460,16 @@ namespace network {
                 std::memcpy(&source_key, &source.storage, std::min(sizeof(source_key), sizeof(source.storage)));
 
                 // Submit to fragmentation
-                auto assembled = fragmentation->submit_fragment(
-                    source_key, pkt->packet_id, pkt->packet_no, pkt->packet_count,
-                    pkt->hash, pkt->flags, frag_data, frag_length);
+                Fragmentation::AssembledPacket assembled;
+                bool has_assembled = fragmentation->submit_fragment(source_key,
+                                                                    pkt->packet_id,
+                                                                    pkt->packet_no,
+                                                                    pkt->packet_count,
+                                                                    pkt->hash,
+                                                                    pkt->flags,
+                                                                    frag_data,
+                                                                    frag_length,
+                                                                    assembled);
 
                 // Send ACK for reliable packets
                 if ((pkt->flags & RELIABLE) != 0) {
@@ -470,8 +482,8 @@ namespace network {
                 }
 
                 // If we have a complete message, deliver it
-                if (assembled) {
-                    dedup.add_packet(assembled->packet_id);
+                if (has_assembled) {
+                    dedup.add_packet(assembled.packet_id);
 
                     if (packet_callback) {
                         // Look up peer name
@@ -481,12 +493,12 @@ namespace network {
                             peer_name = peer->name;
                         }
 
-                        bool reliable = (assembled->flags & RELIABLE) != 0;
-                        packet_callback(source, peer_name, assembled->hash, reliable, std::move(assembled->payload));
+                        bool reliable = (assembled.flags & RELIABLE) != 0;
+                        packet_callback(source, peer_name, assembled.hash, reliable, std::move(assembled.payload));
                     }
 
                     // Send full ACK for reliable
-                    if ((assembled->flags & RELIABLE) != 0) {
+                    if ((assembled.flags & RELIABLE) != 0) {
                         std::vector<bool> all_received(pkt->packet_count, true);
                         auto ack = Reliability::build_ack_packet(pkt->packet_id, pkt->packet_count, all_received);
                         send_buf(data_fd, source, ack.data(), ack.size());

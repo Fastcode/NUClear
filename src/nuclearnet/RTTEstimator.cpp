@@ -29,6 +29,12 @@
     namespace NUClear {
     namespace network {
 
+        namespace {
+            float clampf(const float value, const float min_value, const float max_value) {
+                return std::max(min_value, std::min(value, max_value));
+            }
+        }  // namespace
+
         RTTEstimator::RTTEstimator(float alpha,
                                    float beta,
                                    float initial_rtt,
@@ -41,7 +47,7 @@
             , max_rto(max_rto)
             , smoothed_rtt(initial_rtt)
             , rtt_var(initial_rtt_var)
-            , rto(std::clamp(initial_rtt + 4.0f * initial_rtt_var, min_rto, max_rto)) {
+            , rto(clampf(initial_rtt + 4.0f * initial_rtt_var, min_rto, max_rto)) {
 
             if (alpha < 0.0f || alpha > 1.0f) {
                 throw std::invalid_argument("RTTEstimator: alpha must be in [0, 1]");
@@ -71,7 +77,7 @@
                 smoothed_rtt = (1.0f - alpha) * smoothed_rtt + alpha * sample;
             }
 
-            rto = std::clamp(smoothed_rtt + 4.0f * rtt_var, min_rto, max_rto);
+            rto = clampf(smoothed_rtt + 4.0f * rtt_var, min_rto, max_rto);
         }
 
         std::chrono::steady_clock::duration RTTEstimator::timeout() const {

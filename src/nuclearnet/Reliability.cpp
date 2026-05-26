@@ -172,7 +172,9 @@
 
             const std::lock_guard<std::mutex> lock(tracking_mutex);
 
-            for (auto& [key, tp] : tracked_packets) {
+            for (auto& entry : tracked_packets) {
+                const auto& key = entry.first;
+                auto& tp        = entry.second;
                 // Get the timeout for this peer
                 std::chrono::steady_clock::duration rto;
                 {

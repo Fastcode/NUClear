@@ -20,7 +20,7 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include "nuclear_net/Discovery.hpp"
+#include "nuclearnet/Discovery.hpp"
 
 #include <catch2/catch_test_macros.hpp>
 #include <chrono>
@@ -43,7 +43,7 @@ sock_t make_addr(uint32_t ip, uint16_t port) {
 }
 }  // namespace
 
-TEST_CASE("Discovery build_announce_packet produces valid packet", "[nuclear_net][discovery]") {
+SCENARIO("Discovery build_announce_packet produces valid packet", "[nuclearnet][discovery]") {
     auto packet = Discovery::build_announce_packet("test_node", {0x1111, 0x2222});
 
     // Should start with the magic bytes (☢ = 0xE2, 0x98, 0xA2)
@@ -53,7 +53,7 @@ TEST_CASE("Discovery build_announce_packet produces valid packet", "[nuclear_net
     REQUIRE(packet[2] == 0xA2);
 }
 
-TEST_CASE("Discovery build_leave_packet produces valid packet", "[nuclear_net][discovery]") {
+SCENARIO("Discovery build_leave_packet produces valid packet", "[nuclearnet][discovery]") {
     auto packet = Discovery::build_leave_packet();
 
     // Should have the magic bytes and LEAVE type
@@ -63,7 +63,7 @@ TEST_CASE("Discovery build_leave_packet produces valid packet", "[nuclear_net][d
     REQUIRE(packet[2] == 0xA2);
 }
 
-TEST_CASE("Discovery process_announce adds a new peer", "[nuclear_net][discovery]") {
+SCENARIO("Discovery process_announce adds a new peer", "[nuclearnet][discovery]") {
     Discovery disc(std::chrono::seconds(5));
 
     sock_t peer_addr = make_addr(0x0A000001, 5000);
@@ -88,7 +88,7 @@ TEST_CASE("Discovery process_announce adds a new peer", "[nuclear_net][discovery
     REQUIRE(peer->subscriptions.count(0x1111) == 1);
 }
 
-TEST_CASE("Discovery process_announce updates existing peer subscriptions", "[nuclear_net][discovery]") {
+SCENARIO("Discovery process_announce updates existing peer subscriptions", "[nuclearnet][discovery]") {
     Discovery disc(std::chrono::seconds(5));
 
     sock_t peer_addr = make_addr(0x0A000001, 5000);
@@ -112,7 +112,7 @@ TEST_CASE("Discovery process_announce updates existing peer subscriptions", "[nu
     REQUIRE(peer->subscriptions.count(0x1111) == 0);
 }
 
-TEST_CASE("Discovery process_leave removes a peer", "[nuclear_net][discovery]") {
+SCENARIO("Discovery process_leave removes a peer", "[nuclearnet][discovery]") {
     Discovery disc(std::chrono::seconds(5));
 
     sock_t peer_addr = make_addr(0x0A000001, 5000);
@@ -134,7 +134,7 @@ TEST_CASE("Discovery process_leave removes a peer", "[nuclear_net][discovery]") 
     REQUIRE_FALSE(disc.has_peer(peer_addr));
 }
 
-TEST_CASE("Discovery check_timeouts removes stale peers", "[nuclear_net][discovery]") {
+SCENARIO("Discovery check_timeouts removes stale peers", "[nuclearnet][discovery]") {
     Discovery disc(std::chrono::milliseconds(20));  // 20ms timeout for testing
 
     sock_t peer_addr = make_addr(0x0A000001, 5000);
@@ -155,7 +155,7 @@ TEST_CASE("Discovery check_timeouts removes stale peers", "[nuclear_net][discove
     REQUIRE_FALSE(disc.has_peer(peer_addr));
 }
 
-TEST_CASE("Discovery touch_peer resets timeout", "[nuclear_net][discovery]") {
+SCENARIO("Discovery touch_peer resets timeout", "[nuclearnet][discovery]") {
     Discovery disc(std::chrono::milliseconds(50));
 
     sock_t peer_addr = make_addr(0x0A000001, 5000);
@@ -175,7 +175,7 @@ TEST_CASE("Discovery touch_peer resets timeout", "[nuclear_net][discovery]") {
     REQUIRE(disc.has_peer(peer_addr));
 }
 
-TEST_CASE("Discovery get_peers returns all known peers", "[nuclear_net][discovery]") {
+SCENARIO("Discovery get_peers returns all known peers", "[nuclearnet][discovery]") {
     Discovery disc(std::chrono::seconds(5));
 
     sock_t addr_a = make_addr(0x0A000001, 5000);

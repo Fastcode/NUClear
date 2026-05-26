@@ -20,7 +20,7 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include "nuclear_net/Routing.hpp"
+#include "nuclearnet/Routing.hpp"
 
 #include <algorithm>
 #include <catch2/catch_test_macros.hpp>
@@ -42,7 +42,7 @@ sock_t make_addr(uint32_t ip, uint16_t port) {
 }
 }  // namespace
 
-TEST_CASE("Routing delivers to peers subscribed to the message hash", "[nuclear_net][routing]") {
+SCENARIO("Routing delivers to peers subscribed to the message hash", "[nuclearnet][routing]") {
     Routing routing;
 
     sock_t peer_a = make_addr(0x0A000001, 5000);
@@ -64,7 +64,7 @@ TEST_CASE("Routing delivers to peers subscribed to the message hash", "[nuclear_
     REQUIRE(routing.should_send(peer_b, 0x3333));
 }
 
-TEST_CASE("Routing delivers all messages when peer has empty subscription set", "[nuclear_net][routing]") {
+SCENARIO("Routing delivers all messages when peer has empty subscription set", "[nuclearnet][routing]") {
     Routing routing;
 
     sock_t peer = make_addr(0x0A000001, 5000);
@@ -77,7 +77,7 @@ TEST_CASE("Routing delivers all messages when peer has empty subscription set", 
     REQUIRE(routing.should_send(peer, 0));
 }
 
-TEST_CASE("Routing allows sending to unknown peers by default", "[nuclear_net][routing]") {
+SCENARIO("Routing allows sending to unknown peers by default", "[nuclearnet][routing]") {
     Routing routing;
 
     sock_t unknown = make_addr(0x0A000099, 5000);
@@ -86,7 +86,7 @@ TEST_CASE("Routing allows sending to unknown peers by default", "[nuclear_net][r
     REQUIRE(routing.should_send(unknown, 0x1111));
 }
 
-TEST_CASE("Routing get_targets returns all subscribed peers for a hash", "[nuclear_net][routing]") {
+SCENARIO("Routing get_targets returns all subscribed peers for a hash", "[nuclearnet][routing]") {
     Routing routing;
 
     sock_t peer_a = make_addr(0x0A000001, 5000);
@@ -102,7 +102,7 @@ TEST_CASE("Routing get_targets returns all subscribed peers for a hash", "[nucle
     REQUIRE(targets.size() == 2);
 }
 
-TEST_CASE("Routing local subscriptions are tracked correctly", "[nuclear_net][routing]") {
+SCENARIO("Routing local subscriptions are tracked correctly", "[nuclearnet][routing]") {
     Routing routing;
 
     routing.set_local_subscriptions({0x1111, 0x2222, 0x3333});
@@ -118,7 +118,7 @@ TEST_CASE("Routing local subscriptions are tracked correctly", "[nuclear_net][ro
     REQUIRE(std::find(subs.begin(), subs.end(), 0x4444) != subs.end());
 }
 
-TEST_CASE("Routing removes peer correctly", "[nuclear_net][routing]") {
+SCENARIO("Routing removes peer correctly", "[nuclearnet][routing]") {
     Routing routing;
 
     sock_t peer = make_addr(0x0A000001, 5000);
@@ -134,7 +134,7 @@ TEST_CASE("Routing removes peer correctly", "[nuclear_net][routing]") {
     REQUIRE(routing.should_send(peer, 0x9999));
 }
 
-TEST_CASE("Routing updates subscriptions for existing peer", "[nuclear_net][routing]") {
+SCENARIO("Routing updates subscriptions for existing peer", "[nuclearnet][routing]") {
     Routing routing;
 
     sock_t peer = make_addr(0x0A000001, 5000);

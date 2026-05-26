@@ -20,7 +20,7 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include "nuclear_net/wire_protocol.hpp"
+#include "nuclearnet/wire_protocol.hpp"
 
 #include <catch2/catch_test_macros.hpp>
 #include <cstdint>
@@ -28,7 +28,7 @@
 
 using namespace NUClear::network;
 
-TEST_CASE("Wire protocol structs have correct packed sizes", "[nuclear_net][wire_protocol]") {
+SCENARIO("Wire protocol structs have correct packed sizes", "[nuclearnet][wire_protocol]") {
     // PacketHeader: magic(3) + version(1) + type(1) = 5
     REQUIRE(sizeof(PacketHeader) == 5);
 
@@ -45,7 +45,7 @@ TEST_CASE("Wire protocol structs have correct packed sizes", "[nuclear_net][wire
     REQUIRE(sizeof(LeavePacket) == 5);
 }
 
-TEST_CASE("Wire protocol header is laid out at expected byte offsets", "[nuclear_net][wire_protocol]") {
+SCENARIO("Wire protocol header is laid out at expected byte offsets", "[nuclearnet][wire_protocol]") {
     DataPacket pkt;
     pkt.packet_id    = 0x0102;
     pkt.packet_no    = 0x0304;
@@ -90,24 +90,24 @@ TEST_CASE("Wire protocol header is laid out at expected byte offsets", "[nuclear
     REQUIRE(h == 0x08090A0B0C0D0E0F);
 }
 
-TEST_CASE("validate_header accepts valid packets", "[nuclear_net][wire_protocol]") {
+SCENARIO("validate_header accepts valid packets", "[nuclearnet][wire_protocol]") {
     DataPacket pkt;
     const auto* raw = reinterpret_cast<const uint8_t*>(&pkt);
 
     REQUIRE(validate_header(raw, sizeof(DataPacket)));
 }
 
-TEST_CASE("validate_header rejects packet too short", "[nuclear_net][wire_protocol]") {
+SCENARIO("validate_header rejects packet too short", "[nuclearnet][wire_protocol]") {
     uint8_t data[4] = {0xE2, 0x98, 0xA2, 0x03};
     REQUIRE_FALSE(validate_header(data, 4));
 }
 
-TEST_CASE("validate_header rejects wrong magic bytes", "[nuclear_net][wire_protocol]") {
+SCENARIO("validate_header rejects wrong magic bytes", "[nuclearnet][wire_protocol]") {
     uint8_t data[5] = {0x00, 0x00, 0x00, 0x03, 0x01};
     REQUIRE_FALSE(validate_header(data, 5));
 }
 
-TEST_CASE("validate_header rejects wrong protocol version", "[nuclear_net][wire_protocol]") {
+SCENARIO("validate_header rejects wrong protocol version", "[nuclearnet][wire_protocol]") {
     uint8_t data[5] = {0xE2, 0x98, 0xA2, 0x99, 0x01};  // Version 0x99
     REQUIRE_FALSE(validate_header(data, 5));
 }

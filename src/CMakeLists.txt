@@ -35,7 +35,7 @@ add_library(NUClear::nuclear ALIAS nuclear)
 # Set compile options for NUClear
 target_link_libraries(nuclear ${CMAKE_THREAD_LIBS_INIT})
 set_target_properties(nuclear PROPERTIES POSITION_INDEPENDENT_CODE ON)
-target_compile_features(nuclear PUBLIC cxx_std_17)
+target_compile_features(nuclear PUBLIC cxx_std_14)
 
 option(ENABLE_COVERAGE "Compile with coverage support enabled.")
 if(ENABLE_COVERAGE)

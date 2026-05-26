@@ -30,7 +30,7 @@
 #include "../PowerPlant.hpp"
 #include "../Reactor.hpp"
 #include "../message/NetworkConfiguration.hpp"
-#include "../nuclear_net/NUClearNet.hpp"
+#include "../nuclearnet/NUClearNet.hpp"
 #include "../util/get_hostname.hpp"
 
 namespace NUClear {

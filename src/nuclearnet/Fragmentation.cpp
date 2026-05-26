@@ -63,23 +63,24 @@ namespace network {
         return fragments;
     }
 
-    std::optional<Fragmentation::AssembledPacket> Fragmentation::submit_fragment(uint64_t source_key,
-                                                                                  uint16_t packet_id,
-                                                                                  uint16_t packet_no,
-                                                                                  uint16_t packet_count,
-                                                                                  uint64_t hash,
-                                                                                  uint8_t flags,
-                                                                                  const uint8_t* data,
-                                                                                  std::size_t data_length) {
+    bool Fragmentation::submit_fragment(uint64_t source_key,
+                                        uint16_t packet_id,
+                                        uint16_t packet_no,
+                                        uint16_t packet_count,
+                                        uint64_t hash,
+                                        uint8_t flags,
+                                        const uint8_t* data,
+                                        std::size_t data_length,
+                                        AssembledPacket& out_packet) {
         if (packet_count == 0 || packet_no >= packet_count) {
-            return std::nullopt;
+            return false;
         }
 
         // Enforce max assembly size check
         if (max_assembly_size > 0) {
             std::size_t projected_size = static_cast<std::size_t>(packet_count) * packet_mtu;
             if (projected_size > max_assembly_size) {
-                return std::nullopt;
+                return false;
             }
         }
 
@@ -99,31 +100,32 @@ namespace network {
         // Check if we have all fragments
         if (assembly.fragments.size() == packet_count) {
             // Assemble the complete payload
-            AssembledPacket result;
-            result.packet_id = packet_id;
-            result.hash      = hash;
-            result.flags     = flags;
+            out_packet.packet_id = packet_id;
+            out_packet.hash      = hash;
+            out_packet.flags     = flags;
 
             // Calculate total size
             std::size_t total_size = 0;
-            for (const auto& [frag_no, frag_data] : assembly.fragments) {
+            for (const auto& fragment_entry : assembly.fragments) {
+                const auto& frag_data = fragment_entry.second;
                 total_size += frag_data.size();
             }
-            result.payload.reserve(total_size);
+            out_packet.payload.clear();
+            out_packet.payload.reserve(total_size);
 
             // Concatenate in order
             for (uint16_t i = 0; i < packet_count; ++i) {
                 const auto& frag_data = assembly.fragments[i];
-                result.payload.insert(result.payload.end(), frag_data.begin(), frag_data.end());
+                out_packet.payload.insert(out_packet.payload.end(), frag_data.begin(), frag_data.end());
             }
 
             // Remove the completed assembly
             assemblies.erase(key);
 
-            return result;
+            return true;
         }
 
-        return std::nullopt;
+        return false;
     }
 
     std::size_t Fragmentation::cleanup_expired() {
