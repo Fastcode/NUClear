@@ -78,6 +78,7 @@ namespace network {
          * @param flags        Packet flags
          * @param payload      Pointer to the full original payload (copied internally for retransmission)
          * @param payload_len  Length of the payload in bytes
+         * @param now          The current time (defaults to steady_clock::now())
          */
         void track_packet(const sock_t& target,
                           uint16_t packet_id,
@@ -85,7 +86,8 @@ namespace network {
                           uint64_t hash,
                           uint8_t flags,
                           const uint8_t* payload,
-                          std::size_t payload_len);
+                          std::size_t payload_len,
+                          std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now());
 
         /**
          * Process a received ACK packet.
@@ -95,12 +97,14 @@ namespace network {
          * @param packet_count Total fragments in the group
          * @param ack_bitset   Bitset of received fragments (1 bit per fragment, LSB first)
          * @param bitset_size  Size of the ack_bitset in bytes
+         * @param now          The current time (defaults to steady_clock::now())
          */
         void process_ack(const sock_t& source,
                          uint16_t packet_id,
                          uint16_t packet_count,
                          const uint8_t* ack_bitset,
-                         std::size_t bitset_size);
+                         std::size_t bitset_size,
+                         std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now());
 
         /**
          * Process a received NACK packet.
@@ -147,10 +151,13 @@ namespace network {
          * Check for packets that need retransmission and return them.
          *
          * @param packet_mtu The MTU to use for fragmenting retransmissions
+         * @param now        The current time (defaults to steady_clock::now())
          *
          * @return List of fragments that need to be retransmitted
          */
-        std::vector<RetransmitRequest> check_retransmissions(uint16_t packet_mtu);
+        std::vector<RetransmitRequest> check_retransmissions(
+            uint16_t packet_mtu,
+            std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now());
 
         /**
          * Remove all tracking for a given peer (e.g., on disconnect).

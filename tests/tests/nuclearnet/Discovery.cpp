@@ -24,7 +24,6 @@
 
 #include <catch2/catch_test_macros.hpp>
 #include <chrono>
-#include <thread>
 #include <vector>
 
 #include "util/platform.hpp"
@@ -142,13 +141,18 @@ SCENARIO("Discovery check_timeouts removes stale peers", "[nuclearnet][discovery
 
     disc.set_leave_callback([&](const PeerInfo&) { leave_called = true; });
 
+    // Add peer at time T
+    auto t = std::chrono::steady_clock::now();
     auto announce = Discovery::build_announce_packet("peer_a", {});
-    disc.process_announce(peer_addr, announce.data(), announce.size());
+    disc.process_announce(peer_addr, announce.data(), announce.size(), t);
 
-    // Wait for timeout
-    std::this_thread::sleep_for(std::chrono::milliseconds(30));
+    // Check at T+10ms (before timeout) — peer should still be there
+    auto removed = disc.check_timeouts(t + std::chrono::milliseconds(10));
+    REQUIRE(removed.empty());
+    REQUIRE(disc.has_peer(peer_addr));
 
-    auto removed = disc.check_timeouts();
+    // Check at T+25ms (after 20ms timeout) — peer should be removed
+    removed = disc.check_timeouts(t + std::chrono::milliseconds(25));
     REQUIRE(removed.size() == 1);
     REQUIRE(removed[0].name == "peer_a");
     REQUIRE(leave_called);
@@ -160,19 +164,24 @@ SCENARIO("Discovery touch_peer resets timeout", "[nuclearnet][discovery]") {
 
     sock_t peer_addr = make_addr(0x0A000001, 5000);
 
+    // Add peer at time T
+    auto t = std::chrono::steady_clock::now();
     auto announce = Discovery::build_announce_packet("peer_a", {});
-    disc.process_announce(peer_addr, announce.data(), announce.size());
+    disc.process_announce(peer_addr, announce.data(), announce.size(), t);
 
-    // Wait part of the timeout, then touch
-    std::this_thread::sleep_for(std::chrono::milliseconds(120));
-    disc.touch_peer(peer_addr);
+    // Touch at T+120ms (before 200ms timeout expires)
+    disc.touch_peer(peer_addr, t + std::chrono::milliseconds(120));
 
-    // Wait another partial timeout (total would have expired without touch)
-    std::this_thread::sleep_for(std::chrono::milliseconds(120));
-
-    auto removed = disc.check_timeouts();
+    // Check at T+240ms — 240ms since announce, but only 120ms since touch
+    // Since timeout is 200ms from last_seen, peer should still be alive
+    auto removed = disc.check_timeouts(t + std::chrono::milliseconds(240));
     REQUIRE(removed.empty());
     REQUIRE(disc.has_peer(peer_addr));
+
+    // Check at T+325ms — 205ms since touch, should now be timed out
+    removed = disc.check_timeouts(t + std::chrono::milliseconds(325));
+    REQUIRE(removed.size() == 1);
+    REQUIRE(removed[0].name == "peer_a");
 }
 
 SCENARIO("Discovery get_peers returns all known peers", "[nuclearnet][discovery]") {

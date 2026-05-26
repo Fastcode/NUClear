@@ -71,7 +71,8 @@ namespace network {
                                         uint8_t flags,
                                         const uint8_t* data,
                                         std::size_t data_length,
-                                        AssembledPacket& out_packet) {
+                                        AssembledPacket& out_packet,
+                                        std::chrono::steady_clock::time_point now) {
         if (packet_count == 0 || packet_no >= packet_count) {
             return false;
         }
@@ -92,7 +93,7 @@ namespace network {
         assembly.hash           = hash;
         assembly.flags          = flags;
         assembly.packet_count   = packet_count;
-        assembly.last_update    = std::chrono::steady_clock::now();
+        assembly.last_update    = now;
 
         // Store this fragment
         assembly.fragments[packet_no].assign(data, data + data_length);
@@ -128,8 +129,7 @@ namespace network {
         return false;
     }
 
-    std::size_t Fragmentation::cleanup_expired() {
-        auto now = std::chrono::steady_clock::now();
+    std::size_t Fragmentation::cleanup_expired(std::chrono::steady_clock::time_point now) {
         std::size_t removed = 0;
 
         const std::lock_guard<std::mutex> lock(assembly_mutex);

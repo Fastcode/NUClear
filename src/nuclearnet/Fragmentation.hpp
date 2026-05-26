@@ -100,6 +100,7 @@ namespace network {
          * @param data        The fragment payload
          *
          * @param out_packet  Filled with the assembled packet when reassembly completes
+         * @param now         The current time (defaults to steady_clock::now())
          *
          * @return true if all fragments are now received and @p out_packet is valid, false otherwise
          */
@@ -111,14 +112,18 @@ namespace network {
                              uint8_t flags,
                              const uint8_t* data,
                              std::size_t data_length,
-                             AssembledPacket& out_packet);
+                             AssembledPacket& out_packet,
+                             std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now());
 
         /**
          * Clean up assemblies that have timed out.
          *
+         * @param now The current time (defaults to steady_clock::now())
+         *
          * @return Number of assemblies that were discarded
          */
-        std::size_t cleanup_expired();
+        std::size_t cleanup_expired(
+            std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now());
 
         /**
          * Get the packet MTU (max payload per fragment).

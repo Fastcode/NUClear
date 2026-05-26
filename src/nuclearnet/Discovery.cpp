@@ -86,7 +86,10 @@
             return packet;
         }
 
-        void Discovery::process_announce(const sock_t& source, const uint8_t* data, std::size_t length) {
+        void Discovery::process_announce(const sock_t& source,
+                                          const uint8_t* data,
+                                          std::size_t length,
+                                          std::chrono::steady_clock::time_point now) {
             // Minimum size: header(5) + name_length(2) + num_subscriptions(2) = 9
             if (length < sizeof(PacketHeader) + sizeof(uint16_t) + sizeof(uint16_t)) {
                 return;
@@ -148,14 +151,14 @@
                     PeerInfo info;
                     info.name          = name;
                     info.address       = source;
-                    info.last_seen     = std::chrono::steady_clock::now();
+                    info.last_seen     = now;
                     info.subscriptions = std::move(subscriptions);
                     peers.emplace(source, std::move(info));
                     is_new = true;
                 }
                 else {
                     // Existing peer — update last_seen and check for subscription changes
-                    it->second.last_seen = std::chrono::steady_clock::now();
+                    it->second.last_seen = now;
                     if (it->second.subscriptions != subscriptions) {
                         it->second.subscriptions = std::move(subscriptions);
                         subs_changed             = true;
@@ -198,16 +201,15 @@
             }
         }
 
-        void Discovery::touch_peer(const sock_t& source) {
+        void Discovery::touch_peer(const sock_t& source, std::chrono::steady_clock::time_point now) {
             const std::lock_guard<std::mutex> lock(peers_mutex);
             auto it = peers.find(source);
             if (it != peers.end()) {
-                it->second.last_seen = std::chrono::steady_clock::now();
+                it->second.last_seen = now;
             }
         }
 
-        std::vector<PeerInfo> Discovery::check_timeouts() {
-            auto now = std::chrono::steady_clock::now();
+        std::vector<PeerInfo> Discovery::check_timeouts(std::chrono::steady_clock::time_point now) {
             std::vector<PeerInfo> removed;
 
             {

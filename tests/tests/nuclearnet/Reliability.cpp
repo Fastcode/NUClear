@@ -26,7 +26,6 @@
 #include <chrono>
 #include <cstdint>
 #include <cstring>
-#include <thread>
 #include <vector>
 
 #include "util/platform.hpp"
@@ -50,20 +49,19 @@ SCENARIO("Reliability tracks sent packet and requests retransmission after timeo
     sock_t target = make_addr(0x0A000001, 5000);
     std::vector<uint8_t> payload(200, 0xAB);
 
-    // Track a 2-fragment packet
-    rel.track_packet(target, 1, 2, 0x1234, 0x01, payload.data(), payload.size());
+    // Track a 2-fragment packet at time T
+    auto t = std::chrono::steady_clock::now();
+    rel.track_packet(target, 1, 2, 0x1234, 0x01, payload.data(), payload.size(), t);
 
     // Immediately, no retransmissions (timeout not elapsed)
-    auto retransmissions = rel.check_retransmissions(100);
+    auto retransmissions = rel.check_retransmissions(100, t);
     REQUIRE(retransmissions.empty());
 
     // Inject an RTT measurement to reduce the timeout to min_rto (100ms)
     rel.get_rtt(target).measure(std::chrono::milliseconds(10));
 
-    // Wait for the RTO to expire (min_rto = 100ms)
-    std::this_thread::sleep_for(std::chrono::milliseconds(150));
-
-    retransmissions = rel.check_retransmissions(100);
+    // Check at T+150ms (past min_rto of 100ms) — should retransmit
+    retransmissions = rel.check_retransmissions(100, t + std::chrono::milliseconds(150));
     REQUIRE(retransmissions.size() == 2);  // Both fragments unacked
     REQUIRE(retransmissions[0].packet_no == 0);
     REQUIRE(retransmissions[1].packet_no == 1);
@@ -77,17 +75,17 @@ SCENARIO("Reliability stops retransmitting ACKed fragments", "[nuclearnet][relia
     sock_t target = make_addr(0x0A000001, 5000);
     std::vector<uint8_t> payload(200, 0xCC);
 
-    rel.track_packet(target, 1, 2, 0x1234, 0x01, payload.data(), payload.size());
+    auto t = std::chrono::steady_clock::now();
+    rel.track_packet(target, 1, 2, 0x1234, 0x01, payload.data(), payload.size(), t);
 
     // ACK fragment 0 (bitset: bit 0 set)
     uint8_t ack_bits = 0x01;  // fragment 0 received
-    rel.process_ack(target, 1, 2, &ack_bits, 1);
+    rel.process_ack(target, 1, 2, &ack_bits, 1, t + std::chrono::milliseconds(50));
 
-    // Force a retransmission check by injecting short RTT and waiting past min_rto
+    // Inject short RTT and check past min_rto
     rel.get_rtt(target).measure(std::chrono::milliseconds(5));
-    std::this_thread::sleep_for(std::chrono::milliseconds(150));
 
-    auto retransmissions = rel.check_retransmissions(100);
+    auto retransmissions = rel.check_retransmissions(100, t + std::chrono::milliseconds(200));
     // Only fragment 1 should be retransmitted (fragment 0 was ACKed)
     REQUIRE(retransmissions.size() == 1);
     REQUIRE(retransmissions[0].packet_no == 1);
@@ -99,17 +97,17 @@ SCENARIO("Reliability removes tracked packet when all fragments ACKed", "[nuclea
     sock_t target = make_addr(0x0A000001, 5000);
     std::vector<uint8_t> payload(100, 0xDD);
 
-    rel.track_packet(target, 5, 1, 0x5678, 0x01, payload.data(), payload.size());
+    auto t = std::chrono::steady_clock::now();
+    rel.track_packet(target, 5, 1, 0x5678, 0x01, payload.data(), payload.size(), t);
 
     // ACK all fragments
     uint8_t ack_bits = 0x01;  // fragment 0 received (only 1 fragment total)
-    rel.process_ack(target, 5, 1, &ack_bits, 1);
+    rel.process_ack(target, 5, 1, &ack_bits, 1, t + std::chrono::milliseconds(50));
 
-    // Wait past min_rto and check — nothing to retransmit
+    // Inject short RTT and check well past min_rto — nothing to retransmit
     rel.get_rtt(target).measure(std::chrono::milliseconds(5));
-    std::this_thread::sleep_for(std::chrono::milliseconds(150));
 
-    auto retransmissions = rel.check_retransmissions(100);
+    auto retransmissions = rel.check_retransmissions(100, t + std::chrono::milliseconds(200));
     REQUIRE(retransmissions.empty());
 }
 
@@ -119,24 +117,22 @@ SCENARIO("Reliability gives up after max_retransmits", "[nuclearnet][reliability
     sock_t target = make_addr(0x0A000001, 5000);
     std::vector<uint8_t> payload(50, 0xEE);
 
-    rel.track_packet(target, 1, 1, 0x1234, 0x01, payload.data(), payload.size());
+    auto t = std::chrono::steady_clock::now();
+    rel.track_packet(target, 1, 1, 0x1234, 0x01, payload.data(), payload.size(), t);
 
     // Inject short RTT
     rel.get_rtt(target).measure(std::chrono::milliseconds(10));
 
-    // First retransmission (wait past min_rto of 100ms)
-    std::this_thread::sleep_for(std::chrono::milliseconds(150));
-    auto r1 = rel.check_retransmissions(100);
+    // First retransmission (T+150ms, past min_rto of 100ms)
+    auto r1 = rel.check_retransmissions(100, t + std::chrono::milliseconds(150));
     REQUIRE(r1.size() == 1);
 
-    // Second retransmission
-    std::this_thread::sleep_for(std::chrono::milliseconds(150));
-    auto r2 = rel.check_retransmissions(100);
+    // Second retransmission (T+300ms, 150ms since last_send was updated to T+150ms)
+    auto r2 = rel.check_retransmissions(100, t + std::chrono::milliseconds(300));
     REQUIRE(r2.size() == 1);
 
     // Third attempt should give up (max_retransmits = 2)
-    std::this_thread::sleep_for(std::chrono::milliseconds(150));
-    auto r3 = rel.check_retransmissions(100);
+    auto r3 = rel.check_retransmissions(100, t + std::chrono::milliseconds(450));
     REQUIRE(r3.empty());  // Packet dropped after max retransmits
 }
 
@@ -167,14 +163,14 @@ SCENARIO("Reliability remove_peer removes all tracked state", "[nuclearnet][reli
     sock_t target = make_addr(0x0A000001, 5000);
     std::vector<uint8_t> payload(100, 0xFF);
 
-    rel.track_packet(target, 1, 1, 0x1234, 0x01, payload.data(), payload.size());
+    auto t = std::chrono::steady_clock::now();
+    rel.track_packet(target, 1, 1, 0x1234, 0x01, payload.data(), payload.size(), t);
     rel.get_rtt(target).measure(std::chrono::milliseconds(50));
 
     rel.remove_peer(target);
 
-    // After removing, no retransmissions should occur
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
-    auto retransmissions = rel.check_retransmissions(100);
+    // After removing, no retransmissions should occur even well past RTO
+    auto retransmissions = rel.check_retransmissions(100, t + std::chrono::milliseconds(500));
     REQUIRE(retransmissions.empty());
 }
 

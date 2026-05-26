@@ -119,8 +119,12 @@ namespace network {
          * @param source  The UDP source address (IP + port) of the packet
          * @param data    The raw packet data
          * @param length  The length of the packet data
+         * @param now     The current time (defaults to steady_clock::now())
          */
-        void process_announce(const sock_t& source, const uint8_t* data, std::size_t length);
+        void process_announce(const sock_t& source,
+                              const uint8_t* data,
+                              std::size_t length,
+                              std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now());
 
         /**
          * Process a received leave packet from a peer.
@@ -133,15 +137,20 @@ namespace network {
          * Update the last_seen timestamp for a peer (called on any received packet).
          *
          * @param source The UDP source address
+         * @param now    The current time (defaults to steady_clock::now())
          */
-        void touch_peer(const sock_t& source);
+        void touch_peer(const sock_t& source,
+                        std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now());
 
         /**
          * Check for peers that have timed out and remove them.
          *
+         * @param now The current time (defaults to steady_clock::now())
+         *
          * @return List of peers that were removed due to timeout
          */
-        std::vector<PeerInfo> check_timeouts();
+        std::vector<PeerInfo> check_timeouts(
+            std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now());
 
         /**
          * Get the current list of known peers.

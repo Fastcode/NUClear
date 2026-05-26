@@ -40,7 +40,8 @@
                                        uint64_t hash,
                                        uint8_t flags,
                                        const uint8_t* payload,
-                                       std::size_t payload_len) {
+                                       std::size_t payload_len,
+                                       std::chrono::steady_clock::time_point now) {
             TrackedPacket tp;
             tp.target       = target;
             tp.packet_id    = packet_id;
@@ -49,7 +50,7 @@
             tp.flags        = flags;
             tp.payload.assign(payload, payload + payload_len);
             tp.acked.resize(packet_count, false);
-            tp.last_send = std::chrono::steady_clock::now();
+            tp.last_send = now;
 
             TrackingKey key{target, packet_id};
 
@@ -61,7 +62,8 @@
                                       uint16_t packet_id,
                                       uint16_t packet_count,
                                       const uint8_t* ack_bitset,
-                                      std::size_t bitset_size) {
+                                      std::size_t bitset_size,
+                                      std::chrono::steady_clock::time_point now) {
             TrackingKey key{source, packet_id};
 
             const std::lock_guard<std::mutex> lock(tracking_mutex);
@@ -73,7 +75,6 @@
             auto& tp = it->second;
 
             // Update RTT estimate based on time since last send
-            auto now = std::chrono::steady_clock::now();
             auto rtt = now - tp.last_send;
             {
                 const std::lock_guard<std::mutex> rtt_lock(rtt_mutex);
@@ -165,8 +166,9 @@
             return packet;
         }
 
-        std::vector<Reliability::RetransmitRequest> Reliability::check_retransmissions(uint16_t packet_mtu) {
-            auto now = std::chrono::steady_clock::now();
+        std::vector<Reliability::RetransmitRequest> Reliability::check_retransmissions(
+            uint16_t packet_mtu,
+            std::chrono::steady_clock::time_point now) {
             std::vector<RetransmitRequest> retransmissions;
             std::vector<TrackingKey> expired;
 

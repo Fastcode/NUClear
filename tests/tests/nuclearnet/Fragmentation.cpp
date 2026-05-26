@@ -26,7 +26,6 @@
 #include <chrono>
 #include <cstdint>
 #include <numeric>
-#include <thread>
 #include <vector>
 
 using NUClear::network::Fragmentation;
@@ -191,20 +190,22 @@ SCENARIO("Fragmentation cleanup_expired removes stale assemblies", "[nuclearnet]
     // Use a very short timeout for testing
     Fragmentation frag(100, 64 * 1024 * 1024, std::chrono::milliseconds(1));
 
-    // Submit a partial assembly
+    // Submit a partial assembly at time T
+    auto t = std::chrono::steady_clock::now();
     uint8_t data[50] = {};
     Fragmentation::AssembledPacket result;
-    frag.submit_fragment(1, 1, 0, 3, 0x1234, 0, data, 50, result);
+    frag.submit_fragment(1, 1, 0, 3, 0x1234, 0, data, 50, result, t);
 
-    // Wait for the timeout
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    // Cleanup at T (not expired yet) — nothing removed
+    std::size_t removed = frag.cleanup_expired(t);
+    REQUIRE(removed == 0);
 
-    // Cleanup should remove it
-    std::size_t removed = frag.cleanup_expired();
+    // Cleanup at T+10ms (past 1ms timeout) — should remove it
+    removed = frag.cleanup_expired(t + std::chrono::milliseconds(10));
     REQUIRE(removed == 1);
 
     // Second cleanup should find nothing
-    removed = frag.cleanup_expired();
+    removed = frag.cleanup_expired(t + std::chrono::milliseconds(20));
     REQUIRE(removed == 0);
 }
 
