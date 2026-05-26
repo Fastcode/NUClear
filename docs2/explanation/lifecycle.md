@@ -39,21 +39,22 @@ sequenceDiagram
 1. **PowerPlant construction** — creates the scheduler, stores configuration
 2. **Reactor installation** — each `install<T>()` call constructs a reactor
 3. **Reaction registration** — `on<>().then()` inside constructors registers interest in events
-4. **Initialise-scoped emissions** — `emit<Scope::INITIALISE>()` queues data for later (it's not processed immediately)
+4. **Regular emissions** — `emit(data)` during a constructor *will* trigger any reactions that are **already bound**. If a reactor installed later has a reaction for that type, it won't receive it (it doesn't exist yet).
+5. **Initialise-scoped emissions** — `emit<Scope::INITIALISE>()` defers the emission until `start()` is called, guaranteeing all reactors have been installed and all reactions are bound before the data is processed.
 
 ### Why It Matters
 
-- **Order matters**: reactors are installed sequentially, so a reactor installed first can't trigger reactions in a reactor installed later (because those reactions don't exist yet during the first constructor)
-- **No parallelism**: constructors run one at a time on the main thread. This is intentional — it avoids race conditions during setup
-- **Emissions are deferred**: `Scope::INITIALISE` emissions are queued, not delivered. This ensures all reactions are registered before any data flows. When `start()` is called, the queued data is flushed and all matching reactions fire
+- **Order matters**: reactors are installed sequentially. A regular `emit()` during installation will only trigger reactions that have already been registered by earlier reactors.
+- **No parallelism**: constructors run one at a time on the main thread. This is intentional — it avoids race conditions during setup.
+- **`Scope::INITIALISE` solves ordering problems**: it defers emissions until all reactors are installed. This is specifically for cases where you need to emit data during startup that must be received by a reactor installed *after* you (e.g., circular dependencies). In general, it should be treated as a code smell — most of the time a regular emit or emitting during Startup is sufficient.
 
 ### What You Can Do
 
 | Action | Works? | Notes |
 |--------|--------|-------|
 | `on<>().then()` | ✅ | Register reactions |
-| `emit<Scope::INITIALISE>(data)` | ✅ | Queued until start |
-| `emit(data)` (Local scope) | ⚠️ | Submits a task, but no threads to run it yet |
+| `emit<Scope::INITIALISE>(data)` | ✅ | Deferred until all reactors installed |
+| `emit(data)` (Local scope) | ⚠️ | Triggers already-bound reactions only |
 | Access other reactors | ❌ | No guarantee they're installed yet |
 
 ## Phase 2: Execution
@@ -68,11 +69,12 @@ sequenceDiagram
     participant Pool as Thread Pool
 
     Main->>PP: start()
-    PP->>S: Create thread pools
     PP->>S: Flush initialise queue
-    S->>Pool: Dispatch queued tasks
+    Note over PP: Deferred emissions now trigger reactions
     PP->>PP: emit<Inline>(Startup)
-    Note over Pool: Startup reactions fire
+    Note over PP: Startup reactions run<br/>single-threaded (inline)
+    PP->>S: Start thread pools
+    Note over Pool: General execution begins
 
     loop Normal Operation
         Pool->>Pool: Reactions emit data
@@ -86,9 +88,9 @@ sequenceDiagram
 ### What Happens
 
 1. **`start()` is called** — this is the transition point
-2. **Thread pools are created** — the default pool and any custom pools spawn their threads
-3. **Initialise queue is flushed** — all data queued with `Scope::INITIALISE` is now emitted, creating tasks
-4. **Startup event fires** — reactions on `Startup` execute
+2. **Initialise queue is flushed** — all data deferred with `Scope::INITIALISE` is now emitted, triggering any matching reactions
+3. **Startup fires single-threaded** — `Startup` is emitted inline on the main thread. All `on<Startup>` reactions execute sequentially before any thread pools are started. This guarantees that initialisation logic in Startup handlers completes before general concurrent execution begins.
+4. **Thread pools are created** — the default pool and any custom pools spawn their threads
 5. **Normal execution begins** — emits create tasks, the scheduler dispatches them across pools
 6. **`start()` blocks** — the calling thread becomes the MainThread pool worker, processing tasks until shutdown
 

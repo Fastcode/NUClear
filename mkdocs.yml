@@ -162,7 +162,18 @@ nav:
           - Watchdog: reference/emit/watchdog.md
       - Extension System:
           - reference/extensions/index.md
-          - Extension Points: reference/extensions/extension-points.md
+          - Extension Points:
+              - reference/extensions/extension-points.md
+              - bind: reference/extensions/points/bind.md
+              - get: reference/extensions/points/get.md
+              - precondition: reference/extensions/points/precondition.md
+              - priority: reference/extensions/points/priority.md
+              - pool: reference/extensions/points/pool.md
+              - group: reference/extensions/points/group.md
+              - run_inline: reference/extensions/points/run-inline.md
+              - scope: reference/extensions/points/scope.md
+              - pre_run: reference/extensions/points/pre-run.md
+              - post_run: reference/extensions/points/post-run.md
           - Fusion Engine: reference/extensions/fusion-engine.md
           - Data Stores: reference/extensions/data-stores.md
           - Built-in Extensions: reference/extensions/built-in-extensions.md

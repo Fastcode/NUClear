@@ -14,29 +14,20 @@ This calls through to `PowerPlant::emit<Scope::LOCAL>`, which delegates to `dsl:
 
 ```mermaid
 sequenceDiagram
-    participant User as Emitting Reactor
-    participant Local as Local::emit
-    participant TCS as TypeCallbackStore<T>
-    participant TS as ThreadStore<T>
-    participant DS as DataStore<T>
-    participant R1 as Reaction A
-    participant R2 as Reaction B
+    participant Emitter as Emitting Reactor
+    participant Emit as Local::emit
     participant Sched as Scheduler
 
-    User->>Local: emit(unique_ptr<T>)
-    Note over Local: unique_ptr → shared_ptr<T>
-    Local->>TCS: Get registered reactions
-    TCS-->>Local: [Reaction A, Reaction B]
-
-    loop For each reaction
-        Local->>TS: Set ThreadStore = &data
-        Local->>R1: get_task()
-        R1-->>Local: ReactionTask
-        Local->>Sched: submit(task)
+    Emitter->>Emit: emit(unique_ptr< T >)
+    Note over Emit: Convert to shared_ptr< const T >
+    Note over Emit: Set ThreadStore = &data
+    Note over Emit: Look up TypeCallbackStore< T >
+    loop For each registered reaction
+        Emit->>Emit: get_task() — check precondition, read data
+        Emit->>Sched: submit(task)
     end
-
-    Local->>TS: Clear ThreadStore = nullptr
-    Local->>DS: Store as latest value
+    Note over Emit: Clear ThreadStore
+    Note over Emit: Store in DataStore< T > as latest
 ```
 
 Here's what happens inside `Local::emit`:

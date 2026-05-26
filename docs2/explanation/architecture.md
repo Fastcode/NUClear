@@ -37,15 +37,6 @@ Event loops with registered callbacks avoid locks but create their own problems:
 - Error propagation becomes manual
 - No natural parallelism — everything runs on one thread unless you manage it yourself
 
-### Actor Frameworks
-
-Actors (Erlang, Akka) get closer to the right answer — isolated components communicating via messages. But most implementations:
-
-- Use dynamic dispatch and runtime type resolution
-- Require message serialization between actors even in-process
-- Don't give you fine-grained control over scheduling and priorities
-- Carry runtime overhead that matters in real-time systems
-
 ## NUClear's Approach
 
 NUClear takes the best ideas from reactive programming and actor models, then uses C++ template metaprogramming to eliminate the runtime costs:
@@ -104,10 +95,16 @@ graph TB
     subgraph PowerPlant
         direction TB
         S[Scheduler]
-        subgraph Reactors
-            R1[Reactor A]
-            R2[Reactor B]
-            R3[Reactor C]
+        subgraph "Reactor A"
+            R1A[Reaction 1]
+            R1B[Reaction 2]
+        end
+        subgraph "Reactor B"
+            R2A[Reaction 3]
+            R2B[Reaction 4]
+        end
+        subgraph "Reactor C"
+            R3A[Reaction 5]
         end
         subgraph "Thread Pools"
             TP1[Default Pool]
@@ -116,14 +113,7 @@ graph TB
         end
     end
 
-    R1 -->|"on<>().then()"| Reactions1[Reactions]
-    R2 -->|"on<>().then()"| Reactions2[Reactions]
-    R3 -->|"on<>().then()"| Reactions3[Reactions]
-
-    Reactions1 -->|emit| S
-    Reactions2 -->|emit| S
-    Reactions3 -->|emit| S
-
+    R1A & R1B & R2A & R2B & R3A -->|emit| S
     S -->|dispatch| TP1
     S -->|dispatch| TP2
     S -->|dispatch| TP3
@@ -149,14 +139,14 @@ NUClear is built on the principle of **zero-cost abstractions**:
 
 ## How NUClear Compares
 
-| Aspect | NUClear | ROS 2 | Akka |
-|--------|---------|-------|------|
-| Language | C++14+ | C++/Python | Scala/Java |
-| Message routing | Compile-time types | Runtime topic strings | Runtime messages |
-| Threading | Built-in scheduler with pools | Executor model | Dispatcher model |
-| Overhead | Near-zero (templates) | Serialization + IPC | JVM + serialization |
-| Scope | In-process (+ network) | Distributed by default | Distributed by default |
-| Real-time | Designed for it | Possible (DDS) | Not a focus |
+| Aspect | NUClear | ROS 2 |
+|--------|---------|-------|
+| Language | C++14+ | C++/Python |
+| Message routing | Compile-time types | Runtime topic strings |
+| Threading | Built-in scheduler with pools | Executor model |
+| Overhead | Near-zero (templates) | Serialization + IPC |
+| Scope | In-process (+ network) | Distributed by default |
+| Real-time | Designed for it | Possible (DDS) |
 
 NUClear is intentionally focused on **in-process concurrency** with optional networking, rather than being a distributed middleware. This keeps it lightweight and predictable — exactly what you want when reactions need to complete in microseconds.
 

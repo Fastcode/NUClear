@@ -347,30 +347,22 @@ These are emitted by the `NetworkController` when its join/leave callbacks fire 
 
 ```mermaid
 sequenceDiagram
-    participant Sender as Sender Reactor
-    participant SE as emit::Network<T>
-    participant SC as Sender NetworkController
-    participant SN as Sender NUClearNetwork
+    participant Sender as Sender Node
     participant Net as UDP Network
-    participant RN as Receiver NUClearNetwork
-    participant RC as Receiver NetworkController
-    participant RR as Receiver Reactor
+    participant Receiver as Receiver Node
 
-    Sender->>SE: emit<Scope::NETWORK>(data)
-    SE->>SE: Serialise<T>::serialise(data)
-    SE->>SE: Serialise<T>::hash()
-    SE->>SC: emit NetworkEmit{hash, payload, target, reliable}
-    SC->>SN: send(hash, payload, target, reliable)
-    SN->>SN: Fragment if needed
-    SN->>Net: UDP DataPacket(s)
-    Net->>RN: UDP DataPacket(s)
-    RN->>RN: Reassemble fragments
-    RN->>RC: packet_callback(source, hash, reliable, payload)
-    RC->>RC: Look up reactions by hash
-    RC->>RR: get_task() → submit
-    Note over RR: Network<T>::get() deserializes
-    RR->>RR: Callback executes with T
+    Note over Sender: Serialise data + compute type hash
+    Sender->>Sender: Fragment if larger than MTU
+    Sender->>Net: UDP DataPacket(s)
+    Net->>Receiver: UDP DataPacket(s)
+    Receiver->>Receiver: Reassemble fragments
+    Note over Receiver: Look up reactions by type hash
+    Note over Receiver: Deserialise → callback executes
 ```
+
+In more detail, the sender side proceeds as: `emit<Scope::NETWORK>(data)` → serialise → compute type hash → emit a local `NetworkEmit` message → `NetworkController` calls `NUClearNetwork::send()` → fragment and transmit via UDP.
+
+On the receiver side: `NUClearNetwork` reassembles fragments → calls `packet_callback` on `NetworkController` → looks up reactions by hash → creates tasks → `Network<T>::get()` deserialises → callback runs.
 
 ## Configuration
 

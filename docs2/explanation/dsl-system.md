@@ -4,28 +4,26 @@ NUClear's Domain Specific Language (DSL) is the user-facing API that makes react
 
 ## The Big Picture
 
-```mermaid
-sequenceDiagram
-    participant User as User Code
-    participant On as on<Words...>()
-    participant Binder as Binder
-    participant Then as .then(callback)
-    participant CBGen as CallbackGenerator
-    participant Reaction as Reaction
-    participant Bind as DSL::bind()
-    participant Store as TypeCallbackStore
-    participant Handle as ReactionHandle
+The journey from writing `on<>().then()` to a reaction executing has two main phases: **registration** (at compile/construction time) and **execution** (at runtime when data arrives).
 
-    User->>On: on<Trigger<T>, Sync<G>>()
-    On->>Binder: Create Binder<Parse<Trigger<T>, Sync<G>>>
-    Binder-->>User: Return Binder
-    User->>Then: .then([](const T& t) {...})
-    Then->>CBGen: Create CallbackGenerator<DSL, Function>
-    Then->>Reaction: Create Reaction(reactor, identifiers, generator)
-    Then->>Bind: DSL::bind(reaction)
-    Bind->>Store: Register in TypeCallbackStore<T>
-    Then->>Handle: Create ReactionHandle
-    Handle-->>User: Return handle
+```mermaid
+flowchart LR
+    subgraph "Registration (construction time)"
+        A["on< Words... >()"] --> B[Binder created]
+        B --> C[".then(callback)"]
+        C --> D[Reaction created]
+        D --> E["DSL::bind()"]
+        E --> F[Stored in TypeCallbackStore]
+    end
+
+    subgraph "Execution (runtime)"
+        G["emit(data)"] --> H[Look up reactions]
+        H --> I[Create tasks]
+        I --> J[Submit to scheduler]
+        J --> K[Thread executes callback]
+    end
+
+    F -.->|"reaction found at"| H
 ```
 
 ## Phase 1: Writing the Reaction
@@ -161,34 +159,25 @@ The scope RAII guard ensures cleanup happens even if the callback throws.
 
 ## The Complete Flow
 
-```mermaid
-sequenceDiagram
-    participant E as Emitter
-    participant TS as ThreadStore
-    participant DS as DataStore
-    participant TCS as TypeCallbackStore
-    participant R as Reaction
-    participant CG as CallbackGenerator
-    participant S as Scheduler
-    participant T as Thread Pool
-    participant CB as Your Callback
+Putting it all together, this is what happens at runtime when data is emitted:
 
-    E->>TS: Set ThreadStore<T> = &data
-    E->>TCS: Look up reactions for T
-    TCS-->>E: [reaction1, reaction2, ...]
-    loop For each reaction
-        E->>R: get_task()
-        R->>CG: operator()(reaction, inline)
-        CG->>CG: Check precondition
-        CG->>CG: DSL::get() reads ThreadStore
-        CG->>CG: Check data valid
-        CG-->>E: ReactionTask (or nullptr)
-        E->>S: submit(task)
-    end
-    E->>TS: Clear ThreadStore<T>
-    E->>DS: Store in DataStore<T>
-    S->>T: Dispatch when priority/group allow
-    T->>CB: scope → pre_run → callback(data) → post_run → ~scope
+```mermaid
+flowchart TD
+    EMIT["emit(data)"] --> STORE_TS["Set ThreadStore = &data"]
+    STORE_TS --> LOOKUP["Look up TypeCallbackStore< T >"]
+    LOOKUP --> LOOP["For each registered reaction"]
+    LOOP --> TASK["get_task()"]
+    TASK --> PRE{"precondition?"}
+    PRE -->|false| DROP1[Task dropped]
+    PRE -->|true| GET["DSL::get() reads data"]
+    GET --> VALID{"All data present?"}
+    VALID -->|no| DROP2[Task dropped]
+    VALID -->|yes| SUBMIT["Submit to scheduler"]
+    SUBMIT --> DISPATCH["Thread picks up task"]
+    DISPATCH --> EXEC["scope → pre_run → callback → post_run → ~scope"]
+
+    LOOP --> CLEAR["Clear ThreadStore"]
+    CLEAR --> DS["Store in DataStore< T > as latest"]
 ```
 
 ## Template Metaprogramming: How the Fusion Works

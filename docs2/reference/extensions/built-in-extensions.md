@@ -1,6 +1,23 @@
 # Built-in Extensions
 
-NUClear ships with four extension reactors that are installed into the PowerPlant at startup. These are ordinary reactors — they use the same `on<>()` DSL as user code — but they provide core system services that other DSL words depend on.
+NUClear ships with four extension reactors that provide core system services. These are ordinary reactors — they use the same `on<>()` DSL as user code — but they implement the functionality that other DSL words depend on (timers, IO polling, networking, tracing).
+
+!!! important "Manual Installation Required"
+    Built-in extensions are **not** installed automatically. You must explicitly install them into the PowerPlant before using DSL words that depend on them:
+
+    ```cpp
+    NUClear::Configuration config;
+    config.default_pool_concurrency = 4;
+    NUClear::PowerPlant plant(config);
+
+    plant.install<NUClear::extension::ChronoController>();  // Required for Every, Watchdog, Delay
+    plant.install<NUClear::extension::IOController>();      // Required for IO
+    plant.install<NUClear::extension::NetworkController>(); // Required for Network
+    plant.install<NUClear::extension::TraceController>();   // Required for tracing
+
+    plant.install<MyReactor>();
+    plant.start();
+    ```
 
 ```mermaid
 flowchart TB
