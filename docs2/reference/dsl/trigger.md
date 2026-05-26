@@ -48,7 +48,7 @@ sequenceDiagram
 `Trigger<T>` implements two extension points:
 
 - **`bind`** — registers the reaction so it is notified on emission of `T`.
-- **`get`** — retrieves the most recent `T` from the data store at task execution time.
+- **`get`** — retrieves the data for `T` during task creation (on the emitter's thread). It reads from `ThreadStore` first (the exact data from this emit) and falls back to `DataStore` (latest value).
 
 Data access is thread-safe; the underlying `std::shared_ptr<const T>` ensures the data remains valid for the lifetime of the callback.
 

@@ -65,5 +65,5 @@ NUClear's architecture is formally described in the paper [*"NUClear: A Loosely 
 
 ## Requirements
 
-- C++17 compiler (GCC 7+, Clang 5+, MSVC 2017+)
+- C++14 compiler (GCC 5+, Clang 3.4+, MSVC 2015+)
 - CMake 3.15+

@@ -8,7 +8,7 @@ Before you begin, make sure you have the following tools installed:
 
 | Requirement | Minimum Version | Purpose |
 |-------------|----------------|---------|
-| C++ compiler | C++17 support | Compiling NUClear and your project |
+| C++ compiler | C++14 support | Compiling NUClear and your project |
 | CMake | 3.15 | Build system |
 | Git | Any recent version | Cloning the repository |
 

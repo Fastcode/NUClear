@@ -22,7 +22,7 @@ emit<Scope::NETWORK>(std::make_unique<T>(args...), "peer_name", true);
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `data` | `std::shared_ptr<T>` | The data to serialize and send |
+| `data` | `std::unique_ptr<T>` | The data to serialize and send |
 | `target` | `std::string` | Name of the target peer, or `""` for broadcast (default: `""`) |
 | `reliable` | `bool` | Whether to guarantee delivery (default: `false`) |
 

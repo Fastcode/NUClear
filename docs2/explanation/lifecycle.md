@@ -27,7 +27,7 @@ sequenceDiagram
     Main->>PP: install<ReactorA>()
     PP->>RA: Constructor runs
     RA->>RA: on<>().then() registers reactions
-    RA->>RA: emit<Scope::INITIALISE>() queues data
+    RA->>RA: emit<Scope::INITIALIZE>() queues data
     Main->>PP: install<ReactorB>()
     PP->>RB: Constructor runs
     RB->>RB: on<>().then() registers reactions
@@ -40,20 +40,20 @@ sequenceDiagram
 2. **Reactor installation** — each `install<T>()` call constructs a reactor
 3. **Reaction registration** — `on<>().then()` inside constructors registers interest in events
 4. **Regular emissions** — `emit(data)` during a constructor *will* trigger any reactions that are **already bound**. If a reactor installed later has a reaction for that type, it won't receive it (it doesn't exist yet).
-5. **Initialise-scoped emissions** — `emit<Scope::INITIALISE>()` defers the emission until `start()` is called, guaranteeing all reactors have been installed and all reactions are bound before the data is processed.
+5. **Initialise-scoped emissions** — `emit<Scope::INITIALIZE>()` defers the emission until `start()` is called, guaranteeing all reactors have been installed and all reactions are bound before the data is processed.
 
 ### Why It Matters
 
 - **Order matters**: reactors are installed sequentially. A regular `emit()` during installation will only trigger reactions that have already been registered by earlier reactors.
 - **No parallelism**: constructors run one at a time on the main thread. This is intentional — it avoids race conditions during setup.
-- **`Scope::INITIALISE` solves ordering problems**: it defers emissions until all reactors are installed. This is specifically for cases where you need to emit data during startup that must be received by a reactor installed *after* you (e.g., circular dependencies). In general, it should be treated as a code smell — most of the time a regular emit or emitting during Startup is sufficient.
+- **`Scope::INITIALIZE` solves ordering problems**: it defers emissions until all reactors are installed. This is specifically for cases where you need to emit data during startup that must be received by a reactor installed *after* you (e.g., circular dependencies). In general, it should be treated as a code smell — most of the time a regular emit or emitting during Startup is sufficient.
 
 ### What You Can Do
 
 | Action | Works? | Notes |
 |--------|--------|-------|
 | `on<>().then()` | ✅ | Register reactions |
-| `emit<Scope::INITIALISE>(data)` | ✅ | Deferred until all reactors installed |
+| `emit<Scope::INITIALIZE>(data)` | ✅ | Deferred until all reactors installed |
 | `emit(data)` (Local scope) | ⚠️ | Triggers already-bound reactions only |
 | Access other reactors | ❌ | No guarantee they're installed yet |
 
@@ -88,7 +88,7 @@ sequenceDiagram
 ### What Happens
 
 1. **`start()` is called** — this is the transition point
-2. **Initialise queue is flushed** — all data deferred with `Scope::INITIALISE` is now emitted, triggering any matching reactions
+2. **Initialise queue is flushed** — all data deferred with `Scope::INITIALIZE` is now emitted, triggering any matching reactions
 3. **Startup fires single-threaded** — `Startup` is emitted inline on the main thread. All `on<Startup>` reactions execute sequentially before any thread pools are started. This guarantees that initialisation logic in Startup handlers completes before general concurrent execution begins.
 4. **Thread pools are created** — the default pool and any custom pools spawn their threads
 5. **Normal execution begins** — emits create tasks, the scheduler dispatches them across pools
@@ -172,8 +172,8 @@ Different emission scopes have different behaviour depending on the current phas
 
 | Scope | Initialisation | Execution | Shutdown |
 |-------|---------------|-----------|----------|
-| `INITIALISE` | ✅ Queued for later | ❌ Not applicable | ❌ Not applicable |
-| Local (default) | ⚠️ Task created, no thread to run it | ✅ Normal dispatch | ⚠️ May not execute |
+| `INITIALIZE` | ✅ Queued for later | ❌ Not applicable | ❌ Not applicable |
+| Local (default) | ⚠️ Triggers already-bound reactions | ✅ Normal dispatch | ⚠️ May not execute |
 | `INLINE` | ✅ Runs immediately | ✅ Runs immediately | ✅ Runs immediately |
 | `NETWORK` | ❌ Network not started | ✅ Sends to peers | ❌ Network shutting down |
 

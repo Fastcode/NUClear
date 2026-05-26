@@ -4,7 +4,7 @@ Coding conventions for the NUClear codebase.
 
 ## Language Standard
 
-- **C++17** — All code must compile under C++17
+- **C++14** — All code must compile under C++14
 - Use standard library features over third-party alternatives where practical
 
 ## Naming

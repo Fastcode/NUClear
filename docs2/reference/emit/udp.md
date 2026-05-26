@@ -16,7 +16,7 @@ emit<Scope::UDP>(std::make_unique<T>(args...), "192.168.1.100", 9000, "0.0.0.0",
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `data` | `std::shared_ptr<T>` | The data to serialize and send |
+| `data` | `std::unique_ptr<T>` | The data to serialize and send |
 | `to_addr` | `std::string` | Destination address (unicast, broadcast, or multicast) |
 | `to_port` | `in_port_t` | Destination port (host endian) |
 | `from_addr` | `std::string` | (Optional) Source address, or `""` for automatic (default: `""`) |

@@ -135,7 +135,7 @@ public:
 
 !!! note "Default log level"
 
-    Reactors default to `log_level = DEBUG`. Set it in your constructor to change the threshold.
+    Reactors default to `log_level = INFO`. Set it in your constructor to change the threshold.
 
 ## How the Log System Works
 
