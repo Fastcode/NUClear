@@ -209,7 +209,7 @@ flowchart LR
 The receiver collects fragments keyed by `(source_address, packet_id)`.
 Once all `packet_count` fragments arrive, the original message is reassembled and delivered.
 
-- *Stale assemblies*\*: If an incomplete message hasn't received new fragments in `10 × RTT` (round-trip time to that peer), it's discarded.
+- **Stale assemblies**: If an incomplete message hasn't received new fragments in `10 × RTT` (round-trip time to that peer), it's discarded.
     This prevents memory leaks from lost unreliable packets.
 
 ## Reliable Delivery

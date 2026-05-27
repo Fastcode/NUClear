@@ -1,7 +1,7 @@
 # NUClear
 
-- *NUClear*\* is a C++ reactive framework for building modular, event-driven systems.
-    It provides a compile-time domain-specific language (DSL) that lets you define how your system reacts to data and events, with automatic multithreaded task scheduling, type-safe messaging, and zero-cost abstractions.
+**NUClear** is a C++ reactive framework for building modular, event-driven systems.
+It provides a compile-time domain-specific language (DSL) that lets you define how your system reacts to data and events, with automatic multithreaded task scheduling, type-safe messaging, and zero-cost abstractions.
 
 ## Key Features
 
