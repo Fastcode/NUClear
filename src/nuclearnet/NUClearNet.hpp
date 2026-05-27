@@ -69,7 +69,7 @@ namespace network {
      * - Automatic peer discovery via multicast/broadcast announces
      * - NAT-friendly port learning (from UDP source address)
      * - Fragmentation and reassembly of large messages
-     * - Optional reliable delivery with ACK/NACK
+     * - Optional reliable delivery with ACK-based retransmission
      * - Subscription-based message filtering
      * - Per-peer RTT estimation with Jacobson/Karels algorithm
      *

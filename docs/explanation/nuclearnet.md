@@ -82,7 +82,7 @@ The NUClearNet engine is decomposed into focused modules:
 | -------------------- | ------------------------------------------------------------------------ |
 | `Discovery`          | Peer lifecycle — announce, join/leave detection, peer timeout            |
 | `Fragmentation`      | Splitting large messages into MTU-sized (Maximum Transmission Unit) fragments, reassembly on receive |
-| `Reliability`        | ACK/NACK (Acknowledgment/Negative Acknowledgment) tracking, retransmission scheduling |
+| `Reliability`        | ACK (Acknowledgment) tracking, retransmission scheduling                 |
 | `Routing`            | Subscription-based message filtering per peer                            |
 | `PacketDeduplicator` | Sliding-window duplicate detection per peer                              |
 | `RTTEstimator`       | Per-peer RTT (Round-Trip Time) estimation for retransmission timing      |
@@ -187,13 +187,12 @@ A received packet is only accepted if the magic bytes, version, and type field a
 
 ### Packet types
 
-| Type     | Value | Purpose                                |
-| -------- | ----- | -------------------------------------- |
-| ANNOUNCE | 1     | Periodic discovery broadcast           |
-| LEAVE    | 2     | Graceful departure notification        |
+| Type     | Value | Purpose                                   |
+| -------- | ----- | ----------------------------------------- |
+| ANNOUNCE | 1     | Periodic discovery broadcast              |
+| LEAVE    | 2     | Graceful departure notification           |
 | DATA     | 3     | Data payload (original or retransmission) |
-| ACK      | 4     | Acknowledgment of received fragments   |
-| NACK     | 5     | Request for specific missing fragments |
+| ACK      | 4     | Acknowledgment of received fragments      |
 
 ### Announce packet
 
@@ -239,7 +238,7 @@ block-beta
 - **hash** — 64-bit type hash identifying what kind of data this is
 - **payload** — the serialized payload bytes for this fragment
 
-### ACK and NACK packets
+### ACK packet
 
 ```mermaid
 block-beta
@@ -252,11 +251,10 @@ block-beta
     style bits fill:#6bcb77,color:#fff
 ```
 
-- **packet_id** — which packet group this ACK/NACK refers to
+- **packet_id** — which packet group this ACK refers to
 - **packet_count** — total fragments in the group (for validation)
 - **bitset** — one bit per fragment (LSB first).
-    For ACK: bit set = fragment received.
-    For NACK: bit set = fragment missing.
+    Bit set means the corresponding fragment has been received.
 
 ## Fragmentation and reassembly
 
@@ -353,8 +351,6 @@ Key mechanisms:
     This gives the sender full visibility into what's been received.
 - **RTO-based retransmission** — the sender waits one RTO (Retransmission Timeout) before retransmitting un-ACKed fragments.
     The RTO is calculated per peer based on measured round-trip times (see below).
-- **NACK support** — the receiver can proactively request retransmission of specific missing fragments via NACK packets,
-    which forces the sender to retransmit immediately rather than waiting for the RTO.
 - **No retransmission limit** — reliable packets are retransmitted indefinitely until either all fragments are ACKed,
     or the peer is removed (due to timeout or graceful leave).
     This guarantees delivery as long as the connection remains alive.

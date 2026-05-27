@@ -105,23 +105,6 @@
             }
         }
 
-        void Reliability::process_nack(const sock_t& source,
-                                       uint16_t packet_id,
-                                       uint16_t /*packet_count*/,
-                                       const uint8_t* /*nack_bitset*/,
-                                       std::size_t /*bitset_size*/) {
-            TrackingKey key{source, packet_id};
-
-            const std::lock_guard<std::mutex> lock(tracking_mutex);
-            auto it = tracked_packets.find(key);
-            if (it == tracked_packets.end()) {
-                return;
-            }
-
-            // Force immediate retransmission by setting last_send to past
-            it->second.last_send = std::chrono::steady_clock::time_point{};
-        }
-
         std::vector<uint8_t> Reliability::build_ack_packet(uint16_t packet_id,
                                                            uint16_t packet_count,
                                                            const std::vector<bool>& received) {
@@ -141,29 +124,6 @@
             uint8_t* bitset = packet.data() + sizeof(ACKPacket) - 1;
             for (std::size_t i = 0; i < received.size() && i < packet_count; ++i) {
                 if (received[i]) {
-                    bitset[i / 8] |= static_cast<uint8_t>(1u << (i % 8));
-                }
-            }
-
-            return packet;
-        }
-
-        std::vector<uint8_t> Reliability::build_nack_packet(uint16_t packet_id,
-                                                            uint16_t packet_count,
-                                                            const std::vector<bool>& missing) {
-            std::size_t bitset_bytes = (packet_count + 7) / 8;
-            std::size_t total_size   = sizeof(NACKPacket) - 1 + bitset_bytes;
-
-            std::vector<uint8_t> packet(total_size, 0);
-
-            NACKPacket nack_header;
-            nack_header.packet_id    = packet_id;
-            nack_header.packet_count = packet_count;
-            std::memcpy(packet.data(), &nack_header, sizeof(NACKPacket) - 1);
-
-            uint8_t* bitset = packet.data() + sizeof(NACKPacket) - 1;
-            for (std::size_t i = 0; i < missing.size() && i < packet_count; ++i) {
-                if (missing[i]) {
                     bitset[i / 8] |= static_cast<uint8_t>(1u << (i % 8));
                 }
             }

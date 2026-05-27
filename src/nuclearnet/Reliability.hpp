@@ -37,12 +37,12 @@ namespace NUClear {
 namespace network {
 
     /**
-     * Handles reliable delivery via ACK/NACK tracking and retransmission.
+     * Handles reliable delivery via ACK tracking and retransmission.
      *
      * Responsibilities:
      * - Tracking which fragments have been ACKed for each reliable packet group
      * - Scheduling retransmissions based on RTT estimates
-     * - Processing incoming ACK/NACK packets
+     * - Processing incoming ACK packets
      * - Providing per-peer RTT estimation
      * - Exponential backoff on repeated failures
      */
@@ -102,21 +102,6 @@ namespace network {
                          std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now());
 
         /**
-         * Process a received NACK packet.
-         *
-         * @param source       Who sent the NACK
-         * @param packet_id    The packet group with missing fragments
-         * @param packet_count Total fragments in the group
-         * @param nack_bitset  Bitset of MISSING fragments (1 = missing)
-         * @param bitset_size  Size of the nack_bitset in bytes
-         */
-        void process_nack(const sock_t& source,
-                          uint16_t packet_id,
-                          uint16_t packet_count,
-                          const uint8_t* nack_bitset,
-                          std::size_t bitset_size);
-
-        /**
          * Build an ACK packet payload (excluding header) for a packet group.
          *
          * @param packet_id    The packet group to acknowledge
@@ -128,19 +113,6 @@ namespace network {
         static std::vector<uint8_t> build_ack_packet(uint16_t packet_id,
                                                      uint16_t packet_count,
                                                      const std::vector<bool>& received);
-
-        /**
-         * Build a NACK packet for missing fragments.
-         *
-         * @param packet_id    The packet group
-         * @param packet_count Total fragments
-         * @param missing      Bitset of which fragments are missing (true = missing)
-         *
-         * @return Serialized NACK packet bytes (complete packet including header)
-         */
-        static std::vector<uint8_t> build_nack_packet(uint16_t packet_id,
-                                                      uint16_t packet_count,
-                                                      const std::vector<bool>& missing);
 
         /**
          * Check for packets that need retransmission and return them.

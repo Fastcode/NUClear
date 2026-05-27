@@ -514,16 +514,6 @@ namespace network {
                 reliability->process_ack(source, pkt->packet_id, pkt->packet_count, bitset, bitset_size);
             } break;
 
-            case NACK: {
-                if (length < sizeof(NACKPacket)) {
-                    return;
-                }
-                const auto* pkt = reinterpret_cast<const NACKPacket*>(data);
-                const uint8_t* bitset = data + sizeof(NACKPacket) - 1;
-                std::size_t bitset_size = length - (sizeof(NACKPacket) - 1);
-                reliability->process_nack(source, pkt->packet_id, pkt->packet_count, bitset, bitset_size);
-            } break;
-
             default: break;
         }
     }

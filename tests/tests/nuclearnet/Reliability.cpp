@@ -153,15 +153,6 @@ SCENARIO("Reliability build_ack_packet encodes bitset correctly", "[nuclearnet][
     REQUIRE(bitset_byte == 0x8D);
 }
 
-SCENARIO("Reliability build_nack_packet encodes missing fragments", "[nuclearnet][reliability]") {
-    std::vector<bool> missing = {false, true, false, true};  // bits 1,3 set = 0b00001010 = 0x0A
-    auto nack = Reliability::build_nack_packet(7, 4, missing);
-
-    REQUIRE(nack.size() > 0);
-    uint8_t bitset_byte = nack.back();
-    REQUIRE(bitset_byte == 0x0A);
-}
-
 SCENARIO("Reliability remove_peer removes all tracked state", "[nuclearnet][reliability]") {
     Reliability rel;
 
@@ -177,22 +168,4 @@ SCENARIO("Reliability remove_peer removes all tracked state", "[nuclearnet][reli
     // After removing, no retransmissions should occur even well past RTO
     auto retransmissions = rel.check_retransmissions(100, t + std::chrono::milliseconds(500));
     REQUIRE(retransmissions.empty());
-}
-
-SCENARIO("Reliability NACK forces immediate retransmission", "[nuclearnet][reliability]") {
-    Reliability rel;
-
-    sock_t target = make_addr(0x0A000001, 5000);
-    std::vector<uint8_t> payload(100, 0x11);
-
-    rel.track_packet(target, 1, 1, 0x1234, 0x01, payload.data(), payload.size());
-
-    // Process a NACK — should force immediate retransmission regardless of RTO
-    uint8_t nack_bits = 0x01;  // fragment 0 missing
-    rel.process_nack(target, 1, 1, &nack_bits, 1);
-
-    // Should retransmit immediately (last_send set to epoch)
-    auto retransmissions = rel.check_retransmissions(100);
-    REQUIRE(retransmissions.size() == 1);
-    REQUIRE(retransmissions[0].packet_no == 0);
 }

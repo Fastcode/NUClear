@@ -45,7 +45,6 @@ namespace network {
         LEAVE    = 2,
         DATA     = 3,
         ACK      = 4,
-        NACK     = 5,
     };
 
     /// Data packet flags (bit field)
@@ -154,26 +153,6 @@ namespace network {
     });
 
     /**
-     * NACK packet — requests retransmission of missing fragments.
-     *
-     * Wire layout (9+ bytes):
-     *   [0-4]   PacketHeader (type = NACK)
-     *   [5-6]   packet_id (uint16_t)
-     *   [7-8]   packet_count (uint16_t)
-     *   [9+]    bitset of MISSING packets (1 bit per fragment, LSB first)
-     */
-    NUCLEAR_NET_PACK(struct NACKPacket : PacketHeader {
-        NACKPacket() : PacketHeader(NACK) {}
-
-        /// The packet group we are requesting retransmission for
-        uint16_t packet_id{0};
-        /// Total number of fragments in the group
-        uint16_t packet_count{0};
-        /// Bitset of missing fragments (access via &packets)
-        uint8_t packets{0};
-    });
-
-    /**
      * Validate that a buffer contains a valid NUClearNet packet header.
      *
      * @param data    Pointer to the received data
@@ -187,7 +166,7 @@ namespace network {
         }
         const auto* header = static_cast<const PacketHeader*>(data);
         return header->header[0] == 0xE2 && header->header[1] == 0x98 && header->header[2] == 0xA2
-               && header->version == PROTOCOL_VERSION && header->type >= ANNOUNCE && header->type <= NACK;
+               && header->version == PROTOCOL_VERSION && header->type >= ANNOUNCE && header->type <= ACK;
     }
 
 }  // namespace network

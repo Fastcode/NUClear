@@ -38,9 +38,6 @@ SCENARIO("Wire protocol structs have correct packed sizes", "[nuclearnet][wire_p
     // ACKPacket: header(5) + packet_id(2) + packet_count(2) + packets(1) = 10
     REQUIRE(sizeof(ACKPacket) == 10);
 
-    // NACKPacket: header(5) + packet_id(2) + packet_count(2) + packets(1) = 10
-    REQUIRE(sizeof(NACKPacket) == 10);
-
     // LeavePacket: just the header = 5
     REQUIRE(sizeof(LeavePacket) == 5);
 }
