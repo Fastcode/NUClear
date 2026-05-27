@@ -225,7 +225,6 @@ namespace network {
         for (const auto& req : retransmissions) {
             // Build header on stack, scatter-write header + fragment data
             DataPacket header{};
-            header.type         = DATA_RETRANSMISSION;
             header.packet_id    = req.packet_id;
             header.packet_no    = req.packet_no;
             header.packet_count = req.packet_count;
@@ -429,8 +428,7 @@ namespace network {
                 discovery->process_leave(source);
             } break;
 
-            case DATA:
-            case DATA_RETRANSMISSION: {
+            case DATA: {
                 if (length < sizeof(DataPacket)) {
                     return;
                 }
@@ -439,9 +437,8 @@ namespace network {
 
                 // Check for duplicates (at the packet group level)
                 auto& dedup = deduplicators[source];
-                bool is_retransmission = (header->type == DATA_RETRANSMISSION);
 
-                if (is_retransmission && dedup.is_duplicate(pkt->packet_id)) {
+                if (dedup.is_duplicate(pkt->packet_id)) {
                     // Already processed this packet group — send ACK if reliable
                     if ((pkt->flags & RELIABLE) != 0) {
                         std::vector<bool> all_received(pkt->packet_count, true);

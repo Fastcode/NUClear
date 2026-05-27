@@ -113,8 +113,9 @@ sequenceDiagram
     Note over A: New peer heard!
     A->>A: Add B to peer list
     A->>A: Fire NetworkJoin event
+    A->>B: AnnouncePacket (unicast reply)
 
-    Note over B: Hears A's announce
+    Note over B: Immediate connection
     B->>B: Add A to peer list
     B->>B: Fire NetworkJoin event
 
@@ -127,6 +128,11 @@ sequenceDiagram
     A->>A: Remove B from peer list
     A->>A: Fire NetworkLeave event
 ```
+
+When a node hears an announce from an unknown peer,
+it immediately sends its own announce back via unicast directly to that peer.
+This eliminates the need to wait for the next periodic announce cycle —
+new peers connect within a single round trip rather than waiting up to one full announce interval.
 
 ### Announce address options
 
@@ -180,14 +186,13 @@ A received packet is only accepted if the magic bytes, version, and type field a
 
 ### Packet types
 
-| Type                | Value | Purpose                                |
-| ------------------- | ----- | -------------------------------------- |
-| ANNOUNCE            | 1     | Periodic discovery broadcast           |
-| LEAVE               | 2     | Graceful departure notification        |
-| DATA                | 3     | Normal data payload                    |
-| DATA_RETRANSMISSION | 4     | Retransmitted data fragment            |
-| ACK                 | 5     | Acknowledgment of received fragments   |
-| NACK                | 6     | Request for specific missing fragments |
+| Type     | Value | Purpose                                |
+| -------- | ----- | -------------------------------------- |
+| ANNOUNCE | 1     | Periodic discovery broadcast           |
+| LEAVE    | 2     | Graceful departure notification        |
+| DATA     | 3     | Data payload (original or retransmission) |
+| ACK      | 4     | Acknowledgment of received fragments   |
+| NACK     | 5     | Request for specific missing fragments |
 
 ### Announce packet
 
@@ -324,7 +329,7 @@ sequenceDiagram
 
     Note over S: Sees fragment 1 not ACKed
     Note over S: Wait RTO timeout...
-    S->>R: DataRetransmission (id=42, no=1)
+    S->>R: DataPacket (id=42, no=1, retransmit)
 
     R->>S: ACK (id=42, bitset=[1,1,1])
     Note over R: All fragments received, deliver message

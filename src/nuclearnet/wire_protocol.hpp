@@ -41,12 +41,11 @@ namespace network {
 
     /// Packet type identifiers
     enum PacketType : uint8_t {
-        ANNOUNCE            = 1,
-        LEAVE               = 2,
-        DATA                = 3,
-        DATA_RETRANSMISSION = 4,
-        ACK                 = 5,
-        NACK                = 6,
+        ANNOUNCE = 1,
+        LEAVE    = 2,
+        DATA     = 3,
+        ACK      = 4,
+        NACK     = 5,
     };
 
     /// Data packet flags (bit field)
@@ -109,7 +108,7 @@ namespace network {
      * Data packet — carries message payload (possibly one fragment of a larger message).
      *
      * Wire layout (18+ bytes):
-     *   [0-4]   PacketHeader (type = DATA or DATA_RETRANSMISSION)
+     *   [0-4]   PacketHeader (type = DATA)
      *   [5-6]   packet_id (uint16_t) — unique identifier for this packet group
      *   [7-8]   packet_no (uint16_t) — fragment index within the group (0-based)
      *   [9-10]  packet_count (uint16_t) — total fragments in the group
