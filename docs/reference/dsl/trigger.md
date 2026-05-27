@@ -12,8 +12,8 @@ on<Trigger<T1>, Trigger<T2>>().then([](const T1& a, const T2& b) { /* ... */ });
 
 ## Parameters
 
-| Parameter | Description                          |
-| --------- | ------------------------------------ |
+| Parameter | Description                                          |
+| --------- | ---------------------------------------------------- |
 | `T`       | The datatype that triggers the reaction when emitted |
 
 Multiple triggers are specified as separate `Trigger<>` words: `Trigger<T1>, Trigger<T2>, ...`.

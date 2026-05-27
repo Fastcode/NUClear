@@ -3,6 +3,7 @@
 NUClear ships with four extension reactors that provide core system services. These are ordinary reactors — they use the same `on<>()` DSL as user code — but they implement the functionality that other DSL words depend on (timers, IO polling, networking, tracing).
 
 !!! important "Manual Installation Required"
+
     Built-in extensions are **not** installed automatically. You must explicitly install them into the PowerPlant before using DSL words that depend on them:
 
     ```cpp
@@ -68,12 +69,12 @@ When a time-based word's `bind` is called, it submits a `ChronoTask` to this con
 
 **Key internals:**
 
-| Component | Purpose |
-|-----------|---------|
-| `std::vector<ChronoTask>` | Tasks sorted by next fire time |
-| `std::condition_variable` | Wakes the timing thread when tasks change |
-| `cv_accuracy` | Measured accuracy of condition variable waits |
-| `ns_accuracy` | Measured accuracy of nanosleep calls |
+| Component                 | Purpose                                       |
+| ------------------------- | --------------------------------------------- |
+| `std::vector<ChronoTask>` | Tasks sorted by next fire time                |
+| `std::condition_variable` | Wakes the timing thread when tasks change     |
+| `cv_accuracy`             | Measured accuracy of condition variable waits |
+| `ns_accuracy`             | Measured accuracy of nanosleep calls          |
 
 The controller also responds to `TimeTravel` messages, which shift the clock and re-evaluate all pending tasks.
 
@@ -96,13 +97,13 @@ A dedicated thread blocks on the polling call. When events are detected on regis
 
 **Key internals:**
 
-| Component | Purpose |
-|-----------|---------|
-| `tasks_t` | Registry of fd → reaction mappings |
-| `notifier_t` | Pipe/event used to wake the poll thread when registrations change |
-| `listening_events` | What the task is waiting for |
-| `waiting_events` | Events ready to fire |
-| `processing_events` | Events currently being handled |
+| Component           | Purpose                                                           |
+| ------------------- | ----------------------------------------------------------------- |
+| `tasks_t`           | Registry of fd → reaction mappings                                |
+| `notifier_t`        | Pipe/event used to wake the poll thread when registrations change |
+| `listening_events`  | What the task is waiting for                                      |
+| `waiting_events`    | Events ready to fire                                              |
+| `processing_events` | Events currently being handled                                    |
 
 The controller coalesces multiple reactions on the same fd into a single poll entry and dispatches events to the correct reactions based on their registered interest masks.
 
@@ -121,18 +122,18 @@ Bridges the low-level `NUClearNetwork` protocol into NUClear's reaction system.
 Wraps a `NUClearNetwork` instance that implements peer discovery (via multicast announcements) and reliable/unreliable message delivery. The controller:
 
 1. Listens for `NetworkConfiguration` messages to initialize/reconfigure the network
-2. Registers `IO` reactions on network sockets so incoming data triggers processing
-3. Maintains a map of type hashes to reactions for dispatching received messages
-4. Provides callbacks for peer join/leave events that emit `NetworkPeer` messages
+1. Registers `IO` reactions on network sockets so incoming data triggers processing
+1. Maintains a map of type hashes to reactions for dispatching received messages
+1. Provides callbacks for peer join/leave events that emit `NetworkPeer` messages
 
 **Key internals:**
 
-| Component | Purpose |
-|-----------|---------|
-| `NUClearNetwork network` | Low-level networking (discovery, serialization, transport) |
-| `std::multimap<uint64_t, Reaction>` | Type hash → interested reactions |
-| `listen_handles` | IO reactions watching network sockets |
-| `process_handle` | Reaction for timed network maintenance tasks |
+| Component                           | Purpose                                                    |
+| ----------------------------------- | ---------------------------------------------------------- |
+| `NUClearNetwork network`            | Low-level networking (discovery, serialization, transport) |
+| `std::multimap<uint64_t, Reaction>` | Type hash → interested reactions                           |
+| `listen_handles`                    | IO reactions watching network sockets                      |
+| `process_handle`                    | Reaction for timed network maintenance tasks               |
 
 ## TraceController
 
@@ -150,11 +151,11 @@ Listens for task lifecycle events and writes trace records to a file. Each recor
 
 **Key internals:**
 
-| Component | Purpose |
-|-----------|---------|
-| `TracePool` | Dedicated single-thread pool (persistent, non-idle-counting) |
-| `StringInterner` | Deduplicates reaction/thread name strings in the trace file |
-| `write_trace_packet()` | Serializes and writes individual trace events |
-| Process/thread track IDs | Unique identifiers for the trace hierarchy |
+| Component                | Purpose                                                      |
+| ------------------------ | ------------------------------------------------------------ |
+| `TracePool`              | Dedicated single-thread pool (persistent, non-idle-counting) |
+| `StringInterner`         | Deduplicates reaction/thread name strings in the trace file  |
+| `write_trace_packet()`   | Serializes and writes individual trace events                |
+| Process/thread track IDs | Unique identifiers for the trace hierarchy                   |
 
 The trace pool is marked `persistent = true` so it continues recording events even during shutdown, capturing the full lifecycle of the system.

@@ -49,24 +49,24 @@ public:
 
 ### NetworkConfiguration Fields
 
-| Field              | Type       | Default            | Description                                      |
-| ------------------ | ---------- | ------------------ | ------------------------------------------------ |
-| `name`             | `string`   | —                  | Unique name for this node on the network         |
-| `announce_address` | `string`   | —                  | Address for node discovery announcements         |
-| `announce_port`    | `uint16_t` | —                  | Port for announce messages                       |
-| `bind_address`     | `string`   | `""` (all)         | Local interface to bind to                       |
-| `mtu`             | `uint16_t` | `1500`             | Maximum transmission unit (fragments if larger)  |
+| Field              | Type       | Default    | Description                                     |
+| ------------------ | ---------- | ---------- | ----------------------------------------------- |
+| `name`             | `string`   | —          | Unique name for this node on the network        |
+| `announce_address` | `string`   | —          | Address for node discovery announcements        |
+| `announce_port`    | `uint16_t` | —          | Port for announce messages                      |
+| `bind_address`     | `string`   | `""` (all) | Local interface to bind to                      |
+| `mtu`              | `uint16_t` | `1500`     | Maximum transmission unit (fragments if larger) |
 
 ### Network Modes
 
 NUClearNet supports several discovery modes depending on the `announce_address` you configure:
 
-| Mode | Address Type | Example | Use Case |
-|------|-------------|---------|----------|
-| **Multicast IPv4** | `239.x.x.x` | `239.226.152.162` | LAN discovery, multiple nodes |
-| **Multicast IPv6** | `ff02::x` | `ff02::1` | IPv6 LAN discovery |
-| **Broadcast IPv4** | `x.x.x.255` | `192.168.1.255` | Simple LAN, all nodes on subnet |
-| **Unicast IPv4/IPv6** | Specific IP | `192.168.1.50` | Point-to-point, two nodes |
+| Mode                  | Address Type | Example           | Use Case                        |
+| --------------------- | ------------ | ----------------- | ------------------------------- |
+| **Multicast IPv4**    | `239.x.x.x`  | `239.226.152.162` | LAN discovery, multiple nodes   |
+| **Multicast IPv6**    | `ff02::x`    | `ff02::1`         | IPv6 LAN discovery              |
+| **Broadcast IPv4**    | `x.x.x.255`  | `192.168.1.255`   | Simple LAN, all nodes on subnet |
+| **Unicast IPv4/IPv6** | Specific IP  | `192.168.1.50`    | Point-to-point, two nodes       |
 
 #### Multicast (Default)
 
@@ -222,10 +222,10 @@ public:
 
 ## Reliable vs Unreliable Delivery
 
-| Mode         | Behavior                                                     | Use when                          |
-| ------------ | ------------------------------------------------------------ | --------------------------------- |
-| Unreliable   | Fire-and-forget. No retransmission. Lowest latency.          | Streaming data, periodic updates  |
-| Reliable     | Retransmits until acknowledged. Delivery guaranteed.         | Commands, configuration, events   |
+| Mode       | Behavior                                             | Use when                         |
+| ---------- | ---------------------------------------------------- | -------------------------------- |
+| Unreliable | Fire-and-forget. No retransmission. Lowest latency.  | Streaming data, periodic updates |
+| Reliable   | Retransmits until acknowledged. Delivery guaranteed. | Commands, configuration, events  |
 
 Pass `true` as the reliability argument to `emit<Scope::NETWORK>`:
 

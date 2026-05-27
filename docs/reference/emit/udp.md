@@ -14,21 +14,21 @@ emit<Scope::UDP>(std::make_unique<T>(args...), "192.168.1.100", 9000, "0.0.0.0",
 
 ## Parameters
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `data` | `std::unique_ptr<T>` | The data to serialize and send |
-| `to_addr` | `std::string` | Destination address (unicast, broadcast, or multicast) |
-| `to_port` | `in_port_t` | Destination port (host endian) |
-| `from_addr` | `std::string` | (Optional) Source address, or `""` for automatic (default: `""`) |
-| `from_port` | `in_port_t` | (Optional) Source port, or `0` for automatic (default: `0`) |
+| Parameter   | Type                 | Description                                                      |
+| ----------- | -------------------- | ---------------------------------------------------------------- |
+| `data`      | `std::unique_ptr<T>` | The data to serialize and send                                   |
+| `to_addr`   | `std::string`        | Destination address (unicast, broadcast, or multicast)           |
+| `to_port`   | `in_port_t`          | Destination port (host endian)                                   |
+| `from_addr` | `std::string`        | (Optional) Source address, or `""` for automatic (default: `""`) |
+| `from_port` | `in_port_t`          | (Optional) Source port, or `0` for automatic (default: `0`)      |
 
 ## Behavior
 
 When data is emitted with `Scope::UDP`:
 
 1. The data is serialized using `util::serialise::Serialise<T>`.
-2. A UDP socket is opened and the serialized payload is sent as a single datagram.
-3. No NUClear-specific framing or headers are added — the raw serialized bytes are the packet payload.
+1. A UDP socket is opened and the serialized payload is sent as a single datagram.
+1. No NUClear-specific framing or headers are added — the raw serialized bytes are the packet payload.
 
 There is no fragmentation, reliability, ordering, or peer discovery. The packet is fire-and-forget.
 

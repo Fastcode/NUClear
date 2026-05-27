@@ -12,14 +12,14 @@ Use `log<Level>(args...)` inside any reaction to emit log messages. Handle them 
 
 ### Log Levels
 
-| Level   | Purpose                                                      |
-|---------|--------------------------------------------------------------|
-| `TRACE` | Extremely verbose, line-by-line execution tracing            |
-| `DEBUG` | Inputs/outputs of computation steps, branch decisions        |
-| `INFO`  | High-level milestones — function starts, successful results  |
-| `WARN`  | Non-fatal problems that need attention                       |
-| `ERROR` | Unexpected behavior, constraint violations                   |
-| `FATAL` | Program-destroying errors that require immediate action      |
+| Level   | Purpose                                                     |
+| ------- | ----------------------------------------------------------- |
+| `TRACE` | Extremely verbose, line-by-line execution tracing           |
+| `DEBUG` | Inputs/outputs of computation steps, branch decisions       |
+| `INFO`  | High-level milestones — function starts, successful results |
+| `WARN`  | Non-fatal problems that need attention                      |
+| `ERROR` | Unexpected behavior, constraint violations                  |
+| `FATAL` | Program-destroying errors that require immediate action     |
 
 ### 1. Emit Log Messages
 
@@ -77,12 +77,12 @@ public:
 
 ### 4. LogMessage Fields
 
-| Field           | Type                           | Description                                         |
-|-----------------|--------------------------------|-----------------------------------------------------|
-| `level`         | `LogLevel`                     | The severity level of this message                  |
-| `display_level` | `LogLevel`                     | The log level of the reactor that emitted it        |
-| `message`       | `std::string`                  | The formatted message content                       |
-| `reactor_name`  | `std::string`                  | Name of the reactor that emitted the message        |
+| Field           | Type                             | Description                                       |
+| --------------- | -------------------------------- | ------------------------------------------------- |
+| `level`         | `LogLevel`                       | The severity level of this message                |
+| `display_level` | `LogLevel`                       | The log level of the reactor that emitted it      |
+| `message`       | `std::string`                    | The formatted message content                     |
+| `reactor_name`  | `std::string`                    | Name of the reactor that emitted the message      |
 | `statistics`    | `shared_ptr<ReactionStatistics>` | Statistics of the task that produced this message |
 
 ### 5. Complete Example
@@ -155,9 +155,9 @@ sequenceDiagram
 The log system is entirely message-driven:
 
 1. A `log<Level>(...)` call in a reactor checks whether `Level` meets the reactor's `log_level` threshold
-2. If it passes, a `LogMessage` is emitted into the system
-3. Any reaction bound to `Trigger<LogMessage>` receives it
-4. **Without a log handler installed, no output appears** — you must install a reactor that handles `LogMessage`
+1. If it passes, a `LogMessage` is emitted into the system
+1. Any reaction bound to `Trigger<LogMessage>` receives it
+1. **Without a log handler installed, no output appears** — you must install a reactor that handles `LogMessage`
 
 ### Per-Reactor vs System Log Level
 

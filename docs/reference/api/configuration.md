@@ -20,8 +20,8 @@ struct Configuration {
 }  // namespace NUClear
 ```
 
-| Field | Type | Default | Description |
-|-------|------|---------|-------------|
+| Field                      | Type  | Default                         | Description                           |
+| -------------------------- | ----- | ------------------------------- | ------------------------------------- |
 | `default_pool_concurrency` | `int` | `hardware_concurrency()` or `2` | Number of threads in the default pool |
 
 ## Example

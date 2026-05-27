@@ -11,12 +11,12 @@ static void post_run(threading::ReactionTask& task)
 
 ## Details
 
-| Aspect | Detail |
-|--------|--------|
-| **When** | After callback, before scope release |
-| **Thread** | The executor thread (the thread pool thread running the task) |
-| **Returns** | `void` |
-| **Fusion** | All words with `post_run` are called sequentially |
+| Aspect      | Detail                                                        |
+| ----------- | ------------------------------------------------------------- |
+| **When**    | After callback, before scope release                          |
+| **Thread**  | The executor thread (the thread pool thread running the task) |
+| **Returns** | `void`                                                        |
+| **Fusion**  | All words with `post_run` are called sequentially             |
 
 ## Context & Arguments
 

@@ -43,12 +43,12 @@ flowchart LR
 
 ## Scopes
 
-| Scope | Description | Link |
-|-------|-------------|------|
-| `Scope::LOCAL` | Distributes tasks via thread pool; stores data in global cache (default) | [Local](local.md) |
-| `Scope::INLINE` | Executes reactions immediately on the emitter's thread | [Inline](inline.md) |
-| `Scope::DELAY` | Schedules a Local emit after a time delay | [Delay](delay.md) |
-| `Scope::INITIALIZE` | Queues data to be emitted during system startup | [Initialise](initialise.md) |
-| `Scope::NETWORK` | Serializes and sends data to NUClear network peers | [Network](network.md) |
-| `Scope::UDP` | Sends serialized data as a raw UDP packet | [UDP](udp.md) |
-| `Scope::WATCHDOG` | Services (resets) a watchdog timer | [Watchdog](watchdog.md) |
+| Scope               | Description                                                              | Link                        |
+| ------------------- | ------------------------------------------------------------------------ | --------------------------- |
+| `Scope::LOCAL`      | Distributes tasks via thread pool; stores data in global cache (default) | [Local](local.md)           |
+| `Scope::INLINE`     | Executes reactions immediately on the emitter's thread                   | [Inline](inline.md)         |
+| `Scope::DELAY`      | Schedules a Local emit after a time delay                                | [Delay](delay.md)           |
+| `Scope::INITIALIZE` | Queues data to be emitted during system startup                          | [Initialise](initialise.md) |
+| `Scope::NETWORK`    | Serializes and sends data to NUClear network peers                       | [Network](network.md)       |
+| `Scope::UDP`        | Sends serialized data as a raw UDP packet                                | [UDP](udp.md)               |
+| `Scope::WATCHDOG`   | Services (resets) a watchdog timer                                       | [Watchdog](watchdog.md)     |

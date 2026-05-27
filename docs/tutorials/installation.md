@@ -6,11 +6,11 @@ This tutorial walks you through installing NUClear on your system and verifying 
 
 Before you begin, make sure you have the following tools installed:
 
-| Requirement | Minimum Version | Purpose |
-|-------------|----------------|---------|
-| C++ compiler | C++14 support | Compiling NUClear and your project |
-| CMake | 3.15 | Build system |
-| Git | Any recent version | Cloning the repository |
+| Requirement  | Minimum Version    | Purpose                            |
+| ------------ | ------------------ | ---------------------------------- |
+| C++ compiler | C++14 support      | Compiling NUClear and your project |
+| CMake        | 3.15               | Build system                       |
+| Git          | Any recent version | Cloning the repository             |
 
 ## Installing Dependencies
 
@@ -28,6 +28,7 @@ Before you begin, make sure you have the following tools installed:
     ```
 
     !!! note
+
         You need GCC 7 or later for C++17 support. Ubuntu 18.04+ ships with GCC 7 by default.
 
 === "macOS"
@@ -43,15 +44,17 @@ Before you begin, make sure you have the following tools installed:
     ```
 
     !!! note
+
         Apple Clang 10+ (Xcode 10+) supports C++17. Verify with `clang++ --version`.
 
 === "Windows"
 
     1. Install [Visual Studio 2019](https://visualstudio.microsoft.com/) or later with the **Desktop development with C++** workload.
-    2. Install [CMake](https://cmake.org/download/) (3.15 or later). Ensure it is added to your PATH.
-    3. Install [Git for Windows](https://git-scm.com/download/win).
+    1. Install [CMake](https://cmake.org/download/) (3.15 or later). Ensure it is added to your PATH.
+    1. Install [Git for Windows](https://git-scm.com/download/win).
 
     !!! note
+
         MSVC 19.14+ (Visual Studio 2017 15.7+) supports C++17, but Visual Studio 2019 or later is recommended.
 
 ## Clone the Repository
@@ -62,6 +65,7 @@ cd NUClear
 ```
 
 !!! tip
+
     If you want a specific release, check out a tag after cloning:
 
     ```bash
@@ -112,6 +116,7 @@ target_link_libraries(my_app PRIVATE NUClear::nuclear)
 ```
 
 !!! tip
+
     You can also use CMake's `FetchContent` module to download NUClear automatically:
 
     ```cmake
@@ -179,6 +184,7 @@ target_link_libraries(my_app PRIVATE NUClear::nuclear)
     ```
 
 !!! tip "Custom install prefix"
+
     To install to a custom location instead of the system default:
 
     ```bash
@@ -287,11 +293,13 @@ NUClear is installed and working!
 ```
 
 !!! warning
+
     If you used a custom install prefix, remember to pass `-DCMAKE_PREFIX_PATH=/path/to/install` when configuring your test project.
 
 ## Troubleshooting
 
 ??? "CMake cannot find NUClear (`Could not find a package configuration file provided by "NUClear"`)"
+
     This means CMake cannot locate `NUClearConfig.cmake`. Solutions:
 
     - Ensure you ran `cmake --install .` in the NUClear build directory.
@@ -299,6 +307,7 @@ NUClear is installed and working!
     - Check that the install path contains `lib/cmake/NUClear/NUClearConfig.cmake`.
 
 ??? "Compiler errors about C++17 features"
+
     NUClear requires C++17. Ensure your compiler supports it and that your project enables it:
 
     ```cmake
@@ -313,6 +322,7 @@ NUClear is installed and working!
     ```
 
 ??? "Linker errors about undefined references to `pthread`"
+
     On Linux, you may need to link the threading library:
 
     ```cmake
@@ -321,9 +331,11 @@ NUClear is installed and working!
     ```
 
     !!! note
+
         The `NUClear::nuclear` target should propagate this dependency automatically. If you see this error, ensure you're using `target_link_libraries` with the `NUClear::nuclear` target (not just `nuclear`).
 
 ??? "Permission denied during install on Linux/macOS"
+
     The default install prefix (`/usr/local`) requires root permissions:
 
     ```bash

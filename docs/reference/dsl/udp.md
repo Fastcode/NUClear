@@ -12,29 +12,29 @@ on<UDP::Multicast>(multicast_address, port)
 
 ## Modes
 
-| Mode             | Arguments                  | Description                              |
-| ---------------- | -------------------------- | ---------------------------------------- |
-| `UDP`            | `port`                     | Listen for unicast packets on `port`     |
-| `UDP::Broadcast` | `port`                     | Listen for broadcast packets on `port`   |
-| `UDP::Multicast` | `multicast_address`, `port`| Join a multicast group and listen        |
+| Mode             | Arguments                   | Description                            |
+| ---------------- | --------------------------- | -------------------------------------- |
+| `UDP`            | `port`                      | Listen for unicast packets on `port`   |
+| `UDP::Broadcast` | `port`                      | Listen for broadcast packets on `port` |
+| `UDP::Multicast` | `multicast_address`, `port` | Join a multicast group and listen      |
 
 ## Parameters
 
 | Parameter           | Type          | Description                                      |
 | ------------------- | ------------- | ------------------------------------------------ |
-| `port`              | `in_port_t`  | The UDP port to bind and listen on               |
+| `port`              | `in_port_t`   | The UDP port to bind and listen on               |
 | `multicast_address` | `std::string` | Multicast group address to join (multicast only) |
 
 ## Callback Argument
 
 The callback receives a `const UDP::Packet&` with the following fields:
 
-| Field    | Type                    | Description                                  |
-| -------- | ----------------------- | -------------------------------------------- |
-| `valid`  | `bool`                  | Whether the packet was received successfully |
-| `local`  | address struct          | Local address the packet was received on     |
-| `remote` | address struct          | Remote address of the sender                 |
-| `payload`| `std::vector<uint8_t>`  | Raw packet data                              |
+| Field     | Type                   | Description                                  |
+| --------- | ---------------------- | -------------------------------------------- |
+| `valid`   | `bool`                 | Whether the packet was received successfully |
+| `local`   | address struct         | Local address the packet was received on     |
+| `remote`  | address struct         | Remote address of the sender                 |
+| `payload` | `std::vector<uint8_t>` | Raw packet data                              |
 
 ## Behavior
 

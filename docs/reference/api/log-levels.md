@@ -10,23 +10,23 @@
 
 ### Values
 
-| Level | Value | Description |
-|-------|-------|-------------|
-| `TRACE` | 1 | Extremely detailed execution tracing |
-| `DEBUG` | 2 | Diagnostic information; inputs/outputs of computation |
-| `INFO` | 3 | High-level operational messages |
-| `WARN` | 4 | Non-fatal issues requiring attention |
-| `ERROR` | 5 | Unexpected behaviour; constraint violations |
-| `FATAL` | 6 | Unrecoverable system failure |
+| Level   | Value | Description                                           |
+| ------- | ----- | ----------------------------------------------------- |
+| `TRACE` | 1     | Extremely detailed execution tracing                  |
+| `DEBUG` | 2     | Diagnostic information; inputs/outputs of computation |
+| `INFO`  | 3     | High-level operational messages                       |
+| `WARN`  | 4     | Non-fatal issues requiring attention                  |
+| `ERROR` | 5     | Unexpected behaviour; constraint violations           |
+| `FATAL` | 6     | Unrecoverable system failure                          |
 
 `UNKNOWN` (value 0) is internal-only; used when a log originates outside a reaction context.
 
 ### Reactor Log Control
 
-| Member | Default | Description |
-|--------|---------|-------------|
-| `log_level` | `INFO` | Messages at or above this level are displayed |
-| `min_log_level` | `FATAL` | Always emitted regardless of `log_level` |
+| Member          | Default | Description                                   |
+| --------------- | ------- | --------------------------------------------- |
+| `log_level`     | `INFO`  | Messages at or above this level are displayed |
+| `min_log_level` | `FATAL` | Always emitted regardless of `log_level`      |
 
 If `log_level` is set below `min_log_level`, both thresholds apply (the lower of the two determines display).
 

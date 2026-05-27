@@ -9,13 +9,13 @@ Coding conventions for the NUClear codebase.
 
 ## Naming
 
-| Element | Convention | Example |
-|---------|-----------|---------|
-| Variables, functions | `snake_case` | `log_level`, `emit_data()` |
-| Types, classes, structs | `PascalCase` | `PowerPlant`, `ReactionTask` |
-| Template parameters | `PascalCase` | `typename T`, `typename DSLWords` |
-| Constants | `UPPER_SNAKE_CASE` or `constexpr` variable | `LogLevel::INFO` |
-| Namespaces | `snake_case` | `NUClear::dsl::word` |
+| Element                 | Convention                                 | Example                           |
+| ----------------------- | ------------------------------------------ | --------------------------------- |
+| Variables, functions    | `snake_case`                               | `log_level`, `emit_data()`        |
+| Types, classes, structs | `PascalCase`                               | `PowerPlant`, `ReactionTask`      |
+| Template parameters     | `PascalCase`                               | `typename T`, `typename DSLWords` |
+| Constants               | `UPPER_SNAKE_CASE` or `constexpr` variable | `LogLevel::INFO`                  |
+| Namespaces              | `snake_case`                               | `NUClear::dsl::word`              |
 
 ## Formatting
 

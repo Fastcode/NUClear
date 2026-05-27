@@ -111,10 +111,10 @@ stateDiagram-v2
 ```
 
 1. **Created** — an `emit()` triggers a reaction, creating a task with bound data
-2. **Queued** — the task enters the scheduler's priority queue for its target pool
-3. **Scheduled** — a thread from the pool picks up the highest-priority available task
-4. **Executing** — group constraints are satisfied, the callback runs
-5. **Completed** — the callback returns, any group locks are released
+1. **Queued** — the task enters the scheduler's priority queue for its target pool
+1. **Scheduled** — a thread from the pool picks up the highest-priority available task
+1. **Executing** — group constraints are satisfied, the callback runs
+1. **Completed** — the callback returns, any group locks are released
 
 Tasks can also be **dropped** if the reaction has been disabled (via [`ReactionHandle`](../reference/api/reaction-handle.md)) or if a [`Buffer`](../reference/dsl/buffer.md) limit is exceeded.
 

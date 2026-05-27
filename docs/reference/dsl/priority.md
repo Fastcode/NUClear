@@ -14,13 +14,13 @@ on<Trigger<T>, Priority::IDLE>()
 
 ## Levels
 
-| Level | Value | Use case |
-|-------|-------|----------|
-| REALTIME | 1000 | Safety-critical, hard deadlines |
-| HIGH | 750 | Important, time-sensitive |
-| NORMAL | 500 | Default for all reactions |
-| LOW | 250 | Background processing |
-| IDLE | 0 | Only when nothing else to do |
+| Level    | Value | Use case                        |
+| -------- | ----- | ------------------------------- |
+| REALTIME | 1000  | Safety-critical, hard deadlines |
+| HIGH     | 750   | Important, time-sensitive       |
+| NORMAL   | 500   | Default for all reactions       |
+| LOW      | 250   | Background processing           |
+| IDLE     | 0     | Only when nothing else to do    |
 
 ## Behaviour
 

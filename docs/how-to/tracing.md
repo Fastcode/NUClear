@@ -50,10 +50,10 @@ public:
 
 The `BeginTrace` message takes two parameters:
 
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `file` | `std::string` | `"trace.trace"` | Path to the output trace file |
-| `logs` | `bool` | `true` | Whether to include log messages in the trace |
+| Parameter | Type          | Default         | Description                                  |
+| --------- | ------------- | --------------- | -------------------------------------------- |
+| `file`    | `std::string` | `"trace.trace"` | Path to the output trace file                |
+| `logs`    | `bool`        | `true`          | Whether to include log messages in the trace |
 
 ## Stopping a Trace
 
@@ -70,8 +70,8 @@ This closes the trace file cleanly. If you don't emit `EndTrace`, the file will 
 Once you have a `.trace` file:
 
 1. Open [https://ui.perfetto.dev/](https://ui.perfetto.dev/) in your browser
-2. Click **Open trace file** (or drag and drop)
-3. Select your `.trace` file
+1. Click **Open trace file** (or drag and drop)
+1. Select your `.trace` file
 
 The trace viewer shows:
 
@@ -120,15 +120,16 @@ Starting a new trace while one is already active will close the previous trace f
 
 The trace captures these events for every reaction:
 
-| Event | Description |
-|-------|-------------|
-| **Created** | A task was generated (data emitted, preconditions checked) |
-| **Started** | A task began executing on a thread |
-| **Finished** | A task completed execution |
-| **Blocked** | A task was blocked by scheduling constraints (Sync, Group, etc.) |
-| **Missing Data** | A task was dropped because required data was unavailable |
+| Event            | Description                                                      |
+| ---------------- | ---------------------------------------------------------------- |
+| **Created**      | A task was generated (data emitted, preconditions checked)       |
+| **Started**      | A task began executing on a thread                               |
+| **Finished**     | A task completed execution                                       |
+| **Blocked**      | A task was blocked by scheduling constraints (Sync, Group, etc.) |
+| **Missing Data** | A task was dropped because required data was unavailable         |
 
 Each event records:
+
 - Wall-clock timestamp
 - Thread CPU time
 - Thread and pool identity
@@ -138,28 +139,36 @@ Each event records:
 ## Tips
 
 !!! tip "Name your reactions"
+
     Give reactions descriptive labels to make traces easier to read:
+
     ```cpp
     on<Trigger<Image>>().then("Vision::processFrame", [](const Image& img) {
         // ...
     });
     ```
+
     Without a label, the trace uses the demangled DSL type signature, which can be verbose.
 
 !!! tip "Disable logs for performance traces"
+
     If you're measuring timing and don't need log messages cluttering the trace, disable them:
+
     ```cpp
     emit(std::make_unique<NUClear::message::BeginTrace>("perf.trace", false));
     ```
 
 !!! tip "Use in tests"
+
     NUClear's test utilities provide a helper for adding tracing to test binaries:
+
     ```cpp
     #include "test_util/common.hpp"
 
     // In your test setup:
     test_util::add_tracing(plant);
     ```
+
     This writes a trace file alongside the test binary with a `.trace` extension.
 
 ## See Also

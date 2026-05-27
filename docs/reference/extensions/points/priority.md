@@ -11,12 +11,12 @@ static int priority(threading::ReactionTask& task)
 
 ## Details
 
-| Aspect | Detail |
-|--------|--------|
-| **When** | Task creation (determines queue ordering) |
-| **Thread** | The emitter's thread (the thread that called `emit()`) |
-| **Returns** | `int` — higher values mean higher priority |
-| **Fusion** | Maximum value wins. If multiple words provide priority, the highest is used. |
+| Aspect      | Detail                                                                       |
+| ----------- | ---------------------------------------------------------------------------- |
+| **When**    | Task creation (determines queue ordering)                                    |
+| **Thread**  | The emitter's thread (the thread that called `emit()`)                       |
+| **Returns** | `int` — higher values mean higher priority                                   |
+| **Fusion**  | Maximum value wins. If multiple words provide priority, the highest is used. |
 
 ## Context & Arguments
 

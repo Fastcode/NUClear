@@ -10,8 +10,8 @@ on<Trigger<T>, Sync<SyncGroup>>()
 
 ## Parameters
 
-| Parameter | Description |
-|-----------|-------------|
+| Parameter   | Description                                                                                |
+| ----------- | ------------------------------------------------------------------------------------------ |
 | `SyncGroup` | An empty struct used as a compile-time type tag to identify the group. Never instantiated. |
 
 ## Behavior
@@ -57,6 +57,7 @@ on<Trigger<Write>, Sync<DatabaseSync>>().then([](const Write& w) {
 ```
 
 !!! tip
+
     Prefer `Sync` over manual mutexes. The scheduler-based exclusion avoids deadlocks, eliminates lock contention, and respects task priority ordering.
 
 ## Notes

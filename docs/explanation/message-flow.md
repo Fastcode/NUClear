@@ -51,6 +51,7 @@ This is a thread-local pointer that `get()` reads during task creation. It point
 ### 3. Create Task via `get_task()`
 
 The reaction's `CallbackGenerator` runs:
+
 - Checks the precondition (e.g., is the reaction enabled? Is the buffer full?)
 - Calls `DSL::get()` which reads from ThreadStore (for Trigger data) or DataStore (for With data)
 - Validates all required data is present
@@ -159,6 +160,7 @@ Not every emit results in a task executing. There are two main "drop" points:
 ### Precondition Fails
 
 If the DSL precondition returns false, no task is created. Examples:
+
 - **[`Single`](../reference/dsl/single.md)** — reaction is already running, new task blocked
 - **[`Buffer`](../reference/dsl/buffer.md)`<N>`** — buffer is full, new task blocked
 - **Reaction disabled** — `handle.disable()` was called
@@ -166,6 +168,7 @@ If the DSL precondition returns false, no task is created. Examples:
 ### Missing Data
 
 If `DSL::get()` returns null for any required element, the task is dropped. This typically happens with:
+
 - **`With<T>`** — no data of type `T` has been emitted yet
 - **Multi-trigger scenarios** — one trigger type has data, another doesn't yet
 
@@ -185,10 +188,10 @@ flowchart TD
 
 These two stores serve different purposes:
 
-| Store | Scope | Purpose | When Read |
-|-------|-------|---------|-----------|
-| `ThreadStore<T>` | Thread-local | Points to "triggering" data | During `get_task()` creation |
-| `DataStore<T>` | Global (static) | Holds latest emitted value | By `With<T>` at task creation |
+| Store            | Scope           | Purpose                     | When Read                     |
+| ---------------- | --------------- | --------------------------- | ----------------------------- |
+| `ThreadStore<T>` | Thread-local    | Points to "triggering" data | During `get_task()` creation  |
+| `DataStore<T>`   | Global (static) | Holds latest emitted value  | By `With<T>` at task creation |
 
 The ThreadStore exists so that if multiple emits happen rapidly, each triggered reaction sees the data that *caused* its trigger — not whatever happened to be emitted most recently. The DataStore provides the "latest value" semantics that `With<T>` relies on.
 

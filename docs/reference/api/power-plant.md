@@ -112,8 +112,8 @@ Logs a message at the given level. Arguments are streamed into a string.
 
 ### Static Members
 
-| Member | Description |
-|--------|-------------|
+| Member                          | Description                                       |
+| ------------------------------- | ------------------------------------------------- |
 | `static PowerPlant* powerplant` | Global singleton pointer to the active PowerPlant |
 
 ## Example

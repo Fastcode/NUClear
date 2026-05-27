@@ -17,8 +17,8 @@ emit<Scope::LOCAL>(std::make_unique<T>(args...));
 When data is emitted with `Scope::LOCAL`:
 
 1. All reactions bound to `Trigger<T>` generate tasks queued for thread pool execution.
-2. The data is stored in the global `DataStore<T>`, making it accessible to subsequent `With<T>` retrievals.
-3. Tasks are scheduled normally — execution order depends on priority and thread availability.
+1. The data is stored in the global `DataStore<T>`, making it accessible to subsequent `With<T>` retrievals.
+1. Tasks are scheduled normally — execution order depends on priority and thread availability.
 
 ```mermaid
 sequenceDiagram

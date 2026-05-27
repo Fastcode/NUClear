@@ -11,20 +11,20 @@ on<TCP>(port, bind_address).then([](const TCP::Connection& connection) { /* ... 
 
 ## Parameters
 
-| Parameter      | Type            | Description                                      |
-| -------------- | --------------- | ------------------------------------------------ |
-| `port`         | `in_port_t`     | Port to listen on. Use `0` for auto-assignment.  |
-| `bind_address` | `std::string`   | Optional. Address to bind to (default: all interfaces). |
+| Parameter      | Type          | Description                                             |
+| -------------- | ------------- | ------------------------------------------------------- |
+| `port`         | `in_port_t`   | Port to listen on. Use `0` for auto-assignment.         |
+| `bind_address` | `std::string` | Optional. Address to bind to (default: all interfaces). |
 
 ## Behavior
 
 `TCP` opens a listening socket on the specified port. When a remote client establishes a connection, the reaction fires **once** with a `TCP::Connection` containing:
 
-| Field    | Type                          | Description                        |
-| -------- | ----------------------------- | ---------------------------------- |
-| `fd`     | `fd_t`                        | File descriptor for the new socket |
-| `local`  | `util::network::sock_t`       | Local endpoint address             |
-| `remote` | `util::network::sock_t`       | Remote peer address                |
+| Field    | Type                    | Description                        |
+| -------- | ----------------------- | ---------------------------------- |
+| `fd`     | `fd_t`                  | File descriptor for the new socket |
+| `local`  | `util::network::sock_t` | Local endpoint address             |
+| `remote` | `util::network::sock_t` | Remote peer address                |
 
 The connection object is boolean-convertible — it evaluates to `false` if the accept failed.
 

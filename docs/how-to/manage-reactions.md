@@ -12,12 +12,12 @@ Store the [`ReactionHandle`](../reference/api/reaction-handle.md) returned by `o
 
 ### ReactionHandle API
 
-| Method       | Description                                                  |
-|--------------|--------------------------------------------------------------|
-| `enable()`   | Allow the reaction to be triggered (default state)           |
-| `disable()`  | Prevent the reaction from triggering; configuration is kept  |
-| `enabled()`  | Returns `true` if the reaction is currently enabled          |
-| `unbind()`   | Permanently remove the reaction from the system              |
+| Method      | Description                                                 |
+| ----------- | ----------------------------------------------------------- |
+| `enable()`  | Allow the reaction to be triggered (default state)          |
+| `disable()` | Prevent the reaction from triggering; configuration is kept |
+| `enabled()` | Returns `true` if the reaction is currently enabled         |
+| `unbind()`  | Permanently remove the reaction from the system             |
 
 ### 1. Store the Handle
 

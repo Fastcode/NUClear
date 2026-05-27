@@ -12,19 +12,19 @@ on<Network<T>>().then([](const NetworkSource& src, const T& data) {
 
 ## Parameters
 
-| Parameter | Type               | Description                                      |
-| --------- | ------------------ | ------------------------------------------------ |
-| `T`       | typename           | The message type to listen for from the network  |
-| `src`     | `NetworkSource`    | Metadata about the sending peer                  |
-| `data`    | `const T&`         | The deserialized message payload                 |
+| Parameter | Type            | Description                                     |
+| --------- | --------------- | ----------------------------------------------- |
+| `T`       | typename        | The message type to listen for from the network |
+| `src`     | `NetworkSource` | Metadata about the sending peer                 |
+| `data`    | `const T&`      | The deserialized message payload                |
 
 ### NetworkSource
 
-| Field      | Type               | Description                                      |
-| ---------- | ------------------ | ------------------------------------------------ |
-| `name`     | `std::string`      | Name of the sending peer                         |
-| `address`  | socket address     | Network address of the sender                    |
-| `reliable` | `bool`             | Whether the message was sent via reliable transport |
+| Field      | Type           | Description                                         |
+| ---------- | -------------- | --------------------------------------------------- |
+| `name`     | `std::string`  | Name of the sending peer                            |
+| `address`  | socket address | Network address of the sender                       |
+| `reliable` | `bool`         | Whether the message was sent via reliable transport |
 
 ## Behavior
 
@@ -75,6 +75,7 @@ on<Network<SensorReading>>().then([](const NetworkSource& src, const SensorReadi
 ## Notes
 
 !!! warning
+
     `NetworkConfiguration` must be emitted before any `Network<T>` reactions will fire. Without it, the networking subsystem is not started.
 
 - Only reacts to messages received over the network, never to local emits.

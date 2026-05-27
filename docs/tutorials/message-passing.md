@@ -7,8 +7,8 @@ In this tutorial, you'll build a system where multiple reactors communicate thro
 A sensor data pipeline with three reactors:
 
 1. **SensorReactor** — Simulates a temperature sensor, periodically emitting readings
-2. **ConfigReactor** — Emits a configuration message that sets the temperature threshold
-3. **MonitorReactor** — Receives sensor readings, checks them against the threshold, and logs alerts
+1. **ConfigReactor** — Emits a configuration message that sets the temperature threshold
+1. **MonitorReactor** — Receives sensor readings, checks them against the threshold, and logs alerts
 
 This mirrors real-world systems: producers generate data, configuration is provided separately, and consumers combine multiple data sources to make decisions.
 
@@ -261,10 +261,10 @@ public:
 
 Notice the change in the callback signature:
 
-| DSL Word | Callback Parameter Type |
-|----------|------------------------|
-| `Trigger<T>` | `const T&` |
-| `With<T>` | `const T&` |
+| DSL Word            | Callback Parameter Type    |
+| ------------------- | -------------------------- |
+| `Trigger<T>`        | `const T&`                 |
+| `With<T>`           | `const T&`                 |
 | `Optional<With<T>>` | `std::shared_ptr<const T>` |
 
 When data is wrapped in `Optional`, you receive a `std::shared_ptr<const T>` that may be `nullptr` if no data has been emitted yet. Always check before using it.

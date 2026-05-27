@@ -7,8 +7,8 @@ In this tutorial, you'll build a complete NUClear application from scratch. By t
 A small application with a single reactor that:
 
 1. Logs a greeting when the system starts
-2. Emits a custom message
-3. Reacts to that message and logs its contents
+1. Emits a custom message
+1. Reacts to that message and logs its contents
 
 It's simple, but it demonstrates the fundamental pattern behind every NUClear system: **reactors emit messages, and other reactions respond to them**.
 
@@ -51,8 +51,8 @@ A **reactor** is a class that groups related reactions together. Think of it as 
 Every reactor must:
 
 1. Inherit from `NUClear::Reactor`
-2. Accept a `std::unique_ptr<NUClear::Environment>` in its constructor
-3. Pass that environment to the base class
+1. Accept a `std::unique_ptr<NUClear::Environment>` in its constructor
+1. Pass that environment to the base class
 
 Here's the skeleton:
 

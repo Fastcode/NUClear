@@ -7,9 +7,9 @@
 The standard pattern for testing a reactor:
 
 1. Create a [`PowerPlant`](../reference/api/power-plant.md) with single-threaded execution
-2. Install your test reactor
-3. Start the plant (runs until idle or shutdown)
-4. Assert on collected results
+1. Install your test reactor
+1. Start the plant (runs until idle or shutdown)
+1. Assert on collected results
 
 ```cpp
 NUClear::Configuration config;
@@ -93,11 +93,11 @@ Set `default_pool_concurrency = 1` to eliminate thread scheduling non-determinis
 
 ### Shutdown Strategies
 
-| Strategy | When to use |
-|----------|-------------|
-| `on<`[`Idle`](../reference/dsl/idle.md)`<>>` → `powerplant.shutdown()` | Test completes when all reactions drain |
-| Explicit `powerplant.shutdown()` in a callback | You know exactly when the test is done |
-| `powerplant.shutdown(true)` | Force immediate shutdown (timeout/failure) |
+| Strategy                                                               | When to use                                |
+| ---------------------------------------------------------------------- | ------------------------------------------ |
+| `on<`[`Idle`](../reference/dsl/idle.md)`<>>` → `powerplant.shutdown()` | Test completes when all reactions drain    |
+| Explicit `powerplant.shutdown()` in a callback                         | You know exactly when the test is done     |
+| `powerplant.shutdown(true)`                                            | Force immediate shutdown (timeout/failure) |
 
 ### Collecting Results
 

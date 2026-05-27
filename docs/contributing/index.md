@@ -12,9 +12,9 @@ Welcome! We're glad you're interested in contributing to NUClear.
 ## Getting Started
 
 1. Read the [Development Setup](development.md) guide to build and test locally
-2. Review the [Code Style](code-style.md) conventions
-3. Pick an issue labeled `good first issue` or open a new one to discuss your idea
-4. Fork the repo, create a branch, and submit a PR
+1. Review the [Code Style](code-style.md) conventions
+1. Pick an issue labeled `good first issue` or open a new one to discuss your idea
+1. Fork the repo, create a branch, and submit a PR
 
 ## Pull Request Guidelines
 

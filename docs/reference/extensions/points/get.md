@@ -11,12 +11,12 @@ static T get(threading::ReactionTask& task)
 
 ## Details
 
-| Aspect | Detail |
-|--------|--------|
-| **When** | After preconditions pass, during task creation |
-| **Thread** | The emitter's thread (the thread that called `emit()`) |
-| **Returns** | Data of any type — becomes a callback parameter |
-| **Fusion** | Each word's return is concatenated into a flattened tuple. The tuple elements are matched to callback parameters via greedy argument matching. |
+| Aspect      | Detail                                                                                                                                         |
+| ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| **When**    | After preconditions pass, during task creation                                                                                                 |
+| **Thread**  | The emitter's thread (the thread that called `emit()`)                                                                                         |
+| **Returns** | Data of any type — becomes a callback parameter                                                                                                |
+| **Fusion**  | Each word's return is concatenated into a flattened tuple. The tuple elements are matched to callback parameters via greedy argument matching. |
 
 ## Context & Arguments
 

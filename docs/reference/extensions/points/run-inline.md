@@ -11,12 +11,12 @@ static util::Inline run_inline(threading::ReactionTask& task)
 
 ## Details
 
-| Aspect | Detail |
-|--------|--------|
-| **When** | Task creation (determines execution mode) |
-| **Thread** | The emitter's thread (the thread that called `emit()`) |
-| **Returns** | `Inline::ALWAYS`, `Inline::NEVER`, or `Inline::NEUTRAL` |
-| **Fusion** | Must agree. `ALWAYS` + `NEVER` from different words throws an exception. `NEUTRAL` defers to non-neutral words. If all are `NEUTRAL`, behaviour depends on the emit scope. |
+| Aspect      | Detail                                                                                                                                                                     |
+| ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **When**    | Task creation (determines execution mode)                                                                                                                                  |
+| **Thread**  | The emitter's thread (the thread that called `emit()`)                                                                                                                     |
+| **Returns** | `Inline::ALWAYS`, `Inline::NEVER`, or `Inline::NEUTRAL`                                                                                                                    |
+| **Fusion**  | Must agree. `ALWAYS` + `NEVER` from different words throws an exception. `NEUTRAL` defers to non-neutral words. If all are `NEUTRAL`, behaviour depends on the emit scope. |
 
 ## Context & Arguments
 

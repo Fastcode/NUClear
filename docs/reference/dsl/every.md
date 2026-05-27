@@ -17,13 +17,13 @@ on<Every<>>(duration).then(callback);
 
 ## Parameters
 
-| Parameter | Description |
-|-----------|-------------|
-| `ticks`   | Number of time units between firings |
-| `period`  | A `std::chrono::duration` type (e.g., `std::chrono::seconds`) |
-| `N`       | Number of times to fire per period (frequency) |
-| `Per<period>` | Wrapper indicating frequency mode — `N` times per `period` |
-| `duration` | (Dynamic form only) A `std::chrono::duration` value passed as a runtime argument |
+| Parameter     | Description                                                                      |
+| ------------- | -------------------------------------------------------------------------------- |
+| `ticks`       | Number of time units between firings                                             |
+| `period`      | A `std::chrono::duration` type (e.g., `std::chrono::seconds`)                    |
+| `N`           | Number of times to fire per period (frequency)                                   |
+| `Per<period>` | Wrapper indicating frequency mode — `N` times per `period`                       |
+| `duration`    | (Dynamic form only) A `std::chrono::duration` value passed as a runtime argument |
 
 The callback receives no arguments.
 
@@ -76,10 +76,11 @@ public:
 ## Notes
 
 !!! warning "Timer drift under load"
+
     If a callback takes longer than the period to execute, the next firing will be scheduled in the past. The ChronoController will fire it immediately, but accumulated drift can cause bursts of rapid executions. Design callbacks to complete well within the period, or use a longer interval.
 
 - **Clock**: Every uses `NUClear::clock`, not the system wall clock. If `NUClear::clock` is adjusted (e.g., for simulation time scaling), the effective period changes accordingly.
-- **Per&lt;period&gt;**: `Every<60, Per<std::chrono::seconds>>` means 60 firings per second (60 Hz). The actual interval is `period / N`.
+- **Per\<period>**: `Every<60, Per<std::chrono::seconds>>` means 60 firings per second (60 Hz). The actual interval is `period / N`.
 - **Bind only**: Every has no `get` operation — it solely controls *when* the reaction runs, not *what data* it receives.
 - **Dynamic form**: `Every<>` accepts the period as a runtime argument to `on<>()`, useful when the interval is configuration-driven.
 

@@ -29,6 +29,7 @@ on<Trigger<RenderCommand>, MainThread>().then([](const RenderCommand& cmd) {
 - Useful for APIs that require main-thread access (OpenGL, macOS AppKit, some GUI frameworks).
 
 !!! warning
+
     Scheduling too many `MainThread` tasks can create a bottleneck, since they execute sequentially on a single thread.
 
 ## See Also

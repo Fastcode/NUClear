@@ -7,8 +7,8 @@ In this tutorial, you'll build a system that uses timers and periodic execution 
 A monitoring system with three reactors:
 
 1. **DataGenerator** — produces sensor readings at a fixed rate using [`Every`](../reference/dsl/every.md)
-2. **RateMonitor** — measures throughput using frequency-based timing and reports statistics
-3. **HealthChecker** — detects when the data stream stalls using a [`Watchdog`](../reference/dsl/watchdog.md)
+1. **RateMonitor** — measures throughput using frequency-based timing and reports statistics
+1. **HealthChecker** — detects when the data stream stalls using a [`Watchdog`](../reference/dsl/watchdog.md)
 
 By the end, you'll understand how to schedule work at fixed intervals, run continuous background tasks, and detect when expected events don't arrive.
 

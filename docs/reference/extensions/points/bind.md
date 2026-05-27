@@ -11,12 +11,12 @@ static void bind(const std::shared_ptr<threading::Reaction>& reaction, Args... a
 
 ## Details
 
-| Aspect | Detail |
-|--------|--------|
-| **When** | Reaction registration time (inside `.then()`) |
-| **Thread** | Main thread during construction, or whichever thread calls `on<>().then()` at runtime |
-| **Returns** | `void` (return values are discarded) |
-| **Fusion** | All words with `bind` are called sequentially. Runtime arguments (from `on<>(args...)`) are consumed left-to-right by whichever word's `bind` accepts them. |
+| Aspect      | Detail                                                                                                                                                      |
+| ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **When**    | Reaction registration time (inside `.then()`)                                                                                                               |
+| **Thread**  | Main thread during construction, or whichever thread calls `on<>().then()` at runtime                                                                       |
+| **Returns** | `void` (return values are discarded)                                                                                                                        |
+| **Fusion**  | All words with `bind` are called sequentially. Runtime arguments (from `on<>(args...)`) are consumed left-to-right by whichever word's `bind` accepts them. |
 
 ## Context & Arguments
 

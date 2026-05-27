@@ -13,16 +13,16 @@ on<Trigger<Sensor>, With<Config>, Priority::HIGH>().then(callback);
 The Fusion Engine:
 
 1. Creates `Fusion<Trigger<Sensor>, With<Config>, Priority::HIGH>`
-2. For each extension point (bind, get, priority, etc.), finds which words implement it
-3. Combines the matching words using that point's fusion strategy
+1. For each extension point (bind, get, priority, etc.), finds which words implement it
+1. Combines the matching words using that point's fusion strategy
 
 ## FindWords
 
 For each extension point, `FindWords` filters the word list to only those that implement the relevant method. It uses a two-step resolution:
 
 1. Check if the word itself has the method (e.g., `Word::bind` exists)
-2. If not, check if `DSLProxy<Word>` has the method
-3. If neither, the word is excluded for that extension point
+1. If not, check if `DSLProxy<Word>` has the method
+1. If neither, the word is excluded for that extension point
 
 ```mermaid
 flowchart TD
@@ -91,18 +91,18 @@ This is how a single `on<>()` call can pass different configuration arguments to
 
 Each extension point uses a specific strategy to combine results from multiple words:
 
-| Extension Point | Strategy | Implementation |
-|----------------|----------|----------------|
-| `bind` | FunctionFusion | Each word called with consumed args, results concatenated |
-| `get` | FunctionFusion | Each word called, results flattened into tuple |
-| `scope` | FunctionFusion | Each word called, all locks held simultaneously |
-| `precondition` | Recursive AND | Short-circuits on first `false` |
-| `pre_run` | Sequential | Each word called in order |
-| `post_run` | Sequential | Each word called in order |
-| `priority` | Maximum | `std::max` across all words |
-| `pool` | Exclusive | More than one throws `std::invalid_argument` |
-| `group` | Set union | All group sets merged |
-| `run_inline` | Agreement | `ALWAYS` + `NEVER` throws `std::logic_error` |
+| Extension Point | Strategy       | Implementation                                            |
+| --------------- | -------------- | --------------------------------------------------------- |
+| `bind`          | FunctionFusion | Each word called with consumed args, results concatenated |
+| `get`           | FunctionFusion | Each word called, results flattened into tuple            |
+| `scope`         | FunctionFusion | Each word called, all locks held simultaneously           |
+| `precondition`  | Recursive AND  | Short-circuits on first `false`                           |
+| `pre_run`       | Sequential     | Each word called in order                                 |
+| `post_run`      | Sequential     | Each word called in order                                 |
+| `priority`      | Maximum        | `std::max` across all words                               |
+| `pool`          | Exclusive      | More than one throws `std::invalid_argument`              |
+| `group`         | Set union      | All group sets merged                                     |
+| `run_inline`    | Agreement      | `ALWAYS` + `NEVER` throws `std::logic_error`              |
 
 ## The DSL Template Parameter
 

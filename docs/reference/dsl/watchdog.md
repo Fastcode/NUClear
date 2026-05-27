@@ -14,11 +14,11 @@ on<Watchdog<Group, ticks, period>>(key).then(callback);
 
 ## Parameters
 
-| Parameter | Description |
-|-----------|-------------|
-| `Group`   | A type used to identify this watchdog. Must be a declared type within the system |
-| `ticks`   | Number of time units before the watchdog expires |
-| `period`  | A `std::chrono::duration` type (e.g., `std::chrono::seconds`) |
+| Parameter | Description                                                                                       |
+| --------- | ------------------------------------------------------------------------------------------------- |
+| `Group`   | A type used to identify this watchdog. Must be a declared type within the system                  |
+| `ticks`   | Number of time units before the watchdog expires                                                  |
+| `period`  | A `std::chrono::duration` type (e.g., `std::chrono::seconds`)                                     |
 | `key`     | (Optional) A runtime argument to distinguish independent watchdog instances within the same group |
 
 The callback receives no arguments.
@@ -116,6 +116,7 @@ public:
 ## Notes
 
 !!! tip "Common pattern: fault detection"
+
     Watchdog is the primary mechanism for detecting stalled or unresponsive subsystems. Pair it with a recovery action — restarting a module, raising an alarm, or switching to a fallback mode.
 
 - **Re-arming**: After the watchdog fires, it automatically resets. The reaction will fire repeatedly every `ticks * period` until serviced again.

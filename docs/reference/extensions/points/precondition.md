@@ -11,12 +11,12 @@ static bool precondition(threading::ReactionTask& task)
 
 ## Details
 
-| Aspect | Detail |
-|--------|--------|
-| **When** | After task creation, before `get` and submission |
-| **Thread** | The emitter's thread (the thread that called `emit()`) |
-| **Returns** | `bool` — `true` to allow, `false` to drop |
-| **Fusion** | Logical AND with short-circuit evaluation. First `false` stops evaluation and drops the task. |
+| Aspect      | Detail                                                                                        |
+| ----------- | --------------------------------------------------------------------------------------------- |
+| **When**    | After task creation, before `get` and submission                                              |
+| **Thread**  | The emitter's thread (the thread that called `emit()`)                                        |
+| **Returns** | `bool` — `true` to allow, `false` to drop                                                     |
+| **Fusion**  | Logical AND with short-circuit evaluation. First `false` stops evaluation and drops the task. |
 
 ## Context & Arguments
 

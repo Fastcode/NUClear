@@ -15,9 +15,9 @@ flowchart LR
 
 ## Available Tutorials
 
-| Tutorial | Description |
-|----------|-------------|
-| [Installation](installation.md) | Get NUClear set up on your machine |
-| [Your First Reactor](first-reactor.md) | Build your first reactive component |
-| [Message Passing](message-passing.md) | Learn how reactors communicate through messages |
-| [Periodic Tasks](periodic-tasks.md) | Set up timers and scheduled work |
+| Tutorial                               | Description                                     |
+| -------------------------------------- | ----------------------------------------------- |
+| [Installation](installation.md)        | Get NUClear set up on your machine              |
+| [Your First Reactor](first-reactor.md) | Build your first reactive component             |
+| [Message Passing](message-passing.md)  | Learn how reactors communicate through messages |
+| [Periodic Tasks](periodic-tasks.md)    | Set up timers and scheduled work                |

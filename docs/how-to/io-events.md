@@ -12,12 +12,12 @@ Use `on<`[`IO`](../reference/dsl/io.md)`>(fd, events)` to bind a reaction to fil
 
 ### Event Types
 
-| Event       | Description                                      |
-|-------------|--------------------------------------------------|
-| `IO::READ`  | Data is available to read                        |
-| `IO::WRITE` | File descriptor is ready to accept writes        |
-| `IO::CLOSE` | The remote end closed the connection             |
-| `IO::ERROR` | An error occurred on the file descriptor         |
+| Event       | Description                               |
+| ----------- | ----------------------------------------- |
+| `IO::READ`  | Data is available to read                 |
+| `IO::WRITE` | File descriptor is ready to accept writes |
+| `IO::CLOSE` | The remote end closed the connection      |
+| `IO::ERROR` | An error occurred on the file descriptor  |
 
 Events can be combined with bitwise OR: `IO::READ | IO::ERROR`.
 

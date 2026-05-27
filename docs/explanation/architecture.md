@@ -69,8 +69,8 @@ This means:
 A **Reactor** is a self-contained component that:
 
 1. **Declares its interests** — "When X happens, run this function"
-2. **Processes events** — the function runs with the relevant data
-3. **Produces outputs** — emits new messages for others to react to
+1. **Processes events** — the function runs with the relevant data
+1. **Produces outputs** — emits new messages for others to react to
 
 ```cpp
 class Vision : public NUClear::Reactor {
@@ -139,14 +139,14 @@ NUClear is built on the principle of **zero-cost abstractions**:
 
 ## How NUClear Compares
 
-| Aspect | NUClear | ROS 2 |
-|--------|---------|-------|
-| Language | C++14+ | C++/Python |
-| Message routing | Compile-time types | Runtime topic strings |
-| Threading | Built-in scheduler with pools | Executor model |
-| Overhead | Near-zero (templates) | Serialization + IPC |
-| Scope | In-process (+ network) | Distributed by default |
-| Real-time | Designed for it | Possible (DDS) |
+| Aspect          | NUClear                       | ROS 2                  |
+| --------------- | ----------------------------- | ---------------------- |
+| Language        | C++14+                        | C++/Python             |
+| Message routing | Compile-time types            | Runtime topic strings  |
+| Threading       | Built-in scheduler with pools | Executor model         |
+| Overhead        | Near-zero (templates)         | Serialization + IPC    |
+| Scope           | In-process (+ network)        | Distributed by default |
+| Real-time       | Designed for it               | Possible (DDS)         |
 
 NUClear is intentionally focused on **in-process concurrency** with optional networking, rather than being a distributed middleware. This keeps it lightweight and predictable — exactly what you want when reactions need to complete in microseconds.
 

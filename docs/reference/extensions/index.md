@@ -43,12 +43,12 @@ The extension system has several components:
 
 ## In This Section
 
-| Page | Description |
-|------|-------------|
-| [Extension Points](extension-points.md) | All available hooks and their signatures |
-| [Fusion Engine](fusion-engine.md) | How words are combined at compile time |
-| [Data Stores](data-stores.md) | Storage mechanisms for inter-component communication |
-| [Built-in Extensions](built-in-extensions.md) | The four controller reactors shipped with NUClear |
+| Page                                          | Description                                          |
+| --------------------------------------------- | ---------------------------------------------------- |
+| [Extension Points](extension-points.md)       | All available hooks and their signatures             |
+| [Fusion Engine](fusion-engine.md)             | How words are combined at compile time               |
+| [Data Stores](data-stores.md)                 | Storage mechanisms for inter-component communication |
+| [Built-in Extensions](built-in-extensions.md) | The four controller reactors shipped with NUClear    |
 
 ## See Also
 

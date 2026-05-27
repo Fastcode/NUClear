@@ -14,19 +14,19 @@ emit<Scope::WATCHDOG>(ServiceWatchdog<Group>(key));
 
 ## Parameters
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `Group` | type | The watchdog group type matching the `Watchdog<Group, ...>` declaration |
-| `key` | (varies) | (Optional) Runtime key identifying a specific watchdog instance within the group |
+| Parameter | Type     | Description                                                                      |
+| --------- | -------- | -------------------------------------------------------------------------------- |
+| `Group`   | type     | The watchdog group type matching the `Watchdog<Group, ...>` declaration          |
+| `key`     | (varies) | (Optional) Runtime key identifying a specific watchdog instance within the group |
 
 ## Behavior
 
 When a watchdog is serviced:
 
 1. The service time for the specified watchdog is updated to the current time.
-2. The watchdog's deadline resets to `now + ticks * period`.
-3. If serviced before the deadline, the watchdog reaction never fires.
-4. If the watchdog is not serviced before the next deadline, the reaction fires and then automatically re-arms.
+1. The watchdog's deadline resets to `now + ticks * period`.
+1. If serviced before the deadline, the watchdog reaction never fires.
+1. If the watchdog is not serviced before the next deadline, the reaction fires and then automatically re-arms.
 
 ```mermaid
 ---

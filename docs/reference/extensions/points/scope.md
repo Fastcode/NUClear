@@ -11,12 +11,12 @@ static Lock scope(threading::ReactionTask& task)
 
 ## Details
 
-| Aspect | Detail |
-|--------|--------|
-| **When** | Acquired before `pre_run`, released after `post_run` |
-| **Thread** | The executor thread (the thread pool thread running the task) |
-| **Returns** | Any RAII type — held in a tuple until task completion |
-| **Fusion** | All scope objects from all words are acquired and held simultaneously via FunctionFusion |
+| Aspect      | Detail                                                                                   |
+| ----------- | ---------------------------------------------------------------------------------------- |
+| **When**    | Acquired before `pre_run`, released after `post_run`                                     |
+| **Thread**  | The executor thread (the thread pool thread running the task)                            |
+| **Returns** | Any RAII type — held in a tuple until task completion                                    |
+| **Fusion**  | All scope objects from all words are acquired and held simultaneously via FunctionFusion |
 
 ## Context & Arguments
 

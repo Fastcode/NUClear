@@ -10,15 +10,15 @@ on<IO>(fd, events).then([](const IO::Event& event) { ... });
 
 ## Parameters
 
-| Parameter | Type            | Description                          |
-|-----------|-----------------|--------------------------------------|
-| `fd`      | `fd_t`          | The file descriptor to monitor       |
-| `events`  | `IO::EventType` | Bitmask of events to watch (OR'd)    |
+| Parameter | Type            | Description                       |
+| --------- | --------------- | --------------------------------- |
+| `fd`      | `fd_t`          | The file descriptor to monitor    |
+| `events`  | `IO::EventType` | Bitmask of events to watch (OR'd) |
 
 ## Events
 
 | Event       | Description                                      |
-|-------------|--------------------------------------------------|
+| ----------- | ------------------------------------------------ |
 | `IO::READ`  | Data is available to read on the file descriptor |
 | `IO::WRITE` | The file descriptor is ready for writing         |
 | `IO::CLOSE` | The file descriptor has been closed              |
@@ -35,8 +35,8 @@ on<IO>(fd, IO::READ | IO::WRITE)
 - Monitors the specified file descriptor for the requested events.
 - When any watched event occurs, the reaction fires with an `IO::Event` describing what happened.
 - The `IO::Event` struct contains:
-  - `fd` — the file descriptor that triggered the event.
-  - `events` — a bitmask indicating which events occurred.
+    - `fd` — the file descriptor that triggered the event.
+    - `events` — a bitmask indicating which events occurred.
 - Multiple events may be reported simultaneously in a single callback.
 - Works with any file descriptor: sockets, pipes, files, serial ports.
 - Managed by the IOController extension (epoll on Linux, kqueue on macOS, a separate implementation on Windows).

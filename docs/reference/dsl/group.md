@@ -10,8 +10,8 @@ on<Trigger<T>, Group<GroupType>>()
 
 ## Parameters
 
-| Parameter   | Description                                                        |
-| ----------- | ------------------------------------------------------------------ |
+| Parameter   | Description                                                                                             |
+| ----------- | ------------------------------------------------------------------------------------------------------- |
 | `GroupType` | A type with a `static constexpr int concurrency` member defining the maximum number of concurrent tasks |
 
 `GroupType` must satisfy:

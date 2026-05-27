@@ -38,7 +38,7 @@ This single statement does a lot. Let's break it apart.
 
 ## Phase 2: Template Instantiation — `on<>()`
 
-When you call `on<`[`Trigger`](../reference/dsl/trigger.md)`<T>, `[`Sync`](../reference/dsl/sync.md)`<G>>()`, the Reactor base class constructs a `Binder`:
+When you call `on<Trigger<T>, Sync<G>>()`, the Reactor base class constructs a `Binder`:
 
 ```cpp
 template <typename... DSL, typename... Arguments>
@@ -56,9 +56,9 @@ The key type here is `dsl::Parse<Trigger<T>, Sync<G>>` — this is the "fused" D
 When `.then()` is called, several things happen in sequence:
 
 1. **CallbackGenerator created** — wraps your lambda with the DSL's get/precondition/scope logic
-2. **Reaction object created** — stores the generator, identifiers, and reactor reference
-3. **`DSL::bind(reaction)` called** — each word registers itself (e.g., Trigger adds to TypeCallbackStore)
-4. **ReactionHandle returned** — lets you enable/disable the reaction later
+1. **Reaction object created** — stores the generator, identifiers, and reactor reference
+1. **`DSL::bind(reaction)` called** — each word registers itself (e.g., Trigger adds to TypeCallbackStore)
+1. **ReactionHandle returned** — lets you enable/disable the reaction later
 
 ```cpp
 auto reaction = std::make_shared<threading::Reaction>(
@@ -103,9 +103,9 @@ emit(std::make_unique<SensorData>(...));
 This calls `Local::emit` which:
 
 1. Stores the data in the global `DataStore<SensorData>`
-2. Sets `ThreadStore<SensorData>` (thread-local pointer) to the new data
-3. Looks up `TypeCallbackStore<SensorData>` for all registered reactions
-4. For each reaction: calls `reaction->get_task()` to create a task
+1. Sets `ThreadStore<SensorData>` (thread-local pointer) to the new data
+1. Looks up `TypeCallbackStore<SensorData>` for all registered reactions
+1. For each reaction: calls `reaction->get_task()` to create a task
 
 ## Phase 6: Task Creation — CallbackGenerator
 
@@ -127,9 +127,9 @@ The `CallbackGenerator` does this in order:
 
 1. **Creates a ReactionTask** with priority, inline preference, pool, and group functions
 1. **Checks precondition** — if false, task is dropped (e.g., [`Single`](../reference/dsl/single.md) blocks if already running)
-3. **Calls `DSL::get()`** — reads the data from ThreadStore (freshest) or DataStore (latest)
-4. **Checks data validity** — if any required data is null, task is dropped
-5. **Captures the callback** — binds the data into a closure stored on the task
+1. **Calls `DSL::get()`** — reads the data from ThreadStore (freshest) or DataStore (latest)
+1. **Checks data validity** — if any required data is null, task is dropped
+1. **Captures the callback** — binds the data into a closure stored on the task
 
 ## Phase 7: Task Submitted
 
@@ -184,7 +184,7 @@ flowchart TD
 
 The DSL uses several layers of compile-time machinery:
 
-### Parse<Words...>
+### Parse\<Words...>
 
 `Parse` is the entry point. It creates `Fusion<Words...>` and delegates each operation (bind, get, group, pool, priority, etc.) to the fusion, falling back to a `NoOp` if no word implements that operation.
 

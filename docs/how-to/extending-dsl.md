@@ -31,8 +31,8 @@ Your word only needs to implement the extension points relevant to its behavior.
 ## Step-by-Step
 
 1. Create a struct (never instantiated — delete the constructor)
-2. Implement the desired extension points as static template methods
-3. Use your word in `on<>()` like any built-in word
+1. Implement the desired extension points as static template methods
+1. Use your word in `on<>()` like any built-in word
 
 ## Example 1: LogTiming — Measuring Callback Duration
 
@@ -176,17 +176,17 @@ The Fusion Engine walks the inheritance tree and collects all extension points f
 
 ## Extension Point Summary
 
-| Point          | Purpose                                      | Returns   | Fusion Strategy     |
-| -------------- | -------------------------------------------- | --------- | ------------------- |
-| `bind`         | Register reaction at creation time           | `void`    | All called          |
-| `get`          | Retrieve data for callback arguments         | Any type  | Tuple concatenation |
-| `precondition` | Gate whether the task should run             | `bool`    | Logical AND         |
-| `pre_run`      | Hook before callback execution               | `void`    | All called          |
-| `post_run`     | Hook after callback execution                | `void`    | All called          |
-| `scope`        | RAII lock held during execution              | RAII type | All held            |
-| `priority`     | Task scheduling priority                     | `int`     | Maximum wins        |
-| `group`        | Concurrency group membership                 | Set       | Union               |
-| `pool`         | Which thread pool to run on                  | Descriptor| (single value)      |
+| Point          | Purpose                              | Returns    | Fusion Strategy     |
+| -------------- | ------------------------------------ | ---------- | ------------------- |
+| `bind`         | Register reaction at creation time   | `void`     | All called          |
+| `get`          | Retrieve data for callback arguments | Any type   | Tuple concatenation |
+| `precondition` | Gate whether the task should run     | `bool`     | Logical AND         |
+| `pre_run`      | Hook before callback execution       | `void`     | All called          |
+| `post_run`     | Hook after callback execution        | `void`     | All called          |
+| `scope`        | RAII lock held during execution      | RAII type  | All held            |
+| `priority`     | Task scheduling priority             | `int`      | Maximum wins        |
+| `group`        | Concurrency group membership         | Set        | Union               |
+| `pool`         | Which thread pool to run on          | Descriptor | (single value)      |
 
 See [Extension Points Reference](../reference/extensions/extension-points.md) and [Fusion Engine](../reference/extensions/fusion-engine.md) for full details.
 
@@ -194,16 +194,17 @@ See [Extension Points Reference](../reference/extensions/extension-points.md) an
 
 Different extension points run in different thread contexts. This is critical to understand when using `thread_local` storage or sharing state:
 
-| Point          | Runs on                                     | Notes                                              |
-| -------------- | ------------------------------------------- | -------------------------------------------------- |
-| `bind`         | The thread that calls `on<>()`              | Usually the main thread during reactor construction |
-| `get`          | The thread that **created** the task        | Often different from the execution thread          |
-| `precondition` | The thread that **created** the task        | Same thread as `get`                               |
-| `pre_run`      | The **execution** thread                    | Same thread as the callback                        |
-| `post_run`     | The **execution** thread                    | Same thread as the callback                        |
-| `scope`        | The **execution** thread                    | RAII object lives for callback duration            |
+| Point          | Runs on                              | Notes                                               |
+| -------------- | ------------------------------------ | --------------------------------------------------- |
+| `bind`         | The thread that calls `on<>()`       | Usually the main thread during reactor construction |
+| `get`          | The thread that **created** the task | Often different from the execution thread           |
+| `precondition` | The thread that **created** the task | Same thread as `get`                                |
+| `pre_run`      | The **execution** thread             | Same thread as the callback                         |
+| `post_run`     | The **execution** thread             | Same thread as the callback                         |
+| `scope`        | The **execution** thread             | RAII object lives for callback duration             |
 
 !!! warning "thread_local in get vs pre_run/post_run"
+
     Because `get` runs on the task-creation thread (not the execution thread), `thread_local` variables set in `get` will **not** be visible in `pre_run`, `post_run`, or the callback itself. If you need per-execution state, use `pre_run`/`post_run` or the `scope` extension point, which provides RAII objects that persist for the lifetime of the reaction execution.
 
 ## Tips

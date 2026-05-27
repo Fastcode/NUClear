@@ -67,6 +67,7 @@ struct Serialise<T, std::enable_if_t<std::is_trivially_copyable<T>::value, T>> {
 For types like `int`, `float`, simple structs with no pointers — anything where `memcpy` gives you a valid copy — this "just works". It's the fastest possible serialization: zero overhead, no parsing.
 
 **Caveat**: This is **not portable** across different architectures. Endianness, struct padding, and alignment can all differ. Only use this when sender and receiver are:
+
 - The same machine (local IPC), or
 - Identical hardware with identical compiler settings
 
@@ -164,6 +165,7 @@ struct Serialise<MyComplexType> {
 ```
 
 You need a custom specialization when:
+
 - Your type has pointers or references (can't memcpy)
 - You need cross-architecture portability for a non-Protobuf type
 - You have a complex nested structure
@@ -191,12 +193,12 @@ flowchart TD
     style USE_CUSTOM2 fill:#ff922b,color:#fff
 ```
 
-| Scenario | Strategy | Pros | Cons |
-|----------|----------|------|------|
-| Same machine / identical targets | Trivially copyable (default) | Zero overhead, no code needed | Not portable |
-| Cross-architecture, schema evolution needed | Protobuf | Portable, versioning, widely supported | Requires .proto definitions |
-| Cross-architecture, no Protobuf | Custom `Serialise<T>` | Full control | Manual implementation |
-| Containers of primitives | Iterable specialization (default) | Automatic for vectors/arrays | Still not portable across architectures |
+| Scenario                                    | Strategy                          | Pros                                   | Cons                                    |
+| ------------------------------------------- | --------------------------------- | -------------------------------------- | --------------------------------------- |
+| Same machine / identical targets            | Trivially copyable (default)      | Zero overhead, no code needed          | Not portable                            |
+| Cross-architecture, schema evolution needed | Protobuf                          | Portable, versioning, widely supported | Requires .proto definitions             |
+| Cross-architecture, no Protobuf             | Custom `Serialise<T>`             | Full control                           | Manual implementation                   |
+| Containers of primitives                    | Iterable specialization (default) | Automatic for vectors/arrays           | Still not portable across architectures |
 
 ## Relationship to Networking
 

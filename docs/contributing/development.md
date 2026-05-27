@@ -23,40 +23,49 @@ Tests use [Catch2](https://github.com/catchorg/Catch2) and are automatically dow
 ## Build Documentation
 
 ```bash
-pip install -r docs/requirements.txt
-mkdocs serve
+uv sync --group docs
+uv run mkdocs serve
 ```
 
 The docs will be available at `http://127.0.0.1:8000`.
 
+## Format Documentation
+
+Markdown files are formatted with [mdformat](https://github.com/hukkin/mdformat):
+
+```bash
+uv sync --group dev
+uv run mdformat docs/
+```
+
 ## Project Structure
 
-| Directory | Contents |
-|-----------|----------|
-| `src/` | Core library — PowerPlant, Reactor, DSL words, threading, utilities |
-| `src/dsl/word/` | Individual DSL word implementations (one header per word) |
-| `src/extension/` | Built-in extensions (network, IO, etc.) |
-| `src/threading/` | Scheduler, reactions, and thread pool management |
-| `tests/` | Test suite organized by feature area |
-| `tests/test_util/` | Shared test utilities (TestBase, TimeUnit, etc.) |
-| `docs/` | MkDocs documentation source |
-| `cmake/` | CMake modules and configuration templates |
+| Directory          | Contents                                                            |
+| ------------------ | ------------------------------------------------------------------- |
+| `src/`             | Core library — PowerPlant, Reactor, DSL words, threading, utilities |
+| `src/dsl/word/`    | Individual DSL word implementations (one header per word)           |
+| `src/extension/`   | Built-in extensions (network, IO, etc.)                             |
+| `src/threading/`   | Scheduler, reactions, and thread pool management                    |
+| `tests/`           | Test suite organized by feature area                                |
+| `tests/test_util/` | Shared test utilities (TestBase, TimeUnit, etc.)                    |
+| `docs/`            | MkDocs documentation source                                         |
+| `cmake/`           | CMake modules and configuration templates                           |
 
 ## Adding a New DSL Word
 
 1. Create a header in `src/dsl/word/YourWord.hpp`
-2. Implement the required static methods (`bind`, `get`, `precondition`, etc.)
-3. Add it to the forward declarations in `src/Reactor.hpp`
-4. Add a `using` alias in the Reactor class
+1. Implement the required static methods (`bind`, `get`, `precondition`, etc.)
+1. Add it to the forward declarations in `src/Reactor.hpp`
+1. Add a `using` alias in the Reactor class
 
 See [Extending the DSL](../how-to/extending-dsl.md) for the full guide on DSL word interfaces.
 
 ## Adding a Test
 
 1. Create a `.cpp` file in the appropriate `tests/tests/` subdirectory
-2. Include `<catch2/catch_test_macros.hpp>` and `"nuclear"`
-3. Use `test_util::TestBase` as a base class for reactor-based tests
-4. Register the test in the corresponding `CMakeLists.txt`
+1. Include `<catch2/catch_test_macros.hpp>` and `"nuclear"`
+1. Use `test_util::TestBase` as a base class for reactor-based tests
+1. Register the test in the corresponding `CMakeLists.txt`
 
 Example structure:
 

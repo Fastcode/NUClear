@@ -11,10 +11,10 @@ on<Trigger<T1>, Last<N, With<T2>>>()
 
 ## Parameters
 
-| Parameter    | Description                                          |
-| ------------ | ---------------------------------------------------- |
-| `N`          | The maximum number of recent values to store.        |
-| `DSLWords…`  | The DSL word to wrap (`Trigger<T>` or `With<T>`).    |
+| Parameter   | Description                                       |
+| ----------- | ------------------------------------------------- |
+| `N`         | The maximum number of recent values to store.     |
+| `DSLWords…` | The DSL word to wrap (`Trigger<T>` or `With<T>`). |
 
 ## Behavior
 
@@ -26,6 +26,7 @@ on<Trigger<T1>, Last<N, With<T2>>>()
 - When wrapping `With`, the list is retrieved as supplementary data without triggering.
 
 !!! warning "Last stores triggered values, not all emissions"
+
     `Last` records the value that was present each time the reaction was triggered — it does **not** track every emission of the type. If you combine `Last<N, Trigger<T>>` with `Single`, missed emissions (those that arrived while the reaction was already running) will not appear in the window. This is a subtle but important distinction: `Last` records "what the reaction saw", not "what was emitted".
 
 ```mermaid

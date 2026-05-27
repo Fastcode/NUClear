@@ -11,12 +11,12 @@ static void pre_run(threading::ReactionTask& task)
 
 ## Details
 
-| Aspect | Detail |
-|--------|--------|
-| **When** | After scope acquisition, before callback |
-| **Thread** | The executor thread (the thread pool thread running the task) |
-| **Returns** | `void` |
-| **Fusion** | All words with `pre_run` are called sequentially |
+| Aspect      | Detail                                                        |
+| ----------- | ------------------------------------------------------------- |
+| **When**    | After scope acquisition, before callback                      |
+| **Thread**  | The executor thread (the thread pool thread running the task) |
+| **Returns** | `void`                                                        |
+| **Fusion**  | All words with `pre_run` are called sequentially              |
 
 ## Context & Arguments
 

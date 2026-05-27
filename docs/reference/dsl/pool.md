@@ -16,10 +16,10 @@ on<Trigger<T>, Pool<PoolType>>().then([](const T& data) {
 
 The struct must satisfy:
 
-| Member | Type | Description |
-|--------|------|-------------|
-| `name` | `static constexpr const char*` | Name assigned to pool threads (visible in debuggers) |
-| `concurrency` | `static constexpr int` | Number of threads in the pool |
+| Member        | Type                           | Description                                          |
+| ------------- | ------------------------------ | ---------------------------------------------------- |
+| `name`        | `static constexpr const char*` | Name assigned to pool threads (visible in debuggers) |
+| `concurrency` | `static constexpr int`         | Number of threads in the pool                        |
 
 ```cpp
 struct GPUPool {

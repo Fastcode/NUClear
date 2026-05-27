@@ -13,9 +13,9 @@ emit<Scope::INLINE>(std::make_unique<T>(args...));
 When data is emitted with `Scope::INLINE`:
 
 1. All reactions bound to `Trigger<T>` generate tasks that execute sequentially on the **current thread**.
-2. The emitter blocks until all triggered reactions complete.
-3. Data is stored in the global `DataStore<T>` after all reactions have run.
-4. Tasks that specify they are not inlinable will be submitted to the thread pool instead.
+1. The emitter blocks until all triggered reactions complete.
+1. Data is stored in the global `DataStore<T>` after all reactions have run.
+1. Tasks that specify they are not inlinable will be submitted to the thread pool instead.
 
 Unlike `Scope::LOCAL`, inline emits execute during all system phases — including before `PowerPlant::start()` and during shutdown.
 

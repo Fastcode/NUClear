@@ -37,10 +37,10 @@ sequenceDiagram
 ### What Happens
 
 1. **PowerPlant construction** — creates the scheduler, stores configuration
-2. **Reactor installation** — each `install<T>()` call constructs a reactor
-3. **Reaction registration** — `on<>().then()` inside constructors registers interest in events
-4. **Regular emissions** — `emit(data)` during a constructor *will* trigger any reactions that are **already bound**. If a reactor installed later has a reaction for that type, it won't receive it (it doesn't exist yet).
-5. **Initialise-scoped emissions** — `emit<Scope::INITIALIZE>()` defers the emission until `start()` is called, guaranteeing all reactors have been installed and all reactions are bound before the data is processed.
+1. **Reactor installation** — each `install<T>()` call constructs a reactor
+1. **Reaction registration** — `on<>().then()` inside constructors registers interest in events
+1. **Regular emissions** — `emit(data)` during a constructor *will* trigger any reactions that are **already bound**. If a reactor installed later has a reaction for that type, it won't receive it (it doesn't exist yet).
+1. **Initialise-scoped emissions** — `emit<Scope::INITIALIZE>()` defers the emission until `start()` is called, guaranteeing all reactors have been installed and all reactions are bound before the data is processed.
 
 ### Why It Matters
 
@@ -50,12 +50,12 @@ sequenceDiagram
 
 ### What You Can Do
 
-| Action | Works? | Notes |
-|--------|--------|-------|
-| `on<>().then()` | ✅ | Register reactions |
-| `emit<Scope::INITIALIZE>(data)` | ✅ | Deferred until all reactors installed |
-| `emit(data)` (Local scope) | ⚠️ | Triggers already-bound reactions only |
-| Access other reactors | ❌ | No guarantee they're installed yet |
+| Action                          | Works? | Notes                                 |
+| ------------------------------- | ------ | ------------------------------------- |
+| `on<>().then()`                 | ✅     | Register reactions                    |
+| `emit<Scope::INITIALIZE>(data)` | ✅     | Deferred until all reactors installed |
+| `emit(data)` (Local scope)      | ⚠️     | Triggers already-bound reactions only |
+| Access other reactors           | ❌     | No guarantee they're installed yet    |
 
 ## Phase 2: Execution
 
@@ -88,11 +88,11 @@ sequenceDiagram
 ### What Happens
 
 1. **`start()` is called** — this is the transition point
-2. **Initialise queue is flushed** — all data deferred with `Scope::INITIALIZE` is now emitted, triggering any matching reactions
-3. **Startup fires single-threaded** — `Startup` is emitted inline on the main thread. All `on<Startup>` reactions execute sequentially before any thread pools are started. This guarantees that initialisation logic in Startup handlers completes before general concurrent execution begins.
-4. **Thread pools are created** — the default pool and any custom pools spawn their threads
-5. **Normal execution begins** — emits create tasks, the scheduler dispatches them across pools
-6. **`start()` blocks** — the calling thread becomes the MainThread pool worker, processing tasks until shutdown
+1. **Initialise queue is flushed** — all data deferred with `Scope::INITIALIZE` is now emitted, triggering any matching reactions
+1. **Startup fires single-threaded** — `Startup` is emitted inline on the main thread. All `on<Startup>` reactions execute sequentially before any thread pools are started. This guarantees that initialisation logic in Startup handlers completes before general concurrent execution begins.
+1. **Thread pools are created** — the default pool and any custom pools spawn their threads
+1. **Normal execution begins** — emits create tasks, the scheduler dispatches them across pools
+1. **`start()` blocks** — the calling thread becomes the MainThread pool worker, processing tasks until shutdown
 
 ### The Execution Loop
 
@@ -110,12 +110,12 @@ There's no central tick, no frame loop, no polling. Reactions fire in response t
 
 ### What You Can Do
 
-| Action | Works? | Notes |
-|--------|--------|-------|
-| `emit(data)` | ✅ | Standard local emission |
-| `emit<Scope::NETWORK>(data)` | ✅ | Send to other nodes |
-| `emit<Scope::INLINE>(data)` | ✅ | Execute reactions immediately in current thread |
-| `on<>().then()` | ✅ | Can register new reactions at runtime |
+| Action                       | Works? | Notes                                           |
+| ---------------------------- | ------ | ----------------------------------------------- |
+| `emit(data)`                 | ✅     | Standard local emission                         |
+| `emit<Scope::NETWORK>(data)` | ✅     | Send to other nodes                             |
+| `emit<Scope::INLINE>(data)`  | ✅     | Execute reactions immediately in current thread |
+| `on<>().then()`              | ✅     | Can register new reactions at runtime           |
 
 ## Phase 3: Shutdown
 
@@ -142,11 +142,11 @@ sequenceDiagram
 ### What Happens
 
 1. **`shutdown()` is called** — can be from any thread (often from within a reaction)
-2. **Shutdown event is emitted** — reactions on `Shutdown` fire, giving reactors a chance to clean up
-3. **Scheduler stops** — no new tasks are generated from Local emits
-4. **In-flight tasks complete** — any currently-executing tasks run to completion
-5. **Threads are joined** — pool threads finish and are joined back
-6. **`start()` returns** — the main thread is released, and the application can exit
+1. **Shutdown event is emitted** — reactions on `Shutdown` fire, giving reactors a chance to clean up
+1. **Scheduler stops** — no new tasks are generated from Local emits
+1. **In-flight tasks complete** — any currently-executing tasks run to completion
+1. **Threads are joined** — pool threads finish and are joined back
+1. **`start()` returns** — the main thread is released, and the application can exit
 
 ### Graceful vs Forced
 
@@ -159,23 +159,23 @@ A graceful shutdown waits for all running tasks to complete. A forced shutdown c
 
 ### What You Can Do
 
-| Action | Works? | Notes |
-|--------|--------|-------|
-| `emit(data)` | ⚠️ | Tasks created but may not execute |
-| `emit<Scope::INLINE>(data)` | ✅ | Executes immediately in current thread |
-| Persistent pool tasks | ✅ | Persistent pools keep running until drained |
-| New `on<>` registrations | ❌ | System is winding down |
+| Action                      | Works? | Notes                                       |
+| --------------------------- | ------ | ------------------------------------------- |
+| `emit(data)`                | ⚠️     | Tasks created but may not execute           |
+| `emit<Scope::INLINE>(data)` | ✅     | Executes immediately in current thread      |
+| Persistent pool tasks       | ✅     | Persistent pools keep running until drained |
+| New `on<>` registrations    | ❌     | System is winding down                      |
 
 ## Emission Scopes Across Phases
 
 Different emission scopes have different behaviour depending on the current phase:
 
-| Scope | Initialisation | Execution | Shutdown |
-|-------|---------------|-----------|----------|
-| `INITIALIZE` | ✅ Queued for later | ❌ Not applicable | ❌ Not applicable |
-| Local (default) | ⚠️ Triggers already-bound reactions | ✅ Normal dispatch | ⚠️ May not execute |
-| `INLINE` | ✅ Runs immediately | ✅ Runs immediately | ✅ Runs immediately |
-| `NETWORK` | ❌ Network not started | ✅ Sends to peers | ❌ Network shutting down |
+| Scope           | Initialisation                      | Execution           | Shutdown                 |
+| --------------- | ----------------------------------- | ------------------- | ------------------------ |
+| `INITIALIZE`    | ✅ Queued for later                 | ❌ Not applicable   | ❌ Not applicable        |
+| Local (default) | ⚠️ Triggers already-bound reactions | ✅ Normal dispatch  | ⚠️ May not execute       |
+| `INLINE`        | ✅ Runs immediately                 | ✅ Runs immediately | ✅ Runs immediately      |
+| `NETWORK`       | ❌ Network not started              | ✅ Sends to peers   | ❌ Network shutting down |
 
 ## Why Three Phases?
 

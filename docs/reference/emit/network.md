@@ -20,20 +20,20 @@ emit<Scope::NETWORK>(std::make_unique<T>(args...), "peer_name", true);
 
 ## Parameters
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `data` | `std::unique_ptr<T>` | The data to serialize and send |
-| `target` | `std::string` | Name of the target peer, or `""` for broadcast (default: `""`) |
-| `reliable` | `bool` | Whether to guarantee delivery (default: `false`) |
+| Parameter  | Type                 | Description                                                    |
+| ---------- | -------------------- | -------------------------------------------------------------- |
+| `data`     | `std::unique_ptr<T>` | The data to serialize and send                                 |
+| `target`   | `std::string`        | Name of the target peer, or `""` for broadcast (default: `""`) |
+| `reliable` | `bool`               | Whether to guarantee delivery (default: `false`)               |
 
 ## Behavior
 
 When data is emitted with `Scope::NETWORK`:
 
 1. The data is serialized using `util::serialise::Serialise<T>`.
-2. A type hash is computed to identify the type on the receiving end.
-3. The serialized payload is sent via the NUClear network layer.
-4. On the receiving peer, data is deserialized and triggers `on<Network<T>>` reactions.
+1. A type hash is computed to identify the type on the receiving end.
+1. The serialized payload is sent via the NUClear network layer.
+1. On the receiving peer, data is deserialized and triggers `on<Network<T>>` reactions.
 
 ```mermaid
 sequenceDiagram

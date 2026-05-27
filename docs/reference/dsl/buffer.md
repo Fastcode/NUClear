@@ -10,8 +10,8 @@ on<Trigger<T>, Buffer<N>>()
 
 ## Parameters
 
-| Parameter | Description |
-|-----------|-------------|
+| Parameter | Description                                                                           |
+| --------- | ------------------------------------------------------------------------------------- |
 | `N`       | Maximum number of active or queued instances of this reaction. Compile-time constant. |
 
 ## Behavior

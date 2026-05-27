@@ -10,8 +10,8 @@ on<Trigger<T>, Optional<With<U>>>()
 
 ## Parameters
 
-| Parameter    | Description                                      |
-| ------------ | ------------------------------------------------ |
+| Parameter     | Description                                       |
+| ------------- | ------------------------------------------------- |
 | `DSLWords...` | One or more DSL words that provide data via `get` |
 
 ## Behavior
@@ -20,14 +20,15 @@ By default, if a word like `With<T>` references data that has not yet been emitt
 
 Wrapping a word in `Optional` changes the corresponding callback parameter type:
 
-| Expression            | Callback Parameter Type        | On Missing Data |
-| --------------------- | ------------------------------ | --------------- |
-| `With<T>`            | `const T&`                     | Task dropped    |
-| `Optional<With<T>>` | `std::shared_ptr<const T>`     | `nullptr`       |
+| Expression          | Callback Parameter Type    | On Missing Data |
+| ------------------- | -------------------------- | --------------- |
+| `With<T>`           | `const T&`                 | Task dropped    |
+| `Optional<With<T>>` | `std::shared_ptr<const T>` | `nullptr`       |
 
 `Optional` can wrap any word whose fusion operation provides data via `get`, including `With`, `Trigger`, and `Last`.
 
 !!! warning
+
     You **must** check for `nullptr` before dereferencing the shared pointer. Accessing a null pointer is undefined behavior.
 
 ## Example

@@ -11,8 +11,8 @@ on<Idle<>>().then(callback);          // Fires when the default pool is idle
 
 ## Parameters
 
-| Parameter  | Description                                              |
-| ---------- | -------------------------------------------------------- |
+| Parameter  | Description                                                                       |
+| ---------- | --------------------------------------------------------------------------------- |
 | `PoolType` | The thread pool to monitor for idleness. Defaults to the default pool if omitted. |
 
 ## Behavior
@@ -26,10 +26,10 @@ on<Idle<>>().then(callback);          // Fires when the default pool is idle
 
 There are distinct idle states in NUClear:
 
-| Variant | Meaning |
-|---------|---------|
-| `Idle<>` | The **default** thread pool has no queued tasks |
-| `Idle<MyPool>` | A **specific** named pool has no queued tasks |
+| Variant        | Meaning                                         |
+| -------------- | ----------------------------------------------- |
+| `Idle<>`       | The **default** thread pool has no queued tasks |
+| `Idle<MyPool>` | A **specific** named pool has no queued tasks   |
 
 Each pool tracks its own idle state independently. A specific pool being idle does not mean the default pool is idle, and vice versa. If you have multiple pools, each can have its own `Idle` reactions that fire independently when that specific pool has no work.
 

@@ -64,44 +64,44 @@ log<INFO>("Processing", count, "items");
 
 ### Public Members
 
-| Member | Type | Description |
-|--------|------|-------------|
-| `powerplant` | `PowerPlant&` | Reference to the owning PowerPlant |
-| `reactor_name` | `const std::string` | Demangled type name of this reactor |
-| `log_level` | `LogLevel` | Display threshold (default: `INFO`) |
-| `min_log_level` | `LogLevel` | Minimum always-emitted level (default: `FATAL`) |
+| Member          | Type                | Description                                     |
+| --------------- | ------------------- | ----------------------------------------------- |
+| `powerplant`    | `PowerPlant&`       | Reference to the owning PowerPlant              |
+| `reactor_name`  | `const std::string` | Demangled type name of this reactor             |
+| `log_level`     | `LogLevel`          | Display threshold (default: `INFO`)             |
+| `min_log_level` | `LogLevel`          | Minimum always-emitted level (default: `FATAL`) |
 
 ### Protected Type Aliases
 
 All DSL words are aliased so they can be used without namespace qualification:
 
-| Alias | DSL Word |
-|-------|----------|
-| `Trigger<T>` | Trigger on new data of type T |
-| `With<T>` | Require most recent data of type T |
-| `Every<ticks, period>` | Periodic timer |
-| `Startup` | Triggered once on PowerPlant start |
-| `Shutdown` | Triggered on PowerPlant shutdown |
-| `Always` | Continuously re-triggered |
-| `Once` | Trigger at most once |
-| `IO` | File descriptor readiness |
-| `UDP` | UDP socket events |
-| `TCP` | TCP socket events |
-| `Network<T>` | Networked data |
-| `Sync<T>` | Synchronisation group |
-| `Single` | At most one task at a time |
-| `Buffer<N>` | Allow up to N concurrent tasks |
-| `Pool<T>` | Execute on a named thread pool |
-| `Group<T>` | Concurrency group |
-| `Priority` | Task priority |
-| `MainThread` | Execute on the main thread |
-| `Inline` | Execute inline in the emitting thread |
-| `Idle<T>` | Triggered when a pool is idle |
-| `Optional<T...>` | Data may not be present |
-| `Last<N, T...>` | Last N values |
-| `Per<period>` | Rate limiter |
-| `Watchdog<T, ticks, period>` | Watchdog timer |
-| `TaskScope<T>` | Task-scoped data |
+| Alias                        | DSL Word                              |
+| ---------------------------- | ------------------------------------- |
+| `Trigger<T>`                 | Trigger on new data of type T         |
+| `With<T>`                    | Require most recent data of type T    |
+| `Every<ticks, period>`       | Periodic timer                        |
+| `Startup`                    | Triggered once on PowerPlant start    |
+| `Shutdown`                   | Triggered on PowerPlant shutdown      |
+| `Always`                     | Continuously re-triggered             |
+| `Once`                       | Trigger at most once                  |
+| `IO`                         | File descriptor readiness             |
+| `UDP`                        | UDP socket events                     |
+| `TCP`                        | TCP socket events                     |
+| `Network<T>`                 | Networked data                        |
+| `Sync<T>`                    | Synchronisation group                 |
+| `Single`                     | At most one task at a time            |
+| `Buffer<N>`                  | Allow up to N concurrent tasks        |
+| `Pool<T>`                    | Execute on a named thread pool        |
+| `Group<T>`                   | Concurrency group                     |
+| `Priority`                   | Task priority                         |
+| `MainThread`                 | Execute on the main thread            |
+| `Inline`                     | Execute inline in the emitting thread |
+| `Idle<T>`                    | Triggered when a pool is idle         |
+| `Optional<T...>`             | Data may not be present               |
+| `Last<N, T...>`              | Last N values                         |
+| `Per<period>`                | Rate limiter                          |
+| `Watchdog<T, ticks, period>` | Watchdog timer                        |
+| `TaskScope<T>`               | Task-scoped data                      |
 
 ### LogLevel Constants
 
@@ -118,15 +118,15 @@ static constexpr LogLevel FATAL = LogLevel::FATAL;
 
 Accessed via the nested `Scope` struct:
 
-| Scope | Description |
-|-------|-------------|
-| `Scope::LOCAL<T>` | Default; tasks via thread pool |
-| `Scope::INLINE<T>` | Execute in the emitting thread |
-| `Scope::DELAY<T>` | Delayed emission |
-| `Scope::INITIALIZE<T>` | Available before startup |
-| `Scope::NETWORK<T>` | Broadcast over network |
-| `Scope::UDP<T>` | Emit via UDP |
-| `Scope::WATCHDOG<T>` | Service a watchdog |
+| Scope                  | Description                    |
+| ---------------------- | ------------------------------ |
+| `Scope::LOCAL<T>`      | Default; tasks via thread pool |
+| `Scope::INLINE<T>`     | Execute in the emitting thread |
+| `Scope::DELAY<T>`      | Delayed emission               |
+| `Scope::INITIALIZE<T>` | Available before startup       |
+| `Scope::NETWORK<T>`    | Broadcast over network         |
+| `Scope::UDP<T>`        | Emit via UDP                   |
+| `Scope::WATCHDOG<T>`   | Service a watchdog             |
 
 ## Example
 

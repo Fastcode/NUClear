@@ -11,5 +11,6 @@ Use it to look up specific APIs, DSL words, emit scopes, and extension points.
 - **[Extension System](extensions/index.md)** — How to extend the DSL with custom words
 
 !!! tip "Looking for a tutorial instead?"
+
     If you're new to NUClear, start with the [Tutorials](../tutorials/index.md) section.
     For task-oriented guidance, see the [How-to Guides](../how-to/index.md).

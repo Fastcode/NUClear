@@ -2,14 +2,14 @@
 
 > How to use raw TCP and UDP sockets to talk to non-NUClear systems.
 
-## When to Use This vs Network&lt;T&gt;
+## When to Use This vs Network\<T>
 
-| Feature | `Network<T>` | `TCP` / `UDP` |
-|---------|-------------|---------------|
-| Peer type | Other NUClear nodes | Any external system |
-| Serialization | Automatic | Manual (raw bytes) |
-| Discovery | Built-in multicast | You manage connections |
-| Use case | Inter-node messaging | Protocols, hardware, third-party services |
+| Feature       | `Network<T>`         | `TCP` / `UDP`                             |
+| ------------- | -------------------- | ----------------------------------------- |
+| Peer type     | Other NUClear nodes  | Any external system                       |
+| Serialization | Automatic            | Manual (raw bytes)                        |
+| Discovery     | Built-in multicast   | You manage connections                    |
+| Use case      | Inter-node messaging | Protocols, hardware, third-party services |
 
 ## TCP
 
@@ -158,9 +158,9 @@ public:
 
 The `UDP::Packet` received in callbacks contains:
 
-| Field     | Type                    | Description                          |
-| --------- | ----------------------- | ------------------------------------ |
-| `valid`   | `bool`                  | Whether the packet contains data     |
-| `local`   | `sock_t`               | Local address the packet arrived on  |
-| `remote`  | `sock_t`               | Remote address of the sender         |
-| `payload` | `std::vector<uint8_t>` | Raw bytes of the received datagram   |
+| Field     | Type                   | Description                         |
+| --------- | ---------------------- | ----------------------------------- |
+| `valid`   | `bool`                 | Whether the packet contains data    |
+| `local`   | `sock_t`               | Local address the packet arrived on |
+| `remote`  | `sock_t`               | Remote address of the sender        |
+| `payload` | `std::vector<uint8_t>` | Raw bytes of the received datagram  |

@@ -28,7 +28,7 @@ flowchart LR
     G --> CB
 ```
 
-## DataStore&lt;T&gt;
+## DataStore\<T>
 
 A global singleton store keyed by type. Holds the most recently emitted value of each type as a `shared_ptr<const T>`.
 
@@ -54,7 +54,7 @@ DataStore<T>::set(std::make_shared<const T>(data));
 auto ptr = DataStore<T>::get();  // shared_ptr<const T>
 ```
 
-## ThreadStore&lt;T&gt;
+## ThreadStore\<T>
 
 A thread-local pointer store used for out-of-band communication between an emit handler and the `get` methods it triggers on the same thread.
 
@@ -86,7 +86,7 @@ auto* data = ThreadStore<T>::value;
 
 This is essential for scenarios where multiple emits of the same type happen rapidly — the `ThreadStore` ensures each task gets the specific data that triggered it, not whatever was emitted most recently.
 
-## TypeCallbackStore&lt;T&gt;
+## TypeCallbackStore\<T>
 
 A registry of reactions that should be triggered when type `T` is emitted. Stored as a list of shared pointers to `Reaction` objects.
 
@@ -119,10 +119,10 @@ for (auto& reaction : TypeCallbackStore<T>::get()) {
 A typical emit-to-callback flow:
 
 1. `emit<T>(data)` is called
-2. The emit handler stores `data` in `DataStore<T>` (persistent copy)
-3. The emit handler sets `ThreadStore<T>::value` to point at `data` (transient reference)
-4. The emit handler reads `TypeCallbackStore<T>` to find all registered reactions
-5. For each reaction, a task is created — during creation, `get` reads from `ThreadStore` or `DataStore`
-6. `ThreadStore<T>::value` is reset to `nullptr`
-7. Tasks are submitted to their respective pools
-8. When a task executes, the callback receives the data retrieved in step 5
+1. The emit handler stores `data` in `DataStore<T>` (persistent copy)
+1. The emit handler sets `ThreadStore<T>::value` to point at `data` (transient reference)
+1. The emit handler reads `TypeCallbackStore<T>` to find all registered reactions
+1. For each reaction, a task is created — during creation, `get` reads from `ThreadStore` or `DataStore`
+1. `ThreadStore<T>::value` is reset to `nullptr`
+1. Tasks are submitted to their respective pools
+1. When a task executes, the callback receives the data retrieved in step 5

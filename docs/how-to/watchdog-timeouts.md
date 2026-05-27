@@ -131,11 +131,11 @@ gantt
 
 ## Parameters
 
-| Parameter       | Description                                                    |
-| --------------- | -------------------------------------------------------------- |
-| `WatchdogGroup` | A type tag identifying what is being monitored                 |
-| `ticks`         | Number of time units before the watchdog fires                 |
-| `period`        | A `std::chrono::duration` type defining the tick length        |
+| Parameter       | Description                                             |
+| --------------- | ------------------------------------------------------- |
+| `WatchdogGroup` | A type tag identifying what is being monitored          |
+| `ticks`         | Number of time units before the watchdog fires          |
+| `period`        | A `std::chrono::duration` type defining the tick length |
 
 Common period types: `std::chrono::milliseconds`, `std::chrono::seconds`, `std::chrono::minutes`
 

@@ -17,9 +17,9 @@ emit<Scope::DELAY>(std::make_unique<T>(args...), NUClear::clock::now() + std::ch
 When data is emitted with `Scope::DELAY`:
 
 1. A `ChronoTask` is registered with the [ChronoController](../extensions/built-in-extensions.md).
-2. The emitter returns immediately — it does not block.
-3. After the delay elapses, the data is emitted via `Scope::LOCAL`.
-4. From that point, behavior is identical to a normal Local emit: tasks are queued in the thread pool and data is stored in the global cache.
+1. The emitter returns immediately — it does not block.
+1. After the delay elapses, the data is emitted via `Scope::LOCAL`.
+1. From that point, behavior is identical to a normal Local emit: tasks are queued in the thread pool and data is stored in the global cache.
 
 ```mermaid
 sequenceDiagram

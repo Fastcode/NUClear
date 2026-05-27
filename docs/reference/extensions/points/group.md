@@ -11,12 +11,12 @@ static std::set<std::shared_ptr<const GroupDescriptor>> group(threading::Reactio
 
 ## Details
 
-| Aspect | Detail |
-|--------|--------|
-| **When** | Task creation (determines concurrency constraints) |
-| **Thread** | The emitter's thread (the thread that called `emit()`) |
-| **Returns** | Set of group descriptors, each with a name and concurrency limit |
-| **Fusion** | Set union — all groups from all words are merged. The task must satisfy all group constraints simultaneously. |
+| Aspect      | Detail                                                                                                        |
+| ----------- | ------------------------------------------------------------------------------------------------------------- |
+| **When**    | Task creation (determines concurrency constraints)                                                            |
+| **Thread**  | The emitter's thread (the thread that called `emit()`)                                                        |
+| **Returns** | Set of group descriptors, each with a name and concurrency limit                                              |
+| **Fusion**  | Set union — all groups from all words are merged. The task must satisfy all group constraints simultaneously. |
 
 ## Context & Arguments
 

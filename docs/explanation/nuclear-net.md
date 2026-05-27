@@ -136,14 +136,14 @@ block-beta
 
 ### Packet Types
 
-| Type | Value | Purpose |
-|------|-------|---------|
-| ANNOUNCE | 1 | Periodic discovery broadcast |
-| LEAVE | 2 | Graceful departure notification |
-| DATA | 3 | Normal data payload |
-| DATA_RETRANSMISSION | 4 | Retransmitted data fragment |
-| ACK | 5 | Acknowledgment of received fragments |
-| NACK | 6 | Request for specific missing fragments |
+| Type                | Value | Purpose                                |
+| ------------------- | ----- | -------------------------------------- |
+| ANNOUNCE            | 1     | Periodic discovery broadcast           |
+| LEAVE               | 2     | Graceful departure notification        |
+| DATA                | 3     | Normal data payload                    |
+| DATA_RETRANSMISSION | 4     | Retransmitted data fragment            |
+| ACK                 | 5     | Acknowledgment of received fragments   |
+| NACK                | 6     | Request for specific missing fragments |
 
 ### DataPacket Structure
 
@@ -310,11 +310,11 @@ on<Network<SensorData>>().then([](const SensorData& data) {
 When you use `Network<T>`:
 
 1. At bind time, the reaction's type hash is registered with the `NetworkController`
-2. The `NetworkController` maps `hash → reaction` in its internal multimap
-3. When a packet arrives with that hash, the `NetworkController`:
-   - Stores the raw bytes in ThreadStore
-   - Calls `get_task()` on the matched reactions
-   - The `Network<T>` word's `get()` deserializes the bytes into a `T`
+1. The `NetworkController` maps `hash → reaction` in its internal multimap
+1. When a packet arrives with that hash, the `NetworkController`:
+    - Stores the raw bytes in ThreadStore
+    - Calls `get_task()` on the matched reactions
+    - The `Network<T>` word's `get()` deserializes the bytes into a `T`
 
 ### Sending: `emit<Scope::NETWORK>`
 
@@ -325,9 +325,9 @@ emit<Scope::NETWORK>(std::make_unique<SensorData>(reading), "target_name", true)
 This triggers:
 
 1. `emit::Network<SensorData>` serializes the data and computes the type hash
-2. A `NetworkEmit` message is emitted locally
-3. `NetworkController` catches it and calls `NUClearNetwork::send(hash, payload, target, reliable)`
-4. The network engine fragments and transmits the packet
+1. A `NetworkEmit` message is emitted locally
+1. `NetworkController` catches it and calls `NUClearNetwork::send(hash, payload, target, reliable)`
+1. The network engine fragments and transmits the packet
 
 ### Peer Lifecycle Events
 

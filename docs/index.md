@@ -52,12 +52,12 @@ graph TD
 
 ## Documentation
 
-| Section | Purpose |
-|---------|---------|
-| [Tutorials](tutorials/index.md) | Get started with NUClear step by step |
-| [How-to Guides](how-to/index.md) | Solve specific problems |
-| [Reference](reference/index.md) | Look up DSL words, API, and emit scopes |
-| [Explanation](explanation/index.md) | Understand the architecture and design |
+| Section                             | Purpose                                 |
+| ----------------------------------- | --------------------------------------- |
+| [Tutorials](tutorials/index.md)     | Get started with NUClear step by step   |
+| [How-to Guides](how-to/index.md)    | Solve specific problems                 |
+| [Reference](reference/index.md)     | Look up DSL words, API, and emit scopes |
+| [Explanation](explanation/index.md) | Understand the architecture and design  |
 
 ## Research
 

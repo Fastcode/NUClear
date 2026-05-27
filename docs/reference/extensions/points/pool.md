@@ -11,12 +11,12 @@ static std::shared_ptr<const ThreadPoolDescriptor> pool(threading::ReactionTask&
 
 ## Details
 
-| Aspect | Detail |
-|--------|--------|
-| **When** | Task creation (determines where the task runs) |
-| **Thread** | The emitter's thread (the thread that called `emit()`) |
-| **Returns** | Pool descriptor (name + concurrency) |
-| **Fusion** | Exactly one pool allowed. If multiple words provide `pool`, a compile-time or runtime error is raised. |
+| Aspect      | Detail                                                                                                 |
+| ----------- | ------------------------------------------------------------------------------------------------------ |
+| **When**    | Task creation (determines where the task runs)                                                         |
+| **Thread**  | The emitter's thread (the thread that called `emit()`)                                                 |
+| **Returns** | Pool descriptor (name + concurrency)                                                                   |
+| **Fusion**  | Exactly one pool allowed. If multiple words provide `pool`, a compile-time or runtime error is raised. |
 
 ## Context & Arguments
 
