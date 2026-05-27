@@ -143,12 +143,25 @@ namespace dsl {
 }  // namespace dsl
 
 /**
- * Base class for any system that wants to react to events/data from the rest of the system.
+ * Base class for all reactive components in a NUClear system.
  *
- * Provides functionality for binding callbacks to incoming data events.
- * Callbacks are executed in a transparent, multithreaded manner.
+ * A Reactor is a self-contained module that reacts to events and data from the rest of the system.
+ * It provides the core interface for building event-driven applications using NUClear's domain-specific language (DSL).
  *
- * TODO needs to be expanded and updated.
+ * Reactors use a co-messaging pattern where a primary data type triggers execution, and supplementary data (co-messages)
+ * are automatically provided from the system's virtual data store. This eliminates the need for manual caching of
+ * secondary data that is common in traditional message-passing architectures.
+ *
+ * Key features:
+ * - Reactions are created using the on<DSL...>().then(callback) pattern
+ * - Data is emitted using emit<Scope>(data) to publish to other reactors
+ * - Transparent multithreading with immutable shared data (shared_ptr<const T>)
+ * - DSL words control triggering, threading, synchronization, and scheduling
+ *
+ * @see PowerPlant The runtime container that manages reactors
+ * @see dsl::word The available DSL words for building reactions
+ *
+ * @author Trent Houliston
  */
 class Reactor {
 public:
