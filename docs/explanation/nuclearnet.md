@@ -56,11 +56,11 @@ graph TB
         ROUTE[Routing]
         DEDUP[PacketDeduplicator]
         RTT[RTTEstimator]
-    end
 
-    subgraph "Operating System"
-        AS[Announce Socket - UDP multicast/broadcast]
-        DS[Data Socket - UDP ephemeral port]
+        subgraph "Operating System"
+            AS[Announce Socket - UDP multicast/broadcast]
+            DS[Data Socket - UDP ephemeral port]
+        end
     end
 
     DSL --> NW --> NC
@@ -97,14 +97,16 @@ This is how nodes find each other.
 ```mermaid
 sequenceDiagram
     participant A as Node A (existing)
-    participant Net as Network (multicast)
+    participant M as Multicast Group
     participant B as Node B (joining)
 
     Note over A: Running, announcing every ~interval
-    A->>Net: AnnouncePacket (name="A", subscriptions=[...])
+    A->>M: AnnouncePacket (name="A")
+    Note over B: Not yet joined — doesn't receive
 
-    Note over B: Starts up, begins announcing
-    B->>Net: AnnouncePacket (name="B", subscriptions=[...])
+    Note over B: Starts up, joins multicast group
+    B->>M: AnnouncePacket (name="B")
+    M->>A: AnnouncePacket (name="B")
 
     Note over A: New peer heard!
     A->>A: Add B to peer list
@@ -116,8 +118,10 @@ sequenceDiagram
     B->>B: Fire NetworkJoin event
 
     loop Ongoing
-        A->>Net: AnnouncePacket every ~500ms
-        B->>Net: AnnouncePacket every ~500ms
+        A->>M: AnnouncePacket every ~500ms
+        M->>B: AnnouncePacket
+        B->>M: AnnouncePacket every ~500ms
+        M->>A: AnnouncePacket
     end
 
     Note over A: No packet from B for 2 seconds
