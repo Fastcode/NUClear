@@ -67,11 +67,13 @@ namespace network {
          *
          * @param packet_mtu          Maximum payload bytes per fragment
          * @param max_assembly_size   Maximum total size of a reassembled message (0 = unlimited)
-         * @param assembly_timeout    How long to keep an incomplete assembly before discarding
+         * @param assembly_timeout    How long to keep an incomplete assembly before discarding.
+         *                             Should match the peer timeout since if no fragments arrive within this period,
+         *                             the peer will be considered dead and cleaned up anyway.
          */
         Fragmentation(uint16_t packet_mtu                                   = 1452,
                       std::size_t max_assembly_size                          = 64 * 1024 * 1024,  // 64 MB default
-                      std::chrono::steady_clock::duration assembly_timeout   = std::chrono::seconds(10));
+                      std::chrono::steady_clock::duration assembly_timeout   = std::chrono::seconds(2));
 
         /**
          * Fragment a message into MTU-sized pieces.

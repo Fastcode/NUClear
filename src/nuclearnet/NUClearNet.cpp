@@ -37,8 +37,8 @@ namespace network {
 
     NUClearNet::NUClearNet()
         : discovery(std::make_unique<Discovery>(std::chrono::seconds(2)))
-        , fragmentation(std::make_unique<Fragmentation>(1452))
-        , reliability(std::make_unique<Reliability>(10)) {
+        , fragmentation(std::make_unique<Fragmentation>(1452, 64 * 1024 * 1024, std::chrono::seconds(2)))
+        , reliability(std::make_unique<Reliability>()) {
 
         // Wire up discovery callbacks to forward to user callbacks
         discovery->set_join_callback([this](const PeerInfo& peer) {
@@ -78,8 +78,9 @@ namespace network {
         discovery     = std::make_unique<Discovery>(cfg.peer_timeout);
         fragmentation = std::make_unique<Fragmentation>(
             static_cast<uint16_t>(cfg.mtu - sizeof(DataPacket) + 1 - 40 - 8),  // MTU - headers
-            cfg.max_assembly_size);
-        reliability = std::make_unique<Reliability>(cfg.max_retransmits);
+            cfg.max_assembly_size,
+            cfg.peer_timeout);  // Assembly timeout matches peer timeout
+        reliability = std::make_unique<Reliability>();
 
         // Re-wire discovery callbacks
         discovery->set_join_callback([this](const PeerInfo& peer) {

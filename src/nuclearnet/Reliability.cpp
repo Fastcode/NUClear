@@ -32,7 +32,7 @@
     namespace NUClear {
     namespace network {
 
-        Reliability::Reliability(uint16_t max_retransmits) : max_retransmits(max_retransmits) {}
+
 
         void Reliability::track_packet(const sock_t& target,
                                        uint16_t packet_id,
@@ -175,13 +175,12 @@
             uint16_t packet_mtu,
             std::chrono::steady_clock::time_point now) {
             std::vector<RetransmitRequest> retransmissions;
-            std::vector<TrackingKey> expired;
 
             const std::lock_guard<std::mutex> lock(tracking_mutex);
 
             for (auto& entry : tracked_packets) {
-                const auto& key = entry.first;
-                auto& tp        = entry.second;
+                auto& tp = entry.second;
+
                 // Get the timeout for this peer
                 std::chrono::steady_clock::duration rto;
                 {
@@ -194,13 +193,7 @@
                     continue;
                 }
 
-                // Check if we've exceeded max retransmits
-                if (max_retransmits > 0 && tp.retransmit_count >= max_retransmits) {
-                    expired.push_back(key);
-                    continue;
-                }
-
-                // Retransmit unacked fragments
+                // Retransmit unacked fragments (continues until peer is removed)
                 for (uint16_t i = 0; i < tp.packet_count; ++i) {
                     if (!tp.acked[i]) {
                         RetransmitRequest req;
@@ -222,11 +215,6 @@
 
                 tp.last_send = now;
                 tp.retransmit_count++;
-            }
-
-            // Remove expired entries
-            for (const auto& key : expired) {
-                tracked_packets.erase(key);
             }
 
             return retransmissions;

@@ -44,7 +44,7 @@ sock_t make_addr(uint32_t ip, uint16_t port) {
 }  // namespace
 
 SCENARIO("Reliability tracks sent packet and requests retransmission after timeout", "[nuclearnet][reliability]") {
-    Reliability rel(3);  // max 3 retransmits
+    Reliability rel;
 
     sock_t target = make_addr(0x0A000001, 5000);
     std::vector<uint8_t> payload(200, 0xAB);
@@ -70,7 +70,7 @@ SCENARIO("Reliability tracks sent packet and requests retransmission after timeo
 }
 
 SCENARIO("Reliability stops retransmitting ACKed fragments", "[nuclearnet][reliability]") {
-    Reliability rel(10);
+    Reliability rel;
 
     sock_t target = make_addr(0x0A000001, 5000);
     std::vector<uint8_t> payload(200, 0xCC);
@@ -92,7 +92,7 @@ SCENARIO("Reliability stops retransmitting ACKed fragments", "[nuclearnet][relia
 }
 
 SCENARIO("Reliability removes tracked packet when all fragments ACKed", "[nuclearnet][reliability]") {
-    Reliability rel(10);
+    Reliability rel;
 
     sock_t target = make_addr(0x0A000001, 5000);
     std::vector<uint8_t> payload(100, 0xDD);
@@ -111,8 +111,8 @@ SCENARIO("Reliability removes tracked packet when all fragments ACKed", "[nuclea
     REQUIRE(retransmissions.empty());
 }
 
-SCENARIO("Reliability gives up after max_retransmits", "[nuclearnet][reliability]") {
-    Reliability rel(2);  // Only allow 2 retransmission attempts
+SCENARIO("Reliability retransmits indefinitely until peer is removed", "[nuclearnet][reliability]") {
+    Reliability rel;
 
     sock_t target = make_addr(0x0A000001, 5000);
     std::vector<uint8_t> payload(50, 0xEE);
@@ -131,9 +131,14 @@ SCENARIO("Reliability gives up after max_retransmits", "[nuclearnet][reliability
     auto r2 = rel.check_retransmissions(100, t + std::chrono::milliseconds(300));
     REQUIRE(r2.size() == 1);
 
-    // Third attempt should give up (max_retransmits = 2)
+    // Third retransmission still works — no limit
     auto r3 = rel.check_retransmissions(100, t + std::chrono::milliseconds(450));
-    REQUIRE(r3.empty());  // Packet dropped after max retransmits
+    REQUIRE(r3.size() == 1);
+
+    // Removing the peer cleans up all tracked packets
+    rel.remove_peer(target);
+    auto r4 = rel.check_retransmissions(100, t + std::chrono::milliseconds(600));
+    REQUIRE(r4.empty());
 }
 
 SCENARIO("Reliability build_ack_packet encodes bitset correctly", "[nuclearnet][reliability]") {
@@ -158,7 +163,7 @@ SCENARIO("Reliability build_nack_packet encodes missing fragments", "[nuclearnet
 }
 
 SCENARIO("Reliability remove_peer removes all tracked state", "[nuclearnet][reliability]") {
-    Reliability rel(10);
+    Reliability rel;
 
     sock_t target = make_addr(0x0A000001, 5000);
     std::vector<uint8_t> payload(100, 0xFF);
@@ -175,7 +180,7 @@ SCENARIO("Reliability remove_peer removes all tracked state", "[nuclearnet][reli
 }
 
 SCENARIO("Reliability NACK forces immediate retransmission", "[nuclearnet][reliability]") {
-    Reliability rel(10);
+    Reliability rel;
 
     sock_t target = make_addr(0x0A000001, 5000);
     std::vector<uint8_t> payload(100, 0x11);

@@ -55,7 +55,6 @@ NetworkConfig make_config(const std::string& name) {
     config.announce_port    = 17747;
     config.mtu              = 1500;
     config.peer_timeout     = 1s;
-    config.max_retransmits  = 5;
     return config;
 }
 

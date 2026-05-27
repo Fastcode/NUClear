@@ -286,8 +286,11 @@ The receiver collects fragments keyed by `(source_address, packet_id)`.
 Once all `packet_count` fragments have arrived, the original message is reassembled and delivered.
 
 **Assembly timeout:**
-If an incomplete message hasn't received new fragments within the assembly timeout (default 10 seconds), it's discarded.
-This prevents memory leaks from lost unreliable packets.
+If an incomplete message hasn't received new fragments within the peer timeout (default 2 seconds), it's discarded.
+This matches the peer liveness timeout — if no fragments have arrived in this period,
+either the peer is dead (and will be removed) or the sender has moved on (unreliable message).
+For reliable messages, the sender's retransmissions will keep refreshing the assembly's timestamp,
+so the assembly will not expire while the sender is still alive and retransmitting.
 
 **Maximum assembly size:**
 A configurable limit (default 64 MB) prevents memory exhaustion from maliciously large messages.
@@ -338,8 +341,9 @@ Key mechanisms:
     The RTO adapts to changing network conditions.
 - **NACK support** — the receiver can proactively request retransmission of specific missing fragments via NACK packets,
     which forces the sender to retransmit immediately.
-- **Maximum retransmissions** — after a configurable number of retransmission attempts (default 10),
-    the sender gives up and discards the tracked packet group.
+- **No retransmission limit** — reliable packets are retransmitted indefinitely until either all fragments are ACKed,
+    or the peer is removed (due to timeout or graceful leave).
+    This guarantees delivery as long as the connection remains alive.
 
 ### RTT estimation (Jacobson/Karels)
 
@@ -546,5 +550,5 @@ The `NUClearNet` engine supports additional parameters beyond what's exposed thr
 | Parameter           | Default   | Description                                              |
 | ------------------- | --------- | -------------------------------------------------------- |
 | `peer_timeout`      | 2 seconds | How long without a packet before a peer is removed       |
-| `max_retransmits`   | 10        | Maximum retransmission attempts for reliable messages    |
+
 | `max_assembly_size` | 64 MB     | Maximum reassembled message size (prevents memory bombs) |

@@ -61,12 +61,7 @@ namespace network {
             std::vector<uint8_t> data;
         };
 
-        /**
-         * Construct the reliability module.
-         *
-         * @param max_retransmits Maximum number of retransmissions before giving up (0 = unlimited)
-         */
-        explicit Reliability(uint16_t max_retransmits = 10);
+        Reliability() = default;
 
         /**
          * Register a sent reliable packet group for tracking.
@@ -190,8 +185,6 @@ namespace network {
 
         /// Key for tracked packets: (target, packet_id)
         using TrackingKey = std::pair<sock_t, uint16_t>;
-
-        uint16_t max_retransmits;
 
         mutable std::mutex tracking_mutex;
         std::map<TrackingKey, TrackedPacket> tracked_packets;

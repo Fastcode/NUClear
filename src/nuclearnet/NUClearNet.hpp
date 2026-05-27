@@ -58,8 +58,6 @@ namespace network {
         uint16_t mtu = 1500;
         /// Peer timeout duration
         std::chrono::steady_clock::duration peer_timeout = std::chrono::seconds(2);
-        /// Maximum retransmission attempts for reliable messages
-        uint16_t max_retransmits = 10;
         /// Maximum total assembly size for fragmented messages
         std::size_t max_assembly_size = 64 * 1024 * 1024;
     };
