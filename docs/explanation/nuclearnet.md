@@ -9,15 +9,11 @@ It's designed for robotics and distributed systems where nodes need to discover 
 graph TD
     A[Node A] <-->|UDP| B[Node B]
     A <-->|UDP| C[Node C]
-    A <-->|UDP| D[Node D]
     B <-->|UDP| C
-    B <-->|UDP| D
-    C <-->|UDP| D
 
     style A fill:#4a9eff,color:#fff
     style B fill:#4a9eff,color:#fff
     style C fill:#4a9eff,color:#fff
-    style D fill:#4a9eff,color:#fff
 ```
 
 Key design principles:
