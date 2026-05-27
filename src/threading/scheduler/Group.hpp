@@ -57,7 +57,10 @@ namespace threading {
         private:
             struct WaitEntry {
                 std::unique_ptr<ReactionTask> task;
-                std::shared_ptr<Pool> pool;
+                /// Non-owning pointer; Pools live for the lifetime of the Scheduler and the
+                /// Scheduler tears down Groups before Pools, so it is always safe to dereference
+                /// while this WaitEntry is reachable.
+                Pool* pool{nullptr};
                 bool clear_idle{false};
             };
 
@@ -110,6 +113,11 @@ namespace threading {
             public:
                 RunningLock(Group& group, std::shared_ptr<Group> group_keepalive);
                 ~RunningLock() override;
+
+                RunningLock(const RunningLock&)            = delete;
+                RunningLock(RunningLock&&)                 = delete;
+                RunningLock& operator=(const RunningLock&) = delete;
+                RunningLock& operator=(RunningLock&&)      = delete;
 
                 bool lock() override;
 
@@ -196,14 +204,12 @@ namespace threading {
              * Otherwise the task is queued until a token is released.
              *
              * @param task       the reaction task to submit
-             * @param pool       the pool to submit to when runnable
+             * @param pool       the pool to submit to when runnable (non-owning; must outlive the call)
              * @param clear_idle if true, clear idle state on submission
              *
              * @return true if the task was submitted immediately
              */
-            bool try_submit(std::unique_ptr<ReactionTask>&& task,
-                            const std::shared_ptr<Pool>& pool,
-                            const bool& clear_idle);
+            bool try_submit(std::unique_ptr<ReactionTask>&& task, Pool* pool, const bool& clear_idle);
 
             /**
              * This function will create a new lock for the task and return it.

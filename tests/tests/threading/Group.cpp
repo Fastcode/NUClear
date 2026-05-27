@@ -28,7 +28,9 @@
 #include <memory>
 
 #include "id.hpp"
-#include "threading/ReactionTask.hpp"
+// Group's WaitEntry holds a std::unique_ptr<ReactionTask>, so a complete type is needed at the
+// point where TaskQueue<WaitEntry> is instantiated (which happens via Group's constructor).
+#include "threading/ReactionTask.hpp"  // NOLINT(misc-include-cleaner)
 #include "threading/scheduler/Lock.hpp"
 #include "util/GroupDescriptor.hpp"
 

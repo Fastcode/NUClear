@@ -22,6 +22,8 @@
 #include "Group.hpp"
 
 #include <algorithm>
+#include <atomic>
+#include <cstddef>
 #include <functional>
 #include <memory>
 #include <mutex>
@@ -31,7 +33,9 @@
 #include "../../id.hpp"
 #include "../../util/GroupDescriptor.hpp"
 #include "../ReactionTask.hpp"
+#include "Lock.hpp"
 #include "Pool.hpp"
+#include "queue/Priority.hpp"
 
 namespace NUClear {
 namespace threading {
@@ -165,9 +169,7 @@ namespace threading {
             return nullptr;
         }
 
-        bool Group::try_submit(std::unique_ptr<ReactionTask>&& task,
-                               const std::shared_ptr<Pool>& pool,
-                               const bool& clear_idle) {
+        bool Group::try_submit(std::unique_ptr<ReactionTask>&& task, Pool* pool, const bool& clear_idle) {
             // Don't jump ahead of multi-group waiters; if any exist, queue ourselves.
             if (slow_pending.load(std::memory_order_acquire) == 0) {
                 int expected = tokens.load(std::memory_order_acquire);
@@ -240,7 +242,7 @@ namespace threading {
             WaitEntry entry;
             for (std::size_t bucket = 0; bucket < queue::PRIORITY_BUCKETS; ++bucket) {
                 if (wait_buckets[bucket].try_dequeue(entry)) {
-                    auto pool = entry.pool;
+                    Pool* pool = entry.pool;
                     pool->submit({std::move(entry.task), make_running_lock()}, entry.clear_idle, /*force=*/true);
                     pool->unregister_external_waiter();
                     return true;

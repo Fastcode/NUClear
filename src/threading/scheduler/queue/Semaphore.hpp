@@ -39,7 +39,8 @@ namespace threading {
              */
             class Semaphore {
             public:
-                Semaphore() = default;
+                Semaphore()  = default;
+                ~Semaphore() = default;
 
                 Semaphore(const Semaphore&)            = delete;
                 Semaphore& operator=(const Semaphore&) = delete;
@@ -49,7 +50,7 @@ namespace threading {
                 void signal(int n = 1) {
                     const int previous = count.fetch_add(n, std::memory_order_release);
                     if (previous < 0) {
-                        std::lock_guard<std::mutex> lock(mutex);
+                        const std::lock_guard<std::mutex> lock(mutex);
                         const int waiters = std::min(n, -previous);
                         for (int i = 0; i < waiters; ++i) {
                             cv.notify_one();

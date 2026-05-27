@@ -23,6 +23,7 @@
 #define NUCLEAR_THREADING_SCHEDULER_QUEUE_TASK_QUEUE_HPP
 
 #include <algorithm>
+#include <array>
 #include <atomic>
 #include <cstddef>
 #include <new>
@@ -49,17 +50,19 @@ namespace threading {
                 static_assert(std::is_move_constructible<T>::value, "TaskQueue requires move constructible T");
 
             private:
-                enum { BLOCK_SIZE = 64 };
+                static constexpr std::size_t BLOCK_SIZE = 64;
 
                 struct Block;
 
                 struct Slot {
                     std::atomic<bool> committed{false};
-                    alignas(T) unsigned char storage[sizeof(T)];
+                    /// Raw aligned storage for the T payload. Left value-initialised (zeroed) so the
+                    /// constructor fully covers all members; placement-new overwrites it on enqueue.
+                    alignas(T) std::array<unsigned char, sizeof(T)> storage{};
                 };
 
                 struct Block {
-                    Slot slots[BLOCK_SIZE];
+                    std::array<Slot, BLOCK_SIZE> slots{};
                     std::atomic<std::size_t> write{0};
                     std::atomic<std::size_t> read{0};
                     std::atomic<std::size_t> consumed{0};
@@ -68,7 +71,7 @@ namespace threading {
                 };
 
                 static T* slot_ptr(Slot& slot) {
-                    return reinterpret_cast<T*>(slot.storage);
+                    return reinterpret_cast<T*>(slot.storage.data());
                 }
 
                 static void destroy_slot(Slot& slot) {
@@ -76,7 +79,7 @@ namespace threading {
                     slot.committed.store(false, std::memory_order_relaxed);
                 }
 
-                Block* allocate_block() {
+                static Block* allocate_block() {
                     return new Block();
                 }
 
@@ -84,12 +87,15 @@ namespace threading {
                 // a stale pointer cannot observe freed memory.
                 void retire_block(Block* block) {
                     Block* head_graveyard = graveyard.load(std::memory_order_acquire);
-                    do {
+                    while (true) {
                         block->graveyard_next = head_graveyard;
-                    } while (!graveyard.compare_exchange_weak(head_graveyard,
-                                                              block,
-                                                              std::memory_order_release,
-                                                              std::memory_order_relaxed));
+                        if (graveyard.compare_exchange_weak(head_graveyard,
+                                                            block,
+                                                            std::memory_order_release,
+                                                            std::memory_order_relaxed)) {
+                            return;
+                        }
+                    }
                 }
 
                 bool link_next_block(Block* block) {
@@ -135,7 +141,7 @@ namespace threading {
 
             public:
                 TaskQueue() {
-                    Block* initial = new Block();
+                    auto* initial = new Block();
                     head.store(initial, std::memory_order_relaxed);
                     tail.store(initial, std::memory_order_relaxed);
                     graveyard.store(nullptr, std::memory_order_relaxed);
@@ -174,7 +180,7 @@ namespace threading {
 
                         if (index < BLOCK_SIZE) {
                             Slot& slot = block->slots[index];
-                            new (slot.storage) T(std::move(item));
+                            new (slot.storage.data()) T(std::move(item));
                             slot.committed.store(true, std::memory_order_release);
                             return;
                         }

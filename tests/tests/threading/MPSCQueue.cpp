@@ -76,7 +76,7 @@ namespace threading {
                 GIVEN("An MPSCQueue with 5000 sequentially enqueued integers") {
                     MPSCQueue<int> queue;
                     for (int i = 0; i < 5000; ++i) {
-                        queue.enqueue(int(i));
+                        queue.enqueue(i);
                     }
 
                     WHEN("They are all dequeued in turn") {
@@ -112,6 +112,7 @@ namespace threading {
 
                     WHEN("A single consumer drains every item that the producers emit") {
                         std::vector<std::thread> producer_threads;
+                        producer_threads.reserve(producers);
                         for (int p = 0; p < producers; ++p) {
                             producer_threads.emplace_back([&, p]() {
                                 for (int i = 0; i < items_per_producer; ++i) {

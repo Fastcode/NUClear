@@ -22,6 +22,8 @@
 #include "Pool.hpp"
 
 #include <algorithm>
+#include <atomic>
+#include <cstddef>
 #include <memory>
 #include <mutex>
 #include <set>
@@ -31,11 +33,15 @@
 
 #include "../../dsl/word/MainThread.hpp"
 #include "../../dsl/word/Pool.hpp"
+#include "../../id.hpp"
 #include "../../threading/Reaction.hpp"
 #include "../../util/Inline.hpp"
 #include "../ReactionTask.hpp"
 #include "CountingLock.hpp"
 #include "Scheduler.hpp"
+#include "queue/MPSCQueue.hpp"
+#include "queue/Priority.hpp"
+#include "queue/TaskQueue.hpp"
 
 namespace NUClear {
 namespace threading {

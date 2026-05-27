@@ -135,8 +135,19 @@ namespace threading {
         /// The callback generator function (creates databound callbacks)
         TaskGenerator generator;
 
-        /// Cached data for this reaction added by the scheduler
-        std::shared_ptr<void> scheduler_data;
+        /// Cached scheduler-private pointer for this reaction.
+        ///
+        /// The scheduler uses this as a fast-path cache for the resolved pool that this reaction's
+        /// tasks should run on. It is a raw, non-owning `void*` rather than `std::shared_ptr<void>`
+        /// to avoid the per-submit cost of `std::atomic_load`/`atomic_store` on a `shared_ptr`,
+        /// which on libstdc++ falls back to a small global pool of mutexes (selected by pointer
+        /// hash) and can become a contention point on hot submission paths.
+        ///
+        /// Ownership of whatever this points at lives entirely with the scheduler; reactions
+        /// outlive scheduler-side resources because PowerPlant tears reactors down before the
+        /// scheduler. The cache is set-once: the first submit resolves the pool and CASes it in,
+        /// subsequent submits just load it.
+        std::atomic<void*> scheduler_data{nullptr};
         friend class scheduler::Scheduler;  /// Let the scheduler mess with reaction objects
     };
 

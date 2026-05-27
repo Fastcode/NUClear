@@ -162,7 +162,7 @@ namespace threading {
         std::unique_ptr<Lock> Scheduler::get_groups_lock(
             const NUClear::id_t& task_id,
             const int& priority,
-            const std::shared_ptr<Pool>& pool,
+            Pool* pool,
             const std::set<std::shared_ptr<const util::GroupDescriptor>>& descs) {
 
             // No groups
@@ -188,28 +188,32 @@ namespace threading {
                 return;
             }
 
-            // If we have run this task before, we know which pool it should be submitted to and cached it
-            // on the parent reaction. This avoids every submit having to lock a mutex to find the pool.
+            // Resolve the Pool for this task.
             //
-            // The cache is read/written from any thread that submits a task for this reaction, so we use
-            // std::atomic_load/store on the shared_ptr to avoid a data race. The cache lookup is benign
-            // even under contention: the worst case is two submitters racing both compute the same pool
-            // pointer and store it; the resulting pool is identical so a "last writer wins" is fine.
-            std::shared_ptr<Pool> pool;
+            // The first submit for a reaction does a mutex-protected `get_pool()` lookup; the
+            // resulting pointer is then cached on the parent Reaction so subsequent submits skip
+            // the mutex entirely.
+            //
+            // The cache is a single `std::atomic<void*>` (see Reaction::scheduler_data). We
+            // deliberately avoid `std::atomic_load`/`atomic_store` on a `std::shared_ptr<void>`:
+            // on libstdc++ those fall back to a small global pool of mutexes (~8 chosen by
+            // pointer hash) and become a contention point on hot submission paths. Pools live
+            // for the lifetime of the Scheduler (and the Scheduler tears down reactions before
+            // its own pools), so a non-owning raw pointer is safe.
+            //
+            // The cache update is benign-racing: two submitters that miss simultaneously will
+            // both call `get_pool()` and store the same pointer; last writer wins, identical
+            // value.
+            Pool* pool = nullptr;
             if (task->parent) {
-                auto cached = std::atomic_load_explicit(&task->parent->scheduler_data, std::memory_order_acquire);
-                if (cached) {
-                    pool = std::static_pointer_cast<Pool>(cached);
-                }
-                else {
-                    pool = get_pool(task->pool_descriptor);
-                    std::atomic_store_explicit(&task->parent->scheduler_data,
-                                               std::static_pointer_cast<void>(pool),
-                                               std::memory_order_release);
+                pool = static_cast<Pool*>(task->parent->scheduler_data.load(std::memory_order_acquire));
+                if (pool == nullptr) {
+                    pool = get_pool(task->pool_descriptor).get();
+                    task->parent->scheduler_data.store(static_cast<void*>(pool), std::memory_order_release);
                 }
             }
             else {
-                pool = get_pool(task->pool_descriptor);
+                pool = get_pool(task->pool_descriptor).get();
             }
 
             const bool current_pool_idle = Pool::current() != nullptr && Pool::current()->is_idle();

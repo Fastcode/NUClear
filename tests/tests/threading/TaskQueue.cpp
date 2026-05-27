@@ -23,6 +23,7 @@
 
 #include <atomic>
 #include <catch2/catch_test_macros.hpp>
+#include <cstddef>
 #include <memory>
 #include <thread>
 #include <vector>
@@ -112,6 +113,7 @@ namespace threading {
 
                     WHEN("All producers and consumers run to completion") {
                         std::vector<std::thread> threads;
+                        threads.reserve(static_cast<std::size_t>(producers) + static_cast<std::size_t>(consumers));
                         for (int p = 0; p < producers; ++p) {
                             threads.emplace_back([&, p]() {
                                 for (int i = 0; i < items_per_producer; ++i) {

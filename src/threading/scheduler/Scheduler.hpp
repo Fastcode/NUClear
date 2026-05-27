@@ -127,7 +127,7 @@ namespace threading {
              */
             std::unique_ptr<Lock> get_groups_lock(const NUClear::id_t& task_id,
                                                   const int& priority,
-                                                  const std::shared_ptr<Pool>& pool,
+                                                  Pool* pool,
                                                   const std::set<std::shared_ptr<const util::GroupDescriptor>>& descs);
 
             /// The number of threads that will be in the default thread pool
@@ -136,10 +136,9 @@ namespace threading {
             /// If running is false this means the scheduler is shutting down and no new pools will be created
             std::atomic<bool> running{true};
 
-            /// A mutex for when we are modifying groups
-            std::mutex groups_mutex;
-            /// A map of group ids to the number of active tasks currently running in that group
-            std::map<std::shared_ptr<const util::GroupDescriptor>, std::shared_ptr<Group>> groups;
+            // NB: `pools` is declared before `groups` so that on Scheduler destruction the groups
+            // (which may hold non-owning Pool* in their waiter buckets) are destroyed first, then
+            // the pools. This keeps the raw pointers in WaitEntry safe-by-construction.
 
             /// A mutex for when we are modifying pools
             std::mutex pools_mutex;
@@ -148,6 +147,11 @@ namespace threading {
             /// If started is false pools will not be started until start is called
             /// once start is called future pools will be started immediately
             std::atomic<bool> started{false};
+
+            /// A mutex for when we are modifying groups
+            std::mutex groups_mutex;
+            /// A map of group ids to the number of active tasks currently running in that group
+            std::map<std::shared_ptr<const util::GroupDescriptor>, std::shared_ptr<Group>> groups;
 
             /// A mutex to protect the idle tasks list
             std::mutex idle_mutex;

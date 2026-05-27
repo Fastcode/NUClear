@@ -20,9 +20,12 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+#include <algorithm>
+#include <array>
 #include <atomic>
 #include <catch2/catch_test_macros.hpp>
 #include <chrono>
+#include <cstdint>
 #include <iomanip>
 #include <iostream>
 #include <memory>
@@ -109,7 +112,7 @@ namespace {
     };
 
     template <SyncMode mode>
-    long run_benchmark(int pool_concurrency, int fanout) {
+    std::int64_t run_benchmark(int pool_concurrency, int fanout) {
         NUClear::Configuration config;
         config.default_pool_concurrency = pool_concurrency;
 
@@ -144,10 +147,10 @@ namespace {
         out << std::setw(12) << "threads" << std::setw(12) << "fanout" << std::setw(12) << "µs" << "\n";
         out << "    ----------------------------------\n";
 
-        long total = 0;
-        for (int concurrency : concurrencies) {
-            for (int fanout : fanouts) {
-                long us = 0;
+        std::int64_t total = 0;
+        for (const int concurrency : concurrencies) {
+            for (const int fanout : fanouts) {
+                std::int64_t us = 0;
                 switch (mode) {
                     case SyncMode::NONE: us = run_benchmark<SyncMode::NONE>(concurrency, fanout); break;
                     case SyncMode::SINGLE: us = run_benchmark<SyncMode::SINGLE>(concurrency, fanout); break;
