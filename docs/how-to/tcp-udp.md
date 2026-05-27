@@ -62,8 +62,8 @@ public:
 ### Binding to a Specific Interface
 
 ```cpp
-// Listen on a specific address
-auto [port, fd] = on<TCP>(9000, "192.168.1.100").then(/* ... */);
+// Listen on a specific address — returns (handle, port, fd)
+auto [handle, port, fd] = on<TCP>(9000, "192.168.1.100").then(/* ... */);
 ```
 
 ## UDP
@@ -107,13 +107,11 @@ on<UDP::Multicast>("239.0.0.1", 5000).then([this](const UDP::Packet& packet) {
 Use `emit<Scope::UDP>` to send serialized data as a UDP datagram:
 
 ```cpp
-auto data = std::make_unique<MyMessage>(/* ... */);
-
 // Send to a specific address and port
-emit<Scope::UDP>(data, "192.168.1.50", 5000);
+emit<Scope::UDP>(std::make_unique<MyMessage>(/* ... */), "192.168.1.50", 5000);
 
 // Send from a specific local address/port
-emit<Scope::UDP>(data, "192.168.1.50", 5000, "192.168.1.1", 6000);
+emit<Scope::UDP>(std::make_unique<MyMessage>(/* ... */), "192.168.1.50", 5000, "192.168.1.1", 6000);
 ```
 
 The data type must be serializable (same rules as `Network<T>`).
@@ -136,9 +134,6 @@ public:
         on<UDP>(7000).then([this](const UDP::Packet& packet) {
             if (packet) {
                 log("Echo:", packet.payload.size(), "bytes back to sender");
-
-                // Build a response to send back
-                auto response = std::make_unique<std::vector<uint8_t>>(packet.payload);
 
                 // Use raw socket to reply (UDP::Packet gives us the remote address)
                 util::FileDescriptor fd = ::socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);

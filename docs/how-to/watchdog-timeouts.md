@@ -97,7 +97,7 @@ You can monitor multiple instances of the same group using a runtime argument. E
 
 ```cpp
 // Monitor each motor independently
-on<Watchdog<MotorMonitor, 500, std::chrono::milliseconds>>(motor_id).then([this] {
+on<Watchdog<MotorMonitor, 500, std::chrono::milliseconds>>(motor_id).then([this, motor_id] {
     log<WARN>("Motor", motor_id, "stopped responding");
 });
 

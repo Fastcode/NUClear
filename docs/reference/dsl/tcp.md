@@ -30,11 +30,12 @@ The connection object is boolean-convertible — it evaluates to `false` if the 
 
 The reaction fires only for **new** connections. TCP is stream-based, so ongoing communication on an established connection must be handled separately using [IO](io.md) on the returned file descriptor.
 
-When port `0` is used, the OS assigns an available port. Retrieve the actual port from the bind return value:
+When port `0` is used, the OS assigns an available port. The `on<TCP>().then()` call returns a tuple containing the handle, assigned port, and file descriptor:
 
 ```cpp
-auto handle = on<TCP>(0).then([](const TCP::Connection& conn) { /* ... */ });
-in_port_t port = std::get<0>(handle.get<TCP>());
+auto [handle, port, fd] = on<TCP>(0).then([](const TCP::Connection& conn) { /* ... */ });
+// port is the OS-assigned port number
+// fd is the listening socket's file descriptor
 ```
 
 Both IPv4 and IPv6 addresses are supported. The address family is determined by the resolved `bind_address`, defaulting to IPv4 (`INADDR_ANY`) when omitted.

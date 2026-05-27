@@ -6,7 +6,7 @@ Returns the priority level for this task in the scheduling queue.
 
 ```cpp
 template <typename DSL>
-static int priority(threading::ReactionTask& task)
+static int priority(const threading::ReactionTask& task)
 ```
 
 ## Details
@@ -29,19 +29,18 @@ Priority does **not** preempt running tasks — it only affects queue ordering.
 ## Example
 
 ```cpp
-template <>
-struct Priority<NUClear::HIGH> {
+struct HighPriority {
     template <typename DSL>
-    static int priority(threading::ReactionTask& /*task*/) {
-        return 1000;  // Higher than NORMAL (0)
+    static int priority(const threading::ReactionTask& /*task*/) {
+        return 750;  // Same as Priority::HIGH
     }
 };
 ```
 
 ## Built-in Words Using priority
 
-- `Priority::REALTIME` — highest priority
-- `Priority::HIGH` — above normal
-- `Priority::NORMAL` — default (0)
-- `Priority::LOW` — below normal
-- `Priority::IDLE` — lowest priority
+- `Priority::REALTIME` — value 1000
+- `Priority::HIGH` — value 750
+- `Priority::NORMAL` — value 500 (default)
+- `Priority::LOW` — value 250
+- `Priority::IDLE` — value 0

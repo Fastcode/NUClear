@@ -6,7 +6,7 @@ Controls whether the task can be executed inline (on the emitting thread) rather
 
 ```cpp
 template <typename DSL>
-static util::Inline run_inline(threading::ReactionTask& task)
+static util::Inline run_inline(const threading::ReactionTask& task)
 ```
 
 ## Details
@@ -29,9 +29,9 @@ When `NEVER` is returned, the task is always queued, even if the emit scope woul
 ## Example
 
 ```cpp
-struct Inline<util::Inline::ALWAYS> {
+struct AlwaysInline {
     template <typename DSL>
-    static util::Inline run_inline(threading::ReactionTask& /*task*/) {
+    static util::Inline run_inline(const threading::ReactionTask& /*task*/) {
         return util::Inline::ALWAYS;
     }
 };

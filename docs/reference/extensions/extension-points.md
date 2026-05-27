@@ -48,7 +48,7 @@ Each extension point is documented in detail on its own page:
 
 | Point          | Signature                      | Returns     | Fusion Strategy     |
 | -------------- | ------------------------------ | ----------- | ------------------- |
-| `bind`         | `bind<DSL>(reaction, args...)` | void        | Sequential          |
+| `bind`         | `bind<DSL>(reaction, args...)` | void        | Arg-distributing (FunctionFusion) |
 | `get`          | `get<DSL>(task)`               | data        | Tuple concatenation |
 | `precondition` | `precondition<DSL>(task)`      | bool        | AND (short-circuit) |
 | `priority`     | `priority<DSL>(task)`          | int         | Maximum             |
