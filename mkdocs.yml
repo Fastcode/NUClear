@@ -184,7 +184,7 @@ nav:
       - Lifecycle: explanation/lifecycle.md
       - The DSL System: explanation/dsl-system.md
       - Message Flow: explanation/message-flow.md
-      - NUClearNet: explanation/nuclear-net.md
+      - NUClearNet: explanation/nuclearnet.md
       - Serialization: explanation/serialization.md
   - Contributing:
       - contributing/index.md

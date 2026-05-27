@@ -86,5 +86,5 @@ on<Network<SensorReading>>().then([](const NetworkSource& src, const SensorReadi
 
 - [emit/Network](../emit/network.md) — emitting messages to the network
 - [UDP](udp.md) — raw UDP communication
-- [Nuclear Networking](../../explanation/nuclear-net.md) — how the network protocol works
+- [Nuclear Networking](../../explanation/nuclearnet.md) — how the network protocol works
 - [Networking How-To](../../how-to/networking.md) — practical networking guide
