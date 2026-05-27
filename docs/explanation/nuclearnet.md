@@ -260,8 +260,11 @@ block-beta
 
 ## Fragmentation and reassembly
 
-UDP datagrams have a practical size limit (the network MTU).
-Large messages are automatically split across multiple packets.
+Because NUClearNet uses UDP, each packet must fit within a single network datagram.
+UDP datagrams have a practical size limit — the network's MTU.
+Messages larger than this limit are automatically split into fragments,
+each sent as a separate UDP datagram.
+The receiver reassembles the fragments back into the complete message.
 
 ### MTU calculation
 
@@ -304,8 +307,13 @@ If a message's total size would exceed this limit, the assembly is rejected.
 
 ## Reliable delivery
 
-By default, NUClearNet is **unreliable** — packets are fire-and-forget, just like raw UDP.
-When you need guaranteed delivery, the reliable mode adds ACK-based retransmission.
+Fragmentation solves the message *size* problem, but UDP itself provides no delivery guarantees.
+Packets can be lost, reordered, or duplicated by the network.
+For many robotics use cases (sensor streams, video frames), this is fine — a missing update is quickly superseded by the next one.
+But some messages *must* arrive: configuration commands, state transitions, calibration data.
+
+NUClearNet's reliable delivery mode adds ACK-based retransmission on top of the same fragmented UDP transport.
+When you send a message reliably, the system tracks which fragments have been acknowledged by the receiver and retransmits any that go missing.
 
 ### Unreliable (default)
 
@@ -315,6 +323,8 @@ When you need guaranteed delivery, the reliable mode adds ACK-based retransmissi
 - Fine for high-frequency data where missing one update doesn't matter (sensor streams, video frames)
 
 ### Reliable mode
+
+When reliable delivery is requested, the sender and receiver engage in a conversation to ensure all fragments arrive:
 
 ```mermaid
 sequenceDiagram
@@ -342,18 +352,22 @@ Key mechanisms:
     it responds with an ACK containing a bitset of *all* received fragments for that packet group.
     This gives the sender full visibility into what's been received.
 - **RTO-based retransmission** — the sender waits one RTO (Retransmission Timeout) before retransmitting un-ACKed fragments.
-    Retransmitting too early wastes bandwidth; too late adds latency.
-- **Adaptive RTO estimation** — each peer's round-trip time is tracked using the Jacobson/Karels algorithm.
-    The RTO adapts to changing network conditions.
+    The RTO is calculated per peer based on measured round-trip times (see below).
 - **NACK support** — the receiver can proactively request retransmission of specific missing fragments via NACK packets,
-    which forces the sender to retransmit immediately.
+    which forces the sender to retransmit immediately rather than waiting for the RTO.
 - **No retransmission limit** — reliable packets are retransmitted indefinitely until either all fragments are ACKed,
     or the peer is removed (due to timeout or graceful leave).
     This guarantees delivery as long as the connection remains alive.
 
-### RTT estimation (Jacobson/Karels)
+### How long to wait before retransmitting (RTT estimation)
 
-NUClearNet uses the TCP-standard Jacobson/Karels algorithm (RFC 6298) for per-peer RTT estimation:
+The key challenge in retransmission is choosing *when* to retransmit.
+Too soon, and you waste bandwidth resending packets that were simply delayed.
+Too late, and the receiver is left waiting for data that was lost.
+
+The answer depends on how long packets actually take to travel between two specific peers — the round-trip time.
+NUClearNet measures this per peer by timing how long it takes between sending a fragment and receiving its ACK.
+This measurement is then smoothed using the Jacobson/Karels algorithm (the same approach TCP uses, defined in RFC 6298):
 
 ```
 RTTVAR = (1 - β) × RTTVAR + β × |SRTT - sample|
@@ -369,11 +383,21 @@ Where:
 - `RTTVAR` — RTT variation (jitter)
 - `RTO` — retransmission timeout (clamped between 100 ms and 60 s)
 
-This provides smooth, responsive RTT tracking that adapts to network congestion without oscillating.
+The RTO is the actual wait time before retransmitting.
+It's set slightly above the smoothed RTT (plus a jitter margin) so that under normal conditions,
+the ACK arrives just before the timeout fires.
+If the network gets congested and round-trip times increase, the RTO automatically grows to compensate.
+If the network recovers, the RTO shrinks back down.
+
+This means retransmission timing is always appropriate for the current link conditions between each specific pair of peers,
+rather than relying on a fixed timeout that would be too aggressive for slow links or too conservative for fast ones.
 
 ## Subscription-based routing
 
-Nodes advertise which message types they want to receive via subscription hashes in their announce packets.
+With fragmentation, reliability, and deduplication handling the *transport* of messages,
+the final piece is deciding *which peers* should receive each message.
+Rather than broadcasting everything to all peers (which wastes bandwidth),
+nodes advertise which message types they want to receive via subscription hashes in their announce packets.
 This allows senders to skip transmitting messages to peers that aren't interested in them.
 
 ```mermaid
@@ -400,8 +424,13 @@ the `NetworkController` adds the corresponding type hash to this node's subscrip
 
 ## Packet deduplication
 
-Each peer has an associated `PacketDeduplicator` — a sliding-window bitset that tracks the last 256 packet IDs seen from that peer.
-When a packet arrives:
+Reliable delivery creates a new problem: duplicate packets.
+When a sender retransmits a fragment because the ACK was lost (not the fragment itself),
+the receiver may process the same fragment twice.
+Similarly, network anomalies can cause any UDP packet to arrive more than once.
+
+To handle this, each peer has an associated `PacketDeduplicator` — a sliding-window bitset that tracks the last 256 packet IDs seen from that peer.
+When a data packet arrives:
 
 1. If the packet ID falls within the window and is already marked as seen, it's dropped as a duplicate.
 1. If the packet ID is newer than the window, the window slides forward and the packet is accepted.
