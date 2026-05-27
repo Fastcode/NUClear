@@ -82,9 +82,11 @@ public:
 - Requires `NetworkConfiguration` to be emitted for the network to be active.
 - The type must be serializable: either trivially copyable, or provide a `util::serialise::Serialise<T>` specialization.
 - Type routing uses a hash — the same type must be defined on both peers.
-- If `reliable` is true, delivery is guaranteed (TCP-like semantics).
-    If false, packets may be lost (UDP-like).
+- If `reliable` is true, the message uses ACK-based retransmission with Jacobson/Karels RTO estimation.
+    If false, packets are fire-and-forget (UDP-like).
 - If the target peer is not connected, the message is silently dropped even with `reliable = true`.
+- Messages are only sent to peers that have subscribed to the type hash (subscription-based routing).
+    Peers with no subscriptions receive all messages by default.
 
 ## See Also
 
