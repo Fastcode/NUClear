@@ -11,7 +11,7 @@ on<Trigger<T>, Inline::NEVER>().then([](const T& t) { /* ... */ });
 
 ## Modes
 
-| Mode             | Behaviour                                                                 |
+| Mode             | Behavior                                                                  |
 | ---------------- | ------------------------------------------------------------------------- |
 | `Inline::ALWAYS` | Task runs immediately on the emitting thread, bypassing the scheduler.    |
 | `Inline::NEVER`  | Task is always queued to the thread pool, even from an inline emit scope. |
@@ -19,7 +19,7 @@ on<Trigger<T>, Inline::NEVER>().then([](const T& t) { /* ... */ });
 
 If both `Inline::ALWAYS` and `Inline::NEVER` are specified on the same reaction, a `std::logic_error` is thrown at binding time.
 
-## Behaviour
+## Behavior
 
 ```mermaid
 flowchart LR

@@ -95,7 +95,7 @@ All DSL words are aliased so they can be used without namespace qualification:
 | `UDP`                        | UDP socket events                     |
 | `TCP`                        | TCP socket events                     |
 | `Network<T>`                 | Networked data                        |
-| `Sync<T>`                    | Synchronisation group                 |
+| `Sync<T>`                    | Synchronization group                 |
 | `Single`                     | At most one task at a time            |
 | `Buffer<N>`                  | Allow up to N concurrent tasks        |
 | `Pool<T>`                    | Execute on a named thread pool        |
@@ -125,15 +125,15 @@ static constexpr LogLevel FATAL = LogLevel::FATAL;
 
 Accessed via the nested `Scope` struct:
 
-| Scope                  | Description                    |
-| ---------------------- | ------------------------------ |
-| `Scope::LOCAL<T>`      | Default; tasks via thread pool |
-| `Scope::INLINE<T>`     | Execute in the emitting thread |
-| `Scope::DELAY<T>`      | Delayed emission               |
-| `Scope::INITIALIZE<T>` | Available before startup       |
-| `Scope::NETWORK<T>`    | Broadcast over network         |
-| `Scope::UDP<T>`        | Emit via UDP                   |
-| `Scope::WATCHDOG<T>`   | Service a watchdog             |
+| Scope               | Description                    |
+| ------------------- | ------------------------------ |
+| `Scope::LOCAL`      | Default; tasks via thread pool |
+| `Scope::INLINE`     | Execute in the emitting thread |
+| `Scope::DELAY`      | Delayed emission               |
+| `Scope::INITIALIZE` | Available before startup       |
+| `Scope::NETWORK`    | Broadcast over network         |
+| `Scope::UDP`        | Emit via UDP                   |
+| `Scope::WATCHDOG`   | Service a watchdog             |
 
 ## Example
 

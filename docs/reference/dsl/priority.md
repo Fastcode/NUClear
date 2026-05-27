@@ -22,7 +22,7 @@ on<Trigger<T>, Priority::IDLE>()
 | LOW      | 250   | Background processing           |
 | IDLE     | 0     | Only when nothing else to do    |
 
-## Behaviour
+## Behavior
 
 Higher priority tasks are dequeued before lower priority tasks when a thread becomes available.
 Priority affects only queuing order — it does not preempt tasks that are already running.

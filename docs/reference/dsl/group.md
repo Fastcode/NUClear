@@ -18,13 +18,13 @@ on<Trigger<T>, Group<GroupType>>()
 
 ```cpp
 struct GroupType {
-    static constexpr int concurrency = N;
+    static constexpr int concurrency = N;  // defaults to 1 if omitted
 };
 ```
 
 ## Behavior
 
-- At most `GroupType::concurrency` tasks from the group execute simultaneously.
+- At most `GroupType::concurrency` tasks from the group execute simultaneously (defaults to 1 if omitted).
 - Tasks that exceed the concurrency limit are queued and dispatched by priority.
 - Groups are identified by type — the same `GroupType` used in different reactors refers to the same group.
 - A reaction can belong to multiple groups.
