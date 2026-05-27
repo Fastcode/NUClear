@@ -81,5 +81,10 @@ namespace network {
         local_subscriptions.erase(hash);
     }
 
+    bool Routing::is_locally_subscribed(uint64_t hash) const {
+        const std::lock_guard<std::mutex> lock(local_mutex);
+        return local_subscriptions.empty() || local_subscriptions.count(hash) != 0;
+    }
+
 }  // namespace network
 }  // namespace NUClear

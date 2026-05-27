@@ -113,6 +113,16 @@ namespace network {
          */
         void remove_local_subscription(uint64_t hash);
 
+        /**
+         * Check if we are locally subscribed to a message type hash.
+         * Returns true if we have no subscriptions (empty = receive all) or if the hash is in our set.
+         *
+         * @param hash The message type hash to check
+         *
+         * @return true if we should accept this message type
+         */
+        bool is_locally_subscribed(uint64_t hash) const;
+
     private:
         /// Per-peer subscription sets (empty set = send all)
         mutable std::mutex peer_mutex;

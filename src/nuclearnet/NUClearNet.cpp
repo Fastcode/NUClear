@@ -262,12 +262,46 @@ namespace network {
             return;
         }
 
-        // Get the list of peers to send to
+        // Get a packet ID
+        uint16_t packet_id = next_packet_id++;
+
+        uint8_t flags = reliable ? RELIABLE : 0;
+
+        // Compute fragment count
+        uint16_t packet_mtu = fragmentation->get_packet_mtu();
+        uint16_t packet_count = length == 0 ? 1 : static_cast<uint16_t>((length + packet_mtu - 1) / packet_mtu);
+
+        // Unreliable broadcast: send once to the multicast/broadcast group
+        // All connected peers receive it on their announce socket — receivers filter by subscription
+        if (target.empty() && !reliable) {
+            for (uint16_t i = 0; i < packet_count; ++i) {
+                DataPacket header{};
+                header.packet_id    = packet_id;
+                header.packet_no    = i;
+                header.packet_count = packet_count;
+                header.flags        = flags;
+                header.hash         = hash;
+
+                std::size_t offset   = static_cast<std::size_t>(i) * packet_mtu;
+                std::size_t frag_len = std::min(static_cast<std::size_t>(packet_mtu), length - offset);
+
+                struct iovec iov[2];
+                iov[0].iov_base = reinterpret_cast<void*>(&header);
+                iov[0].iov_len  = sizeof(DataPacket) - 1;
+                iov[1].iov_base = const_cast<void*>(static_cast<const void*>(payload + offset));
+                iov[1].iov_len  = frag_len;
+
+                send_iov(data_fd, announce_target, iov, 2);
+            }
+            return;
+        }
+
+        // Targeted or reliable sends: unicast to each matching peer
         auto peers = discovery->get_peers();
         std::vector<sock_t> targets;
 
         if (target.empty()) {
-            // Send to all peers that subscribe to this hash
+            // Reliable broadcast: send to all subscribing peers individually (for ACK tracking)
             for (const auto& peer : peers) {
                 const auto& addr = peer.first;
                 if (routing.should_send(addr, hash)) {
@@ -290,19 +324,9 @@ namespace network {
             return;
         }
 
-        // Get a packet ID
-        uint16_t packet_id = next_packet_id++;
-
-        uint8_t flags = reliable ? RELIABLE : 0;
-
-        // Compute fragment count
-        uint16_t packet_mtu = fragmentation->get_packet_mtu();
-        uint16_t packet_count = length == 0 ? 1 : static_cast<uint16_t>((length + packet_mtu - 1) / packet_mtu);
-
         // Send each fragment to each target using scatter IO (no data copy)
         for (const auto& tgt : targets) {
             for (uint16_t i = 0; i < packet_count; ++i) {
-                // Build header on the stack
                 DataPacket header{};
                 header.packet_id    = packet_id;
                 header.packet_no    = i;
@@ -310,14 +334,12 @@ namespace network {
                 header.flags        = flags;
                 header.hash         = hash;
 
-                // Calculate the payload slice for this fragment
                 std::size_t offset   = static_cast<std::size_t>(i) * packet_mtu;
                 std::size_t frag_len = std::min(static_cast<std::size_t>(packet_mtu), length - offset);
 
-                // Scatter IO: header + payload slice (no memcpy needed)
                 struct iovec iov[2];
                 iov[0].iov_base = reinterpret_cast<void*>(&header);
-                iov[0].iov_len  = sizeof(DataPacket) - 1;  // -1: 'data' field is start of payload
+                iov[0].iov_len  = sizeof(DataPacket) - 1;
                 iov[1].iov_base = const_cast<void*>(static_cast<const void*>(payload + offset));
                 iov[1].iov_len  = frag_len;
 
@@ -416,11 +438,16 @@ namespace network {
                 const bool is_new_peer = !discovery->has_peer(source);
                 discovery->process_announce(source, data, length);
 
-                // If this is a new peer, respond with our own announce
                 if (is_new_peer) {
-                    auto subs = routing.get_local_subscriptions();
-                    auto pkt = Discovery::build_announce_packet(node_name, subs);
-                    send_buf(data_fd, source, pkt.data(), pkt.size());
+                    // Force an immediate announce to the multicast/broadcast group
+                    // so the new peer hears us on the announce channel (confirms our_d→their_a)
+                    announce();
+                    last_announce = std::chrono::steady_clock::now();
+
+                    // Send SYN to the peer's data port to initiate the data path handshake
+                    auto syn = Discovery::build_connect_packet(SYN);
+                    send_buf(data_fd, source, syn.data(), syn.size());
+                    discovery->mark_syn_sent(source);
                 }
             } break;
 
@@ -428,12 +455,36 @@ namespace network {
                 discovery->process_leave(source);
             } break;
 
+            case CONNECT: {
+                if (length < sizeof(ConnectPacket)) {
+                    return;
+                }
+                const auto* pkt = reinterpret_cast<const ConnectPacket*>(data);
+                auto result = discovery->process_connect(source, pkt->flags);
+
+                // Send response if the state machine requires one
+                if (result.response_flags != 0) {
+                    auto response = Discovery::build_connect_packet(result.response_flags);
+                    send_buf(data_fd, source, response.data(), response.size());
+                }
+            } break;
+
             case DATA: {
+                // Only accept data from connected peers
+                if (!discovery->is_connected(source)) {
+                    return;
+                }
+
                 if (length < sizeof(DataPacket)) {
                     return;
                 }
 
                 const auto* pkt = reinterpret_cast<const DataPacket*>(data);
+
+                // Drop messages we are not subscribed to (relevant for multicast broadcast data)
+                if (!routing.is_locally_subscribed(pkt->hash)) {
+                    return;
+                }
 
                 // Check for duplicates (at the packet group level)
                 auto& dedup = deduplicators[source];
@@ -505,6 +556,11 @@ namespace network {
             } break;
 
             case ACK: {
+                // Only accept ACKs from connected peers
+                if (!discovery->is_connected(source)) {
+                    return;
+                }
+
                 if (length < sizeof(ACKPacket)) {
                     return;
                 }

@@ -38,6 +38,16 @@ namespace NUClear {
 namespace network {
 
     /**
+     * Data port handshake state for the CONNECT 3-way handshake.
+     */
+    enum class HandshakeState : uint8_t {
+        IDLE,          ///< No handshake attempted yet
+        SYN_SENT,      ///< Sent SYN, waiting for SYN+ACK
+        SYN_RECEIVED,  ///< Received SYN, sent SYN+ACK, waiting for ACK
+        CONFIRMED,     ///< Data port handshake complete
+    };
+
+    /**
      * Information about a discovered peer on the network.
      */
     struct PeerInfo {
@@ -49,6 +59,10 @@ namespace network {
         std::chrono::steady_clock::time_point last_seen;
         /// The set of message type hashes this peer has subscribed to (empty = wants all)
         std::set<uint64_t> subscriptions;
+        /// Whether we have heard this peer's announce on the announce channel (proves their_d→our_a)
+        bool announce_heard = false;
+        /// Data port handshake state (proves their_d↔our_d via CONNECT packets)
+        HandshakeState handshake = HandshakeState::IDLE;
     };
 
     /**
@@ -114,6 +128,15 @@ namespace network {
         static std::vector<uint8_t> build_leave_packet();
 
         /**
+         * Build a connect packet with the given flags.
+         *
+         * @param flags SYN, ACK, or SYN|ACK
+         *
+         * @return The serialized connect packet bytes
+         */
+        static std::vector<uint8_t> build_connect_packet(uint8_t flags);
+
+        /**
          * Process a received announce packet from a peer.
          *
          * @param source  The UDP source address (IP + port) of the packet
@@ -132,6 +155,40 @@ namespace network {
          * @param source The UDP source address of the packet
          */
         void process_leave(const sock_t& source);
+
+        /**
+         * Process a received CONNECT packet from a peer.
+         * Advances the data port handshake state machine.
+         *
+         * @param source The UDP source address
+         * @param flags  The connect flags (SYN, ACK, or SYN|ACK)
+         * @param now    The current time
+         *
+         * @return The response flags to send back (0 = no response needed),
+         *         and whether the peer just became fully connected
+         */
+        struct ConnectResult {
+            uint8_t response_flags = 0;  ///< Flags for response packet (0 = don't send)
+            bool just_connected = false;  ///< Whether this transition completed the full connection
+        };
+        ConnectResult process_connect(const sock_t& source,
+                                      uint8_t flags,
+                                      std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now());
+
+        /**
+         * Advance a peer to SYN_SENT state (called when we send a SYN).
+         *
+         * @param address The peer's address
+         */
+        void mark_syn_sent(const sock_t& address);
+
+        /**
+         * Check if a peer is fully connected (both announce heard AND data handshake confirmed).
+         *
+         * @param address The peer's address
+         * @return true if the peer is fully connected
+         */
+        bool is_connected(const sock_t& address) const;
 
         /**
          * Update the last_seen timestamp for a peer (called on any received packet).

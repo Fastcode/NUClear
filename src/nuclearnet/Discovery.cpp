@@ -90,6 +90,14 @@
             return packet;
         }
 
+        std::vector<uint8_t> Discovery::build_connect_packet(uint8_t flags) {
+            std::vector<uint8_t> packet(sizeof(ConnectPacket));
+            ConnectPacket connect;
+            connect.flags = flags;
+            std::memcpy(packet.data(), &connect, sizeof(ConnectPacket));
+            return packet;
+        }
+
         void Discovery::process_announce(const sock_t& source,
                                           const uint8_t* data,
                                           std::size_t length,
@@ -144,48 +152,53 @@
             }
 
             // Check if this is a new peer or an existing one
-            bool is_new       = false;
             bool subs_changed = false;
+            bool fire_join    = false;
+            PeerInfo join_info;
             {
                 const std::lock_guard<std::mutex> lock(peers_mutex);
 
                 auto it = peers.find(source);
                 if (it == peers.end()) {
-                    // New peer
+                    // New peer — record with announce_heard = true
                     PeerInfo info;
-                    info.name          = name;
-                    info.address       = source;
-                    info.last_seen     = now;
-                    info.subscriptions = std::move(subscriptions);
+                    info.name            = name;
+                    info.address         = source;
+                    info.last_seen       = now;
+                    info.subscriptions   = std::move(subscriptions);
+                    info.announce_heard  = true;
+                    info.handshake       = HandshakeState::IDLE;
                     peers.emplace(source, std::move(info));
-                    is_new = true;
                 }
                 else {
-                    // Existing peer — update last_seen and check for subscription changes
-                    it->second.last_seen = now;
-                    if (it->second.subscriptions != subscriptions) {
-                        it->second.subscriptions = std::move(subscriptions);
-                        subs_changed             = true;
+                    auto& peer = it->second;
+                    peer.last_seen = now;
+
+                    // Mark announce as heard (may trigger connection if data was already confirmed)
+                    if (!peer.announce_heard) {
+                        peer.announce_heard = true;
+                        if (peer.handshake == HandshakeState::CONFIRMED) {
+                            fire_join = true;
+                            join_info = peer;
+                        }
+                    }
+
+                    // Update name if it was unknown (peer added via CONNECT before announce)
+                    if (peer.name.empty()) {
+                        peer.name = name;
+                    }
+
+                    // Check for subscription changes
+                    if (peer.subscriptions != subscriptions) {
+                        peer.subscriptions = std::move(subscriptions);
+                        subs_changed       = true;
                     }
                 }
             }
 
             // Fire callbacks outside the lock
-            if (is_new && join_callback) {
-                PeerInfo info;
-                {
-                    const std::lock_guard<std::mutex> lock(peers_mutex);
-                    auto it = peers.find(source);
-                    if (it != peers.end()) {
-                        info = it->second;
-                    }
-                    else {
-                        is_new = false;
-                    }
-                }
-                if (is_new) {
-                    join_callback(info);
-                }
+            if (fire_join && join_callback) {
+                join_callback(join_info);
             }
             if (subs_changed && subscription_change_callback) {
                 PeerInfo info;
@@ -207,20 +220,139 @@
 
         void Discovery::process_leave(const sock_t& source) {
             PeerInfo removed;
-            bool found = false;
+            bool was_connected = false;
             {
                 const std::lock_guard<std::mutex> lock(peers_mutex);
                 auto it = peers.find(source);
                 if (it != peers.end()) {
-                    removed = it->second;
+                    was_connected = (it->second.announce_heard
+                                     && it->second.handshake == HandshakeState::CONFIRMED);
+                    removed       = it->second;
                     peers.erase(it);
-                    found = true;
                 }
             }
 
-            if (found && leave_callback) {
+            // Only fire leave callback for peers that completed the handshake
+            if (was_connected && leave_callback) {
                 leave_callback(removed);
             }
+        }
+
+        Discovery::ConnectResult Discovery::process_connect(const sock_t& source,
+                                                            uint8_t flags,
+                                                            std::chrono::steady_clock::time_point now) {
+            ConnectResult result;
+            bool fire_join = false;
+            PeerInfo info;
+
+            {
+                const std::lock_guard<std::mutex> lock(peers_mutex);
+                auto it = peers.find(source);
+                if (it == peers.end()) {
+                    // Unknown peer — add with minimal info (name/subs will come from announce)
+                    PeerInfo new_peer;
+                    new_peer.address        = source;
+                    new_peer.last_seen      = now;
+                    new_peer.announce_heard = false;
+                    new_peer.handshake      = HandshakeState::IDLE;
+                    it = peers.emplace(source, std::move(new_peer)).first;
+                }
+
+                auto& peer  = it->second;
+                peer.last_seen = now;
+
+                const bool has_syn = (flags & SYN) != 0;
+                const bool has_ack = (flags & CON_ACK) != 0;
+
+                switch (peer.handshake) {
+                    case HandshakeState::IDLE:
+                        if (has_syn && !has_ack) {
+                            // Received SYN — respond with SYN+ACK
+                            peer.handshake        = HandshakeState::SYN_RECEIVED;
+                            result.response_flags = SYN | CON_ACK;
+                        }
+                        else if (has_syn && has_ack) {
+                            // SYN+ACK but we haven't sent SYN — treat as SYN, respond SYN+ACK
+                            peer.handshake        = HandshakeState::SYN_RECEIVED;
+                            result.response_flags = SYN | CON_ACK;
+                        }
+                        break;
+
+                    case HandshakeState::SYN_SENT:
+                        if (has_syn && has_ack) {
+                            // Received SYN+ACK to our SYN — send ACK, data path confirmed
+                            peer.handshake        = HandshakeState::CONFIRMED;
+                            result.response_flags = CON_ACK;
+                            if (peer.announce_heard) {
+                                result.just_connected = true;
+                                fire_join             = true;
+                                info                  = peer;
+                            }
+                        }
+                        else if (has_syn && !has_ack) {
+                            // Simultaneous open: both sent SYN at the same time
+                            // Respond with SYN+ACK
+                            peer.handshake        = HandshakeState::SYN_RECEIVED;
+                            result.response_flags = SYN | CON_ACK;
+                        }
+                        break;
+
+                    case HandshakeState::SYN_RECEIVED:
+                        if (has_ack && !has_syn) {
+                            // Received ACK to our SYN+ACK — data path confirmed
+                            peer.handshake = HandshakeState::CONFIRMED;
+                            if (peer.announce_heard) {
+                                result.just_connected = true;
+                                fire_join             = true;
+                                info                  = peer;
+                            }
+                        }
+                        else if (has_syn && has_ack) {
+                            // Simultaneous open: both in SYN_RECEIVED, received SYN+ACK
+                            peer.handshake        = HandshakeState::CONFIRMED;
+                            result.response_flags = CON_ACK;
+                            if (peer.announce_heard) {
+                                result.just_connected = true;
+                                fire_join             = true;
+                                info                  = peer;
+                            }
+                        }
+                        break;
+
+                    case HandshakeState::CONFIRMED:
+                        // Already confirmed — respond to duplicates
+                        if (has_syn && has_ack) {
+                            result.response_flags = CON_ACK;
+                        }
+                        else if (has_syn && !has_ack) {
+                            // Peer might have restarted — respond with SYN+ACK
+                            result.response_flags = SYN | CON_ACK;
+                        }
+                        break;
+                }
+            }
+
+            // Fire join callback outside the lock
+            if (fire_join && join_callback) {
+                join_callback(info);
+            }
+
+            return result;
+        }
+
+        void Discovery::mark_syn_sent(const sock_t& address) {
+            const std::lock_guard<std::mutex> lock(peers_mutex);
+            auto it = peers.find(address);
+            if (it != peers.end() && it->second.handshake == HandshakeState::IDLE) {
+                it->second.handshake = HandshakeState::SYN_SENT;
+            }
+        }
+
+        bool Discovery::is_connected(const sock_t& address) const {
+            const std::lock_guard<std::mutex> lock(peers_mutex);
+            auto it = peers.find(address);
+            return it != peers.end() && it->second.announce_heard
+                   && it->second.handshake == HandshakeState::CONFIRMED;
         }
 
         void Discovery::touch_peer(const sock_t& source, std::chrono::steady_clock::time_point now) {
@@ -238,7 +370,11 @@
                 const std::lock_guard<std::mutex> lock(peers_mutex);
                 for (auto it = peers.begin(); it != peers.end();) {
                     if (now - it->second.last_seen > peer_timeout) {
-                        removed.push_back(it->second);
+                        // Only report leave for peers that were fully connected
+                        if (it->second.announce_heard
+                            && it->second.handshake == HandshakeState::CONFIRMED) {
+                            removed.push_back(it->second);
+                        }
                         it = peers.erase(it);
                     }
                     else {

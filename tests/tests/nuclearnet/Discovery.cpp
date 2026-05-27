@@ -26,10 +26,14 @@
 #include <chrono>
 #include <vector>
 
+#include "nuclearnet/wire_protocol.hpp"
 #include "util/platform.hpp"
 
+using NUClear::network::HandshakeState;
 using NUClear::network::Discovery;
 using NUClear::network::PeerInfo;
+using NUClear::network::SYN;
+using NUClear::network::CON_ACK;
 using NUClear::util::network::sock_t;
 
 namespace {
@@ -67,24 +71,24 @@ SCENARIO("Discovery process_announce adds a new peer", "[nuclearnet][discovery]"
 
     sock_t peer_addr = make_addr(0x0A000001, 5000);
     bool join_called = false;
-    std::string joined_name;
 
     disc.set_join_callback([&](const PeerInfo& info) {
         join_called = true;
-        joined_name = info.name;
     });
 
     auto announce = Discovery::build_announce_packet("peer_a", {0x1111});
     disc.process_announce(peer_addr, announce.data(), announce.size());
 
-    REQUIRE(join_called);
-    REQUIRE(joined_name == "peer_a");
+    // Join is deferred until handshake completes
+    REQUIRE_FALSE(join_called);
     REQUIRE(disc.has_peer(peer_addr));
 
     const auto* peer = disc.get_peer(peer_addr);
     REQUIRE(peer != nullptr);
     REQUIRE(peer->name == "peer_a");
     REQUIRE(peer->subscriptions.count(0x1111) == 1);
+    REQUIRE(peer->announce_heard);
+    REQUIRE(peer->handshake == HandshakeState::IDLE);
 }
 
 SCENARIO("Discovery process_announce updates existing peer subscriptions", "[nuclearnet][discovery]") {
@@ -121,10 +125,12 @@ SCENARIO("Discovery process_leave removes a peer", "[nuclearnet][discovery]") {
         leave_called = true;
     });
 
-    // First, add the peer
+    // Add the peer and complete the handshake
     auto announce = Discovery::build_announce_packet("peer_a", {});
     disc.process_announce(peer_addr, announce.data(), announce.size());
-    REQUIRE(disc.has_peer(peer_addr));
+    disc.mark_syn_sent(peer_addr);
+    disc.process_connect(peer_addr, SYN | CON_ACK);  // SYN+ACK response
+    REQUIRE(disc.is_connected(peer_addr));
 
     // Now process a leave
     disc.process_leave(peer_addr);
@@ -141,10 +147,12 @@ SCENARIO("Discovery check_timeouts removes stale peers", "[nuclearnet][discovery
 
     disc.set_leave_callback([&](const PeerInfo&) { leave_called = true; });
 
-    // Add peer at time T
+    // Add peer at time T and complete handshake
     auto t = std::chrono::steady_clock::now();
     auto announce = Discovery::build_announce_packet("peer_a", {});
     disc.process_announce(peer_addr, announce.data(), announce.size(), t);
+    disc.mark_syn_sent(peer_addr);
+    disc.process_connect(peer_addr, SYN | CON_ACK, t);
 
     // Check at T+10ms (before timeout) — peer should still be there
     auto removed = disc.check_timeouts(t + std::chrono::milliseconds(10));
@@ -164,10 +172,12 @@ SCENARIO("Discovery touch_peer resets timeout", "[nuclearnet][discovery]") {
 
     sock_t peer_addr = make_addr(0x0A000001, 5000);
 
-    // Add peer at time T
+    // Add peer at time T and complete handshake
     auto t = std::chrono::steady_clock::now();
     auto announce = Discovery::build_announce_packet("peer_a", {});
     disc.process_announce(peer_addr, announce.data(), announce.size(), t);
+    disc.mark_syn_sent(peer_addr);
+    disc.process_connect(peer_addr, SYN | CON_ACK, t);
 
     // Touch at T+120ms (before 200ms timeout expires)
     disc.touch_peer(peer_addr, t + std::chrono::milliseconds(120));
@@ -202,4 +212,154 @@ SCENARIO("Discovery get_peers returns all known peers", "[nuclearnet][discovery]
     REQUIRE(peers.count(addr_b) == 1);
     REQUIRE(peers[addr_a].name == "node_a");
     REQUIRE(peers[addr_b].name == "node_b");
+}
+
+SCENARIO("Discovery 3-way handshake normal flow", "[nuclearnet][discovery]") {
+    Discovery disc(std::chrono::seconds(5));
+
+    sock_t peer_addr = make_addr(0x0A000001, 5000);
+    bool join_called = false;
+    std::string joined_name;
+
+    disc.set_join_callback([&](const PeerInfo& info) {
+        join_called = true;
+        joined_name = info.name;
+    });
+
+    // Peer announces (heard on announce channel — sets announce_heard)
+    auto announce = Discovery::build_announce_packet("peer_a", {0x1111});
+    disc.process_announce(peer_addr, announce.data(), announce.size());
+    REQUIRE_FALSE(join_called);
+    REQUIRE(disc.get_peer(peer_addr)->announce_heard);
+    REQUIRE(disc.get_peer(peer_addr)->handshake == HandshakeState::IDLE);
+
+    // We send SYN
+    disc.mark_syn_sent(peer_addr);
+    REQUIRE(disc.get_peer(peer_addr)->handshake == HandshakeState::SYN_SENT);
+
+    // Peer responds with SYN+ACK
+    auto result = disc.process_connect(peer_addr, SYN | CON_ACK);
+    REQUIRE(result.just_connected);
+    REQUIRE(result.response_flags == CON_ACK);  // We should send ACK back
+    REQUIRE(join_called);
+    REQUIRE(joined_name == "peer_a");
+    REQUIRE(disc.is_connected(peer_addr));
+}
+
+SCENARIO("Discovery 3-way handshake receiving SYN first", "[nuclearnet][discovery]") {
+    Discovery disc(std::chrono::seconds(5));
+
+    sock_t peer_addr = make_addr(0x0A000001, 5000);
+    bool join_called = false;
+
+    disc.set_join_callback([&](const PeerInfo&) { join_called = true; });
+
+    // Peer announces and we add them
+    auto announce = Discovery::build_announce_packet("peer_a", {});
+    disc.process_announce(peer_addr, announce.data(), announce.size());
+
+    // Peer sends SYN to us (they initiated)
+    auto result = disc.process_connect(peer_addr, SYN);
+    REQUIRE_FALSE(result.just_connected);
+    REQUIRE(result.response_flags == (SYN | CON_ACK));  // We respond with SYN+ACK
+    REQUIRE_FALSE(join_called);
+    REQUIRE(disc.get_peer(peer_addr)->handshake == HandshakeState::SYN_RECEIVED);
+
+    // Peer sends ACK to complete the handshake
+    result = disc.process_connect(peer_addr, CON_ACK);
+    REQUIRE(result.just_connected);
+    REQUIRE(result.response_flags == 0);  // No further response needed
+    REQUIRE(join_called);
+    REQUIRE(disc.is_connected(peer_addr));
+}
+
+SCENARIO("Discovery 3-way handshake simultaneous open", "[nuclearnet][discovery]") {
+    Discovery disc(std::chrono::seconds(5));
+
+    sock_t peer_addr = make_addr(0x0A000001, 5000);
+    bool join_called = false;
+
+    disc.set_join_callback([&](const PeerInfo&) { join_called = true; });
+
+    // Peer announces
+    auto announce = Discovery::build_announce_packet("peer_a", {});
+    disc.process_announce(peer_addr, announce.data(), announce.size());
+
+    // We send SYN
+    disc.mark_syn_sent(peer_addr);
+
+    // But peer also sent SYN at the same time (simultaneous open)
+    auto result = disc.process_connect(peer_addr, SYN);
+    REQUIRE_FALSE(result.just_connected);
+    REQUIRE(result.response_flags == (SYN | CON_ACK));  // Respond with SYN+ACK
+    REQUIRE(disc.get_peer(peer_addr)->handshake == HandshakeState::SYN_RECEIVED);
+
+    // Peer also sends SYN+ACK (they got our SYN)
+    result = disc.process_connect(peer_addr, SYN | CON_ACK);
+    REQUIRE(result.just_connected);
+    REQUIRE(result.response_flags == CON_ACK);
+    REQUIRE(join_called);
+    REQUIRE(disc.is_connected(peer_addr));
+}
+
+SCENARIO("Discovery build_connect_packet produces valid packet", "[nuclearnet][discovery]") {
+    auto syn_packet = Discovery::build_connect_packet(SYN);
+    REQUIRE(syn_packet.size() == 6);
+    REQUIRE(syn_packet[0] == 0xE2);
+    REQUIRE(syn_packet[1] == 0x98);
+    REQUIRE(syn_packet[2] == 0xA2);
+    REQUIRE(syn_packet[4] == 5);  // CONNECT type
+    REQUIRE(syn_packet[5] == SYN);
+
+    auto synack_packet = Discovery::build_connect_packet(SYN | CON_ACK);
+    REQUIRE(synack_packet[5] == (SYN | CON_ACK));
+}
+
+SCENARIO("Discovery process_leave does not fire callback for non-connected peer", "[nuclearnet][discovery]") {
+    Discovery disc(std::chrono::seconds(5));
+
+    sock_t peer_addr = make_addr(0x0A000001, 5000);
+    bool leave_called = false;
+
+    disc.set_leave_callback([&](const PeerInfo&) { leave_called = true; });
+
+    // Add peer but do NOT complete handshake
+    auto announce = Discovery::build_announce_packet("peer_a", {});
+    disc.process_announce(peer_addr, announce.data(), announce.size());
+
+    disc.process_leave(peer_addr);
+
+    REQUIRE_FALSE(leave_called);
+    REQUIRE_FALSE(disc.has_peer(peer_addr));
+}
+
+SCENARIO("Discovery connection deferred until announce heard", "[nuclearnet][discovery]") {
+    Discovery disc(std::chrono::seconds(5));
+
+    sock_t peer_addr = make_addr(0x0A000001, 5000);
+    bool join_called = false;
+
+    disc.set_join_callback([&](const PeerInfo&) { join_called = true; });
+
+    // Peer sends SYN before we've heard their announce (they added us via CONNECT)
+    auto result = disc.process_connect(peer_addr, SYN);
+    REQUIRE(result.response_flags == (SYN | CON_ACK));
+    REQUIRE_FALSE(join_called);
+
+    // Complete the data handshake
+    result = disc.process_connect(peer_addr, CON_ACK);
+    // Data path is confirmed but announce not yet heard — NOT connected
+    REQUIRE_FALSE(result.just_connected);
+    REQUIRE_FALSE(join_called);
+    REQUIRE_FALSE(disc.is_connected(peer_addr));
+    REQUIRE(disc.get_peer(peer_addr)->handshake == HandshakeState::CONFIRMED);
+    REQUIRE_FALSE(disc.get_peer(peer_addr)->announce_heard);
+
+    // Now we hear their announce on the announce channel
+    auto announce = Discovery::build_announce_packet("peer_a", {});
+    disc.process_announce(peer_addr, announce.data(), announce.size());
+
+    // NOW the connection should be up
+    REQUIRE(join_called);
+    REQUIRE(disc.is_connected(peer_addr));
 }

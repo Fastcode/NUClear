@@ -45,11 +45,18 @@ namespace network {
         LEAVE    = 2,
         DATA     = 3,
         ACK      = 4,
+        CONNECT  = 5,
     };
 
     /// Data packet flags (bit field)
     enum DataFlags : uint8_t {
         RELIABLE = 0x01,
+    };
+
+    /// Connect packet flags (bit field)
+    enum ConnectFlags : uint8_t {
+        SYN = 0x01,
+        CON_ACK = 0x02,
     };
 
     /**
@@ -153,6 +160,25 @@ namespace network {
     });
 
     /**
+     * Connect packet — used for the 3-way handshake to confirm bidirectional data port connectivity.
+     *
+     * Wire layout (6 bytes):
+     *   [0-4]   PacketHeader (type = CONNECT)
+     *   [5]     flags (uint8_t) — bit 0: SYN (initiating), bit 1: ACK (acknowledging)
+     *
+     * Handshake sequence:
+     *   1. Initiator sends CONNECT (SYN) to peer's data port
+     *   2. Peer responds with CONNECT (SYN|ACK)
+     *   3. Initiator sends CONNECT (ACK) — connection confirmed on both sides
+     */
+    NUCLEAR_NET_PACK(struct ConnectPacket : PacketHeader {
+        ConnectPacket() : PacketHeader(CONNECT) {}
+
+        /// Connection flags (SYN = initiating, ACK = acknowledging)
+        uint8_t flags{0};
+    });
+
+    /**
      * Validate that a buffer contains a valid NUClearNet packet header.
      *
      * @param data    Pointer to the received data
@@ -166,7 +192,7 @@ namespace network {
         }
         const auto* header = static_cast<const PacketHeader*>(data);
         return header->header[0] == 0xE2 && header->header[1] == 0x98 && header->header[2] == 0xA2
-               && header->version == PROTOCOL_VERSION && header->type >= ANNOUNCE && header->type <= ACK;
+               && header->version == PROTOCOL_VERSION && header->type >= ANNOUNCE && header->type <= CONNECT;
     }
 
 }  // namespace network

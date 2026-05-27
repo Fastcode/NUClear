@@ -78,14 +78,14 @@ graph TB
 
 The NUClearNet engine is decomposed into focused modules:
 
-| Module               | Responsibility                                                           |
-| -------------------- | ------------------------------------------------------------------------ |
-| `Discovery`          | Peer lifecycle — announce, join/leave detection, peer timeout            |
+| Module               | Responsibility                                                                                       |
+| -------------------- | ---------------------------------------------------------------------------------------------------- |
+| `Discovery`          | Peer lifecycle — announce, join/leave detection, peer timeout                                        |
 | `Fragmentation`      | Splitting large messages into MTU-sized (Maximum Transmission Unit) fragments, reassembly on receive |
-| `Reliability`        | ACK (Acknowledgment) tracking, retransmission scheduling                 |
-| `Routing`            | Subscription-based message filtering per peer                            |
-| `PacketDeduplicator` | Sliding-window duplicate detection per peer                              |
-| `RTTEstimator`       | Per-peer RTT (Round-Trip Time) estimation for retransmission timing      |
+| `Reliability`        | ACK (Acknowledgment) tracking, retransmission scheduling                                             |
+| `Routing`            | Subscription-based message filtering per peer                                                        |
+| `PacketDeduplicator` | Sliding-window duplicate detection per peer                                                          |
+| `RTTEstimator`       | Per-peer RTT (Round-Trip Time) estimation for retransmission timing                                  |
 
 ## Peer discovery
 
@@ -97,42 +97,59 @@ This is how nodes find each other.
 ```mermaid
 sequenceDiagram
     participant A as Node A (existing)
-    participant M as Multicast Group
     participant B as Node B (joining)
 
     Note over A: Running, announcing every ~interval
-    A->>M: AnnouncePacket (name="A")
+    A-->>B: AnnouncePacket (name="A") [multicast]
     Note over B: Not yet joined — doesn't receive
 
     Note over B: Starts up, joins multicast group
-    B->>M: AnnouncePacket (name="B")
-    M->>A: AnnouncePacket (name="B")
+    B-->>A: AnnouncePacket (name="B") [multicast]
 
-    Note over A: New peer heard!
-    A->>A: Add B to peer list
-    A->>A: Fire NetworkJoin event
-    A->>B: AnnouncePacket (unicast reply)
+    Note over A: New peer heard on announce channel!
+    A->>A: Add B (announce_heard=true, handshake=IDLE)
+    A-->>B: AnnouncePacket (forced re-announce) [multicast]
+    A->>B: ConnectPacket (SYN) [data port]
 
-    Note over B: Immediate connection
-    B->>B: Add A to peer list
-    B->>B: Fire NetworkJoin event
+    Note over B: Heard A on announce channel
+    B->>B: Add A (announce_heard=true, handshake=IDLE)
+    B-->>A: AnnouncePacket (forced re-announce) [multicast]
+
+    Note over B: Received SYN on data port from A
+    B->>B: handshake → SYN_RECEIVED
+    B->>A: ConnectPacket (SYN+ACK) [data port]
+
+    Note over A: Received SYN+ACK on data port
+    A->>A: handshake → CONFIRMED
+    A->>A: announce_heard ✓ + CONFIRMED → Fire NetworkJoin
+    A->>B: ConnectPacket (ACK) [data port]
+
+    Note over B: Received ACK on data port
+    B->>B: handshake → CONFIRMED
+    B->>B: announce_heard ✓ + CONFIRMED → Fire NetworkJoin
 
     loop Ongoing
-        A->>M: AnnouncePacket every ~500ms
-        M->>B: AnnouncePacket
-        B->>M: AnnouncePacket every ~500ms
-        M->>A: AnnouncePacket
+        A-->>B: AnnouncePacket every ~500ms [multicast]
+        B-->>A: AnnouncePacket every ~500ms [multicast]
     end
 
-    Note over A: No packet from B for 2 seconds
-    A->>A: Remove B from peer list
-    A->>A: Fire NetworkLeave event
+    alt Graceful shutdown
+        B-->>A: LeavePacket [multicast]
+        Note over A: Immediate removal, Fire NetworkLeave
+    else Timeout (no packets for 2s)
+        Note over A: No packet from B for 2 seconds
+        A->>A: Remove B, Fire NetworkLeave
+    end
 ```
 
+Dashed lines (`-->>`) represent packets sent to the multicast/broadcast group (announce channel).
+Solid lines (`->>`) represent packets sent directly to a peer's data port (unicast).
+
 When a node hears an announce from an unknown peer,
-it immediately sends its own announce back via unicast directly to that peer.
-This eliminates the need to wait for the next periodic announce cycle —
-new peers connect within a single round trip rather than waiting up to one full announce interval.
+it immediately re-announces to the multicast group (so the new peer can hear it)
+and sends a CONNECT(SYN) to the peer's data port to begin the data handshake.
+The connection is only considered "up" once both the announce path and data path are confirmed
+(see [Connection establishment](#connection-establishment) below).
 
 ### Announce address options
 
@@ -154,6 +171,200 @@ This design also works naturally with NAT devices that translate source ports.
 
 Each peer's `last_seen` timestamp is refreshed every time any packet is received from them.
 If no packet is received within the configured timeout (default 2 seconds), the peer is considered gone — it's removed from the peer list and a `NetworkLeave` event fires.
+
+### Connection establishment
+
+After discovering a peer via announce packets,
+both sides must satisfy two independent conditions before the connection is considered "up":
+
+1. **Announce path confirmed** (`announce_heard`) — the peer's announce was received on the multicast/broadcast channel.
+    This proves that their data port can reach our announce address.
+1. **Data handshake confirmed** (`handshake == CONFIRMED`) — a 3-way handshake over the data ports proves bidirectional data connectivity.
+
+Both conditions are required because NAT devices may remap ephemeral ports,
+making the data-to-data paths unreliable,
+while the announce path (multicast group membership) confirms that broadcast-targeted messages will arrive.
+
+There are four communication paths between two nodes:
+
+| Path      | Meaning                                  | How confirmed                   |
+| --------- | ---------------------------------------- | ------------------------------- |
+| b_d → a_a | B's data port → A's announce (multicast) | A receives B's AnnouncePacket   |
+| a_d → b_a | A's data port → B's announce (multicast) | B receives A's AnnouncePacket   |
+| a_d → b_d | A's data port → B's data port (unicast)  | B receives ConnectPacket from A |
+| b_d → a_d | B's data port → A's data port (unicast)  | A receives ConnectPacket from B |
+
+The packet type encodes which path was used:
+
+- **ANNOUNCE** packets are always sent to the multicast group — receiving one proves the announce path.
+- **CONNECT** packets are always sent to a peer's data port — receiving one proves the data path.
+
+This means no socket tracking is needed to determine which path a packet arrived on;
+the packet type itself is the proof.
+
+#### Two-flag connection model
+
+```mermaid
+stateDiagram-v2
+    state "Connection Status" as conn {
+        state "announce_heard = false" as af
+        state "announce_heard = true" as at
+
+        state "Handshake State Machine" as hs {
+            [*] --> IDLE
+            IDLE --> SYN_SENT: mark_syn_sent()
+            IDLE --> SYN_RECEIVED: receive SYN
+            SYN_SENT --> SYN_RECEIVED: receive SYN
+            SYN_SENT --> CONFIRMED: receive SYN+ACK
+            SYN_RECEIVED --> CONFIRMED: receive ACK or SYN+ACK
+        }
+    }
+
+    note right of conn
+        Connected = announce_heard AND handshake == CONFIRMED
+        Either flag can be satisfied first.
+    end note
+```
+
+The two flags are independent — they can be satisfied in any order:
+
+- **Normal flow**: Announce heard first (from periodic announce), then data handshake completes.
+- **Late announce**: Data handshake completes first (CONNECT received before announce),
+    then the announce arrives and triggers the join event.
+
+#### Handshake sequence (normal flow)
+
+```mermaid
+sequenceDiagram
+    participant A as Node A
+    participant B as Node B
+
+    B-->>A: AnnouncePacket (name="B") [multicast]
+    Note over A: announce_heard = true ✓
+
+    Note over A: Forces re-announce + sends SYN
+    A-->>B: AnnouncePacket (re-announce) [multicast]
+    A->>B: ConnectPacket (SYN) [data port]
+    Note over A: handshake = SYN_SENT
+
+    Note over B: announce_heard = true ✓
+
+    Note over B: Received SYN on data port
+    Note over B: Knows: a_d→b_d ✓
+    B->>A: ConnectPacket (SYN+ACK) [data port]
+    Note over B: handshake = SYN_RECEIVED
+
+    Note over A: Received SYN+ACK on data port
+    Note over A: Knows: b_d→a_d ✓, a_d→b_d ✓ (B responded)
+    Note over A: handshake = CONFIRMED
+    Note over A: announce_heard ✓ + CONFIRMED → CONNECTED ✓
+    A->>B: ConnectPacket (ACK) [data port]
+
+    Note over B: Received ACK on data port
+    Note over B: Knows: b_d→a_d ✓ (A confirmed receipt)
+    Note over B: handshake = CONFIRMED
+    Note over B: announce_heard ✓ + CONFIRMED → CONNECTED ✓
+
+    Note over A,B: Both sides connected — data transfer begins
+```
+
+The knowledge progression:
+
+1. **A receives B's announce on multicast** — A learns that `b_d→a_a` works (announce path).
+1. **A sends SYN to B's data port** — when B receives this, B learns that `a_d→b_d` works.
+1. **B sends SYN+ACK to A's data port** — when A receives this, A learns that `b_d→a_d` works.
+    A also infers `a_d→b_d` works (because B's response proves the SYN arrived).
+1. **A sends ACK to B's data port** — when B receives this, B learns that `b_d→a_d` works
+    (because A's ACK proves the SYN+ACK arrived).
+
+After step 4, both sides have confirmed all four communication paths.
+Only then does the `NetworkJoin` event fire and data packets begin flowing.
+
+#### Late announce (data handshake completes first)
+
+If a CONNECT packet arrives from a peer before their announce has been heard
+(for example, when multicast delivery is slower than unicast),
+the data handshake proceeds normally but the connection is not declared "up" until the announce arrives:
+
+```mermaid
+sequenceDiagram
+    participant A as Node A
+    participant B as Node B
+
+    Note over B: B heard A's announce, sends SYN
+    B->>A: ConnectPacket (SYN) [data port]
+    Note over A: Creates peer entry (announce_heard=false)
+    Note over A: handshake: IDLE → SYN_RECEIVED
+    A->>B: ConnectPacket (SYN+ACK) [data port]
+
+    B->>A: ConnectPacket (ACK) [data port]
+    Note over A: handshake = CONFIRMED
+    Note over A: But announce_heard=false → NOT connected yet
+
+    Note over A: Later, B's announce arrives
+    B-->>A: AnnouncePacket from B [multicast]
+    Note over A: announce_heard = true ✓
+    Note over A: announce_heard ✓ + CONFIRMED → CONNECTED ✓
+    Note over A: Fire NetworkJoin event
+```
+
+#### Simultaneous open
+
+If both nodes hear each other's announces at nearly the same time,
+both will send SYN simultaneously.
+The state machine handles this gracefully:
+
+```mermaid
+sequenceDiagram
+    participant A as Node A
+    participant B as Node B
+
+    A->>B: ConnectPacket (SYN) [data port]
+    B->>A: ConnectPacket (SYN) [data port]
+    Note over A,B: Both in SYN_SENT, receive SYN → SYN_RECEIVED
+
+    A->>B: ConnectPacket (SYN+ACK) [data port]
+    B->>A: ConnectPacket (SYN+ACK) [data port]
+    Note over A: SYN_RECEIVED → receives SYN+ACK → CONFIRMED
+    Note over B: SYN_RECEIVED → receives SYN+ACK → CONFIRMED
+
+    A->>B: ConnectPacket (ACK) [data port]
+    B->>A: ConnectPacket (ACK) [data port]
+    Note over A,B: Both CONFIRMED (duplicate ACKs are harmless)
+```
+
+Duplicate or out-of-order handshake packets do not cause state regressions —
+once a peer reaches CONFIRMED, it stays there.
+
+#### Connect packet
+
+```mermaid
+block-beta
+    columns 6
+    hdr["Header (5B)"]:3 flags["flags (1B)"]:3
+
+    style hdr fill:#ff6b6b,color:#fff
+    style flags fill:#ff922b,color:#fff
+```
+
+- **flags** — bit 0: SYN (initiating connection), bit 1: ACK (acknowledging receipt)
+
+| Flags     | Value | Meaning                      |
+| --------- | ----- | ---------------------------- |
+| SYN       | 0x01  | Initiating a new connection  |
+| ACK       | 0x02  | Acknowledging a received SYN |
+| SYN + ACK | 0x03  | Responding to a received SYN |
+
+CONNECT packets are always sent to a peer's data port (never to the multicast group).
+Receiving a CONNECT packet proves that the sender's data port can reach your data port.
+
+#### Data gating
+
+While the connection is incomplete (either flag unsatisfied),
+data packets from the peer are dropped.
+This prevents processing messages from a peer whose connectivity has not been fully verified.
+Once both `announce_heard` and `handshake == CONFIRMED` are satisfied,
+normal data transfer begins immediately.
 
 ### Graceful departure
 
@@ -193,6 +404,7 @@ A received packet is only accepted if the magic bytes, version, and type field a
 | LEAVE    | 2     | Graceful departure notification           |
 | DATA     | 3     | Data payload (original or retransmission) |
 | ACK      | 4     | Acknowledgment of received fragments      |
+| CONNECT  | 5     | Connection handshake (SYN/ACK flags)      |
 
 ### Announce packet
 
@@ -418,6 +630,33 @@ This ensures backward compatibility and supports "gateway" nodes that need to se
 When a local `on<Network<T>>` reaction is registered,
 the `NetworkController` adds the corresponding type hash to this node's subscription list and re-announces with the updated subscriptions.
 
+### Broadcast delivery via multicast
+
+When a message is sent without a specific target (broadcast to all peers) and does not require reliable delivery,
+it is sent once to the multicast/broadcast group rather than unicast to each peer individually.
+This is significantly more efficient when there are many peers:
+
+```mermaid
+sequenceDiagram
+    participant A as Node A
+    participant B as Node B
+    participant C as Node C
+
+    Note over A: Unreliable broadcast (empty target)
+    A-->>B: DataPacket (hash=0x1234) [multicast]
+    A-->>C: DataPacket (hash=0x1234) [multicast]
+    Note over A: Single send — network delivers to all
+
+    Note over B: Subscribed → accept
+    Note over C: Not subscribed → discard
+```
+
+Each receiver checks its local subscription list and discards messages it is not interested in.
+This filtering happens before fragmentation reassembly to avoid wasted work.
+
+Reliable sends and targeted sends (to a specific named peer) are always unicast,
+because ACK tracking and retransmission require per-peer communication.
+
 ## Packet deduplication
 
 Reliable delivery creates a new problem: duplicate packets.
@@ -578,8 +817,8 @@ The node name becomes the identifier that other peers see in `NetworkJoin` event
 
 The `NUClearNet` engine supports additional parameters beyond what's exposed through `NetworkConfiguration`:
 
-| Parameter           | Default   | Description                                              |
-| ------------------- | --------- | -------------------------------------------------------- |
-| `peer_timeout`      | 2 seconds | How long without a packet before a peer is removed       |
+| Parameter      | Default   | Description                                        |
+| -------------- | --------- | -------------------------------------------------- |
+| `peer_timeout` | 2 seconds | How long without a packet before a peer is removed |
 
-| `max_assembly_size` | 64 MB     | Maximum reassembled message size (prevents memory bombs) |
+| `max_assembly_size` | 64 MB | Maximum reassembled message size (prevents memory bombs) |
