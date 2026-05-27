@@ -23,11 +23,8 @@
 #ifndef NUCLEAR_DSL_WORD_EMIT_WATCHDOG_HPP
 #define NUCLEAR_DSL_WORD_EMIT_WATCHDOG_HPP
 
-#include <stdexcept>
-
 #include "../../../PowerPlant.hpp"
-#include "../../../util/TypeMap.hpp"
-#include "../../../util/demangle.hpp"
+#include "../Watchdog.hpp"
 
 namespace NUClear {
 namespace dsl {
@@ -47,8 +44,6 @@ namespace dsl {
             template <typename WatchdogGroup, typename RuntimeType = void>
             struct WatchdogServicer {
                 using MapType = std::remove_cv_t<RuntimeType>;
-                using WatchdogStore =
-                    util::TypeMap<WatchdogGroup, MapType, std::map<MapType, NUClear::clock::time_point>>;
 
                 /**
                  * Construct a new Watchdog Servicer object
@@ -63,18 +58,14 @@ namespace dsl {
                 explicit WatchdogServicer(const RuntimeType& data) : data(data) {}
 
                 /**
-                 * Services the watchdog
+                 * Services the watchdog.
                  *
-                 * The watchdog timer that is specified by the WatchdogGroup/RuntimeType/data combination will have its
-                 * service time updated to whatever is stored in when.
+                 * Delegates to @ref word::WatchdogDataStore::service so the write happens under the
+                 * same mutex that guards reads in the chrono controller; otherwise the time_point
+                 * would be torn-read / torn-written across threads.
                  */
                 void service() {
-                    if (WatchdogStore::get() == nullptr || WatchdogStore::get()->count(data) == 0) {
-                        throw std::domain_error("Store for <" + util::demangle(typeid(WatchdogGroup).name()) + ", "
-                                                + util::demangle(typeid(RuntimeType).name())
-                                                + "> has not been created yet or no watchdog has been set up");
-                    }
-                    WatchdogStore::get()->at(data) = when;
+                    word::WatchdogDataStore<WatchdogGroup, RuntimeType>::service(data, when);
                 }
 
             private:
@@ -94,19 +85,15 @@ namespace dsl {
              */
             template <typename WatchdogGroup>
             struct WatchdogServicer<WatchdogGroup, void> {
-                using WatchdogStore = util::TypeMap<WatchdogGroup, void, NUClear::clock::time_point>;
 
                 /**
-                 * Services the watchdog
+                 * Services the watchdog.
                  *
-                 * The watchdog timer for WatchdogGroup will have its service time updated to whatever is stored in when
+                 * Delegates to @ref word::WatchdogDataStore::service so the write happens under the
+                 * same mutex that guards reads in the chrono controller.
                  */
                 void service() {
-                    if (WatchdogStore::get() == nullptr) {
-                        throw std::domain_error("Store for <" + util::demangle(typeid(WatchdogGroup).name())
-                                                + "> has not been created yet or no watchdog has been set up");
-                    }
-                    WatchdogStore::set(std::make_shared<NUClear::clock::time_point>(when));
+                    word::WatchdogDataStore<WatchdogGroup, void>::service(when);
                 }
 
             private:

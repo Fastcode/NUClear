@@ -207,8 +207,20 @@ namespace extension {
                     tasks.erase(task);
                 }
                 else {
-                    // Make sure poll isn't currently waiting for an event to happen
-                    bump();
+                    // We are about to mutate `watches[].events`, which the poll thread reads
+                    // from inside ::poll(). Write to the notify pipe to kick poll out, then
+                    // hold notifier.mutex for the duration of the mutation so the poll thread
+                    // cannot re-enter ::poll() against a half-updated entry. This is the same
+                    // wake-then-lock pattern bump() uses, but we keep the lock held until the
+                    // watches update (and the follow-up fire_event, which can also touch
+                    // watches[].events) is finished.
+                    uint8_t val = 1;
+                    if (::write(notifier.send, &val, sizeof(val)) < 0) {
+                        throw std::system_error(network_errno,
+                                                std::system_category(),
+                                                "There was an error while writing to the notification pipe");
+                    }
+                    const std::lock_guard<std::mutex> notifier_lock(notifier.mutex);
 
                     // Unmask the events that were just processed
                     auto it = std::lower_bound(watches.begin(),

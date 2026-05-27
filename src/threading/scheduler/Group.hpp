@@ -22,6 +22,8 @@
 #ifndef NUCLEAR_THREADING_SCHEDULER_GROUP_HPP
 #define NUCLEAR_THREADING_SCHEDULER_GROUP_HPP
 
+#include <array>
+#include <atomic>
 #include <functional>
 #include <memory>
 #include <mutex>
@@ -29,10 +31,17 @@
 
 #include "../../util/GroupDescriptor.hpp"
 #include "Lock.hpp"
+#include "queue/Priority.hpp"
+#include "queue/TaskQueue.hpp"
 
 namespace NUClear {
 namespace threading {
+
+    class ReactionTask;
+
     namespace scheduler {
+
+        class Pool;
 
         /**
          * A group is a collection of tasks which are mutually exclusive to each other.
@@ -40,11 +49,18 @@ namespace threading {
          * They are identified by having a common group id along with a maximum concurrency.
          * This class holds the structures that manage the group.
          *
-         * This class is used along with the GroupLock class to manage the group locking.
+         * Tasks submitted through the scheduler fast path use lock-free waiter buckets.
+         * The lock() API uses a mutex-protected sorted queue for multi-group and unit-test use.
          */
-        class Group {
+        class Group : public std::enable_shared_from_this<Group> {
 
         private:
+            struct WaitEntry {
+                std::unique_ptr<ReactionTask> task;
+                std::shared_ptr<Pool> pool;
+                bool clear_idle{false};
+            };
+
             /**
              * A lock handle holds the shared state between the group object and the lock objects.
              * It holds if the lock should currently be locked, as well as ordering which locks should be locked first.
@@ -85,6 +101,21 @@ namespace threading {
                 bool notified{false};
                 /// The function to execute when this lock is able to be locked
                 std::function<void()> notify;
+            };
+
+            /**
+             * RAII lock released when a fast-path task finishes executing.
+             */
+            class RunningLock : public Lock {
+            public:
+                RunningLock(Group& group, std::shared_ptr<Group> group_keepalive);
+                ~RunningLock() override;
+
+                bool lock() override;
+
+            private:
+                Group& group;
+                std::shared_ptr<Group> keepalive;
             };
 
         public:
@@ -140,6 +171,41 @@ namespace threading {
             explicit Group(std::shared_ptr<const util::GroupDescriptor> descriptor);
 
             /**
+             * Try to submit a task through the lock-free fast path.
+             *
+             * If a group token is available the task is submitted to the pool immediately.
+             * Otherwise the task is queued until a token is released.
+             *
+             * @param task       the reaction task to submit
+             * @param pool       the pool to submit to when runnable
+             * @param clear_idle if true, clear idle state on submission
+             *
+             * @return true if the task was submitted immediately
+             */
+            /**
+             * Try to acquire a token for inline execution without submitting to a pool.
+             *
+             * @return an RAII lock if a token was acquired, otherwise nullptr
+             */
+            std::unique_ptr<Lock> try_acquire_running_lock();
+
+            /**
+             * Try to submit a task through the lock-free fast path.
+             *
+             * If a group token is available the task is submitted to the pool immediately.
+             * Otherwise the task is queued until a token is released.
+             *
+             * @param task       the reaction task to submit
+             * @param pool       the pool to submit to when runnable
+             * @param clear_idle if true, clear idle state on submission
+             *
+             * @return true if the task was submitted immediately
+             */
+            bool try_submit(std::unique_ptr<ReactionTask>&& task,
+                            const std::shared_ptr<Pool>& pool,
+                            const bool& clear_idle);
+
+            /**
              * This function will create a new lock for the task and return it.
              *
              * This lock will have its lock() function return true once a token has been assigned to it.
@@ -163,11 +229,21 @@ namespace threading {
             const std::shared_ptr<const util::GroupDescriptor> descriptor;
 
         private:
-            /// The mutex which protects the queue
+            void release_token();
+            void notify_slow_path();
+            bool drain_one_to_pool();
+            std::unique_ptr<Lock> make_running_lock();
+
+            /// Available group tokens (signed when waiters are queued on the fast path)
+            std::atomic<int> tokens;
+            /// Number of unsatisfied slow-path waiters
+            std::atomic<int> slow_pending{0};
+            /// Lock-free wait queues keyed by priority
+            std::array<queue::TaskQueue<WaitEntry>, queue::PRIORITY_BUCKETS> wait_buckets;
+
+            /// The mutex which protects the slow-path queue
             std::mutex mutex;
-            /// The number of tokens that are available for this group
-            int tokens = descriptor->concurrency;
-            /// The queue of tasks for this specific thread pool and if they are group blocked
+            /// The queue of tasks for the slow path
             std::vector<std::shared_ptr<LockHandle>> queue;
         };
 

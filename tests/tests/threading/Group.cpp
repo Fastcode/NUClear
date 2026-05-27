@@ -28,6 +28,7 @@
 #include <memory>
 
 #include "id.hpp"
+#include "threading/ReactionTask.hpp"
 #include "threading/scheduler/Lock.hpp"
 #include "util/GroupDescriptor.hpp"
 

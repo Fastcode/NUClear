@@ -147,7 +147,7 @@ namespace threading {
             std::map<std::shared_ptr<const util::ThreadPoolDescriptor>, std::shared_ptr<Pool>> pools;
             /// If started is false pools will not be started until start is called
             /// once start is called future pools will be started immediately
-            bool started = false;
+            std::atomic<bool> started{false};
 
             /// A mutex to protect the idle tasks list
             std::mutex idle_mutex;

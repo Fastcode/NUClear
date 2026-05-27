@@ -53,7 +53,7 @@ namespace threading {
             /*mutex scope*/ {
                 const std::lock_guard<std::mutex> lock(pools_mutex);
 
-                started = true;
+                started.store(true, std::memory_order_release);
                 // Start all of the pools except the main thread pool
                 for (const auto& pool : pools) {
                     if (pool.first != dsl::word::MainThread::descriptor()) {
@@ -141,7 +141,7 @@ namespace threading {
 
                 // Don't start the main thread here, it will be started in the start function
                 // If the scheduler has not yet started then don't start the threads for this pool yet
-                if (desc != dsl::word::MainThread::descriptor() && started) {
+                if (desc != dsl::word::MainThread::descriptor() && started.load(std::memory_order_acquire)) {
                     pool->start();
                 }
             }
@@ -189,34 +189,54 @@ namespace threading {
             }
 
             // If we have run this task before, we know which pool it should be submitted to and cached it
-            // This avoids every single submit having to lock a mutex to find the pool
+            // on the parent reaction. This avoids every submit having to lock a mutex to find the pool.
+            //
+            // The cache is read/written from any thread that submits a task for this reaction, so we use
+            // std::atomic_load/store on the shared_ptr to avoid a data race. The cache lookup is benign
+            // even under contention: the worst case is two submitters racing both compute the same pool
+            // pointer and store it; the resulting pool is identical so a "last writer wins" is fine.
             std::shared_ptr<Pool> pool;
             if (task->parent) {
-                if (task->parent->scheduler_data) {
-                    pool = std::static_pointer_cast<Pool>(task->parent->scheduler_data);
+                auto cached = std::atomic_load_explicit(&task->parent->scheduler_data,
+                                                        std::memory_order_acquire);
+                if (cached) {
+                    pool = std::static_pointer_cast<Pool>(cached);
                 }
                 else {
-                    pool                         = get_pool(task->pool_descriptor);
-                    task->parent->scheduler_data = pool;
+                    pool = get_pool(task->pool_descriptor);
+                    std::atomic_store_explicit(&task->parent->scheduler_data,
+                                               std::static_pointer_cast<void>(pool),
+                                               std::memory_order_release);
                 }
             }
             else {
                 pool = get_pool(task->pool_descriptor);
             }
 
-            // Get any locks that are required for this task
+            const bool current_pool_idle = Pool::current() != nullptr && Pool::current()->is_idle();
+
+            // Fast path for a single group: lock-free token acquisition and waiter buckets
+            if (task->group_descriptors.size() == 1) {
+                const auto& group = get_group(*task->group_descriptors.begin());
+
+                if (task->run_inline) {
+                    if (auto running_lock = group->try_acquire_running_lock()) {
+                        task->run();
+                        return;
+                    }
+                }
+
+                group->try_submit(std::move(task), pool, !current_pool_idle);
+                return;
+            }
+
+            // Slow path for multiple groups: mutex-backed combined locks
             auto group_lock = get_groups_lock(task->id, task->priority, pool, task->group_descriptors);
 
-            // If this task should run immediately and not limited by the group lock
             if (task->run_inline && (group_lock == nullptr || group_lock->lock())) {
                 task->run();
             }
             else {
-                // Submit the task to the appropriate pool
-                // Clear the idle status only if the current pool is not idle
-                // This hands the job of managing global idle tasks to this other pool if we were about to do it
-                // That way the other pool can decide if it is idle or not
-                const bool current_pool_idle = Pool::current() != nullptr && Pool::current()->is_idle();
                 pool->submit({std::move(task), std::move(group_lock)}, !current_pool_idle);
             }
         }

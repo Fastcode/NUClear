@@ -1,0 +1,262 @@
+/*
+ * MIT License
+ *
+ * Copyright (c) 2024 NUClear Contributors
+ *
+ * This file is part of the NUClear codebase.
+ * See https://github.com/Fastcode/NUClear for further info.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+ * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
+ * rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the
+ * Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+ * WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+ * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+#ifndef NUCLEAR_THREADING_SCHEDULER_QUEUE_TASK_QUEUE_HPP
+#define NUCLEAR_THREADING_SCHEDULER_QUEUE_TASK_QUEUE_HPP
+
+#include <algorithm>
+#include <atomic>
+#include <cstddef>
+#include <new>
+#include <thread>
+#include <type_traits>
+#include <utility>
+
+#include "Queue.hpp"
+
+namespace NUClear {
+namespace threading {
+    namespace scheduler {
+        namespace queue {
+
+            /**
+             * Lock-free multi-producer multi-consumer unbounded FIFO queue.
+             *
+             * Storage is organised in fixed-size blocks linked in a list. Fully drained blocks are
+             * retired to a graveyard and deleted when the queue is destroyed. Per-producer FIFO is
+             * preserved; cross-producer ordering is not guaranteed.
+             */
+            template <typename T>
+            class TaskQueue : public Queue<T> {
+                static_assert(std::is_move_constructible<T>::value, "TaskQueue requires move constructible T");
+
+            private:
+                enum { BLOCK_SIZE = 64 };
+
+                struct Block;
+
+                struct Slot {
+                    std::atomic<bool> committed{false};
+                    alignas(T) unsigned char storage[sizeof(T)];
+                };
+
+                struct Block {
+                    Slot slots[BLOCK_SIZE];
+                    std::atomic<std::size_t> write{0};
+                    std::atomic<std::size_t> read{0};
+                    std::atomic<std::size_t> consumed{0};
+                    std::atomic<Block*> next{nullptr};
+                    Block* graveyard_next{nullptr};
+                };
+
+                static T* slot_ptr(Slot& slot) {
+                    return reinterpret_cast<T*>(slot.storage);
+                }
+
+                static void destroy_slot(Slot& slot) {
+                    slot_ptr(slot)->~T();
+                    slot.committed.store(false, std::memory_order_relaxed);
+                }
+
+                Block* allocate_block() {
+                    return new Block();
+                }
+
+                // Retired blocks are kept alive on the graveyard so consumers that still hold
+                // a stale pointer cannot observe freed memory.
+                void retire_block(Block* block) {
+                    Block* head_graveyard = graveyard.load(std::memory_order_acquire);
+                    do {
+                        block->graveyard_next = head_graveyard;
+                    } while (!graveyard.compare_exchange_weak(head_graveyard,
+                                                              block,
+                                                              std::memory_order_release,
+                                                              std::memory_order_relaxed));
+                }
+
+                bool link_next_block(Block* block) {
+                    Block* expected = nullptr;
+                    if (block->next.compare_exchange_strong(expected, allocate_block(), std::memory_order_acq_rel)) {
+                        return true;
+                    }
+                    return expected != nullptr;
+                }
+
+                void advance_tail(Block* expected, Block* next) {
+                    Block* tail_ptr = tail.load(std::memory_order_acquire);
+                    while (tail_ptr == expected) {
+                        if (tail.compare_exchange_weak(tail_ptr, next, std::memory_order_release, std::memory_order_relaxed)) {
+                            return;
+                        }
+                    }
+                }
+
+                void try_reclaim_block(Block* block) {
+                    if (block->consumed.load(std::memory_order_acquire) != BLOCK_SIZE) {
+                        return;
+                    }
+
+                    Block* head_ptr = head.load(std::memory_order_acquire);
+                    if (head_ptr != block) {
+                        return;
+                    }
+
+                    // Never strand head at nullptr; only advance if a successor block exists.
+                    Block* next = block->next.load(std::memory_order_acquire);
+                    if (next == nullptr) {
+                        return;
+                    }
+                    if (head.compare_exchange_strong(head_ptr, next, std::memory_order_release, std::memory_order_relaxed)) {
+                        retire_block(block);
+                    }
+                }
+
+                std::atomic<Block*> head;
+                std::atomic<Block*> tail;
+                std::atomic<Block*> graveyard;
+
+            public:
+                TaskQueue() {
+                    Block* initial = new Block();
+                    head.store(initial, std::memory_order_relaxed);
+                    tail.store(initial, std::memory_order_relaxed);
+                    graveyard.store(nullptr, std::memory_order_relaxed);
+                }
+
+                TaskQueue(const TaskQueue&)            = delete;
+                TaskQueue& operator=(const TaskQueue&) = delete;
+                TaskQueue(TaskQueue&&)                 = delete;
+                TaskQueue& operator=(TaskQueue&&)      = delete;
+
+                ~TaskQueue() override {
+                    Block* current = head.load(std::memory_order_relaxed);
+                    while (current != nullptr) {
+                        Block* next = current->next.load(std::memory_order_relaxed);
+                        delete current;
+                        current = next;
+                    }
+
+                    Block* dead = graveyard.load(std::memory_order_relaxed);
+                    while (dead != nullptr) {
+                        Block* next = dead->graveyard_next;
+                        delete dead;
+                        dead = next;
+                    }
+                }
+
+                void enqueue(const T& item) {
+                    T copy(item);
+                    enqueue(std::move(copy));
+                }
+
+                void enqueue(T&& item) override {
+                    while (true) {
+                        Block* block = tail.load(std::memory_order_acquire);
+                        const std::size_t index = block->write.fetch_add(1, std::memory_order_relaxed);
+
+                        if (index < BLOCK_SIZE) {
+                            Slot& slot = block->slots[index];
+                            new (slot.storage) T(std::move(item));
+                            slot.committed.store(true, std::memory_order_release);
+                            return;
+                        }
+
+                        if (!link_next_block(block)) {
+                            // Another thread linked next; help advance tail.
+                        }
+
+                        Block* next = block->next.load(std::memory_order_acquire);
+                        advance_tail(block, next);
+                    }
+                }
+
+                bool try_dequeue(T& out) override {
+                    while (true) {
+                        Block* block = head.load(std::memory_order_acquire);
+
+                        const std::size_t published =
+                            std::min(block->write.load(std::memory_order_acquire),
+                                     static_cast<std::size_t>(BLOCK_SIZE));
+                        std::size_t read_index = block->read.load(std::memory_order_relaxed);
+
+                        if (read_index >= published) {
+                            if (block->consumed.load(std::memory_order_acquire) < published) {
+                                std::this_thread::yield();
+                                continue;
+                            }
+
+                            Block* next = block->next.load(std::memory_order_acquire);
+                            if (next == nullptr) {
+                                // Producer may still be writing the first slot of an empty-looking block.
+                                if (published == 0 && block->write.load(std::memory_order_acquire) > 0) {
+                                    std::this_thread::yield();
+                                    continue;
+                                }
+                                return false;
+                            }
+
+                            head.compare_exchange_strong(block, next, std::memory_order_release, std::memory_order_relaxed);
+                            continue;
+                        }
+
+                        if (!block->read.compare_exchange_weak(read_index,
+                                                               read_index + 1,
+                                                               std::memory_order_acq_rel,
+                                                               std::memory_order_relaxed)) {
+                            continue;
+                        }
+
+                        Slot& slot = block->slots[read_index];
+                        while (!slot.committed.load(std::memory_order_acquire)) {
+                            std::this_thread::yield();
+                        }
+
+                        out = std::move(*slot_ptr(slot));
+                        destroy_slot(slot);
+
+                        if (block->consumed.fetch_add(1, std::memory_order_acq_rel) + 1 == BLOCK_SIZE) {
+                            try_reclaim_block(block);
+                        }
+
+                        return true;
+                    }
+                }
+
+                bool empty() const {
+                    Block* block = head.load(std::memory_order_acquire);
+                    while (block != nullptr) {
+                        const std::size_t published = std::min(block->write.load(std::memory_order_acquire),
+                                                               static_cast<std::size_t>(BLOCK_SIZE));
+                        if (block->read.load(std::memory_order_relaxed) < published) {
+                            return false;
+                        }
+                        block = block->next.load(std::memory_order_acquire);
+                    }
+                    return true;
+                }
+            };
+
+        }  // namespace queue
+    }  // namespace scheduler
+}  // namespace threading
+}  // namespace NUClear
+
+#endif  // NUCLEAR_THREADING_SCHEDULER_QUEUE_TASK_QUEUE_HPP

@@ -23,6 +23,7 @@
 #ifndef NUCLEAR_DSL_WORD_WATCHDOG_HPP
 #define NUCLEAR_DSL_WORD_WATCHDOG_HPP
 
+#include <mutex>
 #include <stdexcept>
 
 #include "../../threading/Reaction.hpp"
@@ -53,11 +54,24 @@ namespace dsl {
             using WatchdogStore = util::TypeMap<WatchdogGroup, MapType, std::map<MapType, NUClear::clock::time_point>>;
 
             /**
+             * Mutex protecting structural and value updates to the underlying map for this
+             * (WatchdogGroup, RuntimeType) pair. Watchdog timers are read by the chrono controller
+             * thread (via @ref get) while being written by user threads that emit a service event
+             * (via @ref service), and the underlying std::map is also mutated by init/unbind, so a
+             * single shared mutex serialises all of those operations.
+             */
+            static std::mutex& mutex() {
+                static std::mutex m;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+                return m;
+            }
+
+            /**
              * Ensures the data store is initialised correctly.
              *
              * @param data The runtime argument for the current watchdog in the WatchdogGroup/RuntimeType group
              */
             static void init(const RuntimeType& data) {
+                const std::lock_guard<std::mutex> lock(mutex());
                 if (WatchdogStore::get() == nullptr) {
                     WatchdogStore::set(std::make_shared<std::map<MapType, NUClear::clock::time_point>>());
                 }
@@ -67,11 +81,15 @@ namespace dsl {
             }
 
             /**
-             * Gets the current service time for the WatchdogGroup/RuntimeType/data watchdog
+             * Gets the current service time for the WatchdogGroup/RuntimeType/data watchdog.
+             *
+             * Returned by value so the caller never holds a reference into the (mutex-protected)
+             * map. The time_point is small and trivially copyable so the copy is essentially free.
              *
              * @param data The runtime argument for the current watchdog in the WatchdogGroup/RuntimeType group
              */
-            static const NUClear::clock::time_point& get(const RuntimeType& data) {
+            static NUClear::clock::time_point get(const RuntimeType& data) {
+                const std::lock_guard<std::mutex> lock(mutex());
                 if (WatchdogStore::get() == nullptr || WatchdogStore::get()->count(data) == 0) {
                     throw std::domain_error("Store for <" + util::demangle(typeid(WatchdogGroup).name()) + ", "
                                             + util::demangle(typeid(MapType).name())
@@ -81,11 +99,28 @@ namespace dsl {
             }
 
             /**
+             * Atomically updates the service time for the WatchdogGroup/RuntimeType/data watchdog.
+             *
+             * Called by @ref emit::WatchdogServicer::service to keep the write under the same
+             * mutex that @ref get uses for reads.
+             */
+            static void service(const RuntimeType& data, const NUClear::clock::time_point& when) {
+                const std::lock_guard<std::mutex> lock(mutex());
+                if (WatchdogStore::get() == nullptr || WatchdogStore::get()->count(data) == 0) {
+                    throw std::domain_error("Store for <" + util::demangle(typeid(WatchdogGroup).name()) + ", "
+                                            + util::demangle(typeid(MapType).name())
+                                            + "> has not been created yet or no watchdog has been set up");
+                }
+                WatchdogStore::get()->at(data) = when;
+            }
+
+            /**
              * Cleans up any allocated storage for the WatchdogGroup/RuntimeType/data watchdog
              *
              * @param data The runtime argument for the current watchdog in the WatchdogGroup/RuntimeType group
              */
             static void unbind(const RuntimeType& data) {
+                const std::lock_guard<std::mutex> lock(mutex());
                 if (WatchdogStore::get() != nullptr) {
                     WatchdogStore::get()->erase(data);
                 }
@@ -105,10 +140,17 @@ namespace dsl {
         struct WatchdogDataStore<WatchdogGroup, void> {
             using WatchdogStore = util::TypeMap<WatchdogGroup, void, NUClear::clock::time_point>;
 
+            /// See the documentation on the runtime-arg specialisation.
+            static std::mutex& mutex() {
+                static std::mutex m;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+                return m;
+            }
+
             /**
              * Ensures the data store is initialised correctly.
              */
             static void init() {
+                const std::lock_guard<std::mutex> lock(mutex());
                 if (WatchdogStore::get() == nullptr) {
                     WatchdogStore::set(std::make_shared<NUClear::clock::time_point>(NUClear::clock::now()));
                 }
@@ -116,8 +158,12 @@ namespace dsl {
 
             /**
              * Gets the current service time for the WatchdogGroup watchdog.
+             *
+             * Returned by value so the caller never reads from the time_point while it is being
+             * mutated by @ref service on another thread.
              */
-            static const NUClear::clock::time_point& get() {
+            static NUClear::clock::time_point get() {
+                const std::lock_guard<std::mutex> lock(mutex());
                 if (WatchdogStore::get() == nullptr) {
                     throw std::domain_error("Store for <" + util::demangle(typeid(WatchdogGroup).name())
                                             + "> is trying to field a service call for an unknown data type");
@@ -126,9 +172,22 @@ namespace dsl {
             }
 
             /**
+             * Atomically updates the service time for the WatchdogGroup watchdog.
+             */
+            static void service(const NUClear::clock::time_point& when) {
+                const std::lock_guard<std::mutex> lock(mutex());
+                if (WatchdogStore::get() == nullptr) {
+                    throw std::domain_error("Store for <" + util::demangle(typeid(WatchdogGroup).name())
+                                            + "> has not been created yet or no watchdog has been set up");
+                }
+                *WatchdogStore::get() = when;
+            }
+
+            /**
              * Cleans up any allocated storage for the WatchdogGroup watchdog.
              */
             static void unbind() {
+                const std::lock_guard<std::mutex> lock(mutex());
                 if (WatchdogStore::get() != nullptr) {
                     WatchdogStore::get().reset();
                 }

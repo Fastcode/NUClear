@@ -22,6 +22,8 @@
 #ifndef NUCLEAR_THREADING_SCHEDULER_POOL_HPP
 #define NUCLEAR_THREADING_SCHEDULER_POOL_HPP
 
+#include <array>
+#include <atomic>
 #include <condition_variable>
 #include <map>
 #include <memory>
@@ -32,6 +34,10 @@
 #include "../../util/ThreadPoolDescriptor.hpp"
 #include "../ReactionTask.hpp"
 #include "Lock.hpp"
+#include "queue/MPSCQueue.hpp"
+#include "queue/Priority.hpp"
+#include "queue/Queue.hpp"
+#include "queue/TaskQueue.hpp"
 
 namespace NUClear {
 namespace threading {
@@ -138,8 +144,23 @@ namespace threading {
              *
              * @param task       The reaction task task to submit
              * @param clear_idle If true, the idle state of the pool will be cleared
+             * @param force      If true, submit even if the pool is no longer accepting new tasks
+             *                   (used when draining an already in-flight task from elsewhere, e.g. a Group)
              */
-            void submit(Task&& task, bool clear_idle);
+            void submit(Task&& task, bool clear_idle, bool force = false);
+
+            /**
+             * Register that a task is in flight outside the pool but will eventually be submitted to it.
+             *
+             * This keeps the pool's workers alive while there are tasks parked in another structure
+             * (e.g. a Group's waiter buckets) that point at this pool.
+             */
+            void register_external_waiter();
+
+            /**
+             * Unregister a previously registered external waiter.
+             */
+            void unregister_external_waiter();
 
             /**
              * Add an idle task to this pool.
@@ -199,6 +220,20 @@ namespace threading {
             Task get_task();
 
             /**
+             * Try to dequeue a runnable task from the priority buckets.
+             *
+             * @param out the task to fill if one is available
+             *
+             * @return true if a task was dequeued
+             */
+            bool try_dequeue_task(Task& out);
+
+            /**
+             * Drain all tasks from the priority buckets.
+             */
+            void drain_queues();
+
+            /**
              * Get an idle task to execute or hold.
              *
              * This will return an idle task instance.
@@ -217,17 +252,25 @@ namespace threading {
 
             /// If running is false this means the pool is shutting down and no more tasks will be accepted
             bool running = true;
-            /// If accept is false this pool will no longer accept new tasks
-            bool accept = true;
+            /// If accept is false this pool will no longer accept new tasks.
+            /// Atomic so that producers on the fast path can check it without taking the pool mutex.
+            std::atomic<bool> accept{true};
 
             /// The threads which are running in this thread pool
             std::vector<std::unique_ptr<std::thread>> threads;
 
-            /// The queue of tasks for this specific thread pool
-            std::vector<Task> queue;
+            /// Priority-bucketed task queues. Each bucket holds either an MPMC TaskQueue
+            /// (for pools with multiple worker threads) or an MPSCQueue (for pools that are
+            /// known to be single-consumer, e.g. MainThread or the Trace pool). The choice
+            /// is made at construction based on `descriptor->concurrency`.
+            std::array<std::unique_ptr<queue::Queue<Task>>, queue::PRIORITY_BUCKETS> buckets;
+            /// Number of tasks submitted but not yet dequeued
+            std::atomic<std::size_t> pending_tasks{0};
+            /// Number of tasks parked outside the pool (e.g. waiting on a Group token) that point at this pool
+            std::atomic<std::size_t> external_waiters{0};
             /// A boolean which is set to true when the queue is modified and set to false when there was no work to do
             bool live = true;
-            /// The mutex which protects the queue and idle tasks
+            /// The mutex which protects idle tasks and the live flag
             mutable std::mutex mutex;
             /// The condition variable which threads wait on if they can't get a task
             std::condition_variable condition;
