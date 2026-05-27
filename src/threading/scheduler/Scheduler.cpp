@@ -197,8 +197,7 @@ namespace threading {
             // pointer and store it; the resulting pool is identical so a "last writer wins" is fine.
             std::shared_ptr<Pool> pool;
             if (task->parent) {
-                auto cached = std::atomic_load_explicit(&task->parent->scheduler_data,
-                                                        std::memory_order_acquire);
+                auto cached = std::atomic_load_explicit(&task->parent->scheduler_data, std::memory_order_acquire);
                 if (cached) {
                     pool = std::static_pointer_cast<Pool>(cached);
                 }

@@ -48,8 +48,8 @@ namespace threading {
             // `concurrency = 1`) only ever have one consumer; use the lighter MPSC queue for them.
             // Pools where the default-pool concurrency may differ from the descriptor's nominal value
             // are conservatively given the MPMC queue.
-            const bool single_consumer = this->descriptor->concurrency == 1
-                                         && this->descriptor != dsl::word::Pool<>::descriptor();
+            const bool single_consumer =
+                this->descriptor->concurrency == 1 && this->descriptor != dsl::word::Pool<>::descriptor();
             for (auto& bucket : buckets) {
                 if (single_consumer) {
                     bucket = std::make_unique<queue::MPSCQueue<Task>>();
@@ -208,7 +208,8 @@ namespace threading {
         void Pool::drain_queues() {
             Task discarded;
             for (auto& bucket : buckets) {
-                while (bucket->try_dequeue(discarded)) {}
+                while (bucket->try_dequeue(discarded)) {
+                }
             }
         }
 
