@@ -29,7 +29,8 @@ on<Trigger<InitData>, Once>().then([](const InitData& data) {
 
 ## Notes
 
-- The reaction is **unbound**, not disabled. It cannot be re-enabled via its handle.
+- The reaction is **unbound**, not disabled.
+    It cannot be re-enabled via its handle.
 - Useful for one-time initialization, lazy setup, or responding to a single event.
 - Equivalent to manually calling `unbind()` on the reaction handle at the end of the callback, but declarative.
 

@@ -4,7 +4,8 @@
 
 ## Overview
 
-NUClear's built-in networking layer handles node discovery, serialization, and type-safe delivery. You emit a configuration to join the network, then send and receive messages with familiar `emit` and `on` patterns.
+NUClear's built-in networking layer handles node discovery, serialization, and type-safe delivery.
+You emit a configuration to join the network, then send and receive messages with familiar `emit` and `on` patterns.
 
 ```mermaid
 sequenceDiagram
@@ -70,18 +71,21 @@ NUClearNet supports several discovery modes depending on the `announce_address` 
 
 #### Multicast (Default)
 
-Multicast is the most common mode. All nodes join a multicast group and discover each other automatically:
+Multicast is the most common mode.
+All nodes join a multicast group and discover each other automatically:
 
 ```cpp
 emit(std::make_unique<NUClear::message::NetworkConfiguration>(
     "my-node", "239.226.152.162", 7447));
 ```
 
-The default multicast address `239.226.152.162` with port `7447` is a conventional choice. All nodes that share the same announce address and port will discover each other.
+The default multicast address `239.226.152.162` with port `7447` is a conventional choice.
+All nodes that share the same announce address and port will discover each other.
 
 #### Broadcast
 
-For simpler networks, use a broadcast address. All nodes on the subnet will receive announce messages:
+For simpler networks, use a broadcast address.
+All nodes on the subnet will receive announce messages:
 
 ```cpp
 emit(std::make_unique<NUClear::message::NetworkConfiguration>(
@@ -90,7 +94,8 @@ emit(std::make_unique<NUClear::message::NetworkConfiguration>(
 
 #### Unicast (Point-to-Point)
 
-For direct connections between exactly two nodes, use unicast. Each node sets its announce address to the other node's IP:
+For direct connections between exactly two nodes, use unicast.
+Each node sets its announce address to the other node's IP:
 
 ```cpp
 // On Node A (IP: 192.168.1.10)
@@ -102,7 +107,8 @@ emit(std::make_unique<NUClear::message::NetworkConfiguration>(
     "node-b", "192.168.1.10", 7447));  // Point to Node A
 ```
 
-In unicast mode, each peer announces directly to the other. This is useful when multicast/broadcast is unavailable (e.g., across subnets or VPNs).
+In unicast mode, each peer announces directly to the other.
+This is useful when multicast/broadcast is unavailable (e.g., across subnets or VPNs).
 
 ## 2. Send Messages
 
@@ -239,7 +245,8 @@ emit<Scope::NETWORK>(std::make_unique<Command>(cmd), true);
 
 ## Serialization Requirements
 
-Types sent over the network must be serializable. NUClear handles this automatically for **trivially copyable** types (POD structs with no pointers or dynamic memory).
+Types sent over the network must be serializable.
+NUClear handles this automatically for **trivially copyable** types (POD structs with no pointers or dynamic memory).
 
 For complex types, specialize `NUClear::util::serialise::Serialise<T>` to provide custom `serialise()`, `deserialise()`, and `hash()` methods.
 

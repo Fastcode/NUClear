@@ -1,6 +1,7 @@
 # Buffer
 
-Limits the number of concurrent instances of a reaction that can be active or queued at any time. Excess triggers are dropped.
+Limits the number of concurrent instances of a reaction that can be active or queued at any time.
+Excess triggers are dropped.
 
 ## Syntax
 
@@ -16,7 +17,9 @@ on<Trigger<T>, Buffer<N>>()
 
 ## Behavior
 
-`Buffer<N>` implements the `precondition` extension point. Before a reaction is scheduled, the runtime checks how many instances of that reaction are currently executing or queued. If the count is already at `N`, the new trigger is silently dropped.
+`Buffer<N>` implements the `precondition` extension point.
+Before a reaction is scheduled, the runtime checks how many instances of that reaction are currently executing or queued.
+If the count is already at `N`, the new trigger is silently dropped.
 
 ```mermaid
 graph LR
@@ -33,7 +36,11 @@ graph LR
 
 !!! warning
 
-    Dropped triggers are permanently lost. If every trigger must be processed, use [Group](group.md) instead, which queues excess tasks rather than discarding them.
+    ```
+    Dropped triggers are permanently lost.
+    ```
+
+    If every trigger must be processed, use [Group](group.md) instead, which queues excess tasks rather than discarding them.
 
 ## Example
 

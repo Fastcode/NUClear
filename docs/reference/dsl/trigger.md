@@ -48,7 +48,8 @@ sequenceDiagram
 `Trigger<T>` implements two extension points:
 
 - **`bind`** — registers the reaction so it is notified on emission of `T`.
-- **`get`** — retrieves the data for `T` during task creation (on the emitter's thread). It reads from `ThreadStore` first (the exact data from this emit) and falls back to `DataStore` (latest value).
+- **`get`** — retrieves the data for `T` during task creation (on the emitter's thread).
+    It reads from `ThreadStore` first (the exact data from this emit) and falls back to `DataStore` (latest value).
 
 Data access is thread-safe; the underlying `std::shared_ptr<const T>` ensures the data remains valid for the lifetime of the callback.
 
@@ -77,10 +78,12 @@ on<Trigger<SensorReading>, Trigger<Command>>().then([](const SensorReading& read
 
 ## Notes
 
-- The callback argument is a reference into a shared pointer. Do not store the reference beyond the callback's lifetime; copy the data or take it as `std::shared_ptr<const T>` if you need to retain it (see below).
+- The callback argument is a reference into a shared pointer.
+    Do not store the reference beyond the callback's lifetime; copy the data or take it as `std::shared_ptr<const T>` if you need to retain it (see below).
 - To access data without triggering on it, use [With](with.md).
 - To allow missing data instead of dropping the task, wrap the type in [Optional](optional.md).
-- `Trigger<T1>, Trigger<T2>` is the canonical form for multi-trigger. `Trigger<T1, T2>` is also supported but less idiomatic.
+- `Trigger<T1>, Trigger<T2>` is the canonical form for multi-trigger.
+    `Trigger<T1, T2>` is also supported but less idiomatic.
 
 ## See Also
 

@@ -1,6 +1,7 @@
 # Contributing
 
-Welcome! We're glad you're interested in contributing to NUClear.
+Welcome!
+We're glad you're interested in contributing to NUClear.
 
 ## Ways to Contribute
 
@@ -25,7 +26,9 @@ Welcome! We're glad you're interested in contributing to NUClear.
 
 ## Code of Conduct
 
-We expect all contributors to be respectful and constructive. Harassment, discrimination, and abusive behavior will not be tolerated. Be kind, assume good intent, and focus on the work.
+We expect all contributors to be respectful and constructive.
+Harassment, discrimination, and abusive behavior will not be tolerated.
+Be kind, assume good intent, and focus on the work.
 
 ## Links
 

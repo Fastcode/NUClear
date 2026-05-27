@@ -22,7 +22,9 @@ static util::Inline run_inline(const threading::ReactionTask& task)
 
 - `task` — the `ReactionTask` being constructed.
 
-Runs on the **emitter's thread** during task creation. When `ALWAYS` is returned, the task executes immediately on the current thread rather than being submitted to the scheduler. This is useful for operations that need to happen synchronously with the emit.
+Runs on the **emitter's thread** during task creation.
+When `ALWAYS` is returned, the task executes immediately on the current thread rather than being submitted to the scheduler.
+This is useful for operations that need to happen synchronously with the emit.
 
 When `NEVER` is returned, the task is always queued, even if the emit scope would normally prefer inline execution.
 

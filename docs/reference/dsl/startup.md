@@ -12,7 +12,9 @@ on<Startup>().then([] {
 
 ## Behavior
 
-`Startup` fires after all reactors have been installed and `PowerPlant::start()` is called. All Startup reactions execute **before** the scheduler begins processing the general task queue. This guarantees that any data emitted during Startup is available before normal reactions begin executing.
+`Startup` fires after all reactors have been installed and `PowerPlant::start()` is called.
+All Startup reactions execute **before** the scheduler begins processing the general task queue.
+This guarantees that any data emitted during Startup is available before normal reactions begin executing.
 
 ```mermaid
 graph LR
@@ -25,7 +27,8 @@ graph LR
     G --> H[Threads joined]
 ```
 
-Startup is emitted inline, meaning all Startup reactions complete before `start()` returns control to the scheduler. Each Startup reaction runs exactly once per PowerPlant lifecycle.
+Startup is emitted inline, meaning all Startup reactions complete before `start()` returns control to the scheduler.
+Each Startup reaction runs exactly once per PowerPlant lifecycle.
 
 ## Example
 

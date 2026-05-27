@@ -18,7 +18,8 @@ on<TCP>(port, bind_address).then([](const TCP::Connection& connection) { /* ... 
 
 ## Behavior
 
-`TCP` opens a listening socket on the specified port. When a remote client establishes a connection, the reaction fires **once** with a `TCP::Connection` containing:
+`TCP` opens a listening socket on the specified port.
+When a remote client establishes a connection, the reaction fires **once** with a `TCP::Connection` containing:
 
 | Field    | Type                    | Description                        |
 | -------- | ----------------------- | ---------------------------------- |
@@ -28,9 +29,11 @@ on<TCP>(port, bind_address).then([](const TCP::Connection& connection) { /* ... 
 
 The connection object is boolean-convertible — it evaluates to `false` if the accept failed.
 
-The reaction fires only for **new** connections. TCP is stream-based, so ongoing communication on an established connection must be handled separately using [IO](io.md) on the returned file descriptor.
+The reaction fires only for **new** connections.
+TCP is stream-based, so ongoing communication on an established connection must be handled separately using [IO](io.md) on the returned file descriptor.
 
-When port `0` is used, the OS assigns an available port. The `on<TCP>().then()` call returns a tuple containing the handle, assigned port, and file descriptor:
+When port `0` is used, the OS assigns an available port.
+The `on<TCP>().then()` call returns a tuple containing the handle, assigned port, and file descriptor:
 
 ```cpp
 auto [handle, port, fd] = on<TCP>(0).then([](const TCP::Connection& conn) { /* ... */ });
@@ -38,9 +41,11 @@ auto [handle, port, fd] = on<TCP>(0).then([](const TCP::Connection& conn) { /* .
 // fd is the listening socket's file descriptor
 ```
 
-Both IPv4 and IPv6 addresses are supported. The address family is determined by the resolved `bind_address`, defaulting to IPv4 (`INADDR_ANY`) when omitted.
+Both IPv4 and IPv6 addresses are supported.
+The address family is determined by the resolved `bind_address`, defaulting to IPv4 (`INADDR_ANY`) when omitted.
 
-The listening socket backlog is set to 1024. When the reaction is unbound, the listening socket is shut down and closed automatically.
+The listening socket backlog is set to 1024.
+When the reaction is unbound, the listening socket is shut down and closed automatically.
 
 ```mermaid
 sequenceDiagram

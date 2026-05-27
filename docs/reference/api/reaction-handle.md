@@ -4,7 +4,8 @@
 
 ## Overview
 
-Returned by `on<...>().then(...)`, a `ReactionHandle` allows enabling, disabling, and permanently removing a reaction at runtime. Disabling a reaction prevents new tasks from being generated when triggered; enabling resumes normal operation.
+Returned by `on<...>().then(...)`, a `ReactionHandle` allows enabling, disabling, and permanently removing a reaction at runtime.
+Disabling a reaction prevents new tasks from being generated when triggered; enabling resumes normal operation.
 
 ## API
 
@@ -14,7 +15,8 @@ Returned by `on<...>().then(...)`, a `ReactionHandle` allows enabling, disabling
 ReactionHandle& enable();
 ```
 
-Enables the reaction. Triggered events will generate tasks again.
+Enables the reaction.
+Triggered events will generate tasks again.
 
 ### `disable()`
 
@@ -22,7 +24,9 @@ Enables the reaction. Triggered events will generate tasks again.
 ReactionHandle& disable();
 ```
 
-Disables the reaction. No tasks will be created when triggered. Configuration is preserved.
+Disables the reaction.
+No tasks will be created when triggered.
+Configuration is preserved.
 
 ### `enable(bool set)`
 
@@ -30,7 +34,8 @@ Disables the reaction. No tasks will be created when triggered. Configuration is
 ReactionHandle& enable(const bool& set);
 ```
 
-Sets enabled state. `true` to enable, `false` to disable.
+Sets enabled state.
+`true` to enable, `false` to disable.
 
 ### `enabled() const`
 
@@ -46,7 +51,8 @@ Returns `true` if the reaction is currently enabled.
 void unbind();
 ```
 
-Permanently removes the reaction from the system. This is irreversible.
+Permanently removes the reaction from the system.
+This is irreversible.
 
 ### `operator bool()`
 

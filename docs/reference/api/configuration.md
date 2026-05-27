@@ -4,7 +4,8 @@
 
 ## Overview
 
-`Configuration` controls the PowerPlant's thread pool sizing. Passed by value to the `PowerPlant` constructor.
+`Configuration` controls the PowerPlant's thread pool sizing.
+Passed by value to the `PowerPlant` constructor.
 
 ## API
 

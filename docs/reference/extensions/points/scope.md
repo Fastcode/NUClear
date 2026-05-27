@@ -20,11 +20,14 @@ static Lock scope(threading::ReactionTask& task)
 
 ## Context & Arguments
 
-- `task` — the `ReactionTask` being executed. Provides access to the reaction identity and any task metadata.
+- `task` — the `ReactionTask` being executed.
+    Provides access to the reaction identity and any task metadata.
 
-Runs on the **executor thread** — the thread that actually runs the callback. This is different from `bind`/`get`/`precondition` which run on the emitter's thread.
+Runs on the **executor thread** — the thread that actually runs the callback.
+This is different from `bind`/`get`/`precondition` which run on the emitter's thread.
 
-The returned object is stored in a tuple and destroyed (released) after `post_run` completes. This makes it ideal for RAII patterns like mutex locks, file handles, or any resource that should be held for the callback's duration.
+The returned object is stored in a tuple and destroyed (released) after `post_run` completes.
+This makes it ideal for RAII patterns like mutex locks, file handles, or any resource that should be held for the callback's duration.
 
 If your `scope` implementation needs to persist state between reactions (not just for one execution), use the `Scope` extension point's associated storage — objects stored there persist for the reaction's lifetime via RAII, enabling cleanup when the reaction is destroyed.
 

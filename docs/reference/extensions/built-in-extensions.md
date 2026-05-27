@@ -1,10 +1,15 @@
 # Built-in Extensions
 
-NUClear ships with four extension reactors that provide core system services. These are ordinary reactors — they use the same `on<>()` DSL as user code — but they implement the functionality that other DSL words depend on (timers, IO polling, networking, tracing).
+NUClear ships with four extension reactors that provide core system services.
+These are ordinary reactors — they use the same `on<>()` DSL as user code — but they implement the functionality that other DSL words depend on (timers, IO polling, networking, tracing).
 
 !!! important "Manual Installation Required"
 
-    Built-in extensions are **not** installed automatically. You must explicitly install them into the PowerPlant before using DSL words that depend on them:
+    ```
+    Built-in extensions are **not** installed automatically.
+    ```
+
+    You must explicitly install them into the PowerPlant before using DSL words that depend on them:
 
     ```cpp
     NUClear::Configuration config;
@@ -63,9 +68,11 @@ Manages all time-based operations in NUClear.
 
 **Implementation:**
 
-The controller maintains a sorted priority queue of `ChronoTask` items, each with a target fire time and a callback. A dedicated thread sleeps until the next task is due, using a combination of condition variable waits (for coarse timing) and nanosleep (for fine timing accuracy).
+The controller maintains a sorted priority queue of `ChronoTask` items, each with a target fire time and a callback.
+A dedicated thread sleeps until the next task is due, using a combination of condition variable waits (for coarse timing) and nanosleep (for fine timing accuracy).
 
-When a time-based word's `bind` is called, it submits a `ChronoTask` to this controller. The task's callback typically re-submits itself (for `Every`) or triggers a reaction (for `Watchdog` expiry).
+When a time-based word's `bind` is called, it submits a `ChronoTask` to this controller.
+The task's callback typically re-submits itself (for `Every`) or triggers a reaction (for `Watchdog` expiry).
 
 **Key internals:**
 
@@ -93,7 +100,8 @@ Uses platform-native polling mechanisms:
 - **POSIX (Linux/macOS):** `poll()` with `pollfd` arrays
 - **Windows:** `WSAWaitForMultipleEvents` with `WSAEVENT` handles
 
-A dedicated thread blocks on the polling call. When events are detected on registered file descriptors, the controller creates tasks for the corresponding reactions, passing the event flags through `ThreadStore` so the `get` method can report which specific events occurred.
+A dedicated thread blocks on the polling call.
+When events are detected on registered file descriptors, the controller creates tasks for the corresponding reactions, passing the event flags through `ThreadStore` so the `get` method can report which specific events occurred.
 
 **Key internals:**
 
@@ -119,7 +127,8 @@ Bridges the low-level `NUClearNetwork` protocol into NUClear's reaction system.
 
 **Implementation:**
 
-Wraps a `NUClearNetwork` instance that implements peer discovery (via multicast announcements) and reliable/unreliable message delivery. The controller:
+Wraps a `NUClearNetwork` instance that implements peer discovery (via multicast announcements) and reliable/unreliable message delivery.
+The controller:
 
 1. Listens for `NetworkConfiguration` messages to initialize/reconfigure the network
 1. Registers `IO` reactions on network sockets so incoming data triggers processing
@@ -147,7 +156,9 @@ Records task execution traces for performance profiling and debugging.
 
 **Implementation:**
 
-Listens for task lifecycle events and writes trace records to a file. Each record captures the reaction identity, start/end timestamps, and which thread the task ran on. The output uses a protobuf wire format compatible with the Perfetto trace viewer.
+Listens for task lifecycle events and writes trace records to a file.
+Each record captures the reaction identity, start/end timestamps, and which thread the task ran on.
+The output uses a protobuf wire format compatible with the Perfetto trace viewer.
 
 **Key internals:**
 

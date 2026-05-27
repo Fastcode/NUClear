@@ -1,6 +1,7 @@
 # How-To Guides
 
-How-to guides are task-oriented recipes that solve specific problems. Unlike [tutorials](../tutorials/index.md) which teach concepts step-by-step, each guide here assumes you already understand the basics and need to accomplish something concrete.
+How-to guides are task-oriented recipes that solve specific problems.
+Unlike [tutorials](../tutorials/index.md) which teach concepts step-by-step, each guide here assumes you already understand the basics and need to accomplish something concrete.
 
 ## Available Guides
 

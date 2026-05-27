@@ -4,7 +4,8 @@
 
 ## Overview
 
-`LogLevel` is a class wrapping an enum that defines the severity of log messages. Each reactor has a `log_level` threshold controlling which messages are displayed and a `min_log_level` that is always emitted regardless.
+`LogLevel` is a class wrapping an enum that defines the severity of log messages.
+Each reactor has a `log_level` threshold controlling which messages are displayed and a `min_log_level` that is always emitted regardless.
 
 ## API
 

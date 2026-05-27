@@ -1,6 +1,7 @@
 # Serialization
 
-NUClear's serialization system handles the conversion between in-memory C++ types and byte sequences suitable for network transmission. It's built around a single template — `Serialise<T>` — that provides three operations: serialize, deserialize, and hash.
+NUClear's serialization system handles the conversion between in-memory C++ types and byte sequences suitable for network transmission.
+It's built around a single template — `Serialise<T>` — that provides three operations: serialize, deserialize, and hash.
 
 ## The Serialise Template
 
@@ -41,11 +42,14 @@ flowchart LR
     end
 ```
 
-The hash travels in the packet header so the receiver knows *what* type was sent. The payload is the serialized bytes. On arrival, the receiver looks up which reactions are registered for that hash, then deserializes the payload back into the original type.
+The hash travels in the packet header so the receiver knows *what* type was sent.
+The payload is the serialized bytes.
+On arrival, the receiver looks up which reactions are registered for that hash, then deserializes the payload back into the original type.
 
 ## Built-in Strategies
 
-NUClear provides three automatic specializations of `Serialise<T>` selected via SFINAE (template metaprogramming). You don't need to write any serialization code if your type matches one of these.
+NUClear provides three automatic specializations of `Serialise<T>` selected via SFINAE (template metaprogramming).
+You don't need to write any serialization code if your type matches one of these.
 
 ### Trivially Copyable Types
 
@@ -64,9 +68,12 @@ struct Serialise<T, std::enable_if_t<std::is_trivially_copyable<T>::value, T>> {
 };
 ```
 
-For types like `int`, `float`, simple structs with no pointers — anything where `memcpy` gives you a valid copy — this "just works". It's the fastest possible serialization: zero overhead, no parsing.
+For types like `int`, `float`, simple structs with no pointers — anything where `memcpy` gives you a valid copy — this "just works".
+It's the fastest possible serialization: zero overhead, no parsing.
 
-**Caveat**: This is **not portable** across different architectures. Endianness, struct padding, and alignment can all differ. Only use this when sender and receiver are:
+**Caveat**: This is **not portable** across different architectures.
+Endianness, struct padding, and alignment can all differ.
+Only use this when sender and receiver are:
 
 - The same machine (local IPC), or
 - Identical hardware with identical compiler settings
@@ -80,7 +87,8 @@ struct Serialise<T, std::enable_if_t<
     std::is_trivially_copyable<iterator_value_type_t<T>>::value, T>>
 ```
 
-If your type is iterable (has `begin()`/`end()`) and its elements are trivially copyable, NUClear serializes it element-by-element. This handles `std::vector<float>`, `std::array<double, 3>`, and similar containers automatically.
+If your type is iterable (has `begin()`/`end()`) and its elements are trivially copyable, NUClear serializes it element-by-element.
+This handles `std::vector<float>`, `std::array<double, 3>`, and similar containers automatically.
 
 Deserialization reconstructs the container by dividing the byte count by element size.
 
@@ -119,14 +127,16 @@ Key details:
 
 ### Important Implications
 
-Both sender and receiver must have **exactly the same demangled type name**. This means:
+Both sender and receiver must have **exactly the same demangled type name**.
+This means:
 
 - Share the header file defining the type between all nodes
 - The type must be in the same namespace
 - Template parameters must match exactly
 - Different compilers/platforms may demangle differently (though in practice GCC and Clang agree for most types)
 
-For Protobuf types, the hash uses the Protobuf message name (`GetTypeName()`) rather than the C++ class name. This is more stable across compiler differences.
+For Protobuf types, the hash uses the Protobuf message name (`GetTypeName()`) rather than the C++ class name.
+This is more stable across compiler differences.
 
 ## Custom Serialization
 
@@ -207,4 +217,5 @@ The serialization system is used by two DSL words:
 - **`emit<Scope::NETWORK>`** — calls `Serialise<T>::serialise()` and `Serialise<T>::hash()` to prepare data for sending
 - **`Network<T>`** — calls `Serialise<T>::deserialise()` to reconstruct received data, uses `hash()` at bind time to register interest
 
-The `NUClearNetwork` engine itself is serialization-agnostic — it only sees `uint64_t hash` and `std::vector<uint8_t> payload`. The type-aware serialization happens in the DSL layer above it.
+The `NUClearNetwork` engine itself is serialization-agnostic — it only sees `uint64_t hash` and `std::vector<uint8_t> payload`.
+The type-aware serialization happens in the DSL layer above it.

@@ -1,6 +1,7 @@
 # bind
 
-Called once when the reaction is created (at the `.then()` call site). Use this to register the reaction with event sources.
+Called once when the reaction is created (at the `.then()` call site).
+Use this to register the reaction with event sources.
 
 ## Signature
 
@@ -20,10 +21,14 @@ static void bind(const std::shared_ptr<threading::Reaction>& reaction, Args... a
 
 ## Context & Arguments
 
-- `reaction` — the newly created Reaction object. Store a reference to it in whatever event registry you need (e.g., `TypeCallbackStore`, a timer queue, an IO poll set).
-- `args...` — runtime arguments passed to `on<>(...)`. For example, `on<IO>(fd, IO::READ)` passes the file descriptor and event mask. Arguments are consumed greedily left-to-right across all words that have `bind` with matching parameters.
+- `reaction` — the newly created Reaction object.
+    Store a reference to it in whatever event registry you need (e.g., `TypeCallbackStore`, a timer queue, an IO poll set).
+- `args...` — runtime arguments passed to `on<>(...)`.
+    For example, `on<IO>(fd, IO::READ)` passes the file descriptor and event mask.
+    Arguments are consumed greedily left-to-right across all words that have `bind` with matching parameters.
 
-The thread context is typically the **main thread** during reactor construction. However, if `on<>().then()` is called at runtime (e.g., inside another reaction's callback), it runs on whichever thread the calling reaction is executing on.
+The thread context is typically the **main thread** during reactor construction.
+However, if `on<>().then()` is called at runtime (e.g., inside another reaction's callback), it runs on whichever thread the calling reaction is executing on.
 
 ## Example
 

@@ -29,7 +29,8 @@ The callback receives no arguments.
 
 ## Behavior
 
-Every registers a `ChronoTask` with the [ChronoController](../extensions/built-in-extensions.md) extension. When the task fires, it reschedules itself by adding the period to the current time point, producing a steady cadence.
+Every registers a `ChronoTask` with the [ChronoController](../extensions/built-in-extensions.md) extension.
+When the task fires, it reschedules itself by adding the period to the current time point, producing a steady cadence.
 
 ```mermaid
 gantt
@@ -44,7 +45,8 @@ gantt
         Fire :milestone, 4, 4
 ```
 
-Rescheduling is based on the *scheduled* time, not the completion time of the previous execution. This means the timer maintains a consistent period regardless of how long the callback takes — unless execution exceeds the period itself.
+Rescheduling is based on the *scheduled* time, not the completion time of the previous execution.
+This means the timer maintains a consistent period regardless of how long the callback takes — unless execution exceeds the period itself.
 
 ## Example
 
@@ -77,10 +79,17 @@ public:
 
 !!! warning "Timer drift under load"
 
-    If a callback takes longer than the period to execute, the next firing will be scheduled in the past. The ChronoController will fire it immediately, but accumulated drift can cause bursts of rapid executions. Design callbacks to complete well within the period, or use a longer interval.
+    ```
+    If a callback takes longer than the period to execute, the next firing will be scheduled in the past.
+    ```
 
-- **Clock**: Every uses `NUClear::clock`, not the system wall clock. If `NUClear::clock` is adjusted (e.g., for simulation time scaling), the effective period changes accordingly.
-- **Per\<period>**: `Every<60, Per<std::chrono::seconds>>` means 60 firings per second (60 Hz). The actual interval is `period / N`.
+    The ChronoController will fire it immediately, but accumulated drift can cause bursts of rapid executions.
+    Design callbacks to complete well within the period, or use a longer interval.
+
+- **Clock**: Every uses `NUClear::clock`, not the system wall clock.
+    If `NUClear::clock` is adjusted (e.g., for simulation time scaling), the effective period changes accordingly.
+- **Per\<period>**: `Every<60, Per<std::chrono::seconds>>` means 60 firings per second (60 Hz).
+    The actual interval is `period / N`.
 - **Bind only**: Every has no `get` operation — it solely controls *when* the reaction runs, not *what data* it receives.
 - **Dynamic form**: `Every<>` accepts the period as a runtime argument to `on<>()`, useful when the interval is configuration-driven.
 

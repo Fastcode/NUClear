@@ -1,6 +1,7 @@
 # Sync
 
-Provides mutual exclusion for a group of reactions without explicit mutex locking. Only one task from the sync group executes at a time; others are queued by priority.
+Provides mutual exclusion for a group of reactions without explicit mutex locking.
+Only one task from the sync group executes at a time; others are queued by priority.
 
 ## Syntax
 
@@ -16,12 +17,14 @@ on<Trigger<T>, Sync<SyncGroup>>()
 
 ## Behavior
 
-`Sync<SyncGroup>` is an alias for `Group<SyncGroup>` with a concurrency of 1. The scheduler enforces that at most one reaction belonging to the sync group runs at any time.
+`Sync<SyncGroup>` is an alias for `Group<SyncGroup>` with a concurrency of 1.
+The scheduler enforces that at most one reaction belonging to the sync group runs at any time.
 
 - If a task from the group is already executing, incoming tasks are queued.
 - Queued tasks are dispatched in priority order (`Priority::HIGH` before `Priority::LOW`).
 - Different sync groups are independent — `Sync<A>` does not block `Sync<B>`.
-- A reaction can belong to multiple groups: `on<Trigger<T>, Sync<A>, Sync<B>>()`. The task must acquire both groups before it runs.
+- A reaction can belong to multiple groups: `on<Trigger<T>, Sync<A>, Sync<B>>()`.
+    The task must acquire both groups before it runs.
 - No runtime mutex overhead — exclusion is handled entirely by the scheduler.
 
 ```mermaid
@@ -58,7 +61,11 @@ on<Trigger<Write>, Sync<DatabaseSync>>().then([](const Write& w) {
 
 !!! tip
 
-    Prefer `Sync` over manual mutexes. The scheduler-based exclusion avoids deadlocks, eliminates lock contention, and respects task priority ordering.
+    ```
+    Prefer `Sync` over manual mutexes.
+    ```
+
+    The scheduler-based exclusion avoids deadlocks, eliminates lock contention, and respects task priority ordering.
 
 ## Notes
 

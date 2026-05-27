@@ -1,6 +1,7 @@
 # Periodic Tasks
 
-In this tutorial, you'll build a system that uses timers and periodic execution to generate data at fixed rates, monitor performance, and detect timeouts. These are essential patterns for any real-time or event-driven application.
+In this tutorial, you'll build a system that uses timers and periodic execution to generate data at fixed rates, monitor performance, and detect timeouts.
+These are essential patterns for any real-time or event-driven application.
 
 ## What You'll Build
 
@@ -44,7 +45,8 @@ target_compile_features(periodic_tasks PUBLIC cxx_std_14)
 
 ## Fixed-Rate Timers with Every
 
-The `Every` DSL word triggers a reaction at a fixed interval. The template parameters specify the number of ticks and the time unit:
+The `Every` DSL word triggers a reaction at a fixed interval.
+The template parameters specify the number of ticks and the time unit:
 
 ```cpp
 on<Every<1, std::chrono::seconds>>().then([]() {
@@ -99,11 +101,13 @@ public:
 #endif  // DATA_GENERATOR_HPP
 ```
 
-Every 100 milliseconds, this reactor emits a `SensorReading` with a sine-wave value. The `Every<100, std::chrono::milliseconds>` ensures the callback runs at a steady 10Hz rate.
+Every 100 milliseconds, this reactor emits a `SensorReading` with a sine-wave value.
+The `Every<100, std::chrono::milliseconds>` ensures the callback runs at a steady 10Hz rate.
 
 ## Frequency-Based Timers with Per
 
-Sometimes it's more natural to think in terms of frequency rather than period. The `Per` wrapper lets you specify how many times per unit of time a reaction should fire:
+Sometimes it's more natural to think in terms of frequency rather than period.
+The `Per` wrapper lets you specify how many times per unit of time a reaction should fire:
 
 ```cpp
 // 30 times per second (30Hz)
@@ -124,7 +128,11 @@ on<Every<2, Per<std::chrono::minutes>>>().then([]() {
 
 !!! tip "When to use `Per`"
 
-    Use `Per` when you think of your task in terms of frequency (Hz). `Every<30, Per<std::chrono::seconds>>` reads as "30 per second" which is clearer than calculating that 1/30th of a second is approximately 33.33 milliseconds.
+    ```
+    Use `Per` when you think of your task in terms of frequency (Hz).
+    ```
+
+    `Every<30, Per<std::chrono::seconds>>` reads as "30 per second" which is clearer than calculating that 1/30th of a second is approximately 33.33 milliseconds.
 
 Let's use `Per` to build a rate monitor that reports statistics once per second:
 
@@ -173,7 +181,8 @@ private:
 
 ## Dynamic Intervals
 
-Sometimes you don't know the timer period at compile time. The dynamic variant of `Every` accepts a duration as a runtime argument:
+Sometimes you don't know the timer period at compile time.
+The dynamic variant of `Every` accepts a duration as a runtime argument:
 
 ```cpp
 // Period determined at runtime
@@ -194,11 +203,17 @@ on<Every<>>(std::chrono::milliseconds(interval_ms)).then([this]() {
 
 !!! note "Dynamic intervals are fixed after binding"
 
-    The interval is set when the reaction is bound (during reactor construction). It does not change after that. If you need an interval that changes over time, unbind and re-bind the reaction, or use a different approach.
+    ```
+    The interval is set when the reaction is bound (during reactor construction).
+    ```
+
+    It does not change after that.
+    If you need an interval that changes over time, unbind and re-bind the reaction, or use a different approach.
 
 ## Continuous Execution with Always
 
-The [`Always`](../reference/dsl/always.md) DSL word runs a reaction continuously in its own dedicated thread. As soon as one execution completes, the next begins immediately:
+The [`Always`](../reference/dsl/always.md) DSL word runs a reaction continuously in its own dedicated thread.
+As soon as one execution completes, the next begins immediately:
 
 ```cpp
 on<Always>().then([]() {
@@ -207,11 +222,17 @@ on<Always>().then([]() {
 });
 ```
 
-`Always` is the replacement for infinite loops. It allows NUClear to cleanly shut down the task when the system stops, rather than having a `while(true)` that can't be interrupted. However, the callback must not block indefinitely — it should periodically return or use timeouts on blocking calls so that NUClear can shut down the thread gracefully.
+`Always` is the replacement for infinite loops.
+It allows NUClear to cleanly shut down the task when the system stops, rather than having a `while(true)` that can't be interrupted.
+However, the callback must not block indefinitely — it should periodically return or use timeouts on blocking calls so that NUClear can shut down the thread gracefully.
 
 !!! warning "Always gets its own thread"
 
-    Each `Always` reaction runs in a **dedicated thread** outside the normal thread pool. This means:
+    ```
+    Each `Always` reaction runs in a **dedicated thread** outside the normal thread pool.
+    ```
+
+    This means:
 
     - It does **not** consume a thread pool slot
     - But it **does** consume a system thread
@@ -237,7 +258,8 @@ on<Always>().then([this]() {
 
 ## Timeout Detection with Watchdog
 
-A `Watchdog` fires when an expected event **doesn't** happen within a timeout. It's the inverse of `Every` — instead of "do this every N seconds", it's "alert me if nothing happens for N seconds."
+A `Watchdog` fires when an expected event **doesn't** happen within a timeout.
+It's the inverse of `Every` — instead of "do this every N seconds", it's "alert me if nothing happens for N seconds."
 
 ```cpp
 // Define a type to identify this watchdog group
@@ -255,7 +277,8 @@ To prevent the watchdog from firing, you **service** it by emitting a watchdog e
 emit<Scope::WATCHDOG>(ServiceWatchdog<DataTimeout>());
 ```
 
-Each time you service the watchdog, its timer resets. If the timer reaches the timeout without being serviced, the reaction fires.
+Each time you service the watchdog, its timer resets.
+If the timer reaches the timeout without being serviced, the reaction fires.
 
 Let's build a health checker that detects when sensor data stops flowing:
 
@@ -297,7 +320,8 @@ public:
 #endif  // HEALTH_CHECKER_HPP
 ```
 
-The watchdog group type (`DataFlow`) is just an empty struct used as a tag to identify which watchdog you're working with. You can have multiple watchdogs in a system, each with their own group type.
+The watchdog group type (`DataFlow`) is just an empty struct used as a tag to identify which watchdog you're working with.
+You can have multiple watchdogs in a system, each with their own group type.
 
 ## Complete Example
 
@@ -373,13 +397,15 @@ gantt
     Timer active  :active, 500, 1000
 ```
 
-Each sensor reading resets the watchdog timer. The DataGenerator emits at 100ms intervals (shown as milestones), so the 500ms watchdog is always serviced well within its deadline.
+Each sensor reading resets the watchdog timer.
+The DataGenerator emits at 100ms intervals (shown as milestones), so the 500ms watchdog is always serviced well within its deadline.
 
 ## Tips and Gotchas
 
 ### Timer Drift
 
-`Every` schedules the **next** tick relative to the **previous** scheduled time, not relative to when the callback finishes. This prevents drift accumulation:
+`Every` schedules the **next** tick relative to the **previous** scheduled time, not relative to when the callback finishes.
+This prevents drift accumulation:
 
 ```
 Scheduled: 0ms, 100ms, 200ms, 300ms, ...
@@ -390,13 +416,21 @@ If a callback takes longer than the interval, the next invocation is scheduled i
 
 ### Thread Pool Considerations
 
-Periodic reactions run in the normal thread pool (except `Always`, which gets its own thread). If your thread pool is saturated, timer callbacks may be delayed:
+Periodic reactions run in the normal thread pool (except `Always`, which gets its own thread).
+If your thread pool is saturated, timer callbacks may be delayed:
 
 !!! warning "Thread pool starvation"
 
-    If you have more concurrent reactions than thread pool threads, periodic tasks may not fire on time. For example, 4 long-running `Every` callbacks on a pool of 4 threads would block all other timers from firing. Note that `Always` is not affected since it runs in its own dedicated thread outside the pool.
+    ```
+    If you have more concurrent reactions than thread pool threads, periodic tasks may not fire on time.
+    ```
 
+    For example, 4 long-running `Every` callbacks on a pool of 4 threads would block all other timers from firing.
+    Note that `Always` is not affected since it runs in its own dedicated thread outside the pool.
+
+    ```
     Mitigations:
+    ```
 
     - Increase `default_pool_concurrency` if you have many periodic tasks
     - Keep periodic callbacks fast — offload heavy work to other reactions via messages
@@ -441,7 +475,8 @@ on<Every<100, std::chrono::milliseconds>, Sync<DatabaseGroup>>().then([]() {
 
 ## What's Next?
 
-You now know how to schedule periodic work, run continuous tasks, and detect timeouts in NUClear. These patterns form the backbone of real-time monitoring systems, game loops, and hardware interfaces.
+You now know how to schedule periodic work, run continuous tasks, and detect timeouts in NUClear.
+These patterns form the backbone of real-time monitoring systems, game loops, and hardware interfaces.
 
 - **[Custom Thread Pools](../how-to/custom-thread-pool.md)** — Control exactly where your periodic tasks execute
 - **[Synchronization](../how-to/synchronization.md)** — Prevent periodic tasks from conflicting with each other

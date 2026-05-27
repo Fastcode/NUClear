@@ -68,7 +68,8 @@ public:
 
 - Useful for self-emitting reactors where execution order matters.
 - Works during startup (reactor constructors) and shutdown phases.
-- **Warning**: Recursive inline emits will grow the call stack. Deeply recursive patterns can cause stack overflow.
+- **Warning**: Recursive inline emits will grow the call stack.
+    Deeply recursive patterns can cause stack overflow.
 - Reactions using `Inline::NEVER` in their DSL will be routed to the thread pool rather than executing inline.
 
 ## See Also

@@ -1,10 +1,13 @@
 # Extension System
 
-NUClear's DSL is fully extensible. Every built-in word — `Trigger`, `With`, `Every`, `Pool` — is implemented using the same extension mechanism available to you. Custom DSL words are first-class citizens.
+NUClear's DSL is fully extensible.
+Every built-in word — `Trigger`, `With`, `Every`, `Pool` — is implemented using the same extension mechanism available to you.
+Custom DSL words are first-class citizens.
 
 ## How It Works
 
-A DSL word is a struct that implements one or more static template methods called **extension points**. When you write an `on<>()` statement combining multiple words, the **Fusion Engine** introspects each word, discovers which extension points it provides, and combines them into a single fused reaction.
+A DSL word is a struct that implements one or more static template methods called **extension points**.
+When you write an `on<>()` statement combining multiple words, the **Fusion Engine** introspects each word, discovers which extension points it provides, and combines them into a single fused reaction.
 
 ```cpp
 // A DSL word is just a struct with static methods

@@ -20,9 +20,12 @@ static std::shared_ptr<const ThreadPoolDescriptor> pool(threading::ReactionTask&
 
 ## Context & Arguments
 
-- `task` — the `ReactionTask` being constructed. Provides context but typically the pool choice is static.
+- `task` — the `ReactionTask` being constructed.
+    Provides context but typically the pool choice is static.
 
-Runs on the **emitter's thread** during task creation. The returned descriptor tells the scheduler which thread pool queue to place this task in. The task will be picked up and executed by one of the threads in that pool.
+Runs on the **emitter's thread** during task creation.
+The returned descriptor tells the scheduler which thread pool queue to place this task in.
+The task will be picked up and executed by one of the threads in that pool.
 
 If no word provides a `pool`, the task runs on the default pool.
 

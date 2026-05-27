@@ -4,7 +4,8 @@
 
 ## Overview
 
-A watchdog monitors that an expected event keeps happening. If the event doesn't occur within a specified timeout, the watchdog fires a reaction so you can take corrective action.
+A watchdog monitors that an expected event keeps happening.
+If the event doesn't occur within a specified timeout, the watchdog fires a reaction so you can take corrective action.
 
 ```mermaid
 sequenceDiagram
@@ -24,7 +25,8 @@ sequenceDiagram
 
 ## 1. Define a Watchdog Group
 
-A watchdog group is any type that identifies what you're monitoring. It's never instantiated — it's just a tag:
+A watchdog group is any type that identifies what you're monitoring.
+It's never instantiated — it's just a tag:
 
 ```cpp
 struct HeartbeatMonitor {};
@@ -51,7 +53,8 @@ Each time the monitored activity occurs, reset the timer:
 emit<Scope::WATCHDOG>(ServiceWatchdog<HeartbeatMonitor>());
 ```
 
-Every [`emit<Scope::WATCHDOG>`](../reference/emit/watchdog.md) call resets the countdown. As long as services arrive faster than the timeout, the watchdog never fires.
+Every [`emit<Scope::WATCHDOG>`](../reference/emit/watchdog.md) call resets the countdown.
+As long as services arrive faster than the timeout, the watchdog never fires.
 
 ## 4. Complete Example
 
@@ -93,7 +96,8 @@ public:
 
 ## Multiple Watchdogs with Runtime Keys
 
-You can monitor multiple instances of the same group using a runtime argument. Each unique key gets its own independent timer:
+You can monitor multiple instances of the same group using a runtime argument.
+Each unique key gets its own independent timer:
 
 ```cpp
 // Monitor each motor independently
@@ -141,7 +145,8 @@ Common period types: `std::chrono::milliseconds`, `std::chrono::seconds`, `std::
 
 ## Tips
 
-- The watchdog starts timing from the moment `bind` is called (when the `on<>` statement runs). Service it early if you need a grace period at startup.
+- The watchdog starts timing from the moment `bind` is called (when the `on<>` statement runs).
+    Service it early if you need a grace period at startup.
 - If the watchdog fires, the timer resets automatically — it will fire again after another timeout unless serviced.
 - Use specific group types to avoid accidentally servicing the wrong watchdog.
 - If a reactor only needs a single watchdog, you can use the reactor type itself as the group instead of creating a separate tag type:

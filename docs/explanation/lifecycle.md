@@ -1,6 +1,7 @@
 # Lifecycle
 
-A NUClear system goes through three distinct phases. Understanding these phases explains *why* certain operations work in some contexts but not others, and *when* your code actually runs.
+A NUClear system goes through three distinct phases.
+Understanding these phases explains *why* certain operations work in some contexts but not others, and *when* your code actually runs.
 
 ```mermaid
 stateDiagram-v2
@@ -14,7 +15,9 @@ stateDiagram-v2
 
 **Single-threaded.** Only the main thread is running.
 
-During initialisation, you're building the system — constructing the PowerPlant, installing reactors, and registering reactions. Nothing executes yet. Think of it as wiring up a circuit board before flipping the power switch.
+During initialisation, you're building the system — constructing the PowerPlant, installing reactors, and registering reactions.
+Nothing executes yet.
+Think of it as wiring up a circuit board before flipping the power switch.
 
 ```mermaid
 sequenceDiagram
@@ -39,14 +42,19 @@ sequenceDiagram
 1. **PowerPlant construction** — creates the scheduler, stores configuration
 1. **Reactor installation** — each `install<T>()` call constructs a reactor
 1. **Reaction registration** — `on<>().then()` inside constructors registers interest in events
-1. **Regular emissions** — `emit(data)` during a constructor *will* trigger any reactions that are **already bound**. If a reactor installed later has a reaction for that type, it won't receive it (it doesn't exist yet).
+1. **Regular emissions** — `emit(data)` during a constructor *will* trigger any reactions that are **already bound**.
+    If a reactor installed later has a reaction for that type, it won't receive it (it doesn't exist yet).
 1. **Initialise-scoped emissions** — `emit<Scope::INITIALIZE>()` defers the emission until `start()` is called, guaranteeing all reactors have been installed and all reactions are bound before the data is processed.
 
 ### Why It Matters
 
-- **Order matters**: reactors are installed sequentially. A regular `emit()` during installation will only trigger reactions that have already been registered by earlier reactors.
-- **No parallelism**: constructors run one at a time on the main thread. This is intentional — it avoids race conditions during setup.
-- **`Scope::INITIALIZE` solves ordering problems**: it defers emissions until all reactors are installed. This is specifically for cases where you need to emit data during startup that must be received by a reactor installed *after* you (e.g., circular dependencies). In general, it should be treated as a code smell — most of the time a regular emit or emitting during Startup is sufficient.
+- **Order matters**: reactors are installed sequentially.
+    A regular `emit()` during installation will only trigger reactions that have already been registered by earlier reactors.
+- **No parallelism**: constructors run one at a time on the main thread.
+    This is intentional — it avoids race conditions during setup.
+- **`Scope::INITIALIZE` solves ordering problems**: it defers emissions until all reactors are installed.
+    This is specifically for cases where you need to emit data during startup that must be received by a reactor installed *after* you (e.g., circular dependencies).
+    In general, it should be treated as a code smell — most of the time a regular emit or emitting during Startup is sufficient.
 
 ### What You Can Do
 
@@ -89,7 +97,9 @@ sequenceDiagram
 
 1. **`start()` is called** — this is the transition point
 1. **Initialise queue is flushed** — all data deferred with `Scope::INITIALIZE` is now emitted, triggering any matching reactions
-1. **Startup fires single-threaded** — `Startup` is emitted inline on the main thread. All `on<Startup>` reactions execute sequentially before any thread pools are started. This guarantees that initialisation logic in Startup handlers completes before general concurrent execution begins.
+1. **Startup fires single-threaded** — `Startup` is emitted inline on the main thread.
+    All `on<Startup>` reactions execute sequentially before any thread pools are started.
+    This guarantees that initialisation logic in Startup handlers completes before general concurrent execution begins.
 1. **Thread pools are created** — the default pool and any custom pools spawn their threads
 1. **Normal execution begins** — emits create tasks, the scheduler dispatches them across pools
 1. **`start()` blocks** — the calling thread becomes the MainThread pool worker, processing tasks until shutdown
@@ -106,7 +116,9 @@ flowchart LR
     D --> A
 ```
 
-There's no central tick, no frame loop, no polling. Reactions fire in response to data, and their outputs trigger further reactions. The system is entirely event-driven.
+There's no central tick, no frame loop, no polling.
+Reactions fire in response to data, and their outputs trigger further reactions.
+The system is entirely event-driven.
 
 ### What You Can Do
 
@@ -155,7 +167,8 @@ plant.shutdown();       // Graceful: let running tasks finish
 plant.shutdown(true);   // Forced: clear queues, stop immediately
 ```
 
-A graceful shutdown waits for all running tasks to complete. A forced shutdown clears the task queues and wakes all threads so they exit as quickly as possible.
+A graceful shutdown waits for all running tasks to complete.
+A forced shutdown clears the task queues and wakes all threads so they exit as quickly as possible.
 
 ### What You Can Do
 

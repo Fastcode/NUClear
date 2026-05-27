@@ -87,8 +87,17 @@ setup_handle = on<Trigger<InitData>>().then([this] (const InitData& data) {
 
 !!! warning "unbind() is irreversible"
 
-    Once `unbind()` is called, the reaction is permanently removed. It cannot be re-enabled. Use `disable()` if you might need the reaction again later.
+    ```
+    Once `unbind()` is called, the reaction is permanently removed.
+    ```
+
+    It cannot be re-enabled.
+    Use `disable()` if you might need the reaction again later.
 
 !!! warning "Don't disable Always reactions"
 
-    A reaction bound with `on<`[`Always`](../reference/dsl/always.md)`>` should not be disabled — it will continuously spin checking for new tasks even when disabled. Use a different triggering word if you need to toggle the behavior.
+    ```
+    A reaction bound with `on<`[`Always`](../reference/dsl/always.md)`>` should not be disabled — it will continuously spin checking for new tasks even when disabled.
+    ```
+
+    Use a different triggering word if you need to toggle the behavior.

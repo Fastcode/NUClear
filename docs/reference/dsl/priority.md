@@ -24,11 +24,14 @@ on<Trigger<T>, Priority::IDLE>()
 
 ## Behaviour
 
-Higher priority tasks are dequeued before lower priority tasks when a thread becomes available. Priority affects only queuing order — it does not preempt tasks that are already running. Scheduling is cooperative.
+Higher priority tasks are dequeued before lower priority tasks when a thread becomes available.
+Priority affects only queuing order — it does not preempt tasks that are already running.
+Scheduling is cooperative.
 
 If no priority is specified, `NORMAL` (500) is used.
 
-Priority implements the `priority` extension point. If multiple DSL words in the same binding set a priority, the maximum value wins.
+Priority implements the `priority` extension point.
+If multiple DSL words in the same binding set a priority, the maximum value wins.
 
 ## Example
 
@@ -44,7 +47,8 @@ on<Trigger<Background>, Priority::LOW>().then([](const Background& b) {
 
 ## Notes
 
-- Priority does **not** preempt running tasks. A low-priority task already executing will not be interrupted by a high-priority task entering the queue.
+- Priority does **not** preempt running tasks.
+    A low-priority task already executing will not be interrupted by a high-priority task entering the queue.
 - Default priority is `NORMAL` (500) when unspecified.
 - Priority applies per-reaction, not per-reactor.
 

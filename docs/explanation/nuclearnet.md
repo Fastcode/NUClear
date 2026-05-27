@@ -1,6 +1,7 @@
 # NUClearNet: Peer-to-Peer Networking
 
-NUClearNet is NUClear's built-in networking layer — a decentralized, peer-to-peer messaging system that lets NUClear nodes communicate transparently across a network. It's designed for robotics and distributed systems where nodes need to discover each other automatically and exchange typed messages with minimal configuration.
+NUClearNet is NUClear's built-in networking layer — a decentralized, peer-to-peer messaging system that lets NUClear nodes communicate transparently across a network.
+It's designed for robotics and distributed systems where nodes need to discover each other automatically and exchange typed messages with minimal configuration.
 
 ## Architecture & Design
 
@@ -21,12 +22,15 @@ graph TD
 
 Key design principles:
 
-- **Decentralized mesh** — no central server or message broker. Every node is equal.
+- **Decentralized mesh** — no central server or message broker.
+    Every node is equal.
 - **Autonomous discovery** — nodes find each other via periodic announcements, no manual configuration of peer addresses.
-- **UDP-only** — both discovery and data transfer use UDP (no TCP). This keeps the implementation simple and avoids head-of-line blocking.
+- **UDP-only** — both discovery and data transfer use UDP (no TCP).
+    This keeps the implementation simple and avoids head-of-line blocking.
 - **Two socket types** — each node has an *announce socket* (for discovery) and a *data socket* (for payload transfer).
 
-The announce socket listens on a shared multicast/broadcast address that all nodes agree on. The data socket uses an ephemeral port unique to each node — peers learn each other's data address through announce packets.
+The announce socket listens on a shared multicast/broadcast address that all nodes agree on.
+The data socket uses an ephemeral port unique to each node — peers learn each other's data address through announce packets.
 
 ## Component Layers
 
@@ -64,7 +68,8 @@ graph TB
 
 ## Peer Discovery
 
-Every node periodically broadcasts an `AnnouncePacket` on the announce address. This is how nodes find each other.
+Every node periodically broadcasts an `AnnouncePacket` on the announce address.
+This is how nodes find each other.
 
 ### Discovery Sequence
 
@@ -103,13 +108,15 @@ sequenceDiagram
 
 The announce address can be:
 
-- **Multicast** (e.g., `239.226.152.162`) — the most common setup. All nodes on the same network join the multicast group and hear each other's announcements.
+- **Multicast** (e.g., `239.226.152.162`) — the most common setup.
+    All nodes on the same network join the multicast group and hear each other's announcements.
 - **Broadcast** (e.g., `255.255.255.255`) — works on simple LANs without multicast support.
 - **Unicast** — for point-to-point setups or testing.
 
 ### Peer Timeout
 
-Each peer's `last_update` timestamp is refreshed every time a packet arrives from them. If no packet is received for approximately 2 seconds (configurable), the peer is considered gone — it's removed from the peer list and a `NetworkLeave` event fires.
+Each peer's `last_update` timestamp is refreshed every time a packet arrives from them.
+If no packet is received for approximately 2 seconds (configurable), the peer is considered gone — it's removed from the peer list and a `NetworkLeave` event fires.
 
 ## Wire Protocol
 
@@ -130,7 +137,8 @@ block-beta
     style payload fill:#96ceb4,color:#fff
 ```
 
-- **Bytes 0-2**: `0xE2 0x98 0xA2` — the ☢ (radioactive) symbol in UTF-8. Acts as a magic number to identify NUClear packets.
+- **Bytes 0-2**: `0xE2 0x98 0xA2` — the ☢ (radioactive) symbol in UTF-8.
+    Acts as a magic number to identify NUClear packets.
 - **Byte 3**: Version — currently `0x02`
 - **Byte 4**: Packet type
 
@@ -170,7 +178,8 @@ block-beta
 
 ## Fragmentation & Reassembly
 
-UDP datagrams have a practical size limit (the network MTU). Large messages must be split across multiple packets.
+UDP datagrams have a practical size limit (the network MTU).
+Large messages must be split across multiple packets.
 
 ### MTU Calculation
 
@@ -197,13 +206,16 @@ flowchart LR
 
 ### Reassembly on the Receiver
 
-The receiver collects fragments keyed by `(source_address, packet_id)`. Once all `packet_count` fragments arrive, the original message is reassembled and delivered.
+The receiver collects fragments keyed by `(source_address, packet_id)`.
+Once all `packet_count` fragments arrive, the original message is reassembled and delivered.
 
-**Stale assemblies**: If an incomplete message hasn't received new fragments in `10 × RTT` (round-trip time to that peer), it's discarded. This prevents memory leaks from lost unreliable packets.
+- *Stale assemblies*\*: If an incomplete message hasn't received new fragments in `10 × RTT` (round-trip time to that peer), it's discarded.
+    This prevents memory leaks from lost unreliable packets.
 
 ## Reliable Delivery
 
-By default, NUClearNet is **unreliable** — packets are fire-and-forget, just like raw UDP. But when you need guaranteed delivery, the reliable mode adds ACK-based retransmission.
+By default, NUClearNet is **unreliable** — packets are fire-and-forget, just like raw UDP.
+But when you need guaranteed delivery, the reliable mode adds ACK-based retransmission.
 
 ### Unreliable (Default)
 
@@ -236,9 +248,12 @@ sequenceDiagram
 
 Key mechanisms:
 
-- **ACK per fragment** — when the receiver gets a fragment, it responds with an ACK that includes a bitset of *all* received fragments for that packet_id. This gives the sender full visibility.
-- **RTT-based retransmission** — the sender waits one estimated RTT before retransmitting un-ACKed fragments. Retransmitting too early wastes bandwidth; too late adds latency.
-- **Adaptive RTT estimation** — each peer's round-trip time is tracked using a Kalman filter. This adapts to changing network conditions smoothly.
+- **ACK per fragment** — when the receiver gets a fragment, it responds with an ACK that includes a bitset of *all* received fragments for that packet_id.
+    This gives the sender full visibility.
+- **RTT-based retransmission** — the sender waits one estimated RTT before retransmitting un-ACKed fragments.
+    Retransmitting too early wastes bandwidth; too late adds latency.
+- **Adaptive RTT estimation** — each peer's round-trip time is tracked using a Kalman filter.
+    This adapts to changing network conditions smoothly.
 - **NACK support** — the receiver can proactively request specific missing fragments via NACK packets.
 - **Duplicate detection** — a circular buffer of recent `packet_id` values prevents processing the same message twice.
 
@@ -252,7 +267,8 @@ P = R * (P + Q) / (R + P + Q)  // Update variance
 X = X + (measurement - X) * K  // Update estimate
 ```
 
-Where `Q` is process noise (how much RTT might change), `R` is measurement noise (how noisy individual measurements are), and `X` is the current RTT estimate. This gives smooth, responsive RTT tracking.
+Where `Q` is process noise (how much RTT might change), `R` is measurement noise (how noisy individual measurements are), and `X` is the current RTT estimate.
+This gives smooth, responsive RTT tracking.
 
 ## Type Routing
 
@@ -283,11 +299,14 @@ The hash is computed as:
 xxHash64(demangled_type_name, seed = 0x4e55436c)  // "NUCl" in ASCII
 ```
 
-Both sender and receiver must use **exactly the same type name**. It's not enough to have structurally identical types — the demangled name must match. In practice, this means sharing header files between nodes.
+Both sender and receiver must use **exactly the same type name**.
+It's not enough to have structurally identical types — the demangled name must match.
+In practice, this means sharing header files between nodes.
 
 ## Serialization
 
-NUClearNet doesn't prescribe a single serialization format. Instead, it uses the `Serialise<T>` template which selects a strategy based on the type:
+NUClearNet doesn't prescribe a single serialization format.
+Instead, it uses the `Serialise<T>` template which selects a strategy based on the type:
 
 - **Trivially copyable types** — direct `memcpy` (fast but architecture-dependent)
 - **Protobuf messages** — `SerializeToString` / `ParseFromString`
@@ -376,4 +395,5 @@ emit(std::make_unique<NetworkConfiguration>(
 ));
 ```
 
-When a new configuration is received, the `NetworkController` tears down existing sockets and reinitializes with the new settings. The node name becomes the identifier that other peers see in `NetworkJoin` events.
+When a new configuration is received, the `NetworkController` tears down existing sockets and reinitializes with the new settings.
+The node name becomes the identifier that other peers see in `NetworkJoin` events.

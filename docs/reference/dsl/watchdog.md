@@ -1,6 +1,7 @@
 # Watchdog
 
-Triggers a reaction if it is NOT serviced within a specified timeout period. Used for fault detection and recovery.
+Triggers a reaction if it is NOT serviced within a specified timeout period.
+Used for fault detection and recovery.
 
 ## Syntax
 
@@ -25,7 +26,9 @@ The callback receives no arguments.
 
 ## Behavior
 
-Watchdog registers a `ChronoTask` with the [ChronoController](../extensions/built-in-extensions.md) extension. The timer starts when the reaction is bound. If the watchdog is not serviced before `ticks * period` elapses, the reaction fires.
+Watchdog registers a `ChronoTask` with the [ChronoController](../extensions/built-in-extensions.md) extension.
+The timer starts when the reaction is bound.
+If the watchdog is not serviced before `ticks * period` elapses, the reaction fires.
 
 Service the watchdog (reset the timer) by emitting with `Scope::WATCHDOG`:
 
@@ -37,7 +40,9 @@ emit<Scope::WATCHDOG>(ServiceWatchdog<Group>());
 emit<Scope::WATCHDOG>(ServiceWatchdog<Group>(key));
 ```
 
-Each service call resets the deadline to `now + ticks * period`. If the watchdog is serviced in time, the reaction never fires. After the reaction fires, the watchdog automatically re-arms — it will fire again after another full timeout if still not serviced.
+Each service call resets the deadline to `now + ticks * period`.
+If the watchdog is serviced in time, the reaction never fires.
+After the reaction fires, the watchdog automatically re-arms — it will fire again after another full timeout if still not serviced.
 
 ```mermaid
 ---
@@ -117,12 +122,19 @@ public:
 
 !!! tip "Common pattern: fault detection"
 
-    Watchdog is the primary mechanism for detecting stalled or unresponsive subsystems. Pair it with a recovery action — restarting a module, raising an alarm, or switching to a fallback mode.
+    ```
+    Watchdog is the primary mechanism for detecting stalled or unresponsive subsystems.
+    ```
 
-- **Re-arming**: After the watchdog fires, it automatically resets. The reaction will fire repeatedly every `ticks * period` until serviced again.
-- **Clock**: Uses `NUClear::clock`. If the clock is scaled (e.g., simulation time), the effective timeout scales with it.
+    Pair it with a recovery action — restarting a module, raising an alarm, or switching to a fallback mode.
+
+- **Re-arming**: After the watchdog fires, it automatically resets.
+    The reaction will fire repeatedly every `ticks * period` until serviced again.
+- **Clock**: Uses `NUClear::clock`.
+    If the clock is scaled (e.g., simulation time), the effective timeout scales with it.
 - **Group type**: The `Group` template parameter is only used as a type tag for identification — it does not need any members or definitions beyond a forward declaration.
-- **Keyed instances**: When a runtime argument is provided, each unique key value creates an independent watchdog with its own timer. Service calls must include the matching key.
+- **Keyed instances**: When a runtime argument is provided, each unique key value creates an independent watchdog with its own timer.
+    Service calls must include the matching key.
 - **Bind only**: Watchdog has no `get` operation — it controls *when* the reaction fires, not *what data* it receives.
 
 ## See Also

@@ -4,7 +4,8 @@
 
 ## How It Works
 
-A DSL word is a struct that implements one or more **extension points** as static template methods. The Fusion Engine discovers which points your word implements and combines them with the other words in an `on<>()` statement.
+A DSL word is a struct that implements one or more **extension points** as static template methods.
+The Fusion Engine discovers which points your word implements and combines them with the other words in an `on<>()` statement.
 
 ```mermaid
 graph LR
@@ -153,7 +154,8 @@ on<Trigger<HighFrequencyData>, RateLimit<10, std::chrono::seconds>>().then(
 
 ## Example 3: Composing Words with Fusion
 
-NUClear's built-in [`Sync`](../reference/dsl/sync.md)`<T>` is simply defined as inheriting from [`Group`](../reference/dsl/group.md)`<T>` — the Fusion Engine resolves inherited extension points. You can compose existing words the same way:
+NUClear's built-in [`Sync`](../reference/dsl/sync.md)`<T>` is simply defined as inheriting from [`Group`](../reference/dsl/group.md)`<T>` — the Fusion Engine resolves inherited extension points.
+You can compose existing words the same way:
 
 ```cpp
 // A word that combines Single (at most one active task) with a priority
@@ -192,7 +194,8 @@ See [Extension Points Reference](../reference/extensions/extension-points.md) an
 
 ## Thread Context
 
-Different extension points run in different thread contexts. This is critical to understand when using `thread_local` storage or sharing state:
+Different extension points run in different thread contexts.
+This is critical to understand when using `thread_local` storage or sharing state:
 
 | Point          | Runs on                              | Notes                                               |
 | -------------- | ------------------------------------ | --------------------------------------------------- |
@@ -205,7 +208,11 @@ Different extension points run in different thread contexts. This is critical to
 
 !!! warning "thread_local in get vs pre_run/post_run"
 
-    Because `get` runs on the task-creation thread (not the execution thread), `thread_local` variables set in `get` will **not** be visible in `pre_run`, `post_run`, or the callback itself. If you need per-execution state, use `pre_run`/`post_run` or the `scope` extension point, which provides RAII objects that persist for the lifetime of the reaction execution.
+    ```
+    Because `get` runs on the task-creation thread (not the execution thread), `thread_local` variables set in `get` will **not** be visible in `pre_run`, `post_run`, or the callback itself.
+    ```
+
+    If you need per-execution state, use `pre_run`/`post_run` or the `scope` extension point, which provides RAII objects that persist for the lifetime of the reaction execution.
 
 ## Tips
 

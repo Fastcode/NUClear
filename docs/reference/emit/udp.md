@@ -30,7 +30,8 @@ When data is emitted with `Scope::UDP`:
 1. A UDP socket is opened and the serialized payload is sent as a single datagram.
 1. No NUClear-specific framing or headers are added — the raw serialized bytes are the packet payload.
 
-There is no fragmentation, reliability, ordering, or peer discovery. The packet is fire-and-forget.
+There is no fragmentation, reliability, ordering, or peer discovery.
+The packet is fire-and-forget.
 
 ## Example
 
@@ -59,8 +60,10 @@ public:
 - The type must be serializable: either trivially copyable, or provide a `util::serialise::Serialise<T>` specialization.
 - Supports unicast, broadcast, and multicast destination addresses.
 - No NUClear protocol wrapping — suitable for interoperating with non-NUClear systems that expect raw data.
-- Maximum payload size is limited by the network MTU (typically ~1472 bytes for Ethernet). No fragmentation is performed.
-- The socket is opened and closed per emit. For high-frequency sending, consider the `UDP` DSL word with `IO` for lower overhead.
+- Maximum payload size is limited by the network MTU (typically ~1472 bytes for Ethernet).
+    No fragmentation is performed.
+- The socket is opened and closed per emit.
+    For high-frequency sending, consider the `UDP` DSL word with `IO` for lower overhead.
 
 ## See Also
 

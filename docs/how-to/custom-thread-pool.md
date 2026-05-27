@@ -120,12 +120,22 @@ flowchart LR
     T3 --> D2
 ```
 
-Tasks are routed to their designated pool based on the [`Pool`](../reference/dsl/pool.md) word. Tasks without a `Pool<>` specification run on the default pool.
+Tasks are routed to their designated pool based on the [`Pool`](../reference/dsl/pool.md) word.
+Tasks without a `Pool<>` specification run on the default pool.
 
 !!! warning "Thread count considerations"
 
-    Each pool creates real OS threads. Use custom pools sparingly — too many threads competing for CPU can degrade overall performance. Reserve custom pools for work with genuinely different characteristics (blocking I/O, GPU dispatch, real-time constraints).
+    ```
+    Each pool creates real OS threads.
+    ```
+
+    Use custom pools sparingly — too many threads competing for CPU can degrade overall performance.
+    Reserve custom pools for work with genuinely different characteristics (blocking I/O, GPU dispatch, real-time constraints).
 
 !!! note "Task ordering within a pool"
 
-    Tasks queued to the same pool are ordered by priority level first, then by task ID. Use [`Priority`](../reference/dsl/priority.md) to influence execution order within a pool.
+    ```
+    Tasks queued to the same pool are ordered by priority level first, then by task ID.
+    ```
+
+    Use [`Priority`](../reference/dsl/priority.md) to influence execution order within a pool.

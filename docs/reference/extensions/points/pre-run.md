@@ -20,9 +20,12 @@ static void pre_run(threading::ReactionTask& task)
 
 ## Context & Arguments
 
-- `task` — the `ReactionTask` about to execute. Provides access to the reaction identity, task ID, and any metadata set during creation.
+- `task` — the `ReactionTask` about to execute.
+    Provides access to the reaction identity, task ID, and any metadata set during creation.
 
-Runs on the **executor thread** — the same thread that will execute the callback. Scope locks are already held at this point. Use this for setup that needs to happen right before the callback on the same thread (e.g., setting thread-local state, recording start timestamps).
+Runs on the **executor thread** — the same thread that will execute the callback.
+Scope locks are already held at this point.
+Use this for setup that needs to happen right before the callback on the same thread (e.g., setting thread-local state, recording start timestamps).
 
 ## Example
 
@@ -38,4 +41,5 @@ struct MyTracing {
 
 ## Built-in Words Using pre_run
 
-No built-in DSL words currently use `pre_run`. It is available for custom extensions that need per-execution setup on the executor thread.
+No built-in DSL words currently use `pre_run`.
+It is available for custom extensions that need per-execution setup on the executor thread.

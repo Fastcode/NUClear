@@ -8,7 +8,8 @@ You have a file descriptor (pipe, socket, device file, etc.) and need to react w
 
 ## Solution
 
-Use `on<`[`IO`](../reference/dsl/io.md)`>(fd, events)` to bind a reaction to file descriptor events. NUClear monitors the descriptor and triggers your callback when the specified events occur.
+Use `on<`[`IO`](../reference/dsl/io.md)`>(fd, events)` to bind a reaction to file descriptor events.
+NUClear monitors the descriptor and triggers your callback when the specified events occur.
 
 ### Event Types
 
@@ -107,8 +108,17 @@ NUClear's IO controller uses the platform's efficient polling mechanism (`epoll`
 
 !!! warning "Blocking during IO reactions"
 
-    While a reaction is processing an IO event, no other IO triggers for the same file descriptor will fire until the reaction completes. Process data promptly or emit it for handling elsewhere.
+    ```
+    While a reaction is processing an IO event, no other IO triggers for the same file descriptor will fire until the reaction completes.
+    ```
+
+    Process data promptly or emit it for handling elsewhere.
 
 !!! note "File descriptor lifetime"
 
-    You are responsible for the lifecycle of the file descriptor. If the descriptor is closed externally, you will receive an `IO::CLOSE` or `IO::ERROR` event. Use [`ReactionHandle`](../reference/api/reaction-handle.md)`.unbind()` to stop monitoring a descriptor you intend to close.
+    ```
+    You are responsible for the lifecycle of the file descriptor.
+    ```
+
+    If the descriptor is closed externally, you will receive an `IO::CLOSE` or `IO::ERROR` event.
+    Use [`ReactionHandle`](../reference/api/reaction-handle.md)`.unbind()` to stop monitoring a descriptor you intend to close.

@@ -12,7 +12,9 @@ on<Trigger<T>, MainThread>().then([](const T& data) {
 
 ## Behavior
 
-`MainThread` is a [Pool](pool.md) with a concurrency of 1 that exclusively uses the main thread. Only one `MainThread` task executes at a time. If the main thread is occupied, subsequent tasks queue until it becomes available.
+`MainThread` is a [Pool](pool.md) with a concurrency of 1 that exclusively uses the main thread.
+Only one `MainThread` task executes at a time.
+If the main thread is occupied, subsequent tasks queue until it becomes available.
 
 ## Example
 
@@ -30,7 +32,9 @@ on<Trigger<RenderCommand>, MainThread>().then([](const RenderCommand& cmd) {
 
 !!! warning
 
+    ```
     Scheduling too many `MainThread` tasks can create a bottleneck, since they execute sequentially on a single thread.
+    ```
 
 ## See Also
 

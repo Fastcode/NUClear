@@ -1,6 +1,7 @@
 # Message Passing
 
-In this tutorial, you'll build a system where multiple reactors communicate through messages. You'll learn how to define message types, emit data from one reactor, and consume it in others using [`Trigger`](../reference/dsl/trigger.md), [`With`](../reference/dsl/with.md), and [`Optional`](../reference/dsl/optional.md).
+In this tutorial, you'll build a system where multiple reactors communicate through messages.
+You'll learn how to define message types, emit data from one reactor, and consume it in others using [`Trigger`](../reference/dsl/trigger.md), [`With`](../reference/dsl/with.md), and [`Optional`](../reference/dsl/optional.md).
 
 ## What You'll Build
 
@@ -52,7 +53,8 @@ target_compile_features(sensor_pipeline PUBLIC cxx_std_14)
 
 ## Defining Messages
 
-Messages in NUClear are plain C++ structs. They don't need to inherit from anything or use registration macros — any type can be a message.
+Messages in NUClear are plain C++ structs.
+They don't need to inherit from anything or use registration macros — any type can be a message.
 
 Define all messages in a shared header:
 
@@ -85,11 +87,17 @@ struct Alert {
 
 !!! tip "Keep messages simple"
 
-    Messages should be simple data containers. Avoid putting logic in them — that belongs in reactors. This keeps your message types reusable and easy to reason about.
+    ```
+    Messages should be simple data containers.
+    ```
+
+    Avoid putting logic in them — that belongs in reactors.
+    This keeps your message types reusable and easy to reason about.
 
 ## Creating the Producer (SensorReactor)
 
-The `SensorReactor` simulates sensor readings by emitting `SensorReading` messages at startup. In a real system, you'd use [`Every`](../reference/dsl/every.md) for periodic emissions, but we'll keep things simple here.
+The `SensorReactor` simulates sensor readings by emitting `SensorReading` messages at startup.
+In a real system, you'd use [`Every`](../reference/dsl/every.md) for periodic emissions, but we'll keep things simple here.
 
 ```cpp title="src/SensorReactor.hpp"
 #ifndef SENSOR_REACTOR_HPP
@@ -123,11 +131,16 @@ public:
 #endif  // SENSOR_REACTOR_HPP
 ```
 
-Each call to `emit()` sends a message into the system. Any reactor with a matching `Trigger` will receive it.
+Each call to `emit()` sends a message into the system.
+Any reactor with a matching `Trigger` will receive it.
 
 !!! important "Messages are emitted as `std::unique_ptr`"
 
-    You always emit messages wrapped in `std::make_unique<T>(...)`. This transfers ownership to NUClear, which then shares the data immutably with all interested reactions via `std::shared_ptr<const T>` internally.
+    ```
+    You always emit messages wrapped in `std::make_unique<T>(...)`.
+    ```
+
+    This transfers ownership to NUClear, which then shares the data immutably with all interested reactions via `std::shared_ptr<const T>` internally.
 
 ## Creating the Consumer (MonitorReactor with Trigger)
 
@@ -159,17 +172,25 @@ public:
 #endif  // MONITOR_REACTOR_HPP
 ```
 
-Every time a `SensorReading` is emitted — regardless of which reactor emits it — this callback fires. The `const SensorReading&` parameter gives you read-only access to the message data.
+Every time a `SensorReading` is emitted — regardless of which reactor emits it — this callback fires.
+The `const SensorReading&` parameter gives you read-only access to the message data.
 
 !!! tip "Multiple listeners"
 
-    Any number of reactors can listen to the same message type. If you installed a second reactor with its own `Trigger<SensorReading>`, both would fire independently for every reading emitted.
+    ```
+    Any number of reactors can listen to the same message type.
+    ```
+
+    If you installed a second reactor with its own `Trigger<SensorReading>`, both would fire independently for every reading emitted.
 
 ## Using With for Supplementary Data
 
-Now let's make the monitor check readings against a threshold. The `ThresholdConfig` is emitted once by the `ConfigReactor`, and the monitor needs it alongside each `SensorReading`.
+Now let's make the monitor check readings against a threshold.
+The `ThresholdConfig` is emitted once by the `ConfigReactor`, and the monitor needs it alongside each `SensorReading`.
 
-[`With`](../reference/dsl/with.md)`<T>` provides the **most recent** value of type `T` — known as a **co-message** — without triggering the reaction itself. The reaction only fires when its `Trigger` type is emitted. This co-messaging pattern means your reactor doesn't need to manually cache the config — NUClear's internal data store provides it automatically when the reaction fires:
+[`With`](../reference/dsl/with.md)`<T>` provides the **most recent** value of type `T` — known as a **co-message** — without triggering the reaction itself.
+The reaction only fires when its `Trigger` type is emitted.
+This co-messaging pattern means your reactor doesn't need to manually cache the config — NUClear's internal data store provides it automatically when the reaction fires:
 
 ```cpp title="src/MonitorReactor.hpp" hl_lines="16-26"
 #ifndef MONITOR_REACTOR_HPP
@@ -212,11 +233,17 @@ Key points:
 
 !!! warning "With requires prior data"
 
-    If no `ThresholdConfig` has been emitted yet when a `SensorReading` arrives, the **entire task is dropped** — the callback never fires. This is a common source of confusion! If the supplementary data might not exist yet, use `Optional` (covered next).
+    ```
+    If no `ThresholdConfig` has been emitted yet when a `SensorReading` arrives, the **entire task is dropped** — the callback never fires.
+    ```
+
+    This is a common source of confusion!
+    If the supplementary data might not exist yet, use `Optional` (covered next).
 
 ## Using Optional for Data That May Not Exist
 
-What if you want the reaction to fire even when `ThresholdConfig` hasn't been emitted yet? Wrap it in `Optional`:
+What if you want the reaction to fire even when `ThresholdConfig` hasn't been emitted yet?
+Wrap it in `Optional`:
 
 ```cpp title="src/MonitorReactor.hpp"
 #ifndef MONITOR_REACTOR_HPP
@@ -267,11 +294,18 @@ Notice the change in the callback signature:
 | `With<T>`           | `const T&`                 |
 | `Optional<With<T>>` | `std::shared_ptr<const T>` |
 
-When data is wrapped in `Optional`, you receive a `std::shared_ptr<const T>` that may be `nullptr` if no data has been emitted yet. Always check before using it.
+When data is wrapped in `Optional`, you receive a `std::shared_ptr<const T>` that may be `nullptr` if no data has been emitted yet.
+Always check before using it.
 
 !!! note "Why `shared_ptr<const T>`?"
 
-    NUClear shares emitted messages immutably across all reactions that need them. The `const` ensures no reaction can modify a message that others might be reading concurrently. The `shared_ptr` manages the lifetime automatically — the message stays alive as long as any reaction is using it. For non-optional data (`Trigger<T>` and `With<T>`), NUClear guarantees the data exists and provides a direct `const T&` for convenience.
+    ```
+    NUClear shares emitted messages immutably across all reactions that need them.
+    ```
+
+    The `const` ensures no reaction can modify a message that others might be reading concurrently.
+    The `shared_ptr` manages the lifetime automatically — the message stays alive as long as any reaction is using it.
+    For non-optional data (`Trigger<T>` and `With<T>`), NUClear guarantees the data exists and provides a direct `const T&` for convenience.
 
 ## The ConfigReactor
 
@@ -333,7 +367,12 @@ int main(int argc, const char* argv[]) {
 
 !!! tip "Installation order"
 
-    The order you install reactors doesn't matter for message delivery. What matters is timing: a reaction can only trigger if it has been registered (constructed) before the message is emitted. Since all reactors are installed before `start()` is called, all reactions are ready before any `Startup` events fire.
+    ```
+    The order you install reactors doesn't matter for message delivery.
+    ```
+
+    What matters is timing: a reaction can only trigger if it has been registered (constructed) before the message is emitted.
+    Since all reactors are installed before `start()` is called, all reactions are ready before any `Startup` events fire.
 
 ### Expected Output
 
@@ -378,7 +417,8 @@ The PowerPlant acts as the message broker: it receives emitted messages and disp
 
 ## Multiple Triggers
 
-A reaction can list multiple types in its `Trigger` list. The reaction fires when **any** of the trigger types is emitted, and provides the latest value of each:
+A reaction can list multiple types in its `Trigger` list.
+The reaction fires when **any** of the trigger types is emitted, and provides the latest value of each:
 
 ```cpp
 on<Trigger<SensorReading>, Trigger<Alert>>().then(
@@ -392,7 +432,11 @@ on<Trigger<SensorReading>, Trigger<Alert>>().then(
 
 !!! warning "Both types must have been emitted"
 
-    Just like `With`, if one of the trigger types has never been emitted, the task is dropped. The difference from `With` is that either type can **cause** the reaction to fire.
+    ```
+    Just like `With`, if one of the trigger types has never been emitted, the task is dropped.
+    ```
+
+    The difference from `With` is that either type can **cause** the reaction to fire.
 
 ## Key Takeaways
 

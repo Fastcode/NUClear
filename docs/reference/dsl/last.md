@@ -18,7 +18,8 @@ on<Trigger<T1>, Last<N, With<T2>>>()
 
 ## Behavior
 
-`Last` maintains a sliding window of the most recent N values that were provided to the reaction when it triggered. When the reaction executes, the callback receives the full window as a `std::list<std::shared_ptr<const T>>`, ordered oldest first.
+`Last` maintains a sliding window of the most recent N values that were provided to the reaction when it triggered.
+When the reaction executes, the callback receives the full window as a `std::list<std::shared_ptr<const T>>`, ordered oldest first.
 
 - If fewer than N triggers have occurred, the list contains only what has been collected so far.
 - When a new trigger occurs and the window is full, the oldest item is discarded.
@@ -27,7 +28,12 @@ on<Trigger<T1>, Last<N, With<T2>>>()
 
 !!! warning "Last stores triggered values, not all emissions"
 
-    `Last` records the value that was present each time the reaction was triggered — it does **not** track every emission of the type. If you combine `Last<N, Trigger<T>>` with `Single`, missed emissions (those that arrived while the reaction was already running) will not appear in the window. This is a subtle but important distinction: `Last` records "what the reaction saw", not "what was emitted".
+    ```
+    `Last` records the value that was present each time the reaction was triggered — it does **not** track every emission of the type.
+    ```
+
+    If you combine `Last<N, Trigger<T>>` with `Single`, missed emissions (those that arrived while the reaction was already running) will not appear in the window.
+    This is a subtle but important distinction: `Last` records "what the reaction saw", not "what was emitted".
 
 ```mermaid
 graph LR
@@ -54,14 +60,16 @@ on<Last<10, Trigger<SensorReading>>>().then(
     });
 ```
 
-The reaction fires on each `SensorReading` emission. The callback receives the last 10 readings (or fewer if not yet emitted 10 times), enabling computations like moving averages.
+The reaction fires on each `SensorReading` emission.
+The callback receives the last 10 readings (or fewer if not yet emitted 10 times), enabling computations like moving averages.
 
 ## Notes
 
 - The list is ordered oldest-first — `front()` is the oldest item, `back()` is the most recent.
 - Items are held as `std::shared_ptr<const T>`, extending lifetime until they leave the window.
 - Useful for moving averages, buffering sensor data, and maintaining state history.
-- If no items have been emitted, the list is empty and the task may be dropped. Use `Optional` to handle this case.
+- If no items have been emitted, the list is empty and the task may be dropped.
+    Use `Optional` to handle this case.
 
 ## See Also
 

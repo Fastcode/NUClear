@@ -1,6 +1,7 @@
 # Data Stores
 
-NUClear uses three typed data stores to pass data between emit handlers, task creation, and reaction callbacks. Each serves a different scope and lifetime requirement.
+NUClear uses three typed data stores to pass data between emit handlers, task creation, and reaction callbacks.
+Each serves a different scope and lifetime requirement.
 
 ```mermaid
 flowchart LR
@@ -30,7 +31,8 @@ flowchart LR
 
 ## DataStore\<T>
 
-A global singleton store keyed by type. Holds the most recently emitted value of each type as a `shared_ptr<const T>`.
+A global singleton store keyed by type.
+Holds the most recently emitted value of each type as a `shared_ptr<const T>`.
 
 ```cpp
 template <typename DataType>
@@ -44,7 +46,9 @@ using DataStore = util::TypeMap<DataType, DataType, DataType>;
 - Persistent — value remains until overwritten by a new emit
 - Accessed via `DataStore<T>::get()` which returns `shared_ptr<const T>`
 
-**Usage:** The primary data retrieval mechanism for words like `With` and `Trigger`. When data is emitted, the emit handler stores it here. When a reaction runs, `get` reads from here to provide callback arguments.
+**Usage:** The primary data retrieval mechanism for words like `With` and `Trigger`.
+When data is emitted, the emit handler stores it here.
+When a reaction runs, `get` reads from here to provide callback arguments.
 
 ```cpp
 // During emit
@@ -72,7 +76,9 @@ struct ThreadStore {
 - Not owning — stores a raw pointer to stack or heap data
 - Supports multiple values of the same type via the `Index` parameter
 
-**Usage:** Bridges the gap between the opaque reaction system and strongly-typed internals. When an emit handler creates a task, it sets a `ThreadStore` pointer to local data. The `get` method (running on the same thread during task creation) reads this pointer to access the specific emit event data rather than just "the latest value."
+**Usage:** Bridges the gap between the opaque reaction system and strongly-typed internals.
+When an emit handler creates a task, it sets a `ThreadStore` pointer to local data.
+The `get` method (running on the same thread during task creation) reads this pointer to access the specific emit event data rather than just "the latest value."
 
 ```cpp
 // In emit handler (sets pointer to local data)
@@ -88,7 +94,8 @@ This is essential for scenarios where multiple emits of the same type happen rap
 
 ## TypeCallbackStore\<T>
 
-A registry of reactions that should be triggered when type `T` is emitted. Stored as a list of shared pointers to `Reaction` objects.
+A registry of reactions that should be triggered when type `T` is emitted.
+Stored as a list of shared pointers to `Reaction` objects.
 
 ```cpp
 template <typename TriggeringType>
@@ -102,7 +109,8 @@ using TypeCallbackStore = util::TypeList<TriggeringType, TriggeringType, std::sh
 - Modified during `bind` (add reaction) and unbind (remove reaction)
 - Read during emit to find which reactions to trigger
 
-**Usage:** When a word's `bind` method is called, it adds the reaction to the appropriate `TypeCallbackStore`. When data of that type is emitted, the emit handler iterates this store and creates a task for each registered reaction.
+**Usage:** When a word's `bind` method is called, it adds the reaction to the appropriate `TypeCallbackStore`.
+When data of that type is emitted, the emit handler iterates this store and creates a task for each registered reaction.
 
 ```cpp
 // During bind

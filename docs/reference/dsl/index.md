@@ -1,6 +1,7 @@
 # DSL Words
 
-NUClear's domain-specific language is expressed through template arguments to `on<>()`. Each DSL word declares an aspect of a reaction's behaviour — what triggers it, what data it needs, and how it executes.
+NUClear's domain-specific language is expressed through template arguments to `on<>()`.
+Each DSL word declares an aspect of a reaction's behaviour — what triggers it, what data it needs, and how it executes.
 
 ```cpp
 on<Trigger<T>, With<U>, Single, Priority::HIGH>().then([](const T& t, const U& u) {
@@ -8,13 +9,17 @@ on<Trigger<T>, With<U>, Single, Priority::HIGH>().then([](const T& t, const U& u
 });
 ```
 
-DSL words combine freely in a single `on<>` statement. The runtime fuses their semantics at compile time.
+DSL words combine freely in a single `on<>` statement.
+The runtime fuses their semantics at compile time.
 
-For a deeper explanation of how the DSL system works, see [DSL System](../../explanation/dsl-system.md). To create custom DSL words, see [Extensions](../extensions/index.md).
+For a deeper explanation of how the DSL system works, see [DSL System](../../explanation/dsl-system.md).
+To create custom DSL words, see [Extensions](../extensions/index.md).
 
 ## Callback Argument Matching
 
-NUClear uses **greedy argument matching** to connect DSL data to your callback parameters. The data types produced by DSL words (in declaration order) are matched left-to-right against your callback signature. You can:
+NUClear uses **greedy argument matching** to connect DSL data to your callback parameters.
+The data types produced by DSL words (in declaration order) are matched left-to-right against your callback signature.
+You can:
 
 - **Take fewer arguments** — you don't have to accept every data type the DSL provides:
 
@@ -31,7 +36,8 @@ NUClear uses **greedy argument matching** to connect DSL data to your callback p
     on<Trigger<Image>>().then([](const Image& img) { /* valid only during callback */ });
     ```
 
-- **Take by `std::shared_ptr<const T>`** — extends the lifetime beyond the callback. Use this when you need to store data beyond the reaction's execution:
+- **Take by `std::shared_ptr<const T>`** — extends the lifetime beyond the callback.
+    Use this when you need to store data beyond the reaction's execution:
 
     ```cpp
     on<Trigger<Image>>().then([this](const std::shared_ptr<const Image>& img) {
@@ -42,7 +48,12 @@ NUClear uses **greedy argument matching** to connect DSL data to your callback p
 
 !!! tip "When to use shared_ptr"
 
-    If you plan to store data beyond the lifetime of the callback (e.g., caching the last value, passing to another thread), take it as `std::shared_ptr<const T>`. This keeps the data alive without copying. Taking by `const T&` is a convenience dereference — the shared_ptr is the true owner.
+    ```
+    If you plan to store data beyond the lifetime of the callback (e.g., caching the last value, passing to another thread), take it as `std::shared_ptr<const T>`.
+    ```
+
+    This keeps the data alive without copying.
+    Taking by `const T&` is a convenience dereference — the shared_ptr is the true owner.
 
 ```mermaid
 mindmap

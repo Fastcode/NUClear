@@ -1,6 +1,7 @@
 # Tracing Reactions
 
-NUClear includes a built-in tracing system that records reaction execution, scheduling, and log messages into a [Perfetto](https://perfetto.dev/)-compatible trace file. This lets you visualise exactly what your system is doing across threads and time.
+NUClear includes a built-in tracing system that records reaction execution, scheduling, and log messages into a [Perfetto](https://perfetto.dev/)-compatible trace file.
+This lets you visualise exactly what your system is doing across threads and time.
 
 ## Prerequisites
 
@@ -9,7 +10,8 @@ NUClear includes a built-in tracing system that records reaction execution, sche
 
 ## Installing the TraceController
 
-The `TraceController` must be installed before you can start tracing. Add it to your PowerPlant setup:
+The `TraceController` must be installed before you can start tracing.
+Add it to your PowerPlant setup:
 
 ```cpp
 #include <nuclear>
@@ -30,7 +32,8 @@ int main(int argc, const char* argv[]) {
 
 ## Starting a Trace
 
-To begin recording, emit a `BeginTrace` message. This opens a trace file and starts capturing all reaction events:
+To begin recording, emit a `BeginTrace` message.
+This opens a trace file and starts capturing all reaction events:
 
 ```cpp
 #include <nuclear>
@@ -63,7 +66,8 @@ To stop recording and flush the file, emit an `EndTrace` message:
 emit(std::make_unique<NUClear::message::EndTrace>());
 ```
 
-This closes the trace file cleanly. If you don't emit `EndTrace`, the file will be closed when the PowerPlant shuts down, but may be incomplete.
+This closes the trace file cleanly.
+If you don't emit `EndTrace`, the file will be closed when the PowerPlant shuts down, but may be incomplete.
 
 ## Viewing the Trace
 
@@ -102,7 +106,8 @@ gantt
 
 ## Tracing a Subset of Execution
 
-You can start and stop tracing at any point during execution. This is useful for capturing only the interesting portion of a long-running system:
+You can start and stop tracing at any point during execution.
+This is useful for capturing only the interesting portion of a long-running system:
 
 ```cpp
 on<Trigger<StartRecording>>().then([this] {
@@ -140,7 +145,9 @@ Each event records:
 
 !!! tip "Name your reactions"
 
+    ```
     Give reactions descriptive labels to make traces easier to read:
+    ```
 
     ```cpp
     on<Trigger<Image>>().then("Vision::processFrame", [](const Image& img) {
@@ -148,11 +155,15 @@ Each event records:
     });
     ```
 
+    ```
     Without a label, the trace uses the demangled DSL type signature, which can be verbose.
+    ```
 
 !!! tip "Disable logs for performance traces"
 
+    ```
     If you're measuring timing and don't need log messages cluttering the trace, disable them:
+    ```
 
     ```cpp
     emit(std::make_unique<NUClear::message::BeginTrace>("perf.trace", false));
@@ -160,7 +171,9 @@ Each event records:
 
 !!! tip "Use in tests"
 
+    ```
     NUClear's test utilities provide a helper for adding tracing to test binaries:
+    ```
 
     ```cpp
     #include "test_util/common.hpp"
@@ -169,7 +182,9 @@ Each event records:
     test_util::add_tracing(plant);
     ```
 
+    ```
     This writes a trace file alongside the test binary with a `.trace` extension.
+    ```
 
 ## See Also
 

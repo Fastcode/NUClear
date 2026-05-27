@@ -4,7 +4,9 @@
 
 ## Overview
 
-`PowerPlant` is the core of every NUClear system. It holds all installed reactors, manages their communications, stores data between reactions, and coordinates threading via a task scheduler. There is exactly one `PowerPlant` instance per process, accessible through the static `powerplant` pointer.
+`PowerPlant` is the core of every NUClear system.
+It holds all installed reactors, manages their communications, stores data between reactions, and coordinates threading via a task scheduler.
+There is exactly one `PowerPlant` instance per process, accessible through the static `powerplant` pointer.
 
 ```mermaid
 classDiagram
@@ -39,7 +41,9 @@ classDiagram
 PowerPlant(Configuration config = Configuration(), int argc = 0, const char* argv[] = nullptr);
 ```
 
-Constructs the PowerPlant. Command line arguments are emitted as a `CommandLineArguments` message. Non-copyable, non-movable.
+Constructs the PowerPlant.
+Command line arguments are emitted as a `CommandLineArguments` message.
+Non-copyable, non-movable.
 
 ### `start()`
 
@@ -47,7 +51,8 @@ Constructs the PowerPlant. Command line arguments are emitted as a `CommandLineA
 void start();
 ```
 
-Blocking call that starts all thread pools and processes tasks until shutdown. Must be called from the main thread.
+Blocking call that starts all thread pools and processes tasks until shutdown.
+Must be called from the main thread.
 
 ### `shutdown(bool force = false)`
 
@@ -55,7 +60,8 @@ Blocking call that starts all thread pools and processes tasks until shutdown. M
 void shutdown(bool force = false);
 ```
 
-Signals the PowerPlant to shut down. If `force` is true, does not wait for currently running tasks to complete.
+Signals the PowerPlant to shut down.
+If `force` is true, does not wait for currently running tasks to complete.
 
 ### `install<T>(args...)`
 
@@ -64,7 +70,9 @@ template <typename T, typename... Args>
 T& install(Args&&... args);
 ```
 
-Installs a reactor of type `T`. `T` must derive from `Reactor`. Returns a reference to the installed instance.
+Installs a reactor of type `T`.
+`T` must derive from `Reactor`.
+Returns a reference to the installed instance.
 
 ### `submit(task)`
 
@@ -81,7 +89,8 @@ template <typename T>
 void emit(std::unique_ptr<T>&& data);
 ```
 
-Emits data at `Local` scope (default). Creates tasks using the thread pool.
+Emits data at `Local` scope (default).
+Creates tasks using the thread pool.
 
 ### `emit<Scope>(data, args...)`
 
@@ -99,7 +108,8 @@ template <template<typename> class First, template<typename> class... Remainder,
 void emit_shared(std::shared_ptr<T> data, Arguments&&... args);
 ```
 
-Emits already-shared data. Useful for forwarding previously emitted data without copying.
+Emits already-shared data.
+Useful for forwarding previously emitted data without copying.
 
 ### `log<level>(args...)`
 
@@ -108,7 +118,8 @@ template <LogLevel::Value level, typename... Arguments>
 void log(Arguments&&... args);
 ```
 
-Logs a message at the given level. Arguments are streamed into a string.
+Logs a message at the given level.
+Arguments are streamed into a string.
 
 ### Static Members
 

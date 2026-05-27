@@ -1,6 +1,7 @@
 # Your First Reactor
 
-In this tutorial, you'll build a complete NUClear application from scratch. By the end, you'll have a working program that starts up, emits a message, and reacts to it — covering the core concepts you'll use in every NUClear project.
+In this tutorial, you'll build a complete NUClear application from scratch.
+By the end, you'll have a working program that starts up, emits a message, and reacts to it — covering the core concepts you'll use in every NUClear project.
 
 ## What You'll Build
 
@@ -42,11 +43,16 @@ target_compile_features(hello_nuclear PUBLIC cxx_std_14)
 
 !!! note "Finding NUClear"
 
-    This assumes you've already installed NUClear on your system. If not, head back to the [Installation](installation.md) tutorial first.
+    ```
+    This assumes you've already installed NUClear on your system.
+    ```
+
+    If not, head back to the [Installation](installation.md) tutorial first.
 
 ## Creating Your Reactor Class
 
-A **reactor** is a class that groups related reactions together. Think of it as a component in your system — it has its own state, its own reactions, and communicates with other reactors through messages.
+A **reactor** is a class that groups related reactions together.
+Think of it as a component in your system — it has its own state, its own reactions, and communicates with other reactors through messages.
 
 Every reactor must:
 
@@ -90,7 +96,11 @@ classDiagram
 
 !!! tip "Why a `unique_ptr<Environment>`?"
 
-    The environment carries metadata about the reactor (like its name) and a reference to the PowerPlant it lives in. Passing it as a `unique_ptr` gives NUClear ownership semantics — each reactor gets its own environment, and the framework manages the lifecycle.
+    ```
+    The environment carries metadata about the reactor (like its name) and a reference to the PowerPlant it lives in.
+    ```
+
+    Passing it as a `unique_ptr` gives NUClear ownership semantics — each reactor gets its own environment, and the framework manages the lifecycle.
 
 ## Adding a Startup Reaction
 
@@ -110,11 +120,13 @@ Let's break this down:
 - **`.then(...)`** — Provides the callback to execute when the event fires
 - **`log<INFO>(...)`** — Logs a message at the `INFO` level
 
-The `on<...>().then(...)` pattern is the core API for creating reactions. The template parameters (the DSL words) describe *when* the reaction runs, and the `.then()` callback describes *what* it does.
+The `on<...>().then(...)` pattern is the core API for creating reactions.
+The template parameters (the DSL words) describe *when* the reaction runs, and the `.then()` callback describes *what* it does.
 
 ## Emitting a Message
 
-Messages in NUClear are just plain C++ structs or classes. There's no special base class, no registration macro — any type can be a message.
+Messages in NUClear are just plain C++ structs or classes.
+There's no special base class, no registration macro — any type can be a message.
 
 Define a simple message struct inside your reactor:
 
@@ -135,11 +147,16 @@ on<Startup>().then([this]() {
 
 !!! important "Messages are emitted as `std::unique_ptr`"
 
-    You always emit messages wrapped in a `std::unique_ptr`. This gives NUClear clear ownership of the data and enables efficient, thread-safe message passing without copying.
+    ```
+    You always emit messages wrapped in a `std::unique_ptr`.
+    ```
+
+    This gives NUClear clear ownership of the data and enables efficient, thread-safe message passing without copying.
 
 ## Reacting to the Message
 
-Now let's add a reaction that triggers whenever a `Greeting` message is emitted. The `Trigger<T>` DSL word binds a reaction to emissions of type `T`:
+Now let's add a reaction that triggers whenever a `Greeting` message is emitted.
+The `Trigger<T>` DSL word binds a reaction to emissions of type `T`:
 
 ```cpp
 on<Trigger<Greeting>>().then([this](const Greeting& greeting) {
@@ -148,11 +165,16 @@ on<Trigger<Greeting>>().then([this](const Greeting& greeting) {
 });
 ```
 
-When a `Greeting` is emitted anywhere in the system, this callback fires and receives a const reference to the message data. After logging it, we call `powerplant.shutdown()` to stop the system cleanly.
+When a `Greeting` is emitted anywhere in the system, this callback fires and receives a const reference to the message data.
+After logging it, we call `powerplant.shutdown()` to stop the system cleanly.
 
 !!! tip "Lambda parameters"
 
-    The callback's parameter type tells NUClear what data to inject. When you use `Trigger<Greeting>`, you can accept `const Greeting&` as a parameter to access the message contents.
+    ```
+    The callback's parameter type tells NUClear what data to inject.
+    ```
+
+    When you use `Trigger<Greeting>`, you can accept `const Greeting&` as a parameter to access the message contents.
 
 ## Putting It All Together
 
@@ -222,7 +244,11 @@ int main(int argc, const char* argv[]) {
 
 !!! note "Why `default_pool_concurrency = 1`?"
 
-    Setting the thread pool to 1 thread makes the output deterministic for this tutorial. In real applications, you'd typically leave this at the default (the number of hardware threads) or tune it for your workload.
+    ```
+    Setting the thread pool to 1 thread makes the output deterministic for this tutorial.
+    ```
+
+    In real applications, you'd typically leave this at the default (the number of hardware threads) or tune it for your workload.
 
 ### Building and Running
 
@@ -264,13 +290,20 @@ sequenceDiagram
     PP->>Main: start() returns
 ```
 
-The key insight is that **the constructor only registers reactions** — it doesn't execute them. Reactions only fire after `plant.start()` is called. The `Startup` event is emitted automatically by the PowerPlant, which triggers your first callback, which emits a `Greeting`, which triggers your second callback.
+The key insight is that **the constructor only registers reactions** — it doesn't execute them.
+Reactions only fire after `plant.start()` is called.
+The `Startup` event is emitted automatically by the PowerPlant, which triggers your first callback, which emits a `Greeting`, which triggers your second callback.
 
 This is the reactive pattern: you declare *what* should happen in response to *what events*, and the framework handles the scheduling, threading, and data delivery.
 
 !!! tip "Order of registration"
 
-    Notice that we registered the `Trigger<Greeting>` reaction *before* the `Startup` reaction in the constructor. The order of registration doesn't matter for triggering — what matters is when the data is emitted. The `Greeting` reaction is ready and waiting by the time `Startup` fires and emits the message.
+    ```
+    Notice that we registered the `Trigger<Greeting>` reaction *before* the `Startup` reaction in the constructor.
+    ```
+
+    The order of registration doesn't matter for triggering — what matters is when the data is emitted.
+    The `Greeting` reaction is ready and waiting by the time `Startup` fires and emits the message.
 
 ## Next Steps
 

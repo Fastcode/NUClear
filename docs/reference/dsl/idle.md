@@ -31,7 +31,9 @@ There are distinct idle states in NUClear:
 | `Idle<>`       | The **default** thread pool has no queued tasks |
 | `Idle<MyPool>` | A **specific** named pool has no queued tasks   |
 
-Each pool tracks its own idle state independently. A specific pool being idle does not mean the default pool is idle, and vice versa. If you have multiple pools, each can have its own `Idle` reactions that fire independently when that specific pool has no work.
+Each pool tracks its own idle state independently.
+A specific pool being idle does not mean the default pool is idle, and vice versa.
+If you have multiple pools, each can have its own `Idle` reactions that fire independently when that specific pool has no work.
 
 ## Example
 
@@ -54,7 +56,8 @@ on<Idle<ComputePool>>().then([] {
 
 ## Notes
 
-- `Idle` is distinct from `Priority::IDLE`. `Idle` triggers only when the pool is completely free of work, whereas `Priority::IDLE` assigns the lowest scheduling priority to a task that is still queued normally.
+- `Idle` is distinct from `Priority::IDLE`.
+    `Idle` triggers only when the pool is completely free of work, whereas `Priority::IDLE` assigns the lowest scheduling priority to a task that is still queued normally.
 - Suitable for housekeeping, cache warming, or other background work that should not compete with active processing.
 
 ## See Also

@@ -89,7 +89,8 @@ TEST_CASE("Doubler produces correct output", "[doubler]") {
 
 ### Single-Threaded Execution
 
-Set `default_pool_concurrency = 1` to eliminate thread scheduling non-determinism. Tasks execute in a predictable order based on priority and submission time.
+Set `default_pool_concurrency = 1` to eliminate thread scheduling non-determinism.
+Tasks execute in a predictable order based on priority and submission time.
 
 ### Shutdown Strategies
 

@@ -1,6 +1,7 @@
 # precondition
 
-Called before a task is queued. If any precondition returns `false`, the task is dropped.
+Called before a task is queued.
+If any precondition returns `false`, the task is dropped.
 
 ## Signature
 
@@ -20,9 +21,12 @@ static bool precondition(threading::ReactionTask& task)
 
 ## Context & Arguments
 
-- `task` — the `ReactionTask` being evaluated. Access to `task.reaction` gives you the parent Reaction's state (e.g., `active_tasks` count, enabled state).
+- `task` — the `ReactionTask` being evaluated.
+    Access to `task.reaction` gives you the parent Reaction's state (e.g., `active_tasks` count, enabled state).
 
-Runs on the **emitter's thread**. The precondition check happens synchronously during the emit loop — before the task is submitted to any scheduler queue. This means precondition checks should be fast and non-blocking.
+Runs on the **emitter's thread**.
+The precondition check happens synchronously during the emit loop — before the task is submitted to any scheduler queue.
+This means precondition checks should be fast and non-blocking.
 
 When a task is dropped by a precondition, its status is set to `BLOCKED`.
 

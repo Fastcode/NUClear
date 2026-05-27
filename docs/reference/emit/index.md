@@ -1,6 +1,7 @@
 # Emit Scopes
 
-> `emit` sends data into the NUClear system. The scope controls how that data is distributed.
+> `emit` sends data into the NUClear system.
+> The scope controls how that data is distributed.
 
 ## Syntax
 
@@ -17,7 +18,9 @@ emit<Scope::DELAY>(std::make_unique<T>(args...), std::chrono::seconds(5));
 
 ## Overview
 
-Every `emit` call takes a `std::unique_ptr` to the data being emitted. The scope template parameter determines the distribution strategy. When no scope is specified, `Scope::LOCAL` is used.
+Every `emit` call takes a `std::unique_ptr` to the data being emitted.
+The scope template parameter determines the distribution strategy.
+When no scope is specified, `Scope::LOCAL` is used.
 
 Scopes cannot be combined — each `emit` call uses exactly one scope.
 

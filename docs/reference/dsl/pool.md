@@ -45,7 +45,8 @@ flowchart LR
 - Pool threads are created lazily on first use.
 - Threads are named using the `name` member, making them identifiable in debuggers and profilers.
 - Without `Pool`, tasks execute on the default thread pool.
-- Only **one** `Pool` may be specified per reaction. Specifying multiple results in a runtime exception (`std::invalid_argument`).
+- Only **one** `Pool` may be specified per reaction.
+    Specifying multiple results in a runtime exception (`std::invalid_argument`).
 - Pool implements the `pool` DSL extension point.
 
 ## Example

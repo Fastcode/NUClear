@@ -1,6 +1,7 @@
 # Single
 
-Limits a reaction to a single concurrent execution. Equivalent to [`Buffer<1>`](buffer.md).
+Limits a reaction to a single concurrent execution.
+Equivalent to [`Buffer<1>`](buffer.md).
 
 ## Syntax
 
@@ -12,7 +13,8 @@ on<Trigger<T>, Single>().then([](const T& data) {
 
 ## Behavior
 
-Only one instance of the reaction may be active (running or queued) at any time. If a new trigger arrives while the reaction is already in progress, the new task is dropped.
+Only one instance of the reaction may be active (running or queued) at any time.
+If a new trigger arrives while the reaction is already in progress, the new task is dropped.
 
 ```mermaid
 sequenceDiagram

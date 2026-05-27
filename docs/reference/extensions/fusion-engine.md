@@ -1,6 +1,7 @@
 # Fusion Engine
 
-The Fusion Engine is the compile-time machinery that combines multiple DSL words in an `on<>()` statement into a single unified reaction. It operates entirely through C++ template metaprogramming — there is no runtime overhead from word composition.
+The Fusion Engine is the compile-time machinery that combines multiple DSL words in an `on<>()` statement into a single unified reaction.
+It operates entirely through C++ template metaprogramming — there is no runtime overhead from word composition.
 
 ## Overview
 
@@ -18,7 +19,8 @@ The Fusion Engine:
 
 ## FindWords
 
-For each extension point, `FindWords` filters the word list to only those that implement the relevant method. It uses a two-step resolution:
+For each extension point, `FindWords` filters the word list to only those that implement the relevant method.
+It uses a two-step resolution:
 
 1. Check if the word itself has the method (e.g., `Word::bind` exists)
 1. If not, check if `DSLProxy<Word>` has the method
@@ -67,7 +69,8 @@ namespace NUClear::dsl::operation {
 
 For extension points that accept runtime arguments (primarily `bind`), the Fusion Engine uses **FunctionFusion** to distribute arguments across multiple words.
 
-Each word's method consumes arguments from left to right. The first word takes as many arguments as its signature requires (after the fixed parameters), the next word takes arguments from where the first left off, and so on.
+Each word's method consumes arguments from left to right.
+The first word takes as many arguments as its signature requires (after the fixed parameters), the next word takes arguments from where the first left off, and so on.
 
 ```mermaid
 flowchart LR
@@ -113,7 +116,9 @@ template <typename DSL>
 static void bind(const std::shared_ptr<threading::Reaction>& reaction);
 ```
 
-Here `DSL` is `Fusion<AllWords...>` — the complete type representing all words in the `on<>()` statement. This allows any word to query the capabilities of the entire fused set. For example, a word could check if another specific word is present in the DSL and adjust its behavior accordingly.
+Here `DSL` is `Fusion<AllWords...>` — the complete type representing all words in the `on<>()` statement.
+This allows any word to query the capabilities of the entire fused set.
+For example, a word could check if another specific word is present in the DSL and adjust its behavior accordingly.
 
 ## Fusion Struct
 
@@ -134,4 +139,5 @@ struct Fusion
     , fusion::ScopeFusion<Words...> {};
 ```
 
-Each `XxxFusion<Words...>` applies `FindWords` to filter to relevant words, then delegates to the appropriate `XxxFuser` which implements the combination logic. If no words implement a given point, the fuser is an empty struct with no method — the calling code uses SFINAE to detect this and skip the call.
+Each `XxxFusion<Words...>` applies `FindWords` to filter to relevant words, then delegates to the appropriate `XxxFuser` which implements the combination logic.
+If no words implement a given point, the fuser is an empty struct with no method — the calling code uses SFINAE to detect this and skip the call.

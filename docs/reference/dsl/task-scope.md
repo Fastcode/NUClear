@@ -1,6 +1,7 @@
 # TaskScope
 
-Uses thread-local storage to track when a task is executing within a named scope. Other code can query whether it is currently running inside a particular `TaskScope<Group>`.
+Uses thread-local storage to track when a task is executing within a named scope.
+Other code can query whether it is currently running inside a particular `TaskScope<Group>`.
 
 ## Syntax
 
@@ -16,7 +17,9 @@ on<Trigger<T>, TaskScope<Group>>()
 
 ## Behavior
 
-`TaskScope` implements the `scope` extension point. When the reaction's callback begins execution, an RAII guard is constructed that marks the scope as active in thread-local storage. When the callback returns (or throws), the guard is destroyed and the scope is deactivated.
+`TaskScope` implements the `scope` extension point.
+When the reaction's callback begins execution, an RAII guard is constructed that marks the scope as active in thread-local storage.
+When the callback returns (or throws), the guard is destroyed and the scope is deactivated.
 
 - The scope is active only for the duration of the callback.
 - Scope state is per-thread — it does not propagate across thread boundaries.

@@ -20,9 +20,12 @@ static void post_run(threading::ReactionTask& task)
 
 ## Context & Arguments
 
-- `task` — the `ReactionTask` that just finished executing. Provides access to the reaction identity and task state.
+- `task` — the `ReactionTask` that just finished executing.
+    Provides access to the reaction identity and task state.
 
-Runs on the **executor thread** — the same thread that ran the callback. Scope locks are still held at this point. Use this for cleanup or follow-up actions that should happen immediately after the callback, before any locks are released (e.g., emitting transient data, recording end timestamps).
+Runs on the **executor thread** — the same thread that ran the callback.
+Scope locks are still held at this point.
+Use this for cleanup or follow-up actions that should happen immediately after the callback, before any locks are released (e.g., emitting transient data, recording end timestamps).
 
 ## Example
 
@@ -38,4 +41,5 @@ struct MyTracing {
 
 ## Built-in Words Using post_run
 
-No built-in DSL words currently use `post_run`. It is available for custom extensions that need per-execution teardown on the executor thread.
+No built-in DSL words currently use `post_run`.
+It is available for custom extensions that need per-execution teardown on the executor thread.

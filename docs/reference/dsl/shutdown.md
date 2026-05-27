@@ -12,7 +12,8 @@ on<Shutdown>().then([] {
 
 ## Behavior
 
-`Shutdown` fires after `PowerPlant::shutdown()` is called. At this point the thread pool is still active, allowing shutdown tasks to perform cleanup work such as closing connections, flushing buffers, or saving state.
+`Shutdown` fires after `PowerPlant::shutdown()` is called.
+At this point the thread pool is still active, allowing shutdown tasks to perform cleanup work such as closing connections, flushing buffers, or saving state.
 
 ```mermaid
 graph LR
@@ -24,7 +25,8 @@ graph LR
     F --> G[Threads joined]
 ```
 
-After all Shutdown tasks complete, the thread pool threads are joined and the PowerPlant terminates. Each Shutdown reaction runs exactly once per PowerPlant lifecycle.
+After all Shutdown tasks complete, the thread pool threads are joined and the PowerPlant terminates.
+Each Shutdown reaction runs exactly once per PowerPlant lifecycle.
 
 ## Example
 
@@ -48,7 +50,8 @@ public:
 
 - Shutdown fires only once — it cannot re-trigger.
 - The thread pool is still active during Shutdown, so tasks execute normally.
-- **After shutdown begins, no new non-inline tasks can be submitted.** If a Shutdown reaction emits a message (non-inline), the triggered reactions will not execute. Only `emit<Scope::INLINE>` works during shutdown.
+- **After shutdown begins, no new non-inline tasks can be submitted.** If a Shutdown reaction emits a message (non-inline), the triggered reactions will not execute.
+    Only `emit<Scope::INLINE>` works during shutdown.
 - Common uses: close connections, flush buffers, save state, log shutdown info.
 - After all Shutdown reactions complete, threads are joined and the PowerPlant exits.
 

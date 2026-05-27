@@ -4,7 +4,9 @@
 
 ## Overview
 
-`Reactor` provides the interface for binding callbacks to events and emitting data. All user-defined reactors inherit from this class. DSL words are aliased as protected members so they can be used unqualified within reactor code.
+`Reactor` provides the interface for binding callbacks to events and emitting data.
+All user-defined reactors inherit from this class.
+DSL words are aliased as protected members so they can be used unqualified within reactor code.
 
 ## API
 
@@ -14,7 +16,8 @@
 explicit Reactor(std::unique_ptr<Environment> environment);
 ```
 
-Called by `PowerPlant::install`. Not invoked directly by user code.
+Called by `PowerPlant::install`.
+Not invoked directly by user code.
 
 ### `on<DSLWords...>(args...).then(callback)`
 
@@ -23,7 +26,9 @@ template <typename... DSL, typename... Arguments>
 Binder on(Arguments&&... args);
 ```
 
-Creates a reaction bound to the specified DSL words. Chain with `.then(callback)` or `.then("label", callback)` to complete registration. Returns a `ReactionHandle`.
+Creates a reaction bound to the specified DSL words.
+Chain with `.then(callback)` or `.then("label", callback)` to complete registration.
+Returns a `ReactionHandle`.
 
 ```cpp
 auto handle = on<Trigger<Message>>().then([](const Message& msg) {
@@ -42,7 +47,8 @@ template <template<typename> class... Scope, typename T, typename... Args>
 void emit(std::unique_ptr<T>&& data, Args&&... args);
 ```
 
-Emits data into the system. Defaults to `Local` scope if no scope is specified.
+Emits data into the system.
+Defaults to `Local` scope if no scope is specified.
 
 ```cpp
 emit(std::make_unique<Message>("hello"));
@@ -56,7 +62,8 @@ template <LogLevel::Value level, typename... Arguments>
 void log(Arguments&&... args);
 ```
 
-Logs a message from this reactor. The reactor's name is attached to the log output.
+Logs a message from this reactor.
+The reactor's name is attached to the log output.
 
 ```cpp
 log<INFO>("Processing", count, "items");

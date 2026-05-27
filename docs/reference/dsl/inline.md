@@ -33,9 +33,12 @@ flowchart LR
     Q --> R[Emitter continues]
 ```
 
-When a reaction has `Inline::ALWAYS`, the emitting thread calls the reaction function directly. The emit call **blocks** until that reaction completes. This bypasses the scheduler, [Pool](pool.md), and [Priority](priority.md) settings entirely.
+When a reaction has `Inline::ALWAYS`, the emitting thread calls the reaction function directly.
+The emit call **blocks** until that reaction completes.
+This bypasses the scheduler, [Pool](pool.md), and [Priority](priority.md) settings entirely.
 
-With `Inline::NEVER`, the reaction is unconditionally submitted to the thread pool regardless of the emit scope. This prevents `emit<Scope::INLINE>` from forcing inline execution on this reaction.
+With `Inline::NEVER`, the reaction is unconditionally submitted to the thread pool regardless of the emit scope.
+This prevents `emit<Scope::INLINE>` from forcing inline execution on this reaction.
 
 The default (NEUTRAL) defers to the emit scope: if the emitter uses [`emit<Scope::INLINE>`](../emit/inline.md), the reaction runs inline; otherwise it is queued.
 
@@ -57,7 +60,11 @@ on<Trigger<Event>, Inline::NEVER>().then([](const Event& e) {
 
 !!! warning "Blocking the emitter"
 
-    `Inline::ALWAYS` blocks the emitting thread for the full duration of the reaction. Long-running or
+    ```
+    `Inline::ALWAYS` blocks the emitting thread for the full duration of the reaction.
+    ```
+
+    Long-running or
     blocking work in an always-inline reaction will stall the emitter and any other inline reactions
     waiting behind it.
 

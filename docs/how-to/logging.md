@@ -8,7 +8,8 @@ You need to emit diagnostic messages from your reactors at varying levels of det
 
 ## Solution
 
-Use `log<Level>(args...)` inside any reaction to emit log messages. Handle them by reacting to `NUClear::message::LogMessage`.
+Use `log<Level>(args...)` inside any reaction to emit log messages.
+Handle them by reacting to `NUClear::message::LogMessage`.
 
 ### Log Levels
 
@@ -32,7 +33,8 @@ log<ERROR>("Failed to open file:", filename);
 log<FATAL>("Memory corruption detected, shutting down");
 ```
 
-Arguments are concatenated with spaces, similar to `std::cout` with `<<`. Any type that supports `operator<<` to a stream can be used.
+Arguments are concatenated with spaces, similar to `std::cout` with `<<`.
+Any type that supports `operator<<` to a stream can be used.
 
 ### 2. Set Reactor Log Level
 
@@ -131,11 +133,19 @@ public:
 
 !!! tip "Log level filtering"
 
-    The `log<Level>()` call short-circuits before formatting if the level is below both the reactor's `log_level` and the system's `min_log_level`. This means disabled log statements have negligible cost.
+    ```
+    The `log<Level>()` call short-circuits before formatting if the level is below both the reactor's `log_level` and the system's `min_log_level`.
+    ```
+
+    This means disabled log statements have negligible cost.
 
 !!! note "Default log level"
 
-    Reactors default to `log_level = INFO`. Set it in your constructor to change the threshold.
+    ```
+    Reactors default to `log_level = INFO`.
+    ```
+
+    Set it in your constructor to change the threshold.
 
 ## How the Log System Works
 
@@ -163,14 +173,17 @@ The log system is entirely message-driven:
 
 There are two filtering levels:
 
-- **`log_level`** (per-reactor) — set in each reactor's constructor. Messages below this level are not emitted by that reactor.
-- **`min_log_level`** (system-wide) — set in `NUClear::Configuration`. Messages below this level are discarded regardless of the reactor's setting.
+- **`log_level`** (per-reactor) — set in each reactor's constructor.
+    Messages below this level are not emitted by that reactor.
+- **`min_log_level`** (system-wide) — set in `NUClear::Configuration`.
+    Messages below this level are discarded regardless of the reactor's setting.
 
 A message is emitted only if its level meets **both** thresholds.
 
 ### The `display_level` Field
 
-Each `LogMessage` carries a `display_level` field equal to the emitting reactor's `log_level`. This allows handlers to implement display filtering — a handler can choose to only display messages where `msg.level >= msg.display_level`, letting each reactor control its own verbosity without affecting other reactors.
+Each `LogMessage` carries a `display_level` field equal to the emitting reactor's `log_level`.
+This allows handlers to implement display filtering — a handler can choose to only display messages where `msg.level >= msg.display_level`, letting each reactor control its own verbosity without affecting other reactors.
 
 ## Writing Custom Log Handlers
 
@@ -228,4 +241,5 @@ If you need to log from code that isn't inside a reactor (e.g., a utility functi
 NUClear::log<NUClear::LogLevel::INFO>("Starting up...");
 ```
 
-This requires a PowerPlant to be running. The message will have no associated reactor name.
+This requires a PowerPlant to be running.
+The message will have no associated reactor name.

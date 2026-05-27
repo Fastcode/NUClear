@@ -64,7 +64,8 @@ on<UDP::Multicast>("239.226.152.162", 7447).then([](const UDP::Packet& p) {
 
 ## Notes
 
-- This provides **raw UDP** access. There is no message typing, serialization, or automatic peer discovery.
+- This provides **raw UDP** access.
+    There is no message typing, serialization, or automatic peer discovery.
 - Use this when interoperating with non-NUClear systems or protocols that require direct UDP access.
 - For typed, serialized messaging with automatic peer discovery between NUClear nodes, use [Network](network.md) instead.
 - Packets can also be sent using the [UDP emit](../emit/udp.md).

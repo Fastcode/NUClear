@@ -27,7 +27,8 @@ struct GroupType {
 - At most `GroupType::concurrency` tasks from the group execute simultaneously.
 - Tasks that exceed the concurrency limit are queued and dispatched by priority.
 - Groups are identified by type — the same `GroupType` used in different reactors refers to the same group.
-- A reaction can belong to multiple groups. It must satisfy **all** group constraints before executing.
+- A reaction can belong to multiple groups.
+    It must satisfy **all** group constraints before executing.
 - Implements the `group` extension point, returning a `GroupDescriptor`.
 
 ```mermaid

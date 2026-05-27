@@ -15,7 +15,8 @@
 
 ### Accepting Connections
 
-Use `on<TCP>(port)` to listen for incoming TCP connections. When a client connects, you receive a `TCP::Connection` object with the file descriptor for the stream:
+Use `on<TCP>(port)` to listen for incoming TCP connections.
+When a client connects, you receive a `TCP::Connection` object with the file descriptor for the stream:
 
 ```cpp
 #include "nuclear"

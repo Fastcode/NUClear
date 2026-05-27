@@ -44,17 +44,22 @@ sequenceDiagram
 
 **Get phase:** Deserializes the message from `ThreadStore` data populated by `NetworkController`, using `Serialise<T>::deserialise()`.
 
-Network<T> only fires on messages received from remote peers. Local emits of `T` do **not** trigger this reaction.
+Network<T> only fires on messages received from remote peers.
+Local emits of `T` do **not** trigger this reaction.
 
 Data is transient — the deserialized message is only valid for the duration of the callback execution.
 
 ### Type Hash Matching
 
-Messages are routed by a hash of the type name. Both the sending and receiving nodes must use the **same fully-qualified type name** for `T`. If the type names differ (e.g., due to different namespaces), messages will not be delivered.
+Messages are routed by a hash of the type name.
+Both the sending and receiving nodes must use the **same fully-qualified type name** for `T`.
+If the type names differ (e.g., due to different namespaces), messages will not be delivered.
 
 ### Serialization Requirement
 
-`T` must be serializable. The framework uses `Serialise<T>::deserialise()` to reconstruct the object from network bytes. If no serialization is defined for `T`, compilation will fail.
+`T` must be serializable.
+The framework uses `Serialise<T>::deserialise()` to reconstruct the object from network bytes.
+If no serialization is defined for `T`, compilation will fail.
 
 ## Example
 
@@ -76,7 +81,11 @@ on<Network<SensorReading>>().then([](const NetworkSource& src, const SensorReadi
 
 !!! warning
 
-    `NetworkConfiguration` must be emitted before any `Network<T>` reactions will fire. Without it, the networking subsystem is not started.
+    ```
+    `NetworkConfiguration` must be emitted before any `Network<T>` reactions will fire.
+    ```
+
+    Without it, the networking subsystem is not started.
 
 - Only reacts to messages received over the network, never to local emits.
 - The type hash is computed from the type name string — renaming a type breaks compatibility with peers using the old name.

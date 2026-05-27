@@ -1,6 +1,7 @@
 # get
 
-Called during task creation to retrieve data for the user's callback. The return value becomes one of the callback arguments.
+Called during task creation to retrieve data for the user's callback.
+The return value becomes one of the callback arguments.
 
 ## Signature
 
@@ -20,9 +21,12 @@ static T get(threading::ReactionTask& task)
 
 ## Context & Arguments
 
-- `task` — the `ReactionTask` being constructed. Provides access to the parent `Reaction`, the current `cause` (which reaction/task triggered this emit), and task metadata.
+- `task` — the `ReactionTask` being constructed.
+    Provides access to the parent `Reaction`, the current `cause` (which reaction/task triggered this emit), and task metadata.
 
-The `get` function runs on the **emitter's thread** — the thread that called `emit()`. This is important: if your `get` reads from `ThreadStore`, it will see the data that the emitter set. If it reads from `DataStore`, it gets the global latest value.
+The `get` function runs on the **emitter's thread** — the thread that called `emit()`.
+This is important: if your `get` reads from `ThreadStore`, it will see the data that the emitter set.
+If it reads from `DataStore`, it gets the global latest value.
 
 If `get` returns `nullptr` (for a pointer/shared_ptr type), the task is dropped with status `MISSING_DATA` — unless the word is wrapped in `Optional`, which converts the null to a valid empty state.
 

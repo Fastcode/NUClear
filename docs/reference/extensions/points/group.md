@@ -1,6 +1,7 @@
 # group
 
-Specifies concurrency group(s) that the task belongs to. Groups limit how many tasks sharing a group can run simultaneously.
+Specifies concurrency group(s) that the task belongs to.
+Groups limit how many tasks sharing a group can run simultaneously.
 
 ## Signature
 
@@ -22,7 +23,8 @@ static std::set<std::shared_ptr<const GroupDescriptor>> group(threading::Reactio
 
 - `task` — the `ReactionTask` being constructed.
 
-Runs on the **emitter's thread** during task creation. The scheduler checks all group constraints before dispatching: a task can only start if, for every group it belongs to, the number of currently-running tasks in that group is below the group's concurrency limit.
+Runs on the **emitter's thread** during task creation.
+The scheduler checks all group constraints before dispatching: a task can only start if, for every group it belongs to, the number of currently-running tasks in that group is below the group's concurrency limit.
 
 ## Example
 

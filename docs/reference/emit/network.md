@@ -49,7 +49,8 @@ sequenceDiagram
     D->>R: Trigger reaction with deserialized T
 ```
 
-Network emits do **not** trigger local `Trigger<T>` reactions. Only `on<Network<T>>` reactions on receiving peers are activated.
+Network emits do **not** trigger local `Trigger<T>` reactions.
+Only `on<Network<T>>` reactions on receiving peers are activated.
 
 ## Example
 
@@ -81,7 +82,8 @@ public:
 - Requires `NetworkConfiguration` to be emitted for the network to be active.
 - The type must be serializable: either trivially copyable, or provide a `util::serialise::Serialise<T>` specialization.
 - Type routing uses a hash — the same type must be defined on both peers.
-- If `reliable` is true, delivery is guaranteed (TCP-like semantics). If false, packets may be lost (UDP-like).
+- If `reliable` is true, delivery is guaranteed (TCP-like semantics).
+    If false, packets may be lost (UDP-like).
 - If the target peer is not connected, the message is silently dropped even with `reliable = true`.
 
 ## See Also

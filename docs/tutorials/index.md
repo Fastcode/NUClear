@@ -1,6 +1,7 @@
 # Tutorials
 
-Tutorials are guided, learning-oriented walkthroughs that take you from zero to a working result. Each tutorial builds on concepts from the previous one, so we recommend following them in order.
+Tutorials are guided, learning-oriented walkthroughs that take you from zero to a working result.
+Each tutorial builds on concepts from the previous one, so we recommend following them in order.
 
 ```mermaid
 flowchart LR
@@ -11,7 +12,11 @@ flowchart LR
 
 !!! tip "Prerequisites"
 
-    Before starting, you should be comfortable with basic C++ (classes, templates, and lambdas). No prior experience with reactive programming is needed.
+    ```
+    Before starting, you should be comfortable with basic C++ (classes, templates, and lambdas).
+    ```
+
+    No prior experience with reactive programming is needed.
 
 ## Available Tutorials
 

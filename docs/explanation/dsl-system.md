@@ -1,6 +1,8 @@
 # The DSL System: From `on<>()` to Execution
 
-NUClear's Domain Specific Language (DSL) is the user-facing API that makes reactive programming feel natural in C++. But behind that clean syntax lies a sophisticated pipeline of template metaprogramming, task generation, and scheduling. Let's trace the complete journey from writing a reaction to it executing.
+NUClear's Domain Specific Language (DSL) is the user-facing API that makes reactive programming feel natural in C++.
+But behind that clean syntax lies a sophisticated pipeline of template metaprogramming, task generation, and scheduling.
+Let's trace the complete journey from writing a reaction to it executing.
 
 ## The Big Picture
 
@@ -34,7 +36,8 @@ on<Trigger<SensorData>, Sync<Processing>>().then([](const SensorData& data) {
 });
 ```
 
-This single statement does a lot. Let's break it apart.
+This single statement does a lot.
+Let's break it apart.
 
 ## Phase 2: Template Instantiation — `on<>()`
 
@@ -47,7 +50,8 @@ Binder<dsl::Parse<DSL...>, Arguments...> on(Arguments&&... args) {
 }
 ```
 
-The `Binder` captures the reactor reference and any arguments (like port numbers for `IO`, or time durations for `Every`). At this point, nothing is registered — the `Binder` is just waiting for a callback.
+The `Binder` captures the reactor reference and any arguments (like port numbers for `IO`, or time durations for `Every`).
+At this point, nothing is registered — the `Binder` is just waiting for a callback.
 
 The key type here is `dsl::Parse<Trigger<T>, Sync<G>>` — this is the "fused" DSL type that combines all the words.
 
@@ -88,13 +92,15 @@ graph TD
     F --> SF[ScopeFusion]
 ```
 
-Each fusion type discovers which words implement that extension point and calls them. For `bind`, `Trigger<T>` registers the reaction in `TypeCallbackStore<T>` so that when `T` is emitted, this reaction is found.
+Each fusion type discovers which words implement that extension point and calls them.
+For `bind`, `Trigger<T>` registers the reaction in `TypeCallbackStore<T>` so that when `T` is emitted, this reaction is found.
 
 `Sync<G>` registers a group constraint so that only one task from group `G` executes at a time.
 
 ## Phase 5: Trigger Fires — Emit Happens
 
-Now jump forward to runtime. Some other reactor emits sensor data:
+Now jump forward to runtime.
+Some other reactor emits sensor data:
 
 ```cpp
 emit(std::make_unique<SensorData>(...));
@@ -133,7 +139,8 @@ The `CallbackGenerator` does this in order:
 
 ## Phase 7: Task Submitted
 
-The task is submitted to the PowerPlant's scheduler via `powerplant.submit(task)`. The scheduler decides which thread pool queue to place it in, based on the `pool` function returned by the DSL fusion.
+The task is submitted to the PowerPlant's scheduler via `powerplant.submit(task)`.
+The scheduler decides which thread pool queue to place it in, based on the `pool` function returned by the DSL fusion.
 
 ## Phase 8: Task Dispatched
 
@@ -186,15 +193,18 @@ The DSL uses several layers of compile-time machinery:
 
 ### Parse\<Words...>
 
-`Parse` is the entry point. It creates `Fusion<Words...>` and delegates each operation (bind, get, group, pool, priority, etc.) to the fusion, falling back to a `NoOp` if no word implements that operation.
+`Parse` is the entry point.
+It creates `Fusion<Words...>` and delegates each operation (bind, get, group, pool, priority, etc.) to the fusion, falling back to a `NoOp` if no word implements that operation.
 
 ### FindWords (inside each Fusion type)
 
-Each fusion specialisation (e.g., `GetFusion`) filters the word list to find which words implement `get`. Only those words participate in that operation.
+Each fusion specialisation (e.g., `GetFusion`) filters the word list to find which words implement `get`.
+Only those words participate in that operation.
 
 ### FunctionFusion (calling and combining)
 
-For operations that return values (like `get`), the fusion calls each word's method and concatenates the results into a tuple. For boolean operations (like `precondition`), results are ANDed together.
+For operations that return values (like `get`), the fusion calls each word's method and concatenates the results into a tuple.
+For boolean operations (like `precondition`), results are ANDed together.
 
 ```mermaid
 graph LR

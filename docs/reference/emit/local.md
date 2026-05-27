@@ -60,7 +60,8 @@ public:
 
 ## Notes
 
-- This is the default scope. `emit(ptr)` and `emit<Scope::LOCAL>(ptr)` are equivalent.
+- This is the default scope.
+    `emit(ptr)` and `emit<Scope::LOCAL>(ptr)` are equivalent.
 - Data persists in the global store until overwritten by a subsequent emit of the same type.
 - Tasks are not guaranteed to execute before the emitter continues — they are queued asynchronously.
 

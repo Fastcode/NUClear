@@ -4,15 +4,18 @@
 
 ## Problem
 
-Multiple reactions access or modify shared state. In a multithreaded environment you need mutual exclusion, but mutexes block threads and waste pool resources.
+Multiple reactions access or modify shared state.
+In a multithreaded environment you need mutual exclusion, but mutexes block threads and waste pool resources.
 
 ## Solution
 
-Use [`Sync`](../reference/dsl/sync.md)`<GroupType>` to ensure only one reaction in a sync group runs at a time. NUClear manages the scheduling so threads are never blocked — other tasks run instead.
+Use [`Sync`](../reference/dsl/sync.md)`<GroupType>` to ensure only one reaction in a sync group runs at a time.
+NUClear manages the scheduling so threads are never blocked — other tasks run instead.
 
 ### 1. Define a Sync Group
 
-A sync group is any type — it doesn't need any members. It simply acts as a label.
+A sync group is any type — it doesn't need any members.
+It simply acts as a label.
 
 ```cpp
 struct DatabaseAccess {};
@@ -92,7 +95,8 @@ sequenceDiagram
     S->>T3: Execute
 ```
 
-When a synced task is running, other tasks in the same group are queued rather than blocking. Queued tasks are ordered by priority then task ID.
+When a synced task is running, other tasks in the same group are queued rather than blocking.
+Queued tasks are ordered by priority then task ID.
 
 ## Limited Concurrency with Group
 
@@ -114,7 +118,9 @@ on<Trigger<Query>, Group<ConnectionPool>>().then([](const Query& q) {
 
 !!! tip "Use the reactor as a sync group"
 
+    ```
     A common pattern is using the reactor class itself as the sync group when all its reactions share state:
+    ```
 
     ```cpp
     class MyReactor : public NUClear::Reactor {
@@ -126,4 +132,8 @@ on<Trigger<Query>, Group<ConnectionPool>>().then([](const Query& q) {
 
 !!! warning "Avoid mutexes in NUClear"
 
-    Mutexes block threads, which wastes pool resources since blocked threads cannot execute other tasks. `Sync` achieves mutual exclusion cooperatively — threads are freed to do other work while waiting.
+    ```
+    Mutexes block threads, which wastes pool resources since blocked threads cannot execute other tasks.
+    ```
+
+    `Sync` achieves mutual exclusion cooperatively — threads are freed to do other work while waiting.

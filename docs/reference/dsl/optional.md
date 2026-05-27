@@ -16,7 +16,8 @@ on<Trigger<T>, Optional<With<U>>>()
 
 ## Behavior
 
-By default, if a word like `With<T>` references data that has not yet been emitted, the task is **dropped** — the callback never executes. `Optional` changes this: the task proceeds regardless, but the data may be absent.
+By default, if a word like `With<T>` references data that has not yet been emitted, the task is **dropped** — the callback never executes.
+`Optional` changes this: the task proceeds regardless, but the data may be absent.
 
 Wrapping a word in `Optional` changes the corresponding callback parameter type:
 
@@ -29,7 +30,11 @@ Wrapping a word in `Optional` changes the corresponding callback parameter type:
 
 !!! warning
 
-    You **must** check for `nullptr` before dereferencing the shared pointer. Accessing a null pointer is undefined behavior.
+    ```
+    You **must** check for `nullptr` before dereferencing the shared pointer.
+    ```
+
+    Accessing a null pointer is undefined behavior.
 
 ## Example
 

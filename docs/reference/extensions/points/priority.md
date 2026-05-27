@@ -20,9 +20,12 @@ static int priority(const threading::ReactionTask& task)
 
 ## Context & Arguments
 
-- `task` — the `ReactionTask` being constructed. Typically the priority is a compile-time constant and doesn't depend on task state.
+- `task` — the `ReactionTask` being constructed.
+    Typically the priority is a compile-time constant and doesn't depend on task state.
 
-Runs on the **emitter's thread** during task creation. The returned value determines where the task sits in the scheduler's priority queue. Higher priority tasks are dequeued and executed before lower priority ones.
+Runs on the **emitter's thread** during task creation.
+The returned value determines where the task sits in the scheduler's priority queue.
+Higher priority tasks are dequeued and executed before lower priority ones.
 
 Priority does **not** preempt running tasks — it only affects queue ordering.
 
