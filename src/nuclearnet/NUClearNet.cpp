@@ -436,18 +436,24 @@ namespace network {
             case ANNOUNCE: {
                 // Check if this is a new peer before processing (which adds them)
                 const bool is_new_peer = !discovery->has_peer(source);
-                discovery->process_announce(source, data, length);
+                auto announce_result = discovery->process_announce(source, data, length);
 
-                if (is_new_peer) {
+                if (announce_result.is_new) {
                     // Force an immediate announce to the multicast/broadcast group
                     // so the new peer hears us on the announce channel (confirms our_d→their_a)
                     announce();
                     last_announce = std::chrono::steady_clock::now();
+                }
 
-                    // Send SYN to the peer's data port to initiate the data path handshake
-                    auto syn = Discovery::build_connect_packet(SYN);
-                    send_buf(data_fd, source, syn.data(), syn.size());
-                    discovery->mark_syn_sent(source);
+                // Send CONNECT packet if the handshake needs it (initial SYN or retransmit)
+                if (announce_result.response_flags != 0) {
+                    auto pkt = Discovery::build_connect_packet(announce_result.response_flags);
+                    send_buf(data_fd, source, pkt.data(), pkt.size());
+
+                    // Mark SYN_SENT if we're sending a SYN (only advances from IDLE)
+                    if ((announce_result.response_flags & SYN) != 0) {
+                        discovery->mark_syn_sent(source);
+                    }
                 }
             } break;
 

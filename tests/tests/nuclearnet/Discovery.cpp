@@ -363,3 +363,80 @@ SCENARIO("Discovery connection deferred until announce heard", "[nuclearnet][dis
     REQUIRE(join_called);
     REQUIRE(disc.is_connected(peer_addr));
 }
+
+SCENARIO("Discovery retransmits SYN when announce received in SYN_SENT state", "[nuclearnet][discovery]") {
+    Discovery disc(std::chrono::seconds(5));
+
+    sock_t peer_addr = make_addr(0x0A000001, 5000);
+
+    // First announce — new peer
+    auto announce = Discovery::build_announce_packet("peer_a", {});
+    auto result = disc.process_announce(peer_addr, announce.data(), announce.size());
+    REQUIRE(result.is_new);
+
+    // We send SYN (externally) and mark state
+    disc.mark_syn_sent(peer_addr);
+    REQUIRE(disc.get_peer(peer_addr)->handshake == HandshakeState::SYN_SENT);
+
+    // SYN was dropped. Another announce arrives — should indicate SYN retransmit
+    result = disc.process_announce(peer_addr, announce.data(), announce.size());
+    REQUIRE_FALSE(result.is_new);
+    REQUIRE(result.response_flags == SYN);
+}
+
+SCENARIO("Discovery retransmits SYN+ACK when announce received in SYN_RECEIVED state", "[nuclearnet][discovery]") {
+    Discovery disc(std::chrono::seconds(5));
+
+    sock_t peer_addr = make_addr(0x0A000001, 5000);
+
+    // Add peer via announce
+    auto announce = Discovery::build_announce_packet("peer_a", {});
+    disc.process_announce(peer_addr, announce.data(), announce.size());
+
+    // Peer sends SYN — we go to SYN_RECEIVED
+    auto connect_result = disc.process_connect(peer_addr, SYN);
+    REQUIRE(connect_result.response_flags == (SYN | CON_ACK));
+    REQUIRE(disc.get_peer(peer_addr)->handshake == HandshakeState::SYN_RECEIVED);
+
+    // Our SYN+ACK was dropped. Another announce arrives — should indicate SYN+ACK retransmit
+    auto result = disc.process_announce(peer_addr, announce.data(), announce.size());
+    REQUIRE_FALSE(result.is_new);
+    REQUIRE(result.response_flags == (SYN | CON_ACK));
+}
+
+SCENARIO("Discovery retransmits ACK when announce received in CONFIRMED but peer not connected", "[nuclearnet][discovery]") {
+    Discovery disc(std::chrono::seconds(5));
+
+    sock_t peer_addr = make_addr(0x0A000001, 5000);
+
+    // Add peer via announce and complete handshake
+    auto announce = Discovery::build_announce_packet("peer_a", {});
+    disc.process_announce(peer_addr, announce.data(), announce.size());
+    disc.mark_syn_sent(peer_addr);
+    auto connect_result = disc.process_connect(peer_addr, SYN | CON_ACK);
+    REQUIRE(connect_result.just_connected);
+    REQUIRE(disc.is_connected(peer_addr));
+
+    // Peer is fully connected — no retransmit needed
+    auto result = disc.process_announce(peer_addr, announce.data(), announce.size());
+    REQUIRE_FALSE(result.is_new);
+    REQUIRE(result.response_flags == CON_ACK);
+}
+
+SCENARIO("Discovery no retransmit for IDLE peer (not yet sent SYN)", "[nuclearnet][discovery]") {
+    Discovery disc(std::chrono::seconds(5));
+
+    sock_t peer_addr = make_addr(0x0A000001, 5000);
+
+    // First announce — new peer, handshake IDLE
+    auto announce = Discovery::build_announce_packet("peer_a", {});
+    auto result = disc.process_announce(peer_addr, announce.data(), announce.size());
+    REQUIRE(result.is_new);
+    REQUIRE(disc.get_peer(peer_addr)->handshake == HandshakeState::IDLE);
+
+    // Second announce — peer still in IDLE (we haven't sent SYN yet)
+    // Should indicate SYN needed
+    result = disc.process_announce(peer_addr, announce.data(), announce.size());
+    REQUIRE_FALSE(result.is_new);
+    REQUIRE(result.response_flags == SYN);
+}

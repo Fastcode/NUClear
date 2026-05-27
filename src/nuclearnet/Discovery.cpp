@@ -98,13 +98,15 @@
             return packet;
         }
 
-        void Discovery::process_announce(const sock_t& source,
+        Discovery::AnnounceResult Discovery::process_announce(const sock_t& source,
                                           const uint8_t* data,
                                           std::size_t length,
                                           std::chrono::steady_clock::time_point now) {
+            AnnounceResult announce_result;
+
             // Minimum size: header(5) + name_length(2) + num_subscriptions(2) = 9
             if (length < sizeof(PacketHeader) + sizeof(uint16_t) + sizeof(uint16_t)) {
-                return;
+                return announce_result;
             }
 
             const uint8_t* ptr    = data + sizeof(PacketHeader);
@@ -118,7 +120,7 @@
 
             // Validate name fits
             if (remaining < name_len + sizeof(uint16_t)) {
-                return;
+                return announce_result;
             }
 
             // Read name
@@ -128,7 +130,7 @@
 
             // Ignore empty names
             if (name.empty()) {
-                return;
+                return announce_result;
             }
 
             // Read subscription count
@@ -139,7 +141,7 @@
 
             // Validate subscriptions fit
             if (remaining < num_subs * sizeof(uint64_t)) {
-                return;
+                return announce_result;
             }
 
             // Read subscriptions
@@ -161,6 +163,7 @@
                 auto it = peers.find(source);
                 if (it == peers.end()) {
                     // New peer — record with announce_heard = true
+                    announce_result.is_new = true;
                     PeerInfo info;
                     info.name            = name;
                     info.address         = source;
@@ -193,6 +196,21 @@
                         peer.subscriptions = std::move(subscriptions);
                         subs_changed       = true;
                     }
+
+                    // Determine retransmit flags based on handshake state
+                    switch (peer.handshake) {
+                        case HandshakeState::IDLE:
+                        case HandshakeState::SYN_SENT:
+                            announce_result.response_flags = SYN;
+                            break;
+                        case HandshakeState::SYN_RECEIVED:
+                            announce_result.response_flags = SYN | CON_ACK;
+                            break;
+                        case HandshakeState::CONFIRMED:
+                            // Send ACK to help the other side if they're stuck in SYN_RECEIVED
+                            announce_result.response_flags = CON_ACK;
+                            break;
+                    }
                 }
             }
 
@@ -216,6 +234,8 @@
                     subscription_change_callback(info);
                 }
             }
+
+            return announce_result;
         }
 
         void Discovery::process_leave(const sock_t& source) {

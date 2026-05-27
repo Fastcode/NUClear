@@ -138,16 +138,23 @@ namespace network {
 
         /**
          * Process a received announce packet from a peer.
+         * Returns information about what action to take (send CONNECT, re-announce, etc.)
          *
          * @param source  The UDP source address (IP + port) of the packet
          * @param data    The raw packet data
          * @param length  The length of the packet data
          * @param now     The current time (defaults to steady_clock::now())
+         *
+         * @return Result indicating whether this is a new peer and what CONNECT flags to send
          */
-        void process_announce(const sock_t& source,
-                              const uint8_t* data,
-                              std::size_t length,
-                              std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now());
+        struct AnnounceResult {
+            bool is_new = false;          ///< Whether this was a previously unknown peer
+            uint8_t response_flags = 0;   ///< CONNECT flags to send (0 = don't send)
+        };
+        AnnounceResult process_announce(const sock_t& source,
+                                        const uint8_t* data,
+                                        std::size_t length,
+                                        std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now());
 
         /**
          * Process a received leave packet from a peer.

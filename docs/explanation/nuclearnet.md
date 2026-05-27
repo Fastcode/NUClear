@@ -336,6 +336,50 @@ sequenceDiagram
 Duplicate or out-of-order handshake packets do not cause state regressions —
 once a peer reaches CONFIRMED, it stays there.
 
+#### Handshake resilience
+
+UDP packets can be dropped at any point in the handshake.
+Rather than adding a separate retransmission timer,
+the handshake piggybacks on the periodic announce cycle (~500ms):
+
+Each time an announce is received from a peer whose handshake is incomplete,
+the appropriate CONNECT packet is retransmitted:
+
+| Current state | Retransmit | Purpose                                         |
+| ------------- | ---------- | ----------------------------------------------- |
+| IDLE          | SYN        | Initial SYN was never sent or was dropped       |
+| SYN_SENT      | SYN        | Our SYN was dropped, retry                      |
+| SYN_RECEIVED  | SYN+ACK    | Our SYN+ACK was dropped, retry                  |
+| CONFIRMED     | ACK        | Our ACK was dropped, help peer finish handshake |
+
+This provides automatic recovery for every drop scenario:
+
+```mermaid
+sequenceDiagram
+    participant A as Node A
+    participant B as Node B
+
+    A->>B: ConnectPacket (SYN) [data port]
+    Note over A: handshake = SYN_SENT
+    Note over B: SYN dropped ✗
+
+    B-->>A: AnnouncePacket [multicast, periodic]
+    Note over A: Peer not connected, retransmit
+    A->>B: ConnectPacket (SYN) [data port, retransmit]
+
+    Note over B: Received SYN this time
+    B->>A: ConnectPacket (SYN+ACK) [data port]
+    Note over A: handshake = CONFIRMED ✓
+    A->>B: ConnectPacket (ACK) [data port]
+    Note over B: handshake = CONFIRMED ✓
+```
+
+Since both peers announce periodically,
+a dropped packet is retried within at most one announce interval.
+If the data path is permanently broken in one direction,
+the handshake will never complete — which is correct,
+since bidirectional data connectivity is required for message exchange.
+
 #### Connect packet
 
 ```mermaid
