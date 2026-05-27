@@ -21,7 +21,7 @@ Key design principles:
 - **Decentralized mesh** — no central server or message broker.
     Every node is equal.
 - **Autonomous discovery** — nodes find each other via periodic announcements, no manual configuration of peer addresses.
-- **UDP-only** — both discovery and data transfer use UDP (no TCP).
+- **UDP-only** — both discovery and data transfer use UDP (User Datagram Protocol), not TCP.
     This keeps the implementation simple and avoids head-of-line blocking.
 - **Two socket types** — each node has an *announce socket* (for receiving discovery messages) and a *data socket* (for sending announces and transferring data).
 - **Subscription-based routing** — nodes advertise which message types they are interested in,
@@ -81,11 +81,11 @@ The NUClearNet engine is decomposed into focused modules:
 | Module               | Responsibility                                                           |
 | -------------------- | ------------------------------------------------------------------------ |
 | `Discovery`          | Peer lifecycle — announce, join/leave detection, peer timeout            |
-| `Fragmentation`      | Splitting large messages into MTU-sized fragments, reassembly on receive |
-| `Reliability`        | ACK/NACK tracking, retransmission scheduling                             |
+| `Fragmentation`      | Splitting large messages into MTU-sized (Maximum Transmission Unit) fragments, reassembly on receive |
+| `Reliability`        | ACK/NACK (Acknowledgment/Negative Acknowledgment) tracking, retransmission scheduling |
 | `Routing`            | Subscription-based message filtering per peer                            |
 | `PacketDeduplicator` | Sliding-window duplicate detection per peer                              |
-| `RTTEstimator`       | Per-peer round-trip time estimation for retransmission timing            |
+| `RTTEstimator`       | Per-peer RTT (Round-Trip Time) estimation for retransmission timing      |
 
 ## Peer discovery
 
@@ -141,6 +141,7 @@ The announce address can be:
 
 ### NAT-friendly port learning
 
+NAT (Network Address Translation) devices translate source ports and addresses between networks.
 Announces are sent from the *data socket* (ephemeral port), not the announce socket.
 This means the receiver learns the sender's data port directly from the UDP source address — no explicit port field is needed in the announce packet.
 This design also works naturally with NAT devices that translate source ports.
@@ -336,7 +337,7 @@ Key mechanisms:
 - **Bitset ACK** — when the receiver gets a fragment,
     it responds with an ACK containing a bitset of *all* received fragments for that packet group.
     This gives the sender full visibility into what's been received.
-- **RTO-based retransmission** — the sender waits one Retransmission Timeout (RTO) before retransmitting un-ACKed fragments.
+- **RTO-based retransmission** — the sender waits one RTO (Retransmission Timeout) before retransmitting un-ACKed fragments.
     Retransmitting too early wastes bandwidth; too late adds latency.
 - **Adaptive RTO estimation** — each peer's round-trip time is tracked using the Jacobson/Karels algorithm.
     The RTO adapts to changing network conditions.
