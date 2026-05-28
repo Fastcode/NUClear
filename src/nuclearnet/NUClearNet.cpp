@@ -71,6 +71,9 @@ namespace network {
         // Shut down existing connections
         shutdown();
 
+        // Clear per-peer state that should not survive a reset
+        deduplicators.clear();
+
         config    = cfg;
         node_name = cfg.name;
 
@@ -142,6 +145,16 @@ namespace network {
                 throw std::system_error(network_errno, std::system_category(), "Failed to bind data socket");
             }
 
+            // Set non-blocking so sends don't block when the kernel buffer is full
+            // (unreliable sends should be fire-and-forget, not back-pressure the caller)
+#ifdef _WIN32
+            u_long non_blocking = 1;
+            ioctl(fd, FIONBIO, &non_blocking);
+#else
+            int flags = ::fcntl(fd, F_GETFL, 0);
+            ::fcntl(fd, F_SETFL, flags | O_NONBLOCK);
+#endif
+
             data_fd.reset(fd);
         }
 
@@ -191,6 +204,16 @@ namespace network {
                 }
             }
 
+            // Set non-blocking so read_socket drain loop works on Windows
+            // (where MSG_DONTWAIT has no effect)
+#ifdef _WIN32
+            u_long non_blocking = 1;
+            ioctl(fd, FIONBIO, &non_blocking);
+#else
+            int flags = ::fcntl(fd, F_GETFL, 0);
+            ::fcntl(fd, F_SETFL, flags | O_NONBLOCK);
+#endif
+
             announce_fd.reset(fd);
         }
 
@@ -231,7 +254,7 @@ namespace network {
             header.flags        = req.flags;
             header.hash         = req.hash;
 
-            struct iovec iov[2];
+            iovec iov[2];
             iov[0].iov_base = reinterpret_cast<void*>(&header);
             iov[0].iov_len  = sizeof(DataPacket) - 1;
             iov[1].iov_base = const_cast<void*>(static_cast<const void*>(req.data.data()));
@@ -285,7 +308,7 @@ namespace network {
                 std::size_t offset   = static_cast<std::size_t>(i) * packet_mtu;
                 std::size_t frag_len = std::min(static_cast<std::size_t>(packet_mtu), length - offset);
 
-                struct iovec iov[2];
+                iovec iov[2];
                 iov[0].iov_base = reinterpret_cast<void*>(&header);
                 iov[0].iov_len  = sizeof(DataPacket) - 1;
                 iov[1].iov_base = const_cast<void*>(static_cast<const void*>(payload + offset));
@@ -337,7 +360,7 @@ namespace network {
                 std::size_t offset   = static_cast<std::size_t>(i) * packet_mtu;
                 std::size_t frag_len = std::min(static_cast<std::size_t>(packet_mtu), length - offset);
 
-                struct iovec iov[2];
+                iovec iov[2];
                 iov[0].iov_base = reinterpret_cast<void*>(&header);
                 iov[0].iov_len  = sizeof(DataPacket) - 1;
                 iov[1].iov_base = const_cast<void*>(static_cast<const void*>(payload + offset));
@@ -402,9 +425,12 @@ namespace network {
 
     void NUClearNet::read_socket(fd_t fd) {
         // Stack buffer — 65535 is the maximum UDP datagram size
-        alignas(8) uint8_t buffer[65535];
+        alignas(8) uint8_t buffer[65535];  // NOLINT(cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays)
         sock_t source{};
 
+        // Drain all pending datagrams from the socket
+        // The data socket is non-blocking, so recvfrom returns -1/EWOULDBLOCK when empty
+        // For the announce socket, MSG_DONTWAIT provides the same behavior on POSIX
         for (;;) {
             socklen_t source_len = sizeof(source.storage);
             ssize_t received = ::recvfrom(fd,
@@ -434,8 +460,6 @@ namespace network {
 
         switch (header->type) {
             case ANNOUNCE: {
-                // Check if this is a new peer before processing (which adds them)
-                const bool is_new_peer = !discovery->has_peer(source);
                 auto announce_result = discovery->process_announce(source, data, length);
 
                 if (announce_result.is_new) {
@@ -509,10 +533,13 @@ namespace network {
                 const uint8_t* frag_data = data + sizeof(DataPacket) - 1;
                 std::size_t frag_length = length - (sizeof(DataPacket) - 1);
 
-                // Use a hash of the source address bytes as the source key for fragmentation
-                // We use the first 8 bytes of the storage as a simple key
+                // Use a hash of the full source address as the source key for fragmentation
+                // This ensures IPv6 addresses are properly distinguished
                 uint64_t source_key = 0;
-                std::memcpy(&source_key, &source.storage, std::min(sizeof(source_key), sizeof(source.storage)));
+                const auto* bytes = reinterpret_cast<const uint8_t*>(&source.storage);
+                for (std::size_t i = 0; i < sizeof(source.storage); ++i) {
+                    source_key ^= static_cast<uint64_t>(bytes[i]) << ((i % 8) * 8);
+                }
 
                 // Submit to fragmentation
                 Fragmentation::AssembledPacket assembled;
@@ -580,11 +607,11 @@ namespace network {
         }
     }
 
-    void NUClearNet::send_iov(fd_t fd, const sock_t& target, const struct iovec* iov, int iovcnt) {
-        struct msghdr msg{};
-        msg.msg_name       = const_cast<struct sockaddr*>(&target.sock);
+    void NUClearNet::send_iov(fd_t fd, const sock_t& target, const iovec* iov, int iovcnt) {
+        msghdr msg{};
+        msg.msg_name       = const_cast<sockaddr*>(&target.sock);
         msg.msg_namelen    = target.size();
-        msg.msg_iov        = const_cast<struct iovec*>(iov);
+        msg.msg_iov        = const_cast<iovec*>(iov);
         msg.msg_iovlen     = static_cast<decltype(msg.msg_iovlen)>(iovcnt);
         msg.msg_control    = nullptr;
         msg.msg_controllen = 0;

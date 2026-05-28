@@ -177,11 +177,11 @@ namespace network {
         void process_packet(const sock_t& source, const uint8_t* data, std::size_t length);
 
         /// Send raw bytes to a target using scatter IO (multiple buffers without copying)
-        void send_iov(fd_t fd, const sock_t& target, const struct iovec* iov, int iovcnt);
+        void send_iov(fd_t fd, const sock_t& target, const iovec* iov, int iovcnt);
 
         /// Send a single contiguous buffer to a target
         void send_buf(fd_t fd, const sock_t& target, const uint8_t* data, std::size_t length) {
-            struct iovec iov{};
+            iovec iov{};
             iov.iov_base = const_cast<void*>(static_cast<const void*>(data));  // NOLINT(cppcoreguidelines-pro-type-const-cast)
             iov.iov_len  = length;
             send_iov(fd, target, &iov, 1);

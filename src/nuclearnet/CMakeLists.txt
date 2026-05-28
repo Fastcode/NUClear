@@ -38,7 +38,16 @@ find_package(Threads REQUIRED)
 file(GLOB_RECURSE NUCLEARNET_SOURCES CONFIGURE_DEPENDS "*.cpp")
 file(GLOB_RECURSE NUCLEARNET_HEADERS CONFIGURE_DEPENDS "*.hpp")
 
-add_library(nuclearnet STATIC ${NUCLEARNET_SOURCES})
+# Include required utility sources that nuclearnet depends on
+set(NUCLEARNET_UTIL_SOURCES
+    ${CMAKE_CURRENT_SOURCE_DIR}/../util/network/resolve.cpp
+)
+# Include platform shim on Windows
+if(WIN32)
+    list(APPEND NUCLEARNET_UTIL_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/../util/platform.cpp)
+endif()
+
+add_library(nuclearnet STATIC ${NUCLEARNET_SOURCES} ${NUCLEARNET_UTIL_SOURCES})
 add_library(NUClear::nuclearnet ALIAS nuclearnet)
 
 target_include_directories(nuclearnet

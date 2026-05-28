@@ -23,7 +23,12 @@
 #include "Fragmentation.hpp"
 
 #include <algorithm>
+#include <chrono>
+#include <cstdint>
 #include <cstring>
+#include <mutex>
+#include <utility>
+#include <vector>
 
 namespace NUClear {
 namespace network {
@@ -38,7 +43,7 @@ namespace network {
                                                                   uint8_t flags,
                                                                   const std::vector<uint8_t>& payload) const {
         // Calculate how many fragments we need
-        uint16_t packet_count =
+        const uint16_t packet_count =
             payload.empty() ? 1 : static_cast<uint16_t>((payload.size() + packet_mtu - 1) / packet_mtu);
 
         std::vector<Fragment> fragments;
@@ -53,9 +58,9 @@ namespace network {
             frag.hash         = hash;
 
             // Calculate the data slice for this fragment
-            std::size_t offset = static_cast<std::size_t>(i) * packet_mtu;
-            std::size_t length = std::min(static_cast<std::size_t>(packet_mtu), payload.size() - offset);
-            frag.data.assign(payload.begin() + offset, payload.begin() + offset + length);
+            const std::size_t offset = static_cast<std::size_t>(i) * packet_mtu;
+            const std::size_t length = std::min(static_cast<std::size_t>(packet_mtu), payload.size() - offset);
+            frag.data.assign(payload.data() + offset, payload.data() + offset + length);
 
             fragments.push_back(std::move(frag));
         }
@@ -79,13 +84,13 @@ namespace network {
 
         // Enforce max assembly size check
         if (max_assembly_size > 0) {
-            std::size_t projected_size = static_cast<std::size_t>(packet_count) * packet_mtu;
+            const std::size_t projected_size = static_cast<std::size_t>(packet_count) * packet_mtu;
             if (projected_size > max_assembly_size) {
                 return false;
             }
         }
 
-        AssemblyKey key{source_key, packet_id};
+        const AssemblyKey key{source_key, packet_id};
 
         const std::lock_guard<std::mutex> lock(assembly_mutex);
 

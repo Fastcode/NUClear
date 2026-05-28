@@ -28,8 +28,10 @@
 
 // Packing macros for wire format structs
 #ifdef _MSC_VER
+    // NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
     #define NUCLEAR_NET_PACK(...) __pragma(pack(push, 1)) __VA_ARGS__ __pragma(pack(pop))
 #else
+    // NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
     #define NUCLEAR_NET_PACK(...) __VA_ARGS__ __attribute__((__packed__))
 #endif
 
@@ -71,7 +73,7 @@ namespace network {
         explicit PacketHeader(PacketType t) : type(t) {}
 
         /// Magic bytes: radioactive symbol in UTF-8
-        uint8_t header[3] = {0xE2, 0x98, 0xA2};
+        uint8_t header[3] = {0xE2, 0x98, 0xA2};  // NOLINT(cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays)
         /// Protocol version
         uint8_t version = PROTOCOL_VERSION;
         /// Packet type

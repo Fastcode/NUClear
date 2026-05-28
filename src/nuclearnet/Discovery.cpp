@@ -26,6 +26,9 @@
 #include <chrono>
 #include <cstdint>
 #include <cstring>
+#include <map>
+#include <mutex>
+#include <set>
 #include <string>
 #include <utility>
 #include <vector>
@@ -68,7 +71,7 @@
             auto name_len = static_cast<uint16_t>(name.size());
             std::memcpy(ptr, &name_len, sizeof(uint16_t));
             ptr += sizeof(uint16_t);
-            std::memcpy(ptr, name.data(), name.size());
+            std::memcpy(ptr, name.data(), name.size());  // NOLINT(bugprone-not-null-terminated-result)
             ptr += name.size();
 
             // Write subscription count and hashes
@@ -124,7 +127,7 @@
             }
 
             // Read name
-            std::string name(reinterpret_cast<const char*>(ptr), name_len);
+            const std::string name(reinterpret_cast<const char*>(ptr), name_len);
             ptr += name_len;
             remaining -= name_len;
 
@@ -286,13 +289,8 @@
 
                 switch (peer.handshake) {
                     case HandshakeState::IDLE:
-                        if (has_syn && !has_ack) {
-                            // Received SYN — respond with SYN+ACK
-                            peer.handshake        = HandshakeState::SYN_RECEIVED;
-                            result.response_flags = SYN | CON_ACK;
-                        }
-                        else if (has_syn && has_ack) {
-                            // SYN+ACK but we haven't sent SYN — treat as SYN, respond SYN+ACK
+                        if (has_syn) {
+                            // Received SYN (or SYN+ACK when we haven't sent SYN) — respond with SYN+ACK
                             peer.handshake        = HandshakeState::SYN_RECEIVED;
                             result.response_flags = SYN | CON_ACK;
                         }
