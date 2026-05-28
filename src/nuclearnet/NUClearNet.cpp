@@ -64,7 +64,12 @@ namespace network {
     }
 
     NUClearNet::~NUClearNet() {
-        shutdown();
+        try {
+            shutdown();
+        }
+        catch (...) {
+            // Destructor must not throw
+        }
     }
 
     void NUClearNet::reset(const NetworkConfig& cfg) {
@@ -178,11 +183,10 @@ namespace network {
             }
 
             // Join multicast group if applicable
-            bool multicast = (announce_target.sock.sa_family == AF_INET
-                              && (ntohl(announce_target.ipv4.sin_addr.s_addr) & 0xF0000000U) == 0xE0000000U)
-                             || (announce_target.sock.sa_family == AF_INET6
-                                 && announce_target.ipv6.sin6_addr.s6_addr[0] == 0xFF);
-
+            const bool multicast = (announce_target.sock.sa_family == AF_INET
+                                    && (ntohl(announce_target.ipv4.sin_addr.s_addr) & 0xF0000000U) == 0xE0000000U)
+                                   || (announce_target.sock.sa_family == AF_INET6
+                                       && announce_target.ipv6.sin6_addr.s6_addr[0] == 0xFF);
             if (multicast) {
                 if (announce_target.sock.sa_family == AF_INET) {
                     ip_mreq mreq{};
@@ -608,10 +612,14 @@ namespace network {
     }
 
     void NUClearNet::send_iov(fd_t fd, const sock_t& target, const iovec* iov, int iovcnt) {
+        if (fd == INVALID_SOCKET) {
+            return;
+        }
+
         msghdr msg{};
-        msg.msg_name       = const_cast<sockaddr*>(&target.sock);
+        msg.msg_name       = const_cast<sockaddr*>(&target.sock);   // NOLINT(cppcoreguidelines-pro-type-const-cast)
         msg.msg_namelen    = target.size();
-        msg.msg_iov        = const_cast<iovec*>(iov);
+        msg.msg_iov        = const_cast<iovec*>(iov);               // NOLINT(cppcoreguidelines-pro-type-const-cast)
         msg.msg_iovlen     = static_cast<decltype(msg.msg_iovlen)>(iovcnt);
         msg.msg_control    = nullptr;
         msg.msg_controllen = 0;

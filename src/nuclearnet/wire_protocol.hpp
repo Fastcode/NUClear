@@ -188,11 +188,11 @@ namespace network {
      *
      * @return true if the header is valid (correct magic, correct version, valid type)
      */
-    inline bool validate_header(const void* data, std::size_t length) {
+    inline bool validate_header(const uint8_t* data, std::size_t length) {
         if (length < sizeof(PacketHeader)) {
             return false;
         }
-        const auto* header = static_cast<const PacketHeader*>(data);
+        const auto* header = reinterpret_cast<const PacketHeader*>(data);  // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
         return header->header[0] == 0xE2 && header->header[1] == 0x98 && header->header[2] == 0xA2
                && header->version == PROTOCOL_VERSION && header->type >= ANNOUNCE && header->type <= CONNECT;
     }
