@@ -46,19 +46,19 @@ namespace network {
     public:
         /// Result of a completed reassembly
         struct AssembledPacket {
-            uint16_t packet_id;
-            uint64_t hash;
-            uint8_t flags;
+            uint16_t packet_id{0};
+            uint64_t hash{0};
+            uint8_t flags{0};
             std::vector<uint8_t> payload;
         };
 
         /// A single fragment ready to be sent
         struct Fragment {
-            uint16_t packet_id;
-            uint16_t packet_no;
-            uint16_t packet_count;
-            uint8_t flags;
-            uint64_t hash;
+            uint16_t packet_id{0};
+            uint16_t packet_no{0};
+            uint16_t packet_count{0};
+            uint8_t flags{0};
+            uint64_t hash{0};
             std::vector<uint8_t> data;
         };
 
@@ -140,9 +140,9 @@ namespace network {
 
         /// State for an in-progress reassembly
         struct Assembly {
-            uint64_t hash;
-            uint8_t flags;
-            uint16_t packet_count;
+            uint64_t hash{0};
+            uint8_t flags{0};
+            uint16_t packet_count{0};
             std::chrono::steady_clock::time_point last_update;
             std::map<uint16_t, std::vector<uint8_t>> fragments;
         };

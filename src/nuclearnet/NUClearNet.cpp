@@ -23,17 +23,27 @@
 #include "NUClearNet.hpp"
 
 #include <algorithm>
+#include <array>
+#include <chrono>
+#include <cstdint>
 #include <cstring>
-#include <stdexcept>
+#include <memory>
+#include <set>
 #include <system_error>
+#include <utility>
+#include <vector>
 
 #include "../util/network/resolve.hpp"
+#include "../util/platform.hpp"
+#include "Discovery.hpp"
+#include "Fragmentation.hpp"
+#include "Reliability.hpp"
 #include "wire_protocol.hpp"
 
 namespace NUClear {
 namespace network {
 
-    const std::chrono::milliseconds NUClearNet::ANNOUNCE_INTERVAL(500);
+    const std::chrono::milliseconds NUClearNet::ANNOUNCE_INTERVAL(500);  // NOLINT(cert-err58-cpp)
 
     NUClearNet::NUClearNet()
         : discovery(std::make_unique<Discovery>(std::chrono::seconds(2)))
@@ -67,27 +77,27 @@ namespace network {
         try {
             shutdown();
         }
-        catch (...) {
+        catch (...) {  // NOLINT(bugprone-empty-catch)
             // Destructor must not throw
         }
     }
 
-    void NUClearNet::reset(const NetworkConfig& cfg) {
+    void NUClearNet::reset(const NetworkConfig& config) {
         // Shut down existing connections
         shutdown();
 
         // Clear per-peer state that should not survive a reset
         deduplicators.clear();
 
-        config    = cfg;
-        node_name = cfg.name;
+        this->config = config;
+        node_name    = config.name;
 
         // Update module configurations
-        discovery     = std::make_unique<Discovery>(cfg.peer_timeout);
+        discovery     = std::make_unique<Discovery>(config.peer_timeout);
         fragmentation = std::make_unique<Fragmentation>(
-            static_cast<uint16_t>(cfg.mtu - sizeof(DataPacket) + 1 - 40 - 8),  // MTU - headers
-            cfg.max_assembly_size,
-            cfg.peer_timeout);  // Assembly timeout matches peer timeout
+            static_cast<uint16_t>(config.mtu - sizeof(DataPacket) + 1 - 40 - 8),  // MTU - headers
+            config.max_assembly_size,
+            config.peer_timeout);  // Assembly timeout matches peer timeout
         reliability = std::make_unique<Reliability>();
 
         // Re-wire discovery callbacks
@@ -110,11 +120,11 @@ namespace network {
         });
 
         // Resolve announce target
-        announce_target = util::network::resolve(cfg.announce_address, cfg.announce_port);
+        announce_target = util::network::resolve(config.announce_address, config.announce_port);
 
         // Determine bind address
         sock_t bind_addr{};
-        if (cfg.bind_address.empty()) {
+        if (config.bind_address.empty()) {
             bind_addr = announce_target;
             if (announce_target.sock.sa_family == AF_INET) {
                 bind_addr.ipv4.sin_addr.s_addr = htonl(INADDR_ANY);
@@ -124,7 +134,7 @@ namespace network {
             }
         }
         else {
-            bind_addr = util::network::resolve(cfg.bind_address, cfg.announce_port);
+            bind_addr = util::network::resolve(config.bind_address, config.announce_port);
         }
 
         // Open data socket (ephemeral port)
@@ -137,7 +147,7 @@ namespace network {
                 data_bind.ipv6.sin6_port = 0;
             }
 
-            fd_t fd = ::socket(data_bind.sock.sa_family, SOCK_DGRAM, IPPROTO_UDP);
+            const fd_t fd = ::socket(data_bind.sock.sa_family, SOCK_DGRAM, IPPROTO_UDP);
             if (fd < 0) {
                 throw std::system_error(network_errno, std::system_category(), "Failed to create data socket");
             }
@@ -156,7 +166,7 @@ namespace network {
             u_long non_blocking = 1;
             ioctl(fd, FIONBIO, &non_blocking);
 #else
-            int flags = ::fcntl(fd, F_GETFL, 0);
+            const int flags = ::fcntl(fd, F_GETFL, 0);
             ::fcntl(fd, F_SETFL, flags | O_NONBLOCK);
 #endif
 
@@ -165,7 +175,7 @@ namespace network {
 
         // Open announce socket (known port)
         {
-            fd_t fd = ::socket(bind_addr.sock.sa_family, SOCK_DGRAM, IPPROTO_UDP);
+            const fd_t fd = ::socket(bind_addr.sock.sa_family, SOCK_DGRAM, IPPROTO_UDP);
             if (fd < 0) {
                 throw std::system_error(network_errno, std::system_category(), "Failed to create announce socket");
             }
@@ -214,7 +224,7 @@ namespace network {
             u_long non_blocking = 1;
             ioctl(fd, FIONBIO, &non_blocking);
 #else
-            int flags = ::fcntl(fd, F_GETFL, 0);
+            const int flags = ::fcntl(fd, F_GETFL, 0);
             ::fcntl(fd, F_SETFL, flags | O_NONBLOCK);
 #endif
 
@@ -258,13 +268,12 @@ namespace network {
             header.flags        = req.flags;
             header.hash         = req.hash;
 
-            iovec iov[2];
-            iov[0].iov_base = reinterpret_cast<void*>(&header);
-            iov[0].iov_len  = sizeof(DataPacket) - 1;
-            iov[1].iov_base = const_cast<void*>(static_cast<const void*>(req.data.data()));
-            iov[1].iov_len  = req.data.size();
+            std::array<iovec, 2> iov{{
+                {reinterpret_cast<void*>(&header), sizeof(DataPacket) - 1},                              // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
+                {const_cast<void*>(static_cast<const void*>(req.data.data())), req.data.size()},  // NOLINT(cppcoreguidelines-pro-type-const-cast)
+            }};
 
-            send_iov(data_fd, req.target, iov, 2);
+            send_iov(data_fd, req.target, iov.data(), static_cast<int>(iov.size()));
         }
 
         // Clean up expired fragment assemblies
@@ -298,9 +307,8 @@ namespace network {
         uint16_t packet_mtu = fragmentation->get_packet_mtu();
         uint16_t packet_count = length == 0 ? 1 : static_cast<uint16_t>((length + packet_mtu - 1) / packet_mtu);
 
-        // Unreliable broadcast: send once to the multicast/broadcast group
-        // All connected peers receive it on their announce socket — receivers filter by subscription
-        if (target.empty() && !reliable) {
+        // Send all fragments of a message to a given destination
+        auto send_fragments = [&](const sock_t& dest) {
             for (uint16_t i = 0; i < packet_count; ++i) {
                 DataPacket header{};
                 header.packet_id    = packet_id;
@@ -309,17 +317,22 @@ namespace network {
                 header.flags        = flags;
                 header.hash         = hash;
 
-                std::size_t offset   = static_cast<std::size_t>(i) * packet_mtu;
-                std::size_t frag_len = std::min(static_cast<std::size_t>(packet_mtu), length - offset);
+                const std::size_t offset   = static_cast<std::size_t>(i) * packet_mtu;
+                const std::size_t frag_len = std::min(static_cast<std::size_t>(packet_mtu), length - offset);
 
-                iovec iov[2];
-                iov[0].iov_base = reinterpret_cast<void*>(&header);
-                iov[0].iov_len  = sizeof(DataPacket) - 1;
-                iov[1].iov_base = const_cast<void*>(static_cast<const void*>(payload + offset));
-                iov[1].iov_len  = frag_len;
+                std::array<iovec, 2> iov{{
+                    {reinterpret_cast<void*>(&header), sizeof(DataPacket) - 1},                            // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
+                    {const_cast<void*>(static_cast<const void*>(payload + offset)), frag_len},  // NOLINT(cppcoreguidelines-pro-type-const-cast)
+                }};
 
-                send_iov(data_fd, announce_target, iov, 2);
+                send_iov(data_fd, dest, iov.data(), static_cast<int>(iov.size()));
             }
+        };
+
+        // Unreliable broadcast: send once to the multicast/broadcast group
+        // All connected peers receive it on their announce socket — receivers filter by subscription
+        if (target.empty() && !reliable) {
+            send_fragments(announce_target);
             return;
         }
 
@@ -351,27 +364,9 @@ namespace network {
             return;
         }
 
-        // Send each fragment to each target using scatter IO (no data copy)
+        // Send each fragment to each target
         for (const auto& tgt : targets) {
-            for (uint16_t i = 0; i < packet_count; ++i) {
-                DataPacket header{};
-                header.packet_id    = packet_id;
-                header.packet_no    = i;
-                header.packet_count = packet_count;
-                header.flags        = flags;
-                header.hash         = hash;
-
-                std::size_t offset   = static_cast<std::size_t>(i) * packet_mtu;
-                std::size_t frag_len = std::min(static_cast<std::size_t>(packet_mtu), length - offset);
-
-                iovec iov[2];
-                iov[0].iov_base = reinterpret_cast<void*>(&header);
-                iov[0].iov_len  = sizeof(DataPacket) - 1;
-                iov[1].iov_base = const_cast<void*>(static_cast<const void*>(payload + offset));
-                iov[1].iov_len  = frag_len;
-
-                send_iov(data_fd, tgt, iov, 2);
-            }
+            send_fragments(tgt);
 
             // If reliable, track for retransmission (single copy stored internally)
             if (reliable) {
@@ -429,26 +424,25 @@ namespace network {
 
     void NUClearNet::read_socket(fd_t fd) {
         // Stack buffer — 65535 is the maximum UDP datagram size
-        alignas(8) uint8_t buffer[65535];  // NOLINT(cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays)
+        alignas(8) std::array<uint8_t, 65535> buffer{};
         sock_t source{};
 
         // Drain all pending datagrams from the socket
         // The data socket is non-blocking, so recvfrom returns -1/EWOULDBLOCK when empty
         // For the announce socket, MSG_DONTWAIT provides the same behavior on POSIX
-        for (;;) {
-            socklen_t source_len = sizeof(source.storage);
-            ssize_t received = ::recvfrom(fd,
-                                          reinterpret_cast<char*>(buffer),
-                                          sizeof(buffer),
-                                          MSG_DONTWAIT,
-                                          &source.sock,
-                                          &source_len);
+        socklen_t source_len = 0;
+        auto recv = [&]() {
+            source_len = sizeof(source.storage);
+            return ::recvfrom(fd,
+                              reinterpret_cast<char*>(buffer.data()),
+                              buffer.size(),
+                              MSG_DONTWAIT,
+                              &source.sock,
+                              &source_len);
+        };
 
-            if (received <= 0) {
-                break;
-            }
-
-            process_packet(source, buffer, static_cast<std::size_t>(received));
+        for (ssize_t received = recv(); received > 0; received = recv()) {
+            process_packet(source, buffer.data(), static_cast<std::size_t>(received));
         }
     }
 
@@ -457,161 +451,164 @@ namespace network {
             return;
         }
 
-        const auto* header = reinterpret_cast<const PacketHeader*>(data);
+        const auto* header = reinterpret_cast<const PacketHeader*>(data);  // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
 
         // Touch the peer to reset timeout
         discovery->touch_peer(source);
 
         switch (header->type) {
-            case ANNOUNCE: {
-                auto announce_result = discovery->process_announce(source, data, length);
-
-                if (announce_result.is_new) {
-                    // Force an immediate announce to the multicast/broadcast group
-                    // so the new peer hears us on the announce channel (confirms our_d→their_a)
-                    announce();
-                    last_announce = std::chrono::steady_clock::now();
-                }
-
-                // Send CONNECT packet if the handshake needs it (initial SYN or retransmit)
-                if (announce_result.response_flags != 0) {
-                    auto pkt = Discovery::build_connect_packet(announce_result.response_flags);
-                    send_buf(data_fd, source, pkt.data(), pkt.size());
-
-                    // Mark SYN_SENT if we're sending a SYN (only advances from IDLE)
-                    if ((announce_result.response_flags & SYN) != 0) {
-                        discovery->mark_syn_sent(source);
-                    }
-                }
-            } break;
-
-            case LEAVE: {
-                discovery->process_leave(source);
-            } break;
-
-            case CONNECT: {
-                if (length < sizeof(ConnectPacket)) {
-                    return;
-                }
-                const auto* pkt = reinterpret_cast<const ConnectPacket*>(data);
-                auto result = discovery->process_connect(source, pkt->flags);
-
-                // Send response if the state machine requires one
-                if (result.response_flags != 0) {
-                    auto response = Discovery::build_connect_packet(result.response_flags);
-                    send_buf(data_fd, source, response.data(), response.size());
-                }
-            } break;
-
-            case DATA: {
-                // Only accept data from connected peers
-                if (!discovery->is_connected(source)) {
-                    return;
-                }
-
-                if (length < sizeof(DataPacket)) {
-                    return;
-                }
-
-                const auto* pkt = reinterpret_cast<const DataPacket*>(data);
-
-                // Drop messages we are not subscribed to (relevant for multicast broadcast data)
-                if (!routing.is_locally_subscribed(pkt->hash)) {
-                    return;
-                }
-
-                // Check for duplicates (at the packet group level)
-                auto& dedup = deduplicators[source];
-
-                if (dedup.is_duplicate(pkt->packet_id)) {
-                    // Already processed this packet group — send ACK if reliable
-                    if ((pkt->flags & RELIABLE) != 0) {
-                        std::vector<bool> all_received(pkt->packet_count, true);
-                        auto ack = Reliability::build_ack_packet(pkt->packet_id, pkt->packet_count, all_received);
-                        send_buf(data_fd, source, ack.data(), ack.size());
-                    }
-                    return;
-                }
-
-                // Extract fragment data
-                const uint8_t* frag_data = data + sizeof(DataPacket) - 1;
-                std::size_t frag_length = length - (sizeof(DataPacket) - 1);
-
-                // Use a hash of the full source address as the source key for fragmentation
-                // This ensures IPv6 addresses are properly distinguished
-                uint64_t source_key = 0;
-                const auto* bytes = reinterpret_cast<const uint8_t*>(&source.storage);
-                for (std::size_t i = 0; i < sizeof(source.storage); ++i) {
-                    source_key ^= static_cast<uint64_t>(bytes[i]) << ((i % 8) * 8);
-                }
-
-                // Submit to fragmentation
-                Fragmentation::AssembledPacket assembled;
-                bool has_assembled = fragmentation->submit_fragment(source_key,
-                                                                    pkt->packet_id,
-                                                                    pkt->packet_no,
-                                                                    pkt->packet_count,
-                                                                    pkt->hash,
-                                                                    pkt->flags,
-                                                                    frag_data,
-                                                                    frag_length,
-                                                                    assembled);
-
-                // Send ACK for reliable packets
-                if ((pkt->flags & RELIABLE) != 0) {
-                    // Build a partial ACK (we'd need to track received fragments per assembly)
-                    // For now, send an ACK indicating we have this fragment
-                    std::vector<bool> received(pkt->packet_count, false);
-                    received[pkt->packet_no] = true;
-                    auto ack = Reliability::build_ack_packet(pkt->packet_id, pkt->packet_count, received);
-                    send_buf(data_fd, source, ack.data(), ack.size());
-                }
-
-                // If we have a complete message, deliver it
-                if (has_assembled) {
-                    dedup.add_packet(assembled.packet_id);
-
-                    if (packet_callback) {
-                        // Look up peer name
-                        std::string peer_name;
-                        const auto* peer = discovery->get_peer(source);
-                        if (peer != nullptr) {
-                            peer_name = peer->name;
-                        }
-
-                        bool reliable = (assembled.flags & RELIABLE) != 0;
-                        packet_callback(source, peer_name, assembled.hash, reliable, std::move(assembled.payload));
-                    }
-
-                    // Send full ACK for reliable
-                    if ((assembled.flags & RELIABLE) != 0) {
-                        std::vector<bool> all_received(pkt->packet_count, true);
-                        auto ack = Reliability::build_ack_packet(pkt->packet_id, pkt->packet_count, all_received);
-                        send_buf(data_fd, source, ack.data(), ack.size());
-                    }
-                }
-            } break;
-
-            case ACK: {
-                // Only accept ACKs from connected peers
-                if (!discovery->is_connected(source)) {
-                    return;
-                }
-
-                if (length < sizeof(ACKPacket)) {
-                    return;
-                }
-                const auto* pkt = reinterpret_cast<const ACKPacket*>(data);
-                const uint8_t* bitset = data + sizeof(ACKPacket) - 1;
-                std::size_t bitset_size = length - (sizeof(ACKPacket) - 1);
-                reliability->process_ack(source, pkt->packet_id, pkt->packet_count, bitset, bitset_size);
-            } break;
-
-            default: break;
+            case ANNOUNCE: process_announce_packet(source, data, length); return;
+            case LEAVE: process_leave_packet(source); return;
+            case CONNECT: process_connect_packet(source, data, length); return;
+            case DATA: process_data_packet(source, data, length); return;
+            case ACK: process_ack_packet(source, data, length); return;
+            default: return;
         }
     }
 
-    void NUClearNet::send_iov(fd_t fd, const sock_t& target, const iovec* iov, int iovcnt) {
+    void NUClearNet::process_announce_packet(const sock_t& source, const uint8_t* data, std::size_t length) {
+        auto announce_result = discovery->process_announce(source, data, length);
+
+        if (announce_result.is_new) {
+            // Force an immediate announce to the multicast/broadcast group
+            // so the new peer hears us on the announce channel (confirms our_d→their_a)
+            announce();
+            last_announce = std::chrono::steady_clock::now();
+        }
+
+        // Send CONNECT packet if the handshake needs it (initial SYN or retransmit)
+        if (announce_result.response_flags != 0) {
+            auto pkt = Discovery::build_connect_packet(announce_result.response_flags);
+            send_buf(data_fd, source, pkt.data(), pkt.size());
+
+            // Mark SYN_SENT if we're sending a SYN (only advances from IDLE)
+            if ((announce_result.response_flags & SYN) != 0) {
+                discovery->mark_syn_sent(source);
+            }
+        }
+    }
+
+    void NUClearNet::process_leave_packet(const sock_t& source) {
+        discovery->process_leave(source);
+    }
+
+    void NUClearNet::process_connect_packet(const sock_t& source, const uint8_t* data, std::size_t length) {
+        if (length < sizeof(ConnectPacket)) {
+            return;
+        }
+        const auto* pkt = reinterpret_cast<const ConnectPacket*>(data);  // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
+        auto result     = discovery->process_connect(source, pkt->flags);
+
+        // Send response if the state machine requires one
+        if (result.response_flags != 0) {
+            auto response = Discovery::build_connect_packet(result.response_flags);
+            send_buf(data_fd, source, response.data(), response.size());
+        }
+    }
+
+    void NUClearNet::process_data_packet(const sock_t& source, const uint8_t* data, std::size_t length) {
+        // Only accept data from connected peers
+        if (!discovery->is_connected(source)) {
+            return;
+        }
+
+        if (length < sizeof(DataPacket)) {
+            return;
+        }
+
+        const auto* pkt = reinterpret_cast<const DataPacket*>(data);  // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
+
+        // Drop messages we are not subscribed to (relevant for multicast broadcast data)
+        if (!routing.is_locally_subscribed(pkt->hash)) {
+            return;
+        }
+
+        // Check for duplicates (at the packet group level)
+        auto& dedup = deduplicators[source];
+
+        if (dedup.is_duplicate(pkt->packet_id)) {
+            // Already processed this packet group — send ACK if reliable
+            if ((pkt->flags & RELIABLE) != 0) {
+                const std::vector<bool> all_received(pkt->packet_count, true);
+                auto ack = Reliability::build_ack_packet(pkt->packet_id, pkt->packet_count, all_received);
+                send_buf(data_fd, source, ack.data(), ack.size());
+            }
+            return;
+        }
+
+        // Extract fragment data
+        const uint8_t* frag_data        = data + sizeof(DataPacket) - 1;
+        const std::size_t frag_length   = length - (sizeof(DataPacket) - 1);
+
+        // Use a hash of the full source address as the source key for fragmentation
+        // This ensures IPv6 addresses are properly distinguished
+        uint64_t source_key         = 0;
+        const auto* bytes = reinterpret_cast<const uint8_t*>(&source.storage);  // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
+        for (std::size_t i = 0; i < sizeof(source.storage); ++i) {
+            source_key ^= static_cast<uint64_t>(bytes[i]) << ((i % 8) * 8);
+        }
+
+        // Submit to fragmentation
+        Fragmentation::AssembledPacket assembled;
+        const bool has_assembled = fragmentation->submit_fragment(source_key,
+                                                            pkt->packet_id,
+                                                            pkt->packet_no,
+                                                            pkt->packet_count,
+                                                            pkt->hash,
+                                                            pkt->flags,
+                                                            frag_data,
+                                                            frag_length,
+                                                            assembled);
+
+        // Send ACK for reliable packets
+        if ((pkt->flags & RELIABLE) != 0) {
+            std::vector<bool> received(pkt->packet_count, false);
+            received[pkt->packet_no] = true;
+            auto ack = Reliability::build_ack_packet(pkt->packet_id, pkt->packet_count, received);
+            send_buf(data_fd, source, ack.data(), ack.size());
+        }
+
+        // If we have a complete message, deliver it
+        if (has_assembled) {
+            dedup.add_packet(assembled.packet_id);
+
+            if (packet_callback) {
+                // Look up peer name
+                std::string peer_name;
+                const auto* peer = discovery->get_peer(source);
+                if (peer != nullptr) {
+                    peer_name = peer->name;
+                }
+
+                const bool reliable_flag = (assembled.flags & RELIABLE) != 0;
+                packet_callback(source, peer_name, assembled.hash, reliable_flag, std::move(assembled.payload));
+            }
+
+            // Send full ACK for reliable
+            if ((assembled.flags & RELIABLE) != 0) {
+                const std::vector<bool> all_received(pkt->packet_count, true);
+                auto ack = Reliability::build_ack_packet(pkt->packet_id, pkt->packet_count, all_received);
+                send_buf(data_fd, source, ack.data(), ack.size());
+            }
+        }
+    }
+
+    void NUClearNet::process_ack_packet(const sock_t& source, const uint8_t* data, std::size_t length) {
+        // Only accept ACKs from connected peers
+        if (!discovery->is_connected(source)) {
+            return;
+        }
+
+        if (length < sizeof(ACKPacket)) {
+            return;
+        }
+        const auto* pkt = reinterpret_cast<const ACKPacket*>(data);  // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
+        const uint8_t* bitset       = data + sizeof(ACKPacket) - 1;
+        const std::size_t bitset_size = length - (sizeof(ACKPacket) - 1);
+        reliability->process_ack(source, pkt->packet_id, pkt->packet_count, bitset, bitset_size);
+    }
+
+    void NUClearNet::send_iov(fd_t fd, const sock_t& target, const iovec* iov, int iovcnt) {  // NOLINT(readability-convert-member-functions-to-static)
         if (fd == INVALID_SOCKET) {
             return;
         }

@@ -23,6 +23,7 @@
 #ifndef NUCLEAR_NETWORK_NUCLEARNET_HPP
 #define NUCLEAR_NETWORK_NUCLEARNET_HPP
 
+#include <array>
 #include <chrono>
 #include <cstdint>
 #include <functional>
@@ -166,6 +167,24 @@ namespace network {
          */
         std::vector<fd_t> listen_fds() const;
 
+        /// Process a single received packet (dispatches to per-type handlers)
+        void process_packet(const sock_t& source, const uint8_t* data, std::size_t length);
+
+        /// Process an ANNOUNCE packet from a peer
+        void process_announce_packet(const sock_t& source, const uint8_t* data, std::size_t length);
+
+        /// Process a LEAVE packet from a peer
+        void process_leave_packet(const sock_t& source);
+
+        /// Process a CONNECT packet from a peer
+        void process_connect_packet(const sock_t& source, const uint8_t* data, std::size_t length);
+
+        /// Process a DATA packet from a peer
+        void process_data_packet(const sock_t& source, const uint8_t* data, std::size_t length);
+
+        /// Process an ACK packet from a peer
+        void process_ack_packet(const sock_t& source, const uint8_t* data, std::size_t length);
+
     private:
         /// Send an announce packet to the announce address
         void announce();
@@ -173,18 +192,15 @@ namespace network {
         /// Read and process all pending packets from a socket
         void read_socket(fd_t fd);
 
-        /// Process a single received packet
-        void process_packet(const sock_t& source, const uint8_t* data, std::size_t length);
-
         /// Send raw bytes to a target using scatter IO (multiple buffers without copying)
         void send_iov(fd_t fd, const sock_t& target, const iovec* iov, int iovcnt);
 
         /// Send a single contiguous buffer to a target
         void send_buf(fd_t fd, const sock_t& target, const uint8_t* data, std::size_t length) {
-            iovec iov{};
-            iov.iov_base = const_cast<void*>(static_cast<const void*>(data));  // NOLINT(cppcoreguidelines-pro-type-const-cast)
-            iov.iov_len  = length;
-            send_iov(fd, target, &iov, 1);
+            std::array<iovec, 1> iov{};
+            iov[0].iov_base = const_cast<void*>(static_cast<const void*>(data));  // NOLINT(cppcoreguidelines-pro-type-const-cast)
+            iov[0].iov_len  = length;
+            send_iov(fd, target, iov.data(), 1);
         }
 
         // Configuration
