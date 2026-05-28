@@ -179,17 +179,18 @@ namespace threading {
             explicit Group(std::shared_ptr<const util::GroupDescriptor> descriptor);
 
             /**
-             * Try to submit a task through the lock-free fast path.
-             *
-             * If a group token is available the task is submitted to the pool immediately.
-             * Otherwise the task is queued until a token is released.
-             *
-             * @param task       the reaction task to submit
-             * @param pool       the pool to submit to when runnable
-             * @param clear_idle if true, clear idle state on submission
-             *
-             * @return true if the task was submitted immediately
+             * Destroy the Group object. Drains any parked waiters in the fast-path buckets so the
+             * `external_waiters` counter on every Pool referenced by a queued WaitEntry is balanced
+             * back to zero; otherwise a Pool worker could spin forever in `get_task()` waiting for
+             * waiters that will never be drained.
              */
+            ~Group();
+
+            Group(const Group&)            = delete;
+            Group(Group&&)                 = delete;
+            Group& operator=(const Group&) = delete;
+            Group& operator=(Group&&)      = delete;
+
             /**
              * Try to acquire a token for inline execution without submitting to a pool.
              *

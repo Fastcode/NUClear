@@ -151,6 +151,27 @@ namespace threading {
         Group::Group(std::shared_ptr<const util::GroupDescriptor> descriptor)
             : descriptor(std::move(descriptor)), tokens(this->descriptor->concurrency) {}
 
+        Group::~Group() {
+            // Drain any waiters still parked in the fast-path buckets so the external_waiters
+            // counter on each Pool is balanced back to zero. If we let the wait_buckets just go
+            // out of scope, the WaitEntry destructors would silently drop the tasks but never
+            // call unregister_external_waiter, and the matching Pool worker would loop forever
+            // in get_task() waiting for waiters that no longer exist.
+            //
+            // Per the Scheduler field declaration order (`pools` declared before `groups`),
+            // Groups are destroyed before Pools, so every WaitEntry::pool pointer is still
+            // valid here.
+            WaitEntry entry;
+            for (auto& bucket : wait_buckets) {
+                while (bucket.try_dequeue(entry)) {
+                    if (entry.pool != nullptr) {
+                        entry.pool->unregister_external_waiter();
+                    }
+                    entry = WaitEntry{};
+                }
+            }
+        }
+
         std::unique_ptr<Lock> Group::try_acquire_running_lock() {
             if (slow_pending.load(std::memory_order_acquire) > 0) {
                 return nullptr;

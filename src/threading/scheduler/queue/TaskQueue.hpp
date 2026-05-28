@@ -26,6 +26,7 @@
 #include <array>
 #include <atomic>
 #include <cstddef>
+#include <memory>
 #include <new>
 #include <thread>
 #include <type_traits>
@@ -99,8 +100,17 @@ namespace threading {
                 }
 
                 bool link_next_block(Block* block) {
+                    // Hold the new block in a unique_ptr so that if the CAS fails (another producer
+                    // linked the next block first) we don't leak the freshly allocated Block.
+                    // Function arguments are unconditionally evaluated in C++, so the previous form
+                    // `compare_exchange_strong(expected, allocate_block(), ...)` leaked one Block per
+                    // contended overflow.
                     Block* expected = nullptr;
-                    if (block->next.compare_exchange_strong(expected, allocate_block(), std::memory_order_acq_rel)) {
+                    std::unique_ptr<Block> candidate(allocate_block());
+                    if (block->next.compare_exchange_strong(expected,
+                                                            candidate.get(),
+                                                            std::memory_order_acq_rel)) {
+                        candidate.release();
                         return true;
                     }
                     return expected != nullptr;
