@@ -41,6 +41,12 @@ class PowerPlant;
  */
 class Environment {
 public:
+    /**
+     * Constructs a new Environment with the given PowerPlant and reactor name.
+     *
+     * @param powerplant   The PowerPlant instance this reactor will be installed in
+     * @param reactor_name The demangled type name of the reactor being constructed
+     */
     Environment(PowerPlant& powerplant, std::string reactor_name)
         : powerplant(powerplant), reactor_name(std::move(reactor_name)) {}
 
