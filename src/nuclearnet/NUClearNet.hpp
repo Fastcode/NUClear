@@ -198,8 +198,13 @@ namespace network {
         /// Send a single contiguous buffer to a target
         void send_buf(fd_t fd, const sock_t& target, const uint8_t* data, std::size_t length) {
             std::array<iovec, 1> iov{};
+#ifdef _WIN32
+            iov[0].buf = reinterpret_cast<CHAR*>(const_cast<uint8_t*>(data));  // NOLINT(cppcoreguidelines-pro-type-const-cast)
+            iov[0].len = static_cast<ULONG>(length);
+#else
             iov[0].iov_base = const_cast<char*>(reinterpret_cast<const char*>(data));  // NOLINT(cppcoreguidelines-pro-type-const-cast,cppcoreguidelines-pro-type-reinterpret-cast)
             iov[0].iov_len  = static_cast<decltype(iov[0].iov_len)>(length);
+#endif
             send_iov(fd, target, iov.data(), 1);
         }
 

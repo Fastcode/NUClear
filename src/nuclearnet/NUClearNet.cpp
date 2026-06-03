@@ -43,6 +43,24 @@
 namespace NUClear {
 namespace network {
 
+namespace {
+
+    iovec make_iovec(void* base, std::size_t len) {
+#ifdef _WIN32
+        iovec iov{};
+        iov.buf = reinterpret_cast<CHAR*>(base);  // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
+        iov.len = static_cast<ULONG>(len);
+        return iov;
+#else
+        iovec iov{};
+        iov.iov_base = base;
+        iov.iov_len  = len;
+        return iov;
+#endif
+    }
+
+}  // namespace
+
     const std::chrono::milliseconds NUClearNet::ANNOUNCE_INTERVAL(500);  // NOLINT(cert-err58-cpp)
 
     NUClearNet::NUClearNet()
@@ -268,11 +286,10 @@ namespace network {
             header.flags        = req.flags;
             header.hash         = req.hash;
 
-            std::array<iovec, 2> iov{};
-            iov[0].iov_base = reinterpret_cast<char*>(&header);  // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
-            iov[0].iov_len  = static_cast<decltype(iov[0].iov_len)>(sizeof(DataPacket) - 1);
-            iov[1].iov_base = const_cast<char*>(reinterpret_cast<const char*>(req.data.data()));  // NOLINT(cppcoreguidelines-pro-type-const-cast,cppcoreguidelines-pro-type-reinterpret-cast)
-            iov[1].iov_len  = static_cast<decltype(iov[1].iov_len)>(req.data.size());
+            std::array<iovec, 2> iov{
+                make_iovec(reinterpret_cast<void*>(&header), sizeof(DataPacket) - 1),  // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
+                make_iovec(const_cast<void*>(static_cast<const void*>(req.data.data())), req.data.size()),  // NOLINT(cppcoreguidelines-pro-type-const-cast)
+            };
 
             send_iov(data_fd, req.target, iov.data(), static_cast<int>(iov.size()));
         }
@@ -321,11 +338,10 @@ namespace network {
                 const std::size_t offset   = static_cast<std::size_t>(i) * packet_mtu;
                 const std::size_t frag_len = std::min(static_cast<std::size_t>(packet_mtu), length - offset);
 
-                std::array<iovec, 2> iov{};
-                iov[0].iov_base = reinterpret_cast<char*>(&header);  // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
-                iov[0].iov_len  = static_cast<decltype(iov[0].iov_len)>(sizeof(DataPacket) - 1);
-                iov[1].iov_base = const_cast<char*>(reinterpret_cast<const char*>(payload + offset));  // NOLINT(cppcoreguidelines-pro-type-const-cast,cppcoreguidelines-pro-type-reinterpret-cast)
-                iov[1].iov_len  = static_cast<decltype(iov[1].iov_len)>(frag_len);
+                std::array<iovec, 2> iov{
+                    make_iovec(reinterpret_cast<void*>(&header), sizeof(DataPacket) - 1),  // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
+                    make_iovec(const_cast<void*>(static_cast<const void*>(payload + offset)), frag_len),  // NOLINT(cppcoreguidelines-pro-type-const-cast)
+                };
 
                 send_iov(data_fd, dest, iov.data(), static_cast<int>(iov.size()));
             }
@@ -631,9 +647,15 @@ namespace network {
         msg.msg_iovlen     = static_cast<decltype(msg.msg_iovlen)>(iovcnt);
         msg.msg_control    = nullptr;
         msg.msg_controllen = 0;
-        msg.msg_flags      = 0;
+#ifndef _WIN32
+        msg.msg_flags = 0;
+#endif
 
+#ifdef _WIN32
+        NUClear::sendmsg(fd, &msg, 0);
+#else
         ::sendmsg(fd, &msg, 0);
+#endif
     }
 
 }  // namespace network
