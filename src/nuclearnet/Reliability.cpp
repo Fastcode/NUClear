@@ -74,16 +74,17 @@
 
             auto& tp = it->second;
 
+            // Validate that the ACK's packet_count matches our tracked packet before measuring RTT
+            // to prevent malformed/stale ACKs from poisoning the estimator
+            if (packet_count != tp.packet_count) {
+                return;
+            }
+
             // Update RTT estimate based on time since last send
             auto rtt = now - tp.last_send;
             {
                 const std::lock_guard<std::mutex> rtt_lock(rtt_mutex);
                 rtt_estimators[source].measure(rtt);
-            }
-
-            // Validate that the ACK's packet_count matches our tracked packet
-            if (packet_count != tp.packet_count) {
-                return;
             }
 
             // Update acked bitset

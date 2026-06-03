@@ -268,10 +268,11 @@ namespace network {
             header.flags        = req.flags;
             header.hash         = req.hash;
 
-            std::array<iovec, 2> iov{{
-                {reinterpret_cast<void*>(&header), sizeof(DataPacket) - 1},                              // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
-                {const_cast<void*>(static_cast<const void*>(req.data.data())), req.data.size()},  // NOLINT(cppcoreguidelines-pro-type-const-cast)
-            }};
+            std::array<iovec, 2> iov{};
+            iov[0].iov_base = reinterpret_cast<char*>(&header);  // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
+            iov[0].iov_len  = static_cast<decltype(iov[0].iov_len)>(sizeof(DataPacket) - 1);
+            iov[1].iov_base = const_cast<char*>(reinterpret_cast<const char*>(req.data.data()));  // NOLINT(cppcoreguidelines-pro-type-const-cast,cppcoreguidelines-pro-type-reinterpret-cast)
+            iov[1].iov_len  = static_cast<decltype(iov[1].iov_len)>(req.data.size());
 
             send_iov(data_fd, req.target, iov.data(), static_cast<int>(iov.size()));
         }
@@ -320,10 +321,11 @@ namespace network {
                 const std::size_t offset   = static_cast<std::size_t>(i) * packet_mtu;
                 const std::size_t frag_len = std::min(static_cast<std::size_t>(packet_mtu), length - offset);
 
-                std::array<iovec, 2> iov{{
-                    {reinterpret_cast<void*>(&header), sizeof(DataPacket) - 1},                            // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
-                    {const_cast<void*>(static_cast<const void*>(payload + offset)), frag_len},  // NOLINT(cppcoreguidelines-pro-type-const-cast)
-                }};
+                std::array<iovec, 2> iov{};
+                iov[0].iov_base = reinterpret_cast<char*>(&header);  // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
+                iov[0].iov_len  = static_cast<decltype(iov[0].iov_len)>(sizeof(DataPacket) - 1);
+                iov[1].iov_base = const_cast<char*>(reinterpret_cast<const char*>(payload + offset));  // NOLINT(cppcoreguidelines-pro-type-const-cast,cppcoreguidelines-pro-type-reinterpret-cast)
+                iov[1].iov_len  = static_cast<decltype(iov[1].iov_len)>(frag_len);
 
                 send_iov(data_fd, dest, iov.data(), static_cast<int>(iov.size()));
             }
@@ -440,6 +442,7 @@ namespace network {
         // For the announce socket, MSG_DONTWAIT provides the same behavior on POSIX
         socklen_t source_len = 0;
         auto recv = [&]() {
+            source     = {};  // Clear stale bytes so different address families don't corrupt the assembly key
             source_len = sizeof(source.storage);
             return ::recvfrom(fd,
                               reinterpret_cast<char*>(buffer.data()),

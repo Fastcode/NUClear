@@ -165,8 +165,9 @@
 
                 auto it = peers.find(source);
                 if (it == peers.end()) {
-                    // New peer — record with announce_heard = true
-                    announce_result.is_new = true;
+                    // New peer — record with announce_heard = true and initiate handshake
+                    announce_result.is_new          = true;
+                    announce_result.response_flags  = SYN;
                     PeerInfo info;
                     info.name            = name;
                     info.address         = source;
@@ -180,15 +181,6 @@
                     auto& peer = it->second;
                     peer.last_seen = now;
 
-                    // Mark announce as heard (may trigger connection if data was already confirmed)
-                    if (!peer.announce_heard) {
-                        peer.announce_heard = true;
-                        if (peer.handshake == HandshakeState::CONFIRMED) {
-                            fire_join = true;
-                            join_info = peer;
-                        }
-                    }
-
                     // Update name if it was unknown (peer added via CONNECT before announce)
                     if (peer.name.empty()) {
                         peer.name = name;
@@ -198,6 +190,16 @@
                     if (peer.subscriptions != subscriptions) {
                         peer.subscriptions = std::move(subscriptions);
                         subs_changed       = true;
+                    }
+
+                    // Mark announce as heard (may trigger connection if data was already confirmed)
+                    // Name and subscriptions are updated first so join_info carries complete data
+                    if (!peer.announce_heard) {
+                        peer.announce_heard = true;
+                        if (peer.handshake == HandshakeState::CONFIRMED) {
+                            fire_join = true;
+                            join_info = peer;
+                        }
                     }
 
                     // Determine retransmit flags based on handshake state
