@@ -239,6 +239,12 @@ namespace network {
          */
         const PeerInfo* get_peer(const sock_t& address) const;
 
+        /**
+         * Evict all known peers, firing leave callbacks for any that were fully connected.
+         * Used when the local network interface changes and all existing peers must be re-discovered.
+         */
+        void clear_peers();
+
     private:
         /// How long without hearing from a peer before it's removed
         std::chrono::steady_clock::duration peer_timeout;

@@ -432,5 +432,24 @@
             return nullptr;
         }
 
+        void Discovery::clear_peers() {
+            std::vector<PeerInfo> connected;
+            {
+                const std::lock_guard<std::mutex> lock(peers_mutex);
+                for (const auto& entry : peers) {
+                    if (entry.second.announce_heard && entry.second.handshake == HandshakeState::CONFIRMED) {
+                        connected.push_back(entry.second);
+                    }
+                }
+                peers.clear();
+            }
+            // Fire leave callbacks outside the lock
+            if (leave_callback) {
+                for (const auto& peer : connected) {
+                    leave_callback(peer);
+                }
+            }
+        }
+
     }  // namespace network
 }  // namespace NUClear

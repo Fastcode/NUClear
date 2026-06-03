@@ -112,6 +112,17 @@ namespace extension {
                                std::chrono::duration_cast<NUClear::clock::duration>(emit_offset));
         });
 
+        // When the sockets are replaced after a rebind, update the IO event registrations
+        net.set_socket_change_callback([this] {
+            for (auto& h : listen_handles) {
+                h.unbind();
+            }
+            listen_handles.clear();
+            for (auto& fd : net.listen_fds()) {
+                listen_handles.push_back(on<IO>(fd, IO::READ).then("Packet", [this] { net.process(); }));
+            }
+        });
+
         // Start listening for a new network type
         on<Trigger<NetworkListen>>().then("Network Bind", [this](const NetworkListen& l) {
             // Lock our reaction mutex
