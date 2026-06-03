@@ -35,6 +35,7 @@
 #include "../util/network/sock_t.hpp"
 #include "Discovery.hpp"
 #include "FileDescriptor.hpp"
+#include "Log.hpp"
 #include "Fragmentation.hpp"
 #include "PacketDeduplicator.hpp"
 #include "Reliability.hpp"
@@ -119,6 +120,11 @@ namespace network {
          * Shut down the network, sending a leave packet and closing sockets.
          */
         void shutdown();
+
+        /**
+         * Set the global NUClearNet log level (stderr). Default is Off.
+         */
+        static void set_log_level(LogLevel level);
 
         /**
          * Process pending network events (send announces, check timeouts, read packets).

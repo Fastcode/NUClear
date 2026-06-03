@@ -29,14 +29,26 @@
 #include <map>
 #include <mutex>
 #include <set>
+#include <sstream>
 #include <string>
 #include <utility>
 #include <vector>
 
+#include "Log.hpp"
 #include "wire_protocol.hpp"
 
     namespace NUClear {
     namespace network {
+
+    namespace {
+
+        std::string connect_flags_str(uint8_t flags) {
+            std::ostringstream msg;
+            msg << "SYN=" << ((flags & SYN) != 0 ? '1' : '0') << " ACK=" << ((flags & CON_ACK) != 0 ? '1' : '0');
+            return msg.str();
+        }
+
+    }  // namespace
 
         Discovery::Discovery(std::chrono::steady_clock::duration peer_timeout) : peer_timeout(peer_timeout) {}
 
@@ -109,6 +121,10 @@
 
             // Minimum size: header(5) + name_length(2) + num_subscriptions(2) = 9
             if (length < sizeof(PacketHeader) + sizeof(uint16_t) + sizeof(uint16_t)) {
+                if (should_log(LogLevel::Warn)) {
+                    log(LogLevel::Warn, "discovery",
+                        "short ANNOUNCE from " + sock_str(source) + " len=" + std::to_string(length));
+                }
                 return announce_result;
             }
 
@@ -168,6 +184,10 @@
                     // New peer — record with announce_heard = true and initiate handshake
                     announce_result.is_new          = true;
                     announce_result.response_flags  = SYN;
+                    if (should_log(LogLevel::Debug)) {
+                        log(LogLevel::Debug, "discovery",
+                            "new peer from announce name=" + name + " " + sock_str(source));
+                    }
                     PeerInfo info;
                     info.name            = name;
                     info.address         = source;
@@ -190,6 +210,10 @@
                     if (peer.subscriptions != subscriptions) {
                         peer.subscriptions = std::move(subscriptions);
                         subs_changed       = true;
+                        if (should_log(LogLevel::Debug)) {
+                            log(LogLevel::Debug, "discovery",
+                                "subscriptions changed for " + peer.name + " " + sock_str(source));
+                        }
                     }
 
                     // Mark announce as heard (may trigger connection if data was already confirmed)
@@ -221,6 +245,10 @@
 
             // Fire callbacks outside the lock
             if (fire_join && join_callback) {
+                if (should_log(LogLevel::Debug)) {
+                    log(LogLevel::Debug, "discovery",
+                        "join (announce path) name=" + join_info.name + " " + sock_str(join_info.address));
+                }
                 join_callback(join_info);
             }
             if (subs_changed && subscription_change_callback) {
@@ -259,6 +287,10 @@
 
             // Only fire leave callback for peers that completed the handshake
             if (was_connected && leave_callback) {
+                if (should_log(LogLevel::Debug)) {
+                    log(LogLevel::Debug, "discovery",
+                        "leave (packet) name=" + removed.name + " " + sock_str(source));
+                }
                 leave_callback(removed);
             }
         }
@@ -288,6 +320,7 @@
 
                 const bool has_syn = (flags & SYN) != 0;
                 const bool has_ack = (flags & CON_ACK) != 0;
+                const auto old_state = peer.handshake;
 
                 switch (peer.handshake) {
                     case HandshakeState::IDLE:
@@ -350,10 +383,25 @@
                         }
                         break;
                 }
+
+                if (should_log(LogLevel::Debug) && peer.handshake != old_state) {
+                    std::ostringstream msg;
+                    msg << "handshake " << sock_str(source);
+                    if (!peer.name.empty()) {
+                        msg << " name=" << peer.name;
+                    }
+                    msg << ' ' << handshake_str(old_state) << " -> " << handshake_str(peer.handshake) << " ("
+                        << connect_flags_str(flags) << ')';
+                    log(LogLevel::Debug, "discovery", msg.str());
+                }
             }
 
             // Fire join callback outside the lock
             if (fire_join && join_callback) {
+                if (should_log(LogLevel::Debug)) {
+                    log(LogLevel::Debug, "discovery",
+                        "join (connect path) name=" + info.name + " " + sock_str(info.address));
+                }
                 join_callback(info);
             }
 
@@ -365,6 +413,10 @@
             auto it = peers.find(address);
             if (it != peers.end() && it->second.handshake == HandshakeState::IDLE) {
                 it->second.handshake = HandshakeState::SYN_SENT;
+                if (should_log(LogLevel::Debug)) {
+                    log(LogLevel::Debug, "discovery",
+                        "handshake " + sock_str(address) + " IDLE -> SYN_SENT (sent SYN)");
+                }
             }
         }
 
@@ -406,6 +458,10 @@
             // Fire leave callbacks outside the lock
             if (leave_callback) {
                 for (const auto& peer : removed) {
+                    if (should_log(LogLevel::Info)) {
+                        log(LogLevel::Info, "discovery",
+                            "peer timeout name=" + peer.name + " " + sock_str(peer.address));
+                    }
                     leave_callback(peer);
                 }
             }
