@@ -377,10 +377,18 @@ namespace network {
 
     void NUClearNet::set_subscriptions(const std::set<uint64_t>& subscriptions) {
         routing.set_local_subscriptions(subscriptions);
+        // Immediately announce so peers learn the updated subscription list without waiting
+        // for the next periodic interval
+        announce();
+        last_announce = std::chrono::steady_clock::now();
     }
 
     void NUClearNet::add_subscription(uint64_t hash) {
         routing.add_local_subscription(hash);
+        // Immediately announce so peers learn the new subscription without waiting for
+        // the next periodic interval
+        announce();
+        last_announce = std::chrono::steady_clock::now();
     }
 
     void NUClearNet::set_packet_callback(PacketCallback cb) {
