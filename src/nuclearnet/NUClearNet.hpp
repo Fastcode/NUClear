@@ -29,6 +29,7 @@
 #include <functional>
 #include <map>
 #include <memory>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -50,8 +51,8 @@ namespace network {
     struct NetworkConfig {
         /// This node's name on the network
         std::string name;
-        /// The multicast/broadcast/unicast address to announce on
-        std::string announce_address = "239.226.152.162";
+        /// The multicast/broadcast/unicast address to announce on (organization-local multicast default)
+        std::string announce_address = "239.226.152.162";  // NOSONAR
         /// The port to use for announce discovery
         in_port_t announce_port = 7447;
         /// Address to bind to (empty = all interfaces)
@@ -206,6 +207,9 @@ namespace network {
 
         /// Open (or reopen) the data and announce sockets using the stored config
         void open_sockets();
+
+        /// Wire discovery module callbacks to NUClearNet handlers
+        void wire_discovery_callbacks();
 
         /// Read and process all pending packets from a socket
         void read_socket(fd_t fd);

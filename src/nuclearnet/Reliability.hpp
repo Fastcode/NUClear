@@ -44,7 +44,7 @@ namespace network {
      * - Scheduling retransmissions based on RTT estimates
      * - Processing incoming ACK packets
      * - Providing per-peer RTT estimation
-     * - Exponential backoff on repeated failures
+     * - Retransmitting unacked fragments on RTO expiry (Jacobson/Karels adaptive timeout)
      */
     class Reliability {
     public:

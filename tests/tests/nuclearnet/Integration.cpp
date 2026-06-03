@@ -92,6 +92,13 @@ std::vector<uint8_t> make_payload(std::size_t size, uint8_t seed) {
 
 }  // namespace
 
+TEST_CASE("NUClearNet integration environment", "[nuclearnet][integration]") {
+    if (!test_util::has_ipv4_multicast()) {
+        WARN("IPv4 multicast unavailable — live integration scenarios skipped");
+    }
+    SUCCEED();
+}
+
 SCENARIO("Two NUClearNet instances discover and exchange messages", "[nuclearnet][integration]") {
     if (!test_util::has_ipv4_multicast()) {
         SKIP("IPv4 multicast is unavailable on this system");

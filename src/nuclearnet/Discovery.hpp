@@ -235,9 +235,10 @@ namespace network {
          * Get a specific peer's info.
          *
          * @param address The peer's address
-         * @return Pointer to peer info, or nullptr if not found
+         * @param out     Filled with peer info on success
+         * @return true if the peer was found
          */
-        const PeerInfo* get_peer(const sock_t& address) const;
+        bool get_peer(const sock_t& address, PeerInfo& out) const;
 
         /**
          * Evict all known peers, firing leave callbacks for any that were fully connected.

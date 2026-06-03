@@ -88,28 +88,7 @@ namespace {
         : discovery(std::make_unique<Discovery>(std::chrono::seconds(2)))
         , fragmentation(std::make_unique<Fragmentation>(1452, 64 * 1024 * 1024, std::chrono::seconds(2)))
         , reliability(std::make_unique<Reliability>()) {
-
-        // Wire up discovery callbacks to forward to user callbacks
-        discovery->set_join_callback([this](const PeerInfo& peer) {
-            // Update routing with peer's subscriptions
-            routing.update_peer_subscriptions(peer.address, peer.subscriptions);
-            if (join_callback) {
-                join_callback(peer);
-            }
-        });
-
-        discovery->set_leave_callback([this](const PeerInfo& peer) {
-            routing.remove_peer(peer.address);
-            reliability->remove_peer(peer.address);
-            deduplicators.erase(peer.address);
-            if (leave_callback) {
-                leave_callback(peer);
-            }
-        });
-
-        discovery->set_subscription_change_callback([this](const PeerInfo& peer) {
-            routing.update_peer_subscriptions(peer.address, peer.subscriptions);
-        });
+        wire_discovery_callbacks();
     }
 
     NUClearNet::~NUClearNet() {
@@ -121,31 +100,14 @@ namespace {
         }
     }
 
-    void NUClearNet::reset(const NetworkConfig& config) {
-        // Shut down existing connections
-        shutdown();
-
-        // Clear per-peer state that should not survive a reset
-        deduplicators.clear();
-
-        this->config = config;
-        node_name    = config.name;
-
-        // Update module configurations
-        discovery     = std::make_unique<Discovery>(config.peer_timeout);
-        fragmentation = std::make_unique<Fragmentation>(
-            static_cast<uint16_t>(config.mtu - sizeof(DataPacket) + 1 - 40 - 8),  // MTU - headers
-            config.max_assembly_size,
-            config.peer_timeout);  // Assembly timeout matches peer timeout
-        reliability = std::make_unique<Reliability>();
-
-        // Re-wire discovery callbacks
+    void NUClearNet::wire_discovery_callbacks() {
         discovery->set_join_callback([this](const PeerInfo& peer) {
             routing.update_peer_subscriptions(peer.address, peer.subscriptions);
             if (join_callback) {
                 join_callback(peer);
             }
         });
+
         discovery->set_leave_callback([this](const PeerInfo& peer) {
             routing.remove_peer(peer.address);
             reliability->remove_peer(peer.address);
@@ -154,17 +116,39 @@ namespace {
                 leave_callback(peer);
             }
         });
+
         discovery->set_subscription_change_callback([this](const PeerInfo& peer) {
             routing.update_peer_subscriptions(peer.address, peer.subscriptions);
         });
+    }
+
+    void NUClearNet::reset(const NetworkConfig& new_config) {
+        // Shut down existing connections
+        shutdown();
+
+        // Clear per-peer state that should not survive a reset
+        deduplicators.clear();
+
+        config    = new_config;
+        node_name = new_config.name;
+
+        // Update module configurations
+        discovery     = std::make_unique<Discovery>(new_config.peer_timeout);
+        fragmentation = std::make_unique<Fragmentation>(
+            static_cast<uint16_t>(new_config.mtu - sizeof(DataPacket) + 1 - 40 - 8),  // MTU - headers
+            new_config.max_assembly_size,
+            new_config.peer_timeout);  // Assembly timeout matches peer timeout
+        reliability = std::make_unique<Reliability>();
+
+        wire_discovery_callbacks();
 
         // Open sockets with the new configuration
         open_sockets();
 
         if (should_log(LogLevel::Info)) {
             std::ostringstream msg;
-            msg << "reset name=" << config.name << " announce=" << config.announce_address << ':'
-                << config.announce_port << " mtu=" << config.mtu;
+            msg << "reset name=" << new_config.name << " announce=" << new_config.announce_address << ':'
+                << new_config.announce_port << " mtu=" << new_config.mtu;
             log(LogLevel::Info, "net", msg.str());
         }
     }
@@ -427,8 +411,8 @@ namespace {
         uint8_t flags = reliable ? RELIABLE : 0;
 
         // Compute fragment count
-        uint16_t packet_mtu = fragmentation->get_packet_mtu();
-        uint16_t packet_count = length == 0 ? 1 : static_cast<uint16_t>((length + packet_mtu - 1) / packet_mtu);
+        const uint16_t packet_mtu   = fragmentation->get_packet_mtu();
+        const uint16_t packet_count = Fragmentation::compute_fragment_count(length, packet_mtu);
 
         // Send all fragments of a message to a given destination
         auto send_fragments = [&](const sock_t& dest) {
@@ -604,7 +588,7 @@ namespace {
             source_len = sizeof(source.storage);
             return ::recvfrom(fd,
                               reinterpret_cast<char*>(buffer.data()),
-                              buffer.size(),
+                              static_cast<int>(buffer.size()),
                               MSG_DONTWAIT,
                               &source.sock,
                               &source_len);
@@ -716,6 +700,15 @@ namespace {
 
         const auto* pkt = reinterpret_cast<const DataPacket*>(data);  // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
 
+        if (pkt->packet_count == 0 || pkt->packet_no >= pkt->packet_count) {
+            if (should_log(LogLevel::Warn)) {
+                log(LogLevel::Warn, "net",
+                    "invalid DATA fragment indices from " + sock_str(source) + " id=" + std::to_string(pkt->packet_id)
+                        + " no=" + std::to_string(pkt->packet_no) + " count=" + std::to_string(pkt->packet_count));
+            }
+            return;
+        }
+
         // Drop messages we are not subscribed to (relevant for multicast broadcast data)
         if (!routing.is_locally_subscribed(pkt->hash)) {
             return;
@@ -773,9 +766,9 @@ namespace {
             if (packet_callback) {
                 // Look up peer name
                 std::string peer_name;
-                const auto* peer = discovery->get_peer(source);
-                if (peer != nullptr) {
-                    peer_name = peer->name;
+                PeerInfo peer;
+                if (discovery->get_peer(source, peer)) {
+                    peer_name = peer.name;
                 }
 
                 const bool reliable_flag = (assembled.flags & RELIABLE) != 0;

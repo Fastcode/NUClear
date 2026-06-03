@@ -38,13 +38,16 @@ namespace network {
                                  std::chrono::steady_clock::duration assembly_timeout)
         : packet_mtu(packet_mtu), max_assembly_size(max_assembly_size), assembly_timeout(assembly_timeout) {}
 
+    uint16_t Fragmentation::compute_fragment_count(const std::size_t payload_length, const uint16_t mtu) {
+        return payload_length == 0 ? 1 : static_cast<uint16_t>((payload_length + mtu - 1) / mtu);
+    }
+
     std::vector<Fragmentation::Fragment> Fragmentation::fragment(uint16_t packet_id,
                                                                   uint64_t hash,
                                                                   uint8_t flags,
                                                                   const std::vector<uint8_t>& payload) const {
         // Calculate how many fragments we need
-        const uint16_t packet_count =
-            payload.empty() ? 1 : static_cast<uint16_t>((payload.size() + packet_mtu - 1) / packet_mtu);
+        const uint16_t packet_count = compute_fragment_count(payload.size(), packet_mtu);
 
         std::vector<Fragment> fragments;
         fragments.reserve(packet_count);
@@ -82,7 +85,11 @@ namespace network {
             return false;
         }
 
-        // Enforce max assembly size check
+        if (data_length > packet_mtu) {
+            return false;
+        }
+
+        // Fast reject for absurd packet counts
         if (max_assembly_size > 0) {
             const std::size_t projected_size = static_cast<std::size_t>(packet_count) * packet_mtu;
             if (projected_size > max_assembly_size) {
@@ -94,14 +101,23 @@ namespace network {
 
         const std::lock_guard<std::mutex> lock(assembly_mutex);
 
-        auto& assembly          = assemblies[key];
-        assembly.hash           = hash;
-        assembly.flags          = flags;
-        assembly.packet_count   = packet_count;
-        assembly.last_update    = now;
+        auto& assembly        = assemblies[key];
+        assembly.hash         = hash;
+        assembly.flags        = flags;
+        assembly.packet_count = packet_count;
+        assembly.last_update  = now;
+
+        auto& frag = assembly.fragments[packet_no];
+        if (frag.empty()) {
+            if (max_assembly_size > 0 && assembly.accumulated_size + data_length > max_assembly_size) {
+                assemblies.erase(key);
+                return false;
+            }
+            assembly.accumulated_size += data_length;
+        }
 
         // Store this fragment
-        assembly.fragments[packet_no].assign(data, data + data_length);
+        frag.assign(data, data + data_length);
 
         // Check if we have all fragments
         if (assembly.fragments.size() == packet_count) {

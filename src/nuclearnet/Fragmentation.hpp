@@ -134,6 +134,11 @@ namespace network {
             return packet_mtu;
         }
 
+        /**
+         * Compute the number of fragments required for a payload.
+         */
+        static uint16_t compute_fragment_count(std::size_t payload_length, uint16_t packet_mtu);
+
     private:
         /// Key for an in-progress assembly: (source_key, packet_id)
         using AssemblyKey = std::pair<uint64_t, uint16_t>;
@@ -143,6 +148,7 @@ namespace network {
             uint64_t hash{0};
             uint8_t flags{0};
             uint16_t packet_count{0};
+            std::size_t accumulated_size{0};
             std::chrono::steady_clock::time_point last_update;
             std::map<uint16_t, std::vector<uint8_t>> fragments;
         };

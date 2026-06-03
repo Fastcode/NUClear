@@ -33,7 +33,7 @@
 namespace NUClear {
 namespace network {
 
-    enum class LogLevel : int {
+    enum class LogLevel : std::uint8_t {
         Off   = 0,
         Error = 1,
         Warn  = 2,
@@ -46,7 +46,7 @@ namespace network {
     LogLevel get_log_level();
 
     inline bool should_log(LogLevel level) {
-        return static_cast<int>(level) <= static_cast<int>(get_log_level());
+        return static_cast<std::uint8_t>(level) <= static_cast<std::uint8_t>(get_log_level());
     }
 
     void log(LogLevel level, const char* component, const std::string& message);

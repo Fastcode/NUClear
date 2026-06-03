@@ -83,12 +83,12 @@ SCENARIO("Discovery process_announce adds a new peer", "[nuclearnet][discovery]"
     REQUIRE_FALSE(join_called);
     REQUIRE(disc.has_peer(peer_addr));
 
-    const auto* peer = disc.get_peer(peer_addr);
-    REQUIRE(peer != nullptr);
-    REQUIRE(peer->name == "peer_a");
-    REQUIRE(peer->subscriptions.count(0x1111) == 1);
-    REQUIRE(peer->announce_heard);
-    REQUIRE(peer->handshake == HandshakeState::IDLE);
+    PeerInfo peer;
+    REQUIRE(disc.get_peer(peer_addr, peer));
+    REQUIRE(peer.name == "peer_a");
+    REQUIRE(peer.subscriptions.count(0x1111) == 1);
+    REQUIRE(peer.announce_heard);
+    REQUIRE(peer.handshake == HandshakeState::IDLE);
 }
 
 SCENARIO("Discovery process_announce updates existing peer subscriptions", "[nuclearnet][discovery]") {
@@ -108,11 +108,11 @@ SCENARIO("Discovery process_announce updates existing peer subscriptions", "[nuc
     disc.process_announce(peer_addr, announce2.data(), announce2.size());
 
     REQUIRE(sub_changed);
-    const auto* peer = disc.get_peer(peer_addr);
-    REQUIRE(peer != nullptr);
-    REQUIRE(peer->subscriptions.count(0x2222) == 1);
-    REQUIRE(peer->subscriptions.count(0x3333) == 1);
-    REQUIRE(peer->subscriptions.count(0x1111) == 0);
+    PeerInfo peer;
+    REQUIRE(disc.get_peer(peer_addr, peer));
+    REQUIRE(peer.subscriptions.count(0x2222) == 1);
+    REQUIRE(peer.subscriptions.count(0x3333) == 1);
+    REQUIRE(peer.subscriptions.count(0x1111) == 0);
 }
 
 SCENARIO("Discovery process_leave removes a peer", "[nuclearnet][discovery]") {
@@ -230,12 +230,15 @@ SCENARIO("Discovery 3-way handshake normal flow", "[nuclearnet][discovery]") {
     auto announce = Discovery::build_announce_packet("peer_a", {0x1111});
     disc.process_announce(peer_addr, announce.data(), announce.size());
     REQUIRE_FALSE(join_called);
-    REQUIRE(disc.get_peer(peer_addr)->announce_heard);
-    REQUIRE(disc.get_peer(peer_addr)->handshake == HandshakeState::IDLE);
+    PeerInfo peer;
+    REQUIRE(disc.get_peer(peer_addr, peer));
+    REQUIRE(peer.announce_heard);
+    REQUIRE(peer.handshake == HandshakeState::IDLE);
 
     // We send SYN
     disc.mark_syn_sent(peer_addr);
-    REQUIRE(disc.get_peer(peer_addr)->handshake == HandshakeState::SYN_SENT);
+    REQUIRE(disc.get_peer(peer_addr, peer));
+    REQUIRE(peer.handshake == HandshakeState::SYN_SENT);
 
     // Peer responds with SYN+ACK
     auto result = disc.process_connect(peer_addr, SYN | CON_ACK);
@@ -263,7 +266,9 @@ SCENARIO("Discovery 3-way handshake receiving SYN first", "[nuclearnet][discover
     REQUIRE_FALSE(result.just_connected);
     REQUIRE(result.response_flags == (SYN | CON_ACK));  // We respond with SYN+ACK
     REQUIRE_FALSE(join_called);
-    REQUIRE(disc.get_peer(peer_addr)->handshake == HandshakeState::SYN_RECEIVED);
+    PeerInfo peer;
+    REQUIRE(disc.get_peer(peer_addr, peer));
+    REQUIRE(peer.handshake == HandshakeState::SYN_RECEIVED);
 
     // Peer sends ACK to complete the handshake
     result = disc.process_connect(peer_addr, CON_ACK);
@@ -292,7 +297,9 @@ SCENARIO("Discovery 3-way handshake simultaneous open", "[nuclearnet][discovery]
     auto result = disc.process_connect(peer_addr, SYN);
     REQUIRE_FALSE(result.just_connected);
     REQUIRE(result.response_flags == (SYN | CON_ACK));  // Respond with SYN+ACK
-    REQUIRE(disc.get_peer(peer_addr)->handshake == HandshakeState::SYN_RECEIVED);
+    PeerInfo peer;
+    REQUIRE(disc.get_peer(peer_addr, peer));
+    REQUIRE(peer.handshake == HandshakeState::SYN_RECEIVED);
 
     // Peer also sends SYN+ACK (they got our SYN)
     result = disc.process_connect(peer_addr, SYN | CON_ACK);
@@ -352,8 +359,10 @@ SCENARIO("Discovery connection deferred until announce heard", "[nuclearnet][dis
     REQUIRE_FALSE(result.just_connected);
     REQUIRE_FALSE(join_called);
     REQUIRE_FALSE(disc.is_connected(peer_addr));
-    REQUIRE(disc.get_peer(peer_addr)->handshake == HandshakeState::CONFIRMED);
-    REQUIRE_FALSE(disc.get_peer(peer_addr)->announce_heard);
+    PeerInfo peer;
+    REQUIRE(disc.get_peer(peer_addr, peer));
+    REQUIRE(peer.handshake == HandshakeState::CONFIRMED);
+    REQUIRE_FALSE(peer.announce_heard);
 
     // Now we hear their announce on the announce channel
     auto announce = Discovery::build_announce_packet("peer_a", {});
@@ -376,7 +385,9 @@ SCENARIO("Discovery retransmits SYN when announce received in SYN_SENT state", "
 
     // We send SYN (externally) and mark state
     disc.mark_syn_sent(peer_addr);
-    REQUIRE(disc.get_peer(peer_addr)->handshake == HandshakeState::SYN_SENT);
+    PeerInfo peer;
+    REQUIRE(disc.get_peer(peer_addr, peer));
+    REQUIRE(peer.handshake == HandshakeState::SYN_SENT);
 
     // SYN was dropped. Another announce arrives — should indicate SYN retransmit
     result = disc.process_announce(peer_addr, announce.data(), announce.size());
@@ -396,7 +407,9 @@ SCENARIO("Discovery retransmits SYN+ACK when announce received in SYN_RECEIVED s
     // Peer sends SYN — we go to SYN_RECEIVED
     auto connect_result = disc.process_connect(peer_addr, SYN);
     REQUIRE(connect_result.response_flags == (SYN | CON_ACK));
-    REQUIRE(disc.get_peer(peer_addr)->handshake == HandshakeState::SYN_RECEIVED);
+    PeerInfo peer;
+    REQUIRE(disc.get_peer(peer_addr, peer));
+    REQUIRE(peer.handshake == HandshakeState::SYN_RECEIVED);
 
     // Our SYN+ACK was dropped. Another announce arrives — should indicate SYN+ACK retransmit
     auto result = disc.process_announce(peer_addr, announce.data(), announce.size());
@@ -432,7 +445,9 @@ SCENARIO("Discovery no retransmit for IDLE peer (not yet sent SYN)", "[nuclearne
     auto announce = Discovery::build_announce_packet("peer_a", {});
     auto result = disc.process_announce(peer_addr, announce.data(), announce.size());
     REQUIRE(result.is_new);
-    REQUIRE(disc.get_peer(peer_addr)->handshake == HandshakeState::IDLE);
+    PeerInfo peer;
+    REQUIRE(disc.get_peer(peer_addr, peer));
+    REQUIRE(peer.handshake == HandshakeState::IDLE);
 
     // Second announce — peer still in IDLE (we haven't sent SYN yet)
     // Should indicate SYN needed

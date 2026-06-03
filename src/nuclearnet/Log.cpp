@@ -30,7 +30,7 @@ namespace network {
 
 namespace {
 
-    std::atomic<int> g_log_level{static_cast<int>(LogLevel::Off)};
+    std::atomic<std::uint8_t> g_log_level{static_cast<std::uint8_t>(LogLevel::Off)};
 
     const char* level_name(LogLevel level) {
         switch (level) {
@@ -46,7 +46,7 @@ namespace {
 }  // namespace
 
     void set_log_level(LogLevel level) {
-        g_log_level.store(static_cast<int>(level), std::memory_order_relaxed);
+        g_log_level.store(static_cast<std::uint8_t>(level), std::memory_order_relaxed);
     }
 
     LogLevel get_log_level() {
@@ -67,7 +67,7 @@ namespace {
     }
 
     std::string sock_str(const util::network::sock_t& address) {
-        const auto addr = address.address();
+        const auto addr = address.address(true);
         return addr.first + ":" + std::to_string(addr.second);
     }
 
