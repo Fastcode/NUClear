@@ -268,6 +268,32 @@ namespace threading {
             std::atomic<std::size_t> pending_tasks{0};
             /// Number of tasks parked outside the pool (e.g. waiting on a Group token) that point at this pool
             std::atomic<std::size_t> external_waiters{0};
+            /// Latched "an external waiter was parked for this pool since you last polled".
+            ///
+            /// Consumed (exchanged to false) at the top of every get_task iteration. If set and
+            /// this thread is not already idle, a single idle fire is dispatched before any task
+            /// from the queue is returned. This preserves the OLD scheduler's invariant that a
+            /// waiting-but-not-runnable task on the destination pool would always force one idle
+            /// fire per parking, even when the worker is preempted long enough for the drained
+            /// (RunningLock-OK) task to be sitting in the queue by the time the worker resumes.
+            ///
+            /// This is only ever set when idle_relevant() is true (some idle reaction could fire
+            /// on this pool), so on the hot contended path with no idle reactions the latch stays
+            /// false and the whole mechanism compiles down to a couple of relaxed atomic loads.
+            std::atomic<bool> pending_idle{false};
+            /// Number of idle reactions bound directly to this pool (on<Idle<ThisPool>>).
+            /// Used by idle_relevant() to cheaply gate the pending_idle machinery.
+            std::atomic<std::size_t> idle_task_count{0};
+
+            /**
+             * Whether firing an idle epoch on this pool could actually run a reaction.
+             *
+             * True if there is an idle reaction bound to this pool, or any global idle reaction
+             * (which fires when all pools go idle, so any pool may be the last to idle and trigger
+             * it). When false, parking an external waiter does not need to wake the pool to fire
+             * idle, which keeps the hot Sync-contended submission path free of extra synchronisation.
+             */
+            bool idle_relevant() const;
             /// A boolean which is set to true when the queue is modified and set to false when there was no work to do
             bool live = true;
             /// The mutex which protects idle tasks and the live flag

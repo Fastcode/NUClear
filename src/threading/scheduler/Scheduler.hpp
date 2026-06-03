@@ -22,6 +22,7 @@
 #ifndef NUCLEAR_THREADING_TASK_SCHEDULER_HPP
 #define NUCLEAR_THREADING_TASK_SCHEDULER_HPP
 
+#include <atomic>
 #include <condition_variable>
 #include <map>
 #include <memory>
@@ -157,6 +158,10 @@ namespace threading {
             std::mutex idle_mutex;
             /// A list of idle tasks to execute when all pools are idle
             std::vector<std::shared_ptr<Reaction>> idle_tasks;
+            /// Count of global idle reactions, readable without taking idle_mutex.
+            /// Lets a Pool cheaply decide (via Pool::idle_relevant) whether parking a waiter needs
+            /// to wake it to fire idle, without locking the scheduler on the hot submission path.
+            std::atomic<std::size_t> global_idle_count{0};
             /// The number of active thread pools which count for idle
             std::atomic<int> active_pools{0};
 

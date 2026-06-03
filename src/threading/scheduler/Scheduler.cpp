@@ -101,6 +101,7 @@ namespace threading {
                 /*mutex scope*/ {
                     const std::lock_guard<std::mutex> lock(idle_mutex);
                     idle_tasks.push_back(reaction);
+                    global_idle_count.fetch_add(1, std::memory_order_release);
                 }
                 // Notify the main thread pool just in case there were no global idle tasks and now there are
                 // Clear idle status so that these tasks are executed immediately
@@ -116,9 +117,11 @@ namespace threading {
             // If this doesn't have a pool specifier it's for all pools
             if (desc == nullptr) {
                 const std::lock_guard<std::mutex> lock(idle_mutex);
+                const auto before = idle_tasks.size();
                 idle_tasks.erase(
                     std::remove_if(idle_tasks.begin(), idle_tasks.end(), [&](const auto& r) { return r->id == id; }),
                     idle_tasks.end());
+                global_idle_count.fetch_sub(before - idle_tasks.size(), std::memory_order_release);
             }
             else {
                 get_pool(desc)->remove_idle_task(id);

@@ -221,7 +221,15 @@ namespace threading {
                 else {
                     drain_one_to_pool();
                 }
+                return false;
             }
+
+            // The destination pool's "pending idle" latch was set by register_external_waiter
+            // above; that path also notifies one waiting worker so a pool that is parked on its
+            // condition variable can act on the latch immediately. See Pool::register_external_waiter
+            // and Pool::get_task for the full mechanism (it preserves the OLD scheduler's invariant
+            // that a parked waiter always triggered exactly one idle fire on its destination pool,
+            // even when the worker is preempted past the natural idle window).
 
             return false;
         }

@@ -152,6 +152,29 @@ namespace threading {
 
         void Pool::register_external_waiter() {
             external_waiters.fetch_add(1, std::memory_order_acq_rel);
+
+            // Fast exit when no idle reaction could ever fire on this pool. This is the common
+            // case on a hot Sync-contended chain (the tasks being parked are real work, not idle
+            // triggers), and it keeps this path free of any extra synchronisation: just the
+            // external_waiters increment above plus the relaxed loads inside idle_relevant().
+            if (!idle_relevant()) {
+                return;
+            }
+
+            // Latch a "should fire idle on next poll" signal. This guarantees the destination
+            // pool observes one idle epoch per parked waiter even if the worker is preempted
+            // long enough that, by the time it resumes, the drained task is already sitting in
+            // the queue (in which case it would otherwise be picked up directly with no idle
+            // fire). See Pool::get_task for the consumer.
+            //
+            // Only acquire the mutex + notify the worker on the 0->1 transition of the latch.
+            // Subsequent parkings while the latch is already set don't need to wake the worker
+            // again -- the latch already says "fire idle before the next dispatch", and one
+            // wake is enough to bring the worker out of condition.wait.
+            if (!pending_idle.exchange(true, std::memory_order_acq_rel)) {
+                const std::lock_guard<std::mutex> lock(mutex);
+                condition.notify_one();
+            }
         }
 
         void Pool::unregister_external_waiter() {
@@ -165,6 +188,7 @@ namespace threading {
         void Pool::add_idle_task(const std::shared_ptr<Reaction>& reaction) {
             const std::lock_guard<std::mutex> lock(mutex);
             idle_tasks.push_back(reaction);
+            idle_task_count.fetch_add(1, std::memory_order_release);
 
             if (idle_tasks.size() == 1) {
                 condition.notify_one();
@@ -173,9 +197,16 @@ namespace threading {
 
         void Pool::remove_idle_task(const NUClear::id_t& id) {
             const std::lock_guard<std::mutex> lock(mutex);
+            const auto before = idle_tasks.size();
             idle_tasks.erase(
                 std::remove_if(idle_tasks.begin(), idle_tasks.end(), [&](const auto& r) { return r->id == id; }),
                 idle_tasks.end());
+            idle_task_count.fetch_sub(before - idle_tasks.size(), std::memory_order_release);
+        }
+
+        bool Pool::idle_relevant() const {
+            return idle_task_count.load(std::memory_order_acquire) > 0
+                   || scheduler.global_idle_count.load(std::memory_order_acquire) > 0;
         }
 
         std::shared_ptr<Pool> Pool::current() {
@@ -223,6 +254,30 @@ namespace threading {
             std::unique_lock<std::mutex> lock(mutex);
             while (running || pending_tasks.load(std::memory_order_acquire) > 0
                    || external_waiters.load(std::memory_order_acquire) > 0) {
+                // If a waiter was parked for this pool since the last time this worker looked,
+                // ensure we fire one idle epoch before dispatching the next task. This is the
+                // counterpart of the OLD scheduler behaviour where a parked task with a failing
+                // group lock sat in the pool queue and forced the worker to poll-fail-and-fall-
+                // through to get_idle_task; in the fast path the task is parked in the Group's
+                // wait_buckets instead, so without this latch the worker can be preempted long
+                // enough for the drained (lock-OK) task to arrive in the queue before the worker
+                // polls and end up running it directly, swallowing the idle fire.
+                //
+                // get_idle_task() is a no-op when this thread is already idle (local_lock set),
+                // so a wasted consume here is harmless: the worker just falls through to the
+                // normal dequeue path below.
+                //
+                // The relaxed load short-circuits the (more expensive) read-modify-write on the
+                // common path where nothing has been latched, so a busy worker never pays for the
+                // exclusive cacheline acquire that exchange() would force every iteration.
+                if (pending_idle.load(std::memory_order_acquire)
+                    && pending_idle.exchange(false, std::memory_order_acq_rel)) {
+                    auto idle_task = get_idle_task();
+                    if (idle_task.task != nullptr) {
+                        return idle_task;
+                    }
+                }
+
                 bool got = false;
                 if (live) {
                     Task task;
@@ -252,7 +307,7 @@ namespace threading {
                 }
 
                 condition.wait(lock, [this] {
-                    return live
+                    return live || pending_idle.load(std::memory_order_acquire)
                            || (!running && pending_tasks.load(std::memory_order_acquire) == 0
                                && external_waiters.load(std::memory_order_acquire) == 0);
                 });
