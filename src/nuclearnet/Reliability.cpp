@@ -29,8 +29,10 @@
 #include <cstdint>
 #include <cstring>
 #include <mutex>
+#include <utility>
 #include <vector>
 
+#include "RTTEstimator.hpp"
 #include "wire_protocol.hpp"
 
 namespace NUClear {
@@ -55,7 +57,7 @@ namespace network {
         tp.acked.resize(packet_count, false);
         tp.last_send = now;
 
-        TrackingKey key{target, packet_id};
+        const TrackingKey key{target, packet_id};
 
         const std::lock_guard<std::mutex> lock(tracking_mutex);
         tracked_packets[key] = std::move(tp);
@@ -67,7 +69,7 @@ namespace network {
                                   const uint8_t* ack_bitset,
                                   std::size_t bitset_size,
                                   std::chrono::steady_clock::time_point now) {
-        TrackingKey key{source, packet_id};
+        const TrackingKey key{source, packet_id};
 
         const std::lock_guard<std::mutex> lock(tracking_mutex);
         auto it = tracked_packets.find(key);
@@ -95,8 +97,8 @@ namespace network {
         // Update acked bitset
         bool all_acked = true;
         for (uint16_t i = 0; i < packet_count && i < tp.acked.size(); ++i) {
-            std::size_t byte_idx = i / 8;
-            uint8_t bit_idx      = i % 8;
+            const std::size_t byte_idx = i / 8;
+            const uint8_t bit_idx      = static_cast<uint8_t>(i % 8);
             if (byte_idx < bitset_size && (ack_bitset[byte_idx] & (1u << bit_idx)) != 0) {
                 tp.acked[i] = true;
             }
@@ -115,8 +117,8 @@ namespace network {
                                                        uint16_t packet_count,
                                                        const std::vector<bool>& received) {
         // Calculate bitset size: ceil(packet_count / 8)
-        std::size_t bitset_bytes = (packet_count + 7) / 8;
-        std::size_t total_size   = sizeof(ACKPacket) - 1 + bitset_bytes;  // -1 for the placeholder uint8_t
+        const std::size_t bitset_bytes = (packet_count + 7) / 8;
+        const std::size_t total_size   = sizeof(ACKPacket) - 1 + bitset_bytes;  // -1 for the placeholder uint8_t
 
         std::vector<uint8_t> packet(total_size, 0);
 
@@ -171,9 +173,9 @@ namespace network {
                     req.hash         = tp.hash;
 
                     // Extract the fragment data
-                    std::size_t offset = static_cast<std::size_t>(i) * packet_mtu;
-                    std::size_t length = std::min(static_cast<std::size_t>(packet_mtu), tp.payload.size() - offset);
-                    req.data.assign(tp.payload.begin() + offset, tp.payload.begin() + offset + length);
+                    const std::size_t offset = static_cast<std::size_t>(i) * packet_mtu;
+                    const std::size_t length = std::min(static_cast<std::size_t>(packet_mtu), tp.payload.size() - offset);
+                    req.data.assign(tp.payload.data() + offset, tp.payload.data() + offset + length);
 
                     retransmissions.push_back(std::move(req));
                 }

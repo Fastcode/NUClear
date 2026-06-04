@@ -52,12 +52,12 @@ namespace network {
 
         /// Information about a fragment that needs retransmitting
         struct RetransmitRequest {
-            sock_t target;
-            uint16_t packet_id;
-            uint16_t packet_no;
-            uint16_t packet_count;
-            uint8_t flags;
-            uint64_t hash;
+            sock_t target{};
+            uint16_t packet_id{0};
+            uint16_t packet_no{0};
+            uint16_t packet_count{0};
+            uint8_t flags{0};
+            uint64_t hash{0};
             std::vector<uint8_t> data;
         };
 
@@ -144,14 +144,14 @@ namespace network {
     private:
         /// State for a tracked reliable packet group
         struct TrackedPacket {
-            sock_t target;
-            uint16_t packet_id;
-            uint16_t packet_count;
-            uint64_t hash;
-            uint8_t flags;
+            sock_t target{};
+            uint16_t packet_id{0};
+            uint16_t packet_count{0};
+            uint64_t hash{0};
+            uint8_t flags{0};
             std::vector<uint8_t> payload;
             std::vector<bool> acked;  ///< Which fragments have been ACKed
-            std::chrono::steady_clock::time_point last_send;
+            std::chrono::steady_clock::time_point last_send{};
             uint16_t retransmit_count{0};
         };
 
