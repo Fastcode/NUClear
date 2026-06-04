@@ -174,8 +174,9 @@ SCENARIO("process_packet discards packets with invalid headers", "[nuclearnet][p
     const sock_t peer = make_addr(0x0A000001, 5000);
 
     bool received = false;
-    net->set_packet_callback([&](const sock_t&, const std::string&, uint64_t, bool, std::vector<uint8_t>) {
+    net->set_packet_callback([&](const sock_t&, const std::string&, uint64_t, bool, std::vector<uint8_t>&& payload) {
         received = true;
+        (void)std::move(payload);
     });
 
     // Garbage data
@@ -250,8 +251,9 @@ SCENARIO("process_data_packet rejects data from unconnected peers", "[nuclearnet
     const sock_t peer = make_addr(0x0A000001, 5000);
 
     bool received = false;
-    net->set_packet_callback([&](const sock_t&, const std::string&, uint64_t, bool, std::vector<uint8_t>) {
+    net->set_packet_callback([&](const sock_t&, const std::string&, uint64_t, bool, std::vector<uint8_t>&& payload) {
         received = true;
+        (void)std::move(payload);
     });
 
     // Add subscription so routing would allow it
@@ -279,8 +281,9 @@ SCENARIO("process_data_packet rejects data for unsubscribed hashes", "[nuclearne
     establish_peer(*net, peer, "Peer1");
 
     bool received = false;
-    net->set_packet_callback([&](const sock_t&, const std::string&, uint64_t, bool, std::vector<uint8_t>) {
+    net->set_packet_callback([&](const sock_t&, const std::string&, uint64_t, bool, std::vector<uint8_t>&& payload) {
         received = true;
+        (void)std::move(payload);
     });
 
     // Send data with unsubscribed hash
@@ -336,8 +339,9 @@ SCENARIO("process_data_packet detects and rejects duplicate packets", "[nuclearn
     establish_peer(*net, peer, "Sender");
 
     int delivery_count = 0;
-    net->set_packet_callback([&](const sock_t&, const std::string&, uint64_t, bool, std::vector<uint8_t>) {
+    net->set_packet_callback([&](const sock_t&, const std::string&, uint64_t, bool, std::vector<uint8_t>&& payload) {
         ++delivery_count;
+        (void)std::move(payload);
     });
 
     const std::vector<uint8_t> payload = {0xDE, 0xAD};
@@ -364,8 +368,9 @@ SCENARIO("process_data_packet rejects packets that are too short", "[nuclearnet]
     establish_peer(*net, peer, "Sender");
 
     bool received = false;
-    net->set_packet_callback([&](const sock_t&, const std::string&, uint64_t, bool, std::vector<uint8_t>) {
+    net->set_packet_callback([&](const sock_t&, const std::string&, uint64_t, bool, std::vector<uint8_t>&& payload) {
         received = true;
+        (void)std::move(payload);
     });
 
     // Too short to be a DataPacket
