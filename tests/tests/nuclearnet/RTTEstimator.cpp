@@ -24,7 +24,6 @@
 
 #include <catch2/catch_test_macros.hpp>
 #include <chrono>
-#include <thread>
 
 using NUClear::network::RTTEstimator;
 using namespace std::chrono_literals;

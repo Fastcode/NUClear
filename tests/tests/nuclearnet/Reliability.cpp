@@ -80,7 +80,7 @@ SCENARIO("Reliability stops retransmitting ACKed fragments", "[nuclearnet][relia
     rel.track_packet(target, 1, 2, 0x1234, 0x01, payload.data(), payload.size(), t);
 
     // ACK fragment 0 (bitset: bit 0 set)
-    uint8_t ack_bits = 0x01;  // fragment 0 received
+    const uint8_t ack_bits = 0x01;  // fragment 0 received
     rel.process_ack(target, 1, 2, &ack_bits, 1, t + std::chrono::milliseconds(50));
 
     // Inject short RTT and check past min_rto
@@ -102,7 +102,7 @@ SCENARIO("Reliability removes tracked packet when all fragments ACKed", "[nuclea
     rel.track_packet(target, 5, 1, 0x5678, 0x01, payload.data(), payload.size(), t);
 
     // ACK all fragments
-    uint8_t ack_bits = 0x01;  // fragment 0 received (only 1 fragment total)
+    const uint8_t ack_bits = 0x01;  // fragment 0 received (only 1 fragment total)
     rel.process_ack(target, 5, 1, &ack_bits, 1, t + std::chrono::milliseconds(50));
 
     // Inject short RTT and check well past min_rto — nothing to retransmit
@@ -143,14 +143,14 @@ SCENARIO("Reliability retransmits indefinitely until peer is removed", "[nuclear
 }
 
 SCENARIO("Reliability build_ack_packet encodes bitset correctly", "[nuclearnet][reliability]") {
-    std::vector<bool> received = {true, false, true, true, false, false, false, true};  // 0b10001101 = 0x8D
+    const std::vector<bool> received = {true, false, true, true, false, false, false, true};  // 0b10001101 = 0x8D
     auto ack = Reliability::build_ack_packet(42, 8, received);
 
     // The packet should contain a header + 1 byte of bitset
     // Verify the bitset byte
-    REQUIRE(ack.size() > 0);
+    REQUIRE_FALSE(ack.empty());
     // The last byte(s) should be the bitset
-    uint8_t bitset_byte = ack.back();
+    const uint8_t bitset_byte = ack.back();
     REQUIRE(bitset_byte == 0x8D);
 }
 
