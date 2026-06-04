@@ -48,17 +48,17 @@ public:
 };
 ```
 
-### NetworkConfiguration Fields
+### NetworkConfiguration fields
 
-| Field              | Type       | Default    | Description                                     |
-| ------------------ | ---------- | ---------- | ----------------------------------------------- |
-| `name`             | `string`   | —          | Unique name for this node on the network        |
-| `announce_address` | `string`   | —          | Address for node discovery announcements        |
-| `announce_port`    | `uint16_t` | —          | Port for announce messages                      |
-| `bind_address`     | `string`   | `""` (all) | Local interface to bind to                      |
-| `mtu`              | `uint16_t` | `1500`     | Maximum transmission unit (fragments if larger) |
+| Field              | Type       | Default             | Description                                     |
+| ------------------ | ---------- | ------------------- | ----------------------------------------------- |
+| `name`             | `string`   | —                   | Unique name for this node on the network        |
+| `announce_address` | `string`   | `"239.226.152.162"` | Address for node discovery announcements        |
+| `announce_port`    | `uint16_t` | `7447`              | Port for announce messages                      |
+| `bind_address`     | `string`   | `""` (all)          | Local interface to bind to                      |
+| `mtu`              | `uint16_t` | `1500`              | Maximum transmission unit (fragments if larger) |
 
-### Network Modes
+### Network modes
 
 NUClearNet supports several discovery modes depending on the `announce_address` you configure:
 
@@ -226,12 +226,12 @@ public:
 };
 ```
 
-## Reliable vs Unreliable Delivery
+## Reliable vs unreliable delivery
 
-| Mode       | Behavior                                             | Use when                         |
-| ---------- | ---------------------------------------------------- | -------------------------------- |
-| Unreliable | Fire-and-forget. No retransmission. Lowest latency.  | Streaming data, periodic updates |
-| Reliable   | Retransmits until acknowledged. Delivery guaranteed. | Commands, configuration, events  |
+| Mode       | Behavior                                                                          | Use when                         |
+| ---------- | --------------------------------------------------------------------------------- | -------------------------------- |
+| Unreliable | Fire-and-forget. No retransmission. Lowest latency.                               | Streaming data, periodic updates |
+| Reliable   | Retransmits until acknowledged (ACK bitset). Uses Jacobson/Karels RTT estimation. | Commands, configuration, events  |
 
 Pass `true` as the reliability argument to `emit<Scope::NETWORK>`:
 
@@ -243,7 +243,7 @@ emit<Scope::NETWORK>(std::make_unique<Command>(cmd));
 emit<Scope::NETWORK>(std::make_unique<Command>(cmd), true);
 ```
 
-## Serialization Requirements
+## Serialization requirements
 
 Types sent over the network must be serializable.
 NUClear handles this automatically for **trivially copyable** types (POD structs with no pointers or dynamic memory).
@@ -251,3 +251,12 @@ NUClear handles this automatically for **trivially copyable** types (POD structs
 For complex types, specialize `NUClear::util::serialise::Serialise<T>` to provide custom `serialise()`, `deserialise()`, and `hash()` methods.
 
 Type safety across nodes is ensured by hash matching — if a type's hash doesn't match between sender and receiver, the message is silently discarded.
+
+## Subscription-based routing
+
+NUClearNet automatically advertises which message types your node is interested in.
+When you register an `on<Network<T>>` reaction, the type hash is added to your node's subscription set and announced to peers.
+Peers will only send messages to your node if you are subscribed to that message type.
+
+If a node has no subscriptions (no `on<Network<T>>` reactions), it receives all messages by default.
+This is useful for debugging or gateway nodes that need to observe all traffic.

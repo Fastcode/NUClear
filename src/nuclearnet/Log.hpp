@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2015 NUClear Contributors
+ * Copyright (c) 2025 NUClear Contributors
  *
  * This file is part of the NUClear codebase.
  * See https://github.com/Fastcode/NUClear for further info.
@@ -20,43 +20,42 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef NUCLEAR_EXTENSION_NETWORK_CONTROLLER_HPP
-#define NUCLEAR_EXTENSION_NETWORK_CONTROLLER_HPP
+#ifndef NUCLEAR_NETWORK_LOG_HPP
+#define NUCLEAR_NETWORK_LOG_HPP
 
-#include <algorithm>
-#include <cerrno>
-#include <csignal>
+#include <atomic>
+#include <cstdint>
+#include <string>
 
-#include "../PowerPlant.hpp"
-#include "../Reactor.hpp"
-#include "../message/NetworkConfiguration.hpp"
-#include "../nuclearnet/NUClearNet.hpp"
-#include "../util/get_hostname.hpp"
+#include "../util/network/sock_t.hpp"
+#include "Discovery.hpp"
 
 namespace NUClear {
-namespace extension {
+namespace network {
 
-    class NetworkController : public Reactor {
-
-    public:
-        explicit NetworkController(std::unique_ptr<NUClear::Environment> environment);
-
-    private:
-        /// Our NUClearNet object that handles the networking
-        network::NUClearNet net;
-
-        /// The reaction that handles timed events from the network
-        ReactionHandle process_handle;
-        /// The reactions that listen for io
-        std::vector<ReactionHandle> listen_handles;
-
-        /// Mutex to guard the list of reactions
-        std::mutex reaction_mutex;
-        /// Map of type hashes to reactions that are interested in them
-        std::multimap<uint64_t, std::shared_ptr<threading::Reaction>> reactions;
+    enum class LogLevel : std::uint8_t {
+        Off   = 0,
+        Error = 1,
+        Warn  = 2,
+        Info  = 3,
+        Debug = 4,
+        Trace = 5,
     };
 
-}  // namespace extension
+    void set_log_level(LogLevel level);
+    LogLevel get_log_level();
+
+    inline bool should_log(LogLevel level) {
+        return static_cast<std::uint8_t>(level) <= static_cast<std::uint8_t>(get_log_level());
+    }
+
+    void log(LogLevel level, const char* component, const std::string& message);
+
+    std::string hash_hex(uint64_t hash);
+    std::string sock_str(const util::network::sock_t& address);
+    const char* handshake_str(HandshakeState state);
+
+}  // namespace network
 }  // namespace NUClear
 
-#endif  // NUCLEAR_EXTENSION_NETWORK_CONTROLLER_HPP
+#endif  // NUCLEAR_NETWORK_LOG_HPP

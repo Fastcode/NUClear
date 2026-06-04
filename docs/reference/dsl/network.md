@@ -41,6 +41,8 @@ sequenceDiagram
 ```
 
 **Bind phase:** Emits a `NetworkListen` message with the type hash of `T` to register interest with the `NetworkController`.
+The hash is also added to this node's subscription set, which is advertised to peers via announce packets.
+Peers use this subscription information to avoid sending messages that no local reaction is listening for.
 
 **Get phase:** Deserializes the message from `ThreadStore` data populated by `NetworkController`, using `Serialise<T>::deserialise()`.
 
@@ -90,6 +92,8 @@ on<Network<SensorReading>>().then([](const NetworkSource& src, const SensorReadi
 - Only reacts to messages received over the network, never to local emits.
 - The type hash is computed from the type name string — renaming a type breaks compatibility with peers using the old name.
 - Multiple nodes can listen for the same type simultaneously.
+- Registering a `Network<T>` reaction causes this node to advertise the type hash as a subscription,
+    enabling subscription-based routing so peers only send relevant messages.
 
 ## See Also
 

@@ -182,6 +182,7 @@ struct WSAHolder {
     #include <sys/ioctl.h>
     #include <sys/socket.h>
     #include <sys/types.h>
+    #include <sys/uio.h>
     #include <unistd.h>
     // IWYU pragma: end_exports
 
