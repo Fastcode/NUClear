@@ -72,7 +72,7 @@ namespace {
         std::array<char, 19> buf{};
         const int n = std::snprintf(buf.data(), buf.size(), "0x%016llx", static_cast<unsigned long long>(hash));
         if (n < 0) {
-            return "0x?";
+            return {"0x?"};
         }
         return std::string(buf.data(), static_cast<std::size_t>(n));
     }
