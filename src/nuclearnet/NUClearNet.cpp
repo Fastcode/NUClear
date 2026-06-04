@@ -50,6 +50,11 @@ namespace network {
 
 namespace {
 
+    /// Default organization-local multicast address for peer discovery (RFC 2365)
+    const char* default_announce_address() {
+        return "239.226.152.162";  // NOSONAR
+    }
+
     iovec make_iovec(void* base, std::size_t len) {
 #ifdef _WIN32
         iovec iov{};
@@ -135,6 +140,9 @@ namespace {
 
         config    = new_config;
         node_name = new_config.name;
+        if (config.announce_address.empty()) {
+            config.announce_address = default_announce_address();
+        }
 
         // Update module configurations
         discovery     = std::make_unique<Discovery>(new_config.peer_timeout);

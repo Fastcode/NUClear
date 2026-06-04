@@ -41,7 +41,6 @@
 #include "PacketDeduplicator.hpp"
 #include "Reliability.hpp"
 #include "Routing.hpp"
-#include "wire_protocol.hpp"
 
 namespace NUClear {
 namespace network {
@@ -52,8 +51,8 @@ namespace network {
     struct NetworkConfig {
         /// This node's name on the network
         std::string name;
-        /// The multicast/broadcast/unicast address to announce on
-        std::string announce_address = default_announce_address();
+        /// The multicast/broadcast/unicast address to announce on (empty = default organization-local multicast)
+        std::string announce_address;
         /// The port to use for announce discovery
         in_port_t announce_port = 7447;
         /// Address to bind to (empty = all interfaces)

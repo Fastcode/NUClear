@@ -22,6 +22,11 @@
 
 #include "Routing.hpp"
 
+#include <cstdint>
+#include <mutex>
+#include <utility>
+#include <vector>
+
 namespace NUClear {
 namespace network {
 

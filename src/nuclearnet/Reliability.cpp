@@ -25,7 +25,11 @@
 #include "Reliability.hpp"
 
 #include <algorithm>
+#include <chrono>
+#include <cstdint>
 #include <cstring>
+#include <mutex>
+#include <vector>
 
 #include "wire_protocol.hpp"
 
