@@ -23,8 +23,8 @@
 #ifndef NUCLEAR_UTIL_NETWORK_SOCK_T_HPP
 #define NUCLEAR_UTIL_NETWORK_SOCK_T_HPP
 
+#include <algorithm>
 #include <array>
-#include <cstring>
 #include <ostream>
 #include <stdexcept>
 #include <string>
@@ -56,7 +56,9 @@ namespace util {
                 }
                 if (a.sock.sa_family == AF_INET6) {
                     return a.ipv6.sin6_port == b.ipv6.sin6_port
-                           && std::memcmp(&a.ipv6.sin6_addr, &b.ipv6.sin6_addr, sizeof(in6_addr)) == 0;
+                           && std::equal(std::begin(a.ipv6.sin6_addr.s6_addr),
+                                         std::end(a.ipv6.sin6_addr.s6_addr),
+                                         std::begin(b.ipv6.sin6_addr.s6_addr));
                 }
                 return false;
             }
@@ -76,9 +78,19 @@ namespace util {
                            < std::forward_as_tuple(ntohl(b.ipv4.sin_addr.s_addr), ntohs(b.ipv4.sin_port));
                 }
                 if (a.sock.sa_family == AF_INET6) {
-                    const int cmp = std::memcmp(&a.ipv6.sin6_addr, &b.ipv6.sin6_addr, sizeof(in6_addr));
-                    if (cmp != 0) {
-                        return cmp < 0;
+                    const bool addr_less = std::lexicographical_compare(std::begin(a.ipv6.sin6_addr.s6_addr),
+                                                                        std::end(a.ipv6.sin6_addr.s6_addr),
+                                                                        std::begin(b.ipv6.sin6_addr.s6_addr),
+                                                                        std::end(b.ipv6.sin6_addr.s6_addr));
+                    if (addr_less) {
+                        return true;
+                    }
+                    const bool addr_greater = std::lexicographical_compare(std::begin(b.ipv6.sin6_addr.s6_addr),
+                                                                           std::end(b.ipv6.sin6_addr.s6_addr),
+                                                                           std::begin(a.ipv6.sin6_addr.s6_addr),
+                                                                           std::end(a.ipv6.sin6_addr.s6_addr));
+                    if (addr_greater) {
+                        return false;
                     }
                     return ntohs(a.ipv6.sin6_port) < ntohs(b.ipv6.sin6_port);
                 }

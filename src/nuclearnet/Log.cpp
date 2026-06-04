@@ -54,11 +54,11 @@ namespace {
 }  // namespace
 
     void set_log_level(LogLevel level) {
-        g_log_level.store(static_cast<std::uint8_t>(level), std::memory_order_relaxed);
+        g_log_level.store(static_cast<std::uint8_t>(level));
     }
 
     LogLevel get_log_level() {
-        return static_cast<LogLevel>(g_log_level.load(std::memory_order_relaxed));
+        return static_cast<LogLevel>(g_log_level.load());
     }
 
     void log(LogLevel level, const char* component, const std::string& message) {

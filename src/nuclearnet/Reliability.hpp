@@ -151,7 +151,7 @@ namespace network {
             uint8_t flags{0};
             std::vector<uint8_t> payload;
             std::vector<bool> acked;  ///< Which fragments have been ACKed
-            std::chrono::steady_clock::time_point last_send{};
+            std::chrono::steady_clock::time_point last_send;
             uint16_t retransmit_count{0};
         };
 
