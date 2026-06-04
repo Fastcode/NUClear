@@ -22,7 +22,9 @@
 
 #include "nuclearnet/wire_protocol.hpp"
 
+#include <array>
 #include <catch2/catch_test_macros.hpp>
+#include <cstddef>
 #include <cstdint>
 #include <cstring>
 
@@ -95,16 +97,16 @@ SCENARIO("validate_header accepts valid packets", "[nuclearnet][wire_protocol]")
 }
 
 SCENARIO("validate_header rejects packet too short", "[nuclearnet][wire_protocol]") {
-    uint8_t data[4] = {0xE2, 0x98, 0xA2, 0x03};
-    REQUIRE_FALSE(validate_header(data, 4));
+    const std::array<uint8_t, 4> data = {0xE2, 0x98, 0xA2, 0x03};
+    REQUIRE_FALSE(validate_header(data.data(), data.size()));
 }
 
 SCENARIO("validate_header rejects wrong magic bytes", "[nuclearnet][wire_protocol]") {
-    uint8_t data[5] = {0x00, 0x00, 0x00, 0x03, 0x01};
-    REQUIRE_FALSE(validate_header(data, 5));
+    const std::array<uint8_t, 5> data = {0x00, 0x00, 0x00, 0x03, 0x01};
+    REQUIRE_FALSE(validate_header(data.data(), data.size()));
 }
 
 SCENARIO("validate_header rejects wrong protocol version", "[nuclearnet][wire_protocol]") {
-    uint8_t data[5] = {0xE2, 0x98, 0xA2, 0x99, 0x01};  // Version 0x99
-    REQUIRE_FALSE(validate_header(data, 5));
+    const std::array<uint8_t, 5> data = {0xE2, 0x98, 0xA2, 0x99, 0x01};  // Version 0x99
+    REQUIRE_FALSE(validate_header(data.data(), data.size()));
 }

@@ -22,6 +22,7 @@
 
 #include "nuclearnet/NUClearNet.hpp"
 
+#include <array>
 #include <catch2/catch_test_macros.hpp>
 #include <cstdint>
 #include <cstring>
@@ -33,6 +34,7 @@
 #include "nuclearnet/Reliability.hpp"
 #include "nuclearnet/wire_protocol.hpp"
 #include "test_util/has_multicast.hpp"
+#include "util/network/sock_t.hpp"
 #include "util/platform.hpp"
 
 using NUClear::network::NUClearNet;
@@ -125,24 +127,24 @@ std::unique_ptr<NUClearNet> make_test_net(const std::string& name = "TestNode") 
 // ===========================================================================
 
 SCENARIO("validate_header rejects wrong magic bytes", "[nuclearnet][process_packet]") {
-    uint8_t data[5] = {0x00, 0x98, 0xA2, PROTOCOL_VERSION, ANNOUNCE};
-    REQUIRE_FALSE(validate_header(data, sizeof(data)));
+    const std::array<uint8_t, 5> data = {0x00, 0x98, 0xA2, PROTOCOL_VERSION, ANNOUNCE};
+    REQUIRE_FALSE(validate_header(data.data(), data.size()));
 }
 
 SCENARIO("validate_header rejects wrong protocol version", "[nuclearnet][process_packet]") {
-    uint8_t data[5] = {0xE2, 0x98, 0xA2, 0xFF, ANNOUNCE};
-    REQUIRE_FALSE(validate_header(data, sizeof(data)));
+    const std::array<uint8_t, 5> data = {0xE2, 0x98, 0xA2, 0xFF, ANNOUNCE};
+    REQUIRE_FALSE(validate_header(data.data(), data.size()));
 }
 
 SCENARIO("validate_header rejects invalid packet type", "[nuclearnet][process_packet]") {
-    uint8_t data[5] = {0xE2, 0x98, 0xA2, PROTOCOL_VERSION, 0xFF};
-    REQUIRE_FALSE(validate_header(data, sizeof(data)));
+    const std::array<uint8_t, 5> data = {0xE2, 0x98, 0xA2, PROTOCOL_VERSION, 0xFF};
+    REQUIRE_FALSE(validate_header(data.data(), data.size()));
 }
 
 SCENARIO("validate_header accepts all valid packet types", "[nuclearnet][process_packet]") {
     for (uint8_t type = ANNOUNCE; type <= CONNECT; ++type) {
-        uint8_t data[5] = {0xE2, 0x98, 0xA2, PROTOCOL_VERSION, type};
-        REQUIRE(validate_header(data, sizeof(data)));
+        const std::array<uint8_t, 5> data = {0xE2, 0x98, 0xA2, PROTOCOL_VERSION, type};
+        REQUIRE(validate_header(data.data(), data.size()));
     }
 }
 
@@ -157,7 +159,7 @@ SCENARIO("process_packet discards packets with invalid headers", "[nuclearnet][p
     }
 
     auto net    = make_test_net();
-    sock_t peer = make_addr(0x0A000001, 5000);
+    const sock_t peer = make_addr(0x0A000001, 5000);
 
     bool received = false;
     net->set_packet_callback([&](const sock_t&, const std::string&, uint64_t, bool, std::vector<uint8_t>&&) {
@@ -177,7 +179,7 @@ SCENARIO("process_packet dispatches LEAVE to discovery", "[nuclearnet][process_p
     }
 
     auto net    = make_test_net();
-    sock_t peer = make_addr(0x0A000001, 5000);
+    const sock_t peer = make_addr(0x0A000001, 5000);
 
     bool left = false;
     net->set_leave_callback([&](const PeerInfo& info) {
@@ -205,7 +207,7 @@ SCENARIO("process_connect_packet ignores packets that are too short", "[nuclearn
     }
 
     auto net    = make_test_net();
-    sock_t peer = make_addr(0x0A000001, 5000);
+    const sock_t peer = make_addr(0x0A000001, 5000);
 
     // Establish announce so we have a peer entry
     auto announce_pkt = build_announce("Peer1", {});
@@ -233,7 +235,7 @@ SCENARIO("process_data_packet rejects data from unconnected peers", "[nuclearnet
     }
 
     auto net    = make_test_net();
-    sock_t peer = make_addr(0x0A000001, 5000);
+    const sock_t peer = make_addr(0x0A000001, 5000);
 
     bool received = false;
     net->set_packet_callback([&](const sock_t&, const std::string&, uint64_t, bool, std::vector<uint8_t>&&) {
@@ -256,7 +258,7 @@ SCENARIO("process_data_packet rejects data for unsubscribed hashes", "[nuclearne
     }
 
     auto net    = make_test_net();
-    sock_t peer = make_addr(0x0A000001, 5000);
+    const sock_t peer = make_addr(0x0A000001, 5000);
 
     // Subscribe to hash 0x1234 but NOT 0x5678
     net->add_subscription(0x1234);
@@ -282,7 +284,7 @@ SCENARIO("process_data_packet delivers a single-fragment unreliable message", "[
     }
 
     auto net    = make_test_net();
-    sock_t peer = make_addr(0x0A000001, 5000);
+    const sock_t peer = make_addr(0x0A000001, 5000);
 
     constexpr uint64_t HASH = 0xAAAABBBBCCCCDDDD;
     net->add_subscription(HASH);
@@ -315,7 +317,7 @@ SCENARIO("process_data_packet detects and rejects duplicate packets", "[nuclearn
     }
 
     auto net    = make_test_net();
-    sock_t peer = make_addr(0x0A000001, 5000);
+    const sock_t peer = make_addr(0x0A000001, 5000);
 
     constexpr uint64_t HASH = 0x1111222233334444;
     net->add_subscription(HASH);
@@ -344,7 +346,7 @@ SCENARIO("process_data_packet rejects packets that are too short", "[nuclearnet]
     }
 
     auto net    = make_test_net();
-    sock_t peer = make_addr(0x0A000001, 5000);
+    const sock_t peer = make_addr(0x0A000001, 5000);
 
     net->add_subscription(0x1234);
     establish_peer(*net, peer, "Sender");
@@ -373,7 +375,7 @@ SCENARIO("process_data_packet reassembles multi-fragment messages", "[nuclearnet
     }
 
     auto net    = make_test_net();
-    sock_t peer = make_addr(0x0A000001, 5000);
+    const sock_t peer = make_addr(0x0A000001, 5000);
 
     constexpr uint64_t HASH = 0xFEDCBA9876543210;
     net->add_subscription(HASH);
@@ -417,7 +419,7 @@ SCENARIO("process_ack_packet rejects ACKs from unconnected peers", "[nuclearnet]
     }
 
     auto net    = make_test_net();
-    sock_t peer = make_addr(0x0A000001, 5000);
+    const sock_t peer = make_addr(0x0A000001, 5000);
 
     // Build an ACK but don't connect the peer
     std::vector<bool> received_bits(1, true);
@@ -433,7 +435,7 @@ SCENARIO("process_ack_packet rejects packets that are too short", "[nuclearnet][
     }
 
     auto net    = make_test_net();
-    sock_t peer = make_addr(0x0A000001, 5000);
+    const sock_t peer = make_addr(0x0A000001, 5000);
     establish_peer(*net, peer, "Peer1");
 
     // Too short for ACKPacket
@@ -469,7 +471,7 @@ SCENARIO("send to named peer that does not exist delivers nothing", "[nuclearnet
     }
 
     auto net    = make_test_net();
-    sock_t peer = make_addr(0x0A000001, 5000);
+    const sock_t peer = make_addr(0x0A000001, 5000);
     establish_peer(*net, peer, "ExistingPeer");
 
     // Try to send to a non-existent peer name — should not crash

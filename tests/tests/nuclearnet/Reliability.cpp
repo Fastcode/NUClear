@@ -28,6 +28,7 @@
 #include <cstring>
 #include <vector>
 
+#include "util/network/sock_t.hpp"
 #include "util/platform.hpp"
 
 using NUClear::network::Reliability;
@@ -46,7 +47,7 @@ sock_t make_addr(uint32_t ip, uint16_t port) {
 SCENARIO("Reliability tracks sent packet and requests retransmission after timeout", "[nuclearnet][reliability]") {
     Reliability rel;
 
-    sock_t target = make_addr(0x0A000001, 5000);
+    const sock_t target = make_addr(0x0A000001, 5000);
     std::vector<uint8_t> payload(200, 0xAB);
 
     // Track a 2-fragment packet at time T
@@ -72,7 +73,7 @@ SCENARIO("Reliability tracks sent packet and requests retransmission after timeo
 SCENARIO("Reliability stops retransmitting ACKed fragments", "[nuclearnet][reliability]") {
     Reliability rel;
 
-    sock_t target = make_addr(0x0A000001, 5000);
+    const sock_t target = make_addr(0x0A000001, 5000);
     std::vector<uint8_t> payload(200, 0xCC);
 
     auto t = std::chrono::steady_clock::now();
@@ -94,7 +95,7 @@ SCENARIO("Reliability stops retransmitting ACKed fragments", "[nuclearnet][relia
 SCENARIO("Reliability removes tracked packet when all fragments ACKed", "[nuclearnet][reliability]") {
     Reliability rel;
 
-    sock_t target = make_addr(0x0A000001, 5000);
+    const sock_t target = make_addr(0x0A000001, 5000);
     std::vector<uint8_t> payload(100, 0xDD);
 
     auto t = std::chrono::steady_clock::now();
@@ -114,7 +115,7 @@ SCENARIO("Reliability removes tracked packet when all fragments ACKed", "[nuclea
 SCENARIO("Reliability retransmits indefinitely until peer is removed", "[nuclearnet][reliability]") {
     Reliability rel;
 
-    sock_t target = make_addr(0x0A000001, 5000);
+    const sock_t target = make_addr(0x0A000001, 5000);
     std::vector<uint8_t> payload(50, 0xEE);
 
     auto t = std::chrono::steady_clock::now();
@@ -156,7 +157,7 @@ SCENARIO("Reliability build_ack_packet encodes bitset correctly", "[nuclearnet][
 SCENARIO("Reliability remove_peer removes all tracked state", "[nuclearnet][reliability]") {
     Reliability rel;
 
-    sock_t target = make_addr(0x0A000001, 5000);
+    const sock_t target = make_addr(0x0A000001, 5000);
     std::vector<uint8_t> payload(100, 0xFF);
 
     auto t = std::chrono::steady_clock::now();

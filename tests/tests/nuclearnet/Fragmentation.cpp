@@ -22,8 +22,11 @@
 
 #include "nuclearnet/Fragmentation.hpp"
 
+#include <algorithm>
+#include <array>
 #include <catch2/catch_test_macros.hpp>
 #include <chrono>
+#include <cstddef>
 #include <cstdint>
 #include <numeric>
 #include <vector>
@@ -31,7 +34,7 @@
 using NUClear::network::Fragmentation;
 
 SCENARIO("Fragmentation splits large payload into MTU-sized fragments", "[nuclearnet][fragmentation]") {
-    Fragmentation frag(100);  // 100-byte MTU
+    const Fragmentation frag(100);  // 100-byte MTU
 
     // 250 bytes of data → should produce 3 fragments (100 + 100 + 50)
     std::vector<uint8_t> payload(250);
@@ -61,9 +64,9 @@ SCENARIO("Fragmentation splits large payload into MTU-sized fragments", "[nuclea
 }
 
 SCENARIO("Fragmentation produces single fragment for small payload", "[nuclearnet][fragmentation]") {
-    Fragmentation frag(1452);
+    const Fragmentation frag(1452);
 
-    std::vector<uint8_t> payload(100, 0xAB);
+    const std::vector<uint8_t> payload(100, 0xAB);
     auto fragments = frag.fragment(5, 0x12345678, 0x01, payload);
 
     REQUIRE(fragments.size() == 1);
@@ -75,9 +78,9 @@ SCENARIO("Fragmentation produces single fragment for small payload", "[nuclearne
 }
 
 SCENARIO("Fragmentation produces single fragment for empty payload", "[nuclearnet][fragmentation]") {
-    Fragmentation frag(1452);
+    const Fragmentation frag(1452);
 
-    std::vector<uint8_t> payload;
+    const std::vector<uint8_t> payload;
     auto fragments = frag.fragment(0, 0x11111111, 0, payload);
 
     REQUIRE(fragments.size() == 1);
@@ -145,15 +148,15 @@ SCENARIO("Fragmentation reassembles out-of-order fragments", "[nuclearnet][fragm
                                        result));
 
     // Last fragment completes the assembly
-    bool complete = frag.submit_fragment(1,
-                                         7,
-                                         1,
-                                         3,
-                                         0xCAFEBABE,
-                                         0x01,
-                                         fragments[1].data.data(),
-                                         fragments[1].data.size(),
-                                         result);
+    const bool complete = frag.submit_fragment(1,
+                                               7,
+                                               1,
+                                               3,
+                                               0xCAFEBABE,
+                                               0x01,
+                                               fragments[1].data.data(),
+                                               fragments[1].data.size(),
+                                               result);
 
     REQUIRE(complete);
     REQUIRE(result.payload == payload);
@@ -165,25 +168,25 @@ SCENARIO("Fragmentation rejects oversized assemblies", "[nuclearnet][fragmentati
 
     // Try to submit a fragment that implies a total size > 200 bytes
     // 3 fragments × 100 byte MTU = 300 bytes projected > 200 byte limit
-    uint8_t data[100] = {};
+    std::array<uint8_t, 100> data{};
     Fragmentation::AssembledPacket result;
-    bool complete = frag.submit_fragment(1, 1, 0, 3, 0x1234, 0, data, 100, result);
+    const bool complete = frag.submit_fragment(1, 1, 0, 3, 0x1234, 0, data.data(), data.size(), result);
     REQUIRE_FALSE(complete);
 }
 
 SCENARIO("Fragmentation rejects invalid fragment indices", "[nuclearnet][fragmentation]") {
     Fragmentation frag(100);
 
-    uint8_t data[50] = {};
+    std::array<uint8_t, 50> data{};
 
     // packet_no >= packet_count is invalid
     Fragmentation::AssembledPacket result;
-    bool complete = frag.submit_fragment(1, 1, 5, 3, 0x1234, 0, data, 50, result);
-    REQUIRE_FALSE(complete);
+    const bool invalid_index = frag.submit_fragment(1, 1, 5, 3, 0x1234, 0, data.data(), data.size(), result);
+    REQUIRE_FALSE(invalid_index);
 
     // packet_count == 0 is invalid
-    complete = frag.submit_fragment(1, 1, 0, 0, 0x1234, 0, data, 50, result);
-    REQUIRE_FALSE(complete);
+    const bool invalid_count = frag.submit_fragment(1, 1, 0, 0, 0x1234, 0, data.data(), data.size(), result);
+    REQUIRE_FALSE(invalid_count);
 }
 
 SCENARIO("Fragmentation cleanup_expired removes stale assemblies", "[nuclearnet][fragmentation]") {
@@ -191,10 +194,10 @@ SCENARIO("Fragmentation cleanup_expired removes stale assemblies", "[nuclearnet]
     Fragmentation frag(100, 64 * 1024 * 1024, std::chrono::milliseconds(1));
 
     // Submit a partial assembly at time T
-    auto t = std::chrono::steady_clock::now();
-    uint8_t data[50] = {};
+    const auto t = std::chrono::steady_clock::now();
+    std::array<uint8_t, 50> data{};
     Fragmentation::AssembledPacket result;
-    frag.submit_fragment(1, 1, 0, 3, 0x1234, 0, data, 50, result, t);
+    frag.submit_fragment(1, 1, 0, 3, 0x1234, 0, data.data(), data.size(), result, t);
 
     // Cleanup at T (not expired yet) — nothing removed
     std::size_t removed = frag.cleanup_expired(t);
@@ -212,26 +215,26 @@ SCENARIO("Fragmentation cleanup_expired removes stale assemblies", "[nuclearnet]
 SCENARIO("Fragmentation handles multiple independent assemblies", "[nuclearnet][fragmentation]") {
     Fragmentation frag(100);
 
-    uint8_t data_a[100];
-    uint8_t data_b[100];
-    std::fill_n(data_a, 100, 0xAA);
-    std::fill_n(data_b, 100, 0xBB);
+    std::array<uint8_t, 100> data_a{};
+    std::array<uint8_t, 100> data_b{};
+    std::fill_n(data_a.begin(), data_a.size(), 0xAA);
+    std::fill_n(data_b.begin(), data_b.size(), 0xBB);
 
     // Two different sources sending 2-fragment messages
     Fragmentation::AssembledPacket result1;
     Fragmentation::AssembledPacket result2;
-    REQUIRE_FALSE(frag.submit_fragment(1, 10, 0, 2, 0x1111, 0, data_a, 100, result1));
-    REQUIRE_FALSE(frag.submit_fragment(2, 10, 0, 2, 0x2222, 0, data_b, 100, result2));
+    REQUIRE_FALSE(frag.submit_fragment(1, 10, 0, 2, 0x1111, 0, data_a.data(), data_a.size(), result1));
+    REQUIRE_FALSE(frag.submit_fragment(2, 10, 0, 2, 0x2222, 0, data_b.data(), data_b.size(), result2));
 
     // Complete source 2's message
-    REQUIRE(frag.submit_fragment(2, 10, 1, 2, 0x2222, 0, data_b, 100, result2));
+    REQUIRE(frag.submit_fragment(2, 10, 1, 2, 0x2222, 0, data_b.data(), data_b.size(), result2));
     REQUIRE(result2.hash == 0x2222);
     REQUIRE(result2.payload.size() == 200);
     REQUIRE(result2.payload[0] == 0xBB);
 
     // Source 1 still incomplete
     // Complete it
-    REQUIRE(frag.submit_fragment(1, 10, 1, 2, 0x1111, 0, data_a, 100, result1));
+    REQUIRE(frag.submit_fragment(1, 10, 1, 2, 0x1111, 0, data_a.data(), data_a.size(), result1));
     REQUIRE(result1.hash == 0x1111);
     REQUIRE(result1.payload[0] == 0xAA);
 }

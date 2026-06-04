@@ -24,9 +24,11 @@
 
 #include <algorithm>
 #include <catch2/catch_test_macros.hpp>
+#include <cstdint>
 #include <set>
 #include <vector>
 
+#include "util/network/sock_t.hpp"
 #include "util/platform.hpp"
 
 using NUClear::network::Routing;
@@ -45,8 +47,8 @@ sock_t make_addr(uint32_t ip, uint16_t port) {
 SCENARIO("Routing delivers to peers subscribed to the message hash", "[nuclearnet][routing]") {
     Routing routing;
 
-    sock_t peer_a = make_addr(0x0A000001, 5000);
-    sock_t peer_b = make_addr(0x0A000002, 5000);
+    const sock_t peer_a = make_addr(0x0A000001, 5000);
+    const sock_t peer_b = make_addr(0x0A000002, 5000);
 
     routing.update_peer_subscriptions(peer_a, {0x1111, 0x2222});
     routing.update_peer_subscriptions(peer_b, {0x2222, 0x3333});
@@ -67,7 +69,7 @@ SCENARIO("Routing delivers to peers subscribed to the message hash", "[nuclearne
 SCENARIO("Routing delivers all messages when peer has empty subscription set", "[nuclearnet][routing]") {
     Routing routing;
 
-    sock_t peer = make_addr(0x0A000001, 5000);
+    const sock_t peer = make_addr(0x0A000001, 5000);
 
     // Empty subscription set = receive everything
     routing.update_peer_subscriptions(peer, {});
@@ -80,7 +82,7 @@ SCENARIO("Routing delivers all messages when peer has empty subscription set", "
 SCENARIO("Routing allows sending to unknown peers by default", "[nuclearnet][routing]") {
     Routing routing;
 
-    sock_t unknown = make_addr(0x0A000099, 5000);
+    const sock_t unknown = make_addr(0x0A000099, 5000);
 
     // Unknown peer — should default to allowing sends
     REQUIRE(routing.should_send(unknown, 0x1111));
@@ -89,9 +91,9 @@ SCENARIO("Routing allows sending to unknown peers by default", "[nuclearnet][rou
 SCENARIO("Routing get_targets returns all subscribed peers for a hash", "[nuclearnet][routing]") {
     Routing routing;
 
-    sock_t peer_a = make_addr(0x0A000001, 5000);
-    sock_t peer_b = make_addr(0x0A000002, 5000);
-    sock_t peer_c = make_addr(0x0A000003, 5000);
+    const sock_t peer_a = make_addr(0x0A000001, 5000);
+    const sock_t peer_b = make_addr(0x0A000002, 5000);
+    const sock_t peer_c = make_addr(0x0A000003, 5000);
 
     routing.update_peer_subscriptions(peer_a, {0x1111});
     routing.update_peer_subscriptions(peer_b, {0x1111, 0x2222});
@@ -121,7 +123,7 @@ SCENARIO("Routing local subscriptions are tracked correctly", "[nuclearnet][rout
 SCENARIO("Routing removes peer correctly", "[nuclearnet][routing]") {
     Routing routing;
 
-    sock_t peer = make_addr(0x0A000001, 5000);
+    const sock_t peer = make_addr(0x0A000001, 5000);
 
     routing.update_peer_subscriptions(peer, {0x1111});
     REQUIRE(routing.should_send(peer, 0x1111));
@@ -137,7 +139,7 @@ SCENARIO("Routing removes peer correctly", "[nuclearnet][routing]") {
 SCENARIO("Routing updates subscriptions for existing peer", "[nuclearnet][routing]") {
     Routing routing;
 
-    sock_t peer = make_addr(0x0A000001, 5000);
+    const sock_t peer = make_addr(0x0A000001, 5000);
 
     routing.update_peer_subscriptions(peer, {0x1111});
     REQUIRE(routing.should_send(peer, 0x1111));
