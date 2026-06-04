@@ -23,14 +23,22 @@
 #include "has_multicast.hpp"
 
 #include <algorithm>
+#include <array>
+#include <cstdint>
 #include <cstring>
 
 #include "util/network/get_interfaces.hpp"
 #include "util/platform.hpp"
 
+#ifndef _WIN32
+    #include <sys/select.h>
+#endif
+
 namespace test_util {
 
 namespace {
+
+constexpr std::array<char, 11> k_test_msg = {'M', 'C', 'A', 'S', 'T', '_', 'T', 'E', 'S', 'T', '\0'};
 
 /**
  * Attempt an actual multicast send/receive round-trip.
@@ -40,7 +48,7 @@ namespace {
  */
 bool test_multicast_roundtrip(int af, const char* group_addr) {
     // Create a UDP socket for receiving
-    NUClear::fd_t recv_fd = ::socket(af, SOCK_DGRAM, 0);
+    const NUClear::fd_t recv_fd = ::socket(af, SOCK_DGRAM, 0);
     if (recv_fd < 0) {
         return false;
     }
@@ -111,7 +119,7 @@ bool test_multicast_roundtrip(int af, const char* group_addr) {
     }
 
     // Create a send socket
-    NUClear::fd_t send_fd = ::socket(af, SOCK_DGRAM, 0);
+    const NUClear::fd_t send_fd = ::socket(af, SOCK_DGRAM, 0);
     if (send_fd < 0) {
         ::close(recv_fd);
         return false;
@@ -128,15 +136,14 @@ bool test_multicast_roundtrip(int af, const char* group_addr) {
     }
 
     // Send a test packet to the multicast group
-    const char test_msg[] = "MCAST_TEST";
     if (af == AF_INET) {
         sockaddr_in dest{};
         dest.sin_family = AF_INET;
         dest.sin_port   = htons(port);
         ::inet_pton(AF_INET, group_addr, &dest.sin_addr);
         ::sendto(send_fd,
-                 test_msg,
-                 sizeof(test_msg),
+                 k_test_msg.data(),
+                 static_cast<int>(k_test_msg.size()),
                  0,
                  reinterpret_cast<sockaddr*>(&dest),
                  sizeof(dest));
@@ -147,8 +154,8 @@ bool test_multicast_roundtrip(int af, const char* group_addr) {
         dest.sin6_port   = htons(port);
         ::inet_pton(AF_INET6, group_addr, &dest.sin6_addr);
         ::sendto(send_fd,
-                 test_msg,
-                 sizeof(test_msg),
+                 k_test_msg.data(),
+                 static_cast<int>(k_test_msg.size()),
                  0,
                  reinterpret_cast<sockaddr*>(&dest),
                  sizeof(dest));
@@ -156,20 +163,21 @@ bool test_multicast_roundtrip(int af, const char* group_addr) {
 
     // Wait for the packet with a 200ms timeout using select (portable across all platforms)
     fd_set read_fds;
-    FD_ZERO(&read_fds);    // NOLINT(readability-isolate-declaration)
+    FD_ZERO(&read_fds);          // NOLINT(hicpp-signed-bitwise,readability-isolate-declaration)
     FD_SET(recv_fd, &read_fds);  // NOLINT(hicpp-signed-bitwise)
-    struct timeval tv {};
+    timeval tv{};
     tv.tv_sec  = 0;
     tv.tv_usec = 200000;  // 200ms
 
-    int ready = ::select(static_cast<int>(recv_fd) + 1, &read_fds, nullptr, nullptr, &tv);
+    const int ready = ::select(static_cast<int>(recv_fd) + 1, &read_fds, nullptr, nullptr, &tv);
 
     bool success = false;
     if (ready > 0) {
         // Verify the received data matches what we sent to avoid false positives
-        char buf[64] = {0};
-        ssize_t n    = ::recvfrom(recv_fd, buf, sizeof(buf), 0, nullptr, nullptr);
-        success      = (n == static_cast<ssize_t>(sizeof(test_msg)) && std::memcmp(buf, test_msg, sizeof(test_msg)) == 0);
+        std::array<char, 64> buf{};
+        const ssize_t n = ::recvfrom(recv_fd, buf.data(), buf.size(), 0, nullptr, nullptr);
+        success         = (n == static_cast<ssize_t>(k_test_msg.size())
+                   && std::equal(k_test_msg.begin(), k_test_msg.end(), buf.begin()));
     }
 
     ::close(send_fd);
@@ -182,8 +190,8 @@ bool test_multicast_roundtrip(int af, const char* group_addr) {
 
 bool has_ipv4_multicast() {
     // First check if any interface reports multicast support
-    auto ifaces = NUClear::util::network::get_interfaces();
-    bool has_flag = std::any_of(ifaces.begin(), ifaces.end(), [](const auto& iface) {
+    const auto ifaces = NUClear::util::network::get_interfaces();
+    const bool has_flag = std::any_of(ifaces.begin(), ifaces.end(), [](const auto& iface) {
         return iface.ip.sock.sa_family == AF_INET && iface.flags.multicast;
     });
     if (!has_flag) {
@@ -196,8 +204,8 @@ bool has_ipv4_multicast() {
 
 bool has_ipv6_multicast() {
     // First check if any interface reports multicast support
-    auto ifaces = NUClear::util::network::get_interfaces();
-    bool has_flag = std::any_of(ifaces.begin(), ifaces.end(), [](const auto& iface) {
+    const auto ifaces = NUClear::util::network::get_interfaces();
+    const bool has_flag = std::any_of(ifaces.begin(), ifaces.end(), [](const auto& iface) {
         return iface.ip.sock.sa_family == AF_INET6 && iface.flags.multicast;
     });
     if (!has_flag) {
