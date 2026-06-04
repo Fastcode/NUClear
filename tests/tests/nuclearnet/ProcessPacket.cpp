@@ -28,6 +28,7 @@
 #include <cstring>
 #include <memory>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "nuclearnet/Discovery.hpp"
@@ -42,7 +43,16 @@ using NUClear::network::NetworkConfig;
 using NUClear::network::PeerInfo;
 using NUClear::util::network::sock_t;
 
-using namespace NUClear::network;
+using NUClear::network::ACK;
+using NUClear::network::ANNOUNCE;
+using NUClear::network::CON_ACK;
+using NUClear::network::CONNECT;
+using NUClear::network::DATA;
+using NUClear::network::DataPacket;
+using NUClear::network::PacketHeader;
+using NUClear::network::PROTOCOL_VERSION;
+using NUClear::network::SYN;
+using NUClear::network::validate_header;
 
 namespace {
 
@@ -162,13 +172,13 @@ SCENARIO("process_packet discards packets with invalid headers", "[nuclearnet][p
     const sock_t peer = make_addr(0x0A000001, 5000);
 
     bool received = false;
-    net->set_packet_callback([&](const sock_t&, const std::string&, uint64_t, bool, std::vector<uint8_t>&&) {
+    net->set_packet_callback([&](const sock_t&, const std::string&, uint64_t, bool, std::vector<uint8_t>) {
         received = true;
     });
 
     // Garbage data
-    uint8_t garbage[10] = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09};
-    net->process_packet(peer, garbage, sizeof(garbage));
+    const std::array<uint8_t, 10> garbage = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09};
+    net->process_packet(peer, garbage.data(), garbage.size());
 
     REQUIRE_FALSE(received);
 }
@@ -238,7 +248,7 @@ SCENARIO("process_data_packet rejects data from unconnected peers", "[nuclearnet
     const sock_t peer = make_addr(0x0A000001, 5000);
 
     bool received = false;
-    net->set_packet_callback([&](const sock_t&, const std::string&, uint64_t, bool, std::vector<uint8_t>&&) {
+    net->set_packet_callback([&](const sock_t&, const std::string&, uint64_t, bool, std::vector<uint8_t>) {
         received = true;
     });
 
@@ -267,7 +277,7 @@ SCENARIO("process_data_packet rejects data for unsubscribed hashes", "[nuclearne
     establish_peer(*net, peer, "Peer1");
 
     bool received = false;
-    net->set_packet_callback([&](const sock_t&, const std::string&, uint64_t, bool, std::vector<uint8_t>&&) {
+    net->set_packet_callback([&](const sock_t&, const std::string&, uint64_t, bool, std::vector<uint8_t>) {
         received = true;
     });
 
@@ -324,11 +334,11 @@ SCENARIO("process_data_packet detects and rejects duplicate packets", "[nuclearn
     establish_peer(*net, peer, "Sender");
 
     int delivery_count = 0;
-    net->set_packet_callback([&](const sock_t&, const std::string&, uint64_t, bool, std::vector<uint8_t>&&) {
+    net->set_packet_callback([&](const sock_t&, const std::string&, uint64_t, bool, std::vector<uint8_t>) {
         ++delivery_count;
     });
 
-    std::vector<uint8_t> payload = {0xDE, 0xAD};
+    const std::vector<uint8_t> payload = {0xDE, 0xAD};
     auto data_pkt = build_data_packet(100, 0, 1, HASH, 0, payload);
 
     // First delivery
@@ -352,20 +362,20 @@ SCENARIO("process_data_packet rejects packets that are too short", "[nuclearnet]
     establish_peer(*net, peer, "Sender");
 
     bool received = false;
-    net->set_packet_callback([&](const sock_t&, const std::string&, uint64_t, bool, std::vector<uint8_t>&&) {
+    net->set_packet_callback([&](const sock_t&, const std::string&, uint64_t, bool, std::vector<uint8_t>) {
         received = true;
     });
 
     // Too short to be a DataPacket
-    uint8_t short_data[10] = {};
-    auto* hdr  = reinterpret_cast<PacketHeader*>(short_data);  // NOLINT
-    hdr->header[0] = 0xE2;
-    hdr->header[1] = 0x98;
-    hdr->header[2] = 0xA2;
-    hdr->version   = PROTOCOL_VERSION;
-    hdr->type      = DATA;
+    std::array<uint8_t, 10> short_data{};
+    auto* hdr        = reinterpret_cast<PacketHeader*>(short_data.data());  // NOLINT
+    hdr->header[0]   = 0xE2;
+    hdr->header[1]   = 0x98;
+    hdr->header[2]   = 0xA2;
+    hdr->version     = PROTOCOL_VERSION;
+    hdr->type        = DATA;
 
-    net->process_data_packet(peer, short_data, sizeof(short_data));
+    net->process_data_packet(peer, short_data.data(), short_data.size());
     REQUIRE_FALSE(received);
 }
 
@@ -388,9 +398,9 @@ SCENARIO("process_data_packet reassembles multi-fragment messages", "[nuclearnet
         });
 
     // Send 3 fragments of a 15-byte message (5 bytes each)
-    std::vector<uint8_t> frag0 = {0, 1, 2, 3, 4};
-    std::vector<uint8_t> frag1 = {5, 6, 7, 8, 9};
-    std::vector<uint8_t> frag2 = {10, 11, 12, 13, 14};
+    const std::vector<uint8_t> frag0 = {0, 1, 2, 3, 4};
+    const std::vector<uint8_t> frag1 = {5, 6, 7, 8, 9};
+    const std::vector<uint8_t> frag2 = {10, 11, 12, 13, 14};
 
     auto pkt0 = build_data_packet(200, 0, 3, HASH, 0, frag0);
     auto pkt1 = build_data_packet(200, 1, 3, HASH, 0, frag1);
@@ -422,7 +432,7 @@ SCENARIO("process_ack_packet rejects ACKs from unconnected peers", "[nuclearnet]
     const sock_t peer = make_addr(0x0A000001, 5000);
 
     // Build an ACK but don't connect the peer
-    std::vector<bool> received_bits(1, true);
+    const std::vector<bool> received_bits(1, true);
     auto ack_pkt = build_ack_packet(1, 1, received_bits);
 
     // Should not crash — just silently discard
@@ -439,16 +449,16 @@ SCENARIO("process_ack_packet rejects packets that are too short", "[nuclearnet][
     establish_peer(*net, peer, "Peer1");
 
     // Too short for ACKPacket
-    uint8_t short_data[5] = {};
-    auto* hdr  = reinterpret_cast<PacketHeader*>(short_data);  // NOLINT
-    hdr->header[0] = 0xE2;
-    hdr->header[1] = 0x98;
-    hdr->header[2] = 0xA2;
-    hdr->version   = PROTOCOL_VERSION;
-    hdr->type      = ACK;
+    std::array<uint8_t, 5> short_data{};
+    auto* hdr        = reinterpret_cast<PacketHeader*>(short_data.data());  // NOLINT
+    hdr->header[0]   = 0xE2;
+    hdr->header[1]   = 0x98;
+    hdr->header[2]   = 0xA2;
+    hdr->version     = PROTOCOL_VERSION;
+    hdr->type        = ACK;
 
     // Should not crash
-    net->process_ack_packet(peer, short_data, sizeof(short_data));
+    net->process_ack_packet(peer, short_data.data(), short_data.size());
 }
 
 
