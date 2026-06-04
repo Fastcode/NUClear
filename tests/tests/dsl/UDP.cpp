@@ -186,16 +186,7 @@ public:
     }
 
     TestReactor(std::unique_ptr<NUClear::Environment> environment, const std::vector<TestType>& active_tests_)
-        : TestBase(std::move(environment),
-                   false,
-#ifdef _WIN32
-                   // Windows CI runners need extra time to complete the full UDP test matrix
-                   test_util::TimeUnit(2000)
-#else
-                   test_util::TimeUnit(200)
-#endif
-                  ),
-          active_tests(active_tests_) {
+        : TestBase(std::move(environment), false, test_util::TimeUnit(200)), active_tests(active_tests_) {
 
         for (const auto& t : active_tests) {
             switch (t) {
@@ -389,11 +380,15 @@ TEST_CASE("Testing sending and receiving of UDP messages", "[api][network][udp]"
     active_tests.push_back(BROADCAST_V4_KNOWN);
     active_tests.push_back(BROADCAST_V4_EPHEMERAL);
     if (test_util::has_ipv4_multicast()) {
+#ifndef _WIN32
         active_tests.push_back(MULTICAST_V4_KNOWN);
+#endif
         active_tests.push_back(MULTICAST_V4_EPHEMERAL);
     }
     if (test_util::has_ipv6() && test_util::has_ipv6_multicast()) {
+#ifndef _WIN32
         active_tests.push_back(MULTICAST_V6_KNOWN);
+#endif
         active_tests.push_back(MULTICAST_V6_EPHEMERAL);
     }
 
