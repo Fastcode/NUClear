@@ -22,6 +22,8 @@
 
 #include "PacketDeduplicator.hpp"
 
+#include <cstdint>
+
 namespace NUClear {
 namespace network {
 
@@ -32,7 +34,7 @@ namespace network {
         }
 
         // Check how far ahead of newest_seen this packet is
-        uint16_t forward_distance = packet_id - newest_seen;
+        const uint16_t forward_distance = packet_id - newest_seen;
 
         // If it's ahead of newest_seen (newer), it can't be a duplicate
         if (forward_distance != 0 && forward_distance < 0x8000U) {
@@ -40,7 +42,7 @@ namespace network {
         }
 
         // It's at or behind newest_seen — check the distance backward
-        uint16_t distance = newest_seen - packet_id;
+        const uint16_t distance = newest_seen - packet_id;
 
         // If distance >= WINDOW_SIZE, it's too old — treat as duplicate (already processed or lost)
         if (distance >= WINDOW_SIZE) {
@@ -62,7 +64,7 @@ namespace network {
         }
 
         // Calculate how far ahead of newest_seen this packet is (signed interpretation of unsigned diff)
-        uint16_t forward_distance = packet_id - newest_seen;
+        const uint16_t forward_distance = packet_id - newest_seen;
 
         // If the high bit is set, it's actually behind us (wrapped subtraction gave a large positive number)
         // We use half the uint16_t range as the threshold for "ahead" vs "behind"
@@ -85,7 +87,7 @@ namespace network {
         }
         else {
             // This packet is OLDER than our current newest (behind us)
-            uint16_t distance = newest_seen - packet_id;
+            const uint16_t distance = newest_seen - packet_id;
             if (distance < WINDOW_SIZE) {
                 window.set(distance);  // Mark it as seen in the appropriate position
             }
