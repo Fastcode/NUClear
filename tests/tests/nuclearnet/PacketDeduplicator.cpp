@@ -23,6 +23,7 @@
 #include "nuclearnet/PacketDeduplicator.hpp"
 
 #include <catch2/catch_test_macros.hpp>
+#include <cstdint>
 
 using NUClear::network::PacketDeduplicator;
 
@@ -87,9 +88,9 @@ SCENARIO("PacketDeduplicator handles uint16_t wraparound", "[nuclearnet][dedupli
     PacketDeduplicator dedup;
 
     // Start near the max value
-    uint16_t start = 65500;
+    const uint16_t start = 65500;
     for (uint16_t i = 0; i < 100; ++i) {
-        uint16_t id = static_cast<uint16_t>(start + i);  // Will wrap around 65535 → 0
+        const auto id = static_cast<uint16_t>(start + i);  // Will wrap around 65535 → 0
         REQUIRE_FALSE(dedup.is_duplicate(id));
         dedup.add_packet(id);
     }
