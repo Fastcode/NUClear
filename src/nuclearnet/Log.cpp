@@ -22,14 +22,22 @@
 
 #include "Log.hpp"
 
+#include "../util/network/sock_t.hpp"
+#include "Discovery.hpp"
+
+#include <array>
+#include <atomic>
+#include <cstdint>
 #include <cstdio>
 #include <iostream>
+#include <string>
 
 namespace NUClear {
 namespace network {
 
 namespace {
 
+    // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
     std::atomic<std::uint8_t> g_log_level{static_cast<std::uint8_t>(LogLevel::Off)};
 
     const char* level_name(LogLevel level) {
@@ -61,9 +69,12 @@ namespace {
     }
 
     std::string hash_hex(uint64_t hash) {
-        char buf[19];
-        std::snprintf(buf, sizeof(buf), "0x%016llx", static_cast<unsigned long long>(hash));
-        return buf;
+        std::array<char, 19> buf{};
+        const int n = std::snprintf(buf.data(), buf.size(), "0x%016llx", static_cast<unsigned long long>(hash));
+        if (n < 0) {
+            return "0x?";
+        }
+        return std::string(buf.data(), static_cast<std::size_t>(n));
     }
 
     std::string sock_str(const util::network::sock_t& address) {

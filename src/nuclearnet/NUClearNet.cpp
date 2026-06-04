@@ -24,11 +24,13 @@
 
 #include <algorithm>
 #include <array>
+#include <cerrno>
 #include <chrono>
 #include <cstdint>
 #include <cstring>
 #include <memory>
 #include <set>
+#include <string>
 #include <system_error>
 #include <utility>
 #include <vector>
@@ -86,7 +88,9 @@ namespace {
 
     NUClearNet::NUClearNet()
         : discovery(std::make_unique<Discovery>(std::chrono::seconds(2)))
-        , fragmentation(std::make_unique<Fragmentation>(1452, 64 * 1024 * 1024, std::chrono::seconds(2)))
+        , fragmentation(std::make_unique<Fragmentation>(static_cast<uint16_t>(1452),
+                                                        static_cast<std::size_t>(64) * 1024 * 1024,
+                                                        std::chrono::seconds(2)))
         , reliability(std::make_unique<Reliability>()) {
         wire_discovery_callbacks();
     }
@@ -311,7 +315,7 @@ namespace {
                 open_sockets();
                 needs_rebind = false;
             }
-            catch (...) {
+            catch (...) {  // NOLINT(bugprone-empty-catch)
                 // Network not available yet; will retry on the next process() call
             }
 

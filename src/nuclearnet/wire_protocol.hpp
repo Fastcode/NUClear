@@ -41,6 +41,9 @@ namespace network {
     /// Protocol version for NUClearNet v2
     constexpr uint8_t PROTOCOL_VERSION = 0x03;
 
+    /// Default organization-local multicast address for peer discovery (RFC 2365)
+    constexpr const char DEFAULT_ANNOUNCE_ADDRESS[] = "239.226.152.162";  // NOSONAR
+
     /// Packet type identifiers
     enum PacketType : uint8_t {
         ANNOUNCE = 1,
