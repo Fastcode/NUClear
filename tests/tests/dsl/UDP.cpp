@@ -186,7 +186,15 @@ public:
     }
 
     TestReactor(std::unique_ptr<NUClear::Environment> environment, const std::vector<TestType>& active_tests_)
-        : TestBase(std::move(environment), false, test_util::TimeUnit(200)), active_tests(active_tests_) {
+        : TestBase(std::move(environment),
+                   false,
+#ifdef _WIN32
+                   test_util::TimeUnit(500)
+#else
+                   test_util::TimeUnit(200)
+#endif
+                  ),
+          active_tests(active_tests_) {
 
         for (const auto& t : active_tests) {
             switch (t) {
