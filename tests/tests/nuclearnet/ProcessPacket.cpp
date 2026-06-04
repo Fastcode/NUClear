@@ -43,6 +43,8 @@ using NUClear::network::NetworkConfig;
 using NUClear::network::PeerInfo;
 using NUClear::util::network::sock_t;
 
+using NUClear::network::Discovery;
+using NUClear::network::Reliability;
 using NUClear::network::ACK;
 using NUClear::network::ANNOUNCE;
 using NUClear::network::CON_ACK;
