@@ -80,7 +80,7 @@ SCENARIO("Routing delivers all messages when peer has empty subscription set", "
 }
 
 SCENARIO("Routing allows sending to unknown peers by default", "[nuclearnet][routing]") {
-    Routing routing;
+    const Routing routing;
 
     const sock_t unknown = make_addr(0x0A000099, 5000);
 
@@ -99,7 +99,7 @@ SCENARIO("Routing get_targets returns all subscribed peers for a hash", "[nuclea
     routing.update_peer_subscriptions(peer_b, {0x1111, 0x2222});
     routing.update_peer_subscriptions(peer_c, {0x2222});
 
-    std::vector<sock_t> all_peers = {peer_a, peer_b, peer_c};
+    const std::vector<sock_t> all_peers = {peer_a, peer_b, peer_c};
     auto targets = routing.get_targets(all_peers, 0x1111);
     REQUIRE(targets.size() == 2);
 }
