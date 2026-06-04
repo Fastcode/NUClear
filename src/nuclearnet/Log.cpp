@@ -74,7 +74,7 @@ namespace {
         if (n < 0) {
             return {"0x?"};
         }
-        return std::string(buf.data(), static_cast<std::size_t>(n));
+        return {buf.data(), static_cast<std::size_t>(n)};
     }
 
     std::string sock_str(const util::network::sock_t& address) {
