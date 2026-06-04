@@ -436,8 +436,8 @@ namespace {
                 header.flags        = flags;
                 header.hash         = hash;
 
-                const std::size_t offset   = static_cast<std::size_t>(i) * packet_mtu;
-                const std::size_t frag_len = std::min(static_cast<std::size_t>(packet_mtu), length - offset);
+                const auto offset   = static_cast<std::size_t>(i) * packet_mtu;
+                const auto frag_len = std::min(static_cast<std::size_t>(packet_mtu), length - offset);
 
                 std::array<iovec, 2> iov{
                     make_iovec(reinterpret_cast<void*>(&header), sizeof(DataPacket) - 1),  // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)

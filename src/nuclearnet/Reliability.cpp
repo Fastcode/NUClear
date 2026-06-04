@@ -173,8 +173,8 @@ namespace network {
                     req.hash         = tp.hash;
 
                     // Extract the fragment data
-                    const std::size_t offset = static_cast<std::size_t>(i) * packet_mtu;
-                    const std::size_t length = std::min(static_cast<std::size_t>(packet_mtu), tp.payload.size() - offset);
+                    const auto offset = static_cast<std::size_t>(i) * packet_mtu;
+                    const auto length = std::min(static_cast<std::size_t>(packet_mtu), tp.payload.size() - offset);
                     req.data.assign(tp.payload.data() + offset, tp.payload.data() + offset + length);
 
                     retransmissions.push_back(std::move(req));

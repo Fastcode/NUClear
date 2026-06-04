@@ -24,6 +24,7 @@
 
 #include <cstdint>
 #include <mutex>
+#include <set>
 #include <utility>
 #include <vector>
 

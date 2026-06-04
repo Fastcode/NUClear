@@ -61,8 +61,8 @@ namespace network {
             frag.hash         = hash;
 
             // Calculate the data slice for this fragment
-            const std::size_t offset = static_cast<std::size_t>(i) * packet_mtu;
-            const std::size_t length = std::min(static_cast<std::size_t>(packet_mtu), payload.size() - offset);
+            const auto offset = static_cast<std::size_t>(i) * packet_mtu;
+            const auto length = std::min(static_cast<std::size_t>(packet_mtu), payload.size() - offset);
             frag.data.assign(payload.data() + offset, payload.data() + offset + length);
 
             fragments.push_back(std::move(frag));
@@ -91,7 +91,7 @@ namespace network {
 
         // Fast reject for absurd packet counts
         if (max_assembly_size > 0) {
-            const std::size_t projected_size = static_cast<std::size_t>(packet_count) * packet_mtu;
+            const auto projected_size = static_cast<std::size_t>(packet_count) * packet_mtu;
             if (projected_size > max_assembly_size) {
                 return false;
             }
