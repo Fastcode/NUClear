@@ -98,7 +98,7 @@ namespace network {
         bool all_acked = true;
         for (uint16_t i = 0; i < packet_count && i < tp.acked.size(); ++i) {
             const std::size_t byte_idx = i / 8;
-            const uint8_t bit_idx      = static_cast<uint8_t>(i % 8);
+            const auto bit_idx = static_cast<uint8_t>(i % 8);
             if (byte_idx < bitset_size && (ack_bitset[byte_idx] & (1u << bit_idx)) != 0) {
                 tp.acked[i] = true;
             }
