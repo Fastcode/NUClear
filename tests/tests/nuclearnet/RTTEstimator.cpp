@@ -29,7 +29,7 @@ using NUClear::network::RTTEstimator;
 using namespace std::chrono_literals;
 
 SCENARIO("RTTEstimator initial timeout is 1 second", "[nuclearnet][rtt]") {
-    RTTEstimator rtt;
+    const RTTEstimator rtt;
     // RFC 6298: initial RTO should be generous (we use 1s default)
     auto timeout = rtt.timeout();
     REQUIRE(timeout >= 900ms);
