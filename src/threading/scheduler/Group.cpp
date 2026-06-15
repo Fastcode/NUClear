@@ -61,15 +61,15 @@ namespace threading {
         Group::GroupLock::~GroupLock() {
             std::vector<std::shared_ptr<LockHandle>> to_notify;
             bool removed_from_queue = false;
-            int prev_tokens          = 0;
-            bool was_locked          = false;
+            bool was_locked         = false;
+            int prev_tokens         = 0;
 
             /*mutex scope*/ {
                 const std::lock_guard<std::mutex> lock(group.mutex);
                 if (handle->locked) {
                     handle->locked = false;
-                    prev_tokens = group.tokens.fetch_add(1, std::memory_order_acq_rel);
-                    was_locked  = true;
+                    prev_tokens    = group.tokens.fetch_add(1, std::memory_order_acq_rel);
+                    was_locked     = true;
                 }
 
                 auto it = std::find(group.queue.begin(), group.queue.end(), handle);
@@ -97,31 +97,33 @@ namespace threading {
                 h->notify();
             }
 
-            // If a fast-path waiter was queued (tokens were already negative before our release),
-            // drain one waiter to claim the slot we just freed.
+            // A negative pre-release count means a fast-path waiter has ALREADY reserved a slot (its
+            // park_reconcile did the fetch_sub) and is parked waiting to be handed back in. It owns
+            // the slot we just freed and MUST be drained even when slow_pending > 0, otherwise a
+            // multi-group slow waiter that needs this slot to free up deadlocks against it. The
+            // drained waiter is normally already counted (slot true), making the drain token-neutral;
+            // if we reach a not-yet-counted head waiter it now consumes the freed slot and we owe its
+            // single decrement.
             if (was_locked && prev_tokens < 0) {
-                group.drain_one_to_pool();
+                const DrainResult drained = group.drain_one_to_pool();
+                if (drained.drained && drained.uncounted) {
+                    group.tokens.fetch_sub(1, std::memory_order_acq_rel);
+                }
                 return;
             }
 
-            // Otherwise: no fast waiter was directly entitled. If slow_pending is now 0 and a
-            // token is available, give it to any fast waiter we have so they don't get stranded.
+            // Otherwise no committed fast waiter is owed this slot. Hand it to a single parked
+            // fast-path waiter, but only once any pending slow-path waiters have been given priority
+            // (slow_pending == 0). Draining exactly one waiter per freed token keeps the running
+            // count bounded by concurrency: a finishing/releasing task frees one slot and starts at
+            // most one parked task, which in turn frees its slot on completion and continues the
+            // cascade. If the drained waiter had not yet counted itself (it was mid publish/reconcile
+            // when an opportunistic drain reached it, i.e. the race from the lock-free bug) this
+            // drain owes its single token decrement; otherwise the drain is token-neutral.
             if (was_locked && group.slow_pending.load(std::memory_order_acquire) == 0) {
-                bool claimed = false;
-                int expected = group.tokens.load(std::memory_order_acquire);
-                while (!claimed && expected > 0) {
-                    if (group.tokens.compare_exchange_weak(expected,
-                                                           expected - 1,
-                                                           std::memory_order_acq_rel)) {
-                        const DrainResult drained = group.drain_one_to_pool();
-                        if (!drained.drained || !drained.handback_parker) {
-                            group.tokens.fetch_add(1, std::memory_order_release);
-                        }
-                        claimed = true;
-                    }
-                    else {
-                        expected = group.tokens.load(std::memory_order_acquire);
-                    }
+                const DrainResult drained = group.drain_one_to_pool();
+                if (drained.drained && drained.uncounted) {
+                    group.tokens.fetch_sub(1, std::memory_order_acq_rel);
                 }
             }
         }
@@ -193,8 +195,6 @@ namespace threading {
         }
 
         bool Group::try_submit(std::unique_ptr<ReactionTask>&& task, Pool* pool, const bool& clear_idle) {
-            bool handback_parker = false;
-
             // Don't jump ahead of multi-group waiters; if any exist, queue ourselves.
             if (slow_pending.load(std::memory_order_acquire) == 0) {
                 int expected = tokens.load(std::memory_order_acquire);
@@ -204,8 +204,7 @@ namespace threading {
                         if (slow_pending.load(std::memory_order_acquire) > 0) {
                             // Restore the token and fall through to enqueueing.
                             release_token();
-                            handback_parker = true;
-                            done            = true;
+                            done = true;
                         }
                         else {
                             pool->submit({std::move(task), make_running_lock()}, clear_idle);
@@ -215,38 +214,56 @@ namespace threading {
                 }
             }
 
-            park_publish(std::move(task), pool, clear_idle, handback_parker);
-            park_reconcile(handback_parker);
+            const std::shared_ptr<std::atomic<bool>> slot = park_publish(std::move(task), pool, clear_idle);
+            park_reconcile(slot);
             return false;
         }
 
-        void Group::park_publish(std::unique_ptr<ReactionTask>&& task,
-                                 Pool* pool,
-                                 const bool& clear_idle,
-                                 const bool& handback_parker) noexcept {
+        std::shared_ptr<std::atomic<bool>> Group::park_publish(std::unique_ptr<ReactionTask>&& task,
+                                                               Pool* pool,
+                                                               const bool& clear_idle) noexcept {
+            auto slot                = std::make_shared<std::atomic<bool>>(false);
             const std::size_t bucket = queue::priority_index(task->priority);
             if (pool != nullptr) {
                 pool->register_external_waiter();
             }
-            wait_buckets[bucket].enqueue(WaitEntry{std::move(task), pool, clear_idle, handback_parker});
+            wait_buckets[bucket].enqueue(WaitEntry{std::move(task), pool, clear_idle, slot});
+            return slot;
         }
 
-        void Group::park_reconcile(const bool& handback_parker) noexcept {
-            // Reserve a slot in the signed counter; if a token was still available, run a waiter now.
+        void Group::park_reconcile(const std::shared_ptr<std::atomic<bool>>& slot) noexcept {
+            // Reserve a slot in the signed counter. This is done unconditionally so that a later
+            // release always sees prev < 0 and hands us back in: it is the no-lost-wakeup mechanism.
             const int prev = tokens.fetch_sub(1, std::memory_order_acq_rel);
-            if (prev > 0) {
-                if (slow_pending.load(std::memory_order_acquire) > 0) {
-                    // Hand the token back so the slow path can pick it up.
-                    release_token();
-                }
-                else {
-                    drain_one_to_pool();
-                }
-            }
-            else if (handback_parker && wait_buckets_empty()) {
-                // An opportunistic drain may have already moved this handback waiter to a pool
-                // (keeping the pre-reserved token). Undo the fetch_sub above so tokens stay balanced.
+
+            // A token was free, but a multi-group slow waiter is pending: the slow path has priority.
+            // Hand the token straight back and stay parked UNCOUNTED -- we deliberately do NOT claim
+            // the arbiter slot. A later drain then owes our single decrement (paired with our eventual
+            // RunningLock release) and runs us once the slow path has cleared. This is what stops a
+            // single-group fast submit from jumping ahead of an older multi-group waiter (see
+            // dsl/SyncMulti); leaving the slot unclaimed keeps the drain's accounting exact.
+            if (prev > 0 && slow_pending.load(std::memory_order_acquire) > 0) {
                 release_token();
+                return;
+            }
+
+            // Claim responsibility for this waiter's single token decrement. Whoever flips the arbiter
+            // from false to true owns the decrement; if an opportunistic drainer already flipped it, it
+            // has both started us running and accounted the token it kept, so our fetch_sub above is a
+            // phantom -- undo it and leave.
+            if (slot->exchange(true, std::memory_order_acq_rel)) {
+                release_token();
+                return;
+            }
+
+            if (prev > 0) {
+                // A token was free (and no slow waiter took priority), so hand it to a parked waiter
+                // (possibly us). If that waiter had not yet counted itself this drain owes its single
+                // decrement.
+                const DrainResult drained = drain_one_to_pool();
+                if (drained.drained && drained.uncounted) {
+                    tokens.fetch_sub(1, std::memory_order_acq_rel);
+                }
             }
 
             // The destination pool's "pending idle" latch was set by register_external_waiter
@@ -257,27 +274,39 @@ namespace threading {
             // even when the worker is preempted past the natural idle window).
         }
 
-        bool Group::wait_buckets_empty() const noexcept {
-            for (const auto& bucket : wait_buckets) {
-                if (!bucket.empty()) {
-                    return false;
-                }
-            }
-            return true;
-        }
-
         void Group::release_token() noexcept {
             const int prev = tokens.fetch_add(1, std::memory_order_acq_rel);
 
-            // If a slow-path waiter exists give them first chance.
+            // A negative pre-release count means at least one fast-path waiter has ALREADY reserved a
+            // slot (its park_reconcile did the fetch_sub) and is parked waiting to be handed back in.
+            // That waiter committed before any slow waiter and now owns the slot we just freed, so it
+            // MUST be drained even when slow_pending > 0: stranding it would deadlock a multi-group
+            // slow waiter that needs this very slot to become free again. The drained waiter is
+            // normally already counted (its slot is true), so the drain is token-neutral; if we
+            // instead reach a not-yet-counted head waiter it now consumes the freed slot, so we owe
+            // its single decrement.
+            if (prev < 0) {
+                const DrainResult drained = drain_one_to_pool();
+                if (drained.drained && drained.uncounted) {
+                    tokens.fetch_sub(1, std::memory_order_acq_rel);
+                }
+                return;
+            }
+
+            // No committed fast waiter is owed this slot. Give any slow-path waiter first chance.
             if (slow_pending.load(std::memory_order_acquire) > 0) {
                 notify_slow_path();
                 return;
             }
 
-            // A fast-path waiter has already decremented; hand them the slot.
-            if (prev < 0) {
-                drain_one_to_pool();
+            // Otherwise hand the one freed slot to a single parked fast-path waiter. Draining exactly
+            // one per freed token bounds the running count by concurrency and lets each completing
+            // task continue the cascade. If the drained waiter had not yet counted itself this drain
+            // owes its single token decrement (it consumes the slot we just freed); for an
+            // already-counted waiter the drain is token-neutral.
+            const DrainResult drained = drain_one_to_pool();
+            if (drained.drained && drained.uncounted) {
+                tokens.fetch_sub(1, std::memory_order_acq_rel);
             }
         }
 
@@ -304,19 +333,25 @@ namespace threading {
             for (std::size_t bucket = 0; bucket < queue::PRIORITY_BUCKETS; ++bucket) {
                 if (wait_buckets[bucket].try_dequeue(entry)) {
                     Pool* pool = entry.pool;
-                    auto running_lock = make_running_lock();
+                    // Claim the waiter's single token decrement. If the slot was still false the
+                    // waiter has not counted itself yet (it is mid publish/reconcile, or it handed
+                    // its token back to the slow path), so this drain is responsible for the -1 and
+                    // the waiter's park_reconcile() will observe the slot and skip. If it was already
+                    // true the waiter is counted and this drain is token-neutral.
+                    const bool uncounted = !entry.slot->exchange(true, std::memory_order_acq_rel);
+                    auto running_lock    = make_running_lock();
 #ifdef NUCLEAR_GROUP_TEST_API
                     if (test_capture_drains_) {
                         test_captured_drains_.push_back({std::move(entry.task), std::move(running_lock)});
                         if (pool != nullptr) {
                             pool->unregister_external_waiter();
                         }
-                        return {true, entry.handback_parker};
+                        return {true, uncounted};
                     }
 #endif
                     pool->submit({std::move(entry.task), std::move(running_lock)}, entry.clear_idle, /*force=*/true);
                     pool->unregister_external_waiter();
-                    return {true, entry.handback_parker};
+                    return {true, uncounted};
                 }
             }
             return {};
@@ -353,16 +388,15 @@ namespace threading {
             return group.tokens.load(std::memory_order_acquire);
         }
 
-        void Group::TestAccess::park_publish(Group& group,
-                                             std::unique_ptr<ReactionTask>&& task,
-                                             Pool* pool,
-                                             const bool clear_idle,
-                                             const bool handback_parker) {
-            group.park_publish(std::move(task), pool, clear_idle, handback_parker);
+        std::shared_ptr<std::atomic<bool>> Group::TestAccess::park_publish(Group& group,
+                                                                           std::unique_ptr<ReactionTask>&& task,
+                                                                           Pool* pool,
+                                                                           const bool clear_idle) {
+            return group.park_publish(std::move(task), pool, clear_idle);
         }
 
-        void Group::TestAccess::park_reconcile(Group& group, const bool handback_parker) {
-            group.park_reconcile(handback_parker);
+        void Group::TestAccess::park_reconcile(Group& group, const std::shared_ptr<std::atomic<bool>>& slot) {
+            group.park_reconcile(slot);
         }
 
         std::unique_ptr<Lock> Group::TestAccess::try_acquire_running_lock(Group& group) {

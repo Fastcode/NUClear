@@ -62,14 +62,22 @@ namespace threading {
                 /// while this WaitEntry is reachable.
                 Pool* pool{nullptr};
                 bool clear_idle{false};
-                /// True when this waiter was handed back to the park path after a fast-path token
-                /// acquire (net-zero token effect once reconcile completes). Published with enqueue.
-                bool handback_parker{false};
+                /// Single-use arbiter shared between this waiter's own park_reconcile() and any
+                /// pre-paying drainer (the GroupLock opportunistic drain). Both attempt to flip it
+                /// from false to true; whoever wins is the party that performs the waiter's single
+                /// token decrement, and the loser skips its own adjustment. This makes the
+                /// keep/hand-back decision exact regardless of how many other waiters are parked,
+                /// instead of inferring it from the (unreliable) emptiness of the wait buckets.
+                std::shared_ptr<std::atomic<bool>> slot{};
             };
 
             struct DrainResult {
                 bool drained{false};
-                bool handback_parker{false};
+                /// True when the drained waiter had not yet accounted its own token (its arbiter slot
+                /// was still false and this drain claimed it). The caller is then responsible for the
+                /// waiter's single token decrement; for an already-counted waiter the drain is
+                /// token-neutral.
+                bool uncounted{false};
             };
 
             /**
@@ -244,12 +252,10 @@ namespace threading {
             const std::shared_ptr<const util::GroupDescriptor> descriptor;
 
         private:
-            void park_publish(std::unique_ptr<ReactionTask>&& task,
-                              Pool* pool,
-                              const bool& clear_idle,
-                              const bool& handback_parker) noexcept;
-            void park_reconcile(const bool& handback_parker) noexcept;
-            bool wait_buckets_empty() const noexcept;
+            std::shared_ptr<std::atomic<bool>> park_publish(std::unique_ptr<ReactionTask>&& task,
+                                                            Pool* pool,
+                                                            const bool& clear_idle) noexcept;
+            void park_reconcile(const std::shared_ptr<std::atomic<bool>>& slot) noexcept;
             void release_token() noexcept;
             void notify_slow_path() noexcept;
             DrainResult drain_one_to_pool() noexcept;
@@ -276,12 +282,11 @@ namespace threading {
 
             struct TestAccess {
                 static int tokens(const Group& group);
-                static void park_publish(Group& group,
-                                         std::unique_ptr<ReactionTask>&& task,
-                                         Pool* pool,
-                                         bool clear_idle,
-                                         bool handback_parker);
-                static void park_reconcile(Group& group, bool handback_parker);
+                static std::shared_ptr<std::atomic<bool>> park_publish(Group& group,
+                                                                       std::unique_ptr<ReactionTask>&& task,
+                                                                       Pool* pool,
+                                                                       bool clear_idle);
+                static void park_reconcile(Group& group, const std::shared_ptr<std::atomic<bool>>& slot);
                 static std::unique_ptr<Lock> try_acquire_running_lock(Group& group);
                 static void set_capture_drains(Group& group, bool capture);
                 static std::vector<CapturedDrain> take_captured_drains(Group& group);

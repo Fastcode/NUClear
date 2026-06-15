@@ -48,6 +48,21 @@ namespace threading {
             Pool::current_pool = get_pool(dsl::word::MainThread::descriptor()).get();
         }
 
+        Scheduler::~Scheduler() {
+            // The constructor installed a non-owning pointer to the main thread pool in this thread's
+            // Pool::current_pool. Our pools are about to be destroyed, so leave no dangling pointer behind
+            // for any later Pool::current() call on this thread (it would otherwise throw bad_weak_ptr from
+            // the expired pool). Only clear it if it still refers to one of our pools, so we never disturb
+            // an unrelated Scheduler that may share this thread.
+            const std::lock_guard<std::mutex> lock(pools_mutex);
+            for (const auto& pool : pools) {
+                if (Pool::current_pool == pool.second.get()) {
+                    Pool::current_pool = nullptr;
+                    break;
+                }
+            }
+        }
+
         void Scheduler::start() {
             // We have to scope this mutex, otherwise the main thread will hold the mutex while it is running
             /*mutex scope*/ {

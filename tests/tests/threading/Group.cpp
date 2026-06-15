@@ -22,11 +22,16 @@
 #include "threading/scheduler/Group.hpp"
 
 #include <array>
+#include <atomic>
 #include <catch2/catch_message.hpp>
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/generators/catch_generators.hpp>
+#include <chrono>
+#include <cstdint>
 #include <memory>
+#include <random>
 #include <set>
+#include <thread>
 #include <utility>
 #include <vector>
 
@@ -35,6 +40,8 @@
 // point where TaskQueue<WaitEntry> is instantiated (which happens via Group's constructor).
 #include "threading/ReactionTask.hpp"  // NOLINT(misc-include-cleaner)
 #include "threading/scheduler/Lock.hpp"
+#include "threading/scheduler/Pool.hpp"
+#include "threading/scheduler/Scheduler.hpp"
 #include "util/GroupDescriptor.hpp"
 #include "util/Inline.hpp"
 #include "util/ThreadPoolDescriptor.hpp"
@@ -61,6 +68,41 @@ namespace threading {
                     [](const ReactionTask& /*task*/) {
                         return std::set<std::shared_ptr<const util::GroupDescriptor>>{};
                     });
+            }
+
+            /// A ReactionTask that bumps a completion counter when run by a pool worker.
+            std::unique_ptr<ReactionTask> make_counting_task(std::atomic<int>& completed, const int priority = 1) {
+                auto task      = make_test_task(priority);
+                task->callback = [&completed](ReactionTask& /*task*/) {
+                    completed.fetch_add(1, std::memory_order_acq_rel);
+                };
+                return task;
+            }
+
+            /// Spin (with a small back-off) until `pred()` is true or `timeout` elapses.
+            /// Returns the final value of `pred()` so callers can assert-rather-than-hang.
+            template <typename Pred>
+            bool wait_for(Pred&& pred, const std::chrono::milliseconds timeout) {
+                const auto deadline = std::chrono::steady_clock::now() + timeout;
+                while (std::chrono::steady_clock::now() < deadline) {
+                    if (pred()) {
+                        return true;
+                    }
+                    std::this_thread::sleep_for(std::chrono::microseconds(100));
+                }
+                return pred();
+            }
+
+            /// Repeatedly attempt to acquire a slow-path lock until it succeeds or `timeout` elapses.
+            bool acquire_blocking(Lock& lock, const std::chrono::milliseconds timeout) {
+                const auto deadline = std::chrono::steady_clock::now() + timeout;
+                while (!lock.lock()) {
+                    if (std::chrono::steady_clock::now() >= deadline) {
+                        return false;
+                    }
+                    std::this_thread::sleep_for(std::chrono::microseconds(50));
+                }
+                return true;
             }
         }  // namespace
 
@@ -440,11 +482,11 @@ namespace threading {
                 CHECK(slow_lock->lock() == true);
 
                 WHEN("A fast waiter publishes, the slow lock releases, then the waiter reconciles") {
-                    Group::TestAccess::park_publish(*group, make_test_task(), nullptr, false, false);
+                    auto slot = Group::TestAccess::park_publish(*group, make_test_task(), nullptr, false);
 
                     slow_lock.reset();
 
-                    Group::TestAccess::park_reconcile(*group, false);
+                    Group::TestAccess::park_reconcile(*group, slot);
 
                     THEN("All tokens are restored after quiescing and the group is not deadlocked") {
                         auto captured = Group::TestAccess::take_captured_drains(*group);
@@ -453,6 +495,149 @@ namespace threading {
 
                         CHECK(Group::TestAccess::tokens(*group) == group->descriptor->concurrency);
                         CHECK(Group::TestAccess::try_acquire_running_lock(*group) != nullptr);
+                    }
+                }
+            }
+        }
+
+        SCENARIO("Concurrent fast and slow path traffic never leaks group tokens or deadlocks") {
+            const int concurrency = GENERATE(1, 2, 3);
+            CAPTURE(concurrency);
+
+            GIVEN("Two groups served by a started worker pool") {
+                // A real worker pool so drained/submitted tasks actually run and release their
+                // group tokens. counts_for_idle=false keeps the idle machinery out of this focused
+                // token-accounting test.
+                auto scheduler = std::make_unique<Scheduler>(4);
+                auto pool_desc =
+                    std::make_shared<util::ThreadPoolDescriptor>("GroupStressPool", 4, /*counts_for_idle=*/false);
+                auto pool = std::make_unique<Pool>(*scheduler, pool_desc);
+                pool->start();
+
+                std::array<std::shared_ptr<Group>, 2> groups{make_group(concurrency), make_group(concurrency)};
+
+                std::atomic<int> submitted{0};
+                std::atomic<int> completed{0};
+                std::atomic<bool> stop{false};
+                std::atomic<bool> burst{false};
+                std::atomic<bool> acquire_failed{false};
+
+                WHEN("A holder repeatedly grabs both groups while fast submits flood and park") {
+                    // Round structure (repeated many times to randomise the interleaving):
+                    //   1. The holder grabs BOTH groups via the slow path while traffic is quiet, so
+                    //      the multi-group acquire never starves (the real scheduler makes a
+                    //      multi-group lock wait for genuine availability, which cannot be satisfied
+                    //      under a continuous single-group flood).
+                    //   2. It flips `burst` on; the fast threads then pour single-group submits in,
+                    //      all of which park because slow_pending > 0 while the holder holds.
+                    //   3. It releases both groups. Each release runs the GroupLock opportunistic
+                    //      drain, racing it against fast submits that are still mid publish/reconcile.
+                    // This hammers exactly the window from concern #1 across hundreds of rounds per
+                    // concurrency level (and many more across repeated binary/TSAN runs).
+                    constexpr int n_fast_threads = 4;
+                    constexpr int rounds         = 200;
+                    constexpr int burst_target   = 3;
+
+                    std::vector<std::thread> fast_threads;
+                    for (int t = 0; t < n_fast_threads; ++t) {
+                        fast_threads.emplace_back([&, t] {
+                            std::mt19937 rng(0x51EDU + static_cast<unsigned>(t));
+                            bool submitted_this_burst = false;
+                            while (!stop.load(std::memory_order_acquire)) {
+                                if (burst.load(std::memory_order_acquire)) {
+                                    if (!submitted_this_burst) {
+                                        auto& g = groups[rng() & 1U];
+                                        submitted.fetch_add(1, std::memory_order_acq_rel);
+                                        g->try_submit(make_counting_task(completed), pool.get(), false);
+                                        submitted_this_burst = true;
+                                    }
+                                    std::this_thread::yield();
+                                }
+                                else {
+                                    submitted_this_burst = false;
+                                    std::this_thread::sleep_for(std::chrono::microseconds(20));
+                                }
+                            }
+                        });
+                    }
+
+                    for (int r = 0; r < rounds; ++r) {
+                        const NUClear::id_t id = ReactionTask::next_id();
+
+                        // Acquire both groups in a fixed order while quiet (no burst in flight).
+                        auto lock0      = groups[0]->lock(id, 1, [] {});
+                        const bool got0 = acquire_blocking(*lock0, std::chrono::seconds(10));
+                        auto lock1      = groups[1]->lock(id, 1, [] {});
+                        const bool got1 = got0 && acquire_blocking(*lock1, std::chrono::seconds(10));
+                        if (!got0 || !got1) {
+                            acquire_failed.store(true, std::memory_order_release);
+                        }
+
+                        // Flood: fast submits now park behind the held groups.
+                        const int before = submitted.load(std::memory_order_acquire);
+                        burst.store(true, std::memory_order_release);
+                        wait_for(
+                            [&] {
+                                return submitted.load(std::memory_order_acquire) - before >= burst_target;
+                            },
+                            std::chrono::seconds(2));
+                        burst.store(false, std::memory_order_release);
+
+                        // Release in reverse order; each dtor hands its freed token to a parked waiter,
+                        // racing that drain against fast submits still mid publish/reconcile.
+                        lock1.reset();
+                        lock0.reset();
+
+                        // Let this round's parked tasks fully drain (slow_pending is 0 now) before the
+                        // next acquire. Without this the next round's lock() re-raises slow_pending and
+                        // legitimately defers not-yet-drained fast waiters (slow path has priority);
+                        // that is expected scheduler behaviour, not a leak.
+                        const bool quiesced = wait_for(
+                            [&] {
+                                return Group::TestAccess::tokens(*groups[0]) == concurrency
+                                       && Group::TestAccess::tokens(*groups[1]) == concurrency;
+                            },
+                            std::chrono::seconds(10));
+                        REQUIRE(quiesced);
+                    }
+
+                    stop.store(true, std::memory_order_release);
+                    for (auto& th : fast_threads) {
+                        th.join();
+                    }
+
+                    // (a) NO DEADLOCK: every submitted task must eventually run. Bounded wait so a
+                    // leaked token surfaces as a test failure instead of an indefinite hang.
+                    const bool all_ran = wait_for(
+                        [&] {
+                            return completed.load(std::memory_order_acquire)
+                                   == submitted.load(std::memory_order_acquire);
+                        },
+                        std::chrono::seconds(30));
+
+                    THEN("Every task runs, tokens return to concurrency, and fresh submits schedule") {
+                        CHECK_FALSE(acquire_failed.load(std::memory_order_acquire));
+                        REQUIRE(all_ran);
+
+                        // (b) No leaked/duplicated tokens, and the group is still usable.
+                        for (auto& g : groups) {
+                            CHECK(Group::TestAccess::tokens(*g) == concurrency);
+                            auto fresh = Group::TestAccess::try_acquire_running_lock(*g);
+                            CHECK(fresh != nullptr);
+                            fresh.reset();
+                            CHECK(Group::TestAccess::tokens(*g) == concurrency);
+                        }
+                    }
+
+                    // Tear down cleanly when healthy; on failure leak the pool/scheduler so a
+                    // genuinely deadlocked run reports the failed assertion instead of hanging join.
+                    if (all_ran) {
+                        pool->stop(Pool::StopType::FORCE);
+                        pool->join();
+                    }
+                    else {
+                        (void) pool.release();
+                        (void) scheduler.release();
                     }
                 }
             }

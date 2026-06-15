@@ -49,6 +49,17 @@ namespace threading {
             explicit Scheduler(const int& default_pool_concurrency);
 
             /**
+             * Clears the per-thread "current pool" pointer this Scheduler installed in its constructor.
+             *
+             * The constructor points the creating thread's Pool::current_pool at the main thread pool so
+             * work done before startup is attributed correctly. That pointer is non-owning, so once this
+             * Scheduler (and therefore its pools) is destroyed it would dangle; any later ReactionTask
+             * built on the same thread calls Pool::current() and would trip a bad_weak_ptr. Resetting it
+             * here keeps the pointer's lifetime bounded by the Scheduler that set it.
+             */
+            ~Scheduler();
+
+            /**
              * Starts the scheduler, and begins executing tasks.
              *
              * The main thread will stay in this function executing tasks until the scheduler is shutdown.
