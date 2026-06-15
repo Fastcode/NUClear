@@ -195,7 +195,7 @@ namespace threading {
                 bool try_dequeue(T& out) override {
                     while (true) {
                         const std::size_t write_observed = head_block->write.load(std::memory_order_acquire);
-                        const std::size_t published      = std::min(write_observed, static_cast<std::size_t>(BLOCK_SIZE));
+                        const std::size_t published      = std::min(write_observed, BLOCK_SIZE);
 
                         if (head_block->read < published) {
                             Slot& slot = head_block->slots[head_block->read];
@@ -218,20 +218,25 @@ namespace threading {
                             // mid-way through linking the next block; wait briefly for it to appear.
                             if (write_observed > BLOCK_SIZE) {
                                 std::this_thread::yield();
-                                continue;
                             }
-                            return false;
+                            else {
+                                return false;
+                            }
                         }
-
-                        // We're the sole consumer so advancing head_block is a plain store. The old
-                        // block goes to the graveyard so any producer that still holds a pointer to
-                        // it (e.g. one mid-way through link_next_block) doesn't touch freed memory.
-                        Block* old = head_block;
-                        head_block = next;
-                        retire_block(old);
+                        else {
+                            // We're the sole consumer so advancing head_block is a plain store. The old
+                            // block goes to the graveyard so any producer that still holds a pointer to
+                            // it (e.g. one mid-way through link_next_block) doesn't touch freed memory.
+                            Block* old = head_block;
+                            head_block = next;
+                            retire_block(old);
+                        }
                     }
                 }
             };
+
+            template <typename T>
+            constexpr std::size_t MPSCQueue<T>::BLOCK_SIZE;
 
         }  // namespace queue
     }  // namespace scheduler

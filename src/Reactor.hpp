@@ -390,7 +390,7 @@ public:
 
     public:
         template <typename... Args>
-        Binder(Reactor& r, Args&&... args) : reactor(r), args(std::forward<Args>(args)...) {}
+        Binder(Reactor& r, Args&&... args_) : reactor(r), args(std::forward<Args>(args_)...) {}
 
         template <typename Label, typename Function>
         auto then(Label&& label, Function&& callback) {

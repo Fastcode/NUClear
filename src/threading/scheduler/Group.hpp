@@ -236,9 +236,9 @@ namespace threading {
             const std::shared_ptr<const util::GroupDescriptor> descriptor;
 
         private:
-            void release_token();
-            void notify_slow_path();
-            bool drain_one_to_pool();
+            void release_token() noexcept;
+            void notify_slow_path() noexcept;
+            bool drain_one_to_pool() noexcept;
             std::unique_ptr<Lock> make_running_lock();
 
             /// Available group tokens (signed when waiters are queued on the fast path)

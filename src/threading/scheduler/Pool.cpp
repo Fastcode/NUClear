@@ -242,10 +242,10 @@ namespace threading {
             return false;
         }
 
-        void Pool::drain_queues() {
+        void Pool::drain_queues() const {
             Task discarded;
-            for (auto& bucket : buckets) {
-                while (bucket->try_dequeue(discarded)) {
+            for (const auto& bucket : buckets) {
+                while (bucket->try_dequeue(discarded)) { /* discard all queued tasks */
                 }
             }
         }

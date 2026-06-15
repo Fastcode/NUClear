@@ -107,18 +107,19 @@ namespace threading {
             // Otherwise: no fast waiter was directly entitled. If slow_pending is now 0 and a
             // token is available, give it to any fast waiter we have so they don't get stranded.
             if (was_locked && group.slow_pending.load(std::memory_order_acquire) == 0) {
-                while (true) {
-                    int expected = group.tokens.load(std::memory_order_acquire);
-                    if (expected <= 0) {
-                        break;
-                    }
+                bool claimed = false;
+                int expected = group.tokens.load(std::memory_order_acquire);
+                while (!claimed && expected > 0) {
                     if (group.tokens.compare_exchange_weak(expected,
                                                            expected - 1,
                                                            std::memory_order_acq_rel)) {
                         if (!group.drain_one_to_pool()) {
                             group.tokens.fetch_add(1, std::memory_order_release);
                         }
-                        break;
+                        claimed = true;
+                    }
+                    else {
+                        expected = group.tokens.load(std::memory_order_acquire);
                     }
                 }
             }
@@ -194,15 +195,18 @@ namespace threading {
             // Don't jump ahead of multi-group waiters; if any exist, queue ourselves.
             if (slow_pending.load(std::memory_order_acquire) == 0) {
                 int expected = tokens.load(std::memory_order_acquire);
-                while (expected > 0) {
+                bool done    = false;
+                while (!done && expected > 0) {
                     if (tokens.compare_exchange_weak(expected, expected - 1, std::memory_order_acq_rel)) {
                         if (slow_pending.load(std::memory_order_acquire) > 0) {
                             // Restore the token and fall through to enqueueing.
                             release_token();
-                            break;
+                            done = true;
                         }
-                        pool->submit({std::move(task), make_running_lock()}, clear_idle);
-                        return true;
+                        else {
+                            pool->submit({std::move(task), make_running_lock()}, clear_idle);
+                            return true;
+                        }
                     }
                 }
             }
@@ -234,7 +238,7 @@ namespace threading {
             return false;
         }
 
-        void Group::release_token() {
+        void Group::release_token() noexcept {
             const int prev = tokens.fetch_add(1, std::memory_order_acq_rel);
 
             // If a slow-path waiter exists give them first chance.
@@ -249,7 +253,7 @@ namespace threading {
             }
         }
 
-        void Group::notify_slow_path() {
+        void Group::notify_slow_path() noexcept {
             std::vector<std::shared_ptr<LockHandle>> to_notify;
             /*mutex scope*/ {
                 const std::lock_guard<std::mutex> lock(mutex);
@@ -267,7 +271,7 @@ namespace threading {
             }
         }
 
-        bool Group::drain_one_to_pool() {
+        bool Group::drain_one_to_pool() noexcept {
             WaitEntry entry;
             for (std::size_t bucket = 0; bucket < queue::PRIORITY_BUCKETS; ++bucket) {
                 if (wait_buckets[bucket].try_dequeue(entry)) {

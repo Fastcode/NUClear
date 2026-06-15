@@ -231,7 +231,7 @@ namespace threading {
             /**
              * Drain all tasks from the priority buckets.
              */
-            void drain_queues();
+            void drain_queues() const;
 
             /**
              * Get an idle task to execute or hold.

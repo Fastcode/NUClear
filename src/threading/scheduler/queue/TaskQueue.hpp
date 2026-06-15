@@ -209,58 +209,59 @@ namespace threading {
                         Block* block = head.load(std::memory_order_acquire);
 
                         const std::size_t published =
-                            std::min(block->write.load(std::memory_order_acquire),
-                                     static_cast<std::size_t>(BLOCK_SIZE));
+                            std::min(block->write.load(std::memory_order_acquire), BLOCK_SIZE);
                         std::size_t read_index = block->read.load(std::memory_order_relaxed);
 
                         if (read_index >= published) {
                             if (block->consumed.load(std::memory_order_acquire) < published) {
+                                // Consumers are still finishing slots in this block; let them progress.
                                 std::this_thread::yield();
-                                continue;
                             }
-
-                            Block* next = block->next.load(std::memory_order_acquire);
-                            if (next == nullptr) {
-                                // Producer may still be writing the first slot of an empty-looking block.
-                                if (published == 0 && block->write.load(std::memory_order_acquire) > 0) {
-                                    std::this_thread::yield();
-                                    continue;
+                            else {
+                                Block* next = block->next.load(std::memory_order_acquire);
+                                if (next == nullptr) {
+                                    // Producer may still be writing the first slot of an empty-looking block.
+                                    if (published == 0 && block->write.load(std::memory_order_acquire) > 0) {
+                                        std::this_thread::yield();
+                                    }
+                                    else {
+                                        return false;
+                                    }
                                 }
-                                return false;
+                                else {
+                                    head.compare_exchange_strong(block,
+                                                                 next,
+                                                                 std::memory_order_release,
+                                                                 std::memory_order_relaxed);
+                                }
+                            }
+                        }
+                        else if (block->read.compare_exchange_weak(read_index,
+                                                                   read_index + 1,
+                                                                   std::memory_order_acq_rel,
+                                                                   std::memory_order_relaxed)) {
+                            Slot& slot = block->slots[read_index];
+                            while (!slot.committed.load(std::memory_order_acquire)) {
+                                std::this_thread::yield();
                             }
 
-                            head.compare_exchange_strong(block, next, std::memory_order_release, std::memory_order_relaxed);
-                            continue;
+                            out = std::move(*slot_ptr(slot));
+                            destroy_slot(slot);
+
+                            if (block->consumed.fetch_add(1, std::memory_order_acq_rel) + 1 == BLOCK_SIZE) {
+                                try_reclaim_block(block);
+                            }
+
+                            return true;
                         }
-
-                        if (!block->read.compare_exchange_weak(read_index,
-                                                               read_index + 1,
-                                                               std::memory_order_acq_rel,
-                                                               std::memory_order_relaxed)) {
-                            continue;
-                        }
-
-                        Slot& slot = block->slots[read_index];
-                        while (!slot.committed.load(std::memory_order_acquire)) {
-                            std::this_thread::yield();
-                        }
-
-                        out = std::move(*slot_ptr(slot));
-                        destroy_slot(slot);
-
-                        if (block->consumed.fetch_add(1, std::memory_order_acq_rel) + 1 == BLOCK_SIZE) {
-                            try_reclaim_block(block);
-                        }
-
-                        return true;
                     }
                 }
 
                 bool empty() const {
                     Block* block = head.load(std::memory_order_acquire);
                     while (block != nullptr) {
-                        const std::size_t published = std::min(block->write.load(std::memory_order_acquire),
-                                                               static_cast<std::size_t>(BLOCK_SIZE));
+                        const std::size_t published =
+                            std::min(block->write.load(std::memory_order_acquire), BLOCK_SIZE);
                         if (block->read.load(std::memory_order_relaxed) < published) {
                             return false;
                         }
@@ -269,6 +270,9 @@ namespace threading {
                     return true;
                 }
             };
+
+            template <typename T>
+            constexpr std::size_t TaskQueue<T>::BLOCK_SIZE;
 
         }  // namespace queue
     }  // namespace scheduler
