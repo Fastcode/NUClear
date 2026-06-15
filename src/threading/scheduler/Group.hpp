@@ -62,6 +62,14 @@ namespace threading {
                 /// while this WaitEntry is reachable.
                 Pool* pool{nullptr};
                 bool clear_idle{false};
+                /// True when this waiter was handed back to the park path after a fast-path token
+                /// acquire (net-zero token effect once reconcile completes). Published with enqueue.
+                bool handback_parker{false};
+            };
+
+            struct DrainResult {
+                bool drained{false};
+                bool handback_parker{false};
             };
 
             /**
@@ -236,9 +244,15 @@ namespace threading {
             const std::shared_ptr<const util::GroupDescriptor> descriptor;
 
         private:
+            void park_publish(std::unique_ptr<ReactionTask>&& task,
+                              Pool* pool,
+                              const bool& clear_idle,
+                              const bool& handback_parker) noexcept;
+            void park_reconcile(const bool& handback_parker) noexcept;
+            bool wait_buckets_empty() const noexcept;
             void release_token() noexcept;
             void notify_slow_path() noexcept;
-            bool drain_one_to_pool() noexcept;
+            DrainResult drain_one_to_pool() noexcept;
             std::unique_ptr<Lock> make_running_lock();
 
             /// Available group tokens (signed when waiters are queued on the fast path)
@@ -252,6 +266,32 @@ namespace threading {
             std::mutex mutex;
             /// The queue of tasks for the slow path
             std::vector<std::shared_ptr<LockHandle>> queue;
+
+#ifdef NUCLEAR_GROUP_TEST_API
+        public:
+            struct CapturedDrain {
+                std::unique_ptr<ReactionTask> task;
+                std::unique_ptr<Lock> lock;
+            };
+
+            struct TestAccess {
+                static int tokens(const Group& group);
+                static void park_publish(Group& group,
+                                         std::unique_ptr<ReactionTask>&& task,
+                                         Pool* pool,
+                                         bool clear_idle,
+                                         bool handback_parker);
+                static void park_reconcile(Group& group, bool handback_parker);
+                static std::unique_ptr<Lock> try_acquire_running_lock(Group& group);
+                static void set_capture_drains(Group& group, bool capture);
+                static std::vector<CapturedDrain> take_captured_drains(Group& group);
+            };
+
+        private:
+            friend struct TestAccess;
+            bool test_capture_drains_{false};
+            std::vector<CapturedDrain> test_captured_drains_;
+#endif
         };
 
     }  // namespace scheduler

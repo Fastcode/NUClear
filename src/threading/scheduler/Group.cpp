@@ -113,7 +113,8 @@ namespace threading {
                     if (group.tokens.compare_exchange_weak(expected,
                                                            expected - 1,
                                                            std::memory_order_acq_rel)) {
-                        if (!group.drain_one_to_pool()) {
+                        const DrainResult drained = group.drain_one_to_pool();
+                        if (!drained.drained || !drained.handback_parker) {
                             group.tokens.fetch_add(1, std::memory_order_release);
                         }
                         claimed = true;
@@ -192,6 +193,8 @@ namespace threading {
         }
 
         bool Group::try_submit(std::unique_ptr<ReactionTask>&& task, Pool* pool, const bool& clear_idle) {
+            bool handback_parker = false;
+
             // Don't jump ahead of multi-group waiters; if any exist, queue ourselves.
             if (slow_pending.load(std::memory_order_acquire) == 0) {
                 int expected = tokens.load(std::memory_order_acquire);
@@ -201,7 +204,8 @@ namespace threading {
                         if (slow_pending.load(std::memory_order_acquire) > 0) {
                             // Restore the token and fall through to enqueueing.
                             release_token();
-                            done = true;
+                            handback_parker = true;
+                            done            = true;
                         }
                         else {
                             pool->submit({std::move(task), make_running_lock()}, clear_idle);
@@ -211,10 +215,23 @@ namespace threading {
                 }
             }
 
-            const std::size_t bucket = queue::priority_index(task->priority);
-            pool->register_external_waiter();
-            wait_buckets[bucket].enqueue(WaitEntry{std::move(task), pool, clear_idle});
+            park_publish(std::move(task), pool, clear_idle, handback_parker);
+            park_reconcile(handback_parker);
+            return false;
+        }
 
+        void Group::park_publish(std::unique_ptr<ReactionTask>&& task,
+                                 Pool* pool,
+                                 const bool& clear_idle,
+                                 const bool& handback_parker) noexcept {
+            const std::size_t bucket = queue::priority_index(task->priority);
+            if (pool != nullptr) {
+                pool->register_external_waiter();
+            }
+            wait_buckets[bucket].enqueue(WaitEntry{std::move(task), pool, clear_idle, handback_parker});
+        }
+
+        void Group::park_reconcile(const bool& handback_parker) noexcept {
             // Reserve a slot in the signed counter; if a token was still available, run a waiter now.
             const int prev = tokens.fetch_sub(1, std::memory_order_acq_rel);
             if (prev > 0) {
@@ -225,7 +242,11 @@ namespace threading {
                 else {
                     drain_one_to_pool();
                 }
-                return false;
+            }
+            else if (handback_parker && wait_buckets_empty()) {
+                // An opportunistic drain may have already moved this handback waiter to a pool
+                // (keeping the pre-reserved token). Undo the fetch_sub above so tokens stay balanced.
+                release_token();
             }
 
             // The destination pool's "pending idle" latch was set by register_external_waiter
@@ -234,8 +255,15 @@ namespace threading {
             // and Pool::get_task for the full mechanism (it preserves the OLD scheduler's invariant
             // that a parked waiter always triggered exactly one idle fire on its destination pool,
             // even when the worker is preempted past the natural idle window).
+        }
 
-            return false;
+        bool Group::wait_buckets_empty() const noexcept {
+            for (const auto& bucket : wait_buckets) {
+                if (!bucket.empty()) {
+                    return false;
+                }
+            }
+            return true;
         }
 
         void Group::release_token() noexcept {
@@ -271,17 +299,27 @@ namespace threading {
             }
         }
 
-        bool Group::drain_one_to_pool() noexcept {
+        Group::DrainResult Group::drain_one_to_pool() noexcept {
             WaitEntry entry;
             for (std::size_t bucket = 0; bucket < queue::PRIORITY_BUCKETS; ++bucket) {
                 if (wait_buckets[bucket].try_dequeue(entry)) {
                     Pool* pool = entry.pool;
-                    pool->submit({std::move(entry.task), make_running_lock()}, entry.clear_idle, /*force=*/true);
+                    auto running_lock = make_running_lock();
+#ifdef NUCLEAR_GROUP_TEST_API
+                    if (test_capture_drains_) {
+                        test_captured_drains_.push_back({std::move(entry.task), std::move(running_lock)});
+                        if (pool != nullptr) {
+                            pool->unregister_external_waiter();
+                        }
+                        return {true, entry.handback_parker};
+                    }
+#endif
+                    pool->submit({std::move(entry.task), std::move(running_lock)}, entry.clear_idle, /*force=*/true);
                     pool->unregister_external_waiter();
-                    return true;
+                    return {true, entry.handback_parker};
                 }
             }
-            return false;
+            return {};
         }
 
         std::unique_ptr<Lock> Group::make_running_lock() {
@@ -309,6 +347,38 @@ namespace threading {
 
             return std::make_unique<GroupLock>(*this, handle);
         }
+
+#ifdef NUCLEAR_GROUP_TEST_API
+        int Group::TestAccess::tokens(const Group& group) {
+            return group.tokens.load(std::memory_order_acquire);
+        }
+
+        void Group::TestAccess::park_publish(Group& group,
+                                             std::unique_ptr<ReactionTask>&& task,
+                                             Pool* pool,
+                                             const bool clear_idle,
+                                             const bool handback_parker) {
+            group.park_publish(std::move(task), pool, clear_idle, handback_parker);
+        }
+
+        void Group::TestAccess::park_reconcile(Group& group, const bool handback_parker) {
+            group.park_reconcile(handback_parker);
+        }
+
+        std::unique_ptr<Lock> Group::TestAccess::try_acquire_running_lock(Group& group) {
+            return group.try_acquire_running_lock();
+        }
+
+        void Group::TestAccess::set_capture_drains(Group& group, const bool capture) {
+            group.test_capture_drains_ = capture;
+        }
+
+        std::vector<Group::CapturedDrain> Group::TestAccess::take_captured_drains(Group& group) {
+            std::vector<CapturedDrain> captured;
+            captured.swap(group.test_captured_drains_);
+            return captured;
+        }
+#endif
 
     }  // namespace scheduler
 }  // namespace threading

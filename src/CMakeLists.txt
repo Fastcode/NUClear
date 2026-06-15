@@ -32,6 +32,10 @@ file(GLOB_RECURSE src "*.c" "*.cpp" "*.hpp" "*.ipp")
 add_library(nuclear STATIC ${src})
 add_library(NUClear::nuclear ALIAS nuclear)
 
+if(BUILD_TESTS)
+  target_compile_definitions(nuclear PUBLIC NUCLEAR_GROUP_TEST_API)
+endif()
+
 # Set compile options for NUClear
 target_link_libraries(nuclear ${CMAKE_THREAD_LIBS_INIT})
 set_target_properties(nuclear PROPERTIES POSITION_INDEPENDENT_CODE ON)

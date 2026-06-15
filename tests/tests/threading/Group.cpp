@@ -26,6 +26,9 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/generators/catch_generators.hpp>
 #include <memory>
+#include <set>
+#include <utility>
+#include <vector>
 
 #include "id.hpp"
 // Group's WaitEntry holds a std::unique_ptr<ReactionTask>, so a complete type is needed at the
@@ -33,6 +36,8 @@
 #include "threading/ReactionTask.hpp"  // NOLINT(misc-include-cleaner)
 #include "threading/scheduler/Lock.hpp"
 #include "util/GroupDescriptor.hpp"
+#include "util/Inline.hpp"
+#include "util/ThreadPoolDescriptor.hpp"
 
 namespace NUClear {
 namespace threading {
@@ -42,6 +47,20 @@ namespace threading {
             std::shared_ptr<Group> make_group(int n_tokens) {
                 auto desc = std::make_shared<util::GroupDescriptor>("Test", n_tokens);
                 return std::make_shared<Group>(desc);
+            }
+
+            std::unique_ptr<ReactionTask> make_test_task(const int priority = 1) {
+                return std::make_unique<ReactionTask>(
+                    nullptr,
+                    false,
+                    [priority](const ReactionTask& /*task*/) { return priority; },
+                    [](const ReactionTask& /*task*/) { return util::Inline::NEVER; },
+                    [](const ReactionTask& /*task*/) {
+                        return std::make_shared<util::ThreadPoolDescriptor>("TestPool", 1);
+                    },
+                    [](const ReactionTask& /*task*/) {
+                        return std::set<std::shared_ptr<const util::GroupDescriptor>>{};
+                    });
             }
         }  // namespace
 
@@ -405,6 +424,35 @@ namespace threading {
                                 }
                             }
                         }
+                    }
+                }
+            }
+        }
+
+        SCENARIO("Opportunistic drain during park publish must not leak group tokens") {
+            GIVEN("A group with one token and a slow-path holder") {
+                auto group                   = make_group(1);
+                NUClear::id_t task_id_source = 0;
+
+                Group::TestAccess::set_capture_drains(*group, true);
+
+                std::unique_ptr<Lock> slow_lock = group->lock(++task_id_source, 1, [] {});
+                CHECK(slow_lock->lock() == true);
+
+                WHEN("A fast waiter publishes, the slow lock releases, then the waiter reconciles") {
+                    Group::TestAccess::park_publish(*group, make_test_task(), nullptr, false, false);
+
+                    slow_lock.reset();
+
+                    Group::TestAccess::park_reconcile(*group, false);
+
+                    THEN("All tokens are restored after quiescing and the group is not deadlocked") {
+                        auto captured = Group::TestAccess::take_captured_drains(*group);
+                        REQUIRE(captured.size() == 1);
+                        captured.front().lock.reset();
+
+                        CHECK(Group::TestAccess::tokens(*group) == group->descriptor->concurrency);
+                        CHECK(Group::TestAccess::try_acquire_running_lock(*group) != nullptr);
                     }
                 }
             }
