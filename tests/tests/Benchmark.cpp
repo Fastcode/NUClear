@@ -167,14 +167,17 @@ namespace {
 
 }  // namespace
 
-TEST_CASE("Benchmark emit ping-pong without sync", "[benchmark]") {
+// These cases are hidden (the leading '.' in the tag) so they do not run as part of the default
+// CTest suite: the scheduling benchmark matrix is slow and timing-sensitive, which would slow CI
+// and add flakiness. Run them explicitly with `./Benchmark "[benchmark]"` (or `[.]`) when wanted.
+TEST_CASE("Benchmark emit ping-pong without sync", "[.benchmark]") {
     run_matrix(SyncMode::NONE);
 }
 
-TEST_CASE("Benchmark emit ping-pong with a single sync", "[benchmark]") {
+TEST_CASE("Benchmark emit ping-pong with a single sync", "[.benchmark]") {
     run_matrix(SyncMode::SINGLE);
 }
 
-TEST_CASE("Benchmark emit ping-pong with two competing syncs", "[benchmark]") {
+TEST_CASE("Benchmark emit ping-pong with two competing syncs", "[.benchmark]") {
     run_matrix(SyncMode::TWO_GROUPS);
 }

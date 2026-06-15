@@ -108,6 +108,9 @@ namespace threading {
                     running = false;
                 } break;
                 case StopType::FORCE: {
+                    // A force stop is terminal even for persistent pools: stop accepting new work so
+                    // nothing can repopulate the queues after we drain them and wind the threads down.
+                    accept.store(false, std::memory_order_release);
                     drain_queues();
                     pending_tasks.store(0, std::memory_order_relaxed);
                     running = false;

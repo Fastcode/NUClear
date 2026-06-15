@@ -84,6 +84,18 @@ namespace threading {
                     return new Block();
                 }
 
+                // Run ~T on every slot in this block that still holds a live, undequeued payload.
+                // Used by the destructor so a queue torn down while non-empty does not skip the
+                // destructors of its remaining elements. The consumer does not reset a per-slot flag
+                // on dequeue, so liveness is derived from the [read, published) index window; this is
+                // only ever called when the queue is quiescent, so those indices are stable.
+                static void destroy_live_slots(Block* block) {
+                    const std::size_t published = std::min(block->write.load(std::memory_order_relaxed), BLOCK_SIZE);
+                    for (std::size_t i = block->read; i < published; ++i) {
+                        slot_ptr(block->slots[i])->~T();
+                    }
+                }
+
                 // Producers can still be operating on a block after the consumer advances head past
                 // it (e.g. a producer that loaded tail_block before it advanced is in
                 // link_next_block). To avoid use-after-free we never delete blocks while the queue
@@ -152,9 +164,13 @@ namespace threading {
                 MPSCQueue& operator=(MPSCQueue&&)      = delete;
 
                 ~MPSCQueue() override {
+                    // Live blocks (reachable from head_block) may still hold undequeued payloads;
+                    // destroy those before freeing the storage. Graveyard blocks were fully drained
+                    // before retirement, so they hold no live payloads.
                     Block* current = head_block;
                     while (current != nullptr) {
                         Block* next = current->next.load(std::memory_order_relaxed);
+                        destroy_live_slots(current);
                         delete current;
                         current = next;
                     }

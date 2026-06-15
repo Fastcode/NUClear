@@ -80,6 +80,18 @@ namespace threading {
                     slot.committed.store(false, std::memory_order_relaxed);
                 }
 
+                // Run ~T on every slot that still holds a live, committed payload. Used by the
+                // destructor so a queue torn down while non-empty does not skip the destructors of
+                // its remaining elements (e.g. a Task's unique_ptr<ReactionTask>). Only ever called
+                // when the queue is quiescent, so the committed flag is a stable per-slot truth.
+                static void destroy_live_slots(Block* block) {
+                    for (auto& slot : block->slots) {
+                        if (slot.committed.load(std::memory_order_relaxed)) {
+                            destroy_slot(slot);
+                        }
+                    }
+                }
+
                 static Block* allocate_block() {
                     return new Block();
                 }
@@ -163,9 +175,13 @@ namespace threading {
                 TaskQueue& operator=(TaskQueue&&)      = delete;
 
                 ~TaskQueue() override {
+                    // Live blocks (reachable from head) may still hold committed-but-undequeued
+                    // payloads; destroy those before freeing the storage. Graveyard blocks were
+                    // fully drained before retirement, so they hold no live payloads.
                     Block* current = head.load(std::memory_order_relaxed);
                     while (current != nullptr) {
                         Block* next = current->next.load(std::memory_order_relaxed);
+                        destroy_live_slots(current);
                         delete current;
                         current = next;
                     }
@@ -228,11 +244,15 @@ namespace threading {
                                         return false;
                                     }
                                 }
-                                else {
-                                    head.compare_exchange_strong(block,
-                                                                 next,
-                                                                 std::memory_order_release,
-                                                                 std::memory_order_relaxed);
+                                else if (head.compare_exchange_strong(block,
+                                                                      next,
+                                                                      std::memory_order_release,
+                                                                      std::memory_order_relaxed)) {
+                                    // We won the race to advance head past a fully-drained block, so
+                                    // we own its retirement. try_reclaim_block() only retires when it
+                                    // wins this same head CAS; without retiring here the block would
+                                    // be unreachable from both head and the graveyard and thus leak.
+                                    retire_block(block);
                                 }
                             }
                         }

@@ -33,6 +33,59 @@ namespace threading {
     namespace scheduler {
         namespace queue {
 
+            namespace {
+                /// Counts how many instances are currently alive so a test can detect skipped
+                /// destructors. Construction (incl. copy/move) increments; destruction decrements.
+                std::atomic<int> live_tracker_count{0};
+
+                struct LiveTracker {
+                    int value;
+                    explicit LiveTracker(int v = 0) : value(v) {
+                        live_tracker_count.fetch_add(1, std::memory_order_relaxed);
+                    }
+                    LiveTracker(const LiveTracker& other) : value(other.value) {
+                        live_tracker_count.fetch_add(1, std::memory_order_relaxed);
+                    }
+                    LiveTracker(LiveTracker&& other) noexcept : value(other.value) {
+                        live_tracker_count.fetch_add(1, std::memory_order_relaxed);
+                    }
+                    LiveTracker& operator=(const LiveTracker&) = default;
+                    LiveTracker& operator=(LiveTracker&&) noexcept = default;
+                    ~LiveTracker() {
+                        live_tracker_count.fetch_sub(1, std::memory_order_relaxed);
+                    }
+                };
+            }  // namespace
+
+            SCENARIO("A TaskQueue destroyed while non-empty runs the destructors of its remaining items",
+                     "[threading][queue][TaskQueue]") {
+                GIVEN("A TaskQueue filled across several blocks then only partially drained") {
+                    live_tracker_count.store(0, std::memory_order_relaxed);
+
+                    WHEN("The queue is destroyed with items still enqueued") {
+                        {
+                            TaskQueue<LiveTracker> queue;
+                            for (int i = 0; i < 200; ++i) {
+                                queue.enqueue(LiveTracker(i));
+                            }
+                            /*drain a few*/ {
+                                LiveTracker sink(-1);
+                                for (int i = 0; i < 10; ++i) {
+                                    REQUIRE(queue.try_dequeue(sink));
+                                }
+                            }
+
+                            // 190 elements remain live inside the queue's blocks.
+                            CHECK(live_tracker_count.load(std::memory_order_relaxed) == 190);
+                        }
+
+                        THEN("Every still-enqueued element has its destructor run") {
+                            CHECK(live_tracker_count.load(std::memory_order_relaxed) == 0);
+                        }
+                    }
+                }
+            }
+
             SCENARIO("A TaskQueue used by a single producer and a single consumer preserves FIFO order",
                      "[threading][queue][TaskQueue]") {
                 GIVEN("An empty TaskQueue<int>") {
