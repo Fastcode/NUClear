@@ -20,6 +20,14 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+// Catch2's BENCHMARK_ADVANCED was assessed for this matrix but not adopted: each cell runs a full
+// multi-threaded PowerPlant lifecycle (install reactor, start, shutdown) which is an integration
+// benchmark, not a micro-benchmark. Catch2's harness defaults to many warm-up/sample iterations
+// per BENCHMARK registration, runs benchmarks as separate tagged cases (not one summary table),
+// and cannot express template SyncMode variants cleanly alongside GENERATE without duplicating
+// three near-identical TEST_CASE bodies. The hand-rolled matrix below keeps one pass per cell,
+// preserves the tabular output, and stays behind the `[.benchmark]` hidden tag.
+
 #include <algorithm>
 #include <array>
 #include <atomic>
@@ -43,9 +51,9 @@ namespace {
 
     /// Sync mode for the benchmark reactor.
     enum class SyncMode : uint8_t {
-        NONE,             ///< No Sync at all
-        SINGLE,           ///< All reactions share a single Sync group
-        TWO_GROUPS        ///< Reactions split between two competing Sync groups
+        NONE,       ///< No Sync at all
+        SINGLE,     ///< All reactions share a single Sync group
+        TWO_GROUPS  ///< Reactions split between two competing Sync groups
     };
 
     template <SyncMode mode>
@@ -112,7 +120,7 @@ namespace {
     };
 
     template <SyncMode mode>
-    std::int64_t run_benchmark(int pool_concurrency, int fanout) {
+    std::int64_t run_benchmark(const int pool_concurrency, const int fanout) {
         NUClear::Configuration config;
         config.default_pool_concurrency = pool_concurrency;
 
@@ -126,16 +134,17 @@ namespace {
         return std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
     }
 
-    std::string mode_name(SyncMode m) {
+    std::string mode_name(const SyncMode m) {
         switch (m) {
-            case SyncMode::NONE:       return "no-sync     ";
-            case SyncMode::SINGLE:     return "single-sync ";
+            case SyncMode::NONE: return "no-sync     ";
+            case SyncMode::SINGLE: return "single-sync ";
             case SyncMode::TWO_GROUPS: return "two-syncs   ";
         }
         return "?";
     }
 
-    void run_matrix(SyncMode mode) {
+    template <SyncMode mode>
+    void run_matrix() {
         const int hw      = int(std::thread::hardware_concurrency());
         const int hw_half = std::max(1, hw / 2);
 
@@ -150,12 +159,7 @@ namespace {
         std::int64_t total = 0;
         for (const int concurrency : concurrencies) {
             for (const int fanout : fanouts) {
-                std::int64_t us = 0;
-                switch (mode) {
-                    case SyncMode::NONE: us = run_benchmark<SyncMode::NONE>(concurrency, fanout); break;
-                    case SyncMode::SINGLE: us = run_benchmark<SyncMode::SINGLE>(concurrency, fanout); break;
-                    case SyncMode::TWO_GROUPS: us = run_benchmark<SyncMode::TWO_GROUPS>(concurrency, fanout); break;
-                }
+                const std::int64_t us = run_benchmark<mode>(concurrency, fanout);
                 out << std::setw(12) << concurrency << std::setw(12) << fanout << std::setw(12) << us << "\n";
                 total += us;
             }
@@ -171,13 +175,13 @@ namespace {
 // CTest suite: the scheduling benchmark matrix is slow and timing-sensitive, which would slow CI
 // and add flakiness. Run them explicitly with `./Benchmark "[benchmark]"` (or `[.]`) when wanted.
 TEST_CASE("Benchmark emit ping-pong without sync", "[.benchmark]") {
-    run_matrix(SyncMode::NONE);
+    run_matrix<SyncMode::NONE>();
 }
 
 TEST_CASE("Benchmark emit ping-pong with a single sync", "[.benchmark]") {
-    run_matrix(SyncMode::SINGLE);
+    run_matrix<SyncMode::SINGLE>();
 }
 
 TEST_CASE("Benchmark emit ping-pong with two competing syncs", "[.benchmark]") {
-    run_matrix(SyncMode::TWO_GROUPS);
+    run_matrix<SyncMode::TWO_GROUPS>();
 }
