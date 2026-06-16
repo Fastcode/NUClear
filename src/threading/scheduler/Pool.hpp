@@ -74,18 +74,6 @@ namespace threading {
                 /// A lock that is held while the task is being executed.
                 /// This lock should release via RAII when the task is done.
                 std::unique_ptr<Lock> lock;
-
-                /**
-                 * Sorts the tasks by the sort order of the reaction tasks
-                 *
-                 * @param lhs The left hand side task
-                 * @param rhs The right hand side task
-                 *
-                 * @return true if this task should be executed before the other task
-                 */
-                friend bool operator<(const Task& lhs, const Task& rhs) {
-                    return *lhs.task < *rhs.task;
-                }
             };
 
             /**

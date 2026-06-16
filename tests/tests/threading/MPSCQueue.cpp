@@ -86,6 +86,65 @@ namespace threading {
                 }
             }
 
+            SCENARIO("An MPSCQueue accepts copy-enqueued const payloads", "[threading][queue][MPSCQueue]") {
+                GIVEN("An empty MPSCQueue<int>") {
+                    MPSCQueue<int> queue;
+
+                    WHEN("A value is enqueued via the const lvalue overload") {
+                        const int value = 7;
+                        queue.enqueue(value);
+
+                        THEN("The same value is dequeued") {
+                            int out = 0;
+                            CHECK(queue.try_dequeue(out));
+                            CHECK(out == 7);
+                            CHECK_FALSE(queue.try_dequeue(out));
+                        }
+                    }
+                }
+            }
+
+            SCENARIO("An MPSCQueue consumer waits while a producer links the next block",
+                     "[threading][queue][MPSCQueue]") {
+                GIVEN("An MPSCQueue with one full block and a producer about to overflow it") {
+                    MPSCQueue<int> queue;
+                    for (int i = 0; i < 64; ++i) {
+                        queue.enqueue(i);
+                    }
+
+                    WHEN("A producer and consumer race across the block boundary") {
+                        std::atomic<bool> producer_done{false};
+                        std::thread producer([&] {
+                            for (int i = 64; i < 128; ++i) {
+                                queue.enqueue(i);
+                            }
+                            producer_done.store(true, std::memory_order_release);
+                        });
+
+                        bool in_order = true;
+                        for (int expected = 0; expected < 128; ++expected) {
+                            int value = -1;
+                            while (!queue.try_dequeue(value)) {
+                                std::this_thread::yield();
+                            }
+                            if (value != expected) {
+                                in_order = false;
+                                break;
+                            }
+                        }
+
+                        producer.join();
+
+                        THEN("Every integer is delivered in order despite the block rollover race") {
+                            CHECK(producer_done.load(std::memory_order_acquire));
+                            CHECK(in_order);
+                            int discard = 0;
+                            CHECK_FALSE(queue.try_dequeue(discard));
+                        }
+                    }
+                }
+            }
+
             SCENARIO("An MPSCQueue used by a single producer and single consumer preserves FIFO order",
                      "[threading][queue][MPSCQueue]") {
                 GIVEN("An empty MPSCQueue<int>") {

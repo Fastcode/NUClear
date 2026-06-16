@@ -86,6 +86,49 @@ namespace threading {
                 }
             }
 
+            SCENARIO("A TaskQueue accepts copy-enqueued const payloads", "[threading][queue][TaskQueue]") {
+                GIVEN("An empty TaskQueue<int>") {
+                    TaskQueue<int> queue;
+
+                    WHEN("A value is enqueued via the const lvalue overload") {
+                        const int value = 7;
+                        queue.enqueue(value);
+
+                        THEN("The same value is dequeued and the queue reports empty") {
+                            int out = 0;
+                            CHECK(queue.try_dequeue(out));
+                            CHECK(out == 7);
+                            CHECK(queue.empty());
+                        }
+                    }
+                }
+            }
+
+            SCENARIO("A TaskQueue empty() is false while a later block still holds items",
+                     "[threading][queue][TaskQueue]") {
+                GIVEN("A TaskQueue whose first block is fully drained but a second block is populated") {
+                    TaskQueue<int> queue;
+                    for (int i = 0; i < 65; ++i) {
+                        queue.enqueue(i);
+                    }
+                    for (int i = 0; i < 64; ++i) {
+                        int discard = -1;
+                        REQUIRE(queue.try_dequeue(discard));
+                        CHECK(discard == i);
+                    }
+
+                    WHEN("empty() is queried before the remaining item is dequeued") {
+                        THEN("The queue is not empty") {
+                            CHECK_FALSE(queue.empty());
+                            int last = -1;
+                            CHECK(queue.try_dequeue(last));
+                            CHECK(last == 64);
+                            CHECK(queue.empty());
+                        }
+                    }
+                }
+            }
+
             SCENARIO("A TaskQueue used by a single producer and a single consumer preserves FIFO order",
                      "[threading][queue][TaskQueue]") {
                 GIVEN("An empty TaskQueue<int>") {
@@ -155,8 +198,8 @@ namespace threading {
             // total ordering across producers, but every item must come out exactly once.
             SCENARIO("A TaskQueue used by many producers and many consumers conserves every item",
                      "[threading][queue][TaskQueue]") {
-                GIVEN("Four producer threads each enqueueing 500 items and four consumer threads draining") {
-                    constexpr int items_per_producer = 500;
+                GIVEN("Four producer threads each enqueueing 2000 items and four consumer threads draining") {
+                    constexpr int items_per_producer = 2000;
                     constexpr int producers          = 4;
                     constexpr int consumers          = 4;
 
@@ -196,6 +239,46 @@ namespace threading {
                         THEN("Total produced equals total consumed and the queue ends empty") {
                             CHECK(produced.load() == producers * items_per_producer);
                             CHECK(consumed.load() == producers * items_per_producer);
+                            CHECK(queue.empty());
+                        }
+                    }
+                }
+            }
+
+            SCENARIO("A TaskQueue consumer can spin until a producer publishes the first slot of a new block",
+                     "[threading][queue][TaskQueue]") {
+                GIVEN("A TaskQueue whose head block is fully drained while a producer is linking the next") {
+                    TaskQueue<int> queue;
+                    for (int i = 0; i < 64; ++i) {
+                        queue.enqueue(i);
+                    }
+
+                    WHEN("A producer and consumer race across the block boundary") {
+                        std::atomic<bool> producer_done{false};
+                        std::thread producer([&] {
+                            for (int i = 64; i < 128; ++i) {
+                                queue.enqueue(i);
+                            }
+                            producer_done.store(true, std::memory_order_release);
+                        });
+
+                        bool in_order = true;
+                        for (int expected = 0; expected < 128; ++expected) {
+                            int value = -1;
+                            while (!queue.try_dequeue(value)) {
+                                std::this_thread::yield();
+                            }
+                            if (value != expected) {
+                                in_order = false;
+                                break;
+                            }
+                        }
+
+                        producer.join();
+
+                        THEN("Every integer is delivered and the queue ends empty") {
+                            CHECK(producer_done.load(std::memory_order_acquire));
+                            CHECK(in_order);
                             CHECK(queue.empty());
                         }
                     }

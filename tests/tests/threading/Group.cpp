@@ -645,6 +645,145 @@ namespace threading {
             }
         }
 
+        SCENARIO("Fast-path token acquisition is blocked while slow-path waiters are pending") {
+            GIVEN("A group with one token held by a slow-path lock") {
+                auto group = make_group(1);
+                std::unique_ptr<Lock> slow_lock = group->lock(1, 1, [] {});
+                CHECK(slow_lock->lock() == true);
+
+                WHEN("The fast path tries to acquire a running lock") {
+                    THEN("No token is handed out until the slow lock releases") {
+                        CHECK(Group::TestAccess::try_acquire_running_lock(*group) == nullptr);
+                    }
+                }
+            }
+        }
+
+        SCENARIO("A slow-path lock cannot acquire when too many waiters are ahead of it") {
+            GIVEN("A group with one token and three slow-path waiters") {
+                auto group = make_group(1);
+                std::unique_ptr<Lock> lock1 = group->lock(1, 1, [] {});
+                std::unique_ptr<Lock> lock2 = group->lock(2, 1, [] {});
+                std::unique_ptr<Lock> lock3 = group->lock(3, 1, [] {});
+
+                WHEN("The first lock holds the only token") {
+                    CHECK(lock1->lock() == true);
+
+                    THEN("The third waiter cannot lock because earlier waiters consume the budget") {
+                        CHECK(lock2->lock() == false);
+                        CHECK(lock3->lock() == false);
+                    }
+                }
+            }
+        }
+
+        SCENARIO("Destroying a group unregisters parked external waiters from their pool") {
+            GIVEN("A scheduler-owned pool and a group with a parked waiter targeting that pool") {
+                auto scheduler = std::make_unique<Scheduler>(1);
+                auto pool_desc =
+                    std::make_shared<util::ThreadPoolDescriptor>("GroupDtorPool", 1, /*counts_for_idle=*/false);
+                auto pool  = std::make_unique<Pool>(*scheduler, pool_desc);
+                auto group = make_group(1);
+
+                Group::TestAccess::park_publish(*group, make_test_task(), pool.get(), false);
+
+                WHEN("The group is destroyed without draining the parked waiter") {
+                    group.reset();
+
+                    THEN("The pool can still shut down cleanly because external waiters were balanced") {
+                        pool->stop(Pool::StopType::FORCE);
+                        pool->join();
+                    }
+                }
+            }
+        }
+
+        SCENARIO("Releasing a locked slow-path lock drains a committed fast waiter when tokens are negative") {
+            GIVEN("A group with one token, a locked slow-path holder, and a parked fast waiter") {
+                auto group = make_group(1);
+
+                Group::TestAccess::set_capture_drains(*group, true);
+
+                std::unique_ptr<Lock> slow_lock = group->lock(1, 1, [] {});
+                CHECK(slow_lock->lock() == true);
+
+                auto slot = Group::TestAccess::park_publish(*group, make_test_task(), nullptr, false);
+                Group::TestAccess::park_reconcile(*group, slot);
+
+                WHEN("The slow lock releases while a fast waiter has already reserved a slot") {
+                    slow_lock.reset();
+
+                    THEN("The committed waiter is drained and tokens return to concurrency") {
+                        auto captured = Group::TestAccess::take_captured_drains(*group);
+                        REQUIRE(captured.size() == 1);
+                        captured.front().lock.reset();
+
+                        CHECK(Group::TestAccess::tokens(*group) == group->descriptor->concurrency);
+                    }
+                }
+            }
+        }
+
+        SCENARIO("Park reconcile with a free token drains an earlier uncounted waiter") {
+            GIVEN("A group with spare tokens and two parked fast waiters") {
+                auto group = make_group(2);
+
+                Group::TestAccess::set_capture_drains(*group, true);
+
+                Group::TestAccess::park_publish(*group, make_test_task(), nullptr, false);
+                auto slot2 = Group::TestAccess::park_publish(*group, make_test_task(), nullptr, false);
+
+                WHEN("The second waiter reconciles while the first is still uncounted") {
+                    Group::TestAccess::park_reconcile(*group, slot2);
+
+                    THEN("The first waiter is opportunistically drained") {
+                        auto captured = Group::TestAccess::take_captured_drains(*group);
+                        REQUIRE(captured.size() == 1);
+                        captured.front().lock.reset();
+                    }
+                }
+            }
+        }
+
+        SCENARIO("try_submit parks while slow-path waiters hold priority") {
+            GIVEN("A group whose sole token is held by a slow-path lock") {
+                auto scheduler = std::make_unique<Scheduler>(1);
+                auto pool_desc =
+                    std::make_shared<util::ThreadPoolDescriptor>("TrySubmitPool", 1, /*counts_for_idle=*/false);
+                auto pool  = std::make_unique<Pool>(*scheduler, pool_desc);
+                auto group = make_group(1);
+
+                std::unique_ptr<Lock> slow_lock = group->lock(1, 1, [] {});
+                CHECK(slow_lock->lock() == true);
+
+                std::atomic<int> completed{0};
+
+                WHEN("A fast submit arrives while the slow lock is held") {
+                    const bool submitted_immediately =
+                        group->try_submit(make_counting_task(completed), pool.get(), false);
+
+                    THEN("The task is parked rather than running inline") {
+                        CHECK_FALSE(submitted_immediately);
+                        CHECK(completed.load(std::memory_order_acquire) == 0);
+                    }
+                }
+            }
+        }
+
+        SCENARIO("try_acquire_running_lock returns nullptr when every token is in use") {
+            GIVEN("A group with one token acquired via the fast path") {
+                auto group = make_group(1);
+                auto running = Group::TestAccess::try_acquire_running_lock(*group);
+                REQUIRE(running != nullptr);
+
+                WHEN("Another fast-path acquisition is attempted") {
+                    THEN("No second token is available") {
+                        CHECK(Group::TestAccess::try_acquire_running_lock(*group) == nullptr);
+                    }
+                }
+            }
+        }
+
     }  // namespace scheduler
 }  // namespace threading
 }  // namespace NUClear
