@@ -149,9 +149,7 @@ namespace threading {
                             Slot& slot = head_block->slots[head_block->read];
                             // Producer's claim happens-before its commit, but commit may not be visible
                             // yet if we raced it. Spin briefly until the data is published.
-                            while (!slot.committed.load(std::memory_order_acquire)) {
-                                std::this_thread::yield();
-                            }
+                            detail::spin_until([&] { return slot.committed.load(std::memory_order_acquire); });
 
                             out = std::move(*slot_ptr(slot));
                             slot_ptr(slot)->~T();
@@ -165,7 +163,7 @@ namespace threading {
                             // If a producer has already overflowed past BLOCK_SIZE we know they're
                             // mid-way through linking the next block; wait briefly for it to appear.
                             if (write_observed > BLOCK_SIZE) {
-                                std::this_thread::yield();
+                                detail::pause_and_yield();
                             }
                             else {
                                 return false;

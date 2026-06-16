@@ -46,6 +46,16 @@ namespace threading {
              * retired to a graveyard and deleted when the queue is destroyed. Per-producer FIFO is
              * preserved; cross-producer ordering is not guaranteed.
              *
+             * Progress guarantees (see docs/spikes/taskqueue-waitfree-assessment.md):
+             * - Wait-free: slot claim via write.fetch_add and enqueue/dequeue on a non-overflow block
+             *   once the slot is committed.
+             * - Lock-free but not wait-free: block linking (link_next_block), tail/head CAS, graveyard
+             *   push, and MPMC read-index CAS.
+             * - Brief spinning: consumer may win read before producer sets committed; consumers also spin
+             *   while other consumers finish slots or a producer links the next block.
+             * End-to-end wait-freedom is not achievable without bounded preallocation or a different
+             * slot protocol; block allocation via operator new is not wait-free.
+             *
              * @tparam T the element type stored in the queue
              */
             template <typename T>
@@ -146,14 +156,14 @@ namespace threading {
                         if (read_index >= published) {
                             if (block->consumed.load(std::memory_order_acquire) < published) {
                                 // Consumers are still finishing slots in this block; let them progress.
-                                std::this_thread::yield();
+                                detail::pause_and_yield();
                             }
                             else {
                                 Block* next = block->next.load(std::memory_order_acquire);
                                 if (next == nullptr) {
                                     // Producer may still be writing the first slot of an empty-looking block.
                                     if (published == 0 && block->write.load(std::memory_order_acquire) > 0) {
-                                        std::this_thread::yield();
+                                        detail::pause_and_yield();
                                     }
                                     else {
                                         return false;
@@ -176,9 +186,7 @@ namespace threading {
                                                                    std::memory_order_acq_rel,
                                                                    std::memory_order_relaxed)) {
                             Slot& slot = block->slots[read_index];
-                            while (!slot.committed.load(std::memory_order_acquire)) {
-                                std::this_thread::yield();
-                            }
+                            detail::spin_until([&] { return slot.committed.load(std::memory_order_acquire); });
 
                             out = std::move(*slot_ptr(slot));
                             destroy_slot(slot);

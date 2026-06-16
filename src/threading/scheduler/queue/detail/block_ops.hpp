@@ -24,6 +24,13 @@
 
 #include <atomic>
 #include <memory>
+#include <thread>
+
+#if defined(__x86_64__) || defined(_M_X64) || defined(__i386__) || defined(_M_IX86)
+#include <immintrin.h>
+#elif defined(_MSC_VER) && (defined(__aarch64__) || defined(_M_ARM64))
+#include <intrin.h>
+#endif
 
 namespace NUClear {
 namespace threading {
@@ -46,6 +53,37 @@ namespace threading {
                  *   - std::atomic<Block*> next;
                  *   - Block*              graveyard_next;
                  */
+
+                inline void cpu_pause() {
+#if defined(__x86_64__) || defined(_M_X64) || defined(__i386__) || defined(_M_IX86)
+                    _mm_pause();
+#elif defined(__aarch64__) || defined(_M_ARM64)
+#if defined(_MSC_VER)
+                    __yield();
+#else
+                    __asm__ __volatile__("yield" ::: "memory");
+#endif
+#endif
+                }
+
+                /// Brief CPU pause burst then one scheduler yield (one backoff step per caller iteration).
+                inline void pause_and_yield() {
+                    for (int spin = 0; spin < 64; ++spin) {
+                        cpu_pause();
+                    }
+                    std::this_thread::yield();
+                }
+
+                /// Spin with a brief CPU pause, then yield, until `pred()` is true.
+                template <typename Pred>
+                void spin_until(Pred&& pred) {
+                    for (int spin = 0; spin < 64 && !pred(); ++spin) {
+                        cpu_pause();
+                    }
+                    while (!pred()) {
+                        std::this_thread::yield();
+                    }
+                }
 
                 /**
                  * Allocate a fresh block for the queue's block list.
