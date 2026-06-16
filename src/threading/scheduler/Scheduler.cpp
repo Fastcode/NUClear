@@ -55,11 +55,11 @@ namespace threading {
             // behaviour, in practice observed as a bad_weak_ptr or a crash). Only clear it if it still refers to
             // one of our pools, so we never disturb an unrelated Scheduler that may share this thread.
             const std::lock_guard<std::mutex> lock(pools_mutex);
-            for (const auto& pool : pools) {
-                if (Pool::current_pool == pool.second.get()) {
-                    Pool::current_pool = nullptr;
-                    break;
-                }
+            const auto owning_pool = std::find_if(pools.begin(), pools.end(), [](const auto& pool) {
+                return Pool::current_pool == pool.second.get();
+            });
+            if (owning_pool != pools.end()) {
+                Pool::current_pool = nullptr;
             }
         }
 

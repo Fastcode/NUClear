@@ -72,8 +72,19 @@ namespace threading {
         }
 
         Pool::~Pool() {
-            stop(Pool::StopType::FORCE);
-            join();
+            try {
+                stop(Pool::StopType::FORCE);
+            }
+            catch (...) {  // NOLINT(bugprone-empty-catch)
+                // Draining queued tasks during forced shutdown can throw if a Task's lock
+                // destructors re-enter the pool; swallow here rather than std::terminate.
+            }
+            try {
+                join();
+            }
+            catch (...) {  // NOLINT(bugprone-empty-catch)
+                // std::thread::join() may throw std::system_error on failure.
+            }
             scheduler.active_pools.fetch_sub(descriptor->counts_for_idle ? 1 : 0, std::memory_order_relaxed);
         }
 
