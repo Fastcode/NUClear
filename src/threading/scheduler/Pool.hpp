@@ -46,6 +46,29 @@ namespace threading {
         // Forward declare the scheduler
         class Scheduler;
 
+        /**
+         * RAII registration that keeps a pool's workers alive while a task is parked outside it.
+         *
+         * Move-only; unregisters on destruction. Obtained from Pool::register_external_waiter().
+         */
+        class ExternalWaiterRegistration {
+        public:
+            ExternalWaiterRegistration() noexcept = default;
+            ExternalWaiterRegistration(ExternalWaiterRegistration&& other) noexcept;
+            ExternalWaiterRegistration& operator=(ExternalWaiterRegistration&& other) noexcept;
+            ~ExternalWaiterRegistration();
+
+            ExternalWaiterRegistration(const ExternalWaiterRegistration&)            = delete;
+            ExternalWaiterRegistration& operator=(const ExternalWaiterRegistration&) = delete;
+
+        private:
+            friend class Pool;
+            explicit ExternalWaiterRegistration(Pool* pool) noexcept : pool_(pool) {}
+            void reset() noexcept;
+
+            Pool* pool_{nullptr};
+        };
+
         class Pool : public std::enable_shared_from_this<Pool> {
         public:
             enum class StopType : uint8_t {
@@ -142,13 +165,10 @@ namespace threading {
              *
              * This keeps the pool's workers alive while there are tasks parked in another structure
              * (e.g. a Group's waiter buckets) that point at this pool.
+             *
+             * @return A move-only handle that unregisters on destruction
              */
-            void register_external_waiter();
-
-            /**
-             * Unregister a previously registered external waiter.
-             */
-            void unregister_external_waiter();
+            ExternalWaiterRegistration register_external_waiter();
 
             /**
              * Add an idle task to this pool.
@@ -236,6 +256,9 @@ namespace threading {
              * @return the idle task to execute if it is lockable or hold if it is not
              */
             Task get_idle_task();
+
+            friend class ExternalWaiterRegistration;
+            void unregister_external_waiter();
 
             // The scheduler parent of this pool
             Scheduler& scheduler;

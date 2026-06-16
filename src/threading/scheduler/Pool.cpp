@@ -190,7 +190,32 @@ namespace threading {
             condition.notify_one();
         }
 
-        void Pool::register_external_waiter() {
+        ExternalWaiterRegistration::ExternalWaiterRegistration(ExternalWaiterRegistration&& other) noexcept
+            : pool_(other.pool_) {
+            other.pool_ = nullptr;
+        }
+
+        ExternalWaiterRegistration& ExternalWaiterRegistration::operator=(ExternalWaiterRegistration&& other) noexcept {
+            if (this != &other) {
+                reset();
+                pool_       = other.pool_;
+                other.pool_ = nullptr;
+            }
+            return *this;
+        }
+
+        ExternalWaiterRegistration::~ExternalWaiterRegistration() {
+            reset();
+        }
+
+        void ExternalWaiterRegistration::reset() noexcept {
+            if (pool_ != nullptr) {
+                pool_->unregister_external_waiter();
+                pool_ = nullptr;
+            }
+        }
+
+        ExternalWaiterRegistration Pool::register_external_waiter() {
             external_waiters.fetch_add(1, std::memory_order_acq_rel);
 
             // Fast exit when no idle reaction could ever fire on this pool. This is the common
@@ -198,7 +223,7 @@ namespace threading {
             // triggers), and it keeps this path free of any extra synchronisation: just the
             // external_waiters increment above plus the relaxed loads inside idle_relevant().
             if (!idle_relevant()) {
-                return;
+                return ExternalWaiterRegistration{this};
             }
 
             // Latch a "should fire idle on next poll" signal. This guarantees the destination
@@ -215,6 +240,7 @@ namespace threading {
                 const std::lock_guard<std::mutex> lock(mutex);
                 condition.notify_one();
             }
+            return ExternalWaiterRegistration{this};
         }
 
         void Pool::unregister_external_waiter() {

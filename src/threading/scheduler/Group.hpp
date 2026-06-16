@@ -31,6 +31,7 @@
 
 #include "../../util/GroupDescriptor.hpp"
 #include "Lock.hpp"
+#include "Pool.hpp"
 #include "queue/Priority.hpp"
 #include "queue/TaskQueue.hpp"
 
@@ -69,6 +70,8 @@ namespace threading {
                 /// keep/hand-back decision exact regardless of how many other waiters are parked,
                 /// instead of inferring it from the (unreliable) emptiness of the wait buckets.
                 std::shared_ptr<std::atomic<bool>> slot;
+                /// Keeps the destination pool's workers alive until this entry is drained or destroyed.
+                ExternalWaiterRegistration external_waiter;
             };
 
             struct DrainResult {
