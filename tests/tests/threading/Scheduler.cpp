@@ -37,7 +37,7 @@ namespace threading {
     namespace scheduler {
 
         namespace {
-            std::unique_ptr<ReactionTask> make_inline_group_task(std::shared_ptr<const util::GroupDescriptor> group_desc,
+            std::unique_ptr<ReactionTask> make_inline_group_task(const std::shared_ptr<const util::GroupDescriptor>& group_desc,
                                                                  std::atomic<int>& ran) {
                 auto task = std::make_unique<ReactionTask>(
                     nullptr,

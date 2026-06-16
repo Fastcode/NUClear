@@ -28,59 +28,37 @@
 #include <utility>
 #include <vector>
 
+#include "test_util/queue_live_tracker.hpp"
+
 namespace NUClear {
 namespace threading {
     namespace scheduler {
         namespace queue {
 
-            namespace {
-                /// Counts how many instances are currently alive so a test can detect skipped
-                /// destructors. Construction (incl. copy/move) increments; destruction decrements.
-                std::atomic<int> live_tracker_count{0};  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
-
-                struct LiveTracker {
-                    int value;
-                    explicit LiveTracker(int v = 0) : value(v) {
-                        live_tracker_count.fetch_add(1, std::memory_order_relaxed);
-                    }
-                    LiveTracker(const LiveTracker& other) : value(other.value) {
-                        live_tracker_count.fetch_add(1, std::memory_order_relaxed);
-                    }
-                    LiveTracker(LiveTracker&& other) noexcept : value(other.value) {
-                        live_tracker_count.fetch_add(1, std::memory_order_relaxed);
-                    }
-                    LiveTracker& operator=(const LiveTracker&) = default;
-                    LiveTracker& operator=(LiveTracker&&) noexcept = default;
-                    ~LiveTracker() {
-                        live_tracker_count.fetch_sub(1, std::memory_order_relaxed);
-                    }
-                };
-            }  // namespace
-
             SCENARIO("An MPSCQueue destroyed while non-empty runs the destructors of its remaining items",
                      "[threading][queue][MPSCQueue]") {
                 GIVEN("An MPSCQueue filled across several blocks then only partially drained") {
-                    live_tracker_count.store(0, std::memory_order_relaxed);
+                    test_util::queue_live_tracker_count().store(0, std::memory_order_relaxed);
 
                     WHEN("The queue is destroyed with items still enqueued") {
                         {
-                            MPSCQueue<LiveTracker> queue;
+                            MPSCQueue<test_util::QueueLiveTracker> queue;
                             for (int i = 0; i < 200; ++i) {
-                                queue.enqueue(LiveTracker(i));
+                                queue.enqueue(test_util::QueueLiveTracker(i));
                             }
                             /*drain a few*/ {
-                                LiveTracker sink(-1);
+                                test_util::QueueLiveTracker sink(-1);
                                 for (int i = 0; i < 10; ++i) {
                                     REQUIRE(queue.try_dequeue(sink));
                                 }
                             }
 
                             // 190 elements remain live inside the queue's blocks.
-                            CHECK(live_tracker_count.load(std::memory_order_relaxed) == 190);
+                            CHECK(test_util::queue_live_tracker_count().load(std::memory_order_relaxed) == 190);
                         }
 
                         THEN("Every still-enqueued element has its destructor run") {
-                            CHECK(live_tracker_count.load(std::memory_order_relaxed) == 0);
+                            CHECK(test_util::queue_live_tracker_count().load(std::memory_order_relaxed) == 0);
                         }
                     }
                 }

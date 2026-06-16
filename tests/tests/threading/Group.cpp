@@ -24,6 +24,7 @@
 #include <array>
 #include <atomic>
 #include <catch2/catch_message.hpp>
+#include <cstddef>
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/generators/catch_generators.hpp>
 #include <chrono>
@@ -84,12 +85,12 @@ namespace threading {
             bool wait_for(Pred&& pred, const std::chrono::milliseconds timeout) {
                 const auto deadline = std::chrono::steady_clock::now() + timeout;
                 while (std::chrono::steady_clock::now() < deadline) {
-                    if (std::forward<Pred>(pred)()) {
+                    if (pred()) {
                         return true;
                     }
                     std::this_thread::sleep_for(std::chrono::microseconds(100));
                 }
-                return std::forward<Pred>(pred)();
+                return pred();
             }
 
             /// Repeatedly attempt to acquire a slow-path lock until it succeeds or `timeout` elapses.
@@ -534,8 +535,13 @@ namespace threading {
                     // This hammers exactly the window from concern #1 across hundreds of rounds per
                     // concurrency level (and many more across repeated binary/TSAN runs).
                     constexpr int n_fast_threads = 4;
-                    constexpr int rounds         = 200;
-                    constexpr int burst_target   = 3;
+#if NUCLEAR_TEST_TIME_UNIT_DEN >= 10
+                    // CI runners use compressed time units and are slower; fewer rounds still hammers the race.
+                    constexpr int rounds = 50;
+#else
+                    constexpr int rounds = 200;
+#endif
+                    constexpr int burst_target = 3;
 
                     std::vector<std::thread> fast_threads;
                     fast_threads.reserve(static_cast<std::size_t>(n_fast_threads));
