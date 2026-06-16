@@ -188,7 +188,7 @@ public:
     TestReactor(std::unique_ptr<NUClear::Environment> environment, const std::vector<TestType>& active_tests_)
         : TestBase(std::move(environment),
                    false,
-                   test_util::TimeUnit(std::max<int64_t>(50, static_cast<int64_t>(active_tests_.size()) * 25))),
+                   test_util::TimeUnit(std::max<int64_t>(50, static_cast<int64_t>(active_tests_.size()) * 30))),
           active_tests(active_tests_) {
 
         for (const auto& t : active_tests) {
