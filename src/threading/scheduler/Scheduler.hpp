@@ -59,6 +59,11 @@ namespace threading {
              */
             ~Scheduler();
 
+            Scheduler(const Scheduler&)            = delete;
+            Scheduler(Scheduler&&)                 = delete;
+            Scheduler& operator=(const Scheduler&) = delete;
+            Scheduler& operator=(Scheduler&&)      = delete;
+
             /**
              * Starts the scheduler, and begins executing tasks.
              *

@@ -68,7 +68,7 @@ namespace threading {
                 /// token decrement, and the loser skips its own adjustment. This makes the
                 /// keep/hand-back decision exact regardless of how many other waiters are parked,
                 /// instead of inferring it from the (unreliable) emptiness of the wait buckets.
-                std::shared_ptr<std::atomic<bool>> slot{};
+                std::shared_ptr<std::atomic<bool>> slot;
             };
 
             struct DrainResult {
