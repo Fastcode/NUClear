@@ -23,89 +23,197 @@
 #include "has_multicast.hpp"
 
 #include <algorithm>
+#include <array>
 #include <cstdint>
-#include <string>
-#include <system_error>
+#include <cstring>
 
-#include "util/FileDescriptor.hpp"
 #include "util/network/get_interfaces.hpp"
-#include "util/network/resolve.hpp"
 #include "util/platform.hpp"
 
+#ifndef _WIN32
+    #include <sys/select.h>
+#endif
+
 namespace test_util {
+
 namespace {
 
-/// Multicast addresses used by tests/tests/dsl/UDP.cpp.
-constexpr uint16_t IPV4_MULTICAST_PROBE_PORT = 40003;
-constexpr uint16_t IPV6_MULTICAST_PROBE_PORT = 40004;
-const std::string IPV4_MULTICAST_ADDRESS     = "230.12.3.22";
-const std::string IPV6_MULTICAST_ADDRESS     = "ff02::230:12:3:22";
+constexpr std::array<char, 11> k_test_msg = {'M', 'C', 'A', 'S', 'T', '_', 'T', 'E', 'S', 'T', '\0'};
 
-bool can_send_udp_datagram(const std::string& to_addr,
-                           const uint16_t to_port,
-                           const std::string& bind_addr = "") {
-    try {
-        const NUClear::util::network::sock_t remote = NUClear::util::network::resolve(to_addr, to_port);
-        NUClear::util::FileDescriptor fd           = ::socket(remote.sock.sa_family, SOCK_DGRAM, IPPROTO_UDP);
-        if (!fd.valid()) {
-            return false;
-        }
-
-        const int yes = 1;
-        if (::setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, reinterpret_cast<const char*>(&yes), sizeof(yes)) < 0) {
-            return false;
-        }
-
-        if (!bind_addr.empty()) {
-            const NUClear::util::network::sock_t local = NUClear::util::network::resolve(bind_addr, 0);
-            if (local.sock.sa_family != remote.sock.sa_family) {
-                return false;
-            }
-            if (::bind(fd, &local.sock, local.size()) != 0) {
-                return false;
-            }
-        }
-
-        const char payload = 0;
-        if (::sendto(fd, &payload, 1, 0, &remote.sock, remote.size()) < 0) {
-            return false;
-        }
-        return true;
-    }
-    catch (const std::exception&) {
+/**
+ * Attempt an actual multicast send/receive round-trip.
+ * Returns true only if the packet is successfully delivered.
+ * This detects environments (e.g., macOS CI VMs) where interfaces report IFF_MULTICAST
+ * but the hypervisor doesn't actually deliver multicast packets.
+ */
+bool test_multicast_roundtrip(int af, const char* group_addr) {
+    // Create a UDP socket for receiving
+    const NUClear::fd_t recv_fd = ::socket(af, SOCK_DGRAM, 0);
+    if (recv_fd < 0) {
         return false;
     }
+
+    // Allow address reuse
+    int one = 1;
+    ::setsockopt(recv_fd, SOL_SOCKET, SO_REUSEADDR, reinterpret_cast<const char*>(&one), sizeof(one));
+#ifdef SO_REUSEPORT
+    ::setsockopt(recv_fd, SOL_SOCKET, SO_REUSEPORT, reinterpret_cast<const char*>(&one), sizeof(one));
+#endif
+
+    // Bind to any address on an ephemeral port
+    uint16_t port = 0;
+    if (af == AF_INET) {
+        sockaddr_in bind_addr{};
+        bind_addr.sin_family      = AF_INET;
+        bind_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+        bind_addr.sin_port        = 0;
+
+        if (::bind(recv_fd, reinterpret_cast<sockaddr*>(&bind_addr), sizeof(bind_addr)) < 0) {
+            ::close(recv_fd);
+            return false;
+        }
+
+        // Get the assigned port
+        socklen_t len = sizeof(bind_addr);
+        ::getsockname(recv_fd, reinterpret_cast<sockaddr*>(&bind_addr), &len);
+        port = ntohs(bind_addr.sin_port);
+
+        // Join the multicast group
+        struct ip_mreq mreq {};
+        ::inet_pton(AF_INET, group_addr, &mreq.imr_multiaddr);
+        mreq.imr_interface.s_addr = htonl(INADDR_ANY);
+        if (::setsockopt(recv_fd, IPPROTO_IP, IP_ADD_MEMBERSHIP, reinterpret_cast<const char*>(&mreq), sizeof(mreq))
+            < 0) {
+            ::close(recv_fd);
+            return false;
+        }
+    }
+    else {
+        sockaddr_in6 bind_addr{};
+        bind_addr.sin6_family = AF_INET6;
+        bind_addr.sin6_addr   = in6addr_any;
+        bind_addr.sin6_port   = 0;
+
+        if (::bind(recv_fd, reinterpret_cast<sockaddr*>(&bind_addr), sizeof(bind_addr)) < 0) {
+            ::close(recv_fd);
+            return false;
+        }
+
+        socklen_t len = sizeof(bind_addr);
+        ::getsockname(recv_fd, reinterpret_cast<sockaddr*>(&bind_addr), &len);
+        port = ntohs(bind_addr.sin6_port);
+
+        // Join the multicast group
+        struct ipv6_mreq mreq {};
+        ::inet_pton(AF_INET6, group_addr, &mreq.ipv6mr_multiaddr);
+        mreq.ipv6mr_interface = 0;
+        if (::setsockopt(recv_fd,
+                         IPPROTO_IPV6,
+                         IPV6_JOIN_GROUP,
+                         reinterpret_cast<const char*>(&mreq),
+                         sizeof(mreq))
+            < 0) {
+            ::close(recv_fd);
+            return false;
+        }
+    }
+
+    // Create a send socket
+    const NUClear::fd_t send_fd = ::socket(af, SOCK_DGRAM, 0);
+    if (send_fd < 0) {
+        ::close(recv_fd);
+        return false;
+    }
+
+    // Set multicast loopback so we receive our own packet
+    if (af == AF_INET) {
+        uint8_t loop = 1;
+        ::setsockopt(send_fd, IPPROTO_IP, IP_MULTICAST_LOOP, reinterpret_cast<const char*>(&loop), sizeof(loop));
+    }
+    else {
+        int loop = 1;
+        ::setsockopt(send_fd, IPPROTO_IPV6, IPV6_MULTICAST_LOOP, reinterpret_cast<const char*>(&loop), sizeof(loop));
+    }
+
+    // Send a test packet to the multicast group
+    if (af == AF_INET) {
+        sockaddr_in dest{};
+        dest.sin_family = AF_INET;
+        dest.sin_port   = htons(port);
+        ::inet_pton(AF_INET, group_addr, &dest.sin_addr);
+        ::sendto(send_fd,
+                 k_test_msg.data(),
+                 static_cast<int>(k_test_msg.size()),
+                 0,
+                 reinterpret_cast<sockaddr*>(&dest),
+                 sizeof(dest));
+    }
+    else {
+        sockaddr_in6 dest{};
+        dest.sin6_family = AF_INET6;
+        dest.sin6_port   = htons(port);
+        ::inet_pton(AF_INET6, group_addr, &dest.sin6_addr);
+        ::sendto(send_fd,
+                 k_test_msg.data(),
+                 static_cast<int>(k_test_msg.size()),
+                 0,
+                 reinterpret_cast<sockaddr*>(&dest),
+                 sizeof(dest));
+    }
+
+    // Wait for the packet with a 200ms timeout using select (portable across all platforms)
+    fd_set read_fds;
+    FD_ZERO(&read_fds);          // NOLINT(hicpp-signed-bitwise,readability-isolate-declaration)
+    FD_SET(recv_fd, &read_fds);  // NOLINT(hicpp-signed-bitwise)
+    timeval tv{};
+    tv.tv_sec  = 0;
+    tv.tv_usec = 200000;  // 200ms
+
+    const int ready = ::select(static_cast<int>(recv_fd) + 1, &read_fds, nullptr, nullptr, &tv);
+
+    bool success = false;
+    if (ready > 0) {
+        // Verify the received data matches what we sent to avoid false positives
+        std::array<char, 64> buf{};
+        const ssize_t n = ::recvfrom(recv_fd, buf.data(), buf.size(), 0, nullptr, nullptr);
+        success         = (n == static_cast<ssize_t>(k_test_msg.size())
+                   && std::equal(k_test_msg.begin(), k_test_msg.end(), buf.begin()));
+    }
+
+    ::close(send_fd);
+    ::close(recv_fd);
+
+    return success;
 }
 
 }  // namespace
 
 bool has_ipv4_multicast() {
+    // First check if any interface reports multicast support
     const auto ifaces = NUClear::util::network::get_interfaces();
-    const bool iface_multicast =
-        std::any_of(ifaces.begin(), ifaces.end(), [](const auto& iface) {
-            return iface.ip.sock.sa_family == AF_INET && iface.flags.multicast;
-        });
-    if (!iface_multicast) {
+    const bool has_flag = std::any_of(ifaces.begin(), ifaces.end(), [](const auto& iface) {
+        return iface.ip.sock.sa_family == AF_INET && iface.flags.multicast;
+    });
+    if (!has_flag) {
         return false;
     }
-    return can_send_udp_datagram(IPV4_MULTICAST_ADDRESS, IPV4_MULTICAST_PROBE_PORT);
+
+    // Then verify multicast actually works with a real round-trip
+    return test_multicast_roundtrip(AF_INET, "239.255.255.250");
 }
 
 bool has_ipv6_multicast() {
+    // First check if any interface reports multicast support
     const auto ifaces = NUClear::util::network::get_interfaces();
-    const bool iface_multicast =
-        std::any_of(ifaces.begin(), ifaces.end(), [](const auto& iface) {
-            return iface.ip.sock.sa_family == AF_INET6 && iface.flags.multicast;
-        });
-    if (!iface_multicast) {
+    const bool has_flag = std::any_of(ifaces.begin(), ifaces.end(), [](const auto& iface) {
+        return iface.ip.sock.sa_family == AF_INET6 && iface.flags.multicast;
+    });
+    if (!has_flag) {
         return false;
     }
-#ifdef __APPLE__
-    // Match UDP.cpp: bind to ::1 so sends succeed when there is no default IPv6 multicast route.
-    return can_send_udp_datagram(IPV6_MULTICAST_ADDRESS, IPV6_MULTICAST_PROBE_PORT, "::1");
-#else
-    return can_send_udp_datagram(IPV6_MULTICAST_ADDRESS, IPV6_MULTICAST_PROBE_PORT);
-#endif
+
+    // Then verify multicast actually works with a real round-trip
+    return test_multicast_roundtrip(AF_INET6, "ff02::1");
 }
 
 }  // namespace test_util

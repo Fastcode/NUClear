@@ -24,15 +24,14 @@
 #include <array>
 #include <atomic>
 #include <catch2/catch_message.hpp>
-#include <cstddef>
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/generators/catch_generators.hpp>
 #include <chrono>
+#include <cstddef>
 #include <memory>
 #include <random>
 #include <set>
 #include <thread>
-#include <utility>
 #include <vector>
 
 #include "id.hpp"
@@ -82,7 +81,7 @@ namespace threading {
             /// Spin (with a small back-off) until `pred()` is true or `timeout` elapses.
             /// Returns the final value of `pred()` so callers can assert-rather-than-hang.
             template <typename Pred>
-            bool wait_for(Pred&& pred, const std::chrono::milliseconds timeout) {
+            bool wait_for(const Pred& pred, const std::chrono::milliseconds timeout) {
                 const auto deadline = std::chrono::steady_clock::now() + timeout;
                 while (std::chrono::steady_clock::now() < deadline) {
                     if (pred()) {
