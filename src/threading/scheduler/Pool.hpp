@@ -286,6 +286,13 @@ namespace threading {
             bool idle_relevant() const;
             /// A boolean which is set to true when the queue is modified and set to false when there was no work to do
             bool live = true;
+            /// True when this pool's buckets use MPSCQueue (single consumer).
+            bool single_consumer = false;
+            /// Worker thread that owns MPSC dequeue; default until run() sets it.
+            std::thread::id consumer_thread_id;
+            /// Set by a non-consumer FORCE stop to request the worker discard queued tasks.
+            std::atomic<bool> discard_queues_requested{false};
+
             /// The mutex which protects idle tasks and the live flag
             mutable std::mutex mutex;
             /// The condition variable which threads wait on if they can't get a task

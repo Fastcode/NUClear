@@ -54,8 +54,7 @@ namespace threading {
             // `concurrency = 1`) only ever have one consumer; use the lighter MPSC queue for them.
             // Pools where the default-pool concurrency may differ from the descriptor's nominal value
             // are conservatively given the MPMC queue.
-            const bool single_consumer =
-                this->descriptor->concurrency == 1 && this->descriptor != dsl::word::Pool<>::descriptor();
+            single_consumer = this->descriptor->concurrency == 1 && this->descriptor != dsl::word::Pool<>::descriptor();
             for (auto& bucket : buckets) {
                 if (single_consumer) {
                     bucket = std::make_unique<queue::MPSCQueue<Task>>();
@@ -110,7 +109,7 @@ namespace threading {
             // their destruction until after the mutex is released.
             std::vector<Task> drained;
             {
-                const std::lock_guard<std::mutex> lock(mutex);
+                std::unique_lock<std::mutex> lock(mutex);
 
                 live = true;
                 accept.store(descriptor->persistent, std::memory_order_release);
@@ -126,9 +125,29 @@ namespace threading {
                         // A force stop is terminal even for persistent pools: stop accepting new work so
                         // nothing can repopulate the queues after we drain them and wind the threads down.
                         accept.store(false, std::memory_order_release);
-                        drain_queues(drained);
-                        pending_tasks.store(0, std::memory_order_relaxed);
                         running = false;
+
+                        // MPSC buckets permit only one consumer. A cross-thread FORCE stop (e.g.
+                        // PowerPlant::shutdown(true) from TestBase's timeout thread against a
+                        // MainThread or concurrency-1 pool) must delegate queue draining to that
+                        // worker instead of calling try_dequeue here.
+                        const bool mpsc_consumer_alive =
+                            single_consumer && consumer_thread_id != std::thread::id{};
+                        const bool on_mpsc_consumer =
+                            mpsc_consumer_alive && std::this_thread::get_id() == consumer_thread_id;
+
+                        if (mpsc_consumer_alive && !on_mpsc_consumer) {
+                            discard_queues_requested.store(true, std::memory_order_release);
+                            condition.notify_all();
+                            condition.wait(lock, [this] {
+                                return !discard_queues_requested.load(std::memory_order_acquire);
+                            });
+                            pending_tasks.store(0, std::memory_order_relaxed);
+                        }
+                        else {
+                            drain_queues(drained);
+                            pending_tasks.store(0, std::memory_order_relaxed);
+                        }
                     } break;
                 }
                 condition.notify_all();
@@ -238,6 +257,7 @@ namespace threading {
         }
 
         void Pool::run() {
+            consumer_thread_id = std::this_thread::get_id();
             Pool::current_pool = this;
             try {
                 while (true) {
@@ -273,7 +293,20 @@ namespace threading {
         Pool::Task Pool::get_task() {
             std::unique_lock<std::mutex> lock(mutex);
             while (running || pending_tasks.load(std::memory_order_acquire) > 0
-                   || external_waiters.load(std::memory_order_acquire) > 0) {
+                   || external_waiters.load(std::memory_order_acquire) > 0
+                   || discard_queues_requested.load(std::memory_order_acquire)) {
+                if (discard_queues_requested.load(std::memory_order_acquire)) {
+                    std::vector<Task> discarded;
+                    drain_queues(discarded);
+                    pending_tasks.store(0, std::memory_order_relaxed);
+                    discard_queues_requested.store(false, std::memory_order_release);
+                    condition.notify_all();
+                    lock.unlock();
+                    discarded.clear();
+                    lock.lock();
+                    continue;
+                }
+
                 // If a waiter was parked for this pool since the last time this worker looked,
                 // ensure we fire one idle epoch before dispatching the next task. This is the
                 // counterpart of the OLD scheduler behaviour where a parked task with a failing
@@ -328,6 +361,7 @@ namespace threading {
 
                 condition.wait(lock, [this] {
                     return live || pending_idle.load(std::memory_order_acquire)
+                           || discard_queues_requested.load(std::memory_order_acquire)
                            || (!running && pending_tasks.load(std::memory_order_acquire) == 0
                                && external_waiters.load(std::memory_order_acquire) == 0);
                 });

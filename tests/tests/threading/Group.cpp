@@ -32,6 +32,7 @@
 #include <random>
 #include <set>
 #include <thread>
+#include <tuple>
 #include <vector>
 
 #include "id.hpp"
@@ -641,10 +642,9 @@ namespace threading {
                         pool->join();
                     }
                     else {
-                        static Pool* leaked_pool            = nullptr;
-                        static Scheduler* leaked_scheduler = nullptr;
-                        leaked_pool                        = pool.release();
-                        leaked_scheduler                   = scheduler.release();
+                        // Leak on failure so a deadlocked run reports the assertion instead of hanging join.
+                        std::ignore = pool.release();
+                        std::ignore = scheduler.release();
                     }
                 }
             }
