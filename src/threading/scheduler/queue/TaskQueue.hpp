@@ -26,13 +26,13 @@
 #include <array>
 #include <atomic>
 #include <cstddef>
-#include <memory>
 #include <new>
 #include <thread>
 #include <type_traits>
 #include <utility>
 
 #include "Queue.hpp"
+#include "detail/block_ops.hpp"
 
 namespace NUClear {
 namespace threading {
@@ -92,42 +92,6 @@ namespace threading {
                     }
                 }
 
-                static Block* allocate_block() {
-                    return new Block();
-                }
-
-                // Retired blocks are kept alive on the graveyard so consumers that still hold
-                // a stale pointer cannot observe freed memory.
-                void retire_block(Block* block) {
-                    Block* head_graveyard = graveyard.load(std::memory_order_acquire);
-                    while (true) {
-                        block->graveyard_next = head_graveyard;
-                        if (graveyard.compare_exchange_weak(head_graveyard,
-                                                            block,
-                                                            std::memory_order_release,
-                                                            std::memory_order_relaxed)) {
-                            return;
-                        }
-                    }
-                }
-
-                bool link_next_block(Block* block) {
-                    // Hold the new block in a unique_ptr so that if the CAS fails (another producer
-                    // linked the next block first) we don't leak the freshly allocated Block.
-                    // Function arguments are unconditionally evaluated in C++, so the previous form
-                    // `compare_exchange_strong(expected, allocate_block(), ...)` leaked one Block per
-                    // contended overflow.
-                    Block* expected = nullptr;
-                    std::unique_ptr<Block> candidate(allocate_block());
-                    if (block->next.compare_exchange_strong(expected,
-                                                            candidate.get(),
-                                                            std::memory_order_acq_rel)) {
-                        candidate.release();
-                        return true;
-                    }
-                    return expected != nullptr;
-                }
-
                 void advance_tail(Block* expected, Block* next) {
                     Block* tail_ptr = tail.load(std::memory_order_acquire);
                     while (tail_ptr == expected) {
@@ -153,7 +117,7 @@ namespace threading {
                         return;
                     }
                     if (head.compare_exchange_strong(head_ptr, next, std::memory_order_release, std::memory_order_relaxed)) {
-                        retire_block(block);
+                        detail::retire_block(graveyard, block);
                     }
                 }
 
@@ -211,7 +175,7 @@ namespace threading {
                             return;
                         }
 
-                        if (!link_next_block(block)) {
+                        if (!detail::link_next_block<Block>(block)) {
                             // Another thread linked next; help advance tail.
                         }
 
@@ -252,7 +216,7 @@ namespace threading {
                                     // we own its retirement. try_reclaim_block() only retires when it
                                     // wins this same head CAS; without retiring here the block would
                                     // be unreachable from both head and the graveyard and thus leak.
-                                    retire_block(block);
+                                    detail::retire_block(graveyard, block);
                                 }
                             }
                         }

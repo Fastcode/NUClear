@@ -26,13 +26,13 @@
 #include <array>
 #include <atomic>
 #include <cstddef>
-#include <memory>
 #include <new>
 #include <thread>
 #include <type_traits>
 #include <utility>
 
 #include "Queue.hpp"
+#include "detail/block_ops.hpp"
 
 namespace NUClear {
 namespace threading {
@@ -80,10 +80,6 @@ namespace threading {
                     return reinterpret_cast<T*>(slot.storage.data());
                 }
 
-                static Block* allocate_block() {
-                    return new Block();
-                }
-
                 // Run ~T on every slot in this block that still holds a live, undequeued payload.
                 // Used by the destructor so a queue torn down while non-empty does not skip the
                 // destructors of its remaining elements. The consumer does not reset a per-slot flag
@@ -94,41 +90,6 @@ namespace threading {
                     for (std::size_t i = block->read; i < published; ++i) {
                         slot_ptr(block->slots[i])->~T();
                     }
-                }
-
-                // Producers can still be operating on a block after the consumer advances head past
-                // it (e.g. a producer that loaded tail_block before it advanced is in
-                // link_next_block). To avoid use-after-free we never delete blocks while the queue
-                // is live; they are kept on a graveyard list and freed in the destructor. In steady
-                // state the graveyard length is bounded by the peak number of in-flight blocks.
-                void retire_block(Block* block) {
-                    Block* head_graveyard = graveyard.load(std::memory_order_acquire);
-                    while (true) {
-                        block->graveyard_next = head_graveyard;
-                        if (graveyard.compare_exchange_weak(head_graveyard,
-                                                            block,
-                                                            std::memory_order_release,
-                                                            std::memory_order_relaxed)) {
-                            return;
-                        }
-                    }
-                }
-
-                bool link_next_block(Block* block) {
-                    // Hold the new block in a unique_ptr so that if the CAS fails (another producer
-                    // linked the next block first) we don't leak the freshly allocated Block.
-                    // Function arguments are unconditionally evaluated in C++, so the previous form
-                    // `compare_exchange_strong(expected, allocate_block(), ...)` leaked one Block per
-                    // contended overflow.
-                    Block* expected = nullptr;
-                    std::unique_ptr<Block> candidate(allocate_block());
-                    if (block->next.compare_exchange_strong(expected,
-                                                            candidate.get(),
-                                                            std::memory_order_acq_rel)) {
-                        candidate.release();
-                        return true;
-                    }
-                    return expected != nullptr;
                 }
 
                 void advance_tail(Block* expected, Block* next) {
@@ -201,7 +162,7 @@ namespace threading {
                         }
 
                         // Block full. Link the next one (or help an in-flight linker) and advance tail.
-                        link_next_block(block);
+                        detail::link_next_block<Block>(block);
 
                         Block* next = block->next.load(std::memory_order_acquire);
                         advance_tail(block, next);
@@ -245,7 +206,7 @@ namespace threading {
                             // it (e.g. one mid-way through link_next_block) doesn't touch freed memory.
                             Block* old = head_block;
                             head_block = next;
-                            retire_block(old);
+                            detail::retire_block(graveyard, old);
                         }
                     }
                 }
