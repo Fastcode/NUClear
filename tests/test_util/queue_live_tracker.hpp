@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2024 NUClear Contributors
+ * Copyright (c) 2026 NUClear Contributors
  *
  * This file is part of the NUClear codebase.
  * See https://github.com/Fastcode/NUClear for further info.
@@ -27,26 +27,49 @@
 
 namespace test_util {
 
-/// Counts how many LiveTracker instances are currently alive so queue tests can detect skipped destructors.
+/**
+ * Global live-instance counter used by queue destruction tests.
+ *
+ * @return reference to the process-wide count of live QueueLiveTracker objects
+ */
 inline std::atomic<int>& queue_live_tracker_count() {
     static std::atomic<int> count{0};  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
     return count;
 }
 
-/// Construction (incl. copy/move) increments; destruction decrements.
+/**
+ * Test payload whose constructor and destructor update queue_live_tracker_count().
+ *
+ * Construction (including copy and move) increments the counter; destruction decrements it.
+ */
 struct QueueLiveTracker {
+    /// Stored integer payload inspected by tests after dequeue.
     int value;
+
+    /**
+     * @param v the stored integer payload
+     */
     explicit QueueLiveTracker(int v = 0) : value(v) {
         queue_live_tracker_count().fetch_add(1, std::memory_order_relaxed);
     }
+
+    /**
+     * @param other the tracker to copy the payload from
+     */
     QueueLiveTracker(const QueueLiveTracker& other) : value(other.value) {
         queue_live_tracker_count().fetch_add(1, std::memory_order_relaxed);
     }
+
+    /**
+     * @param other the tracker to move the payload from
+     */
     QueueLiveTracker(QueueLiveTracker&& other) noexcept : value(other.value) {
         queue_live_tracker_count().fetch_add(1, std::memory_order_relaxed);
     }
+
     QueueLiveTracker& operator=(const QueueLiveTracker&) = default;
     QueueLiveTracker& operator=(QueueLiveTracker&&) noexcept = default;
+
     ~QueueLiveTracker() {
         queue_live_tracker_count().fetch_sub(1, std::memory_order_relaxed);
     }

@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2024 NUClear Contributors
+ * Copyright (c) 2026 NUClear Contributors
  *
  * This file is part of the NUClear codebase.
  * See https://github.com/Fastcode/NUClear for further info.
@@ -47,16 +47,32 @@ namespace threading {
                  *   - Block*              graveyard_next;
                  */
 
+                /**
+                 * Allocate a fresh block for the queue's block list.
+                 *
+                 * @tparam Block the queue block type (must expose `next` and `graveyard_next`)
+                 *
+                 * @return a default-constructed heap-allocated block
+                 */
                 template <typename Block>
                 Block* allocate_block() {
                     return new Block();
                 }
 
-                // Producers can still be operating on a block after the consumer advances head past it
-                // (e.g. a producer that loaded the tail before it advanced). To avoid use-after-free we
-                // never delete blocks while the queue is live; they are kept on a graveyard list and freed
-                // in the destructor. In steady state the graveyard length is bounded by the peak number of
-                // in-flight blocks.
+                /**
+                 * Retire a fully drained block onto the graveyard list for deferred deletion.
+                 *
+                 * Producers can still be operating on a block after the consumer advances head past it
+                 * (e.g. a producer that loaded the tail before it advanced). To avoid use-after-free we
+                 * never delete blocks while the queue is live; they are kept on a graveyard list and freed
+                 * in the destructor. In steady state the graveyard length is bounded by the peak number of
+                 * in-flight blocks.
+                 *
+                 * @tparam Block the queue block type
+                 *
+                 * @param graveyard atomic head of the graveyard list
+                 * @param block     the block to retire (must not contain live payloads)
+                 */
                 template <typename Block>
                 void retire_block(std::atomic<Block*>& graveyard, Block* block) {
                     Block* head_graveyard = graveyard.load(std::memory_order_acquire);
@@ -71,6 +87,15 @@ namespace threading {
                     }
                 }
 
+                /**
+                 * Attempt to link a newly allocated successor block onto a full block.
+                 *
+                 * @tparam Block the queue block type
+                 *
+                 * @param block the full block whose `next` should be linked
+                 *
+                 * @return true if this caller linked the new block; false if another producer linked first
+                 */
                 template <typename Block>
                 bool link_next_block(Block* block) {
                     // Hold the new block in a unique_ptr so that if the CAS fails (another producer

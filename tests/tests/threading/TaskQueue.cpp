@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2024 NUClear Contributors
+ * Copyright (c) 2026 NUClear Contributors
  *
  * This file is part of the NUClear codebase.
  * See https://github.com/Fastcode/NUClear for further info.
@@ -36,13 +36,13 @@ namespace threading {
                      "[threading][queue][TaskQueue]") {
                 GIVEN("A TaskQueue whose first block is fully drained but a second block is populated") {
                     TaskQueue<int> queue;
-                    for (int i = 0; i < 65; ++i) {
-                        queue.enqueue(i);
+                    for (std::size_t i = 0; i < TaskQueue<int>::BLOCK_SIZE + 1; ++i) {
+                        queue.enqueue(static_cast<int>(i));
                     }
-                    for (int i = 0; i < 64; ++i) {
+                    for (std::size_t i = 0; i < TaskQueue<int>::BLOCK_SIZE; ++i) {
                         int discard = -1;
                         REQUIRE(queue.try_dequeue(discard));
-                        CHECK(discard == i);
+                        CHECK(discard == static_cast<int>(i));
                     }
 
                     WHEN("empty() is queried before the remaining item is dequeued") {
@@ -50,7 +50,7 @@ namespace threading {
                             CHECK_FALSE(queue.empty());
                             int last = -1;
                             CHECK(queue.try_dequeue(last));
-                            CHECK(last == 64);
+                            CHECK(last == static_cast<int>(TaskQueue<int>::BLOCK_SIZE));
                             CHECK(queue.empty());
                         }
                     }

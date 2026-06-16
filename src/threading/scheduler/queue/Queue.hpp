@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2024 NUClear Contributors
+ * Copyright (c) 2026 NUClear Contributors
  *
  * This file is part of the NUClear codebase.
  * See https://github.com/Fastcode/NUClear for further info.
@@ -35,6 +35,8 @@ namespace threading {
              * The per-call indirection cost is negligible compared to the atomic ops inside
              * the concrete enqueue/dequeue implementations, and the simpler MPSC queue is a
              * meaningful win for pools that are by construction single-consumer.
+             *
+             * @tparam T the element type stored in the queue
              */
             template <typename T>
             class Queue {
@@ -46,10 +48,22 @@ namespace threading {
                 Queue& operator=(Queue&&)      = delete;
                 virtual ~Queue()               = default;
 
-                /// Push an item into the queue. Must be safe to call from any thread.
+                /**
+                 * Push an item into the queue.
+                 *
+                 * Must be safe to call from any thread concurrently with other enqueue and dequeue operations.
+                 *
+                 * @param item the value to enqueue (moved into place)
+                 */
                 virtual void enqueue(T&& item) = 0;
 
-                /// Try to pop one item; returns true if `out` was populated.
+                /**
+                 * Try to pop one item from the queue without blocking.
+                 *
+                 * @param out receives the dequeued value when this returns true
+                 *
+                 * @return true if `out` was populated; false if the queue was empty
+                 */
                 virtual bool try_dequeue(T& out) = 0;
             };
 

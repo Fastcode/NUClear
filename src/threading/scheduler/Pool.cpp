@@ -71,6 +71,7 @@ namespace threading {
         }
 
         Pool::~Pool() {
+            // Force stop the pool threads and wait for them to finish
             try {
                 stop(Pool::StopType::FORCE);
             }
@@ -84,6 +85,7 @@ namespace threading {
             catch (...) {  // NOLINT(bugprone-empty-catch)
                 // std::thread::join() may throw std::system_error on failure.
             }
+            // One less active pool
             scheduler.active_pools.fetch_sub(descriptor->counts_for_idle ? 1 : 0, std::memory_order_relaxed);
         }
 

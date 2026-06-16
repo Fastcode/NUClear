@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2024 NUClear Contributors
+ * Copyright (c) 2026 NUClear Contributors
  *
  * This file is part of the NUClear codebase.
  * See https://github.com/Fastcode/NUClear for further info.
@@ -45,14 +45,172 @@ namespace threading {
              * Storage is organised in fixed-size blocks linked in a list. Fully drained blocks are
              * retired to a graveyard and deleted when the queue is destroyed. Per-producer FIFO is
              * preserved; cross-producer ordering is not guaranteed.
+             *
+             * @tparam T the element type stored in the queue
              */
             template <typename T>
             class TaskQueue : public Queue<T> {
                 static_assert(std::is_move_constructible<T>::value, "TaskQueue requires move constructible T");
 
-            private:
+            public:
+                /// Number of slots in each fixed-size block.
                 static constexpr std::size_t BLOCK_SIZE = 64;
 
+                TaskQueue() {
+                    auto* initial = new Block();
+                    head.store(initial, std::memory_order_relaxed);
+                    tail.store(initial, std::memory_order_relaxed);
+                    graveyard.store(nullptr, std::memory_order_relaxed);
+                }
+
+                TaskQueue(const TaskQueue&)            = delete;
+                TaskQueue& operator=(const TaskQueue&) = delete;
+                TaskQueue(TaskQueue&&)                 = delete;
+                TaskQueue& operator=(TaskQueue&&)      = delete;
+
+                ~TaskQueue() override {
+                    // Live blocks (reachable from head) may still hold committed-but-undequeued
+                    // payloads; destroy those before freeing the storage. Graveyard blocks were
+                    // fully drained before retirement, so they hold no live payloads.
+                    Block* current = head.load(std::memory_order_relaxed);
+                    while (current != nullptr) {
+                        Block* next = current->next.load(std::memory_order_relaxed);
+                        destroy_live_slots(current);
+                        delete current;
+                        current = next;
+                    }
+
+                    Block* dead = graveyard.load(std::memory_order_relaxed);
+                    while (dead != nullptr) {
+                        Block* next = dead->graveyard_next;
+                        delete dead;
+                        dead = next;
+                    }
+                }
+
+                /**
+                 * Enqueue a copy of an item.
+                 *
+                 * @param item the value to copy into the queue
+                 */
+                void enqueue(const T& item) {
+                    T copy(item);
+                    enqueue(std::move(copy));
+                }
+
+                /**
+                 * Enqueue an item, moving it into place.
+                 *
+                 * Safe to call concurrently from any number of producer threads.
+                 *
+                 * @param item the value to move into the queue
+                 */
+                void enqueue(T&& item) override {
+                    while (true) {
+                        Block* block = tail.load(std::memory_order_acquire);
+                        const std::size_t index = block->write.fetch_add(1, std::memory_order_relaxed);
+
+                        if (index < BLOCK_SIZE) {
+                            Slot& slot = block->slots[index];
+                            new (slot.storage.data()) T(std::move(item));
+                            slot.committed.store(true, std::memory_order_release);
+                            return;
+                        }
+
+                        if (!detail::link_next_block<Block>(block)) {
+                            // Another thread linked next; help advance tail.
+                        }
+
+                        Block* next = block->next.load(std::memory_order_acquire);
+                        advance_tail(block, next);
+                    }
+                }
+
+                /**
+                 * Try to dequeue one item without blocking.
+                 *
+                 * Safe to call concurrently from any number of consumer threads.
+                 *
+                 * @param out receives the dequeued value when this returns true
+                 *
+                 * @return true if `out` was populated; false if the queue was empty
+                 */
+                bool try_dequeue(T& out) override {
+                    while (true) {
+                        Block* block = head.load(std::memory_order_acquire);
+
+                        const std::size_t published =
+                            std::min(block->write.load(std::memory_order_acquire), BLOCK_SIZE);
+                        std::size_t read_index = block->read.load(std::memory_order_relaxed);
+
+                        if (read_index >= published) {
+                            if (block->consumed.load(std::memory_order_acquire) < published) {
+                                // Consumers are still finishing slots in this block; let them progress.
+                                std::this_thread::yield();
+                            }
+                            else {
+                                Block* next = block->next.load(std::memory_order_acquire);
+                                if (next == nullptr) {
+                                    // Producer may still be writing the first slot of an empty-looking block.
+                                    if (published == 0 && block->write.load(std::memory_order_acquire) > 0) {
+                                        std::this_thread::yield();
+                                    }
+                                    else {
+                                        return false;
+                                    }
+                                }
+                                else if (head.compare_exchange_strong(block,
+                                                                      next,
+                                                                      std::memory_order_release,
+                                                                      std::memory_order_relaxed)) {
+                                    // We won the race to advance head past a fully-drained block, so
+                                    // we own its retirement. try_reclaim_block() only retires when it
+                                    // wins this same head CAS; without retiring here the block would
+                                    // be unreachable from both head and the graveyard and thus leak.
+                                    detail::retire_block(graveyard, block);
+                                }
+                            }
+                        }
+                        else if (block->read.compare_exchange_weak(read_index,
+                                                                   read_index + 1,
+                                                                   std::memory_order_acq_rel,
+                                                                   std::memory_order_relaxed)) {
+                            Slot& slot = block->slots[read_index];
+                            while (!slot.committed.load(std::memory_order_acquire)) {
+                                std::this_thread::yield();
+                            }
+
+                            out = std::move(*slot_ptr(slot));
+                            destroy_slot(slot);
+
+                            if (block->consumed.fetch_add(1, std::memory_order_acq_rel) + 1 == BLOCK_SIZE) {
+                                try_reclaim_block(block);
+                            }
+
+                            return true;
+                        }
+                    }
+                }
+
+                /**
+                 * Returns whether the queue currently holds no dequeueable items.
+                 *
+                 * @return true if no committed, unconsumed slots remain in any reachable block
+                 */
+                bool empty() const {
+                    Block* block = head.load(std::memory_order_acquire);
+                    while (block != nullptr) {
+                        const std::size_t published =
+                            std::min(block->write.load(std::memory_order_acquire), BLOCK_SIZE);
+                        if (block->read.load(std::memory_order_relaxed) < published) {
+                            return false;
+                        }
+                        block = block->next.load(std::memory_order_acquire);
+                    }
+                    return true;
+                }
+
+            private:
                 struct Block;
 
                 struct Slot {
@@ -124,135 +282,6 @@ namespace threading {
                 std::atomic<Block*> head;
                 std::atomic<Block*> tail;
                 std::atomic<Block*> graveyard;
-
-            public:
-                TaskQueue() {
-                    auto* initial = new Block();
-                    head.store(initial, std::memory_order_relaxed);
-                    tail.store(initial, std::memory_order_relaxed);
-                    graveyard.store(nullptr, std::memory_order_relaxed);
-                }
-
-                TaskQueue(const TaskQueue&)            = delete;
-                TaskQueue& operator=(const TaskQueue&) = delete;
-                TaskQueue(TaskQueue&&)                 = delete;
-                TaskQueue& operator=(TaskQueue&&)      = delete;
-
-                ~TaskQueue() override {
-                    // Live blocks (reachable from head) may still hold committed-but-undequeued
-                    // payloads; destroy those before freeing the storage. Graveyard blocks were
-                    // fully drained before retirement, so they hold no live payloads.
-                    Block* current = head.load(std::memory_order_relaxed);
-                    while (current != nullptr) {
-                        Block* next = current->next.load(std::memory_order_relaxed);
-                        destroy_live_slots(current);
-                        delete current;
-                        current = next;
-                    }
-
-                    Block* dead = graveyard.load(std::memory_order_relaxed);
-                    while (dead != nullptr) {
-                        Block* next = dead->graveyard_next;
-                        delete dead;
-                        dead = next;
-                    }
-                }
-
-                void enqueue(const T& item) {
-                    T copy(item);
-                    enqueue(std::move(copy));
-                }
-
-                void enqueue(T&& item) override {
-                    while (true) {
-                        Block* block = tail.load(std::memory_order_acquire);
-                        const std::size_t index = block->write.fetch_add(1, std::memory_order_relaxed);
-
-                        if (index < BLOCK_SIZE) {
-                            Slot& slot = block->slots[index];
-                            new (slot.storage.data()) T(std::move(item));
-                            slot.committed.store(true, std::memory_order_release);
-                            return;
-                        }
-
-                        if (!detail::link_next_block<Block>(block)) {
-                            // Another thread linked next; help advance tail.
-                        }
-
-                        Block* next = block->next.load(std::memory_order_acquire);
-                        advance_tail(block, next);
-                    }
-                }
-
-                bool try_dequeue(T& out) override {
-                    while (true) {
-                        Block* block = head.load(std::memory_order_acquire);
-
-                        const std::size_t published =
-                            std::min(block->write.load(std::memory_order_acquire), BLOCK_SIZE);
-                        std::size_t read_index = block->read.load(std::memory_order_relaxed);
-
-                        if (read_index >= published) {
-                            if (block->consumed.load(std::memory_order_acquire) < published) {
-                                // Consumers are still finishing slots in this block; let them progress.
-                                std::this_thread::yield();
-                            }
-                            else {
-                                Block* next = block->next.load(std::memory_order_acquire);
-                                if (next == nullptr) {
-                                    // Producer may still be writing the first slot of an empty-looking block.
-                                    if (published == 0 && block->write.load(std::memory_order_acquire) > 0) {
-                                        std::this_thread::yield();
-                                    }
-                                    else {
-                                        return false;
-                                    }
-                                }
-                                else if (head.compare_exchange_strong(block,
-                                                                      next,
-                                                                      std::memory_order_release,
-                                                                      std::memory_order_relaxed)) {
-                                    // We won the race to advance head past a fully-drained block, so
-                                    // we own its retirement. try_reclaim_block() only retires when it
-                                    // wins this same head CAS; without retiring here the block would
-                                    // be unreachable from both head and the graveyard and thus leak.
-                                    detail::retire_block(graveyard, block);
-                                }
-                            }
-                        }
-                        else if (block->read.compare_exchange_weak(read_index,
-                                                                   read_index + 1,
-                                                                   std::memory_order_acq_rel,
-                                                                   std::memory_order_relaxed)) {
-                            Slot& slot = block->slots[read_index];
-                            while (!slot.committed.load(std::memory_order_acquire)) {
-                                std::this_thread::yield();
-                            }
-
-                            out = std::move(*slot_ptr(slot));
-                            destroy_slot(slot);
-
-                            if (block->consumed.fetch_add(1, std::memory_order_acq_rel) + 1 == BLOCK_SIZE) {
-                                try_reclaim_block(block);
-                            }
-
-                            return true;
-                        }
-                    }
-                }
-
-                bool empty() const {
-                    Block* block = head.load(std::memory_order_acquire);
-                    while (block != nullptr) {
-                        const std::size_t published =
-                            std::min(block->write.load(std::memory_order_acquire), BLOCK_SIZE);
-                        if (block->read.load(std::memory_order_relaxed) < published) {
-                            return false;
-                        }
-                        block = block->next.load(std::memory_order_acquire);
-                    }
-                    return true;
-                }
             };
 
             template <typename T>

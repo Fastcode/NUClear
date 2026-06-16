@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2024 NUClear Contributors
+ * Copyright (c) 2026 NUClear Contributors
  *
  * This file is part of the NUClear codebase.
  * See https://github.com/Fastcode/NUClear for further info.
@@ -25,6 +25,7 @@
 #include <atomic>
 #include <catch2/catch_template_test_macros.hpp>
 #include <catch2/catch_test_macros.hpp>
+#include <cstddef>
 #include <memory>
 #include <thread>
 #include <type_traits>
@@ -63,7 +64,7 @@ namespace threading {
     namespace scheduler {
         namespace queue {
 
-            TEMPLATE_TEST_CASE("A queue destroyed while non-empty runs the destructors of its remaining items",
+            TEMPLATE_TEST_CASE("Scenario: A queue destroyed while non-empty runs the destructors of its remaining items",
                                "[threading][queue]",
                                MPSCQueue<test_util::QueueLiveTracker>,
                                TaskQueue<test_util::QueueLiveTracker>) {
@@ -73,18 +74,24 @@ namespace threading {
                     WHEN("The queue is destroyed with items still enqueued") {
                         {
                             TestType queue;
-                            for (int i = 0; i < 200; ++i) {
-                                queue.enqueue(test_util::QueueLiveTracker(i));
+                            constexpr std::size_t partial_blocks = 3;
+                            constexpr std::size_t partial_extra  = 8;
+                            constexpr std::size_t items_enqueued =
+                                partial_blocks * TestType::BLOCK_SIZE + partial_extra;
+                            constexpr int drain_count = 10;
+                            for (std::size_t i = 0; i < items_enqueued; ++i) {
+                                queue.enqueue(test_util::QueueLiveTracker(static_cast<int>(i)));
                             }
                             /*drain a few*/ {
                                 test_util::QueueLiveTracker sink(-1);
-                                for (int i = 0; i < 10; ++i) {
+                                for (int i = 0; i < drain_count; ++i) {
                                     REQUIRE(queue.try_dequeue(sink));
                                 }
                             }
 
-                            // 190 elements remain live inside the queue's blocks.
-                            CHECK(test_util::queue_live_tracker_count().load(std::memory_order_relaxed) == 190);
+                            const int remaining =
+                                static_cast<int>(items_enqueued) - drain_count;
+                            CHECK(test_util::queue_live_tracker_count().load(std::memory_order_relaxed) == remaining);
                         }
 
                         THEN("Every still-enqueued element has its destructor run") {
@@ -94,7 +101,7 @@ namespace threading {
                 }
             }
 
-            TEMPLATE_TEST_CASE("A queue accepts copy-enqueued const payloads",
+            TEMPLATE_TEST_CASE("Scenario: A queue accepts copy-enqueued const payloads",
                                "[threading][queue]",
                                MPSCQueue<int>,
                                TaskQueue<int>) {
@@ -115,7 +122,7 @@ namespace threading {
                 }
             }
 
-            TEMPLATE_TEST_CASE("A queue used by a single producer and single consumer preserves FIFO order",
+            TEMPLATE_TEST_CASE("Scenario: A queue used by a single producer and single consumer preserves FIFO order",
                                "[threading][queue]",
                                MPSCQueue<int>,
                                TaskQueue<int>) {
@@ -138,7 +145,7 @@ namespace threading {
                 }
             }
 
-            TEMPLATE_TEST_CASE("A queue can store move-only payloads",
+            TEMPLATE_TEST_CASE("Scenario: A queue can store move-only payloads",
                                "[threading][queue]",
                                MPSCQueue<std::unique_ptr<int>>,
                                TaskQueue<std::unique_ptr<int>>) {
@@ -158,21 +165,24 @@ namespace threading {
                 }
             }
 
-            TEMPLATE_TEST_CASE("A queue handles many enqueues from one thread followed by many dequeues",
+            TEMPLATE_TEST_CASE("Scenario: A queue handles many enqueues from one thread followed by many dequeues",
                                "[threading][queue]",
                                MPSCQueue<int>,
                                TaskQueue<int>) {
-                GIVEN("A queue with 5000 sequentially enqueued integers") {
+                GIVEN("A queue with many sequentially enqueued integers") {
                     TestType queue;
-                    for (int i = 0; i < 5000; ++i) {
-                        queue.enqueue(i);
+                    constexpr std::size_t many_blocks = 78;
+                    constexpr std::size_t many_extra  = 8;
+                    constexpr std::size_t item_count  = many_blocks * TestType::BLOCK_SIZE + many_extra;
+                    for (std::size_t i = 0; i < item_count; ++i) {
+                        queue.enqueue(static_cast<int>(i));
                     }
 
                     WHEN("They are all dequeued in turn") {
                         bool sequence_holds = true;
-                        for (int i = 0; i < 5000; ++i) {
+                        for (std::size_t i = 0; i < item_count; ++i) {
                             int value = -1;
-                            if (!queue.try_dequeue(value) || value != i) {
+                            if (!queue.try_dequeue(value) || value != static_cast<int>(i)) {
                                 sequence_holds = false;
                                 break;
                             }
@@ -186,32 +196,32 @@ namespace threading {
                 }
             }
 
-            TEMPLATE_TEST_CASE("A queue consumer waits while a producer links the next block",
+            TEMPLATE_TEST_CASE("Scenario: A queue consumer waits while a producer links the next block",
                                "[threading][queue]",
                                MPSCQueue<int>,
                                TaskQueue<int>) {
                 GIVEN("A queue with one full block and a producer about to overflow it") {
                     TestType queue;
-                    for (int i = 0; i < 64; ++i) {
-                        queue.enqueue(i);
+                    for (std::size_t i = 0; i < TestType::BLOCK_SIZE; ++i) {
+                        queue.enqueue(static_cast<int>(i));
                     }
 
                     WHEN("A producer and consumer race across the block boundary") {
                         std::atomic<bool> producer_done{false};
                         std::thread producer([&] {
-                            for (int i = 64; i < 128; ++i) {
-                                queue.enqueue(i);
+                            for (std::size_t i = TestType::BLOCK_SIZE; i < 2 * TestType::BLOCK_SIZE; ++i) {
+                                queue.enqueue(static_cast<int>(i));
                             }
                             producer_done.store(true, std::memory_order_release);
                         });
 
                         bool in_order = true;
-                        for (int expected = 0; expected < 128; ++expected) {
+                        for (std::size_t expected = 0; expected < 2 * TestType::BLOCK_SIZE; ++expected) {
                             int value = -1;
                             while (!queue.try_dequeue(value)) {
                                 std::this_thread::yield();
                             }
-                            if (value != expected) {
+                            if (value != static_cast<int>(expected)) {
                                 in_order = false;
                                 break;
                             }

@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2024 NUClear Contributors
+ * Copyright (c) 2026 NUClear Contributors
  *
  * This file is part of the NUClear codebase.
  * See https://github.com/Fastcode/NUClear for further info.
@@ -51,14 +51,138 @@ namespace threading {
              *
              * Use this in pools that are declared with `concurrency = 1` (e.g. MainThread,
              * the TraceController pool, or any user pool with a single worker thread).
+             *
+             * @tparam T the element type stored in the queue
              */
             template <typename T>
             class MPSCQueue : public Queue<T> {
                 static_assert(std::is_move_constructible<T>::value, "MPSCQueue requires move constructible T");
 
-            private:
+            public:
+                /// Number of slots in each fixed-size block.
                 static constexpr std::size_t BLOCK_SIZE = 64;
 
+                MPSCQueue() {
+                    auto* initial = new Block();
+                    head_block    = initial;
+                    tail_block.store(initial, std::memory_order_relaxed);
+                    graveyard.store(nullptr, std::memory_order_relaxed);
+                }
+
+                MPSCQueue(const MPSCQueue&)            = delete;
+                MPSCQueue& operator=(const MPSCQueue&) = delete;
+                MPSCQueue(MPSCQueue&&)                 = delete;
+                MPSCQueue& operator=(MPSCQueue&&)      = delete;
+
+                ~MPSCQueue() override {
+                    // Live blocks (reachable from head_block) may still hold undequeued payloads;
+                    // destroy those before freeing the storage. Graveyard blocks were fully drained
+                    // before retirement, so they hold no live payloads.
+                    Block* current = head_block;
+                    while (current != nullptr) {
+                        Block* next = current->next.load(std::memory_order_relaxed);
+                        destroy_live_slots(current);
+                        delete current;
+                        current = next;
+                    }
+
+                    Block* dead = graveyard.load(std::memory_order_relaxed);
+                    while (dead != nullptr) {
+                        Block* next = dead->graveyard_next;
+                        delete dead;
+                        dead = next;
+                    }
+                }
+
+                /**
+                 * Enqueue a copy of an item.
+                 *
+                 * @param item the value to copy into the queue
+                 */
+                void enqueue(const T& item) {
+                    T copy(item);
+                    enqueue(std::move(copy));
+                }
+
+                /**
+                 * Enqueue an item, moving it into place.
+                 *
+                 * Safe to call concurrently from any number of producer threads.
+                 *
+                 * @param item the value to move into the queue
+                 */
+                void enqueue(T&& item) override {
+                    while (true) {
+                        Block*            block = tail_block.load(std::memory_order_acquire);
+                        const std::size_t index = block->write.fetch_add(1, std::memory_order_relaxed);
+
+                        if (index < BLOCK_SIZE) {
+                            Slot& slot = block->slots[index];
+                            new (slot.storage.data()) T(std::move(item));
+                            slot.committed.store(true, std::memory_order_release);
+                            return;
+                        }
+
+                        // Block full. Link the next one (or help an in-flight linker) and advance tail.
+                        detail::link_next_block<Block>(block);
+
+                        Block* next = block->next.load(std::memory_order_acquire);
+                        advance_tail(block, next);
+                    }
+                }
+
+                /**
+                 * Try to dequeue one item without blocking.
+                 *
+                 * Must only be called from the single consumer thread.
+                 *
+                 * @param out receives the dequeued value when this returns true
+                 *
+                 * @return true if `out` was populated; false if the queue was empty
+                 */
+                bool try_dequeue(T& out) override {
+                    while (true) {
+                        const std::size_t write_observed = head_block->write.load(std::memory_order_acquire);
+                        const std::size_t published      = std::min(write_observed, BLOCK_SIZE);
+
+                        if (head_block->read < published) {
+                            Slot& slot = head_block->slots[head_block->read];
+                            // Producer's claim happens-before its commit, but commit may not be visible
+                            // yet if we raced it. Spin briefly until the data is published.
+                            while (!slot.committed.load(std::memory_order_acquire)) {
+                                std::this_thread::yield();
+                            }
+
+                            out = std::move(*slot_ptr(slot));
+                            slot_ptr(slot)->~T();
+                            ++head_block->read;
+                            return true;
+                        }
+
+                        // Block drained from this consumer's perspective. Try to move to the next.
+                        Block* next = head_block->next.load(std::memory_order_acquire);
+                        if (next == nullptr) {
+                            // If a producer has already overflowed past BLOCK_SIZE we know they're
+                            // mid-way through linking the next block; wait briefly for it to appear.
+                            if (write_observed > BLOCK_SIZE) {
+                                std::this_thread::yield();
+                            }
+                            else {
+                                return false;
+                            }
+                        }
+                        else {
+                            // We're the sole consumer so advancing head_block is a plain store. The old
+                            // block goes to the graveyard so any producer that still holds a pointer to
+                            // it (e.g. one mid-way through link_next_block) doesn't touch freed memory.
+                            Block* old = head_block;
+                            head_block = next;
+                            detail::retire_block(graveyard, old);
+                        }
+                    }
+                }
+
+            private:
                 struct Slot {
                     std::atomic<bool> committed{false};
                     /// Raw aligned storage for the T payload. Left value-initialised (zeroed) so the
@@ -110,106 +234,6 @@ namespace threading {
                 std::atomic<Block*> tail_block;
                 /// Linked list of retired blocks that are kept alive until the queue is destroyed.
                 std::atomic<Block*> graveyard;
-
-            public:
-                MPSCQueue() {
-                    auto* initial = new Block();
-                    head_block    = initial;
-                    tail_block.store(initial, std::memory_order_relaxed);
-                    graveyard.store(nullptr, std::memory_order_relaxed);
-                }
-
-                MPSCQueue(const MPSCQueue&)            = delete;
-                MPSCQueue& operator=(const MPSCQueue&) = delete;
-                MPSCQueue(MPSCQueue&&)                 = delete;
-                MPSCQueue& operator=(MPSCQueue&&)      = delete;
-
-                ~MPSCQueue() override {
-                    // Live blocks (reachable from head_block) may still hold undequeued payloads;
-                    // destroy those before freeing the storage. Graveyard blocks were fully drained
-                    // before retirement, so they hold no live payloads.
-                    Block* current = head_block;
-                    while (current != nullptr) {
-                        Block* next = current->next.load(std::memory_order_relaxed);
-                        destroy_live_slots(current);
-                        delete current;
-                        current = next;
-                    }
-
-                    Block* dead = graveyard.load(std::memory_order_relaxed);
-                    while (dead != nullptr) {
-                        Block* next = dead->graveyard_next;
-                        delete dead;
-                        dead = next;
-                    }
-                }
-
-                void enqueue(const T& item) {
-                    T copy(item);
-                    enqueue(std::move(copy));
-                }
-
-                void enqueue(T&& item) override {
-                    while (true) {
-                        Block*            block = tail_block.load(std::memory_order_acquire);
-                        const std::size_t index = block->write.fetch_add(1, std::memory_order_relaxed);
-
-                        if (index < BLOCK_SIZE) {
-                            Slot& slot = block->slots[index];
-                            new (slot.storage.data()) T(std::move(item));
-                            slot.committed.store(true, std::memory_order_release);
-                            return;
-                        }
-
-                        // Block full. Link the next one (or help an in-flight linker) and advance tail.
-                        detail::link_next_block<Block>(block);
-
-                        Block* next = block->next.load(std::memory_order_acquire);
-                        advance_tail(block, next);
-                    }
-                }
-
-                bool try_dequeue(T& out) override {
-                    while (true) {
-                        const std::size_t write_observed = head_block->write.load(std::memory_order_acquire);
-                        const std::size_t published      = std::min(write_observed, BLOCK_SIZE);
-
-                        if (head_block->read < published) {
-                            Slot& slot = head_block->slots[head_block->read];
-                            // Producer's claim happens-before its commit, but commit may not be visible
-                            // yet if we raced it. Spin briefly until the data is published.
-                            while (!slot.committed.load(std::memory_order_acquire)) {
-                                std::this_thread::yield();
-                            }
-
-                            out = std::move(*slot_ptr(slot));
-                            slot_ptr(slot)->~T();
-                            ++head_block->read;
-                            return true;
-                        }
-
-                        // Block drained from this consumer's perspective. Try to move to the next.
-                        Block* next = head_block->next.load(std::memory_order_acquire);
-                        if (next == nullptr) {
-                            // If a producer has already overflowed past BLOCK_SIZE we know they're
-                            // mid-way through linking the next block; wait briefly for it to appear.
-                            if (write_observed > BLOCK_SIZE) {
-                                std::this_thread::yield();
-                            }
-                            else {
-                                return false;
-                            }
-                        }
-                        else {
-                            // We're the sole consumer so advancing head_block is a plain store. The old
-                            // block goes to the graveyard so any producer that still holds a pointer to
-                            // it (e.g. one mid-way through link_next_block) doesn't touch freed memory.
-                            Block* old = head_block;
-                            head_block = next;
-                            detail::retire_block(graveyard, old);
-                        }
-                    }
-                }
             };
 
             template <typename T>
