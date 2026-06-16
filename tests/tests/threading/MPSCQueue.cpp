@@ -36,7 +36,7 @@ namespace threading {
             namespace {
                 /// Counts how many instances are currently alive so a test can detect skipped
                 /// destructors. Construction (incl. copy/move) increments; destruction decrements.
-                std::atomic<int> live_tracker_count{0};
+                std::atomic<int> live_tracker_count{0};  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
                 struct LiveTracker {
                     int value;

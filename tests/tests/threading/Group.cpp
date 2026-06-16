@@ -27,7 +27,6 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/generators/catch_generators.hpp>
 #include <chrono>
-#include <cstdint>
 #include <memory>
 #include <random>
 #include <set>
@@ -85,12 +84,12 @@ namespace threading {
             bool wait_for(Pred&& pred, const std::chrono::milliseconds timeout) {
                 const auto deadline = std::chrono::steady_clock::now() + timeout;
                 while (std::chrono::steady_clock::now() < deadline) {
-                    if (pred()) {
+                    if (std::forward<Pred>(pred)()) {
                         return true;
                     }
                     std::this_thread::sleep_for(std::chrono::microseconds(100));
                 }
-                return pred();
+                return std::forward<Pred>(pred)();
             }
 
             /// Repeatedly attempt to acquire a slow-path lock until it succeeds or `timeout` elapses.
@@ -539,6 +538,7 @@ namespace threading {
                     constexpr int burst_target   = 3;
 
                     std::vector<std::thread> fast_threads;
+                    fast_threads.reserve(static_cast<std::size_t>(n_fast_threads));
                     for (int t = 0; t < n_fast_threads; ++t) {
                         fast_threads.emplace_back([&, t] {
                             std::mt19937 rng(0x51EDU + static_cast<unsigned>(t));
@@ -636,8 +636,10 @@ namespace threading {
                         pool->join();
                     }
                     else {
-                        (void) pool.release();
-                        (void) scheduler.release();
+                        static Pool* leaked_pool            = nullptr;
+                        static Scheduler* leaked_scheduler = nullptr;
+                        leaked_pool                        = pool.release();
+                        leaked_scheduler                   = scheduler.release();
                     }
                 }
             }
