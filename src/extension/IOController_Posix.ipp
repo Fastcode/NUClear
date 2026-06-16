@@ -147,9 +147,11 @@ namespace extension {
     }
 
     void IOController::bump() {
-        // Check if there was an error
+        notifier.wake_requested.store(true, std::memory_order_release);
+
         uint8_t val = 1;
         if (::write(notifier.send, &val, sizeof(val)) < 0) {
+            notifier.wake_requested.store(false, std::memory_order_release);
             throw std::system_error(network_errno,
                                     std::system_category(),
                                     "There was an error while writing to the notification pipe");
@@ -157,6 +159,7 @@ namespace extension {
 
         // Locking here will ensure we won't return until poll is not running
         const std::lock_guard<std::mutex> lock(notifier.mutex);
+        notifier.wake_requested.store(false, std::memory_order_release);
     }
 
     IOController::IOController(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
@@ -214,8 +217,10 @@ namespace extension {
                     // wake-then-lock pattern bump() uses, but we keep the lock held until the
                     // watches update (and the follow-up fire_event, which can also touch
                     // watches[].events) is finished.
+                    notifier.wake_requested.store(true, std::memory_order_release);
                     uint8_t val = 1;
                     if (::write(notifier.send, &val, sizeof(val)) < 0) {
+                        notifier.wake_requested.store(false, std::memory_order_release);
                         throw std::system_error(network_errno,
                                                 std::system_category(),
                                                 "There was an error while writing to the notification pipe");
@@ -236,6 +241,8 @@ namespace extension {
 
                     // Try to fire again which will check if there are any waiting events
                     fire_event(*task);
+
+                    notifier.wake_requested.store(false, std::memory_order_release);
                 }
             }
         });
@@ -274,13 +281,21 @@ namespace extension {
                 }
 
                 // Wait for an event to happen on one of our file descriptors
+                bool polled = false;
                 /* mutex scope */ {
                     const std::lock_guard<std::mutex> lock(notifier.mutex);
-                    if (::poll(watches.data(), nfds_t(watches.size()), -1) < 0) {
-                        throw std::system_error(network_errno,
-                                                std::system_category(),
-                                                "There was an IO error while attempting to poll the file descriptors");
+                    if (!notifier.wake_requested.load(std::memory_order_acquire)) {
+                        if (::poll(watches.data(), nfds_t(watches.size()), -1) < 0) {
+                            throw std::system_error(network_errno,
+                                                    std::system_category(),
+                                                    "There was an IO error while attempting to poll the file descriptors");
+                        }
+                        polled = true;
                     }
+                }
+
+                if (!polled) {
+                    return;
                 }
 
                 // Get the lock so we don't concurrently modify the list

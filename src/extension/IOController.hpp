@@ -27,6 +27,8 @@
 #include "../dsl/word/IO.hpp"
 #include "../util/platform.hpp"
 
+#include <atomic>
+
 namespace NUClear {
 namespace extension {
 
@@ -51,6 +53,8 @@ namespace extension {
             fd_t recv{-1};     ///< This is the file descriptor that is waited on by poll
             fd_t send{-1};     ///< This is the file descriptor that is written to to wake up the poll command
             std::mutex mutex;  ///< This mutex is used to ensure that a write to poll has worked
+            /// Set while a writer is in the wake-then-lock handoff; checked under mutex before ::poll().
+            std::atomic<bool> wake_requested{false};
         };
 #endif
 
