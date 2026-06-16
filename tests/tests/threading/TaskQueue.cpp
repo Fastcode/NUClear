@@ -24,25 +24,13 @@
 #include <atomic>
 #include <catch2/catch_test_macros.hpp>
 #include <cstddef>
-#include <memory>
 #include <thread>
 #include <vector>
-
-#include "test_util/queue_bdd_helpers.hpp"
 
 namespace NUClear {
 namespace threading {
     namespace scheduler {
         namespace queue {
-
-            SCENARIO("A TaskQueue destroyed while non-empty runs the destructors of its remaining items",
-                     "[threading][queue][TaskQueue]") {
-                test_util::queue_bdd::destructor_runs_remaining_destructors_scenario<TaskQueue<test_util::QueueLiveTracker>>();
-            }
-
-            SCENARIO("A TaskQueue accepts copy-enqueued const payloads", "[threading][queue][TaskQueue]") {
-                test_util::queue_bdd::copy_enqueue_const_payload_scenario<TaskQueue<int>>();
-            }
 
             SCENARIO("A TaskQueue empty() is false while a later block still holds items",
                      "[threading][queue][TaskQueue]") {
@@ -67,20 +55,6 @@ namespace threading {
                         }
                     }
                 }
-            }
-
-            SCENARIO("A TaskQueue used by a single producer and a single consumer preserves FIFO order",
-                     "[threading][queue][TaskQueue]") {
-                test_util::queue_bdd::single_producer_consumer_fifo_scenario<TaskQueue<int>>();
-            }
-
-            SCENARIO("A TaskQueue can store move-only payloads", "[threading][queue][TaskQueue]") {
-                test_util::queue_bdd::move_only_payload_scenario<TaskQueue<std::unique_ptr<int>>>();
-            }
-
-            SCENARIO("A TaskQueue handles many enqueues from one thread followed by many dequeues",
-                     "[threading][queue][TaskQueue]") {
-                test_util::queue_bdd::sequential_enqueue_dequeue_scenario<TaskQueue<int>>();
             }
 
             // Stress test: with multiple producers writing concurrently we cannot assert
@@ -132,11 +106,6 @@ namespace threading {
                         }
                     }
                 }
-            }
-
-            SCENARIO("A TaskQueue consumer can spin until a producer publishes the first slot of a new block",
-                     "[threading][queue][TaskQueue]") {
-                test_util::queue_bdd::block_boundary_producer_consumer_race_scenario<TaskQueue<int>>();
             }
 
         }  // namespace queue

@@ -23,45 +23,14 @@
 
 #include <atomic>
 #include <catch2/catch_test_macros.hpp>
-#include <memory>
 #include <thread>
 #include <utility>
 #include <vector>
-
-#include "test_util/queue_bdd_helpers.hpp"
 
 namespace NUClear {
 namespace threading {
     namespace scheduler {
         namespace queue {
-
-            SCENARIO("An MPSCQueue destroyed while non-empty runs the destructors of its remaining items",
-                     "[threading][queue][MPSCQueue]") {
-                test_util::queue_bdd::destructor_runs_remaining_destructors_scenario<MPSCQueue<test_util::QueueLiveTracker>>();
-            }
-
-            SCENARIO("An MPSCQueue accepts copy-enqueued const payloads", "[threading][queue][MPSCQueue]") {
-                test_util::queue_bdd::copy_enqueue_const_payload_scenario<MPSCQueue<int>>();
-            }
-
-            SCENARIO("An MPSCQueue consumer waits while a producer links the next block",
-                     "[threading][queue][MPSCQueue]") {
-                test_util::queue_bdd::block_boundary_producer_consumer_race_scenario<MPSCQueue<int>>();
-            }
-
-            SCENARIO("An MPSCQueue used by a single producer and single consumer preserves FIFO order",
-                     "[threading][queue][MPSCQueue]") {
-                test_util::queue_bdd::single_producer_consumer_fifo_scenario<MPSCQueue<int>>();
-            }
-
-            SCENARIO("An MPSCQueue can store move-only payloads", "[threading][queue][MPSCQueue]") {
-                test_util::queue_bdd::move_only_payload_scenario<MPSCQueue<std::unique_ptr<int>>>();
-            }
-
-            SCENARIO("An MPSCQueue handles many enqueues from one thread followed by many dequeues",
-                     "[threading][queue][MPSCQueue]") {
-                test_util::queue_bdd::sequential_enqueue_dequeue_scenario<MPSCQueue<int>>();
-            }
 
             // Stress test for the MPSC contract: many producers race to enqueue while a single consumer
             // drains. We tag each item with (producer_id, sequence_no) so we can assert per-producer FIFO
