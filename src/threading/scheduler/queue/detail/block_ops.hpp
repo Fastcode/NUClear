@@ -76,7 +76,7 @@ namespace threading {
 
                 /// Spin with a brief CPU pause, then yield, until `pred()` is true.
                 template <typename Pred>
-                void spin_until(Pred&& pred) {
+                void spin_until(const Pred& pred) {
                     for (int spin = 0; spin < 64 && !pred(); ++spin) {
                         cpu_pause();
                     }
