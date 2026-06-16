@@ -223,7 +223,7 @@ namespace threading {
             // resulting pointer is then cached on the parent Reaction so subsequent submits skip
             // the mutex entirely.
             //
-            // The cache is a single `std::atomic<void*>` (see Reaction::scheduler_data). We
+            // The cache is a single `std::atomic<Pool*>` (see Reaction::scheduler_data). We
             // deliberately avoid `std::atomic_load`/`atomic_store` on a `std::shared_ptr<void>`:
             // on libstdc++ those fall back to a small global pool of mutexes (~8 chosen by
             // pointer hash) and become a contention point on hot submission paths. Pools live
@@ -235,10 +235,10 @@ namespace threading {
             // value.
             Pool* pool = nullptr;
             if (task->parent) {
-                pool = static_cast<Pool*>(task->parent->scheduler_data.load(std::memory_order_acquire));
+                pool = task->parent->scheduler_data.load(std::memory_order_acquire);
                 if (pool == nullptr) {
                     pool = get_pool(task->pool_descriptor).get();
-                    task->parent->scheduler_data.store(static_cast<void*>(pool), std::memory_order_release);
+                    task->parent->scheduler_data.store(pool, std::memory_order_release);
                 }
             }
             else {

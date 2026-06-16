@@ -45,6 +45,7 @@ namespace threading {
     class ReactionTask;
     struct ReactionIdentifiers;
     namespace scheduler {
+        class Pool;
         class Scheduler;
     }  // namespace scheduler
 
@@ -138,7 +139,7 @@ namespace threading {
         /// Cached scheduler-private pointer for this reaction.
         ///
         /// The scheduler uses this as a fast-path cache for the resolved pool that this reaction's
-        /// tasks should run on. It is a raw, non-owning `void*` rather than `std::shared_ptr<void>`
+        /// tasks should run on. It is a raw, non-owning `Pool*` rather than `std::shared_ptr<void>`
         /// to avoid the per-submit cost of `std::atomic_load`/`atomic_store` on a `shared_ptr`,
         /// which on libstdc++ falls back to a small global pool of mutexes (selected by pointer
         /// hash) and can become a contention point on hot submission paths.
@@ -147,9 +148,10 @@ namespace threading {
         /// outlive scheduler-side resources because PowerPlant tears reactors down before the
         /// scheduler. The first submit resolves the pool and stores it here (release); later submits
         /// just load it (acquire). The write is a plain store rather than a CAS: every writer
-        /// resolves the same pool for a given reaction, so racing stores are benign (they publish
-        /// identical values) and a reader either sees nullptr (and re-resolves) or the one pointer.
-        std::atomic<void*> scheduler_data{nullptr};
+        /// resolves the same pool for a given reaction, so concurrent first-submit stores are still
+        /// a data race (though they publish identical values) and a reader either sees nullptr
+        /// (and re-resolves) or the one pointer.
+        std::atomic<scheduler::Pool*> scheduler_data{nullptr};
         friend class scheduler::Scheduler;  /// Let the scheduler mess with reaction objects
     };
 
