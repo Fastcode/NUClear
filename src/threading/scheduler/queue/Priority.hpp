@@ -30,32 +30,52 @@ namespace threading {
     namespace scheduler {
         namespace queue {
 
-            /// Number of priority buckets (REALTIME, HIGH, NORMAL, LOW, IDLE).
-            static constexpr std::size_t PRIORITY_BUCKETS = 5;
+            /// Fixed scheduler priority buckets (REALTIME, HIGH, NORMAL, LOW, IDLE).
+            enum class PriorityLevel : std::size_t {
+                REALTIME = 0,
+                HIGH     = 1,
+                NORMAL   = 2,
+                LOW      = 3,
+                IDLE     = 4,
+            };
+
+            /// Number of priority buckets.
+            static constexpr std::size_t PRIORITY_BUCKETS = static_cast<std::size_t>(PriorityLevel::IDLE) + 1;
+
+            /**
+             * Map a reaction task priority value to a fixed bucket level.
+             *
+             * Higher runtime priority maps to a lower index so buckets can be scanned from 0 upward.
+             *
+             * @param priority the task priority
+             *
+             * @return the fixed priority bucket
+             */
+            inline PriorityLevel priority_level(const int& priority) {
+                if (priority >= 1000) {
+                    return PriorityLevel::REALTIME;
+                }
+                if (priority >= 750) {
+                    return PriorityLevel::HIGH;
+                }
+                if (priority >= 500) {
+                    return PriorityLevel::NORMAL;
+                }
+                if (priority >= 250) {
+                    return PriorityLevel::LOW;
+                }
+                return PriorityLevel::IDLE;
+            }
 
             /**
              * Map a reaction task priority value to a bucket index.
-             *
-             * Higher runtime priority maps to a lower index so buckets can be scanned from 0 upward.
              *
              * @param priority the task priority
              *
              * @return bucket index in [0, PRIORITY_BUCKETS)
              */
             inline std::size_t priority_index(const int& priority) {
-                if (priority >= 1000) {
-                    return 0;
-                }
-                if (priority >= 750) {
-                    return 1;
-                }
-                if (priority >= 500) {
-                    return 2;
-                }
-                if (priority >= 250) {
-                    return 3;
-                }
-                return 4;
+                return static_cast<std::size_t>(priority_level(priority));
             }
 
         }  // namespace queue
