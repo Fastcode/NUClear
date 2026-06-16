@@ -33,7 +33,7 @@ add_library(nuclear STATIC ${src})
 add_library(NUClear::nuclear ALIAS nuclear)
 
 if(BUILD_TESTS)
-  target_compile_definitions(nuclear PUBLIC NUCLEAR_GROUP_TEST_API)
+  target_compile_definitions(nuclear PRIVATE NUCLEAR_GROUP_TEST_API)
 endif()
 
 # Set compile options for NUClear

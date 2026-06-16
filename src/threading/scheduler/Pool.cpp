@@ -95,28 +95,33 @@ namespace threading {
         }
 
         void Pool::stop(const StopType& type) {
-            const std::lock_guard<std::mutex> lock(mutex);
+            // Drained tasks may hold group locks whose destructors can re-enter the pool; defer
+            // their destruction until after the mutex is released.
+            std::vector<Task> drained;
+            {
+                const std::lock_guard<std::mutex> lock(mutex);
 
-            live = true;
-            accept.store(descriptor->persistent, std::memory_order_release);
+                live = true;
+                accept.store(descriptor->persistent, std::memory_order_release);
 
-            switch (type) {
-                case StopType::NORMAL: {
-                    running = descriptor->persistent;
-                } break;
-                case StopType::FINAL: {
-                    running = false;
-                } break;
-                case StopType::FORCE: {
-                    // A force stop is terminal even for persistent pools: stop accepting new work so
-                    // nothing can repopulate the queues after we drain them and wind the threads down.
-                    accept.store(false, std::memory_order_release);
-                    drain_queues();
-                    pending_tasks.store(0, std::memory_order_relaxed);
-                    running = false;
-                } break;
+                switch (type) {
+                    case StopType::NORMAL: {
+                        running = descriptor->persistent;
+                    } break;
+                    case StopType::FINAL: {
+                        running = false;
+                    } break;
+                    case StopType::FORCE: {
+                        // A force stop is terminal even for persistent pools: stop accepting new work so
+                        // nothing can repopulate the queues after we drain them and wind the threads down.
+                        accept.store(false, std::memory_order_release);
+                        drain_queues(drained);
+                        pending_tasks.store(0, std::memory_order_relaxed);
+                        running = false;
+                    } break;
+                }
+                condition.notify_all();
             }
-            condition.notify_all();
         }
 
         void Pool::notify(bool clear_idle) {
@@ -245,10 +250,11 @@ namespace threading {
             return false;
         }
 
-        void Pool::drain_queues() const {
-            Task discarded;
+        void Pool::drain_queues(std::vector<Task>& out) const {
+            Task task;
             for (const auto& bucket : buckets) {
-                while (bucket->try_dequeue(discarded)) { /* discard all queued tasks */
+                while (bucket->try_dequeue(task)) {
+                    out.push_back(std::move(task));
                 }
             }
         }

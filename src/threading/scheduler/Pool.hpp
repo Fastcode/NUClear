@@ -229,9 +229,11 @@ namespace threading {
             bool try_dequeue_task(Task& out);
 
             /**
-             * Drain all tasks from the priority buckets.
+             * Drain all tasks from the priority buckets into out.
+             *
+             * @param out the drained tasks (destruction deferred by the caller)
              */
-            void drain_queues() const;
+            void drain_queues(std::vector<Task>& out) const;
 
             /**
              * Get an idle task to execute or hold.
