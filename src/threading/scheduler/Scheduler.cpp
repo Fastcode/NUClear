@@ -103,9 +103,20 @@ namespace threading {
 
         void Scheduler::stop(bool force) {
             running.store(false, std::memory_order_release);
-            const std::lock_guard<std::mutex> lock(pools_mutex);
-            for (const auto& pool : pools) {
-                pool.second->stop(force ? Pool::StopType::FORCE : Pool::StopType::NORMAL);
+
+            // Copy pool pointers under the mutex, then stop outside it. Pool::stop(FORCE) on
+            // single-consumer (MPSC) pools may block until that pool's worker drains the queue;
+            // workers can call get_pool() during that drain, which needs pools_mutex.
+            std::vector<std::shared_ptr<Pool>> pools_to_stop;
+            {
+                const std::lock_guard<std::mutex> lock(pools_mutex);
+                pools_to_stop.reserve(pools.size());
+                for (const auto& pool : pools) {
+                    pools_to_stop.push_back(pool.second);
+                }
+            }
+            for (const auto& pool : pools_to_stop) {
+                pool->stop(force ? Pool::StopType::FORCE : Pool::StopType::NORMAL);
             }
         }
 

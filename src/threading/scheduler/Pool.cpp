@@ -267,6 +267,7 @@ namespace threading {
             }
             catch (const ShutdownThreadException&) {
                 Pool::current_pool = nullptr;
+                consumer_thread_id = std::thread::id{};
                 return;
             }
         }
