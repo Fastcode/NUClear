@@ -142,8 +142,8 @@ namespace threading {
             }
 
             const std::size_t bucket = queue::priority_index(task.task->priority);
-            buckets[bucket]->enqueue(std::move(task));
             pending_tasks.fetch_add(1, std::memory_order_release);
+            buckets[bucket]->enqueue(std::move(task));
 
             const std::lock_guard<std::mutex> lock(mutex);
             if (clear_idle) {
@@ -294,8 +294,8 @@ namespace threading {
                         // The task was dequeued but its lock isn't acquirable. Re-enqueue and
                         // wait for someone to notify us when the lock state changes.
                         const std::size_t bucket = queue::priority_index(task.task->priority);
-                        buckets[bucket]->enqueue(std::move(task));
                         pending_tasks.fetch_add(1, std::memory_order_release);
+                        buckets[bucket]->enqueue(std::move(task));
                     }
                 }
                 live = false;

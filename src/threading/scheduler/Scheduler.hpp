@@ -53,9 +53,10 @@ namespace threading {
              *
              * The constructor points the creating thread's Pool::current_pool at the main thread pool so
              * work done before startup is attributed correctly. That pointer is non-owning, so once this
-             * Scheduler (and therefore its pools) is destroyed it would dangle; any later ReactionTask
-             * built on the same thread calls Pool::current() and would trip a bad_weak_ptr. Resetting it
-             * here keeps the pointer's lifetime bounded by the Scheduler that set it.
+             * Scheduler (and therefore its pools) is destroyed it would dangle; a later Pool::current()
+             * would call shared_from_this() on a destroyed pool, which is undefined behaviour (in practice
+             * observed as a bad_weak_ptr or a crash). Resetting it here keeps the pointer's lifetime bounded
+             * by the Scheduler that set it.
              */
             ~Scheduler();
 
