@@ -24,6 +24,7 @@
 
 #include <array>
 #include <cstddef>
+#include <cstdint>
 
 namespace NUClear {
 namespace threading {
@@ -31,7 +32,7 @@ namespace threading {
         namespace queue {
 
             /// Fixed scheduler priority buckets (REALTIME, HIGH, NORMAL, LOW, IDLE).
-            enum class PriorityLevel : std::size_t {
+            enum class PriorityLevel : std::uint8_t {
                 REALTIME = 0,
                 HIGH     = 1,
                 NORMAL   = 2,
