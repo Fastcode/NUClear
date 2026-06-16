@@ -28,7 +28,7 @@
 #include <thread>
 #include <vector>
 
-#include "test_util/queue_live_tracker.hpp"
+#include "test_util/queue_bdd_helpers.hpp"
 
 namespace NUClear {
 namespace threading {
@@ -37,49 +37,11 @@ namespace threading {
 
             SCENARIO("A TaskQueue destroyed while non-empty runs the destructors of its remaining items",
                      "[threading][queue][TaskQueue]") {
-                GIVEN("A TaskQueue filled across several blocks then only partially drained") {
-                    test_util::queue_live_tracker_count().store(0, std::memory_order_relaxed);
-
-                    WHEN("The queue is destroyed with items still enqueued") {
-                        {
-                            TaskQueue<test_util::QueueLiveTracker> queue;
-                            for (int i = 0; i < 200; ++i) {
-                                queue.enqueue(test_util::QueueLiveTracker(i));
-                            }
-                            /*drain a few*/ {
-                                test_util::QueueLiveTracker sink(-1);
-                                for (int i = 0; i < 10; ++i) {
-                                    REQUIRE(queue.try_dequeue(sink));
-                                }
-                            }
-
-                            // 190 elements remain live inside the queue's blocks.
-                            CHECK(test_util::queue_live_tracker_count().load(std::memory_order_relaxed) == 190);
-                        }
-
-                        THEN("Every still-enqueued element has its destructor run") {
-                            CHECK(test_util::queue_live_tracker_count().load(std::memory_order_relaxed) == 0);
-                        }
-                    }
-                }
+                test_util::queue_bdd::destructor_runs_remaining_destructors_scenario<TaskQueue<test_util::QueueLiveTracker>>();
             }
 
             SCENARIO("A TaskQueue accepts copy-enqueued const payloads", "[threading][queue][TaskQueue]") {
-                GIVEN("An empty TaskQueue<int>") {
-                    TaskQueue<int> queue;
-
-                    WHEN("A value is enqueued via the const lvalue overload") {
-                        const int value = 7;
-                        queue.enqueue(value);
-
-                        THEN("The same value is dequeued and the queue reports empty") {
-                            int out = 0;
-                            CHECK(queue.try_dequeue(out));
-                            CHECK(out == 7);
-                            CHECK(queue.empty());
-                        }
-                    }
-                }
+                test_util::queue_bdd::copy_enqueue_const_payload_scenario<TaskQueue<int>>();
             }
 
             SCENARIO("A TaskQueue empty() is false while a later block still holds items",
@@ -109,67 +71,16 @@ namespace threading {
 
             SCENARIO("A TaskQueue used by a single producer and a single consumer preserves FIFO order",
                      "[threading][queue][TaskQueue]") {
-                GIVEN("An empty TaskQueue<int>") {
-                    TaskQueue<int> queue;
-
-                    WHEN("Two values are enqueued in order") {
-                        queue.enqueue(1);
-                        queue.enqueue(2);
-
-                        THEN("They are dequeued in the same order and the queue is then empty") {
-                            int value = 0;
-                            CHECK(queue.try_dequeue(value));
-                            CHECK(value == 1);
-                            CHECK(queue.try_dequeue(value));
-                            CHECK(value == 2);
-                            CHECK_FALSE(queue.try_dequeue(value));
-                            CHECK(queue.empty());
-                        }
-                    }
-                }
+                test_util::queue_bdd::single_producer_consumer_fifo_scenario<TaskQueue<int>>();
             }
 
             SCENARIO("A TaskQueue can store move-only payloads", "[threading][queue][TaskQueue]") {
-                GIVEN("A TaskQueue of std::unique_ptr<int>") {
-                    TaskQueue<std::unique_ptr<int>> queue;
-
-                    WHEN("A unique_ptr holding 42 is enqueued") {
-                        queue.enqueue(std::make_unique<int>(42));
-
-                        THEN("The same value can be dequeued without copying") {
-                            std::unique_ptr<int> value;
-                            CHECK(queue.try_dequeue(value));
-                            REQUIRE(value != nullptr);
-                            CHECK(*value == 42);
-                        }
-                    }
-                }
+                test_util::queue_bdd::move_only_payload_scenario<TaskQueue<std::unique_ptr<int>>>();
             }
 
             SCENARIO("A TaskQueue handles many enqueues from one thread followed by many dequeues",
                      "[threading][queue][TaskQueue]") {
-                GIVEN("A TaskQueue with 5000 sequentially enqueued integers") {
-                    TaskQueue<int> queue;
-                    for (int i = 0; i < 5000; ++i) {
-                        queue.enqueue(i);
-                    }
-
-                    WHEN("They are all dequeued in turn") {
-                        bool sequence_holds = true;
-                        for (int i = 0; i < 5000; ++i) {
-                            int value = -1;
-                            if (!queue.try_dequeue(value) || value != i) {
-                                sequence_holds = false;
-                                break;
-                            }
-                        }
-
-                        THEN("Each dequeue returns the next integer in order and the queue is empty") {
-                            CHECK(sequence_holds);
-                            CHECK(queue.empty());
-                        }
-                    }
-                }
+                test_util::queue_bdd::sequential_enqueue_dequeue_scenario<TaskQueue<int>>();
             }
 
             // Stress test: with multiple producers writing concurrently we cannot assert
@@ -225,42 +136,7 @@ namespace threading {
 
             SCENARIO("A TaskQueue consumer can spin until a producer publishes the first slot of a new block",
                      "[threading][queue][TaskQueue]") {
-                GIVEN("A TaskQueue whose head block is fully drained while a producer is linking the next") {
-                    TaskQueue<int> queue;
-                    for (int i = 0; i < 64; ++i) {
-                        queue.enqueue(i);
-                    }
-
-                    WHEN("A producer and consumer race across the block boundary") {
-                        std::atomic<bool> producer_done{false};
-                        std::thread producer([&] {
-                            for (int i = 64; i < 128; ++i) {
-                                queue.enqueue(i);
-                            }
-                            producer_done.store(true, std::memory_order_release);
-                        });
-
-                        bool in_order = true;
-                        for (int expected = 0; expected < 128; ++expected) {
-                            int value = -1;
-                            while (!queue.try_dequeue(value)) {
-                                std::this_thread::yield();
-                            }
-                            if (value != expected) {
-                                in_order = false;
-                                break;
-                            }
-                        }
-
-                        producer.join();
-
-                        THEN("Every integer is delivered and the queue ends empty") {
-                            CHECK(producer_done.load(std::memory_order_acquire));
-                            CHECK(in_order);
-                            CHECK(queue.empty());
-                        }
-                    }
-                }
+                test_util::queue_bdd::block_boundary_producer_consumer_race_scenario<TaskQueue<int>>();
             }
 
         }  // namespace queue
