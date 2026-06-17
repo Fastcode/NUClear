@@ -3,6 +3,8 @@
 NUClear's threading model is designed around a simple goal: **you should never have to write a mutex**.
 The framework handles concurrency for you through immutable messages, thread pools, and a priority-based scheduler.
 
+For the internal design of the scheduler (lock-free queues, group tokens, idle detection, shutdown), see [Scheduler](scheduler.md).
+
 ## Thread Pool Architecture
 
 NUClear uses multiple thread pools, each serving a different purpose:
