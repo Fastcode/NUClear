@@ -48,12 +48,27 @@ namespace threading {
             Pool::current_pool = get_pool(dsl::word::MainThread::descriptor()).get();
         }
 
+        Scheduler::~Scheduler() {
+            // The constructor installed a non-owning pointer to the main thread pool in this thread's
+            // Pool::current_pool. Our pools are about to be destroyed, so leave no dangling pointer behind for
+            // any later Pool::current() call on this thread (shared_from_this() on a destroyed pool is undefined
+            // behaviour, in practice observed as a bad_weak_ptr or a crash). Only clear it if it still refers to
+            // one of our pools, so we never disturb an unrelated Scheduler that may share this thread.
+            const std::lock_guard<std::mutex> lock(pools_mutex);
+            const auto owning_pool = std::find_if(pools.begin(), pools.end(), [](const auto& pool) {
+                return Pool::current_pool == pool.second.get();
+            });
+            if (owning_pool != pools.end()) {
+                Pool::current_pool = nullptr;
+            }
+        }
+
         void Scheduler::start() {
             // We have to scope this mutex, otherwise the main thread will hold the mutex while it is running
             /*mutex scope*/ {
                 const std::lock_guard<std::mutex> lock(pools_mutex);
 
-                started = true;
+                started.store(true, std::memory_order_release);
                 // Start all of the pools except the main thread pool
                 for (const auto& pool : pools) {
                     if (pool.first != dsl::word::MainThread::descriptor()) {
@@ -88,9 +103,20 @@ namespace threading {
 
         void Scheduler::stop(bool force) {
             running.store(false, std::memory_order_release);
-            const std::lock_guard<std::mutex> lock(pools_mutex);
-            for (const auto& pool : pools) {
-                pool.second->stop(force ? Pool::StopType::FORCE : Pool::StopType::NORMAL);
+
+            // Copy pool pointers under the mutex, then stop outside it. Pool::stop(FORCE) on
+            // single-consumer (MPSC) pools may block until that pool's worker drains the queue;
+            // workers can call get_pool() during that drain, which needs pools_mutex.
+            std::vector<std::shared_ptr<Pool>> pools_to_stop;
+            {
+                const std::lock_guard<std::mutex> lock(pools_mutex);
+                pools_to_stop.reserve(pools.size());
+                for (const auto& pool : pools) {
+                    pools_to_stop.push_back(pool.second);
+                }
+            }
+            for (const auto& pool : pools_to_stop) {
+                pool->stop(force ? Pool::StopType::FORCE : Pool::StopType::NORMAL);
             }
         }
 
@@ -101,6 +127,7 @@ namespace threading {
                 /*mutex scope*/ {
                     const std::lock_guard<std::mutex> lock(idle_mutex);
                     idle_tasks.push_back(reaction);
+                    global_idle_count.fetch_add(1, std::memory_order_release);
                 }
                 // Notify the main thread pool just in case there were no global idle tasks and now there are
                 // Clear idle status so that these tasks are executed immediately
@@ -116,9 +143,11 @@ namespace threading {
             // If this doesn't have a pool specifier it's for all pools
             if (desc == nullptr) {
                 const std::lock_guard<std::mutex> lock(idle_mutex);
+                const auto before = idle_tasks.size();
                 idle_tasks.erase(
                     std::remove_if(idle_tasks.begin(), idle_tasks.end(), [&](const auto& r) { return r->id == id; }),
                     idle_tasks.end());
+                global_idle_count.fetch_sub(before - idle_tasks.size(), std::memory_order_release);
             }
             else {
                 get_pool(desc)->remove_idle_task(id);
@@ -141,7 +170,7 @@ namespace threading {
 
                 // Don't start the main thread here, it will be started in the start function
                 // If the scheduler has not yet started then don't start the threads for this pool yet
-                if (desc != dsl::word::MainThread::descriptor() && started) {
+                if (desc != dsl::word::MainThread::descriptor() && started.load(std::memory_order_acquire)) {
                     pool->start();
                 }
             }
@@ -162,7 +191,7 @@ namespace threading {
         std::unique_ptr<Lock> Scheduler::get_groups_lock(
             const NUClear::id_t& task_id,
             const int& priority,
-            const std::shared_ptr<Pool>& pool,
+            Pool* pool,
             const std::set<std::shared_ptr<const util::GroupDescriptor>>& descs) {
 
             // No groups
@@ -174,7 +203,8 @@ namespace threading {
             auto lock = std::make_unique<CombinedLock>();
             for (const auto& desc : descs) {
                 lock->add(get_group(desc)->lock(task_id, priority, [pool] {
-                    const bool current_pool_idle = Pool::current() != nullptr && Pool::current()->is_idle();
+                    const auto current_pool = Pool::current();
+                    const bool current_pool_idle = current_pool != nullptr && current_pool->is_idle();
                     pool->notify(!current_pool_idle);
                 }));
             }
@@ -188,35 +218,59 @@ namespace threading {
                 return;
             }
 
-            // If we have run this task before, we know which pool it should be submitted to and cached it
-            // This avoids every single submit having to lock a mutex to find the pool
-            std::shared_ptr<Pool> pool;
+            // Resolve the Pool for this task.
+            //
+            // The first submit for a reaction does a mutex-protected `get_pool()` lookup; the
+            // resulting pointer is then cached on the parent Reaction so subsequent submits skip
+            // the mutex entirely.
+            //
+            // The cache is a single `std::atomic<Pool*>` (see Reaction::scheduler_data). We
+            // deliberately avoid `std::atomic_load`/`atomic_store` on a `std::shared_ptr<void>`:
+            // on libstdc++ those fall back to a small global pool of mutexes (~8 chosen by
+            // pointer hash) and become a contention point on hot submission paths. Pools live
+            // for the lifetime of the Scheduler (and the Scheduler tears down reactions before
+            // its own pools), so a non-owning raw pointer is safe.
+            //
+            // The cache update is benign-racing: two submitters that miss simultaneously will
+            // both call `get_pool()` and store the same pointer; last writer wins, identical
+            // value.
+            Pool* pool = nullptr;
             if (task->parent) {
-                if (task->parent->scheduler_data) {
-                    pool = std::static_pointer_cast<Pool>(task->parent->scheduler_data);
-                }
-                else {
-                    pool                         = get_pool(task->pool_descriptor);
-                    task->parent->scheduler_data = pool;
+                pool = task->parent->scheduler_data.load(std::memory_order_acquire);
+                if (pool == nullptr) {
+                    pool = get_pool(task->pool_descriptor).get();
+                    task->parent->scheduler_data.store(pool, std::memory_order_release);
                 }
             }
             else {
-                pool = get_pool(task->pool_descriptor);
+                pool = get_pool(task->pool_descriptor).get();
             }
 
-            // Get any locks that are required for this task
+            const auto current_pool = Pool::current();
+            const bool current_pool_idle = current_pool != nullptr && current_pool->is_idle();
+
+            // Fast path for a single group: lock-free token acquisition and waiter buckets
+            if (task->group_descriptors.size() == 1) {
+                const auto& group = get_group(*task->group_descriptors.begin());
+
+                if (task->run_inline) {
+                    if (auto running_lock = group->try_acquire_running_lock()) {
+                        task->run();
+                        return;
+                    }
+                }
+
+                group->try_submit(std::move(task), pool, !current_pool_idle);
+                return;
+            }
+
+            // Slow path for multiple groups: mutex-backed combined locks
             auto group_lock = get_groups_lock(task->id, task->priority, pool, task->group_descriptors);
 
-            // If this task should run immediately and not limited by the group lock
             if (task->run_inline && (group_lock == nullptr || group_lock->lock())) {
                 task->run();
             }
             else {
-                // Submit the task to the appropriate pool
-                // Clear the idle status only if the current pool is not idle
-                // This hands the job of managing global idle tasks to this other pool if we were about to do it
-                // That way the other pool can decide if it is idle or not
-                const bool current_pool_idle = Pool::current() != nullptr && Pool::current()->is_idle();
                 pool->submit({std::move(task), std::move(group_lock)}, !current_pool_idle);
             }
         }

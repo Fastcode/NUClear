@@ -22,6 +22,7 @@
 #ifndef NUCLEAR_THREADING_TASK_SCHEDULER_HPP
 #define NUCLEAR_THREADING_TASK_SCHEDULER_HPP
 
+#include <atomic>
 #include <condition_variable>
 #include <map>
 #include <memory>
@@ -46,6 +47,23 @@ namespace threading {
         class Scheduler {
         public:
             explicit Scheduler(const int& default_pool_concurrency);
+
+            /**
+             * Clears the per-thread "current pool" pointer this Scheduler installed in its constructor.
+             *
+             * The constructor points the creating thread's Pool::current_pool at the main thread pool so
+             * work done before startup is attributed correctly. That pointer is non-owning, so once this
+             * Scheduler (and therefore its pools) is destroyed it would dangle; a later Pool::current()
+             * would call shared_from_this() on a destroyed pool, which is undefined behaviour (in practice
+             * observed as a bad_weak_ptr or a crash). Resetting it here keeps the pointer's lifetime bounded
+             * by the Scheduler that set it.
+             */
+            ~Scheduler();
+
+            Scheduler(const Scheduler&)            = delete;
+            Scheduler(Scheduler&&)                 = delete;
+            Scheduler& operator=(const Scheduler&) = delete;
+            Scheduler& operator=(Scheduler&&)      = delete;
 
             /**
              * Starts the scheduler, and begins executing tasks.
@@ -127,7 +145,7 @@ namespace threading {
              */
             std::unique_ptr<Lock> get_groups_lock(const NUClear::id_t& task_id,
                                                   const int& priority,
-                                                  const std::shared_ptr<Pool>& pool,
+                                                  Pool* pool,
                                                   const std::set<std::shared_ptr<const util::GroupDescriptor>>& descs);
 
             /// The number of threads that will be in the default thread pool
@@ -136,10 +154,9 @@ namespace threading {
             /// If running is false this means the scheduler is shutting down and no new pools will be created
             std::atomic<bool> running{true};
 
-            /// A mutex for when we are modifying groups
-            std::mutex groups_mutex;
-            /// A map of group ids to the number of active tasks currently running in that group
-            std::map<std::shared_ptr<const util::GroupDescriptor>, std::shared_ptr<Group>> groups;
+            // NB: `pools` is declared before `groups` so that on Scheduler destruction the groups
+            // (which may hold non-owning Pool* in their waiter buckets) are destroyed first, then
+            // the pools. This keeps the raw pointers in WaitEntry safe-by-construction.
 
             /// A mutex for when we are modifying pools
             std::mutex pools_mutex;
@@ -147,12 +164,21 @@ namespace threading {
             std::map<std::shared_ptr<const util::ThreadPoolDescriptor>, std::shared_ptr<Pool>> pools;
             /// If started is false pools will not be started until start is called
             /// once start is called future pools will be started immediately
-            bool started = false;
+            std::atomic<bool> started{false};
+
+            /// A mutex for when we are modifying groups
+            std::mutex groups_mutex;
+            /// A map of group ids to the number of active tasks currently running in that group
+            std::map<std::shared_ptr<const util::GroupDescriptor>, std::shared_ptr<Group>> groups;
 
             /// A mutex to protect the idle tasks list
             std::mutex idle_mutex;
             /// A list of idle tasks to execute when all pools are idle
             std::vector<std::shared_ptr<Reaction>> idle_tasks;
+            /// Count of global idle reactions, readable without taking idle_mutex.
+            /// Lets a Pool cheaply decide (via Pool::idle_relevant) whether parking a waiter needs
+            /// to wake it to fire idle, without locking the scheduler on the hot submission path.
+            std::atomic<std::size_t> global_idle_count{0};
             /// The number of active thread pools which count for idle
             std::atomic<int> active_pools{0};
 

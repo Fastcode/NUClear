@@ -81,11 +81,13 @@ if(CI_BUILD)
   endif()
 endif(CI_BUILD)
 
+# Tests must be declared before src/ so NUClear can expose test-only APIs when enabled.
+option(BUILD_TESTS "Builds all of the NUClear unit tests." ON)
+
 # Add the src directory
 add_subdirectory(src)
 
 # Add the tests directory
-option(BUILD_TESTS "Builds all of the NUClear unit tests." ON)
 if(BUILD_TESTS)
   enable_testing()
   add_subdirectory(tests)

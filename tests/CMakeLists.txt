@@ -68,7 +68,7 @@ foreach(test_file ${test_sources})
   add_test(
     NAME "${test_dir}/${test_name}"
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-    COMMAND ${CMAKE_CURRENT_BINARY_DIR}/${test_dir}/${test_name} --order rand
+    COMMAND ${CMAKE_CURRENT_BINARY_DIR}/${test_dir}/${test_name} --order rand --allow-running-no-tests
   )
 endforeach()
 

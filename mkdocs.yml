@@ -181,6 +181,7 @@ nav:
       - explanation/index.md
       - Architecture: explanation/architecture.md
       - Threading Model: explanation/threading.md
+      - Scheduler: explanation/scheduler.md
       - Lifecycle: explanation/lifecycle.md
       - The DSL System: explanation/dsl-system.md
       - Message Flow: explanation/message-flow.md

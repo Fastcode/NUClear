@@ -25,6 +25,71 @@
 namespace NUClear {
 namespace extension {
 
+    namespace {
+
+        /**
+         * RAII wake-then-lock handoff for the poll notifier pipe.
+         *
+         * Arms wake_requested, writes the notify pipe, then (via lock()) acquires notifier.mutex
+         * and clears wake_requested so the poll thread cannot re-enter ::poll() mid-handoff.
+         */
+        class NotifierWakeGuard {
+        public:
+            explicit NotifierWakeGuard(IOController::notifier_t& notifier) : notifier_(notifier) {
+                notifier_.wake_requested.store(true, std::memory_order_release);
+            }
+
+            NotifierWakeGuard(const NotifierWakeGuard&)            = delete;
+            NotifierWakeGuard& operator=(const NotifierWakeGuard&) = delete;
+            NotifierWakeGuard(NotifierWakeGuard&&)                 = delete;
+            NotifierWakeGuard& operator=(NotifierWakeGuard&&)      = delete;
+
+            void signal() const {
+                uint8_t val = 1;
+                if (::write(notifier_.send, &val, sizeof(val)) < 0) {
+                    throw std::system_error(network_errno,
+                                            std::system_category(),
+                                            "There was an error while writing to the notification pipe");
+                }
+            }
+
+            /// Acquire notifier mutex and clear wake_requested for the handoff to poll.
+            std::unique_lock<std::mutex> lock() {
+                cleared_ = true;
+                std::unique_lock<std::mutex> l(notifier_.mutex);
+                notifier_.wake_requested.store(false, std::memory_order_release);
+                return l;
+            }
+
+            ~NotifierWakeGuard() {
+                if (!cleared_) {
+                    notifier_.wake_requested.store(false, std::memory_order_release);
+                }
+            }
+
+        private:
+            IOController::notifier_t& notifier_;
+            bool cleared_{false};
+        };
+
+        /// Holds notifier.mutex while the poll thread decides whether to enter ::poll().
+        class NotifierPollScope {
+        public:
+            explicit NotifierPollScope(IOController::notifier_t& notifier)
+                : lock_(notifier.mutex)
+                , notifier_(notifier) {}
+
+            bool wake_pending() const {
+                return notifier_.wake_requested.load(std::memory_order_acquire);
+            }
+
+        private:
+            std::lock_guard<std::mutex> lock_;
+            IOController::notifier_t& notifier_;
+        };
+
+    }  // namespace
+
     void IOController::rebuild_list() {
         // Get the lock so we don't concurrently modify the list
         const std::lock_guard<std::mutex> lock(tasks_mutex);
@@ -147,16 +212,10 @@ namespace extension {
     }
 
     void IOController::bump() {
-        // Check if there was an error
-        uint8_t val = 1;
-        if (::write(notifier.send, &val, sizeof(val)) < 0) {
-            throw std::system_error(network_errno,
-                                    std::system_category(),
-                                    "There was an error while writing to the notification pipe");
-        }
-
+        NotifierWakeGuard wake(notifier);
+        wake.signal();
         // Locking here will ensure we won't return until poll is not running
-        const std::lock_guard<std::mutex> lock(notifier.mutex);
+        const auto lock = wake.lock();
     }
 
     IOController::IOController(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
@@ -207,8 +266,16 @@ namespace extension {
                     tasks.erase(task);
                 }
                 else {
-                    // Make sure poll isn't currently waiting for an event to happen
-                    bump();
+                    // We are about to mutate `watches[].events`, which the poll thread reads
+                    // from inside ::poll(). Write to the notify pipe to kick poll out, then
+                    // hold notifier.mutex for the duration of the mutation so the poll thread
+                    // cannot re-enter ::poll() against a half-updated entry. This is the same
+                    // wake-then-lock pattern bump() uses, but we keep the lock held until the
+                    // watches update (and the follow-up fire_event, which can also touch
+                    // watches[].events) is finished.
+                    NotifierWakeGuard wake(notifier);
+                    wake.signal();
+                    const auto notifier_lock = wake.lock();
 
                     // Unmask the events that were just processed
                     auto it = std::lower_bound(watches.begin(),
@@ -262,13 +329,21 @@ namespace extension {
                 }
 
                 // Wait for an event to happen on one of our file descriptors
+                bool polled = false;
                 /* mutex scope */ {
-                    const std::lock_guard<std::mutex> lock(notifier.mutex);
-                    if (::poll(watches.data(), nfds_t(watches.size()), -1) < 0) {
-                        throw std::system_error(network_errno,
-                                                std::system_category(),
-                                                "There was an IO error while attempting to poll the file descriptors");
+                    const NotifierPollScope poll(notifier);
+                    if (!poll.wake_pending()) {
+                        if (::poll(watches.data(), nfds_t(watches.size()), -1) < 0) {
+                            throw std::system_error(network_errno,
+                                                    std::system_category(),
+                                                    "There was an IO error while attempting to poll the file descriptors");
+                        }
+                        polled = true;
                     }
+                }
+
+                if (!polled) {
+                    return;
                 }
 
                 // Get the lock so we don't concurrently modify the list

@@ -1,0 +1,114 @@
+/*
+ * MIT License
+ *
+ * Copyright (c) 2026 NUClear Contributors
+ *
+ * This file is part of the NUClear codebase.
+ * See https://github.com/Fastcode/NUClear for further info.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+ * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
+ * rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the
+ * Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+ * WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+ * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+#include "threading/scheduler/queue/TaskQueue.hpp"
+
+#include <atomic>
+#include <catch2/catch_test_macros.hpp>
+#include <cstddef>
+#include <thread>
+#include <vector>
+
+namespace NUClear {
+namespace threading {
+    namespace scheduler {
+        namespace queue {
+
+            SCENARIO("A TaskQueue empty() is false while a later block still holds items",
+                     "[threading][queue][TaskQueue]") {
+                GIVEN("A TaskQueue whose first block is fully drained but a second block is populated") {
+                    TaskQueue<int> queue;
+                    for (std::size_t i = 0; i < TaskQueue<int>::BLOCK_SIZE + 1; ++i) {
+                        queue.enqueue(static_cast<int>(i));
+                    }
+                    for (std::size_t i = 0; i < TaskQueue<int>::BLOCK_SIZE; ++i) {
+                        int discard = -1;
+                        REQUIRE(queue.try_dequeue(discard));
+                        CHECK(discard == static_cast<int>(i));
+                    }
+
+                    WHEN("empty() is queried before the remaining item is dequeued") {
+                        THEN("The queue is not empty") {
+                            CHECK_FALSE(queue.empty());
+                            int last = -1;
+                            CHECK(queue.try_dequeue(last));
+                            CHECK(last == static_cast<int>(TaskQueue<int>::BLOCK_SIZE));
+                            CHECK(queue.empty());
+                        }
+                    }
+                }
+            }
+
+            // Stress test: with multiple producers writing concurrently we cannot assert
+            // total ordering across producers, but every item must come out exactly once.
+            SCENARIO("A TaskQueue used by many producers and many consumers conserves every item",
+                     "[threading][queue][TaskQueue]") {
+                GIVEN("Four producer threads each enqueueing 2000 items and four consumer threads draining") {
+                    constexpr int items_per_producer = 2000;
+                    constexpr int producers          = 4;
+                    constexpr int consumers          = 4;
+
+                    TaskQueue<int>   queue;
+                    std::atomic<int> produced{0};
+                    std::atomic<int> consumed{0};
+
+                    WHEN("All producers and consumers run to completion") {
+                        std::vector<std::thread> threads;
+                        threads.reserve(static_cast<std::size_t>(producers) + static_cast<std::size_t>(consumers));
+                        for (int p = 0; p < producers; ++p) {
+                            threads.emplace_back([&, p]() {
+                                for (int i = 0; i < items_per_producer; ++i) {
+                                    queue.enqueue(p * items_per_producer + i);
+                                    produced.fetch_add(1, std::memory_order_relaxed);
+                                }
+                            });
+                        }
+                        for (int c = 0; c < consumers; ++c) {
+                            threads.emplace_back([&]() {
+                                int value = 0;
+                                while (consumed.load(std::memory_order_acquire) < producers * items_per_producer) {
+                                    if (queue.try_dequeue(value)) {
+                                        consumed.fetch_add(1, std::memory_order_relaxed);
+                                    }
+                                    else {
+                                        std::this_thread::yield();
+                                    }
+                                }
+                            });
+                        }
+
+                        for (auto& thread : threads) {
+                            thread.join();
+                        }
+
+                        THEN("Total produced equals total consumed and the queue ends empty") {
+                            CHECK(produced.load() == producers * items_per_producer);
+                            CHECK(consumed.load() == producers * items_per_producer);
+                            CHECK(queue.empty());
+                        }
+                    }
+                }
+            }
+
+        }  // namespace queue
+    }  // namespace scheduler
+}  // namespace threading
+}  // namespace NUClear

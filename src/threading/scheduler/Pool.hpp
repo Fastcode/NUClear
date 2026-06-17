@@ -22,6 +22,8 @@
 #ifndef NUCLEAR_THREADING_SCHEDULER_POOL_HPP
 #define NUCLEAR_THREADING_SCHEDULER_POOL_HPP
 
+#include <array>
+#include <atomic>
 #include <condition_variable>
 #include <map>
 #include <memory>
@@ -32,6 +34,10 @@
 #include "../../util/ThreadPoolDescriptor.hpp"
 #include "../ReactionTask.hpp"
 #include "Lock.hpp"
+#include "queue/MPSCQueue.hpp"
+#include "queue/Priority.hpp"
+#include "queue/Queue.hpp"
+#include "queue/TaskQueue.hpp"
 
 namespace NUClear {
 namespace threading {
@@ -39,6 +45,29 @@ namespace threading {
 
         // Forward declare the scheduler
         class Scheduler;
+
+        /**
+         * RAII registration that keeps a pool's workers alive while a task is parked outside it.
+         *
+         * Move-only; unregisters on destruction. Obtained from Pool::register_external_waiter().
+         */
+        class ExternalWaiterRegistration {
+        public:
+            ExternalWaiterRegistration() noexcept = default;
+            ExternalWaiterRegistration(ExternalWaiterRegistration&& other) noexcept;
+            ExternalWaiterRegistration& operator=(ExternalWaiterRegistration&& other) noexcept;
+            ~ExternalWaiterRegistration();
+
+            ExternalWaiterRegistration(const ExternalWaiterRegistration&)            = delete;
+            ExternalWaiterRegistration& operator=(const ExternalWaiterRegistration&) = delete;
+
+        private:
+            friend class Pool;
+            explicit ExternalWaiterRegistration(Pool* pool) noexcept : pool_(pool) {}
+            void reset() noexcept;
+
+            Pool* pool_{nullptr};
+        };
 
         class Pool : public std::enable_shared_from_this<Pool> {
         public:
@@ -68,18 +97,6 @@ namespace threading {
                 /// A lock that is held while the task is being executed.
                 /// This lock should release via RAII when the task is done.
                 std::unique_ptr<Lock> lock;
-
-                /**
-                 * Sorts the tasks by the sort order of the reaction tasks
-                 *
-                 * @param lhs The left hand side task
-                 * @param rhs The right hand side task
-                 *
-                 * @return true if this task should be executed before the other task
-                 */
-                friend bool operator<(const Task& lhs, const Task& rhs) {
-                    return *lhs.task < *rhs.task;
-                }
             };
 
             /**
@@ -138,8 +155,20 @@ namespace threading {
              *
              * @param task       The reaction task task to submit
              * @param clear_idle If true, the idle state of the pool will be cleared
+             * @param force      If true, submit even if the pool is no longer accepting new tasks
+             *                   (used when draining an already in-flight task from elsewhere, e.g. a Group)
              */
-            void submit(Task&& task, bool clear_idle);
+            void submit(Task&& task, bool clear_idle, bool force = false);
+
+            /**
+             * Register that a task is in flight outside the pool but will eventually be submitted to it.
+             *
+             * This keeps the pool's workers alive while there are tasks parked in another structure
+             * (e.g. a Group's waiter buckets) that point at this pool.
+             *
+             * @return A move-only handle that unregisters on destruction
+             */
+            ExternalWaiterRegistration register_external_waiter();
 
             /**
              * Add an idle task to this pool.
@@ -199,6 +228,22 @@ namespace threading {
             Task get_task();
 
             /**
+             * Try to dequeue a runnable task from the priority buckets.
+             *
+             * @param out the task to fill if one is available
+             *
+             * @return true if a task was dequeued
+             */
+            bool try_dequeue_task(Task& out);
+
+            /**
+             * Drain all tasks from the priority buckets into out.
+             *
+             * @param out the drained tasks (destruction deferred by the caller)
+             */
+            void drain_queues(std::vector<Task>& out) const;
+
+            /**
              * Get an idle task to execute or hold.
              *
              * This will return an idle task instance.
@@ -212,22 +257,66 @@ namespace threading {
              */
             Task get_idle_task();
 
+            friend class ExternalWaiterRegistration;
+            void unregister_external_waiter();
+
             // The scheduler parent of this pool
             Scheduler& scheduler;
 
             /// If running is false this means the pool is shutting down and no more tasks will be accepted
             bool running = true;
-            /// If accept is false this pool will no longer accept new tasks
-            bool accept = true;
+            /// If accept is false this pool will no longer accept new tasks.
+            /// Atomic so that producers on the fast path can check it without taking the pool mutex.
+            std::atomic<bool> accept{true};
 
             /// The threads which are running in this thread pool
             std::vector<std::unique_ptr<std::thread>> threads;
 
-            /// The queue of tasks for this specific thread pool
-            std::vector<Task> queue;
+            /// Priority-bucketed task queues. Each bucket holds either an MPMC TaskQueue
+            /// (for pools with multiple worker threads) or an MPSCQueue (for pools that are
+            /// known to be single-consumer, e.g. MainThread or the Trace pool). The choice
+            /// is made at construction based on `descriptor->concurrency`.
+            std::array<std::unique_ptr<queue::Queue<Task>>, queue::PRIORITY_BUCKETS> buckets;
+            /// Number of tasks submitted but not yet dequeued
+            std::atomic<std::size_t> pending_tasks{0};
+            /// Number of tasks parked outside the pool (e.g. waiting on a Group token) that point at this pool
+            std::atomic<std::size_t> external_waiters{0};
+            /// Latched "an external waiter was parked for this pool since you last polled".
+            ///
+            /// Consumed (exchanged to false) at the top of every get_task iteration. If set and
+            /// this thread is not already idle, a single idle fire is dispatched before any task
+            /// from the queue is returned. This preserves the OLD scheduler's invariant that a
+            /// waiting-but-not-runnable task on the destination pool would always force one idle
+            /// fire per parking, even when the worker is preempted long enough for the drained
+            /// (RunningLock-OK) task to be sitting in the queue by the time the worker resumes.
+            ///
+            /// This is only ever set when idle_relevant() is true (some idle reaction could fire
+            /// on this pool), so on the hot contended path with no idle reactions the latch stays
+            /// false and the whole mechanism compiles down to a couple of relaxed atomic loads.
+            std::atomic<bool> pending_idle{false};
+            /// Number of idle reactions bound directly to this pool (on<Idle<ThisPool>>).
+            /// Used by idle_relevant() to cheaply gate the pending_idle machinery.
+            std::atomic<std::size_t> idle_task_count{0};
+
+            /**
+             * Whether firing an idle epoch on this pool could actually run a reaction.
+             *
+             * True if there is an idle reaction bound to this pool, or any global idle reaction
+             * (which fires when all pools go idle, so any pool may be the last to idle and trigger
+             * it). When false, parking an external waiter does not need to wake the pool to fire
+             * idle, which keeps the hot Sync-contended submission path free of extra synchronisation.
+             */
+            bool idle_relevant() const;
             /// A boolean which is set to true when the queue is modified and set to false when there was no work to do
             bool live = true;
-            /// The mutex which protects the queue and idle tasks
+            /// True when this pool's buckets use MPSCQueue (single consumer).
+            bool single_consumer = false;
+            /// Worker thread that owns MPSC dequeue; default until run() sets it.
+            std::thread::id consumer_thread_id;
+            /// Set by a non-consumer FORCE stop to request the worker discard queued tasks.
+            std::atomic<bool> discard_queues_requested{false};
+
+            /// The mutex which protects idle tasks and the live flag
             mutable std::mutex mutex;
             /// The condition variable which threads wait on if they can't get a task
             std::condition_variable condition;
