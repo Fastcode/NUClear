@@ -67,20 +67,20 @@ namespace util {
             for (addrinfo* p = servinfo.get(); p != nullptr; p = p->ai_next) {
 
                 // If we find an IPv4 address, prefer that
-                if (servinfo->ai_family == AF_INET) {
+                if (p->ai_family == AF_INET) {
 
                     // Set our target IPv4 address
-                    std::memcpy(&target, servinfo->ai_addr, servinfo->ai_addrlen);
+                    std::memcpy(&target, p->ai_addr, p->ai_addrlen);
 
                     // We prefer IPv4 so use it and stop looking
                     return target;
                 }
 
                 // If we find an IPv6 address, hold the first one in case we don't find an IPv4 address
-                if (servinfo->ai_family == AF_INET6) {
+                if (p->ai_family == AF_INET6) {
 
-                    // // Set our target IPv6 address
-                    std::memcpy(&target, servinfo->ai_addr, servinfo->ai_addrlen);
+                    // Set our target IPv6 address
+                    std::memcpy(&target, p->ai_addr, p->ai_addrlen);
                 }
             }
 

@@ -51,8 +51,8 @@ namespace network {
     struct NetworkConfig {
         /// This node's name on the network
         std::string name;
-        /// The multicast/broadcast/unicast address to announce on (empty = default organization-local multicast)
-        std::string announce_address;
+        /// The multicast/broadcast/unicast address to announce on (organization-local multicast default)
+        std::string announce_address = "239.226.152.162";  // NOSONAR
         /// The port to use for announce discovery
         in_port_t announce_port = 7447;
         /// Address to bind to (empty = all interfaces)
@@ -230,6 +230,9 @@ namespace network {
             send_iov(fd, target, iov.data(), 1);
         }
 
+        /// Returns true if the UDP source is this node's data socket (same ephemeral port).
+        bool is_own_data_endpoint(const sock_t& source) const;
+
         // Configuration
         NetworkConfig config;
         std::string node_name;
@@ -240,6 +243,9 @@ namespace network {
 
         // The announce target address
         sock_t announce_target{};
+
+        // Bound address of the data socket (ephemeral port) — used to ignore our own announces
+        sock_t own_data_address{};
 
         // Modules
         std::unique_ptr<Discovery> discovery;
