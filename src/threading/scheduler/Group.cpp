@@ -332,12 +332,6 @@ namespace threading {
                     // true the waiter is counted and this drain is token-neutral.
                     const bool uncounted = !entry.slot->exchange(true, std::memory_order_acq_rel);
                     auto running_lock    = make_running_lock();
-#ifdef NUCLEAR_GROUP_TEST_API
-                    if (test_capture_drains_) {
-                        test_captured_drains_.push_back({std::move(entry.task), std::move(running_lock)});
-                        return {true, uncounted};
-                    }
-#endif
                     pool->submit({std::move(entry.task), std::move(running_lock)}, entry.clear_idle, /*force=*/true);
                     return {true, uncounted};
                 }
@@ -370,37 +364,6 @@ namespace threading {
 
             return std::make_unique<GroupLock>(*this, handle);
         }
-
-#ifdef NUCLEAR_GROUP_TEST_API
-        int Group::TestAccess::tokens(const Group& group) {
-            return group.tokens.load(std::memory_order_acquire);
-        }
-
-        std::shared_ptr<std::atomic<bool>> Group::TestAccess::park_publish(Group& group,
-                                                                           std::unique_ptr<ReactionTask>&& task,
-                                                                           Pool* pool,
-                                                                           const bool clear_idle) {
-            return group.park_publish(std::move(task), pool, clear_idle);
-        }
-
-        void Group::TestAccess::park_reconcile(Group& group, const std::shared_ptr<std::atomic<bool>>& slot) {
-            group.park_reconcile(slot);
-        }
-
-        std::unique_ptr<Lock> Group::TestAccess::try_acquire_running_lock(Group& group) {
-            return group.try_acquire_running_lock();
-        }
-
-        void Group::TestAccess::set_capture_drains(Group& group, const bool capture) {
-            group.test_capture_drains_ = capture;
-        }
-
-        std::vector<Group::CapturedDrain> Group::TestAccess::take_captured_drains(Group& group) {
-            std::vector<CapturedDrain> captured;
-            captured.swap(group.test_captured_drains_);
-            return captured;
-        }
-#endif
 
     }  // namespace scheduler
 }  // namespace threading

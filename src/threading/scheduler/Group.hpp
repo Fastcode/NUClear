@@ -275,31 +275,6 @@ namespace threading {
             std::mutex mutex;
             /// The queue of tasks for the slow path
             std::vector<std::shared_ptr<LockHandle>> queue;
-
-#ifdef NUCLEAR_GROUP_TEST_API
-        public:
-            struct CapturedDrain {
-                std::unique_ptr<ReactionTask> task;
-                std::unique_ptr<Lock> lock;
-            };
-
-            struct TestAccess {
-                static int tokens(const Group& group);
-                static std::shared_ptr<std::atomic<bool>> park_publish(Group& group,
-                                                                       std::unique_ptr<ReactionTask>&& task,
-                                                                       Pool* pool,
-                                                                       bool clear_idle);
-                static void park_reconcile(Group& group, const std::shared_ptr<std::atomic<bool>>& slot);
-                static std::unique_ptr<Lock> try_acquire_running_lock(Group& group);
-                static void set_capture_drains(Group& group, bool capture);
-                static std::vector<CapturedDrain> take_captured_drains(Group& group);
-            };
-
-        private:
-            friend struct TestAccess;
-            bool test_capture_drains_{false};
-            std::vector<CapturedDrain> test_captured_drains_;
-#endif
         };
 
     }  // namespace scheduler

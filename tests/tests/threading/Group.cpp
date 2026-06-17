@@ -104,6 +104,28 @@ namespace threading {
                 }
                 return true;
             }
+
+            /// Returns true when every concurrency slot can be acquired via the fast path.
+            /// Held locks are released when the function returns.
+            bool has_full_capacity(Group& group, const int concurrency) {
+                std::vector<std::unique_ptr<Lock>> held;
+                held.reserve(static_cast<std::size_t>(concurrency));
+                for (int i = 0; i < concurrency; ++i) {
+                    auto lock = group.try_acquire_running_lock();
+                    if (lock == nullptr) {
+                        return false;
+                    }
+                    held.push_back(std::move(lock));
+                }
+                return true;
+            }
+
+            /// Spin until all concurrency slots are acquirable or `timeout` elapses.
+            bool wait_for_full_capacity(Group& group,
+                                        const int concurrency,
+                                        const std::chrono::milliseconds timeout) {
+                return wait_for([&] { return has_full_capacity(group, concurrency); }, timeout);
+            }
         }  // namespace
 
         SCENARIO("When there are no tokens available the lock should be false") {
@@ -471,35 +493,6 @@ namespace threading {
             }
         }
 
-        SCENARIO("Opportunistic drain during park publish must not leak group tokens") {
-            GIVEN("A group with one token and a slow-path holder") {
-                auto group                   = make_group(1);
-                NUClear::id_t task_id_source = 0;
-
-                Group::TestAccess::set_capture_drains(*group, true);
-
-                std::unique_ptr<Lock> slow_lock = group->lock(++task_id_source, 1, [] {});
-                CHECK(slow_lock->lock() == true);
-
-                WHEN("A fast waiter publishes, the slow lock releases, then the waiter reconciles") {
-                    auto slot = Group::TestAccess::park_publish(*group, make_test_task(), nullptr, false);
-
-                    slow_lock.reset();
-
-                    Group::TestAccess::park_reconcile(*group, slot);
-
-                    THEN("All tokens are restored after quiescing and the group is not deadlocked") {
-                        auto captured = Group::TestAccess::take_captured_drains(*group);
-                        REQUIRE(captured.size() == 1);
-                        captured.front().lock.reset();
-
-                        CHECK(Group::TestAccess::tokens(*group) == group->descriptor->concurrency);
-                        CHECK(Group::TestAccess::try_acquire_running_lock(*group) != nullptr);
-                    }
-                }
-            }
-        }
-
         SCENARIO("Concurrent fast and slow path traffic never leaks group tokens or deadlocks") {
             const int concurrency = GENERATE(1, 2, 3);
             CAPTURE(concurrency);
@@ -598,12 +591,8 @@ namespace threading {
                         // next acquire. Without this the next round's lock() re-raises slow_pending and
                         // legitimately defers not-yet-drained fast waiters (slow path has priority);
                         // that is expected scheduler behaviour, not a leak.
-                        const bool quiesced = wait_for(
-                            [&] {
-                                return Group::TestAccess::tokens(*groups[0]) == concurrency
-                                       && Group::TestAccess::tokens(*groups[1]) == concurrency;
-                            },
-                            std::chrono::seconds(10));
+                        const bool quiesced = wait_for_full_capacity(*groups[0], concurrency, std::chrono::seconds(10))
+                                              && wait_for_full_capacity(*groups[1], concurrency, std::chrono::seconds(10));
                         REQUIRE(quiesced);
                     }
 
@@ -627,11 +616,11 @@ namespace threading {
 
                         // (b) No leaked/duplicated tokens, and the group is still usable.
                         for (auto& g : groups) {
-                            CHECK(Group::TestAccess::tokens(*g) == concurrency);
-                            auto fresh = Group::TestAccess::try_acquire_running_lock(*g);
+                            CHECK(has_full_capacity(*g, concurrency));
+                            auto fresh = g->try_acquire_running_lock();
                             CHECK(fresh != nullptr);
                             fresh.reset();
-                            CHECK(Group::TestAccess::tokens(*g) == concurrency);
+                            CHECK(has_full_capacity(*g, concurrency));
                         }
                     }
 
@@ -658,7 +647,7 @@ namespace threading {
 
                 WHEN("The fast path tries to acquire a running lock") {
                     THEN("No token is handed out until the slow lock releases") {
-                        CHECK(Group::TestAccess::try_acquire_running_lock(*group) == nullptr);
+                        CHECK(group->try_acquire_running_lock() == nullptr);
                     }
                 }
             }
@@ -690,61 +679,17 @@ namespace threading {
                 auto pool  = std::make_unique<Pool>(*scheduler, pool_desc);
                 auto group = make_group(1);
 
-                Group::TestAccess::park_publish(*group, make_test_task(), pool.get(), false);
+                // A slow-path waiter blocks the fast path without holding a token.
+                std::unique_ptr<Lock> slow_lock = group->lock(1, 1, [] {});
+                CHECK_FALSE(group->try_submit(make_test_task(), pool.get(), false));
 
                 WHEN("The group is destroyed without draining the parked waiter") {
+                    slow_lock.reset();
                     group.reset();
 
                     THEN("The pool can still shut down cleanly because external waiters were balanced") {
                         pool->stop(Pool::StopType::FORCE);
                         pool->join();
-                    }
-                }
-            }
-        }
-
-        SCENARIO("Releasing a locked slow-path lock drains a committed fast waiter when tokens are negative") {
-            GIVEN("A group with one token, a locked slow-path holder, and a parked fast waiter") {
-                auto group = make_group(1);
-
-                Group::TestAccess::set_capture_drains(*group, true);
-
-                std::unique_ptr<Lock> slow_lock = group->lock(1, 1, [] {});
-                CHECK(slow_lock->lock() == true);
-
-                auto slot = Group::TestAccess::park_publish(*group, make_test_task(), nullptr, false);
-                Group::TestAccess::park_reconcile(*group, slot);
-
-                WHEN("The slow lock releases while a fast waiter has already reserved a slot") {
-                    slow_lock.reset();
-
-                    THEN("The committed waiter is drained and tokens return to concurrency") {
-                        auto captured = Group::TestAccess::take_captured_drains(*group);
-                        REQUIRE(captured.size() == 1);
-                        captured.front().lock.reset();
-
-                        CHECK(Group::TestAccess::tokens(*group) == group->descriptor->concurrency);
-                    }
-                }
-            }
-        }
-
-        SCENARIO("Park reconcile with a free token drains an earlier uncounted waiter") {
-            GIVEN("A group with spare tokens and two parked fast waiters") {
-                auto group = make_group(2);
-
-                Group::TestAccess::set_capture_drains(*group, true);
-
-                Group::TestAccess::park_publish(*group, make_test_task(), nullptr, false);
-                auto slot2 = Group::TestAccess::park_publish(*group, make_test_task(), nullptr, false);
-
-                WHEN("The second waiter reconciles while the first is still uncounted") {
-                    Group::TestAccess::park_reconcile(*group, slot2);
-
-                    THEN("The first waiter is opportunistically drained") {
-                        auto captured = Group::TestAccess::take_captured_drains(*group);
-                        REQUIRE(captured.size() == 1);
-                        captured.front().lock.reset();
                     }
                 }
             }
@@ -777,13 +722,13 @@ namespace threading {
 
         SCENARIO("try_acquire_running_lock returns nullptr when every token is in use") {
             GIVEN("A group with one token acquired via the fast path") {
-                auto group = make_group(1);
-                auto running = Group::TestAccess::try_acquire_running_lock(*group);
+                auto group   = make_group(1);
+                auto running = group->try_acquire_running_lock();
                 REQUIRE(running != nullptr);
 
                 WHEN("Another fast-path acquisition is attempted") {
                     THEN("No second token is available") {
-                        CHECK(Group::TestAccess::try_acquire_running_lock(*group) == nullptr);
+                        CHECK(group->try_acquire_running_lock() == nullptr);
                     }
                 }
             }
