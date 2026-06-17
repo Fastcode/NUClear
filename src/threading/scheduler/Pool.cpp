@@ -289,11 +289,14 @@ namespace threading {
             consumer_thread_id = std::this_thread::get_id();
             Pool::current_pool = this;
             try {
-                // Set the thread priority to highest while getting tasks
-                // This means that this thread will be a FIFO queued task on linux so it won't timeslice
-                const util::ThreadPriority priority_lock(PriorityLevel::HIGHEST);
                 while (true) {
-                    Task task = get_task();
+                    Task task;
+                    {
+                        // Elevate priority only while dequeuing so Linux workers stay FIFO-scheduled
+                        // without starving other pools (e.g. ChronoController's Always thread).
+                        const util::ThreadPriority priority_lock(PriorityLevel::HIGHEST);
+                        task = get_task();
+                    }
                     task.task->run();
                 }
             }

@@ -32,15 +32,15 @@ namespace util {
 
     void set_current_thread_priority(const PriorityLevel& priority) noexcept {
 
-        switch (priority) {
-            case IDLE: SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_IDLE); break;
-            case LOWEST: SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_LOWEST); break;
-            case LOW: SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_BELOW_NORMAL); break;
+        switch (priority()) {
+            case PriorityLevel::IDLE: SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_IDLE); break;
+            case PriorityLevel::LOWEST: SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_LOWEST); break;
+            case PriorityLevel::LOW: SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_BELOW_NORMAL); break;
             default:  // Default to normal if someone broke the enum
-            case NORMAL: SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_NORMAL); break;
-            case HIGH: SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_ABOVE_NORMAL); break;
-            case HIGHEST: SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_HIGHEST); break;
-            case REALTIME: SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL); break;
+            case PriorityLevel::NORMAL: SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_NORMAL); break;
+            case PriorityLevel::HIGH: SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_ABOVE_NORMAL); break;
+            case PriorityLevel::HIGHEST: SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_HIGHEST); break;
+            case PriorityLevel::REALTIME: SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL); break;
         }
     }
 
@@ -123,7 +123,7 @@ namespace util {
 
     void set_current_thread_priority(const PriorityLevel& priority) noexcept {
         sched_param param{};
-        switch (priority) {
+        switch (priority()) {
             case PriorityLevel::IDLE:
                 param.sched_priority = min_rr_priority + 0 * step_rr_priority;
                 pthread_setschedparam(pthread_self(), SCHED_RR, &param);
@@ -182,7 +182,7 @@ namespace util {
     }
 
     void set_current_thread_priority(const PriorityLevel& priority) noexcept {
-        switch (priority) {
+        switch (priority()) {
             case PriorityLevel::IDLE: pthread_set_qos_class_self_np(QOS_CLASS_BACKGROUND, 0); break;
             case PriorityLevel::LOWEST: pthread_set_qos_class_self_np(QOS_CLASS_UTILITY, 0); break;
             case PriorityLevel::LOW: pthread_set_qos_class_self_np(QOS_CLASS_UTILITY, -1); break;
