@@ -6,21 +6,25 @@ Sets the scheduling priority for a reaction's tasks in the thread pool.
 
 ```cpp
 on<Trigger<T>, Priority::REALTIME>()
+on<Trigger<T>, Priority::HIGHEST>()
 on<Trigger<T>, Priority::HIGH>()
 on<Trigger<T>, Priority::NORMAL>()
 on<Trigger<T>, Priority::LOW>()
+on<Trigger<T>, Priority::LOWEST>()
 on<Trigger<T>, Priority::IDLE>()
 ```
 
 ## Levels
 
-| Level    | Value | Use case                        |
-| -------- | ----- | ------------------------------- |
-| REALTIME | 1000  | Safety-critical, hard deadlines |
-| HIGH     | 750   | Important, time-sensitive       |
-| NORMAL   | 500   | Default for all reactions       |
-| LOW      | 250   | Background processing           |
-| IDLE     | 0     | Only when nothing else to do    |
+| Level    | Use case                        |
+| -------- | ------------------------------- |
+| REALTIME | Safety-critical, hard deadlines |
+| HIGHEST  | Highest non-realtime priority   |
+| HIGH     | Important, time-sensitive       |
+| NORMAL   | Default for all reactions       |
+| LOW      | Background processing           |
+| LOWEST   | Lowest non-idle priority        |
+| IDLE     | Only when nothing else to do    |
 
 ## Behavior
 
@@ -28,10 +32,15 @@ Higher priority tasks are dequeued before lower priority tasks when a thread bec
 Priority affects only queuing order — it does not preempt tasks that are already running.
 Scheduling is cooperative.
 
-If no priority is specified, `NORMAL` (500) is used.
+If no priority is specified, `NORMAL` is used.
+
+The scheduler maps the seven DSL levels onto five internal buckets.
+`LOWEST` and `HIGHEST` share adjacent buckets with `LOW` and `HIGH` respectively.
 
 Priority implements the `priority` extension point.
 If multiple DSL words in the same binding set a priority, the maximum value wins.
+
+When a task executes, the worker thread's OS priority is set via `ThreadPriority` RAII for the duration of the callback.
 
 ## Example
 
@@ -49,7 +58,7 @@ on<Trigger<Background>, Priority::LOW>().then([](const Background& b) {
 
 - Priority does **not** preempt running tasks.
     A low-priority task already executing will not be interrupted by a high-priority task entering the queue.
-- Default priority is `NORMAL` (500) when unspecified.
+- Default priority is `NORMAL` when unspecified.
 - Priority applies per-reaction, not per-reactor.
 
 ## See Also

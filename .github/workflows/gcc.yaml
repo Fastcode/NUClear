@@ -40,7 +40,9 @@ jobs:
     continue-on-error: true
 
     # Use the container for this specific version of gcc
-    container: ${{ matrix.toolchain.container }}
+    container:
+      image: ${{ matrix.toolchain.container }}
+      options: --privileged
 
     steps:
       - name: Checkout Code
@@ -49,7 +51,7 @@ jobs:
       # Update for all the actions that need to install stuff
       - run: |
           apt-get update
-          apt-get install -y software-properties-common unzip
+          apt-get install -y software-properties-common unzip sudo
 
       - name: Install GCC
         run: |
@@ -89,6 +91,9 @@ jobs:
 
       - name: CCache Stats
         run: ccache --show-stats
+
+      - name: Add capabilities for scheduler
+        run: find build/tests -type f -executable -exec sudo setcap cap_sys_nice=eip {} \; || true
 
       - name: Test
         timeout-minutes: 2
