@@ -125,7 +125,7 @@ namespace extension {
         }
     }
 
-    void IOController::bump() {
+    void IOController::bump() const {
         if (!WSASetEvent(notifier.notifier)) {
             throw std::system_error(WSAGetLastError(),
                                     std::system_category(),

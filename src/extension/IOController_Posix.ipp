@@ -145,7 +145,7 @@ namespace extension {
         event.revents = 0;
     }
 
-    void IOController::bump() {
+    void IOController::bump() const {
         uint8_t val = 1;
         if (::write(notifier.send, &val, sizeof(val)) < 0) {
             throw std::system_error(network_errno,

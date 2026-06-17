@@ -124,8 +124,7 @@ namespace extension {
          * If the poll command is waiting it will wait forever if something doesn't happen.
          * When trying to update what to poll or shut down we need to wake it up so it can.
          */
-        // NOLINTNEXTLINE(readability-make-member-function-const) this changes states
-        void bump();
+        void bump() const;
 
     public:
         explicit IOController(std::unique_ptr<NUClear::Environment> environment);
