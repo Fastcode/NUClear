@@ -46,7 +46,7 @@ namespace threading {
              * retired to a graveyard and deleted when the queue is destroyed. Per-producer FIFO is
              * preserved; cross-producer ordering is not guaranteed.
              *
-             * Progress guarantees (see docs/spikes/taskqueue-waitfree-assessment.md):
+             * Progress guarantees:
              * - Wait-free: slot claim via write.fetch_add and enqueue/dequeue on a non-overflow block
              *   once the slot is committed.
              * - Lock-free but not wait-free: block linking (link_next_block), tail/head CAS, graveyard

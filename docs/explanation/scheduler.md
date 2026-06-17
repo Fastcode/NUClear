@@ -189,7 +189,7 @@ The queues are **lock-free** at the algorithm level: no mutexes, and the system 
 - Overflow paths use CAS loops on list pointers.
 - Consumers may spin waiting for a producer's `committed` flag.
 
-The hot-path slot claim via `fetch_add` is wait-free within a non-full block. See `docs/spikes/taskqueue-waitfree-assessment.md` for a detailed progress-guarantee analysis.
+The hot-path slot claim via `fetch_add` is wait-free within a non-full block.
 
 ## Group and sync semantics
 
