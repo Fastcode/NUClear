@@ -169,8 +169,8 @@ namespace extension {
         // Start by rebuilding the list
         rebuild_list();
 
-        // Control handlers run on the IO pool at HIGH priority with Inline::NEVER so emit<Inline>
-        // cannot execute them on the default pool while ::poll() holds watches[]. Inline wake
+        // Control handlers run on the IO pool at HIGH priority with Inline::NEVER so they are
+        // always queued to the IO pool rather than running on the emitting thread. Inline wake
         // reactions registered after them only write to the notify pipe so ::poll() unblocks.
         on<Trigger<dsl::word::IOConfiguration>, Pool<IOPool>, Priority::HIGH, Inline::NEVER>().then(
             "Configure IO Reaction",
