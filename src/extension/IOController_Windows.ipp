@@ -20,6 +20,10 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+// Windows IOController still uses on<Always> with WSAWaitForMultipleEvents. The scheduler-driven
+// poll model (dedicated IOController pool, HIGH control handlers + default-pool bump reactions)
+// is implemented on POSIX only; Windows parity is deferred.
+
 #include "IOController.hpp"
 
 namespace NUClear {

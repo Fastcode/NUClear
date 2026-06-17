@@ -32,6 +32,15 @@
 namespace NUClear {
 namespace extension {
 
+    /// Dedicated single-consumer pool for IOController scheduler-driven polling.
+    namespace io_pool {
+        struct IO {
+            static constexpr const char* name           = "IOController";
+            static constexpr int concurrency            = 1;
+            static constexpr bool counts_for_idle       = false;
+        };
+    }  // namespace io_pool
+
     class IOController : public Reactor {
     public:
         struct Task;
@@ -123,6 +132,20 @@ namespace extension {
          */
         // NOLINTNEXTLINE(readability-make-member-function-const) this changes states
         void bump();
+
+        /**
+         * Runs one poll iteration on the IO pool and reschedules the poll task when running.
+         *
+         * The poll loop is a LOW-priority task on a dedicated single-consumer pool. After each
+         * iteration it resubmits at LOW; cross-thread control work is queued at HIGH on the same
+         * pool before a separate bump reaction wakes ::poll(), so the worker dequeues HIGH first.
+         */
+        void poll_iteration();
+
+        /**
+         * Resubmit the poll reaction to the scheduler (same pool, LOW priority).
+         */
+        void reschedule_poll();
 
     public:
         explicit IOController(std::unique_ptr<NUClear::Environment> environment);
