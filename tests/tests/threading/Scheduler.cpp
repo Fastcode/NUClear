@@ -28,6 +28,7 @@
 #include <stdexcept>
 
 #include "threading/ReactionTask.hpp"
+#include "threading/scheduler/queue/Priority.hpp"
 #include "util/GroupDescriptor.hpp"
 #include "util/Inline.hpp"
 #include "util/ThreadPoolDescriptor.hpp"
@@ -42,7 +43,7 @@ namespace threading {
                 auto task = std::make_unique<ReactionTask>(
                     nullptr,
                     false,
-                    [](const ReactionTask& /*task*/) { return 0; },
+                    [](const ReactionTask& /*task*/) { return PriorityLevel::IDLE; },
                     [](const ReactionTask& /*task*/) { return util::Inline::ALWAYS; },
                     [](const ReactionTask& /*task*/) {
                         return std::make_shared<util::ThreadPoolDescriptor>("InlinePool", 1, false);

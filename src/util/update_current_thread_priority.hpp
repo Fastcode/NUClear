@@ -23,18 +23,26 @@
 #ifndef NUCLEAR_UTIL_UPDATE_CURRENT_THREAD_PRIORITY_HPP
 #define NUCLEAR_UTIL_UPDATE_CURRENT_THREAD_PRIORITY_HPP
 
+#include "../threading/scheduler/queue/Priority.hpp"
+
 #ifndef _WIN32
 
     #include <pthread.h>
 
-inline void update_current_thread_priority(int priority) {
+inline void update_current_thread_priority(const NUClear::threading::PriorityLevel priority) {
 
-    // TODO(Trent) SCHED_NORMAL for normal threads
-    // TODO(Trent) SCHED_FIFO for realtime threads
-    // TODO(Trent) SCHED_RR for high priority threads
+    const auto min_priority = sched_get_priority_min(SCHED_RR);
+    const auto max_priority = sched_get_priority_max(SCHED_RR);
+    const auto range        = max_priority - min_priority;
 
-    auto sched_priority = sched_get_priority_min(SCHED_RR)
-                          + (priority / (sched_get_priority_max(SCHED_RR) - sched_get_priority_min(SCHED_RR)));
+    int sched_priority = min_priority;
+    switch (priority) {
+        case NUClear::threading::PriorityLevel::REALTIME: sched_priority = min_priority + range; break;
+        case NUClear::threading::PriorityLevel::HIGH: sched_priority = min_priority + (range * 4) / 5; break;
+        case NUClear::threading::PriorityLevel::NORMAL: sched_priority = min_priority + (range * 3) / 5; break;
+        case NUClear::threading::PriorityLevel::LOW: sched_priority = min_priority + (range * 2) / 5; break;
+        case NUClear::threading::PriorityLevel::IDLE: sched_priority = min_priority + range / 5; break;
+    }
 
     sched_param p{};
     p.sched_priority = sched_priority;
@@ -46,29 +54,23 @@ inline void update_current_thread_priority(int priority) {
 
     #include "platform.hpp"
 
-inline void update_current_thread_priority(int priority) {
+inline void update_current_thread_priority(const NUClear::threading::PriorityLevel priority) {
 
-    switch ((priority * 7) / 1000) {
-        case 0: {
-            SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_IDLE);
+    switch (priority) {
+        case NUClear::threading::PriorityLevel::REALTIME: {
+            SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL);
         } break;
-        case 1: {
-            SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_LOWEST);
-        } break;
-        case 2: {
-            SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_BELOW_NORMAL);
-        } break;
-        case 3: {
-            SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_NORMAL);
-        } break;
-        case 4: {
-            SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_ABOVE_NORMAL);
-        } break;
-        case 5: {
+        case NUClear::threading::PriorityLevel::HIGH: {
             SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_HIGHEST);
         } break;
-        case 6: {
-            SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL);
+        case NUClear::threading::PriorityLevel::NORMAL: {
+            SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_NORMAL);
+        } break;
+        case NUClear::threading::PriorityLevel::LOW: {
+            SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_BELOW_NORMAL);
+        } break;
+        case NUClear::threading::PriorityLevel::IDLE: {
+            SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_IDLE);
         } break;
     }
 }

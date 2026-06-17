@@ -41,7 +41,9 @@ namespace NUClear {
 namespace threading {
     namespace scheduler {
 
-        Group::LockHandle::LockHandle(const NUClear::id_t& task_id, const int& priority, std::function<void()> notify)
+        Group::LockHandle::LockHandle(const NUClear::id_t& task_id,
+                                      const PriorityLevel& priority,
+                                      std::function<void()> notify)
             : task_id(task_id), priority(priority), notify(std::move(notify)) {}
 
         Group::RunningLock::RunningLock(Group& group, std::shared_ptr<Group> group_keepalive)
@@ -344,7 +346,7 @@ namespace threading {
         }
 
         std::unique_ptr<Lock> Group::lock(const NUClear::id_t& task_id,
-                                          const int& priority,
+                                          const PriorityLevel& priority,
                                           const std::function<void()>& notify) {
 
             auto handle = std::make_shared<LockHandle>(task_id, priority, notify);

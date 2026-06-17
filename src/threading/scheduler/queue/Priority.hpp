@@ -44,43 +44,54 @@ namespace threading {
             static constexpr std::size_t PRIORITY_BUCKETS = static_cast<std::size_t>(PriorityLevel::IDLE) + 1;
 
             /**
-             * Map a reaction task priority value to a fixed bucket level.
+             * Map a priority level to a bucket index.
              *
-             * Higher runtime priority maps to a lower index so buckets can be scanned from 0 upward.
+             * Lower indices are higher runtime priority so buckets can be scanned from 0 upward.
              *
-             * @param priority the task priority
+             * @param level the task priority level
              *
-             * @return the fixed priority bucket
+             * @return bucket index in [0, PRIORITY_BUCKETS)
              */
-            inline PriorityLevel priority_level(const int& priority) {
-                if (priority >= 1000) {
-                    return PriorityLevel::REALTIME;
-                }
-                if (priority >= 750) {
-                    return PriorityLevel::HIGH;
-                }
-                if (priority >= 500) {
-                    return PriorityLevel::NORMAL;
-                }
-                if (priority >= 250) {
-                    return PriorityLevel::LOW;
+            inline std::size_t priority_index(const PriorityLevel level) {
+                return static_cast<std::size_t>(level);
+            }
+
+            /**
+             * Return the higher of two priority levels.
+             *
+             * @param a first priority level
+             * @param b second priority level
+             *
+             * @return the higher priority level
+             */
+            inline constexpr PriorityLevel max_priority(const PriorityLevel a, const PriorityLevel b) {
+                return a < b ? a : b;
+            }
+
+            /**
+             * Return the next lower priority level, clamped at IDLE.
+             *
+             * @param level the current priority level
+             *
+             * @return the lowered priority level
+             */
+            inline constexpr PriorityLevel lower_priority(const PriorityLevel level) {
+                switch (level) {
+                    case PriorityLevel::REALTIME: return PriorityLevel::HIGH;
+                    case PriorityLevel::HIGH: return PriorityLevel::NORMAL;
+                    case PriorityLevel::NORMAL: return PriorityLevel::LOW;
+                    case PriorityLevel::LOW: return PriorityLevel::IDLE;
+                    case PriorityLevel::IDLE: return PriorityLevel::IDLE;
                 }
                 return PriorityLevel::IDLE;
             }
 
-            /**
-             * Map a reaction task priority value to a bucket index.
-             *
-             * @param priority the task priority
-             *
-             * @return bucket index in [0, PRIORITY_BUCKETS)
-             */
-            inline std::size_t priority_index(const int& priority) {
-                return static_cast<std::size_t>(priority_level(priority));
-            }
-
         }  // namespace queue
     }  // namespace scheduler
+
+    /// Canonical task priority type used by reactions and the scheduler.
+    using PriorityLevel = scheduler::queue::PriorityLevel;
+
 }  // namespace threading
 }  // namespace NUClear
 

@@ -24,6 +24,7 @@
 #define NUCLEAR_DSL_WORD_PRIORITY_HPP
 
 #include "../../threading/Reaction.hpp"
+#include "../../threading/scheduler/queue/Priority.hpp"
 
 namespace NUClear {
 namespace dsl {
@@ -70,52 +71,47 @@ namespace dsl {
         struct Priority {
 
             struct REALTIME {
-                /// Realtime priority runs with 1000 value
-                static constexpr int value = 1000;
+                static constexpr threading::PriorityLevel level = threading::PriorityLevel::REALTIME;
 
                 template <typename DSL>
-                static int priority(const threading::ReactionTask& /*task*/) {
-                    return value;
+                static threading::PriorityLevel priority(const threading::ReactionTask& /*task*/) {
+                    return level;
                 }
             };
 
             struct HIGH {
-                /// High priority runs with 750 value
-                static constexpr int value = 750;
+                static constexpr threading::PriorityLevel level = threading::PriorityLevel::HIGH;
 
                 template <typename DSL>
-                static int priority(const threading::ReactionTask& /*task*/) {
-                    return value;
+                static threading::PriorityLevel priority(const threading::ReactionTask& /*task*/) {
+                    return level;
                 }
             };
 
             struct NORMAL {
-                /// Normal priority runs with 500 value
-                static constexpr int value = 500;
+                static constexpr threading::PriorityLevel level = threading::PriorityLevel::NORMAL;
 
                 template <typename DSL>
-                static int priority(const threading::ReactionTask& /*task*/) {
-                    return value;
+                static threading::PriorityLevel priority(const threading::ReactionTask& /*task*/) {
+                    return level;
                 }
             };
 
             struct LOW {
-                /// Low priority runs with 250 value
-                static constexpr int value = 250;
+                static constexpr threading::PriorityLevel level = threading::PriorityLevel::LOW;
 
                 template <typename DSL>
-                static int priority(const threading::ReactionTask& /*task*/) {
-                    return value;
+                static threading::PriorityLevel priority(const threading::ReactionTask& /*task*/) {
+                    return level;
                 }
             };
 
             struct IDLE {
-                /// Idle tasks run with 0 priority, they run when there is free time
-                static constexpr int value = 0;
+                static constexpr threading::PriorityLevel level = threading::PriorityLevel::IDLE;
 
                 template <typename DSL>
-                static int priority(const threading::ReactionTask& /*task*/) {
-                    return value;
+                static threading::PriorityLevel priority(const threading::ReactionTask& /*task*/) {
+                    return level;
                 }
             };
         };

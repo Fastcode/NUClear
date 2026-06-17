@@ -24,6 +24,7 @@
 #define NUCLEAR_DSL_FUSION_PRIORITY_FUSION_HPP
 
 #include "../../threading/ReactionTask.hpp"
+#include "../../threading/scheduler/queue/Priority.hpp"
 #include "../operation/DSLProxy.hpp"
 #include "FindWords.hpp"
 #include "has_nuclear_dsl_method.hpp"
@@ -44,7 +45,7 @@ namespace dsl {
         struct PriorityFuser<std::tuple<Word>> {
 
             template <typename DSL>
-            static int priority(threading::ReactionTask& task) {
+            static threading::PriorityLevel priority(threading::ReactionTask& task) {
 
                 // Return our priority
                 return Word::template priority<DSL>(task);
@@ -56,11 +57,12 @@ namespace dsl {
         struct PriorityFuser<std::tuple<Word1, Word2, WordN...>> {
 
             template <typename DSL>
-            static int priority(threading::ReactionTask& task) {
+            static threading::PriorityLevel priority(threading::ReactionTask& task) {
 
                 // Choose our maximum priority
-                return std::max(Word1::template priority<DSL>(task),
-                                PriorityFuser<std::tuple<Word2, WordN...>>::template priority<DSL>(task));
+                return threading::scheduler::queue::max_priority(
+                    Word1::template priority<DSL>(task),
+                    PriorityFuser<std::tuple<Word2, WordN...>>::template priority<DSL>(task));
             }
         };
 

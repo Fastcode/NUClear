@@ -80,8 +80,8 @@ namespace dsl {
             }
 
             template <typename DSL>
-            static int priority(const threading::ReactionTask& /*task*/) {
-                return word::Priority::NORMAL::value;
+            static threading::PriorityLevel priority(const threading::ReactionTask& /*task*/) {
+                return word::Priority::NORMAL::level;
             }
 
             template <typename DSL>
@@ -116,7 +116,7 @@ namespace dsl {
 
             static void pre_run(threading::ReactionTask&);
 
-            static int priority(threading::ReactionTask&);
+            static threading::PriorityLevel priority(threading::ReactionTask&);
 
             static std::shared_ptr<const util::ThreadPoolDescriptor> pool(threading::ReactionTask&);
 

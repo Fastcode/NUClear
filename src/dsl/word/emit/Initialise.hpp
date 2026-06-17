@@ -24,6 +24,7 @@
 #define NUCLEAR_DSL_WORD_EMIT_INITIALISE_HPP
 
 #include "Delay.hpp"
+#include "../Priority.hpp"
 
 namespace NUClear {
 namespace dsl {
@@ -59,7 +60,7 @@ namespace dsl {
                     auto emitter = std::make_unique<threading::ReactionTask>(
                         nullptr,
                         false,
-                        [](threading::ReactionTask& /*task*/) { return 1000; },
+                        [](threading::ReactionTask& /*task*/) { return word::Priority::REALTIME::level; },
                         [](threading::ReactionTask& /*task*/) { return util::Inline::NEVER; },
                         [](threading::ReactionTask& /*task*/) { return Pool<>::descriptor(); },
                         [](threading::ReactionTask& /*task*/) {

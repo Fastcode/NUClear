@@ -33,6 +33,7 @@
 #include "../util/Inline.hpp"
 #include "../util/ThreadPoolDescriptor.hpp"
 #include "Reaction.hpp"
+#include "scheduler/queue/Priority.hpp"
 
 namespace NUClear {
 
@@ -135,7 +136,7 @@ namespace threading {
         bool run_inline{false};
 
         /// The priority to run this task at
-        int priority;
+        PriorityLevel priority;
         /// If the task should be executed inline (in the current thread) or not
         util::Inline should_inline{util::Inline::NEUTRAL};
         /// Details about the thread pool that this task will run from, this will also influence what task queue
@@ -168,7 +169,7 @@ namespace threading {
          * @return true if the current object is less than the other object, false otherwise.
          */
         friend bool operator<(const ReactionTask& lhs, const ReactionTask& rhs) {
-            return lhs.priority == rhs.priority ? lhs.id < rhs.id : lhs.priority > rhs.priority;
+            return lhs.priority == rhs.priority ? lhs.id < rhs.id : lhs.priority < rhs.priority;
         }
 
     private:
