@@ -156,14 +156,14 @@ namespace threading {
                         if (read_index >= published) {
                             if (block->consumed.load(std::memory_order_acquire) < published) {
                                 // Consumers are still finishing slots in this block; let them progress.
-                                detail::pause_and_yield();
+                                std::this_thread::yield();
                             }
                             else {
                                 Block* next = block->next.load(std::memory_order_acquire);
                                 if (next == nullptr) {
                                     // Producer may still be writing the first slot of an empty-looking block.
                                     if (published == 0 && block->write.load(std::memory_order_acquire) > 0) {
-                                        detail::pause_and_yield();
+                                        std::this_thread::yield();
                                     }
                                     else {
                                         return false;
@@ -186,7 +186,9 @@ namespace threading {
                                                                    std::memory_order_acq_rel,
                                                                    std::memory_order_relaxed)) {
                             Slot& slot = block->slots[read_index];
-                            detail::spin_until([&] { return slot.committed.load(std::memory_order_acquire); });
+                            while (!slot.committed.load(std::memory_order_acquire)) {
+                                std::this_thread::yield();
+                            }
 
                             out = std::move(*slot_ptr(slot));
                             destroy_slot(slot);

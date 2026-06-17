@@ -179,7 +179,7 @@ The producer side matches `TaskQueue`. The consumer side is simpler: a plain (no
 
 ### Shared block helpers
 
-`queue/detail/block_ops.hpp` provides `link_next_block`, `retire_block`, and spin/backoff helpers shared by both queues.
+`queue/detail/block_ops.hpp` provides `link_next_block` and `retire_block` shared by both queues.
 
 ### Lock-free vs wait-free
 
