@@ -148,9 +148,9 @@ namespace threading {
         /// outlive scheduler-side resources because PowerPlant tears reactors down before the
         /// scheduler. The first submit resolves the pool and stores it here (release); later submits
         /// just load it (acquire). The write is a plain store rather than a CAS: every writer
-        /// resolves the same pool for a given reaction, so concurrent first-submit stores are still
-        /// a data race (though they publish identical values) and a reader either sees nullptr
-        /// (and re-resolves) or the one pointer.
+        /// resolves the same pool for a given reaction. Concurrent stores/loads are well-defined
+        /// on the atomic (no data race); a reader either sees nullptr (and re-resolves) or the
+        /// cached pointer.
         std::atomic<scheduler::Pool*> scheduler_data{nullptr};
         friend class scheduler::Scheduler;  /// Let the scheduler mess with reaction objects
     };

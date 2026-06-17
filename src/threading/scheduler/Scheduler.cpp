@@ -203,7 +203,8 @@ namespace threading {
             auto lock = std::make_unique<CombinedLock>();
             for (const auto& desc : descs) {
                 lock->add(get_group(desc)->lock(task_id, priority, [pool] {
-                    const bool current_pool_idle = Pool::current() != nullptr && Pool::current()->is_idle();
+                    const auto current_pool = Pool::current();
+                    const bool current_pool_idle = current_pool != nullptr && current_pool->is_idle();
                     pool->notify(!current_pool_idle);
                 }));
             }
@@ -245,7 +246,8 @@ namespace threading {
                 pool = get_pool(task->pool_descriptor).get();
             }
 
-            const bool current_pool_idle = Pool::current() != nullptr && Pool::current()->is_idle();
+            const auto current_pool = Pool::current();
+            const bool current_pool_idle = current_pool != nullptr && current_pool->is_idle();
 
             // Fast path for a single group: lock-free token acquisition and waiter buckets
             if (task->group_descriptors.size() == 1) {
