@@ -29,6 +29,7 @@
 #include <mutex>
 #include <vector>
 
+#include "../../PriorityLevel.hpp"
 #include "../../util/GroupDescriptor.hpp"
 #include "Lock.hpp"
 #include "Pool.hpp"
@@ -88,7 +89,7 @@ namespace threading {
              * It holds if the lock should currently be locked, as well as ordering which locks should be locked first.
              */
             struct LockHandle {
-                LockHandle(const NUClear::id_t& task_id, const int& priority, std::function<void()> notify);
+                LockHandle(const NUClear::id_t& task_id, const PriorityLevel& priority, std::function<void()> notify);
 
                 /**
                  * Compare two lock handles by comparing their priority and task id
@@ -116,7 +117,7 @@ namespace threading {
                 /// The task id of the reaction that is waiting, lower task ids run first
                 NUClear::id_t task_id;
                 /// The priority of the reaction that is waiting, higher priorities run first
-                int priority;
+                PriorityLevel priority;
                 /// If this lock has been successfully locked
                 bool locked{false};
                 /// If this lock has been notified that it can lock
@@ -248,7 +249,7 @@ namespace threading {
              * @return a lock which can be locked once a token is available
              */
             std::unique_ptr<Lock> lock(const NUClear::id_t& task_id,
-                                       const int& priority,
+                                       const PriorityLevel& priority,
                                        const std::function<void()>& notify);
 
             /// The descriptor for this group

@@ -48,15 +48,15 @@ Each extension point is documented in detail on its own page:
 
 ## Quick Reference
 
-| Point          | Signature                      | Returns     | Fusion Strategy                   |
-| -------------- | ------------------------------ | ----------- | --------------------------------- |
-| `bind`         | `bind<DSL>(reaction, args...)` | void        | Arg-distributing (FunctionFusion) |
-| `get`          | `get<DSL>(task)`               | data        | Tuple concatenation               |
-| `precondition` | `precondition<DSL>(task)`      | bool        | AND (short-circuit)               |
-| `priority`     | `priority<DSL>(task)`          | int         | Maximum                           |
-| `pool`         | `pool<DSL>(task)`              | descriptor  | Exactly one                       |
-| `group`        | `group<DSL>(task)`             | set         | Set union                         |
-| `run_inline`   | `run_inline<DSL>(task)`        | Inline enum | Must agree                        |
-| `scope`        | `scope<DSL>(task)`             | RAII lock   | All held                          |
-| `pre_run`      | `pre_run<DSL>(task)`           | void        | Sequential                        |
-| `post_run`     | `post_run<DSL>(task)`          | void        | Sequential                        |
+| Point          | Signature                      | Returns       | Fusion Strategy                   |
+| -------------- | ------------------------------ | ------------- | --------------------------------- |
+| `bind`         | `bind<DSL>(reaction, args...)` | void          | Arg-distributing (FunctionFusion) |
+| `get`          | `get<DSL>(task)`               | data          | Tuple concatenation               |
+| `precondition` | `precondition<DSL>(task)`      | bool          | AND (short-circuit)               |
+| `priority`     | `priority<DSL>(task)`          | PriorityLevel | Maximum                           |
+| `pool`         | `pool<DSL>(task)`              | descriptor    | Exactly one                       |
+| `group`        | `group<DSL>(task)`             | set           | Set union                         |
+| `run_inline`   | `run_inline<DSL>(task)`        | Inline enum   | Must agree                        |
+| `scope`        | `scope<DSL>(task)`             | RAII lock     | All held                          |
+| `pre_run`      | `pre_run<DSL>(task)`           | void          | Sequential                        |
+| `post_run`     | `post_run<DSL>(task)`          | void          | Sequential                        |
