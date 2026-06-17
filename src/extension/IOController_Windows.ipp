@@ -20,11 +20,13 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-// Windows IOController still uses on<Always> with WSAWaitForMultipleEvents. The scheduler-driven
-// poll model (dedicated IOController pool, HIGH control handlers + default-pool bump reactions)
-// is implemented on POSIX only; Windows parity is deferred.
-
 #include "IOController.hpp"
+
+#include "../dsl/word/Inline.hpp"
+#include "../dsl/word/Pool.hpp"
+#include "../dsl/word/Priority.hpp"
+#include "../dsl/word/Startup.hpp"
+#include "../threading/ReactionTask.hpp"
 
 namespace NUClear {
 namespace extension {
@@ -155,11 +157,10 @@ namespace extension {
         // Start by rebuilding the list
         rebuild_list();
 
-        on<Trigger<dsl::word::IOConfiguration>>().then(
+        on<Trigger<dsl::word::IOConfiguration>, Pool<IOPool>, Priority::HIGH>().then(
             "Configure IO Reaction",
             [this](const dsl::word::IOConfiguration& config) {
-                // Lock our mutex
-                std::lock_guard<std::mutex> lock(tasks_mutex);
+                const std::lock_guard<std::mutex> lock(tasks_mutex);
 
                 // Make an event for this SOCKET
                 auto event = WSACreateEvent();
@@ -174,47 +175,37 @@ namespace extension {
                     throw std::system_error(WSAGetLastError(), std::system_category(), "WSAEventSelect() failed");
                 }
 
-                // Add all the information to the list and mark the list as dirty, to sync with the list of events
                 tasks.insert(std::make_pair(event, Task{config.fd, config.events, config.reaction}));
                 dirty.store(true, std::memory_order_release);
-
-                bump();
             });
+        on<Trigger<dsl::word::IOConfiguration>, Inline::ALWAYS>().then("Configure IO bump", [this] { bump(); });
 
-        on<Trigger<dsl::word::IOFinished>>().then("IO Finished", [this](const dsl::word::IOFinished& event) {
-            // Get the lock so we don't concurrently modify the list
+        on<Trigger<dsl::word::IOFinished>, Pool<IOPool>, Priority::HIGH>().then("IO Finished", [this](const dsl::word::IOFinished& event) {
             const std::lock_guard<std::mutex> lock(tasks_mutex);
 
-            // Find the reaction that finished processing
             auto it = std::find_if(tasks.begin(), tasks.end(), [&event](const std::pair<WSAEVENT, Task>& t) {
                 return t.second.reaction->id == event.id;
             });
 
-            // If we found it then clear the waiting events
             if (it != tasks.end()) {
                 auto& task = it->second;
-                // If the events we were processing included close remove it from the list
                 if (task.processing_events & IO::CLOSE) {
                     dirty.store(true, std::memory_order_release);
                     remove_task(tasks, it);
                 }
                 else {
-                    // We have finished processing events
                     task.processing_events = 0;
-
-                    // Try to fire again which will check if there are any waiting events
                     fire_event(task);
                 }
             }
         });
+        on<Trigger<dsl::word::IOFinished>, Inline::ALWAYS>().then("IO Finished bump", [this] { bump(); });
 
-        on<Trigger<dsl::operation::Unbind<IO>>>().then(
+        on<Trigger<dsl::operation::Unbind<IO>>, Pool<IOPool>, Priority::HIGH>().then(
             "Unbind IO Reaction",
             [this](const dsl::operation::Unbind<IO>& unbind) {
-                // Lock our mutex to avoid concurrent modification
                 const std::lock_guard<std::mutex> lock(tasks_mutex);
 
-                // Find our reaction
                 auto it = std::find_if(tasks.begin(), tasks.end(), [&unbind](const std::pair<WSAEVENT, Task>& t) {
                     return t.second.reaction->id == unbind.id;
                 });
@@ -223,43 +214,37 @@ namespace extension {
                     remove_task(tasks, it);
                 }
 
-                // Let the poll command know that stuff happened
                 dirty.store(true, std::memory_order_release);
-                bump();
             });
+        on<Trigger<dsl::operation::Unbind<IO>>, Inline::ALWAYS>().then("Unbind IO bump", [this] { bump(); });
 
-        on<Shutdown>().then("Shutdown IO Controller", [this] {
+        on<Shutdown, Pool<IOPool>, Priority::HIGH>().then("Shutdown IO Controller", [this] {
             running.store(false, std::memory_order_release);
-            bump();
         });
+        on<Shutdown, Inline::ALWAYS>().then("Shutdown IO bump", [this] { bump(); });
 
-        on<Always>().then("IO Controller", [this] {
-            while (running.load(std::memory_order_acquire)) {
-                // Rebuild the list if something changed
-                if (dirty.load(std::memory_order_acquire)) {
-                    rebuild_list();
-                }
-
-                // Wait for events
-                DWORD event_index = 0;
-                /*mutex scope*/ {
-                    const std::lock_guard<std::mutex> lock(notifier.mutex);
-                    event_index = WSAWaitForMultipleEvents(static_cast<DWORD>(watches.size()),
-                                                           watches.data(),
-                                                           false,
-                                                           WSA_INFINITE,
-                                                           false);
-                }
-
-                // Check if the return value is an event in our list
-                if (event_index >= WSA_WAIT_EVENT_0 && event_index < WSA_WAIT_EVENT_0 + watches.size()) {
-                    // Get the signalled event
-                    auto& event = watches[event_index - WSA_WAIT_EVENT_0];
-
-                    // Collect the events that happened into the tasks list
-                    process_event(event);
-                }
+        on<Startup, Pool<IOPool>, Priority::NORMAL>().then("IO Poll", [this] {
+            if (!running.load(std::memory_order_acquire)) {
+                return;
             }
+
+            if (dirty.load(std::memory_order_acquire)) {
+                rebuild_list();
+            }
+
+            const std::lock_guard<std::mutex> lock(notifier.mutex);
+            const DWORD event_index = WSAWaitForMultipleEvents(static_cast<DWORD>(watches.size()),
+                                                               watches.data(),
+                                                               false,
+                                                               WSA_INFINITE,
+                                                               false);
+
+            if (event_index >= WSA_WAIT_EVENT_0 && event_index < WSA_WAIT_EVENT_0 + watches.size()) {
+                auto& event = watches[event_index - WSA_WAIT_EVENT_0];
+                process_event(event);
+            }
+
+            powerplant.submit(threading::ReactionTask::get_current_task()->parent->get_task());
         });
     }
 

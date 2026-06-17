@@ -95,12 +95,13 @@ Monitors file descriptors for IO readiness events and triggers corresponding rea
 
 **Implementation:**
 
-**Implementation:**
+Uses platform-native polling mechanisms on a dedicated `IOController` pool (`concurrency = 1`, MPSC):
 
-Uses platform-native polling mechanisms:
-
-- **POSIX (Linux/macOS):** `poll()` with `pollfd` arrays, driven by a dedicated `IOController` pool (`concurrency = 1`, MPSC). A LOW-priority poll task blocks in `::poll()` and resubmits itself after each iteration. Control handlers (`IOConfiguration`, `IOFinished`, `Unbind`, `Shutdown`) run at HIGH priority on the same pool; separate default-pool bump reactions wake the poll thread via a notify pipe once the HIGH task is queued.
-- **Windows:** `WSAWaitForMultipleEvents` with `WSAEVENT` handles, still using `on<Always>` (scheduler-driven parity deferred).
+- **POSIX (Linux/macOS):** `poll()` with `pollfd` arrays.
+  A NORMAL-priority poll task blocks in `::poll()` and resubmits itself after each iteration.
+  Control handlers (`IOConfiguration`, `IOFinished`, `Unbind`, `Shutdown`) run at HIGH priority on the same pool.
+  Each control handler is followed by an `Inline::ALWAYS` bump reaction that writes the notify pipe from the emitting thread.
+- **Windows:** `WSAWaitForMultipleEvents` with `WSAEVENT` handles, using the same scheduler-driven pool and priority model.
 
 When events are detected on registered file descriptors, the controller creates tasks for the corresponding reactions, passing the event flags through `ThreadStore` so the `get` method can report which specific events occurred.
 

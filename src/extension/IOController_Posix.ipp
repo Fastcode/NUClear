@@ -22,6 +22,7 @@
 
 #include "IOController.hpp"
 
+#include "../dsl/word/Inline.hpp"
 #include "../dsl/word/Pool.hpp"
 #include "../dsl/word/Priority.hpp"
 #include "../dsl/word/Startup.hpp"
@@ -29,8 +30,6 @@
 
 namespace NUClear {
 namespace extension {
-
-    using IOPool = dsl::word::Pool<io_pool::IO>;
 
     namespace {
 
@@ -96,52 +95,6 @@ namespace extension {
         };
 
     }  // namespace
-
-    void IOController::reschedule_poll() {
-        if (!running.load(std::memory_order_acquire)) {
-            return;
-        }
-        if (const auto* current = threading::ReactionTask::get_current_task()) {
-            powerplant.submit(current->parent->get_task());
-        }
-    }
-
-    void IOController::poll_iteration() {
-        // Rebuild the list if something changed
-        if (dirty.load(std::memory_order_acquire)) {
-            rebuild_list();
-        }
-
-        // Wait for an event to happen on one of our file descriptors
-        bool polled = false;
-        /* mutex scope */ {
-            const NotifierPollScope poll(notifier);
-            if (!poll.wake_pending()) {
-                if (::poll(watches.data(), nfds_t(watches.size()), -1) < 0) {
-                    throw std::system_error(network_errno,
-                                            std::system_category(),
-                                            "There was an IO error while attempting to poll the file descriptors");
-                }
-                polled = true;
-            }
-        }
-
-        if (polled) {
-            // Get the lock so we don't concurrently modify the list
-            const std::lock_guard<std::mutex> lock(tasks_mutex);
-            for (auto& fd : watches) {
-
-                // Collect the events that happened into the tasks list
-                // Something happened
-                if (fd.revents != 0) {
-                    process_event(fd);
-                }
-            }
-        }
-
-        // Yield to the scheduler. Any HIGH control tasks queued before the bump wake are dequeued first.
-        reschedule_poll();
-    }
 
     void IOController::rebuild_list() {
         // Get the lock so we don't concurrently modify the list
@@ -286,11 +239,7 @@ namespace extension {
         // Start by rebuilding the list
         rebuild_list();
 
-        // Control handlers run on the IO pool at HIGH priority. Separate bump reactions (default pool,
-        // registered after the HIGH handlers) wake ::poll() once the HIGH task is already queued.
-        // TypeCallbackStore iteration follows registration order, so HIGH is enqueued before bump.
-
-        on<Trigger<dsl::word::IOConfiguration>, IOPool, Priority::HIGH>().then(
+        on<Trigger<dsl::word::IOConfiguration>, Pool<IOPool>, Priority::HIGH>().then(
             "Configure IO Reaction",
             [this](const dsl::word::IOConfiguration& config) {
                 const std::lock_guard<std::mutex> lock(tasks_mutex);
@@ -301,8 +250,9 @@ namespace extension {
                 std::sort(tasks.begin(), tasks.end());
                 dirty.store(true, std::memory_order_release);
             });
+        on<Trigger<dsl::word::IOConfiguration>, Inline::ALWAYS>().then("Configure IO bump", [this] { bump(); });
 
-        on<Trigger<dsl::word::IOFinished>, IOPool, Priority::HIGH>().then("IO Finished", [this](const dsl::word::IOFinished& event) {
+        on<Trigger<dsl::word::IOFinished>, Pool<IOPool>, Priority::HIGH>().then("IO Finished", [this](const dsl::word::IOFinished& event) {
             const std::lock_guard<std::mutex> lock(tasks_mutex);
 
             auto task = std::find_if(tasks.begin(), tasks.end(), [&event](const Task& t) {
@@ -315,7 +265,6 @@ namespace extension {
                     tasks.erase(task);
                 }
                 else {
-                    // Mutate watches[] only while poll is out of ::poll() — wake-then-lock on the IO thread.
                     NotifierWakeGuard wake(notifier);
                     wake.signal();
                     const auto notifier_lock = wake.lock();
@@ -333,8 +282,9 @@ namespace extension {
                 }
             }
         });
+        on<Trigger<dsl::word::IOFinished>, Inline::ALWAYS>().then("IO Finished bump", [this] { bump(); });
 
-        on<Trigger<dsl::operation::Unbind<IO>>, IOPool, Priority::HIGH>().then(
+        on<Trigger<dsl::operation::Unbind<IO>>, Pool<IOPool>, Priority::HIGH>().then(
             "Unbind IO Reaction",
             [this](const dsl::operation::Unbind<IO>& unbind) {
                 const std::lock_guard<std::mutex> lock(tasks_mutex);
@@ -349,18 +299,46 @@ namespace extension {
 
                 dirty.store(true, std::memory_order_release);
             });
+        on<Trigger<dsl::operation::Unbind<IO>>, Inline::ALWAYS>().then("Unbind IO bump", [this] { bump(); });
 
-        on<Shutdown, IOPool, Priority::HIGH>().then("Shutdown IO Controller", [this] {
+        on<Shutdown, Pool<IOPool>, Priority::HIGH>().then("Shutdown IO Controller", [this] {
             running.store(false, std::memory_order_release);
         });
+        on<Shutdown, Inline::ALWAYS>().then("Shutdown IO bump", [this] { bump(); });
 
-        on<Trigger<dsl::word::IOConfiguration>>().then("Configure IO bump", [this] { bump(); });
-        on<Trigger<dsl::word::IOFinished>>().then("IO Finished bump", [this] { bump(); });
-        on<Trigger<dsl::operation::Unbind<IO>>>().then("Unbind IO bump", [this] { bump(); });
-        on<Shutdown>().then("Shutdown IO bump", [this] { bump(); });
+        on<Startup, Pool<IOPool>, Priority::NORMAL>().then("IO Poll", [this] {
+            if (!running.load(std::memory_order_acquire)) {
+                return;
+            }
 
-        // Scheduler-driven poll: dedicated single-consumer IO pool, LOW priority, self-resubmitting.
-        on<Startup, IOPool, Priority::LOW>().then("IO Poll", [this] { poll_iteration(); });
+            if (dirty.load(std::memory_order_acquire)) {
+                rebuild_list();
+            }
+
+            bool polled = false;
+            {
+                const NotifierPollScope poll(notifier);
+                if (!poll.wake_pending()) {
+                    if (::poll(watches.data(), nfds_t(watches.size()), -1) < 0) {
+                        throw std::system_error(network_errno,
+                                                std::system_category(),
+                                                "There was an IO error while attempting to poll the file descriptors");
+                    }
+                    polled = true;
+                }
+            }
+
+            if (polled) {
+                const std::lock_guard<std::mutex> lock(tasks_mutex);
+                for (auto& fd : watches) {
+                    if (fd.revents != 0) {
+                        process_event(fd);
+                    }
+                }
+            }
+
+            powerplant.submit(threading::ReactionTask::get_current_task()->parent->get_task());
+        });
     }
 
 }  // namespace extension
