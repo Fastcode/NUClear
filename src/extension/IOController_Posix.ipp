@@ -41,8 +41,10 @@ namespace extension {
 
             NotifierWakeGuard(const NotifierWakeGuard&)            = delete;
             NotifierWakeGuard& operator=(const NotifierWakeGuard&) = delete;
+            NotifierWakeGuard(NotifierWakeGuard&&)                 = delete;
+            NotifierWakeGuard& operator=(NotifierWakeGuard&&)      = delete;
 
-            void signal() {
+            void signal() const {
                 uint8_t val = 1;
                 if (::write(notifier_.send, &val, sizeof(val)) < 0) {
                     throw std::system_error(network_errno,
