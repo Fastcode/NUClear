@@ -43,18 +43,14 @@ namespace extension {
         using tasks_t   = std::map<WSAEVENT, Task>;
         struct notifier_t {
             WSAEVENT notifier{WSA_INVALID_EVENT};  ///< This is the event that is waited on by WSAWaitForMultipleEvents
-            std::mutex mutex;                      ///< This mutex is used to ensure that wait has woken up
         };
 #else
         using event_t   = decltype(pollfd::events);
         using watcher_t = pollfd;
         using tasks_t   = std::vector<Task>;
         struct notifier_t {
-            fd_t recv{-1};     ///< This is the file descriptor that is waited on by poll
-            fd_t send{-1};     ///< This is the file descriptor that is written to to wake up the poll command
-            std::mutex mutex;  ///< This mutex is used to ensure that a write to poll has worked
-            /// Armed by NotifierWakeGuard during the wake-then-lock handoff; checked under mutex before ::poll().
-            std::atomic<bool> wake_requested{false};
+            fd_t recv{-1};  ///< This is the file descriptor that is waited on by poll
+            fd_t send{-1};  ///< This is the file descriptor that is written to to wake up the poll command
         };
 #endif
 
@@ -140,8 +136,6 @@ namespace extension {
         /// If the IOController should continue running
         std::atomic<bool> running{true};
 
-        /// The mutex that protects the tasks list
-        std::mutex tasks_mutex;
         /// Whether or not the list of file descriptors is dirty compared to tasks
         std::atomic<bool> dirty{true};
         /// The list of events that are being watched

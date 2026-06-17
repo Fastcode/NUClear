@@ -22,10 +22,6 @@
 
 #include "IOController.hpp"
 
-#include "../dsl/word/Inline.hpp"
-#include "../dsl/word/Pool.hpp"
-#include "../dsl/word/Priority.hpp"
-#include "../dsl/word/Startup.hpp"
 #include "../threading/ReactionTask.hpp"
 
 namespace NUClear {
@@ -55,9 +51,6 @@ namespace extension {
     }
 
     void IOController::rebuild_list() {
-        // Get the lock so we don't concurrently modify the list
-        const std::lock_guard<std::mutex> lock(tasks_mutex);
-
         // Clear our fds to be rebuilt
         watches.resize(0);
 
@@ -102,9 +95,6 @@ namespace extension {
 
     void IOController::process_event(WSAEVENT& event) {
 
-        // Get the lock so we don't concurrently modify the list
-        const std::lock_guard<std::mutex> lock(tasks_mutex);
-
         if (event == notifier.notifier) {
             // Reset the notifier signal
             if (!WSAResetEvent(event)) {
@@ -141,9 +131,6 @@ namespace extension {
                                     std::system_category(),
                                     "WSASetEvent() for configure io reaction failed");
         }
-
-        // Locking here will ensure we won't return until poll is not running
-        const std::lock_guard<std::mutex> lock(notifier.mutex);
     }
 
     IOController::IOController(std::unique_ptr<NUClear::Environment> environment) : Reactor(std::move(environment)) {
@@ -157,11 +144,9 @@ namespace extension {
         // Start by rebuilding the list
         rebuild_list();
 
-        on<Trigger<dsl::word::IOConfiguration>, Pool<IOPool>, Priority::HIGH>().then(
+        on<Trigger<dsl::word::IOConfiguration>, Pool<IOPool>, Priority::HIGH, Inline::NEVER>().then(
             "Configure IO Reaction",
             [this](const dsl::word::IOConfiguration& config) {
-                const std::lock_guard<std::mutex> lock(tasks_mutex);
-
                 // Make an event for this SOCKET
                 auto event = WSACreateEvent();
                 if (event == WSA_INVALID_EVENT) {
@@ -180,9 +165,7 @@ namespace extension {
             });
         on<Trigger<dsl::word::IOConfiguration>, Inline::ALWAYS>().then("Configure IO bump", [this] { bump(); });
 
-        on<Trigger<dsl::word::IOFinished>, Pool<IOPool>, Priority::HIGH>().then("IO Finished", [this](const dsl::word::IOFinished& event) {
-            const std::lock_guard<std::mutex> lock(tasks_mutex);
-
+        on<Trigger<dsl::word::IOFinished>, Pool<IOPool>, Priority::HIGH, Inline::NEVER>().then("IO Finished", [this](const dsl::word::IOFinished& event) {
             auto it = std::find_if(tasks.begin(), tasks.end(), [&event](const std::pair<WSAEVENT, Task>& t) {
                 return t.second.reaction->id == event.id;
             });
@@ -201,11 +184,9 @@ namespace extension {
         });
         on<Trigger<dsl::word::IOFinished>, Inline::ALWAYS>().then("IO Finished bump", [this] { bump(); });
 
-        on<Trigger<dsl::operation::Unbind<IO>>, Pool<IOPool>, Priority::HIGH>().then(
+        on<Trigger<dsl::operation::Unbind<IO>>, Pool<IOPool>, Priority::HIGH, Inline::NEVER>().then(
             "Unbind IO Reaction",
             [this](const dsl::operation::Unbind<IO>& unbind) {
-                const std::lock_guard<std::mutex> lock(tasks_mutex);
-
                 auto it = std::find_if(tasks.begin(), tasks.end(), [&unbind](const std::pair<WSAEVENT, Task>& t) {
                     return t.second.reaction->id == unbind.id;
                 });
@@ -218,12 +199,12 @@ namespace extension {
             });
         on<Trigger<dsl::operation::Unbind<IO>>, Inline::ALWAYS>().then("Unbind IO bump", [this] { bump(); });
 
-        on<Shutdown, Pool<IOPool>, Priority::HIGH>().then("Shutdown IO Controller", [this] {
+        on<Shutdown, Pool<IOPool>, Priority::HIGH, Inline::NEVER>().then("Shutdown IO Controller", [this] {
             running.store(false, std::memory_order_release);
         });
         on<Shutdown, Inline::ALWAYS>().then("Shutdown IO bump", [this] { bump(); });
 
-        on<Startup, Pool<IOPool>, Priority::NORMAL>().then("IO Poll", [this] {
+        on<Startup, Pool<IOPool>, Priority::NORMAL, Inline::NEVER>().then("IO Poll", [this] {
             if (!running.load(std::memory_order_acquire)) {
                 return;
             }
@@ -232,7 +213,6 @@ namespace extension {
                 rebuild_list();
             }
 
-            const std::lock_guard<std::mutex> lock(notifier.mutex);
             const DWORD event_index = WSAWaitForMultipleEvents(static_cast<DWORD>(watches.size()),
                                                                watches.data(),
                                                                false,
