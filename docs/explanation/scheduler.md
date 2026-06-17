@@ -9,9 +9,9 @@ For the user-facing view of pools, priorities, groups, and idle tasks, see [Thre
 Every reaction execution is a **task** (`ReactionTask`) submitted to the scheduler. The `PowerPlant` owns a single `Scheduler` instance and forwards all work to it:
 
 1. A trigger (message emit, timer, IO event, etc.) creates a `ReactionTask`.
-2. `PowerPlant::submit()` calls `Scheduler::submit()`.
-3. The scheduler resolves the target **pool**, acquires any required **group** tokens, and enqueues the task.
-4. A pool worker dequeues the task, runs the callback, and releases group locks when the callback returns.
+1. `PowerPlant::submit()` calls `Scheduler::submit()`.
+1. The scheduler resolves the target **pool**, acquires any required **group** tokens, and enqueues the task.
+1. A pool worker dequeues the task, runs the callback, and releases group locks when the callback returns.
 
 `PowerPlant::start()` calls `Scheduler::start()`, which starts worker pools and then blocks the calling thread in the **MainThread** pool until shutdown. `PowerPlant::shutdown()` emits the shutdown event and calls `Scheduler::stop()`.
 
@@ -129,11 +129,11 @@ If a reaction is bound with `Inline` and belongs to a single group, the schedule
 
 Each pool holds an array of five `Queue<Task>` instances — one per priority bucket. At construction time the pool chooses the concrete queue type:
 
-| Pool kind | Queue type | Why |
-| --------- | ---------- | --- |
-| Default pool (`Pool<>`) | `TaskQueue` (MPMC) | Concurrency may differ from the descriptor's nominal value; multiple workers dequeue concurrently. |
-| `MainThread`, Trace pool, any pool with `concurrency == 1` | `MPSCQueue` (MPSC) | Exactly one consumer; simpler and cheaper than MPMC. |
-| Custom pools with `concurrency > 1` | `TaskQueue` (MPMC) | Multiple workers compete for tasks. |
+| Pool kind                                                  | Queue type         | Why                                                                                                |
+| ---------------------------------------------------------- | ------------------ | -------------------------------------------------------------------------------------------------- |
+| Default pool (`Pool<>`)                                    | `TaskQueue` (MPMC) | Concurrency may differ from the descriptor's nominal value; multiple workers dequeue concurrently. |
+| `MainThread`, Trace pool, any pool with `concurrency == 1` | `MPSCQueue` (MPSC) | Exactly one consumer; simpler and cheaper than MPMC.                                               |
+| Custom pools with `concurrency > 1`                        | `TaskQueue` (MPMC) | Multiple workers compete for tasks.                                                                |
 
 The virtual `Queue` interface lets `Pool` store both implementations in one `std::array` without templating the entire pool. The virtual call cost is negligible compared to the atomic operations inside enqueue and dequeue.
 
@@ -143,13 +143,13 @@ Workers identify themselves via a thread-local `Pool::current_pool` pointer, set
 
 Tasks are not kept in one monolithic priority queue. Instead, each pool has **five fixed buckets** scanned from highest to lowest priority:
 
-| Bucket | Priority range | DSL level |
-| ------ | -------------- | --------- |
-| REALTIME | ≥ 1000 | `Priority::REALTIME` |
-| HIGH | ≥ 750 | `Priority::HIGH` |
-| NORMAL | ≥ 500 | `Priority::NORMAL` (default) |
-| LOW | ≥ 250 | `Priority::LOW` |
-| IDLE | < 250 | `Priority::IDLE` |
+| Bucket   | Priority range | DSL level                    |
+| -------- | -------------- | ---------------------------- |
+| REALTIME | ≥ 1000         | `Priority::REALTIME`         |
+| HIGH     | ≥ 750          | `Priority::HIGH`             |
+| NORMAL   | ≥ 500          | `Priority::NORMAL` (default) |
+| LOW      | ≥ 250          | `Priority::LOW`              |
+| IDLE     | < 250          | `Priority::IDLE`             |
 
 `Pool::try_dequeue_task()` walks buckets 0→4 and returns the first available task. Within a bucket, ordering is **FIFO** (per-producer FIFO in the MPMC queue; strict FIFO in MPSC). Priority therefore dominates bucket order; tie-breaking within a bucket follows enqueue order, not reaction ID.
 
@@ -198,8 +198,8 @@ The hot-path slot claim via `fetch_add` is wait-free within a non-full block. Se
 Most reactions belong to at most one group (including `Sync<T>`). For these, `Group::try_submit()`:
 
 1. Tries to decrement `tokens` with a compare-exchange.
-2. On success, submits to the pool immediately with a `RunningLock` that calls `release_token()` on destruction.
-3. On failure, **parks** the task in priority-ordered waiter buckets via `park_publish()` / `park_reconcile()`.
+1. On success, submits to the pool immediately with a `RunningLock` that calls `release_token()` on destruction.
+1. On failure, **parks** the task in priority-ordered waiter buckets via `park_publish()` / `park_reconcile()`.
 
 The token counter can go **negative** when waiters reserve slots they have not yet consumed. This signed counter, combined with per-waiter **arbiter slots** (`atomic<bool>`), ensures no lost wakeups and exact accounting when multiple waiters race with draining threads.
 
@@ -230,8 +230,8 @@ Idle reactions (`on<Idle<>>`, `on<Idle<Pool<T>>>`) are registered via `PowerPlan
 When a pool worker finds no runnable task:
 
 1. It tries `get_idle_task()` — acquiring counting locks that track per-thread and per-pool idle state.
-2. When all threads in a pool are idle and the pool holds the global idle lock, global idle reactions are collected.
-3. A synthetic `ReactionTask` runs that re-submits each idle reaction's task via `scheduler.submit()`.
+1. When all threads in a pool are idle and the pool holds the global idle lock, global idle reactions are collected.
+1. A synthetic `ReactionTask` runs that re-submits each idle reaction's task via `scheduler.submit()`.
 
 `global_idle_count` is an atomic so pools can cheaply check whether global idle exists without locking the scheduler on every external-waiter registration.
 
@@ -239,11 +239,11 @@ When a pool worker finds no runnable task:
 
 `Scheduler::stop(force)` sets `running = false` and stops all pools.
 
-| Stop type | Behaviour |
-| --------- | --------- |
-| `NORMAL` | Pools stop accepting new work (except **persistent** pools, which keep accepting during shutdown). Workers drain queued tasks. |
-| `FINAL` | Used after the main thread exits `start()`; even persistent pools stop once their queues empty. |
-| `FORCE` | Clears queues and wakes all threads; used for forced test timeouts. MPSC pools require the consumer thread to perform the drain. |
+| Stop type | Behaviour                                                                                                                        |
+| --------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| `NORMAL`  | Pools stop accepting new work (except **persistent** pools, which keep accepting during shutdown). Workers drain queued tasks.   |
+| `FINAL`   | Used after the main thread exits `start()`; even persistent pools stop once their queues empty.                                  |
+| `FORCE`   | Clears queues and wakes all threads; used for forced test timeouts. MPSC pools require the consumer thread to perform the drain. |
 
 `Scheduler::start()` starts worker pools first, then blocks in `MainThread::start()`. When the main thread pool exits (after shutdown), pools are stopped in order — non-persistent pools before persistent ones — then joined.
 
@@ -251,15 +251,15 @@ Persistent pools (`ThreadPoolDescriptor::persistent`) continue accepting tasks d
 
 ## Design tradeoffs
 
-| Choice | Rationale |
-| ------ | --------- |
-| Virtual `Queue` interface | One bucket array in `Pool` without templating the entire pool; indirection cost is dwarfed by atomics. |
-| Separate `MPSCQueue` | Single-consumer pools avoid MPMC CAS on dequeue; meaningful win for `MainThread` and concurrency-1 pools. |
+| Choice                               | Rationale                                                                                                                                                           |
+| ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Virtual `Queue` interface            | One bucket array in `Pool` without templating the entire pool; indirection cost is dwarfed by atomics.                                                              |
+| Separate `MPSCQueue`                 | Single-consumer pools avoid MPMC CAS on dequeue; meaningful win for `MainThread` and concurrency-1 pools.                                                           |
 | Priority buckets vs one sorted queue | Fixed five buckets give O(1) bucket selection and lock-free queues per level; fine-grained priority within a bucket is FIFO, not strict global ordering by task ID. |
-| Lock-free group fast path | Single-group `Sync` is the common case; parking in lock-free buckets avoids mutex contention on submission. |
-| Mutex for pool/group maps | Pools and groups are created once per descriptor; mutex cost is paid on first use, not every submit. |
-| Condition variable for workers | Lock-free queues hold tasks, but workers must sleep when idle; CV + `live` flag avoids busy-waiting. |
-| Non-preemptive execution | Simpler reasoning, no priority inversion from preemption; long tasks hold a thread until completion. |
+| Lock-free group fast path            | Single-group `Sync` is the common case; parking in lock-free buckets avoids mutex contention on submission.                                                         |
+| Mutex for pool/group maps            | Pools and groups are created once per descriptor; mutex cost is paid on first use, not every submit.                                                                |
+| Condition variable for workers       | Lock-free queues hold tasks, but workers must sleep when idle; CV + `live` flag avoids busy-waiting.                                                                |
+| Non-preemptive execution             | Simpler reasoning, no priority inversion from preemption; long tasks hold a thread until completion.                                                                |
 
 ## See also
 
