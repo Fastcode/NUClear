@@ -28,7 +28,6 @@
 #include "../util/platform.hpp"
 
 #include <atomic>
-#include <functional>
 
 namespace NUClear {
 namespace extension {
@@ -126,25 +125,6 @@ namespace extension {
          * When trying to update what to poll or shut down we need to wake it up so it can.
          */
         void bump() const;
-
-        /// Inline bump reactions that wake the poll task from the emitting thread.
-        void register_inline_bump_reactions();
-
-        /// HIGH-priority shutdown handler on the IO pool.
-        void register_shutdown_control();
-
-        /**
-         * Registers the self-resubmitting poll task.
-         *
-         * @param wait_and_process platform-specific blocking wait and event dispatch
-         */
-        void register_poll_loop(std::function<void()> wait_and_process);
-
-        /// Returns false when the poll loop should exit without blocking.
-        bool prepare_poll_iteration();
-
-        /// Resubmits the poll reaction after one blocking iteration.
-        void resubmit_poll_task();
 
     public:
         explicit IOController(std::unique_ptr<NUClear::Environment> environment);

@@ -22,6 +22,8 @@
 
 #include "IOController.hpp"
 
+#include "../threading/ReactionTask.hpp"
+
 namespace NUClear {
 namespace extension {
 
@@ -161,6 +163,7 @@ namespace extension {
                 tasks.insert(std::make_pair(event, Task{config.fd, config.events, config.reaction}));
                 dirty.store(true, std::memory_order_release);
             });
+        on<Trigger<dsl::word::IOConfiguration>, Inline::ALWAYS>().then("Configure IO bump", [this] { bump(); });
 
         on<Trigger<dsl::word::IOFinished>, Pool<IOPool>, Priority::HIGH, Inline::NEVER>().then("IO Finished", [this](const dsl::word::IOFinished& event) {
             auto it = std::find_if(tasks.begin(), tasks.end(), [&event](const std::pair<WSAEVENT, Task>& t) {
@@ -179,6 +182,7 @@ namespace extension {
                 }
             }
         });
+        on<Trigger<dsl::word::IOFinished>, Inline::ALWAYS>().then("IO Finished bump", [this] { bump(); });
 
         on<Trigger<dsl::operation::Unbind<IO>>, Pool<IOPool>, Priority::HIGH, Inline::NEVER>().then(
             "Unbind IO Reaction",
@@ -193,10 +197,22 @@ namespace extension {
 
                 dirty.store(true, std::memory_order_release);
             });
+        on<Trigger<dsl::operation::Unbind<IO>>, Inline::ALWAYS>().then("Unbind IO bump", [this] { bump(); });
 
-        register_shutdown_control();
-        register_inline_bump_reactions();
-        register_poll_loop([this] {
+        on<Shutdown, Pool<IOPool>, Priority::HIGH, Inline::NEVER>().then("Shutdown IO Controller", [this] {
+            running.store(false, std::memory_order_release);
+        });
+        on<Shutdown, Inline::ALWAYS>().then("Shutdown IO bump", [this] { bump(); });
+
+        on<Startup, Pool<IOPool>, Priority::NORMAL, Inline::NEVER>().then("IO Poll", [this] {
+            if (!running.load(std::memory_order_acquire)) {
+                return;
+            }
+
+            if (dirty.load(std::memory_order_acquire)) {
+                rebuild_list();
+            }
+
             const DWORD event_index = WSAWaitForMultipleEvents(static_cast<DWORD>(watches.size()),
                                                                watches.data(),
                                                                false,
@@ -207,6 +223,8 @@ namespace extension {
                 auto& event = watches[event_index - WSA_WAIT_EVENT_0];
                 process_event(event);
             }
+
+            powerplant.submit(threading::ReactionTask::get_current_task()->parent->get_task());
         });
     }
 
