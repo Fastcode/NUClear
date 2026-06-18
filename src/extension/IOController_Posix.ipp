@@ -22,8 +22,6 @@
 
 #include "IOController.hpp"
 
-#include "../threading/ReactionTask.hpp"
-
 namespace NUClear {
 namespace extension {
 
@@ -169,9 +167,6 @@ namespace extension {
         // Start by rebuilding the list
         rebuild_list();
 
-        // Control handlers run on the IO pool at HIGH priority with Inline::NEVER so they are
-        // always queued to the IO pool rather than running on the emitting thread. Inline wake
-        // reactions registered after them only write to the notify pipe so ::poll() unblocks.
         on<Trigger<dsl::word::IOConfiguration>, Pool<IOPool>, Priority::HIGH, Inline::NEVER>().then(
             "Configure IO Reaction",
             [this](const dsl::word::IOConfiguration& config) {
@@ -181,7 +176,6 @@ namespace extension {
                 std::sort(tasks.begin(), tasks.end());
                 dirty.store(true, std::memory_order_release);
             });
-        on<Trigger<dsl::word::IOConfiguration>, Inline::ALWAYS>().then("Configure IO bump", [this] { bump(); });
 
         on<Trigger<dsl::word::IOFinished>, Pool<IOPool>, Priority::HIGH, Inline::NEVER>().then("IO Finished", [this](const dsl::word::IOFinished& event) {
             auto task = std::find_if(tasks.begin(), tasks.end(), [&event](const Task& t) {
@@ -207,7 +201,6 @@ namespace extension {
                 }
             }
         });
-        on<Trigger<dsl::word::IOFinished>, Inline::ALWAYS>().then("IO Finished bump", [this] { bump(); });
 
         on<Trigger<dsl::operation::Unbind<IO>>, Pool<IOPool>, Priority::HIGH, Inline::NEVER>().then(
             "Unbind IO Reaction",
@@ -222,22 +215,10 @@ namespace extension {
 
                 dirty.store(true, std::memory_order_release);
             });
-        on<Trigger<dsl::operation::Unbind<IO>>, Inline::ALWAYS>().then("Unbind IO bump", [this] { bump(); });
 
-        on<Shutdown, Pool<IOPool>, Priority::HIGH, Inline::NEVER>().then("Shutdown IO Controller", [this] {
-            running.store(false, std::memory_order_release);
-        });
-        on<Shutdown, Inline::ALWAYS>().then("Shutdown IO bump", [this] { bump(); });
-
-        on<Startup, Pool<IOPool>, Priority::NORMAL, Inline::NEVER>().then("IO Poll", [this] {
-            if (!running.load(std::memory_order_acquire)) {
-                return;
-            }
-
-            if (dirty.load(std::memory_order_acquire)) {
-                rebuild_list();
-            }
-
+        register_shutdown_control();
+        register_inline_bump_reactions();
+        register_poll_loop([this] {
             if (::poll(watches.data(), nfds_t(watches.size()), -1) < 0) {
                 throw std::system_error(network_errno,
                                         std::system_category(),
@@ -249,8 +230,6 @@ namespace extension {
                     process_event(fd);
                 }
             }
-
-            powerplant.submit(threading::ReactionTask::get_current_task()->parent->get_task());
         });
     }
 
