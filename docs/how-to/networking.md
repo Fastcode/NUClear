@@ -55,7 +55,7 @@ public:
 | `name`             | `string`   | —                   | Unique name for this node on the network        |
 | `announce_address` | `string`   | `"239.226.152.162"` | Address for node discovery announcements        |
 | `announce_port`    | `uint16_t` | `7447`              | Port for announce messages                      |
-| `bind_address`     | `string`   | `""` (all)          | Local interface to bind to                      |
+| `bind_address`     | `string`   | `""` (all)          | Local interface to bind to (see [Forming a mesh](#forming-a-mesh) — default `INADDR_ANY` is required for broadcast fan-out on macOS) |
 | `mtu`              | `uint16_t` | `1500`              | Maximum transmission unit (fragments if larger) |
 
 ### Network modes
@@ -67,8 +67,8 @@ NUClearNet supports several discovery modes depending on the `announce_address` 
 | **Multicast IPv4**    | `239.x.x.x`  | `239.226.152.162` | LAN discovery, multiple nodes   |
 | **Multicast IPv6**    | `ff02::x`    | `ff02::1`         | IPv6 LAN discovery              |
 | **Broadcast IPv4**    | `x.x.x.255`  | `192.168.1.255`   | Simple LAN, all nodes on subnet |
-| **Loopback broadcast** | `127.255.255.255` | `127.255.255.255` | Local dev, multiple processes on one host (Linux) |
-| **Loopback unicast** | `127.0.0.1` | `127.0.0.1` | Point-to-point between two nodes |
+| **Loopback broadcast** | `127.255.255.255` | `127.255.255.255` | Local dev on Linux only (see [Forming a mesh](#forming-a-mesh)) |
+| **Loopback unicast** | `127.0.0.1` | `127.0.0.1` | Point-to-point between two nodes (not multi-peer on shared port) |
 | **Unicast IPv4/IPv6** | Specific IP  | `192.168.1.50`    | Point-to-point, two nodes       |
 
 #### Multicast (Default)
@@ -111,23 +111,63 @@ emit(std::make_unique<NUClear::message::NetworkConfiguration>(
 
 In unicast mode, each peer announces directly to the other.
 This is useful when multicast/broadcast is unavailable (e.g., across subnets or VPNs).
+Unicast does **not** fan out to every socket bound on the shared announce port, so it cannot form a multi-peer mesh on one host.
+
+### Forming a mesh
+
+A mesh forms when all nodes share the same `announce_address` and `announce_port`.
+Each node periodically sends discovery packets to that address; every peer that receives them can discover the others and complete a CONNECT handshake.
+
+For multi-peer discovery on one machine, announce traffic must reach **every** process bound to the shared announce port.
+Which addresses satisfy that depends on the announce address and OS stack, not on socket option policy.
+
+#### Socket binding
+
+By default, NUClearNet binds the announce socket to **all interfaces** (`INADDR_ANY`), regardless of the announce address.
+This default is required for broadcast fan-out on macOS.
+Setting `bind_address` to a specific interface IP can prevent broadcast reception on macOS — leave it empty unless you have a specific reason to bind to one interface.
+
+#### Reuse options
+
+Multiple processes on one host must bind the same UDP announce port.
+NUClearNet sets **`SO_REUSEADDR`** on all platforms and **`SO_REUSEPORT`** when the platform provides it — the two options are always paired where `SO_REUSEPORT` exists.
+Socket setup is consistent everywhere; what varies is which announce addresses fan out to every bound socket vs one socket.
+
+#### Valid announce addresses
+
+| Address | Linux | macOS |
+| ------- | ----- | ----- |
+| `239.226.152.162` (multicast, default) | Valid — all sockets join the group | Valid — recommended |
+| `127.255.255.255` (loopback broadcast) | Valid — recommended for local dev | **Invalid** — macOS does not deliver UDP to this address locally (stack limitation) |
+| `192.168.x.255` (subnet broadcast) | Valid | Valid — requires default `INADDR_ANY` bind |
+| `255.255.255.255` (global broadcast) | Valid — noisy | Valid — requires default `INADDR_ANY` bind |
+| `127.0.0.1` or specific IP (unicast) | **Invalid** — one bound socket | **Invalid** — load-balanced to one bound socket |
+
+```cpp
+// Linux local dev — loopback broadcast fans out to every peer
+emit(std::make_unique<NUClear::message::NetworkConfiguration>(
+    "my-node", "127.255.255.255", 7447));
+
+// macOS local dev — use the default multicast address
+emit(std::make_unique<NUClear::message::NetworkConfiguration>(
+    "my-node", "239.226.152.162", 7447));
+```
+
+#### Cross-platform summary
+
+| Scenario | Recommended address |
+| -------- | ------------------- |
+| LAN, multiple machines | `239.226.152.162` (multicast) or subnet broadcast |
+| Local dev, Linux | `127.255.255.255` (loopback broadcast) or multicast |
+| Local dev, macOS | `239.226.152.162` (multicast) |
+| Two known peers, point-to-point | Unicast to each other's IP (not multi-peer on shared port) |
 
 #### Loopback (local development)
 
-When running multiple NUClearNet processes on one machine, use a loopback announce address so every listener on the shared port receives discovery packets:
+When running multiple NUClearNet processes on one machine, pick an announce address that fans out to every listener on the shared port (see tables above).
 
-```cpp
-// Recommended: loopback broadcast (Linux)
-emit(std::make_unique<NUClear::message::NetworkConfiguration>(
-    "my-node", "127.255.255.255", 7447));
-```
-
-On Linux, multiple local processes can share the announce port when `SO_REUSEADDR` is set without `SO_REUSEPORT`.
-Unicast loopback (`127.0.0.1`) does not fan out to every bound socket — use `127.255.255.255` for multi-peer local dev on Linux.
-Do not enable `SO_REUSEPORT` on Linux — it load-balances incoming packets across bound sockets instead of delivering them to every listener.
-
-On macOS, `SO_REUSEPORT` is required for multiple processes to bind the same UDP port.
-It load-balances unicast and loopback-broadcast packets; **multicast** still delivers to every bound socket — use the default multicast address for local multi-peer development on macOS.
+On Linux, `127.255.255.255` is the simplest local-dev choice when you want to avoid multicast.
+On macOS, use the default multicast address — loopback broadcast is not delivered locally.
 
 ## 2. Send Messages
 

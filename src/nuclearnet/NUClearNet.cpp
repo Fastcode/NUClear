@@ -228,10 +228,10 @@ namespace {
 
             int yes = 1;
             ::setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, reinterpret_cast<const char*>(&yes), sizeof(yes));
-#if defined(__APPLE__) && defined(SO_REUSEPORT)
-            // macOS requires SO_REUSEPORT for multiple processes to bind the same UDP port.
-            // Incoming packets are load-balanced across bound sockets (no fan-out for unicast
-            // or loopback broadcast); multicast still delivers to every socket in the group.
+#ifdef SO_REUSEPORT
+            // SO_REUSEADDR and SO_REUSEPORT are always paired when SO_REUSEPORT is available.
+            // Which announce addresses fan out to every bound socket vs one socket depends on
+            // the address and platform stack, not on these socket options.
             ::setsockopt(fd, SOL_SOCKET, SO_REUSEPORT, reinterpret_cast<const char*>(&yes), sizeof(yes));
 #endif
             ::setsockopt(fd, SOL_SOCKET, SO_BROADCAST, reinterpret_cast<const char*>(&yes), sizeof(yes));
