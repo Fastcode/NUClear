@@ -228,9 +228,6 @@ namespace {
 
             int yes = 1;
             ::setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, reinterpret_cast<const char*>(&yes), sizeof(yes));
-#ifdef SO_REUSEPORT
-            ::setsockopt(fd, SOL_SOCKET, SO_REUSEPORT, reinterpret_cast<const char*>(&yes), sizeof(yes));
-#endif
             ::setsockopt(fd, SOL_SOCKET, SO_BROADCAST, reinterpret_cast<const char*>(&yes), sizeof(yes));
 
             if (::bind(fd, &bind_addr.sock, bind_addr.size()) != 0) {
