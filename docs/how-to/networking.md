@@ -123,10 +123,11 @@ emit(std::make_unique<NUClear::message::NetworkConfiguration>(
 ```
 
 On Linux, multiple local processes can share the announce port when `SO_REUSEADDR` is set without `SO_REUSEPORT`.
-Unicast loopback (`127.0.0.1`) does not fan out to every bound socket — use `127.255.255.255` for multi-peer local dev.
-Do not enable `SO_REUSEPORT` on the announce socket — it load-balances incoming packets across bound sockets instead of delivering them to every listener.
+Unicast loopback (`127.0.0.1`) does not fan out to every bound socket — use `127.255.255.255` for multi-peer local dev on Linux.
+Do not enable `SO_REUSEPORT` on Linux — it load-balances incoming packets across bound sockets instead of delivering them to every listener.
 
-On macOS, multiple processes cannot share the announce port without `SO_REUSEPORT`, which breaks unicast discovery — use Linux or Docker for local multi-peer development.
+On macOS, `SO_REUSEPORT` is required for multiple processes to bind the same UDP port.
+It load-balances unicast and loopback-broadcast packets; **multicast** still delivers to every bound socket — use the default multicast address for local multi-peer development on macOS.
 
 ## 2. Send Messages
 

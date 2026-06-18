@@ -158,7 +158,7 @@ The announce address can be:
 - **Multicast** (e.g., `239.226.152.162`) — the most common setup.
     All nodes on the same network join the multicast group and hear each other's announcements.
 - **Broadcast** (e.g., `255.255.255.255`, `127.255.255.255`) — works on simple LANs without multicast support.
-    Use `127.255.255.255` for local multi-process development on Linux.
+    Use `127.255.255.255` for local multi-process development on Linux (does not fan out on macOS with `SO_REUSEPORT`).
 - **Unicast** (e.g., `127.0.0.1`) — for point-to-point setups between two known peers.
     Unicast does not fan out to every socket bound on the shared announce port.
 
