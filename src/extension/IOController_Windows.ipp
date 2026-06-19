@@ -129,7 +129,7 @@ namespace extension {
         if (!WSASetEvent(notifier.notifier)) {
             throw std::system_error(WSAGetLastError(),
                                     std::system_category(),
-                                    "WSASetEvent() for configure io reaction failed");
+                                    "WSASetEvent() for IOController notifier failed");
         }
     }
 

@@ -146,8 +146,18 @@ namespace extension {
     }
 
     void IOController::bump() const {
+        pollfd pfd{notifier.recv, POLLIN, 0};
+        if (::poll(&pfd, 1, 0) > 0 && (pfd.revents & POLLIN) != 0) {
+            return;
+        }
+
         uint8_t val = 1;
-        if (::write(notifier.send, &val, sizeof(val)) < 0) {
+        ssize_t written = 0;
+        do {
+            written = ::write(notifier.send, &val, sizeof(val));
+        } while (written < 0 && network_errno == EINTR);
+
+        if (written < 0) {
             throw std::system_error(network_errno,
                                     std::system_category(),
                                     "There was an error while writing to the notification pipe");
