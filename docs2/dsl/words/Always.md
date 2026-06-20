@@ -1,0 +1,1 @@
+- Mention that shutdown and always is broken or fix it
