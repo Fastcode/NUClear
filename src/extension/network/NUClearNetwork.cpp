@@ -869,7 +869,7 @@ namespace extension {
                                 // Check for and delete any timed out packets
                                 for (auto it = assemblers.begin(); it != assemblers.end();) {
                                     const auto now              = std::chrono::steady_clock::now();
-                                    const auto timeout          = remote->round_trip_time * 10.0;
+                                    const auto timeout          = std::chrono::seconds(2);
                                     const auto& last_chunk_time = it->second.first;
 
                                     it = now > last_chunk_time + timeout ? assemblers.erase(it) : std::next(it);
