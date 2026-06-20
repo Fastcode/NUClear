@@ -24,7 +24,6 @@
 
 #include <algorithm>
 #include <array>
-#include <atomic>
 #include <chrono>
 #include <cstdint>
 #include <cstring>
@@ -501,7 +500,7 @@ namespace extension {
                     if (ptr) {
 
                         auto now     = std::chrono::steady_clock::now();
-                        auto timeout = it->last_send + ptr->round_trip_time;
+                        auto timeout = it->last_send + ptr->rtt.timeout();
 
                         // Check if we should have expected an ack by now for some packets
                         if (timeout < now) {
@@ -510,7 +509,7 @@ namespace extension {
                             it->last_send = now;
 
                             // The next time we should check for a timeout
-                            auto next_timeout = now + ptr->round_trip_time;
+                            auto next_timeout = now + ptr->rtt.timeout();
                             if (next_timeout < next_event) {
                                 next_event = next_timeout;
                                 next_event_callback(next_event);
@@ -673,18 +672,11 @@ namespace extension {
                             remote->last_update = std::chrono::steady_clock::now();
 
                             // Check if this packet is a retransmission of data
-                            if (header.type == DATA_RETRANSMISSION) {
+                            if (header.type == DATA_RETRANSMISSION
+                                && remote->deduplicator.is_duplicate(packet.packet_id)) {
 
-                                // See if we recently processed this packet
-                                // NOLINTNEXTLINE(readability-qualified-auto) MSVC disagrees
-                                auto it = std::find(remote->recent_packets.begin(),
-                                                    remote->recent_packets.end(),
-                                                    packet.packet_id);
-
-                                // We recently processed this packet, this is just a failed ack
                                 // Send the ack again if it was reliable
-                                if (it != remote->recent_packets.end() && packet.reliable) {
-
+                                if (packet.reliable) {
                                     // Allocate room for the whole ack packet
                                     std::vector<uint8_t> r(sizeof(ACKPacket) + (packet.packet_count / 8), 0);
                                     ACKPacket& response   = *reinterpret_cast<ACKPacket*>(r.data());
@@ -708,10 +700,10 @@ namespace extension {
                                              0,
                                              &to.sock,
                                              to.size());
-
-                                    // We don't need to process this packet we already did
-                                    return;
                                 }
+
+                                // We don't need to process this packet we already did
+                                return;
                             }
 
                             // If this is a solo packet (in a single chunk)
@@ -739,12 +731,10 @@ namespace extension {
                                              0,
                                              &to.sock,
                                              to.size());
-
-                                    // Set this packet to have been recently received
-                                    remote->recent_packets[remote->recent_packets_index
-                                                               .fetch_add(1, std::memory_order_relaxed)] =
-                                        packet.packet_id;
                                 }
+
+                                // Add the packet to our deduplicator
+                                remote->deduplicator.add_packet(packet.packet_id);
 
                                 packet_callback(*remote, packet.hash, packet.reliable, std::move(out));
                             }
@@ -851,16 +841,11 @@ namespace extension {
                                                    &part.data + p.second.size() - sizeof(DataPacket) + 1);
                                     }
 
+                                    // Add the packet to our deduplicator
+                                    remote->deduplicator.add_packet(packet.packet_id);
+
                                     // Send our assembled data packet
                                     packet_callback(*remote, packet.hash, packet.reliable, std::move(out));
-
-                                    // If the packet was reliable add that it was recently received
-                                    if (packet.reliable) {
-                                        // Set this packet to have been recently received
-                                        remote->recent_packets[remote->recent_packets_index
-                                                                   .fetch_add(1, std::memory_order_relaxed)] =
-                                            packet.packet_id;
-                                    }
 
                                     // We have completed this packet, discard the data
                                     assemblers.erase(assemblers.find(packet.packet_id));
@@ -869,7 +854,7 @@ namespace extension {
                                 // Check for and delete any timed out packets
                                 for (auto it = assemblers.begin(); it != assemblers.end();) {
                                     const auto now              = std::chrono::steady_clock::now();
-                                    const auto timeout          = remote->round_trip_time * 10.0;
+                                    const auto timeout          = remote->rtt.timeout() * 10.0;
                                     const auto& last_chunk_time = it->second.first;
 
                                     it = now > last_chunk_time + timeout ? assemblers.erase(it) : std::next(it);
@@ -919,8 +904,7 @@ namespace extension {
 
                                     // Approximate how long the round trip is to this remote so we can work out how
                                     // long before retransmitting
-                                    // We use a baby kalman filter to help smooth out jitter
-                                    remote->measure_round_trip(round_trip);
+                                    remote->rtt.measure(round_trip);
 
                                     // Update our acks
                                     bool all_acked = true;
@@ -987,7 +971,7 @@ namespace extension {
                                     s->last_send = std::chrono::steady_clock::now();
 
                                     // The next time we should check for a timeout
-                                    auto next_timeout = s->last_send + remote->round_trip_time;
+                                    auto next_timeout = s->last_send + remote->rtt.timeout();
                                     if (next_timeout < next_event) {
                                         next_event = next_timeout;
                                         next_event_callback(next_event);
@@ -1108,7 +1092,7 @@ namespace extension {
                         queue.targets.emplace_back(it->second, acks);
 
                         // The next time we should check for a timeout
-                        auto next_timeout = std::chrono::steady_clock::now() + it->second->round_trip_time;
+                        auto next_timeout = std::chrono::steady_clock::now() + it->second->rtt.timeout();
                         if (next_timeout < next_event) {
                             next_event = next_timeout;
                             next_event_callback(next_event);
