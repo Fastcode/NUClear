@@ -336,27 +336,65 @@ namespace threading {
                     continue;
                 }
 
-                // If a waiter was parked for this pool since the last time this worker looked,
-                // ensure we fire one idle epoch before dispatching the next task. This is the
-                // counterpart of the OLD scheduler behaviour where a parked task with a failing
-                // group lock sat in the pool queue and forced the worker to poll-fail-and-fall-
-                // through to get_idle_task; in the fast path the task is parked in the Group's
-                // wait_buckets instead, so without this latch the worker can be preempted long
-                // enough for the drained (lock-OK) task to arrive in the queue before the worker
-                // polls and end up running it directly, swallowing the idle fire.
+                // A waiter was parked for this pool since the last time this worker looked, so it
+                // set pending_idle to wake us. Consume the latch here, but do NOT fire the GLOBAL
+                // idle epoch up-front: that decision's only job is to WAKE this worker so it
+                // re-checks its queue. Whether a GLOBAL idle epoch is actually appropriate must be
+                // decided by the normal dequeue-first path below.
                 //
-                // get_idle_task() is a no-op when this thread is already idle (local_lock set),
-                // so a wasted consume here is harmless: the worker just falls through to the
-                // normal dequeue path below.
+                // This matters for the case where the parked waiter has since become runnable and
+                // been drained into this pool's queue (e.g. a Sync group released its token). If we
+                // fired the global idle check here, before try_dequeue_task(), we would drop this
+                // pool's "active" count to zero and release its active_pools slot while a runnable
+                // task is still sitting in the queue. That can let a GLOBAL idle epoch fire even
+                // though real work is pending (premature idle) - which reorders idle-driven
+                // reactions and, with shutdown-on-idle, can quiesce the powerplant early.
                 //
-                // The relaxed load short-circuits the (more expensive) read-modify-write on the
-                // common path where nothing has been latched, so a busy worker never pays for the
-                // exclusive cacheline acquire that exchange() would force every iteration.
-                if (pending_idle.load(std::memory_order_acquire)
-                    && pending_idle.exchange(false, std::memory_order_acq_rel)) {
-                    auto idle_task = get_idle_task();
-                    if (idle_task.task != nullptr) {
-                        return idle_task;
+                // By only consuming the latch here and letting the dequeue-first / !got path below
+                // decide the GLOBAL case, a drained-runnable waiter is dequeued and run (no idle),
+                // while a still-parked waiter leaves the queue empty so the !got branch fires idle
+                // exactly as before (preserving the cross-pool idle-wake / deadlock-break behavior).
+                //
+                // The LOCAL (per-pool, on<Idle<ThisPool>>) check is different: it is still fired
+                // eagerly here, right away. `active` is edge-triggered (CountingLock only succeeds on
+                // the exact transition to zero), so if we deferred it behind try_dequeue_task() too,
+                // a fleeting active-count-reaches-zero window could be missed forever whenever this
+                // pool happens to have unrelated work land in its queue in the same instant (the
+                // dequeue would then succeed and skip the idle check entirely for this iteration,
+                // with no guarantee `active` will ever read exactly zero again for this waiter's
+                // epoch). Firing the local check early is safe with respect to the premature-idle
+                // bug above because it only ever fires THIS pool's own Idle<ThisPool> reactions and
+                // never touches `scheduler.active_pools` - it cannot release a global idle slot.
+                //
+                // The relaxed-ish load short-circuits the (more expensive) store on the common path
+                // where nothing has been latched, so a busy worker never pays for the exclusive
+                // cacheline acquire that any unconditional atomic RMW - store, exchange, or even a
+                // failed compare_exchange - would force every iteration. On real hardware only a
+                // plain load can be satisfied from a cache line held Shared; a store/exchange/CAS
+                // always requires exclusive ownership of the line, even when the value doesn't
+                // change (a "failed" CAS still takes the lock on x86, still faults the exclusive
+                // monitor on ARM). So gating the write behind a load is the only way to keep this
+                // hot per-dispatch check free of cross-core cache-line ping-pong on a busy pool.
+                //
+                // A plain store (rather than exchange) is safe here even though we don't hold the
+                // mutex: we never branch on the old value, so there is nothing for exchange to give
+                // us that store doesn't. The apparent "lost wakeup" if a new waiter's
+                // register_external_waiter() sees the latch already true (skips its notify) and we
+                // then clear it here is not actually a correctness issue, because neither
+                // notify_one() call is what makes a parked waiter's task eventually run: submit()
+                // (when the drained task is enqueued) and unregister_external_waiter() (when
+                // external_waiters returns to 0) both notify unconditionally, under the pool's
+                // mutex, on every transition that the wait predicate below actually depends on.
+                // pending_idle's own notify is purely a latency optimization to promptly wake a
+                // worker that is sleeping for no other reason than "nothing has happened yet"; if
+                // it is occasionally skipped, the worker is woken anyway by one of those other
+                // unconditional notifies once there is something to actually act on.
+                if (pending_idle.load(std::memory_order_acquire)) {
+                    pending_idle.store(false, std::memory_order_release);
+
+                    auto local_idle_task = get_local_idle_task();
+                    if (local_idle_task.task != nullptr) {
+                        return local_idle_task;
                     }
                 }
 
@@ -400,13 +438,7 @@ namespace threading {
             throw ShutdownThreadException();
         }
 
-        Pool::Task Pool::get_idle_task() {
-            if (!running || !descriptor->counts_for_idle) {
-                return Task{};
-            }
-
-            std::vector<std::shared_ptr<Reaction>> tasks;
-
+        void Pool::collect_local_idle_reactions(std::vector<std::shared_ptr<Reaction>>& tasks) {
             auto& local_lock = thread_idle[std::this_thread::get_id()];
 
             if (local_lock == nullptr) {
@@ -415,16 +447,9 @@ namespace threading {
                     tasks.insert(tasks.end(), idle_tasks.begin(), idle_tasks.end());
                 }
             }
+        }
 
-            if (pool_idle == nullptr && active.load(std::memory_order_relaxed) == 0) {
-                pool_idle = std::make_unique<CountingLock>(scheduler.active_pools);
-
-                if (pool_idle->lock()) {
-                    const std::lock_guard<std::mutex> lock(scheduler.idle_mutex);
-                    tasks.insert(tasks.end(), scheduler.idle_tasks.begin(), scheduler.idle_tasks.end());
-                }
-            }
-
+        Pool::Task Pool::make_idle_dispatch_task(std::vector<std::shared_ptr<Reaction>>&& tasks) {
             if (tasks.empty()) {
                 return Task{};
             }
@@ -443,6 +468,36 @@ namespace threading {
             };
 
             return Task{std::move(task)};
+        }
+
+        Pool::Task Pool::get_local_idle_task() {
+            if (!running || !descriptor->counts_for_idle) {
+                return Task{};
+            }
+
+            std::vector<std::shared_ptr<Reaction>> tasks;
+            collect_local_idle_reactions(tasks);
+            return make_idle_dispatch_task(std::move(tasks));
+        }
+
+        Pool::Task Pool::get_idle_task() {
+            if (!running || !descriptor->counts_for_idle) {
+                return Task{};
+            }
+
+            std::vector<std::shared_ptr<Reaction>> tasks;
+            collect_local_idle_reactions(tasks);
+
+            if (pool_idle == nullptr && active.load(std::memory_order_relaxed) == 0) {
+                pool_idle = std::make_unique<CountingLock>(scheduler.active_pools);
+
+                if (pool_idle->lock()) {
+                    const std::lock_guard<std::mutex> lock(scheduler.idle_mutex);
+                    tasks.insert(tasks.end(), scheduler.idle_tasks.begin(), scheduler.idle_tasks.end());
+                }
+            }
+
+            return make_idle_dispatch_task(std::move(tasks));
         }
 
         // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)

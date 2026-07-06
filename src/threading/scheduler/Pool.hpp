@@ -257,6 +257,43 @@ namespace threading {
              */
             Task get_idle_task();
 
+            /**
+             * Get only this pool's own local idle task (on<Idle<ThisPool>> reactions), without considering the
+             * global (all-pools) idle epoch.
+             *
+             * This exists so the local, per-pool `active` transition can be checked eagerly - as soon as a woken
+             * worker notices `pending_idle` - without risking the premature-global-idle bug that firing the
+             * global check early can cause (see the comment in get_task() for details). The local `active`
+             * counter only ever gates this pool's OWN Idle<ThisPool> reactions, never `scheduler.active_pools`,
+             * so firing it eagerly cannot release the global active_pools slot early - it is safe to check as
+             * soon as possible, and doing so avoids missing a fleeting active-count-reaches-zero edge that a
+             * concurrent task submission could otherwise paper over before the deferred dequeue-first path gets
+             * around to checking it.
+             *
+             * @return the local idle task to execute if it is lockable, or hold if it is not
+             */
+            Task get_local_idle_task();
+
+            /**
+             * Collect this pool's own local idle reactions (on<Idle<ThisPool>>) if this worker is the one that
+             * takes the pool's `active` count to zero.
+             *
+             * Appends the reactions to fire to @p tasks; leaves it untouched if this worker did not win the
+             * local idle lock. Shared by both get_local_idle_task() and get_idle_task().
+             *
+             * @param tasks the accumulator to append any local idle reactions to
+             */
+            void collect_local_idle_reactions(std::vector<std::shared_ptr<Reaction>>& tasks);
+
+            /**
+             * Wrap a collected set of idle reactions in a dispatch task that submits them when run.
+             *
+             * @param tasks the idle reactions to dispatch (moved from)
+             *
+             * @return the dispatch task, or an empty Task if @p tasks is empty
+             */
+            Task make_idle_dispatch_task(std::vector<std::shared_ptr<Reaction>>&& tasks);
+
             friend class ExternalWaiterRegistration;
             void unregister_external_waiter();
 
@@ -283,12 +320,14 @@ namespace threading {
             std::atomic<std::size_t> external_waiters{0};
             /// Latched "an external waiter was parked for this pool since you last polled".
             ///
-            /// Consumed (exchanged to false) at the top of every get_task iteration. If set and
-            /// this thread is not already idle, a single idle fire is dispatched before any task
-            /// from the queue is returned. This preserves the OLD scheduler's invariant that a
-            /// waiting-but-not-runnable task on the destination pool would always force one idle
-            /// fire per parking, even when the worker is preempted long enough for the drained
-            /// (RunningLock-OK) task to be sitting in the queue by the time the worker resumes.
+            /// Consumed (cleared to false) at the top of every get_task iteration purely to WAKE a
+            /// sleeping worker so it re-checks its queue; it does NOT by itself force an idle fire.
+            /// Whether this is actually an idle situation is decided by the normal dequeue-first
+            /// path: if the parked waiter has since become runnable and been drained into this
+            /// pool's queue (e.g. a Sync group released its token), the worker dequeues and runs it
+            /// with no idle epoch. Only if the queue is genuinely empty after dequeuing does the
+            /// !got path fire idle, preserving the cross-pool idle-wake / deadlock-break behavior
+            /// without prematurely firing idle while real work is still pending.
             ///
             /// This is only ever set when idle_relevant() is true (some idle reaction could fire
             /// on this pool), so on the hot contended path with no idle reactions the latch stays
