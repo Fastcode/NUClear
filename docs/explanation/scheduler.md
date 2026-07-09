@@ -275,6 +275,17 @@ When the main thread pool exits (after shutdown), pools are stopped in order —
 
 Persistent pools (`ThreadPoolDescriptor::persistent`) continue accepting tasks during a normal shutdown so networking or logging reactors can finish in-flight work.
 
+### Blocking pools and priority ordering
+
+Some extensions use a single-consumer pool with a blocking wait in the worker thread.
+For example, IOController blocks in `::poll()` or `WSAWaitForMultipleEvents()`.
+
+Priority does not preempt inside the blocking call.
+Instead, cross-thread control work is enqueued at HIGH priority on the same pool.
+An inline bump reaction writes the notify pipe or event from the emitting thread.
+The poll task finishes its iteration and resubmits at NORMAL priority.
+The worker then dequeues the already-queued HIGH task before the resubmitted poll.
+
 ## Design tradeoffs
 
 | Choice                               | Rationale                                                                                                                                                           |
