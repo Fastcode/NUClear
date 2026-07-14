@@ -138,6 +138,9 @@ int main(int argc, const char* argv[]) {
     NUClear::Configuration config;
     config.default_pool_concurrency = 4;
     NUClear::PowerPlant plant(config, argc, argv);
+    plant.install<NUClear::extension::ChronoController>();
+    plant.install<NUClear::extension::IOController>();
+    plant.install<NUClear::extension::NetworkController>();
     plant.install<TestReactor>();
 
     plant.start();

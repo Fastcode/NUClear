@@ -28,7 +28,15 @@ configure_file(nuclear.in ${PROJECT_BINARY_DIR}/nuclear)
 
 # Build the library
 find_package(Threads REQUIRED)
-file(GLOB_RECURSE src "*.c" "*.cpp" "*.hpp" "*.ipp")
+file(
+  GLOB_RECURSE
+  src
+  CONFIGURE_DEPENDS
+  "*.c"
+  "*.cpp"
+  "*.hpp"
+  "*.ipp"
+)
 add_library(nuclear STATIC ${src})
 add_library(NUClear::nuclear ALIAS nuclear)
 
