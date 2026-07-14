@@ -77,10 +77,43 @@ namespace extension {
 
                 // Now read the data for real
                 const ssize_t received = recvmsg(fd, &mh, 0);
+                if (received < 0) {
+                    throw std::system_error(network_errno,
+                                            std::system_category(),
+                                            "Network error when receiving the packet");
+                }
                 payload.resize(received);
 
                 return {from, std::move(payload)};
             }
+
+
+            /**
+             * Sets a socket to non-blocking mode.
+             *
+             * @param fd The file descriptor of the socket to set to non-blocking.
+             */
+            void set_non_blocking(const fd_t& fd) {
+#ifdef _WIN32
+                u_long mode = 1;
+                if (ioctlsocket(fd, FIONBIO, &mode) != 0) {
+                    throw std::system_error(network_errno,
+                                            std::system_category(),
+                                            "Unable to set the socket to non-blocking");
+                }
+#else
+                int flags = fcntl(fd, F_GETFL, 0);
+                if (flags < 0) {
+                    throw std::system_error(network_errno, std::system_category(), "Unable to get socket flags");
+                }
+                if (fcntl(fd, F_SETFL, flags | O_NONBLOCK) < 0) {
+                    throw std::system_error(network_errno,
+                                            std::system_category(),
+                                            "Unable to set the socket to non-blocking");
+                }
+#endif
+            }
+
 
         }  // namespace
 
@@ -188,6 +221,9 @@ namespace extension {
             if (::setsockopt(data_fd, SOL_SOCKET, SO_BROADCAST, reinterpret_cast<char*>(&yes), sizeof(yes)) < 0) {
                 throw std::system_error(network_errno, std::system_category(), "Unable to set broadcast on the socket");
             }
+
+            // Make the data socket non blocking
+            set_non_blocking(data_fd);
 
             // Bind to the address, and if we fail throw an error
             if (::bind(data_fd, &address.sock, address.size()) != 0) {
@@ -1050,9 +1086,14 @@ namespace extension {
             message.msg_name    = const_cast<sockaddr*>(&target.sock);  // NOLINT(cppcoreguidelines-pro-type-const-cast)
             message.msg_namelen = target.size();
 
-            // TODO(trent): if reliable, run select first to see if this socket is writeable
-            // If it is not reliable just don't send the message instead of blocking
-            sendmsg(data_fd, &message, 0);
+            // send a message, if it would block then we don't care because it will be resent
+            if (sendmsg(data_fd, &message, 0) < 0) {
+                if (errno != EWOULDBLOCK && errno != EAGAIN) {
+                    throw std::system_error(network_errno,
+                                            std::system_category(),
+                                            "Network error when sending the packet");
+                }
+            }
         }
 
 
