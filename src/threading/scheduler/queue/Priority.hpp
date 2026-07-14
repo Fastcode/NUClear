@@ -22,9 +22,10 @@
 #ifndef NUCLEAR_THREADING_SCHEDULER_QUEUE_PRIORITY_HPP
 #define NUCLEAR_THREADING_SCHEDULER_QUEUE_PRIORITY_HPP
 
-#include <array>
 #include <cstddef>
 #include <cstdint>
+
+#include "../../../PriorityLevel.hpp"
 
 namespace NUClear {
 namespace threading {
@@ -32,7 +33,7 @@ namespace threading {
         namespace queue {
 
             /// Fixed scheduler priority buckets (REALTIME, HIGH, NORMAL, LOW, IDLE).
-            enum class PriorityLevel : std::uint8_t {
+            enum class PriorityBucket : std::uint8_t {
                 REALTIME = 0,
                 HIGH     = 1,
                 NORMAL   = 2,
@@ -41,42 +42,76 @@ namespace threading {
             };
 
             /// Number of priority buckets.
-            static constexpr std::size_t PRIORITY_BUCKETS = static_cast<std::size_t>(PriorityLevel::IDLE) + 1;
+            static constexpr std::size_t PRIORITY_BUCKETS = static_cast<std::size_t>(PriorityBucket::IDLE) + 1;
 
             /**
-             * Map a reaction task priority value to a fixed bucket level.
+             * Map a DSL priority level to a fixed scheduler bucket.
              *
-             * Higher runtime priority maps to a lower index so buckets can be scanned from 0 upward.
+             * Seven DSL levels (UNKNOWN, IDLE, LOWEST, LOW, NORMAL, HIGH, HIGHEST, REALTIME) collapse into five
+             * buckets: LOWEST and HIGHEST share adjacent buckets; UNKNOWN maps to IDLE.
              *
-             * @param priority the task priority
+             * Lower bucket indices are higher runtime priority so buckets can be scanned from 0 upward.
+             *
+             * @param level the task priority level
              *
              * @return the fixed priority bucket
              */
-            inline PriorityLevel priority_level(const int& priority) {
-                if (priority >= 1000) {
-                    return PriorityLevel::REALTIME;
+            inline PriorityBucket priority_bucket(const PriorityLevel& level) {
+                switch (level()) {
+                    case PriorityLevel::REALTIME: return PriorityBucket::REALTIME;
+                    case PriorityLevel::HIGHEST:
+                    case PriorityLevel::HIGH: return PriorityBucket::HIGH;
+                    case PriorityLevel::NORMAL: return PriorityBucket::NORMAL;
+                    case PriorityLevel::LOW:
+                    case PriorityLevel::LOWEST: return PriorityBucket::LOW;
+                    case PriorityLevel::IDLE:
+                    case PriorityLevel::UNKNOWN:
+                    default: return PriorityBucket::IDLE;
                 }
-                if (priority >= 750) {
-                    return PriorityLevel::HIGH;
-                }
-                if (priority >= 500) {
-                    return PriorityLevel::NORMAL;
-                }
-                if (priority >= 250) {
-                    return PriorityLevel::LOW;
-                }
-                return PriorityLevel::IDLE;
             }
 
             /**
-             * Map a reaction task priority value to a bucket index.
+             * Map a task priority level to a bucket index.
              *
-             * @param priority the task priority
+             * @param level the task priority level
              *
              * @return bucket index in [0, PRIORITY_BUCKETS)
              */
-            inline std::size_t priority_index(const int& priority) {
-                return static_cast<std::size_t>(priority_level(priority));
+            inline std::size_t priority_index(const PriorityLevel& level) {
+                return static_cast<std::size_t>(priority_bucket(level));
+            }
+
+            /**
+             * Return the higher of two priority levels.
+             *
+             * @param a first priority level
+             * @param b second priority level
+             *
+             * @return the higher priority level
+             */
+            constexpr PriorityLevel max_priority(const PriorityLevel& a, const PriorityLevel& b) {
+                return a > b ? a : b;
+            }
+
+            /**
+             * Return the next lower DSL priority level, clamped at IDLE.
+             *
+             * @param level the current priority level
+             *
+             * @return the lowered priority level
+             */
+            constexpr PriorityLevel lower_priority(const PriorityLevel& level) {
+                switch (level()) {
+                    case PriorityLevel::REALTIME: return PriorityLevel::HIGHEST;
+                    case PriorityLevel::HIGHEST: return PriorityLevel::HIGH;
+                    case PriorityLevel::HIGH: return PriorityLevel::NORMAL;
+                    case PriorityLevel::NORMAL: return PriorityLevel::LOW;
+                    case PriorityLevel::LOW: return PriorityLevel::LOWEST;
+                    case PriorityLevel::LOWEST:
+                    case PriorityLevel::IDLE:
+                    case PriorityLevel::UNKNOWN:
+                    default: return PriorityLevel::IDLE;
+                }
             }
 
         }  // namespace queue

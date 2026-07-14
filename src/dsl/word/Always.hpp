@@ -30,7 +30,7 @@
 #include "../../id.hpp"
 #include "../../threading/ReactionIdentifiers.hpp"
 #include "../../threading/ReactionTask.hpp"
-#include "../../util/Inline.hpp"
+#include "../../threading/scheduler/queue/Priority.hpp"
 #include "../../util/ThreadPoolDescriptor.hpp"
 
 namespace NUClear {
@@ -131,10 +131,16 @@ namespace dsl {
                 auto idle_task = std::make_unique<threading::ReactionTask>(
                     reaction,
                     false,
-                    [](threading::ReactionTask& task) { return DSL::priority(task) - 1; },
+                    [](threading::ReactionTask& task) {
+                        return threading::scheduler::queue::lower_priority(DSL::priority(task));
+                    },
                     DSL::run_inline,
                     DSL::pool,
                     DSL::group);
+
+
+                // Manipulate the id so it always runs after the always task
+                idle_task->id = std::numeric_limits<NUClear::id_t>::max();
 
                 idle_task->callback = [](threading::ReactionTask& task) {
                     // Submit the always and idle tasks to the scheduler

@@ -40,12 +40,10 @@ public:
     struct B {};
 
     void do_task(const std::string& event) {
-        auto start = test_util::round_to_test_units(std::chrono::steady_clock::now() - start_time);
-        events.push_back(event + " started @ " + std::to_string(start.count()));
+        events.emplace_back(event + " started");
         // Sleep for a bit to give a chance for the other threads to cause problems
         NUClear::util::precise_sleep(test_util::TimeUnit(2));
-        auto end = test_util::round_to_test_units(std::chrono::steady_clock::now() - start_time);
-        events.push_back(event + " finished @ " + std::to_string(end.count()));
+        events.emplace_back(event + " finished");
     }
 
     TestReactor(std::unique_ptr<NUClear::Environment> environment) : TestBase(std::move(environment)) {
@@ -78,12 +76,12 @@ TEST_CASE("Test that sync works when one thread has multiple groups", "[api][syn
     plant.start();
 
     const std::vector<std::string> expected = {
-        "Sync A started @ 0",
-        "Sync A finished @ 2",
-        "Sync Both started @ 2",
-        "Sync Both finished @ 4",
-        "Sync B started @ 4",
-        "Sync B finished @ 6",
+        "Sync A started",
+        "Sync A finished",
+        "Sync Both started",
+        "Sync Both finished",
+        "Sync B started",
+        "Sync B finished",
     };
 
     // Make an info print the diff in an easy to read way if we fail

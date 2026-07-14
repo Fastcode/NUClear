@@ -178,17 +178,17 @@ The Fusion Engine walks the inheritance tree and collects all extension points f
 
 ## Extension Point Summary
 
-| Point          | Purpose                              | Returns    | Fusion Strategy     |
-| -------------- | ------------------------------------ | ---------- | ------------------- |
-| `bind`         | Register reaction at creation time   | `void`     | All called          |
-| `get`          | Retrieve data for callback arguments | Any type   | Tuple concatenation |
-| `precondition` | Gate whether the task should run     | `bool`     | Logical AND         |
-| `pre_run`      | Hook before callback execution       | `void`     | All called          |
-| `post_run`     | Hook after callback execution        | `void`     | All called          |
-| `scope`        | RAII lock held during execution      | RAII type  | All held            |
-| `priority`     | Task scheduling priority             | `int`      | Maximum wins        |
-| `group`        | Concurrency group membership         | Set        | Union               |
-| `pool`         | Which thread pool to run on          | Descriptor | (single value)      |
+| Point          | Purpose                              | Returns         | Fusion Strategy     |
+| -------------- | ------------------------------------ | --------------- | ------------------- |
+| `bind`         | Register reaction at creation time   | `void`          | All called          |
+| `get`          | Retrieve data for callback arguments | Any type        | Tuple concatenation |
+| `precondition` | Gate whether the task should run     | `bool`          | Logical AND         |
+| `pre_run`      | Hook before callback execution       | `void`          | All called          |
+| `post_run`     | Hook after callback execution        | `void`          | All called          |
+| `scope`        | RAII lock held during execution      | RAII type       | All held            |
+| `priority`     | Task scheduling priority             | `PriorityLevel` | Maximum wins        |
+| `group`        | Concurrency group membership         | Set             | Union               |
+| `pool`         | Which thread pool to run on          | Descriptor      | (single value)      |
 
 See [Extension Points Reference](../reference/extensions/extension-points.md) and [Fusion Engine](../reference/extensions/fusion-engine.md) for full details.
 
