@@ -51,9 +51,26 @@ namespace util {
         template <typename T, typename Check = T>
         struct Serialise;
 
+        /**
+         * Whether a type should be serialised by copying its bytes.
+         *
+         * The specialisations of Serialise below are selected by conditions that are assumed to be mutually exclusive,
+         * so a type satisfying two of them makes Serialise<T> ambiguous rather than preferring one of them. Specialise
+         * this trait to false for a type that is trivially copyable but carries its own serialisation, which is
+         * otherwise unreachable: the byte copy is selected alongside it, and hash() would identify the type by its
+         * demangled C++ name rather than by whatever identity the type defines for itself.
+         *
+         * The second parameter is an SFINAE slot, so a family of types can be opted out with a single partial
+         * specialisation rather than one specialisation per type.
+         *
+         * @tparam T The type to check
+         */
+        template <typename T, typename = void>
+        struct serialise_trivially : std::is_trivially_copyable<T> {};
+
         // Trivially copyable data
         template <typename T>
-        struct Serialise<T, std::enable_if_t<std::is_trivially_copyable<T>::value, T>> {
+        struct Serialise<T, std::enable_if_t<serialise_trivially<T>::value, T>> {
 
             static std::vector<uint8_t> serialise(const T& in) {
                 std::vector<uint8_t> out(sizeof(T));
@@ -81,7 +98,7 @@ namespace util {
         using iterator_value_type_t =
             typename std::iterator_traits<decltype(std::begin(std::declval<T>()))>::value_type;
         template <typename T>
-        struct Serialise<T, std::enable_if_t<std::is_trivially_copyable<iterator_value_type_t<T>>::value, T>> {
+        struct Serialise<T, std::enable_if_t<serialise_trivially<iterator_value_type_t<T>>::value, T>> {
 
             using V = std::remove_reference_t<iterator_value_type_t<T>>;
 
