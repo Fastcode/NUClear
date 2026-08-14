@@ -38,6 +38,7 @@
 #include "util/network/sock_t.hpp"
 #include "util/platform.hpp"
 
+using NUClear::network::DATA_HEADER_SIZE;
 using NUClear::network::NUClearNet;
 using NUClear::network::NetworkConfig;
 using NUClear::network::PeerInfo;
@@ -79,14 +80,14 @@ std::vector<uint8_t> build_data_packet(uint16_t packet_id,
                                        uint64_t hash,
                                        uint8_t flags,
                                        const std::vector<uint8_t>& payload) {
-    std::vector<uint8_t> pkt(sizeof(DataPacket) - 1 + payload.size());
+    std::vector<uint8_t> pkt(DATA_HEADER_SIZE + payload.size());
     auto* header         = reinterpret_cast<DataPacket*>(pkt.data());  // NOLINT
     header->packet_id    = packet_id;
     header->packet_no    = packet_no;
     header->packet_count = packet_count;
     header->hash         = hash;
     header->flags        = flags;
-    std::memcpy(pkt.data() + sizeof(DataPacket) - 1, payload.data(), payload.size());
+    std::memcpy(pkt.data() + DATA_HEADER_SIZE, payload.data(), payload.size());
     return pkt;
 }
 
@@ -324,6 +325,39 @@ SCENARIO("process_data_packet delivers a single-fragment unreliable message", "[
     REQUIRE(delivered == payload);
     REQUIRE(delivered_hash == HASH);
     REQUIRE_FALSE(delivered_reliable);
+}
+
+SCENARIO("process_data_packet delivers a message with an empty payload", "[nuclearnet][process_packet]") {
+    if (!test_util::has_ipv4_multicast()) {
+        SKIP("No multicast support");
+    }
+
+    auto net          = make_test_net();
+    const sock_t peer = make_addr(0x0A000001, 5000);
+
+    constexpr uint64_t HASH = 0xAAAABBBBCCCCDDDD;
+    net->add_subscription(HASH);
+
+    establish_peer(*net, peer, "Sender");
+
+    bool delivered          = false;
+    uint64_t delivered_hash = 0;
+
+    net->set_packet_callback(
+        [&](const sock_t&, const std::string&, uint64_t h, bool, std::vector<uint8_t>&& payload) {
+            delivered      = payload.empty();
+            delivered_hash = h;
+        });
+
+    // A message that serialises to nothing is sent as a single fragment with no payload, which is
+    // exactly the size of the data header on the wire
+    auto data_pkt = build_data_packet(42, 0, 1, HASH, 0, {});
+    REQUIRE(data_pkt.size() == DATA_HEADER_SIZE);
+
+    net->process_data_packet(peer, data_pkt.data(), data_pkt.size());
+
+    REQUIRE(delivered);
+    REQUIRE(delivered_hash == HASH);
 }
 
 SCENARIO("process_data_packet detects and rejects duplicate packets", "[nuclearnet][process_packet]") {

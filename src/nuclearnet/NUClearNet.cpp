@@ -139,7 +139,7 @@ namespace {
         // Update module configurations
         discovery     = std::make_unique<Discovery>(new_config.peer_timeout);
         fragmentation = std::make_unique<Fragmentation>(
-            static_cast<uint16_t>(new_config.mtu - sizeof(DataPacket) + 1 - 40 - 8),  // MTU - headers
+            static_cast<uint16_t>(new_config.mtu - DATA_HEADER_SIZE - 40 - 8),  // MTU - headers
             new_config.max_assembly_size,
             new_config.peer_timeout);  // Assembly timeout matches peer timeout
         reliability = std::make_unique<Reliability>();
@@ -322,7 +322,7 @@ namespace {
 
             // Discard stale fragmentation assemblies and reliability tracking from the old path
             fragmentation = std::make_unique<Fragmentation>(
-                static_cast<uint16_t>(config.mtu - sizeof(DataPacket) + 1 - 40 - 8),
+                static_cast<uint16_t>(config.mtu - DATA_HEADER_SIZE - 40 - 8),
                 config.max_assembly_size,
                 config.peer_timeout);
             reliability = std::make_unique<Reliability>();
@@ -386,7 +386,7 @@ namespace {
             header.hash         = req.hash;
 
             std::array<iovec, 2> iov{
-                make_iovec(reinterpret_cast<void*>(&header), sizeof(DataPacket) - 1),  // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
+                make_iovec(reinterpret_cast<void*>(&header), DATA_HEADER_SIZE),  // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
                 make_iovec(const_cast<void*>(static_cast<const void*>(req.data.data())), req.data.size()),  // NOLINT(cppcoreguidelines-pro-type-const-cast)
             };
 
@@ -448,7 +448,7 @@ namespace {
                 const std::size_t frag_len = std::min(static_cast<std::size_t>(packet_mtu), length - offset);
 
                 std::array<iovec, 2> iov{
-                    make_iovec(reinterpret_cast<void*>(&header), sizeof(DataPacket) - 1),  // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
+                    make_iovec(reinterpret_cast<void*>(&header), DATA_HEADER_SIZE),  // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
                     make_iovec(const_cast<void*>(static_cast<const void*>(payload + offset)), frag_len),  // NOLINT(cppcoreguidelines-pro-type-const-cast)
                 };
 
@@ -734,7 +734,7 @@ namespace {
             return;
         }
 
-        if (length < sizeof(DataPacket)) {
+        if (length < DATA_HEADER_SIZE) {
             if (should_log(LogLevel::Warn)) {
                 log(LogLevel::Warn, "net",
                     "short DATA from " + sock_str(source) + " len=" + std::to_string(length));
@@ -772,8 +772,8 @@ namespace {
         }
 
         // Extract fragment data
-        const uint8_t* frag_data        = data + sizeof(DataPacket) - 1;
-        const std::size_t frag_length   = length - (sizeof(DataPacket) - 1);
+        const uint8_t* frag_data      = data + DATA_HEADER_SIZE;
+        const std::size_t frag_length = length - DATA_HEADER_SIZE;
 
         // Use a hash of the full source address as the source key for fragmentation
         // This ensures IPv6 addresses are properly distinguished

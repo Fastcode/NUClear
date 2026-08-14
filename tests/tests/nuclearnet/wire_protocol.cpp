@@ -27,6 +27,7 @@
 #include <cstdint>
 #include <cstring>
 
+using NUClear::network::DATA_HEADER_SIZE;
 using NUClear::network::ACKPacket;
 using NUClear::network::DATA;
 using NUClear::network::DataPacket;
@@ -41,6 +42,8 @@ SCENARIO("Wire protocol structs have correct packed sizes", "[nuclearnet][wire_p
 
     // DataPacket: header(5) + packet_id(2) + packet_no(2) + packet_count(2) + flags(1) + hash(8) + data(1) = 21
     REQUIRE(sizeof(DataPacket) == 21);
+    // The payload begins one byte before the end of the struct, where the `data` placeholder sits
+    REQUIRE(DATA_HEADER_SIZE == 20);
 
     // ACKPacket: header(5) + packet_id(2) + packet_count(2) + packets(1) = 10
     REQUIRE(sizeof(ACKPacket) == 10);

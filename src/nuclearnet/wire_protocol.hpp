@@ -115,7 +115,7 @@ namespace network {
     /**
      * Data packet — carries message payload (possibly one fragment of a larger message).
      *
-     * Wire layout (18+ bytes):
+     * Wire layout (20+ bytes):
      *   [0-4]   PacketHeader (type = DATA)
      *   [5-6]   packet_id (uint16_t) — unique identifier for this packet group
      *   [7-8]   packet_no (uint16_t) — fragment index within the group (0-based)
@@ -140,6 +140,15 @@ namespace network {
         /// Payload data starts here (access via &data)
         char data{0};
     });
+
+    /**
+     * The number of bytes a DataPacket occupies on the wire before its payload.
+     *
+     * `data` is a one byte placeholder marking where the payload begins rather than a field of its own, so
+     * `sizeof(DataPacket)` is one larger than the header actually is. A message that serialises to nothing is
+     * sent as a single fragment of exactly this size.
+     */
+    constexpr std::size_t DATA_HEADER_SIZE = sizeof(DataPacket) - sizeof(char);
 
     /**
      * ACK packet — acknowledges receipt of data fragments.
