@@ -25,6 +25,7 @@
 
 #include <atomic>
 #include <cstdint>
+#include <functional>
 #include <string>
 
 #include "../util/network/sock_t.hpp"
@@ -42,14 +43,30 @@ namespace network {
         Trace = 5,
     };
 
+    /// The sink that log messages are delivered to once they pass the log level check
+    using LogHandler = std::function<void(LogLevel level, const char* component, const std::string& message)>;
+
     void set_log_level(LogLevel level);
     LogLevel get_log_level();
+
+    /**
+     * Set the sink that log messages are delivered to.
+     *
+     * This allows an embedder (the NUClear reactor framework, the node bindings, etc) to route the log messages
+     * into whatever logging system they already have rather than having them written to stderr.
+     *
+     * @param handler The handler to deliver log messages to, or an empty handler to restore the default stderr sink
+     */
+    void set_log_handler(LogHandler handler);
 
     inline bool should_log(LogLevel level) {
         return static_cast<std::uint8_t>(level) <= static_cast<std::uint8_t>(get_log_level());
     }
 
     void log(LogLevel level, const char* component, const std::string& message);
+
+    /// The name of a log level as it is written by the default stderr sink
+    const char* level_name(LogLevel level);
 
     std::string hash_hex(uint64_t hash);
     std::string sock_str(const util::network::sock_t& address);

@@ -40,6 +40,12 @@ namespace extension {
 
     public:
         explicit NetworkController(std::unique_ptr<NUClear::Environment> environment);
+        /// Removes our log handler so the NUClearNet library can't call back into a destroyed reactor
+        ~NetworkController() override;
+        NetworkController(const NetworkController&)            = delete;
+        NetworkController(NetworkController&&)                 = delete;
+        NetworkController& operator=(const NetworkController&) = delete;
+        NetworkController& operator=(NetworkController&&)      = delete;
 
     private:
         /// Our NUClearNet object that handles the networking

@@ -57,6 +57,42 @@ public:
 | `announce_port`    | `uint16_t` | `7447`              | Port for announce messages                      |
 | `bind_address`     | `string`   | `""` (all)          | Local interface to bind to (see [Forming a mesh](#forming-a-mesh) — default `INADDR_ANY` is required for broadcast fan-out on macOS) |
 | `mtu`              | `uint16_t` | `1500`              | Maximum transmission unit (fragments if larger) |
+| `log_level`        | `LogLevel` | `UNKNOWN` (off)     | Level to log the networking internals at (see [Logging](#logging)) |
+
+### Logging
+
+NUClearNet logs what it is doing internally — discovery, handshakes, fragmentation, retransmission.
+Set `log_level` on the `NetworkConfiguration` to turn it on:
+
+```cpp
+emit(std::make_unique<NUClear::message::NetworkConfiguration>(
+    "alice",             // Node name
+    "239.226.152.162",   // Multicast announce address
+    7447,                // Announce port
+    "",                  // Bind address
+    1500,                // MTU
+    NUClear::LogLevel::DEBUG
+));
+```
+
+This sets both the log level inside the NUClearNet library and the log level of the `NetworkController` reactor
+that emits the messages, so the two cannot disagree.
+The messages come out through the normal NUClear logging system as `LogMessage`s, so your existing log handlers
+see them alongside everything else.
+Leaving `log_level` as `UNKNOWN` disables the networking logs entirely, which is the default.
+
+When NUClearNet is used as a standalone library (without the reactor framework) the messages are written to
+stderr instead. Call `NUClearNet::set_log_handler` to redirect them into your own logging system:
+
+```cpp
+NUClear::network::NUClearNet::set_log_level(NUClear::network::LogLevel::Debug);
+NUClear::network::NUClearNet::set_log_handler(
+    [](NUClear::network::LogLevel level, const char* component, const std::string& message) {
+        my_logger.write(level, component, message);
+    });
+```
+
+Pass an empty handler to go back to the stderr default.
 
 ### Network modes
 

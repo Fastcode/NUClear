@@ -84,6 +84,10 @@ namespace {
         network::set_log_level(level);
     }
 
+    void NUClearNet::set_log_handler(LogHandler handler) {
+        network::set_log_handler(std::move(handler));
+    }
+
     NUClearNet::NUClearNet()
         : discovery(std::make_unique<Discovery>(std::chrono::seconds(2)))
         , fragmentation(std::make_unique<Fragmentation>(1452, 64 * 1024 * 1024, std::chrono::seconds(2)))

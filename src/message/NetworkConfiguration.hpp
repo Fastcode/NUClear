@@ -25,6 +25,8 @@
 
 #include <string>
 
+#include "../LogLevel.hpp"
+
 namespace NUClear {
 namespace message {
 
@@ -36,12 +38,14 @@ namespace message {
                              std::string address,
                              uint16_t port,
                              std::string bind_address = "",
-                             uint16_t mtu             = 1500)
+                             uint16_t mtu             = 1500,
+                             LogLevel log_level       = LogLevel::UNKNOWN)
             : name(std::move(name))
             , announce_address(std::move(address))
             , announce_port(port)
             , bind_address(std::move(bind_address))
-            , mtu(mtu) {}
+            , mtu(mtu)
+            , log_level(log_level) {}
 
         /// The name of this node when connecting to the NUClear network
         std::string name;
@@ -53,6 +57,10 @@ namespace message {
         std::string bind_address;
         /// The maximum transmission unit for this node
         uint16_t mtu{1500};
+        /// The level to log the internals of the NUClear network at.
+        /// This sets the log level of the NetworkController reactor as well as the NUClearNet library itself.
+        /// UNKNOWN disables the NUClearNet library logging entirely.
+        LogLevel log_level{LogLevel::UNKNOWN};
     };
 
 }  // namespace message

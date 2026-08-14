@@ -32,6 +32,7 @@
 #include <utility>
 #include <vector>
 
+#include "../LogLevel.hpp"
 #include "../Reactor.hpp"
 #include "../dsl/operation/Unbind.hpp"
 #include "../dsl/store/ThreadStore.hpp"
@@ -40,6 +41,7 @@
 #include "../message/NetworkConfiguration.hpp"
 #include "../message/NetworkEvent.hpp"
 #include "../nuclearnet/Discovery.hpp"
+#include "../nuclearnet/Log.hpp"
 #include "../nuclearnet/NUClearNet.hpp"
 #include "../util/get_hostname.hpp"
 
@@ -52,8 +54,45 @@ namespace extension {
     using Unbind               = dsl::operation::Unbind<NetworkListen>;
     struct ProcessNetwork {};
 
+namespace {
+
+    /// Convert a NUClear log level into the equivalent level for the NUClearNet library
+    network::LogLevel to_network_level(const LogLevel& level) {
+        switch (level) {
+            case LogLevel::TRACE: return network::LogLevel::Trace;
+            case LogLevel::DEBUG: return network::LogLevel::Debug;
+            case LogLevel::INFO: return network::LogLevel::Info;
+            case LogLevel::WARN: return network::LogLevel::Warn;
+            case LogLevel::ERROR:
+            case LogLevel::FATAL: return network::LogLevel::Error;
+            default: return network::LogLevel::Off;
+        }
+    }
+
+    /// Convert a NUClearNet library log level into the equivalent NUClear log level
+    LogLevel from_network_level(const network::LogLevel& level) {
+        switch (level) {
+            case network::LogLevel::Trace: return LogLevel::TRACE;
+            case network::LogLevel::Debug: return LogLevel::DEBUG;
+            case network::LogLevel::Info: return LogLevel::INFO;
+            case network::LogLevel::Warn: return LogLevel::WARN;
+            case network::LogLevel::Error: return LogLevel::ERROR;
+            default: return LogLevel::UNKNOWN;
+        }
+    }
+
+}  // namespace
+
     NetworkController::NetworkController(std::unique_ptr<NUClear::Environment> environment)
         : Reactor(std::move(environment)) {
+
+        // Send the NUClearNet library's logs through the NUClear logging system rather than to stderr.
+        // Every path that logs (reset, send, process) is only ever called from within one of our reactions so we
+        // will always have reactor context when this fires.
+        network::NUClearNet::set_log_handler(
+            [this](const network::LogLevel& level, const char* component, const std::string& message) {
+                log(from_network_level(level), std::string("NUClearNet:") + component, message);
+            });
 
         // Set our function callback
         net.set_packet_callback([this](const network::NUClearNet::sock_t& source,
@@ -164,6 +203,14 @@ namespace extension {
 
         // Configure the NUClearNetwork options
         on<Trigger<NetworkConfiguration>>().then([this](const NetworkConfiguration& config) {
+            // Pass the configured log level through to both this reactor and the NUClearNet library.
+            // Both are needed, the library level decides what it hands us and our level decides what gets emitted.
+            // UNKNOWN means the level wasn't configured, so leave our level alone and keep the library quiet.
+            if (config.log_level != LogLevel::UNKNOWN) {
+                this->log_level = config.log_level;
+            }
+            net.set_log_level(to_network_level(config.log_level));
+
             // Unbind our announce handle
             if (process_handle) {
                 process_handle.unbind();
@@ -205,6 +252,11 @@ namespace extension {
                 listen_handles.push_back(on<IO>(fd, IO::READ).then("Packet", [this] { net.process(); }));
             }
         });
+    }
+
+    NetworkController::~NetworkController() {
+        // Put the logs back on stderr so the library can't call back into us once we are gone
+        network::NUClearNet::set_log_handler(nullptr);
     }
 
 }  // namespace extension

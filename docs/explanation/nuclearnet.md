@@ -887,9 +887,34 @@ emit(std::make_unique<NetworkConfiguration>(
 | `announce_port`    | `uint16_t` | `7447`              | Port for announce messages                      |
 | `bind_address`     | `string`   | `""` (all)          | Local interface to bind to (default `INADDR_ANY`; required for broadcast fan-out on macOS) |
 | `mtu`              | `uint16_t` | `1500`              | Maximum transmission unit (fragments if larger) |
+| `log_level`        | `LogLevel` | `UNKNOWN` (off)     | Level to log the networking internals at        |
 
 When a new configuration is received, the `NetworkController` tears down existing sockets and reinitializes with the new settings.
 The node name becomes the identifier that other peers see in `NetworkJoin` events.
+
+### Logging
+
+Every component logs what it is doing through a single sink in `Log.hpp`, gated by a process wide log level that
+defaults to `Off`.
+Because the library is usable without the reactor framework, that sink is a callback rather than a hard dependency
+on NUClear's logging system:
+
+```cpp
+using LogHandler = std::function<void(LogLevel level, const char* component, const std::string& message)>;
+NUClearNet::set_log_handler(handler);  // an empty handler restores the stderr default
+```
+
+Each embedder installs its own handler:
+
+| Embedder            | Where the messages go                                                      |
+| ------------------- | -------------------------------------------------------------------------- |
+| `NetworkController` | Re-emitted as NUClear `LogMessage`s, so the usual log handlers pick them up |
+| NUClearNet.js       | Handed to the JavaScript logger alongside the binding's own messages        |
+| Standalone          | `std::cerr`, formatted as `[NUClearNet:<component>] <level> <message>`      |
+
+Under the reactor framework `NetworkConfiguration::log_level` drives both the library level (which decides what
+the library hands to the handler) and the `NetworkController` reactor level (which decides what it emits), so a
+single setting controls the whole path.
 
 ### Internal engine parameters
 

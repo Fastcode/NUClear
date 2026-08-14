@@ -30,7 +30,9 @@
 #include <cstdint>
 #include <cstdio>
 #include <iostream>
+#include <mutex>
 #include <string>
+#include <utility>
 
 namespace NUClear {
 namespace network {
@@ -40,15 +42,20 @@ namespace {
     // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
     std::atomic<std::uint8_t> g_log_level{static_cast<std::uint8_t>(LogLevel::Off)};
 
-    const char* level_name(LogLevel level) {
-        switch (level) {
-            case LogLevel::Error: return "error";
-            case LogLevel::Warn: return "warn";
-            case LogLevel::Info: return "info";
-            case LogLevel::Debug: return "debug";
-            case LogLevel::Trace: return "trace";
-            default: return "off";
-        }
+    /// The mutex guarding the log handler, function local so it is initialised before any first use
+    std::mutex& handler_mutex() {
+        static std::mutex mutex;
+        return mutex;
+    }
+
+    /// The current log handler, an empty handler means log to stderr
+    LogHandler& handler() {
+        static LogHandler handler;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+        return handler;
+    }
+
+    void log_to_stderr(LogLevel level, const char* component, const std::string& message) {
+        std::cerr << "[NUClearNet:" << component << "] " << level_name(level) << " " << message << std::endl;
     }
 
 }  // namespace
@@ -61,11 +68,40 @@ namespace {
         return static_cast<LogLevel>(g_log_level.load());
     }
 
+    void set_log_handler(LogHandler new_handler) {
+        const std::lock_guard<std::mutex> lock(handler_mutex());
+        handler() = std::move(new_handler);
+    }
+
+    const char* level_name(LogLevel level) {
+        switch (level) {
+            case LogLevel::Error: return "error";
+            case LogLevel::Warn: return "warn";
+            case LogLevel::Info: return "info";
+            case LogLevel::Debug: return "debug";
+            case LogLevel::Trace: return "trace";
+            default: return "off";
+        }
+    }
+
     void log(LogLevel level, const char* component, const std::string& message) {
         if (!should_log(level)) {
             return;
         }
-        std::cerr << "[NUClearNet:" << component << "] " << level_name(level) << " " << message << std::endl;
+
+        // Copy the handler out so it can't be swapped out from under us while it runs
+        LogHandler current;
+        /* Mutex Scope */ {
+            const std::lock_guard<std::mutex> lock(handler_mutex());
+            current = handler();
+        }
+
+        if (current) {
+            current(level, component, message);
+        }
+        else {
+            log_to_stderr(level, component, message);
+        }
     }
 
     std::string hash_hex(uint64_t hash) {

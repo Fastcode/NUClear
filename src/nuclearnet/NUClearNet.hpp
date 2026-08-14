@@ -123,9 +123,19 @@ namespace network {
         void shutdown();
 
         /**
-         * Set the global NUClearNet log level (stderr). Default is Off.
+         * Set the global NUClearNet log level. Default is Off.
          */
         static void set_log_level(LogLevel level);
+
+        /**
+         * Set the global sink that NUClearNet log messages are delivered to.
+         *
+         * By default messages are written to stderr.
+         * Set a handler to route them into an existing logging system instead.
+         *
+         * @param handler The handler to deliver log messages to, or an empty handler to restore the stderr default
+         */
+        static void set_log_handler(LogHandler handler);
 
         /**
          * Process pending network events (send announces, check timeouts, read packets).
