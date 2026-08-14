@@ -121,6 +121,17 @@ namespace network {
                                                           const std::vector<uint64_t>& subscriptions);
 
         /**
+         * Read the node name out of an announce packet without otherwise processing it.
+         *
+         * @param data   Pointer to the announce packet
+         * @param length Length of the packet in bytes
+         * @param name   Filled with the name if the packet is well formed
+         *
+         * @return true if a name could be read
+         */
+        static bool peek_announce_name(const uint8_t* data, std::size_t length, std::string& name);
+
+        /**
          * Build a leave packet.
          *
          * @return The serialized leave packet bytes

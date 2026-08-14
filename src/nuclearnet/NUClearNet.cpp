@@ -618,6 +618,14 @@ namespace {
         return fds;
     }
 
+    in_port_t NUClearNet::own_data_port() const {
+        switch (own_data_address.sock.sa_family) {
+            case AF_INET: return own_data_address.ipv4.sin_port;
+            case AF_INET6: return own_data_address.ipv6.sin6_port;
+            default: return 0;
+        }
+    }
+
     bool NUClearNet::is_own_data_endpoint(const sock_t& source) const {
         if (own_data_address.sock.sa_family == AF_UNSPEC) {
             return false;
@@ -632,6 +640,23 @@ namespace {
             return source.ipv6.sin6_port == own_data_address.ipv6.sin6_port;
         }
         return false;
+    }
+
+    bool NUClearNet::is_own_announce(const sock_t& source, const uint8_t* data, std::size_t length) const {
+        // The data socket usually binds INADDR_ANY, so getsockname gives us a port but no usable address to
+        // compare against. The port alone is not enough: a remote peer's data socket can land on the same
+        // ephemeral port as ours, and treating it as us would silently discard every announce it ever sends.
+        // Require the name to match as well, so a port collision alone cannot hide a peer.
+        if (!is_own_data_endpoint(source)) {
+            return false;
+        }
+
+        std::string name;
+        if (!Discovery::peek_announce_name(data, length, name)) {
+            return false;
+        }
+
+        return name == node_name;
     }
 
     void NUClearNet::announce() {
@@ -711,7 +736,7 @@ namespace {
 
     void NUClearNet::process_announce_packet(const sock_t& source, const uint8_t* data, std::size_t length) {
         // Ignore our own announces (multicast/broadcast loopback) without blocking other nodes on 127.0.0.1
-        if (is_own_data_endpoint(source)) {
+        if (is_own_announce(source, data, length)) {
             if (should_log(LogLevel::Debug)) {
                 log(LogLevel::Debug, "net", "ignoring self announce from " + sock_str(source));
             }

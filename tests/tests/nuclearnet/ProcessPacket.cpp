@@ -568,3 +568,60 @@ SCENARIO("A peer that never acknowledges a reliable send is disconnected",
         REQUIRE(left);
     }
 }
+
+SCENARIO("A peer sharing our ephemeral port is not mistaken for ourselves", "[nuclearnet][process_packet]") {
+    if (!test_util::has_ipv4_multicast()) {
+        SKIP("No multicast support");
+    }
+
+    auto net = make_test_net("Us");
+
+    bool joined = false;
+    net->set_join_callback([&](const NUClear::network::PeerInfo& p) { joined = (p.name == "Them"); });
+
+    // A remote peer whose data socket happens to have landed on the same ephemeral port as ours. Only the
+    // port is available to compare against, because our own socket binds INADDR_ANY.
+    sock_t peer{};
+    peer.ipv4.sin_family      = AF_INET;
+    peer.ipv4.sin_addr.s_addr = htonl(0x0A000001);
+    peer.ipv4.sin_port        = net->own_data_port();
+
+    auto announce_pkt = build_announce("Them", {});
+    net->process_packet(peer, announce_pkt.data(), announce_pkt.size());
+
+    // Complete the handshake so the join fires
+    auto syn = build_connect(SYN);
+    net->process_connect_packet(peer, syn.data(), syn.size());
+    auto syn_ack = build_connect(SYN | CON_ACK);
+    net->process_connect_packet(peer, syn_ack.data(), syn_ack.size());
+    auto ack = build_connect(CON_ACK);
+    net->process_connect_packet(peer, ack.data(), ack.size());
+
+    THEN("their announce is processed rather than discarded as our own") {
+        REQUIRE(joined);
+    }
+}
+
+SCENARIO("Our own announce looped back is still ignored", "[nuclearnet][process_packet]") {
+    if (!test_util::has_ipv4_multicast()) {
+        SKIP("No multicast support");
+    }
+
+    auto net = make_test_net("Us");
+
+    bool joined = false;
+    net->set_join_callback([&](const NUClear::network::PeerInfo&) { joined = true; });
+
+    // Our own announce, coming back to us with our own name and port
+    sock_t self{};
+    self.ipv4.sin_family      = AF_INET;
+    self.ipv4.sin_addr.s_addr = htonl(0x0A000001);
+    self.ipv4.sin_port        = net->own_data_port();
+
+    auto announce_pkt = build_announce("Us", {});
+    net->process_packet(self, announce_pkt.data(), announce_pkt.size());
+
+    THEN("it is ignored") {
+        REQUIRE_FALSE(joined);
+    }
+}

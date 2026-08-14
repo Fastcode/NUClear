@@ -113,6 +113,27 @@ namespace network {
         return packet;
     }
 
+    bool Discovery::peek_announce_name(const uint8_t* data, std::size_t length, std::string& name) {
+        // Minimum size: header(5) + name_length(2) + num_subscriptions(2) = 9
+        if (length < sizeof(PacketHeader) + sizeof(uint16_t) + sizeof(uint16_t)) {
+            return false;
+        }
+
+        const uint8_t* ptr = data + sizeof(PacketHeader);
+
+        uint16_t name_len = 0;
+        std::memcpy(&name_len, ptr, sizeof(uint16_t));
+        ptr += sizeof(uint16_t);
+
+        if (length - sizeof(PacketHeader) - sizeof(uint16_t) < name_len + sizeof(uint16_t)) {
+            return false;
+        }
+
+        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
+        name.assign(reinterpret_cast<const char*>(ptr), name_len);
+        return !name.empty();
+    }
+
     Discovery::AnnounceResult Discovery::process_announce(const sock_t& source,
                                                           const uint8_t* data,
                                                           std::size_t length,

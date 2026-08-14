@@ -193,6 +193,9 @@ namespace network {
          */
         std::vector<fd_t> listen_fds() const;
 
+        /// The ephemeral port our data socket is bound to, in network byte order
+        in_port_t own_data_port() const;
+
         /// Process a single received packet (dispatches to per-type handlers)
         void process_packet(const sock_t& source, const uint8_t* data, std::size_t length);
 
@@ -242,6 +245,9 @@ namespace network {
 
         /// Returns true if the UDP source is this node's data socket (same ephemeral port).
         bool is_own_data_endpoint(const sock_t& source) const;
+
+        /// Whether an announce packet is one of ours looped back, rather than a peer that shares our port
+        bool is_own_announce(const sock_t& source, const uint8_t* data, std::size_t length) const;
 
         // Configuration
         NetworkConfig config;
