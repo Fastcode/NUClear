@@ -509,11 +509,14 @@ namespace {
         auto peers = discovery->get_peers();
         std::vector<sock_t> targets;
 
+        // A peer is in the map from the moment we hear its announce, but it discards anything we send until
+        // its own handshake is confirmed. Sending before then is guaranteed to be thrown away, and for a
+        // reliable send it burns the whole retry budget before we conclude the peer is unreachable.
         if (target.empty()) {
             // Reliable broadcast: send to all subscribing peers individually (for ACK tracking)
             for (const auto& peer : peers) {
                 const auto& addr = peer.first;
-                if (routing.should_send(addr, hash)) {
+                if (peer.second.is_connected() && routing.should_send(addr, hash)) {
                     targets.push_back(addr);
                 }
             }
@@ -523,7 +526,7 @@ namespace {
             for (const auto& peer : peers) {
                 const auto& addr = peer.first;
                 const auto& info = peer.second;
-                if (info.name == target && routing.should_send(addr, hash)) {
+                if (info.is_connected() && info.name == target && routing.should_send(addr, hash)) {
                     targets.push_back(addr);
                 }
             }
@@ -624,6 +627,10 @@ namespace {
             case AF_INET6: return own_data_address.ipv6.sin6_port;
             default: return 0;
         }
+    }
+
+    bool NUClearNet::is_connected_to(const sock_t& address) const {
+        return discovery->is_connected(address);
     }
 
     bool NUClearNet::is_own_data_endpoint(const sock_t& source) const {

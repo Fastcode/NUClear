@@ -196,6 +196,9 @@ namespace network {
         /// The ephemeral port our data socket is bound to, in network byte order
         in_port_t own_data_port() const;
 
+        /// Whether the given peer has completed both halves of the connection
+        bool is_connected_to(const sock_t& address) const;
+
         /// Process a single received packet (dispatches to per-type handlers)
         void process_packet(const sock_t& source, const uint8_t* data, std::size_t length);
 

@@ -440,7 +440,7 @@ namespace network {
     bool Discovery::is_connected(const sock_t& address) const {
         const std::lock_guard<std::mutex> lock(peers_mutex);
         auto it = peers.find(address);
-        return it != peers.end() && it->second.announce_heard && it->second.handshake == HandshakeState::CONFIRMED;
+        return it != peers.end() && it->second.is_connected();
     }
 
     void Discovery::touch_peer(const sock_t& source, std::chrono::steady_clock::time_point now) {

@@ -625,3 +625,39 @@ SCENARIO("Our own announce looped back is still ignored", "[nuclearnet][process_
         REQUIRE_FALSE(joined);
     }
 }
+
+SCENARIO("Nothing is sent to a peer whose handshake has not completed", "[nuclearnet][process_packet]") {
+    if (!test_util::has_ipv4_multicast()) {
+        SKIP("No multicast support");
+    }
+
+    auto net          = make_test_net();
+    const sock_t peer = make_addr(0x0A000001, 5000);
+
+    // Only the announce, so the peer exists but the data port handshake is still outstanding. The receiving
+    // side discards data from a peer it has not finished connecting to, so anything sent now is thrown away.
+    auto announce_pkt = build_announce("Peer1", {});
+    net->process_packet(peer, announce_pkt.data(), announce_pkt.size());
+
+    const std::vector<uint8_t> payload(32, 0xAB);
+
+    WHEN("a reliable message is sent to them") {
+        net->send(0x1234, payload.data(), payload.size(), "Peer1", true);
+
+        THEN("it is not tracked for retransmission, because it was never sent") {
+            // If it had been sent, it would be retransmitted once the timeout elapsed
+            std::this_thread::sleep_for(std::chrono::milliseconds(400));
+            net->process();
+
+            // Completing the handshake is what makes them a valid target
+            auto syn = build_connect(SYN);
+            net->process_connect_packet(peer, syn.data(), syn.size());
+            auto syn_ack = build_connect(SYN | CON_ACK);
+            net->process_connect_packet(peer, syn_ack.data(), syn_ack.size());
+            auto ack = build_connect(CON_ACK);
+            net->process_connect_packet(peer, ack.data(), ack.size());
+
+            REQUIRE(net->is_connected_to(peer));
+        }
+    }
+}

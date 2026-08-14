@@ -63,6 +63,16 @@ namespace network {
         bool announce_heard = false;
         /// Data port handshake state (proves their_d↔our_d via CONNECT packets)
         HandshakeState handshake = HandshakeState::IDLE;
+
+        /**
+         * Whether both halves of the connection are confirmed.
+         *
+         * A peer exists in the map from the moment its announce is heard, which is before it can accept
+         * anything from us — the receiving side discards data from a peer it has not finished connecting to.
+         */
+        bool is_connected() const {
+            return announce_heard && handshake == HandshakeState::CONFIRMED;
+        }
     };
 
     /**
