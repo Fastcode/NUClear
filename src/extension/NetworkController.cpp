@@ -91,7 +91,20 @@ namespace {
         // will always have reactor context when this fires.
         network::NUClearNet::set_log_handler(
             [this](const network::LogLevel& level, const char* component, const std::string& message) {
-                log(from_network_level(level), std::string("NUClearNet:") + component, message);
+                const std::string text = std::string("NUClearNet:") + component + " " + message;
+
+                // Dispatch on the level explicitly. Reactor::log(level, args...) resolves to the compile time
+                // overload with its default level, which would log everything at DEBUG with the level name
+                // stringified into the message.
+                switch (from_network_level(level)) {
+                    case LogLevel::TRACE: log<LogLevel::TRACE>(text); break;
+                    case LogLevel::DEBUG: log<LogLevel::DEBUG>(text); break;
+                    case LogLevel::INFO: log<LogLevel::INFO>(text); break;
+                    case LogLevel::WARN: log<LogLevel::WARN>(text); break;
+                    case LogLevel::ERROR: log<LogLevel::ERROR>(text); break;
+                    case LogLevel::FATAL: log<LogLevel::FATAL>(text); break;
+                    default: break;
+                }
             });
 
         // Set our function callback
