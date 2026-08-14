@@ -26,6 +26,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include <cstdint>
 #include <cstring>
+#include <thread>
 #include <memory>
 #include <string>
 #include <utility>
@@ -528,4 +529,42 @@ SCENARIO("send to named peer that does not exist delivers nothing", "[nuclearnet
     // Try to send to a non-existent peer name — should not crash
     std::vector<uint8_t> payload = {1, 2, 3};
     net->send(0x1234, payload.data(), payload.size(), "NonExistentPeer", false);
+}
+
+SCENARIO("A peer that never acknowledges a reliable send is disconnected",
+         "[nuclearnet][process_packet][.slow]") {
+    if (!test_util::has_ipv4_multicast()) {
+        SKIP("No multicast support");
+    }
+
+    // A long peer timeout, so the ordinary "stopped announcing" path cannot be what disconnects them and
+    // the only thing left to do it is the unacknowledged reliable send
+    auto net = std::make_unique<NUClearNet>();
+    NetworkConfig cfg;
+    cfg.name         = "TestNode";
+    cfg.peer_timeout = std::chrono::seconds(60);
+    net->reset(cfg);
+
+    // An address nothing will ever answer from, so the reliable send can never be acknowledged
+    const sock_t peer = make_addr(0x0A000001, 5000);
+
+    bool left = false;
+    net->set_leave_callback([&](const NUClear::network::PeerInfo& p) { left = (p.name == "Deaf"); });
+
+    establish_peer(*net, peer, "Deaf");
+
+    const std::vector<uint8_t> payload(64, 0xAB);
+    net->send(0x1234, payload.data(), payload.size(), "Deaf", true);
+
+    // Drive the network until it gives up on the peer. The retransmit interval backs off and is capped, so
+    // this settles well inside the timeout below.
+    const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(60);
+    while (!left && std::chrono::steady_clock::now() < deadline) {
+        net->process();
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));
+    }
+
+    THEN("the caller is told the peer left rather than the data being dropped silently") {
+        REQUIRE(left);
+    }
 }

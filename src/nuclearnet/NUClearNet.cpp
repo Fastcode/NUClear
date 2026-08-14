@@ -385,7 +385,24 @@ namespace {
         discovery->check_timeouts(now);
 
         // Check for retransmissions
-        auto retransmissions = reliability->check_retransmissions(fragmentation->get_packet_mtu());
+        std::vector<Reliability::UndeliverablePacket> undeliverable;
+        auto retransmissions = reliability->check_retransmissions(fragmentation->get_packet_mtu(), undeliverable);
+
+        // A reliable send we can no longer make good on means the connection is broken, not that one message
+        // was unlucky. Drop the peer so the caller sees a disconnect rather than silently losing the data;
+        // they will reconnect off their next announce and the state is sent again from scratch.
+        for (const auto& failure : undeliverable) {
+            if (should_log(LogLevel::Warn)) {
+                std::ostringstream msg;
+                msg << "peer unreachable " << sock_str(failure.target) << ", dropping connection after "
+                    << failure.retransmits << " retransmits of packet_id=" << failure.packet_id
+                    << " hash=" << hash_hex(failure.hash) << " with " << failure.unacked << "/"
+                    << failure.packet_count << " fragments unacknowledged";
+                log(LogLevel::Warn, "reliability", msg.str());
+            }
+            // Takes the same path as a LEAVE packet, which clears our tracking and notifies the caller
+            discovery->process_leave(failure.target);
+        }
         if (should_log(LogLevel::Debug) && !retransmissions.empty()) {
             std::ostringstream msg;
             msg << "retransmit count=" << retransmissions.size();

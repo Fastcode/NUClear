@@ -51,16 +51,36 @@ namespace network {
         using sock_t = util::network::sock_t;
 
         /**
-         * How many times a packet group is retransmitted before it is given up on.
+         * How many times a packet group is retransmitted before the peer is declared unreachable.
          *
-         * A peer that stays connected but never acknowledges a particular packet would otherwise have it
-         * retransmitted forever, so one undeliverable message becomes a permanent load that grows every time
-         * another one joins it.
+         * A reliable send promises the data arrived, so a packet that cannot be delivered is never abandoned in
+         * favour of carrying on with the next one — that would silently break the guarantee the caller asked
+         * for. As TCP does, exhausting the retries means the connection is broken rather than that one message
+         * was unlucky, so the peer is dropped and has to reconnect.
          */
         static constexpr uint16_t MAX_RETRANSMITS = 10;
 
         /// How many times the retransmission timeout is allowed to double while a packet goes unacknowledged
         static constexpr uint16_t MAX_BACKOFF_SHIFT = 6;
+
+        /**
+         * The longest the backoff is allowed to stretch the retransmission timeout to.
+         *
+         * The timeout is already capped at 60s for a genuinely slow peer, and doubling that six times would
+         * take an hour to notice the peer had gone. The backoff never pushes the interval below the peer's own
+         * timeout, so a slow link is still given the time it needs.
+         */
+        static constexpr std::chrono::seconds MAX_RETRANSMIT_INTERVAL{5};
+
+        /// A packet that could not be delivered, and the peer it was destined for
+        struct UndeliverablePacket {
+            sock_t target{};
+            uint16_t packet_id{0};
+            uint64_t hash{0};
+            uint16_t packet_count{0};
+            uint16_t unacked{0};
+            uint16_t retransmits{0};
+        };
 
         /// Information about a fragment that needs retransmitting
         struct RetransmitRequest {
@@ -129,10 +149,21 @@ namespace network {
         /**
          * Check for packets that need retransmission and return them.
          *
-         * @param packet_mtu The MTU to use for fragmenting retransmissions
-         * @param now        The current time (defaults to steady_clock::now())
+         * @param packet_mtu    The MTU to use for fragmenting retransmissions
+         * @param failed_peers  Filled with peers that have exhausted their retries and should be disconnected.
+         *                      Their packets stay tracked until the peer is removed, so the caller must act on
+         *                      this or the same peers will be reported again.
+         * @param now           The current time (defaults to steady_clock::now())
          *
          * @return List of fragments that need to be retransmitted
+         */
+        std::vector<RetransmitRequest> check_retransmissions(
+            uint16_t packet_mtu,
+            std::vector<UndeliverablePacket>& failed_peers,
+            std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now());
+
+        /**
+         * Check for packets that need retransmission, ignoring any peers that have exhausted their retries.
          */
         std::vector<RetransmitRequest> check_retransmissions(
             uint16_t packet_mtu,

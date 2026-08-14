@@ -39,6 +39,10 @@
 namespace NUClear {
 namespace network {
 
+    // Definitions for the in class initialised constants, needed until C++17 makes them implicitly inline
+    constexpr uint16_t Reliability::MAX_RETRANSMITS;
+    constexpr uint16_t Reliability::MAX_BACKOFF_SHIFT;
+    constexpr std::chrono::seconds Reliability::MAX_RETRANSMIT_INTERVAL;
 
     void Reliability::track_packet(const sock_t& target,
                                    uint16_t packet_id,
@@ -143,6 +147,14 @@ namespace network {
     std::vector<Reliability::RetransmitRequest> Reliability::check_retransmissions(
         uint16_t packet_mtu,
         std::chrono::steady_clock::time_point now) {
+        std::vector<UndeliverablePacket> ignored;
+        return check_retransmissions(packet_mtu, ignored, now);
+    }
+
+    std::vector<Reliability::RetransmitRequest> Reliability::check_retransmissions(
+        uint16_t packet_mtu,
+        std::vector<UndeliverablePacket>& failed_peers,
+        std::chrono::steady_clock::time_point now) {
         std::vector<RetransmitRequest> retransmissions;
 
         const std::lock_guard<std::mutex> lock(tracking_mutex);
@@ -158,8 +170,12 @@ namespace network {
             }
 
             // Back the timeout off exponentially while the packet goes unacknowledged, so a peer that cannot
-            // acknowledge it is retried at a decaying rate rather than a constant one
-            rto *= 1 << std::min(tp.retransmit_count, MAX_BACKOFF_SHIFT);
+            // acknowledge it is retried at a decaying rate rather than a constant one. Bounded so that a peer
+            // with a slow measured RTT is still declared unreachable in a sensible amount of time, but never
+            // retried faster than its own timeout.
+            const auto backed_off = rto * (1 << std::min(tp.retransmit_count, MAX_BACKOFF_SHIFT));
+            rto                   = std::max(rto, std::min(backed_off, std::chrono::steady_clock::duration(
+                                                                             MAX_RETRANSMIT_INTERVAL)));
 
             // Check if it's time to retransmit
             if (now - tp.last_send < rto) {
@@ -167,22 +183,21 @@ namespace network {
                 continue;
             }
 
-            // Give up rather than retransmitting forever. Without this a single message the peer will never
-            // acknowledge becomes a permanent load, and every further one adds to it.
+            // Out of retries. Report the peer as unreachable rather than dropping the packet and moving on —
+            // a reliable send promised this data arrived, so the caller has to be told the connection failed.
+            // The packet stays tracked; it is cleaned up when the peer is removed.
             if (tp.retransmit_count >= MAX_RETRANSMITS) {
-                if (should_log(LogLevel::Warn)) {
-                    std::size_t unacked = 0;
-                    for (uint16_t i = 0; i < tp.packet_count; ++i) {
-                        unacked += tp.acked[i] ? 0 : 1;
-                    }
-                    log(LogLevel::Warn,
-                        "reliability",
-                        "giving up on packet_id=" + std::to_string(tp.packet_id) + " hash=" + hash_hex(tp.hash)
-                            + " peer=" + sock_str(tp.target) + " after " + std::to_string(tp.retransmit_count)
-                            + " retransmits with " + std::to_string(unacked) + "/"
-                            + std::to_string(tp.packet_count) + " fragments unacknowledged");
+                UndeliverablePacket failure;
+                failure.target       = tp.target;
+                failure.packet_id    = tp.packet_id;
+                failure.hash         = tp.hash;
+                failure.packet_count = tp.packet_count;
+                failure.retransmits  = tp.retransmit_count;
+                for (uint16_t i = 0; i < tp.packet_count; ++i) {
+                    failure.unacked += tp.acked[i] ? 0 : 1;
                 }
-                it = tracked_packets.erase(it);
+                failed_peers.push_back(failure);
+                ++it;
                 continue;
             }
 

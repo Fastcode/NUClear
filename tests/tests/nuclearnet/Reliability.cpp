@@ -126,13 +126,13 @@ SCENARIO("Reliability retransmits until the peer is removed", "[nuclearnet][reli
 
     // Each retransmission waits longer than the last, so step well past the backed off timeout each time
     for (std::size_t i = 0; i < 3; ++i) {
-        t += std::chrono::seconds(60);
+        t += std::chrono::hours(1);
         REQUIRE(rel.check_retransmissions(100, t).size() == 1);
     }
 
     // Removing the peer cleans up all tracked packets
     rel.remove_peer(target);
-    t += std::chrono::seconds(60);
+    t += std::chrono::hours(1);
     REQUIRE(rel.check_retransmissions(100, t).empty());
 }
 
@@ -165,30 +165,48 @@ SCENARIO("Reliability remove_peer removes all tracked state", "[nuclearnet][reli
     REQUIRE(retransmissions.empty());
 }
 
-SCENARIO("Reliability gives up on a packet that is never acknowledged", "[nuclearnet][reliability]") {
+SCENARIO("Reliability reports the peer as unreachable when retries are exhausted", "[nuclearnet][reliability]") {
     Reliability rel;
 
     const sock_t target = make_addr(0x0A000001, 5000);
     const std::vector<uint8_t> payload(100, 0xFF);
 
     auto t = std::chrono::steady_clock::now();
-    rel.track_packet(target, 1, 1, 0x1234, 0x01, payload.data(), payload.size(), t);
+    rel.track_packet(target, 1, 4, 0x1234, 0x01, payload.data(), payload.size(), t);
 
     // Walk far enough forward each time that the backed off timeout has always expired
     std::size_t rounds = 0;
-    for (std::size_t i = 0; i < Reliability::MAX_RETRANSMITS + 5; ++i) {
-        t += std::chrono::seconds(60);
-        if (!rel.check_retransmissions(100, t).empty()) {
+    std::vector<Reliability::UndeliverablePacket> failed;
+    for (std::size_t i = 0; i < Reliability::MAX_RETRANSMITS + 3; ++i) {
+        t += std::chrono::hours(1);
+        if (!rel.check_retransmissions(100, failed, t).empty()) {
             ++rounds;
         }
     }
 
-    THEN("it is retransmitted a bounded number of times and then dropped") {
+    THEN("it is retransmitted a bounded number of times, then the peer is reported") {
         REQUIRE(rounds == Reliability::MAX_RETRANSMITS);
+        REQUIRE_FALSE(failed.empty());
+        REQUIRE(failed.front().target == target);
+        REQUIRE(failed.front().packet_id == 1);
+        REQUIRE(failed.front().hash == 0x1234);
+        REQUIRE(failed.front().unacked == 4);
+        REQUIRE(failed.front().retransmits == Reliability::MAX_RETRANSMITS);
+    }
 
-        // Nothing further, no matter how long we wait
+    THEN("the packet is not silently dropped, it stays tracked until the peer is removed") {
+        // Reported again rather than forgotten, because a reliable send must not be abandoned quietly
+        failed.clear();
         t += std::chrono::hours(1);
-        REQUIRE(rel.check_retransmissions(100, t).empty());
+        rel.check_retransmissions(100, failed, t);
+        REQUIRE_FALSE(failed.empty());
+
+        // Removing the peer is what clears it
+        rel.remove_peer(target);
+        failed.clear();
+        t += std::chrono::hours(1);
+        REQUIRE(rel.check_retransmissions(100, failed, t).empty());
+        REQUIRE(failed.empty());
     }
 }
 
