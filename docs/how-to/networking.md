@@ -81,6 +81,19 @@ The messages come out through the normal NUClear logging system as `LogMessage`s
 see them alongside everything else.
 Leaving `log_level` as `UNKNOWN` disables the networking logs entirely, which is the default.
 
+What each level adds:
+
+| Level   | What is logged                                                                                                        |
+| ------- | --------------------------------------------------------------------------------------------------------------------- |
+| `INFO`  | Startup and teardown: `reset` with the resolved name, announce address and MTU, and `shutdown`                          |
+| `WARN`  | Recoverable problems: packets that could not be sent or parsed, peers that could not be resolved                        |
+| `DEBUG` | State changes: peers appearing and leaving, handshake transitions, subscription changes, dropped sends                  |
+| `TRACE` | Per poll cycle instrumentation: `process` begin and end, announces sent, socket reads, and the next scheduled wake up   |
+
+`DEBUG` is event driven, so it stays quiet on an idle network.
+`TRACE` fires on every call to `process()` regardless of whether anything happened, so it is several times noisier
+again and is intended for debugging the networking itself.
+
 When NUClearNet is used as a standalone library (without the reactor framework) the messages are written to
 stderr instead. Call `NUClearNet::set_log_handler` to redirect them into your own logging system:
 
