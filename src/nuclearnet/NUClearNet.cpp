@@ -62,6 +62,23 @@ namespace {
 #endif
     }
 
+    /**
+     * Ask for a larger socket buffer than the system default.
+     *
+     * A multi fragment message is written in a tight loop, so the whole message can land in the receive buffer
+     * before the reader gets a chance to drain it. At the common 208KB default that caps a single burst at
+     * roughly 90 fragments and everything past that is dropped, costing a retransmission round trip per
+     * 90 fragments. Best effort — the OS silently clamps to its maximum and there is nothing useful to do if
+     * it refuses entirely.
+     */
+    void set_socket_buffers(fd_t fd) {
+        static constexpr int BUFFER_SIZE = 4 * 1024 * 1024;
+        int size                         = BUFFER_SIZE;
+        ::setsockopt(fd, SOL_SOCKET, SO_RCVBUF, reinterpret_cast<const char*>(&size), sizeof(size));
+        size = BUFFER_SIZE;
+        ::setsockopt(fd, SOL_SOCKET, SO_SNDBUF, reinterpret_cast<const char*>(&size), sizeof(size));
+    }
+
     /// Returns true for errors that indicate the socket itself is dead (interface down, fd invalid).
     /// These warrant closing and reopening the sockets rather than silently dropping the packet.
     bool is_fatal_socket_error(int err) {
@@ -196,6 +213,7 @@ namespace {
 
             int yes = 1;
             ::setsockopt(fd, SOL_SOCKET, SO_BROADCAST, reinterpret_cast<const char*>(&yes), sizeof(yes));
+            set_socket_buffers(fd);
 
             if (::bind(fd, &data_bind.sock, data_bind.size()) != 0) {
                 ::close(fd);
@@ -239,6 +257,7 @@ namespace {
             ::setsockopt(fd, SOL_SOCKET, SO_REUSEPORT, reinterpret_cast<const char*>(&yes), sizeof(yes));
 #endif
             ::setsockopt(fd, SOL_SOCKET, SO_BROADCAST, reinterpret_cast<const char*>(&yes), sizeof(yes));
+            set_socket_buffers(fd);
 
             if (::bind(fd, &bind_addr.sock, bind_addr.size()) != 0) {
                 ::close(fd);
@@ -753,7 +772,19 @@ namespace {
             return;
         }
 
-        // Drop messages we are not subscribed to (relevant for multicast broadcast data)
+        // Acknowledge the fragment before deciding what to do with it. The sender retransmits until it is
+        // acknowledged, so anything we deliberately discard below still has to be acknowledged or the sender
+        // would retransmit it forever.
+        if ((pkt->flags & RELIABLE) != 0) {
+            std::vector<bool> received(pkt->packet_count, false);
+            received[pkt->packet_no] = true;
+            auto ack = Reliability::build_ack_packet(pkt->packet_id, pkt->packet_count, received);
+            send_buf(data_fd, source, ack.data(), ack.size());
+        }
+
+        // Drop messages we are not subscribed to (relevant for multicast broadcast data).
+        // Our subscriptions can change while a reliable send is already in flight, so this is reachable
+        // for a packet the sender still believes we want.
         if (!routing.is_locally_subscribed(pkt->hash)) {
             return;
         }
@@ -794,14 +825,6 @@ namespace {
                                                             frag_data,
                                                             frag_length,
                                                             assembled);
-
-        // Send ACK for reliable packets
-        if ((pkt->flags & RELIABLE) != 0) {
-            std::vector<bool> received(pkt->packet_count, false);
-            received[pkt->packet_no] = true;
-            auto ack = Reliability::build_ack_packet(pkt->packet_id, pkt->packet_count, received);
-            send_buf(data_fd, source, ack.data(), ack.size());
-        }
 
         // If we have a complete message, deliver it
         if (has_assembled) {

@@ -32,6 +32,7 @@
 #include <utility>
 #include <vector>
 
+#include "Log.hpp"
 #include "RTTEstimator.hpp"
 #include "wire_protocol.hpp"
 
@@ -146,8 +147,8 @@ namespace network {
 
         const std::lock_guard<std::mutex> lock(tracking_mutex);
 
-        for (auto& entry : tracked_packets) {
-            auto& tp = entry.second;
+        for (auto it = tracked_packets.begin(); it != tracked_packets.end();) {
+            auto& tp = it->second;
 
             // Get the timeout for this peer
             std::chrono::steady_clock::duration rto;
@@ -156,12 +157,36 @@ namespace network {
                 rto = rtt_estimators[tp.target].timeout();
             }
 
+            // Back the timeout off exponentially while the packet goes unacknowledged, so a peer that cannot
+            // acknowledge it is retried at a decaying rate rather than a constant one
+            rto *= 1 << std::min(tp.retransmit_count, MAX_BACKOFF_SHIFT);
+
             // Check if it's time to retransmit
             if (now - tp.last_send < rto) {
+                ++it;
                 continue;
             }
 
-            // Retransmit unacked fragments (continues until peer is removed)
+            // Give up rather than retransmitting forever. Without this a single message the peer will never
+            // acknowledge becomes a permanent load, and every further one adds to it.
+            if (tp.retransmit_count >= MAX_RETRANSMITS) {
+                if (should_log(LogLevel::Warn)) {
+                    std::size_t unacked = 0;
+                    for (uint16_t i = 0; i < tp.packet_count; ++i) {
+                        unacked += tp.acked[i] ? 0 : 1;
+                    }
+                    log(LogLevel::Warn,
+                        "reliability",
+                        "giving up on packet_id=" + std::to_string(tp.packet_id) + " hash=" + hash_hex(tp.hash)
+                            + " peer=" + sock_str(tp.target) + " after " + std::to_string(tp.retransmit_count)
+                            + " retransmits with " + std::to_string(unacked) + "/"
+                            + std::to_string(tp.packet_count) + " fragments unacknowledged");
+                }
+                it = tracked_packets.erase(it);
+                continue;
+            }
+
+            // Retransmit unacked fragments
             for (uint16_t i = 0; i < tp.packet_count; ++i) {
                 if (!tp.acked[i]) {
                     RetransmitRequest req;
@@ -183,6 +208,7 @@ namespace network {
 
             tp.last_send = now;
             tp.retransmit_count++;
+            ++it;
         }
 
         return retransmissions;

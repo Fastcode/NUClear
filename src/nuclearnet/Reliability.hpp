@@ -50,6 +50,18 @@ namespace network {
     public:
         using sock_t = util::network::sock_t;
 
+        /**
+         * How many times a packet group is retransmitted before it is given up on.
+         *
+         * A peer that stays connected but never acknowledges a particular packet would otherwise have it
+         * retransmitted forever, so one undeliverable message becomes a permanent load that grows every time
+         * another one joins it.
+         */
+        static constexpr uint16_t MAX_RETRANSMITS = 10;
+
+        /// How many times the retransmission timeout is allowed to double while a packet goes unacknowledged
+        static constexpr uint16_t MAX_BACKOFF_SHIFT = 6;
+
         /// Information about a fragment that needs retransmitting
         struct RetransmitRequest {
             sock_t target{};

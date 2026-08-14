@@ -112,7 +112,7 @@ SCENARIO("Reliability removes tracked packet when all fragments ACKed", "[nuclea
     REQUIRE(retransmissions.empty());
 }
 
-SCENARIO("Reliability retransmits indefinitely until peer is removed", "[nuclearnet][reliability]") {
+SCENARIO("Reliability retransmits until the peer is removed", "[nuclearnet][reliability]") {
     Reliability rel;
 
     const sock_t target = make_addr(0x0A000001, 5000);
@@ -124,22 +124,16 @@ SCENARIO("Reliability retransmits indefinitely until peer is removed", "[nuclear
     // Inject short RTT
     rel.get_rtt(target).measure(std::chrono::milliseconds(10));
 
-    // First retransmission (T+150ms, past min_rto of 100ms)
-    auto r1 = rel.check_retransmissions(100, t + std::chrono::milliseconds(150));
-    REQUIRE(r1.size() == 1);
-
-    // Second retransmission (T+300ms, 150ms since last_send was updated to T+150ms)
-    auto r2 = rel.check_retransmissions(100, t + std::chrono::milliseconds(300));
-    REQUIRE(r2.size() == 1);
-
-    // Third retransmission still works — no limit
-    auto r3 = rel.check_retransmissions(100, t + std::chrono::milliseconds(450));
-    REQUIRE(r3.size() == 1);
+    // Each retransmission waits longer than the last, so step well past the backed off timeout each time
+    for (std::size_t i = 0; i < 3; ++i) {
+        t += std::chrono::seconds(60);
+        REQUIRE(rel.check_retransmissions(100, t).size() == 1);
+    }
 
     // Removing the peer cleans up all tracked packets
     rel.remove_peer(target);
-    auto r4 = rel.check_retransmissions(100, t + std::chrono::milliseconds(600));
-    REQUIRE(r4.empty());
+    t += std::chrono::seconds(60);
+    REQUIRE(rel.check_retransmissions(100, t).empty());
 }
 
 SCENARIO("Reliability build_ack_packet encodes bitset correctly", "[nuclearnet][reliability]") {
@@ -169,4 +163,53 @@ SCENARIO("Reliability remove_peer removes all tracked state", "[nuclearnet][reli
     // After removing, no retransmissions should occur even well past RTO
     auto retransmissions = rel.check_retransmissions(100, t + std::chrono::milliseconds(500));
     REQUIRE(retransmissions.empty());
+}
+
+SCENARIO("Reliability gives up on a packet that is never acknowledged", "[nuclearnet][reliability]") {
+    Reliability rel;
+
+    const sock_t target = make_addr(0x0A000001, 5000);
+    const std::vector<uint8_t> payload(100, 0xFF);
+
+    auto t = std::chrono::steady_clock::now();
+    rel.track_packet(target, 1, 1, 0x1234, 0x01, payload.data(), payload.size(), t);
+
+    // Walk far enough forward each time that the backed off timeout has always expired
+    std::size_t rounds = 0;
+    for (std::size_t i = 0; i < Reliability::MAX_RETRANSMITS + 5; ++i) {
+        t += std::chrono::seconds(60);
+        if (!rel.check_retransmissions(100, t).empty()) {
+            ++rounds;
+        }
+    }
+
+    THEN("it is retransmitted a bounded number of times and then dropped") {
+        REQUIRE(rounds == Reliability::MAX_RETRANSMITS);
+
+        // Nothing further, no matter how long we wait
+        t += std::chrono::hours(1);
+        REQUIRE(rel.check_retransmissions(100, t).empty());
+    }
+}
+
+SCENARIO("Reliability backs off the retransmit timeout while unacknowledged", "[nuclearnet][reliability]") {
+    Reliability rel;
+
+    const sock_t target = make_addr(0x0A000001, 5000);
+    const std::vector<uint8_t> payload(100, 0xFF);
+
+    auto t = std::chrono::steady_clock::now();
+    rel.track_packet(target, 1, 1, 0x1234, 0x01, payload.data(), payload.size(), t);
+    rel.get_rtt(target).measure(std::chrono::milliseconds(50));
+    const auto rto = rel.get_rtt(target).timeout();
+
+    // First retransmit happens after one RTO
+    REQUIRE_FALSE(rel.check_retransmissions(100, t + rto).empty());
+
+    THEN("the next one does not happen until roughly twice as long has passed") {
+        // Not yet at 1x RTO after the retransmit
+        REQUIRE(rel.check_retransmissions(100, t + rto + rto).empty());
+        // But it does once 2x has passed
+        REQUIRE_FALSE(rel.check_retransmissions(100, t + rto + (2 * rto)).empty());
+    }
 }
