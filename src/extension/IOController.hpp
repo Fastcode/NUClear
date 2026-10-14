@@ -43,18 +43,14 @@ namespace extension {
         using tasks_t   = std::map<WSAEVENT, Task>;
         struct notifier_t {
             WSAEVENT notifier{WSA_INVALID_EVENT};  ///< This is the event that is waited on by WSAWaitForMultipleEvents
-            std::mutex mutex;                      ///< This mutex is used to ensure that wait has woken up
         };
 #else
         using event_t   = decltype(pollfd::events);
         using watcher_t = pollfd;
         using tasks_t   = std::vector<Task>;
         struct notifier_t {
-            fd_t recv{-1};     ///< This is the file descriptor that is waited on by poll
-            fd_t send{-1};     ///< This is the file descriptor that is written to to wake up the poll command
-            std::mutex mutex;  ///< This mutex is used to ensure that a write to poll has worked
-            /// Armed by NotifierWakeGuard during the wake-then-lock handoff; checked under mutex before ::poll().
-            std::atomic<bool> wake_requested{false};
+            fd_t recv{-1};  ///< This is the file descriptor that is waited on by poll
+            fd_t send{-1};  ///< This is the file descriptor that is written to to wake up the poll command
         };
 #endif
 
@@ -95,6 +91,13 @@ namespace extension {
         };
 
     private:
+        /// Dedicated single-consumer pool for scheduler-driven IO polling.
+        struct IOPool {
+            static constexpr const char* name     = "IOController";
+            static constexpr int concurrency      = 1;
+            static constexpr bool counts_for_idle = false;
+        };
+
         /**
          * Rebuilds the list of file descriptors to poll.
          *
@@ -121,8 +124,7 @@ namespace extension {
          * If the poll command is waiting it will wait forever if something doesn't happen.
          * When trying to update what to poll or shut down we need to wake it up so it can.
          */
-        // NOLINTNEXTLINE(readability-make-member-function-const) this changes states
-        void bump();
+        void bump() const;
 
     public:
         explicit IOController(std::unique_ptr<NUClear::Environment> environment);
@@ -133,8 +135,6 @@ namespace extension {
         /// If the IOController should continue running
         std::atomic<bool> running{true};
 
-        /// The mutex that protects the tasks list
-        std::mutex tasks_mutex;
         /// Whether or not the list of file descriptors is dirty compared to tasks
         std::atomic<bool> dirty{true};
         /// The list of events that are being watched

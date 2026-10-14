@@ -30,7 +30,6 @@
 #include "../store/ThreadStore.hpp"
 #include "../trait/is_transient.hpp"
 #include "Single.hpp"
-#include "emit/Inline.hpp"
 
 namespace NUClear {
 namespace dsl {
@@ -132,13 +131,13 @@ namespace dsl {
             static void bind(const std::shared_ptr<threading::Reaction>& reaction, fd_t fd, event_t watch_set) {
 
                 reaction->unbinders.emplace_back([](const threading::Reaction& r) {
-                    r.reactor.emit<emit::Inline>(std::make_unique<operation::Unbind<IO>>(r.id));
+                    r.reactor.emit(std::make_unique<operation::Unbind<IO>>(r.id));
                 });
 
                 auto io_config = std::make_unique<IOConfiguration>(fd, watch_set, reaction);
 
                 // Send our configuration out
-                reaction->reactor.emit<emit::Inline>(io_config);
+                reaction->reactor.emit(io_config);
             }
 
             template <typename DSL>
@@ -155,7 +154,7 @@ namespace dsl {
 
             template <typename DSL>
             static void post_run(threading::ReactionTask& task) {
-                task.parent->reactor.emit<emit::Inline>(std::make_unique<IOFinished>(task.parent->id));
+                task.parent->reactor.emit(std::make_unique<IOFinished>(task.parent->id));
             }
         };
 
