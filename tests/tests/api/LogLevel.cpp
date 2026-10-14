@@ -24,19 +24,22 @@
 
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/generators/catch_generators.hpp>
+#include <catch2/generators/catch_generators_range.hpp>
 #include <sstream>
 #include <string>
 #include <tuple>
+#include <vector>
 
 SCENARIO("LogLevel smart enum values can be constructed and converted appropriately") {
     GIVEN("A LogLevel and a corresponding string representation") {
-        const auto test = GENERATE(
-            table<std::string, NUClear::LogLevel::Value>({std::make_tuple("TRACE", NUClear::LogLevel::TRACE),
-                                                          std::make_tuple("DEBUG", NUClear::LogLevel::DEBUG),
-                                                          std::make_tuple("INFO", NUClear::LogLevel::INFO),
-                                                          std::make_tuple("WARN", NUClear::LogLevel::WARN),
-                                                          std::make_tuple("ERROR", NUClear::LogLevel::ERROR),
-                                                          std::make_tuple("FATAL", NUClear::LogLevel::FATAL)}));
+        const auto test = GENERATE(table<std::string, NUClear::LogLevel::Value>({
+            std::make_tuple("TRACE", NUClear::LogLevel::TRACE),
+            std::make_tuple("DEBUG", NUClear::LogLevel::DEBUG),
+            std::make_tuple("INFO", NUClear::LogLevel::INFO),
+            std::make_tuple("WARN", NUClear::LogLevel::WARN),
+            std::make_tuple("ERROR", NUClear::LogLevel::ERROR),
+            std::make_tuple("FATAL", NUClear::LogLevel::FATAL),
+        }));
 
         const auto& expected_str   = std::get<0>(test);
         const auto& expected_value = std::get<1>(test);
@@ -89,18 +92,16 @@ SCENARIO("LogLevel smart enum values can be constructed and converted appropriat
 
 SCENARIO("LogLevel comparison operators work correctly") {
     GIVEN("Two LogLevel enum values") {
-        const NUClear::LogLevel::Value v1 = GENERATE(NUClear::LogLevel::TRACE,
-                                                     NUClear::LogLevel::DEBUG,
-                                                     NUClear::LogLevel::INFO,
-                                                     NUClear::LogLevel::WARN,
-                                                     NUClear::LogLevel::ERROR,
-                                                     NUClear::LogLevel::FATAL);
-        const NUClear::LogLevel::Value v2 = GENERATE(NUClear::LogLevel::TRACE,
-                                                     NUClear::LogLevel::DEBUG,
-                                                     NUClear::LogLevel::INFO,
-                                                     NUClear::LogLevel::WARN,
-                                                     NUClear::LogLevel::ERROR,
-                                                     NUClear::LogLevel::FATAL);
+        const std::vector<NUClear::LogLevel::Value> levels = {
+            NUClear::LogLevel::TRACE,
+            NUClear::LogLevel::DEBUG,
+            NUClear::LogLevel::INFO,
+            NUClear::LogLevel::WARN,
+            NUClear::LogLevel::ERROR,
+            NUClear::LogLevel::FATAL,
+        };
+        const NUClear::LogLevel::Value v1 = GENERATE_COPY(from_range(levels));
+        const NUClear::LogLevel::Value v2 = GENERATE_COPY(from_range(levels));
 
         WHEN("one smart enum value is constructed") {
             const NUClear::LogLevel ll1(v1);
@@ -175,12 +176,15 @@ SCENARIO("LogLevel comparison operators work correctly") {
 
 SCENARIO("LogLevel can be used in switch statements") {
     GIVEN("A LogLevel") {
-        auto test         = GENERATE(table<std::string, NUClear::LogLevel::Value>({{"TRACE", NUClear::LogLevel::TRACE},
-                                                                                   {"DEBUG", NUClear::LogLevel::DEBUG},
-                                                                                   {"INFO", NUClear::LogLevel::INFO},
-                                                                                   {"WARN", NUClear::LogLevel::WARN},
-                                                                                   {"ERROR", NUClear::LogLevel::ERROR},
-                                                                                   {"FATAL", NUClear::LogLevel::FATAL}}));
+        auto test = GENERATE(table<std::string, NUClear::LogLevel::Value>({
+            {"TRACE", NUClear::LogLevel::TRACE},
+            {"DEBUG", NUClear::LogLevel::DEBUG},
+            {"INFO", NUClear::LogLevel::INFO},
+            {"WARN", NUClear::LogLevel::WARN},
+            {"ERROR", NUClear::LogLevel::ERROR},
+            {"FATAL", NUClear::LogLevel::FATAL},
+        }));
+
         const auto& str   = std::get<0>(test);
         const auto& value = std::get<1>(test);
         const NUClear::LogLevel log_level(value);

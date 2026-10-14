@@ -6,7 +6,7 @@ Returns the priority level for this task in the scheduling queue.
 
 ```cpp
 template <typename DSL>
-static int priority(const threading::ReactionTask& task)
+static PriorityLevel priority(const threading::ReactionTask& task)
 ```
 
 ## Details
@@ -15,7 +15,7 @@ static int priority(const threading::ReactionTask& task)
 | ----------- | ---------------------------------------------------------------------------- |
 | **When**    | Task creation (determines queue ordering)                                    |
 | **Thread**  | The emitter's thread (the thread that called `emit()`)                       |
-| **Returns** | `int` — higher values mean higher priority                                   |
+| **Returns** | `PriorityLevel` — higher levels are scheduled before lower ones              |
 | **Fusion**  | Maximum value wins. If multiple words provide priority, the highest is used. |
 
 ## Context & Arguments
@@ -28,22 +28,28 @@ The returned value determines where the task sits in the scheduler's priority qu
 Higher priority tasks are dequeued and executed before lower priority ones.
 
 Priority does **not** preempt running tasks — it only affects queue ordering.
+When a task runs, the OS thread priority is set via `ThreadPriority` RAII for the duration of the callback.
 
 ## Example
 
 ```cpp
 struct HighPriority {
     template <typename DSL>
-    static int priority(const threading::ReactionTask& /*task*/) {
-        return 750;  // Same as Priority::HIGH
+    static PriorityLevel priority(const threading::ReactionTask& /*task*/) {
+        return PriorityLevel::HIGH;
     }
 };
 ```
 
 ## Built-in Words Using priority
 
-- `Priority::REALTIME` — value 1000
-- `Priority::HIGH` — value 750
-- `Priority::NORMAL` — value 500 (default)
-- `Priority::LOW` — value 250
-- `Priority::IDLE` — value 0
+- `Priority::REALTIME`
+- `Priority::HIGHEST`
+- `Priority::HIGH`
+- `Priority::NORMAL` — default
+- `Priority::LOW`
+- `Priority::LOWEST`
+- `Priority::IDLE`
+
+The scheduler maps these DSL levels onto five internal buckets (`REALTIME`, `HIGH`, `NORMAL`, `LOW`, `IDLE`).
+`LOWEST` shares the `LOW` bucket; `HIGHEST` shares the `HIGH` bucket.
